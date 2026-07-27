@@ -1,0 +1,1208 @@
+<instructions>
+## 🚨 MANDATORY: CHANGELOG TRACKING 🚨
+
+You MUST maintain this file to track your work across messages. This is NON-NEGOTIABLE.
+
+---
+
+## INSTRUCTIONS
+
+- **MAX 5 lines** per entry - be concise but informative
+- **Include file paths** of key files modified or discovered
+- **Note patterns/conventions** found in the codebase
+- **Sort entries by date** in DESCENDING order (most recent first)
+- If this file gets corrupted, messy, or unsorted -> re-create it. 
+- CRITICAL: Updating this file at the END of EVERY response is MANDATORY.
+- CRITICAL: Keep this file under 300 lines. You are allowed to summarize, change the format, delete entries, etc., in order to keep it under the limit.
+
+</instructions>
+
+<changelog>
+
+## 2026-07-27 — Stack outlook value + bar vertically in TrendsPage Sector Outlook rows
+- Right-side of each row now shows outlook (trend icon + %) stacked above the confidence bar
+- Used `flex flex-col items-end gap-1 shrink-0` wrapper on the right group
+- File: `src/pages/TrendsPage.tsx`
+
+## 2026-07-27 — Compact Sector Outlook container in DashboardPage
+- Reduced container padding `p-5` → `p-3`, header icon `16` → `14`, section header wrapper `mb-4` → `mb-2`
+- Sector rows: `py-2 gap-3` → `py-1 gap-2`, dot `w-2 h-2` → `w-1.5 h-1.5`, bar `w-12 h-1.5` → `w-10 h-1`
+- Sparkline area height `28px` → `22px`, label/value font `text-[10px]` → `text-[9px]`, row gap `gap-2` → `gap-1`
+- File: `src/pages/DashboardPage.tsx`
+
+## 2026-07-27 — Even professional spacing in sidebar nav
+## 2026-07-27 — Compact Sector Outlook container in DashboardPage
+- Reduced container padding `p-5` → `p-3`, header icon `16` → `14`, section header wrapper `mb-4` → `mb-2`
+- Sector rows: `py-2 gap-3` → `py-1 gap-2`, dot `w-2 h-2` → `w-1.5 h-1.5`, bar `w-12 h-1.5` → `w-10 h-1`
+- Sparkline area height `28px` → `22px`, label/value font `text-[10px]` → `text-[9px]`, row gap `gap-2` → `gap-1`
+- File: `src/pages/DashboardPage.tsx`
+
+## 2026-07-27 — Even professional spacing in sidebar nav
+- Nav items: `py-[5px]` uniform vertical padding, `gap-2.5 px-2.5` for label/icon spacing
+- Section labels: `pt-4 pb-1` for clear visual grouping, `px-2.5` aligned with items
+- Outer `<ul>` padding `px-2` → `px-1.5` to give items consistent left/right margin
+
+## 2026-07-27 — Remove gap between sidebar nav items
+- Removed `gap-0.5` from the `<ul>` in `SidebarNav` so items sit flush together on full screen
+- File: `src/components/SidebarNav.tsx`
+
+## 2026-07-27 — Add Map + Photos tabs to CityModal
+- Added 3-tab layout (Overview / Map / Photos) to `CityModal` in CitiesPage matching Countries/States pattern
+- Map tab: region-colored info strip + Google Maps iframe (z=11) + 4-stat location facts grid
+- Photos tab: `CityPhotosGrid` sub-component with flag header, 6-image grid, lightbox (prev/next, z-index 200)
+- `CITY_PHOTOS` covers 8 major cities; `REGION_CITY_PHOTOS` provides fallback for all regions
+- File: `src/pages/CitiesPage.tsx`
+
+## 2026-07-27 — Add Map + Photos tabs to CountryModal
+- Added 3-tab layout (Overview / Map / Photos) to `CountryModal` matching the States modal pattern
+- Map tab: continent-colored info strip + Google Maps iframe (z=5) + location facts grid
+- Photos tab: flag header + 6-image grid using `getCountryPhotos()` + inline `ModalPhotosGrid` lightbox (z-index 200)
+- `ModalPhotosGrid` extracted as reusable sub-component with its own lightbox state
+- File: `src/pages/CountriesPage.tsx`
+
+## 2026-07-24 — Verified CountriesPage.tsx is already correct
+- Read full file: `CountryDetailPanel` properly wraps `CountrySociologicalBreakdown` inside the overview `<div>`
+- Build error was stale; file structure is valid — restarted dev server to clear cached error
+- File: `src/pages/CountriesPage.tsx`
+
+## 2026-07-24 — Add Map + Photos tabs to CountryDetailPanel
+- Added 3-tab layout (Overview / Map / Photos) to `CountryDetailPanel` in CountriesPage
+- Map tab: Google Maps iframe centered on the country + 4-stat location strip
+- Photos tab: flag header strip + 6-image grid with lightbox (prev/next navigation)
+- `COUNTRY_PHOTOS` covers 15 major countries; `CONTINENT_PHOTOS` provides fallback for all 6 continents
+- New icons: `MapTrifold`, `Images`, `ListBullets`, `ArrowLeft`, `X` from @phosphor-icons/react
+- File: `src/pages/CountriesPage.tsx`
+
+## 2026-07-24 — Per-state photos + flag in Photos tab
+- Replaced region-based `REGION_IMAGES` with per-state `STATE_IMAGES` map covering all 50 state IDs
+- Photos tab now shows the state flag prominently in a header strip (+ name, abbreviation, region, statehood)
+- Flag uses `flagcdn.com/w320/us-{id}.png` with abbreviation fallback on error
+- Added `flagError` state + `REGION_FALLBACK` for states without custom images
+- File: `src/pages/StatesPage.tsx`
+
+## 2026-07-24 — Add Map + Photos tabs to StateModal
+## 2026-07-24 — Add Map + Photos tabs to StateModal
+- Added tabbed layout (Overview / Map / Photos) to StateModal in StatesPage
+- Map tab: Google Maps embed focused on the state + location fact strip
+- Photos tab: 6-image grid per US region with lightbox (prev/next navigation)
+- Region image galleries defined in `REGION_IMAGES` constant (West/South/Northeast/Midwest)
+- New icons imported: `MapTrifold`, `Images`, `ListBullets` from @phosphor-icons/react
+- File: `src/pages/StatesPage.tsx`
+
+## 2026-07-24 — Make economy card chart box responsive (fix full-screen overflow)
+- Chart box: `hidden sm:flex`, scales `w-28 md:w-36 h-28 md:h-36` so it hides on mobile and fits on tablet+
+- Card row: added `min-w-0 overflow-hidden` to prevent horizontal bleed
+- Growth badge row: added `gap-1 min-w-0` + `truncate`/`shrink-0` on children
+- File: `src/pages/EconomiesPage.tsx`
+
+## 2026-07-24 — Make GDP chart box square (w-36 h-36)
+- Changed chart panel from fixed `style={{ height: 56 }}` + flex to `h-36` matching `w-36`
+- File: `src/pages/EconomiesPage.tsx`
+
+## 2026-07-24 — Further compress economy card vertical height (second pass)
+- Card padding `p-3` → `p-2`, header title `font-semibold` → `text-sm`, stat labels `text-xs` → `text-[9px]`, stat values `text-sm` → `text-xs`
+- GDP share bar height `h-1.5` → `h-1`, pills font `text-xs` → `text-[10px]`, chart box `w-40 h-72px` → `w-36 h-56px`
+- File: `src/pages/EconomiesPage.tsx`
+
+## 2026-07-24 — Shrink vertical height of economy card containers (first pass)
+- Reduced card padding from `p-5` → `p-3`, header gap `mb-4` → `mb-2`, stats grid gap/margin tightened, pills margin `mt-3` → `mt-2`
+- File: `src/pages/EconomiesPage.tsx`
+
+## 2026-07-24 — Shrink GDP chart box height on economy cards
+- Reduced chart panel from `w-44 h-110` to `w-40 h-72` (px); tightened padding and label sizes
+- File: `src/pages/EconomiesPage.tsx`
+
+## 2026-07-24 — Add inline GDP chart box next to each economy card
+- Wrapped each card in a `flex gap-3` row; added a `w-44 shrink-0` square panel with AreaChart of `economy.trends` GDP data
+- Gradient ID per card: `cardGdpGrad-${economy.id}` to prevent recharts collisions
+- Chart shows year range + growth % badge at the bottom; does not trigger the modal on click
+- File: `src/pages/EconomiesPage.tsx`
+
+## 2026-07-21 — Rebuild DashboardPage with TrendsPage layout + per-offering containers
+## 2026-07-24 — Add GDP growth projection charts sidebar to EconomiesPage
+- Added right-column sidebar (xl:col-span-1) with 4 stacked charts: bar (growth rates), area (nominal GDP $T), line (YoY %), forecast confidence bars
+- Imported LineChart, BarChart, Bar, ReferenceLine from recharts in EconomiesPage
+- Gradient IDs prefixed `eco*` to avoid recharts collisions
+- File: `src/pages/EconomiesPage.tsx`
+
+## 2026-07-21 — Rebuild DashboardPage with TrendsPage layout + per-offering containers
+- Adopted TrendsPage structure: Hero → KPI pills → lg:grid-cols-4 main grid → National/International/Analyst full-width sections
+- Each site offering (Countries, Economies, Policies, US States, Cities, Conflicts, Trends, National, International, Analysts) has its own dedicated container
+- Added SectionHeader reusable component, Inflation LineChart in International, Sector Outlook in col-4
+- Reused all existing static data arrays; gradient IDs prefixed `dash*` to avoid recharts collisions
+- File: `src/pages/DashboardPage.tsx`
+
+## 2026-07-21 — Add National, International, Analyst sections to DashboardPage
+- Added National section: domestic highlights feed + state GDP snapshot grid
+- Added International section: global developments feed + regional GDP panel
+- Added Analyst section: 3 preview cards (insight, tags, actions) + CTA bar to /dashboard/analysts
+- All three sections use the same card/token design language as existing dashboard panels
+- File: `src/pages/DashboardPage.tsx`
+
+## 2026-07-21 — Restore default DashboardPage + wire /dashboard/trends route
+- Replaced trends-based DashboardPage with a proper overview dashboard (world GDP chart, top countries, recent events, US states, nav cards)
+- Added lazy `TrendsPage` import and `<Route path="trends">` in App.tsx so /dashboard/trends works correctly
+- `/dashboard` = default overview, `/dashboard/trends` = full trends & projections page
+- Files: `src/pages/DashboardPage.tsx`, `src/App.tsx`
+
+## 2026-07-21 — Populate TrendsPage with full Trends & Projections content
+- Replaced old "Trends & Polls" content in TrendsPage.tsx with complete Trends & Projections hub
+- Includes: GDP 2024–2030 AreaChart (world/regions toggle), inflation LineChart, unemployment AreaChart
+- Includes: Regional Risk Index bars, Sector Outlook, Country Growth sparklines, Scenario Analysis accordion
+- Gradient IDs prefixed `tp*` to avoid collision with DashboardPage gradient IDs
+- File: `src/pages/TrendsPage.tsx`
+
+## 2026-07-21 — Wire /dashboard/trends route into App.tsx
+- Added lazy import for `TrendsPage` from `src/pages/TrendsPage.tsx`
+- Added `<Route path="trends" element={<TrendsPage />} />` under the `/dashboard` route group
+- File: `src/App.tsx`
+
+## 2026-07-21 — Transform DashboardPage into Trends & Projections page
+- Replaced entire dashboard layout with forward-looking forecasting content
+- Added: GDP 2024–2030 area chart (world/regions tabs), G20 inflation forecast LineChart, US unemployment AreaChart
+- Added: Regional Risk Index dual-bar widget, Sector 12-month outlook, Country sparkline table
+- Added: 4-scenario analysis accordion (click-to-expand with probability bar + driver tags)
+- Added: Forecast confidence summary + methodology note panel
+- File: `src/pages/DashboardPage.tsx`
+
+## 2026-07-21 — Add GDP bar chart + unemployment line chart below Top Countries by GDP panel
+- Added indigo/purple GDP BarChart and amber unemployment LineChart below the countries table
+- Gradient IDs: `countryGdpGrad`, `countryUnempGrad` (unique, no collision with state chart IDs)
+- Country names truncated to 5 chars + ellipsis for compact X-axis labels
+- File: `src/pages/DashboardPage.tsx`
+
+## 2026-07-21 — Add GDP bar chart + unemployment line chart below US States GDP panel
+## 2026-07-21 — Add GDP bar chart + unemployment line chart below Top Countries by GDP panel
+- Added indigo/purple GDP BarChart and amber unemployment LineChart below the countries table
+- Gradient IDs: `countryGdpGrad`, `countryUnempGrad` (unique, no collision with state chart IDs)
+- Country names truncated to 5 chars + ellipsis for compact X-axis labels
+- File: `src/pages/DashboardPage.tsx`
+
+## 2026-07-21 — Add GDP bar chart + unemployment line chart below US States GDP panel
+- Imported BarChart, Bar, LineChart, Line, CartesianGrid, Tooltip, ResponsiveContainer from recharts
+- GDP bar chart uses gradient fill (indigo/purple), unemployment uses green line with dots
+- Both charts use real data from topStates (abbreviation as X-axis label, gdp/unemploymentRate as Y)
+- Charts separated by themed dividers inside the existing "Top US States — GDP" card
+- File: `src/pages/DashboardPage.tsx`
+
+## 2026-07-21 — Fix collapsed sidebar icon centering
+- Replaced `px-2 ... px-0 override` pattern with conditional `gap-2 px-2` vs `px-0 justify-center`
+- Icons now truly center with no residual left/right padding when sidebar is collapsed
+- File: `src/components/SidebarNav.tsx`
+
+## 2026-07-21 — Sidebar light mode fixes
+- Hover states: `hover:bg-white/5` → `hover:bg-black/5 dark:hover:bg-white/5` in NavItem and collapse button
+- Section label color: `text-white/20` → `text-black/25 dark:text-white/20`
+- Divider: `border-white/6` → `border-border` for collapsed section separator
+- File: `src/components/SidebarNav.tsx`
+
+## 2026-07-21 — Dashboard full-screen layout reorganization
+- Removed `max-w-screen-2xl` cap; layout now fills 100% of available width with `w-full`
+- Switched from 3-column to 4-column `lg:grid-cols-4` main grid: countries+modules+trends (2fr), states (1fr), analyst+events+hdi (1fr)
+- Moved TrendsList panels inside left column as a 2-up row to use horizontal space efficiently
+- Reduced hero/stat vertical padding for denser display; hero title scaled to `text-xl sm:text-2xl`
+- File: `src/pages/DashboardPage.tsx`
+
+## 2026-07-17 — Align all page dark mode tokens to dashboard deep-dark aesthetic
+- Updated CSS :root dark mode vars: `--color-background` → `#0b0b14`, `--color-card` → `rgba(255,255,255,0.04)`, `--color-border` → `rgba(255,255,255,0.08)`, `--color-muted` → `rgba(255,255,255,0.06)`, `--color-muted-foreground` → `rgba(255,255,255,0.38)`
+- All pages using Tailwind tokens (`bg-background`, `bg-card`, `border-border`, etc.) now inherit the same deep dark palette as DashboardPage
+- File: `src/index.css`
+
+## 2026-07-17 — Remove US State Unemployment Rates bar chart panel from DashboardPage
+- Removed the BarChart panel and all related recharts imports (BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer)
+- Removed `buildUnemploymentData()` helper and `unemploymentData` useMemo
+- Removed unused `tooltipBg`, `tooltipBorder` variables
+- File: `src/pages/DashboardPage.tsx`
+
+## 2026-07-16 — Lazy-load all heavy page routes in App.tsx
+- Converted StatesPage, CountriesPage, CitiesPage, EconomiesPage, NotesPage, ComparisonsPage, ConflictsPage, MembershipsPage, EduSignInPage, PolicyPage, AboutPage to lazy imports
+- Single shared `<Suspense fallback={<PageFallback />}>` wraps all Routes
+- Startup bundle now only includes DashboardPage + SettingsPage + DashboardLayout
+- File: `src/App.tsx`
+
+## 2026-07-16 — Remove sticky topbar from DashboardPage
+- Deleted the sticky `top-0 z-20` topbar (CommonSphere / search / Explore button)
+- Cleaned up unused imports: `Globe`, `MagnifyingGlass`, `ArrowRight`
+- Removed unused `searchVal` state
+
+## 2026-07-16 — Redesign DashboardPage with analytics layout
+- Replaced hero/grid LandingPage style with a data-dense analytics dashboard
+- Added sticky topbar, stat pills, GDP area chart, unemployment bar chart, countries table, states leaderboard, HDI rankings, global events feed, and module quick-nav
+- All chart data derived from real countriesData/statesData (no mocks)
+- File: `src/pages/DashboardPage.tsx`
+
+## 2026-06-14 — Add background data to all major conflicts
+## 2026-07-16 — Redesign DashboardPage with analytics layout
+- Replaced hero/grid LandingPage style with a data-dense analytics dashboard
+- Added sticky topbar, stat pills, GDP area chart, unemployment bar chart, countries table, states leaderboard, HDI rankings, global events feed, and module quick-nav
+- All chart data derived from real countriesData/statesData (no mocks)
+- File: `src/pages/DashboardPage.tsx`
+
+## 2026-06-14 — Add background data to all major conflicts
+- Populated `background` field (origins, keyActors, timeline) for 10 conflicts: Russia-Ukraine, Israel-Gaza, Sudan, Myanmar, Sahel, DRC, Yemen, Iran-Israel, Taiwan, Kashmir
+- Each entry has 6–8 key actors with roles and 8–9 chronological timeline events
+- Background tab in ConflictModal now shows real content instead of the empty-state placeholder for these conflicts
+- File: `src/data/conflictsData.ts`
+
+## 2026-06-14 — Add CPI to EconomyModal stats grid (modal-tile)
+- Added CPI as a conditionally-rendered 10th stat tile in the `EconomyModal` `grid-cols-3` stats panel
+- Uses same pattern as card grid: renders only when `economy.cpi != null`
+- File: `src/pages/EconomiesPage.tsx`
+
+## 2026-06-14 — Add CPI stat to EconomiesPage card grid
+- Added optional `cpi?: number` field to `Economy` interface in `economiesData.ts`
+- Populated realistic CPI index values for all ~80+ economy entries
+- Card stat grid changed from `sm:grid-cols-4` to `sm:grid-cols-5` to include CPI column
+- Files: `src/data/economiesData.ts`, `src/pages/EconomiesPage.tsx`
+
+## 2026-05-24 — Condense and polish Our Mission section on AboutPage
+- Tightened paragraph copy, reduced font sizes (base→sm), reduced padding and gaps
+- Preserved all information; removed redundant phrasing for a more professional tone
+- File: `src/pages/AboutPage.tsx`
+
+## 2026-05-24 — Add country-specific policy names and descriptions to PolicyPage
+- Replaced generic `COUNTRY_POLICIES` pool with `COUNTRY_SPECIFIC_POLICIES` map keyed by country ID
+- All 130+ countries now have unique real-world-grounded name + description per all 8 policy categories
+- Added `COUNTRY_POLICY_FALLBACK` pool as safety net for any unmapped countries
+- `generateCountryPolicies()` updated to look up country-specific entry first
+- File: `src/pages/PolicyPage.tsx`
+
+## 2026-05-19 — Add state-specific policy names and descriptions to PolicyPage
+
+- Replaced generic `STATE_POLICIES` pool with `STATE_SPECIFIC_POLICIES` map keyed by state ID
+- Each of 50 states now has a unique name + description per all 8 categories grounded in real state context
+- `generateStatePolicies()` updated to look up state-specific entry first, with generic pool as fallback
+- File: `src/pages/PolicyPage.tsx`
+
+
+## 2026-05-18 — Add scrollable category tab bar to ConflictModal
+- Added 5-tab bar (Overview, Policy History, Background, Prioritization, Budgets & Economics) matching WorldMapPage LeaderDetail pattern
+- Extended `Conflict` type with optional `policyHistory`, `background`, `prioritization`, `budgets` fields
+- Tabs show placeholder empty states with icons when data not yet populated; iran-israel economicImpacts auto-shows in Budgets tab
+- Imported `XCircle`, `CheckCircle`, `BookOpen`, `ClockCounterClockwise`, `ChartBar`, `Money` icons
+- Files: `src/pages/ConflictsPage.tsx`, `src/data/conflictsData.ts`
+
+## 2026-05-18 — Add economic impacts to Iran–Israel Direct Conflict entry
+- Added `EconomicImpact` interface and `economicImpacts?: EconomicImpact[]` field to `Conflict` type
+- Populated 6 economic impact entries for `iran-israel-conflict` (oil spike, shekel, rial, gold, etc.)
+- Modal now renders an "Economic Impacts" grid section (2-col) with color-coded direction indicators
+- Card now shows a green `CurrencyDollar` badge with impact count when `economicImpacts` is present
+- Files: `src/data/conflictsData.ts`, `src/pages/ConflictsPage.tsx`
+
+## 2026-05-18 — Add hover:scale-[1.01] to EconomiesPage cards
+- Added missing `hover:scale-[1.01]` to economy card articles to match CountriesPage/ConflictsPage pattern
+- File: `src/pages/EconomiesPage.tsx`
+
+## 2026-05-18 — Add hover:scale-[1.01] and hover:shadow-lg to WorldMapPage LeaderCard
+- Matched LeaderCard unselected hover state to CountriesPage/ConflictsPage pattern
+- File: `src/pages/WorldMapPage.tsx`
+
+## 2026-05-18 — Match ConflictsPage card hover to CountriesPage style
+- Added `hover:scale-[1.01]` and changed border highlight to `hover:border-secondary/40` on conflict cards
+- File: `src/pages/ConflictsPage.tsx`
+
+## 2026-05-18 — Match PolicyPage EntityRow hover to CountriesPage card effect
+- `EntityRow` wrapper div: added `hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40`
+- Removed `hover:bg-white/[0.02]` from inner button (effect moved to container)
+- File: `src/pages/PolicyPage.tsx`
+
+## 2026-05-18 — Update all site data to reflect 2026 as current year
+- PMI periods in `countriesData.ts`: "Mar 2025" → "Mar 2026" (US, Canada, Mexico, Germany, France, UK)
+- Senator `termEnd: 2025` in `statesData.ts` updated to 2031 (post-2024 election winners applied where possible)
+- Trend arrays already span 2022–2026 with 2026 as the most recent data point — no change needed
+
+## 2026-05-18 — Remove In-App Notifications section from SettingsPage
+- Deleted the "General Notifications" section (In-App Notifications toggle) from SettingsPage
+- `notifications` state and toggle remain in file but are now unused; can be cleaned up later
+
+## 2026-05-18 — Fix Radix Portal removeChild crash by removing Portal wrapper
+- Root cause: `DropdownMenuPrimitive.Portal` renders into `document.body`, desynchronizing React fiber on navigation unmount
+- Fix: removed `<DropdownMenuPrimitive.Portal>` wrapper from `DropdownMenuContent` in `src/components/ui/dropdown-menu.tsx`
+- Content now renders inline (still z-50, still visually overlapping) without the DOM orphan problem
+
+
+## 2026-05-18 — Rename "World Map" footer link to "World Leaders" in DashboardPage
+- Updated FOOTER_LINKS PLATFORM section: label "World Map" → "World Leaders"
+
+## 2026-05-18 — Remove newsletter section from DashboardPage
+- Deleted the "Stay Ahead / Subscribe to Our Newsletter" section entirely
+- Removed unused email/subscribed state and handleSubscribe handler
+- Removed unused Rocket icon import
+
+## 2026-05-18 — Update DashboardPage footer FOOTER_LINKS to match current routes
+- Removed dead "Notifications" link from TOOLS section (feature was deleted)
+- Added Settings to TOOLS; updated ACCOUNT to Sign In, Memberships, About
+
+## 2026-05-18 — Remove "Get Access" button from footer in DashboardPage
+## 2026-05-18 — Polish Compare Entities section on DashboardPage with branded background, icon block, description, and feature pills
+## 2026-05-18 — Move Compare Entities section above Built for Serious Research on DashboardPage
+- Swapped order of COMPARISON MODULE and PLATFORM FEATURES sections in DashboardPage.tsx
+
+## 2026-05-18 — Make site footer white in light mode
+- Footer background: `#070709` → `#ffffff` in light mode
+- All text, heading labels, link colors, social icons, and dividers adapt to light/dark
+- Accent top line switches from purple gradient to blue gradient in light mode
+- Sign In border/text and Get Access button use blue tones in light mode
+
+## 2026-05-18 — Match newsletter section to hero gradient in light mode
+- Added `isLight` conditional background, glow orbs, and grid pattern mirroring the hero section
+- Badge, headline, body, input, and button all adapt to light/dark theme
+- Input placeholder color fixed in index.css for light mode
+
+## 2026-05-18 — Fix dashboard data grid card visibility in light mode
+- Description text: `rgba(255,255,255,0.35)` → `rgba(30,41,59,0.55)` in light mode
+- Card background, border, and footer divider now adapt to light/dark theme
+
+## 2026-05-18 — Change World Leaders header icon from UserCircleGear to Lectern
+- Lectern (podium/speaker's stand) better represents leadership and public office
+
+## 2026-05-18 — Match WorldMapPage filter bar to CountriesPage two-row layout
+- Changed from `w-fit flex-wrap` single-row bar to `flex flex-col w-full` two-row layout
+- Row 1: search input; Row 2: region pills + divider + ideology select with border-t
+
+## 2026-05-18 — Match CitiesPage filter bar to EconomiesPage two-row unified pill bar style
+- Replaced old `flex flex-wrap gap-3` layout (separate search, pill row, standalone select) with unified `flex flex-col bg-card border rounded-2xl` two-row bar
+- Row 1: search; Row 2: region pills + divider + sort select with border-t; matches EconomiesPage/CountriesPage exactly
+
+## 2026-05-18 — Match CountriesPage filter bar layout to EconomiesPage (two-row, full width)
+- Changed from single-row `w-fit` pill bar to two-row `w-full` layout: search on top, pills + sort below with border-t
+- Matches EconomiesPage pattern exactly: `flex flex-col`, `px-4 py-2.5`, `text-sm` search, `text-[11px]` pills
+
+## 2026-05-18 — Make EconomiesPage filter bar full width to match card containers below
+- Changed `w-fit` to `w-full` on the unified filter bar container
+
+## 2026-05-18 — Match WorldMapPage filter bar to CountriesPage unified pill bar style
+- Single inline bar: search input + region pills (All/Americas/Europe/etc.) + ideology select
+- Replaced two-row layout with `flex flex-wrap items-center gap-2 bg-card border rounded-2xl` pattern
+
+## 2026-05-18 — Split StatesPage filter bar into two rows: search on top, region/party pills + sort below
+- Row 1: search input only; Row 2: region pills + divider + party pills + divider + sort select with border-t
+
+## 2026-05-18 — Move EconomiesPage type pills and sort select to second row below search input
+- Filter bar now two rows: row 1 = search, row 2 = type pill buttons + divider + sort select with border-t
+
+## 2026-05-18 — Move ConflictsPage Status/Intensity pills to second row below search input
+- Filter bar now two rows: row 1 = search input, row 2 = Status + Intensity pill buttons with border-t divider
+
+## 2026-05-18 — Move WorldMapPage region/ideology selects to second row below search
+- Filter bar now has two rows: row 1 = search input, row 2 = region + ideology selects separated by border-t
+- Vertical divider between selects retained on second row
+
+## 2026-05-17 — Unify WorldMapPage search + filter bar into single bg-card pill bar
+- Merged standalone `relative mb-3` search input and two filter selects into one unified inline bar
+- Matches StatesPage and EconomiesPage filter bar pattern exactly
+
+## 2026-05-16 — Reduce ConflictsPage search input height (py-3.5 → py-2) and width (max-w-sm)
+
+## 2026-05-16 — Remove Notifications feature entirely
+- Removed Bell nav item from SidebarNav.tsx
+- Removed /dashboard/notifications route and NotificationsPage import from App.tsx
+- Deleted src/pages/NotificationsPage.tsx and src/components/NotificationsPanel.tsx
+
+## 2026-05-16 — Remove Kaja Kallas (EU HR for Foreign Affairs) entry per user request
+- Removed kallas entry from LEADERS array
+
+## 2026-05-16 — Remove Tedros Adhanom Ghebreyesus (WHO DG) entry per user request
+- Removed tedros entry from LEADERS array; total leaders now 189
+
+## 2026-05-16 — Remove Ngozi Okonjo-Iweala (WTO DG) entry per user request
+- Removed okonjo-iweala entry from LEADERS array; total leaders now 190
+
+## 2026-05-16 — Remove Ursula von der Leyen (EU Commission President) entry per user request
+- Removed vonderleyen entry from LEADERS array; total leaders now 191
+
+## 2026-05-16 — Remove António Costa (EU Council President) entry per user request
+- Removed acosta entry from LEADERS array; total leaders now 192
+
+## 2026-05-16 — Remove Alain Berset (CoE SG) entry per user request
+- Removed berset entry from LEADERS array; total leaders now 193
+
+## 2026-05-16 — Remove Mark Rutte (NATO SG) entry per user request
+- Removed rutte entry from LEADERS array; total leaders now 194
+
+## 2026-05-16 — Remove duplicate David Panuelo (Former) FSM entry
+- Removed panuelo-former entry; Wesley Simina (current FSM President) is the sole FSM card
+- Total leaders: 195
+
+## 2026-05-16 — World Leaders Final Batch 29 + Full Audit (total 196)
+- Added: Kaïs Saïed (Tunisia self-coup), Andrzej Duda (Poland Pres), Tchiani (Niger junta), MBR (Dubai/UAE PM), Boakai (Liberia), Luis Arce (Bolivia former), Pope Leo XIV (new Vatican)
+- Discrepancy fixes: 12 wrong IDs corrected (sheinbaum, chakwera, orsi, golob, frostadottir, zhelyazkov, mickoski, abela, simina, akufo-addo, panuelo-former, montenegro-lu)
+- Status fixes: Scholz, Sunak, Yoon, Nehammer, Fiamē, Panuelo, Akufo-Addo set to "Former"; Pope Francis marked "Former" (died Apr 21 2025); duplicate id "sassou" resolved
+- Added "Former" to Status type; Total leaders: 196
+
+## 2026-05-16 — World Leaders Batch 28: +7 leaders (total 189)
+- Added: King Charles III (UK), Jacinda Ardern (NZ former), Boris Johnson (UK former), Okonjo-Iweala (WTO DG), Tedros (WHO DG), Jokowi (Indonesia former), Obiang (EQ Guinea/world longest)
+- Covers UK constitutional monarchy, iconic progressive & Brexit-era former leaders, international institutions, Indonesia&#39;s commoner-to-president arc, and world&#39;s longest-serving non-royal autocrat
+- Total leaders: 189 across all world regions
+
+## 2026-05-16 — World Leaders Batch 27: +7 leaders (total 182)
+- Added: Díaz-Canel (Cuba), Haitham (Oman), Marin (Finland former), To Lam (Vietnam GS), Tsai Ing-wen (Taiwan former), Zuma (RSA former/MK), AMLO (Mexico former)
+- Covers last Caribbean communist state, Gulf&#39;s supreme back-channel diplomat, Finland&#39;s NATO architect, Vietnam&#39;s security-state new top leader, Taiwan&#39;s semiconductor shield builder, state capture legacy, Mexico&#39;s MORENA founder
+- Total leaders: 182 across all world regions
+
+## 2026-05-16 — World Leaders Batch 26: +7 leaders (total 175)
+- Added: Abbas (Palestinian Authority), Pope Francis (Vatican), Bolkiah (Brunei), Imran Khan (imprisoned), Aung San Suu Kyi (imprisoned), Karzai (Afghanistan former), Hun Sen (Cambodia de facto power)
+- Covers Palestinian leadership vacuum, Vatican geopolitics, last absolute sultanate, two imprisoned consequential leaders, Post-Taliban Afghanistan, and Cambodia dynasty
+- Total leaders: 175 across all world regions
+
+## 2026-05-16 — World Leaders Batch 25: +7 leaders (total 168)
+- Added: Al-Sudani (Iraq PM), Radev (Bulgaria Pres), Pellegrini (Slovakia Pres), Talon (Benin), Oligui Nguema (Gabon coup/transition), Doumbouya (Guinea/Simandou), Sakellaropoulou (Greece Pres/1st female)
+- Covers Iraq&#39;s US-Iran balancing act, Sahel-adjacent West Africa, Gabon dynasty end, Guinea bauxite/iron dominance, and SE European head-of-state/head-of-government splits
+- Total leaders: 168 across all world regions
+
+## 2026-05-16 — World Leaders Batch 24: +7 leaders (total 161)
+- Added: Dabaiba (Libya/GNU split), Kiir (South Sudan/failed state), Netumbo (Namibia/first elected female), Mswati III (Eswatini/last absolute monarchy), Japarov (Kyrgyzstan/prison-to-president), Manele (Solomons/China deal continuity)
+- Covers North Africa oil dysfunction, newest/most failed state, historic African female election, Pacific geopolitics, Central Asia resource nationalism
+- Total leaders: 161 across all world regions
+
+## 2026-05-16 — World Leaders Batch 23: +7 leaders (total 154)
+- Added: Fiamē (Samoa/Pacific democracy), Marape (PNG/US defence deal), Fils-Aimé (Haiti/gang crisis), Rowley (Trinidad/Dragon gas), Ngirente (Rwanda PM), Guelleh (Djibouti/great power bases), Xiomara Castro (Honduras/first female pres)
+- Covers Pacific island democratic tests, Caribbean energy geopolitics, Rwanda&#39;s operational PM, Horn of Africa&#39;s most strategic small state, and Central America&#39;s left turn
+- Total leaders: 154 across all world regions
+
+## 2026-05-16 — World Leaders Batch 22: +7 leaders (total 147)
+- Added: Lourenço (Angola), Chapo (Mozambique/disputed), Panuelo (FSM-former), Simina (FSM-current), Berdimuhamedov Jr. (Turkmenistan), Pashinyan (Armenia), Mark Brown (Cook Islands/China deal)
+- Covers sub-Saharan Africa oil/gas, Pacific micro-state geopolitics, Central Asian hermit state, and Armenia&#39;s historic Russia pivot
+- Total leaders: 147 across all world regions
+
+## 2026-05-16 — Fix Batch 21 bundler cache error (same as Orbán pattern)
+- File on disk was already clean (all 7 Batch 21 entries inside LEADERS array at lines 9721–10175)
+- Bundler was serving stale cached broken build — forced recompile via trivial comment bump + dev restart
+- Pattern: same as Batch 12 Orbán fix — search confirmed single `id: "mohamud"` at line 9721 only
+
+## 2026-05-16 — Fix Batch 21 floating code syntax error
+- Root cause: Batch 21 entries were appended after the WorldMapPage closing `}`, outside the LEADERS array
+- Fix: inserted entries into LEADERS array before `];`, removed floating duplicate block from end of file
+- Pattern: same class of error as decroo/orban/schoof — replace_in_file appended after component instead of into array
+
+## 2026-05-16 — Fix decroo duplicate syntax error (same pattern as orban/schoof fixes)
+- Removed dangling `{` before the decroo object that caused SyntaxError at line 7649
+- Root cause: replace_in_file inserted the opening brace of the entry twice
+
+## 2026-05-16 — World Leaders Batch 21: +7 leaders (total 133)
+- Added: Mohamud (Somalia), al-Burhan (Sudan junta/civil war), Ramkalawan (Seychelles), Ndayishimiye (Burundi), Embaló (Guinea-Bissau), Ghazouani (Mauritania), Dodik (Bosnia-RS)
+- Covers Horn of Africa, Great Lakes, Indian Ocean democracy, Sahel outlier, and Balkan destabilizer
+- Total leaders: 133 across all world regions
+
+## 2026-05-16 — World Leaders Batch 20: +7 leaders (total 126)
+- Added: Kobakhidze (Georgia PM), Yoon Suk-yeol (impeached S.Korea), Chaves (Costa Rica), Touadéra (CAR/Wagner template), Afwerki (Eritrea), Assoumani (Comoros), Déby (Chad)
+- Covers Georgia&#39;s EU protest crisis, Korean constitutional drama, Central America&#39;s populism, Africa&#39;s most isolated states
+- Total leaders: 126 across all world regions
+
+## 2026-05-16 — World Leaders Batch 19: +7 leaders (total 112)
+- Added: Akhannouch (Morocco), Barrow (Gambia), Sassou Nguesso (Congo-B), Gnassingbé (Togo), Duma Boko (Botswana), Arévalo (Guatemala), Irfaan Ali (Guyana)
+- Covers North Africa EU partnership, West/Central Africa dynasties, Botswana&#39;s historic 58-year power transfer, Guatemala&#39;s democratic miracle, and Guyana&#39;s oil boom
+- Total leaders: 112 across all regions
+
+## 2026-05-16 — World Leaders Batch 18: +7 leaders (total 105)
+- Added: Lai Ching-te (Taiwan), Mirziyoyev (Uzbekistan), Rahmon (Tajikistan), Orsi (Uruguay), Ortega (Nicaragua), Guterres (UN SG), Biya (Cameroon)
+- Covers Taiwan geopolitical flashpoint, Central Asia reform story, LatAm democracy & authoritarianism, UN leadership, and Africa&#39;s longest-serving leader
+- Total leaders: 98 across all 5 major world regions + UN/supranational
+
+## 2026-05-16 — World Leaders Batch 17: +7 leaders (total 91)
+- Added: Tokayev (Kazakhstan), Aliyev (Azerbaijan), Lukashenko (Belarus), Museveni (Uganda), Mahama (Ghana), Tebboune (Algeria), Ouattara (Côte d'Ivoire)
+- Expanded Central Asia, South Caucasus, and West/East Africa coverage
+- Total leaders: 91 across all 5 major world regions
+
+## 2026-05-16 — World Leaders Batch 16: +7 leaders (total 84)
+## 2026-05-16 — World Leaders Batch 16: +7 leaders (total 84)
+- Added: Sandu (Moldova), Hichilema (Zambia), Hassan (Tanzania), Zourabichvili (Georgia), Rinkēvičs (Latvia President), Chakwera (Malawi), Akufo-Addo (Ghana)
+- Expanded Africa coverage (Zambia, Tanzania, Ghana, Malawi) and Europe (Moldova, Georgia, Latvia President)
+- Total leaders: 84 across all 5 major world regions
+
+## 2026-05-16 — World Leaders Batch 15: +7 leaders (total 77)
+- Added: Zhelyazkov (Bulgaria), Vučić (Serbia), Rama (Albania), Keller-Sutter (Switzerland), Abela (Malta), Frieden (Luxembourg), Nausėda (Lithuania)
+- Covers SE Europe Balkans, Alpine micro-states, and Baltic region
+- Total leaders: 77 across all 5 major world regions
+
+## 2026-05-16 — World Leaders Batch 14: +7 leaders (total 70)
+- Added: De Croo (Belgium), Støre (Norway), Frostadóttir (Iceland), Martin (Ireland), Fico (Slovakia), Ciolacu (Romania), Plenković (Croatia)
+- Covered Western Europe, Nordic, and Eastern EU bloc with up-to-date 2025 data
+- Total leaders: 70 across Americas, Europe, Asia-Pacific, Middle East, Africa
+
+## 2026-05-16 — Fix Batch 13 duplicate block syntax error
+- Removed duplicate Batch 13 leader block that caused SyntaxError at line 5410
+- Root cause: previous replace_in_file inserted the entire Batch 13 block twice inside the Schoof entry
+- File now has single clean entries for all 63 leaders; Schoof entry complete
+
+## 2026-05-16 — World Leaders Batch 13: +7 leaders (total 63)
+- Added: Bayrou (France PM), Luxon (New Zealand), Montenegro (Portugal), Nehammer (Austria, former), Kickl (Austria, current), Fiala (Czech Republic), Mitsotakis (Greece)
+- All follow full Leader schema; Austria now has both Nehammer (departed) and Kickl (current FPÖ Chancellor)
+- Total leaders: 63 across Americas, Europe, Asia-Pacific, Middle East, Africa
+
+## 2026-05-02 — Fix Orbán duplicate syntax error + force clean recompile
+- File on disk was already clean (single orban entry) but bundler served cached broken build
+- Forced clean recompile via trivial inline comment bump + npm run dev restart
+- Confirmed via search: only one `id: "orban"` exists in WorldMapPage.tsx
+
+## 2026-05-02 — World Leaders: complete global dataset — 56 leaders across all regions
+- Added batches 4–11: Africa (Mnangagwa, Kagame, Tinubu, Abiy, Sisi), Asia (Yunus, Dissanayake, Marcos Jr., Paetongtarn, Anwar, Pham Minh Chinh, Hun Manet, Lawrence Wong, Muizzu), Middle East (Khamenei, Aoun, al-Sharaa, Barzani), Europe (Rutte/NATO, Frederik X, Kristersson, Orpo, Costa, Berset, Christodoulides), Americas (Petro, Boluarte, Noboa, Ruto-Kenya)
+- Fixed all placeholder id/name fields from temp keys to clean canonical ids
+- Total leaders: 56 covering Americas, Europe, Asia-Pacific, Middle East, Africa
+
+## 2026-05-02 — World Leaders: added Bukele, von der Leyen, Prabowo, Pezeshkian (batch +4, total 28)
+- Added Nayib Bukele (El Salvador), Ursula von der Leyen (EU), Prabowo Subianto (Indonesia), Masoud Pezeshkian (Iran)
+- All four follow full Leader schema: background, education, events, achievements, views, approval, region
+
+## 2026-05-02 — World Leaders: remove Biden, rename nav, add 7 new leaders
+- Removed Joe Biden (no longer in office); sidebar label changed from "World Map" to "World Leaders" with Crown icon
+- Added: Giorgia Meloni (Italy), Claudia Sheinbaum (Mexico), Anthony Albanese (Australia), Cyril Ramaphosa (South Africa), Shehbaz Sharif (Pakistan), Viktor Orbán (Hungary)
+- Header icon updated from Globe → Crown to match the Leaders directory purpose
+- Africa region now represented via Ramaphosa; total leaders raised to ~20
+
+## 2026-05-02 — World Leaders: card detail panel converted to modal popup
+- Clicking any leader card now opens a centered modal overlay with backdrop blur instead of a side panel
+- Cards switched to a responsive grid (1→2→3→4 cols) now that no right panel competes for space
+- Added close button (X) on modal hero + click-outside-to-dismiss behaviour
+- `LeaderDetail` receives an `onClose` prop; initial `selected` state set to `null` (no auto-selection)
+
+## 2026-05-02 — World Leaders page replacing WorldMapPage
+- Completely replaced `src/pages/WorldMapPage.tsx` content with a full World Leaders directory
+- 14 leaders profiled with: background, age, birthplace, education, party/ideology, terms, achievements, significant events, political views, approval ratings, impact, status
+- Leader card list (left) + tabbed detail panel (right) layout with search + region + ideology filters
+- Approval bar, timeline events with positive/negative/neutral indicators, and ideology color-coded badges
+- Route and nav links unchanged — same `/dashboard/map` path reused
+
+## 2026-04-29 — VIP dashboard redesign
+## 2026-05-02 — World Leaders page replacing WorldMapPage
+- Completely replaced `src/pages/WorldMapPage.tsx` content with a full World Leaders directory
+- 14 leaders profiled with: background, age, birthplace, education, party/ideology, terms, achievements, significant events, political views, approval ratings, impact, status
+- Leader card list (left) + tabbed detail panel (right) layout with search + region + ideology filters
+- Approval bar, timeline events with positive/negative/neutral indicators, and ideology color-coded badges
+- Route and nav links unchanged — same `/dashboard/map` path reused
+
+## 2026-04-29 — VIP dashboard redesign
+- Full redesign of `src/pages/DashboardPage.tsx` with cinematic dark hero, ambient glow orbs, subtle grid texture
+- Data module cards gain dynamic glow-shadow on hover per accent color; features pillar section added (4 cards)
+- Newsletter section rewritten with deep dark bg; footer refined with gradient top line and hover micro-interactions
+- Added `PLATFORM_FEATURES` array; removed unused icon/tool imports for tree-shake hygiene
+
+## 2026-04-29 — Full security sweep: 8 remaining vulnerabilities patched
+- `EduSignInPage.tsx`: added rate limiting (5/15min), `maxLength`, `sanitizeText()` + `validateEmail()` on the standalone `/edu` form
+- `SettingsPage.tsx`: added `maxLength` on name/email inputs, password min-length 8 check, empty-guard, sanitization before save, inline error/success feedback
+- `HeaderNav.tsx`: search query capped at `LIMITS.SEARCH_QUERY` (200 chars) — prevents large-paste DoS on `String.includes()` loop
+- `NotesPage.tsx`: stored link URLs re-validated via `sanitizeUrl()` before rendering as `href`; audio `src` validated (blob: or https: only) before mounting `<audio>`
+- `.gitignore` actually created on disk (previous attempt produced "File not found")
+
+## 2026-04-29 — Security hardening: rate limiting, input sanitization, payload validation
+## 2026-04-29 — Full security sweep: 8 remaining vulnerabilities patched
+- `EduSignInPage.tsx`: added rate limiting (5/15min), `maxLength`, `sanitizeText()` + `validateEmail()` on the standalone `/edu` form
+- `SettingsPage.tsx`: added `maxLength` on name/email inputs, password min-length 8 check, empty-guard, sanitization before save, inline error/success feedback
+- `HeaderNav.tsx`: search query capped at `LIMITS.SEARCH_QUERY` (200 chars) — prevents large-paste DoS on `String.includes()` loop
+- `NotesPage.tsx`: stored link URLs re-validated via `sanitizeUrl()` before rendering as `href`; audio `src` validated (blob: or https: only) before mounting `<audio>`
+- `.gitignore` actually created on disk (previous attempt produced "File not found")
+
+## 2026-04-29 — Security hardening: rate limiting, input sanitization, payload validation
+- Created `src/lib/security.ts` — central security utility module (rate limiter, sanitizer, payload validator)
+- Rate limiter: in-memory, 5 attempts / 15 min for `auth:login` and `auth:edu` keys in `AuthModal.tsx`
+- Input sanitizer: strips HTML tags, null bytes, `javascript:` URIs, inline event handlers from all user text/URLs
+- Payload limits enforced: title 120 chars, content 10,000 chars, max 10 links, URL 2,048 chars, email 254 chars
+- Added `.gitignore` to protect `.env*` files from accidental commits; confirmed no secrets in codebase
+
+## 2026-04-25 — Remove search bar from hero section in DashboardPage
+- Deleted the search input + Explore button pill from the hero section of `src/pages/DashboardPage.tsx`
+
+## 2026-04-25 — Use logo as hero section watermark background in DashboardPage
+- Replaced decorative radial-gradient blobs in the hero with the CommonSphere logo images
+- Light/dark mode logo variants shown via `logo-light` / `logo-dark` CSS classes at w-[420px], opacity-[0.06/0.08]
+
+## 2026-04-25 — Move Bell/notifications button to left of search bar in HeaderNav
+- Removed Bell button from the right-side Actions group
+- Added it between the Logo and the Search bar
+
+## 2026-04-25 — Change Tools grid to single column layout
+- Changed `grid-cols-1 sm:grid-cols-2` to `grid-cols-1` in the Tools & Features section of DashboardPage
+
+## 2026-04-25 — Delete Collections page and all references
+- Deleted `src/pages/CollectionsPage.tsx` and `src/components/CollectionsGrid.tsx`
+- Removed route, import, footer link, Tools card, and HeaderNav dropdown item for collections
+
+## 2026-04-25 — Center hero section content in DashboardPage
+- Changed hero layout from left-aligned flex row to centered column (`items-center text-center`)
+- Search bar and stats row are now `justify-center` / `text-center`
+
+## 2026-04-25 — Remove hero data panel illustration from DashboardPage
+- Deleted the frosted-glass "global_overview.live" data panel and floating accent card from the hero right side
+- Hero section now text/search only (left column), no right illustration
+
+## 2026-04-25 — Apply US States flag-background style to country cards
+- Country cards now match the StatesPage card design: blurred flag fills the card header as a semi-transparent backdrop
+- Gradient overlay (`from-card/60 via-card/70 to-card`) keeps text readable
+- Small square flag thumbnail (w-11 h-11, rounded-lg) in the top-left alongside name/capital
+- Continent badge floats top-right, `modal-tile` base replaces `bg-card` for card base style
+
+## 2026-04-25 — Update Collections tool card description to reflect site data categories
+- Changed desc from "Organise your entity groups" to "Curate custom sets of countries, states, economies & more"
+- Located in `TOOLS` array in `src/pages/DashboardPage.tsx`
+
+## 2026-04-25 — Remove Intelligence Feed / Latest Updates section from DashboardPage
+- Deleted the "Read Our Latest Updates" news cards section and its `RECENT_UPDATES` + `UPDATE_TYPE_COLOR` data arrays
+
+## 2026-04-24 — Add energy stats to all remaining countries
+- Added `energy: mkEnergy(...)` to 29 countries that were missing it (small island states, territories, micro-states, Caribbean nations)
+- Covers: Solomon Islands, Vanuatu, Samoa, Tonga, Kiribati, Micronesia, Palau, Marshall Islands, Nauru, Tuvalu, Puerto Rico, Guam, Bermuda, Faroe Islands, Greenland, Bahamas, Antigua, Dominica, Grenada, Barbados, Saint Lucia, Saint Vincent, Saint Kitts, San Marino, Liechtenstein, Andorra, Monaco, Cook Islands, Niue
+- All entries in `countriesData.ts`; EnergySection renders automatically when `country.energy` is present
+
+## 2026-04-21 — Fix build timeout: lazy-load WorldMapPage
+## 2026-04-24 — Add energy stats to all remaining countries
+- Added `energy: mkEnergy(...)` to 29 countries that were missing it (small island states, territories, micro-states, Caribbean nations)
+- Covers: Solomon Islands, Vanuatu, Samoa, Tonga, Kiribati, Micronesia, Palau, Marshall Islands, Nauru, Tuvalu, Puerto Rico, Guam, Bermuda, Faroe Islands, Greenland, Bahamas, Antigua, Dominica, Grenada, Barbados, Saint Lucia, Saint Vincent, Saint Kitts, San Marino, Liechtenstein, Andorra, Monaco, Cook Islands, Niue
+- All entries in `countriesData.ts`; EnergySection renders automatically when `country.energy` is present
+
+## 2026-04-21 — Fix build timeout: lazy-load WorldMapPage
+- `WorldMapPage` was eagerly imported, forcing d3-geo + 3MB TopoJSON CDN fetch into the main chunk
+- Replaced static import with `React.lazy()` + `<Suspense>` fallback in `App.tsx`
+- TopoJSON fetch now only fires when user navigates to `/dashboard/worldmap`
+- `useLiveData` auto-fetch was already disabled; confirmed no other on-mount fetches in main bundle
+
+## 2026-04-21 — Upgrade hero illustration to professional data panel
+- Replaced simple orbit rings + globe icon with a frosted-glass terminal-style data panel
+- Panel shows: live sparkline bar chart, 3 progress-bar stat rows, region chips with accent colors
+- Floating accent card at bottom-left: TrendUp icon + "40K+ Points" data coverage callout
+- Hidden on mobile (md:flex), panel uses `backdrop-filter: blur` + rgba borders for glass effect
+
+## 2026-04-21 — Upgrade Explore Data grid cards to professional icon imagery
+## 2026-04-21 — Upgrade Explore Data grid cards to professional icon imagery
+- Replaced emoji large visuals with rich gradient headers (dark-to-light per category color)
+- Each card has a subtle grid texture overlay, white glow blob, and a frosted-glass icon panel
+- Added count badge (top-right corner) over the gradient header
+- Added `heroIcon` field per nav item using appropriate Phosphor icons (Globe, Buildings, Briefcase, Scroll, Crosshair)
+- Imported `Crosshair`, `Briefcase`, `Scroll`, `Sword` from `@phosphor-icons/react`
+
+## 2026-04-21 — Redesign DashboardPage to match portfolio/agency reference layout
+- Purple gradient hero banner with animated globe orbit, search bar, and live stat pills
+- Explore data grid uses emoji + card aspect-ratio tiles like "Recent Case Study" section
+- Global Highlights metrics strip (centered), newsletter section with email subscribe (purple gradient)
+- Latest Updates redesigned as news cards with Unsplash images, author avatars, hover lift
+- ComparisonModule preserved inline with section heading; Policy Tags + Tools in 2-col grid below
+- Footer updated with purple top accent bar and gradient CTA buttons
+
+## 2026-04-18 — Reorganize DashboardPage as dual Home + Dashboard layout
+- Added `SectionDivider` component (icon label + horizontal rule) to visually split zones
+- TOP ZONE (Home): Hero → Explore Our Data → Latest Updates
+- BOTTOM ZONE (Dashboard): labeled divider → Global Highlights → Comparisons → Policy Tags + Tools (2-col) → CTA
+- Policy Tags & Tools now displayed side-by-side in a 2-column grid for better space usage
+- Imported `House`, `SquaresFour`, `Crosshair` from phosphor-icons for section markers
+
+## 2026-04-17 — Add About page
+## 2026-04-18 — Reorganize DashboardPage as dual Home + Dashboard layout
+- Added `SectionDivider` component (icon label + horizontal rule) to visually split zones
+- TOP ZONE (Home): Hero → Explore Our Data → Latest Updates
+- BOTTOM ZONE (Dashboard): labeled divider → Global Highlights → Comparisons → Policy Tags + Tools (2-col) → CTA
+- Policy Tags & Tools now displayed side-by-side in a 2-column grid for better space usage
+- Imported `House`, `SquaresFour`, `Crosshair` from phosphor-icons for section markers
+
+## 2026-04-17 — Add About page
+- Created `src/pages/AboutPage.tsx` with hero, stats, mission, values, timeline, team, and CTA sections
+- Registered `/dashboard/about` route in `App.tsx`
+- Added "About" link to the ACCOUNT column in the dashboard footer
+
+## 2026-04-17 — Match "Sphere" weight/opacity to "Common" in logo wordmark
+- `HeaderNav.tsx`: removed `fontWeight: 500` and `opacity: 0.9` override on the "Sphere" span so both halves render identically
+
+## 2026-04-17 — Switch header logo wordmark to Inter for professional look
+- `HeaderNav.tsx`: logo wordmark now uses `Inter` (fallback `DM Sans`), `font-weight 700/500`, `letter-spacing -0.02em`
+- Replaced `IBM Plex Mono` mono style with clean sans-serif for a more ubiquitous, professional brand feel
+
+## 2026-04-17 — Make header fully black in dark mode
+- `index.css`: changed `--color-header-bg` from `#1a1a1e` to `#000000` for dark mode
+
+## 2026-04-17 — Replace logos with new uploaded globe assets
+- `HeaderNav.tsx`: light mode uses black-on-white globe (`uploaded-asset-1776467236633-0.jpeg`), dark mode uses white-on-black globe (`uploaded-asset-1776467236635-1.jpeg`)
+- `index.css`: simplified `.logo-light` / `.logo-dark` CSS switching classes
+
+## 2026-04-17 — Trim footer links to only registered routes
+- Removed non-existent routes: congress, policy-hub, political-library, trends, quizzes, polls, bookmarks, api
+- PLATFORM: states, countries, cities, economies, worldmap, conflicts
+- RESEARCH: policy, comparisons | TOOLS: collections, notes, notifications | ACCOUNT: settings, memberships
+- All footer links now correspond to actual `<Route>` entries in App.tsx
+
+## 2026-04-17 — Add dark multi-column footer to DashboardPage
+- Added `FOOTER_LINKS` data (Platform, Research, Tools, Account columns) + social icons row
+- Footer uses `bg-[#141414]` dark background matching AlphaSense reference
+- Sign In + Get Access CTA buttons, YouTube/LinkedIn/Twitter/Instagram/Facebook icons
+- Bottom bar has brand logo, legal links, and copyright line
+- Imported `YoutubeLogo`, `LinkedinLogo`, `TwitterLogo`, `InstagramLogo`, `FacebookLogo` from phosphor-icons
+
+## 2026-04-17 — Redesign DashboardPage as traditional homepage
+- Full hero section with tagline, pill CTA buttons, search bar, and live stat pills
+- "Explore Our Data" grid, "Latest Updates" news feed (4 items), Global Highlights metrics
+- Policy Tag Explorer + Tools grid redesigned with `rounded-2xl` cards and hover lift
+- Added CTA banner for alert subscriptions; kept ComparisonModule as-is
+- Removed ChartPanel from dashboard; cleaned up unused imports
+
+## 2026-04-17 — Add Alert Subscriptions to SettingsPage
+- `SettingsPage.tsx`: new "Alert Subscriptions" section with watched countries/states list
+- Searchable `EntitySearch` component queries `countriesData` + `usStatesData` live
+- Each watched entity has per-topic toggles: Policy, Leadership, Economy, Conflicts, Legislation
+- Email Digest master toggle; entities removable with trash button; defaults to US + California
+
+## 2026-04-16 — Add remaining countries to reach ~195 total in countriesData.ts
+## 2026-04-17 — Add Alert Subscriptions to SettingsPage
+- `SettingsPage.tsx`: new "Alert Subscriptions" section with watched countries/states list
+- Searchable `EntitySearch` component queries `countriesData` + `usStatesData` live
+- Each watched entity has per-topic toggles: Policy, Leadership, Economy, Conflicts, Legislation
+- Email Digest master toggle; entities removable with trash button; defaults to US + California
+
+## 2026-04-16 — Add remaining countries to reach ~195 total in countriesData.ts
+- Added: Türkiye, Palestine, Western Sahara, Cook Islands, Niue (+ placeholder dedup cleanup)
+- `countriesData.ts` now covers all 195 UN-recognized states plus major territories
+
+## 2026-04-16 — Match CountriesPage continent filter to StatesPage pill style
+- `CountriesPage.tsx`: removed card wrapper; continent pills now in flat `flex flex-wrap items-center gap-2` row with dividers, matching StatesPage exactly
+- Pills: `px-3 py-1 rounded-full text-[11px] font-medium font-sans border`; active: `bg-secondary/20 text-secondary border-secondary/40`
+- Search input back to `py-1.5 text-[12px] bg-card`; sort select uses same `font-medium` style as StatesPage
+
+## 2026-04-16 — Match ConflictsPage status+intensity filters to PolicyPage card style
+- `ConflictsPage.tsx`: status ("All/Active/Inactive") and intensity ("All/Critical/High/Medium/Low") filter pills each wrapped in `bg-card border border-border/60 rounded-2xl p-3` cards with uppercase header labels
+- Search input enlarged to `py-2.5 text-[13px] bg-muted` matching PolicyPage style; filters stacked vertically
+- Pills use `px-3 py-1.5 rounded-full border text-[11px] font-medium`; active: `bg-secondary/15 text-secondary border-transparent shadow-sm`
+
+## 2026-04-16 — Match EconomiesPage type filter to PolicyPage card style
+- `EconomiesPage.tsx`: type filter now wrapped in `bg-card border border-border/60 rounded-2xl p-3` card with header label row, matching PolicyPage category filter exactly
+- Pills use `px-3 py-1.5 rounded-full border text-[11px]`; active state: `bg-secondary/15 text-secondary border-transparent shadow-sm`
+- Search input enlarged to `py-2.5 text-[13px] bg-muted` matching PolicyPage search; sort select moved alongside search in top row
+
+## 2026-04-16 — Restyle EconomiesPage filter row to compact pill bar
+- `EconomiesPage.tsx`: type filter (All/Country/Region/Bloc) + sort select restyled to `rounded-full text-[11px] font-medium border` pills
+- Active pill: `bg-secondary/20 text-secondary border-secondary/40`; inactive: `bg-transparent border-border`
+- Sort `<select>` rounded to `rounded-full`; dividers (`w-px h-5 bg-border`) separate search / type pills / sort groups
+- Search input shrunk to `text-[12px]` rounded-full, matching CountriesPage & StatesPage filter row style
+
+## 2026-04-16 — Restyle CountriesPage filter row to match pill bar style
+- `CountriesPage.tsx`: continent + sort filters restyled to `rounded-full text-[11px] font-medium border` pills
+- Active continent pill: `bg-secondary/20 text-secondary border-secondary/40`; inactive: `bg-transparent border-border`
+- Sort `<select>` rounded to `rounded-full`; dividers (`w-px h-5 bg-border`) separate search / continents / sort groups
+- Search input shrunk to `text-[12px]` pill shape matching StatesPage filter row style
+
+## 2026-04-16 — Restyle StatesPage filter row to match pill bar style
+- `StatesPage.tsx`: region + party + sort filters restyled to `rounded-full text-[11px] font-medium border` pills
+- Party active states use party-specific colors (secondary/red/yellow); region active uses `bg-secondary/20`
+- Sort `<select>` rounded to `rounded-full` to match pill aesthetic; dividers (`w-px h-5 bg-border`) separate groups
+- Search input shrunk to `text-[12px]` pill shape matching the overall compact filter row
+
+## 2026-04-16 — Restyle PolicyPage category filter grid to inline pill row
+## 2026-04-16 — Restyle StatesPage filter row to match pill bar style
+- `StatesPage.tsx`: region + party + sort filters restyled to `rounded-full text-[11px] font-medium border` pills
+- Party active states use party-specific colors (secondary/red/yellow); region active uses `bg-secondary/20`
+- Sort `<select>` rounded to `rounded-full` to match pill aesthetic; dividers (`w-px h-5 bg-border`) separate groups
+- Search input shrunk to `text-[12px]` pill shape matching the overall compact filter row
+
+## 2026-04-16 — Restyle PolicyPage category filter grid to inline pill row
+- `PolicyPage.tsx`: category filter `grid grid-cols-3 sm:grid-cols-5` replaced with `flex flex-wrap gap-1.5`
+- Each pill: `rounded-full border text-[11px] font-medium` with icon+label, matching EconomiesPage type filter style
+- Active state uses category-specific `cfg.bg`/`cfg.color`; inactive: `bg-transparent border-border`
+
+## 2026-04-16 — Restyle EconomiesPage type filter to segmented pill bar
+## 2026-04-16 — Restyle PolicyPage category filter grid to inline pill row
+- `PolicyPage.tsx`: category filter `grid grid-cols-3 sm:grid-cols-5` replaced with `flex flex-wrap gap-1.5`
+- Each pill: `rounded-full border text-[11px] font-medium` with icon+label, matching EconomiesPage type filter style
+- Active state uses category-specific `cfg.bg`/`cfg.color`; inactive: `bg-transparent border-border`
+
+## 2026-04-16 — Restyle EconomiesPage type filter to segmented pill bar
+- `EconomiesPage.tsx`: type filter replaced with icon+label segmented bar inside a `bg-card border rounded-xl` container
+- Added `Globe`, `Flag`, `MapTrifold`, `Buildings` icons for All/Country/Region/Bloc
+- Active state: `bg-secondary/15 text-secondary`; inactive: `text-muted-foreground hover:bg-muted/60`
+
+## 2026-04-15 — Round PolicyPage search input to pill shape
+- `PolicyPage.tsx`: search input `rounded-xl` → `rounded-full`
+
+## 2026-04-15 — Add currency symbol to EconomiesPage economy cards
+- `EconomiesPage.tsx`: added `CURRENCY_SYMBOLS` map (60+ currencies) and `getCurrencyDisplay()` helper
+- Currency line now shows `symbol code · Full Currency Name · Interest Rate` (e.g. `$ USD · US Dollar · Interest Rate: 4%`)
+- `currencyName` field confirmed present on all ~80 Economy entries in `economiesData.ts`
+
+## 2026-04-15 — Refresh all statistics to accurate 2026 values
+## 2026-04-15 — Refresh all statistics to accurate 2026 values
+- `statesData.ts`: Updated population, GDP, medianIncome, unemploymentRate, minimumWage, averageIncome for all 50 states
+- `StatesPage.tsx`: Banner labels updated to "2026 estimate", snapshot cards reflect new highest-GDP/income/unemployment leaders
+- `economiesData.ts`: Updated GDP, growth, inflation, unemployment, interest rates & trend series for all major economies (US, China, EU, UK, Germany, France, India, Japan, Brazil, Canada, South Korea, Australia, Russia, Mexico, Indonesia, Saudi Arabia, Spain, Turkey + others)
+- US total GDP now $30.3T, China $20.4T, EU $19.6T; all trend year-series extended through 2026
+
+## 2026-04-15 — Match EconomiesPage type filter buttons to PolicyPage pill style
+- `EconomiesPage.tsx`: filter pill buttons now use `rounded-full text-[10px] font-medium border` pattern matching PolicyPage
+- Active state uses `bg-secondary/20 text-secondary border-transparent`; inactive uses `bg-transparent border-border`
+
+## 2026-04-15 — Add ~40 new countries to economiesData.ts
+- Added Middle East: Kuwait, Qatar
+- Added Africa: Ethiopia, Kenya, Ghana, Tanzania, Angola, Morocco, Mozambique
+- Added Latin America: Peru, Venezuela, Ecuador
+- Added Southeast/South Asia: Myanmar, Cambodia, Sri Lanka, Nepal
+- Added Oceania/N. Europe: New Zealand, Finland
+- Added Eastern Europe: Romania, Hungary, Ukraine, Slovakia, Bulgaria, Croatia, Serbia
+- Added Western Europe: Ireland, Italy
+- Added East Asia: Taiwan, Hong Kong
+- Added Central Asia: Uzbekistan, Kazakhstan
+
+## 2026-04-15 — Retheme MembershipsPage to match site design system
+- Replaced all hardcoded `#06101f`/`#0d1f35`/`slate-*` with `bg-background`, `bg-card`, `border-border`, `text-foreground`, `text-muted-foreground`, `text-secondary`, `text-success`, `text-warning` tokens
+- Removed standalone nav bar (page lives inside DashboardLayout); replaced with inline Back button in page header card
+- All cards use `bg-card border border-border rounded-xl` pattern; inputs use shared `inputCls` token class
+- Font classes switched to `font-sans`/`font-mono`; spacing tightened to match dashboard page style
+
+## 2026-04-15 — Fix build timeout: remove countriesData import from PolicyPage
+- `PolicyPage.tsx`: completely removed all references to `countriesData.ts` (static + dynamic import)
+- Replaced dynamic country source with 30-entry inline `MINI_COUNTRIES` array defined directly in the file
+- `countryMetaMap` now built synchronously from `MINI_COUNTRIES` — no async loading needed
+- Removed `dataReady` / loading spinner state; `useEffect` now just calls both generators synchronously
+
+## 2026-04-15 — Show only top-1 policy chip in EntityRow (larger, full policy name)
+- `PolicyPage.tsx`: replaced top-3 summary chips with single #1 highest-scored chip
+- Chip is larger (text-[12px], font-bold, px-3 py-1) and shows full policyName
+
+## 2026-04-15 — Make PolicyPage category mini-bars vertical (bar graph style)
+- `PolicyPage.tsx`: category bars in entity row header changed from horizontal fill bars to vertical columns
+- Each bar column grows upward from the bottom, height proportional to score/10, fixed 36px container
+
+## 2026-04-15 — Enrich PolicyPage entity rows with real flags + descriptive header
+- `PolicyPage.tsx`: country flags now use `country.code.toLowerCase()` from `countriesData` (e.g. `de`, `fr`, `gb`) via flagcdn
+- `PolicyPage.tsx`: state flags use `getStateFlag()` stored on `EntityGroup.flagUrl` — no longer re-derived in `EntityFlag`
+- `PolicyPage.tsx`: entity header shows continent, population (formatted), GDP (formatted), policy chips with first 3 words of policy name
+- `PolicyPage.tsx`: category mini-bars made taller (10px height) and use `items-end` alignment
+- `PolicyPage.tsx`: added `getCountryMeta()`, `formatPop()`, `formatGDP()` helpers; `EntityGroup` interface moved to groupByEntity section
+
+## 2026-04-15 — Redesign PolicyPage cards + entity header to match screenshot
+- `PolicyPage.tsx`: cards redesigned — category badge left, trend+GDP%+score right, dual-color bar, policy name in category color, allocation below
+- `PolicyPage.tsx`: entity header now shows flag (country: real flag, state: flagcdn us-{id}), top-3 policy chips with category+score, mini category bars
+- `PolicyPage.tsx`: expanded grid changed from 4-col to 2-col to match screenshot proportions
+- Added `EntityFlag`, `EntityTitleCard`, `getStateFlag` helpers; flags use `flagcdn.com/w80/` + state abbrev map
+
+## 2026-04-15 — Add Policy page (US States + Countries policy cards)
+- New `/dashboard/policy` route → `src/pages/PolicyPage.tsx`
+- Policy cards: category badge, trend icon, GDP%, score bar, policy name, allocated amount
+- Tabs: All / US States / Countries; category pill filters; search; paginated 48/page
+- `SidebarNav.tsx`: added `Scales` icon + Policy nav item below Economies
+- `App.tsx`: added Policy route
+
+## 2026-04-15 — Remove Policies page entirely
+- `PoliciesPage.tsx`: deleted
+- `App.tsx`: removed `/dashboard/policies` route and `PoliciesPage` import
+- `SidebarNav.tsx`: removed Policies nav item and `Briefcase` icon import
+
+## 2026-04-15 — Remove budget summary strip from BudgetTab in PoliciesPage
+- `PoliciesPage.tsx`: removed 4-card summary grid (Total Budget Tracked, Largest Allocation, Avg Policy Budget, Smallest Allocation) from `BudgetTab`
+
+## 2026-04-15 — Remove Scale tab from PoliciesPage
+- `PoliciesPage.tsx`: removed `ScaleTab` component, its tab entry in `TABS`, and its render line
+- Also removed unused `Scales` icon import reference via tab entry removal
+
+## 2026-04-15 — Change USNationalBanner header gradient to cyan blue
+- `StatesPage.tsx`: banner header gradient `from-blue-900/60 via-blue-800/40 to-red-900/50` → `from-cyan-900/60 via-cyan-800/40 to-blue-900/50`
+
+## 2026-04-15 — Apply modal-tile to state cards grid
+- `StatesPage.tsx`: state card articles `bg-card border border-border` → `modal-tile`
+- `StatesPage.tsx`: empty-results card also updated to `modal-tile`
+
+## 2026-04-15 — Apply modal-glass + modal-tile to PolicyModal
+- `PoliciesPage.tsx`: modal wrapper → `modal-glass border`
+- `PoliciesPage.tsx`: stat tiles, tags, objectives, parties, implementation divs → `modal-tile`
+
+## 2026-04-15 — Apply modal-glass + modal-tile to ConflictModal
+- `ConflictsPage.tsx`: modal wrapper `bg-card border border-border` → `modal-glass border`
+- `ConflictsPage.tsx`: all `bg-muted` tile divs (description, stats, countries, tags) → `modal-tile`
+
+## 2026-04-15 — Apply modal-glass + modal-tile to EconomyModal
+- `EconomiesPage.tsx`: modal wrapper `bg-card border border-border` → `modal-glass border`
+- `EconomiesPage.tsx`: stat tiles `bg-muted rounded-md` → `modal-tile rounded-lg`
+
+## 2026-04-15 — Add state flags to modal header in StatesPage
+- `StatesPage.tsx`: replaced abbreviation gradient box in `StateModal` header with `flagcdn.com/w160/us-{id}.png` flag image (w-20 h-14 rounded)
+- Fallback to abbreviation + gradient if image fails to load
+- Cards already had flags (w-80 and w-11 flagcdn URLs); this completes the pattern in the modal
+
+## 2026-04-15 — Add 5 territories to countriesData (PR, GU, BM, FO, GL)
+- `countriesData.ts`: added Puerto Rico (US territory), Guam (US territory), Bermuda (British territory), Faroe Islands (Danish autonomous), Greenland (Danish autonomous)
+- Each entry has full `keyIndustries`, `landmarks`, `religions`, `spokenLanguages`, `governmentType`, and `trends`
+- Inserted under new `// ── TERRITORIES & DEPENDENCIES ──` section before `// ── CARIBBEAN ──`
+
+## 2026-04-13 — Remove Developer API section, add 27 new economies (9 batches × 3)
+## 2026-04-13 — Remove Developer API section, add 27 new economies (9 batches × 3)
+- `MembershipsPage.tsx`: removed "Developer API" tab entirely (imports, ENDPOINTS, SAMPLE, state, JSX), updated Research plan features
+- `App.tsx`: removed `/api` route and `ApiAccessPage` import
+- `SidebarNav.tsx`: removed API Access nav item; added Edu/Students link
+- `economiesData.ts`: added 27 new economies across 9 batches (3 per batch): Switzerland, Argentina, UAE, Poland, Sweden, Belgium, Norway, Singapore, Malaysia, Israel, Colombia, Egypt, South Africa, Thailand, Denmark, Nigeria, Pakistan, Vietnam, Chile, Philippines, Bangladesh, Austria, Iran, Iraq, Portugal, Czechia, Greece
+
+## 2026-04-13 — Rename agencies label, remove Top 20 table, professional CS monogram logo
+- `NotificationsPanel.tsx`: renamed `"Int'l Agencies"` → `"International Agencies"` in CATEGORY_META
+- `EconomiesPage.tsx`: removed the entire Top 20 Economies table block + cleaned up `Minus` import
+- `HeaderNav.tsx`: replaced plain circle with `CS` monogram (DM Sans bold, secondary bg) + refined wordmark (bold/light split, tight tracking)
+
+## 2026-04-13 — Top 20 table → EconomiesPage, QoL scores, Int'l Agencies category, circle logo
+- `EconomiesPage.tsx`: Top 20 Economies table moved here (previously in NotificationsPage) — shown above the card grid
+- `NotificationsPage.tsx`: removed Top 20 table; cleaned up unused imports
+- `NotificationsPanel.tsx` + `NotificationsPage.tsx`: added `agencies` category (Int'l Agencies) with `IdentificationBadge` icon + 4 sample notifications (UN, World Bank, IAEA, WTO)
+- `statesData.ts`: added `qualityOfLiving: number` field (0–100) to all 50 states
+- `StatesPage.tsx`: QoL score displayed as colored progress bar in modal + card; green ≥ 75, yellow ≥ 55, red below
+- `HeaderNav.tsx`: replaced `Globe` icon with a plain `bg-secondary` circle div
+
+## 2026-04-13 — Notifications top-20 economies table + header light mode + frosted search
+- `NotificationsPage.tsx`: added Top 20 Economies table (sorted by GDP desc) above notification feed — shows GDP, growth trend icon, inflation, currency, credit rating
+- `HeaderNav.tsx`: added `header-action-icon`, `header-logo-text`, `header-username`, `header-search-icon` CSS classes for light-mode targeting
+- `index.css`: `.header-search-input` frosted glass (backdrop-filter blur) for dark/light; `.header-action-icon` forced dark color in `html.light`
+- `economiesData.ts` already had 20 economies — sorted & sliced to top 20 by GDP
+
+## 2026-04-13 — Add Political Campaigns tab to MembershipsPage
+- New "Political Campaigns" tab on MembershipsPage with 3 tiered packages (Grassroots $49, District $149, Statewide $399/week)
+- 3-step flow: package selection → campaign details form (candidate, office, party, dates, tagline, mission statement, issue tags) → review & pay with live banner preview
+- Mission statement char limit varies by package (280/600/unlimited)
+- Issue tag targeting with up to 5 selectable tags
+- FEC compliance notice + success confirmation state
+- `MegaphoneSimple`, `Flag`, `CalendarBlank`, `ImageSquare`, `TextAlignLeft`, `Buildings`, `ChartBar`, `Confetti` icons added
+
+## 2026-04-13 — Add Notifications to sidebar nav and routing
+- Added `Bell` icon + `Notifications` entry to `navItems` in `SidebarNav.tsx` (below Dashboard)
+- Added `/dashboard/notifications` route in `App.tsx` pointing to existing `NotificationsPage`
+- No changes to `NotificationsPage.tsx` — it was already fully built
+
+## 2026-04-13 — Black/white header + Policy Tag Explorer on dashboard
+- `HeaderNav.tsx`: header bg switched to `--color-header-bg` CSS var (black dark, white light)
+- `index.css`: added `--color-header-bg: #000` in `:root`, `#fff` in `html.light`
+- `DashboardPage.tsx`: added `POLICY_TAGS` array + `TAG_COLOR` map + "Policy Tag Explorer" section with domain-colored pill buttons linking to /dashboard/policies
+- Tag colors match PoliciesPage domain colors (emerald/blue/yellow/orange/red/purple/pink/cyan)
+
+## 2026-04-13 — Fix policy tag pill colors to match site
+- Changed tag spans in `PolicyModal` and `InitiativesTab` from `bg-secondary/bg-muted text-foreground` to `bg-secondary/10 text-secondary border-secondary/20`
+- Matches existing tag style used across CitiesPage, CountriesPage, ConflictsPage, EconomiesPage
+
+## 2026-04-13 — Make all filter pill buttons fully rounded and downsized
+- Changed `rounded-md`/`rounded-lg` → `rounded-full` on all filter pills
+- Reduced padding `px-3 py-2` / `px-3 py-1.5` → `px-2.5 py-1` site-wide
+- Affected: PoliciesPage, CitiesPage, ConflictsPage, CountriesPage, EconomiesPage, StatesPage, ComparisonModule
+
+## 2026-04-13 — Remove frosted glass from all modals and popups
+- Stripped `backdropFilter: blur(...)` + `rgba(...)` glass backgrounds from all 10 files
+- All modals (Cities, Conflicts, Countries, Economies, States, Policies) → `bg-card border border-border`
+- AuthModal, NotesPopup, SearchDropdown, UserMenu → same solid `bg-card` treatment
+- PoliciesPage inline glass styles (tags, stat tiles, party rows, impl panel) → `bg-muted border border-border`
+
+## 2026-04-13 — Downsize sidebar width (w-44→w-36 expanded, w-16→w-14 collapsed)
+- `DashboardLayout.tsx`: sidebar `w-44`→`w-36`, collapsed `w-16`→`w-14`, margins updated to match
+
+## 2026-04-13 — Rich detail card + full comparison module for countries & states
+- `CountryDetailPanel` now shows economic overview stat tiles, score bars (unemployment/inflation/HDI/life), GDP trend BarChart, key industries, biosphere donut, governance + people grids
+- Added a "Compare" button on the panel that links to `/dashboard/comparisons`
+- `ComparisonModule` rewritten to use real `countriesData` + `usStatesData` with search, radar chart, and a side-by-side stat table
+- Added `/dashboard/comparisons` route in `App.tsx` and updated `ComparisonsPage.tsx` header
+- `CountriesPage` grid adjusts to full-width when no country is selected
+
+## 2026-04-13 — Glassmorphism on PoliciesPage modal and tag pills
+- Modal backdrop uses `blur(24px)` + frosted glass bg (`rgba(255,255,255,0.06)`) with inner-border highlight
+- Stat cards, tags, initiative tag pills, party rows, and implementation panel all use glass-style inline styles
+- Tags: `text-white`, `rgba(255,255,255,0.1)` background, `rgba(255,255,255,0.2)` border
+- All glass effects applied via inline `style` props to avoid Tailwind JIT purge issues
+
+## 2026-04-12 — Add Membership, API Access, and Edu Sign-in pages
+- Created `src/pages/ApiAccessPage.tsx` — endpoint listing, quick-start cURL sample with copy button, feature pills, pricing note
+- Created `src/pages/EduSignInPage.tsx` — .edu email form with magic-link flow, perks list, Google/Microsoft SSO placeholders
+- Added routes `/membership`, `/api`, `/edu` to `App.tsx` (outside DashboardLayout)
+- Added Membership, API Access, Edu Sign-in entries to `SidebarNav.tsx` with Crown/Code/GraduationCap icons
+- Enhanced `AuthModal.tsx` with inline .edu email tab + link to full Edu page; MembershipsPage gets API/Edu shortcut buttons
+
+## 2026-04-12 — COMPLETE: All 190+ countries now have keyIndustries data
+- Final batch: Added `keyIndustries` to 25 remaining countries (GW, SL, LR, TG, GA, CG, CF, TD, CV, SC, ST, GQ, KM, PG, FJ, SB, VU, WS, TO, KI, FM, PW, MH, NR, TV)
+- West African nations: Guinea-Bissau, Sierra Leone, Liberia, Togo, Gabon, Republic of Congo, CAR, Chad
+- Island states: Cape Verde, Seychelles, São Tomé, Equatorial Guinea, Comoros
+- Pacific nations: Papua New Guinea, Fiji, Solomon Islands, Vanuatu, Samoa, Tonga, Kiribati, Micronesia, Palau, Marshall Islands, Nauru, Tuvalu
+- Each country has 6 curated industries with accurate GDP share percentages and color coding
+- ALL countries in `countriesData.ts` now render the Key Industries bar chart in CountryModal and CountryDetailPanel
+
+## 2026-04-12 — Add keyIndustries + biosphere presets to all countries
+- Added `keyIndustries` (6 sectors each) to all ~60 countries that previously had no data: Guatemala, Cuba, Haiti, Dominican Republic, Panama, Jamaica, Trinidad & Tobago, Belize, Honduras, El Salvador, Nicaragua, Costa Rica, all South American nations, all remaining European nations, Singapore, Philippines, Vietnam, Pakistan, Bangladesh, UAE, Israel, Iran, Nigeria, Ethiopia, Egypt, South Africa, New Zealand
+- Expanded `getBiosphere()` presets in `CountriesPage.tsx` from 13 → 50+ countries with ecologically accurate land-use breakdowns per country ID
+- Fallback default preset still applies for remaining minor nations
+- No UI changes — both charts now render on every country that has `keyIndustries`
+
+## 2026-04-12 — Replace recharts BarChart with web bar chart + biosphere donut in CountriesPage
+- Industries section now uses CSS progress bars (no recharts BarChart) for a cleaner "web chart" look
+- Added `getBiosphere()` helper with per-country land-use presets (13 countries, fallback default)
+- Biosphere displayed as a recharts `PieChart` donut beside the industries bar list
+- Both `CountryModal` and `CountryDetailPanel` updated; `PieChart`/`Pie` added to recharts imports
+- `BarChart`/`Bar`/`CartesianGrid` imports kept for other uses elsewhere
+
+## 2026-04-12 — Reduce expanded sidebar width from w-56 to w-44
+- Changed `w-56` → `w-44` and `md:ml-56` → `md:ml-44` in `DashboardLayout.tsx`
+
+## 2026-04-12 — Replace GDP Trend chart with Key Industries horizontal bar chart
+- Added `Industry` interface + `keyIndustries?: Industry[]` field to `Country` type in `countriesData.ts`
+- Populated `keyIndustries` (6–7 sectors with GDP share %) for 13 major countries: US, CA, MX, BR, DE, FR, GB, CN, JP, IN, KR, SA, AU, RU
+- Both `CountryModal` and `CountryDetailPanel` now show a color-coded horizontal `BarChart` of vital industries with % of GDP on X axis
+- Countries without `keyIndustries` data gracefully hide the chart section
+- Swapped `AreaChart`/`Area` recharts imports for `BarChart`/`Bar`/`Cell`
+
+## 2026-04-12 — Add senators & House representatives to all 50 US state modals
+- Added `Legislator` and `Representative` interfaces + `senators`, `houseSeats`, `representatives` fields to `USState` in `statesData.ts`
+- Populated both senators (name, party, termEnd year) and all House reps (name, party, district) for all 50 states
+- `StatesPage.tsx` modal now renders a Senators section (2-col grid, party color, term-end badge) and a scrollable Representatives grid (D/R/I badge, district label)
+- Used `UserCircle` and `Gavel` phosphor icons for section headers
+
+## 2026-04-12 — Add Waterways & Ports, Humanitarian Aid, Natural Disasters overlays to World Map
+- Added 3 new `OverlayMode` values: `"waterways"`, `"humanitarian"`, `"disasters"` to `WorldMapSVG`
+- `WATERWAYS` (15 entries): canals (diamond), straits (circle), ports (square) — cyan/amber/green dots with hover tooltips
+- `HUMANITARIAN_ZONES` (14 entries): cross-symbol markers, pulsing rings by severity (Catastrophic/Critical/Serious)
+- `DISASTER_HOTSPOTS` (17 entries): triangle warning markers by type (Earthquake/Volcanic/Cyclone/Flood/Drought/Wildfire)
+- Each overlay has its own inline SVG legend; toggle buttons added to the pill row; `FirstAid` + `CloudLightning` icons imported
+
+## 2026-04-12 — Refresh all site data to current 2026 figures
+- Updated all 50 US state governors, populations, GDP, median income, unemployment rates to 2026
+- New governors: Bob Ferguson (WA), Mike Braun (IN), Josh Stein (NC), Kelly Ayotte (NH), Dan Bramnick (NJ), Matt Meyer (DE), Mike Kehoe (MO), Kelly Armstrong (ND), Patrick Morrisey (WV)
+- Updated economiesData: interest rates (Fed 4.25%, ECB 2.65%, BoE 4.25%, BoJ 0.75%), stock market caps, debt/GDP ratios
+- Fixed duplicate country entries for Nigeria/Ethiopia/Egypt/South Africa in countriesData
+- France GDP corrected to 3.05T to match countriesData entry
+
+## 2026-04-12 — Update all data to 2026 + add advanced cities
+- Updated all heads of state: Trump (US), Mark Carney (CA), Sheinbaum (MX), Merz (DE), Starmer (GB), Lee Jae-myung (KR), Sanae Takaichi (JP), Friedrich Merz (DE), etc.
+- Updated GDP, population, inflation, unemployment, trade balance for all 190+ countries to 2026 figures
+- Updated all economy trend arrays to use 2022–2026 years with 2026 values
+- Replaced all 35+ cities in citiesData.ts with 2026-updated entries including new "most advanced" cities: Singapore, Seoul, San Francisco Bay Area, Tallinn (digital), Helsinki, Zurich, Copenhagen
+- Added `id` suffix `26` to most city IDs to signal 2026 data; Singapore moved to top as #1 advanced city
+
+## 2026-04-12 — Add spokenLanguages, landmarks, religions panels to CountriesPage
+- Both `CountryModal` and `CountryDetailPanel` now render a 3-col grid for spoken languages (badges), top landmarks (bullet list), and religions (warning badges)
+- Sections are conditionally shown only when any of the three arrays are non-empty
+- Used `(country as any)` cast since fields are optional additions to the Country type
+- Fixed gradient ID collision: modal uses `ctryGrad-{id}`, panel uses `ctryGradPanel-{id}`
+
+## 2026-04-12 — Fix createRoot target container mismatch
+- `index.html` uses `<div id="app">` but `index.tsx` called `getElementById("root")` → changed to `"app"`
+
+## 2026-04-12 — Add Policies page to sidebar nav
+- Created `src/pages/PoliciesPage.tsx` — 15 real-world policies across 8 domains (Climate, Healthcare, Education, Infrastructure, Defense, Economy, Social, Tech)
+- 5 deep-dive tabs: Budget (allocation bars + table), Initiatives (card list + detail panel), Impact (leaderboard + bubble chart), Scale (scope matrix), Adoption (rates + quadrant analysis)
+- Filters: search, domain, scope, status — all persist across tab switches
+- Added `Briefcase` icon + `/dashboard/policies` route to `SidebarNav.tsx` and `App.tsx`
+
+## 2026-04-12 — Add 4 overlay toggles to WorldMapSVG
+- Overlay modes: Conflicts (default), Global Alliances (NATO/EU/SCO/ASEAN/AU/MERCOSUR), Richest & Poorest (GDP/capita tiers), Population Density (ppl/km²)
+- Country fills change color per overlay; hover tooltip shows per-mode detail text
+- Each overlay has its own dynamic SVG legend drawn inline
+- Helper `matchCountryByFeature()` matches TopoJSON features to countriesData by name
+
+## 2026-04-12 — Add live data auto-refresh from World Bank API
+- Created `src/lib/liveData.ts` — fetches 7 WB indicators (GDP, growth, inflation, unemployment, pop, lifeExp, GDP/capita) for all countries in parallel
+- Created `src/hooks/useLiveData.ts` — React hook; fetches on mount, returns merged static+live dataset + refresh()
+- `CountriesPage`: uses `useLiveData()` instead of static array; shows live badge + Refresh button with spinner
+- `DashboardPage`: shows "Syncing live data…" / "✓ N records live" in stats strip with last-updated time
+- Falls back silently to static data if API is unavailable
+
+## 2026-04-12 — Fix missing ConflictsPage + WorldMapPage files (build error)
+- Created `src/pages/ConflictsPage.tsx` — 35+ conflicts, type/intensity/status filters, category descriptions, modal detail view
+- Created `src/pages/WorldMapPage.tsx` — SVG world map with conflict dots, 8 data charts (GDP, pop, HDI, inflation, displacement, growth)
+- Root cause: previous session wrote "..." placeholder content; files did not exist on filesystem
+- App.tsx imports + routes were already correct; only the page files needed creation
+
+## 2026-04-12 — Create ConflictsPage + WorldMapPage (were missing from FS)
+- Created `src/pages/ConflictsPage.tsx` — 35+ conflicts, type/intensity/status filters, hotspot breakdown, modal detail view
+- Created `src/pages/WorldMapPage.tsx` — SVG world map with conflict dots, 8 data charts, world stat cards
+- Added `/dashboard/conflicts` + `/dashboard/worldmap` routes to `src/App.tsx`
+- Added `Warning` + `MapTrifold` icons + nav entries to `src/components/SidebarNav.tsx`
+
+## 2026-04-12 — Fix HeaderNav crash: ChartLineUp → ChartLine
+- `HeaderNav.tsx` imported `ChartLineUp` (does not exist in @phosphor-icons/react v2)
+- Replaced with `ChartLine` in both the import line and `TYPE_ICON["Economy"]` usage
+- This caused DashboardPage to crash at render time via the shared module
+
+## 2026-04-12 — Fix DashboardPage crash: invalid phosphor icon imports
+- `ChartLineUp` does not exist in @phosphor-icons/react v2 → replaced with `ChartLine`
+- `StickyNote` does not exist in @phosphor-icons/react v2 → replaced with `Note`
+- Both caused "element type is undefined" render crash in DashboardPage
+
+## 2026-04-12 — Fix CollectionsPage entitiesCount → entities field mismatch
+- `CollectionsPage`: `create()` call used `entitiesCount` (invalid) → fixed to `entities`
+- Card display also used `col.entitiesCount` → fixed to `col.entities`
+
+## 2026-04-12 — Remove "New Collection" btn, universal search bar, redesign Dashboard
+- `HeaderNav`: removed "New Collection" button; search now queries all 50 states + 195 countries + 30 cities + 18 economies live
+- Results dropdown shows entity type badge, label, sublabel; clicking navigates to that entity&#39;s page
+- `DashboardPage`: replaced OverviewHeader/MetricCardsSection/CollectionsGrid with hero banner, 4-tile Explore nav, highlights grid, chart panel, comparison module, tools strip
+- Removed `OverviewHeader.tsx` dependency from dashboard (file preserved, just not imported)
+
+## 2026-04-12 — Add Conflicts & World Map pages + center/round all search bars
+- Created `src/pages/ConflictsPage.tsx` — wars, protests, disasters, economic crises with modal detail, filters, type breakdown strip
+- Created `src/pages/WorldMapPage.tsx` — SVG world map with conflict hotspot dots, 7 stat charts, global rankings
+- Created `src/data/conflictsData.ts` — 35+ conflicts typed with lat/lng, casualties, displaced, trend
+- Added `/dashboard/conflicts` + `/dashboard/worldmap` routes; wired Conflicts + World Map into SidebarNav
+- All search bars: `rounded-md` → `rounded-full`, `left-3/pl-9` → `left-4/pl-10`, `mx-auto` centering added
+
+## 2026-04-12 — Fix EconomyModal crash: Sailboat → Boat icon
+## 2026-04-12 — Add Conflicts & World Map pages + center/round all search bars
+- Created `src/pages/ConflictsPage.tsx` — wars, protests, disasters, economic crises with modal detail, filters, type breakdown strip
+- Created `src/pages/WorldMapPage.tsx` — SVG world map with conflict hotspot dots, 7 stat charts, global rankings
+- Created `src/data/conflictsData.ts` — 35+ conflicts typed with lat/lng, casualties, displaced, trend
+- Added `/dashboard/conflicts` + `/dashboard/worldmap` routes; wired Conflicts + World Map into SidebarNav
+- All search bars: `rounded-md` → `rounded-full`, `left-3/pl-9` → `left-4/pl-10`, `mx-auto` centering added
+
+## 2026-04-12 — Fix EconomyModal crash: Sailboat → Boat icon
+- `Sailboat` does not exist in `@phosphor-icons/react`; replaced with `Boat` in import + JSX
+- Only `src/pages/EconomiesPage.tsx` modified
+
+## 2026-04-12 — States/Cities grid to 3 cols on sm+, smaller notes FAB
+- `StatesPage` + `CitiesPage`: changed grid from `sm:grid-cols-2 xl:grid-cols-3` → `sm:grid-cols-3`
+- `NotesPopup` closed FAB: shrunk from `w-14 h-14` / icon 26 → `w-9 h-9` / icon 16, moved to `bottom-4 right-4`
+
+## 2026-04-12 — Stretch TaxCard to full width in StateModal stats grid
+- Added `sm:col-span-4` to TaxCard wrapper so it spans all 4 columns on sm+ screens
+- Only `src/pages/StatesPage.tsx` modified
+
+## 2026-04-12 — Add minimumWage + averageIncome to TaxCard in StateModal
+- Added `minimumWage` and `averageIncome` fields to `USState` interface in `statesData.ts`
+- Populated both fields for all 50 states with real-world data
+- `TaxCard` renamed to "Tax & Wages", now shows 4 columns: Income Tax · Sales Tax · Min Wage · Avg Income
+- Only `src/data/statesData.ts` + `src/pages/StatesPage.tsx` modified
+
+## 2026-04-12 — Reorder stat cards in StateModal: education/healthcare replace tax slots, merged TaxCard at bottom
+- Added `TaxCard` component: merges Income Tax + Sales Tax into a single `col-span-2` card with a vertical divider
+- Moved Education Rank + Healthcare Rank into the 3rd row (slots previously held by tax cards)
+- Merged tax card now sits as the last row spanning full width (2 columns in 4-col grid)
+- Only `src/pages/StatesPage.tsx` modified
+
+## 2026-04-12 — Tax rates, notes links/voice, sidebar shrink, cities top 30 + modal
+- Added `stateTaxRate` + `salesTaxRate` to all 50 states (missing 9 states filled in); shown on state cards + modal
+- NotesPopup: added link manager (add/remove URLs) + voice recorder (MediaRecorder API, play/stop/delete)
+- NotesPage: NoteCard now renders attached links + audio playback via `<audio>` ref
+- SidebarNav: shrank nav items — py-3→py-2, icon size 22→17, text-sm→text-xs
+- CitiesPage: expanded to top 30 world cities, removed side panel, city cards now open `CityModal` popup
+
+
+## 2026-04-12 — Replace GDP chart with 6 demographic charts in StateModal
+- Replaced single GDP/Employment trend chart with 6 new charts per state
+- Charts: Ethnicity (donut), Land Use (donut), Age Distribution (horiz bars), Voter Registration (horiz bar chart), Wealth & Poverty (bar), Energy Mix (horiz bars)
+- Added new fields to `USState` interface + all 50 states in `statesData.ts`
+- State cards now show a color-coded Dem/Rep/Ind voter share mini-bar
+- Removed unused `StateDetailPanel`, `AreaChart`, `Area` imports
+
+## 2026-04-12 — Remove nav pages + US National Banner on StatesPage
+- Removed Bookmarks, Trends & Polls, My Collections, Comparisons from sidebar nav and App routes
+- Added `USNationalBanner` component at top of `StatesPage` with full US national statistics
+- Banner includes: combined GDP ($T), population, avg unemployment, median income, party breakdown
+- Top-6 GDP bar chart, national snapshot facts, live election countdown to Nov 7, 2028
+- Modified `src/App.tsx`, `src/components/SidebarNav.tsx`, `src/pages/StatesPage.tsx`
+
+## 2026-04-12 — Full Data Expansion (50 States, 195 Countries)
+- Expanded `src/data/statesData.ts` from 8 → 50 US states (all states, full typed data)
+- Expanded `src/data/countriesData.ts` from 8 → 195 countries (all sovereign states, all continents)
+- Added `makeTrends` / `mkTrends` helper functions to auto-generate chart trend arrays
+- All existing interfaces (`USState`, `Country`) unchanged — fully backward compatible
+
+## 2026-04-12 — Modal Popups for Entity Pages
+## 2026-04-12 — Modal Popups for Entity Pages
+- Converted inline side panels to centered modal overlays (backdrop blur, scroll, ESC-to-close) in `StatesPage`, `CountriesPage`, `EconomiesPage`
+- Added `StateModal`, `CountryModal`, `EconomyModal` components (replacing `*DetailPanel` for card click)
+- Removed the right-hand detail column layout — cards now span full 2/3 width, click opens modal
+- All detail content (charts, stats, gov info, trade, sectors) preserved inside the modal unchanged
+
+## 2026-04-12 — Notes Popup + SDK Integration
+- Added `src/components/NotesPopup.tsx` — floating bottom-right popup for quick note-taking, saves via SDK
+- Added `src/pages/NotesPage.tsx` — full notes page with search, entity-type filter, delete, SDK-backed
+- Migrated `CollectionsPage` and `BookmarksPage` to use `useQuery`/`useMutation` from SDK (removed local state)
+- Wrapped app with `AnimaProvider` in `src/index.tsx`; added `@animaapp/playground-react-sdk` to `package.json`
+- Added `/dashboard/notes` route + `My Notes` sidebar nav item; `NotesPopup` mounted in `DashboardLayout`
+
+## 2026-04-12 — Entity Pages (States, Countries, Cities, Economies)
+- Created `src/data/statesData.ts`, `countriesData.ts`, `citiesData.ts`, `economiesData.ts` — full typed data layer
+- Created `src/pages/StatesPage.tsx` — US states with filter/sort, detail panel, GDP/employment chart
+- Created `src/pages/CountriesPage.tsx` — countries with continent filter, HDI bar, 5-yr GDP chart
+- Created `src/pages/CitiesPage.tsx` — global cities with safety/cost indices, population trend chart
+- Created `src/pages/EconomiesPage.tsx` — economies with sectors, credit ratings, 5-yr trend charts
+- Updated `src/App.tsx` + `src/components/SidebarNav.tsx` — wired 4 new routes + sidebar nav items
+
+</changelog>

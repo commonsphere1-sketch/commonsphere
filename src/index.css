@@ -1,0 +1,221 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --hero-gradient: #0b0b14;
+  --color-header-bg: #08080f;
+  --color-primary: hsl(184, 45%, 88%);
+  --color-primary-foreground: hsl(184, 40%, 20%);
+  --color-secondary: hsl(200, 85%, 68%);
+  --color-secondary-foreground: hsl(210, 30%, 12%);
+  --color-tertiary: hsl(190, 75%, 62%);
+  --color-tertiary-foreground: hsl(0, 0%, 100%);
+  --color-neutral: hsl(0, 0%, 98%);
+  --color-neutral-foreground: hsl(220, 10%, 15%);
+  --color-success: hsl(150, 55%, 45%);
+  --color-warning: hsl(35, 100%, 50%);
+  --color-background: #0b0b14;
+  --color-foreground: hsl(240, 20%, 94%);
+  --color-card: rgba(255, 255, 255, 0.04);
+  --color-card-foreground: hsl(240, 20%, 94%);
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-muted: rgba(255, 255, 255, 0.06);
+  --color-muted-foreground: rgba(255, 255, 255, 0.38);
+  --font-sans: "DM Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+  --border-radius: 8px;
+}
+
+html,
+body {
+  background-color: #0b0b14;
+  color: hsl(240, 20%, 94%);
+  font-family: "DM Sans", sans-serif;
+}
+
+/* ── Light mode overrides ───────────────────────────────── */
+html.light {
+  --hero-gradient: #ffffff;
+  --color-header-bg: #ffffff;
+  --color-primary: hsl(184, 45%, 88%);
+  --color-primary-foreground: hsl(184, 40%, 20%);
+  --color-secondary: hsl(200, 90%, 60%);
+  --color-secondary-foreground: hsl(210, 30%, 10%);
+  --color-tertiary: hsl(190, 80%, 54%);
+  --color-tertiary-foreground: hsl(0, 0%, 100%);
+  --color-neutral: hsl(210, 15%, 92%);
+  --color-neutral-foreground: hsl(222, 15%, 15%);
+  --color-success: hsl(150, 55%, 38%);
+  --color-warning: hsl(35, 100%, 45%);
+  --color-background: hsl(210, 20%, 96%);
+  --color-foreground: hsl(222, 20%, 12%);
+  --color-card: hsl(0, 0%, 100%);
+  --color-card-foreground: hsl(222, 20%, 12%);
+  --color-border: hsl(210, 18%, 82%);
+  --color-muted: hsl(210, 18%, 90%);
+  --color-muted-foreground: hsl(222, 12%, 40%);
+}
+
+html.light body {
+  background-color: hsl(210, 20%, 96%);
+  color: hsl(222, 20%, 12%);
+}
+
+/* ── Header frosted-glass search ───────────────────────── */
+.header-search-input {
+  background: #000000 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  color: inherit !important;
+}
+.header-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+html.light .header-search-input {
+  background: rgba(255, 255, 255, 0.55) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  color: hsl(222, 20%, 12%) !important;
+}
+html.light .header-search-input::placeholder {
+  color: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ── Header icon/text — dark mode white, light mode dark ─── */
+.header-action-icon {
+  color: #ffffff !important;
+}
+.header-action-icon:hover {
+  color: hsl(200, 85%, 68%) !important;
+}
+
+html.light .header-action-icon {
+  color: hsl(222, 20%, 18%) !important;
+}
+html.light .header-action-icon:hover {
+  color: hsl(200, 85%, 42%) !important;
+}
+.header-logo-text {
+  color: #ffffff !important;
+}
+html.light .header-logo-text {
+  color: hsl(222, 20%, 18%) !important;
+}
+html.light .header-username {
+  color: hsl(222, 20%, 18%) !important;
+}
+html.light .header-search-icon {
+  color: rgba(0, 0, 0, 0.45) !important;
+}
+
+/* ── Logo mark dark/light switching ─────────────────────── */
+/* Dark mode (default): show dark globe, hide light globe */
+.logo-dark {
+  display: block;
+}
+.logo-light {
+  display: none;
+}
+
+/* Light mode: show light globe, hide dark globe */
+html.light .logo-dark {
+  display: none;
+}
+html.light .logo-light {
+  display: block;
+}
+
+/* ── Modal frosted glass — white & clear ─────────────── */
+.modal-glass {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(28px) saturate(180%) brightness(1.15) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.15) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  box-shadow:
+    0 8px 48px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+}
+html.light .modal-glass {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(28px) saturate(200%) brightness(1.08) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.08) !important;
+  border-color: rgba(255, 255, 255, 0.7) !important;
+  box-shadow:
+    0 8px 48px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Inner section tiles inside modals */
+.modal-tile {
+  background: rgba(255, 255, 255, 0.09) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+html.light .modal-tile {
+  background: rgba(255, 255, 255, 0.55) !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Chart grid lines adaptive */
+html.light .recharts-cartesian-grid line {
+  stroke: hsl(210, 18%, 78%) !important;
+}
+
+/* ── Leader detail modal — active tab stronger in light mode ── */
+html.light .leader-tab-active {
+  color: hsl(205, 90%, 38%) !important;
+  border-color: hsl(205, 90%, 38%) !important;
+}
+
+/* ── Newsletter input dark placeholder ─────────────────── */
+.newsletter-input::placeholder {
+  color: rgba(30, 58, 95, 0.45);
+}
+.dark .newsletter-input::placeholder {
+  color: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* ── Frosted glass scrollbar — adaptive dark/light ───────── */
+:root {
+  --sb-track: rgba(255, 255, 255, 0.05);
+  --sb-thumb: rgba(255, 255, 255, 0.2);
+  --sb-thumb-hover: rgba(255, 255, 255, 0.32);
+  --sb-border: rgba(255, 255, 255, 0.13);
+  --sb-border-hover: rgba(255, 255, 255, 0.24);
+}
+
+html.light {
+  --sb-track: rgba(0, 0, 0, 0.05);
+  --sb-thumb: rgba(0, 0, 0, 0.16);
+  --sb-thumb-hover: rgba(0, 0, 0, 0.26);
+  --sb-border: rgba(0, 0, 0, 0.09);
+  --sb-border-hover: rgba(0, 0, 0, 0.16);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--sb-track);
+  border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--sb-thumb);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 100px;
+  border: 1px solid var(--sb-border);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sb-thumb-hover);
+  border-color: var(--sb-border-hover);
+}
