@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { SourceLink } from "../components/SourceLink";
 import { useTheme } from "../contexts/ThemeContext";
 import {
   Users,
@@ -1043,6 +1044,13 @@ export function AnalystPage() {
                 </div>
               ))}
             </div>
+            <SourceLink
+              sources={{
+                label: "Analyst Network (internal)",
+                url: "https://commonsphere.io",
+              }}
+              className="mt-2"
+            />
           </div>
 
           {/* Trending topics */}
@@ -1099,6 +1107,13 @@ export function AnalystPage() {
                 </button>
               ))}
             </div>
+            <SourceLink
+              sources={[
+                { label: "Reuters", url: "https://reuters.com" },
+                { label: "AP News", url: "https://apnews.com" },
+              ]}
+              className="mt-2"
+            />
           </div>
 
           {/* Top analysts */}
@@ -1117,6 +1132,13 @@ export function AnalystPage() {
                 </span>
               </div>
             </div>
+            <SourceLink
+              sources={{
+                label: "Pew Research",
+                url: "https://pewresearch.org",
+              }}
+              className="mb-2"
+            />
             <div className="flex flex-col gap-2">
               {ANALYSTS.map((a) => (
                 <div

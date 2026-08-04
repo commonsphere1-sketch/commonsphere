@@ -6,9 +6,11 @@ import {
   X,
   ListBullets,
   MapTrifold,
-  Images,
+  Scales,
   ArrowLeft,
+  NotePencil,
 } from "@phosphor-icons/react";
+import { useNotes } from "../contexts/NotesContext";
 import {
   AreaChart,
   Area,
@@ -19,6 +21,24 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { citiesData, type City } from "../data/citiesData";
+import { SourceLink } from "../components/SourceLink";
+
+const SRC_CITIES = [
+  {
+    label: "Numbeo City Rankings",
+    url: "https://www.numbeo.com/city-rankings/",
+  },
+  {
+    label: "Global Power City Index",
+    url: "https://mori-m-foundation.or.jp/english/ius2/gpci2/",
+  },
+];
+const SRC_CITY_LAWS = [
+  {
+    label: "City & Local Government Network",
+    url: "https://www.citiesalliance.org/",
+  },
+];
 
 const regionColors: Record<string, string> = {
   "North America": "text-secondary border-secondary bg-secondary/10",
@@ -55,6 +75,1314 @@ function IndexBar({
           className={`h-full rounded-full transition-all duration-500 ${color.replace("text-", "bg-")}`}
           style={{ width: `${Math.min(value, 100)}%` }}
         />
+      </div>
+    </div>
+  );
+}
+
+// ─── Per-city laws data ────────────────────────────────────────────────────
+interface CityLaw {
+  category: string;
+  title: string;
+  description: string;
+  enacted?: string;
+  status: "Active" | "Proposed" | "Repealed";
+  color: string;
+}
+
+const CITY_LAWS: Record<string, CityLaw[]> = {
+  "new-york": [
+    {
+      category: "Housing",
+      title: "Rent Stabilization Law",
+      description:
+        "Limits annual rent increases for eligible apartments and grants tenants right of renewal.",
+      enacted: "1969",
+      status: "Active",
+      color: "#60a5fa",
+    },
+    {
+      category: "Environment",
+      title: "Local Law 97 — Climate Mobilization Act",
+      description:
+        "Requires large buildings to cut carbon emissions by 40% by 2030 and 80% by 2050.",
+      enacted: "2019",
+      status: "Active",
+      color: "#34d399",
+    },
+    {
+      category: "Labor",
+      title: "Fair Work Week Law",
+      description:
+        "Requires fast-food employers to provide predictable schedules and premium pay for last-minute changes.",
+      enacted: "2017",
+      status: "Active",
+      color: "#fbbf24",
+    },
+    {
+      category: "Public Safety",
+      title: "Bail Reform Act (local application)",
+      description:
+        "Limits cash bail for most misdemeanors and non-violent felonies to reduce pre-trial detention.",
+      enacted: "2020",
+      status: "Active",
+      color: "#f87171",
+    },
+    {
+      category: "Transport",
+      title: "Congestion Pricing Scheme",
+      description:
+        "Tolls vehicles entering Manhattan below 60th Street to reduce gridlock and fund public transit.",
+      enacted: "2024",
+      status: "Active",
+      color: "#a78bfa",
+    },
+    {
+      category: "Business",
+      title: "Commercial Rent Stabilization Bill",
+      description:
+        "Proposed protections for small-business tenants against sudden lease non-renewals.",
+      enacted: "2024",
+      status: "Proposed",
+      color: "#fb923c",
+    },
+  ],
+  tokyo: [
+    {
+      category: "Environment",
+      title: "Tokyo Cap-and-Trade Program",
+      description:
+        "World&#39;s first urban emissions trading scheme requiring large facilities to cut CO₂.",
+      enacted: "2010",
+      status: "Active",
+      color: "#34d399",
+    },
+    {
+      category: "Disaster",
+      title: "Disaster Prevention Ordinance",
+      description:
+        "Mandates earthquake-resistance retrofitting for buildings and regular evacuation drills.",
+      enacted: "2000",
+      status: "Active",
+      color: "#f87171",
+    },
+    {
+      category: "Labor",
+      title: "Overwork Prevention Regulation",
+      description:
+        "Caps overtime at 100 hours/month and requires employers to offer mental health support.",
+      enacted: "2019",
+      status: "Active",
+      color: "#fbbf24",
+    },
+    {
+      category: "Housing",
+      title: "Urban Renaissance Special District Law",
+      description:
+        "Enables fast-track development in designated zones to increase housing stock.",
+      enacted: "2002",
+      status: "Active",
+      color: "#60a5fa",
+    },
+    {
+      category: "Public Safety",
+      title: "Anti-Stalking Ordinance",
+      description:
+        "Strengthens restraining-order provisions and criminalises persistent unwanted contact.",
+      enacted: "2013",
+      status: "Active",
+      color: "#a78bfa",
+    },
+    {
+      category: "Transport",
+      title: "Zero-Emission Vehicle By-Law",
+      description:
+        "Requires all new taxis and ride-share vehicles registered in Tokyo to be electric by 2030.",
+      enacted: "2022",
+      status: "Active",
+      color: "#22d3ee",
+    },
+  ],
+  london: [
+    {
+      category: "Environment",
+      title: "Ultra Low Emission Zone (ULEZ)",
+      description:
+        "Charges high-emission vehicles entering Greater London to improve air quality.",
+      enacted: "2021",
+      status: "Active",
+      color: "#34d399",
+    },
+    {
+      category: "Transport",
+      title: "Congestion Charge Scheme",
+      description:
+        "Daily charge for vehicles driving within the Central London Congestion Charge Zone.",
+      enacted: "2003",
+      status: "Active",
+      color: "#60a5fa",
+    },
+    {
+      category: "Housing",
+      title: "Mayor&#39;s London Plan",
+      description:
+        "Requires 35–50% affordable housing in new residential developments.",
+      enacted: "2021",
+      status: "Active",
+      color: "#fbbf24",
+    },
+    {
+      category: "Business",
+      title: "London Living Wage Policy",
+      description:
+        "Voluntary certification scheme encouraging employers to pay above the national minimum wage.",
+      enacted: "2005",
+      status: "Active",
+      color: "#a78bfa",
+    },
+    {
+      category: "Public Safety",
+      title: "Night Time Economy Strategy",
+      description:
+        "Licensing framework governing late-night venues to balance vibrancy with public safety.",
+      enacted: "2018",
+      status: "Active",
+      color: "#f87171",
+    },
+    {
+      category: "Climate",
+      title: "Net Zero London By 2030 Target",
+      description:
+        "Binding mayoral commitment to decarbonise city operations and cut borough-wide emissions.",
+      enacted: "2018",
+      status: "Active",
+      color: "#22d3ee",
+    },
+  ],
+  paris: [
+    {
+      category: "Environment",
+      title: "Paris Climate Action Plan",
+      description:
+        "Aims for carbon neutrality by 2050 with interim milestones including cycling infrastructure expansion.",
+      enacted: "2018",
+      status: "Active",
+      color: "#34d399",
+    },
+    {
+      category: "Transport",
+      title: "Paris Car-Free Sundays",
+      description:
+        "Monthly closures of central boulevards to private vehicles, promoting walking and cycling.",
+      enacted: "2015",
+      status: "Active",
+      color: "#60a5fa",
+    },
+    {
+      category: "Housing",
+      title: "Encadrement des Loyers (Rent Control)",
+      description:
+        "Caps rents at 20% above reference index in Paris arrondissements.",
+      enacted: "2019",
+      status: "Active",
+      color: "#fbbf24",
+    },
+    {
+      category: "Urban Planning",
+      title: "Paris en Commun Street Reallocation",
+      description:
+        "Converts car lanes to protected cycle tracks and green corridors city-wide.",
+      enacted: "2020",
+      status: "Active",
+      color: "#a78bfa",
+    },
+    {
+      category: "Business",
+      title: "Late-Night Noise Ordinance",
+      description:
+        "Restricts amplified music after midnight in residential zones with fines for non-compliance.",
+      enacted: "2017",
+      status: "Active",
+      color: "#f87171",
+    },
+    {
+      category: "Heritage",
+      title: "View Corridor Protection Rules",
+      description:
+        "Prohibits high-rise construction in 23 protected visual corridors around historic monuments.",
+      enacted: "1977",
+      status: "Active",
+      color: "#fb923c",
+    },
+  ],
+  dubai: [
+    {
+      category: "Business",
+      title: "Free Zone Corporate Law",
+      description:
+        "Allows 100% foreign ownership and zero corporate tax within designated free zones.",
+      enacted: "1985",
+      status: "Active",
+      color: "#fbbf24",
+    },
+    {
+      category: "Public Safety",
+      title: "Dubai Dress Code Ordinance",
+      description:
+        "Requires modest dress in public spaces; fines apply for violations in malls and government buildings.",
+      enacted: "2012",
+      status: "Active",
+      color: "#f87171",
+    },
+    {
+      category: "Environment",
+      title: "Dubai Clean Energy Strategy 2050",
+      description:
+        "Mandates 75% of energy from clean sources by 2050 with interim solar and nuclear targets.",
+      enacted: "2015",
+      status: "Active",
+      color: "#34d399",
+    },
+    {
+      category: "Labor",
+      title: "WPS (Wage Protection System)",
+      description:
+        "Requires employers to pay workers via regulated bank transfers to prevent wage theft.",
+      enacted: "2009",
+      status: "Active",
+      color: "#60a5fa",
+    },
+    {
+      category: "Housing",
+      title: "Rental Dispute Settlement Ordinance",
+      description:
+        "Governs landlord-tenant disputes through the Rental Disputes Center; caps increases at RERA index.",
+      enacted: "2008",
+      status: "Active",
+      color: "#a78bfa",
+    },
+    {
+      category: "Transport",
+      title: "Autonomous Vehicles Regulation 2021",
+      description:
+        "Framework permitting self-driving vehicle trials and sets liability rules for AV incidents.",
+      enacted: "2021",
+      status: "Active",
+      color: "#22d3ee",
+    },
+  ],
+  singapore: [
+    {
+      category: "Environment",
+      title: "Carbon Tax Act",
+      description:
+        "Uniform S$25/tonne carbon tax on large industrial emitters, rising to S$80 by 2030.",
+      enacted: "2019",
+      status: "Active",
+      color: "#34d399",
+    },
+    {
+      category: "Housing",
+      title: "HDB (Housing Development Board) Scheme",
+      description:
+        "Government-subsidised public housing covering ~80% of the resident population.",
+      enacted: "1960",
+      status: "Active",
+      color: "#60a5fa",
+    },
+    {
+      category: "Transport",
+      title: "Vehicle Quota System (COE)",
+      description:
+        "Limits total vehicle population via certificates of entitlement auctioned monthly.",
+      enacted: "1990",
+      status: "Active",
+      color: "#fbbf24",
+    },
+    {
+      category: "Public Safety",
+      title: "Zero Tolerance Drug Policy",
+      description:
+        "Mandatory death penalty for trafficking above threshold quantities.",
+      enacted: "1973",
+      status: "Active",
+      color: "#f87171",
+    },
+    {
+      category: "Business",
+      title: "Personal Data Protection Act (PDPA)",
+      description:
+        "Governs collection, use, and disclosure of personal data by organisations.",
+      enacted: "2012",
+      status: "Active",
+      color: "#a78bfa",
+    },
+    {
+      category: "Labor",
+      title: "Fair Consideration Framework",
+      description:
+        "Requires employers to consider Singaporeans fairly before hiring foreign professionals.",
+      enacted: "2014",
+      status: "Active",
+      color: "#fb923c",
+    },
+  ],
+  sydney: [
+    {
+      category: "Environment",
+      title: "Net Zero Emissions by 2035 Strategy",
+      description:
+        "City of Sydney&#39;s commitment to decarbonise council operations and support district renewable energy.",
+      enacted: "2021",
+      status: "Active",
+      color: "#34d399",
+    },
+    {
+      category: "Housing",
+      title: "Affordable Housing Contributions Scheme",
+      description:
+        "Requires developers to contribute 3–5% of residential floor space as affordable units.",
+      enacted: "2019",
+      status: "Active",
+      color: "#60a5fa",
+    },
+    {
+      category: "Transport",
+      title: "Cycling Infrastructure Policy",
+      description:
+        "Mandates separated cycleways on all major inner-city streets as part of the cycling action plan.",
+      enacted: "2018",
+      status: "Active",
+      color: "#fbbf24",
+    },
+    {
+      category: "Liquor",
+      title: "Sydney Lock-out Laws",
+      description:
+        "Prohibits entry to licensed venues after 1:30am and last drinks at 3am in the CBD entertainment precinct.",
+      enacted: "2014",
+      status: "Active",
+      color: "#f87171",
+    },
+    {
+      category: "Heritage",
+      title: "Heritage Conservation Areas Policy",
+      description:
+        "Protects streetscapes and built fabric in 47 heritage conservation areas across the city.",
+      enacted: "1988",
+      status: "Active",
+      color: "#a78bfa",
+    },
+    {
+      category: "Business",
+      title: "Night-Time Economy Strategy 2030",
+      description:
+        "Permits businesses to trade 24/7 in designated night-time economy precincts.",
+      enacted: "2020",
+      status: "Active",
+      color: "#fb923c",
+    },
+  ],
+  berlin: [
+    {
+      category: "Housing",
+      title: "Mietendeckel (Rent Cap — overturned)",
+      description:
+        "Capped rents at 2019 levels; struck down by Federal Constitutional Court in 2021.",
+      enacted: "2020",
+      status: "Repealed",
+      color: "#f87171",
+    },
+    {
+      category: "Environment",
+      title: "Berlin Energy Transition Law",
+      description:
+        "Sets target of 100% renewable electricity for Berlin by 2050 with 5-year milestones.",
+      enacted: "2021",
+      status: "Active",
+      color: "#34d399",
+    },
+    {
+      category: "Transport",
+      title: "Mobility Act (Mobilitätsgesetz)",
+      description:
+        "Germany&#39;s first state mobility law, prioritising cycling, pedestrians, and public transit.",
+      enacted: "2018",
+      status: "Active",
+      color: "#60a5fa",
+    },
+    {
+      category: "Public Safety",
+      title: "Berlin House Rules Ordinance",
+      description:
+        "Anti-discrimination provisions prohibiting denial of services based on ethnicity or religion.",
+      enacted: "2011",
+      status: "Active",
+      color: "#fbbf24",
+    },
+    {
+      category: "Housing",
+      title: "Zweckentfremdungsverbot (Misuse Prohibition)",
+      description:
+        "Restricts conversion of residential apartments to tourist accommodation without a permit.",
+      enacted: "2014",
+      status: "Active",
+      color: "#a78bfa",
+    },
+    {
+      category: "Business",
+      title: "Berlin Nightlife Protection Ordinance",
+      description:
+        "Classifies clubs as cultural institutions, shielding them from noise-complaint-based closures.",
+      enacted: "2021",
+      status: "Active",
+      color: "#fb923c",
+    },
+  ],
+};
+
+const DEFAULT_CITY_LAWS: CityLaw[] = [
+  {
+    category: "Zoning",
+    title: "Urban Zoning Ordinance",
+    description:
+      "Governs land use designations — residential, commercial, industrial — and development parameters.",
+    enacted: "2000",
+    status: "Active",
+    color: "#60a5fa",
+  },
+  {
+    category: "Environment",
+    title: "Clean Air Standards",
+    description:
+      "Sets emission limits for industry and vehicles operating within city limits.",
+    enacted: "2010",
+    status: "Active",
+    color: "#34d399",
+  },
+  {
+    category: "Housing",
+    title: "Tenant Protection Act",
+    description:
+      "Limits eviction grounds and requires 90-day notice for rent increases exceeding 10%.",
+    enacted: "2015",
+    status: "Active",
+    color: "#fbbf24",
+  },
+  {
+    category: "Public Safety",
+    title: "Public Order Ordinance",
+    description:
+      "Regulates gatherings, noise levels, and conduct in public spaces.",
+    enacted: "2005",
+    status: "Active",
+    color: "#f87171",
+  },
+  {
+    category: "Business",
+    title: "Business Licensing Framework",
+    description:
+      "Defines licensing requirements, trading hours, and compliance obligations for commercial operators.",
+    enacted: "2008",
+    status: "Active",
+    color: "#a78bfa",
+  },
+  {
+    category: "Transport",
+    title: "Road Safety Regulation",
+    description:
+      "Establishes speed limits, cycling infrastructure requirements, and pedestrian priority zones.",
+    enacted: "2018",
+    status: "Active",
+    color: "#fb923c",
+  },
+];
+
+const STATUS_COLORS: Record<string, string> = {
+  Active: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
+  Proposed: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+  Repealed: "text-red-400 bg-red-500/10 border-red-500/30",
+};
+
+// ─── City Legal Status Grid ───────────────────────────────────────────────
+type LegalStatus =
+  | "Legal"
+  | "Illegal"
+  | "Decriminalized"
+  | "Restricted"
+  | "Varies"
+  | "N/A";
+
+interface CityLegalTopic {
+  topic: string;
+  icon: string;
+  status: LegalStatus;
+  note: string;
+}
+
+const LEGAL_STATUS_BADGE: Record<LegalStatus, string> = {
+  Legal: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
+  Illegal: "text-red-400 bg-red-500/10 border-red-500/30",
+  Decriminalized: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+  Restricted: "text-orange-400 bg-orange-500/10 border-orange-500/30",
+  Varies: "text-blue-400 bg-blue-500/10 border-blue-500/30",
+  "N/A": "text-muted-foreground bg-muted border-border",
+};
+
+const CITY_LEGAL_STATUS: Record<string, CityLegalTopic[]> = {
+  "new-york": [
+    {
+      topic: "Recreational Cannabis",
+      icon: "🌿",
+      status: "Legal",
+      note: "Legal for adults 21+ since 2021 (MRTA); licensed dispensaries operating.",
+    },
+    {
+      topic: "Psychedelics",
+      icon: "🍄",
+      status: "Decriminalized",
+      note: "NYC decriminalized psilocybin possession in 2023; state-level ban still applies.",
+    },
+    {
+      topic: "Alcohol",
+      icon: "🍺",
+      status: "Legal",
+      note: "Legal 21+; open container prohibited in public spaces.",
+    },
+    {
+      topic: "Gambling",
+      icon: "🎰",
+      status: "Restricted",
+      note: "Licensed casinos permitted; NYC awarding 3 downstate casino licenses.",
+    },
+    {
+      topic: "Firearms",
+      icon: "🔫",
+      status: "Restricted",
+      note: "Strict licensing required; concealed carry permit system under NYSRPA v. Bruen.",
+    },
+    {
+      topic: "Sex Work",
+      icon: "💼",
+      status: "Illegal",
+      note: "Prostitution illegal; buying sex criminalized since 2021 Nordic-model push.",
+    },
+    {
+      topic: "Same-Sex Marriage",
+      icon: "🏳️‍🌈",
+      status: "Legal",
+      note: "Legal statewide since 2011; federally guaranteed since Obergefell 2015.",
+    },
+    {
+      topic: "Abortion",
+      icon: "⚕️",
+      status: "Legal",
+      note: "Legal up to fetal viability (~24 weeks); broader access enshrined in NY Constitution.",
+    },
+    {
+      topic: "Assisted Dying",
+      icon: "🕊️",
+      status: "Illegal",
+      note: "Medical Aid in Dying bills have not passed the NY Legislature as of 2026.",
+    },
+    {
+      topic: "Public Smoking",
+      icon: "🚬",
+      status: "Illegal",
+      note: "Banned in parks, beaches, pedestrian plazas, and all indoor public spaces.",
+    },
+    {
+      topic: "Street Vending",
+      icon: "🛒",
+      status: "Restricted",
+      note: "Strictly regulated; vendor permits are limited and highly competitive.",
+    },
+    {
+      topic: "Jaywalking",
+      icon: "🚶",
+      status: "Legal",
+      note: "Decriminalized in 2022; NYPD no longer tickets pedestrians for crossing mid-block.",
+    },
+  ],
+  tokyo: [
+    {
+      topic: "Recreational Cannabis",
+      icon: "🌿",
+      status: "Illegal",
+      note: "Cannabis strictly prohibited under the Cannabis Control Act; penalties include imprisonment.",
+    },
+    {
+      topic: "Psychedelics",
+      icon: "🍄",
+      status: "Illegal",
+      note: "Psilocybin and all psychedelics fully prohibited; zero-tolerance enforcement.",
+    },
+    {
+      topic: "Alcohol",
+      icon: "🍺",
+      status: "Legal",
+      note: "Legal 20+; public drinking is culturally accepted in parks during cherry blossom season.",
+    },
+    {
+      topic: "Gambling",
+      icon: "🎰",
+      status: "Restricted",
+      note: "Pachinko legally a grey zone; integrated resort casino law passed 2018, first opening 2030.",
+    },
+    {
+      topic: "Firearms",
+      icon: "🔫",
+      status: "Illegal",
+      note: "Handguns completely banned for civilians; one of the world\'s strictest gun laws.",
+    },
+    {
+      topic: "Sex Work",
+      icon: "💼",
+      status: "Restricted",
+      note: "Intercourse for payment illegal; non-penetrative acts in 'fashion health' clubs in grey zone.",
+    },
+    {
+      topic: "Same-Sex Marriage",
+      icon: "🏳️‍🌈",
+      status: "Restricted",
+      note: "Tokyo issues partnership certificates; national constitutional ban remains; Supreme Court ruling pending.",
+    },
+    {
+      topic: "Abortion",
+      icon: "⚕️",
+      status: "Restricted",
+      note: "Legal up to 22 weeks but requires spousal consent — widely criticised internationally.",
+    },
+    {
+      topic: "Assisted Dying",
+      icon: "🕊️",
+      status: "Illegal",
+      note: "Euthanasia and assisted suicide are illegal; no legislative movement as of 2026.",
+    },
+    {
+      topic: "Public Smoking",
+      icon: "🚬",
+      status: "Restricted",
+      note: "Banned in most outdoor public spaces; designated smoking areas mandated near stations.",
+    },
+    {
+      topic: "Street Vending",
+      icon: "🛒",
+      status: "Restricted",
+      note: "Requires permit; yatai (food stall) culture tightly regulated by ward offices.",
+    },
+    {
+      topic: "Jaywalking",
+      icon: "🚶",
+      status: "Illegal",
+      note: "Technically illegal; crossing against signals is enforced more strictly than in Western cities.",
+    },
+  ],
+  london: [
+    {
+      topic: "Recreational Cannabis",
+      icon: "🌿",
+      status: "Illegal",
+      note: "Class B drug; possession carries up to 5 years imprisonment though enforcement varies.",
+    },
+    {
+      topic: "Psychedelics",
+      icon: "🍄",
+      status: "Illegal",
+      note: "Psilocybin is Class A; mere possession can result in up to 7 years imprisonment.",
+    },
+    {
+      topic: "Alcohol",
+      icon: "🍺",
+      status: "Legal",
+      note: "Legal 18+; alcohol banned only on the London Underground (since 2008).",
+    },
+    {
+      topic: "Gambling",
+      icon: "🎰",
+      status: "Legal",
+      note: "Legal and regulated by the UK Gambling Commission; online and land-based casinos permitted.",
+    },
+    {
+      topic: "Firearms",
+      icon: "🔫",
+      status: "Illegal",
+      note: "Handguns banned since 1997 Dunblane massacre; shotguns/rifles require license.",
+    },
+    {
+      topic: "Sex Work",
+      icon: "💼",
+      status: "Restricted",
+      note: "Selling sex is legal; brothel-keeping, pimping, and kerb crawling are illegal.",
+    },
+    {
+      topic: "Same-Sex Marriage",
+      icon: "🏳️‍🌈",
+      status: "Legal",
+      note: "Legal in England and Wales since 2014.",
+    },
+    {
+      topic: "Abortion",
+      icon: "⚕️",
+      status: "Legal",
+      note: "Legal up to 24 weeks under the Abortion Act 1967; at-home medical abortion permitted.",
+    },
+    {
+      topic: "Assisted Dying",
+      icon: "🕊️",
+      status: "Legal",
+      note: "Terminally Ill Adults (End of Life) Act 2025 passed; implementation in progress.",
+    },
+    {
+      topic: "Public Smoking",
+      icon: "🚬",
+      status: "Restricted",
+      note: "Banned in enclosed public spaces and workplaces since 2007; legal outdoors.",
+    },
+    {
+      topic: "Street Vending",
+      icon: "🛒",
+      status: "Restricted",
+      note: "Licensed by local borough councils; street markets like Borough Market are tightly managed.",
+    },
+    {
+      topic: "Jaywalking",
+      icon: "🚶",
+      status: "Legal",
+      note: "Not a legal offence in the UK; pedestrians may cross anywhere.",
+    },
+  ],
+  paris: [
+    {
+      topic: "Recreational Cannabis",
+      icon: "🌿",
+      status: "Illegal",
+      note: "Possession of any amount is technically illegal; enforcement often results in on-the-spot fines.",
+    },
+    {
+      topic: "Psychedelics",
+      icon: "🍄",
+      status: "Illegal",
+      note: "All psychedelics prohibited as stupéfiants; enforcement focuses on trafficking.",
+    },
+    {
+      topic: "Alcohol",
+      icon: "🍺",
+      status: "Legal",
+      note: "Legal 18+; public drinking is culturally normal but prohibited near schools and mosques.",
+    },
+    {
+      topic: "Gambling",
+      icon: "🎰",
+      status: "Restricted",
+      note: "Legal in licensed casinos (Casino de Paris); online gambling regulated by ANJ.",
+    },
+    {
+      topic: "Firearms",
+      icon: "🔫",
+      status: "Illegal",
+      note: "Civilian handgun ownership banned; rifles/shotguns require permit and proof of reason.",
+    },
+    {
+      topic: "Sex Work",
+      icon: "💼",
+      status: "Restricted",
+      note: "Selling sex decriminalized; buying sex criminalized under 2016 Nordic-model law.",
+    },
+    {
+      topic: "Same-Sex Marriage",
+      icon: "🏳️‍🌈",
+      status: "Legal",
+      note: "Legal nationwide since 2013 (Loi Taubira).",
+    },
+    {
+      topic: "Abortion",
+      icon: "⚕️",
+      status: "Legal",
+      note: "Legal up to 14 weeks; enshrined in the French Constitution since March 2024.",
+    },
+    {
+      topic: "Assisted Dying",
+      icon: "🕊️",
+      status: "Restricted",
+      note: "Deep sedation until death permitted for terminal cases (2016 Claeys-Leonetti law); active euthanasia bill debated 2024.",
+    },
+    {
+      topic: "Public Smoking",
+      icon: "🚬",
+      status: "Restricted",
+      note: "Banned in enclosed public spaces; Paris expanded outdoor bans to parks and playgrounds.",
+    },
+    {
+      topic: "Street Vending",
+      icon: "🛒",
+      status: "Restricted",
+      note: "Unauthorized street vending is illegal; heavily policed around tourist sites.",
+    },
+    {
+      topic: "Jaywalking",
+      icon: "🚶",
+      status: "Illegal",
+      note: "Technically illegal (R412-34 Code de la Route); fines of €4 rarely enforced.",
+    },
+  ],
+  dubai: [
+    {
+      topic: "Recreational Cannabis",
+      icon: "🌿",
+      status: "Illegal",
+      note: "Zero tolerance — any amount can result in 4+ years imprisonment and deportation.",
+    },
+    {
+      topic: "Psychedelics",
+      icon: "🍄",
+      status: "Illegal",
+      note: "All psychedelics strictly banned; severe penalties including life imprisonment.",
+    },
+    {
+      topic: "Alcohol",
+      icon: "🍺",
+      status: "Restricted",
+      note: "Legal for non-Muslims in licensed venues and with a personal licence; public intoxication illegal.",
+    },
+    {
+      topic: "Gambling",
+      icon: "🎰",
+      status: "Illegal",
+      note: "All forms of gambling prohibited under UAE law; Dubai plans a regulated casino resort (2027).",
+    },
+    {
+      topic: "Firearms",
+      icon: "🔫",
+      status: "Illegal",
+      note: "Civilian firearm ownership banned; military and police carry strictly controlled.",
+    },
+    {
+      topic: "Sex Work",
+      icon: "💼",
+      status: "Illegal",
+      note: "Illegal under Islamic law; strict enforcement with imprisonment and deportation.",
+    },
+    {
+      topic: "Same-Sex Marriage",
+      icon: "🏳️‍🌈",
+      status: "Illegal",
+      note: "Homosexual acts punishable under UAE Penal Code with up to 10 years imprisonment.",
+    },
+    {
+      topic: "Abortion",
+      icon: "⚕️",
+      status: "Illegal",
+      note: "Illegal except to save the mother\'s life or in cases of severe fetal abnormality.",
+    },
+    {
+      topic: "Assisted Dying",
+      icon: "🕊️",
+      status: "Illegal",
+      note: "Prohibited; no legislation exists permitting any form of assisted dying.",
+    },
+    {
+      topic: "Public Smoking",
+      icon: "🚬",
+      status: "Restricted",
+      note: "Banned in government buildings, malls, public transport, and most indoor spaces.",
+    },
+    {
+      topic: "Street Vending",
+      icon: "🛒",
+      status: "Illegal",
+      note: "Unauthorized vending prohibited; violators face fines and deportation for expatriates.",
+    },
+    {
+      topic: "Jaywalking",
+      icon: "🚶",
+      status: "Illegal",
+      note: "Strictly enforced with fines up to AED 400; pedestrian bridges required where provided.",
+    },
+  ],
+  singapore: [
+    {
+      topic: "Recreational Cannabis",
+      icon: "🌿",
+      status: "Illegal",
+      note: "Possession of >500g carries mandatory death penalty; small amounts up to 10 years.",
+    },
+    {
+      topic: "Psychedelics",
+      icon: "🍄",
+      status: "Illegal",
+      note: "All psychedelics are Class A; trafficking carries the death penalty.",
+    },
+    {
+      topic: "Alcohol",
+      icon: "🍺",
+      status: "Restricted",
+      note: "Legal 18+; prohibited in public between 10:30pm–7am under the Liquor Control Act.",
+    },
+    {
+      topic: "Gambling",
+      icon: "🎰",
+      status: "Restricted",
+      note: "Legal in licensed integrated resorts (Marina Bay Sands, Sentosa); online gambling banned.",
+    },
+    {
+      topic: "Firearms",
+      icon: "🔫",
+      status: "Illegal",
+      note: "All civilian gun ownership banned; even imitation firearms are illegal.",
+    },
+    {
+      topic: "Sex Work",
+      icon: "💼",
+      status: "Restricted",
+      note: "Selling sex legal in licensed Geylang red-light district; soliciting and pimping illegal.",
+    },
+    {
+      topic: "Same-Sex Marriage",
+      icon: "🏳️‍🌈",
+      status: "Illegal",
+      note: "Same-sex marriage prohibited; Section 377A repealed 2023 but marriage rights not extended.",
+    },
+    {
+      topic: "Abortion",
+      icon: "⚕️",
+      status: "Legal",
+      note: "Legal on request up to 24 weeks of pregnancy under the Termination of Pregnancy Act.",
+    },
+    {
+      topic: "Assisted Dying",
+      icon: "🕊️",
+      status: "Illegal",
+      note: "Euthanasia and assisted suicide are illegal; palliative care advanced-directives are legal.",
+    },
+    {
+      topic: "Public Smoking",
+      icon: "🚬",
+      status: "Restricted",
+      note: "Banned in almost all public areas; violators face fines up to SGD 1,000.",
+    },
+    {
+      topic: "Street Vending",
+      icon: "🛒",
+      status: "Restricted",
+      note: "Only permitted in licensed hawker centres; unauthorized vending results in fines.",
+    },
+    {
+      topic: "Chewing Gum",
+      icon: "🍬",
+      status: "Restricted",
+      note: "Sale banned since 1992; medical/dental gum allowed with prescription.",
+    },
+  ],
+  sydney: [
+    {
+      topic: "Recreational Cannabis",
+      icon: "🌿",
+      status: "Decriminalized",
+      note: "Personal use decriminalized in NSW (caution scheme); medical cannabis legal since 2016.",
+    },
+    {
+      topic: "Psychedelics",
+      icon: "🍄",
+      status: "Restricted",
+      note: "TGA approved psilocybin for treatment-resistant depression from July 2023 (authorised prescribers only).",
+    },
+    {
+      topic: "Alcohol",
+      icon: "🍺",
+      status: "Legal",
+      note: "Legal 18+; 'dry zones' in some parks and CBD areas restrict public drinking.",
+    },
+    {
+      topic: "Gambling",
+      icon: "🎰",
+      status: "Restricted",
+      note: "Legal in licensed venues; The Star Casino operates in Sydney; pokies (slots) widespread and controversial.",
+    },
+    {
+      topic: "Firearms",
+      icon: "🔫",
+      status: "Restricted",
+      note: "Strictly licensed; handguns for sport only; no self-defense justification post-1996 Port Arthur reforms.",
+    },
+    {
+      topic: "Sex Work",
+      icon: "💼",
+      status: "Legal",
+      note: "NSW fully decriminalized sex work in 1995; one of the most progressive frameworks globally.",
+    },
+    {
+      topic: "Same-Sex Marriage",
+      icon: "🏳️‍🌈",
+      status: "Legal",
+      note: "Legal nationally since December 2017 (Marriage Amendment Act).",
+    },
+    {
+      topic: "Abortion",
+      icon: "⚕️",
+      status: "Legal",
+      note: "Legal on request up to 22 weeks in NSW; after 22 weeks with two-doctor approval.",
+    },
+    {
+      topic: "Assisted Dying",
+      icon: "🕊️",
+      status: "Legal",
+      note: "Legal in NSW under the Voluntary Assisted Dying Act 2021; commenced November 2023.",
+    },
+    {
+      topic: "Public Smoking",
+      icon: "🚬",
+      status: "Restricted",
+      note: "Banned within 4m of building entrances, outdoor dining, public transport stops, and sports venues.",
+    },
+    {
+      topic: "Street Vending",
+      icon: "🛒",
+      status: "Restricted",
+      note: "Requires council approval; regulated by City of Sydney\'s outdoor dining and trading policies.",
+    },
+    {
+      topic: "Jaywalking",
+      icon: "🚶",
+      status: "Illegal",
+      note: "Fines up to AUD 79 for crossing against signals; however enforcement is minimal in practice.",
+    },
+  ],
+  berlin: [
+    {
+      topic: "Recreational Cannabis",
+      icon: "🌿",
+      status: "Legal",
+      note: "Legal for adults 18+ since April 2024 (CanG); up to 25g in public, 50g at home.",
+    },
+    {
+      topic: "Psychedelics",
+      icon: "🍄",
+      status: "Illegal",
+      note: "Psilocybin remains illegal (BtMG); decriminalization debate active in Bundestag.",
+    },
+    {
+      topic: "Alcohol",
+      icon: "🍺",
+      status: "Legal",
+      note: "Legal 18+ (spirits); 16+ for beer and wine; public drinking is broadly legal.",
+    },
+    {
+      topic: "Gambling",
+      icon: "🎰",
+      status: "Restricted",
+      note: "Licensed casinos legal; online gambling regulated by new Interstate Gambling Treaty (GlüStV 2021).",
+    },
+    {
+      topic: "Firearms",
+      icon: "🔫",
+      status: "Restricted",
+      note: "Strict licensing under Waffengesetz; sport shooting and hunting permitted; handguns heavily restricted.",
+    },
+    {
+      topic: "Sex Work",
+      icon: "💼",
+      status: "Legal",
+      note: "Fully legal and regulated since the Prostitution Act 2002; sex workers can pay into social security.",
+    },
+    {
+      topic: "Same-Sex Marriage",
+      icon: "🏳️‍🌈",
+      status: "Legal",
+      note: "Legal nationally since October 2017 (Ehe für alle).",
+    },
+    {
+      topic: "Abortion",
+      icon: "⚕️",
+      status: "Restricted",
+      note: "Legal up to 12 weeks after mandatory counselling (§218 StGB); technically still 'illegal but not punishable'.",
+    },
+    {
+      topic: "Assisted Dying",
+      icon: "🕊️",
+      status: "Legal",
+      note: "Federal Court struck down ban in 2020; assisted suicide organisations now operate legally.",
+    },
+    {
+      topic: "Public Smoking",
+      icon: "🚬",
+      status: "Restricted",
+      note: "Banned in restaurants, bars (unless designated), and public transport; outdoor smoking legal.",
+    },
+    {
+      topic: "Street Vending",
+      icon: "🛒",
+      status: "Restricted",
+      note: "Requires Gewerbeerlaubnis (trade permit); markets like Mauerpark flea market operate under permits.",
+    },
+    {
+      topic: "Jaywalking",
+      icon: "🚶",
+      status: "Illegal",
+      note: "Fines of €5–10 for crossing red lights as pedestrian; enforcement is relaxed but real.",
+    },
+  ],
+};
+
+const DEFAULT_CITY_LEGAL: CityLegalTopic[] = [
+  {
+    topic: "Recreational Cannabis",
+    icon: "🌿",
+    status: "Varies",
+    note: "Legal status varies by national and municipal law.",
+  },
+  {
+    topic: "Alcohol",
+    icon: "🍺",
+    status: "Restricted",
+    note: "Subject to local licensing laws and minimum age requirements.",
+  },
+  {
+    topic: "Gambling",
+    icon: "🎰",
+    status: "Restricted",
+    note: "Regulated by national gambling authority.",
+  },
+  {
+    topic: "Firearms",
+    icon: "🔫",
+    status: "Restricted",
+    note: "Subject to national firearms licensing laws.",
+  },
+  {
+    topic: "Sex Work",
+    icon: "💼",
+    status: "Varies",
+    note: "Legal status determined by national law.",
+  },
+  {
+    topic: "Same-Sex Marriage",
+    icon: "🏳️‍🌈",
+    status: "Varies",
+    note: "Legal status determined by national law.",
+  },
+  {
+    topic: "Abortion",
+    icon: "⚕️",
+    status: "Varies",
+    note: "Regulated by national health law.",
+  },
+  {
+    topic: "Public Smoking",
+    icon: "🚬",
+    status: "Restricted",
+    note: "Typically banned in enclosed public spaces.",
+  },
+];
+
+function CityLegalStatusGrid({ city }: { city: City }) {
+  const topics = CITY_LEGAL_STATUS[city.id] ?? DEFAULT_CITY_LEGAL;
+  return (
+    <div className="modal-tile rounded-xl border border-border/60 p-4 mb-4">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-base">⚖️</span>
+        <h3 className="text-sm font-bold font-sans text-foreground">
+          What&#39;s Legal &amp; Illegal in {city.name}
+        </h3>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {topics.map((t) => (
+          <div
+            key={t.topic}
+            className="flex items-start gap-2.5 p-2.5 rounded-lg bg-background/40 border border-border/40 hover:border-border/70 transition-colors"
+          >
+            <span className="text-base shrink-0 mt-0.5">{t.icon}</span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                <span className="text-xs font-semibold font-sans text-foreground leading-tight">
+                  {t.topic}
+                </span>
+                <span
+                  className={`text-[10px] font-sans font-medium px-1.5 py-0.5 rounded-full border shrink-0 ${LEGAL_STATUS_BADGE[t.status]}`}
+                >
+                  {t.status}
+                </span>
+              </div>
+              <p className="text-[10px] text-muted-foreground font-sans leading-relaxed">
+                {t.note}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CityLawsTab({ city }: { city: City }) {
+  const laws = CITY_LAWS[city.id] ?? DEFAULT_CITY_LAWS;
+  const categories = Array.from(new Set(laws.map((l) => l.category)));
+
+  return (
+    <div className="space-y-4">
+      {/* Legal Status Grid */}
+      <CityLegalStatusGrid city={city} />
+
+      {/* Header strip */}
+      <div className="flex items-center gap-3 p-4 modal-tile rounded-xl border border-border/60">
+        <div className="p-2 rounded-lg bg-secondary/10 border border-secondary/20">
+          <Scales size={16} weight="fill" className="text-secondary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold font-sans text-foreground">
+            {city.name} · Local Laws &amp; Ordinances
+          </p>
+          <p className="text-xs text-muted-foreground font-sans mt-0.5">
+            {city.country} · {laws.length} laws across {categories.length}{" "}
+            categories
+          </p>
+        </div>
+        <span className="shrink-0 text-[10px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+          {laws.filter((l) => l.status === "Active").length} active
+        </span>
+      </div>
+
+      <SourceLink sources={SRC_CITY_LAWS} className="-mt-1 mb-1" />
+
+      {/* Law cards */}
+      <div className="space-y-2">
+        {laws.map((law, i) => (
+          <div
+            key={i}
+            className="p-4 modal-tile rounded-xl border border-border/60 hover:border-secondary/30 transition-colors"
+          >
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span
+                  className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border"
+                  style={{
+                    color: law.color,
+                    borderColor: law.color + "44",
+                    backgroundColor: law.color + "18",
+                  }}
+                >
+                  {law.category}
+                </span>
+                <span
+                  className={`text-[10px] font-sans px-2 py-0.5 rounded-full border ${STATUS_COLORS[law.status]}`}
+                >
+                  {law.status}
+                </span>
+                {law.enacted && (
+                  <span className="text-[10px] font-mono text-muted-foreground">
+                    Est. {law.enacted}
+                  </span>
+                )}
+              </div>
+            </div>
+            <p className="text-xs font-semibold font-sans text-foreground mb-1">
+              {law.title}
+            </p>
+            <p className="text-[11px] text-muted-foreground font-sans leading-relaxed">
+              {law.description}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -283,9 +1611,10 @@ function CityPhotosGrid({ city }: { city: City }) {
 }
 
 function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
-  const [activeTab, setActiveTab] = useState<"overview" | "map" | "photos">(
+  const [activeTab, setActiveTab] = useState<"overview" | "map" | "laws">(
     "overview",
   );
+  const { openNote } = useNotes();
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -356,13 +1685,25 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                 </span>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
-              aria-label="Close"
-            >
-              <X size={18} weight="bold" />
-            </button>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() =>
+                  openNote({ entityName: city.name, entityType: "City" })
+                }
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-sans font-medium bg-secondary/15 text-secondary border border-secondary/30 hover:bg-secondary/25 transition-colors cursor-pointer"
+                aria-label="Take note about this city"
+              >
+                <NotePencil size={13} weight="fill" />
+                Take Note
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                aria-label="Close"
+              >
+                <X size={18} weight="bold" />
+              </button>
+            </div>
           </div>
 
           {/* Tab Bar */}
@@ -375,7 +1716,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                   icon: <ListBullets size={14} />,
                 },
                 { key: "map", label: "Map", icon: <MapTrifold size={14} /> },
-                { key: "photos", label: "Photos", icon: <Images size={14} /> },
+                { key: "laws", label: "Laws", icon: <Scales size={14} /> },
               ] as const
             ).map((tab) => (
               <button
@@ -435,6 +1776,8 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                 ))}
               </div>
 
+              <SourceLink sources={SRC_CITIES} className="mb-1" />
+
               {/* City Indices */}
               <div className="modal-tile rounded-lg p-4 space-y-3">
                 <h3 className="text-sm font-semibold font-sans text-foreground mb-2">
@@ -461,6 +1804,8 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                   color="text-secondary"
                 />
               </div>
+
+              <SourceLink sources={SRC_CITIES} className="mb-1" />
 
               {/* Languages, Landmarks, Religions */}
               {(city.languages?.length ||
@@ -680,8 +2025,8 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
             </div>
           )}
 
-          {/* Photos Tab */}
-          {activeTab === "photos" && <CityPhotosGrid city={city} />}
+          {/* Laws Tab */}
+          {activeTab === "laws" && <CityLawsTab city={city} />}
         </div>
       </div>
     </div>

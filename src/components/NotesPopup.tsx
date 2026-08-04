@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useMutation } from "@animaapp/playground-react-sdk";
 import {
   sanitizeText,
@@ -27,6 +27,8 @@ export function NotesPopup() {
   const [minimized, setMinimized] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [entityName, setEntityName] = useState("");
+  const [entityType, setEntityType] = useState("");
   const [linkInput, setLinkInput] = useState("");
   const [links, setLinks] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -43,8 +45,23 @@ export function NotesPopup() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { create, isPending: isMutating } = useMutation("Note");
-
   const [inputError, setInputError] = useState("");
+
+  // Listen for open-notes-popup events dispatched by entity modals
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as {
+        entityName?: string;
+        entityType?: string;
+      };
+      setEntityName(detail.entityName ?? "");
+      setEntityType(detail.entityType ?? "");
+      setOpen(true);
+      setMinimized(false);
+    };
+    window.addEventListener("open-notes-popup", handler);
+    return () => window.removeEventListener("open-notes-popup", handler);
+  }, []);
 
   const addLink = () => {
     if (links.length >= LIMITS.NOTE_MAX_LINKS) {
@@ -61,14 +78,17 @@ export function NotesPopup() {
     setLinkInput("");
   };
 
-  const removeLink = (idx: number) => setLinks((prev) => prev.filter((_, i) => i !== idx));
+  const removeLink = (idx: number) =>
+    setLinks((prev) => prev.filter((_, i) => i !== idx));
 
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mr = new MediaRecorder(stream);
       chunksRef.current = [];
-      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
       mr.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         const url = URL.createObjectURL(blob);
@@ -79,7 +99,10 @@ export function NotesPopup() {
       mediaRecorderRef.current = mr;
       setIsRecording(true);
       setRecordingSeconds(0);
-      timerRef.current = setInterval(() => setRecordingSeconds((s) => s + 1), 1000);
+      timerRef.current = setInterval(
+        () => setRecordingSeconds((s) => s + 1),
+        1000,
+      );
     } catch {
       alert("Microphone access denied or not available.");
     }
@@ -108,14 +131,15 @@ export function NotesPopup() {
     setIsPlaying(false);
   };
 
-  const formatSecs = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const formatSecs = (s: number) =>
+    `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
   const handleSave = async () => {
-    const cleanTitle   = sanitizeText(title);
+    const cleanTitle = sanitizeText(title);
     const cleanContent = sanitizeText(content);
 
     const validation = validateNotePayload({
-      title:   cleanTitle,
+      title: cleanTitle,
       content: cleanContent,
       links,
     });
@@ -129,15 +153,19 @@ export function NotesPopup() {
     setSaving(true);
     try {
       await create({
-        title:   cleanTitle || undefined,
+        title: cleanTitle || undefined,
         content: cleanContent,
-        links:   links.length > 0 ? JSON.stringify(links) : undefined,
+        links: links.length > 0 ? JSON.stringify(links) : undefined,
         voiceRecordingUrl: audioUrl ?? undefined,
+        entityName: entityName || undefined,
+        entityType: entityType || undefined,
       });
       setTitle("");
       setContent("");
       setLinks([]);
       setLinkInput("");
+      setEntityName("");
+      setEntityType("");
       clearRecording();
       setSavedMsg(true);
       setTimeout(() => setSavedMsg(false), 2000);
@@ -149,7 +177,9 @@ export function NotesPopup() {
   };
 
   useEffect(() => {
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, []);
 
   if (!open) {
@@ -167,19 +197,40 @@ export function NotesPopup() {
   return (
     <div
       className="fixed bottom-6 right-6 z-50 rounded-xl shadow-2xl flex flex-col overflow-hidden bg-card border border-border"
-      style={{ width: "17rem", maxHeight: minimized ? "48px" : "560px", transition: "max-height 0.2s ease" }}
+      style={{
+        width: "17rem",
+        maxHeight: minimized ? "48px" : "560px",
+        transition: "max-height 0.2s ease",
+      }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-secondary/10 border-b border-border shrink-0">
         <div className="flex items-center gap-2">
           <NotePencil size={18} weight="fill" className="text-secondary" />
-          <span className="text-sm font-semibold font-sans text-foreground">Quick Note</span>
+          <span className="text-sm font-semibold font-sans text-foreground">
+            Quick Note
+          </span>
         </div>
         <div className="flex items-center gap-1">
-          <button onClick={() => setMinimized((v) => !v)} className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors duration-150" aria-label={minimized ? "Expand" : "Minimize"}>
-            {minimized ? <CaretUp size={16} weight="bold" /> : <CaretDown size={16} weight="bold" />}
+          <button
+            onClick={() => setMinimized((v) => !v)}
+            className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors duration-150"
+            aria-label={minimized ? "Expand" : "Minimize"}
+          >
+            {minimized ? (
+              <CaretUp size={16} weight="bold" />
+            ) : (
+              <CaretDown size={16} weight="bold" />
+            )}
           </button>
-          <button onClick={() => { setOpen(false); setMinimized(false); }} className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors duration-150" aria-label="Close notes popup">
+          <button
+            onClick={() => {
+              setOpen(false);
+              setMinimized(false);
+            }}
+            className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors duration-150"
+            aria-label="Close notes popup"
+          >
             <X size={16} weight="bold" />
           </button>
         </div>
@@ -188,6 +239,12 @@ export function NotesPopup() {
       {/* Body */}
       {!minimized && (
         <div className="flex flex-col flex-1 p-3 gap-2 overflow-y-auto">
+          {entityName && (
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-secondary/10 border border-secondary/20 rounded text-[10px] font-sans text-secondary">
+              <span className="opacity-70">{entityType || "Entity"}:</span>
+              <span className="font-semibold">{entityName}</span>
+            </div>
+          )}
           <input
             type="text"
             value={title}
@@ -236,9 +293,24 @@ export function NotesPopup() {
             {links.length > 0 && (
               <ul className="flex flex-col gap-0.5">
                 {links.map((url, i) => (
-                  <li key={i} className="flex items-center justify-between gap-1.5 bg-muted rounded px-2 py-1">
-                    <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-secondary truncate hover:underline flex-1 min-w-0">{url}</a>
-                    <button onClick={() => removeLink(i)} className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"><Trash size={11} weight="bold" /></button>
+                  <li
+                    key={i}
+                    className="flex items-center justify-between gap-1.5 bg-muted rounded px-2 py-1"
+                  >
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-mono text-secondary truncate hover:underline flex-1 min-w-0"
+                    >
+                      {url}
+                    </a>
+                    <button
+                      onClick={() => removeLink(i)}
+                      className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      <Trash size={11} weight="bold" />
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -261,7 +333,9 @@ export function NotesPopup() {
                       <StopCircle size={12} weight="fill" />
                       Stop
                     </button>
-                    <span className="text-xs font-mono text-destructive animate-pulse">{formatSecs(recordingSeconds)} recording…</span>
+                    <span className="text-xs font-mono text-destructive animate-pulse">
+                      {formatSecs(recordingSeconds)} recording…
+                    </span>
                   </>
                 ) : (
                   <button
@@ -275,12 +349,30 @@ export function NotesPopup() {
               </div>
             ) : (
               <div className="flex items-center gap-1.5 bg-muted rounded px-2.5 py-1.5">
-                <audio ref={audioRef} src={audioUrl} onEnded={() => setIsPlaying(false)} />
-                <button onClick={togglePlay} className="text-secondary hover:text-secondary/80 transition-colors">
-                  {isPlaying ? <Pause size={14} weight="fill" /> : <Play size={14} weight="fill" />}
+                <audio
+                  ref={audioRef}
+                  src={audioUrl}
+                  onEnded={() => setIsPlaying(false)}
+                />
+                <button
+                  onClick={togglePlay}
+                  className="text-secondary hover:text-secondary/80 transition-colors"
+                >
+                  {isPlaying ? (
+                    <Pause size={14} weight="fill" />
+                  ) : (
+                    <Play size={14} weight="fill" />
+                  )}
                 </button>
-                <span className="text-xs font-mono text-muted-foreground flex-1">voice-note.webm</span>
-                <button onClick={clearRecording} className="text-muted-foreground hover:text-destructive transition-colors"><Trash size={11} weight="bold" /></button>
+                <span className="text-xs font-mono text-muted-foreground flex-1">
+                  voice-note.webm
+                </span>
+                <button
+                  onClick={clearRecording}
+                  className="text-muted-foreground hover:text-destructive transition-colors"
+                >
+                  <Trash size={11} weight="bold" />
+                </button>
               </div>
             )}
           </div>
@@ -295,16 +387,24 @@ export function NotesPopup() {
           {/* Save */}
           <div className="flex items-center justify-between gap-2 pt-0.5">
             {savedMsg ? (
-              <span className="text-xs text-success font-sans">Note saved!</span>
+              <span className="text-xs text-success font-sans">
+                Note saved!
+              </span>
             ) : (
-              <span className="text-xs text-muted-foreground font-sans">Saves to My Notes</span>
+              <span className="text-xs text-muted-foreground font-sans">
+                Saves to My Notes
+              </span>
             )}
             <button
               onClick={handleSave}
               disabled={!content.trim() || saving || isMutating}
               className="flex items-center gap-1.5 bg-secondary text-secondary-foreground px-3 py-1.5 rounded text-xs font-sans font-normal hover:bg-secondary/80 disabled:opacity-50 transition-colors duration-150"
             >
-              {saving || isMutating ? <Spinner size={13} className="animate-spin" /> : <FloppyDisk size={13} weight="fill" />}
+              {saving || isMutating ? (
+                <Spinner size={13} className="animate-spin" />
+              ) : (
+                <FloppyDisk size={13} weight="fill" />
+              )}
               Save Note
             </button>
           </div>

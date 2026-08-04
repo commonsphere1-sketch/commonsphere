@@ -6,9 +6,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { fetchLiveCountryData, type LiveDataResult } from "../lib/liveData";
 import { countriesData, type Country } from "../data/countriesData";
+import { usStatesData, type USState } from "../data/statesData";
 
 export interface UseLiveDataReturn {
   countries: Country[];
+  states: USState[];
   isRefreshing: boolean;
   lastUpdated: Date | null;
   patchedCount: number;
@@ -32,14 +34,13 @@ export function useLiveData(): UseLiveDataReturn {
     }
   }, []);
 
-  // NOTE: Auto-fetch disabled in sandbox — external World Bank API calls stall Sandpack.
-  // Uncomment the block below to re-enable live data in a production environment.
-  // useEffect(() => {
-  //   refresh();
-  // }, [refresh]);
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   return {
     countries: result?.countries ?? countriesData,
+    states: result?.states ?? usStatesData,
     isRefreshing,
     lastUpdated: result?.lastUpdated ?? null,
     patchedCount: result?.patchedCount ?? 0,

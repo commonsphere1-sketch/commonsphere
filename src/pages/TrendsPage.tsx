@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { SourceLink } from "../components/SourceLink";
 import { useTheme } from "../contexts/ThemeContext";
 import {
   Sparkle,
@@ -711,13 +712,19 @@ export function TrendsPage() {
                   ))}
                 </div>
               )}
-              <p
-                className="text-[10px] font-sans mt-3"
-                style={{ color: mutedText }}
-              >
-                Dashed vertical line separates actual data from projections.
-                Source: IMF World Economic Outlook, Apr 2025.
-              </p>
+              <SourceLink
+                sources={[
+                  {
+                    label: "IMF World Economic Outlook",
+                    url: "https://imf.org/en/Publications/WEO",
+                  },
+                  {
+                    label: "World Bank GEP",
+                    url: "https://worldbank.org/en/publication/global-economic-prospects",
+                  },
+                ]}
+                className="mt-3"
+              />
             </div>
 
             {/* Global Inflation Forecast */}
@@ -846,6 +853,19 @@ export function TrendsPage() {
                   </div>
                 ))}
               </div>
+              <SourceLink
+                sources={[
+                  {
+                    label: "IMF World Economic Outlook",
+                    url: "https://imf.org/en/Publications/WEO",
+                  },
+                  {
+                    label: "World Bank GEP",
+                    url: "https://worldbank.org/en/publication/global-economic-prospects",
+                  },
+                ]}
+                className="mt-3"
+              />
             </div>
 
             {/* US Unemployment Projection */}
@@ -938,6 +958,13 @@ export function TrendsPage() {
                   />
                 </AreaChart>
               </ResponsiveContainer>
+              <SourceLink
+                sources={{
+                  label: "BLS Current Population Survey",
+                  url: "https://bls.gov/cps",
+                }}
+                className="mt-3"
+              />
             </div>
           </div>
 
@@ -1022,13 +1049,13 @@ export function TrendsPage() {
                   </div>
                 ))}
               </div>
-              <p
-                className="text-[10px] font-sans mt-3"
-                style={{ color: mutedText }}
-              >
-                Confidence = analyst consensus score. Outlook = median 12-month
-                return projection.
-              </p>
+              <SourceLink
+                sources={[
+                  { label: "OECD Statistics", url: "https://stats.oecd.org" },
+                  { label: "EIU Consensus", url: "https://eiu.com" },
+                ]}
+                className="mt-3"
+              />
             </div>
 
             {/* Country Growth Trends */}
@@ -1076,6 +1103,13 @@ export function TrendsPage() {
                   </div>
                 ))}
               </div>
+              <SourceLink
+                sources={{
+                  label: "World Bank Open Data",
+                  url: "https://data.worldbank.org",
+                }}
+                className="mt-3"
+              />
             </div>
           </div>
 
@@ -1232,13 +1266,16 @@ export function TrendsPage() {
                   </div>
                 ))}
               </div>
-              <p
-                className="text-[10px] font-sans mt-3"
-                style={{ color: mutedText }}
-              >
-                Click a scenario to expand. Probability based on analyst
-                consensus models.
-              </p>
+              <SourceLink
+                sources={[
+                  {
+                    label: "IMF WEO",
+                    url: "https://imf.org/en/Publications/WEO",
+                  },
+                  { label: "EIU Risk Briefings", url: "https://eiu.com" },
+                ]}
+                className="mt-3"
+              />
             </div>
 
             {/* Forecast Confidence */}
@@ -1307,13 +1344,13 @@ export function TrendsPage() {
                   </div>
                 ))}
               </div>
-              <p
-                className="text-[10px] font-sans mt-3"
-                style={{ color: mutedText }}
-              >
-                Confidence reflects historical accuracy of model on similar
-                horizons.
-              </p>
+              <SourceLink
+                sources={{
+                  label: "World Bank Global Prospects",
+                  url: "https://worldbank.org/en/publication/global-economic-prospects",
+                }}
+                className="mt-3"
+              />
             </div>
 
             {/* Methodology Note */}

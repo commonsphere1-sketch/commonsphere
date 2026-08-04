@@ -19,6 +19,114 @@ You MUST maintain this file to track your work across messages. This is NON-NEGO
 
 <changelog>
 
+## 2026-08-04 — Wire useLiveData into StatesPage for live BLS + Census data
+- StatesPage now imports `useLiveData` and uses `liveStates` instead of static `usStatesData`
+- BLS state unemployment + Census ACS median income/population auto-fetched on mount
+- Live status badge in page header shows: "Fetching live data…" / "Live · N updated · source" / "Static data"
+- No changes to `useLiveData.ts` or `liveData.ts` — both were already fully implemented
+- Files: `src/pages/StatesPage.tsx`
+
+## 2026-08-04 — Add International Crime Statistics page
+- New page at `/dashboard/crime` with 6 chart sections: homicide rates bar chart (highest/safest toggle), global crime trends by category (2015–2023 line chart), safety index ranking (top 20), regional crime categories (stacked bars + drill-down), cybercrime losses by region, and incarceration rates
+- Data sourced from UNODC, Numbeo, Global Peace Index, World Prison Brief, Cybersecurity Ventures
+- Added "Crime Statistics" entry to sidebar `analysisNav` using `ShieldCheck` icon
+- Registered lazy route at `/dashboard/crime` in `App.tsx`
+- Files: `src/pages/CrimeStatsPage.tsx` (new), `src/components/SidebarNav.tsx`, `src/App.tsx`
+
+## 2026-08-04 — Enrich GDP Composition sector section in EconomiesPage
+- Replaced plain SectorBar with rich card-style bars: color-coded fills per sector, emoji icons, 5-dot intensity indicators
+- Added SectorDonut SVG component (donut chart with dominant sector label in center + legend)
+- Added 3-stat summary row: Dominant sector + %, total sectors tracked, diversification level (High/Medium/Low)
+- Color map covers 20 sector types: Services=sky, Industry=violet, Agriculture=green, Manufacturing=orange, Finance=pink, Technology=yellow, Energy=orange, Mining=gray, etc.
+- File: `src/pages/EconomiesPage.tsx`
+
+## 2026-08-04 — Add legal status grid to Cities Laws tab
+- Added `CITY_LEGAL_STATUS` data covering 8 cities × 12 topics: cannabis, psychedelics, alcohol, gambling, firearms, sex work, same-sex marriage, abortion, assisted dying, public smoking, street vending, jaywalking/city-specific
+- Added `CityLegalStatusGrid` component with Legal/Illegal/Decriminalized/Restricted/Varies badges per topic
+- Dubai correctly shows: cannabis=Illegal (death penalty risk), gambling=Illegal, same-sex marriage=Illegal, alcohol=Restricted
+- Singapore: chewing gum=Restricted replaces jaywalking; cannabis carries death penalty note
+- Berlin: cannabis=Legal (since April 2024), sex work=Legal, assisted dying=Legal
+- File: `src/pages/CitiesPage.tsx`
+
+## 2026-08-04 — Add economic structure, futures markets & services breakdown to CountriesPage
+- Added `FuturesMarket` and `ServicesSector` interfaces + `economicStructure` string to `CountryExtended`
+- Populated all major economies (US, CN, DE, GB, FR, JP, IN, BR, RU, AU, KR, CA, SA, AE, SG, MX, ZA, NG, EG, IL, AR, TR, ID, MY, TH, VN, PH) with economic structure descriptions, futures data (stock index, 10Y bond yield, FX, commodity), and services sub-sector breakdowns
+- Added three new render panels in `CountryExtendedPanels`: Economic Structure, Markets & Futures, Services Sector
+- Markets panel shows: stock index value + YTD %, 10Y bond yield (color-coded), FX rate, key commodity, market cap
+- File: `src/pages/CountriesPage.tsx`
+
+## 2026-08-04 — Add legal status grid to all 50 states Laws tab
+- Added `STATE_LEGAL_STATUS` data record covering all 50 states × 10 topics: recreational cannabis, medical cannabis, psilocybin, abortion, concealed carry, open carry, same-sex marriage, sports betting, death penalty, physician-assisted dying
+- Added `LegalStatusGrid` component rendering a 2-col grid with emoji icons, legal status badges (Legal/Illegal/Decriminalized/Medical Only/Restricted/Varies), and contextual notes
+- Wisconsin entry correctly shows: cannabis=Illegal, medical=Illegal, abortion=Illegal (1849 ban), concealed carry=Restricted (permit required), open carry=Legal, sports betting=Restricted (tribal only), death penalty=Illegal (abolished 1853)
+- Legal status panel renders at the top of `StateLawsTab`, above existing landmark laws
+- File: `src/pages/StatesPage.tsx`
+
+## 2026-08-04 — Complete 195-country ideology override coverage
+- Added ~60 more entries to `COUNTRY_IDEOLOGY_OVERRIDES`: all European democracies (ES, NL, CH, DK, FI, BE, AT, PT, GR, CZ, RO, HR, BG, EE, LV, LT, SI, IE, MD, AL, MK, BA, ME, XK, LU, CY, MT, IS), Asia (PH, BD, IR, UZ, KG, TL, TW), Americas (HT, BZ, SR), territories (CK, NU, EH, COO_AF)
+- Iran now correctly labeled: Velayat-e Faqih / Shia Theocratic Republicanism
+- Taiwan: Presidential Republic / Liberal Democracy / De Facto Sovereign State
+- Haiti: Fragile Constitutional Governance / Gang-Controlled Instability
+- Iceland: World's Oldest Parliament (Althing) / Nordic Constitutionalism
+- Bosnia: Dayton Agreement Constitutionalism / Ethnic Power-Sharing
+- All 195 countries now have accurate, non-generic ideology tags
+- File: `src/pages/CountriesPage.tsx`
+
+## 2026-08-04 — Full factual corrections to countriesData.ts (all countries)
+- Added role titles to all ~195 headOfState fields (President/PM/Sultan/Emir/Chancellor etc.)
+- Fixed: Haiti PM → Alix Didier Fils-Aimé; Ireland PM → Micheál Martin; Iceland PM → Kristín Frostadóttir
+- Fixed: Bolivia → Luis Arce; Timor-Leste → José Ramos-Horta; Bulgaria → Rossen Jeliazkov; Liechtenstein → Daniel Risch
+- Fixed: Argentina GDP 710→640bn, inflation 87→211.4%; Canada GDP 2290→2350bn
+- File: `src/data/countriesData.ts`
+
+## 2026-08-04 — Batch fix statesData.ts — 10 representative corrections
+- CA-4: duplicate Doug LaMalfa→Tom McClintock(R); CA-48: Cisneros→Mike Levin(D); CA-52: duplicate Issa→Scott Peters(D)
+- NC-3: duplicate Jeff Jackson→Greg Murphy(R); MN-3: Dean Phillips→Kelly Morrison(D)
+- OH-11: Dave Joyce→Shontel Brown(D); TX-18: Sheila Jackson Lee→Sylvester Turner(D)
+- TX-30: Eddie Bernice Johnson→Jasmine Crockett(D); VA-7: Spanberger→Eugene Vindman(D); WA-5: McMorris Rodgers→Michael Baumgartner(R)
+- File: `src/data/statesData.ts`
+
+## 2026-08-03 — Verified "Take Note" entity attachment already implemented
+- StatesPage, CountriesPage, CitiesPage all have "Take Note" button calling openNote({ entityName, entityType })
+- NotesPopup listens to `open-notes-popup` CustomEvent and pre-fills both fields
+- NotesContext dispatch + NotesPopup handler confirmed working end-to-end
+- No code changes required; todo-item marked complete
+
+## 2026-08-03 — Fact-check & correct statesData.ts (22 fixes)
+- AL-2: Barry Moore→Shomari Figures(D); CA-4/5/9/13/19/21/22: full redistricting cascade corrected
+- CO-1: DeGette(D), CO-5: Jeff Crank(R); DE: Carper→LBR senator, At-Large→Sarah McBride
+- FL: Rubio→Ashley Moody senator, FL-1: Gaetz→Patronis; IN: Braun→Jim Banks senator, IN-9→Erin Houchin
+- KY-4: Cole→Thomas Massie; MI min wage $10.56→$12.48; ND-At Large: Armstrong→Julie Fedorson
+- OH: JD Vance→Jon Husted senator; NY-3: Santos→Suozzi(D); NY-6: Suozzi→Grace Meng; WI-8: Gallagher→Tony Wied
+- File: `src/data/statesData.ts`
+
+
+## 2026-07-27 — Polish "My Dashboard" pinned section for professional look
+- Cards redesigned: flag/abbr + name header, stats row (GDP growth + unemployment) with divider line
+- Header bar separated by gridLine border; icon badge for PushPin; "View all" per-section CTAs
+- Edit picker uses column-divider layout (gap-px + background gridLine), improved search input styling
+- Remove button is now a circular badge (top-right) with better visibility on hover
+- File: `src/pages/DashboardPage.tsx`
+
+## 2026-07-27 — Add customizable "My Dashboard" pinned section to DashboardPage
+- Added `PinnedSection` component + `usePinned` hook (localStorage-backed) above KPI pills
+- Users can pin/unpin any country or US state; search-and-pick UI in edit mode
+- Defaults: US/CN/DE/GB/JP countries + CA/TX/NY/FL/WA states
+- File: `src/pages/DashboardPage.tsx`
+
+## 2026-07-27 — Enlarge crime donut + tighten Safety Index row in StatesPage
+- Donut container 48×48 → 80×80, innerRadius 13→20, outerRadius 22→36
+- Safety Index row: `justify-between` → `gap-1.5` so label and value sit closer together
+- File: `src/pages/StatesPage.tsx`
+
+## 2026-07-27 — Shrink crime rate donut chart in StatesPage modal
+- Reduced donut container from 64×64 to 48×48, innerRadius 20→13, outerRadius 34→22
+- File: `src/pages/StatesPage.tsx`
+
+## 2026-07-27 — Remove crime rate progress bar from StatesPage modal
+- Deleted the `h-2 bg-background rounded-full overflow-hidden mb-2` bar under the Crime Rate title row
+- File: `src/pages/StatesPage.tsx`
+
 ## 2026-07-27 — Stack outlook value + bar vertically in TrendsPage Sector Outlook rows
 - Right-side of each row now shows outlook (trend icon + %) stacked above the confidence bar
 - Used `flex flex-col items-end gap-1 shrink-0` wrapper on the right group
@@ -45,6 +153,51 @@ You MUST maintain this file to track your work across messages. This is NON-NEGO
 ## 2026-07-27 — Remove gap between sidebar nav items
 - Removed `gap-0.5` from the `<ul>` in `SidebarNav` so items sit flush together on full screen
 - File: `src/components/SidebarNav.tsx`
+
+## 2026-07-31 — Add SourceLink to TrendsPage (retry after failed diff)
+- Added SourceLink import and 7 source placements: GDP projections (IMF/World Bank), inflation forecast (IMF/World Bank), unemployment (BLS), sector outlook (OECD/EIU), country growth trends (World Bank), scenario analysis (IMF/EIU), forecast confidence (World Bank)
+- Replaced all inline `<p>Source: ...</p>` text nodes with `<SourceLink sources={...} />` components
+- File: `src/pages/TrendsPage.tsx`
+
+## 2026-07-31 — Add source hyperlinks under all displayed data across entire site
+- `SourceLink` component (already existed) now wired into CountriesPage, StatesPage, CitiesPage, EconomiesPage, DashboardPage
+- Source constants defined per-page: World Bank, IMF, BLS, BEA, Census, IEA, EIA, SIPRI, Numbeo, ACLED, UCDP, Congress.gov, NCSL, Constitute Project, OECD
+- Links appear under: stat grids, charts, energy sections, military panels, demographics, laws tabs, constitution tab, forecast charts, dashboard footer
+- Dashboard footer now shows a full multi-source SourceLink row listing all primary data APIs
+
+## 2026-07-31 — Add state-specific Significant Laws tab to StatesPage modal
+- Added `StateLawsTab` component with state-specific landmark legislation for all 50 states
+- `STATE_LAWS` record covers abortion, gun policy, labor, cannabis, environment, voting rights, LGBTQ+, education, and more
+- Each state has 4–7 laws unique to its political/legal identity (e.g., TX SB8, CA CCPA, OR Death with Dignity, WY Crypto Framework)
+- New "Laws" tab (`<Scales>` icon) added to `StateModal` alongside Overview, Map, Photos tabs
+- File: `src/pages/StatesPage.tsx`
+
+## 2026-07-31 — Add accurate North Korea constitution entry (not a democracy)
+- Added `kp` entry to `COUNTRY_CONSTITUTIONS` with 12 articles covering Juche, Songun, KWP supremacy, nuclear state status, Songbun, and UN-documented crimes against humanity
+- Corrected ideology tags: Juche, Kimilsungism-Kimjongilism, Songun, Totalitarianism (replaces generic fallback "Democracy")
+- Type correctly set to "Unitary One-Party Juche State (Hereditary Dictatorship)"
+- File: `src/pages/CountriesPage.tsx`
+
+## 2026-07-31 — Expand Constitution tab with accurate, detailed data (10-12 articles per country)
+- All 8 country constitutions expanded: US, CN, DE, GB, FR, JP, IN, BR — 6 articles → 10-12 each
+- Added precise article numbers, historical context, amendment years, legal case citations (Marbury, Bommai, Kesavananda, etc.)
+- Ideology arrays expanded with more accurate ideological descriptors per country
+- Summaries rewritten with historical accuracy (GHQ drafting for JP, Ambedkar for IN, de Gaulle referendum for FR, etc.)
+- File: `src/pages/CountriesPage.tsx`
+
+## 2026-07-31 — Replace Photos tab with Constitution/Political Doctrine tab in CountriesPage
+- Swapped `Images` → `Scroll`, `BookOpen`, `Star` icons; removed lightbox/photo state from both CountryModal and CountryDetailPanel
+- Added `ConstitutionData` interface, `COUNTRY_CONSTITUTIONS` record (8 countries: US, CN, DE, GB, FR, JP, IN, BR), `DEFAULT_CONSTITUTION` fallback
+- Added `ConstitutionTab` component: header card (name, adopted/amended, type), ideology tags, scrollable article cards (right/principle/structure/doctrine badges)
+- Tab state type updated `"photos"` → `"constitution"` in both `CountryModal` and `CountryDetailPanel`
+- File: `src/pages/CountriesPage.tsx`
+
+## 2026-07-30 — Replace Photos tab with Laws tab in CitiesPage modal
+- Swapped `Images` icon → `Scales` icon in imports
+- Added `CityLaw` interface, `CITY_LAWS` record (8 cities), `DEFAULT_CITY_LAWS` fallback, `STATUS_COLORS` map
+- Added `CityLawsTab` component with header strip + scrollable law cards (category badge, status pill, enacted year)
+- Tab state type updated `"photos"` → `"laws"`; tab bar and render block updated accordingly
+- File: `src/pages/CitiesPage.tsx`
 
 ## 2026-07-27 — Add Map + Photos tabs to CityModal
 - Added 3-tab layout (Overview / Map / Photos) to `CityModal` in CitiesPage matching Countries/States pattern

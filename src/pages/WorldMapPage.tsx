@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useCallback } from "react";
 import {
   Lectern,
   Globe,
@@ -20,8 +20,215 @@ import {
   Handshake,
   Scales,
   MagnifyingGlass,
+  Compass,
+  ListBullets,
 } from "@phosphor-icons/react";
+import { SourceLink } from "../components/SourceLink";
 // Globe is used in LeaderDetail tabs — do not remove
+
+// ── Political Compass Coordinates ─────────────────────────────────────────────
+// economicX: -10 (far left) to +10 (far right)
+// socialY:   -10 (authoritarian) to +10 (libertarian)
+interface CompassCoords {
+  economicX: number;
+  socialY: number;
+}
+
+const COMPASS_DATA: Record<string, CompassCoords> = {
+  trump: { economicX: 5.5, socialY: -3.0 },
+  xi: { economicX: -5.0, socialY: -9.0 },
+  putin: { economicX: 2.0, socialY: -8.5 },
+  modi: { economicX: 4.0, socialY: -5.0 },
+  macron: { economicX: 3.5, socialY: 3.5 },
+  scholz: { economicX: -1.5, socialY: 2.5 },
+  sunak: { economicX: 5.0, socialY: 1.0 },
+  starmer: { economicX: -2.0, socialY: 3.0 },
+  zelensky: { economicX: 0.5, socialY: 1.5 },
+  mbs: { economicX: 4.5, socialY: -8.0 },
+  lula: { economicX: -4.5, socialY: 3.5 },
+  kim: { economicX: -8.0, socialY: -10 },
+  netanyahu: { economicX: 5.0, socialY: -4.5 },
+  erdogan: { economicX: 0.5, socialY: -6.0 },
+  meloni: { economicX: 3.5, socialY: -3.0 },
+  sheinbaum: { economicX: -3.5, socialY: 3.0 },
+  albanese: { economicX: -2.5, socialY: 4.0 },
+  ramaphosa: { economicX: -2.0, socialY: 2.5 },
+  khan: { economicX: 3.0, socialY: -2.5 },
+  milei: { economicX: 9.5, socialY: 6.0 },
+  carney: { economicX: 0.5, socialY: 3.5 },
+  ishiba: { economicX: 3.0, socialY: -1.5 },
+  sanchez: { economicX: -3.0, socialY: 5.0 },
+  bukele: { economicX: 2.5, socialY: -6.5 },
+  prabowo: { economicX: 1.5, socialY: -4.5 },
+  pezeshkian: { economicX: -1.5, socialY: -4.0 },
+  han: { economicX: 3.5, socialY: -1.0 },
+  tusk: { economicX: 2.5, socialY: 4.0 },
+  maduro: { economicX: -8.0, socialY: -7.0 },
+  mbz: { economicX: 4.0, socialY: -8.5 },
+  mnangagwa: { economicX: 0.0, socialY: -7.5 },
+  kagame: { economicX: 2.0, socialY: -7.5 },
+  tinubu: { economicX: 3.5, socialY: -3.5 },
+  abiy: { economicX: 0.5, socialY: -6.5 },
+  sisi: { economicX: 1.5, socialY: -8.5 },
+  yunus: { economicX: -2.0, socialY: 5.5 },
+  dissanayake: { economicX: -4.0, socialY: 3.0 },
+  marcos: { economicX: 3.0, socialY: -3.5 },
+  paetongtarn: { economicX: -1.5, socialY: -2.5 },
+  anwar: { economicX: -1.0, socialY: 2.5 },
+  frederik: { economicX: 1.0, socialY: 4.5 },
+  kristersson: { economicX: 4.0, socialY: -1.5 },
+  orpo: { economicX: 4.0, socialY: -1.0 },
+  khamenei: { economicX: -4.0, socialY: -10 },
+  aoun: { economicX: 1.0, socialY: -4.0 },
+  alsharaa: { economicX: 0.0, socialY: -5.0 },
+  barzani: { economicX: 3.5, socialY: -2.5 },
+  petro: { economicX: -5.5, socialY: 4.5 },
+  boluarte: { economicX: 1.5, socialY: -1.5 },
+  noboa: { economicX: 5.0, socialY: -4.5 },
+  ruto: { economicX: 3.0, socialY: -3.0 },
+  goita: { economicX: -1.0, socialY: -7.0 },
+  traore: { economicX: -2.5, socialY: -8.0 },
+  phamminchinh: { economicX: -3.5, socialY: -7.5 },
+  hunmanet: { economicX: -2.0, socialY: -8.5 },
+  lee: { economicX: 4.5, socialY: 0.5 },
+  muizzu: { economicX: 2.0, socialY: -5.5 },
+  christodoulides: { economicX: 1.5, socialY: 3.5 },
+  orban: { economicX: 2.0, socialY: -6.5 },
+  merz: { economicX: 5.0, socialY: -0.5 },
+  "lee-jm": { economicX: -3.5, socialY: 4.0 },
+  boric: { economicX: -5.0, socialY: 5.5 },
+  abdullah2: { economicX: 1.5, socialY: -4.0 },
+  tamim: { economicX: 3.5, socialY: -7.5 },
+  frederiksen: { economicX: -3.0, socialY: 4.5 },
+  faye: { economicX: -3.5, socialY: 3.5 },
+  tshisekedi: { economicX: -2.5, socialY: 0.5 },
+  minaungHlaing: { economicX: -1.0, socialY: -9.5 },
+  stubb: { economicX: 3.0, socialY: 4.0 },
+  bayrou: { economicX: 1.0, socialY: 3.0 },
+  luxon: { economicX: 5.0, socialY: 0.0 },
+  "montenegro-lu": { economicX: 4.0, socialY: 0.0 },
+  nehammer: { economicX: 4.5, socialY: -2.0 },
+  kickl: { economicX: 3.0, socialY: -5.5 },
+  fiala: { economicX: 4.0, socialY: 1.0 },
+  mitsotakis: { economicX: 5.0, socialY: 0.5 },
+  schoof: { economicX: 3.5, socialY: -2.0 },
+  zhelyazkov: { economicX: 3.5, socialY: -1.5 },
+  vucic: { economicX: 1.5, socialY: -5.5 },
+  rama: { economicX: -1.5, socialY: 3.0 },
+  "keller-sutter": { economicX: 5.0, socialY: 2.0 },
+  abela: { economicX: -1.5, socialY: 3.5 },
+  frieden: { economicX: 4.5, socialY: 1.5 },
+  nauseda: { economicX: 3.0, socialY: 1.5 },
+  silina: { economicX: 3.5, socialY: 1.5 },
+  karis: { economicX: 3.0, socialY: 2.5 },
+  golob: { economicX: -2.0, socialY: 5.5 },
+  becirovic: { economicX: -2.5, socialY: 3.0 },
+  spajic: { economicX: 2.5, socialY: 4.5 },
+  mickoski: { economicX: 3.0, socialY: -2.5 },
+  kurti: { economicX: -3.0, socialY: 4.5 },
+  sandu: { economicX: 1.5, socialY: 4.5 },
+  hichilema: { economicX: 4.5, socialY: 3.0 },
+  hassan: { economicX: -1.5, socialY: 1.5 },
+  zourabichvili: { economicX: 2.0, socialY: 5.0 },
+  rinkevicius: { economicX: 2.5, socialY: 5.0 },
+  chakwera: { economicX: 0.0, socialY: 1.0 },
+  "akufo-addo": { economicX: 5.0, socialY: 2.0 },
+  tokayev: { economicX: 2.0, socialY: -5.5 },
+  aliyev: { economicX: 3.0, socialY: -7.5 },
+  lukashenko: { economicX: -5.0, socialY: -9.5 },
+  museveni: { economicX: 1.5, socialY: -6.5 },
+  mahama: { economicX: -2.5, socialY: 3.0 },
+  tebboune: { economicX: -2.0, socialY: -5.5 },
+  ouattara: { economicX: 4.5, socialY: -1.5 },
+  decroo: { economicX: 4.0, socialY: 4.5 },
+  stoere: { economicX: -3.5, socialY: 4.5 },
+  frostadottir: { economicX: -3.5, socialY: 5.5 },
+  martin: { economicX: 0.5, socialY: 3.0 },
+  fico: { economicX: -1.0, socialY: -5.0 },
+  ciolacu: { economicX: -2.0, socialY: -2.0 },
+  plenkovic: { economicX: 3.5, socialY: -0.5 },
+  lai: { economicX: 2.0, socialY: 5.5 },
+  mirziyoyev: { economicX: 2.5, socialY: -6.0 },
+  rahmon: { economicX: -3.0, socialY: -8.5 },
+  orsi: { economicX: -3.5, socialY: 5.0 },
+  ortega: { economicX: -7.5, socialY: -7.5 },
+  guterres: { economicX: -2.5, socialY: 6.0 },
+  biya: { economicX: 0.5, socialY: -8.0 },
+  kobakhidze: { economicX: 1.0, socialY: -5.0 },
+  yoon: { economicX: 4.5, socialY: -3.5 },
+  chaves: { economicX: 4.5, socialY: -2.0 },
+  touadera: { economicX: 0.0, socialY: -5.0 },
+  afwerki: { economicX: -7.0, socialY: -9.5 },
+  assoumani: { economicX: 1.0, socialY: -6.5 },
+  deby: { economicX: 0.0, socialY: -7.0 },
+  akhannouch: { economicX: 4.5, socialY: -2.5 },
+  barrow: { economicX: 0.5, socialY: 2.5 },
+  sassou: { economicX: -1.5, socialY: -7.0 },
+  gnassingbe: { economicX: 2.0, socialY: -6.5 },
+  boko: { economicX: 4.0, socialY: 4.0 },
+  arevalo: { economicX: -3.0, socialY: 5.0 },
+  ali: { economicX: -2.0, socialY: 2.5 },
+  lourenco: { economicX: -0.5, socialY: -2.5 },
+  chapo: { economicX: -2.0, socialY: -4.5 },
+  simina: { economicX: 0.5, socialY: 3.5 },
+  berdymukhamedov: { economicX: -1.0, socialY: -9.5 },
+  pashinyan: { economicX: 1.5, socialY: 4.5 },
+  meleshanu: { economicX: 2.0, socialY: 2.5 },
+  fiame: { economicX: -2.5, socialY: 4.0 },
+  marape: { economicX: 1.5, socialY: -2.0 },
+  henry: { economicX: 0.0, socialY: 0.0 },
+  rowley: { economicX: 2.5, socialY: -2.0 },
+  ngirente: { economicX: 1.5, socialY: -7.5 },
+  guelleh: { economicX: 2.0, socialY: -7.0 },
+  "castro-z": { economicX: -4.5, socialY: 3.0 },
+  dabaiba: { economicX: 0.0, socialY: -4.0 },
+  kiir: { economicX: -0.5, socialY: -7.5 },
+  netumbo: { economicX: -2.5, socialY: 2.5 },
+  mswati: { economicX: 2.0, socialY: -9.5 },
+  japarov: { economicX: 0.5, socialY: -6.0 },
+  sogavare: { economicX: 0.0, socialY: -3.5 },
+  sudani: { economicX: -1.0, socialY: -3.5 },
+  radev: { economicX: -2.0, socialY: -1.5 },
+  pellegrini: { economicX: -2.0, socialY: 2.5 },
+  talon: { economicX: 4.0, socialY: -2.5 },
+  nguema: { economicX: 0.5, socialY: -5.5 },
+  doumbouya: { economicX: 0.0, socialY: -6.5 },
+  sakellaropoulou: { economicX: 0.5, socialY: 5.5 },
+  abbas: { economicX: -1.5, socialY: -2.0 },
+  francis: { economicX: -3.5, socialY: 4.0 },
+  bolkiah: { economicX: 3.5, socialY: -8.5 },
+  imrankhan: { economicX: -1.0, socialY: -1.5 },
+  "suu-kyi": { economicX: 0.5, socialY: 5.0 },
+  karzai: { economicX: 1.5, socialY: -1.0 },
+  sen: { economicX: -2.5, socialY: -8.5 },
+  diaz_canel: { economicX: -8.5, socialY: -7.5 },
+  haitham: { economicX: 3.0, socialY: -6.5 },
+  marin: { economicX: -3.5, socialY: 5.5 },
+  "to-lam": { economicX: -3.5, socialY: -8.0 },
+  tsai: { economicX: 2.0, socialY: 5.0 },
+  zuma: { economicX: -4.0, socialY: -4.5 },
+  amlo: { economicX: -5.0, socialY: -2.5 },
+  charles3: { economicX: 1.5, socialY: 3.5 },
+  ardern: { economicX: -3.0, socialY: 6.0 },
+  borisjohnson: { economicX: 4.0, socialY: -0.5 },
+  jokowi: { economicX: 1.0, socialY: -1.5 },
+  obiang: { economicX: 2.0, socialY: -9.5 },
+  saied: { economicX: -2.0, socialY: -6.5 },
+  duda: { economicX: 3.0, socialY: -4.5 },
+  tchiani: { economicX: -1.5, socialY: -8.0 },
+  mbr: { economicX: 5.0, socialY: -7.5 },
+  boakai: { economicX: -1.5, socialY: 2.5 },
+  arce: { economicX: -6.0, socialY: -1.5 },
+  leo14: { economicX: -3.0, socialY: 5.0 },
+  mohamud: { economicX: 0.5, socialY: -3.0 },
+  burhan: { economicX: 0.5, socialY: -8.5 },
+  ramkalawan: { economicX: -2.0, socialY: 4.5 },
+  ndayishimiye: { economicX: -1.5, socialY: -5.0 },
+  embalo: { economicX: 1.5, socialY: -4.5 },
+  ghazouani: { economicX: 2.0, socialY: -3.0 },
+  dodik: { economicX: 1.0, socialY: -6.5 },
+  diaz_canel2: { economicX: -8.5, socialY: -7.5 },
+};
 
 // ── Types ──────────────────────────────────────────────────────────────────── v3
 type Ideology =
@@ -14201,12 +14408,363 @@ function LeaderDetail({
   );
 }
 
+// ── Political Compass Component ───────────────────────────────────────────────
+function PoliticalCompass({
+  leaders,
+  onSelect,
+}: {
+  leaders: Leader[];
+  onSelect: (l: Leader) => void;
+}) {
+  const [tooltip, setTooltip] = useState<{
+    leader: Leader;
+    x: number;
+    y: number;
+  } | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  // Map -10..+10 to SVG coords (padding 40px on 500px canvas)
+  const PAD = 40;
+  const SIZE = 500;
+  const inner = SIZE - PAD * 2;
+  const toSvgX = (v: number) => PAD + ((v + 10) / 20) * inner;
+  const toSvgY = (v: number) => PAD + ((10 - v) / 20) * inner;
+
+  const dotColor = (l: Leader) => {
+    const map: Partial<Record<Ideology, string>> = {
+      Conservative: "#60a5fa",
+      Liberal: "#38bdf8",
+      "Social Democrat": "#f87171",
+      Nationalist: "#fb923c",
+      Communist: "#ef4444",
+      Authoritarian: "#a1a1aa",
+      Centrist: "#c084fc",
+      Populist: "#fbbf24",
+      Theocrat: "#34d399",
+      Progressive: "#2dd4bf",
+      "Military Junta": "#78716c",
+      Monarchy: "#eab308",
+    };
+    return map[l.ideology] ?? "#94a3b8";
+  };
+
+  const leadersWithCoords = leaders.filter((l) => COMPASS_DATA[l.id]);
+
+  return (
+    <div className="relative w-full select-none">
+      {/* Legend */}
+      <div className="flex flex-wrap gap-2 mb-3">
+        {(Object.keys(IDEOLOGY_COLORS) as Ideology[]).map((k) => (
+          <div key={k} className="flex items-center gap-1">
+            <span
+              className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
+              style={{
+                background:
+                  (
+                    {
+                      Conservative: "#60a5fa",
+                      Liberal: "#38bdf8",
+                      "Social Democrat": "#f87171",
+                      Nationalist: "#fb923c",
+                      Communist: "#ef4444",
+                      Authoritarian: "#a1a1aa",
+                      Centrist: "#c084fc",
+                      Populist: "#fbbf24",
+                      Theocrat: "#34d399",
+                      Progressive: "#2dd4bf",
+                      "Military Junta": "#78716c",
+                      Monarchy: "#eab308",
+                    } as Record<Ideology, string>
+                  )[k] ?? "#94a3b8",
+              }}
+            />
+            <span className="text-[10px] text-muted-foreground">{k}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="overflow-auto rounded-xl border border-border bg-card">
+        <svg
+          ref={svgRef}
+          viewBox={`0 0 ${SIZE} ${SIZE}`}
+          className="w-full"
+          style={{ minWidth: 320 }}
+          onMouseLeave={() => setTooltip(null)}
+        >
+          {/* Background quadrant fills */}
+          <rect
+            x={PAD}
+            y={PAD}
+            width={inner / 2}
+            height={inner / 2}
+            fill="rgba(239,68,68,0.05)"
+            rx="2"
+          />
+          <rect
+            x={PAD + inner / 2}
+            y={PAD}
+            width={inner / 2}
+            height={inner / 2}
+            fill="rgba(96,165,250,0.05)"
+            rx="2"
+          />
+          <rect
+            x={PAD}
+            y={PAD + inner / 2}
+            width={inner / 2}
+            height={inner / 2}
+            fill="rgba(248,113,113,0.05)"
+            rx="2"
+          />
+          <rect
+            x={PAD + inner / 2}
+            y={PAD + inner / 2}
+            width={inner / 2}
+            height={inner / 2}
+            fill="rgba(34,197,94,0.05)"
+            rx="2"
+          />
+
+          {/* Grid lines */}
+          {[-8, -6, -4, -2, 0, 2, 4, 6, 8].map((v) => (
+            <g key={v}>
+              <line
+                x1={toSvgX(v)}
+                y1={PAD}
+                x2={toSvgX(v)}
+                y2={SIZE - PAD}
+                stroke="rgba(255,255,255,0.04)"
+                strokeWidth="1"
+              />
+              <line
+                x1={PAD}
+                y1={toSvgY(v)}
+                x2={SIZE - PAD}
+                y2={toSvgY(v)}
+                stroke="rgba(255,255,255,0.04)"
+                strokeWidth="1"
+              />
+            </g>
+          ))}
+
+          {/* Axes */}
+          <line
+            x1={PAD}
+            y1={SIZE / 2}
+            x2={SIZE - PAD}
+            y2={SIZE / 2}
+            stroke="rgba(255,255,255,0.2)"
+            strokeWidth="1.5"
+          />
+          <line
+            x1={SIZE / 2}
+            y1={PAD}
+            x2={SIZE / 2}
+            y2={SIZE - PAD}
+            stroke="rgba(255,255,255,0.2)"
+            strokeWidth="1.5"
+          />
+
+          {/* Axis labels */}
+          <text
+            x={PAD + 4}
+            y={SIZE / 2 - 6}
+            fontSize="9"
+            fill="rgba(255,255,255,0.35)"
+            fontFamily="monospace"
+          >
+            ← Economic Left
+          </text>
+          <text
+            x={SIZE - PAD - 4}
+            y={SIZE / 2 - 6}
+            fontSize="9"
+            fill="rgba(255,255,255,0.35)"
+            fontFamily="monospace"
+            textAnchor="end"
+          >
+            Economic Right →
+          </text>
+          <text
+            x={SIZE / 2 + 4}
+            y={PAD + 12}
+            fontSize="9"
+            fill="rgba(255,255,255,0.35)"
+            fontFamily="monospace"
+          >
+            ↑ Libertarian
+          </text>
+          <text
+            x={SIZE / 2 + 4}
+            y={SIZE - PAD - 4}
+            fontSize="9"
+            fill="rgba(255,255,255,0.35)"
+            fontFamily="monospace"
+          >
+            ↓ Authoritarian
+          </text>
+
+          {/* Quadrant labels */}
+          <text
+            x={PAD + 8}
+            y={PAD + 18}
+            fontSize="8"
+            fill="rgba(239,68,68,0.4)"
+            fontFamily="sans-serif"
+            fontWeight="600"
+          >
+            AUTH LEFT
+          </text>
+          <text
+            x={SIZE - PAD - 8}
+            y={PAD + 18}
+            fontSize="8"
+            fill="rgba(96,165,250,0.4)"
+            fontFamily="sans-serif"
+            fontWeight="600"
+            textAnchor="end"
+          >
+            AUTH RIGHT
+          </text>
+          <text
+            x={PAD + 8}
+            y={SIZE - PAD - 8}
+            fontSize="8"
+            fill="rgba(248,113,113,0.4)"
+            fontFamily="sans-serif"
+            fontWeight="600"
+          >
+            LIB LEFT
+          </text>
+          <text
+            x={SIZE - PAD - 8}
+            y={SIZE - PAD - 8}
+            fontSize="8"
+            fill="rgba(34,197,94,0.4)"
+            fontFamily="sans-serif"
+            fontWeight="600"
+            textAnchor="end"
+          >
+            LIB RIGHT
+          </text>
+
+          {/* Leader dots */}
+          {leadersWithCoords.map((l) => {
+            const coords = COMPASS_DATA[l.id];
+            const cx = toSvgX(coords.economicX);
+            const cy = toSvgY(coords.socialY);
+            return (
+              <g
+                key={l.id}
+                onMouseEnter={(e) => {
+                  const rect = svgRef.current?.getBoundingClientRect();
+                  if (rect) setTooltip({ leader: l, x: cx, y: cy });
+                }}
+                onClick={() => onSelect(l)}
+                className="cursor-pointer"
+              >
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={7}
+                  fill={dotColor(l)}
+                  fillOpacity={0.85}
+                  stroke="rgba(0,0,0,0.4)"
+                  strokeWidth="1"
+                />
+                <text
+                  x={cx}
+                  y={cy + 3}
+                  fontSize="6.5"
+                  textAnchor="middle"
+                  fill="rgba(0,0,0,0.8)"
+                  fontWeight="700"
+                  pointerEvents="none"
+                >
+                  {l.flag}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Tooltip */}
+          {tooltip &&
+            (() => {
+              const cx = toSvgX(COMPASS_DATA[tooltip.leader.id].economicX);
+              const cy = toSvgY(COMPASS_DATA[tooltip.leader.id].socialY);
+              const boxW = 120;
+              const boxH = 44;
+              const tx = cx + 10 + boxW > SIZE - PAD ? cx - boxW - 10 : cx + 10;
+              const ty =
+                cy - boxH / 2 < PAD
+                  ? PAD
+                  : cy + boxH / 2 > SIZE - PAD
+                    ? SIZE - PAD - boxH
+                    : cy - boxH / 2;
+              return (
+                <g pointerEvents="none">
+                  <rect
+                    x={tx}
+                    y={ty}
+                    width={boxW}
+                    height={boxH}
+                    rx="5"
+                    fill="rgba(15,15,20,0.95)"
+                    stroke="rgba(255,255,255,0.15)"
+                    strokeWidth="1"
+                  />
+                  <text
+                    x={tx + 8}
+                    y={ty + 14}
+                    fontSize="9"
+                    fill="white"
+                    fontWeight="700"
+                    fontFamily="sans-serif"
+                  >
+                    {tooltip.leader.name}
+                  </text>
+                  <text
+                    x={tx + 8}
+                    y={ty + 24}
+                    fontSize="8"
+                    fill="rgba(255,255,255,0.6)"
+                    fontFamily="sans-serif"
+                  >
+                    {tooltip.leader.country}
+                  </text>
+                  <text
+                    x={tx + 8}
+                    y={ty + 35}
+                    fontSize="7.5"
+                    fill="rgba(255,255,255,0.45)"
+                    fontFamily="monospace"
+                  >
+                    Econ{" "}
+                    {COMPASS_DATA[tooltip.leader.id].economicX > 0 ? "+" : ""}
+                    {COMPASS_DATA[tooltip.leader.id].economicX} · Soc{" "}
+                    {COMPASS_DATA[tooltip.leader.id].socialY > 0 ? "+" : ""}
+                    {COMPASS_DATA[tooltip.leader.id].socialY}
+                  </text>
+                </g>
+              );
+            })()}
+        </svg>
+      </div>
+      <p className="text-[10px] text-muted-foreground text-center mt-2">
+        Click any dot to open the leader&#39;s profile. Hover to see details.
+        Positions are approximate based on policy analysis.
+      </p>
+    </div>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 export function WorldMapPage() {
   const [region, setRegion] = useState("All Regions");
   const [ideology, setIdeology] = useState("All");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Leader | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "compass">("list");
 
   const ideologies = [
     "All",
@@ -14341,29 +14899,73 @@ export function WorldMapPage() {
           </div>
         </div>
 
-        {/* Card grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filtered.length === 0 ? (
-            <div className="col-span-full bg-card border border-border rounded-xl p-8 text-center">
-              <Warning
-                size={28}
-                className="text-muted-foreground mx-auto mb-2"
-              />
-              <p className="text-sm text-muted-foreground">
-                No leaders match your filters
-              </p>
-            </div>
-          ) : (
-            filtered.map((l) => (
-              <LeaderCard
-                key={l.id}
-                leader={l}
-                onClick={() => setSelected(l)}
-                isSelected={selected?.id === l.id}
-              />
-            ))
+        {/* View Mode Toggle */}
+        <div className="flex items-center gap-2 mb-4">
+          <button
+            onClick={() => setViewMode("list")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${viewMode === "list" ? "bg-secondary/20 text-secondary border-secondary/40" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+          >
+            <ListBullets
+              size={13}
+              weight={viewMode === "list" ? "fill" : "regular"}
+            />
+            Leader List
+          </button>
+          <button
+            onClick={() => setViewMode("compass")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${viewMode === "compass" ? "bg-secondary/20 text-secondary border-secondary/40" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+          >
+            <Compass
+              size={13}
+              weight={viewMode === "compass" ? "fill" : "regular"}
+            />
+            Political Compass
+          </button>
+          {viewMode === "compass" && (
+            <span className="text-xs text-muted-foreground ml-1">
+              Showing {filtered.filter((l) => COMPASS_DATA[l.id]).length}{" "}
+              leaders with compass data
+            </span>
           )}
         </div>
+
+        {/* Political Compass View */}
+        {viewMode === "compass" && (
+          <div className="mb-6">
+            <PoliticalCompass
+              leaders={filtered}
+              onSelect={(l) => {
+                setSelected(l);
+              }}
+            />
+          </div>
+        )}
+
+        {/* Card grid */}
+        {viewMode === "list" && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filtered.length === 0 ? (
+              <div className="col-span-full bg-card border border-border rounded-xl p-8 text-center">
+                <Warning
+                  size={28}
+                  className="text-muted-foreground mx-auto mb-2"
+                />
+                <p className="text-sm text-muted-foreground">
+                  No leaders match your filters
+                </p>
+              </div>
+            ) : (
+              filtered.map((l) => (
+                <LeaderCard
+                  key={l.id}
+                  leader={l}
+                  onClick={() => setSelected(l)}
+                  isSelected={selected?.id === l.id}
+                />
+              ))
+            )}
+          </div>
+        )}
 
         {/* Modal overlay */}
         {selected && (
@@ -14382,11 +14984,38 @@ export function WorldMapPage() {
           </div>
         )}
 
-        <p className="text-xs text-muted-foreground font-sans text-center mt-8">
-          Profiles compiled from public records, official biographies, and
-          verified news sources. Approval ratings from major polling aggregators
-          as of 2025.
-        </p>
+        <div className="mt-8 flex flex-col items-center gap-1">
+          <p className="text-xs text-muted-foreground font-sans text-center">
+            Profiles compiled from public records, official biographies, and
+            verified news sources. Approval ratings from major polling
+            aggregators as of 2025.
+          </p>
+          <SourceLink
+            sources={[
+              { label: "Wikipedia", url: "https://www.wikipedia.org/" },
+              {
+                label: "Morning Consult Global Leader Approval",
+                url: "https://morningconsult.com/global-leader-approval/",
+              },
+              {
+                label: "Reuters Leaders Coverage",
+                url: "https://www.reuters.com/world/",
+              },
+              {
+                label: "BBC News World Leaders",
+                url: "https://www.bbc.com/news/world",
+              },
+              {
+                label: "CFR World Leaders",
+                url: "https://www.cfr.org/global-conflict-tracker",
+              },
+              {
+                label: "UN Member States",
+                url: "https://www.un.org/en/about-us/member-states",
+              },
+            ]}
+          />
+        </div>
       </div>
     </div>
   );

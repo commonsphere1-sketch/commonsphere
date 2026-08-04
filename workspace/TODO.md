@@ -28,19 +28,15 @@ Individual Entity Detail Pages
 Add dedicated /states/:id, /countries/:id routes with full-page deep-dive profiles
 </todo>
 
-<todo id="note-from-entity">
-Attach Notes to Entities
-Add a "Take Note" button on state/country/city detail panels that pre-fills entityName + entityType in the popup
-</todo>
 
 <todo id="comparison-integration">
 Cross-Entity Comparison Tool
 Enable selecting states/countries/cities from the new pages and sending them to the Comparisons module
 </todo>
 
-<todo id="real-data-api">
-Connect Live Data APIs
-Replace mock data with real APIs (World Bank, BLS, Census Bureau) for live statistics
+<todo id="real-data-enable">
+Enable Live API Fetching
+Re-enable the auto-fetch in useLiveData.ts (currently disabled for sandbox) and wire BLS/Census endpoints for states data
 </todo>
 
 <todo id="map-visualization">

@@ -29,6 +29,31 @@ import {
   ReferenceLine,
 } from "recharts";
 import { economiesData, type Economy } from "../data/economiesData";
+import { SourceLink } from "../components/SourceLink";
+
+const SRC_IMF = [
+  {
+    label: "IMF World Economic Outlook",
+    url: "https://www.imf.org/en/Publications/WEO",
+  },
+  { label: "World Bank Open Data", url: "https://data.worldbank.org/" },
+];
+const SRC_OECD = [
+  { label: "OECD.Stat", url: "https://stats.oecd.org/" },
+  { label: "IMF Data", url: "https://www.imf.org/en/Data" },
+];
+const SRC_WTO = [
+  {
+    label: "WTO Statistics",
+    url: "https://www.wto.org/english/res_e/statis_e/statis_e.htm",
+  },
+];
+const SRC_MARITIME = [
+  {
+    label: "UNCTAD Maritime Transport",
+    url: "https://unctad.org/topic/transport-and-trade-logistics/review-of-maritime-transport",
+  },
+];
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
@@ -112,18 +137,204 @@ const ratingColor = (r: string) => {
   return "text-orange-400 bg-orange-500/10 border-orange-500/30";
 };
 
+const SECTOR_COLORS: Record<string, string> = {
+  Services: "#38bdf8",
+  Industry: "#a78bfa",
+  Agriculture: "#4ade80",
+  Manufacturing: "#fb923c",
+  Finance: "#f472b6",
+  Technology: "#facc15",
+  Energy: "#f97316",
+  Mining: "#a3a3a3",
+  Tourism: "#34d399",
+  IT: "#60a5fa",
+  Logistics: "#c084fc",
+  Chemicals: "#fbbf24",
+  "Trade & Logistics": "#22d3ee",
+  Pharmaceuticals: "#e879f9",
+  Semiconductors: "#f87171",
+  BPO: "#818cf8",
+  Fisheries: "#06b6d4",
+  Garments: "#ec4899",
+  Automotive: "#fb923c",
+  Textiles: "#10b981",
+};
+
+const SECTOR_ICONS: Record<string, string> = {
+  Services: "🏢",
+  Industry: "🏭",
+  Agriculture: "🌾",
+  Manufacturing: "⚙️",
+  Finance: "💰",
+  Technology: "💻",
+  Energy: "⚡",
+  Mining: "⛏️",
+  Tourism: "✈️",
+  IT: "🖥️",
+  Logistics: "🚢",
+  Chemicals: "🧪",
+  "Trade & Logistics": "📦",
+  Pharmaceuticals: "💊",
+  Semiconductors: "🔬",
+  BPO: "📞",
+  Fisheries: "🐟",
+  Garments: "👗",
+  Automotive: "🚗",
+  Textiles: "🧵",
+};
+
+function getSectorColor(name: string): string {
+  return SECTOR_COLORS[name] ?? "#94a3b8";
+}
+
+function getSectorIcon(name: string): string {
+  return SECTOR_ICONS[name] ?? "📊";
+}
+
 function SectorBar({ name, share }: { name: string; share: number }) {
+  const color = getSectorColor(name);
+  const icon = getSectorIcon(name);
   return (
-    <div>
-      <div className="flex justify-between text-xs mb-1">
-        <span className="text-muted-foreground font-sans">{name}</span>
-        <span className="font-mono text-foreground">{share}%</span>
+    <div className="p-2.5 rounded-lg bg-background/50 border border-border/40 hover:border-border/70 transition-colors">
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm">{icon}</span>
+          <span className="text-xs font-semibold font-sans text-foreground">
+            {name}
+          </span>
+        </div>
+        <span className="text-sm font-bold font-mono" style={{ color }}>
+          {share}%
+        </span>
       </div>
-      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+      <div className="h-2 bg-muted rounded-full overflow-hidden">
         <div
-          className="h-full rounded-full bg-secondary transition-all duration-500"
-          style={{ width: `${share}%` }}
+          className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${share}%`, background: color }}
         />
+      </div>
+      <div className="flex justify-between mt-1">
+        <span className="text-[10px] text-muted-foreground font-sans">
+          Share of GDP
+        </span>
+        <div className="flex gap-0.5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="w-1 h-1 rounded-full"
+              style={{
+                background:
+                  i < Math.round(share / 20) ? color : "hsl(222,30%,25%)",
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SectorDonut({
+  sectors,
+}: {
+  sectors: { name: string; shareOfGDP: number }[];
+}) {
+  const total = sectors.reduce((s, x) => s + x.shareOfGDP, 0);
+  const size = 88;
+  const cx = size / 2;
+  const cy = size / 2;
+  const r = 32;
+  const innerR = 18;
+
+  let cumAngle = -Math.PI / 2;
+  const arcs = sectors.map((s) => {
+    const frac = s.shareOfGDP / total;
+    const startAngle = cumAngle;
+    const endAngle = cumAngle + frac * 2 * Math.PI;
+    cumAngle = endAngle;
+
+    const x1 = cx + r * Math.cos(startAngle);
+    const y1 = cy + r * Math.sin(startAngle);
+    const x2 = cx + r * Math.cos(endAngle);
+    const y2 = cy + r * Math.sin(endAngle);
+    const ix1 = cx + innerR * Math.cos(startAngle);
+    const iy1 = cy + innerR * Math.sin(startAngle);
+    const ix2 = cx + innerR * Math.cos(endAngle);
+    const iy2 = cy + innerR * Math.sin(endAngle);
+    const large = frac > 0.5 ? 1 : 0;
+
+    const d = [
+      `M ${x1} ${y1}`,
+      `A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`,
+      `L ${ix2} ${iy2}`,
+      `A ${innerR} ${innerR} 0 ${large} 0 ${ix1} ${iy1}`,
+      "Z",
+    ].join(" ");
+
+    return { ...s, d, color: getSectorColor(s.name) };
+  });
+
+  const dominant = [...sectors].sort((a, b) => b.shareOfGDP - a.shareOfGDP)[0];
+
+  return (
+    <div className="flex items-center gap-3">
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        className="shrink-0"
+      >
+        {arcs.map((arc) => (
+          <path
+            key={arc.name}
+            d={arc.d}
+            fill={arc.color}
+            stroke="hsl(222,30%,12%)"
+            strokeWidth="1"
+          />
+        ))}
+        <text
+          x={cx}
+          y={cy - 4}
+          textAnchor="middle"
+          fill="white"
+          fontSize="10"
+          fontFamily="IBM Plex Mono"
+          fontWeight="bold"
+        >
+          {dominant.shareOfGDP}%
+        </text>
+        <text
+          x={cx}
+          y={cy + 7}
+          textAnchor="middle"
+          fill="hsl(0,0%,55%)"
+          fontSize="6.5"
+          fontFamily="DM Sans"
+        >
+          {dominant.name.length > 10
+            ? dominant.name.slice(0, 9) + "…"
+            : dominant.name}
+        </text>
+      </svg>
+      <div className="flex flex-col gap-1 flex-1 min-w-0">
+        {sectors.slice(0, 4).map((s) => (
+          <div key={s.name} className="flex items-center gap-1.5 min-w-0">
+            <div
+              className="w-2 h-2 rounded-sm shrink-0"
+              style={{ background: getSectorColor(s.name) }}
+            />
+            <span className="text-[10px] font-sans text-muted-foreground truncate flex-1">
+              {s.name}
+            </span>
+            <span
+              className="text-[10px] font-mono shrink-0"
+              style={{ color: getSectorColor(s.name) }}
+            >
+              {s.shareOfGDP}%
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -350,6 +561,8 @@ function EconomyModal({
             ))}
           </div>
 
+          <SourceLink sources={SRC_IMF} className="mb-3" />
+
           {/* Accordion sections */}
           <div className="space-y-2">
             {/* Chart */}
@@ -435,10 +648,86 @@ function EconomyModal({
 
             {/* Sectors */}
             <AccordionSection title="GDP Composition by Sector">
-              <div className="space-y-2">
+              {/* Donut + legend */}
+              <div className="mb-3 p-3 rounded-lg bg-background/60 border border-border/40">
+                <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
+                  Sector Distribution
+                </p>
+                <SectorDonut sectors={economy.topSectors} />
+              </div>
+
+              {/* Bars */}
+              <div className="space-y-2 mb-3">
                 {economy.topSectors.map((s) => (
                   <SectorBar key={s.name} name={s.name} share={s.shareOfGDP} />
                 ))}
+              </div>
+
+              {/* Summary stats row */}
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/40">
+                <div className="text-center">
+                  <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
+                    Dominant
+                  </p>
+                  <p className="text-xs font-bold font-sans text-foreground mt-0.5">
+                    {
+                      [...economy.topSectors].sort(
+                        (a, b) => b.shareOfGDP - a.shareOfGDP,
+                      )[0]?.name
+                    }
+                  </p>
+                  <p
+                    className="text-[10px] font-mono"
+                    style={{
+                      color: getSectorColor(
+                        [...economy.topSectors].sort(
+                          (a, b) => b.shareOfGDP - a.shareOfGDP,
+                        )[0]?.name,
+                      ),
+                    }}
+                  >
+                    {
+                      [...economy.topSectors].sort(
+                        (a, b) => b.shareOfGDP - a.shareOfGDP,
+                      )[0]?.shareOfGDP
+                    }
+                    % of GDP
+                  </p>
+                </div>
+                <div className="text-center border-x border-border/40">
+                  <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
+                    Sectors
+                  </p>
+                  <p className="text-xl font-bold font-mono text-foreground mt-0.5">
+                    {economy.topSectors.length}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground font-sans">
+                    tracked
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
+                    Diversification
+                  </p>
+                  <p
+                    className="text-xs font-bold font-sans mt-0.5"
+                    style={{
+                      color:
+                        economy.topSectors.length >= 4 ? "#4ade80" : "#fb923c",
+                    }}
+                  >
+                    {economy.topSectors.length >= 4
+                      ? "High"
+                      : economy.topSectors.length >= 3
+                        ? "Medium"
+                        : "Low"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground font-sans">
+                    {economy.topSectors.length >= 4
+                      ? "Multi-sector"
+                      : "Concentrated"}
+                  </p>
+                </div>
               </div>
             </AccordionSection>
 
@@ -478,6 +767,8 @@ function EconomyModal({
               </div>
             </AccordionSection>
 
+            {/* Trade */}
+            {/* source already after trade section */}
             {/* Maritime */}
             <AccordionSection title="Maritime Trade">
               <p className="text-xs text-muted-foreground font-sans leading-relaxed mb-3">
@@ -533,6 +824,7 @@ function EconomyModal({
                   </span>
                 ))}
               </div>
+              <SourceLink sources={SRC_MARITIME} className="mt-2" />
             </AccordionSection>
           </div>
         </div>
@@ -632,6 +924,8 @@ export function EconomiesPage() {
             </div>
           ))}
         </div>
+
+        <SourceLink sources={SRC_IMF} className="mb-4 -mt-2" />
 
         {/* Unified Search + Filter Bar */}
         <div className="flex flex-col bg-card border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
@@ -1496,8 +1790,9 @@ export function EconomiesPage() {
                 ))}
               </div>
               <p className="text-[10px] text-muted-foreground font-sans mt-3">
-                Dashed line = 2025 threshold. Source: IMF WEO Apr 2025.
+                Dashed line = 2025 threshold.
               </p>
+              <SourceLink sources={SRC_OECD} className="mt-1" />
             </div>
 
             {/* Confidence/Forecast quality strip */}

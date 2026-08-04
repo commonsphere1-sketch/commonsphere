@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { DashboardLayout } from "./components/DashboardLayout";
+import { NotesProvider } from "./contexts/NotesContext";
 
 /* ─── Eager (small / always needed) ────────────────────────── */
 import { DashboardPage } from "./pages/DashboardPage";
@@ -27,9 +28,6 @@ const ComparisonsPage = lazy(() =>
     default: m.ComparisonsPage,
   })),
 );
-const ConflictsPage = lazy(() =>
-  import("./pages/ConflictsPage").then((m) => ({ default: m.ConflictsPage })),
-);
 const MembershipsPage = lazy(() =>
   import("./pages/MembershipsPage").then((m) => ({
     default: m.MembershipsPage,
@@ -50,6 +48,14 @@ const AnalystPage = lazy(() =>
 const TrendsPage = lazy(() =>
   import("./pages/TrendsPage").then((m) => ({ default: m.TrendsPage })),
 );
+const PlanetaryBoundariesPage = lazy(() =>
+  import("./pages/PlanetaryBoundariesPage").then((m) => ({
+    default: m.PlanetaryBoundariesPage,
+  })),
+);
+const CrimeStatsPage = lazy(() =>
+  import("./pages/CrimeStatsPage").then((m) => ({ default: m.CrimeStatsPage })),
+);
 
 // WorldMapPage fetches a 3MB TopoJSON file — keep lazy to avoid stalling the bundler
 const WorldMapPage = lazy(() =>
@@ -67,29 +73,35 @@ function PageFallback() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<PageFallback />}>
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/membership" element={<MembershipsPage />} />
-          <Route path="/edu" element={<EduSignInPage />} />
-          <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<DashboardPage />} />
-            <Route path="notes" element={<NotesPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="states" element={<StatesPage />} />
-            <Route path="countries" element={<CountriesPage />} />
-            <Route path="cities" element={<CitiesPage />} />
-            <Route path="economies" element={<EconomiesPage />} />
-            <Route path="policy" element={<PolicyPage />} />
-            <Route path="conflicts" element={<ConflictsPage />} />
-            <Route path="worldmap" element={<WorldMapPage />} />
-            <Route path="comparisons" element={<ComparisonsPage />} />
-            <Route path="about" element={<AboutPage />} />
-            <Route path="analysts" element={<AnalystPage />} />
-            <Route path="trends" element={<TrendsPage />} />
-          </Route>
-        </Routes>
-      </Suspense>
+      <NotesProvider>
+        <Suspense fallback={<PageFallback />}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/membership" element={<MembershipsPage />} />
+            <Route path="/edu" element={<EduSignInPage />} />
+            <Route path="/dashboard" element={<DashboardLayout />}>
+              <Route index element={<DashboardPage />} />
+              <Route path="notes" element={<NotesPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="states" element={<StatesPage />} />
+              <Route path="countries" element={<CountriesPage />} />
+              <Route path="cities" element={<CitiesPage />} />
+              <Route path="economies" element={<EconomiesPage />} />
+              <Route path="policy" element={<PolicyPage />} />
+              <Route path="worldmap" element={<WorldMapPage />} />
+              <Route path="comparisons" element={<ComparisonsPage />} />
+              <Route path="about" element={<AboutPage />} />
+              <Route path="analysts" element={<AnalystPage />} />
+              <Route path="trends" element={<TrendsPage />} />
+              <Route
+                path="planetary-boundaries"
+                element={<PlanetaryBoundariesPage />}
+              />
+              <Route path="crime" element={<CrimeStatsPage />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </NotesProvider>
     </BrowserRouter>
   );
 }

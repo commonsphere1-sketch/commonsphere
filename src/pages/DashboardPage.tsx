@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import {
@@ -31,6 +31,12 @@ import {
   FileMagnifyingGlass,
   ChartLineUp,
   MapPin,
+  PushPin,
+  PushPinSlash,
+  MagnifyingGlass,
+  X,
+  Pencil,
+  CheckCircle,
 } from "@phosphor-icons/react";
 import {
   AreaChart,
@@ -48,6 +54,35 @@ import {
 } from "recharts";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
+import { SourceLink } from "../components/SourceLink";
+
+const SRC_DASH_ECONOMY = [
+  { label: "World Bank Open Data", url: "https://data.worldbank.org/" },
+  { label: "IMF WEO", url: "https://www.imf.org/en/Publications/WEO" },
+];
+const SRC_DASH_STATES = [
+  {
+    label: "Bureau of Economic Analysis",
+    url: "https://www.bea.gov/data/gdp/gdp-state",
+  },
+  { label: "Bureau of Labor Statistics", url: "https://www.bls.gov/data/" },
+];
+const SRC_DASH_CITIES = [
+  {
+    label: "Numbeo City Rankings",
+    url: "https://www.numbeo.com/city-rankings/",
+  },
+];
+const SRC_DASH_CONFLICTS = [
+  { label: "ACLED Conflict Data", url: "https://acleddata.com/" },
+  { label: "Uppsala Conflict Data Program", url: "https://ucdp.uu.se/" },
+];
+const SRC_DASH_POLICIES = [
+  {
+    label: "OECD Policy Observatory",
+    url: "https://www.oecd.org/gov/regulatory-policy/",
+  },
+];
 
 /* ─── Helpers ──────────────────────────────────────────────────────────── */
 const fmtB = (n: number) =>
@@ -538,6 +573,579 @@ const QUICK_STATS = [
   },
 ];
 
+/* ─── Pinned Dashboard logic ────────────────────────────────────────────── */
+const LS_KEY_COUNTRIES = "cs_pinned_countries";
+const LS_KEY_STATES = "cs_pinned_states";
+
+function usePinned(key: string, defaultIds: string[]) {
+  const [ids, setIds] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem(key);
+      return stored ? JSON.parse(stored) : defaultIds;
+    } catch {
+      return defaultIds;
+    }
+  });
+
+  const toggle = (id: string) =>
+    setIds((prev) => {
+      const next = prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id];
+      localStorage.setItem(key, JSON.stringify(next));
+      return next;
+    });
+
+  return { ids, toggle };
+}
+
+/* ─── Pinned Section Component ─────────────────────────────────────────── */
+function PinnedSection({
+  isLight,
+  cardBg,
+  cardBorder,
+  cardShadow,
+  gridLine,
+  headText,
+  mutedText,
+  bodyText,
+  onNav,
+}: {
+  isLight: boolean;
+  cardBg: string;
+  cardBorder: string;
+  cardShadow: string;
+  gridLine: string;
+  headText: string;
+  mutedText: string;
+  bodyText: string;
+  onNav: (path: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [stateSearch, setStateSearch] = useState("");
+
+  const { ids: pinnedCountryIds, toggle: toggleCountry } = usePinned(
+    LS_KEY_COUNTRIES,
+    ["us", "cn", "de", "gb", "jp"],
+  );
+  const { ids: pinnedStateIds, toggle: toggleState } = usePinned(
+    LS_KEY_STATES,
+    ["ca", "tx", "ny", "fl", "wa"],
+  );
+
+  const pinnedCountries = useMemo(
+    () => countriesData.filter((c) => pinnedCountryIds.includes(c.id)),
+    [pinnedCountryIds],
+  );
+  const pinnedStates = useMemo(
+    () => usStatesData.filter((s) => pinnedStateIds.includes(s.id)),
+    [pinnedStateIds],
+  );
+
+  const filteredCountries = useMemo(
+    () =>
+      countriesData.filter((c) =>
+        c.name.toLowerCase().includes(countrySearch.toLowerCase()),
+      ),
+    [countrySearch],
+  );
+  const filteredStates = useMemo(
+    () =>
+      usStatesData.filter(
+        (s) =>
+          s.name.toLowerCase().includes(stateSearch.toLowerCase()) ||
+          s.abbreviation.toLowerCase().includes(stateSearch.toLowerCase()),
+      ),
+    [stateSearch],
+  );
+
+  const accent = "#6366f1";
+  const pillBg = isLight ? "rgba(99,102,241,0.07)" : "rgba(99,102,241,0.12)";
+  const pillBorder = isLight
+    ? "rgba(99,102,241,0.22)"
+    : "rgba(99,102,241,0.28)";
+  const totalPinned = pinnedCountries.length + pinnedStates.length;
+
+  /* ── Empty state ── */
+  if (totalPinned === 0 && !editing) {
+    return (
+      <div
+        className="rounded-2xl px-5 py-4 flex items-center justify-between gap-4"
+        style={{
+          background: cardBg,
+          border: cardBorder,
+          boxShadow: cardShadow,
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+            style={{
+              background: accent + "12",
+              border: `1px solid ${accent}25`,
+            }}
+          >
+            <PushPin size={16} weight="fill" style={{ color: accent }} />
+          </div>
+          <div>
+            <p
+              className="text-sm font-bold font-sans"
+              style={{ color: headText }}
+            >
+              My Dashboard
+            </p>
+            <p className="text-[11px] font-sans" style={{ color: mutedText }}>
+              Pin countries and states you follow — they&#39;ll appear here at a
+              glance.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setEditing(true)}
+          className="flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-80 shrink-0"
+          style={{
+            background: pillBg,
+            border: `1px solid ${pillBorder}`,
+            color: accent,
+          }}
+        >
+          <Pencil size={11} weight="bold" /> Customize
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}
+    >
+      {/* ── Header bar ── */}
+      <div
+        className="flex items-center justify-between px-5 py-3.5"
+        style={{ borderBottom: `1px solid ${gridLine}` }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+            style={{
+              background: accent + "12",
+              border: `1px solid ${accent}22`,
+            }}
+          >
+            <PushPin size={13} weight="fill" style={{ color: accent }} />
+          </div>
+          <span
+            className="text-sm font-bold font-sans"
+            style={{ color: headText }}
+          >
+            My Dashboard
+          </span>
+          <span
+            className="text-[10px] font-mono px-2 py-0.5 rounded-full tabular-nums"
+            style={{ background: accent + "14", color: accent }}
+          >
+            {totalPinned} pinned
+          </span>
+        </div>
+        <button
+          onClick={() => setEditing((v) => !v)}
+          className="flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-80"
+          style={{
+            background: editing ? accent + "18" : pillBg,
+            border: `1px solid ${editing ? accent + "44" : pillBorder}`,
+            color: accent,
+          }}
+        >
+          {editing ? (
+            <>
+              <CheckCircle size={12} weight="bold" /> Done
+            </>
+          ) : (
+            <>
+              <Pencil size={11} weight="bold" /> Customize
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* ── Edit picker panel ── */}
+      {editing && (
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 gap-px"
+          style={{ background: gridLine }}
+        >
+          {/* Countries picker */}
+          {[
+            {
+              label: "Countries",
+              items: filteredCountries.slice(0, 40),
+              pinnedIds: pinnedCountryIds,
+              toggle: toggleCountry,
+              search: countrySearch,
+              setSearch: setCountrySearch,
+              placeholder: "Search countries…",
+              renderItem: (c: (typeof filteredCountries)[0]) => (
+                <>
+                  <span className="text-base w-6 shrink-0">{c.flag}</span>
+                  <span
+                    className="flex-1 text-[11px] font-sans truncate"
+                    style={{ color: headText }}
+                  >
+                    {c.name}
+                  </span>
+                </>
+              ),
+            },
+            {
+              label: "US States",
+              items: filteredStates as typeof filteredCountries,
+              pinnedIds: pinnedStateIds,
+              toggle: toggleState,
+              search: stateSearch,
+              setSearch: setStateSearch,
+              placeholder: "Search states…",
+              renderItem: (item: (typeof filteredStates)[0]) => {
+                const s = item as (typeof filteredStates)[0];
+                return (
+                  <>
+                    <span
+                      className="text-[9px] font-mono font-bold w-7 text-center rounded-md py-0.5 shrink-0"
+                      style={{
+                        background: isLight
+                          ? "rgba(59,130,246,0.1)"
+                          : "rgba(147,197,253,0.1)",
+                        color: isLight ? "#3b82f6" : "#93c5fd",
+                      }}
+                    >
+                      {(s as any).abbreviation}
+                    </span>
+                    <span
+                      className="flex-1 text-[11px] font-sans truncate"
+                      style={{ color: headText }}
+                    >
+                      {s.name}
+                    </span>
+                  </>
+                );
+              },
+            },
+          ].map((col) => (
+            <div
+              key={col.label}
+              className="px-4 py-4"
+              style={{
+                background: isLight
+                  ? "rgba(0,0,0,0.015)"
+                  : "rgba(255,255,255,0.025)",
+              }}
+            >
+              <p
+                className="text-[10px] font-mono uppercase tracking-widest mb-3"
+                style={{ color: mutedText }}
+              >
+                {col.label}
+              </p>
+              {/* Search */}
+              <div
+                className="flex items-center gap-2 rounded-lg px-3 py-2 mb-3"
+                style={{
+                  background: isLight
+                    ? "rgba(255,255,255,0.8)"
+                    : "rgba(255,255,255,0.05)",
+                  border: `1px solid ${gridLine}`,
+                }}
+              >
+                <MagnifyingGlass
+                  size={12}
+                  style={{ color: mutedText, flexShrink: 0 }}
+                />
+                <input
+                  type="text"
+                  placeholder={col.placeholder}
+                  value={col.search}
+                  onChange={(e) => col.setSearch(e.target.value)}
+                  className="flex-1 bg-transparent text-[11px] font-sans outline-none border-none"
+                  style={{ color: bodyText }}
+                />
+              </div>
+              {/* List */}
+              <div className="flex flex-col max-h-52 overflow-y-auto -mx-1 px-1">
+                {col.items.map((item) => {
+                  const pinned = col.pinnedIds.includes(item.id);
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => col.toggle(item.id)}
+                      className="flex items-center gap-2.5 py-2 text-left transition-opacity hover:opacity-75 rounded-lg px-1"
+                      style={{ borderBottom: `1px solid ${gridLine}` }}
+                    >
+                      {col.renderItem(item)}
+                      <span
+                        className="shrink-0 w-5 h-5 rounded-md flex items-center justify-center transition-all"
+                        style={{
+                          background: pinned ? accent + "15" : "transparent",
+                          color: pinned ? accent : mutedText,
+                        }}
+                      >
+                        {pinned ? (
+                          <PushPin size={11} weight="fill" />
+                        ) : (
+                          <PushPinSlash size={11} />
+                        )}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Pinned cards grid ── */}
+      <div className="p-5 flex flex-col gap-5">
+        {/* Countries */}
+        {pinnedCountries.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <p
+                className="text-[10px] font-mono uppercase tracking-widest"
+                style={{ color: mutedText }}
+              >
+                Countries
+              </p>
+              <button
+                onClick={() => onNav("/dashboard/countries")}
+                className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70"
+                style={{ color: accent }}
+              >
+                View all <ArrowRight size={10} weight="bold" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
+              {pinnedCountries.map((c) => {
+                const gdpUp = c.gdpGrowth >= 0;
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => onNav("/dashboard/countries")}
+                    className="rounded-xl p-3 text-left flex flex-col gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] relative group"
+                    style={{
+                      background: isLight
+                        ? "rgba(0,0,0,0.025)"
+                        : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${gridLine}`,
+                    }}
+                  >
+                    {/* Remove button */}
+                    {editing && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleCountry(c.id);
+                        }}
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 rounded-full flex items-center justify-center"
+                        style={{ background: "#ef444420", color: "#ef4444" }}
+                      >
+                        <X size={9} weight="bold" />
+                      </button>
+                    )}
+                    {/* Flag + name */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl leading-none shrink-0">
+                        {c.flag}
+                      </span>
+                      <div className="min-w-0">
+                        <p
+                          className="text-[11px] font-bold font-sans truncate leading-tight"
+                          style={{ color: headText }}
+                        >
+                          {c.name}
+                        </p>
+                        <p
+                          className="text-[9px] font-mono truncate"
+                          style={{ color: mutedText }}
+                        >
+                          {c.region}
+                        </p>
+                      </div>
+                    </div>
+                    {/* Stats row */}
+                    <div
+                      className="flex items-center justify-between pt-2"
+                      style={{ borderTop: `1px solid ${gridLine}` }}
+                    >
+                      <div>
+                        <p
+                          className="text-[9px] font-mono"
+                          style={{ color: mutedText }}
+                        >
+                          GDP growth
+                        </p>
+                        <div className="flex items-center gap-0.5 mt-0.5">
+                          {gdpUp ? (
+                            <TrendUp size={10} weight="fill" color="#10b981" />
+                          ) : (
+                            <TrendDown
+                              size={10}
+                              weight="fill"
+                              color="#ef4444"
+                            />
+                          )}
+                          <span
+                            className="text-[11px] font-mono font-semibold"
+                            style={{ color: gdpUp ? "#10b981" : "#ef4444" }}
+                          >
+                            {gdpUp ? "+" : ""}
+                            {c.gdpGrowth}%
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p
+                          className="text-[9px] font-mono"
+                          style={{ color: mutedText }}
+                        >
+                          Unemp.
+                        </p>
+                        <span
+                          className="text-[11px] font-mono font-semibold"
+                          style={{
+                            color:
+                              c.unemploymentRate < 5 ? "#10b981" : "#f59e0b",
+                          }}
+                        >
+                          {c.unemploymentRate.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* States */}
+        {pinnedStates.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <p
+                className="text-[10px] font-mono uppercase tracking-widest"
+                style={{ color: mutedText }}
+              >
+                US States
+              </p>
+              <button
+                onClick={() => onNav("/dashboard/states")}
+                className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70"
+                style={{ color: "#3b82f6" }}
+              >
+                View all <ArrowRight size={10} weight="bold" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
+              {pinnedStates.map((s) => {
+                const unempGood = s.unemploymentRate < 4;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => onNav("/dashboard/states")}
+                    className="rounded-xl p-3 text-left flex flex-col gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] relative group"
+                    style={{
+                      background: isLight
+                        ? "rgba(0,0,0,0.025)"
+                        : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${gridLine}`,
+                    }}
+                  >
+                    {editing && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleState(s.id);
+                        }}
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 rounded-full flex items-center justify-center"
+                        style={{ background: "#ef444420", color: "#ef4444" }}
+                      >
+                        <X size={9} weight="bold" />
+                      </button>
+                    )}
+                    {/* Abbr + name */}
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="text-[10px] font-mono font-bold w-8 text-center rounded-md py-0.5 shrink-0"
+                        style={{
+                          background: isLight
+                            ? "rgba(59,130,246,0.12)"
+                            : "rgba(147,197,253,0.12)",
+                          color: isLight ? "#3b82f6" : "#93c5fd",
+                        }}
+                      >
+                        {s.abbreviation}
+                      </span>
+                      <div className="min-w-0">
+                        <p
+                          className="text-[11px] font-bold font-sans truncate leading-tight"
+                          style={{ color: headText }}
+                        >
+                          {s.name}
+                        </p>
+                        <p
+                          className="text-[9px] font-mono truncate"
+                          style={{ color: mutedText }}
+                        >
+                          {s.region}
+                        </p>
+                      </div>
+                    </div>
+                    {/* Stats row */}
+                    <div
+                      className="flex items-center justify-between pt-2"
+                      style={{ borderTop: `1px solid ${gridLine}` }}
+                    >
+                      <div>
+                        <p
+                          className="text-[9px] font-mono"
+                          style={{ color: mutedText }}
+                        >
+                          Unemp.
+                        </p>
+                        <span
+                          className="text-[11px] font-mono font-semibold"
+                          style={{ color: unempGood ? "#10b981" : "#f59e0b" }}
+                        >
+                          {s.unemploymentRate}%
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <p
+                          className="text-[9px] font-mono"
+                          style={{ color: mutedText }}
+                        >
+                          GDP
+                        </p>
+                        <span
+                          className="text-[11px] font-mono font-semibold"
+                          style={{ color: headText }}
+                        >
+                          {fmtB(s.gdp)}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Reusable Section Header ───────────────────────────────────────────── */
 function SectionHeader({
   icon,
@@ -698,6 +1306,19 @@ export function DashboardPage() {
           </div>
         </div>
 
+        {/* ── PINNED / MY DASHBOARD ─────────────────────────────────────── */}
+        <PinnedSection
+          isLight={isLight}
+          cardBg={cardBg}
+          cardBorder={cardBorder}
+          cardShadow={cardShadow}
+          gridLine={gridLine}
+          headText={headText}
+          mutedText={mutedText}
+          bodyText={bodyText}
+          onNav={navigate}
+        />
+
         {/* ── KPI PILLS ─────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
@@ -853,8 +1474,9 @@ export function DashboardPage() {
                   />
                 </AreaChart>
               </ResponsiveContainer>
+              <SourceLink sources={SRC_DASH_ECONOMY} className="mt-1 mb-2" />
               <p
-                className="text-[10px] font-mono uppercase tracking-widest mt-3 mb-2"
+                className="text-[10px] font-mono uppercase tracking-widest mt-1 mb-2"
                 style={{ color: mutedText }}
               >
                 Top Countries by GDP
@@ -1008,6 +1630,7 @@ export function DashboardPage() {
                   </div>
                 ))}
               </div>
+              <SourceLink sources={SRC_DASH_ECONOMY} className="mb-2" />
               <p
                 className="text-[10px] font-mono uppercase tracking-widest mb-2"
                 style={{ color: mutedText }}
@@ -1118,6 +1741,7 @@ export function DashboardPage() {
                   </div>
                 ))}
               </div>
+              <SourceLink sources={SRC_DASH_POLICIES} className="mt-2 mb-1" />
               <div className="grid grid-cols-3 gap-2 mt-3">
                 {[
                   { label: "Climate", count: "312", color: "#10b981" },
@@ -1230,6 +1854,8 @@ export function DashboardPage() {
                   </button>
                 ))}
               </div>
+              <SourceLink sources={SRC_DASH_STATES} className="mt-2 mb-1" />
+
               {/* State snapshot grid */}
               <div
                 className="grid grid-cols-3 gap-2 mt-3 pt-3"
@@ -1361,6 +1987,8 @@ export function DashboardPage() {
                   />
                 </BarChart>
               </ResponsiveContainer>
+
+              <SourceLink sources={SRC_DASH_CITIES} className="mt-1 mb-1" />
 
               {/* City list */}
               <div
@@ -1530,8 +2158,9 @@ export function DashboardPage() {
                   </div>
                 ))}
               </div>
+              <SourceLink sources={SRC_DASH_CONFLICTS} className="mt-2 mb-1" />
               <div
-                className="mt-3 pt-3 grid grid-cols-2 gap-2"
+                className="mt-2 pt-3 grid grid-cols-2 gap-2"
                 style={{ borderTop: `1px solid ${gridLine}` }}
               >
                 <div
@@ -2351,11 +2980,20 @@ export function DashboardPage() {
         </div>
 
         {/* ── FOOTER ────────────────────────────────────────────────────── */}
-        <div className="text-center py-3">
+        <div className="text-center py-3 flex flex-col items-center gap-1">
           <p className="text-[11px] font-sans" style={{ color: mutedText }}>
             © {new Date().getFullYear()} CommonSphere · Dashboard · Data
             updated Q2 2025
           </p>
+          <SourceLink
+            sources={[
+              { label: "World Bank", url: "https://data.worldbank.org/" },
+              { label: "IMF", url: "https://www.imf.org/en/Data" },
+              { label: "BLS", url: "https://www.bls.gov/data/" },
+              { label: "BEA", url: "https://www.bea.gov/" },
+              { label: "ACLED", url: "https://acleddata.com/" },
+            ]}
+          />
         </div>
       </div>
     </div>

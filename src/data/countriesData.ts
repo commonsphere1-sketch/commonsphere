@@ -166,7 +166,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.8,
     currency: "USD",
     governmentType: "Federal Republic",
-    headOfState: "Donald Trump",
+    headOfState: "Donald Trump (President)",
     officialLanguages: ["English"],
     spokenLanguages: [
       "English",
@@ -229,7 +229,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.4,
     currency: "CAD",
     governmentType: "Federal Parliamentary Democracy",
-    headOfState: "Mark Carney",
+    headOfState: "Mark Carney (PM)",
     officialLanguages: ["English", "French"],
     spokenLanguages: ["English", "French", "Mandarin", "Punjabi", "Spanish"],
     landmarks: [
@@ -283,7 +283,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.1,
     currency: "MXN",
     governmentType: "Federal Presidential Republic",
-    headOfState: "Claudia Sheinbaum",
+    headOfState: "Claudia Sheinbaum (President)",
     officialLanguages: ["Spanish"],
     spokenLanguages: [
       "Spanish",
@@ -343,7 +343,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.6,
     currency: "GTQ",
     governmentType: "Presidential Republic",
-    headOfState: "Bernardo Arévalo",
+    headOfState: "Bernardo Arévalo (President)",
     officialLanguages: ["Spanish"],
     spokenLanguages: ["Spanish", "K'iche'", "Q'eqchi'", "Mam", "Kaqchikel"],
     landmarks: [
@@ -393,7 +393,7 @@ export const countriesData: Country[] = [
     gdpGrowth: -2.1,
     currency: "CUP",
     governmentType: "One-Party Socialist Republic",
-    headOfState: "Miguel Díaz-Canel",
+    headOfState: "Miguel Díaz-Canel (President/First Secretary)",
     officialLanguages: ["Spanish"],
     energy: mkEnergy(62, 52, [
       ["Oil", 50, "hsl(30,70%,45%)"],
@@ -434,7 +434,7 @@ export const countriesData: Country[] = [
     gdpGrowth: -3.2,
     currency: "HTG",
     governmentType: "Transitional Presidential Council",
-    headOfState: "Garry Conille (PM)",
+    headOfState: "Alix Didier Fils-Aimé (PM)",
     officialLanguages: ["French", "Haitian Creole"],
     energy: mkEnergy(12, 7, [
       ["Oil", 72, "hsl(30,70%,45%)"],
@@ -477,7 +477,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.8,
     currency: "DOP",
     governmentType: "Presidential Republic",
-    headOfState: "Luis Abinader",
+    headOfState: "Luis Abinader (President)",
     officialLanguages: ["Spanish"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 26, color: "hsl(150,60%,45%)" },
@@ -514,7 +514,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.9,
     currency: "HNL",
     governmentType: "Presidential Republic",
-    headOfState: "Xiomara Castro",
+    headOfState: "Xiomara Castro (President)",
     officialLanguages: ["Spanish"],
     keyIndustries: [
       { name: "Agriculture", gdpShare: 22, color: "hsl(90,60%,40%)" },
@@ -551,7 +551,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.8,
     currency: "USD",
     governmentType: "Presidential Republic",
-    headOfState: "Nayib Bukele",
+    headOfState: "Nayib Bukele (President)",
     officialLanguages: ["Spanish"],
     keyIndustries: [
       { name: "Remittances", gdpShare: 24, color: "hsl(45,90%,55%)" },
@@ -592,7 +592,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.1,
     currency: "NIO",
     governmentType: "Presidential Republic",
-    headOfState: "Daniel Ortega",
+    headOfState: "Daniel Ortega (President)",
     officialLanguages: ["Spanish"],
     keyIndustries: [
       { name: "Agriculture", gdpShare: 26, color: "hsl(90,60%,40%)" },
@@ -629,7 +629,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.3,
     currency: "CRC",
     governmentType: "Presidential Republic",
-    headOfState: "Rodrigo Chaves",
+    headOfState: "Rodrigo Chaves (President)",
     officialLanguages: ["Spanish"],
     keyIndustries: [
       { name: "Medical Devices", gdpShare: 20, color: "hsl(200,85%,55%)" },
@@ -666,7 +666,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.8,
     currency: "PAB",
     governmentType: "Presidential Republic",
-    headOfState: "José Raúl Mulino",
+    headOfState: "José Raúl Mulino (President)",
     officialLanguages: ["Spanish"],
     keyIndustries: [
       { name: "Panama Canal", gdpShare: 22, color: "hsl(200,85%,55%)" },
@@ -703,7 +703,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.6,
     currency: "JMD",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Andrew Holness",
+    headOfState: "Andrew Holness (PM)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 30, color: "hsl(150,60%,45%)" },
@@ -738,7 +738,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.8,
     currency: "TTD",
     governmentType: "Parliamentary Republic",
-    headOfState: "Stuart Young",
+    headOfState: "Stuart Young (PM)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 38, color: "hsl(45,90%,55%)" },
@@ -774,7 +774,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.1,
     currency: "BZD",
     governmentType: "Constitutional Monarchy",
-    headOfState: "John Briceño",
+    headOfState: "John Briceño (PM)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 28, color: "hsl(150,60%,45%)" },
@@ -809,7 +809,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.2,
     currency: "BRL",
     governmentType: "Federal Presidential Republic",
-    headOfState: "Luiz Inácio Lula da Silva",
+    headOfState: "Luiz Inácio Lula da Silva (President)",
     officialLanguages: ["Portuguese"],
     spokenLanguages: ["Portuguese", "Spanish", "German", "Italian", "Japanese"],
     landmarks: [
@@ -863,12 +863,12 @@ export const countriesData: Country[] = [
     ]),
     capital: "Buenos Aires",
     population: 46100000,
-    gdp: 710,
-    gdpPerCapita: 15401,
+    gdp: 640,
+    gdpPerCapita: 13880,
     gdpGrowth: 5.7,
     currency: "ARS",
     governmentType: "Federal Presidential Republic",
-    headOfState: "Javier Milei",
+    headOfState: "Javier Milei (President)",
     officialLanguages: ["Spanish"],
     spokenLanguages: ["Spanish", "Italian", "English", "German", "Quechua"],
     landmarks: [
@@ -900,7 +900,7 @@ export const countriesData: Country[] = [
     lifeExpectancy: 77.0,
     humanDevelopmentIndex: 0.845,
     tradeBalance: 16,
-    inflationRate: 87.0,
+    inflationRate: 211.4,
     areaKm2: 2780400,
     trends: mkTrends(710, 0.845),
   },
@@ -924,7 +924,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.4,
     currency: "CLP",
     governmentType: "Presidential Republic",
-    headOfState: "Gabriel Boric",
+    headOfState: "Gabriel Boric (President)",
     officialLanguages: ["Spanish"],
     spokenLanguages: ["Spanish", "Mapudungun", "Aymara", "English"],
     landmarks: [
@@ -982,7 +982,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.4,
     currency: "COP",
     governmentType: "Presidential Republic",
-    headOfState: "Gustavo Petro",
+    headOfState: "Gustavo Petro (President)",
     officialLanguages: ["Spanish"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 20, color: "hsl(45,90%,55%)" },
@@ -1023,7 +1023,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.9,
     currency: "PEN",
     governmentType: "Presidential Republic",
-    headOfState: "Dina Boluarte",
+    headOfState: "Dina Boluarte (President)",
     officialLanguages: ["Spanish", "Quechua", "Aymara"],
     keyIndustries: [
       {
@@ -1063,7 +1063,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.1,
     currency: "VES",
     governmentType: "Federal Presidential Republic",
-    headOfState: "Nicolás Maduro",
+    headOfState: "Nicolás Maduro (President)",
     officialLanguages: ["Spanish"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 44, color: "hsl(45,90%,55%)" },
@@ -1099,7 +1099,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.8,
     currency: "USD",
     governmentType: "Presidential Republic",
-    headOfState: "Daniel Noboa",
+    headOfState: "Daniel Noboa (President)",
     officialLanguages: ["Spanish"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 24, color: "hsl(45,90%,55%)" },
@@ -1139,7 +1139,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.9,
     currency: "BOB",
     governmentType: "Presidential Republic",
-    headOfState: "Andrónico Rodríguez (interim)",
+    headOfState: "Luis Arce (President)",
     officialLanguages: ["Spanish", "Quechua", "Aymara"],
     keyIndustries: [
       {
@@ -1178,7 +1178,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.9,
     currency: "PYG",
     governmentType: "Presidential Republic",
-    headOfState: "Santiago Peña",
+    headOfState: "Santiago Peña (President)",
     officialLanguages: ["Spanish", "Guaraní"],
     keyIndustries: [
       {
@@ -1223,7 +1223,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.1,
     currency: "UYU",
     governmentType: "Presidential Republic",
-    headOfState: "Yamandú Orsi",
+    headOfState: "Yamandú Orsi (President)",
     officialLanguages: ["Spanish"],
     keyIndustries: [
       {
@@ -1267,7 +1267,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 20.0,
     currency: "GYD",
     governmentType: "Presidential Republic",
-    headOfState: "Irfaan Ali",
+    headOfState: "Irfaan Ali (President)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 40, color: "hsl(45,90%,55%)" },
@@ -1307,7 +1307,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.8,
     currency: "SRD",
     governmentType: "Presidential Republic",
-    headOfState: "Chan Santokhi",
+    headOfState: "Chan Santokhi (President)",
     officialLanguages: ["Dutch"],
     keyIndustries: [
       {
@@ -1342,7 +1342,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 0.6,
     currency: "EUR",
     governmentType: "Federal Parliamentary Republic",
-    headOfState: "Friedrich Merz",
+    headOfState: "Friedrich Merz (Chancellor)",
     officialLanguages: ["German"],
     spokenLanguages: ["German", "Turkish", "Arabic", "Russian", "Polish"],
     landmarks: [
@@ -1396,7 +1396,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.2,
     currency: "EUR",
     governmentType: "Semi-Presidential Republic",
-    headOfState: "Emmanuel Macron",
+    headOfState: "Emmanuel Macron (President)",
     officialLanguages: ["French"],
     spokenLanguages: ["French", "Arabic", "Portuguese", "Spanish", "Occitan"],
     landmarks: [
@@ -1444,7 +1444,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.4,
     currency: "GBP",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Keir Starmer",
+    headOfState: "Keir Starmer (PM)",
     officialLanguages: ["English"],
     spokenLanguages: [
       "English",
@@ -1512,7 +1512,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 0.9,
     currency: "EUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Giorgia Meloni",
+    headOfState: "Giorgia Meloni (PM)",
     officialLanguages: ["Italian"],
     spokenLanguages: [
       "Italian",
@@ -1573,7 +1573,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.2,
     currency: "EUR",
     governmentType: "Parliamentary Constitutional Monarchy",
-    headOfState: "Pedro Sánchez",
+    headOfState: "Pedro Sánchez (PM)",
     officialLanguages: ["Spanish"],
     spokenLanguages: [
       "Spanish (Castilian)",
@@ -1630,7 +1630,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.6,
     currency: "EUR",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Dick Schoof",
+    headOfState: "Dick Schoof (PM)",
     officialLanguages: ["Dutch"],
     keyIndustries: [
       { name: "Trade & Logistics", gdpShare: 22, color: "hsl(200,85%,55%)" },
@@ -1675,7 +1675,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.4,
     currency: "CHF",
     governmentType: "Federal Council Republic",
-    headOfState: "Karin Keller-Sutter",
+    headOfState: "Karin Keller-Sutter (Federal President)",
     officialLanguages: ["German", "French", "Italian", "Romansh"],
     keyIndustries: [
       { name: "Finance & Banking", gdpShare: 24, color: "hsl(200,85%,55%)" },
@@ -1716,7 +1716,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.3,
     currency: "SEK",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Ulf Kristersson",
+    headOfState: "Ulf Kristersson (PM)",
     officialLanguages: ["Swedish"],
     keyIndustries: [
       {
@@ -1757,7 +1757,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.2,
     currency: "NOK",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Jonas Gahr Støre",
+    headOfState: "Jonas Gahr Støre (PM)",
     officialLanguages: ["Norwegian"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 30, color: "hsl(45,90%,55%)" },
@@ -1802,7 +1802,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.4,
     currency: "DKK",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Mette Frederiksen",
+    headOfState: "Mette Frederiksen (PM)",
     officialLanguages: ["Danish"],
     keyIndustries: [
       { name: "Pharmaceuticals", gdpShare: 24, color: "hsl(150,60%,45%)" },
@@ -1844,7 +1844,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.2,
     currency: "EUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Petteri Orpo",
+    headOfState: "Petteri Orpo (PM)",
     officialLanguages: ["Finnish", "Swedish"],
     keyIndustries: [
       {
@@ -1889,7 +1889,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.6,
     currency: "PLN",
     governmentType: "Parliamentary Republic",
-    headOfState: "Donald Tusk",
+    headOfState: "Donald Tusk (PM)",
     officialLanguages: ["Polish"],
     keyIndustries: [
       { name: "Manufacturing", gdpShare: 22, color: "hsl(18,80%,55%)" },
@@ -1927,7 +1927,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.7,
     currency: "EUR",
     governmentType: "Federal Parliamentary Monarchy",
-    headOfState: "Bart De Wever",
+    headOfState: "Bart De Wever (PM)",
     officialLanguages: ["Dutch", "French", "German"],
     keyIndustries: [
       {
@@ -1969,7 +1969,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.1,
     currency: "EUR",
     governmentType: "Federal Parliamentary Republic",
-    headOfState: "Herbert Kickl",
+    headOfState: "Herbert Kickl (Chancellor)",
     officialLanguages: ["German"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 18, color: "hsl(150,60%,45%)" },
@@ -2010,7 +2010,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.8,
     currency: "EUR",
     governmentType: "Semi-Presidential Republic",
-    headOfState: "Luís Montenegro",
+    headOfState: "Luís Montenegro (PM)",
     officialLanguages: ["Portuguese"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 24, color: "hsl(150,60%,45%)" },
@@ -2060,7 +2060,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.4,
     currency: "EUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Kyriakos Mitsotakis",
+    headOfState: "Kyriakos Mitsotakis (PM)",
     officialLanguages: ["Greek"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 28, color: "hsl(150,60%,45%)" },
@@ -2102,7 +2102,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.8,
     currency: "CZK",
     governmentType: "Parliamentary Republic",
-    headOfState: "Petr Fiala",
+    headOfState: "Petr Fiala (PM)",
     officialLanguages: ["Czech"],
     keyIndustries: [
       { name: "Automotive (Skoda)", gdpShare: 24, color: "hsl(200,85%,55%)" },
@@ -2144,7 +2144,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.8,
     currency: "RON",
     governmentType: "Semi-Presidential Republic",
-    headOfState: "Nicuşor Dan",
+    headOfState: "Nicuşor Dan (President)",
     officialLanguages: ["Romanian"],
     keyIndustries: [
       {
@@ -2190,7 +2190,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.1,
     currency: "HUF",
     governmentType: "Parliamentary Republic",
-    headOfState: "Viktor Orbán",
+    headOfState: "Viktor Orbán (PM)",
     officialLanguages: ["Hungarian"],
     keyIndustries: [
       {
@@ -2235,7 +2235,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.1,
     currency: "UAH",
     governmentType: "Semi-Presidential Republic",
-    headOfState: "Volodymyr Zelenskyy",
+    headOfState: "Volodymyr Zelenskyy (President)",
     officialLanguages: ["Ukrainian"],
     keyIndustries: [
       {
@@ -2277,7 +2277,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.6,
     currency: "EUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Robert Fico",
+    headOfState: "Robert Fico (PM)",
     officialLanguages: ["Slovak"],
     keyIndustries: [
       {
@@ -2323,7 +2323,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.8,
     currency: "EUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Andrej Plenković",
+    headOfState: "Andrej Plenković (PM)",
     officialLanguages: ["Croatian"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 26, color: "hsl(150,60%,45%)" },
@@ -2364,7 +2364,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.5,
     currency: "RSD",
     governmentType: "Parliamentary Republic",
-    headOfState: "Aleksandar Vučić",
+    headOfState: "Aleksandar Vučić (President)",
     officialLanguages: ["Serbian"],
     keyIndustries: [
       {
@@ -2410,7 +2410,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.8,
     currency: "BGN",
     governmentType: "Parliamentary Republic",
-    headOfState: "Nikolai Denkov",
+    headOfState: "Rossen Jeliazkov (PM)",
     officialLanguages: ["Bulgarian"],
     keyIndustries: [
       {
@@ -2460,7 +2460,7 @@ export const countriesData: Country[] = [
     gdpGrowth: -3.0,
     currency: "EUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Kaja Kallas",
+    headOfState: "Kaja Kallas (EU Diplomat; PM: Kristen Michal)",
     officialLanguages: ["Estonian"],
     keyIndustries: [
       {
@@ -2509,7 +2509,7 @@ export const countriesData: Country[] = [
     gdpGrowth: -0.3,
     currency: "EUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Evika Siliņa",
+    headOfState: "Evika Siliņa (PM)",
     officialLanguages: ["Latvian"],
     keyIndustries: [
       {
@@ -2554,7 +2554,7 @@ export const countriesData: Country[] = [
     gdpGrowth: -0.3,
     currency: "EUR",
     governmentType: "Semi-Presidential Republic",
-    headOfState: "Gitanas Nausėda",
+    headOfState: "Gitanas Nausėda (President)",
     officialLanguages: ["Lithuanian"],
     keyIndustries: [
       {
@@ -2596,7 +2596,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.6,
     currency: "EUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Robert Golob",
+    headOfState: "Robert Golob (PM)",
     officialLanguages: ["Slovenian"],
     keyIndustries: [
       {
@@ -2638,7 +2638,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.9,
     currency: "EUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Simon Harris",
+    headOfState: "Micheál Martin (PM)",
     officialLanguages: ["Irish", "English"],
     keyIndustries: [
       {
@@ -2688,7 +2688,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.9,
     currency: "BYR",
     governmentType: "Presidential Republic",
-    headOfState: "Alexander Lukashenko",
+    headOfState: "Alexander Lukashenko (President)",
     officialLanguages: ["Belarusian", "Russian"],
     keyIndustries: [
       {
@@ -2737,7 +2737,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 0.5,
     currency: "MDL",
     governmentType: "Parliamentary Republic",
-    headOfState: "Maia Sandu",
+    headOfState: "Maia Sandu (President)",
     officialLanguages: ["Moldovan/Romanian"],
     keyIndustries: [
       {
@@ -2780,7 +2780,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.5,
     currency: "ALL",
     governmentType: "Parliamentary Republic",
-    headOfState: "Edi Rama",
+    headOfState: "Edi Rama (PM)",
     officialLanguages: ["Albanian"],
     keyIndustries: [
       {
@@ -2825,7 +2825,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.0,
     currency: "MKD",
     governmentType: "Parliamentary Republic",
-    headOfState: "Hristijan Mickoski",
+    headOfState: "Hristijan Mickoski (PM)",
     officialLanguages: ["Macedonian", "Albanian"],
     keyIndustries: [
       {
@@ -2869,7 +2869,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.7,
     currency: "BAM",
     governmentType: "Federal Parliamentary Republic",
-    headOfState: "Denis Bećirović",
+    headOfState: "Denis Bećirović (Chairman, Presidency)",
     officialLanguages: ["Bosnian", "Croatian", "Serbian"],
     keyIndustries: [
       {
@@ -2913,7 +2913,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 6.0,
     currency: "EUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Milojko Spajić",
+    headOfState: "Milojko Spajić (PM)",
     officialLanguages: ["Montenegrin"],
     keyIndustries: [
       {
@@ -2957,7 +2957,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.3,
     currency: "EUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Vjosa Osmani",
+    headOfState: "Vjosa Osmani (President)",
     officialLanguages: ["Albanian", "Serbian"],
     keyIndustries: [
       { name: "Remittances", gdpShare: 24, color: "hsl(45,90%,55%)" },
@@ -3002,7 +3002,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.4,
     currency: "EUR",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Luc Frieden",
+    headOfState: "Luc Frieden (PM)",
     officialLanguages: ["Luxembourgish", "French", "German"],
     keyIndustries: [
       { name: "Finance & Banking", gdpShare: 36, color: "hsl(200,85%,55%)" },
@@ -3042,7 +3042,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.5,
     currency: "EUR",
     governmentType: "Presidential Republic",
-    headOfState: "Nikos Christodoulides",
+    headOfState: "Nikos Christodoulides (President)",
     officialLanguages: ["Greek", "Turkish"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 28, color: "hsl(150,60%,45%)" },
@@ -3086,7 +3086,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.6,
     currency: "EUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Robert Abela",
+    headOfState: "Robert Abela (PM)",
     officialLanguages: ["Maltese", "English"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 26, color: "hsl(150,60%,45%)" },
@@ -3133,7 +3133,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.1,
     currency: "ISK",
     governmentType: "Parliamentary Republic",
-    headOfState: "Bjarni Benediktsson",
+    headOfState: "Kristín Frostadóttir (PM)",
     officialLanguages: ["Icelandic"],
     keyIndustries: [
       {
@@ -3180,7 +3180,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.6,
     currency: "CNY",
     governmentType: "One-Party Republic",
-    headOfState: "Xi Jinping",
+    headOfState: "Xi Jinping (President/General Secretary)",
     officialLanguages: ["Mandarin Chinese"],
     spokenLanguages: [
       "Mandarin",
@@ -3234,7 +3234,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.4,
     currency: "JPY",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Sanae Takaichi",
+    headOfState: "Sanae Takaichi (PM)",
     officialLanguages: ["Japanese"],
     spokenLanguages: ["Japanese", "Ryukyuan languages", "Ainu"],
     landmarks: [
@@ -3282,7 +3282,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 6.5,
     currency: "INR",
     governmentType: "Federal Parliamentary Republic",
-    headOfState: "Narendra Modi",
+    headOfState: "Narendra Modi (PM)",
     officialLanguages: ["Hindi", "English"],
     spokenLanguages: [
       "Hindi",
@@ -3345,7 +3345,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.1,
     currency: "KRW",
     governmentType: "Presidential Republic",
-    headOfState: "Lee Jae-myung",
+    headOfState: "Lee Jae-myung (President)",
     officialLanguages: ["Korean"],
     spokenLanguages: ["Korean", "English"],
     landmarks: [
@@ -3391,7 +3391,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.6,
     currency: "SAR",
     governmentType: "Absolute Monarchy",
-    headOfState: "Mohammed bin Salman (Crown Prince)",
+    headOfState: "Mohammed bin Salman (Crown Prince/PM)",
     officialLanguages: ["Arabic"],
     spokenLanguages: ["Arabic", "English", "Urdu", "Tagalog"],
     landmarks: [
@@ -3435,7 +3435,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.4,
     currency: "NGN",
     governmentType: "Federal Presidential Republic",
-    headOfState: "Bola Tinubu",
+    headOfState: "Bola Tinubu (President)",
     officialLanguages: ["English"],
     spokenLanguages: [
       "English",
@@ -3493,7 +3493,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 6.8,
     currency: "ETB",
     governmentType: "Federal Parliamentary Republic",
-    headOfState: "Abiy Ahmed",
+    headOfState: "Abiy Ahmed (PM)",
     officialLanguages: ["Amharic"],
     spokenLanguages: ["Amharic", "Oromo", "Tigrinya", "Somali", "Afar"],
     landmarks: [
@@ -3547,7 +3547,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.2,
     currency: "EGP",
     governmentType: "Presidential Republic",
-    headOfState: "Abdel Fattah el-Sisi",
+    headOfState: "Abdel Fattah el-Sisi (President)",
     officialLanguages: ["Arabic"],
     spokenLanguages: ["Arabic (Egyptian)", "English", "French"],
     landmarks: [
@@ -3597,7 +3597,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.4,
     currency: "ZAR",
     governmentType: "Presidential Republic",
-    headOfState: "Cyril Ramaphosa",
+    headOfState: "Cyril Ramaphosa (President)",
     officialLanguages: ["Zulu", "Xhosa", "Afrikaans", "English"],
     spokenLanguages: [
       "Zulu",
@@ -3657,7 +3657,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.8,
     currency: "SGD",
     governmentType: "Parliamentary Republic",
-    headOfState: "Lawrence Wong",
+    headOfState: "Lawrence Wong (PM)",
     officialLanguages: ["English", "Malay", "Mandarin", "Tamil"],
     keyIndustries: [
       { name: "Finance & Banking", gdpShare: 26, color: "hsl(200,85%,55%)" },
@@ -3699,7 +3699,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.8,
     currency: "PHP",
     governmentType: "Presidential Republic",
-    headOfState: "Ferdinand Marcos Jr.",
+    headOfState: "Ferdinand Marcos Jr. (President)",
     officialLanguages: ["Filipino", "English"],
     keyIndustries: [
       { name: "BPO / Services", gdpShare: 26, color: "hsl(200,85%,55%)" },
@@ -3740,7 +3740,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 6.2,
     currency: "VND",
     governmentType: "One-Party Republic",
-    headOfState: "Tô Lâm",
+    headOfState: "Tô Lâm (General Secretary/President)",
     officialLanguages: ["Vietnamese"],
     keyIndustries: [
       {
@@ -3786,7 +3786,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.6,
     currency: "PKR",
     governmentType: "Federal Parliamentary Republic",
-    headOfState: "Shehbaz Sharif",
+    headOfState: "Shehbaz Sharif (PM)",
     officialLanguages: ["Urdu", "English"],
     keyIndustries: [
       {
@@ -3827,7 +3827,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.4,
     currency: "BDT",
     governmentType: "Parliamentary Republic",
-    headOfState: "Muhammad Yunus",
+    headOfState: "Muhammad Yunus (Chief Adviser)",
     officialLanguages: ["Bengali"],
     keyIndustries: [
       { name: "Ready-Made Garments", gdpShare: 32, color: "hsl(330,65%,55%)" },
@@ -3866,7 +3866,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.9,
     currency: "AED",
     governmentType: "Federal Monarchy",
-    headOfState: "Mohammed bin Zayed (MBZ)",
+    headOfState: "Mohammed bin Zayed Al Nahyan (President)",
     officialLanguages: ["Arabic"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 26, color: "hsl(45,90%,55%)" },
@@ -3910,7 +3910,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.2,
     currency: "ILS",
     governmentType: "Parliamentary Republic",
-    headOfState: "Benjamin Netanyahu",
+    headOfState: "Benjamin Netanyahu (PM)",
     officialLanguages: ["Hebrew", "Arabic"],
     keyIndustries: [
       {
@@ -3959,7 +3959,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.8,
     currency: "IRR",
     governmentType: "Islamic Republic",
-    headOfState: "Masoud Pezeshkian",
+    headOfState: "Masoud Pezeshkian (President)",
     officialLanguages: ["Persian"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 38, color: "hsl(45,90%,55%)" },
@@ -3996,7 +3996,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.7,
     currency: "IQD",
     governmentType: "Federal Parliamentary Republic",
-    headOfState: "Mohammed Shia Al-Sudani",
+    headOfState: "Mohammed Shia Al-Sudani (PM)",
     officialLanguages: ["Arabic", "Kurdish"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 52, color: "hsl(45,90%,55%)" },
@@ -4045,7 +4045,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.1,
     currency: "KZT",
     governmentType: "Presidential Republic",
-    headOfState: "Kassym-Jomart Tokayev",
+    headOfState: "Kassym-Jomart Tokayev (President)",
     officialLanguages: ["Kazakh", "Russian"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 30, color: "hsl(45,90%,55%)" },
@@ -4094,7 +4094,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 6.4,
     currency: "UZS",
     governmentType: "Presidential Republic",
-    headOfState: "Shavkat Mirziyoyev",
+    headOfState: "Shavkat Mirziyoyev (President)",
     officialLanguages: ["Uzbek"],
     keyIndustries: [
       {
@@ -4143,7 +4143,7 @@ export const countriesData: Country[] = [
     gdpGrowth: -1.0,
     currency: "MMK",
     governmentType: "Military Junta",
-    headOfState: "Min Aung Hlaing",
+    headOfState: "Min Aung Hlaing (Junta Leader/PM)",
     officialLanguages: ["Burmese"],
     keyIndustries: [
       {
@@ -4188,7 +4188,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.8,
     currency: "KHR",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Hun Manet",
+    headOfState: "Hun Manet (PM)",
     officialLanguages: ["Khmer"],
     keyIndustries: [
       { name: "Textiles & Garments", gdpShare: 30, color: "hsl(330,65%,55%)" },
@@ -4234,7 +4234,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.1,
     currency: "LKR",
     governmentType: "Presidential Republic",
-    headOfState: "Anura Kumara Dissanayake",
+    headOfState: "Anura Kumara Dissanayake (President)",
     officialLanguages: ["Sinhala", "Tamil"],
     keyIndustries: [
       { name: "Textiles & Apparel", gdpShare: 28, color: "hsl(330,65%,55%)" },
@@ -4273,7 +4273,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.9,
     currency: "NPR",
     governmentType: "Federal Parliamentary Republic",
-    headOfState: "KP Sharma Oli",
+    headOfState: "KP Sharma Oli (PM)",
     officialLanguages: ["Nepali"],
     keyIndustries: [
       { name: "Remittances", gdpShare: 26, color: "hsl(45,90%,55%)" },
@@ -4322,7 +4322,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.7,
     currency: "JOD",
     governmentType: "Constitutional Monarchy",
-    headOfState: "King Abdullah II",
+    headOfState: "King Abdullah II (Monarch)",
     officialLanguages: ["Arabic"],
     keyIndustries: [
       { name: "Services & Trade", gdpShare: 26, color: "hsl(200,85%,55%)" },
@@ -4366,7 +4366,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 0.0,
     currency: "LBP",
     governmentType: "Parliamentary Republic",
-    headOfState: "Joseph Aoun",
+    headOfState: "Joseph Aoun (President)",
     officialLanguages: ["Arabic"],
     keyIndustries: [
       { name: "Services & Finance", gdpShare: 28, color: "hsl(200,85%,55%)" },
@@ -4410,7 +4410,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.5,
     currency: "SYP",
     governmentType: "Transitional Government",
-    headOfState: "Ahmad al-Sharaa",
+    headOfState: "Ahmad al-Sharaa (President)",
     officialLanguages: ["Arabic"],
     keyIndustries: [
       {
@@ -4458,7 +4458,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 0.5,
     currency: "YER",
     governmentType: "Presidential Republic",
-    headOfState: "Rashad al-Alimi",
+    headOfState: "Rashad al-Alimi (Presidential Council Chair)",
     officialLanguages: ["Arabic"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 34, color: "hsl(45,90%,55%)" },
@@ -4497,7 +4497,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.3,
     currency: "OMR",
     governmentType: "Absolute Monarchy",
-    headOfState: "Haitham bin Tariq",
+    headOfState: "Haitham bin Tariq Al Said (Sultan)",
     officialLanguages: ["Arabic"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 36, color: "hsl(45,90%,55%)" },
@@ -4544,7 +4544,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.2,
     currency: "QAR",
     governmentType: "Absolute Monarchy",
-    headOfState: "Tamim bin Hamad",
+    headOfState: "Tamim bin Hamad Al Thani (Emir)",
     officialLanguages: ["Arabic"],
     keyIndustries: [
       { name: "LNG & Natural Gas", gdpShare: 44, color: "hsl(45,90%,55%)" },
@@ -4583,7 +4583,7 @@ export const countriesData: Country[] = [
     gdpGrowth: -0.5,
     currency: "KWD",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Mishal Al-Ahmad",
+    headOfState: "Mishal Al-Ahmad Al-Jaber Al-Sabah (Emir)",
     officialLanguages: ["Arabic"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 50, color: "hsl(45,90%,55%)" },
@@ -4618,7 +4618,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.7,
     currency: "BHD",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Hamad bin Isa",
+    headOfState: "Hamad bin Isa Al Khalifa (King)",
     officialLanguages: ["Arabic"],
     keyIndustries: [
       {
@@ -4667,7 +4667,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 8.7,
     currency: "AMD",
     governmentType: "Parliamentary Republic",
-    headOfState: "Nikol Pashinyan",
+    headOfState: "Nikol Pashinyan (PM)",
     officialLanguages: ["Armenian"],
     keyIndustries: [
       { name: "IT & Technology", gdpShare: 22, color: "hsl(270,60%,60%)" },
@@ -4719,7 +4719,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.1,
     currency: "AZN",
     governmentType: "Presidential Republic",
-    headOfState: "Ilham Aliyev",
+    headOfState: "Ilham Aliyev (President)",
     officialLanguages: ["Azerbaijani"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 40, color: "hsl(45,90%,55%)" },
@@ -4763,7 +4763,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 7.5,
     currency: "GEL",
     governmentType: "Semi-Presidential Republic",
-    headOfState: "Mikheil Kavelashvili",
+    headOfState: "Mikheil Kavelashvili (President)",
     officialLanguages: ["Georgian"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 24, color: "hsl(150,60%,45%)" },
@@ -4811,7 +4811,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 6.2,
     currency: "TMT",
     governmentType: "Presidential Republic",
-    headOfState: "Serdar Berdimuhamedow",
+    headOfState: "Serdar Berdimuhamedow (President)",
     officialLanguages: ["Turkmen"],
     keyIndustries: [
       { name: "Natural Gas", gdpShare: 46, color: "hsl(45,90%,55%)" },
@@ -4851,7 +4851,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 6.2,
     currency: "KGS",
     governmentType: "Presidential Republic",
-    headOfState: "Sadyr Japarov",
+    headOfState: "Sadyr Japarov (President)",
     officialLanguages: ["Kyrgyz", "Russian"],
     keyIndustries: [
       {
@@ -4894,7 +4894,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 8.2,
     currency: "TJS",
     governmentType: "Presidential Republic",
-    headOfState: "Emomali Rahmon",
+    headOfState: "Emomali Rahmon (President)",
     officialLanguages: ["Tajik"],
     keyIndustries: [
       { name: "Remittances", gdpShare: 30, color: "hsl(45,90%,55%)" },
@@ -4939,7 +4939,7 @@ export const countriesData: Country[] = [
     gdpGrowth: -6.4,
     currency: "AFN",
     governmentType: "Islamic Emirate",
-    headOfState: "Hibatullah Akhundzada",
+    headOfState: "Hibatullah Akhundzada (Supreme Leader)",
     officialLanguages: ["Dari", "Pashto"],
     keyIndustries: [
       {
@@ -4991,7 +4991,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 7.0,
     currency: "MNT",
     governmentType: "Parliamentary Republic",
-    headOfState: "Luvsannamsrain Oyun-Erdene",
+    headOfState: "Luvsannamsrain Oyun-Erdene (PM)",
     officialLanguages: ["Mongolian"],
     keyIndustries: [
       {
@@ -5035,7 +5035,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 0.8,
     currency: "KPW",
     governmentType: "One-Party Republic",
-    headOfState: "Kim Jong-un",
+    headOfState: "Kim Jong-un (Supreme Leader/General Secretary)",
     officialLanguages: ["Korean"],
     keyIndustries: [
       { name: "Defense & Munitions", gdpShare: 30, color: "hsl(0,70%,50%)" },
@@ -5079,7 +5079,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.0,
     currency: "LAK",
     governmentType: "One-Party Republic",
-    headOfState: "Sonexay Siphandon",
+    headOfState: "Sonexay Siphandon (PM)",
     officialLanguages: ["Lao"],
     keyIndustries: [
       {
@@ -5131,7 +5131,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.1,
     currency: "USD",
     governmentType: "Semi-Presidential Republic",
-    headOfState: "Xanana Gusmão",
+    headOfState: "José Ramos-Horta (President)",
     officialLanguages: ["Tetum", "Portuguese"],
     keyIndustries: [
       { name: "Oil & Gas (Timor Sea)", gdpShare: 48, color: "hsl(45,90%,55%)" },
@@ -5170,7 +5170,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.0,
     currency: "BND",
     governmentType: "Absolute Monarchy",
-    headOfState: "Hassanal Bolkiah",
+    headOfState: "Hassanal Bolkiah (Sultan/PM)",
     officialLanguages: ["Malay"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 52, color: "hsl(45,90%,55%)" },
@@ -5210,7 +5210,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 6.2,
     currency: "CDF",
     governmentType: "Presidential Republic",
-    headOfState: "Félix Tshisekedi",
+    headOfState: "Félix Tshisekedi (President)",
     officialLanguages: ["French"],
     keyIndustries: [
       {
@@ -5255,7 +5255,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.2,
     currency: "TZS",
     governmentType: "Presidential Republic",
-    headOfState: "Samia Suluhu Hassan",
+    headOfState: "Samia Suluhu Hassan (President)",
     officialLanguages: ["Swahili", "English"],
     keyIndustries: [
       {
@@ -5305,7 +5305,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.9,
     currency: "KES",
     governmentType: "Presidential Republic",
-    headOfState: "William Ruto",
+    headOfState: "William Ruto (President)",
     officialLanguages: ["Swahili", "English"],
     keyIndustries: [
       {
@@ -5354,7 +5354,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.9,
     currency: "GHS",
     governmentType: "Presidential Republic",
-    headOfState: "John Mahama",
+    headOfState: "John Mahama (President)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Gold Mining", gdpShare: 26, color: "hsl(45,90%,55%)" },
@@ -5394,7 +5394,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.0,
     currency: "AOA",
     governmentType: "Presidential Republic",
-    headOfState: "João Lourenço",
+    headOfState: "João Lourenço (President)",
     officialLanguages: ["Portuguese"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 48, color: "hsl(45,90%,55%)" },
@@ -5435,7 +5435,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.4,
     currency: "MAD",
     governmentType: "Constitutional Monarchy",
-    headOfState: "King Mohammed VI",
+    headOfState: "King Mohammed VI (Monarch/PM: Aziz Akhannouch)",
     officialLanguages: ["Arabic", "Amazigh"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 22, color: "hsl(150,60%,45%)" },
@@ -5483,7 +5483,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.1,
     currency: "DZD",
     governmentType: "Presidential Republic",
-    headOfState: "Abdelmadjid Tebboune",
+    headOfState: "Abdelmadjid Tebboune (President)",
     officialLanguages: ["Arabic", "Amazigh"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 42, color: "hsl(45,90%,55%)" },
@@ -5524,7 +5524,7 @@ export const countriesData: Country[] = [
     gdpGrowth: -18.3,
     currency: "SDG",
     governmentType: "Military Council",
-    headOfState: "Abdel Fattah al-Burhan",
+    headOfState: "Abdel Fattah al-Burhan (SAC Chair)",
     officialLanguages: ["Arabic", "English"],
     keyIndustries: [
       {
@@ -5568,7 +5568,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.2,
     currency: "UGX",
     governmentType: "Presidential Republic",
-    headOfState: "Yoweri Museveni",
+    headOfState: "Yoweri Museveni (President)",
     officialLanguages: ["English", "Swahili"],
     keyIndustries: [
       {
@@ -5616,7 +5616,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 6.5,
     currency: "XOF",
     governmentType: "Presidential Republic",
-    headOfState: "Alassane Ouattara",
+    headOfState: "Alassane Ouattara (President)",
     officialLanguages: ["French"],
     keyIndustries: [
       {
@@ -5664,7 +5664,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.0,
     currency: "XAF",
     governmentType: "Presidential Republic",
-    headOfState: "Paul Biya",
+    headOfState: "Paul Biya (President)",
     officialLanguages: ["French", "English"],
     keyIndustries: [
       {
@@ -5709,7 +5709,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 8.3,
     currency: "XOF",
     governmentType: "Presidential Republic",
-    headOfState: "Bassirou Diomaye Faye",
+    headOfState: "Bassirou Diomaye Faye (President)",
     officialLanguages: ["French"],
     keyIndustries: [
       {
@@ -5753,7 +5753,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.3,
     currency: "ZWL",
     governmentType: "Presidential Republic",
-    headOfState: "Emmerson Mnangagwa",
+    headOfState: "Emmerson Mnangagwa (President)",
     officialLanguages: ["Shona", "Ndebele", "English"],
     keyIndustries: [
       {
@@ -5805,7 +5805,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.0,
     currency: "MZN",
     governmentType: "Presidential Republic",
-    headOfState: "Daniel Chapo",
+    headOfState: "Daniel Chapo (President)",
     officialLanguages: ["Portuguese"],
     keyIndustries: [
       {
@@ -5849,7 +5849,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.0,
     currency: "MGA",
     governmentType: "Presidential Republic",
-    headOfState: "Andry Rajoelina",
+    headOfState: "Andry Rajoelina (President)",
     officialLanguages: ["Malagasy", "French"],
     keyIndustries: [
       {
@@ -5896,7 +5896,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.9,
     currency: "ZMW",
     governmentType: "Presidential Republic",
-    headOfState: "Hakainde Hichilema",
+    headOfState: "Hakainde Hichilema (President)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Copper Mining", gdpShare: 38, color: "hsl(30,70%,45%)" },
@@ -5944,7 +5944,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.5,
     currency: "XOF",
     governmentType: "Military Junta",
-    headOfState: "Assimi Goïta",
+    headOfState: "Assimi Goïta (Transitional President/Junta Leader)",
     officialLanguages: ["French"],
     keyIndustries: [
       { name: "Gold Mining", gdpShare: 34, color: "hsl(45,90%,55%)" },
@@ -5988,7 +5988,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.0,
     currency: "XOF",
     governmentType: "Military Junta",
-    headOfState: "Ibrahim Traoré",
+    headOfState: "Ibrahim Traoré (Transitional President/Junta Leader)",
     officialLanguages: ["French"],
     keyIndustries: [
       { name: "Gold Mining", gdpShare: 30, color: "hsl(45,90%,55%)" },
@@ -6033,7 +6033,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 7.7,
     currency: "XOF",
     governmentType: "Military Junta",
-    headOfState: "Abdourahamane Tchiani",
+    headOfState: "Abdourahamane Tchiani (Junta Leader/CNSP Chair)",
     officialLanguages: ["French"],
     keyIndustries: [
       {
@@ -6073,7 +6073,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 0.4,
     currency: "TND",
     governmentType: "Presidential Republic",
-    headOfState: "Kais Saied",
+    headOfState: "Kais Saied (President)",
     officialLanguages: ["Arabic"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 22, color: "hsl(150,60%,45%)" },
@@ -6116,7 +6116,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 17.9,
     currency: "LYD",
     governmentType: "Transitional Government",
-    headOfState: "Abdul Hamid Dbeibah",
+    headOfState: "Abdul Hamid Dbeibah (GNU PM)",
     officialLanguages: ["Arabic"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 58, color: "hsl(45,90%,55%)" },
@@ -6156,7 +6156,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 8.2,
     currency: "RWF",
     governmentType: "Presidential Republic",
-    headOfState: "Paul Kagame",
+    headOfState: "Paul Kagame (President)",
     officialLanguages: ["Kinyarwanda", "French", "English"],
     keyIndustries: [
       {
@@ -6212,7 +6212,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 6.6,
     currency: "XOF",
     governmentType: "Presidential Republic",
-    headOfState: "Patrice Talon",
+    headOfState: "Patrice Talon (President)",
     officialLanguages: ["French"],
     keyIndustries: [
       {
@@ -6260,7 +6260,7 @@ export const countriesData: Country[] = [
     gdpGrowth: -1.1,
     currency: "SSP",
     governmentType: "Presidential Republic",
-    headOfState: "Salva Kiir",
+    headOfState: "Salva Kiir (President)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 52, color: "hsl(45,90%,55%)" },
@@ -6304,7 +6304,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.0,
     currency: "SOS",
     governmentType: "Federal Parliamentary Republic",
-    headOfState: "Hassan Sheikh Mohamud",
+    headOfState: "Hassan Sheikh Mohamud (President)",
     officialLanguages: ["Somali", "Arabic"],
     keyIndustries: [
       {
@@ -6348,7 +6348,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.9,
     currency: "ERN",
     governmentType: "One-Party Republic",
-    headOfState: "Isaias Afwerki",
+    headOfState: "Isaias Afwerki (President)",
     officialLanguages: ["Tigrinya", "Arabic", "English"],
     keyIndustries: [
       {
@@ -6396,7 +6396,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 7.2,
     currency: "DJF",
     governmentType: "Presidential Republic",
-    headOfState: "Ismail Omar Guelleh",
+    headOfState: "Ismail Omar Guelleh (President)",
     officialLanguages: ["French", "Arabic"],
     keyIndustries: [
       {
@@ -6436,7 +6436,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.7,
     currency: "BIF",
     governmentType: "Presidential Republic",
-    headOfState: "Évariste Ndayishimiye",
+    headOfState: "Évariste Ndayishimiye (President)",
     officialLanguages: ["Kirundi", "French"],
     keyIndustries: [
       {
@@ -6484,7 +6484,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.0,
     currency: "MWK",
     governmentType: "Presidential Republic",
-    headOfState: "Lazarus Chakwera",
+    headOfState: "Lazarus Chakwera (President)",
     officialLanguages: ["English", "Chichewa"],
     keyIndustries: [
       {
@@ -6537,7 +6537,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.1,
     currency: "NAD",
     governmentType: "Presidential Republic",
-    headOfState: "Netumbo Nandi-Ndaitwah",
+    headOfState: "Netumbo Nandi-Ndaitwah (President)",
     officialLanguages: ["English"],
     keyIndustries: [
       {
@@ -6590,7 +6590,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.7,
     currency: "BWP",
     governmentType: "Parliamentary Republic",
-    headOfState: "Duma Boko",
+    headOfState: "Duma Boko (President)",
     officialLanguages: ["English", "Tswana"],
     keyIndustries: [
       { name: "Diamond Mining", gdpShare: 38, color: "hsl(270,60%,60%)" },
@@ -6635,7 +6635,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 7.0,
     currency: "MUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Navin Ramgoolam",
+    headOfState: "Navin Ramgoolam (PM)",
     officialLanguages: ["English", "French"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 28, color: "hsl(150,60%,45%)" },
@@ -6679,7 +6679,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.3,
     currency: "SZL",
     governmentType: "Absolute Monarchy",
-    headOfState: "King Mswati III",
+    headOfState: "King Mswati III (Absolute Monarch)",
     officialLanguages: ["Swazi", "English"],
     keyIndustries: [
       {
@@ -6726,7 +6726,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.9,
     currency: "LSL",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Sam Matekane",
+    headOfState: "Sam Matekane (PM)",
     officialLanguages: ["Sesotho", "English"],
     keyIndustries: [
       { name: "Textiles & Apparel", gdpShare: 36, color: "hsl(330,65%,55%)" },
@@ -6769,7 +6769,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.8,
     currency: "GMD",
     governmentType: "Presidential Republic",
-    headOfState: "Adama Barrow",
+    headOfState: "Adama Barrow (President)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Remittances", gdpShare: 30, color: "hsl(45,90%,55%)" },
@@ -6813,7 +6813,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 6.0,
     currency: "GNF",
     governmentType: "Military Junta",
-    headOfState: "Mamadi Doumbouya",
+    headOfState: "Mamadi Doumbouya (Transitional President/Junta Leader)",
     officialLanguages: ["French"],
     keyIndustries: [
       {
@@ -6861,7 +6861,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.6,
     currency: "XOF",
     governmentType: "Semi-Presidential Republic",
-    headOfState: "Umaro Sissoco Embaló",
+    headOfState: "Umaro Sissoco Embaló (President)",
     officialLanguages: ["Portuguese"],
     keyIndustries: [
       {
@@ -6901,7 +6901,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.8,
     currency: "SLL",
     governmentType: "Presidential Republic",
-    headOfState: "Julius Maada Bio",
+    headOfState: "Julius Maada Bio (President)",
     officialLanguages: ["English"],
     keyIndustries: [
       {
@@ -6949,7 +6949,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.7,
     currency: "LRD",
     governmentType: "Presidential Republic",
-    headOfState: "Joseph Boakai",
+    headOfState: "Joseph Boakai (President)",
     officialLanguages: ["English"],
     keyIndustries: [
       {
@@ -6989,7 +6989,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 6.3,
     currency: "XOF",
     governmentType: "Presidential Republic",
-    headOfState: "Faure Gnassingbé",
+    headOfState: "Faure Gnassingbé (President)",
     officialLanguages: ["French"],
     keyIndustries: [
       {
@@ -7037,7 +7037,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.3,
     currency: "XAF",
     governmentType: "Military Junta",
-    headOfState: "Brice Clotaire Oligui Nguema",
+    headOfState: "Brice Clotaire Oligui Nguema (Transitional President)",
     officialLanguages: ["French"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 42, color: "hsl(45,90%,55%)" },
@@ -7077,7 +7077,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.5,
     currency: "XAF",
     governmentType: "Presidential Republic",
-    headOfState: "Denis Sassou Nguesso",
+    headOfState: "Denis Sassou Nguesso (President)",
     officialLanguages: ["French"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 50, color: "hsl(45,90%,55%)" },
@@ -7121,7 +7121,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.5,
     currency: "XAF",
     governmentType: "Presidential Republic",
-    headOfState: "Faustin-Archange Touadéra",
+    headOfState: "Faustin-Archange Touadéra (President)",
     officialLanguages: ["French", "Sango"],
     keyIndustries: [
       {
@@ -7165,7 +7165,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.4,
     currency: "XAF",
     governmentType: "Presidential Republic",
-    headOfState: "Mahamat Idriss Déby",
+    headOfState: "Mahamat Idriss Déby (Transitional President)",
     officialLanguages: ["French", "Arabic"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 38, color: "hsl(45,90%,55%)" },
@@ -7204,7 +7204,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.7,
     currency: "CVE",
     governmentType: "Parliamentary Republic",
-    headOfState: "José Maria Neves",
+    headOfState: "José Maria Neves (President)",
     officialLanguages: ["Portuguese"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 38, color: "hsl(150,60%,45%)" },
@@ -7243,7 +7243,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.3,
     currency: "SCR",
     governmentType: "Presidential Republic",
-    headOfState: "Wavel Ramkalawan",
+    headOfState: "Wavel Ramkalawan (President)",
     officialLanguages: ["Seychellois Creole", "English", "French"],
     keyIndustries: [
       {
@@ -7290,7 +7290,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.5,
     currency: "STN",
     governmentType: "Semi-Presidential Republic",
-    headOfState: "Américo Ramos",
+    headOfState: "Américo Ramos (PM)",
     officialLanguages: ["Portuguese"],
     keyIndustries: [
       {
@@ -7330,7 +7330,7 @@ export const countriesData: Country[] = [
     gdpGrowth: -4.3,
     currency: "XAF",
     governmentType: "Presidential Republic",
-    headOfState: "Teodoro Obiang Nguema",
+    headOfState: "Teodoro Obiang Nguema Mbasogo (President)",
     officialLanguages: ["Spanish", "French", "Portuguese"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 56, color: "hsl(45,90%,55%)" },
@@ -7370,7 +7370,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.5,
     currency: "KMF",
     governmentType: "Presidential Republic",
-    headOfState: "Azali Assoumani",
+    headOfState: "Azali Assoumani (President)",
     officialLanguages: ["Comorian", "Arabic", "French"],
     keyIndustries: [
       {
@@ -7413,7 +7413,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.1,
     currency: "TWD",
     governmentType: "Semi-Presidential Republic",
-    headOfState: "Lai Ching-te",
+    headOfState: "Lai Ching-te (President)",
     officialLanguages: ["Mandarin Chinese"],
     spokenLanguages: [
       "Mandarin",
@@ -7470,7 +7470,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.2,
     currency: "AUD",
     governmentType: "Federal Parliamentary Democracy",
-    headOfState: "Anthony Albanese",
+    headOfState: "Anthony Albanese (PM)",
     officialLanguages: ["English"],
     spokenLanguages: [
       "English",
@@ -7535,7 +7535,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.8,
     currency: "NZD",
     governmentType: "Parliamentary Democracy",
-    headOfState: "Christopher Luxon",
+    headOfState: "Christopher Luxon (PM)",
     officialLanguages: ["English", "Māori"],
     spokenLanguages: ["English", "Māori", "Samoan", "Hindi", "French"],
     landmarks: [
@@ -7584,7 +7584,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.2,
     currency: "PGK",
     governmentType: "Parliamentary Democracy",
-    headOfState: "James Marape",
+    headOfState: "James Marape (PM)",
     officialLanguages: ["English", "Tok Pisin", "Hiri Motu"],
     keyIndustries: [
       {
@@ -7628,7 +7628,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 8.0,
     currency: "FJD",
     governmentType: "Parliamentary Republic",
-    headOfState: "Sitiveni Rabuka",
+    headOfState: "Sitiveni Rabuka (PM)",
     officialLanguages: ["English", "Fijian", "Hindi"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 38, color: "hsl(150,60%,45%)" },
@@ -7672,7 +7672,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.8,
     currency: "SBD",
     governmentType: "Parliamentary Democracy",
-    headOfState: "Jeremiah Manele",
+    headOfState: "Jeremiah Manele (PM)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Forestry & Timber", gdpShare: 36, color: "hsl(150,60%,45%)" },
@@ -7712,7 +7712,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.4,
     currency: "VUV",
     governmentType: "Parliamentary Republic",
-    headOfState: "Nikenike Vurobaravu",
+    headOfState: "Nikenike Vurobaravu (President)",
     officialLanguages: ["English", "French", "Bislama"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 40, color: "hsl(150,60%,45%)" },
@@ -7752,7 +7752,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 7.9,
     currency: "WST",
     governmentType: "Parliamentary Republic",
-    headOfState: "Fiamē Naomi Mataʻafa",
+    headOfState: "Fiamē Naomi Mataʻafa (PM)",
     officialLanguages: ["Samoan", "English"],
     keyIndustries: [
       { name: "Remittances", gdpShare: 34, color: "hsl(45,90%,55%)" },
@@ -7795,7 +7795,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.5,
     currency: "TOP",
     governmentType: "Constitutional Monarchy",
-    headOfState: "King Tupou VI",
+    headOfState: "King Tupou VI (Monarch)",
     officialLanguages: ["Tongan", "English"],
     keyIndustries: [
       { name: "Remittances", gdpShare: 42, color: "hsl(45,90%,55%)" },
@@ -7834,7 +7834,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.5,
     currency: "AUD",
     governmentType: "Presidential Republic",
-    headOfState: "Taneti Maamau",
+    headOfState: "Taneti Maamau (President)",
     officialLanguages: ["English", "Gilbertese"],
     keyIndustries: [
       {
@@ -7877,7 +7877,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.8,
     currency: "USD",
     governmentType: "Federal Republic",
-    headOfState: "Wesley Simina",
+    headOfState: "Wesley Simina (President)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "US Compact Aid", gdpShare: 38, color: "hsl(270,60%,60%)" },
@@ -7920,7 +7920,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 12.8,
     currency: "USD",
     governmentType: "Presidential Republic",
-    headOfState: "Surangel Whipps Jr.",
+    headOfState: "Surangel Whipps Jr. (President)",
     officialLanguages: ["Palauan", "English"],
     keyIndustries: [
       { name: "Tourism (Diving/Eco)", gdpShare: 46, color: "hsl(150,60%,45%)" },
@@ -7959,7 +7959,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.6,
     currency: "USD",
     governmentType: "Parliamentary Republic",
-    headOfState: "Hilde Heine",
+    headOfState: "Hilde Heine (President)",
     officialLanguages: ["Marshallese", "English"],
     keyIndustries: [
       { name: "US Compact Aid", gdpShare: 36, color: "hsl(270,60%,60%)" },
@@ -7998,7 +7998,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.5,
     currency: "AUD",
     governmentType: "Parliamentary Republic",
-    headOfState: "David Adeang",
+    headOfState: "David Adeang (President)",
     officialLanguages: ["Nauruan", "English"],
     keyIndustries: [
       {
@@ -8045,7 +8045,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.5,
     currency: "AUD",
     governmentType: "Parliamentary Democracy",
-    headOfState: "Feleti Teo",
+    headOfState: "Feleti Teo (PM)",
     officialLanguages: ["Tuvalu", "English"],
     keyIndustries: [
       { name: ".tv Domain Licensing", gdpShare: 30, color: "hsl(270,60%,60%)" },
@@ -8087,7 +8087,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 0.4,
     currency: "USD",
     governmentType: "Unincorporated US Territory",
-    headOfState: "Jenniffer González-Colón (Resident Commissioner)",
+    headOfState: "Jenniffer González-Colón (Governor)",
     officialLanguages: ["Spanish", "English"],
     spokenLanguages: ["Spanish", "English"],
     landmarks: [
@@ -8144,7 +8144,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.5,
     currency: "USD",
     governmentType: "Unincorporated US Territory",
-    headOfState: "Lou Leon Guerrero (Governor)",
+    headOfState: "Lou Leon Guerrero (Governor/US Territory)",
     officialLanguages: ["English", "Chamorro"],
     spokenLanguages: ["English", "Chamorro", "Filipino", "Japanese"],
     landmarks: [
@@ -8196,7 +8196,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.2,
     currency: "BMD",
     governmentType: "British Overseas Territory",
-    headOfState: "Rena Lalgie (Governor) / David Burt (Premier)",
+    headOfState: "David Burt (Premier)",
     officialLanguages: ["English"],
     spokenLanguages: ["English"],
     landmarks: [
@@ -8256,7 +8256,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.8,
     currency: "DKK",
     governmentType: "Autonomous Territory of Denmark",
-    headOfState: "Aksel V. Johannesen (Prime Minister)",
+    headOfState: "Aksel V. Johannesen (Løgmaður/PM)",
     officialLanguages: ["Faroese", "Danish"],
     spokenLanguages: ["Faroese", "Danish", "English"],
     landmarks: [
@@ -8320,7 +8320,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.8,
     currency: "DKK",
     governmentType: "Autonomous Territory of Denmark",
-    headOfState: "Múte Egede (Prime Minister)",
+    headOfState: "Múte Egede (PM/Naalakkersuisooq)",
     officialLanguages: ["Greenlandic (Kalaallisut)", "Danish"],
     spokenLanguages: ["Greenlandic (Kalaallisut)", "Danish", "English"],
     landmarks: [
@@ -8374,7 +8374,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.0,
     currency: "BSD",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Philip Davis",
+    headOfState: "Philip Davis (PM)",
     officialLanguages: ["English"],
     landmarks: [
       "Nassau Beach",
@@ -8425,7 +8425,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.3,
     currency: "XCD",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Gaston Browne",
+    headOfState: "Gaston Browne (PM)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 52, color: "hsl(150,60%,45%)" },
@@ -8465,7 +8465,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.7,
     currency: "XCD",
     governmentType: "Parliamentary Republic",
-    headOfState: "Roosevelt Skerrit",
+    headOfState: "Roosevelt Skerrit (PM)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Tourism (Ecotourism)", gdpShare: 38, color: "hsl(150,60%,45%)" },
@@ -8512,7 +8512,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.8,
     currency: "XCD",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Dickon Mitchell",
+    headOfState: "Dickon Mitchell (PM)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 42, color: "hsl(150,60%,45%)" },
@@ -8552,7 +8552,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.5,
     currency: "BBD",
     governmentType: "Parliamentary Republic",
-    headOfState: "Mia Mottley",
+    headOfState: "Mia Mottley (PM)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 40, color: "hsl(150,60%,45%)" },
@@ -8596,7 +8596,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 9.4,
     currency: "XCD",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Philip Pierre",
+    headOfState: "Philip Pierre (PM)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 46, color: "hsl(150,60%,45%)" },
@@ -8640,7 +8640,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.9,
     currency: "XCD",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Ralph Gonsalves",
+    headOfState: "Ralph Gonsalves (PM)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 38, color: "hsl(150,60%,45%)" },
@@ -8679,7 +8679,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 6.0,
     currency: "XCD",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Terrance Drew",
+    headOfState: "Terrance Drew (PM)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 44, color: "hsl(150,60%,45%)" },
@@ -8730,7 +8730,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.0,
     currency: "IDR",
     governmentType: "Presidential Republic",
-    headOfState: "Prabowo Subianto",
+    headOfState: "Prabowo Subianto (President)",
     officialLanguages: ["Indonesian"],
     spokenLanguages: [
       "Indonesian",
@@ -8799,7 +8799,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.4,
     currency: "MYR",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Anwar Ibrahim",
+    headOfState: "Anwar Ibrahim (PM)",
     officialLanguages: ["Malay"],
     spokenLanguages: ["Malay", "English", "Mandarin", "Tamil", "Iban"],
     landmarks: [
@@ -8854,7 +8854,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.6,
     currency: "THB",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Paetongtarn Shinawatra",
+    headOfState: "Paetongtarn Shinawatra (PM)",
     officialLanguages: ["Thai"],
     spokenLanguages: [
       "Thai",
@@ -8913,7 +8913,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 8.3,
     currency: "MVR",
     governmentType: "Presidential Republic",
-    headOfState: "Mohamed Muizzu",
+    headOfState: "Mohamed Muizzu (President)",
     officialLanguages: ["Dhivehi"],
     keyIndustries: [
       {
@@ -8955,7 +8955,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.5,
     currency: "BTN",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Tshering Tobgay",
+    headOfState: "Tshering Tobgay (PM)",
     officialLanguages: ["Dzongkha"],
     keyIndustries: [
       {
@@ -9007,7 +9007,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.0,
     currency: "EUR",
     governmentType: "Parliamentary Republic (Diarchy)",
-    headOfState: "Captains Regent (rotating)",
+    headOfState: "Captains Regent: Alessandro Rossi & Milena Gasperoni",
     officialLanguages: ["Italian"],
     keyIndustries: [
       { name: "Finance & Banking", gdpShare: 28, color: "hsl(200,85%,55%)" },
@@ -9054,7 +9054,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.0,
     currency: "CHF",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Rainer Wohlwend",
+    headOfState: "Daniel Risch (PM)",
     officialLanguages: ["German"],
     keyIndustries: [
       { name: "Finance & Banking", gdpShare: 32, color: "hsl(200,85%,55%)" },
@@ -9093,7 +9093,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.5,
     currency: "EUR",
     governmentType: "Parliamentary Co-Principality",
-    headOfState: "Xavier Espot Zamora",
+    headOfState: "Xavier Espot Zamora (PM/Cap del Govern)",
     officialLanguages: ["Catalan"],
     keyIndustries: [
       {
@@ -9143,7 +9143,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.1,
     currency: "EUR",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Albert II",
+    headOfState: "Albert II (Prince/Head of State)",
     officialLanguages: ["French"],
     keyIndustries: [
       {
@@ -9192,7 +9192,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.5,
     currency: "MRU",
     governmentType: "Presidential Republic",
-    headOfState: "Mohamed Ould Ghazouani",
+    headOfState: "Mohamed Ould Ghazouani (President)",
     officialLanguages: ["Arabic"],
     keyIndustries: [
       {
@@ -9239,7 +9239,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.2,
     currency: "TRY",
     governmentType: "Presidential Republic",
-    headOfState: "Recep Tayyip Erdoğan",
+    headOfState: "Recep Tayyip Erdoğan (President)",
     officialLanguages: ["Turkish"],
     spokenLanguages: ["Turkish", "Kurdish", "Arabic", "Zaza", "Laz"],
     landmarks: [
@@ -9297,7 +9297,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 6.5,
     currency: "XOF",
     governmentType: "Presidential Republic",
-    headOfState: "Alassane Ouattara",
+    headOfState: "Alassane Ouattara (President)",
     officialLanguages: ["French"],
     keyIndustries: [
       {
@@ -9344,7 +9344,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 0.5,
     currency: "MAD",
     governmentType: "Disputed Territory (Morocco administered)",
-    headOfState: "Brahim Ghali (Sahrawi Republic)",
+    headOfState: "Brahim Ghali (SADR President — disputed)",
     officialLanguages: ["Arabic", "Spanish"],
     keyIndustries: [
       { name: "Phosphate Mining", gdpShare: 42, color: "hsl(30,70%,45%)" },
@@ -9384,7 +9384,7 @@ export const countriesData: Country[] = [
     gdpGrowth: -8.0,
     currency: "ILS",
     governmentType: "Parliamentary Authority",
-    headOfState: "Mahmoud Abbas",
+    headOfState: "Mahmoud Abbas (PA President)",
     officialLanguages: ["Arabic"],
     keyIndustries: [
       { name: "Remittances", gdpShare: 30, color: "hsl(45,90%,55%)" },
@@ -9433,7 +9433,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 6.6,
     currency: "NZD",
     governmentType: "Self-governing in Free Association with NZ",
-    headOfState: "Mark Brown",
+    headOfState: "Mark Brown (PM)",
     officialLanguages: ["English", "Māori (Cook Islands)"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 52, color: "hsl(150,60%,45%)" },
@@ -9475,7 +9475,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.0,
     currency: "NZD",
     governmentType: "Self-governing in Free Association with NZ",
-    headOfState: "Dalton Tagelagi",
+    headOfState: "Dalton Tagelagi (Premier)",
     officialLanguages: ["English", "Niuean"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 40, color: "hsl(150,60%,45%)" },
@@ -9510,7 +9510,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.8,
     currency: "RUB",
     governmentType: "Federal Semi-Presidential Republic",
-    headOfState: "Vladimir Putin",
+    headOfState: "Vladimir Putin (President)",
     officialLanguages: ["Russian"],
     spokenLanguages: ["Russian", "Tatar", "Chechen", "Bashkir", "Ukrainian"],
     landmarks: [
