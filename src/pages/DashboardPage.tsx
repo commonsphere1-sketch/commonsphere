@@ -580,7 +580,7 @@ function StatesCarousel({
                     }}
                   >
                     <img
-                      src={`https://flagcdn.com/w320/us-${state.id}.png`}
+                      src={`https://flagcdn.com/us-${state.id}.svg`}
                       alt={`${state.name} flag`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -994,24 +994,32 @@ const POLICY_FEED = [
     color: "#10b981",
     title: "EU Carbon Border Adjustment Mechanism enters full enforcement",
     date: "Jul 2025",
+    description:
+      "The CBAM imposes a carbon price on imports of steel, cement, aluminium, fertilisers, electricity, and hydrogen from countries with lower or no carbon pricing. Importers must purchase CBAM certificates matching the carbon price that would have been paid under EU ETS rules. The mechanism is designed to prevent carbon leakage and incentivise global trading partners to adopt equivalent climate standards. Full enforcement began July 2025 after a transitional reporting-only phase that started October 2023.",
   },
   {
     tag: "Tech",
     color: "#6366f1",
     title: "US AI Executive Order requires federal agency compliance audits",
     date: "Jun 2025",
+    description:
+      "Building on the October 2023 Executive Order on Safe, Secure, and Trustworthy AI, the updated directive mandates that all federal agencies complete internal audits of AI systems used in consequential decision-making — including benefits determinations, hiring, and law enforcement. Agencies must publish audit results and remediation plans by Q4 2025. The order also directs NIST to release updated AI Risk Management Framework guidelines and extends export controls on advanced AI chips to additional destinations.",
   },
   {
     tag: "Trade",
     color: "#3b82f6",
     title: "WTO rules in favour of India on steel tariff dispute",
     date: "Jun 2025",
+    description:
+      "The WTO Dispute Settlement Body upheld India&#39;s challenge against US Section 232 steel and aluminium tariffs imposed in 2018, ruling them inconsistent with GATT Article XI and the Safeguards Agreement. The panel found the US failed to demonstrate a genuine national security justification under GATT Article XXI. The US has 60 days to appeal to the Appellate Body or negotiate a bilateral solution. India has indicated it may reintroduce retaliatory tariffs on US goods worth $2.4B if no agreement is reached.",
   },
   {
     tag: "Defense",
     color: "#ef4444",
     title: "UK-France joint defense procurement framework signed",
     date: "May 2025",
+    description:
+      "The Lancaster House Defense Procurement Treaty, a successor to the 2010 Lancaster House Treaties, establishes a shared procurement office in London for joint acquisition of long-range strike munitions, naval vessels, and next-generation combat aircraft components. The framework enables joint competitive tenders, shared intellectual property agreements, and pooled maintenance contracts projected to save £3.2B over ten years. The agreement also includes a joint AI and autonomous systems research programme with a combined £800M initial investment.",
   },
 ];
 
@@ -5184,6 +5192,31 @@ function InteractiveDataPanel({
                       {p.tag} Policy
                     </p>
                   </div>
+                  {(p as any).description && (
+                    <div
+                      className="rounded-xl px-3 py-3"
+                      style={{
+                        background: isLight
+                          ? "rgba(0,0,0,0.025)"
+                          : "rgba(255,255,255,0.035)",
+                        border: `1px solid ${gridLine}`,
+                      }}
+                    >
+                      <p
+                        className="text-[9px] font-mono uppercase tracking-widest mb-2"
+                        style={{ color: mutedText }}
+                      >
+                        Description
+                      </p>
+                      <p
+                        className="text-[11px] font-sans leading-relaxed"
+                        style={{ color: bodyText }}
+                        dangerouslySetInnerHTML={{
+                          __html: (p as any).description,
+                        }}
+                      />
+                    </div>
+                  )}
                   <button
                     onClick={() => onNav("/dashboard/policy")}
                     className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-[11px] font-bold transition-all hover:opacity-80"

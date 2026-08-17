@@ -19,6 +19,11 @@ You MUST maintain this file to track your work across messages. This is NON-NEGO
 
 <changelog>
 
+## 2026-08-17 — Fix state flag URLs to use SVG (flagcdn.com serves subdivisions as SVG only)
+- Changed StatesCarousel flag src from `w320/us-${id}.png` → `us-${id}.svg` (no size prefix)
+- flagcdn.com only serves US state subdivision flags as SVG, not as sized PNG
+- Fallback colored gradient + abbreviation still shown on error
+
 ## 2026-08-17 — Move StatesCarousel above National card on DashboardPage
 - Removed StatesCarousel from its position after the main grid
 - Re-inserted it immediately before the National section card
