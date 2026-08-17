@@ -7,6 +7,12 @@ module.exports = {
       fontFamily: {
         sans: ['"DM Sans"', "sans-serif"],
         mono: ['"IBM Plex Mono"', "monospace"],
+        display: [
+          '"Playfair Display"',
+          '"Cormorant Garant"',
+          "Georgia",
+          "serif",
+        ],
       },
       colors: {
         primary: {
@@ -85,25 +91,59 @@ module.exports = {
       },
       backgroundImage: {
         "gradient-1":
-          "linear-gradient(135deg, hsl(222, 69%, 20%) 0%, hsl(200, 80%, 30%) 100%)",
+          "linear-gradient(135deg, hsl(240, 30%, 7%) 0%, hsl(255, 25%, 11%) 50%, hsl(270, 20%, 9%) 100%)",
         "gradient-2":
-          "linear-gradient(135deg, hsl(210, 80%, 60%) 0%, hsl(190, 80%, 45%) 100%)",
+          "linear-gradient(135deg, hsl(0, 0%, 95%) 0%, hsl(0, 0%, 82%) 100%)",
+        "gradient-gold":
+          "linear-gradient(135deg, hsl(0, 0%, 99%) 0%, hsl(0, 0%, 93%) 40%, hsl(0, 0%, 84%) 70%, hsl(0, 0%, 70%) 100%)",
+        "gradient-dark":
+          "linear-gradient(180deg, hsl(240, 30%, 7%) 0%, hsl(250, 28%, 5%) 100%)",
         "button-border-gradient":
-          "linear-gradient(90deg, hsl(200, 80%, 55%), hsl(190, 80%, 45%))",
+          "linear-gradient(90deg, hsl(0,0%,99%), hsl(0,0%,93%), hsl(0,0%,82%))",
+        "card-shimmer":
+          "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 50%, rgba(180,180,180,0.04) 100%)",
+      },
+      boxShadow: {
+        premium: "0 4px 24px rgba(0, 0, 0, 0.5), 0 1px 4px rgba(0, 0, 0, 0.3)",
+        "premium-lg":
+          "0 8px 40px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4)",
+        glow: "0 0 24px rgba(245, 245, 245, 0.28)",
+        "inner-glow": "inset 0 1px 0 rgba(245, 245, 245, 0.2)",
+      },
+      letterSpacing: {
+        tight: "-0.02em",
+        normal: "0",
+        wide: "0.02em",
+        wider: "0.05em",
+        widest: "0.1em",
+      },
+      transitionTimingFunction: {
+        premium: "cubic-bezier(0.4, 0, 0.2, 1)",
+        smooth: "cubic-bezier(0.16, 1, 0.3, 1)",
       },
       keyframes: {
         "fade-in": {
-          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "0%": { opacity: "0", transform: "translateY(6px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         "slide-in": {
-          "0%": { transform: "translateX(-100%)" },
-          "100%": { transform: "translateX(0)" },
+          "0%": { transform: "translateX(-100%)", opacity: "0" },
+          "100%": { transform: "translateX(0)", opacity: "1" },
+        },
+        shimmer: {
+          "0%": { backgroundPosition: "-200% center" },
+          "100%": { backgroundPosition: "200% center" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { opacity: "0.5" },
+          "50%": { opacity: "1" },
         },
       },
       animation: {
-        "fade-in": "fade-in 0.25s ease-in-out",
-        "slide-in": "slide-in 0.2s ease-in-out",
+        "fade-in": "fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+        "slide-in": "slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+        shimmer: "shimmer 2.5s linear infinite",
+        "glow-pulse": "glow-pulse 3s ease-in-out infinite",
       },
     },
   },

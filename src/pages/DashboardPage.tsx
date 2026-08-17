@@ -37,6 +37,18 @@ import {
   X,
   Pencil,
   CheckCircle,
+  Heart,
+  Student,
+  Leaf,
+  Wifi,
+  Gavel,
+  ShieldCheck,
+  PersonArmsSpread,
+  Megaphone,
+  Planet,
+  ChartDonut,
+  Smiley,
+  TreePalm,
 } from "@phosphor-icons/react";
 import {
   AreaChart,
@@ -54,6 +66,7 @@ import {
 } from "recharts";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
+import { economiesData } from "../data/economiesData";
 import { SourceLink } from "../components/SourceLink";
 
 const SRC_DASH_ECONOMY = [
@@ -83,6 +96,292 @@ const SRC_DASH_POLICIES = [
     url: "https://www.oecd.org/gov/regulatory-policy/",
   },
 ];
+
+/* ─── Country Carousel ──────────────────────────────────────────────────── */
+function CountryCarousel({
+  isLight,
+  cardBg,
+  cardBorder,
+  headText,
+  mutedText,
+  gridLine,
+  onNav,
+}: {
+  isLight: boolean;
+  cardBg: string;
+  cardBorder: string;
+  headText: string;
+  mutedText: string;
+  gridLine: string;
+  onNav: (path: string) => void;
+}) {
+  const sorted = React.useMemo(
+    () => [...countriesData].sort((a, b) => b.gdp - a.gdp),
+    [],
+  );
+
+  // Duplicate list so the loop is seamless
+  const items = [...sorted, ...sorted];
+
+  const trackRef = useRef<HTMLDivElement>(null);
+  const animRef = useRef<number>(0);
+  const posRef = useRef(0);
+  const pausedRef = useRef(false);
+  const [cardWidth, setCardWidth] = useState(0);
+  const GAP = 12; // gap-3 = 12px
+  const VISIBLE = 5;
+  const SPEED = 0.9; // px per frame
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const step = () => {
+      if (!pausedRef.current) {
+        posRef.current += SPEED;
+        const halfWidth = track.scrollWidth / 2;
+        if (posRef.current >= halfWidth) {
+          posRef.current -= halfWidth;
+        }
+        track.style.transform = `translateX(-${posRef.current}px)`;
+      }
+      animRef.current = requestAnimationFrame(step);
+    };
+
+    animRef.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animRef.current);
+  }, []);
+
+  // Measure actual rendered card width
+  useEffect(() => {
+    const measure = () => {
+      const track = trackRef.current;
+      if (!track) return;
+      const firstCard = track.querySelector<HTMLElement>(
+        "[data-carousel-card]",
+      );
+      if (firstCard) {
+        setCardWidth(firstCard.offsetWidth + GAP);
+      }
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  // Viewport width = exactly 5 cards + 4 gaps (subtract last extra gap)
+  const viewportWidth = cardWidth > 0 ? cardWidth * VISIBLE - GAP : null;
+  // Marker positions: left pillar at right edge of card 5, right pillar symmetric
+  const markerLeft = viewportWidth !== null ? viewportWidth - 1 : null;
+  const markerRight = 0;
+
+  const fmtGDPShort = (b: number) =>
+    b >= 1000 ? `$${(b / 1000).toFixed(1)}T` : `$${Math.round(b)}B`;
+
+  const fmtPopShort = (n: number) => {
+    if (n >= 1e9) return `${(n / 1e9).toFixed(1)}B`;
+    if (n >= 1e6) return `${(n / 1e6).toFixed(0)}M`;
+    return `${Math.round(n / 1000)}K`;
+  };
+
+  const hdiColor = (h: number) =>
+    h >= 0.8 ? "#10b981" : h >= 0.65 ? "#f59e0b" : "#ef4444";
+
+  return (
+    <div
+      className="rounded-2xl"
+      style={{
+        background: cardBg,
+        border: cardBorder,
+        overflow: "hidden",
+        maxWidth: "100%",
+        boxSizing: "border-box",
+      }}
+    >
+      {/* Header */}
+      <div
+        className="flex items-center justify-between px-5 py-3.5"
+        style={{ borderBottom: `1px solid ${gridLine}` }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+            style={{ background: "#6366f112", border: "1px solid #6366f122" }}
+          >
+            <Globe size={13} weight="fill" style={{ color: "#6366f1" }} />
+          </div>
+          <span
+            className="text-sm font-bold font-sans"
+            style={{ color: headText }}
+          >
+            Countries
+          </span>
+          <span
+            className="text-[10px] font-mono px-2 py-0.5 rounded-full"
+            style={{ background: "#6366f114", color: "#6366f1" }}
+          >
+            {sorted.length} tracked
+          </span>
+        </div>
+        <button
+          onClick={() => onNav("/dashboard/countries")}
+          className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70"
+          style={{ color: "#6366f1" }}
+        >
+          All Countries <ArrowRight size={10} weight="bold" />
+        </button>
+      </div>
+
+      {/* Outer wrapper: full width, centers the fixed-5-card viewport */}
+      <div className="relative py-4 flex justify-center px-4">
+        {/* Fixed viewport: clips to exactly 5 cards wide */}
+        <div
+          className="relative overflow-hidden"
+          style={{
+            width: viewportWidth !== null ? viewportWidth : "100%",
+            maxWidth: "100%",
+          }}
+          onMouseEnter={() => {
+            pausedRef.current = true;
+          }}
+          onMouseLeave={() => {
+            pausedRef.current = false;
+          }}
+        >
+          {/* Left fade mask */}
+          <div
+            className="absolute inset-y-0 left-0 pointer-events-none z-10"
+            style={{
+              width: 28,
+              background: `linear-gradient(to right, ${isLight ? "#f8fafc" : "#0b0b14"}, transparent)`,
+            }}
+          />
+          {/* Right fade mask */}
+          <div
+            className="absolute inset-y-0 right-0 pointer-events-none z-10"
+            style={{
+              width: 28,
+              background: `linear-gradient(to left, ${isLight ? "#f8fafc" : "#0b0b14"}, transparent)`,
+            }}
+          />
+
+          {/* Scrolling track */}
+          <div
+            ref={trackRef}
+            className="flex gap-3"
+            style={{ willChange: "transform", width: "max-content" }}
+          >
+            {items.map((country, idx) => {
+              const gdpGrowthUp = country.gdpGrowth >= 0;
+              // Each card = (100vw - padding) / 5
+              return (
+                <div
+                  key={`${country.id}-${idx}`}
+                  data-carousel-card
+                  onClick={() => onNav("/dashboard/countries")}
+                  className="rounded-xl overflow-hidden cursor-pointer transition-opacity duration-200 hover:opacity-90 shrink-0"
+                  style={{
+                    width: "calc((100vw - 260px - 56px) / 5)",
+                    minWidth: 140,
+                    maxWidth: 230,
+                    background: isLight
+                      ? "rgba(255,255,255,0.9)"
+                      : "rgba(255,255,255,0.06)",
+                    border: `1px solid ${gridLine}`,
+                    boxShadow: isLight ? "0 2px 8px rgba(0,0,0,0.07)" : "none",
+                  }}
+                >
+                  {/* Flag banner */}
+                  <div className="relative h-20 overflow-hidden">
+                    <img
+                      src={`https://flagcdn.com/w320/${country.code.toLowerCase()}.png`}
+                      alt={`${country.name} flag`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display =
+                          "none";
+                      }}
+                    />
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          "linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55) 100%)",
+                      }}
+                    />
+                    <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between">
+                      <span className="text-white text-xs font-bold font-sans leading-tight drop-shadow">
+                        {country.name}
+                      </span>
+                      <span
+                        className="text-[9px] font-mono px-1.5 py-0.5 rounded-full font-semibold"
+                        style={{
+                          background:
+                            hdiColor(country.humanDevelopmentIndex) + "33",
+                          color: hdiColor(country.humanDevelopmentIndex),
+                          border: `1px solid ${hdiColor(country.humanDevelopmentIndex)}44`,
+                        }}
+                      >
+                        HDI {country.humanDevelopmentIndex}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="px-3 py-2.5 flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <span
+                        className="text-[10px] font-sans"
+                        style={{ color: mutedText }}
+                      >
+                        GDP
+                      </span>
+                      <span
+                        className="text-[11px] font-bold font-mono"
+                        style={{ color: headText }}
+                      >
+                        {fmtGDPShort(country.gdp)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span
+                        className="text-[10px] font-sans"
+                        style={{ color: mutedText }}
+                      >
+                        Growth
+                      </span>
+                      <span
+                        className="text-[11px] font-bold font-mono"
+                        style={{ color: gdpGrowthUp ? "#10b981" : "#ef4444" }}
+                      >
+                        {gdpGrowthUp ? "+" : ""}
+                        {country.gdpGrowth}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span
+                        className="text-[10px] font-sans"
+                        style={{ color: mutedText }}
+                      >
+                        Population
+                      </span>
+                      <span
+                        className="text-[11px] font-mono"
+                        style={{ color: headText }}
+                      >
+                        {fmtPopShort(country.population)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ─── Helpers ──────────────────────────────────────────────────────────── */
 const fmtB = (n: number) =>
@@ -222,45 +521,6 @@ const REGION_STATS = [
   { region: "Middle East", gdp: "$4.2T", growth: "+1.8%", up: true },
   { region: "Sub-Saharan Africa", gdp: "$2.1T", growth: "+3.6%", up: true },
   { region: "Latin America", gdp: "$5.8T", growth: "-0.4%", up: false },
-];
-
-const ANALYST_PREVIEW = [
-  {
-    initials: "SC",
-    name: "Dr. Sarah Chen",
-    role: "Senior Economist",
-    color: "#6366f1",
-    online: true,
-    insight:
-      "BRICS expansion is accelerating dollar de-dollarization faster than consensus models predict. Watch Q3 reserves data.",
-    tags: ["BRICS", "USD"],
-    likes: 47,
-    time: "2h ago",
-  },
-  {
-    initials: "MW",
-    name: "Marcus Webb",
-    role: "Geopolitical Analyst",
-    color: "#10b981",
-    online: true,
-    insight:
-      "Ceasefire momentum in Eastern Europe is being underpriced by energy markets. Nat-gas futures divergence is widening.",
-    tags: ["Ukraine", "Energy"],
-    likes: 31,
-    time: "5h ago",
-  },
-  {
-    initials: "PN",
-    name: "Priya Nair",
-    role: "Policy Strategist",
-    color: "#f97316",
-    online: false,
-    insight:
-      "India&#39;s semiconductor subsidy package outpaces CHIPS Act on a per-capita basis. Supply chain realignment underway.",
-    tags: ["India", "Tech"],
-    likes: 28,
-    time: "9h ago",
-  },
 ];
 
 const CONFLICTS_DATA = [
@@ -516,6 +776,99 @@ const MACRO_SIGNALS = [
   { label: "Gold (XAU)", value: "$2,341", delta: "+0.6%", up: true },
 ];
 
+/* ─── US States panel static data ─────────────────────────────────────── */
+const US_UPCOMING_INDUSTRIES = [
+  { name: "Quantum Computing", growth: "+68%", color: "#a855f7", pct: 68 },
+  { name: "Space Tech", growth: "+54%", color: "#3b82f6", pct: 54 },
+  { name: "Green Hydrogen", growth: "+47%", color: "#10b981", pct: 47 },
+  { name: "Biotech / mRNA", growth: "+43%", color: "#06b6d4", pct: 43 },
+  { name: "AI Chips", growth: "+61%", color: "#6366f1", pct: 61 },
+];
+
+const US_FUNDING_DATA = [
+  { sector: "AI / ML", raised: "$94B", color: "#6366f1", pct: 94 },
+  { sector: "Clean Energy", raised: "$61B", color: "#10b981", pct: 61 },
+  { sector: "Biotech", raised: "$48B", color: "#06b6d4", pct: 48 },
+  { sector: "Space", raised: "$31B", color: "#3b82f6", pct: 31 },
+  { sector: "Quantum", raised: "$18B", color: "#a855f7", pct: 18 },
+];
+
+const US_ALLIANCES = [
+  {
+    name: "AUKUS",
+    partners: "UK · Australia",
+    tag: "Defense",
+    color: "#ef4444",
+    project: "Nuclear-powered submarines + AI warfare",
+  },
+  {
+    name: "Quad",
+    partners: "Japan · India · AU",
+    tag: "Geopolitics",
+    color: "#6366f1",
+    project: "Indo-Pacific stability + tech supply chains",
+  },
+  {
+    name: "Five Eyes",
+    partners: "UK · CA · AU · NZ",
+    tag: "Intelligence",
+    color: "#f59e0b",
+    project: "Signals intelligence & cyber threat sharing",
+  },
+  {
+    name: "NATO DIANA",
+    partners: "31 Nations",
+    tag: "Innovation",
+    color: "#3b82f6",
+    project: "Deep-tech accelerator for dual-use R&D",
+  },
+  {
+    name: "Clean Power Alliance",
+    partners: "IEA + G7",
+    tag: "Climate",
+    color: "#10b981",
+    project: "100% clean grid targets by 2035",
+  },
+];
+
+const US_RD_BREAKTHROUGHS = [
+  {
+    title: "DARPA AI pilot outperforms human in dogfight",
+    field: "Defense AI",
+    date: "Jun 2025",
+    color: "#ef4444",
+    agency: "DARPA",
+  },
+  {
+    title: "NIH announces CRISPR cure for sickle-cell disease",
+    field: "Biotech",
+    date: "May 2025",
+    color: "#06b6d4",
+    agency: "NIH",
+  },
+  {
+    title: "NIST certifies post-quantum encryption standard",
+    field: "Cybersecurity",
+    date: "Apr 2025",
+    color: "#a855f7",
+    agency: "NIST",
+  },
+  {
+    title: "NASA Artemis II crew completes lunar orbit",
+    field: "Space",
+    date: "Mar 2025",
+    color: "#3b82f6",
+    agency: "NASA",
+  },
+  {
+    title: "DOE achieves net energy gain in fusion reaction",
+    field: "Energy",
+    date: "Feb 2025",
+    color: "#10b981",
+    agency: "DOE / NIF",
+  },
+];
+
 const SECTOR_SPARKLINES: Record<string, { v: number }[]> = {
   "AI Infrastructure": [
     { v: 22 },
@@ -599,6 +952,1156 @@ function usePinned(key: string, defaultIds: string[]) {
   return { ids, toggle };
 }
 
+/* ─── State Comparison Metrics ─────────────────────────────────────────── */
+const STATE_COMPARE_METRICS = [
+  {
+    label: "GDP",
+    unit: "",
+    get: (s: (typeof usStatesData)[0]) =>
+      s.gdp >= 1000
+        ? `$${(s.gdp / 1000).toFixed(1)}T`
+        : `$${Math.round(s.gdp)}B`,
+    raw: (s: (typeof usStatesData)[0]) => s.gdp,
+    higherBetter: true,
+    color: "#6366f1",
+  },
+  {
+    label: "Population",
+    unit: "",
+    get: (s: (typeof usStatesData)[0]) => {
+      const n = s.population;
+      if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+      return `${Math.round(n / 1000)}K`;
+    },
+    raw: (s: (typeof usStatesData)[0]) => s.population,
+    higherBetter: true,
+    color: "#3b82f6",
+  },
+  {
+    label: "Unemployment",
+    unit: "%",
+    get: (s: (typeof usStatesData)[0]) => `${s.unemploymentRate.toFixed(1)}%`,
+    raw: (s: (typeof usStatesData)[0]) => s.unemploymentRate,
+    higherBetter: false,
+    color: "#f59e0b",
+  },
+  {
+    label: "Median Income",
+    unit: "",
+    get: (s: (typeof usStatesData)[0]) => `$${s.medianIncome.toLocaleString()}`,
+    raw: (s: (typeof usStatesData)[0]) => s.medianIncome,
+    higherBetter: true,
+    color: "#10b981",
+  },
+  {
+    label: "Avg Income",
+    unit: "",
+    get: (s: (typeof usStatesData)[0]) =>
+      `$${s.averageIncome.toLocaleString()}`,
+    raw: (s: (typeof usStatesData)[0]) => s.averageIncome,
+    higherBetter: true,
+    color: "#06b6d4",
+  },
+  {
+    label: "State Tax",
+    unit: "%",
+    get: (s: (typeof usStatesData)[0]) =>
+      s.stateTaxRate === 0 ? "None" : `${s.stateTaxRate.toFixed(2)}%`,
+    raw: (s: (typeof usStatesData)[0]) => s.stateTaxRate,
+    higherBetter: false,
+    color: "#ef4444",
+  },
+  {
+    label: "Sales Tax",
+    unit: "%",
+    get: (s: (typeof usStatesData)[0]) => `${s.salesTaxRate.toFixed(2)}%`,
+    raw: (s: (typeof usStatesData)[0]) => s.salesTaxRate,
+    higherBetter: false,
+    color: "#f97316",
+  },
+  {
+    label: "Min Wage",
+    unit: "$/hr",
+    get: (s: (typeof usStatesData)[0]) => `$${s.minimumWage.toFixed(2)}`,
+    raw: (s: (typeof usStatesData)[0]) => s.minimumWage,
+    higherBetter: true,
+    color: "#a855f7",
+  },
+  {
+    label: "Quality of Life",
+    unit: "/100",
+    get: (s: (typeof usStatesData)[0]) => `${s.qualityOfLiving}/100`,
+    raw: (s: (typeof usStatesData)[0]) => s.qualityOfLiving,
+    higherBetter: true,
+    color: "#14b8a6",
+  },
+  {
+    label: "Area (km²)",
+    unit: "km²",
+    get: (s: (typeof usStatesData)[0]) =>
+      s.areaKm2 >= 100_000
+        ? `${(s.areaKm2 / 1_000).toFixed(0)}k`
+        : `${s.areaKm2.toLocaleString()}`,
+    raw: (s: (typeof usStatesData)[0]) => s.areaKm2,
+    higherBetter: true,
+    color: "#84cc16",
+  },
+];
+
+/* ─── Country Comparison Tool ──────────────────────────────────────────── */
+const COUNTRY_FLAGS: Record<string, string> = Object.fromEntries(
+  countriesData.map((c) => [c.id, (c as any).flag ?? c.code]),
+);
+
+const COMPARE_METRICS = [
+  {
+    label: "GDP",
+    unit: "",
+    get: (c: (typeof countriesData)[0]) =>
+      c.gdp >= 1000
+        ? `$${(c.gdp / 1000).toFixed(1)}T`
+        : `$${Math.round(c.gdp)}B`,
+    raw: (c: (typeof countriesData)[0]) => c.gdp,
+    higherBetter: true,
+    color: "#6366f1",
+  },
+  {
+    label: "GDP / Capita",
+    unit: "",
+    get: (c: (typeof countriesData)[0]) =>
+      `$${c.gdpPerCapita.toLocaleString()}`,
+    raw: (c: (typeof countriesData)[0]) => c.gdpPerCapita,
+    higherBetter: true,
+    color: "#8b5cf6",
+  },
+  {
+    label: "GDP Growth",
+    unit: "%",
+    get: (c: (typeof countriesData)[0]) =>
+      `${c.gdpGrowth >= 0 ? "+" : ""}${c.gdpGrowth}%`,
+    raw: (c: (typeof countriesData)[0]) => c.gdpGrowth,
+    higherBetter: true,
+    color: "#10b981",
+  },
+  {
+    label: "Population",
+    unit: "",
+    get: (c: (typeof countriesData)[0]) => {
+      const n = c.population;
+      if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
+      if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+      return `${Math.round(n / 1000)}K`;
+    },
+    raw: (c: (typeof countriesData)[0]) => c.population,
+    higherBetter: true,
+    color: "#3b82f6",
+  },
+  {
+    label: "Unemployment",
+    unit: "%",
+    get: (c: (typeof countriesData)[0]) => `${c.unemploymentRate.toFixed(1)}%`,
+    raw: (c: (typeof countriesData)[0]) => c.unemploymentRate,
+    higherBetter: false,
+    color: "#f59e0b",
+  },
+  {
+    label: "Inflation",
+    unit: "%",
+    get: (c: (typeof countriesData)[0]) => `${c.inflationRate}%`,
+    raw: (c: (typeof countriesData)[0]) => c.inflationRate,
+    higherBetter: false,
+    color: "#ef4444",
+  },
+  {
+    label: "Life Expectancy",
+    unit: "yrs",
+    get: (c: (typeof countriesData)[0]) => `${c.lifeExpectancy} yrs`,
+    raw: (c: (typeof countriesData)[0]) => c.lifeExpectancy,
+    higherBetter: true,
+    color: "#06b6d4",
+  },
+  {
+    label: "HDI",
+    unit: "",
+    get: (c: (typeof countriesData)[0]) =>
+      `${c.humanDevelopmentIndex.toFixed(3)}`,
+    raw: (c: (typeof countriesData)[0]) => c.humanDevelopmentIndex,
+    higherBetter: true,
+    color: "#a855f7",
+  },
+  {
+    label: "Trade Balance",
+    unit: "B",
+    get: (c: (typeof countriesData)[0]) =>
+      `${c.tradeBalance >= 0 ? "+" : ""}$${c.tradeBalance}B`,
+    raw: (c: (typeof countriesData)[0]) => c.tradeBalance,
+    higherBetter: true,
+    color: "#14b8a6",
+  },
+  {
+    label: "Area (km²)",
+    unit: "km²",
+    get: (c: (typeof countriesData)[0]) =>
+      c.areaKm2 >= 1_000_000
+        ? `${(c.areaKm2 / 1_000_000).toFixed(1)}M`
+        : `${c.areaKm2.toLocaleString()}`,
+    raw: (c: (typeof countriesData)[0]) => c.areaKm2,
+    higherBetter: true,
+    color: "#84cc16",
+  },
+];
+
+function CompareCountriesTool({
+  isLight,
+  cardBg,
+  cardBorder,
+  gridLine,
+  headText,
+  mutedText,
+  bodyText,
+  onNav,
+}: {
+  isLight: boolean;
+  cardBg: string;
+  cardBorder: string;
+  gridLine: string;
+  headText: string;
+  mutedText: string;
+  bodyText: string;
+  onNav: (path: string) => void;
+}) {
+  const accent = "#6366f1";
+  const stateAccent = "#3b82f6";
+
+  const [tab, setTab] = useState<"countries" | "states">("countries");
+
+  // Countries state
+  const [countrySearch, setCountrySearch] = useState("");
+  const [selectedCountryIds, setSelectedCountryIds] = useState<string[]>([
+    "us",
+    "cn",
+    "de",
+  ]);
+  const [countryDropOpen, setCountryDropOpen] = useState(false);
+  const countryDropRef = useRef<HTMLDivElement>(null);
+
+  // States state
+  const [stateSearch, setStateSearch] = useState("");
+  const [selectedStateIds, setSelectedStateIds] = useState<string[]>([
+    "ca",
+    "tx",
+    "ny",
+  ]);
+  const [stateDropOpen, setStateDropOpen] = useState(false);
+  const stateDropRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (
+        countryDropRef.current &&
+        !countryDropRef.current.contains(e.target as Node)
+      ) {
+        setCountryDropOpen(false);
+      }
+      if (
+        stateDropRef.current &&
+        !stateDropRef.current.contains(e.target as Node)
+      ) {
+        setStateDropOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const filteredCountries = useMemo(
+    () =>
+      countriesData
+        .filter(
+          (c) =>
+            c.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
+            c.code.toLowerCase().includes(countrySearch.toLowerCase()),
+        )
+        .slice(0, 60),
+    [countrySearch],
+  );
+
+  const filteredStates = useMemo(
+    () =>
+      usStatesData
+        .filter(
+          (s) =>
+            s.name.toLowerCase().includes(stateSearch.toLowerCase()) ||
+            s.abbreviation.toLowerCase().includes(stateSearch.toLowerCase()),
+        )
+        .slice(0, 60),
+    [stateSearch],
+  );
+
+  const selectedCountries = useMemo(
+    () => countriesData.filter((c) => selectedCountryIds.includes(c.id)),
+    [selectedCountryIds],
+  );
+
+  const selectedStates = useMemo(
+    () => usStatesData.filter((s) => selectedStateIds.includes(s.id)),
+    [selectedStateIds],
+  );
+
+  const toggleCountry = (id: string) => {
+    setSelectedCountryIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : prev.length < 4
+          ? [...prev, id]
+          : prev,
+    );
+  };
+
+  const toggleState = (id: string) => {
+    setSelectedStateIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : prev.length < 4
+          ? [...prev, id]
+          : prev,
+    );
+  };
+
+  const curAccent = tab === "countries" ? accent : stateAccent;
+  const pillBg =
+    tab === "countries"
+      ? isLight
+        ? "rgba(99,102,241,0.07)"
+        : "rgba(99,102,241,0.12)"
+      : isLight
+        ? "rgba(59,130,246,0.07)"
+        : "rgba(59,130,246,0.12)";
+  const pillBorder =
+    tab === "countries"
+      ? isLight
+        ? "rgba(99,102,241,0.22)"
+        : "rgba(99,102,241,0.28)"
+      : isLight
+        ? "rgba(59,130,246,0.22)"
+        : "rgba(59,130,246,0.28)";
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ background: cardBg, border: cardBorder }}
+    >
+      {/* Header */}
+      <div
+        className="flex items-center justify-between px-5 py-3.5"
+        style={{ borderBottom: `1px solid ${gridLine}` }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+            style={{
+              background: curAccent + "12",
+              border: `1px solid ${curAccent}22`,
+            }}
+          >
+            <ChartDonut size={13} weight="fill" style={{ color: curAccent }} />
+          </div>
+          <span
+            className="text-sm font-bold font-sans"
+            style={{ color: headText }}
+          >
+            Compare
+          </span>
+          {/* Tab toggle */}
+          <div
+            className="flex items-center rounded-lg overflow-hidden"
+            style={{ border: `1px solid ${gridLine}` }}
+          >
+            {(["countries", "states"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className="px-2.5 py-1 text-[10px] font-bold font-mono transition-all"
+                style={{
+                  background:
+                    tab === t
+                      ? (t === "countries" ? accent : stateAccent) + "18"
+                      : "transparent",
+                  color:
+                    tab === t
+                      ? t === "countries"
+                        ? accent
+                        : stateAccent
+                      : mutedText,
+                  borderRight:
+                    t === "countries" ? `1px solid ${gridLine}` : "none",
+                }}
+              >
+                {t === "countries" ? "Countries" : "US States"}
+              </button>
+            ))}
+          </div>
+          <span
+            className="text-[10px] font-mono px-2 py-0.5 rounded-full tabular-nums"
+            style={{ background: curAccent + "14", color: curAccent }}
+          >
+            up to 4
+          </span>
+        </div>
+        <button
+          onClick={() =>
+            onNav(
+              tab === "countries"
+                ? "/dashboard/countries"
+                : "/dashboard/states",
+            )
+          }
+          className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70"
+          style={{ color: curAccent }}
+        >
+          Full explorer <ArrowRight size={10} weight="bold" />
+        </button>
+      </div>
+
+      <div className="p-5 flex flex-col gap-4">
+        {/* ── COUNTRIES TAB ─────────────────────────────────────────────── */}
+        {tab === "countries" && (
+          <>
+            {/* Selector row */}
+            <div className="flex flex-wrap items-center gap-2">
+              {selectedCountries.map((c) => (
+                <div
+                  key={c.id}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold font-sans"
+                  style={{
+                    background: accent + "12",
+                    border: `1px solid ${accent}30`,
+                    color: headText,
+                  }}
+                >
+                  <span className="text-sm leading-none">
+                    {(c as any).flag ?? c.code}
+                  </span>
+                  <span className="truncate max-w-[80px]">{c.name}</span>
+                  <button
+                    onClick={() => toggleCountry(c.id)}
+                    className="ml-0.5 hover:opacity-60 transition-opacity"
+                    style={{ color: mutedText }}
+                  >
+                    <X size={10} weight="bold" />
+                  </button>
+                </div>
+              ))}
+
+              {selectedCountryIds.length < 4 && (
+                <div className="relative" ref={countryDropRef}>
+                  <button
+                    onClick={() => setCountryDropOpen((v) => !v)}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
+                    style={{
+                      background: pillBg,
+                      border: `1px dashed ${pillBorder}`,
+                      color: accent,
+                    }}
+                  >
+                    <MagnifyingGlass size={11} weight="bold" />
+                    Add country
+                  </button>
+                  {countryDropOpen && (
+                    <div
+                      className="absolute top-full left-0 mt-1 rounded-xl overflow-hidden z-50"
+                      style={{
+                        background: isLight ? "#fff" : "#1a1730",
+                        border: `1px solid ${gridLine}`,
+                        boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+                        width: 220,
+                      }}
+                    >
+                      <div
+                        className="p-2"
+                        style={{ borderBottom: `1px solid ${gridLine}` }}
+                      >
+                        <input
+                          autoFocus
+                          type="text"
+                          placeholder="Search countries…"
+                          value={countrySearch}
+                          onChange={(e) => setCountrySearch(e.target.value)}
+                          className="w-full bg-transparent text-[11px] font-sans outline-none border-none px-2 py-1"
+                          style={{ color: bodyText }}
+                        />
+                      </div>
+                      <div className="max-h-52 overflow-y-auto">
+                        {filteredCountries.map((c) => {
+                          const isSel = selectedCountryIds.includes(c.id);
+                          return (
+                            <button
+                              key={c.id}
+                              onClick={() => {
+                                toggleCountry(c.id);
+                                setCountrySearch("");
+                                if (selectedCountryIds.length >= 3)
+                                  setCountryDropOpen(false);
+                              }}
+                              className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:opacity-75 transition-opacity"
+                              style={{
+                                background: isSel
+                                  ? accent + "12"
+                                  : "transparent",
+                                borderBottom: `1px solid ${gridLine}`,
+                              }}
+                            >
+                              <span className="text-base w-6 shrink-0">
+                                {(c as any).flag ?? c.code}
+                              </span>
+                              <span
+                                className="flex-1 text-[11px] font-sans truncate"
+                                style={{ color: headText }}
+                              >
+                                {c.name}
+                              </span>
+                              {isSel && (
+                                <CheckCircle
+                                  size={12}
+                                  weight="fill"
+                                  style={{ color: accent }}
+                                />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {selectedCountryIds.length > 0 && (
+                <button
+                  onClick={() => setSelectedCountryIds([])}
+                  className="text-[10px] font-mono transition-opacity hover:opacity-60 ml-auto"
+                  style={{ color: mutedText }}
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+
+            {selectedCountries.length === 0 && (
+              <div
+                className="rounded-xl px-4 py-6 text-center"
+                style={{
+                  background: isLight
+                    ? "rgba(0,0,0,0.025)"
+                    : "rgba(255,255,255,0.03)",
+                  border: `1px dashed ${gridLine}`,
+                }}
+              >
+                <Globe
+                  size={24}
+                  weight="duotone"
+                  style={{ color: mutedText, margin: "0 auto 8px" }}
+                />
+                <p
+                  className="text-[12px] font-sans"
+                  style={{ color: mutedText }}
+                >
+                  Add countries above to compare metrics side-by-side
+                </p>
+              </div>
+            )}
+
+            {selectedCountries.length > 0 && (
+              <div
+                className="rounded-xl overflow-hidden"
+                style={{ border: `1px solid ${gridLine}` }}
+              >
+                <div
+                  className="grid"
+                  style={{
+                    gridTemplateColumns: `clamp(100px,28%,160px) repeat(${selectedCountries.length}, 1fr)`,
+                    background: isLight
+                      ? "rgba(0,0,0,0.03)"
+                      : "rgba(255,255,255,0.04)",
+                    borderBottom: `1px solid ${gridLine}`,
+                  }}
+                >
+                  <div className="px-3 py-2.5 flex items-center">
+                    <span
+                      className="text-[9px] font-mono uppercase tracking-widest"
+                      style={{ color: mutedText }}
+                    >
+                      Metric
+                    </span>
+                  </div>
+                  {selectedCountries.map((c) => (
+                    <div
+                      key={c.id}
+                      className="px-2 py-2.5 text-center flex flex-col items-center gap-0.5"
+                    >
+                      <span className="text-lg leading-none">
+                        {(c as any).flag ?? c.code}
+                      </span>
+                      <p
+                        className="text-[10px] font-bold font-sans truncate w-full text-center"
+                        style={{ color: headText }}
+                      >
+                        {c.name.length > 12
+                          ? c.name.slice(0, 11) + "…"
+                          : c.name}
+                      </p>
+                      <span
+                        className="text-[9px] font-mono"
+                        style={{ color: mutedText }}
+                      >
+                        {c.continent}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {COMPARE_METRICS.map((m, ri) => {
+                  const bestId =
+                    selectedCountries.length >= 2
+                      ? [...selectedCountries].sort((a, b) =>
+                          m.higherBetter
+                            ? m.raw(b) - m.raw(a)
+                            : m.raw(a) - m.raw(b),
+                        )[0].id
+                      : null;
+                  const worstId =
+                    selectedCountries.length >= 2
+                      ? [...selectedCountries].sort((a, b) =>
+                          m.higherBetter
+                            ? m.raw(a) - m.raw(b)
+                            : m.raw(b) - m.raw(a),
+                        )[0].id
+                      : null;
+                  return (
+                    <div
+                      key={m.label}
+                      className="grid"
+                      style={{
+                        gridTemplateColumns: `clamp(100px,28%,160px) repeat(${selectedCountries.length}, 1fr)`,
+                        background:
+                          ri % 2 === 0
+                            ? "transparent"
+                            : isLight
+                              ? "rgba(0,0,0,0.018)"
+                              : "rgba(255,255,255,0.022)",
+                        borderBottom:
+                          ri < COMPARE_METRICS.length - 1
+                            ? `1px solid ${gridLine}`
+                            : "none",
+                      }}
+                    >
+                      <div
+                        className="px-3 py-2.5 flex items-center gap-2"
+                        style={{ borderRight: `1px solid ${gridLine}` }}
+                      >
+                        <div
+                          className="w-1.5 h-1.5 rounded-full shrink-0"
+                          style={{ background: m.color }}
+                        />
+                        <span
+                          className="text-[10px] font-mono font-semibold uppercase tracking-wide"
+                          style={{ color: mutedText }}
+                        >
+                          {m.label}
+                        </span>
+                      </div>
+                      {selectedCountries.map((c) => {
+                        const isBest = bestId === c.id;
+                        const isWorst =
+                          worstId === c.id &&
+                          selectedCountries.length >= 2 &&
+                          bestId !== worstId;
+                        const rawVal = m.raw(c);
+                        const max = Math.max(
+                          ...selectedCountries.map((x) => Math.abs(m.raw(x))),
+                        );
+                        const barPct = max > 0 ? Math.abs(rawVal) / max : 0;
+                        return (
+                          <div
+                            key={c.id}
+                            className="px-2 py-2 flex flex-col items-center justify-center gap-1"
+                          >
+                            <span
+                              className="text-[12px] font-mono font-bold leading-tight"
+                              style={{
+                                color: isBest
+                                  ? m.color
+                                  : isWorst
+                                    ? isLight
+                                      ? "rgba(30,41,59,0.45)"
+                                      : "rgba(255,255,255,0.35)"
+                                    : headText,
+                              }}
+                            >
+                              {m.get(c)}
+                              {isBest && selectedCountries.length >= 2 && (
+                                <span
+                                  className="ml-0.5 text-[8px]"
+                                  style={{ color: m.color }}
+                                >
+                                  ▲
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {selectedCountries.length >= 2 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  {
+                    label: "Highest GDP",
+                    entity: [...selectedCountries].sort(
+                      (a, b) => b.gdp - a.gdp,
+                    )[0],
+                    color: "#6366f1",
+                  },
+                  {
+                    label: "Fastest Growing",
+                    entity: [...selectedCountries].sort(
+                      (a, b) => b.gdpGrowth - a.gdpGrowth,
+                    )[0],
+                    color: "#10b981",
+                  },
+                  {
+                    label: "Lowest Unemployment",
+                    entity: [...selectedCountries].sort(
+                      (a, b) => a.unemploymentRate - b.unemploymentRate,
+                    )[0],
+                    color: "#f59e0b",
+                  },
+                  {
+                    label: "Highest HDI",
+                    entity: [...selectedCountries].sort(
+                      (a, b) =>
+                        b.humanDevelopmentIndex - a.humanDevelopmentIndex,
+                    )[0],
+                    color: "#a855f7",
+                  },
+                ].map((s) => (
+                  <div
+                    key={s.label}
+                    className="rounded-xl px-3 py-2.5 flex items-center gap-2"
+                    style={{
+                      background: s.color + "10",
+                      border: `1px solid ${s.color}20`,
+                    }}
+                  >
+                    <span className="text-xl leading-none shrink-0">
+                      {(s.entity as any).flag ?? s.entity.code}
+                    </span>
+                    <div className="min-w-0">
+                      <p
+                        className="text-[9px] font-mono uppercase tracking-wide"
+                        style={{ color: s.color }}
+                      >
+                        {s.label}
+                      </p>
+                      <p
+                        className="text-[11px] font-bold font-sans truncate"
+                        style={{ color: headText }}
+                      >
+                        {s.entity.name}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── US STATES TAB ─────────────────────────────────────────────── */}
+        {tab === "states" && (
+          <>
+            {/* Selector row */}
+            <div className="flex flex-wrap items-center gap-2">
+              {selectedStates.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold font-sans"
+                  style={{
+                    background: stateAccent + "12",
+                    border: `1px solid ${stateAccent}30`,
+                    color: headText,
+                  }}
+                >
+                  <span
+                    className="text-[10px] font-mono font-bold px-1 rounded"
+                    style={{
+                      background: stateAccent + "20",
+                      color: stateAccent,
+                    }}
+                  >
+                    {s.abbreviation}
+                  </span>
+                  <span className="truncate max-w-[80px]">{s.name}</span>
+                  <button
+                    onClick={() => toggleState(s.id)}
+                    className="ml-0.5 hover:opacity-60 transition-opacity"
+                    style={{ color: mutedText }}
+                  >
+                    <X size={10} weight="bold" />
+                  </button>
+                </div>
+              ))}
+
+              {selectedStateIds.length < 4 && (
+                <div className="relative" ref={stateDropRef}>
+                  <button
+                    onClick={() => setStateDropOpen((v) => !v)}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
+                    style={{
+                      background: pillBg,
+                      border: `1px dashed ${pillBorder}`,
+                      color: stateAccent,
+                    }}
+                  >
+                    <MagnifyingGlass size={11} weight="bold" />
+                    Add state
+                  </button>
+                  {stateDropOpen && (
+                    <div
+                      className="absolute top-full left-0 mt-1 rounded-xl overflow-hidden z-50"
+                      style={{
+                        background: isLight ? "#fff" : "#1a1730",
+                        border: `1px solid ${gridLine}`,
+                        boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+                        width: 220,
+                      }}
+                    >
+                      <div
+                        className="p-2"
+                        style={{ borderBottom: `1px solid ${gridLine}` }}
+                      >
+                        <input
+                          autoFocus
+                          type="text"
+                          placeholder="Search states…"
+                          value={stateSearch}
+                          onChange={(e) => setStateSearch(e.target.value)}
+                          className="w-full bg-transparent text-[11px] font-sans outline-none border-none px-2 py-1"
+                          style={{ color: bodyText }}
+                        />
+                      </div>
+                      <div className="max-h-52 overflow-y-auto">
+                        {filteredStates.map((st) => {
+                          const isSel = selectedStateIds.includes(st.id);
+                          return (
+                            <button
+                              key={st.id}
+                              onClick={() => {
+                                toggleState(st.id);
+                                setStateSearch("");
+                                if (selectedStateIds.length >= 3)
+                                  setStateDropOpen(false);
+                              }}
+                              className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:opacity-75 transition-opacity"
+                              style={{
+                                background: isSel
+                                  ? stateAccent + "12"
+                                  : "transparent",
+                                borderBottom: `1px solid ${gridLine}`,
+                              }}
+                            >
+                              <span
+                                className="text-[10px] font-mono font-bold w-7 shrink-0 text-center rounded"
+                                style={{
+                                  background: stateAccent + "15",
+                                  color: stateAccent,
+                                }}
+                              >
+                                {st.abbreviation}
+                              </span>
+                              <span
+                                className="flex-1 text-[11px] font-sans truncate"
+                                style={{ color: headText }}
+                              >
+                                {st.name}
+                              </span>
+                              {isSel && (
+                                <CheckCircle
+                                  size={12}
+                                  weight="fill"
+                                  style={{ color: stateAccent }}
+                                />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {selectedStateIds.length > 0 && (
+                <button
+                  onClick={() => setSelectedStateIds([])}
+                  className="text-[10px] font-mono transition-opacity hover:opacity-60 ml-auto"
+                  style={{ color: mutedText }}
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+
+            {selectedStates.length === 0 && (
+              <div
+                className="rounded-xl px-4 py-6 text-center"
+                style={{
+                  background: isLight
+                    ? "rgba(0,0,0,0.025)"
+                    : "rgba(255,255,255,0.03)",
+                  border: `1px dashed ${gridLine}`,
+                }}
+              >
+                <MapTrifold
+                  size={24}
+                  weight="duotone"
+                  style={{ color: mutedText, margin: "0 auto 8px" }}
+                />
+                <p
+                  className="text-[12px] font-sans"
+                  style={{ color: mutedText }}
+                >
+                  Add US states above to compare metrics side-by-side
+                </p>
+              </div>
+            )}
+
+            {selectedStates.length > 0 && (
+              <div
+                className="rounded-xl overflow-hidden"
+                style={{ border: `1px solid ${gridLine}` }}
+              >
+                <div
+                  className="grid"
+                  style={{
+                    gridTemplateColumns: `clamp(100px,28%,160px) repeat(${selectedStates.length}, 1fr)`,
+                    background: isLight
+                      ? "rgba(0,0,0,0.03)"
+                      : "rgba(255,255,255,0.04)",
+                    borderBottom: `1px solid ${gridLine}`,
+                  }}
+                >
+                  <div className="px-3 py-2.5 flex items-center">
+                    <span
+                      className="text-[9px] font-mono uppercase tracking-widest"
+                      style={{ color: mutedText }}
+                    >
+                      Metric
+                    </span>
+                  </div>
+                  {selectedStates.map((s) => (
+                    <div
+                      key={s.id}
+                      className="px-2 py-2.5 text-center flex flex-col items-center gap-0.5"
+                    >
+                      <span
+                        className="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded"
+                        style={{
+                          background: stateAccent + "18",
+                          color: stateAccent,
+                        }}
+                      >
+                        {s.abbreviation}
+                      </span>
+                      <p
+                        className="text-[10px] font-bold font-sans truncate w-full text-center"
+                        style={{ color: headText }}
+                      >
+                        {s.name.length > 12
+                          ? s.name.slice(0, 11) + "…"
+                          : s.name}
+                      </p>
+                      <span
+                        className="text-[9px] font-mono"
+                        style={{ color: mutedText }}
+                      >
+                        {s.region}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {STATE_COMPARE_METRICS.map((m, ri) => {
+                  const bestId =
+                    selectedStates.length >= 2
+                      ? [...selectedStates].sort((a, b) =>
+                          m.higherBetter
+                            ? m.raw(b) - m.raw(a)
+                            : m.raw(a) - m.raw(b),
+                        )[0].id
+                      : null;
+                  const worstId =
+                    selectedStates.length >= 2
+                      ? [...selectedStates].sort((a, b) =>
+                          m.higherBetter
+                            ? m.raw(a) - m.raw(b)
+                            : m.raw(b) - m.raw(a),
+                        )[0].id
+                      : null;
+                  return (
+                    <div
+                      key={m.label}
+                      className="grid"
+                      style={{
+                        gridTemplateColumns: `clamp(100px,28%,160px) repeat(${selectedStates.length}, 1fr)`,
+                        background:
+                          ri % 2 === 0
+                            ? "transparent"
+                            : isLight
+                              ? "rgba(0,0,0,0.018)"
+                              : "rgba(255,255,255,0.022)",
+                        borderBottom:
+                          ri < STATE_COMPARE_METRICS.length - 1
+                            ? `1px solid ${gridLine}`
+                            : "none",
+                      }}
+                    >
+                      <div
+                        className="px-3 py-2.5 flex items-center gap-2"
+                        style={{ borderRight: `1px solid ${gridLine}` }}
+                      >
+                        <div
+                          className="w-1.5 h-1.5 rounded-full shrink-0"
+                          style={{ background: m.color }}
+                        />
+                        <span
+                          className="text-[10px] font-mono font-semibold uppercase tracking-wide"
+                          style={{ color: mutedText }}
+                        >
+                          {m.label}
+                        </span>
+                      </div>
+                      {selectedStates.map((s) => {
+                        const isBest = bestId === s.id;
+                        const isWorst =
+                          worstId === s.id &&
+                          selectedStates.length >= 2 &&
+                          bestId !== worstId;
+                        const rawVal = m.raw(s);
+                        const max = Math.max(
+                          ...selectedStates.map((x) => Math.abs(m.raw(x))),
+                        );
+                        const barPct = max > 0 ? Math.abs(rawVal) / max : 0;
+                        return (
+                          <div
+                            key={s.id}
+                            className="px-2 py-2 flex flex-col items-center justify-center gap-1"
+                          >
+                            <span
+                              className="text-[12px] font-mono font-bold leading-tight"
+                              style={{
+                                color: isBest
+                                  ? m.color
+                                  : isWorst
+                                    ? isLight
+                                      ? "rgba(30,41,59,0.45)"
+                                      : "rgba(255,255,255,0.35)"
+                                    : headText,
+                              }}
+                            >
+                              {m.get(s)}
+                              {isBest && selectedStates.length >= 2 && (
+                                <span
+                                  className="ml-0.5 text-[8px]"
+                                  style={{ color: m.color }}
+                                >
+                                  ▲
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {selectedStates.length >= 2 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  {
+                    label: "Highest GDP",
+                    entity: [...selectedStates].sort(
+                      (a, b) => b.gdp - a.gdp,
+                    )[0],
+                    color: "#6366f1",
+                  },
+                  {
+                    label: "Lowest Unemp.",
+                    entity: [...selectedStates].sort(
+                      (a, b) => a.unemploymentRate - b.unemploymentRate,
+                    )[0],
+                    color: "#10b981",
+                  },
+                  {
+                    label: "Highest Income",
+                    entity: [...selectedStates].sort(
+                      (a, b) => b.medianIncome - a.medianIncome,
+                    )[0],
+                    color: "#f59e0b",
+                  },
+                  {
+                    label: "Best QoL",
+                    entity: [...selectedStates].sort(
+                      (a, b) => b.qualityOfLiving - a.qualityOfLiving,
+                    )[0],
+                    color: "#a855f7",
+                  },
+                ].map((s) => (
+                  <div
+                    key={s.label}
+                    className="rounded-xl px-3 py-2.5 flex items-center gap-2"
+                    style={{
+                      background: s.color + "10",
+                      border: `1px solid ${s.color}20`,
+                    }}
+                  >
+                    <span
+                      className="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0"
+                      style={{ background: s.color + "20", color: s.color }}
+                    >
+                      {s.entity.abbreviation}
+                    </span>
+                    <div className="min-w-0">
+                      <p
+                        className="text-[9px] font-mono uppercase tracking-wide"
+                        style={{ color: s.color }}
+                      >
+                        {s.label}
+                      </p>
+                      <p
+                        className="text-[11px] font-bold font-sans truncate"
+                        style={{ color: headText }}
+                      >
+                        {s.entity.name}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Pinned Section Component ─────────────────────────────────────────── */
 function PinnedSection({
   isLight,
@@ -623,24 +2126,10 @@ function PinnedSection({
 }) {
   const [editing, setEditing] = useState(false);
   const [countrySearch, setCountrySearch] = useState("");
-  const [stateSearch, setStateSearch] = useState("");
 
   const { ids: pinnedCountryIds, toggle: toggleCountry } = usePinned(
     LS_KEY_COUNTRIES,
     ["us", "cn", "de", "gb", "jp"],
-  );
-  const { ids: pinnedStateIds, toggle: toggleState } = usePinned(
-    LS_KEY_STATES,
-    ["ca", "tx", "ny", "fl", "wa"],
-  );
-
-  const pinnedCountries = useMemo(
-    () => countriesData.filter((c) => pinnedCountryIds.includes(c.id)),
-    [pinnedCountryIds],
-  );
-  const pinnedStates = useMemo(
-    () => usStatesData.filter((s) => pinnedStateIds.includes(s.id)),
-    [pinnedStateIds],
   );
 
   const filteredCountries = useMemo(
@@ -650,498 +2139,1881 @@ function PinnedSection({
       ),
     [countrySearch],
   );
-  const filteredStates = useMemo(
-    () =>
-      usStatesData.filter(
-        (s) =>
-          s.name.toLowerCase().includes(stateSearch.toLowerCase()) ||
-          s.abbreviation.toLowerCase().includes(stateSearch.toLowerCase()),
-      ),
-    [stateSearch],
-  );
 
   const accent = "#6366f1";
   const pillBg = isLight ? "rgba(99,102,241,0.07)" : "rgba(99,102,241,0.12)";
   const pillBorder = isLight
     ? "rgba(99,102,241,0.22)"
     : "rgba(99,102,241,0.28)";
-  const totalPinned = pinnedCountries.length + pinnedStates.length;
 
   /* ── Empty state ── */
-  if (totalPinned === 0 && !editing) {
-    return (
-      <div
-        className="rounded-2xl px-5 py-4 flex items-center justify-between gap-4"
-        style={{
-          background: cardBg,
-          border: cardBorder,
-          boxShadow: cardShadow,
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-            style={{
-              background: accent + "12",
-              border: `1px solid ${accent}25`,
-            }}
-          >
-            <PushPin size={16} weight="fill" style={{ color: accent }} />
-          </div>
-          <div>
-            <p
-              className="text-sm font-bold font-sans"
-              style={{ color: headText }}
-            >
-              My Dashboard
-            </p>
-            <p className="text-[11px] font-sans" style={{ color: mutedText }}>
-              Pin countries and states you follow — they&#39;ll appear here at a
-              glance.
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={() => setEditing(true)}
-          className="flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-80 shrink-0"
-          style={{
-            background: pillBg,
-            border: `1px solid ${pillBorder}`,
-            color: accent,
-          }}
-        >
-          <Pencil size={11} weight="bold" /> Customize
-        </button>
-      </div>
+  return (
+    <CompareCountriesTool
+      isLight={isLight}
+      cardBg={cardBg}
+      cardBorder={cardBorder}
+      gridLine={gridLine}
+      headText={headText}
+      mutedText={mutedText}
+      bodyText={bodyText}
+      onNav={onNav}
+    />
+  );
+}
+
+/* ─── Trending / Popular data ──────────────────────────────────────────── */
+const TRENDING_STATS = [
+  {
+    rank: 1,
+    label: "US GDP",
+    value: "$27.4T",
+    delta: "+2.8%",
+    up: true,
+    color: "#6366f1",
+    tag: "Economy",
+    views: "148k",
+  },
+  {
+    rank: 2,
+    label: "China GDP Growth",
+    value: "+4.6%",
+    delta: "vs 4.2% est.",
+    up: true,
+    color: "#ef4444",
+    tag: "Economy",
+    views: "134k",
+  },
+  {
+    rank: 3,
+    label: "Global Inflation",
+    value: "3.9%",
+    delta: "-0.7pp YoY",
+    up: false,
+    color: "#f59e0b",
+    tag: "Macro",
+    views: "121k",
+  },
+  {
+    rank: 4,
+    label: "Gaza Conflict",
+    value: "Intensity 92",
+    delta: "Escalating",
+    up: false,
+    color: "#ef4444",
+    tag: "Conflict",
+    views: "118k",
+  },
+  {
+    rank: 5,
+    label: "AI Infrastructure",
+    value: "+42%",
+    delta: "12-mo outlook",
+    up: true,
+    color: "#a855f7",
+    tag: "Sector",
+    views: "109k",
+  },
+  {
+    rank: 6,
+    label: "NATO Defense Spend",
+    value: "€1.1T",
+    delta: "Record high",
+    up: true,
+    color: "#3b82f6",
+    tag: "Policy",
+    views: "97k",
+  },
+  {
+    rank: 7,
+    label: "Brent Crude",
+    value: "$83.2",
+    delta: "+1.8%",
+    up: true,
+    color: "#f97316",
+    tag: "Commodity",
+    views: "93k",
+  },
+  {
+    rank: 8,
+    label: "India HDI",
+    value: "0.644",
+    delta: "+0.012 YoY",
+    up: true,
+    color: "#10b981",
+    tag: "Development",
+    views: "88k",
+  },
+];
+
+const TRENDING_TOPICS = [
+  { label: "US-China Trade", heat: 96, color: "#ef4444" },
+  { label: "AI Regulation", heat: 91, color: "#a855f7" },
+  { label: "Climate Finance", heat: 87, color: "#10b981" },
+  { label: "Dollar Strength", heat: 83, color: "#6366f1" },
+  { label: "Ukraine War", heat: 79, color: "#f97316" },
+  { label: "Fed Rate Path", heat: 74, color: "#f59e0b" },
+];
+
+const MOST_VIEWED_COUNTRIES = [
+  {
+    code: "us",
+    flag: "🇺🇸",
+    name: "United States",
+    views: "204k",
+    color: "#6366f1",
+  },
+  { code: "cn", flag: "🇨🇳", name: "China", views: "187k", color: "#ef4444" },
+  { code: "de", flag: "🇩🇪", name: "Germany", views: "143k", color: "#f59e0b" },
+  { code: "in", flag: "🇮🇳", name: "India", views: "138k", color: "#10b981" },
+  {
+    code: "gb",
+    flag: "🇬🇧",
+    name: "United Kingdom",
+    views: "121k",
+    color: "#3b82f6",
+  },
+];
+
+/* ─── Interactive Data Panel (Countries / Economies / Policies tabs) ──── */
+type DataTab = "trending" | "countries" | "economies" | "policies";
+
+function InteractiveDataPanel({
+  isLight,
+  cardBg,
+  cardBorder,
+  cardShadow,
+  gridLine,
+  headText,
+  mutedText,
+  bodyText,
+  topCountries,
+  onNav,
+}: {
+  isLight: boolean;
+  cardBg: string;
+  cardBorder: string;
+  cardShadow: string;
+  gridLine: string;
+  headText: string;
+  mutedText: string;
+  bodyText: string;
+  topCountries: typeof countriesData;
+  onNav: (path: string) => void;
+}) {
+  const [activeTab, setActiveTab] = useState<DataTab>("trending");
+  const [search, setSearch] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState<
+    (typeof countriesData)[0] | null
+  >(null);
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [selectedPolicy, setSelectedPolicy] = useState<number | null>(null);
+
+  // sorted all countries by GDP desc
+  const allByGDP = useMemo(
+    () => [...countriesData].sort((a, b) => b.gdp - a.gdp),
+    [],
+  );
+
+  const filteredCountries = useMemo(() => {
+    const q = search.toLowerCase();
+    return allByGDP
+      .filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          c.continent.toLowerCase().includes(q) ||
+          c.code.toLowerCase().includes(q),
+      )
+      .slice(0, 30);
+  }, [search, allByGDP]);
+
+  const filteredRegions = useMemo(() => {
+    const q = search.toLowerCase();
+    return REGION_STATS.filter((r) => r.region.toLowerCase().includes(q));
+  }, [search]);
+
+  const filteredPolicies = useMemo(() => {
+    const q = search.toLowerCase();
+    return POLICY_FEED.filter(
+      (p) =>
+        p.title.toLowerCase().includes(q) || p.tag.toLowerCase().includes(q),
     );
-  }
+  }, [search]);
+
+  const TAB_CONFIG: {
+    id: DataTab;
+    label: string;
+    icon: React.ReactNode;
+    color: string;
+    badge: string;
+  }[] = [
+    {
+      id: "trending",
+      label: "Trending",
+      icon: <Fire size={12} weight="fill" />,
+      color: "#f97316",
+      badge: "Hot",
+    },
+    {
+      id: "countries",
+      label: "Countries",
+      icon: <Globe size={12} weight="fill" />,
+      color: "#6366f1",
+      badge: `${allByGDP.length}`,
+    },
+    {
+      id: "economies",
+      label: "Economies",
+      icon: <ChartBar size={12} weight="fill" />,
+      color: "#f59e0b",
+      badge: "Blocs",
+    },
+    {
+      id: "policies",
+      label: "Policies",
+      icon: <Scales size={12} weight="fill" />,
+      color: "#a855f7",
+      badge: "1,200+",
+    },
+  ];
+
+  const curColor =
+    TAB_CONFIG.find((t) => t.id === activeTab)?.color ?? "#6366f1";
+
+  const fmtGDPShort = (b: number) =>
+    b >= 1000 ? `$${(b / 1000).toFixed(1)}T` : `$${Math.round(b)}B`;
 
   return (
     <div
-      className="rounded-2xl overflow-hidden"
+      className="flex flex-col gap-0 rounded-2xl overflow-hidden"
       style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}
     >
-      {/* ── Header bar ── */}
+      {/* ── Tab Bar ── */}
       <div
-        className="flex items-center justify-between px-5 py-3.5"
-        style={{ borderBottom: `1px solid ${gridLine}` }}
+        className="flex items-center gap-0 border-b"
+        style={{ borderColor: gridLine }}
       >
-        <div className="flex items-center gap-2.5">
-          <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+        {TAB_CONFIG.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => {
+              setActiveTab(tab.id);
+              setSearch("");
+              setSelectedCountry(null);
+              setSelectedRegion(null);
+              setSelectedPolicy(null);
+            }}
+            className="flex items-center gap-1.5 px-4 py-3 text-[11px] font-bold font-sans transition-all relative"
             style={{
-              background: accent + "12",
-              border: `1px solid ${accent}22`,
+              color: activeTab === tab.id ? tab.color : mutedText,
+              background:
+                activeTab === tab.id
+                  ? isLight
+                    ? "rgba(0,0,0,0.03)"
+                    : "rgba(255,255,255,0.04)"
+                  : "transparent",
+              borderBottom:
+                activeTab === tab.id
+                  ? `2px solid ${tab.color}`
+                  : "2px solid transparent",
+              marginBottom: -1,
             }}
           >
-            <PushPin size={13} weight="fill" style={{ color: accent }} />
-          </div>
-          <span
-            className="text-sm font-bold font-sans"
-            style={{ color: headText }}
-          >
-            My Dashboard
-          </span>
-          <span
-            className="text-[10px] font-mono px-2 py-0.5 rounded-full tabular-nums"
-            style={{ background: accent + "14", color: accent }}
-          >
-            {totalPinned} pinned
-          </span>
-        </div>
-        <button
-          onClick={() => setEditing((v) => !v)}
-          className="flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-80"
-          style={{
-            background: editing ? accent + "18" : pillBg,
-            border: `1px solid ${editing ? accent + "44" : pillBorder}`,
-            color: accent,
-          }}
-        >
-          {editing ? (
-            <>
-              <CheckCircle size={12} weight="bold" /> Done
-            </>
-          ) : (
-            <>
-              <Pencil size={11} weight="bold" /> Customize
-            </>
-          )}
-        </button>
+            <span style={{ color: tab.color }}>{tab.icon}</span>
+            {tab.label}
+            <span
+              className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
+              style={{ background: tab.color + "15", color: tab.color }}
+            >
+              {tab.badge}
+            </span>
+          </button>
+        ))}
       </div>
 
-      {/* ── Edit picker panel ── */}
-      {editing && (
+      {/* ── Search bar ── */}
+      {activeTab !== "trending" && (
         <div
-          className="grid grid-cols-1 sm:grid-cols-2 gap-px"
-          style={{ background: gridLine }}
+          className="px-4 py-2.5 border-b flex items-center gap-2"
+          style={{ borderColor: gridLine }}
         >
-          {/* Countries picker */}
-          {[
-            {
-              label: "Countries",
-              items: filteredCountries.slice(0, 40),
-              pinnedIds: pinnedCountryIds,
-              toggle: toggleCountry,
-              search: countrySearch,
-              setSearch: setCountrySearch,
-              placeholder: "Search countries…",
-              renderItem: (c: (typeof filteredCountries)[0]) => (
-                <>
+          <MagnifyingGlass size={13} style={{ color: mutedText }} />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setSelectedCountry(null);
+              setSelectedRegion(null);
+              setSelectedPolicy(null);
+            }}
+            placeholder={
+              activeTab === "countries"
+                ? "Search countries, continents…"
+                : activeTab === "economies"
+                  ? "Search regions…"
+                  : "Search policies, tags…"
+            }
+            className="flex-1 bg-transparent text-[11px] font-sans outline-none border-none"
+            style={{ color: bodyText }}
+          />
+          {search && (
+            <button onClick={() => setSearch("")} style={{ color: mutedText }}>
+              <X size={11} weight="bold" />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ── Content area ── */}
+      <div className="flex flex-1 overflow-hidden" style={{ minHeight: 340 }}>
+        {/* List column */}
+        <div
+          className="flex flex-col overflow-y-auto"
+          style={{
+            width:
+              selectedCountry ||
+              selectedRegion !== null ||
+              selectedPolicy !== null
+                ? "44%"
+                : "100%",
+            borderRight:
+              selectedCountry ||
+              selectedRegion !== null ||
+              selectedPolicy !== null
+                ? `1px solid ${gridLine}`
+                : "none",
+          }}
+        >
+          {/* ── TRENDING tab ── */}
+          {activeTab === "trending" && (
+            <>
+              {/* Hot topics bar */}
+              <div className="px-4 pt-4 pb-2">
+                <p
+                  className="text-[9px] font-mono uppercase tracking-widest mb-2.5"
+                  style={{ color: mutedText }}
+                >
+                  🔥 Hot Topics Right Now
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  {TRENDING_TOPICS.map((t) => (
+                    <div key={t.label} className="flex items-center gap-2.5">
+                      <span
+                        className="text-[10px] font-sans font-semibold w-28 shrink-0 truncate"
+                        style={{ color: headText }}
+                      >
+                        {t.label}
+                      </span>
+                      <div
+                        className="flex-1 h-2 rounded-full overflow-hidden"
+                        style={{
+                          background: isLight
+                            ? "rgba(0,0,0,0.07)"
+                            : "rgba(255,255,255,0.07)",
+                        }}
+                      >
+                        <div
+                          className="h-full rounded-full"
+                          style={{ width: `${t.heat}%`, background: t.color }}
+                        />
+                      </div>
+                      <span
+                        className="text-[9px] font-mono w-6 text-right shrink-0"
+                        style={{ color: t.color }}
+                      >
+                        {t.heat}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div
+                style={{
+                  borderTop: `1px solid ${gridLine}`,
+                  margin: "4px 16px",
+                }}
+              />
+
+              {/* Top trending stats */}
+              <div className="px-4 py-2">
+                <p
+                  className="text-[9px] font-mono uppercase tracking-widest mb-2"
+                  style={{ color: mutedText }}
+                >
+                  Most Viewed Stats This Week
+                </p>
+              </div>
+              {TRENDING_STATS.map((s, i) => (
+                <div
+                  key={s.rank}
+                  className="flex items-center gap-3 px-4 py-2.5"
+                  style={{
+                    borderBottom:
+                      i < TRENDING_STATS.length - 1
+                        ? `1px solid ${gridLine}`
+                        : "none",
+                  }}
+                >
+                  <span
+                    className="text-[10px] font-mono font-bold w-4 shrink-0 text-center"
+                    style={{ color: mutedText }}
+                  >
+                    {s.rank}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-xs font-semibold font-sans truncate"
+                      style={{ color: headText }}
+                    >
+                      {s.label}
+                    </p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span
+                        className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
+                        style={{ background: s.color + "15", color: s.color }}
+                      >
+                        {s.tag}
+                      </span>
+                      <span
+                        className="text-[10px] font-mono"
+                        style={{ color: mutedText }}
+                      >
+                        {s.delta}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p
+                      className="text-[12px] font-bold font-mono"
+                      style={{ color: s.up ? "#10b981" : "#ef4444" }}
+                    >
+                      {s.value}
+                    </p>
+                    <p
+                      className="text-[9px] font-mono"
+                      style={{ color: mutedText }}
+                    >
+                      {s.views} views
+                    </p>
+                  </div>
+                </div>
+              ))}
+
+              {/* Divider */}
+              <div
+                style={{
+                  borderTop: `1px solid ${gridLine}`,
+                  margin: "4px 16px",
+                }}
+              />
+
+              {/* Most viewed countries */}
+              <div className="px-4 py-2">
+                <p
+                  className="text-[9px] font-mono uppercase tracking-widest mb-2"
+                  style={{ color: mutedText }}
+                >
+                  Most Viewed Countries
+                </p>
+              </div>
+              {MOST_VIEWED_COUNTRIES.map((c, i) => (
+                <button
+                  key={c.code}
+                  onClick={() => onNav("/dashboard/countries")}
+                  className="flex items-center gap-3 px-4 py-2 w-full text-left hover:opacity-80 transition-opacity"
+                  style={{
+                    borderBottom:
+                      i < MOST_VIEWED_COUNTRIES.length - 1
+                        ? `1px solid ${gridLine}`
+                        : "none",
+                  }}
+                >
+                  <span
+                    className="text-[10px] font-mono font-bold w-4 shrink-0 text-center"
+                    style={{ color: mutedText }}
+                  >
+                    #{i + 1}
+                  </span>
                   <span className="text-base w-6 shrink-0">{c.flag}</span>
                   <span
-                    className="flex-1 text-[11px] font-sans truncate"
+                    className="flex-1 text-xs font-semibold font-sans truncate"
                     style={{ color: headText }}
                   >
                     {c.name}
                   </span>
-                </>
-              ),
-            },
-            {
-              label: "US States",
-              items: filteredStates as typeof filteredCountries,
-              pinnedIds: pinnedStateIds,
-              toggle: toggleState,
-              search: stateSearch,
-              setSearch: setStateSearch,
-              placeholder: "Search states…",
-              renderItem: (item: (typeof filteredStates)[0]) => {
-                const s = item as (typeof filteredStates)[0];
-                return (
-                  <>
-                    <span
-                      className="text-[9px] font-mono font-bold w-7 text-center rounded-md py-0.5 shrink-0"
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <div
+                      className="w-12 h-1 rounded-full overflow-hidden"
                       style={{
                         background: isLight
-                          ? "rgba(59,130,246,0.1)"
-                          : "rgba(147,197,253,0.1)",
-                        color: isLight ? "#3b82f6" : "#93c5fd",
+                          ? "rgba(0,0,0,0.07)"
+                          : "rgba(255,255,255,0.07)",
                       }}
                     >
-                      {(s as any).abbreviation}
-                    </span>
-                    <span
-                      className="flex-1 text-[11px] font-sans truncate"
-                      style={{ color: headText }}
-                    >
-                      {s.name}
-                    </span>
-                  </>
-                );
-              },
-            },
-          ].map((col) => (
-            <div
-              key={col.label}
-              className="px-4 py-4"
-              style={{
-                background: isLight
-                  ? "rgba(0,0,0,0.015)"
-                  : "rgba(255,255,255,0.025)",
-              }}
-            >
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest mb-3"
-                style={{ color: mutedText }}
-              >
-                {col.label}
-              </p>
-              {/* Search */}
-              <div
-                className="flex items-center gap-2 rounded-lg px-3 py-2 mb-3"
-                style={{
-                  background: isLight
-                    ? "rgba(255,255,255,0.8)"
-                    : "rgba(255,255,255,0.05)",
-                  border: `1px solid ${gridLine}`,
-                }}
-              >
-                <MagnifyingGlass
-                  size={12}
-                  style={{ color: mutedText, flexShrink: 0 }}
-                />
-                <input
-                  type="text"
-                  placeholder={col.placeholder}
-                  value={col.search}
-                  onChange={(e) => col.setSearch(e.target.value)}
-                  className="flex-1 bg-transparent text-[11px] font-sans outline-none border-none"
-                  style={{ color: bodyText }}
-                />
-              </div>
-              {/* List */}
-              <div className="flex flex-col max-h-52 overflow-y-auto -mx-1 px-1">
-                {col.items.map((item) => {
-                  const pinned = col.pinnedIds.includes(item.id);
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => col.toggle(item.id)}
-                      className="flex items-center gap-2.5 py-2 text-left transition-opacity hover:opacity-75 rounded-lg px-1"
-                      style={{ borderBottom: `1px solid ${gridLine}` }}
-                    >
-                      {col.renderItem(item)}
-                      <span
-                        className="shrink-0 w-5 h-5 rounded-md flex items-center justify-center transition-all"
+                      <div
+                        className="h-full rounded-full"
                         style={{
-                          background: pinned ? accent + "15" : "transparent",
-                          color: pinned ? accent : mutedText,
+                          width: `${Math.round((parseInt(c.views) / 204) * 100)}%`,
+                          background: c.color,
                         }}
-                      >
-                        {pinned ? (
-                          <PushPin size={11} weight="fill" />
-                        ) : (
-                          <PushPinSlash size={11} />
-                        )}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+                      />
+                    </div>
+                    <span
+                      className="text-[9px] font-mono w-10 text-right"
+                      style={{ color: mutedText }}
+                    >
+                      {c.views}
+                    </span>
+                  </div>
+                </button>
+              ))}
 
-      {/* ── Pinned cards grid ── */}
-      <div className="p-5 flex flex-col gap-5">
-        {/* Countries */}
-        {pinnedCountries.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest"
-                style={{ color: mutedText }}
-              >
-                Countries
-              </p>
-              <button
-                onClick={() => onNav("/dashboard/countries")}
-                className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70"
-                style={{ color: accent }}
-              >
-                View all <ArrowRight size={10} weight="bold" />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
-              {pinnedCountries.map((c) => {
+              {/* Macro signals strip */}
+              <div
+                style={{
+                  borderTop: `1px solid ${gridLine}`,
+                  margin: "4px 16px",
+                }}
+              />
+              <div className="px-4 py-3">
+                <p
+                  className="text-[9px] font-mono uppercase tracking-widest mb-2"
+                  style={{ color: mutedText }}
+                >
+                  Key Macro Signals
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  {MACRO_SIGNALS.map((m) => (
+                    <div
+                      key={m.label}
+                      className="flex items-center justify-between"
+                    >
+                      <span
+                        className="text-[10px] font-sans"
+                        style={{ color: mutedText }}
+                      >
+                        {m.label}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="text-[11px] font-mono font-bold"
+                          style={{ color: headText }}
+                        >
+                          {m.value}
+                        </span>
+                        <span
+                          className="text-[10px] font-mono"
+                          style={{
+                            color: m.neutral
+                              ? mutedText
+                              : m.up
+                                ? "#10b981"
+                                : "#ef4444",
+                          }}
+                        >
+                          {m.delta}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ── COUNTRIES tab ── */}
+          {activeTab === "countries" && (
+            <>
+              {/* World GDP sparkline mini */}
+              <div className="px-4 pt-3 pb-1">
+                <p
+                  className="text-[9px] font-mono uppercase tracking-widest mb-1.5"
+                  style={{ color: mutedText }}
+                >
+                  World GDP Trend
+                </p>
+                <ResponsiveContainer width="100%" height={52}>
+                  <AreaChart
+                    data={WORLD_GDP_SERIES}
+                    margin={{ top: 2, right: 2, left: -20, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient
+                        id="miniWorldGdp"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#6366f1"
+                          stopOpacity={0.35}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#6366f1"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="year"
+                      tick={{
+                        fontSize: 8,
+                        fill: mutedText,
+                        fontFamily: "monospace",
+                      }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: isLight ? "#fff" : "#1a1730",
+                        border: `1px solid ${gridLine}`,
+                        borderRadius: 8,
+                        fontSize: 10,
+                        fontFamily: "monospace",
+                        color: headText,
+                      }}
+                      formatter={(v: number) => [`$${v}T`, "GDP"]}
+                      labelStyle={{ color: mutedText }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="gdp"
+                      stroke="#6366f1"
+                      fill="url(#miniWorldGdp)"
+                      strokeWidth={1.5}
+                      dot={false}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+                <SourceLink sources={SRC_DASH_ECONOMY} className="mt-1" />
+              </div>
+              <div className="px-4 pt-2 pb-1">
+                <p
+                  className="text-[9px] font-mono uppercase tracking-widest"
+                  style={{ color: mutedText }}
+                >
+                  {search
+                    ? `${filteredCountries.length} results`
+                    : "Top countries by GDP"}
+                </p>
+              </div>
+              {filteredCountries.map((c, i) => {
+                const isSelected = selectedCountry?.id === c.id;
                 const gdpUp = c.gdpGrowth >= 0;
                 return (
                   <button
                     key={c.id}
-                    onClick={() => onNav("/dashboard/countries")}
-                    className="rounded-xl p-3 text-left flex flex-col gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] relative group"
+                    onClick={() => setSelectedCountry(isSelected ? null : c)}
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-left transition-all hover:opacity-90"
+                    style={{
+                      borderBottom: `1px solid ${gridLine}`,
+                      background: isSelected
+                        ? isLight
+                          ? "rgba(99,102,241,0.07)"
+                          : "rgba(99,102,241,0.12)"
+                        : "transparent",
+                    }}
+                  >
+                    <span className="text-base w-6 shrink-0">
+                      {(c as any).flag ?? c.code}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className="text-xs font-semibold font-sans truncate"
+                        style={{ color: headText }}
+                      >
+                        {c.name}
+                      </p>
+                      <p
+                        className="text-[10px] font-mono"
+                        style={{ color: mutedText }}
+                      >
+                        {c.continent}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p
+                        className="text-[11px] font-mono font-bold"
+                        style={{ color: headText }}
+                      >
+                        {fmtGDPShort(c.gdp)}
+                      </p>
+                      <p
+                        className="text-[10px] font-mono"
+                        style={{ color: gdpUp ? "#10b981" : "#ef4444" }}
+                      >
+                        {gdpUp ? "+" : ""}
+                        {c.gdpGrowth}%
+                      </p>
+                    </div>
+                    <ArrowRight
+                      size={10}
+                      weight="bold"
+                      style={{
+                        color: isSelected ? curColor : mutedText,
+                        flexShrink: 0,
+                      }}
+                    />
+                  </button>
+                );
+              })}
+              {filteredCountries.length === 0 && (
+                <div className="px-4 py-8 text-center">
+                  <p
+                    className="text-[11px] font-sans"
+                    style={{ color: mutedText }}
+                  >
+                    No countries match &#34;{search}&#34;
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ── ECONOMIES tab ── */}
+          {activeTab === "economies" && (
+            <>
+              <div className="grid grid-cols-2 gap-2 p-4">
+                {[
+                  {
+                    label: "World GDP",
+                    value: "$105.4T",
+                    delta: "+1.8%",
+                    color: "#6366f1",
+                  },
+                  {
+                    label: "Trade Volume",
+                    value: "$32.1T",
+                    delta: "+2.3%",
+                    color: "#10b981",
+                  },
+                  {
+                    label: "FDI Flows",
+                    value: "$1.37T",
+                    delta: "-4.1%",
+                    color: "#ef4444",
+                  },
+                  {
+                    label: "Debt/GDP",
+                    value: "93.4%",
+                    delta: "+0.6pp",
+                    color: "#f59e0b",
+                  },
+                ].map((m) => (
+                  <div
+                    key={m.label}
+                    className="rounded-xl px-3 py-2.5"
                     style={{
                       background: isLight
-                        ? "rgba(0,0,0,0.025)"
+                        ? "rgba(0,0,0,0.03)"
                         : "rgba(255,255,255,0.04)",
                       border: `1px solid ${gridLine}`,
                     }}
                   >
-                    {/* Remove button */}
-                    {editing && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleCountry(c.id);
-                        }}
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 rounded-full flex items-center justify-center"
-                        style={{ background: "#ef444420", color: "#ef4444" }}
-                      >
-                        <X size={9} weight="bold" />
-                      </button>
-                    )}
-                    {/* Flag + name */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl leading-none shrink-0">
-                        {c.flag}
-                      </span>
-                      <div className="min-w-0">
-                        <p
-                          className="text-[11px] font-bold font-sans truncate leading-tight"
-                          style={{ color: headText }}
-                        >
-                          {c.name}
-                        </p>
-                        <p
-                          className="text-[9px] font-mono truncate"
-                          style={{ color: mutedText }}
-                        >
-                          {c.region}
-                        </p>
-                      </div>
-                    </div>
-                    {/* Stats row */}
-                    <div
-                      className="flex items-center justify-between pt-2"
-                      style={{ borderTop: `1px solid ${gridLine}` }}
+                    <p
+                      className="text-[9px] font-sans"
+                      style={{ color: mutedText }}
                     >
-                      <div>
-                        <p
-                          className="text-[9px] font-mono"
-                          style={{ color: mutedText }}
-                        >
-                          GDP growth
-                        </p>
-                        <div className="flex items-center gap-0.5 mt-0.5">
-                          {gdpUp ? (
-                            <TrendUp size={10} weight="fill" color="#10b981" />
-                          ) : (
-                            <TrendDown
-                              size={10}
-                              weight="fill"
-                              color="#ef4444"
-                            />
-                          )}
-                          <span
-                            className="text-[11px] font-mono font-semibold"
-                            style={{ color: gdpUp ? "#10b981" : "#ef4444" }}
-                          >
-                            {gdpUp ? "+" : ""}
-                            {c.gdpGrowth}%
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p
-                          className="text-[9px] font-mono"
-                          style={{ color: mutedText }}
-                        >
-                          Unemp.
-                        </p>
-                        <span
-                          className="text-[11px] font-mono font-semibold"
-                          style={{
-                            color:
-                              c.unemploymentRate < 5 ? "#10b981" : "#f59e0b",
-                          }}
-                        >
-                          {c.unemploymentRate.toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* States */}
-        {pinnedStates.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest"
-                style={{ color: mutedText }}
-              >
-                US States
-              </p>
-              <button
-                onClick={() => onNav("/dashboard/states")}
-                className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70"
-                style={{ color: "#3b82f6" }}
-              >
-                View all <ArrowRight size={10} weight="bold" />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
-              {pinnedStates.map((s) => {
-                const unempGood = s.unemploymentRate < 4;
+                      {m.label}
+                    </p>
+                    <p
+                      className="text-base font-bold font-mono"
+                      style={{ color: headText }}
+                    >
+                      {m.value}
+                    </p>
+                    <p
+                      className="text-[10px] font-mono"
+                      style={{ color: m.color }}
+                    >
+                      {m.delta}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <SourceLink sources={SRC_DASH_ECONOMY} className="px-4 mb-2" />
+              <div className="px-4 pb-1">
+                <p
+                  className="text-[9px] font-mono uppercase tracking-widest"
+                  style={{ color: mutedText }}
+                >
+                  Regional GDP
+                </p>
+              </div>
+              {filteredRegions.map((r, i) => {
+                const isSelected = selectedRegion === r.region;
                 return (
                   <button
-                    key={s.id}
-                    onClick={() => onNav("/dashboard/states")}
-                    className="rounded-xl p-3 text-left flex flex-col gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] relative group"
+                    key={r.region}
+                    onClick={() =>
+                      setSelectedRegion(isSelected ? null : r.region)
+                    }
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-left transition-all hover:opacity-90"
                     style={{
-                      background: isLight
-                        ? "rgba(0,0,0,0.025)"
-                        : "rgba(255,255,255,0.04)",
-                      border: `1px solid ${gridLine}`,
+                      borderBottom: `1px solid ${gridLine}`,
+                      background: isSelected
+                        ? isLight
+                          ? "rgba(245,158,11,0.07)"
+                          : "rgba(245,158,11,0.12)"
+                        : "transparent",
                     }}
                   >
-                    {editing && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleState(s.id);
-                        }}
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 rounded-full flex items-center justify-center"
-                        style={{ background: "#ef444420", color: "#ef4444" }}
-                      >
-                        <X size={9} weight="bold" />
-                      </button>
-                    )}
-                    {/* Abbr + name */}
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="text-[10px] font-mono font-bold w-8 text-center rounded-md py-0.5 shrink-0"
-                        style={{
-                          background: isLight
-                            ? "rgba(59,130,246,0.12)"
-                            : "rgba(147,197,253,0.12)",
-                          color: isLight ? "#3b82f6" : "#93c5fd",
-                        }}
-                      >
-                        {s.abbreviation}
-                      </span>
-                      <div className="min-w-0">
-                        <p
-                          className="text-[11px] font-bold font-sans truncate leading-tight"
-                          style={{ color: headText }}
-                        >
-                          {s.name}
-                        </p>
-                        <p
-                          className="text-[9px] font-mono truncate"
-                          style={{ color: mutedText }}
-                        >
-                          {s.region}
-                        </p>
-                      </div>
-                    </div>
-                    {/* Stats row */}
                     <div
-                      className="flex items-center justify-between pt-2"
-                      style={{ borderTop: `1px solid ${gridLine}` }}
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ background: r.up ? "#10b981" : "#ef4444" }}
+                    />
+                    <p
+                      className="flex-1 text-xs font-semibold font-sans truncate"
+                      style={{ color: headText }}
                     >
-                      <div>
-                        <p
-                          className="text-[9px] font-mono"
-                          style={{ color: mutedText }}
-                        >
-                          Unemp.
-                        </p>
-                        <span
-                          className="text-[11px] font-mono font-semibold"
-                          style={{ color: unempGood ? "#10b981" : "#f59e0b" }}
-                        >
-                          {s.unemploymentRate}%
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <p
-                          className="text-[9px] font-mono"
-                          style={{ color: mutedText }}
-                        >
-                          GDP
-                        </p>
-                        <span
-                          className="text-[11px] font-mono font-semibold"
-                          style={{ color: headText }}
-                        >
-                          {fmtB(s.gdp)}
-                        </span>
-                      </div>
-                    </div>
+                      {r.region}
+                    </p>
+                    <span
+                      className="text-[11px] font-mono shrink-0"
+                      style={{ color: headText }}
+                    >
+                      {r.gdp}
+                    </span>
+                    <span
+                      className="text-[11px] font-mono shrink-0 w-12 text-right"
+                      style={{ color: r.up ? "#10b981" : "#ef4444" }}
+                    >
+                      {r.growth}
+                    </span>
+                    <ArrowRight
+                      size={10}
+                      weight="bold"
+                      style={{
+                        color: isSelected ? "#f59e0b" : mutedText,
+                        flexShrink: 0,
+                      }}
+                    />
                   </button>
                 );
               })}
-            </div>
+              {filteredRegions.length === 0 && (
+                <div className="px-4 py-8 text-center">
+                  <p
+                    className="text-[11px] font-sans"
+                    style={{ color: mutedText }}
+                  >
+                    No regions match &#34;{search}&#34;
+                  </p>
+                </div>
+              )}
+              {/* Inflation chart */}
+              <div className="px-4 pt-4 pb-2">
+                <p
+                  className="text-[9px] font-mono uppercase tracking-widest mb-2"
+                  style={{ color: mutedText }}
+                >
+                  Inflation Trend
+                </p>
+                <ResponsiveContainer width="100%" height={80}>
+                  <LineChart
+                    data={INFLATION_DATA}
+                    margin={{ top: 2, right: 4, left: -22, bottom: 0 }}
+                  >
+                    <CartesianGrid stroke={gridLine} strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="year"
+                      tick={{
+                        fontSize: 8,
+                        fill: mutedText,
+                        fontFamily: "monospace",
+                      }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{
+                        fontSize: 8,
+                        fill: mutedText,
+                        fontFamily: "monospace",
+                      }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(v) => `${v}%`}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: isLight ? "#fff" : "#1a1730",
+                        border: `1px solid ${gridLine}`,
+                        borderRadius: 8,
+                        fontSize: 10,
+                        fontFamily: "monospace",
+                        color: headText,
+                      }}
+                      formatter={(v: number, n: string) => [
+                        `${v}%`,
+                        n === "g20" ? "G20" : "Advanced",
+                      ]}
+                      labelStyle={{ color: mutedText }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="g20"
+                      stroke="#f59e0b"
+                      strokeWidth={1.5}
+                      dot={false}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="adv"
+                      stroke="#3b82f6"
+                      strokeWidth={1.5}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+                <div className="flex items-center gap-4 mt-1">
+                  {[
+                    { label: "G20", color: "#f59e0b" },
+                    { label: "Advanced", color: "#3b82f6" },
+                  ].map((l) => (
+                    <div key={l.label} className="flex items-center gap-1">
+                      <div
+                        className="w-3 h-0.5 rounded-full"
+                        style={{ background: l.color }}
+                      />
+                      <span
+                        className="text-[9px] font-mono"
+                        style={{ color: mutedText }}
+                      >
+                        {l.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ── POLICIES tab ── */}
+          {activeTab === "policies" && (
+            <>
+              <div className="grid grid-cols-3 gap-2 p-4">
+                {[
+                  { label: "Climate", count: "312", color: "#10b981" },
+                  { label: "Trade", count: "248", color: "#3b82f6" },
+                  { label: "Defense", count: "189", color: "#ef4444" },
+                  { label: "Tech", count: "142", color: "#6366f1" },
+                  { label: "Energy", count: "98", color: "#f59e0b" },
+                  { label: "Labor", count: "211", color: "#a855f7" },
+                ].map((c) => (
+                  <button
+                    key={c.label}
+                    onClick={() => setSearch(c.label)}
+                    className="rounded-xl px-2 py-2 text-center transition-all hover:opacity-80"
+                    style={{
+                      background: c.color + "10",
+                      border: `1px solid ${c.color}20`,
+                    }}
+                  >
+                    <p
+                      className="text-sm font-bold font-mono"
+                      style={{ color: c.color }}
+                    >
+                      {c.count}
+                    </p>
+                    <p
+                      className="text-[9px] font-sans"
+                      style={{ color: mutedText }}
+                    >
+                      {c.label}
+                    </p>
+                  </button>
+                ))}
+              </div>
+              <SourceLink sources={SRC_DASH_POLICIES} className="px-4 mb-2" />
+              <div className="px-4 pb-1">
+                <p
+                  className="text-[9px] font-mono uppercase tracking-widest"
+                  style={{ color: mutedText }}
+                >
+                  {search
+                    ? `${filteredPolicies.length} results`
+                    : "Recent policies"}
+                </p>
+              </div>
+              {filteredPolicies.map((p, i) => {
+                const isSelected = selectedPolicy === i;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setSelectedPolicy(isSelected ? null : i)}
+                    className="flex items-start gap-3 px-4 py-3 text-left transition-all hover:opacity-90"
+                    style={{
+                      borderBottom: `1px solid ${gridLine}`,
+                      background: isSelected
+                        ? isLight
+                          ? "rgba(168,85,247,0.06)"
+                          : "rgba(168,85,247,0.1)"
+                        : "transparent",
+                    }}
+                  >
+                    <div
+                      className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                      style={{ background: p.color + "18", color: p.color }}
+                    >
+                      <Scales size={11} weight="fill" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className="text-xs font-semibold font-sans leading-snug"
+                        style={{ color: headText }}
+                      >
+                        {p.title}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span
+                          className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
+                          style={{ background: p.color + "15", color: p.color }}
+                        >
+                          {p.tag}
+                        </span>
+                        <span
+                          className="text-[10px] font-mono"
+                          style={{ color: mutedText }}
+                        >
+                          {p.date}
+                        </span>
+                      </div>
+                    </div>
+                    <ArrowRight
+                      size={10}
+                      weight="bold"
+                      style={{
+                        color: isSelected ? "#a855f7" : mutedText,
+                        flexShrink: 0,
+                        marginTop: 4,
+                      }}
+                    />
+                  </button>
+                );
+              })}
+              {filteredPolicies.length === 0 && (
+                <div className="px-4 py-8 text-center">
+                  <p
+                    className="text-[11px] font-sans"
+                    style={{ color: mutedText }}
+                  >
+                    No policies match &#34;{search}&#34;
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Detail panel */}
+        {(selectedCountry ||
+          selectedRegion !== null ||
+          selectedPolicy !== null) && (
+          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 animate-fade-in">
+            {/* ── Country detail ── */}
+            {activeTab === "countries" &&
+              selectedCountry &&
+              (() => {
+                const c = selectedCountry;
+                const gdpUp = c.gdpGrowth >= 0;
+                return (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">
+                          {(c as any).flag ?? c.code}
+                        </span>
+                        <div>
+                          <p
+                            className="text-sm font-bold font-sans"
+                            style={{ color: headText }}
+                          >
+                            {c.name}
+                          </p>
+                          <p
+                            className="text-[10px] font-mono"
+                            style={{ color: mutedText }}
+                          >
+                            {c.continent} · {c.governmentType}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setSelectedCountry(null)}
+                        style={{ color: mutedText }}
+                      >
+                        <X size={13} weight="bold" />
+                      </button>
+                    </div>
+                    {/* Flag */}
+                    <div className="rounded-xl overflow-hidden h-20 relative">
+                      <img
+                        src={`https://flagcdn.com/w640/${c.code.toLowerCase()}.png`}
+                        alt={c.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          background:
+                            "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.5))",
+                        }}
+                      />
+                      <div className="absolute bottom-2 left-3">
+                        <span className="text-white text-[10px] font-mono font-bold">
+                          {c.capital}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Key stats */}
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {[
+                        {
+                          label: "GDP",
+                          value: fmtGDPShort(c.gdp),
+                          color: "#6366f1",
+                        },
+                        {
+                          label: "Growth",
+                          value: `${gdpUp ? "+" : ""}${c.gdpGrowth}%`,
+                          color: gdpUp ? "#10b981" : "#ef4444",
+                        },
+                        {
+                          label: "GDP/Capita",
+                          value: `$${c.gdpPerCapita.toLocaleString()}`,
+                          color: "#3b82f6",
+                        },
+                        {
+                          label: "Inflation",
+                          value: `${c.inflationRate}%`,
+                          color: c.inflationRate > 6 ? "#ef4444" : "#f59e0b",
+                        },
+                        {
+                          label: "Unemployment",
+                          value: `${c.unemploymentRate.toFixed(1)}%`,
+                          color: c.unemploymentRate < 5 ? "#10b981" : "#f59e0b",
+                        },
+                        {
+                          label: "HDI",
+                          value: c.humanDevelopmentIndex.toFixed(3),
+                          color:
+                            c.humanDevelopmentIndex >= 0.8
+                              ? "#10b981"
+                              : c.humanDevelopmentIndex >= 0.65
+                                ? "#f59e0b"
+                                : "#ef4444",
+                        },
+                      ].map((m) => (
+                        <div
+                          key={m.label}
+                          className="rounded-lg px-2.5 py-2"
+                          style={{
+                            background: isLight
+                              ? "rgba(0,0,0,0.03)"
+                              : "rgba(255,255,255,0.04)",
+                            border: `1px solid ${gridLine}`,
+                          }}
+                        >
+                          <p
+                            className="text-[9px] font-mono"
+                            style={{ color: mutedText }}
+                          >
+                            {m.label}
+                          </p>
+                          <p
+                            className="text-sm font-bold font-mono"
+                            style={{ color: m.color }}
+                          >
+                            {m.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    {/* GDP trend sparkline */}
+                    {c.trends && c.trends.length > 0 && (
+                      <>
+                        <p
+                          className="text-[9px] font-mono uppercase tracking-widest"
+                          style={{ color: mutedText }}
+                        >
+                          GDP Trend
+                        </p>
+                        <ResponsiveContainer width="100%" height={60}>
+                          <AreaChart
+                            data={c.trends}
+                            margin={{ top: 2, right: 2, left: -28, bottom: 0 }}
+                          >
+                            <defs>
+                              <linearGradient
+                                id={`ctrySpark-${c.id}`}
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                              >
+                                <stop
+                                  offset="0%"
+                                  stopColor="#6366f1"
+                                  stopOpacity={0.35}
+                                />
+                                <stop
+                                  offset="100%"
+                                  stopColor="#6366f1"
+                                  stopOpacity={0}
+                                />
+                              </linearGradient>
+                            </defs>
+                            <XAxis
+                              dataKey="year"
+                              tick={{
+                                fontSize: 8,
+                                fill: mutedText,
+                                fontFamily: "monospace",
+                              }}
+                              axisLine={false}
+                              tickLine={false}
+                            />
+                            <YAxis
+                              tick={{
+                                fontSize: 8,
+                                fill: mutedText,
+                                fontFamily: "monospace",
+                              }}
+                              axisLine={false}
+                              tickLine={false}
+                              tickFormatter={(v) =>
+                                `$${v >= 1000 ? (v / 1000).toFixed(0) + "T" : v + "B"}`
+                              }
+                            />
+                            <Tooltip
+                              contentStyle={{
+                                background: isLight ? "#fff" : "#1a1730",
+                                border: `1px solid ${gridLine}`,
+                                borderRadius: 8,
+                                fontSize: 10,
+                                color: headText,
+                              }}
+                              formatter={(v: number) => [
+                                v >= 1000
+                                  ? `$${(v / 1000).toFixed(1)}T`
+                                  : `$${v}B`,
+                                "GDP",
+                              ]}
+                              labelStyle={{ color: mutedText }}
+                            />
+                            <Area
+                              type="monotone"
+                              dataKey="gdp"
+                              stroke="#6366f1"
+                              fill={`url(#ctrySpark-${c.id})`}
+                              strokeWidth={1.5}
+                              dot={false}
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </>
+                    )}
+                    {/* Industries */}
+                    {c.keyIndustries && c.keyIndustries.length > 0 && (
+                      <>
+                        <p
+                          className="text-[9px] font-mono uppercase tracking-widest"
+                          style={{ color: mutedText }}
+                        >
+                          Key Industries
+                        </p>
+                        <div className="flex flex-col gap-1">
+                          {c.keyIndustries.slice(0, 4).map((ind) => (
+                            <div
+                              key={ind.name}
+                              className="flex items-center gap-2"
+                            >
+                              <span
+                                className="text-[10px] font-sans truncate flex-1"
+                                style={{ color: headText }}
+                              >
+                                {ind.name}
+                              </span>
+                              <div
+                                className="w-16 h-1.5 rounded-full overflow-hidden"
+                                style={{
+                                  background: isLight
+                                    ? "rgba(0,0,0,0.07)"
+                                    : "rgba(255,255,255,0.08)",
+                                }}
+                              >
+                                <div
+                                  className="h-full rounded-full"
+                                  style={{
+                                    width: `${ind.gdpShare}%`,
+                                    background: ind.color,
+                                  }}
+                                />
+                              </div>
+                              <span
+                                className="text-[9px] font-mono w-6 text-right shrink-0"
+                                style={{ color: mutedText }}
+                              >
+                                {ind.gdpShare}%
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                    {/* Head of state */}
+                    <div
+                      className="rounded-lg px-3 py-2"
+                      style={{
+                        background: isLight
+                          ? "rgba(99,102,241,0.05)"
+                          : "rgba(99,102,241,0.1)",
+                        border: `1px solid ${gridLine}`,
+                      }}
+                    >
+                      <p
+                        className="text-[9px] font-mono uppercase tracking-widest mb-0.5"
+                        style={{ color: "#6366f1" }}
+                      >
+                        Head of State
+                      </p>
+                      <p
+                        className="text-[11px] font-sans font-semibold"
+                        style={{ color: headText }}
+                      >
+                        {c.headOfState}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => onNav("/dashboard/countries")}
+                      className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-[11px] font-bold transition-all hover:opacity-80"
+                      style={{
+                        background: "#6366f118",
+                        color: "#6366f1",
+                        border: "1px solid #6366f125",
+                      }}
+                    >
+                      Full Profile <ArrowRight size={11} weight="bold" />
+                    </button>
+                  </>
+                );
+              })()}
+
+            {/* ── Region detail ── */}
+            {activeTab === "economies" &&
+              selectedRegion !== null &&
+              (() => {
+                const r = REGION_STATS.find((x) => x.region === selectedRegion);
+                if (!r) return null;
+                const regionMap: Record<string, string[]> = {
+                  "North America": ["North America"],
+                  "European Union": ["Europe"],
+                  "Asia-Pacific": ["Asia", "Oceania"],
+                  "Middle East": ["Asia"],
+                  "Sub-Saharan Africa": ["Africa"],
+                  "Latin America": ["South America"],
+                };
+                const topInRegion = countriesData
+                  .filter((c) => regionMap[r.region]?.includes(c.continent))
+                  .sort((a, b) => b.gdp - a.gdp)
+                  .slice(0, 5);
+
+                // Pull economies data for this region's countries to aggregate upcoming industries + funding
+                const ecoIds = topInRegion.map((c) => c.id);
+                const regionEconomies = economiesData.filter((e) =>
+                  ecoIds.some(
+                    (id) =>
+                      e.id.startsWith(id.replace(/-/g, "").toLowerCase()) ||
+                      e.name
+                        .toLowerCase()
+                        .includes(
+                          topInRegion
+                            .find((x) => x.id === id)
+                            ?.name.toLowerCase() ?? "",
+                        ),
+                  ),
+                );
+                // Collect all upcoming industries across region economies
+                const allUpcoming = regionEconomies
+                  .flatMap((e) => e.upcomingIndustries ?? [])
+                  .reduce<
+                    {
+                      name: string;
+                      growth: string;
+                      color: string;
+                      pct: number;
+                    }[]
+                  >((acc, ind) => {
+                    const existing = acc.find((x) => x.name === ind.name);
+                    const pct =
+                      parseInt(ind.growth.replace(/[^0-9]/g, ""), 10) || 0;
+                    if (!existing) acc.push({ ...ind, pct });
+                    else if (pct > existing.pct) {
+                      existing.growth = ind.growth;
+                      existing.pct = pct;
+                      existing.color = ind.color;
+                    }
+                    return acc;
+                  }, [])
+                  .sort((a, b) => b.pct - a.pct)
+                  .slice(0, 4);
+
+                const totalFunding = regionEconomies.reduce(
+                  (s, e) => s + (e.fundingRaisedB ?? 0),
+                  0,
+                );
+
+                return (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p
+                          className="text-sm font-bold font-sans"
+                          style={{ color: headText }}
+                        >
+                          {r.region}
+                        </p>
+                        <p
+                          className="text-[10px] font-mono"
+                          style={{ color: mutedText }}
+                        >
+                          Regional Economy
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setSelectedRegion(null)}
+                        style={{ color: mutedText }}
+                      >
+                        <X size={13} weight="bold" />
+                      </button>
+                    </div>
+
+                    {/* KPI row */}
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {[
+                        { label: "Total GDP", value: r.gdp, color: "#f59e0b" },
+                        {
+                          label: "Growth",
+                          value: r.growth,
+                          color: r.up ? "#10b981" : "#ef4444",
+                        },
+                        {
+                          label: "Funding Raised",
+                          value:
+                            totalFunding > 0
+                              ? `$${totalFunding.toFixed(0)}B`
+                              : "N/A",
+                          color: "#6366f1",
+                        },
+                        {
+                          label: "Top Economies",
+                          value: `${topInRegion.length}`,
+                          color: "#3b82f6",
+                        },
+                      ].map((m) => (
+                        <div
+                          key={m.label}
+                          className="rounded-lg px-2.5 py-2"
+                          style={{
+                            background: isLight
+                              ? "rgba(0,0,0,0.03)"
+                              : "rgba(255,255,255,0.04)",
+                            border: `1px solid ${gridLine}`,
+                          }}
+                        >
+                          <p
+                            className="text-[9px] font-mono"
+                            style={{ color: mutedText }}
+                          >
+                            {m.label}
+                          </p>
+                          <p
+                            className="text-sm font-bold font-mono"
+                            style={{ color: m.color }}
+                          >
+                            {m.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Up-and-coming industries */}
+                    {allUpcoming.length > 0 && (
+                      <>
+                        <div className="flex items-center gap-1.5">
+                          <Sparkle
+                            size={11}
+                            weight="fill"
+                            style={{ color: "#f97316" }}
+                          />
+                          <p
+                            className="text-[9px] font-mono uppercase tracking-widest"
+                            style={{ color: mutedText }}
+                          >
+                            Up-and-coming Industries
+                          </p>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          {allUpcoming.map((ind) => (
+                            <div
+                              key={ind.name}
+                              className="flex items-center gap-2"
+                            >
+                              <div
+                                className="w-1.5 h-1.5 rounded-full shrink-0"
+                                style={{ background: ind.color }}
+                              />
+                              <span
+                                className="text-[11px] font-sans font-semibold flex-1 truncate"
+                                style={{ color: headText }}
+                              >
+                                {ind.name}
+                              </span>
+                              <div
+                                className="w-14 h-1.5 rounded-full overflow-hidden shrink-0"
+                                style={{
+                                  background: isLight
+                                    ? "rgba(0,0,0,0.07)"
+                                    : "rgba(255,255,255,0.08)",
+                                }}
+                              >
+                                <div
+                                  className="h-full rounded-full"
+                                  style={{
+                                    width: `${Math.min(100, ind.pct)}%`,
+                                    background: ind.color,
+                                  }}
+                                />
+                              </div>
+                              <span
+                                className="text-[10px] font-mono font-bold w-9 text-right shrink-0"
+                                style={{ color: ind.color }}
+                              >
+                                {ind.growth}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Top economies list */}
+                    <p
+                      className="text-[9px] font-mono uppercase tracking-widest"
+                      style={{ color: mutedText }}
+                    >
+                      Top economies in region
+                    </p>
+                    {topInRegion.map((c, i) => {
+                      const eco = economiesData.find(
+                        (e) =>
+                          e.name.toLowerCase() === c.name.toLowerCase() ||
+                          e.id.startsWith(c.id.replace(/-/g, "")),
+                      );
+                      return (
+                        <div
+                          key={c.id}
+                          className="flex items-center gap-2 py-1.5"
+                          style={{
+                            borderBottom:
+                              i < topInRegion.length - 1
+                                ? `1px solid ${gridLine}`
+                                : "none",
+                          }}
+                        >
+                          <span className="text-sm w-6">
+                            {(c as any).flag ?? c.code}
+                          </span>
+                          <span
+                            className="flex-1 text-[11px] font-sans font-semibold truncate"
+                            style={{ color: headText }}
+                          >
+                            {c.name}
+                          </span>
+                          <span
+                            className="text-[11px] font-mono shrink-0"
+                            style={{ color: headText }}
+                          >
+                            {fmtGDPShort(c.gdp)}
+                          </span>
+                          <span
+                            className="text-[10px] font-mono shrink-0 w-10 text-right"
+                            style={{
+                              color: c.gdpGrowth >= 0 ? "#10b981" : "#ef4444",
+                            }}
+                          >
+                            {c.gdpGrowth >= 0 ? "+" : ""}
+                            {c.gdpGrowth}%
+                          </span>
+                          {eco?.fundingRaisedB !== undefined && (
+                            <span
+                              className="text-[9px] font-mono shrink-0 w-10 text-right"
+                              style={{ color: "#6366f1" }}
+                            >
+                              ${eco.fundingRaisedB}B
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    <button
+                      onClick={() => onNav("/dashboard/economies")}
+                      className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-[11px] font-bold transition-all hover:opacity-80"
+                      style={{
+                        background: "#f59e0b18",
+                        color: "#f59e0b",
+                        border: "1px solid #f59e0b25",
+                      }}
+                    >
+                      Full Explorer <ArrowRight size={11} weight="bold" />
+                    </button>
+                  </>
+                );
+              })()}
+
+            {/* ── Policy detail ── */}
+            {activeTab === "policies" &&
+              selectedPolicy !== null &&
+              (() => {
+                const p = filteredPolicies[selectedPolicy];
+                if (!p) return null;
+                return (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-7 h-7 rounded-lg flex items-center justify-center"
+                          style={{ background: p.color + "18", color: p.color }}
+                        >
+                          <Scales size={14} weight="fill" />
+                        </div>
+                        <span
+                          className="text-[10px] font-mono px-1.5 py-0.5 rounded-full"
+                          style={{ background: p.color + "15", color: p.color }}
+                        >
+                          {p.tag}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setSelectedPolicy(null)}
+                        style={{ color: mutedText }}
+                      >
+                        <X size={13} weight="bold" />
+                      </button>
+                    </div>
+                    <div
+                      className="rounded-xl px-3 py-3"
+                      style={{
+                        background: p.color + "08",
+                        border: `1px solid ${p.color}18`,
+                      }}
+                    >
+                      <p
+                        className="text-sm font-bold font-sans leading-snug"
+                        style={{ color: headText }}
+                      >
+                        {p.title}
+                      </p>
+                      <p
+                        className="text-[10px] font-mono mt-1"
+                        style={{ color: mutedText }}
+                      >
+                        {p.date}
+                      </p>
+                    </div>
+                    <div
+                      className="rounded-xl px-3 py-3"
+                      style={{
+                        background: isLight
+                          ? "rgba(0,0,0,0.03)"
+                          : "rgba(255,255,255,0.04)",
+                        border: `1px solid ${gridLine}`,
+                      }}
+                    >
+                      <p
+                        className="text-[9px] font-mono uppercase tracking-widest mb-1"
+                        style={{ color: mutedText }}
+                      >
+                        Category
+                      </p>
+                      <p
+                        className="text-[11px] font-sans"
+                        style={{ color: headText }}
+                      >
+                        {p.tag} Policy
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => onNav("/dashboard/policy")}
+                      className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-[11px] font-bold transition-all hover:opacity-80"
+                      style={{
+                        background: "#a855f718",
+                        color: "#a855f7",
+                        border: "1px solid #a855f725",
+                      }}
+                    >
+                      Policy Hub <ArrowRight size={11} weight="bold" />
+                    </button>
+                  </>
+                );
+              })()}
           </div>
         )}
       </div>
+
+      {/* ── Footer nav ── */}
+      <div
+        className="px-4 py-2.5 border-t flex items-center justify-between"
+        style={{ borderColor: gridLine }}
+      >
+        <span className="text-[10px] font-mono" style={{ color: mutedText }}>
+          {activeTab === "trending"
+            ? `${TRENDING_STATS.length} trending stats`
+            : activeTab === "countries"
+              ? `${filteredCountries.length} of ${allByGDP.length} countries`
+              : activeTab === "economies"
+                ? `${filteredRegions.length} regions`
+                : `${filteredPolicies.length} policies`}
+        </span>
+        <button
+          onClick={() =>
+            onNav(
+              activeTab === "trending"
+                ? "/dashboard/countries"
+                : activeTab === "countries"
+                  ? "/dashboard/countries"
+                  : activeTab === "economies"
+                    ? "/dashboard/economies"
+                    : "/dashboard/policy",
+            )
+          }
+          className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70"
+          style={{ color: curColor }}
+        >
+          View all <ArrowRight size={10} weight="bold" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Expandable Info Card ──────────────────────────────────────────────── */
+function ExpandableCard({
+  icon,
+  title,
+  badge,
+  badgeColor,
+  description,
+  accentColor,
+  isLight,
+  cardBg,
+  cardBorder,
+  gridLine,
+  headText,
+  mutedText,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  badge?: string;
+  badgeColor?: string;
+  description: string;
+  accentColor: string;
+  isLight: boolean;
+  cardBg: string;
+  cardBorder: string;
+  gridLine: string;
+  headText: string;
+  mutedText: string;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ background: cardBg, border: cardBorder }}
+    >
+      {/* Header / toggle row */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-3 px-5 py-4 text-left transition-all hover:opacity-90"
+        style={{
+          borderBottom: open ? `1px solid ${gridLine}` : "none",
+          background: open
+            ? isLight
+              ? accentColor + "06"
+              : accentColor + "10"
+            : "transparent",
+        }}
+      >
+        {/* Icon */}
+        <div
+          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+          style={{
+            background: accentColor + "15",
+            border: `1px solid ${accentColor}25`,
+          }}
+        >
+          {icon}
+        </div>
+
+        {/* Title + description */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className="text-sm font-bold font-sans"
+              style={{ color: headText }}
+            >
+              {title}
+            </span>
+            {badge && (
+              <span
+                className="text-[9px] font-mono px-2 py-0.5 rounded-full"
+                style={{ background: accentColor + "15", color: accentColor }}
+              >
+                {badge}
+              </span>
+            )}
+          </div>
+          <p
+            className="text-[10px] font-sans mt-0.5 leading-snug pr-4"
+            style={{ color: mutedText }}
+          >
+            {description}
+          </p>
+        </div>
+
+        {/* Chevron */}
+        <div
+          className="shrink-0 transition-transform duration-200"
+          style={{
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            color: mutedText,
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path
+              d="M3 5l4 4 4-4"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+      </button>
+
+      {/* Expandable content */}
+      {open && <div className="px-5 py-4 animate-fade-in">{children}</div>}
     </div>
   );
 }
@@ -1234,7 +4106,7 @@ export function DashboardPage() {
       <div className="w-full px-4 sm:px-5 py-4 flex flex-col gap-4">
         {/* ── HERO ──────────────────────────────────────────────────────── */}
         <div
-          className="rounded-2xl px-5 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden"
+          className="rounded-2xl relative overflow-hidden"
           style={{
             background: isLight
               ? "linear-gradient(130deg, #dbeafe 0%, #e0e7ff 60%, #d1fae5 100%)"
@@ -1244,6 +4116,7 @@ export function DashboardPage() {
               : "1px solid rgba(99,102,241,0.15)",
           }}
         >
+          {/* dot-grid background */}
           <div
             className="absolute inset-0 pointer-events-none opacity-[0.035]"
             style={{
@@ -1251,7 +4124,9 @@ export function DashboardPage() {
               backgroundSize: "32px 32px",
             }}
           />
-          <div className="relative">
+
+          {/* Text row */}
+          <div className="relative px-5 py-5">
             <p
               className="text-[10px] font-mono uppercase tracking-widest mb-1"
               style={{ color: isLight ? "#4f46e5" : "#818cf8" }}
@@ -1272,39 +4147,18 @@ export function DashboardPage() {
               across the world.
             </p>
           </div>
-          <div className="relative flex flex-wrap gap-2 shrink-0">
-            {QUICK_STATS.map((s) => (
-              <div
-                key={s.label}
-                className="flex items-center gap-2 rounded-xl px-3 py-2"
-                style={{
-                  background: isLight
-                    ? "rgba(255,255,255,0.72)"
-                    : "rgba(255,255,255,0.07)",
-                  border: isLight
-                    ? "1px solid rgba(99,102,241,0.15)"
-                    : "1px solid rgba(255,255,255,0.09)",
-                }}
-              >
-                <span style={{ color: s.color }}>{s.icon}</span>
-                <div>
-                  <p
-                    className="text-sm font-bold font-mono leading-none"
-                    style={{ color: headText }}
-                  >
-                    {s.value}
-                  </p>
-                  <p
-                    className="text-[10px] font-sans"
-                    style={{ color: mutedText }}
-                  >
-                    {s.label}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
+
+        {/* ── COUNTRIES CAROUSEL ─────────────────────────────────────────── */}
+        <CountryCarousel
+          isLight={isLight}
+          cardBg={cardBg}
+          cardBorder={cardBorder}
+          headText={headText}
+          mutedText={mutedText}
+          gridLine={gridLine}
+          onNav={navigate}
+        />
 
         {/* ── PINNED / MY DASHBOARD ─────────────────────────────────────── */}
         <PinnedSection
@@ -1320,7 +4174,7 @@ export function DashboardPage() {
         />
 
         {/* ── KPI PILLS ─────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {[
             {
               label: "Countries Tracked",
@@ -1342,13 +4196,6 @@ export function DashboardPage() {
               delta: "+48 this month",
               positive: true,
               icon: <Scales size={14} weight="fill" />,
-            },
-            {
-              label: "Analyst Network",
-              value: "127+",
-              delta: "3 online now",
-              positive: true,
-              icon: <Users size={14} weight="fill" />,
             },
           ].map((k) => (
             <div
@@ -1387,394 +4234,23 @@ export function DashboardPage() {
           ))}
         </div>
 
+        {/* ── INTERACTIVE DATA PANEL (standalone full-width) ─────────────── */}
+        <InteractiveDataPanel
+          isLight={isLight}
+          cardBg={cardBg}
+          cardBorder={cardBorder}
+          cardShadow={cardShadow}
+          gridLine={gridLine}
+          headText={headText}
+          mutedText={mutedText}
+          bodyText={bodyText}
+          topCountries={topCountries}
+          onNav={navigate}
+        />
+
         {/* ── MAIN GRID ─────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          {/* COL 1–2: Countries + Economies */}
-          <div className="lg:col-span-2 flex flex-col gap-4">
-            {/* COUNTRIES container */}
-            <div
-              className="rounded-2xl p-5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <SectionHeader
-                icon={<Globe size={16} weight="fill" />}
-                label="Countries"
-                badge="195 tracked"
-                badgeColor="#6366f1"
-                cta="All Countries"
-                ctaTo="/dashboard/countries"
-                isLight={isLight}
-                onNav={() => navigate("/dashboard/countries")}
-              />
-              {/* World GDP chart */}
-              <ResponsiveContainer width="100%" height={160}>
-                <AreaChart
-                  data={WORLD_GDP_SERIES}
-                  margin={{ top: 4, right: 4, left: -10, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient
-                      id="dashWorldGdp"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor="#6366f1" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke={gridLine} strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="year"
-                    tick={{
-                      fontSize: 9,
-                      fill: mutedText,
-                      fontFamily: "monospace",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{
-                      fontSize: 9,
-                      fill: mutedText,
-                      fontFamily: "monospace",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(v) => `$${v}T`}
-                    domain={[80, 115]}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: isLight ? "#fff" : "#1a1730",
-                      border: isLight
-                        ? "1px solid rgba(0,0,0,0.1)"
-                        : "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: 10,
-                      fontSize: 11,
-                      fontFamily: "monospace",
-                      color: headText,
-                    }}
-                    formatter={(v: number) => [`$${v}T`, "World GDP"]}
-                    labelStyle={{ color: mutedText }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="gdp"
-                    stroke="#6366f1"
-                    fill="url(#dashWorldGdp)"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-              <SourceLink sources={SRC_DASH_ECONOMY} className="mt-1 mb-2" />
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest mt-1 mb-2"
-                style={{ color: mutedText }}
-              >
-                Top Countries by GDP
-              </p>
-              <div className="flex flex-col gap-0">
-                {topCountries.map((c, i) => (
-                  <button
-                    key={c.id}
-                    onClick={() => navigate("/dashboard/countries")}
-                    className="flex items-center gap-3 py-2 text-left hover:opacity-80 transition-opacity"
-                    style={{
-                      borderBottom:
-                        i < topCountries.length - 1
-                          ? `1px solid ${gridLine}`
-                          : "none",
-                    }}
-                  >
-                    <span className="text-lg w-7 shrink-0">{c.flag}</span>
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="text-xs font-semibold font-sans truncate"
-                        style={{ color: headText }}
-                      >
-                        {c.name}
-                      </p>
-                      <p
-                        className="text-[10px] font-mono"
-                        style={{ color: mutedText }}
-                      >
-                        {c.region}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <div
-                        className="w-16 h-1.5 rounded-full overflow-hidden"
-                        style={{
-                          background: isLight
-                            ? "rgba(0,0,0,0.07)"
-                            : "rgba(255,255,255,0.08)",
-                        }}
-                      >
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${Math.min(100, (c.gdp / topCountries[0].gdp) * 100)}%`,
-                            background: "#6366f1",
-                          }}
-                        />
-                      </div>
-                      <span
-                        className="text-[11px] font-mono w-14 text-right"
-                        style={{ color: headText }}
-                      >
-                        {fmtB(c.gdp)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 w-12 justify-end shrink-0">
-                      {c.unemploymentRate < 5 ? (
-                        <TrendDown size={10} weight="fill" color="#10b981" />
-                      ) : (
-                        <TrendUp size={10} weight="fill" color="#f59e0b" />
-                      )}
-                      <span
-                        className="text-[10px] font-mono"
-                        style={{
-                          color: c.unemploymentRate < 5 ? "#10b981" : "#f59e0b",
-                        }}
-                      >
-                        {c.unemploymentRate.toFixed(1)}%
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* ECONOMIES container */}
-            <div
-              className="rounded-2xl p-5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <SectionHeader
-                icon={<ChartBar size={16} weight="fill" />}
-                label="Economies"
-                badge="Blocs & Markets"
-                badgeColor="#f59e0b"
-                cta="View Economies"
-                ctaTo="/dashboard/economies"
-                isLight={isLight}
-                onNav={() => navigate("/dashboard/economies")}
-              />
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                {[
-                  {
-                    label: "World GDP",
-                    value: "$105.4T",
-                    delta: "+1.8%",
-                    color: "#6366f1",
-                  },
-                  {
-                    label: "Trade Volume",
-                    value: "$32.1T",
-                    delta: "+2.3%",
-                    color: "#10b981",
-                  },
-                  {
-                    label: "FDI Flows",
-                    value: "$1.37T",
-                    delta: "-4.1%",
-                    color: "#ef4444",
-                  },
-                  {
-                    label: "Debt-to-GDP",
-                    value: "93.4%",
-                    delta: "+0.6pp",
-                    color: "#f59e0b",
-                  },
-                ].map((m) => (
-                  <div
-                    key={m.label}
-                    className="rounded-xl px-3 py-3"
-                    style={{
-                      background: isLight
-                        ? "rgba(0,0,0,0.025)"
-                        : "rgba(255,255,255,0.04)",
-                      border: `1px solid ${gridLine}`,
-                    }}
-                  >
-                    <p
-                      className="text-[10px] font-sans"
-                      style={{ color: mutedText }}
-                    >
-                      {m.label}
-                    </p>
-                    <p
-                      className="text-lg font-bold font-mono"
-                      style={{ color: headText }}
-                    >
-                      {m.value}
-                    </p>
-                    <p
-                      className="text-[10px] font-mono"
-                      style={{ color: m.color }}
-                    >
-                      {m.delta}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <SourceLink sources={SRC_DASH_ECONOMY} className="mb-2" />
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest mb-2"
-                style={{ color: mutedText }}
-              >
-                Regional GDP
-              </p>
-              <div className="flex flex-col gap-0">
-                {REGION_STATS.map((r, i) => (
-                  <div
-                    key={r.region}
-                    className="flex items-center gap-2 py-2"
-                    style={{
-                      borderBottom:
-                        i < REGION_STATS.length - 1
-                          ? `1px solid ${gridLine}`
-                          : "none",
-                    }}
-                  >
-                    <p
-                      className="text-[11px] font-semibold font-sans flex-1 truncate"
-                      style={{ color: headText }}
-                    >
-                      {r.region}
-                    </p>
-                    <span
-                      className="text-[11px] font-mono shrink-0"
-                      style={{ color: headText }}
-                    >
-                      {r.gdp}
-                    </span>
-                    <div className="flex items-center gap-0.5 shrink-0 w-12 justify-end">
-                      {r.up ? (
-                        <TrendUp size={10} weight="fill" color="#10b981" />
-                      ) : (
-                        <TrendDown size={10} weight="fill" color="#ef4444" />
-                      )}
-                      <span
-                        className="text-[10px] font-mono"
-                        style={{ color: r.up ? "#10b981" : "#ef4444" }}
-                      >
-                        {r.growth}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* POLICIES container */}
-            <div
-              className="rounded-2xl p-5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <SectionHeader
-                icon={<Scales size={16} weight="fill" />}
-                label="Policies"
-                badge="1,200+ tracked"
-                badgeColor="#a855f7"
-                cta="Policy Hub"
-                ctaTo="/dashboard/policy"
-                isLight={isLight}
-                onNav={() => navigate("/dashboard/policy")}
-              />
-              <div className="flex flex-col gap-0">
-                {POLICY_FEED.map((p, i) => (
-                  <div
-                    key={i}
-                    className="flex items-start gap-3 py-3"
-                    style={{
-                      borderBottom:
-                        i < POLICY_FEED.length - 1
-                          ? `1px solid ${gridLine}`
-                          : "none",
-                    }}
-                  >
-                    <div
-                      className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
-                      style={{ background: p.color + "18", color: p.color }}
-                    >
-                      <Scales size={11} weight="fill" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="text-xs font-semibold font-sans leading-snug"
-                        style={{ color: headText }}
-                      >
-                        {p.title}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span
-                          className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
-                          style={{ background: p.color + "15", color: p.color }}
-                        >
-                          {p.tag}
-                        </span>
-                        <span
-                          className="text-[10px] font-mono"
-                          style={{ color: mutedText }}
-                        >
-                          {p.date}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <SourceLink sources={SRC_DASH_POLICIES} className="mt-2 mb-1" />
-              <div className="grid grid-cols-3 gap-2 mt-3">
-                {[
-                  { label: "Climate", count: "312", color: "#10b981" },
-                  { label: "Trade", count: "248", color: "#3b82f6" },
-                  { label: "Defense", count: "189", color: "#ef4444" },
-                ].map((c) => (
-                  <div
-                    key={c.label}
-                    className="rounded-xl px-3 py-2 text-center"
-                    style={{
-                      background: c.color + "10",
-                      border: `1px solid ${c.color}20`,
-                    }}
-                  >
-                    <p
-                      className="text-base font-bold font-mono"
-                      style={{ color: c.color }}
-                    >
-                      {c.count}
-                    </p>
-                    <p
-                      className="text-[9px] font-sans"
-                      style={{ color: mutedText }}
-                    >
-                      {c.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* COL 3: US States + Cities */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* COL 1: US States + Cities */}
           <div className="flex flex-col gap-4">
             {/* US STATES container */}
             <div
@@ -1890,6 +4366,305 @@ export function DashboardPage() {
                 ))}
               </div>
             </div>
+
+            {/* ── Up-and-coming Industries card ── */}
+            <ExpandableCard
+              icon={
+                <Sparkle size={14} weight="fill" style={{ color: "#f97316" }} />
+              }
+              title="Up-and-coming Industries"
+              badge="US 2025"
+              badgeColor="#f97316"
+              description="Fastest-growing emerging sectors by projected YoY investment growth inside the US economy."
+              accentColor="#f97316"
+              isLight={isLight}
+              cardBg={cardBg}
+              cardBorder={cardBorder}
+              gridLine={gridLine}
+              headText={headText}
+              mutedText={mutedText}
+            >
+              <div className="flex flex-col gap-2.5">
+                {US_UPCOMING_INDUSTRIES.map((ind) => (
+                  <div key={ind.name}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <div
+                        className="w-1.5 h-1.5 rounded-full shrink-0"
+                        style={{ background: ind.color }}
+                      />
+                      <span
+                        className="text-[11px] font-sans font-semibold flex-1 truncate"
+                        style={{ color: headText }}
+                      >
+                        {ind.name}
+                      </span>
+                      <span
+                        className="text-[10px] font-mono font-bold"
+                        style={{ color: ind.color }}
+                      >
+                        {ind.growth}
+                      </span>
+                    </div>
+                    <div
+                      className="h-2 rounded-full overflow-hidden"
+                      style={{
+                        background: isLight
+                          ? "rgba(0,0,0,0.07)"
+                          : "rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${ind.pct}%`, background: ind.color }}
+                      />
+                    </div>
+                    <p
+                      className="text-[10px] font-sans mt-1 leading-relaxed"
+                      style={{ color: mutedText }}
+                    >
+                      {ind.name === "Quantum Computing" &&
+                        "Backed by IBM, Google, and DARPA with $4.2B in federal investment pledged through 2030. Applications in cryptography, logistics, and drug discovery."}
+                      {ind.name === "Space Tech" &&
+                        "SpaceX, Blue Origin, and 40+ startups driving commercial launch, satellite broadband, and lunar logistics. NASA Artemis anchors public demand."}
+                      {ind.name === "Green Hydrogen" &&
+                        "DOE Hydrogen Hubs program allocating $7B to 7 regional hubs. Industrial decarbonization and long-haul transport key use cases."}
+                      {ind.name === "Biotech / mRNA" &&
+                        "Post-COVID mRNA platform expansion into cancer vaccines, rare diseases, and personalized medicine. NIH funding up 31% since 2022."}
+                      {ind.name === "AI Chips" &&
+                        "NVIDIA, Intel, and AMD racing to meet data-center demand. CHIPS Act directing $52B to domestic semiconductor fabs and R&D."}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </ExpandableCard>
+
+            {/* ── Funding Raised card ── */}
+            <ExpandableCard
+              icon={
+                <Bank size={14} weight="fill" style={{ color: "#6366f1" }} />
+              }
+              title="Funding Raised"
+              badge="$252B · 2025 YTD"
+              badgeColor="#6366f1"
+              description="Venture capital, private equity, and federal grants raised across major US innovation sectors year-to-date 2025."
+              accentColor="#6366f1"
+              isLight={isLight}
+              cardBg={cardBg}
+              cardBorder={cardBorder}
+              gridLine={gridLine}
+              headText={headText}
+              mutedText={mutedText}
+            >
+              <div className="flex flex-col gap-3">
+                {US_FUNDING_DATA.map((f) => (
+                  <div key={f.sector}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span
+                        className="text-[11px] font-sans font-semibold flex-1 truncate"
+                        style={{ color: headText }}
+                      >
+                        {f.sector}
+                      </span>
+                      <span
+                        className="text-[11px] font-mono font-bold"
+                        style={{ color: f.color }}
+                      >
+                        {f.raised}
+                      </span>
+                    </div>
+                    <div
+                      className="h-2 rounded-full overflow-hidden"
+                      style={{
+                        background: isLight
+                          ? "rgba(0,0,0,0.07)"
+                          : "rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${f.pct}%`, background: f.color }}
+                      />
+                    </div>
+                    <p
+                      className="text-[10px] font-sans mt-1 leading-relaxed"
+                      style={{ color: mutedText }}
+                    >
+                      {f.sector === "AI / ML" &&
+                        "Largest single-sector raise on record. Led by OpenAI ($10B), Anthropic ($7.3B), and Cohere. Hyperscaler capex adds another $120B+ in infrastructure."}
+                      {f.sector === "Clean Energy" &&
+                        "IRA incentives driving solar, battery, and grid investment. Includes $18B in utility-scale solar and $14B in EV battery supply chains."}
+                      {f.sector === "Biotech" &&
+                        "mRNA, CRISPR, and oncology platforms dominate. Top rounds: Recursion Pharma ($850M), Generate Biomedicines ($754M), Flagship Pioneering ($3.5B fund)."}
+                      {f.sector === "Space" &&
+                        "SpaceX Starship program, lunar logistics, and satellite broadband. NASA CLPS contracts worth $2.6B. Commercial LEO station deals signed."}
+                      {f.sector === "Quantum" &&
+                        "IBM, IonQ, and PsiQuantum raising for error-corrected qubit milestones. NSF and DOE co-investing $1.8B via National Quantum Initiative."}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </ExpandableCard>
+
+            {/* ── Global Alliances card ── */}
+            <ExpandableCard
+              icon={
+                <ShareNetwork
+                  size={14}
+                  weight="fill"
+                  style={{ color: "#3b82f6" }}
+                />
+              }
+              title="Global Alliances & Joint Projects"
+              badge="5 active"
+              badgeColor="#3b82f6"
+              description="Key multilateral defense, intelligence, and technology alliances the US participates in, and their active joint programs."
+              accentColor="#3b82f6"
+              isLight={isLight}
+              cardBg={cardBg}
+              cardBorder={cardBorder}
+              gridLine={gridLine}
+              headText={headText}
+              mutedText={mutedText}
+            >
+              <div className="flex flex-col gap-3">
+                {US_ALLIANCES.map((a, i) => (
+                  <div
+                    key={a.name}
+                    className="rounded-xl px-3 py-3"
+                    style={{
+                      background: a.color + "0a",
+                      border: `1px solid ${a.color}22`,
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="text-[12px] font-mono font-bold"
+                          style={{ color: a.color }}
+                        >
+                          {a.name}
+                        </span>
+                        <span
+                          className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
+                          style={{ background: a.color + "18", color: a.color }}
+                        >
+                          {a.tag}
+                        </span>
+                      </div>
+                      <span
+                        className="text-[9px] font-mono"
+                        style={{ color: mutedText }}
+                      >
+                        {a.partners}
+                      </span>
+                    </div>
+                    <p
+                      className="text-[11px] font-sans font-semibold mb-1"
+                      style={{ color: headText }}
+                    >
+                      {a.project}
+                    </p>
+                    <p
+                      className="text-[10px] font-sans leading-relaxed"
+                      style={{ color: mutedText }}
+                    >
+                      {a.name === "AUKUS" &&
+                        "Trilateral security pact signed Sept 2021. Pillar I delivers SSN-AUKUS nuclear-powered submarines to Australia by mid-2030s. Pillar II covers AI, cyber, hypersonics, quantum, and undersea capabilities sharing."}
+                      {a.name === "Quad" &&
+                        "Quadrilateral Security Dialogue revived 2017, elevated to leaders-level 2021. Coordinates on COVID vaccines, climate, critical tech, and counter-China maritime strategy in the Indo-Pacific."}
+                      {a.name === "Five Eyes" &&
+                        "Oldest intelligence-sharing alliance (est. 1941). Covers SIGINT, HUMINT, and cyber threat intelligence. Expanded focus on CCP economic espionage and critical infrastructure protection since 2020."}
+                      {a.name === "NATO DIANA" &&
+                        "Defence Innovation Accelerator for the North Atlantic launched 2022. 1,000+ dual-use deep-tech startups targeted. Test centres in UK and Estonia. $1B+ in allied nation co-investment."}
+                      {a.name === "Clean Power Alliance" &&
+                        "G7 + IEA pledge framework to triple renewable capacity globally by 2030. US commits $20B via DFC for emerging-market clean energy financing. Includes Just Energy Transition Partnerships with South Africa, Vietnam, India."}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </ExpandableCard>
+
+            {/* ── R&D Breakthroughs card ── */}
+            <ExpandableCard
+              icon={
+                <Atom size={14} weight="fill" style={{ color: "#a855f7" }} />
+              }
+              title="R&D Discoveries & Breakthroughs"
+              badge="2025"
+              badgeColor="#a855f7"
+              description="Major US federal agency and national laboratory scientific discoveries and technology breakthroughs from the past 12 months."
+              accentColor="#a855f7"
+              isLight={isLight}
+              cardBg={cardBg}
+              cardBorder={cardBorder}
+              gridLine={gridLine}
+              headText={headText}
+              mutedText={mutedText}
+            >
+              <div className="flex flex-col gap-0">
+                {US_RD_BREAKTHROUGHS.map((r, i) => (
+                  <div
+                    key={r.title}
+                    className="py-3"
+                    style={{
+                      borderBottom:
+                        i < US_RD_BREAKTHROUGHS.length - 1
+                          ? `1px solid ${gridLine}`
+                          : "none",
+                    }}
+                  >
+                    <div className="flex items-start gap-2.5 mb-1.5">
+                      <div
+                        className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                        style={{ background: r.color + "18", color: r.color }}
+                      >
+                        <Atom size={10} weight="fill" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className="text-[12px] font-sans font-semibold leading-snug"
+                          style={{ color: headText }}
+                        >
+                          {r.title}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span
+                            className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
+                            style={{
+                              background: r.color + "15",
+                              color: r.color,
+                            }}
+                          >
+                            {r.field}
+                          </span>
+                          <span
+                            className="text-[9px] font-mono"
+                            style={{ color: mutedText }}
+                          >
+                            {r.agency} · {r.date}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <p
+                      className="text-[10px] font-sans leading-relaxed pl-8"
+                      style={{ color: mutedText }}
+                    >
+                      {r.agency === "DARPA" &&
+                        "DARPA&#39;s Air Combat Evolution (ACE) program pit an AI-controlled F-16 against a human pilot in a live dogfight. The AI won 5-0 using reinforcement learning trained on millions of simulated engagements. Marks a pivotal shift in autonomous combat doctrine."}
+                      {r.agency === "NIH" &&
+                        "FDA approved Casgevy — the world&#39;s first CRISPR-based therapy — for sickle-cell disease. NIH-funded research spanning 15 years enabled the breakthrough. Treatment edits patients&#39; own stem cells to produce functional haemoglobin, potentially offering a functional cure."}
+                      {r.agency === "NIST" &&
+                        "NIST finalized three post-quantum cryptographic algorithms (CRYSTALS-Kyber, CRYSTALS-Dilithium, SPHINCS+) as federal standards, hardening US government communications against future quantum decryption attacks. Implementation deadline for federal agencies set for 2030."}
+                      {r.agency === "NASA" &&
+                        "Artemis II carried four astronauts — including the first woman and first Canadian — on a 10-day lunar flyby at 8,900 km altitude. Validated Orion life-support and deep-space communications systems ahead of the Artemis III crewed lunar landing."}
+                      {r.agency === "DOE / NIF" &&
+                        "National Ignition Facility at Lawrence Livermore achieved ignition — releasing more fusion energy than laser energy delivered — for the third consecutive time, demonstrating repeatability. DOE&#39;s milestone roadmap now targets a 10× energy gain pilot plant by 2035."}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </ExpandableCard>
 
             {/* CITIES container */}
             <div
@@ -2093,7 +4868,7 @@ export function DashboardPage() {
             </div>
           </div>
 
-          {/* COL 4: Conflicts + Recent Events */}
+          {/* COL 2: Conflicts + Recent Events */}
           <div className="flex flex-col gap-4">
             {/* CONFLICTS container */}
             <div
@@ -2819,164 +5594,6 @@ export function DashboardPage() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* ── ANALYST SECTION ───────────────────────────────────────────── */}
-        <div
-          className="rounded-2xl p-5"
-          style={{
-            background: cardBg,
-            border: cardBorder,
-            boxShadow: cardShadow,
-          }}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Users size={16} weight="fill" style={{ color: "#8b5cf6" }} />
-              <h2
-                className="text-base font-bold font-sans"
-                style={{ color: headText }}
-              >
-                Analyst Network
-              </h2>
-              <span
-                className="flex items-center gap-1 text-[9px] font-mono px-2 py-0.5 rounded-full"
-                style={{ background: "#10b98115", color: "#10b981" }}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />{" "}
-                3 online
-              </span>
-            </div>
-            <button
-              onClick={() => navigate("/dashboard/analysts")}
-              className="flex items-center gap-1 text-[11px] font-semibold transition-opacity hover:opacity-70"
-              style={{ color: isLight ? "#8b5cf6" : "#c4b5fd" }}
-            >
-              Open Network <ArrowRight size={11} weight="bold" />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {ANALYST_PREVIEW.map((a) => (
-              <div
-                key={a.initials}
-                className="rounded-2xl p-4 flex flex-col gap-3"
-                style={{
-                  background: isLight
-                    ? "rgba(0,0,0,0.02)"
-                    : "rgba(255,255,255,0.035)",
-                  border: `1px solid ${gridLine}`,
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="relative shrink-0">
-                    <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center text-white text-[11px] font-bold"
-                      style={{ background: a.color }}
-                    >
-                      {a.initials}
-                    </div>
-                    {a.online && (
-                      <span
-                        className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2"
-                        style={{
-                          background: "#10b981",
-                          borderColor: isLight ? "#ffffff" : "#0b0b14",
-                        }}
-                      />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className="text-xs font-bold font-sans truncate"
-                      style={{ color: headText }}
-                    >
-                      {a.name}
-                    </p>
-                    <p
-                      className="text-[10px] font-sans truncate"
-                      style={{ color: mutedText }}
-                    >
-                      {a.role}
-                    </p>
-                  </div>
-                  <span
-                    className="text-[9px] font-mono shrink-0"
-                    style={{ color: mutedText }}
-                  >
-                    {a.time}
-                  </span>
-                </div>
-                <p
-                  className="text-[11px] font-sans leading-relaxed flex-1"
-                  style={{ color: mutedText }}
-                  dangerouslySetInnerHTML={{ __html: a.insight }}
-                />
-                <div className="flex items-center gap-2 flex-wrap">
-                  {a.tags.map((t) => (
-                    <span
-                      key={t}
-                      className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
-                      style={{ background: a.color + "15", color: a.color }}
-                    >
-                      #{t}
-                    </span>
-                  ))}
-                  <div className="flex items-center gap-3 ml-auto">
-                    <span
-                      className="flex items-center gap-1 text-[10px] font-mono"
-                      style={{ color: mutedText }}
-                    >
-                      <Lightning size={11} />
-                      {a.likes}
-                    </span>
-                    <span
-                      className="flex items-center gap-1 text-[10px] font-mono"
-                      style={{ color: mutedText }}
-                    >
-                      <ChatTeardropDots size={11} />
-                    </span>
-                    <span
-                      className="flex items-center gap-1 text-[10px] font-mono"
-                      style={{ color: mutedText }}
-                    >
-                      <ShareNetwork size={11} />
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <button
-            onClick={() => navigate("/dashboard/analysts")}
-            className="mt-4 w-full rounded-2xl py-4 flex items-center justify-center gap-3 transition-all hover:scale-[1.005] active:scale-[0.998]"
-            style={{
-              background: isLight
-                ? "linear-gradient(130deg, #f5f3ff, #ede9fe)"
-                : "linear-gradient(130deg, #1e1b4b, #2e1065)",
-              border: isLight
-                ? "1px solid rgba(139,92,246,0.2)"
-                : "1px solid rgba(139,92,246,0.25)",
-            }}
-          >
-            <Sparkle size={16} weight="fill" style={{ color: "#8b5cf6" }} />
-            <span
-              className="text-sm font-bold font-sans"
-              style={{ color: headText }}
-            >
-              Join the Analyst Network
-            </span>
-            <span
-              className="text-[11px] font-sans"
-              style={{ color: mutedText }}
-            >
-              · 127+ analysts · Real-time discussions
-            </span>
-            <ArrowRight
-              size={14}
-              weight="bold"
-              style={{ color: isLight ? "#8b5cf6" : "#c4b5fd" }}
-            />
-          </button>
         </div>
 
         {/* ── FOOTER ────────────────────────────────────────────────────── */}

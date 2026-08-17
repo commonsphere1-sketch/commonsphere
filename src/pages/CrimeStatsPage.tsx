@@ -11,7 +11,7 @@ import {
   CaretRight,
   Info,
   Globe,
-  Detective,
+  MagnifyingGlass,
   Skull,
   HandFist,
   Lock,
@@ -19,6 +19,15 @@ import {
   Flame,
   Target,
   MapPin,
+  Coins,
+  Scales,
+  Handshake,
+  Buildings,
+  Link,
+  Users,
+  Briefcase,
+  House,
+  Heart,
 } from "@phosphor-icons/react";
 import {
   BarChart,
@@ -30,12 +39,7 @@ import {
   LineChart,
   Line,
   CartesianGrid,
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
   Cell,
-  Legend,
   AreaChart,
   Area,
   PieChart,
@@ -327,6 +331,164 @@ const ATTACK_TYPES = [
   { type: "Other", pct: 3, color: "#64748b" },
 ];
 
+/* ─── Modern Slavery Data ─────────────────────────────────────────────── */
+
+// Global Slavery Index 2023 — victims by region (millions) and prevalence per 1,000
+const SLAVERY_BY_REGION = [
+  {
+    region: "Asia & Pacific",
+    victims: 29.3,
+    prevalence: 6.6,
+    color: "#f59e0b",
+    flag: "🌏",
+  },
+  {
+    region: "Africa",
+    victims: 9.8,
+    prevalence: 7.6,
+    color: "#ef4444",
+    flag: "🌍",
+  },
+  {
+    region: "Europe & C. Asia",
+    victims: 2.1,
+    prevalence: 2.2,
+    color: "#6366f1",
+    flag: "🌍",
+  },
+  {
+    region: "Americas",
+    victims: 1.8,
+    prevalence: 1.7,
+    color: "#3b82f6",
+    flag: "🌎",
+  },
+  {
+    region: "Arab States",
+    victims: 0.9,
+    prevalence: 5.3,
+    color: "#a855f7",
+    flag: "🌍",
+  },
+];
+
+// Countries with highest estimated modern slavery victims (millions)
+const SLAVERY_HIGH_COUNTRIES = [
+  {
+    country: "India",
+    victims: 11.0,
+    prevalence: 8.0,
+    flag: "🇮🇳",
+    region: "Asia",
+  },
+  {
+    country: "China",
+    victims: 5.8,
+    prevalence: 4.0,
+    flag: "🇨🇳",
+    region: "Asia",
+  },
+  {
+    country: "North Korea",
+    victims: 2.7,
+    prevalence: 104.6,
+    flag: "🇰🇵",
+    region: "Asia",
+  },
+  {
+    country: "Pakistan",
+    victims: 2.3,
+    prevalence: 10.6,
+    flag: "🇵🇰",
+    region: "Asia",
+  },
+  {
+    country: "Russia",
+    victims: 1.9,
+    prevalence: 13.3,
+    flag: "🇷🇺",
+    region: "Europe",
+  },
+  {
+    country: "Indonesia",
+    victims: 1.8,
+    prevalence: 6.7,
+    flag: "🇮🇩",
+    region: "Asia",
+  },
+  {
+    country: "Nigeria",
+    victims: 1.6,
+    prevalence: 7.8,
+    flag: "🇳🇬",
+    region: "Africa",
+  },
+  {
+    country: "D.R. Congo",
+    victims: 1.0,
+    prevalence: 11.1,
+    flag: "🇨🇩",
+    region: "Africa",
+  },
+  {
+    country: "Ethiopia",
+    victims: 1.0,
+    prevalence: 8.8,
+    flag: "🇪🇹",
+    region: "Africa",
+  },
+  {
+    country: "Bangladesh",
+    victims: 1.0,
+    prevalence: 6.1,
+    flag: "🇧🇩",
+    region: "Asia",
+  },
+];
+
+// Countries taking least action — GSI Government Response Score (0–100, lower = worse)
+const WORST_RESPONDERS = [
+  { country: "North Korea", score: 0, flag: "🇰🇵" },
+  { country: "Eritrea", score: 4, flag: "🇪🇷" },
+  { country: "Equatorial Guinea", score: 12, flag: "🇬🇶" },
+  { country: "Somalia", score: 17, flag: "🇸🇴" },
+  { country: "Central African Rep.", score: 18, flag: "🇨🇫" },
+  { country: "South Sudan", score: 19, flag: "🇸🇸" },
+  { country: "Yemen", score: 21, flag: "🇾🇪" },
+  { country: "Turkmenistan", score: 22, flag: "🇹🇲" },
+];
+
+// Countries with best government response
+const BEST_RESPONDERS = [
+  { country: "Netherlands", score: 88, flag: "🇳🇱" },
+  { country: "UK", score: 85, flag: "🇬🇧" },
+  { country: "USA", score: 83, flag: "🇺🇸" },
+  { country: "Australia", score: 82, flag: "🇦🇺" },
+  { country: "Portugal", score: 81, flag: "🇵🇹" },
+  { country: "Croatia", score: 79, flag: "🇭🇷" },
+  { country: "Spain", score: 78, flag: "🇪🇸" },
+  { country: "Belgium", score: 77, flag: "🇧🇪" },
+];
+
+// Slavery form breakdown (% of all modern slavery victims)
+const SLAVERY_FORMS = [
+  { form: "Forced Labour", pct: 63.5, color: "#f97316", icon: "⚒️" },
+  { form: "Forced Marriage", pct: 23.5, color: "#ef4444", icon: "💍" },
+  { form: "Sexual Exploitation", pct: 6.5, color: "#a855f7", icon: "⚠️" },
+  { form: "State-Imposed Labour", pct: 4.0, color: "#6366f1", icon: "🏛️" },
+  { form: "Forced Criminality", pct: 2.5, color: "#f59e0b", icon: "🔗" },
+];
+
+// Annual forced labour profit by sector ($B USD, ILO 2024)
+const FORCED_LABOUR_ECONOMY = [
+  { sector: "Sex Trafficking", value: 99.2, color: "#ef4444" },
+  { sector: "Services", value: 63.8, color: "#f59e0b" },
+  { sector: "Manufacturing", value: 35.0, color: "#a855f7" },
+  { sector: "Construction", value: 34.8, color: "#f97316" },
+  { sector: "Agriculture / Fishing", value: 9.0, color: "#10b981" },
+  { sector: "Private households", value: 8.0, color: "#3b82f6" },
+];
+
 // GTI Score 2024 — top 10 most affected countries (0-10, higher = worse)
 const GTI_SCORES = [
   { country: "Burkina Faso", score: 8.64, flag: "🇧🇫", change: +0.41 },
@@ -545,7 +707,7 @@ export function CrimeStatsPage() {
               unit: "USD",
               delta: "+15% YoY",
               positive: false,
-              icon: Detective,
+              icon: MagnifyingGlass,
               color: "#6366f1",
             },
             {
@@ -1962,6 +2124,737 @@ export function CrimeStatsPage() {
                 url: "https://www.visionofhumanity.org/maps/#/",
               }}
               className="mt-4"
+            />
+          </div>
+        </div>
+
+        {/* ── MODERN SLAVERY SECTION HEADER ─────────────────────── */}
+        <div
+          className="rounded-2xl px-6 py-4 flex items-center gap-3"
+          style={{
+            background: isLight
+              ? "linear-gradient(130deg, #fdf2ff 0%, #fff0fa 100%)"
+              : "linear-gradient(130deg, #1e0a2e 0%, #1a0014 100%)",
+            border: isLight
+              ? "1px solid rgba(168,85,247,0.2)"
+              : "1px solid rgba(168,85,247,0.25)",
+          }}
+        >
+          <div
+            className="p-2.5 rounded-xl shrink-0"
+            style={{
+              background: isLight
+                ? "rgba(168,85,247,0.12)"
+                : "rgba(168,85,247,0.2)",
+            }}
+          >
+            <Link size={18} weight="fill" style={{ color: "#a855f7" }} />
+          </div>
+          <div>
+            <p
+              className="text-[10px] font-mono uppercase tracking-widest mb-0.5"
+              style={{ color: isLight ? "#7c3aed" : "rgba(192,132,252,0.8)" }}
+            >
+              Walk Free Foundation · ILO · UNODC · Global Slavery Index 2023
+            </p>
+            <h2
+              className="text-base font-bold font-sans"
+              style={{ color: headText }}
+            >
+              Modern Slavery Statistics
+            </h2>
+            <p
+              className="text-[11px] font-sans mt-0.5"
+              style={{ color: mutedText }}
+            >
+              Forced labour, human trafficking, forced marriage, and government
+              response scores across 160+ countries — 2023
+            </p>
+          </div>
+          <div className="ml-auto flex flex-wrap gap-2 shrink-0">
+            {[
+              { v: "49.6M", l: "Victims 2023" },
+              { v: "63.5%", l: "Forced Labour" },
+              { v: "N. Korea", l: "Highest Prevalence" },
+              { v: "$236B", l: "Annual Profit" },
+            ].map((s) => (
+              <div
+                key={s.l}
+                className="rounded-xl px-3 py-1.5 text-center hidden sm:block"
+                style={{
+                  background: isLight
+                    ? "rgba(255,255,255,0.75)"
+                    : "rgba(255,255,255,0.07)",
+                  border: isLight
+                    ? "1px solid rgba(168,85,247,0.15)"
+                    : "1px solid rgba(255,255,255,0.1)",
+                }}
+              >
+                <p
+                  className="text-sm font-bold font-mono"
+                  style={{ color: headText }}
+                >
+                  {s.v}
+                </p>
+                <p
+                  className="text-[10px] font-sans"
+                  style={{ color: mutedText }}
+                >
+                  {s.l}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── SLAVERY KPIs ─────────────────────────────────────── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            {
+              label: "People in Modern Slavery",
+              value: "49.6M",
+              unit: "worldwide",
+              delta: "+10M since 2016",
+              positive: false,
+              icon: Users,
+              color: "#a855f7",
+            },
+            {
+              label: "Forced Labour Victims",
+              value: "27.6M",
+              unit: "workers",
+              delta: "$236B annual profit",
+              positive: false,
+              icon: Briefcase,
+              color: "#f97316",
+            },
+            {
+              label: "Forced Marriages",
+              value: "22M",
+              unit: "worldwide",
+              delta: "Over half under 18",
+              positive: false,
+              icon: Heart,
+              color: "#ef4444",
+            },
+            {
+              label: "Trafficking Survivors ID\'d",
+              value: "~50k",
+              unit: "per year",
+              delta: "Vast majority unreported",
+              positive: false,
+              icon: House,
+              color: "#6366f1",
+            },
+          ].map((k) => {
+            const Icon = k.icon;
+            return (
+              <div
+                key={k.label}
+                className="rounded-2xl px-5 py-4 flex flex-col gap-1.5"
+                style={{
+                  background: cardBg,
+                  border: cardBorder,
+                  boxShadow: cardShadow,
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <p
+                    className="text-[11px] font-sans uppercase tracking-widest leading-tight"
+                    style={{ color: mutedText }}
+                  >
+                    {k.label}
+                  </p>
+                  <div
+                    className="p-1.5 rounded-lg"
+                    style={{ background: k.color + "18" }}
+                  >
+                    <Icon size={14} weight="fill" style={{ color: k.color }} />
+                  </div>
+                </div>
+                <p
+                  className="text-2xl font-bold font-mono"
+                  style={{ color: headText }}
+                >
+                  {k.value}
+                  <span
+                    className="text-sm font-normal ml-1"
+                    style={{ color: mutedText }}
+                  >
+                    {k.unit}
+                  </span>
+                </p>
+                <div className="flex items-center gap-1">
+                  <ArrowUp size={11} weight="bold" color="#ef4444" />
+                  <span
+                    className="text-[11px] font-mono"
+                    style={{ color: "#ef4444" }}
+                  >
+                    {k.delta}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ── SLAVERY ROW 1: Forms + Regional distribution ─────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Forms of Modern Slavery */}
+          <div
+            className="rounded-2xl p-5"
+            style={{
+              background: cardBg,
+              border: cardBorder,
+              boxShadow: cardShadow,
+            }}
+          >
+            <div className="mb-4">
+              <p
+                className="text-[10px] font-mono uppercase tracking-widest mb-1"
+                style={{ color: isLight ? "#7c3aed" : "rgba(192,132,252,0.7)" }}
+              >
+                ILO / Walk Free 2023
+              </p>
+              <h3
+                className="text-base font-bold font-sans"
+                style={{ color: headText }}
+              >
+                Forms of Modern Slavery
+              </h3>
+            </div>
+            <div className="space-y-3 mb-4">
+              {SLAVERY_FORMS.map((f) => (
+                <div key={f.form}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{f.icon}</span>
+                      <span
+                        className="text-[11px] font-semibold font-sans"
+                        style={{ color: headText }}
+                      >
+                        {f.form}
+                      </span>
+                    </div>
+                    <span
+                      className="text-sm font-bold font-mono"
+                      style={{ color: f.color }}
+                    >
+                      {f.pct}%
+                    </span>
+                  </div>
+                  <div
+                    className="h-2.5 rounded-full overflow-hidden"
+                    style={{
+                      background: isLight
+                        ? "rgba(0,0,0,0.06)"
+                        : "rgba(255,255,255,0.07)",
+                    }}
+                  >
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${f.pct}%`, background: f.color }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div
+              className="rounded-xl p-3 flex items-start gap-2"
+              style={{
+                background: isLight
+                  ? "rgba(168,85,247,0.06)"
+                  : "rgba(168,85,247,0.1)",
+                border: isLight
+                  ? "1px solid rgba(168,85,247,0.15)"
+                  : "1px solid rgba(168,85,247,0.2)",
+              }}
+            >
+              <Info
+                size={12}
+                weight="fill"
+                style={{ color: "#a855f7", flexShrink: 0, marginTop: 1 }}
+              />
+              <p
+                className="text-[10px] font-sans leading-relaxed"
+                style={{ color: mutedText }}
+              >
+                Forced labour generates an estimated{" "}
+                <strong style={{ color: headText }}>$236 billion</strong> in
+                illegal profits per year globally (ILO 2024). Commercial sexual
+                exploitation accounts for{" "}
+                <strong style={{ color: headText }}>$99.2B</strong> alone.
+              </p>
+            </div>
+            <SourceLink
+              sources={[
+                {
+                  label: "ILO Global Estimates of Modern Slavery 2022",
+                  url: "https://www.ilo.org/global/topics/forced-labour/WCMS_854733/lang--en/index.htm",
+                },
+                {
+                  label: "Walk Free Global Slavery Index 2023",
+                  url: "https://www.walkfree.org/global-slavery-index/",
+                },
+              ]}
+              className="mt-3"
+            />
+          </div>
+
+          {/* Regional Distribution */}
+          <div
+            className="rounded-2xl p-5"
+            style={{
+              background: cardBg,
+              border: cardBorder,
+              boxShadow: cardShadow,
+            }}
+          >
+            <div className="mb-4">
+              <p
+                className="text-[10px] font-mono uppercase tracking-widest mb-1"
+                style={{ color: isLight ? "#7c3aed" : "rgba(192,132,252,0.7)" }}
+              >
+                Victims by World Region · 2023
+              </p>
+              <h3
+                className="text-base font-bold font-sans"
+                style={{ color: headText }}
+              >
+                Regional Distribution
+              </h3>
+            </div>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart
+                data={SLAVERY_BY_REGION}
+                layout="vertical"
+                margin={{ top: 0, right: 50, left: 10, bottom: 0 }}
+                barSize={14}
+              >
+                <CartesianGrid
+                  stroke={gridLine}
+                  strokeDasharray="3 3"
+                  horizontal={false}
+                />
+                <XAxis
+                  type="number"
+                  tick={{
+                    fontSize: 9,
+                    fill: mutedText,
+                    fontFamily: "monospace",
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => `${v}M`}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="region"
+                  tick={{
+                    fontSize: 9,
+                    fill: headText,
+                    fontFamily: "sans-serif",
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={130}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: isLight ? "#fff" : "#1a1730",
+                    border: isLight
+                      ? "1px solid rgba(0,0,0,0.1)"
+                      : "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 10,
+                    fontSize: 11,
+                    fontFamily: "monospace",
+                    color: headText,
+                  }}
+                  formatter={(v: number, _name: string, entry: any) => [
+                    `${v}M victims · ${entry.payload.prevalence} per 1,000`,
+                    entry.payload.region,
+                  ]}
+                  labelFormatter={() => "Modern Slavery"}
+                  cursor={{
+                    fill: isLight
+                      ? "rgba(0,0,0,0.03)"
+                      : "rgba(255,255,255,0.04)",
+                  }}
+                />
+                <Bar dataKey="victims" radius={[0, 4, 4, 0]}>
+                  {SLAVERY_BY_REGION.map((entry) => (
+                    <Cell key={entry.region} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+            {/* Region cards */}
+            <div className="grid grid-cols-5 gap-2 mt-3">
+              {SLAVERY_BY_REGION.map((r) => (
+                <div
+                  key={r.region}
+                  className="rounded-lg p-2 text-center"
+                  style={{
+                    background: r.color + "15",
+                    border: `1px solid ${r.color}30`,
+                  }}
+                >
+                  <p className="text-base mb-0.5">{r.flag}</p>
+                  <p
+                    className="text-[10px] font-bold font-mono"
+                    style={{ color: r.color }}
+                  >
+                    {r.victims}M
+                  </p>
+                  <p
+                    className="text-[8px] font-sans leading-tight mt-0.5"
+                    style={{ color: mutedText }}
+                  >
+                    {r.prevalence}/1k
+                  </p>
+                </div>
+              ))}
+            </div>
+            <SourceLink
+              sources={{
+                label: "Walk Free Global Slavery Index 2023",
+                url: "https://www.walkfree.org/global-slavery-index/",
+              }}
+              className="mt-3"
+            />
+          </div>
+        </div>
+
+        {/* ── SLAVERY ROW 2: Countries + Forced Labour Economy + Government Response ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Highest victim countries */}
+          <div
+            className="lg:col-span-4 rounded-2xl p-5"
+            style={{
+              background: cardBg,
+              border: cardBorder,
+              boxShadow: cardShadow,
+            }}
+          >
+            <div className="mb-4">
+              <p
+                className="text-[10px] font-mono uppercase tracking-widest mb-1"
+                style={{ color: isLight ? "#7c3aed" : "rgba(192,132,252,0.7)" }}
+              >
+                Absolute Victims (Millions) · GSI 2023
+              </p>
+              <h3
+                className="text-base font-bold font-sans"
+                style={{ color: headText }}
+              >
+                Countries with Most Victims
+              </h3>
+            </div>
+            <div className="flex flex-col gap-2.5">
+              {SLAVERY_HIGH_COUNTRIES.map((item, idx) => {
+                const maxV = SLAVERY_HIGH_COUNTRIES[0].victims;
+                return (
+                  <div key={item.country} className="flex items-center gap-2">
+                    <span
+                      className="text-[9px] font-mono w-4 text-right shrink-0"
+                      style={{ color: mutedText }}
+                    >
+                      {idx + 1}
+                    </span>
+                    <span className="text-base shrink-0">{item.flag}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <span
+                          className="text-[11px] font-semibold font-sans truncate"
+                          style={{ color: headText }}
+                        >
+                          {item.country}
+                        </span>
+                        <span
+                          className="text-[10px] font-mono font-bold shrink-0 ml-1"
+                          style={{ color: "#a855f7" }}
+                        >
+                          {item.victims}M
+                        </span>
+                      </div>
+                      <div
+                        className="h-1.5 rounded-full overflow-hidden"
+                        style={{
+                          background: isLight
+                            ? "rgba(0,0,0,0.07)"
+                            : "rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${(item.victims / maxV) * 100}%`,
+                            background: "#a855f7",
+                          }}
+                        />
+                      </div>
+                      <p
+                        className="text-[9px] font-mono mt-0.5"
+                        style={{ color: mutedText }}
+                      >
+                        {item.prevalence} per 1,000 pop.
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <SourceLink
+              sources={{
+                label: "Walk Free Global Slavery Index 2023",
+                url: "https://www.walkfree.org/global-slavery-index/",
+              }}
+              className="mt-3"
+            />
+          </div>
+
+          {/* Forced Labour by Sector economy */}
+          <div
+            className="lg:col-span-4 rounded-2xl p-5"
+            style={{
+              background: cardBg,
+              border: cardBorder,
+              boxShadow: cardShadow,
+            }}
+          >
+            <div className="mb-4">
+              <p
+                className="text-[10px] font-mono uppercase tracking-widest mb-1"
+                style={{ color: isLight ? "#7c3aed" : "rgba(192,132,252,0.7)" }}
+              >
+                Annual Illegal Profit ($B USD) · ILO 2024
+              </p>
+              <h3
+                className="text-base font-bold font-sans"
+                style={{ color: headText }}
+              >
+                Forced Labour by Sector
+              </h3>
+            </div>
+            <ResponsiveContainer width="100%" height={210}>
+              <PieChart>
+                <Pie
+                  data={FORCED_LABOUR_ECONOMY}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={88}
+                  paddingAngle={2}
+                  dataKey="value"
+                  nameKey="sector"
+                >
+                  {FORCED_LABOUR_ECONOMY.map((entry) => (
+                    <Cell key={entry.sector} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    background: isLight ? "#fff" : "#1a1730",
+                    border: isLight
+                      ? "1px solid rgba(0,0,0,0.1)"
+                      : "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 10,
+                    fontSize: 11,
+                    fontFamily: "monospace",
+                    color: headText,
+                  }}
+                  formatter={(v: number, name: string) => [
+                    `$${v}B annual profit`,
+                    name,
+                  ]}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex flex-col gap-1.5 mt-1">
+              {FORCED_LABOUR_ECONOMY.map((entry) => (
+                <div key={entry.sector} className="flex items-center gap-2">
+                  <div
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ background: entry.color }}
+                  />
+                  <span
+                    className="text-[10px] font-sans flex-1"
+                    style={{ color: headText }}
+                  >
+                    {entry.sector}
+                  </span>
+                  <span
+                    className="text-[10px] font-mono font-bold shrink-0"
+                    style={{ color: entry.color }}
+                  >
+                    ${entry.value}B
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div
+              className="mt-3 rounded-xl p-3 flex items-start gap-2"
+              style={{
+                background: isLight
+                  ? "rgba(239,68,68,0.06)"
+                  : "rgba(239,68,68,0.1)",
+                border: isLight
+                  ? "1px solid rgba(239,68,68,0.15)"
+                  : "1px solid rgba(239,68,68,0.2)",
+              }}
+            >
+              <Info
+                size={12}
+                weight="fill"
+                style={{ color: "#ef4444", flexShrink: 0, marginTop: 1 }}
+              />
+              <p
+                className="text-[10px] font-sans leading-relaxed"
+                style={{ color: mutedText }}
+              >
+                Sexual exploitation accounts for just 4.6% of victims but
+                generates{" "}
+                <strong style={{ color: headText }}>
+                  42% of all illegal profits
+                </strong>{" "}
+                from forced labour.
+              </p>
+            </div>
+            <SourceLink
+              sources={{
+                label:
+                  "ILO Profits and Poverty: Economics of Forced Labour 2024",
+                url: "https://www.ilo.org/global/topics/forced-labour/WCMS_854733/lang--en/index.htm",
+              }}
+              className="mt-3"
+            />
+          </div>
+
+          {/* Government Response */}
+          <div
+            className="lg:col-span-4 rounded-2xl p-5 flex flex-col gap-4"
+            style={{
+              background: cardBg,
+              border: cardBorder,
+              boxShadow: cardShadow,
+            }}
+          >
+            <div>
+              <p
+                className="text-[10px] font-mono uppercase tracking-widest mb-1"
+                style={{ color: isLight ? "#7c3aed" : "rgba(192,132,252,0.7)" }}
+              >
+                GSI Government Response Score · 0–100
+              </p>
+              <h3
+                className="text-base font-bold font-sans"
+                style={{ color: headText }}
+              >
+                Government Response
+              </h3>
+            </div>
+            {/* Best responders */}
+            <div>
+              <p
+                className="text-[10px] font-mono uppercase tracking-widest mb-2"
+                style={{ color: "#10b981" }}
+              >
+                ✅ Best Responders
+              </p>
+              <div className="flex flex-col gap-1.5">
+                {BEST_RESPONDERS.map((item) => (
+                  <div key={item.country} className="flex items-center gap-2">
+                    <span className="text-sm shrink-0">{item.flag}</span>
+                    <span
+                      className="text-[10px] font-sans w-24 truncate"
+                      style={{ color: headText }}
+                    >
+                      {item.country}
+                    </span>
+                    <div
+                      className="flex-1 h-2 rounded-full overflow-hidden"
+                      style={{
+                        background: isLight
+                          ? "rgba(0,0,0,0.06)"
+                          : "rgba(255,255,255,0.07)",
+                      }}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${item.score}%`,
+                          background: "#10b981",
+                        }}
+                      />
+                    </div>
+                    <span
+                      className="text-[9px] font-mono w-6 text-right shrink-0"
+                      style={{ color: "#10b981" }}
+                    >
+                      {item.score}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div
+              className="h-px"
+              style={{
+                background: isLight
+                  ? "rgba(0,0,0,0.08)"
+                  : "rgba(255,255,255,0.08)",
+              }}
+            />
+            {/* Worst responders */}
+            <div>
+              <p
+                className="text-[10px] font-mono uppercase tracking-widest mb-2"
+                style={{ color: "#ef4444" }}
+              >
+                ❌ Weakest Responders
+              </p>
+              <div className="flex flex-col gap-1.5">
+                {WORST_RESPONDERS.map((item) => (
+                  <div key={item.country} className="flex items-center gap-2">
+                    <span className="text-sm shrink-0">{item.flag}</span>
+                    <span
+                      className="text-[10px] font-sans w-24 truncate"
+                      style={{ color: headText }}
+                    >
+                      {item.country}
+                    </span>
+                    <div
+                      className="flex-1 h-2 rounded-full overflow-hidden"
+                      style={{
+                        background: isLight
+                          ? "rgba(0,0,0,0.06)"
+                          : "rgba(255,255,255,0.07)",
+                      }}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${Math.max(item.score, 2)}%`,
+                          background: "#ef4444",
+                        }}
+                      />
+                    </div>
+                    <span
+                      className="text-[9px] font-mono w-6 text-right shrink-0"
+                      style={{ color: "#ef4444" }}
+                    >
+                      {item.score}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <SourceLink
+              sources={{
+                label: "Walk Free GSI Government Response 2023",
+                url: "https://www.walkfree.org/global-slavery-index/findings/government-response/",
+              }}
+              className="mt-auto"
             />
           </div>
         </div>

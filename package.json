@@ -49,17 +49,18 @@
     "d3-geo": "^3.1.1",
     "topojson-client": "^3.1.0",
     "@types/topojson-client": "^3.1.4",
-    "@types/d3-geo": "^3.1.0"
+    "@types/d3-geo": "^3.1.0",
+    "three": "0.169.0",
+    "@types/three": "0.169.0"
   },
   "devDependencies": {
     "tailwindcss-animate": "1.0.7",
     "@types/react": "18.2.0",
     "@types/react-dom": "18.2.0",
     "@vitejs/plugin-react": "4.3.4",
-    "esbuild": "0.25.5",
     "globals": "15.12.0",
     "tailwindcss": "3.4.16",
-    "vite": "6.3.5"
+    "vite": "5.4.11"
   },
   "alias": {
     "@/*": "./src/components/ui/$1"

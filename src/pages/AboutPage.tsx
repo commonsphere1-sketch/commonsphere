@@ -13,42 +13,50 @@ import {
   BookOpen,
   ShieldCheck,
   ArrowSquareOut,
+  Sword,
+  Leaf,
+  MapPin,
+  Briefcase,
+  Users,
+  Gavel,
+  Ranking,
+  Article,
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
 
 const STATS = [
-  { val: "195", lbl: "Countries Indexed" },
+  { val: "195+", lbl: "Countries Indexed" },
   { val: "50", lbl: "US States Tracked" },
-  { val: "40K+", lbl: "Data Points" },
-  { val: "2024", lbl: "Founded" },
+  { val: "300+", lbl: "Global Cities" },
+  { val: "100K+", lbl: "Data Points" },
 ];
 
 const VALUES = [
   {
     icon: <Globe size={24} weight="fill" />,
     title: "Global Coverage",
-    desc: "We track every sovereign nation, major territory, and all 50 US states — giving you one unified view of the world&#39;s political landscape.",
+    desc: "We track every sovereign nation, major territory, all 50 US states, hundreds of global cities, and major economies — giving you one unified view of the world&#39;s political landscape.",
     color: "text-emerald-400",
     bg: "bg-emerald-500/10",
   },
   {
     icon: <Lightning size={24} weight="fill" />,
     title: "Real-time Intelligence",
-    desc: "Our data pipeline refreshes continuously, surfacing leadership changes, policy shifts, and economic signals as they happen.",
+    desc: "Our data pipeline refreshes continuously, surfacing leadership changes, policy shifts, conflict developments, and economic signals as they happen.",
     color: "text-secondary",
     bg: "bg-secondary/10",
   },
   {
     icon: <Scales size={24} weight="fill" />,
     title: "Non-partisan Integrity",
-    desc: "We present facts, not opinions. Every data point is sourced from verified government records, official statistics, and reputable institutions.",
+    desc: "We present facts, not opinions. Every data point is sourced from verified government records, official statistics, and reputable institutions — from Freedom House to the UN.",
     color: "text-blue-400",
     bg: "bg-blue-500/10",
   },
   {
     icon: <Newspaper size={24} weight="fill" />,
     title: "Research-first",
-    desc: "Built for analysts, journalists, policy researchers, and the simply curious. Every feature is designed to accelerate deep, rigorous research.",
+    desc: "Built for analysts, journalists, policy researchers, and the simply curious. Every feature — from the Research Notes hub to Comparisons — is designed to accelerate deep, rigorous research.",
     color: "text-purple-400",
     bg: "bg-purple-500/10",
   },
@@ -135,6 +143,56 @@ const DATA_SOURCES = [
     bg: "bg-indigo-500/10",
     badge: "bg-indigo-500/10 text-indigo-400",
   },
+  {
+    icon: <Sword size={22} weight="fill" />,
+    name: "ACLED Conflict Data",
+    category: "Conflicts & Security",
+    desc: "Disaggregated data on political violence and protest events worldwide, covering fatalities, actors, and event types.",
+    url: "https://acleddata.com",
+    color: "text-rose-400",
+    bg: "bg-rose-500/10",
+    badge: "bg-rose-500/10 text-rose-400",
+  },
+  {
+    icon: <Leaf size={22} weight="fill" />,
+    name: "NASA Earth Observations",
+    category: "Planetary & Environment",
+    desc: "Environmental boundary data including CO₂ levels, ocean acidification, land use change, and biodiversity loss indicators.",
+    url: "https://earthdata.nasa.gov",
+    color: "text-green-400",
+    bg: "bg-green-500/10",
+    badge: "bg-green-500/10 text-green-400",
+  },
+  {
+    icon: <MapPin size={22} weight="fill" />,
+    name: "UN Habitat Urban Data",
+    category: "Cities & Urban",
+    desc: "City-level data on population density, urban inequality, housing affordability, municipal governance, and infrastructure.",
+    url: "https://unhabitat.org",
+    color: "text-cyan-400",
+    bg: "bg-cyan-500/10",
+    badge: "bg-cyan-500/10 text-cyan-400",
+  },
+  {
+    icon: <Briefcase size={22} weight="fill" />,
+    name: "ILO Forced Labour Data",
+    category: "Humanitarian & Crime",
+    desc: "Global estimates of forced labour, modern slavery prevalence, child labour, and human trafficking by region and sector.",
+    url: "https://ilo.org",
+    color: "text-orange-400",
+    bg: "bg-orange-500/10",
+    badge: "bg-orange-500/10 text-orange-400",
+  },
+  {
+    icon: <Gavel size={22} weight="fill" />,
+    name: "UNODC Crime & Justice",
+    category: "Crime & Justice",
+    desc: "Homicide rates, prison populations, drug seizures, corruption indices, and justice system metrics across 200+ countries.",
+    url: "https://unodc.org",
+    color: "text-amber-400",
+    bg: "bg-amber-500/10",
+    badge: "bg-amber-500/10 text-amber-400",
+  },
 ];
 
 export function AboutPage() {
@@ -164,8 +222,9 @@ export function AboutPage() {
             <p className="text-base text-muted-foreground font-sans leading-relaxed max-w-xl">
               CommonSphere is a political intelligence platform built for
               researchers, analysts, journalists, and citizens who want to
-              understand how the world is governed — without wading through
-              dozens of disconnected sources.
+              understand how the world is governed — covering countries, US
+              states, global cities, economies, conflicts, humanitarian crises,
+              crime statistics, planetary boundaries, and more.
             </p>
             <button
               onClick={() => navigate("/dashboard")}
@@ -216,8 +275,11 @@ export function AboutPage() {
               </p>
               <p className="text-sm text-muted-foreground font-sans leading-relaxed">
                 Our goal is a single, authoritative, always-current window into
-                how every country, state, and city on Earth is governed —
-                economically, politically, and socially.
+                how every country, state, city, and economy on Earth is governed
+                — economically, politically, and socially — alongside deep
+                tracking of conflicts, humanitarian emergencies, crime
+                statistics, planetary boundaries, political ideologies, and
+                global wealth.
               </p>
             </div>
           </section>
@@ -272,40 +334,156 @@ export function AboutPage() {
                 sources to ensure accuracy and consistency.
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {DATA_SOURCES.map((src) => (
                 <div
                   key={src.name}
-                  className="bg-card border border-border rounded-2xl p-6 flex flex-col gap-4 hover:border-secondary/30 transition-colors"
+                  className="bg-card border border-border rounded-xl p-5 flex gap-4 hover:border-secondary/30 transition-colors group"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div
-                      className={`p-2.5 rounded-xl ${src.bg} ${src.color} w-fit shrink-0`}
-                    >
-                      {src.icon}
+                  <div
+                    className={`p-2.5 rounded-xl ${src.bg} ${src.color} w-fit h-fit shrink-0 mt-0.5`}
+                  >
+                    {src.icon}
+                  </div>
+                  <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 flex-wrap">
+                      <p className="text-sm font-bold font-sans text-foreground leading-snug">
+                        {src.name}
+                      </p>
+                      <span
+                        className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full ${src.badge} whitespace-nowrap shrink-0`}
+                      >
+                        {src.category}
+                      </span>
                     </div>
-                    <span
-                      className={`text-[10px] font-mono font-semibold px-2 py-1 rounded-full ${src.badge} whitespace-nowrap`}
+                    <p className="text-xs text-muted-foreground font-sans leading-relaxed">
+                      {src.desc}
+                    </p>
+                    <a
+                      href={src.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs font-semibold font-sans text-secondary hover:opacity-80 transition-opacity w-fit mt-0.5"
                     >
-                      {src.category}
-                    </span>
+                      Visit source <ArrowSquareOut size={11} weight="bold" />
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── WHAT'S ON THE PLATFORM ───────────────────────────── */}
+          <section>
+            <div className="mb-8">
+              <p className="text-xs font-bold tracking-widest uppercase text-secondary font-sans mb-2">
+                Platform Coverage
+              </p>
+              <h2 className="text-2xl font-bold font-sans text-foreground">
+                Everything in one place
+              </h2>
+              <p className="text-sm text-muted-foreground font-sans mt-2 max-w-2xl">
+                CommonSphere spans a growing set of intelligence domains — each
+                with dedicated analysis tools, charts, and searchable data.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {[
+                {
+                  icon: <Globe size={18} weight="fill" />,
+                  label: "Countries",
+                  desc: "195+ sovereign nations",
+                  color: "text-emerald-400",
+                  bg: "bg-emerald-500/10",
+                },
+                {
+                  icon: <Buildings size={18} weight="fill" />,
+                  label: "US States",
+                  desc: "All 50 states tracked",
+                  color: "text-blue-400",
+                  bg: "bg-blue-500/10",
+                },
+                {
+                  icon: <MapPin size={18} weight="fill" />,
+                  label: "Global Cities",
+                  desc: "Major urban centres",
+                  color: "text-cyan-400",
+                  bg: "bg-cyan-500/10",
+                },
+                {
+                  icon: <Sword size={18} weight="fill" />,
+                  label: "Conflicts",
+                  desc: "Active & historical wars",
+                  color: "text-rose-400",
+                  bg: "bg-rose-500/10",
+                },
+                {
+                  icon: <Users size={18} weight="fill" />,
+                  label: "Humanitarian",
+                  desc: "Displacement, food & health",
+                  color: "text-orange-400",
+                  bg: "bg-orange-500/10",
+                },
+                {
+                  icon: <Gavel size={18} weight="fill" />,
+                  label: "Crime & Justice",
+                  desc: "Global crime statistics",
+                  color: "text-amber-400",
+                  bg: "bg-amber-500/10",
+                },
+                {
+                  icon: <Leaf size={18} weight="fill" />,
+                  label: "Planetary Boundaries",
+                  desc: "Environmental limits",
+                  color: "text-green-400",
+                  bg: "bg-green-500/10",
+                },
+                {
+                  icon: <Flag size={18} weight="fill" />,
+                  label: "Political Ideologies",
+                  desc: "Party & movement tracking",
+                  color: "text-indigo-400",
+                  bg: "bg-indigo-500/10",
+                },
+                {
+                  icon: <Ranking size={18} weight="fill" />,
+                  label: "Global Rankings",
+                  desc: "Cross-country indices",
+                  color: "text-secondary",
+                  bg: "bg-secondary/10",
+                },
+                {
+                  icon: <Article size={18} weight="fill" />,
+                  label: "Public Policy Hub",
+                  desc: "Policy positions & analysis",
+                  color: "text-violet-400",
+                  bg: "bg-violet-500/10",
+                },
+                {
+                  icon: <BookOpen size={18} weight="fill" />,
+                  label: "Research Notes",
+                  desc: "Save & organise insights",
+                  color: "text-teal-400",
+                  bg: "bg-teal-500/10",
+                },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="bg-card border border-border rounded-xl p-4 flex flex-col gap-3 hover:border-secondary/30 transition-colors"
+                >
+                  <div
+                    className={`p-2 rounded-lg w-fit ${item.bg} ${item.color}`}
+                  >
+                    {item.icon}
                   </div>
                   <div>
-                    <p className="text-sm font-bold font-sans text-foreground leading-snug">
-                      {src.name}
+                    <p className="text-sm font-semibold font-sans text-foreground">
+                      {item.label}
+                    </p>
+                    <p className="text-xs text-muted-foreground font-sans mt-0.5">
+                      {item.desc}
                     </p>
                   </div>
-                  <p className="text-xs text-muted-foreground font-sans leading-relaxed flex-1">
-                    {src.desc}
-                  </p>
-                  <a
-                    href={src.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-xs font-semibold font-sans text-secondary hover:opacity-80 transition-opacity w-fit"
-                  >
-                    Visit source <ArrowSquareOut size={12} weight="bold" />
-                  </a>
                 </div>
               ))}
             </div>

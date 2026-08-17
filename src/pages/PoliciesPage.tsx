@@ -803,6 +803,8 @@ function PolicyModal({
   policy: Policy;
   onClose: () => void;
 }) {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -823,7 +825,7 @@ function PolicyModal({
       }}
     >
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl animate-fade-in shadow-2xl modal-glass border">
+      <div className={`relative z-10 w-full rounded-2xl animate-fade-in shadow-2xl modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-lg max-h-[90vh]"}`}>
         <div className="p-6">
           {/* Header */}
           <div className="flex items-start justify-between mb-5">
@@ -852,6 +854,18 @@ function PolicyModal({
                 {policy.country} · {policy.year}
               </p>
             </div>
+            <button
+              onClick={() => setIsExpanded((v) => !v)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer shrink-0"
+              aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
+              title={isExpanded ? "Collapse" : "Expand to full screen"}
+            >
+              {isExpanded ? (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 1H1v4M11 1h4v4M5 15H1v-4M11 15h4v-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              )}
+            </button>
             <button
               onClick={onClose}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer shrink-0"

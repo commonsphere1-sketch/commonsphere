@@ -9,6 +9,15 @@ import {
   Scales,
   ArrowLeft,
   NotePencil,
+  DownloadSimple,
+  House,
+  Train,
+  FirstAid,
+  GraduationCap,
+  WifiHigh,
+  Leaf,
+  ChartBar,
+  Rocket,
 } from "@phosphor-icons/react";
 import { useNotes } from "../contexts/NotesContext";
 import {
@@ -33,6 +42,919 @@ const SRC_CITIES = [
     url: "https://mori-m-foundation.or.jp/english/ius2/gpci2/",
   },
 ];
+
+// ─── Urban Statistics Data ─────────────────────────────────────────────────
+interface UrbanStats {
+  // Housing
+  avgRentUSD1BR: number; // avg monthly rent 1-bedroom city center (USD)
+  avgHomePriceUSDm2: number; // avg price per m² to buy apartment (USD)
+  rentToIncomeRatio: number; // rent as % of avg salary (0–100)
+  // Transport
+  transitScore: number; // public transit quality 0–100 (Numbeo-style)
+  avgCommuteMin: number; // avg one-way commute in minutes
+  bikeInfraScore: number; // cycling infrastructure 0–100
+  // Healthcare
+  healthcareIndex: number; // Numbeo healthcare index 0–100
+  hospitalBedsPerK: number; // hospital beds per 1,000 residents
+  // Education
+  literacyRate: number; // %
+  topUniversityRank: number | null; // QS world ranking of top uni in city (null if none in top 500)
+  // Digital & Environment
+  avgInternetMbps: number; // avg broadband speed Mbps
+  greenSpacePct: number; // % of city area that is parks/green
+  recyclingRatePct: number; // municipal recycling rate %
+  // Economy & Inequality
+  unemploymentRate: number; // %
+  giniCoefficient: number; // 0–100 (higher = more unequal)
+  avgSalaryUSD: number; // net monthly avg salary USD
+  // Startup Ecosystem
+  startupScore: number; // 0–100 composite
+  unicorns: number; // unicorn companies HQ'd here
+}
+
+const CITY_URBAN_STATS: Record<string, UrbanStats> = {
+  "new-york": {
+    avgRentUSD1BR: 3800,
+    avgHomePriceUSDm2: 17500,
+    rentToIncomeRatio: 62,
+    transitScore: 88,
+    avgCommuteMin: 47,
+    bikeInfraScore: 52,
+    healthcareIndex: 72,
+    hospitalBedsPerK: 3.1,
+    literacyRate: 99,
+    topUniversityRank: 12,
+    avgInternetMbps: 250,
+    greenSpacePct: 27,
+    recyclingRatePct: 21,
+    unemploymentRate: 5.2,
+    giniCoefficient: 50,
+    avgSalaryUSD: 5800,
+    startupScore: 92,
+    unicorns: 143,
+  },
+  "new-york-city": {
+    avgRentUSD1BR: 3800,
+    avgHomePriceUSDm2: 17500,
+    rentToIncomeRatio: 62,
+    transitScore: 88,
+    avgCommuteMin: 47,
+    bikeInfraScore: 52,
+    healthcareIndex: 72,
+    hospitalBedsPerK: 3.1,
+    literacyRate: 99,
+    topUniversityRank: 12,
+    avgInternetMbps: 250,
+    greenSpacePct: 27,
+    recyclingRatePct: 21,
+    unemploymentRate: 5.2,
+    giniCoefficient: 50,
+    avgSalaryUSD: 5800,
+    startupScore: 92,
+    unicorns: 143,
+  },
+  nyc26: {
+    avgRentUSD1BR: 3800,
+    avgHomePriceUSDm2: 17500,
+    rentToIncomeRatio: 62,
+    transitScore: 88,
+    avgCommuteMin: 47,
+    bikeInfraScore: 52,
+    healthcareIndex: 72,
+    hospitalBedsPerK: 3.1,
+    literacyRate: 99,
+    topUniversityRank: 12,
+    avgInternetMbps: 250,
+    greenSpacePct: 27,
+    recyclingRatePct: 21,
+    unemploymentRate: 5.2,
+    giniCoefficient: 50,
+    avgSalaryUSD: 5800,
+    startupScore: 92,
+    unicorns: 143,
+  },
+  tky26: {
+    avgRentUSD1BR: 1400,
+    avgHomePriceUSDm2: 10200,
+    rentToIncomeRatio: 28,
+    transitScore: 97,
+    avgCommuteMin: 48,
+    bikeInfraScore: 62,
+    healthcareIndex: 88,
+    hospitalBedsPerK: 13.1,
+    literacyRate: 99.9,
+    topUniversityRank: 23,
+    avgInternetMbps: 190,
+    greenSpacePct: 18,
+    recyclingRatePct: 77,
+    unemploymentRate: 2.4,
+    giniCoefficient: 33,
+    avgSalaryUSD: 3100,
+    startupScore: 71,
+    unicorns: 12,
+  },
+  tokyo: {
+    avgRentUSD1BR: 1400,
+    avgHomePriceUSDm2: 10200,
+    rentToIncomeRatio: 28,
+    transitScore: 97,
+    avgCommuteMin: 48,
+    bikeInfraScore: 62,
+    healthcareIndex: 88,
+    hospitalBedsPerK: 13.1,
+    literacyRate: 99.9,
+    topUniversityRank: 23,
+    avgInternetMbps: 190,
+    greenSpacePct: 18,
+    recyclingRatePct: 77,
+    unemploymentRate: 2.4,
+    giniCoefficient: 33,
+    avgSalaryUSD: 3100,
+    startupScore: 71,
+    unicorns: 12,
+  },
+  lon26: {
+    avgRentUSD1BR: 2900,
+    avgHomePriceUSDm2: 14800,
+    rentToIncomeRatio: 57,
+    transitScore: 83,
+    avgCommuteMin: 43,
+    bikeInfraScore: 65,
+    healthcareIndex: 74,
+    hospitalBedsPerK: 2.5,
+    literacyRate: 99.5,
+    topUniversityRank: 6,
+    avgInternetMbps: 165,
+    greenSpacePct: 47,
+    recyclingRatePct: 38,
+    unemploymentRate: 4.1,
+    giniCoefficient: 40,
+    avgSalaryUSD: 4300,
+    startupScore: 87,
+    unicorns: 68,
+  },
+  london: {
+    avgRentUSD1BR: 2900,
+    avgHomePriceUSDm2: 14800,
+    rentToIncomeRatio: 57,
+    transitScore: 83,
+    avgCommuteMin: 43,
+    bikeInfraScore: 65,
+    healthcareIndex: 74,
+    hospitalBedsPerK: 2.5,
+    literacyRate: 99.5,
+    topUniversityRank: 6,
+    avgInternetMbps: 165,
+    greenSpacePct: 47,
+    recyclingRatePct: 38,
+    unemploymentRate: 4.1,
+    giniCoefficient: 40,
+    avgSalaryUSD: 4300,
+    startupScore: 87,
+    unicorns: 68,
+  },
+  par26: {
+    avgRentUSD1BR: 2100,
+    avgHomePriceUSDm2: 13200,
+    rentToIncomeRatio: 51,
+    transitScore: 86,
+    avgCommuteMin: 40,
+    bikeInfraScore: 74,
+    healthcareIndex: 82,
+    hospitalBedsPerK: 6.0,
+    literacyRate: 99.8,
+    topUniversityRank: 33,
+    avgInternetMbps: 215,
+    greenSpacePct: 14,
+    recyclingRatePct: 43,
+    unemploymentRate: 8.5,
+    giniCoefficient: 42,
+    avgSalaryUSD: 3300,
+    startupScore: 79,
+    unicorns: 28,
+  },
+  paris: {
+    avgRentUSD1BR: 2100,
+    avgHomePriceUSDm2: 13200,
+    rentToIncomeRatio: 51,
+    transitScore: 86,
+    avgCommuteMin: 40,
+    bikeInfraScore: 74,
+    healthcareIndex: 82,
+    hospitalBedsPerK: 6.0,
+    literacyRate: 99.8,
+    topUniversityRank: 33,
+    avgInternetMbps: 215,
+    greenSpacePct: 14,
+    recyclingRatePct: 43,
+    unemploymentRate: 8.5,
+    giniCoefficient: 42,
+    avgSalaryUSD: 3300,
+    startupScore: 79,
+    unicorns: 28,
+  },
+  dxb26: {
+    avgRentUSD1BR: 2400,
+    avgHomePriceUSDm2: 5400,
+    rentToIncomeRatio: 36,
+    transitScore: 62,
+    avgCommuteMin: 39,
+    bikeInfraScore: 22,
+    healthcareIndex: 79,
+    hospitalBedsPerK: 1.9,
+    literacyRate: 96.3,
+    topUniversityRank: 301,
+    avgInternetMbps: 195,
+    greenSpacePct: 11,
+    recyclingRatePct: 19,
+    unemploymentRate: 2.6,
+    giniCoefficient: 38,
+    avgSalaryUSD: 4800,
+    startupScore: 72,
+    unicorns: 7,
+  },
+  dubai: {
+    avgRentUSD1BR: 2400,
+    avgHomePriceUSDm2: 5400,
+    rentToIncomeRatio: 36,
+    transitScore: 62,
+    avgCommuteMin: 39,
+    bikeInfraScore: 22,
+    healthcareIndex: 79,
+    hospitalBedsPerK: 1.9,
+    literacyRate: 96.3,
+    topUniversityRank: 301,
+    avgInternetMbps: 195,
+    greenSpacePct: 11,
+    recyclingRatePct: 19,
+    unemploymentRate: 2.6,
+    giniCoefficient: 38,
+    avgSalaryUSD: 4800,
+    startupScore: 72,
+    unicorns: 7,
+  },
+  sgp: {
+    avgRentUSD1BR: 3100,
+    avgHomePriceUSDm2: 17900,
+    rentToIncomeRatio: 43,
+    transitScore: 91,
+    avgCommuteMin: 45,
+    bikeInfraScore: 44,
+    healthcareIndex: 90,
+    hospitalBedsPerK: 2.4,
+    literacyRate: 97.5,
+    topUniversityRank: 8,
+    avgInternetMbps: 310,
+    greenSpacePct: 47,
+    recyclingRatePct: 61,
+    unemploymentRate: 2.1,
+    giniCoefficient: 46,
+    avgSalaryUSD: 5200,
+    startupScore: 85,
+    unicorns: 11,
+  },
+  singapore: {
+    avgRentUSD1BR: 3100,
+    avgHomePriceUSDm2: 17900,
+    rentToIncomeRatio: 43,
+    transitScore: 91,
+    avgCommuteMin: 45,
+    bikeInfraScore: 44,
+    healthcareIndex: 90,
+    hospitalBedsPerK: 2.4,
+    literacyRate: 97.5,
+    topUniversityRank: 8,
+    avgInternetMbps: 310,
+    greenSpacePct: 47,
+    recyclingRatePct: 61,
+    unemploymentRate: 2.1,
+    giniCoefficient: 46,
+    avgSalaryUSD: 5200,
+    startupScore: 85,
+    unicorns: 11,
+  },
+  syd26: {
+    avgRentUSD1BR: 2600,
+    avgHomePriceUSDm2: 12800,
+    rentToIncomeRatio: 49,
+    transitScore: 68,
+    avgCommuteMin: 41,
+    bikeInfraScore: 48,
+    healthcareIndex: 78,
+    hospitalBedsPerK: 3.8,
+    literacyRate: 99.9,
+    topUniversityRank: 19,
+    avgInternetMbps: 90,
+    greenSpacePct: 46,
+    recyclingRatePct: 62,
+    unemploymentRate: 3.4,
+    giniCoefficient: 35,
+    avgSalaryUSD: 4600,
+    startupScore: 69,
+    unicorns: 6,
+  },
+  sydney: {
+    avgRentUSD1BR: 2600,
+    avgHomePriceUSDm2: 12800,
+    rentToIncomeRatio: 49,
+    transitScore: 68,
+    avgCommuteMin: 41,
+    bikeInfraScore: 48,
+    healthcareIndex: 78,
+    hospitalBedsPerK: 3.8,
+    literacyRate: 99.9,
+    topUniversityRank: 19,
+    avgInternetMbps: 90,
+    greenSpacePct: 46,
+    recyclingRatePct: 62,
+    unemploymentRate: 3.4,
+    giniCoefficient: 35,
+    avgSalaryUSD: 4600,
+    startupScore: 69,
+    unicorns: 6,
+  },
+  ber26: {
+    avgRentUSD1BR: 1600,
+    avgHomePriceUSDm2: 7200,
+    rentToIncomeRatio: 38,
+    transitScore: 87,
+    avgCommuteMin: 38,
+    bikeInfraScore: 91,
+    healthcareIndex: 81,
+    hospitalBedsPerK: 8.2,
+    literacyRate: 99.7,
+    topUniversityRank: 130,
+    avgInternetMbps: 135,
+    greenSpacePct: 44,
+    recyclingRatePct: 67,
+    unemploymentRate: 7.8,
+    giniCoefficient: 39,
+    avgSalaryUSD: 3100,
+    startupScore: 76,
+    unicorns: 18,
+  },
+  berlin: {
+    avgRentUSD1BR: 1600,
+    avgHomePriceUSDm2: 7200,
+    rentToIncomeRatio: 38,
+    transitScore: 87,
+    avgCommuteMin: 38,
+    bikeInfraScore: 91,
+    healthcareIndex: 81,
+    hospitalBedsPerK: 8.2,
+    literacyRate: 99.7,
+    topUniversityRank: 130,
+    avgInternetMbps: 135,
+    greenSpacePct: 44,
+    recyclingRatePct: 67,
+    unemploymentRate: 7.8,
+    giniCoefficient: 39,
+    avgSalaryUSD: 3100,
+    startupScore: 76,
+    unicorns: 18,
+  },
+  sfo: {
+    avgRentUSD1BR: 3400,
+    avgHomePriceUSDm2: 14500,
+    rentToIncomeRatio: 44,
+    transitScore: 65,
+    avgCommuteMin: 42,
+    bikeInfraScore: 67,
+    healthcareIndex: 76,
+    hospitalBedsPerK: 1.8,
+    literacyRate: 99.2,
+    topUniversityRank: 1,
+    avgInternetMbps: 320,
+    greenSpacePct: 20,
+    recyclingRatePct: 80,
+    unemploymentRate: 3.9,
+    giniCoefficient: 52,
+    avgSalaryUSD: 9400,
+    startupScore: 99,
+    unicorns: 287,
+  },
+  sha26: {
+    avgRentUSD1BR: 1100,
+    avgHomePriceUSDm2: 8900,
+    rentToIncomeRatio: 53,
+    transitScore: 89,
+    avgCommuteMin: 52,
+    bikeInfraScore: 70,
+    healthcareIndex: 67,
+    hospitalBedsPerK: 5.8,
+    literacyRate: 99.3,
+    topUniversityRank: 47,
+    avgInternetMbps: 195,
+    greenSpacePct: 16,
+    recyclingRatePct: 37,
+    unemploymentRate: 3.5,
+    giniCoefficient: 48,
+    avgSalaryUSD: 2100,
+    startupScore: 74,
+    unicorns: 22,
+  },
+  bei26: {
+    avgRentUSD1BR: 950,
+    avgHomePriceUSDm2: 10600,
+    rentToIncomeRatio: 61,
+    transitScore: 90,
+    avgCommuteMin: 55,
+    bikeInfraScore: 78,
+    healthcareIndex: 65,
+    hospitalBedsPerK: 8.7,
+    literacyRate: 99.4,
+    topUniversityRank: 15,
+    avgInternetMbps: 145,
+    greenSpacePct: 12,
+    recyclingRatePct: 35,
+    unemploymentRate: 3.8,
+    giniCoefficient: 49,
+    avgSalaryUSD: 1800,
+    startupScore: 78,
+    unicorns: 30,
+  },
+  seo26: {
+    avgRentUSD1BR: 1600,
+    avgHomePriceUSDm2: 13700,
+    rentToIncomeRatio: 42,
+    transitScore: 94,
+    avgCommuteMin: 44,
+    bikeInfraScore: 55,
+    healthcareIndex: 87,
+    hospitalBedsPerK: 12.8,
+    literacyRate: 99.9,
+    topUniversityRank: 36,
+    avgInternetMbps: 290,
+    greenSpacePct: 41,
+    recyclingRatePct: 82,
+    unemploymentRate: 2.8,
+    giniCoefficient: 31,
+    avgSalaryUSD: 2900,
+    startupScore: 80,
+    unicorns: 15,
+  },
+  ams26: {
+    avgRentUSD1BR: 2200,
+    avgHomePriceUSDm2: 9100,
+    rentToIncomeRatio: 48,
+    transitScore: 79,
+    avgCommuteMin: 35,
+    bikeInfraScore: 97,
+    healthcareIndex: 84,
+    hospitalBedsPerK: 3.3,
+    literacyRate: 99.9,
+    topUniversityRank: 61,
+    avgInternetMbps: 310,
+    greenSpacePct: 16,
+    recyclingRatePct: 64,
+    unemploymentRate: 3.7,
+    giniCoefficient: 30,
+    avgSalaryUSD: 3900,
+    startupScore: 77,
+    unicorns: 10,
+  },
+  zur26: {
+    avgRentUSD1BR: 2800,
+    avgHomePriceUSDm2: 14400,
+    rentToIncomeRatio: 31,
+    transitScore: 91,
+    avgCommuteMin: 29,
+    bikeInfraScore: 82,
+    healthcareIndex: 90,
+    hospitalBedsPerK: 4.4,
+    literacyRate: 99.9,
+    topUniversityRank: 7,
+    avgInternetMbps: 265,
+    greenSpacePct: 42,
+    recyclingRatePct: 92,
+    unemploymentRate: 2.3,
+    giniCoefficient: 33,
+    avgSalaryUSD: 8200,
+    startupScore: 75,
+    unicorns: 5,
+  },
+  cph26: {
+    avgRentUSD1BR: 2100,
+    avgHomePriceUSDm2: 8600,
+    rentToIncomeRatio: 37,
+    transitScore: 84,
+    avgCommuteMin: 32,
+    bikeInfraScore: 95,
+    healthcareIndex: 87,
+    hospitalBedsPerK: 2.9,
+    literacyRate: 99.9,
+    topUniversityRank: 87,
+    avgInternetMbps: 260,
+    greenSpacePct: 38,
+    recyclingRatePct: 70,
+    unemploymentRate: 4.9,
+    giniCoefficient: 29,
+    avgSalaryUSD: 4900,
+    startupScore: 71,
+    unicorns: 9,
+  },
+  hel26: {
+    avgRentUSD1BR: 1450,
+    avgHomePriceUSDm2: 5600,
+    rentToIncomeRatio: 32,
+    transitScore: 80,
+    avgCommuteMin: 31,
+    bikeInfraScore: 88,
+    healthcareIndex: 89,
+    hospitalBedsPerK: 4.8,
+    literacyRate: 100,
+    topUniversityRank: 105,
+    avgInternetMbps: 240,
+    greenSpacePct: 67,
+    recyclingRatePct: 58,
+    unemploymentRate: 6.5,
+    giniCoefficient: 27,
+    avgSalaryUSD: 4000,
+    startupScore: 68,
+    unicorns: 4,
+  },
+  tal: {
+    avgRentUSD1BR: 780,
+    avgHomePriceUSDm2: 3100,
+    rentToIncomeRatio: 33,
+    transitScore: 71,
+    avgCommuteMin: 28,
+    bikeInfraScore: 60,
+    healthcareIndex: 75,
+    hospitalBedsPerK: 5.4,
+    literacyRate: 99.8,
+    topUniversityRank: 401,
+    avgInternetMbps: 230,
+    greenSpacePct: 28,
+    recyclingRatePct: 30,
+    unemploymentRate: 5.3,
+    giniCoefficient: 31,
+    avgSalaryUSD: 1800,
+    startupScore: 62,
+    unicorns: 2,
+  },
+  tor26: {
+    avgRentUSD1BR: 2100,
+    avgHomePriceUSDm2: 10400,
+    rentToIncomeRatio: 46,
+    transitScore: 74,
+    avgCommuteMin: 43,
+    bikeInfraScore: 57,
+    healthcareIndex: 80,
+    hospitalBedsPerK: 2.6,
+    literacyRate: 99.8,
+    topUniversityRank: 18,
+    avgInternetMbps: 145,
+    greenSpacePct: 18,
+    recyclingRatePct: 55,
+    unemploymentRate: 5.8,
+    giniCoefficient: 41,
+    avgSalaryUSD: 3600,
+    startupScore: 74,
+    unicorns: 14,
+  },
+  mum26: {
+    avgRentUSD1BR: 520,
+    avgHomePriceUSDm2: 4600,
+    rentToIncomeRatio: 55,
+    transitScore: 71,
+    avgCommuteMin: 58,
+    bikeInfraScore: 18,
+    healthcareIndex: 55,
+    hospitalBedsPerK: 1.6,
+    literacyRate: 89.7,
+    topUniversityRank: null,
+    avgInternetMbps: 35,
+    greenSpacePct: 13,
+    recyclingRatePct: 17,
+    unemploymentRate: 5.4,
+    giniCoefficient: 46,
+    avgSalaryUSD: 790,
+    startupScore: 63,
+    unicorns: 8,
+  },
+  sao26: {
+    avgRentUSD1BR: 620,
+    avgHomePriceUSDm2: 3200,
+    rentToIncomeRatio: 44,
+    transitScore: 58,
+    avgCommuteMin: 62,
+    bikeInfraScore: 32,
+    healthcareIndex: 52,
+    hospitalBedsPerK: 2.8,
+    literacyRate: 97.2,
+    topUniversityRank: 115,
+    avgInternetMbps: 110,
+    greenSpacePct: 16,
+    recyclingRatePct: 25,
+    unemploymentRate: 11.5,
+    giniCoefficient: 57,
+    avgSalaryUSD: 870,
+    startupScore: 58,
+    unicorns: 5,
+  },
+  ist26: {
+    avgRentUSD1BR: 680,
+    avgHomePriceUSDm2: 2800,
+    rentToIncomeRatio: 52,
+    transitScore: 70,
+    avgCommuteMin: 50,
+    bikeInfraScore: 14,
+    healthcareIndex: 63,
+    hospitalBedsPerK: 3.7,
+    literacyRate: 98.5,
+    topUniversityRank: null,
+    avgInternetMbps: 53,
+    greenSpacePct: 12,
+    recyclingRatePct: 22,
+    unemploymentRate: 9.7,
+    giniCoefficient: 44,
+    avgSalaryUSD: 890,
+    startupScore: 52,
+    unicorns: 3,
+  },
+  mos26: {
+    avgRentUSD1BR: 700,
+    avgHomePriceUSDm2: 4200,
+    rentToIncomeRatio: 35,
+    transitScore: 88,
+    avgCommuteMin: 52,
+    bikeInfraScore: 28,
+    healthcareIndex: 60,
+    hospitalBedsPerK: 8.6,
+    literacyRate: 99.8,
+    topUniversityRank: 87,
+    avgInternetMbps: 72,
+    greenSpacePct: 34,
+    recyclingRatePct: 11,
+    unemploymentRate: 3.1,
+    giniCoefficient: 44,
+    avgSalaryUSD: 1400,
+    startupScore: 45,
+    unicorns: 4,
+  },
+  mex26: {
+    avgRentUSD1BR: 680,
+    avgHomePriceUSDm2: 2100,
+    rentToIncomeRatio: 47,
+    transitScore: 63,
+    avgCommuteMin: 56,
+    bikeInfraScore: 36,
+    healthcareIndex: 53,
+    hospitalBedsPerK: 1.4,
+    literacyRate: 97.9,
+    topUniversityRank: 104,
+    avgInternetMbps: 38,
+    greenSpacePct: 14,
+    recyclingRatePct: 14,
+    unemploymentRate: 3.4,
+    giniCoefficient: 51,
+    avgSalaryUSD: 860,
+    startupScore: 50,
+    unicorns: 2,
+  },
+  bue26: {
+    avgRentUSD1BR: 430,
+    avgHomePriceUSDm2: 1800,
+    rentToIncomeRatio: 41,
+    transitScore: 67,
+    avgCommuteMin: 45,
+    bikeInfraScore: 48,
+    healthcareIndex: 61,
+    hospitalBedsPerK: 5.0,
+    literacyRate: 99.2,
+    topUniversityRank: null,
+    avgInternetMbps: 62,
+    greenSpacePct: 9,
+    recyclingRatePct: 12,
+    unemploymentRate: 7.7,
+    giniCoefficient: 49,
+    avgSalaryUSD: 550,
+    startupScore: 42,
+    unicorns: 2,
+  },
+  lag26: {
+    avgRentUSD1BR: 280,
+    avgHomePriceUSDm2: 890,
+    rentToIncomeRatio: 48,
+    transitScore: 32,
+    avgCommuteMin: 70,
+    bikeInfraScore: 4,
+    healthcareIndex: 30,
+    hospitalBedsPerK: 0.4,
+    literacyRate: 92.4,
+    topUniversityRank: null,
+    avgInternetMbps: 14,
+    greenSpacePct: 4,
+    recyclingRatePct: 6,
+    unemploymentRate: 21.0,
+    giniCoefficient: 55,
+    avgSalaryUSD: 320,
+    startupScore: 35,
+    unicorns: 1,
+  },
+  bar26: {
+    avgRentUSD1BR: 1400,
+    avgHomePriceUSDm2: 5800,
+    rentToIncomeRatio: 45,
+    transitScore: 83,
+    avgCommuteMin: 36,
+    bikeInfraScore: 78,
+    healthcareIndex: 80,
+    hospitalBedsPerK: 3.2,
+    literacyRate: 99.7,
+    topUniversityRank: 135,
+    avgInternetMbps: 185,
+    greenSpacePct: 6,
+    recyclingRatePct: 36,
+    unemploymentRate: 9.4,
+    giniCoefficient: 38,
+    avgSalaryUSD: 2200,
+    startupScore: 65,
+    unicorns: 3,
+  },
+  vie26: {
+    avgRentUSD1BR: 1450,
+    avgHomePriceUSDm2: 7400,
+    rentToIncomeRatio: 30,
+    transitScore: 89,
+    avgCommuteMin: 30,
+    bikeInfraScore: 80,
+    healthcareIndex: 87,
+    hospitalBedsPerK: 7.3,
+    literacyRate: 99.9,
+    topUniversityRank: 164,
+    avgInternetMbps: 130,
+    greenSpacePct: 50,
+    recyclingRatePct: 65,
+    unemploymentRate: 5.1,
+    giniCoefficient: 30,
+    avgSalaryUSD: 3100,
+    startupScore: 60,
+    unicorns: 2,
+  },
+  mel26: {
+    avgRentUSD1BR: 2300,
+    avgHomePriceUSDm2: 10900,
+    rentToIncomeRatio: 47,
+    transitScore: 66,
+    avgCommuteMin: 40,
+    bikeInfraScore: 45,
+    healthcareIndex: 79,
+    hospitalBedsPerK: 3.9,
+    literacyRate: 99.9,
+    topUniversityRank: 14,
+    avgInternetMbps: 85,
+    greenSpacePct: 50,
+    recyclingRatePct: 60,
+    unemploymentRate: 3.6,
+    giniCoefficient: 33,
+    avgSalaryUSD: 4400,
+    startupScore: 65,
+    unicorns: 3,
+  },
+  hk26: {
+    avgRentUSD1BR: 2700,
+    avgHomePriceUSDm2: 27000,
+    rentToIncomeRatio: 58,
+    transitScore: 93,
+    avgCommuteMin: 44,
+    bikeInfraScore: 20,
+    healthcareIndex: 85,
+    hospitalBedsPerK: 4.9,
+    literacyRate: 98.4,
+    topUniversityRank: 26,
+    avgInternetMbps: 265,
+    greenSpacePct: 40,
+    recyclingRatePct: 39,
+    unemploymentRate: 3.0,
+    giniCoefficient: 54,
+    avgSalaryUSD: 3800,
+    startupScore: 68,
+    unicorns: 7,
+  },
+  fra26: {
+    avgRentUSD1BR: 1600,
+    avgHomePriceUSDm2: 6900,
+    rentToIncomeRatio: 31,
+    transitScore: 82,
+    avgCommuteMin: 34,
+    bikeInfraScore: 72,
+    healthcareIndex: 82,
+    hospitalBedsPerK: 6.1,
+    literacyRate: 99.8,
+    topUniversityRank: 120,
+    avgInternetMbps: 155,
+    greenSpacePct: 22,
+    recyclingRatePct: 53,
+    unemploymentRate: 6.2,
+    giniCoefficient: 31,
+    avgSalaryUSD: 3400,
+    startupScore: 62,
+    unicorns: 4,
+  },
+  joh26: {
+    avgRentUSD1BR: 480,
+    avgHomePriceUSDm2: 1600,
+    rentToIncomeRatio: 40,
+    transitScore: 28,
+    avgCommuteMin: 55,
+    bikeInfraScore: 8,
+    healthcareIndex: 39,
+    hospitalBedsPerK: 1.8,
+    literacyRate: 95.4,
+    topUniversityRank: 240,
+    avgInternetMbps: 22,
+    greenSpacePct: 18,
+    recyclingRatePct: 9,
+    unemploymentRate: 27.0,
+    giniCoefficient: 63,
+    avgSalaryUSD: 840,
+    startupScore: 34,
+    unicorns: 0,
+  },
+  kar26: {
+    avgRentUSD1BR: 190,
+    avgHomePriceUSDm2: 700,
+    rentToIncomeRatio: 39,
+    transitScore: 35,
+    avgCommuteMin: 53,
+    bikeInfraScore: 5,
+    healthcareIndex: 33,
+    hospitalBedsPerK: 0.6,
+    literacyRate: 73.5,
+    topUniversityRank: null,
+    avgInternetMbps: 12,
+    greenSpacePct: 4,
+    recyclingRatePct: 5,
+    unemploymentRate: 8.8,
+    giniCoefficient: 41,
+    avgSalaryUSD: 270,
+    startupScore: 28,
+    unicorns: 0,
+  },
+  bkk26: {
+    avgRentUSD1BR: 680,
+    avgHomePriceUSDm2: 3400,
+    rentToIncomeRatio: 40,
+    transitScore: 61,
+    avgCommuteMin: 51,
+    bikeInfraScore: 16,
+    healthcareIndex: 72,
+    hospitalBedsPerK: 2.2,
+    literacyRate: 97.1,
+    topUniversityRank: 246,
+    avgInternetMbps: 115,
+    greenSpacePct: 7,
+    recyclingRatePct: 21,
+    unemploymentRate: 1.1,
+    giniCoefficient: 47,
+    avgSalaryUSD: 1100,
+    startupScore: 52,
+    unicorns: 2,
+  },
+  mco: {
+    avgRentUSD1BR: 6500,
+    avgHomePriceUSDm2: 65000,
+    rentToIncomeRatio: 28,
+    transitScore: 72,
+    avgCommuteMin: 14,
+    bikeInfraScore: 40,
+    healthcareIndex: 88,
+    hospitalBedsPerK: 13.8,
+    literacyRate: 99.9,
+    topUniversityRank: null,
+    avgInternetMbps: 500,
+    greenSpacePct: 6,
+    recyclingRatePct: 50,
+    unemploymentRate: 2.0,
+    giniCoefficient: 32,
+    avgSalaryUSD: 18000,
+    startupScore: 50,
+    unicorns: 0,
+  },
+};
+
+const DEFAULT_URBAN_STATS: UrbanStats = {
+  avgRentUSD1BR: 1200,
+  avgHomePriceUSDm2: 5000,
+  rentToIncomeRatio: 40,
+  transitScore: 65,
+  avgCommuteMin: 42,
+  bikeInfraScore: 40,
+  healthcareIndex: 65,
+  hospitalBedsPerK: 3.0,
+  literacyRate: 95,
+  topUniversityRank: null,
+  avgInternetMbps: 80,
+  greenSpacePct: 20,
+  recyclingRatePct: 25,
+  unemploymentRate: 6.0,
+  giniCoefficient: 40,
+  avgSalaryUSD: 1500,
+  startupScore: 40,
+  unicorns: 0,
+};
 const SRC_CITY_LAWS = [
   {
     label: "City & Local Government Network",
@@ -1610,10 +2532,346 @@ function CityPhotosGrid({ city }: { city: City }) {
   );
 }
 
+// ─── Urban Stats Panel ─────────────────────────────────────────────────────
+function ScoreBar({
+  value,
+  max = 100,
+  color,
+}: {
+  value: number;
+  max?: number;
+  color: string;
+}) {
+  const pct = Math.min((value / max) * 100, 100);
+  return (
+    <div className="h-1.5 bg-background rounded-full overflow-hidden mt-1">
+      <div
+        className={`h-full rounded-full ${color}`}
+        style={{ width: `${pct}%`, transition: "width 0.6s ease" }}
+      />
+    </div>
+  );
+}
+
+function UrbanStatSection({
+  icon,
+  title,
+  color,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  color: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="modal-tile rounded-xl border border-border/60 p-4">
+      <div
+        className={`flex items-center gap-2 mb-3 pb-2 border-b border-border/40`}
+      >
+        <span className={color}>{icon}</span>
+        <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-wide">
+          {title}
+        </h4>
+      </div>
+      <div className="space-y-2.5">{children}</div>
+    </div>
+  );
+}
+
+function StatRow({
+  label,
+  value,
+  bar,
+  barColor = "bg-secondary",
+  barMax = 100,
+  sub,
+}: {
+  label: string;
+  value: string;
+  bar?: number;
+  barColor?: string;
+  barMax?: number;
+  sub?: string;
+}) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-[11px] text-muted-foreground font-sans">
+          {label}
+        </span>
+        <div className="text-right">
+          <span className="text-xs font-bold font-mono text-foreground">
+            {value}
+          </span>
+          {sub && (
+            <span className="text-[10px] text-muted-foreground font-sans ml-1">
+              {sub}
+            </span>
+          )}
+        </div>
+      </div>
+      {bar !== undefined && (
+        <ScoreBar value={bar} max={barMax} color={barColor} />
+      )}
+    </div>
+  );
+}
+
+function CityUrbanStatsPanel({ city }: { city: City }) {
+  const s = CITY_URBAN_STATS[city.id] ?? DEFAULT_URBAN_STATS;
+
+  const rentStressColor =
+    s.rentToIncomeRatio > 55
+      ? "bg-destructive"
+      : s.rentToIncomeRatio > 40
+        ? "bg-warning"
+        : "bg-success";
+  const giniColor =
+    s.giniCoefficient > 50
+      ? "bg-destructive"
+      : s.giniCoefficient > 38
+        ? "bg-warning"
+        : "bg-success";
+  const unempColor =
+    s.unemploymentRate > 10
+      ? "bg-destructive"
+      : s.unemploymentRate > 6
+        ? "bg-warning"
+        : "bg-success";
+  const aqiColor =
+    s.airQualityIndex < 30
+      ? "bg-success"
+      : s.airQualityIndex < 60
+        ? "bg-warning"
+        : "bg-destructive";
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 mb-1">
+        <ChartBar size={15} weight="fill" className="text-secondary" />
+        <h3 className="text-sm font-bold font-sans text-foreground">
+          Urban Statistics
+        </h3>
+        <span className="ml-auto text-[10px] text-muted-foreground font-sans bg-muted px-2 py-0.5 rounded-full">
+          Most inquired
+        </span>
+      </div>
+
+      {/* Housing */}
+      <UrbanStatSection
+        icon={<House size={14} weight="fill" />}
+        title="Housing & Affordability"
+        color="text-blue-400"
+      >
+        <StatRow
+          label="Avg Rent · 1BR City Center"
+          value={`$${s.avgRentUSD1BR.toLocaleString()}/mo`}
+        />
+        <StatRow
+          label="Avg Buy Price / m²"
+          value={`$${s.avgHomePriceUSDm2.toLocaleString()}`}
+        />
+        <StatRow
+          label="Rent-to-Income Ratio"
+          value={`${s.rentToIncomeRatio}%`}
+          sub={
+            s.rentToIncomeRatio > 55
+              ? "Severely unaffordable"
+              : s.rentToIncomeRatio > 40
+                ? "Unaffordable"
+                : "Manageable"
+          }
+          bar={s.rentToIncomeRatio}
+          barMax={80}
+          barColor={rentStressColor}
+        />
+        <StatRow
+          label="Avg Monthly Net Salary"
+          value={`$${s.avgSalaryUSD.toLocaleString()}`}
+        />
+      </UrbanStatSection>
+
+      {/* Transport */}
+      <UrbanStatSection
+        icon={<Train size={14} weight="fill" />}
+        title="Transport & Mobility"
+        color="text-purple-400"
+      >
+        <StatRow
+          label="Public Transit Quality"
+          value={`${s.transitScore}/100`}
+          bar={s.transitScore}
+          barColor="bg-purple-500"
+        />
+        <StatRow
+          label="Cycling Infrastructure"
+          value={`${s.bikeInfraScore}/100`}
+          bar={s.bikeInfraScore}
+          barColor="bg-purple-400"
+        />
+        <StatRow
+          label="Avg Daily Commute"
+          value={`${s.avgCommuteMin} min`}
+          sub="one-way"
+        />
+      </UrbanStatSection>
+
+      {/* Healthcare */}
+      <UrbanStatSection
+        icon={<FirstAid size={14} weight="fill" />}
+        title="Healthcare"
+        color="text-emerald-400"
+      >
+        <StatRow
+          label="Healthcare Quality Index"
+          value={`${s.healthcareIndex}/100`}
+          bar={s.healthcareIndex}
+          barColor="bg-emerald-500"
+        />
+        <StatRow
+          label="Hospital Beds per 1,000"
+          value={s.hospitalBedsPerK.toFixed(1)}
+          bar={s.hospitalBedsPerK}
+          barMax={15}
+          barColor="bg-emerald-400"
+        />
+      </UrbanStatSection>
+
+      {/* Education */}
+      <UrbanStatSection
+        icon={<GraduationCap size={14} weight="fill" />}
+        title="Education"
+        color="text-yellow-400"
+      >
+        <StatRow
+          label="Literacy Rate"
+          value={`${s.literacyRate}%`}
+          bar={s.literacyRate}
+          barMax={100}
+          barColor="bg-yellow-500"
+        />
+        <StatRow
+          label="Top University (QS Rank)"
+          value={
+            s.topUniversityRank ? `#${s.topUniversityRank}` : "Not in top 500"
+          }
+          sub={
+            s.topUniversityRank && s.topUniversityRank <= 50
+              ? "World-class"
+              : s.topUniversityRank && s.topUniversityRank <= 200
+                ? "Strong"
+                : ""
+          }
+        />
+        <StatRow label="Universities in City" value={`${city.universities}`} />
+      </UrbanStatSection>
+
+      {/* Digital & Environment */}
+      <UrbanStatSection
+        icon={<WifiHigh size={14} weight="fill" />}
+        title="Digital & Environment"
+        color="text-cyan-400"
+      >
+        <StatRow
+          label="Avg Broadband Speed"
+          value={`${s.avgInternetMbps} Mbps`}
+          bar={s.avgInternetMbps}
+          barMax={400}
+          barColor="bg-cyan-500"
+        />
+        <StatRow
+          label="Green Space Coverage"
+          value={`${s.greenSpacePct}%`}
+          bar={s.greenSpacePct}
+          barMax={70}
+          barColor="bg-green-500"
+        />
+        <StatRow
+          label="Municipal Recycling Rate"
+          value={`${s.recyclingRatePct}%`}
+          bar={s.recyclingRatePct}
+          barMax={100}
+          barColor="bg-teal-500"
+        />
+        <StatRow
+          label="Air Quality Index (AQI)"
+          value={`${city.airQualityIndex}`}
+          sub={
+            city.airQualityIndex < 30
+              ? "Good"
+              : city.airQualityIndex < 60
+                ? "Moderate"
+                : "Poor"
+          }
+          bar={city.airQualityIndex}
+          barMax={100}
+          barColor={aqiColor}
+        />
+      </UrbanStatSection>
+
+      {/* Economy & Inequality */}
+      <UrbanStatSection
+        icon={<ChartBar size={14} weight="fill" />}
+        title="Economy & Inequality"
+        color="text-orange-400"
+      >
+        <StatRow
+          label="Unemployment Rate"
+          value={`${s.unemploymentRate}%`}
+          bar={s.unemploymentRate}
+          barMax={30}
+          barColor={unempColor}
+        />
+        <StatRow
+          label="Gini Coefficient"
+          value={`${s.giniCoefficient}`}
+          sub={
+            s.giniCoefficient > 50
+              ? "Very unequal"
+              : s.giniCoefficient > 38
+                ? "Moderate"
+                : "Relatively equal"
+          }
+          bar={s.giniCoefficient}
+          barMax={70}
+          barColor={giniColor}
+        />
+        <StatRow
+          label="GDP Per Capita"
+          value={`$${city.gdpPerCapita.toLocaleString()}`}
+        />
+        <StatRow label="Fortune 500 HQs" value={`${city.fortuneHQs}`} />
+      </UrbanStatSection>
+
+      {/* Startup Ecosystem */}
+      <UrbanStatSection
+        icon={<Rocket size={14} weight="fill" />}
+        title="Startup Ecosystem"
+        color="text-pink-400"
+      >
+        <StatRow
+          label="Ecosystem Score"
+          value={`${s.startupScore}/100`}
+          bar={s.startupScore}
+          barColor="bg-pink-500"
+        />
+        <StatRow
+          label="Unicorn Companies"
+          value={`${s.unicorns}`}
+          sub="HQ'd in city"
+        />
+        <StatRow label="Tech Hubs / Incubators" value={`${city.techHubs}`} />
+      </UrbanStatSection>
+    </div>
+  );
+}
+
 function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<"overview" | "map" | "laws">(
     "overview",
   );
+  const [isExpanded, setIsExpanded] = useState(false);
   const { openNote } = useNotes();
 
   useEffect(() => {
@@ -1663,7 +2921,9 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
       }}
     >
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative z-10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-fade-in modal-glass border">
+      <div
+        className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
+      >
         <div className="p-6">
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
@@ -1695,6 +2955,36 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
               >
                 <NotePencil size={13} weight="fill" />
                 Take Note
+              </button>
+              <button
+                onClick={() => setIsExpanded((v) => !v)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                aria-label={
+                  isExpanded ? "Collapse modal" : "Expand modal to full screen"
+                }
+                title={isExpanded ? "Collapse" : "Expand to full screen"}
+              >
+                {isExpanded ? (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path
+                      d="M5 1H1v4M11 1h4v4M5 15H1v-4M11 15h4v-4"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path
+                      d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
               </button>
               <button
                 onClick={onClose}
@@ -1867,6 +3157,9 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                 </div>
               )}
 
+              {/* Urban Statistics */}
+              <CityUrbanStatsPanel city={city} />
+
               {/* Population Trend */}
               <div className="modal-tile rounded-lg p-4">
                 <h3 className="text-sm font-semibold font-sans text-foreground mb-3">
@@ -2033,6 +3326,57 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
   );
 }
 
+function exportCitiesToCSV(cities: City[]) {
+  const headers = [
+    "Name",
+    "Country",
+    "Region",
+    "Population",
+    "Metro Population",
+    "GDP (B USD)",
+    "GDP Per Capita",
+    "Area km2",
+    "Density /km2",
+    "Cost of Living Index",
+    "Crime Index",
+    "Safety Index",
+    "Air Quality Index",
+    "Tourism Rank",
+    "Fortune HQs",
+    "Universities",
+    "Avg Temp C",
+  ];
+  const rows = cities.map((c) => [
+    c.name,
+    c.country,
+    c.region,
+    c.population,
+    c.metroPopulation,
+    c.gdpBillions,
+    c.gdpPerCapita,
+    c.areaKm2,
+    c.populationDensity,
+    c.costOfLivingIndex,
+    c.crimeIndex,
+    c.safetyIndex,
+    c.airQualityIndex,
+    c.tourismRankGlobal,
+    c.fortuneHQs,
+    c.universities,
+    c.avgTemperatureC,
+  ]);
+  const csv = [headers, ...rows]
+    .map((r) => r.map((v) => `"${v}"`).join(","))
+    .join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "cities_data.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function CitiesPage() {
   const [search, setSearch] = useState("");
   const [regionFilter, setRegionFilter] = useState("All");
@@ -2040,6 +3384,19 @@ export function CitiesPage() {
     "gdpBillions" | "population" | "safetyIndex" | "costOfLivingIndex"
   >("gdpBillions");
   const [modalCity, setModalCity] = useState<City | null>(null);
+
+  // Deep-link: open entity from search bar via ?open=<id>
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const openId = params.get("open");
+    if (openId) {
+      const found = citiesData.find((c) => c.id === openId);
+      if (found) setModalCity(found);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("open");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, []);
 
   const allRegions = [
     "All",
@@ -2073,6 +3430,18 @@ export function CitiesPage() {
               living, safety &amp; economic data
             </p>
           </div>
+        </div>
+
+        {/* CSV Export */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => exportCitiesToCSV(filtered)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-[11px] font-sans cursor-pointer"
+            title="Export visible cities to CSV"
+          >
+            <DownloadSimple size={13} weight="bold" />
+            Export CSV
+          </button>
         </div>
 
         {/* Summary Strip */}
@@ -2111,6 +3480,121 @@ export function CitiesPage() {
               </p>
             </div>
           ))}
+        </div>
+
+        {/* ── Trending & Frequently Looked-Up Stats ── */}
+        <div className="mb-6 bg-card border border-border rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+            <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+              Trending &amp; Frequently Looked-Up
+            </p>
+            <span className="ml-auto text-[10px] text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-full">
+              2026 data
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[
+              {
+                label: "🏠 Most Expensive Rent",
+                value: "Monaco",
+                sub: "$6,500/mo 1BR",
+                color: "text-red-400",
+                bg: "bg-red-500/10 border-red-500/20",
+              },
+              {
+                label: "🚇 Best Transit",
+                value: "Tokyo",
+                sub: "Score 97/100",
+                color: "text-purple-400",
+                bg: "bg-purple-500/10 border-purple-500/20",
+              },
+              {
+                label: "🚴 Best Cycling City",
+                value: "Amsterdam",
+                sub: "Score 97/100",
+                color: "text-green-400",
+                bg: "bg-green-500/10 border-green-500/20",
+              },
+              {
+                label: "🏥 Best Healthcare",
+                value: "Singapore",
+                sub: "Score 90/100",
+                color: "text-secondary",
+                bg: "bg-secondary/10 border-secondary/20",
+              },
+              {
+                label: "💻 Fastest Internet",
+                value: "Singapore",
+                sub: "310 Mbps avg",
+                color: "text-cyan-400",
+                bg: "bg-cyan-500/10 border-cyan-500/20",
+              },
+              {
+                label: "🦄 Most Unicorns",
+                value: "San Francisco",
+                sub: "287 unicorns",
+                color: "text-pink-400",
+                bg: "bg-pink-500/10 border-pink-500/20",
+              },
+            ].map((s) => (
+              <div
+                key={s.label}
+                className={`rounded-xl p-3 border ${s.bg} flex flex-col gap-1`}
+              >
+                <p className="text-[10px] font-sans text-muted-foreground leading-snug">
+                  {s.label}
+                </p>
+                <p
+                  className={`text-sm font-bold font-mono ${s.color} leading-tight`}
+                >
+                  {s.value}
+                </p>
+                <p className={`text-[10px] font-sans ${s.color} opacity-80`}>
+                  {s.sub}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 pt-3 border-t border-border/40">
+            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+              🔥 Upcoming to Watch
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                {
+                  label: "Riyadh skyscraper boom — world&#39;s tallest by 2030",
+                  color: "text-amber-400 border-amber-500/30 bg-amber-500/10",
+                },
+                {
+                  label: "NYC congestion pricing impact on commute data · 2026",
+                  color: "text-secondary border-secondary/30 bg-secondary/10",
+                },
+                {
+                  label: "Singapore Changi T5 opening — aviation hub status",
+                  color:
+                    "text-purple-400 border-purple-500/30 bg-purple-500/10",
+                },
+                {
+                  label:
+                    "Lagos digital economy: Africa&#39;s Silicon Lagoon scaling",
+                  color: "text-green-400 border-green-500/30 bg-green-500/10",
+                },
+                {
+                  label: "Dubai 15-minute city policy rollout · 2026–2030",
+                  color:
+                    "text-orange-400 border-orange-500/30 bg-orange-500/10",
+                },
+              ].map((e) => (
+                <span
+                  key={e.label}
+                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.color}`}
+                >
+                  {e.label}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Unified Search + Filter Bar */}

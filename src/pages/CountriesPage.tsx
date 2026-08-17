@@ -21,6 +21,9 @@ import {
   Scales,
   Star,
   NotePencil,
+  DownloadSimple,
+  ChartBar,
+  ArrowsClockwise,
 } from "@phosphor-icons/react";
 import { useNotes } from "../contexts/NotesContext";
 import { getMilitary, fmtPers, type MilitaryStats } from "../data/militaryData";
@@ -42,8 +45,9 @@ import {
   type Industry,
   type EnergyStats,
 } from "../data/countriesData";
+import { getCountrySocialStats } from "../data/socialStatsData";
+import { MetricsPanel } from "../components/MetricsPanel";
 import { useLiveData } from "../hooks/useLiveData";
-import { ArrowsClockwise } from "@phosphor-icons/react";
 import { SourceLink } from "../components/SourceLink";
 
 // ── Source citation constants ────────────────────────────────────────────
@@ -1294,6 +1298,1762 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 0,
     medianAge: 34.7,
   },
+  // ── European countries ───────────────────────────────────────────────────
+  it: {
+    cpiScore: 56,
+    gini: 34.8,
+    internetPct: 84,
+    urbanPct: 71,
+    birthRate: 7.0,
+    deathRate: 11.2,
+    medianAge: 47.3,
+    debtPct: 141,
+    fiscalBalancePct: -4.4,
+  },
+  es: {
+    cpiScore: 60,
+    gini: 34.3,
+    internetPct: 93,
+    urbanPct: 81,
+    birthRate: 7.1,
+    deathRate: 9.5,
+    medianAge: 44.9,
+    debtPct: 109,
+    fiscalBalancePct: -3.6,
+  },
+  nl: {
+    cpiScore: 83,
+    gini: 28.2,
+    internetPct: 96,
+    urbanPct: 92,
+    birthRate: 10.0,
+    deathRate: 9.1,
+    medianAge: 43.3,
+    debtPct: 49,
+    fiscalBalancePct: -0.8,
+  },
+  ch: {
+    cpiScore: 82,
+    gini: 33.7,
+    internetPct: 97,
+    urbanPct: 74,
+    birthRate: 10.5,
+    deathRate: 8.4,
+    medianAge: 43.6,
+    debtPct: 16,
+    fiscalBalancePct: 0.4,
+  },
+  se: {
+    cpiScore: 85,
+    gini: 28.8,
+    internetPct: 97,
+    urbanPct: 88,
+    birthRate: 10.8,
+    deathRate: 9.4,
+    medianAge: 41.2,
+    debtPct: 32,
+    fiscalBalancePct: -1.1,
+  },
+  no: {
+    cpiScore: 84,
+    gini: 26.1,
+    internetPct: 99,
+    urbanPct: 83,
+    birthRate: 10.7,
+    deathRate: 8.0,
+    medianAge: 40.2,
+    debtPct: 41,
+    fiscalBalancePct: 12.4,
+  },
+  dk: {
+    cpiScore: 90,
+    gini: 29.3,
+    internetPct: 99,
+    urbanPct: 88,
+    birthRate: 10.9,
+    deathRate: 9.4,
+    medianAge: 42.1,
+    debtPct: 31,
+    fiscalBalancePct: 1.4,
+  },
+  fi: {
+    cpiScore: 87,
+    gini: 27.7,
+    internetPct: 96,
+    urbanPct: 85,
+    birthRate: 8.7,
+    deathRate: 9.6,
+    medianAge: 43.7,
+    debtPct: 73,
+    fiscalBalancePct: -2.8,
+  },
+  pl: {
+    cpiScore: 54,
+    gini: 30.2,
+    internetPct: 87,
+    urbanPct: 60,
+    birthRate: 9.2,
+    deathRate: 11.8,
+    medianAge: 42.4,
+    debtPct: 55,
+    fiscalBalancePct: -5.8,
+  },
+  be: {
+    cpiScore: 73,
+    gini: 27.2,
+    internetPct: 93,
+    urbanPct: 98,
+    birthRate: 10.3,
+    deathRate: 9.9,
+    medianAge: 41.8,
+    debtPct: 106,
+    fiscalBalancePct: -4.2,
+  },
+  at: {
+    cpiScore: 71,
+    gini: 30.8,
+    internetPct: 92,
+    urbanPct: 59,
+    birthRate: 10.1,
+    deathRate: 9.8,
+    medianAge: 44.5,
+    debtPct: 82,
+    fiscalBalancePct: -2.8,
+  },
+  pt: {
+    cpiScore: 62,
+    gini: 33.5,
+    internetPct: 88,
+    urbanPct: 67,
+    birthRate: 8.2,
+    deathRate: 10.9,
+    medianAge: 46.2,
+    debtPct: 99,
+    fiscalBalancePct: -0.4,
+  },
+  gr: {
+    cpiScore: 49,
+    gini: 33.4,
+    internetPct: 82,
+    urbanPct: 80,
+    birthRate: 8.0,
+    deathRate: 11.5,
+    medianAge: 46.4,
+    debtPct: 161,
+    fiscalBalancePct: 0.1,
+  },
+  cz: {
+    cpiScore: 57,
+    gini: 26.2,
+    internetPct: 88,
+    urbanPct: 74,
+    birthRate: 10.2,
+    deathRate: 11.2,
+    medianAge: 43.5,
+    debtPct: 44,
+    fiscalBalancePct: -2.8,
+  },
+  ro: {
+    cpiScore: 46,
+    gini: 36.0,
+    internetPct: 86,
+    urbanPct: 54,
+    birthRate: 9.4,
+    deathRate: 14.0,
+    medianAge: 43.9,
+    debtPct: 50,
+    fiscalBalancePct: -8.0,
+  },
+  hu: {
+    cpiScore: 42,
+    gini: 30.0,
+    internetPct: 87,
+    urbanPct: 72,
+    birthRate: 9.7,
+    deathRate: 13.2,
+    medianAge: 43.7,
+    debtPct: 74,
+    fiscalBalancePct: -6.7,
+  },
+  sk: {
+    cpiScore: 50,
+    gini: 23.2,
+    internetPct: 90,
+    urbanPct: 54,
+    birthRate: 10.7,
+    deathRate: 10.2,
+    medianAge: 41.8,
+    debtPct: 57,
+    fiscalBalancePct: -5.9,
+  },
+  hr: {
+    cpiScore: 50,
+    gini: 28.9,
+    internetPct: 84,
+    urbanPct: 58,
+    birthRate: 8.5,
+    deathRate: 14.0,
+    medianAge: 44.6,
+    debtPct: 61,
+    fiscalBalancePct: 0.5,
+  },
+  rs: {
+    cpiScore: 36,
+    gini: 33.3,
+    internetPct: 82,
+    urbanPct: 57,
+    birthRate: 9.0,
+    deathRate: 14.5,
+    medianAge: 43.9,
+    debtPct: 52,
+    fiscalBalancePct: -2.2,
+  },
+  bg: {
+    cpiScore: 45,
+    gini: 39.7,
+    internetPct: 83,
+    urbanPct: 76,
+    birthRate: 8.6,
+    deathRate: 18.0,
+    medianAge: 45.7,
+    debtPct: 23,
+    fiscalBalancePct: -1.9,
+  },
+  ee: {
+    cpiScore: 76,
+    gini: 30.6,
+    internetPct: 93,
+    urbanPct: 69,
+    birthRate: 9.2,
+    deathRate: 11.2,
+    medianAge: 43.0,
+    debtPct: 21,
+    fiscalBalancePct: -3.6,
+  },
+  lv: {
+    cpiScore: 59,
+    gini: 35.1,
+    internetPct: 90,
+    urbanPct: 68,
+    birthRate: 8.8,
+    deathRate: 14.8,
+    medianAge: 44.8,
+    debtPct: 42,
+    fiscalBalancePct: -2.8,
+  },
+  lt: {
+    cpiScore: 61,
+    gini: 35.7,
+    internetPct: 88,
+    urbanPct: 68,
+    birthRate: 9.6,
+    deathRate: 13.8,
+    medianAge: 44.2,
+    debtPct: 39,
+    fiscalBalancePct: -2.4,
+  },
+  si: {
+    cpiScore: 56,
+    gini: 24.4,
+    internetPct: 91,
+    urbanPct: 55,
+    birthRate: 9.5,
+    deathRate: 10.5,
+    medianAge: 44.4,
+    debtPct: 69,
+    fiscalBalancePct: -3.1,
+  },
+  ie: {
+    cpiScore: 77,
+    gini: 30.6,
+    internetPct: 95,
+    urbanPct: 64,
+    birthRate: 12.1,
+    deathRate: 6.2,
+    medianAge: 38.7,
+    debtPct: 43,
+    fiscalBalancePct: 1.4,
+  },
+  by: {
+    cpiScore: 41,
+    gini: 25.2,
+    internetPct: 84,
+    urbanPct: 80,
+    birthRate: 9.4,
+    deathRate: 12.8,
+    medianAge: 40.6,
+    debtPct: 38,
+    fiscalBalancePct: -1.2,
+  },
+  ua: {
+    cpiScore: 35,
+    gini: 25.9,
+    internetPct: 83,
+    urbanPct: 70,
+    birthRate: 7.0,
+    deathRate: 14.2,
+    medianAge: 42.6,
+    debtPct: 89,
+    fiscalBalancePct: -22.0,
+  },
+  md: {
+    cpiScore: 39,
+    gini: 26.8,
+    internetPct: 78,
+    urbanPct: 43,
+    birthRate: 10.2,
+    deathRate: 11.8,
+    medianAge: 38.4,
+    debtPct: 32,
+    fiscalBalancePct: -6.2,
+  },
+  al_al: {
+    cpiScore: 35,
+    gini: 33.2,
+    internetPct: 79,
+    urbanPct: 64,
+    birthRate: 11.2,
+    deathRate: 7.4,
+    medianAge: 38.0,
+    debtPct: 62,
+    fiscalBalancePct: -2.4,
+  },
+  mk: {
+    cpiScore: 37,
+    gini: 33.0,
+    internetPct: 82,
+    urbanPct: 59,
+    birthRate: 11.4,
+    deathRate: 10.2,
+    medianAge: 39.0,
+    debtPct: 52,
+    fiscalBalancePct: -5.2,
+  },
+  ba: {
+    cpiScore: 34,
+    gini: 33.8,
+    internetPct: 80,
+    urbanPct: 50,
+    birthRate: 8.4,
+    deathRate: 9.8,
+    medianAge: 43.0,
+    debtPct: 30,
+    fiscalBalancePct: -2.8,
+  },
+  me_eu: {
+    cpiScore: 44,
+    gini: 38.5,
+    internetPct: 80,
+    urbanPct: 68,
+    birthRate: 11.8,
+    deathRate: 10.4,
+    medianAge: 38.8,
+    debtPct: 66,
+    fiscalBalancePct: -4.8,
+  },
+  xk: {
+    cpiScore: 38,
+    gini: 29.0,
+    internetPct: 90,
+    urbanPct: 41,
+    birthRate: 14.4,
+    deathRate: 7.8,
+    medianAge: 31.0,
+    debtPct: 22,
+    fiscalBalancePct: -2.2,
+  },
+  lu: {
+    cpiScore: 78,
+    gini: 35.4,
+    internetPct: 98,
+    urbanPct: 92,
+    birthRate: 10.2,
+    deathRate: 7.4,
+    medianAge: 39.8,
+    debtPct: 26,
+    fiscalBalancePct: 1.2,
+  },
+  cy: {
+    cpiScore: 53,
+    gini: 29.3,
+    internetPct: 92,
+    urbanPct: 67,
+    birthRate: 11.0,
+    deathRate: 7.6,
+    medianAge: 38.6,
+    debtPct: 77,
+    fiscalBalancePct: 3.1,
+  },
+  mt_eu: {
+    cpiScore: 51,
+    gini: 28.7,
+    internetPct: 94,
+    urbanPct: 95,
+    birthRate: 9.2,
+    deathRate: 7.2,
+    medianAge: 42.7,
+    debtPct: 50,
+    fiscalBalancePct: 0.4,
+  },
+  is: {
+    cpiScore: 74,
+    gini: 27.8,
+    internetPct: 99,
+    urbanPct: 94,
+    birthRate: 12.4,
+    deathRate: 6.4,
+    medianAge: 37.4,
+    debtPct: 73,
+    fiscalBalancePct: 0.2,
+  },
+  sm: {
+    cpiScore: 70,
+    gini: 30.0,
+    internetPct: 96,
+    urbanPct: 97,
+    birthRate: 8.0,
+    deathRate: 9.0,
+    medianAge: 45.2,
+    debtPct: 76,
+    fiscalBalancePct: 0.2,
+  },
+  li: {
+    cpiScore: 65,
+    gini: 26.0,
+    internetPct: 99,
+    urbanPct: 15,
+    birthRate: 9.8,
+    deathRate: 7.4,
+    medianAge: 44.2,
+    debtPct: 8,
+    fiscalBalancePct: 3.2,
+  },
+  ad: {
+    cpiScore: 65,
+    gini: 27.0,
+    internetPct: 99,
+    urbanPct: 88,
+    birthRate: 7.8,
+    deathRate: 4.2,
+    medianAge: 46.2,
+    debtPct: 35,
+    fiscalBalancePct: 0.8,
+  },
+  mc: {
+    cpiScore: 60,
+    gini: 28.4,
+    internetPct: 99,
+    urbanPct: 100,
+    birthRate: 6.6,
+    deathRate: 10.6,
+    medianAge: 55.4,
+    debtPct: 8,
+    fiscalBalancePct: 2.2,
+  },
+  // ── Americas ─────────────────────────────────────────────────────────────
+  gt: {
+    cpiScore: 23,
+    gini: 48.3,
+    internetPct: 58,
+    urbanPct: 53,
+    birthRate: 22.4,
+    deathRate: 5.2,
+    medianAge: 22.0,
+    debtPct: 28,
+  },
+  cu: {
+    cpiScore: 47,
+    gini: 38.0,
+    internetPct: 74,
+    urbanPct: 77,
+    birthRate: 9.8,
+    deathRate: 8.6,
+    medianAge: 43.2,
+    debtPct: 16,
+  },
+  ht: {
+    cpiScore: 17,
+    gini: 41.1,
+    internetPct: 38,
+    urbanPct: 59,
+    birthRate: 22.2,
+    deathRate: 9.6,
+    medianAge: 24.0,
+    debtPct: 19,
+  },
+  do: {
+    cpiScore: 29,
+    gini: 40.0,
+    internetPct: 82,
+    urbanPct: 83,
+    birthRate: 18.8,
+    deathRate: 5.8,
+    medianAge: 27.7,
+    debtPct: 48,
+  },
+  hn: {
+    cpiScore: 23,
+    gini: 52.1,
+    internetPct: 48,
+    urbanPct: 59,
+    birthRate: 20.4,
+    deathRate: 5.8,
+    medianAge: 24.2,
+    debtPct: 38,
+  },
+  sv: {
+    cpiScore: 31,
+    gini: 38.8,
+    internetPct: 62,
+    urbanPct: 74,
+    birthRate: 16.4,
+    deathRate: 6.4,
+    medianAge: 27.4,
+    debtPct: 73,
+  },
+  ni: {
+    cpiScore: 17,
+    gini: 46.2,
+    internetPct: 56,
+    urbanPct: 59,
+    birthRate: 18.4,
+    deathRate: 5.4,
+    medianAge: 25.8,
+    debtPct: 42,
+  },
+  cr: {
+    cpiScore: 54,
+    gini: 49.3,
+    internetPct: 90,
+    urbanPct: 82,
+    birthRate: 12.4,
+    deathRate: 4.8,
+    medianAge: 33.6,
+    debtPct: 64,
+  },
+  pa: {
+    cpiScore: 36,
+    gini: 49.8,
+    internetPct: 72,
+    urbanPct: 69,
+    birthRate: 17.4,
+    deathRate: 4.6,
+    medianAge: 30.2,
+    debtPct: 51,
+  },
+  jm: {
+    cpiScore: 44,
+    gini: 45.5,
+    internetPct: 82,
+    urbanPct: 57,
+    birthRate: 15.2,
+    deathRate: 7.2,
+    medianAge: 31.8,
+    debtPct: 84,
+  },
+  tt: {
+    cpiScore: 40,
+    gini: 40.3,
+    internetPct: 78,
+    urbanPct: 54,
+    birthRate: 12.2,
+    deathRate: 8.4,
+    medianAge: 36.8,
+    debtPct: 55,
+  },
+  bz: {
+    cpiScore: 34,
+    gini: 53.3,
+    internetPct: 62,
+    urbanPct: 45,
+    birthRate: 19.4,
+    deathRate: 4.4,
+    medianAge: 22.8,
+    debtPct: 62,
+  },
+  cl: {
+    cpiScore: 67,
+    gini: 44.4,
+    internetPct: 92,
+    urbanPct: 88,
+    birthRate: 12.8,
+    deathRate: 6.4,
+    medianAge: 35.3,
+    debtPct: 37,
+  },
+  co_co: {
+    cpiScore: 38,
+    gini: 54.8,
+    internetPct: 77,
+    urbanPct: 82,
+    birthRate: 15.2,
+    deathRate: 5.8,
+    medianAge: 31.4,
+    debtPct: 54,
+  },
+  pe: {
+    cpiScore: 38,
+    gini: 40.2,
+    internetPct: 74,
+    urbanPct: 78,
+    birthRate: 17.6,
+    deathRate: 5.6,
+    medianAge: 29.6,
+    debtPct: 32,
+  },
+  ve: {
+    cpiScore: 13,
+    gini: 44.8,
+    internetPct: 62,
+    urbanPct: 89,
+    birthRate: 17.6,
+    deathRate: 7.2,
+    medianAge: 30.2,
+    debtPct: 174,
+  },
+  ec: {
+    cpiScore: 35,
+    gini: 45.5,
+    internetPct: 72,
+    urbanPct: 65,
+    birthRate: 17.0,
+    deathRate: 5.4,
+    medianAge: 28.8,
+    debtPct: 56,
+  },
+  bo: {
+    cpiScore: 26,
+    gini: 42.2,
+    internetPct: 62,
+    urbanPct: 71,
+    birthRate: 20.2,
+    deathRate: 6.6,
+    medianAge: 25.0,
+    debtPct: 57,
+  },
+  py: {
+    cpiScore: 26,
+    gini: 45.7,
+    internetPct: 75,
+    urbanPct: 62,
+    birthRate: 18.0,
+    deathRate: 6.2,
+    medianAge: 26.4,
+    debtPct: 36,
+  },
+  uy: {
+    cpiScore: 73,
+    gini: 39.7,
+    internetPct: 90,
+    urbanPct: 96,
+    birthRate: 12.6,
+    deathRate: 9.8,
+    medianAge: 35.8,
+    debtPct: 60,
+  },
+  gy: {
+    cpiScore: 40,
+    gini: 38.4,
+    internetPct: 74,
+    urbanPct: 27,
+    birthRate: 17.2,
+    deathRate: 7.6,
+    medianAge: 27.4,
+    debtPct: 22,
+  },
+  sr: {
+    cpiScore: 43,
+    gini: 57.6,
+    internetPct: 66,
+    urbanPct: 67,
+    birthRate: 15.8,
+    deathRate: 8.4,
+    medianAge: 30.4,
+    debtPct: 87,
+  },
+  bs: {
+    cpiScore: 64,
+    gini: 41.4,
+    internetPct: 88,
+    urbanPct: 84,
+    birthRate: 13.2,
+    deathRate: 8.0,
+    medianAge: 34.6,
+    debtPct: 91,
+  },
+  ag: {
+    cpiScore: 60,
+    gini: 48.2,
+    internetPct: 84,
+    urbanPct: 24,
+    birthRate: 15.0,
+    deathRate: 6.2,
+    medianAge: 32.8,
+    debtPct: 97,
+  },
+  dm: {
+    cpiScore: 55,
+    gini: 43.0,
+    internetPct: 75,
+    urbanPct: 72,
+    birthRate: 14.2,
+    deathRate: 8.2,
+    medianAge: 35.8,
+    debtPct: 78,
+  },
+  gd: {
+    cpiScore: 55,
+    gini: 44.5,
+    internetPct: 72,
+    urbanPct: 37,
+    birthRate: 14.8,
+    deathRate: 8.8,
+    medianAge: 31.4,
+    debtPct: 72,
+  },
+  bb: {
+    cpiScore: 65,
+    gini: 40.1,
+    internetPct: 88,
+    urbanPct: 32,
+    birthRate: 10.4,
+    deathRate: 10.2,
+    medianAge: 39.8,
+    debtPct: 136,
+  },
+  lc: {
+    cpiScore: 60,
+    gini: 51.2,
+    internetPct: 70,
+    urbanPct: 20,
+    birthRate: 12.2,
+    deathRate: 8.8,
+    medianAge: 34.8,
+    debtPct: 64,
+  },
+  vc: {
+    cpiScore: 58,
+    gini: 43.1,
+    internetPct: 68,
+    urbanPct: 54,
+    birthRate: 15.6,
+    deathRate: 8.4,
+    medianAge: 31.6,
+    debtPct: 80,
+  },
+  kn: {
+    cpiScore: 60,
+    gini: 45.2,
+    internetPct: 78,
+    urbanPct: 31,
+    birthRate: 13.2,
+    deathRate: 7.0,
+    medianAge: 37.2,
+    debtPct: 60,
+  },
+  pr: {
+    cpiScore: 57,
+    gini: 49.2,
+    internetPct: 78,
+    urbanPct: 94,
+    birthRate: 8.0,
+    deathRate: 9.2,
+    medianAge: 44.0,
+    debtPct: 52,
+  },
+  gu: {
+    cpiScore: 57,
+    gini: 42.2,
+    internetPct: 82,
+    urbanPct: 95,
+    birthRate: 14.4,
+    deathRate: 6.8,
+    medianAge: 31.4,
+    debtPct: 18,
+  },
+  bm: {
+    cpiScore: 70,
+    gini: 50.5,
+    internetPct: 98,
+    urbanPct: 100,
+    birthRate: 10.2,
+    deathRate: 9.8,
+    medianAge: 44.0,
+    debtPct: 12,
+  },
+  // ── Asia-Pacific ─────────────────────────────────────────────────────────
+  tw: {
+    cpiScore: 67,
+    gini: 33.9,
+    internetPct: 90,
+    urbanPct: 79,
+    birthRate: 6.2,
+    deathRate: 7.8,
+    medianAge: 43.4,
+    debtPct: 28,
+  },
+  kz: {
+    cpiScore: 34,
+    gini: 27.8,
+    internetPct: 90,
+    urbanPct: 58,
+    birthRate: 17.0,
+    deathRate: 8.4,
+    medianAge: 31.8,
+    debtPct: 22,
+  },
+  uz: {
+    cpiScore: 34,
+    gini: 36.7,
+    internetPct: 80,
+    urbanPct: 51,
+    birthRate: 21.8,
+    deathRate: 4.8,
+    medianAge: 29.2,
+    debtPct: 35,
+  },
+  mm: {
+    cpiScore: 20,
+    gini: 38.1,
+    internetPct: 44,
+    urbanPct: 32,
+    birthRate: 17.4,
+    deathRate: 8.4,
+    medianAge: 29.2,
+    debtPct: 62,
+  },
+  kh: {
+    cpiScore: 22,
+    gini: 37.9,
+    internetPct: 66,
+    urbanPct: 25,
+    birthRate: 19.4,
+    deathRate: 5.6,
+    medianAge: 26.2,
+    debtPct: 32,
+  },
+  lk: {
+    cpiScore: 34,
+    gini: 39.8,
+    internetPct: 55,
+    urbanPct: 19,
+    birthRate: 14.6,
+    deathRate: 7.2,
+    medianAge: 34.0,
+    debtPct: 127,
+  },
+  np: {
+    cpiScore: 35,
+    gini: 32.8,
+    internetPct: 48,
+    urbanPct: 21,
+    birthRate: 18.0,
+    deathRate: 5.8,
+    medianAge: 25.8,
+    debtPct: 42,
+  },
+  jo: {
+    cpiScore: 47,
+    gini: 33.7,
+    internetPct: 86,
+    urbanPct: 91,
+    birthRate: 22.2,
+    deathRate: 3.6,
+    medianAge: 23.8,
+    debtPct: 93,
+  },
+  lb: {
+    cpiScore: 24,
+    gini: 31.8,
+    internetPct: 78,
+    urbanPct: 89,
+    birthRate: 14.8,
+    deathRate: 5.4,
+    medianAge: 30.6,
+    debtPct: 284,
+  },
+  sy: {
+    cpiScore: 13,
+    gini: 37.5,
+    internetPct: 52,
+    urbanPct: 57,
+    birthRate: 20.4,
+    deathRate: 9.6,
+    medianAge: 22.4,
+    debtPct: 98,
+  },
+  ye: {
+    cpiScore: 16,
+    gini: 36.7,
+    internetPct: 28,
+    urbanPct: 39,
+    birthRate: 27.0,
+    deathRate: 6.6,
+    medianAge: 19.8,
+    debtPct: 76,
+  },
+  om: {
+    cpiScore: 55,
+    gini: 30.8,
+    internetPct: 96,
+    urbanPct: 87,
+    birthRate: 14.6,
+    deathRate: 2.8,
+    medianAge: 29.4,
+    debtPct: 44,
+  },
+  qa: {
+    cpiScore: 58,
+    gini: 41.1,
+    internetPct: 98,
+    urbanPct: 99,
+    birthRate: 9.6,
+    deathRate: 1.4,
+    medianAge: 33.2,
+    debtPct: 46,
+  },
+  kw: {
+    cpiScore: 46,
+    gini: 29.5,
+    internetPct: 98,
+    urbanPct: 100,
+    birthRate: 13.4,
+    deathRate: 2.4,
+    medianAge: 37.2,
+    debtPct: 7,
+  },
+  bh: {
+    cpiScore: 43,
+    gini: 35.0,
+    internetPct: 99,
+    urbanPct: 89,
+    birthRate: 13.6,
+    deathRate: 2.6,
+    medianAge: 31.8,
+    debtPct: 130,
+  },
+  am: {
+    cpiScore: 46,
+    gini: 29.9,
+    internetPct: 82,
+    urbanPct: 63,
+    birthRate: 11.4,
+    deathRate: 9.8,
+    medianAge: 37.2,
+    debtPct: 50,
+  },
+  az_as: {
+    cpiScore: 27,
+    gini: 26.6,
+    internetPct: 88,
+    urbanPct: 56,
+    birthRate: 12.6,
+    deathRate: 6.6,
+    medianAge: 32.4,
+    debtPct: 18,
+  },
+  ge_as: {
+    cpiScore: 53,
+    gini: 36.4,
+    internetPct: 86,
+    urbanPct: 60,
+    birthRate: 12.0,
+    deathRate: 12.0,
+    medianAge: 38.2,
+    debtPct: 41,
+  },
+  tm: {
+    cpiScore: 19,
+    gini: 40.8,
+    internetPct: 36,
+    urbanPct: 52,
+    birthRate: 18.4,
+    deathRate: 7.2,
+    medianAge: 28.8,
+    debtPct: 20,
+  },
+  kg: {
+    cpiScore: 26,
+    gini: 29.7,
+    internetPct: 70,
+    urbanPct: 38,
+    birthRate: 22.8,
+    deathRate: 6.4,
+    medianAge: 27.0,
+    debtPct: 46,
+  },
+  tj: {
+    cpiScore: 19,
+    gini: 34.0,
+    internetPct: 48,
+    urbanPct: 27,
+    birthRate: 24.4,
+    deathRate: 5.2,
+    medianAge: 24.4,
+    debtPct: 50,
+  },
+  af: {
+    cpiScore: 20,
+    gini: 29.4,
+    internetPct: 18,
+    urbanPct: 26,
+    birthRate: 36.2,
+    deathRate: 14.8,
+    medianAge: 18.4,
+    debtPct: 8,
+  },
+  mn_as: {
+    cpiScore: 38,
+    gini: 32.7,
+    internetPct: 82,
+    urbanPct: 69,
+    birthRate: 20.4,
+    deathRate: 6.2,
+    medianAge: 29.4,
+    debtPct: 80,
+  },
+  la: {
+    cpiScore: 28,
+    gini: 38.8,
+    internetPct: 54,
+    urbanPct: 37,
+    birthRate: 22.0,
+    deathRate: 6.0,
+    medianAge: 24.4,
+    debtPct: 88,
+  },
+  tl: {
+    cpiScore: 39,
+    gini: 28.7,
+    internetPct: 38,
+    urbanPct: 32,
+    birthRate: 28.0,
+    deathRate: 5.6,
+    medianAge: 19.6,
+    debtPct: 32,
+  },
+  bn: {
+    cpiScore: 56,
+    gini: 37.2,
+    internetPct: 97,
+    urbanPct: 79,
+    birthRate: 14.4,
+    deathRate: 3.6,
+    medianAge: 31.2,
+    debtPct: 2,
+  },
+  mv: {
+    cpiScore: 40,
+    gini: 31.3,
+    internetPct: 78,
+    urbanPct: 41,
+    birthRate: 14.4,
+    deathRate: 3.8,
+    medianAge: 30.8,
+    debtPct: 107,
+  },
+  bt: {
+    cpiScore: 68,
+    gini: 37.4,
+    internetPct: 72,
+    urbanPct: 43,
+    birthRate: 14.2,
+    deathRate: 6.4,
+    medianAge: 29.2,
+    debtPct: 124,
+  },
+  nz: {
+    cpiScore: 85,
+    gini: 33.9,
+    internetPct: 97,
+    urbanPct: 87,
+    birthRate: 12.0,
+    deathRate: 7.0,
+    medianAge: 37.9,
+    debtPct: 46,
+    fiscalBalancePct: -2.8,
+  },
+  pg: {
+    cpiScore: 28,
+    gini: 41.9,
+    internetPct: 26,
+    urbanPct: 13,
+    birthRate: 26.4,
+    deathRate: 6.8,
+    medianAge: 22.4,
+    debtPct: 42,
+  },
+  fj: {
+    cpiScore: 52,
+    gini: 36.4,
+    internetPct: 68,
+    urbanPct: 58,
+    birthRate: 17.2,
+    deathRate: 6.4,
+    medianAge: 29.6,
+    debtPct: 85,
+  },
+  sb: {
+    cpiScore: 42,
+    gini: 37.1,
+    internetPct: 28,
+    urbanPct: 25,
+    birthRate: 29.4,
+    deathRate: 4.2,
+    medianAge: 20.2,
+    debtPct: 18,
+  },
+  vu: {
+    cpiScore: 43,
+    gini: 37.6,
+    internetPct: 44,
+    urbanPct: 26,
+    birthRate: 27.4,
+    deathRate: 4.8,
+    medianAge: 21.4,
+    debtPct: 44,
+  },
+  ws: {
+    cpiScore: 52,
+    gini: 38.7,
+    internetPct: 56,
+    urbanPct: 18,
+    birthRate: 20.4,
+    deathRate: 5.8,
+    medianAge: 24.4,
+    debtPct: 52,
+  },
+  to: {
+    cpiScore: 50,
+    gini: 37.6,
+    internetPct: 62,
+    urbanPct: 23,
+    birthRate: 20.6,
+    deathRate: 6.0,
+    medianAge: 24.0,
+    debtPct: 46,
+  },
+  ki: {
+    cpiScore: 45,
+    gini: 37.0,
+    internetPct: 38,
+    urbanPct: 56,
+    birthRate: 23.0,
+    deathRate: 6.8,
+    medianAge: 21.4,
+    debtPct: 34,
+  },
+  fm: {
+    cpiScore: 47,
+    gini: 40.0,
+    internetPct: 44,
+    urbanPct: 23,
+    birthRate: 20.2,
+    deathRate: 5.8,
+    medianAge: 23.4,
+    debtPct: 22,
+  },
+  pw: {
+    cpiScore: 47,
+    gini: 38.0,
+    internetPct: 62,
+    urbanPct: 82,
+    birthRate: 11.4,
+    deathRate: 8.2,
+    medianAge: 33.4,
+    debtPct: 32,
+  },
+  mh: {
+    cpiScore: 44,
+    gini: 42.0,
+    internetPct: 42,
+    urbanPct: 78,
+    birthRate: 22.4,
+    deathRate: 4.6,
+    medianAge: 21.8,
+    debtPct: 28,
+  },
+  nr: {
+    cpiScore: 47,
+    gini: 38.0,
+    internetPct: 68,
+    urbanPct: 100,
+    birthRate: 22.0,
+    deathRate: 8.0,
+    medianAge: 25.6,
+    debtPct: 60,
+  },
+  tv: {
+    cpiScore: 50,
+    gini: 38.0,
+    internetPct: 52,
+    urbanPct: 58,
+    birthRate: 22.0,
+    deathRate: 8.0,
+    medianAge: 24.2,
+    debtPct: 32,
+  },
+  fo: {
+    cpiScore: 84,
+    gini: 22.7,
+    internetPct: 99,
+    urbanPct: 42,
+    birthRate: 14.4,
+    deathRate: 9.4,
+    medianAge: 38.8,
+    debtPct: 14,
+  },
+  gl: {
+    cpiScore: 84,
+    gini: 33.9,
+    internetPct: 92,
+    urbanPct: 87,
+    birthRate: 14.2,
+    deathRate: 10.4,
+    medianAge: 35.8,
+    debtPct: 22,
+  },
+  coo_af: {
+    cpiScore: 54,
+    gini: 40.0,
+    internetPct: 55,
+    urbanPct: 74,
+    birthRate: 13.2,
+    deathRate: 8.8,
+    medianAge: 32.0,
+    debtPct: 28,
+  },
+  ck: {
+    cpiScore: 70,
+    gini: 38.0,
+    internetPct: 56,
+    urbanPct: 74,
+    birthRate: 13.2,
+    deathRate: 8.8,
+    medianAge: 32.0,
+    debtPct: 28,
+  },
+  nu: {
+    cpiScore: 70,
+    gini: 40.0,
+    internetPct: 48,
+    urbanPct: 46,
+    birthRate: 18.0,
+    deathRate: 7.0,
+    medianAge: 27.0,
+    debtPct: 10,
+  },
+  ps: {
+    cpiScore: 34,
+    gini: 33.7,
+    internetPct: 86,
+    urbanPct: 77,
+    birthRate: 24.6,
+    deathRate: 3.4,
+    medianAge: 21.2,
+    debtPct: 18,
+  },
+  eh: {
+    cpiScore: 40,
+    gini: 38.0,
+    internetPct: 46,
+    urbanPct: 78,
+    birthRate: 20.0,
+    deathRate: 6.0,
+    medianAge: 27.0,
+    debtPct: 8,
+  },
+  // ── Africa ───────────────────────────────────────────────────────────────
+  cd: {
+    cpiScore: 19,
+    gini: 42.1,
+    internetPct: 22,
+    urbanPct: 46,
+    birthRate: 43.4,
+    deathRate: 9.6,
+    medianAge: 17.0,
+    debtPct: 22,
+  },
+  tz: {
+    cpiScore: 40,
+    gini: 37.8,
+    internetPct: 48,
+    urbanPct: 37,
+    birthRate: 36.6,
+    deathRate: 6.0,
+    medianAge: 18.0,
+    debtPct: 38,
+  },
+  gh: {
+    cpiScore: 42,
+    gini: 43.5,
+    internetPct: 68,
+    urbanPct: 59,
+    birthRate: 28.0,
+    deathRate: 7.0,
+    medianAge: 21.4,
+    debtPct: 84,
+  },
+  ao: {
+    cpiScore: 28,
+    gini: 51.3,
+    internetPct: 36,
+    urbanPct: 68,
+    birthRate: 38.6,
+    deathRate: 9.0,
+    medianAge: 16.8,
+    debtPct: 65,
+  },
+  ma: {
+    cpiScore: 38,
+    gini: 39.5,
+    internetPct: 88,
+    urbanPct: 65,
+    birthRate: 17.6,
+    deathRate: 5.4,
+    medianAge: 29.8,
+    debtPct: 72,
+  },
+  dz: {
+    cpiScore: 33,
+    gini: 27.6,
+    internetPct: 72,
+    urbanPct: 74,
+    birthRate: 19.2,
+    deathRate: 4.8,
+    medianAge: 29.4,
+    debtPct: 54,
+  },
+  sd: {
+    cpiScore: 20,
+    gini: 34.2,
+    internetPct: 30,
+    urbanPct: 36,
+    birthRate: 34.6,
+    deathRate: 7.0,
+    medianAge: 19.4,
+    debtPct: 258,
+  },
+  ug: {
+    cpiScore: 27,
+    gini: 42.8,
+    internetPct: 46,
+    urbanPct: 26,
+    birthRate: 43.2,
+    deathRate: 5.6,
+    medianAge: 15.6,
+    debtPct: 48,
+  },
+  ci: {
+    cpiScore: 37,
+    gini: 41.5,
+    internetPct: 48,
+    urbanPct: 53,
+    birthRate: 34.6,
+    deathRate: 9.2,
+    medianAge: 18.8,
+    debtPct: 56,
+  },
+  cm: {
+    cpiScore: 27,
+    gini: 46.6,
+    internetPct: 38,
+    urbanPct: 59,
+    birthRate: 34.8,
+    deathRate: 8.6,
+    medianAge: 18.4,
+    debtPct: 44,
+  },
+  sn: {
+    cpiScore: 42,
+    gini: 40.3,
+    internetPct: 64,
+    urbanPct: 49,
+    birthRate: 33.6,
+    deathRate: 6.8,
+    medianAge: 18.8,
+    debtPct: 78,
+  },
+  zw: {
+    cpiScore: 24,
+    gini: 50.3,
+    internetPct: 36,
+    urbanPct: 32,
+    birthRate: 27.0,
+    deathRate: 6.6,
+    medianAge: 20.0,
+    debtPct: 94,
+  },
+  mz: {
+    cpiScore: 26,
+    gini: 54.0,
+    internetPct: 26,
+    urbanPct: 38,
+    birthRate: 38.6,
+    deathRate: 8.8,
+    medianAge: 17.2,
+    debtPct: 92,
+  },
+  mg: {
+    cpiScore: 26,
+    gini: 42.6,
+    internetPct: 22,
+    urbanPct: 38,
+    birthRate: 32.6,
+    deathRate: 6.4,
+    medianAge: 20.2,
+    debtPct: 52,
+  },
+  zm: {
+    cpiScore: 33,
+    gini: 51.5,
+    internetPct: 30,
+    urbanPct: 45,
+    birthRate: 32.4,
+    deathRate: 6.8,
+    medianAge: 17.4,
+    debtPct: 134,
+  },
+  ml: {
+    cpiScore: 29,
+    gini: 33.0,
+    internetPct: 34,
+    urbanPct: 45,
+    birthRate: 42.8,
+    deathRate: 9.0,
+    medianAge: 16.0,
+    debtPct: 52,
+  },
+  bf: {
+    cpiScore: 42,
+    gini: 35.3,
+    internetPct: 30,
+    urbanPct: 32,
+    birthRate: 40.8,
+    deathRate: 9.4,
+    medianAge: 17.0,
+    debtPct: 46,
+  },
+  ne: {
+    cpiScore: 32,
+    gini: 34.3,
+    internetPct: 18,
+    urbanPct: 17,
+    birthRate: 47.6,
+    deathRate: 9.2,
+    medianAge: 15.2,
+    debtPct: 42,
+  },
+  tn: {
+    cpiScore: 41,
+    gini: 32.8,
+    internetPct: 80,
+    urbanPct: 70,
+    birthRate: 16.0,
+    deathRate: 6.2,
+    medianAge: 32.7,
+    debtPct: 92,
+  },
+  ly: {
+    cpiScore: 17,
+    gini: 37.0,
+    internetPct: 68,
+    urbanPct: 81,
+    birthRate: 19.8,
+    deathRate: 5.6,
+    medianAge: 29.4,
+    debtPct: 48,
+  },
+  rw: {
+    cpiScore: 53,
+    gini: 43.7,
+    internetPct: 30,
+    urbanPct: 17,
+    birthRate: 33.8,
+    deathRate: 5.6,
+    medianAge: 20.8,
+    debtPct: 72,
+  },
+  bj: {
+    cpiScore: 43,
+    gini: 47.8,
+    internetPct: 28,
+    urbanPct: 49,
+    birthRate: 35.6,
+    deathRate: 8.2,
+    medianAge: 18.2,
+    debtPct: 46,
+  },
+  ss: {
+    cpiScore: 13,
+    gini: 44.1,
+    internetPct: 8,
+    urbanPct: 20,
+    birthRate: 37.6,
+    deathRate: 10.8,
+    medianAge: 18.2,
+    debtPct: 56,
+  },
+  so: {
+    cpiScore: 11,
+    gini: 36.8,
+    internetPct: 18,
+    urbanPct: 47,
+    birthRate: 41.8,
+    deathRate: 11.2,
+    medianAge: 17.6,
+    debtPct: 72,
+  },
+  er: {
+    cpiScore: 22,
+    gini: 35.0,
+    internetPct: 12,
+    urbanPct: 42,
+    birthRate: 27.8,
+    deathRate: 7.4,
+    medianAge: 19.8,
+    debtPct: 172,
+  },
+  dj: {
+    cpiScore: 27,
+    gini: 41.6,
+    internetPct: 52,
+    urbanPct: 78,
+    birthRate: 21.4,
+    deathRate: 7.6,
+    medianAge: 23.2,
+    debtPct: 66,
+  },
+  bi: {
+    cpiScore: 19,
+    gini: 38.6,
+    internetPct: 6,
+    urbanPct: 14,
+    birthRate: 37.0,
+    deathRate: 9.0,
+    medianAge: 17.8,
+    debtPct: 68,
+  },
+  mw: {
+    cpiScore: 34,
+    gini: 44.7,
+    internetPct: 14,
+    urbanPct: 18,
+    birthRate: 35.0,
+    deathRate: 7.4,
+    medianAge: 17.4,
+    debtPct: 58,
+  },
+  na: {
+    cpiScore: 51,
+    gini: 59.1,
+    internetPct: 62,
+    urbanPct: 53,
+    birthRate: 26.4,
+    deathRate: 7.2,
+    medianAge: 21.4,
+    debtPct: 68,
+  },
+  bw: {
+    cpiScore: 59,
+    gini: 53.3,
+    internetPct: 72,
+    urbanPct: 72,
+    birthRate: 20.6,
+    deathRate: 7.8,
+    medianAge: 25.8,
+    debtPct: 18,
+  },
+  mu: {
+    cpiScore: 54,
+    gini: 36.8,
+    internetPct: 68,
+    urbanPct: 40,
+    birthRate: 10.0,
+    deathRate: 7.6,
+    medianAge: 37.2,
+    debtPct: 80,
+  },
+  sz: {
+    cpiScore: 34,
+    gini: 54.6,
+    internetPct: 42,
+    urbanPct: 24,
+    birthRate: 23.4,
+    deathRate: 10.8,
+    medianAge: 21.6,
+    debtPct: 42,
+  },
+  ls: {
+    cpiScore: 41,
+    gini: 44.9,
+    internetPct: 36,
+    urbanPct: 29,
+    birthRate: 23.2,
+    deathRate: 12.0,
+    medianAge: 22.0,
+    debtPct: 64,
+  },
+  gm: {
+    cpiScore: 34,
+    gini: 35.9,
+    internetPct: 38,
+    urbanPct: 63,
+    birthRate: 37.8,
+    deathRate: 6.2,
+    medianAge: 17.8,
+    debtPct: 82,
+  },
+  gn: {
+    cpiScore: 25,
+    gini: 33.7,
+    internetPct: 22,
+    urbanPct: 37,
+    birthRate: 36.6,
+    deathRate: 9.0,
+    medianAge: 18.8,
+    debtPct: 28,
+  },
+  gw: {
+    cpiScore: 19,
+    gini: 35.0,
+    internetPct: 28,
+    urbanPct: 45,
+    birthRate: 35.4,
+    deathRate: 11.4,
+    medianAge: 19.6,
+    debtPct: 78,
+  },
+  sl: {
+    cpiScore: 35,
+    gini: 35.7,
+    internetPct: 26,
+    urbanPct: 43,
+    birthRate: 35.0,
+    deathRate: 12.8,
+    medianAge: 19.2,
+    debtPct: 76,
+  },
+  lr: {
+    cpiScore: 25,
+    gini: 35.3,
+    internetPct: 22,
+    urbanPct: 53,
+    birthRate: 32.4,
+    deathRate: 8.0,
+    medianAge: 17.8,
+    debtPct: 48,
+  },
+  tg: {
+    cpiScore: 30,
+    gini: 43.1,
+    internetPct: 34,
+    urbanPct: 44,
+    birthRate: 33.8,
+    deathRate: 7.2,
+    medianAge: 18.8,
+    debtPct: 62,
+  },
+  ga_af: {
+    cpiScore: 28,
+    gini: 38.0,
+    internetPct: 58,
+    urbanPct: 90,
+    birthRate: 26.2,
+    deathRate: 7.8,
+    medianAge: 20.8,
+    debtPct: 65,
+  },
+  cg: {
+    cpiScore: 22,
+    gini: 48.9,
+    internetPct: 24,
+    urbanPct: 68,
+    birthRate: 37.2,
+    deathRate: 9.2,
+    medianAge: 18.4,
+    debtPct: 92,
+  },
+  cf: {
+    cpiScore: 20,
+    gini: 56.2,
+    internetPct: 12,
+    urbanPct: 42,
+    birthRate: 35.0,
+    deathRate: 14.6,
+    medianAge: 18.8,
+    debtPct: 48,
+  },
+  td: {
+    cpiScore: 20,
+    gini: 37.3,
+    internetPct: 14,
+    urbanPct: 24,
+    birthRate: 41.6,
+    deathRate: 12.4,
+    medianAge: 17.2,
+    debtPct: 44,
+  },
+  cv: {
+    cpiScore: 58,
+    gini: 42.4,
+    internetPct: 68,
+    urbanPct: 67,
+    birthRate: 19.2,
+    deathRate: 5.8,
+    medianAge: 26.8,
+    debtPct: 132,
+  },
+  sc: {
+    cpiScore: 70,
+    gini: 46.8,
+    internetPct: 86,
+    urbanPct: 58,
+    birthRate: 16.4,
+    deathRate: 6.8,
+    medianAge: 35.0,
+    debtPct: 80,
+  },
+  st: {
+    cpiScore: 46,
+    gini: 56.3,
+    internetPct: 58,
+    urbanPct: 75,
+    birthRate: 28.4,
+    deathRate: 6.0,
+    medianAge: 18.8,
+    debtPct: 66,
+  },
+  gq: {
+    cpiScore: 17,
+    gini: 44.9,
+    internetPct: 42,
+    urbanPct: 74,
+    birthRate: 32.4,
+    deathRate: 11.0,
+    medianAge: 19.4,
+    debtPct: 42,
+  },
+  km: {
+    cpiScore: 30,
+    gini: 45.1,
+    internetPct: 28,
+    urbanPct: 29,
+    birthRate: 27.0,
+    deathRate: 6.8,
+    medianAge: 20.0,
+    debtPct: 32,
+  },
+  mr: {
+    cpiScore: 27,
+    gini: 32.6,
+    internetPct: 40,
+    urbanPct: 56,
+    birthRate: 31.4,
+    deathRate: 8.4,
+    medianAge: 20.0,
+    debtPct: 58,
+  },
 };
 
 const SRC_WORLDBANK = [
@@ -1570,8 +3330,9 @@ function CountryModal({
   onClose: () => void;
 }) {
   const [activeTab, setActiveTab] = React.useState<
-    "overview" | "map" | "constitution"
+    "overview" | "map" | "constitution" | "metrics"
   >("overview");
+  const [isExpanded, setIsExpanded] = React.useState(false);
   const { openNote } = useNotes();
 
   React.useEffect(() => {
@@ -1614,7 +3375,9 @@ function CountryModal({
       }}
     >
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative z-10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-fade-in modal-glass border">
+      <div
+        className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
+      >
         <div className="p-6">
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center gap-4">
@@ -1670,6 +3433,36 @@ function CountryModal({
                 Take Note
               </button>
               <button
+                onClick={() => setIsExpanded((v) => !v)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                aria-label={
+                  isExpanded ? "Collapse modal" : "Expand modal to full screen"
+                }
+                title={isExpanded ? "Collapse" : "Expand to full screen"}
+              >
+                {isExpanded ? (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path
+                      d="M5 1H1v4M11 1h4v4M5 15H1v-4M11 15h4v-4"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path
+                      d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </button>
+              <button
                 onClick={onClose}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
                 aria-label="Close"
@@ -1704,6 +3497,11 @@ function CountryModal({
                   id: "constitution" as const,
                   label: "Governance",
                   icon: <Scales size={13} weight="fill" />,
+                },
+                {
+                  id: "metrics" as const,
+                  label: "Metrics",
+                  icon: <ChartBar size={13} weight="fill" />,
                 },
               ] as const
             ).map((tab) => (
@@ -1823,6 +3621,11 @@ function CountryModal({
             </div>
           )}
 
+          {/* ── METRICS TAB ── */}
+          {activeTab === "metrics" && (
+            <MetricsPanel entityId={country.id} entityType="country" />
+          )}
+
           {/* ── CONSTITUTION TAB ── */}
           {activeTab === "constitution" && (
             <ConstitutionTab country={country} />
@@ -1832,72 +3635,200 @@ function CountryModal({
           {
             activeTab === "overview" && (
               <>
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-1">
-                  {[
-                    {
-                      label: "GDP",
-                      value: fmtGDP(country.gdp),
-                      sub: country.gdp >= 1000 ? "trillion USD" : "billion USD",
-                    },
-                    {
-                      label: "GDP Per Capita",
-                      value: `$${country.gdpPerCapita.toLocaleString()}`,
-                      sub: "per person",
-                    },
-                    {
-                      label: "GDP Growth",
-                      value: `${country.gdpGrowth > 0 ? "+" : ""}${country.gdpGrowth}%`,
-                      sub: "annual",
-                    },
-                    {
-                      label: "Population",
-                      value: fmtPop(country.population),
-                      sub: "estimated",
-                    },
-                    {
-                      label: "Unemployment",
-                      value: `${country.unemploymentRate}%`,
-                      sub: "rate",
-                    },
-                    {
-                      label: "Inflation",
-                      value: `${country.inflationRate}%`,
-                      sub: "annual",
-                    },
-                    {
-                      label: "Life Expectancy",
-                      value: `${country.lifeExpectancy}`,
-                      sub: "years avg.",
-                    },
-                    {
-                      label: "Trade Balance",
-                      value: `${country.tradeBalance > 0 ? "+" : ""}$${country.tradeBalance}B`,
-                      sub: "surplus/deficit",
-                    },
-                    {
-                      label: "Area",
-                      value: `${(country.areaKm2 / 1e6).toFixed(2)}M km²`,
-                      sub: "total land",
-                    },
-                  ].map((s) => (
-                    <div key={s.label} className="modal-tile rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground font-sans">
-                        {s.label}
-                      </p>
-                      <p
-                        className={`text-lg font-bold font-mono ${s.label === "Trade Balance" ? (country.tradeBalance >= 0 ? "text-success" : "text-destructive") : s.label === "GDP Growth" ? (country.gdpGrowth >= 0 ? "text-success" : "text-destructive") : "text-foreground"}`}
-                      >
-                        {s.value}
-                      </p>
-                      <p className="text-xs text-muted-foreground font-sans">
-                        {s.sub}
-                      </p>
-                    </div>
-                  ))}
+                {/* ── SOCIAL & HUMAN DEVELOPMENT CATEGORY ── */}
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                      👥 Social &amp; Human Development
+                    </span>
+                    <div className="flex-1 h-px bg-border/60" />
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      {
+                        label: "HDI Score",
+                        value: `${country.humanDevelopmentIndex}`,
+                        sub: "0–1 scale",
+                        color:
+                          country.humanDevelopmentIndex >= 0.8
+                            ? "text-success"
+                            : country.humanDevelopmentIndex >= 0.65
+                              ? "text-warning"
+                              : "text-destructive",
+                      },
+                      {
+                        label: "Life Expectancy",
+                        value: `${country.lifeExpectancy} yrs`,
+                        sub: "average",
+                        color:
+                          country.lifeExpectancy >= 75
+                            ? "text-success"
+                            : country.lifeExpectancy >= 65
+                              ? "text-warning"
+                              : "text-destructive",
+                      },
+                      {
+                        label: "Population",
+                        value: fmtPop(country.population),
+                        sub: "estimated",
+                        color: "text-foreground",
+                      },
+                    ]
+                      .concat(
+                        (() => {
+                          const ext = COUNTRY_EXTENDED[country.id];
+                          const extras: {
+                            label: string;
+                            value: string;
+                            sub: string;
+                            color: string;
+                          }[] = [];
+                          if (ext?.medianAge != null)
+                            extras.push({
+                              label: "Median Age",
+                              value: `${ext.medianAge} yrs`,
+                              sub: "population",
+                              color: "text-foreground",
+                            });
+                          if (ext?.urbanPct != null)
+                            extras.push({
+                              label: "Urban Population",
+                              value: `${ext.urbanPct}%`,
+                              sub: "urbanization rate",
+                              color: "text-foreground",
+                            });
+                          if (ext?.birthRate != null)
+                            extras.push({
+                              label: "Birth Rate",
+                              value: `${ext.birthRate}/1k`,
+                              sub: "per 1,000 people",
+                              color: "text-foreground",
+                            });
+                          if (ext?.internetPct != null)
+                            extras.push({
+                              label: "Internet Access",
+                              value: `${ext.internetPct}%`,
+                              sub: "penetration",
+                              color:
+                                ext.internetPct >= 80
+                                  ? "text-success"
+                                  : ext.internetPct >= 50
+                                    ? "text-warning"
+                                    : "text-destructive",
+                            });
+                          if (ext?.gini != null)
+                            extras.push({
+                              label: "Gini Index",
+                              value: `${ext.gini}`,
+                              sub: "inequality (0–100)",
+                              color:
+                                ext.gini > 45
+                                  ? "text-destructive"
+                                  : ext.gini > 35
+                                    ? "text-warning"
+                                    : "text-success",
+                            });
+                          if (ext?.cpiScore != null)
+                            extras.push({
+                              label: "Corruption Index",
+                              value: `${ext.cpiScore}/100`,
+                              sub: "higher = cleaner",
+                              color:
+                                ext.cpiScore >= 60
+                                  ? "text-success"
+                                  : ext.cpiScore >= 40
+                                    ? "text-warning"
+                                    : "text-destructive",
+                            });
+                          return extras;
+                        })(),
+                      )
+                      .map((s) => (
+                        <div
+                          key={s.label}
+                          className="modal-tile rounded-lg p-3"
+                        >
+                          <p className="text-xs text-muted-foreground font-sans">
+                            {s.label}
+                          </p>
+                          <p
+                            className={`text-lg font-bold font-mono ${s.color}`}
+                          >
+                            {s.value}
+                          </p>
+                          <p className="text-xs text-muted-foreground font-sans">
+                            {s.sub}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
                 </div>
 
-                <SourceLink sources={SRC_WORLDBANK} className="mb-4" />
+                {/* ── GEOGRAPHY & IDENTITY CATEGORY ── */}
+                <div className="mb-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                      🌍 Geography &amp; Identity
+                    </span>
+                    <div className="flex-1 h-px bg-border/60" />
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      {
+                        label: "Total Area",
+                        value: `${(country.areaKm2 / 1e6).toFixed(2)}M km²`,
+                        sub: "land + water",
+                        color: "text-foreground",
+                      },
+                      {
+                        label: "Capital City",
+                        value: country.capital,
+                        sub: "administrative capital",
+                        color: "text-foreground",
+                      },
+                      {
+                        label: "Currency",
+                        value: country.currency,
+                        sub: "official currency",
+                        color: "text-foreground",
+                      },
+                      {
+                        label: "Government Type",
+                        value: country.governmentType,
+                        sub: "political system",
+                        color: "text-secondary",
+                      },
+                      {
+                        label: "Languages",
+                        value: country.officialLanguages.slice(0, 2).join(", "),
+                        sub: "official language(s)",
+                        color: "text-foreground",
+                      },
+                      {
+                        label: "ISO Code",
+                        value: country.code,
+                        sub: "country code",
+                        color: "text-muted-foreground",
+                      },
+                    ].map((s) => (
+                      <div key={s.label} className="modal-tile rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground font-sans">
+                          {s.label}
+                        </p>
+                        <p
+                          className={`text-sm font-bold font-sans ${s.color} truncate`}
+                        >
+                          {s.value}
+                        </p>
+                        <p className="text-xs text-muted-foreground font-sans">
+                          {s.sub}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <SourceLink sources={SRC_WORLDBANK} className="mb-4 mt-2" />
 
                 {/* Key Industries + Biosphere */}
                 {country.keyIndustries && country.keyIndustries.length > 0 && (
@@ -2113,6 +4044,100 @@ function CountryModal({
                     )}
                   </div>
                 )}
+
+                {/* ── CRIME STATISTICS ── */}
+                <CountryCrimeStatsPanel country={country} />
+
+                {/* ── HOMELESSNESS & INCARCERATION (below crime stats) ── */}
+                {(() => {
+                  const ss = getCountrySocialStats(country.id);
+                  if (!ss) return null;
+                  return (
+                    <div className="modal-tile rounded-lg p-4 mt-4">
+                      <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-3">
+                        Social Statistics{" "}
+                        <span className="normal-case font-normal">
+                          (per 100k residents)
+                        </span>
+                      </p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="rounded-lg border border-border bg-background/40 p-3">
+                          <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
+                            🏚️ Homelessness Rate
+                          </p>
+                          <p
+                            className={`text-xl font-bold font-mono ${ss.homelessnessRate >= 20 ? "text-destructive" : ss.homelessnessRate >= 8 ? "text-warning" : "text-success"}`}
+                          >
+                            {ss.homelessnessRate}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+                            per 100,000
+                          </p>
+                          <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-700"
+                              style={{
+                                width: `${Math.min(100, (ss.homelessnessRate / 50) * 100)}%`,
+                                background:
+                                  ss.homelessnessRate >= 20
+                                    ? "hsl(0,70%,55%)"
+                                    : ss.homelessnessRate >= 8
+                                      ? "hsl(38,92%,50%)"
+                                      : "hsl(142,71%,45%)",
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div className="rounded-lg border border-border bg-background/40 p-3">
+                          <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
+                            ⛓️ Incarceration Rate
+                          </p>
+                          <p
+                            className={`text-xl font-bold font-mono ${ss.incarcerationRate >= 400 ? "text-destructive" : ss.incarcerationRate >= 150 ? "text-warning" : "text-success"}`}
+                          >
+                            {ss.incarcerationRate}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+                            per 100,000
+                          </p>
+                          <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-700"
+                              style={{
+                                width: `${Math.min(100, (ss.incarcerationRate / 700) * 100)}%`,
+                                background:
+                                  ss.incarcerationRate >= 400
+                                    ? "hsl(0,70%,55%)"
+                                    : ss.incarcerationRate >= 150
+                                      ? "hsl(38,92%,50%)"
+                                      : "hsl(142,71%,45%)",
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* ── DEMOGRAPHICS + GENDER STACKED ── */}
+                <div className="grid grid-cols-1 gap-4 mt-4">
+                  <div>
+                    <CountryDemographicsChart country={country} />
+                  </div>
+                  <div>
+                    <CountryGenderStatsPanel country={country} />
+                  </div>
+                </div>
+
+                {/* ── HOUSING & TRANSPORTATION ── */}
+                <CountryHousingTransportPanel country={country} />
+
+                {/* ── INFRASTRUCTURE STATISTICS ── */}
+                <CountryInfraPanel country={country} />
+
+                {/* ── EDUCATION RANKING & UNIVERSITIES ── */}
+                <CountryEducationPanel country={country} />
 
                 {/* ── SOCIOLOGICAL BREAKDOWN ── */}
                 <CountrySociologicalBreakdown country={country} />
@@ -2343,6 +4368,4391 @@ function EnergySection({
   );
 }
 
+// ── Crime Statistics Data ────────────────────────────────────────────────────
+interface CrimeStats {
+  homicideRate: number; // per 100,000
+  robberyRate: number; // per 100,000
+  assaultRate: number; // per 100,000
+  burglaryRate: number; // per 100,000
+  vehicleTheftRate: number; // per 100,000
+  drugOffenseRate: number; // per 100,000
+  safetyIndex: number; // 0-100, higher = safer
+  crimeIndex: number; // 0-100, higher = more crime
+  year: number;
+}
+
+const COUNTRY_CRIME_STATS: Record<string, CrimeStats> = {
+  us: {
+    homicideRate: 6.3,
+    robberyRate: 135,
+    assaultRate: 282,
+    burglaryRate: 314,
+    vehicleTheftRate: 246,
+    drugOffenseRate: 527,
+    safetyIndex: 48,
+    crimeIndex: 52,
+    year: 2023,
+  },
+  cn: {
+    homicideRate: 0.5,
+    robberyRate: 22,
+    assaultRate: 41,
+    burglaryRate: 55,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 89,
+    safetyIndex: 73,
+    crimeIndex: 27,
+    year: 2023,
+  },
+  de: {
+    homicideRate: 0.8,
+    robberyRate: 45,
+    assaultRate: 134,
+    burglaryRate: 188,
+    vehicleTheftRate: 82,
+    drugOffenseRate: 312,
+    safetyIndex: 62,
+    crimeIndex: 38,
+    year: 2023,
+  },
+  gb: {
+    homicideRate: 1.1,
+    robberyRate: 88,
+    assaultRate: 198,
+    burglaryRate: 412,
+    vehicleTheftRate: 294,
+    drugOffenseRate: 288,
+    safetyIndex: 55,
+    crimeIndex: 45,
+    year: 2023,
+  },
+  fr: {
+    homicideRate: 1.2,
+    robberyRate: 105,
+    assaultRate: 241,
+    burglaryRate: 372,
+    vehicleTheftRate: 212,
+    drugOffenseRate: 264,
+    safetyIndex: 53,
+    crimeIndex: 47,
+    year: 2023,
+  },
+  jp: {
+    homicideRate: 0.3,
+    robberyRate: 3,
+    assaultRate: 22,
+    burglaryRate: 38,
+    vehicleTheftRate: 28,
+    drugOffenseRate: 44,
+    safetyIndex: 82,
+    crimeIndex: 18,
+    year: 2023,
+  },
+  in: {
+    homicideRate: 2.8,
+    robberyRate: 4,
+    assaultRate: 44,
+    burglaryRate: 62,
+    vehicleTheftRate: 35,
+    drugOffenseRate: 78,
+    safetyIndex: 56,
+    crimeIndex: 44,
+    year: 2023,
+  },
+  br: {
+    homicideRate: 22.4,
+    robberyRate: 584,
+    assaultRate: 312,
+    burglaryRate: 418,
+    vehicleTheftRate: 388,
+    drugOffenseRate: 412,
+    safetyIndex: 28,
+    crimeIndex: 72,
+    year: 2023,
+  },
+  ru: {
+    homicideRate: 6.1,
+    robberyRate: 88,
+    assaultRate: 148,
+    burglaryRate: 192,
+    vehicleTheftRate: 102,
+    drugOffenseRate: 218,
+    safetyIndex: 44,
+    crimeIndex: 56,
+    year: 2023,
+  },
+  au_oc: {
+    homicideRate: 1.0,
+    robberyRate: 42,
+    assaultRate: 164,
+    burglaryRate: 388,
+    vehicleTheftRate: 188,
+    drugOffenseRate: 224,
+    safetyIndex: 58,
+    crimeIndex: 42,
+    year: 2023,
+  },
+  ca: {
+    homicideRate: 2.1,
+    robberyRate: 58,
+    assaultRate: 182,
+    burglaryRate: 422,
+    vehicleTheftRate: 314,
+    drugOffenseRate: 248,
+    safetyIndex: 52,
+    crimeIndex: 48,
+    year: 2023,
+  },
+  kr: {
+    homicideRate: 0.6,
+    robberyRate: 8,
+    assaultRate: 54,
+    burglaryRate: 82,
+    vehicleTheftRate: 44,
+    drugOffenseRate: 88,
+    safetyIndex: 76,
+    crimeIndex: 24,
+    year: 2023,
+  },
+  sg: {
+    homicideRate: 0.2,
+    robberyRate: 5,
+    assaultRate: 18,
+    burglaryRate: 24,
+    vehicleTheftRate: 12,
+    drugOffenseRate: 32,
+    safetyIndex: 88,
+    crimeIndex: 12,
+    year: 2023,
+  },
+  ae: {
+    homicideRate: 0.5,
+    robberyRate: 8,
+    assaultRate: 22,
+    burglaryRate: 28,
+    vehicleTheftRate: 18,
+    drugOffenseRate: 44,
+    safetyIndex: 84,
+    crimeIndex: 16,
+    year: 2023,
+  },
+  il_as: {
+    homicideRate: 1.9,
+    robberyRate: 44,
+    assaultRate: 112,
+    burglaryRate: 148,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 188,
+    safetyIndex: 54,
+    crimeIndex: 46,
+    year: 2023,
+  },
+  tr: {
+    homicideRate: 3.8,
+    robberyRate: 62,
+    assaultRate: 88,
+    burglaryRate: 122,
+    vehicleTheftRate: 78,
+    drugOffenseRate: 154,
+    safetyIndex: 51,
+    crimeIndex: 49,
+    year: 2023,
+  },
+  za: {
+    homicideRate: 41.2,
+    robberyRate: 482,
+    assaultRate: 618,
+    burglaryRate: 584,
+    vehicleTheftRate: 412,
+    drugOffenseRate: 348,
+    safetyIndex: 19,
+    crimeIndex: 81,
+    year: 2023,
+  },
+  ng: {
+    homicideRate: 18.6,
+    robberyRate: 368,
+    assaultRate: 244,
+    burglaryRate: 388,
+    vehicleTheftRate: 224,
+    drugOffenseRate: 288,
+    safetyIndex: 24,
+    crimeIndex: 76,
+    year: 2023,
+  },
+  eg: {
+    homicideRate: 1.4,
+    robberyRate: 34,
+    assaultRate: 72,
+    burglaryRate: 108,
+    vehicleTheftRate: 62,
+    drugOffenseRate: 122,
+    safetyIndex: 60,
+    crimeIndex: 40,
+    year: 2023,
+  },
+  mx: {
+    homicideRate: 28.8,
+    robberyRate: 544,
+    assaultRate: 288,
+    burglaryRate: 388,
+    vehicleTheftRate: 448,
+    drugOffenseRate: 382,
+    safetyIndex: 26,
+    crimeIndex: 74,
+    year: 2023,
+  },
+  sa: {
+    homicideRate: 0.8,
+    robberyRate: 18,
+    assaultRate: 34,
+    burglaryRate: 42,
+    vehicleTheftRate: 28,
+    drugOffenseRate: 88,
+    safetyIndex: 78,
+    crimeIndex: 22,
+    year: 2023,
+  },
+  ar: {
+    homicideRate: 5.1,
+    robberyRate: 244,
+    assaultRate: 188,
+    burglaryRate: 288,
+    vehicleTheftRate: 188,
+    drugOffenseRate: 222,
+    safetyIndex: 38,
+    crimeIndex: 62,
+    year: 2023,
+  },
+  it: {
+    homicideRate: 0.6,
+    robberyRate: 62,
+    assaultRate: 88,
+    burglaryRate: 188,
+    vehicleTheftRate: 148,
+    drugOffenseRate: 188,
+    safetyIndex: 60,
+    crimeIndex: 40,
+    year: 2023,
+  },
+  es: {
+    homicideRate: 0.7,
+    robberyRate: 82,
+    assaultRate: 112,
+    burglaryRate: 248,
+    vehicleTheftRate: 188,
+    drugOffenseRate: 214,
+    safetyIndex: 58,
+    crimeIndex: 42,
+    year: 2023,
+  },
+  fr: {
+    homicideRate: 1.2,
+    robberyRate: 105,
+    assaultRate: 241,
+    burglaryRate: 372,
+    vehicleTheftRate: 212,
+    drugOffenseRate: 264,
+    safetyIndex: 53,
+    crimeIndex: 47,
+    year: 2023,
+  },
+  pl: {
+    homicideRate: 0.7,
+    robberyRate: 38,
+    assaultRate: 92,
+    burglaryRate: 148,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 182,
+    safetyIndex: 64,
+    crimeIndex: 36,
+    year: 2023,
+  },
+  ua: {
+    homicideRate: 4.8,
+    robberyRate: 82,
+    assaultRate: 114,
+    burglaryRate: 168,
+    vehicleTheftRate: 118,
+    drugOffenseRate: 148,
+    safetyIndex: 42,
+    crimeIndex: 58,
+    year: 2023,
+  },
+  se: {
+    homicideRate: 1.2,
+    robberyRate: 68,
+    assaultRate: 112,
+    burglaryRate: 148,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 172,
+    safetyIndex: 60,
+    crimeIndex: 40,
+    year: 2023,
+  },
+  no: {
+    homicideRate: 0.5,
+    robberyRate: 22,
+    assaultRate: 54,
+    burglaryRate: 88,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 144,
+    safetyIndex: 72,
+    crimeIndex: 28,
+    year: 2023,
+  },
+  cl: {
+    homicideRate: 4.2,
+    robberyRate: 188,
+    assaultRate: 188,
+    burglaryRate: 288,
+    vehicleTheftRate: 224,
+    drugOffenseRate: 214,
+    safetyIndex: 40,
+    crimeIndex: 60,
+    year: 2023,
+  },
+  co_co: {
+    homicideRate: 25.4,
+    robberyRate: 444,
+    assaultRate: 244,
+    burglaryRate: 348,
+    vehicleTheftRate: 288,
+    drugOffenseRate: 348,
+    safetyIndex: 28,
+    crimeIndex: 72,
+    year: 2023,
+  },
+  ir: {
+    homicideRate: 3.8,
+    robberyRate: 44,
+    assaultRate: 68,
+    burglaryRate: 88,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 112,
+    safetyIndex: 54,
+    crimeIndex: 46,
+    year: 2023,
+  },
+  kp: {
+    homicideRate: 0.8,
+    robberyRate: 12,
+    assaultRate: 28,
+    burglaryRate: 22,
+    vehicleTheftRate: 8,
+    drugOffenseRate: 48,
+    safetyIndex: 58,
+    crimeIndex: 42,
+    year: 2023,
+  },
+  vn: {
+    homicideRate: 1.5,
+    robberyRate: 28,
+    assaultRate: 44,
+    burglaryRate: 68,
+    vehicleTheftRate: 82,
+    drugOffenseRate: 118,
+    safetyIndex: 66,
+    crimeIndex: 34,
+    year: 2023,
+  },
+  th: {
+    homicideRate: 3.2,
+    robberyRate: 58,
+    assaultRate: 88,
+    burglaryRate: 128,
+    vehicleTheftRate: 148,
+    drugOffenseRate: 224,
+    safetyIndex: 52,
+    crimeIndex: 48,
+    year: 2023,
+  },
+  id: {
+    homicideRate: 0.6,
+    robberyRate: 22,
+    assaultRate: 44,
+    burglaryRate: 88,
+    vehicleTheftRate: 62,
+    drugOffenseRate: 88,
+    safetyIndex: 65,
+    crimeIndex: 35,
+    year: 2023,
+  },
+  my: {
+    homicideRate: 2.2,
+    robberyRate: 68,
+    assaultRate: 82,
+    burglaryRate: 148,
+    vehicleTheftRate: 112,
+    drugOffenseRate: 148,
+    safetyIndex: 58,
+    crimeIndex: 42,
+    year: 2023,
+  },
+  ph: {
+    homicideRate: 8.4,
+    robberyRate: 128,
+    assaultRate: 144,
+    burglaryRate: 188,
+    vehicleTheftRate: 112,
+    drugOffenseRate: 244,
+    safetyIndex: 38,
+    crimeIndex: 62,
+    year: 2023,
+  },
+  pk: {
+    homicideRate: 7.8,
+    robberyRate: 148,
+    assaultRate: 112,
+    burglaryRate: 188,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 148,
+    safetyIndex: 36,
+    crimeIndex: 64,
+    year: 2023,
+  },
+  bd: {
+    homicideRate: 2.4,
+    robberyRate: 38,
+    assaultRate: 54,
+    burglaryRate: 88,
+    vehicleTheftRate: 44,
+    drugOffenseRate: 82,
+    safetyIndex: 56,
+    crimeIndex: 44,
+    year: 2023,
+  },
+  et: {
+    homicideRate: 7.2,
+    robberyRate: 112,
+    assaultRate: 88,
+    burglaryRate: 148,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 88,
+    safetyIndex: 38,
+    crimeIndex: 62,
+    year: 2023,
+  },
+  ke: {
+    homicideRate: 4.8,
+    robberyRate: 128,
+    assaultRate: 108,
+    burglaryRate: 188,
+    vehicleTheftRate: 82,
+    drugOffenseRate: 118,
+    safetyIndex: 40,
+    crimeIndex: 60,
+    year: 2023,
+  },
+  // ── Europe (additional) ──────────────────────────────────────────────────
+  es: {
+    homicideRate: 0.7,
+    robberyRate: 82,
+    assaultRate: 112,
+    burglaryRate: 248,
+    vehicleTheftRate: 188,
+    drugOffenseRate: 214,
+    safetyIndex: 58,
+    crimeIndex: 42,
+    year: 2023,
+  },
+  nl: {
+    homicideRate: 0.6,
+    robberyRate: 52,
+    assaultRate: 94,
+    burglaryRate: 148,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 192,
+    safetyIndex: 64,
+    crimeIndex: 36,
+    year: 2023,
+  },
+  ch: {
+    homicideRate: 0.4,
+    robberyRate: 28,
+    assaultRate: 64,
+    burglaryRate: 112,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 144,
+    safetyIndex: 72,
+    crimeIndex: 28,
+    year: 2023,
+  },
+  dk: {
+    homicideRate: 0.9,
+    robberyRate: 42,
+    assaultRate: 88,
+    burglaryRate: 112,
+    vehicleTheftRate: 68,
+    drugOffenseRate: 152,
+    safetyIndex: 68,
+    crimeIndex: 32,
+    year: 2023,
+  },
+  fi: {
+    homicideRate: 1.4,
+    robberyRate: 34,
+    assaultRate: 112,
+    burglaryRate: 118,
+    vehicleTheftRate: 62,
+    drugOffenseRate: 148,
+    safetyIndex: 66,
+    crimeIndex: 34,
+    year: 2023,
+  },
+  be: {
+    homicideRate: 1.1,
+    robberyRate: 68,
+    assaultRate: 118,
+    burglaryRate: 148,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 188,
+    safetyIndex: 60,
+    crimeIndex: 40,
+    year: 2023,
+  },
+  at: {
+    homicideRate: 0.7,
+    robberyRate: 32,
+    assaultRate: 84,
+    burglaryRate: 122,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 144,
+    safetyIndex: 68,
+    crimeIndex: 32,
+    year: 2023,
+  },
+  pt: {
+    homicideRate: 0.7,
+    robberyRate: 58,
+    assaultRate: 78,
+    burglaryRate: 148,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 132,
+    safetyIndex: 64,
+    crimeIndex: 36,
+    year: 2023,
+  },
+  gr: {
+    homicideRate: 0.9,
+    robberyRate: 42,
+    assaultRate: 58,
+    burglaryRate: 148,
+    vehicleTheftRate: 72,
+    drugOffenseRate: 112,
+    safetyIndex: 66,
+    crimeIndex: 34,
+    year: 2023,
+  },
+  cz: {
+    homicideRate: 0.6,
+    robberyRate: 22,
+    assaultRate: 68,
+    burglaryRate: 112,
+    vehicleTheftRate: 62,
+    drugOffenseRate: 132,
+    safetyIndex: 66,
+    crimeIndex: 34,
+    year: 2023,
+  },
+  ro: {
+    homicideRate: 1.4,
+    robberyRate: 38,
+    assaultRate: 62,
+    burglaryRate: 92,
+    vehicleTheftRate: 42,
+    drugOffenseRate: 88,
+    safetyIndex: 60,
+    crimeIndex: 40,
+    year: 2023,
+  },
+  hu: {
+    homicideRate: 1.0,
+    robberyRate: 28,
+    assaultRate: 74,
+    burglaryRate: 102,
+    vehicleTheftRate: 58,
+    drugOffenseRate: 104,
+    safetyIndex: 62,
+    crimeIndex: 38,
+    year: 2023,
+  },
+  // ── Asia / Oceania (additional) ──────────────────────────────────────────
+  tw: {
+    homicideRate: 0.6,
+    robberyRate: 12,
+    assaultRate: 44,
+    burglaryRate: 68,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 88,
+    safetyIndex: 74,
+    crimeIndex: 26,
+    year: 2023,
+  },
+  nz: {
+    homicideRate: 1.0,
+    robberyRate: 38,
+    assaultRate: 148,
+    burglaryRate: 348,
+    vehicleTheftRate: 172,
+    drugOffenseRate: 188,
+    safetyIndex: 54,
+    crimeIndex: 46,
+    year: 2023,
+  },
+  kz: {
+    homicideRate: 5.4,
+    robberyRate: 78,
+    assaultRate: 108,
+    burglaryRate: 152,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 148,
+    safetyIndex: 46,
+    crimeIndex: 54,
+    year: 2023,
+  },
+  iq: {
+    homicideRate: 4.8,
+    robberyRate: 82,
+    assaultRate: 88,
+    burglaryRate: 112,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 88,
+    safetyIndex: 40,
+    crimeIndex: 60,
+    year: 2023,
+  },
+  om: {
+    homicideRate: 0.6,
+    robberyRate: 12,
+    assaultRate: 28,
+    burglaryRate: 32,
+    vehicleTheftRate: 22,
+    drugOffenseRate: 54,
+    safetyIndex: 80,
+    crimeIndex: 20,
+    year: 2023,
+  },
+  qa: {
+    homicideRate: 0.3,
+    robberyRate: 8,
+    assaultRate: 22,
+    burglaryRate: 18,
+    vehicleTheftRate: 12,
+    drugOffenseRate: 38,
+    safetyIndex: 84,
+    crimeIndex: 16,
+    year: 2023,
+  },
+  kw: {
+    homicideRate: 0.8,
+    robberyRate: 14,
+    assaultRate: 32,
+    burglaryRate: 28,
+    vehicleTheftRate: 18,
+    drugOffenseRate: 68,
+    safetyIndex: 76,
+    crimeIndex: 24,
+    year: 2023,
+  },
+  // ── Americas (additional) ────────────────────────────────────────────────
+  co_co: {
+    homicideRate: 25.4,
+    robberyRate: 444,
+    assaultRate: 244,
+    burglaryRate: 348,
+    vehicleTheftRate: 288,
+    drugOffenseRate: 348,
+    safetyIndex: 28,
+    crimeIndex: 72,
+    year: 2023,
+  },
+  pe: {
+    homicideRate: 7.8,
+    robberyRate: 348,
+    assaultRate: 188,
+    burglaryRate: 268,
+    vehicleTheftRate: 188,
+    drugOffenseRate: 188,
+    safetyIndex: 32,
+    crimeIndex: 68,
+    year: 2023,
+  },
+  ve: {
+    homicideRate: 36.7,
+    robberyRate: 588,
+    assaultRate: 318,
+    burglaryRate: 398,
+    vehicleTheftRate: 328,
+    drugOffenseRate: 298,
+    safetyIndex: 15,
+    crimeIndex: 85,
+    year: 2023,
+  },
+  ec: {
+    homicideRate: 44.9,
+    robberyRate: 488,
+    assaultRate: 288,
+    burglaryRate: 348,
+    vehicleTheftRate: 248,
+    drugOffenseRate: 268,
+    safetyIndex: 14,
+    crimeIndex: 86,
+    year: 2023,
+  },
+  bo: {
+    homicideRate: 6.2,
+    robberyRate: 188,
+    assaultRate: 144,
+    burglaryRate: 208,
+    vehicleTheftRate: 128,
+    drugOffenseRate: 148,
+    safetyIndex: 38,
+    crimeIndex: 62,
+    year: 2023,
+  },
+  py: {
+    homicideRate: 11.4,
+    robberyRate: 248,
+    assaultRate: 168,
+    burglaryRate: 248,
+    vehicleTheftRate: 168,
+    drugOffenseRate: 188,
+    safetyIndex: 32,
+    crimeIndex: 68,
+    year: 2023,
+  },
+  uy: {
+    homicideRate: 11.8,
+    robberyRate: 368,
+    assaultRate: 228,
+    burglaryRate: 348,
+    vehicleTheftRate: 228,
+    drugOffenseRate: 228,
+    safetyIndex: 34,
+    crimeIndex: 66,
+    year: 2023,
+  },
+  // ── Africa (additional) ──────────────────────────────────────────────────
+  ma: {
+    homicideRate: 1.4,
+    robberyRate: 42,
+    assaultRate: 54,
+    burglaryRate: 88,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 88,
+    safetyIndex: 60,
+    crimeIndex: 40,
+    year: 2023,
+  },
+  gh: {
+    homicideRate: 1.8,
+    robberyRate: 88,
+    assaultRate: 78,
+    burglaryRate: 128,
+    vehicleTheftRate: 62,
+    drugOffenseRate: 98,
+    safetyIndex: 50,
+    crimeIndex: 50,
+    year: 2023,
+  },
+  tz: {
+    homicideRate: 3.6,
+    robberyRate: 78,
+    assaultRate: 68,
+    burglaryRate: 108,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 72,
+    safetyIndex: 50,
+    crimeIndex: 50,
+    year: 2023,
+  },
+  ao: {
+    homicideRate: 8.4,
+    robberyRate: 148,
+    assaultRate: 118,
+    burglaryRate: 168,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 98,
+    safetyIndex: 34,
+    crimeIndex: 66,
+    year: 2023,
+  },
+  dz: {
+    homicideRate: 1.8,
+    robberyRate: 44,
+    assaultRate: 58,
+    burglaryRate: 82,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 82,
+    safetyIndex: 60,
+    crimeIndex: 40,
+    year: 2023,
+  },
+  rw: {
+    homicideRate: 3.8,
+    robberyRate: 48,
+    assaultRate: 62,
+    burglaryRate: 82,
+    vehicleTheftRate: 28,
+    drugOffenseRate: 48,
+    safetyIndex: 56,
+    crimeIndex: 44,
+    year: 2023,
+  },
+  sn: {
+    homicideRate: 2.4,
+    robberyRate: 68,
+    assaultRate: 58,
+    burglaryRate: 98,
+    vehicleTheftRate: 42,
+    drugOffenseRate: 62,
+    safetyIndex: 54,
+    crimeIndex: 46,
+    year: 2023,
+  },
+  ug: {
+    homicideRate: 6.8,
+    robberyRate: 108,
+    assaultRate: 88,
+    burglaryRate: 128,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 72,
+    safetyIndex: 38,
+    crimeIndex: 62,
+    year: 2023,
+  },
+  ci: {
+    homicideRate: 9.2,
+    robberyRate: 148,
+    assaultRate: 118,
+    burglaryRate: 168,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 88,
+    safetyIndex: 32,
+    crimeIndex: 68,
+    year: 2023,
+  },
+  // ── Additional Europe ──────────────────────────────────────────────────
+  be: {
+    homicideRate: 1.1,
+    robberyRate: 68,
+    assaultRate: 118,
+    burglaryRate: 148,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 188,
+    safetyIndex: 60,
+    crimeIndex: 40,
+    year: 2023,
+  },
+  at: {
+    homicideRate: 0.7,
+    robberyRate: 32,
+    assaultRate: 84,
+    burglaryRate: 122,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 144,
+    safetyIndex: 68,
+    crimeIndex: 32,
+    year: 2023,
+  },
+  pt: {
+    homicideRate: 0.7,
+    robberyRate: 58,
+    assaultRate: 78,
+    burglaryRate: 148,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 132,
+    safetyIndex: 64,
+    crimeIndex: 36,
+    year: 2023,
+  },
+  gr: {
+    homicideRate: 0.9,
+    robberyRate: 42,
+    assaultRate: 58,
+    burglaryRate: 148,
+    vehicleTheftRate: 72,
+    drugOffenseRate: 112,
+    safetyIndex: 66,
+    crimeIndex: 34,
+    year: 2023,
+  },
+  cz: {
+    homicideRate: 0.6,
+    robberyRate: 22,
+    assaultRate: 68,
+    burglaryRate: 112,
+    vehicleTheftRate: 62,
+    drugOffenseRate: 132,
+    safetyIndex: 66,
+    crimeIndex: 34,
+    year: 2023,
+  },
+  ro: {
+    homicideRate: 1.4,
+    robberyRate: 38,
+    assaultRate: 62,
+    burglaryRate: 92,
+    vehicleTheftRate: 42,
+    drugOffenseRate: 88,
+    safetyIndex: 60,
+    crimeIndex: 40,
+    year: 2023,
+  },
+  hu: {
+    homicideRate: 1.0,
+    robberyRate: 28,
+    assaultRate: 74,
+    burglaryRate: 102,
+    vehicleTheftRate: 58,
+    drugOffenseRate: 104,
+    safetyIndex: 62,
+    crimeIndex: 38,
+    year: 2023,
+  },
+  sk: {
+    homicideRate: 1.2,
+    robberyRate: 28,
+    assaultRate: 68,
+    burglaryRate: 102,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 98,
+    safetyIndex: 64,
+    crimeIndex: 36,
+    year: 2023,
+  },
+  hr: {
+    homicideRate: 1.0,
+    robberyRate: 26,
+    assaultRate: 72,
+    burglaryRate: 108,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 92,
+    safetyIndex: 65,
+    crimeIndex: 35,
+    year: 2023,
+  },
+  rs: {
+    homicideRate: 2.2,
+    robberyRate: 52,
+    assaultRate: 88,
+    burglaryRate: 132,
+    vehicleTheftRate: 68,
+    drugOffenseRate: 128,
+    safetyIndex: 52,
+    crimeIndex: 48,
+    year: 2023,
+  },
+  bg: {
+    homicideRate: 1.8,
+    robberyRate: 48,
+    assaultRate: 74,
+    burglaryRate: 118,
+    vehicleTheftRate: 64,
+    drugOffenseRate: 102,
+    safetyIndex: 56,
+    crimeIndex: 44,
+    year: 2023,
+  },
+  ee: {
+    homicideRate: 2.4,
+    robberyRate: 32,
+    assaultRate: 88,
+    burglaryRate: 92,
+    vehicleTheftRate: 44,
+    drugOffenseRate: 118,
+    safetyIndex: 60,
+    crimeIndex: 40,
+    year: 2023,
+  },
+  lv: {
+    homicideRate: 3.4,
+    robberyRate: 44,
+    assaultRate: 94,
+    burglaryRate: 102,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 122,
+    safetyIndex: 55,
+    crimeIndex: 45,
+    year: 2023,
+  },
+  lt: {
+    homicideRate: 4.2,
+    robberyRate: 46,
+    assaultRate: 98,
+    burglaryRate: 108,
+    vehicleTheftRate: 58,
+    drugOffenseRate: 128,
+    safetyIndex: 52,
+    crimeIndex: 48,
+    year: 2023,
+  },
+  si: {
+    homicideRate: 0.6,
+    robberyRate: 22,
+    assaultRate: 54,
+    burglaryRate: 94,
+    vehicleTheftRate: 42,
+    drugOffenseRate: 102,
+    safetyIndex: 70,
+    crimeIndex: 30,
+    year: 2023,
+  },
+  ie: {
+    homicideRate: 0.9,
+    robberyRate: 48,
+    assaultRate: 108,
+    burglaryRate: 188,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 148,
+    safetyIndex: 59,
+    crimeIndex: 41,
+    year: 2023,
+  },
+  by: {
+    homicideRate: 3.2,
+    robberyRate: 42,
+    assaultRate: 82,
+    burglaryRate: 112,
+    vehicleTheftRate: 68,
+    drugOffenseRate: 108,
+    safetyIndex: 52,
+    crimeIndex: 48,
+    year: 2023,
+  },
+  md: {
+    homicideRate: 3.8,
+    robberyRate: 38,
+    assaultRate: 72,
+    burglaryRate: 98,
+    vehicleTheftRate: 42,
+    drugOffenseRate: 82,
+    safetyIndex: 52,
+    crimeIndex: 48,
+    year: 2023,
+  },
+  al_al: {
+    homicideRate: 2.4,
+    robberyRate: 44,
+    assaultRate: 68,
+    burglaryRate: 98,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 88,
+    safetyIndex: 56,
+    crimeIndex: 44,
+    year: 2023,
+  },
+  mk: {
+    homicideRate: 1.8,
+    robberyRate: 32,
+    assaultRate: 62,
+    burglaryRate: 88,
+    vehicleTheftRate: 38,
+    drugOffenseRate: 82,
+    safetyIndex: 58,
+    crimeIndex: 42,
+    year: 2023,
+  },
+  ba: {
+    homicideRate: 1.6,
+    robberyRate: 28,
+    assaultRate: 54,
+    burglaryRate: 78,
+    vehicleTheftRate: 34,
+    drugOffenseRate: 72,
+    safetyIndex: 58,
+    crimeIndex: 42,
+    year: 2023,
+  },
+  me_eu: {
+    homicideRate: 3.8,
+    robberyRate: 48,
+    assaultRate: 82,
+    burglaryRate: 102,
+    vehicleTheftRate: 58,
+    drugOffenseRate: 98,
+    safetyIndex: 52,
+    crimeIndex: 48,
+    year: 2023,
+  },
+  xk: {
+    homicideRate: 1.8,
+    robberyRate: 38,
+    assaultRate: 64,
+    burglaryRate: 88,
+    vehicleTheftRate: 42,
+    drugOffenseRate: 78,
+    safetyIndex: 58,
+    crimeIndex: 42,
+    year: 2023,
+  },
+  lu: {
+    homicideRate: 0.8,
+    robberyRate: 58,
+    assaultRate: 88,
+    burglaryRate: 148,
+    vehicleTheftRate: 68,
+    drugOffenseRate: 168,
+    safetyIndex: 62,
+    crimeIndex: 38,
+    year: 2023,
+  },
+  cy: {
+    homicideRate: 0.8,
+    robberyRate: 28,
+    assaultRate: 62,
+    burglaryRate: 102,
+    vehicleTheftRate: 44,
+    drugOffenseRate: 88,
+    safetyIndex: 68,
+    crimeIndex: 32,
+    year: 2023,
+  },
+  mt_eu: {
+    homicideRate: 0.6,
+    robberyRate: 32,
+    assaultRate: 52,
+    burglaryRate: 88,
+    vehicleTheftRate: 38,
+    drugOffenseRate: 78,
+    safetyIndex: 72,
+    crimeIndex: 28,
+    year: 2023,
+  },
+  is: {
+    homicideRate: 0.3,
+    robberyRate: 12,
+    assaultRate: 42,
+    burglaryRate: 64,
+    vehicleTheftRate: 28,
+    drugOffenseRate: 88,
+    safetyIndex: 78,
+    crimeIndex: 22,
+    year: 2023,
+  },
+  sm: {
+    homicideRate: 0.0,
+    robberyRate: 8,
+    assaultRate: 18,
+    burglaryRate: 28,
+    vehicleTheftRate: 12,
+    drugOffenseRate: 32,
+    safetyIndex: 88,
+    crimeIndex: 12,
+    year: 2023,
+  },
+  li: {
+    homicideRate: 0.0,
+    robberyRate: 6,
+    assaultRate: 14,
+    burglaryRate: 22,
+    vehicleTheftRate: 10,
+    drugOffenseRate: 28,
+    safetyIndex: 90,
+    crimeIndex: 10,
+    year: 2023,
+  },
+  ad: {
+    homicideRate: 0.0,
+    robberyRate: 18,
+    assaultRate: 28,
+    burglaryRate: 48,
+    vehicleTheftRate: 22,
+    drugOffenseRate: 44,
+    safetyIndex: 84,
+    crimeIndex: 16,
+    year: 2023,
+  },
+  mc: {
+    homicideRate: 0.0,
+    robberyRate: 14,
+    assaultRate: 22,
+    burglaryRate: 32,
+    vehicleTheftRate: 18,
+    drugOffenseRate: 28,
+    safetyIndex: 86,
+    crimeIndex: 14,
+    year: 2023,
+  },
+  // ── Additional Asia ──────────────────────────────────────────────────────
+  tw: {
+    homicideRate: 0.6,
+    robberyRate: 12,
+    assaultRate: 44,
+    burglaryRate: 68,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 88,
+    safetyIndex: 74,
+    crimeIndex: 26,
+    year: 2023,
+  },
+  nz: {
+    homicideRate: 1.0,
+    robberyRate: 38,
+    assaultRate: 148,
+    burglaryRate: 348,
+    vehicleTheftRate: 172,
+    drugOffenseRate: 188,
+    safetyIndex: 54,
+    crimeIndex: 46,
+    year: 2023,
+  },
+  kz: {
+    homicideRate: 5.4,
+    robberyRate: 78,
+    assaultRate: 108,
+    burglaryRate: 152,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 148,
+    safetyIndex: 46,
+    crimeIndex: 54,
+    year: 2023,
+  },
+  iq: {
+    homicideRate: 4.8,
+    robberyRate: 82,
+    assaultRate: 88,
+    burglaryRate: 112,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 88,
+    safetyIndex: 40,
+    crimeIndex: 60,
+    year: 2023,
+  },
+  om: {
+    homicideRate: 0.6,
+    robberyRate: 12,
+    assaultRate: 28,
+    burglaryRate: 32,
+    vehicleTheftRate: 22,
+    drugOffenseRate: 54,
+    safetyIndex: 80,
+    crimeIndex: 20,
+    year: 2023,
+  },
+  qa: {
+    homicideRate: 0.3,
+    robberyRate: 8,
+    assaultRate: 22,
+    burglaryRate: 18,
+    vehicleTheftRate: 12,
+    drugOffenseRate: 38,
+    safetyIndex: 84,
+    crimeIndex: 16,
+    year: 2023,
+  },
+  kw: {
+    homicideRate: 0.8,
+    robberyRate: 14,
+    assaultRate: 32,
+    burglaryRate: 28,
+    vehicleTheftRate: 18,
+    drugOffenseRate: 68,
+    safetyIndex: 76,
+    crimeIndex: 24,
+    year: 2023,
+  },
+  uz: {
+    homicideRate: 2.8,
+    robberyRate: 38,
+    assaultRate: 62,
+    burglaryRate: 88,
+    vehicleTheftRate: 42,
+    drugOffenseRate: 82,
+    safetyIndex: 58,
+    crimeIndex: 42,
+    year: 2023,
+  },
+  mm: {
+    homicideRate: 8.8,
+    robberyRate: 88,
+    assaultRate: 72,
+    burglaryRate: 102,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 98,
+    safetyIndex: 36,
+    crimeIndex: 64,
+    year: 2023,
+  },
+  kh: {
+    homicideRate: 4.2,
+    robberyRate: 68,
+    assaultRate: 58,
+    burglaryRate: 88,
+    vehicleTheftRate: 42,
+    drugOffenseRate: 72,
+    safetyIndex: 46,
+    crimeIndex: 54,
+    year: 2023,
+  },
+  lk: {
+    homicideRate: 2.4,
+    robberyRate: 42,
+    assaultRate: 54,
+    burglaryRate: 78,
+    vehicleTheftRate: 38,
+    drugOffenseRate: 68,
+    safetyIndex: 58,
+    crimeIndex: 42,
+    year: 2023,
+  },
+  np: {
+    homicideRate: 2.6,
+    robberyRate: 28,
+    assaultRate: 44,
+    burglaryRate: 62,
+    vehicleTheftRate: 28,
+    drugOffenseRate: 58,
+    safetyIndex: 58,
+    crimeIndex: 42,
+    year: 2023,
+  },
+  jo: {
+    homicideRate: 1.8,
+    robberyRate: 18,
+    assaultRate: 38,
+    burglaryRate: 52,
+    vehicleTheftRate: 28,
+    drugOffenseRate: 62,
+    safetyIndex: 66,
+    crimeIndex: 34,
+    year: 2023,
+  },
+  lb: {
+    homicideRate: 2.8,
+    robberyRate: 48,
+    assaultRate: 68,
+    burglaryRate: 88,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 82,
+    safetyIndex: 48,
+    crimeIndex: 52,
+    year: 2023,
+  },
+  sy: {
+    homicideRate: 8.8,
+    robberyRate: 88,
+    assaultRate: 82,
+    burglaryRate: 98,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 68,
+    safetyIndex: 24,
+    crimeIndex: 76,
+    year: 2023,
+  },
+  ye: {
+    homicideRate: 14.8,
+    robberyRate: 148,
+    assaultRate: 112,
+    burglaryRate: 138,
+    vehicleTheftRate: 72,
+    drugOffenseRate: 88,
+    safetyIndex: 18,
+    crimeIndex: 82,
+    year: 2023,
+  },
+  az_as: {
+    homicideRate: 2.6,
+    robberyRate: 28,
+    assaultRate: 52,
+    burglaryRate: 72,
+    vehicleTheftRate: 38,
+    drugOffenseRate: 68,
+    safetyIndex: 60,
+    crimeIndex: 40,
+    year: 2023,
+  },
+  ge_as: {
+    homicideRate: 4.2,
+    robberyRate: 38,
+    assaultRate: 62,
+    burglaryRate: 82,
+    vehicleTheftRate: 42,
+    drugOffenseRate: 72,
+    safetyIndex: 52,
+    crimeIndex: 48,
+    year: 2023,
+  },
+  am: {
+    homicideRate: 2.4,
+    robberyRate: 22,
+    assaultRate: 48,
+    burglaryRate: 62,
+    vehicleTheftRate: 32,
+    drugOffenseRate: 62,
+    safetyIndex: 62,
+    crimeIndex: 38,
+    year: 2023,
+  },
+  tm: {
+    homicideRate: 1.8,
+    robberyRate: 18,
+    assaultRate: 32,
+    burglaryRate: 42,
+    vehicleTheftRate: 22,
+    drugOffenseRate: 48,
+    safetyIndex: 68,
+    crimeIndex: 32,
+    year: 2023,
+  },
+  kg: {
+    homicideRate: 5.2,
+    robberyRate: 52,
+    assaultRate: 72,
+    burglaryRate: 98,
+    vehicleTheftRate: 42,
+    drugOffenseRate: 82,
+    safetyIndex: 46,
+    crimeIndex: 54,
+    year: 2023,
+  },
+  tj: {
+    homicideRate: 3.4,
+    robberyRate: 28,
+    assaultRate: 48,
+    burglaryRate: 58,
+    vehicleTheftRate: 28,
+    drugOffenseRate: 62,
+    safetyIndex: 58,
+    crimeIndex: 42,
+    year: 2023,
+  },
+  af: {
+    homicideRate: 6.6,
+    robberyRate: 88,
+    assaultRate: 72,
+    burglaryRate: 92,
+    vehicleTheftRate: 38,
+    drugOffenseRate: 148,
+    safetyIndex: 20,
+    crimeIndex: 80,
+    year: 2023,
+  },
+  mn_as: {
+    homicideRate: 4.8,
+    robberyRate: 52,
+    assaultRate: 72,
+    burglaryRate: 92,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 72,
+    safetyIndex: 50,
+    crimeIndex: 50,
+    year: 2023,
+  },
+  la: {
+    homicideRate: 1.8,
+    robberyRate: 22,
+    assaultRate: 38,
+    burglaryRate: 52,
+    vehicleTheftRate: 28,
+    drugOffenseRate: 68,
+    safetyIndex: 62,
+    crimeIndex: 38,
+    year: 2023,
+  },
+  tl: {
+    homicideRate: 3.8,
+    robberyRate: 38,
+    assaultRate: 52,
+    burglaryRate: 62,
+    vehicleTheftRate: 22,
+    drugOffenseRate: 42,
+    safetyIndex: 52,
+    crimeIndex: 48,
+    year: 2023,
+  },
+  bn: {
+    homicideRate: 0.4,
+    robberyRate: 8,
+    assaultRate: 18,
+    burglaryRate: 22,
+    vehicleTheftRate: 12,
+    drugOffenseRate: 38,
+    safetyIndex: 82,
+    crimeIndex: 18,
+    year: 2023,
+  },
+  mv: {
+    homicideRate: 2.6,
+    robberyRate: 28,
+    assaultRate: 42,
+    burglaryRate: 52,
+    vehicleTheftRate: 22,
+    drugOffenseRate: 48,
+    safetyIndex: 60,
+    crimeIndex: 40,
+    year: 2023,
+  },
+  bt: {
+    homicideRate: 2.4,
+    robberyRate: 18,
+    assaultRate: 32,
+    burglaryRate: 42,
+    vehicleTheftRate: 18,
+    drugOffenseRate: 38,
+    safetyIndex: 62,
+    crimeIndex: 38,
+    year: 2023,
+  },
+  ps: {
+    homicideRate: 3.2,
+    robberyRate: 38,
+    assaultRate: 58,
+    burglaryRate: 68,
+    vehicleTheftRate: 32,
+    drugOffenseRate: 48,
+    safetyIndex: 40,
+    crimeIndex: 60,
+    year: 2023,
+  },
+  // ── Additional Americas ──────────────────────────────────────────────────
+  gt: {
+    homicideRate: 17.4,
+    robberyRate: 248,
+    assaultRate: 178,
+    burglaryRate: 258,
+    vehicleTheftRate: 168,
+    drugOffenseRate: 198,
+    safetyIndex: 28,
+    crimeIndex: 72,
+    year: 2023,
+  },
+  cu: {
+    homicideRate: 4.2,
+    robberyRate: 38,
+    assaultRate: 62,
+    burglaryRate: 78,
+    vehicleTheftRate: 38,
+    drugOffenseRate: 58,
+    safetyIndex: 56,
+    crimeIndex: 44,
+    year: 2023,
+  },
+  ht: {
+    homicideRate: 38.4,
+    robberyRate: 548,
+    assaultRate: 298,
+    burglaryRate: 398,
+    vehicleTheftRate: 278,
+    drugOffenseRate: 248,
+    safetyIndex: 8,
+    crimeIndex: 92,
+    year: 2023,
+  },
+  do: {
+    homicideRate: 12.8,
+    robberyRate: 188,
+    assaultRate: 148,
+    burglaryRate: 198,
+    vehicleTheftRate: 128,
+    drugOffenseRate: 168,
+    safetyIndex: 34,
+    crimeIndex: 66,
+    year: 2023,
+  },
+  hn: {
+    homicideRate: 35.8,
+    robberyRate: 448,
+    assaultRate: 268,
+    burglaryRate: 348,
+    vehicleTheftRate: 248,
+    drugOffenseRate: 288,
+    safetyIndex: 18,
+    crimeIndex: 82,
+    year: 2023,
+  },
+  sv: {
+    homicideRate: 3.4,
+    robberyRate: 88,
+    assaultRate: 88,
+    burglaryRate: 118,
+    vehicleTheftRate: 78,
+    drugOffenseRate: 128,
+    safetyIndex: 56,
+    crimeIndex: 44,
+    year: 2023,
+  },
+  ni: {
+    homicideRate: 6.8,
+    robberyRate: 128,
+    assaultRate: 98,
+    burglaryRate: 138,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 118,
+    safetyIndex: 44,
+    crimeIndex: 56,
+    year: 2023,
+  },
+  cr: {
+    homicideRate: 11.8,
+    robberyRate: 198,
+    assaultRate: 128,
+    burglaryRate: 168,
+    vehicleTheftRate: 118,
+    drugOffenseRate: 148,
+    safetyIndex: 38,
+    crimeIndex: 62,
+    year: 2023,
+  },
+  pa: {
+    homicideRate: 9.8,
+    robberyRate: 148,
+    assaultRate: 118,
+    burglaryRate: 148,
+    vehicleTheftRate: 108,
+    drugOffenseRate: 138,
+    safetyIndex: 42,
+    crimeIndex: 58,
+    year: 2023,
+  },
+  jm: {
+    homicideRate: 52.8,
+    robberyRate: 488,
+    assaultRate: 318,
+    burglaryRate: 398,
+    vehicleTheftRate: 278,
+    drugOffenseRate: 298,
+    safetyIndex: 14,
+    crimeIndex: 86,
+    year: 2023,
+  },
+  tt: {
+    homicideRate: 30.4,
+    robberyRate: 348,
+    assaultRate: 228,
+    burglaryRate: 298,
+    vehicleTheftRate: 188,
+    drugOffenseRate: 218,
+    safetyIndex: 26,
+    crimeIndex: 74,
+    year: 2023,
+  },
+  bz: {
+    homicideRate: 22.4,
+    robberyRate: 248,
+    assaultRate: 178,
+    burglaryRate: 228,
+    vehicleTheftRate: 148,
+    drugOffenseRate: 168,
+    safetyIndex: 30,
+    crimeIndex: 70,
+    year: 2023,
+  },
+  bs: {
+    homicideRate: 30.8,
+    robberyRate: 328,
+    assaultRate: 228,
+    burglaryRate: 308,
+    vehicleTheftRate: 198,
+    drugOffenseRate: 228,
+    safetyIndex: 28,
+    crimeIndex: 72,
+    year: 2023,
+  },
+  ag: {
+    homicideRate: 7.8,
+    robberyRate: 98,
+    assaultRate: 98,
+    burglaryRate: 128,
+    vehicleTheftRate: 78,
+    drugOffenseRate: 98,
+    safetyIndex: 48,
+    crimeIndex: 52,
+    year: 2023,
+  },
+  dm: {
+    homicideRate: 5.4,
+    robberyRate: 68,
+    assaultRate: 78,
+    burglaryRate: 98,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 78,
+    safetyIndex: 54,
+    crimeIndex: 46,
+    year: 2023,
+  },
+  gd: {
+    homicideRate: 7.8,
+    robberyRate: 88,
+    assaultRate: 88,
+    burglaryRate: 118,
+    vehicleTheftRate: 58,
+    drugOffenseRate: 88,
+    safetyIndex: 50,
+    crimeIndex: 50,
+    year: 2023,
+  },
+  bb: {
+    homicideRate: 11.8,
+    robberyRate: 128,
+    assaultRate: 118,
+    burglaryRate: 148,
+    vehicleTheftRate: 88,
+    drugOffenseRate: 118,
+    safetyIndex: 42,
+    crimeIndex: 58,
+    year: 2023,
+  },
+  lc: {
+    homicideRate: 22.4,
+    robberyRate: 248,
+    assaultRate: 178,
+    burglaryRate: 228,
+    vehicleTheftRate: 138,
+    drugOffenseRate: 168,
+    safetyIndex: 30,
+    crimeIndex: 70,
+    year: 2023,
+  },
+  vc: {
+    homicideRate: 28.4,
+    robberyRate: 308,
+    assaultRate: 208,
+    burglaryRate: 268,
+    vehicleTheftRate: 168,
+    drugOffenseRate: 198,
+    safetyIndex: 26,
+    crimeIndex: 74,
+    year: 2023,
+  },
+  kn: {
+    homicideRate: 4.8,
+    robberyRate: 68,
+    assaultRate: 68,
+    burglaryRate: 98,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 78,
+    safetyIndex: 56,
+    crimeIndex: 44,
+    year: 2023,
+  },
+  pr: {
+    homicideRate: 17.8,
+    robberyRate: 218,
+    assaultRate: 168,
+    burglaryRate: 218,
+    vehicleTheftRate: 148,
+    drugOffenseRate: 208,
+    safetyIndex: 32,
+    crimeIndex: 68,
+    year: 2023,
+  },
+  gu: {
+    homicideRate: 6.8,
+    robberyRate: 88,
+    assaultRate: 108,
+    burglaryRate: 148,
+    vehicleTheftRate: 108,
+    drugOffenseRate: 138,
+    safetyIndex: 50,
+    crimeIndex: 50,
+    year: 2023,
+  },
+  bm: {
+    homicideRate: 9.4,
+    robberyRate: 88,
+    assaultRate: 88,
+    burglaryRate: 108,
+    vehicleTheftRate: 68,
+    drugOffenseRate: 88,
+    safetyIndex: 52,
+    crimeIndex: 48,
+    year: 2023,
+  },
+  gy: {
+    homicideRate: 18.8,
+    robberyRate: 228,
+    assaultRate: 168,
+    burglaryRate: 218,
+    vehicleTheftRate: 148,
+    drugOffenseRate: 168,
+    safetyIndex: 30,
+    crimeIndex: 70,
+    year: 2023,
+  },
+  sr: {
+    homicideRate: 14.8,
+    robberyRate: 168,
+    assaultRate: 138,
+    burglaryRate: 178,
+    vehicleTheftRate: 118,
+    drugOffenseRate: 138,
+    safetyIndex: 36,
+    crimeIndex: 64,
+    year: 2023,
+  },
+  // ── Additional Africa ──────────────────────────────────────────────────
+  tz: {
+    homicideRate: 3.6,
+    robberyRate: 78,
+    assaultRate: 68,
+    burglaryRate: 108,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 72,
+    safetyIndex: 50,
+    crimeIndex: 50,
+    year: 2023,
+  },
+  ly: {
+    homicideRate: 8.8,
+    robberyRate: 98,
+    assaultRate: 88,
+    burglaryRate: 118,
+    vehicleTheftRate: 58,
+    drugOffenseRate: 78,
+    safetyIndex: 32,
+    crimeIndex: 68,
+    year: 2023,
+  },
+  tn: {
+    homicideRate: 2.4,
+    robberyRate: 58,
+    assaultRate: 68,
+    burglaryRate: 98,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 88,
+    safetyIndex: 56,
+    crimeIndex: 44,
+    year: 2023,
+  },
+  sd: {
+    homicideRate: 6.8,
+    robberyRate: 88,
+    assaultRate: 78,
+    burglaryRate: 108,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 72,
+    safetyIndex: 28,
+    crimeIndex: 72,
+    year: 2023,
+  },
+  ug: {
+    homicideRate: 6.8,
+    robberyRate: 108,
+    assaultRate: 88,
+    burglaryRate: 128,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 72,
+    safetyIndex: 38,
+    crimeIndex: 62,
+    year: 2023,
+  },
+  cm: {
+    homicideRate: 7.8,
+    robberyRate: 118,
+    assaultRate: 98,
+    burglaryRate: 138,
+    vehicleTheftRate: 62,
+    drugOffenseRate: 82,
+    safetyIndex: 36,
+    crimeIndex: 64,
+    year: 2023,
+  },
+  zw: {
+    homicideRate: 6.4,
+    robberyRate: 88,
+    assaultRate: 78,
+    burglaryRate: 108,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 68,
+    safetyIndex: 42,
+    crimeIndex: 58,
+    year: 2023,
+  },
+  mz: {
+    homicideRate: 4.8,
+    robberyRate: 78,
+    assaultRate: 68,
+    burglaryRate: 98,
+    vehicleTheftRate: 42,
+    drugOffenseRate: 58,
+    safetyIndex: 48,
+    crimeIndex: 52,
+    year: 2023,
+  },
+  mg: {
+    homicideRate: 4.2,
+    robberyRate: 68,
+    assaultRate: 62,
+    burglaryRate: 88,
+    vehicleTheftRate: 38,
+    drugOffenseRate: 52,
+    safetyIndex: 50,
+    crimeIndex: 50,
+    year: 2023,
+  },
+  zm: {
+    homicideRate: 6.4,
+    robberyRate: 88,
+    assaultRate: 78,
+    burglaryRate: 108,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 68,
+    safetyIndex: 42,
+    crimeIndex: 58,
+    year: 2023,
+  },
+  ml: {
+    homicideRate: 5.8,
+    robberyRate: 78,
+    assaultRate: 68,
+    burglaryRate: 92,
+    vehicleTheftRate: 42,
+    drugOffenseRate: 62,
+    safetyIndex: 42,
+    crimeIndex: 58,
+    year: 2023,
+  },
+  bf: {
+    homicideRate: 3.8,
+    robberyRate: 58,
+    assaultRate: 52,
+    burglaryRate: 72,
+    vehicleTheftRate: 32,
+    drugOffenseRate: 48,
+    safetyIndex: 46,
+    crimeIndex: 54,
+    year: 2023,
+  },
+  ne: {
+    homicideRate: 2.8,
+    robberyRate: 42,
+    assaultRate: 38,
+    burglaryRate: 52,
+    vehicleTheftRate: 22,
+    drugOffenseRate: 38,
+    safetyIndex: 50,
+    crimeIndex: 50,
+    year: 2023,
+  },
+  bj: {
+    homicideRate: 3.4,
+    robberyRate: 52,
+    assaultRate: 48,
+    burglaryRate: 68,
+    vehicleTheftRate: 32,
+    drugOffenseRate: 48,
+    safetyIndex: 52,
+    crimeIndex: 48,
+    year: 2023,
+  },
+  ss: {
+    homicideRate: 13.4,
+    robberyRate: 148,
+    assaultRate: 118,
+    burglaryRate: 148,
+    vehicleTheftRate: 68,
+    drugOffenseRate: 88,
+    safetyIndex: 18,
+    crimeIndex: 82,
+    year: 2023,
+  },
+  so: {
+    homicideRate: 12.8,
+    robberyRate: 138,
+    assaultRate: 108,
+    burglaryRate: 138,
+    vehicleTheftRate: 62,
+    drugOffenseRate: 78,
+    safetyIndex: 16,
+    crimeIndex: 84,
+    year: 2023,
+  },
+  er: {
+    homicideRate: 3.8,
+    robberyRate: 42,
+    assaultRate: 48,
+    burglaryRate: 62,
+    vehicleTheftRate: 28,
+    drugOffenseRate: 38,
+    safetyIndex: 50,
+    crimeIndex: 50,
+    year: 2023,
+  },
+  dj: {
+    homicideRate: 4.8,
+    robberyRate: 58,
+    assaultRate: 52,
+    burglaryRate: 72,
+    vehicleTheftRate: 32,
+    drugOffenseRate: 48,
+    safetyIndex: 48,
+    crimeIndex: 52,
+    year: 2023,
+  },
+  bi: {
+    homicideRate: 8.8,
+    robberyRate: 88,
+    assaultRate: 78,
+    burglaryRate: 102,
+    vehicleTheftRate: 42,
+    drugOffenseRate: 58,
+    safetyIndex: 34,
+    crimeIndex: 66,
+    year: 2023,
+  },
+  mw: {
+    homicideRate: 5.8,
+    robberyRate: 78,
+    assaultRate: 68,
+    burglaryRate: 92,
+    vehicleTheftRate: 38,
+    drugOffenseRate: 52,
+    safetyIndex: 42,
+    crimeIndex: 58,
+    year: 2023,
+  },
+  na: {
+    homicideRate: 7.8,
+    robberyRate: 108,
+    assaultRate: 98,
+    burglaryRate: 128,
+    vehicleTheftRate: 62,
+    drugOffenseRate: 78,
+    safetyIndex: 38,
+    crimeIndex: 62,
+    year: 2023,
+  },
+  bw: {
+    homicideRate: 6.8,
+    robberyRate: 88,
+    assaultRate: 88,
+    burglaryRate: 118,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 68,
+    safetyIndex: 44,
+    crimeIndex: 56,
+    year: 2023,
+  },
+  mu: {
+    homicideRate: 3.4,
+    robberyRate: 48,
+    assaultRate: 52,
+    burglaryRate: 72,
+    vehicleTheftRate: 38,
+    drugOffenseRate: 58,
+    safetyIndex: 54,
+    crimeIndex: 46,
+    year: 2023,
+  },
+  sz: {
+    homicideRate: 4.8,
+    robberyRate: 68,
+    assaultRate: 62,
+    burglaryRate: 88,
+    vehicleTheftRate: 42,
+    drugOffenseRate: 52,
+    safetyIndex: 46,
+    crimeIndex: 54,
+    year: 2023,
+  },
+  ls: {
+    homicideRate: 8.8,
+    robberyRate: 108,
+    assaultRate: 92,
+    burglaryRate: 118,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 62,
+    safetyIndex: 34,
+    crimeIndex: 66,
+    year: 2023,
+  },
+  gm: {
+    homicideRate: 3.4,
+    robberyRate: 48,
+    assaultRate: 42,
+    burglaryRate: 58,
+    vehicleTheftRate: 28,
+    drugOffenseRate: 42,
+    safetyIndex: 52,
+    crimeIndex: 48,
+    year: 2023,
+  },
+  gn: {
+    homicideRate: 4.8,
+    robberyRate: 68,
+    assaultRate: 58,
+    burglaryRate: 78,
+    vehicleTheftRate: 38,
+    drugOffenseRate: 52,
+    safetyIndex: 42,
+    crimeIndex: 58,
+    year: 2023,
+  },
+  gw: {
+    homicideRate: 4.2,
+    robberyRate: 52,
+    assaultRate: 48,
+    burglaryRate: 62,
+    vehicleTheftRate: 28,
+    drugOffenseRate: 48,
+    safetyIndex: 44,
+    crimeIndex: 56,
+    year: 2023,
+  },
+  sl: {
+    homicideRate: 3.8,
+    robberyRate: 58,
+    assaultRate: 52,
+    burglaryRate: 72,
+    vehicleTheftRate: 32,
+    drugOffenseRate: 48,
+    safetyIndex: 46,
+    crimeIndex: 54,
+    year: 2023,
+  },
+  lr: {
+    homicideRate: 3.4,
+    robberyRate: 52,
+    assaultRate: 48,
+    burglaryRate: 68,
+    vehicleTheftRate: 32,
+    drugOffenseRate: 42,
+    safetyIndex: 48,
+    crimeIndex: 52,
+    year: 2023,
+  },
+  tg: {
+    homicideRate: 3.4,
+    robberyRate: 48,
+    assaultRate: 42,
+    burglaryRate: 58,
+    vehicleTheftRate: 28,
+    drugOffenseRate: 42,
+    safetyIndex: 50,
+    crimeIndex: 50,
+    year: 2023,
+  },
+  ga_af: {
+    homicideRate: 6.8,
+    robberyRate: 88,
+    assaultRate: 72,
+    burglaryRate: 98,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 62,
+    safetyIndex: 38,
+    crimeIndex: 62,
+    year: 2023,
+  },
+  cg: {
+    homicideRate: 5.4,
+    robberyRate: 72,
+    assaultRate: 62,
+    burglaryRate: 82,
+    vehicleTheftRate: 38,
+    drugOffenseRate: 52,
+    safetyIndex: 40,
+    crimeIndex: 60,
+    year: 2023,
+  },
+  cf: {
+    homicideRate: 9.8,
+    robberyRate: 118,
+    assaultRate: 98,
+    burglaryRate: 128,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 68,
+    safetyIndex: 22,
+    crimeIndex: 78,
+    year: 2023,
+  },
+  td: {
+    homicideRate: 7.8,
+    robberyRate: 88,
+    assaultRate: 78,
+    burglaryRate: 98,
+    vehicleTheftRate: 42,
+    drugOffenseRate: 58,
+    safetyIndex: 28,
+    crimeIndex: 72,
+    year: 2023,
+  },
+  cv: {
+    homicideRate: 8.4,
+    robberyRate: 88,
+    assaultRate: 72,
+    burglaryRate: 98,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 68,
+    safetyIndex: 46,
+    crimeIndex: 54,
+    year: 2023,
+  },
+  sc: {
+    homicideRate: 4.8,
+    robberyRate: 52,
+    assaultRate: 52,
+    burglaryRate: 68,
+    vehicleTheftRate: 32,
+    drugOffenseRate: 48,
+    safetyIndex: 54,
+    crimeIndex: 46,
+    year: 2023,
+  },
+  st: {
+    homicideRate: 3.4,
+    robberyRate: 38,
+    assaultRate: 38,
+    burglaryRate: 52,
+    vehicleTheftRate: 22,
+    drugOffenseRate: 38,
+    safetyIndex: 56,
+    crimeIndex: 44,
+    year: 2023,
+  },
+  gq: {
+    homicideRate: 6.8,
+    robberyRate: 78,
+    assaultRate: 68,
+    burglaryRate: 88,
+    vehicleTheftRate: 42,
+    drugOffenseRate: 58,
+    safetyIndex: 36,
+    crimeIndex: 64,
+    year: 2023,
+  },
+  km: {
+    homicideRate: 3.4,
+    robberyRate: 42,
+    assaultRate: 38,
+    burglaryRate: 52,
+    vehicleTheftRate: 22,
+    drugOffenseRate: 38,
+    safetyIndex: 52,
+    crimeIndex: 48,
+    year: 2023,
+  },
+  mr: {
+    homicideRate: 3.8,
+    robberyRate: 48,
+    assaultRate: 42,
+    burglaryRate: 58,
+    vehicleTheftRate: 28,
+    drugOffenseRate: 42,
+    safetyIndex: 50,
+    crimeIndex: 50,
+    year: 2023,
+  },
+  coo_af: {
+    homicideRate: 6.4,
+    robberyRate: 72,
+    assaultRate: 62,
+    burglaryRate: 82,
+    vehicleTheftRate: 38,
+    drugOffenseRate: 52,
+    safetyIndex: 44,
+    crimeIndex: 56,
+    year: 2023,
+  },
+  // ── Oceania ──────────────────────────────────────────────────────────────
+  pg: {
+    homicideRate: 9.8,
+    robberyRate: 118,
+    assaultRate: 98,
+    burglaryRate: 128,
+    vehicleTheftRate: 52,
+    drugOffenseRate: 68,
+    safetyIndex: 28,
+    crimeIndex: 72,
+    year: 2023,
+  },
+  fj: {
+    homicideRate: 6.4,
+    robberyRate: 78,
+    assaultRate: 72,
+    burglaryRate: 98,
+    vehicleTheftRate: 48,
+    drugOffenseRate: 58,
+    safetyIndex: 44,
+    crimeIndex: 56,
+    year: 2023,
+  },
+  sb: {
+    homicideRate: 4.8,
+    robberyRate: 52,
+    assaultRate: 52,
+    burglaryRate: 68,
+    vehicleTheftRate: 28,
+    drugOffenseRate: 42,
+    safetyIndex: 50,
+    crimeIndex: 50,
+    year: 2023,
+  },
+  vu: {
+    homicideRate: 3.4,
+    robberyRate: 38,
+    assaultRate: 38,
+    burglaryRate: 52,
+    vehicleTheftRate: 22,
+    drugOffenseRate: 32,
+    safetyIndex: 56,
+    crimeIndex: 44,
+    year: 2023,
+  },
+  ws: {
+    homicideRate: 2.8,
+    robberyRate: 28,
+    assaultRate: 32,
+    burglaryRate: 42,
+    vehicleTheftRate: 18,
+    drugOffenseRate: 28,
+    safetyIndex: 60,
+    crimeIndex: 40,
+    year: 2023,
+  },
+  to: {
+    homicideRate: 1.4,
+    robberyRate: 18,
+    assaultRate: 22,
+    burglaryRate: 32,
+    vehicleTheftRate: 12,
+    drugOffenseRate: 18,
+    safetyIndex: 68,
+    crimeIndex: 32,
+    year: 2023,
+  },
+  ki: {
+    homicideRate: 0.8,
+    robberyRate: 12,
+    assaultRate: 18,
+    burglaryRate: 22,
+    vehicleTheftRate: 8,
+    drugOffenseRate: 12,
+    safetyIndex: 72,
+    crimeIndex: 28,
+    year: 2023,
+  },
+  fm: {
+    homicideRate: 1.8,
+    robberyRate: 22,
+    assaultRate: 28,
+    burglaryRate: 38,
+    vehicleTheftRate: 12,
+    drugOffenseRate: 18,
+    safetyIndex: 64,
+    crimeIndex: 36,
+    year: 2023,
+  },
+  pw: {
+    homicideRate: 1.2,
+    robberyRate: 14,
+    assaultRate: 22,
+    burglaryRate: 28,
+    vehicleTheftRate: 10,
+    drugOffenseRate: 14,
+    safetyIndex: 70,
+    crimeIndex: 30,
+    year: 2023,
+  },
+  mh: {
+    homicideRate: 2.4,
+    robberyRate: 28,
+    assaultRate: 32,
+    burglaryRate: 42,
+    vehicleTheftRate: 14,
+    drugOffenseRate: 22,
+    safetyIndex: 62,
+    crimeIndex: 38,
+    year: 2023,
+  },
+  nr: {
+    homicideRate: 0.0,
+    robberyRate: 8,
+    assaultRate: 14,
+    burglaryRate: 18,
+    vehicleTheftRate: 6,
+    drugOffenseRate: 12,
+    safetyIndex: 74,
+    crimeIndex: 26,
+    year: 2023,
+  },
+  tv: {
+    homicideRate: 0.0,
+    robberyRate: 8,
+    assaultRate: 12,
+    burglaryRate: 16,
+    vehicleTheftRate: 4,
+    drugOffenseRate: 10,
+    safetyIndex: 76,
+    crimeIndex: 24,
+    year: 2023,
+  },
+  ck: {
+    homicideRate: 0.0,
+    robberyRate: 10,
+    assaultRate: 16,
+    burglaryRate: 22,
+    vehicleTheftRate: 8,
+    drugOffenseRate: 12,
+    safetyIndex: 74,
+    crimeIndex: 26,
+    year: 2023,
+  },
+  nu: {
+    homicideRate: 0.0,
+    robberyRate: 6,
+    assaultRate: 10,
+    burglaryRate: 14,
+    vehicleTheftRate: 4,
+    drugOffenseRate: 8,
+    safetyIndex: 78,
+    crimeIndex: 22,
+    year: 2023,
+  },
+  // ── Territories ──────────────────────────────────────────────────────────
+  fo: {
+    homicideRate: 0.0,
+    robberyRate: 6,
+    assaultRate: 12,
+    burglaryRate: 18,
+    vehicleTheftRate: 8,
+    drugOffenseRate: 14,
+    safetyIndex: 88,
+    crimeIndex: 12,
+    year: 2023,
+  },
+  gl: {
+    homicideRate: 22.4,
+    robberyRate: 78,
+    assaultRate: 108,
+    burglaryRate: 128,
+    vehicleTheftRate: 38,
+    drugOffenseRate: 78,
+    safetyIndex: 38,
+    crimeIndex: 62,
+    year: 2023,
+  },
+  eh: {
+    homicideRate: 2.4,
+    robberyRate: 28,
+    assaultRate: 32,
+    burglaryRate: 42,
+    vehicleTheftRate: 18,
+    drugOffenseRate: 28,
+    safetyIndex: 58,
+    crimeIndex: 42,
+    year: 2023,
+  },
+};
+
+const SRC_CRIME = [
+  {
+    label: "UNODC Crime Statistics",
+    url: "https://dataunodc.un.org/dp-crime-statistics",
+  },
+  {
+    label: "Numbeo Crime Index",
+    url: "https://www.numbeo.com/crime/rankings_by_country.jsp",
+  },
+];
+
+// ── Terrorism Statistics Data ─────────────────────────────────────────────────
+interface TerrorismStats {
+  gtiScore: number; // Global Terrorism Index 0-10, higher = more impact
+  gtiRank: number; // World rank (1 = worst)
+  attacksPerYear: number; // Avg attacks/year (last 5 years)
+  fatalities5yr: number; // Total fatalities last 5 years
+  activistGroups: number; // Number of active terrorist/insurgent groups
+  mostActiveGroup?: string; // Deadliest/most active group
+  primaryThreat: string; // Main threat type
+  riskLevel: "Critical" | "High" | "Medium" | "Low" | "Minimal";
+  trend: "worsening" | "stable" | "improving";
+  note?: string;
+  year: number;
+}
+
+const COUNTRY_TERRORISM: Record<string, TerrorismStats> = {
+  // Critical risk
+  af: {
+    gtiScore: 9.2,
+    gtiRank: 1,
+    attacksPerYear: 1820,
+    fatalities5yr: 14200,
+    activistGroups: 8,
+    mostActiveGroup: "Islamic State Khorasan (IS-K)",
+    primaryThreat: "Jihadist insurgency",
+    riskLevel: "Critical",
+    trend: "stable",
+    note: "Highest-ranked country in GTI since 2016. Taliban governance has not eliminated IS-K threat.",
+    year: 2025,
+  },
+  iq: {
+    gtiScore: 8.4,
+    gtiRank: 2,
+    attacksPerYear: 580,
+    fatalities5yr: 3800,
+    activistGroups: 6,
+    mostActiveGroup: "Islamic State (IS/ISIS)",
+    primaryThreat: "Jihadist insurgency & militia conflict",
+    riskLevel: "Critical",
+    trend: "improving",
+    note: "Territorial defeat of ISIS (2019) but persistent insurgent activity in Sunni heartlands.",
+    year: 2025,
+  },
+  ml: {
+    gtiScore: 8.1,
+    gtiRank: 3,
+    attacksPerYear: 420,
+    fatalities5yr: 5200,
+    activistGroups: 7,
+    mostActiveGroup: "JNIM (Jama'at Nusrat al-Islam)",
+    primaryThreat: "Jihadist insurgency",
+    riskLevel: "Critical",
+    trend: "worsening",
+    note: "JNIM controls large rural areas. French withdrawal accelerated instability.",
+    year: 2025,
+  },
+  ng: {
+    gtiScore: 7.9,
+    gtiRank: 4,
+    attacksPerYear: 680,
+    fatalities5yr: 7800,
+    activistGroups: 5,
+    mostActiveGroup: "Boko Haram / ISWAP",
+    primaryThreat: "Jihadist insurgency + banditry",
+    riskLevel: "Critical",
+    trend: "stable",
+    note: "Lake Chad Basin remains major terrorism hub. Banditry and kidnapping epidemic in NW Nigeria.",
+    year: 2025,
+  },
+  so: {
+    gtiScore: 7.8,
+    gtiRank: 5,
+    attacksPerYear: 520,
+    fatalities5yr: 5400,
+    activistGroups: 4,
+    mostActiveGroup: "Al-Shabaab",
+    primaryThreat: "Al-Qaeda affiliate insurgency",
+    riskLevel: "Critical",
+    trend: "stable",
+    note: "Al-Shabaab controls significant territory in southern Somalia despite AMISOM/ATMIS pressure.",
+    year: 2025,
+  },
+  sy: {
+    gtiScore: 7.7,
+    gtiRank: 6,
+    attacksPerYear: 380,
+    fatalities5yr: 4200,
+    activistGroups: 12,
+    mostActiveGroup: "Hayat Tahrir al-Sham (HTS)",
+    primaryThreat: "Civil conflict & jihadist factions",
+    riskLevel: "Critical",
+    trend: "improving",
+    note: "Assad regime fell December 2024. Fragile transitional governance under HTS; IS sleeper cells active.",
+    year: 2025,
+  },
+  bf: {
+    gtiScore: 7.5,
+    gtiRank: 7,
+    attacksPerYear: 340,
+    fatalities5yr: 4800,
+    activistGroups: 5,
+    mostActiveGroup: "JNIM / GSIM",
+    primaryThreat: "Jihadist insurgency",
+    riskLevel: "Critical",
+    trend: "worsening",
+    note: "Capital Ouagadougou has experienced major attacks. Large portions of country under jihadist control.",
+    year: 2025,
+  },
+  ye: {
+    gtiScore: 7.4,
+    gtiRank: 8,
+    attacksPerYear: 260,
+    fatalities5yr: 3200,
+    activistGroups: 8,
+    mostActiveGroup: "AQAP (Al-Qaeda in Arabian Peninsula)",
+    primaryThreat: "Civil war + jihadist insurgency",
+    riskLevel: "Critical",
+    trend: "stable",
+    note: "AQAP holds territory in Hadramout and Abyan. Houthis conduct missile/drone attacks across Red Sea.",
+    year: 2025,
+  },
+  cd: {
+    gtiScore: 7.2,
+    gtiRank: 9,
+    attacksPerYear: 480,
+    fatalities5yr: 6200,
+    activistGroups: 15,
+    mostActiveGroup: "Allied Democratic Forces (ADF)",
+    primaryThreat: "Armed militia & IS-affiliated group",
+    riskLevel: "Critical",
+    trend: "worsening",
+    note: "Eastern DRC (North Kivu, Ituri) has 15+ armed groups. ADF designated IS affiliate since 2019.",
+    year: 2025,
+  },
+  ss: {
+    gtiScore: 7.0,
+    gtiRank: 10,
+    attacksPerYear: 220,
+    fatalities5yr: 2800,
+    activistGroups: 9,
+    mostActiveGroup: "SSLA/various militias",
+    primaryThreat: "Ethnic conflict & armed militia",
+    riskLevel: "Critical",
+    trend: "stable",
+    note: "Fragile peace deal; intercommunal violence and ethnic militias widespread. Humanitarian crisis.",
+    year: 2025,
+  },
+  pk: {
+    gtiScore: 8.0,
+    gtiRank: 3,
+    attacksPerYear: 640,
+    fatalities5yr: 5600,
+    activistGroups: 10,
+    mostActiveGroup: "Tehrik-i-Taliban Pakistan (TTP)",
+    primaryThreat: "Jihadist insurgency",
+    riskLevel: "Critical",
+    trend: "worsening",
+    note: "TTP attacks surged after Afghan Taliban takeover (2021). Khyber Pakhtunkhwa and Balochistan most affected.",
+    year: 2025,
+  },
+  ne: {
+    gtiScore: 6.8,
+    gtiRank: 12,
+    attacksPerYear: 180,
+    fatalities5yr: 2200,
+    activistGroups: 4,
+    mostActiveGroup: "ISWAP / JNIM",
+    primaryThreat: "Jihadist insurgency (Sahel spillover)",
+    riskLevel: "High",
+    trend: "worsening",
+    year: 2025,
+  },
+  cm: {
+    gtiScore: 6.4,
+    gtiRank: 14,
+    attacksPerYear: 220,
+    fatalities5yr: 2600,
+    activistGroups: 5,
+    mostActiveGroup: "Boko Haram / Ambazonian separatists",
+    primaryThreat: "Jihadist + separatist insurgency",
+    riskLevel: "High",
+    trend: "stable",
+    year: 2025,
+  },
+  // High risk
+  ph: {
+    gtiScore: 6.1,
+    gtiRank: 16,
+    attacksPerYear: 180,
+    fatalities5yr: 980,
+    activistGroups: 6,
+    mostActiveGroup: "New People's Army (NPA)",
+    primaryThreat: "Communist insurgency + jihadist groups",
+    riskLevel: "High",
+    trend: "improving",
+    note: "NPA and MILF/MNLF groups active in Mindanao. ASG kidnapping threat in Sulu Archipelago.",
+    year: 2025,
+  },
+  in: {
+    gtiScore: 5.8,
+    gtiRank: 17,
+    attacksPerYear: 320,
+    fatalities5yr: 1800,
+    activistGroups: 8,
+    mostActiveGroup: "Naxalite-Maoists (CPI-M)",
+    primaryThreat: "Left-wing insurgency + separatism",
+    riskLevel: "High",
+    trend: "improving",
+    note: "Naxalites active in 'Red Corridor'. Kashmir-related militancy persists. IS-linked cells dismantled.",
+    year: 2025,
+  },
+  ir: {
+    gtiScore: 5.4,
+    gtiRank: 19,
+    attacksPerYear: 140,
+    fatalities5yr: 820,
+    activistGroups: 5,
+    mostActiveGroup: "PJAK / ISIS Khorasan",
+    primaryThreat: "Kurdish separatism + Sunni jihadism",
+    riskLevel: "High",
+    trend: "stable",
+    note: "Iran is both a state sponsor of terrorism and a target. IS attacks on minority religious sites.",
+    year: 2025,
+  },
+  eg: {
+    gtiScore: 5.2,
+    gtiRank: 21,
+    attacksPerYear: 120,
+    fatalities5yr: 640,
+    activistGroups: 4,
+    mostActiveGroup: "Wilayat Sinai (IS affiliate)",
+    primaryThreat: "Jihadist insurgency (Sinai Peninsula)",
+    riskLevel: "High",
+    trend: "improving",
+    note: "IS affiliate severely degraded in Sinai by 2024. Residual cells remain. Cairo largely secure.",
+    year: 2025,
+  },
+  et: {
+    gtiScore: 5.0,
+    gtiRank: 23,
+    attacksPerYear: 160,
+    fatalities5yr: 1200,
+    activistGroups: 6,
+    mostActiveGroup: "OLA (Oromo Liberation Army)",
+    primaryThreat: "Ethnic insurgency + jihadist spillover",
+    riskLevel: "High",
+    trend: "stable",
+    note: "Post-Tigray War, OLA and Amhara Fano continue armed conflict. Al-Shabaab cross-border attacks in Somali region.",
+    year: 2025,
+  },
+  ke: {
+    gtiScore: 4.8,
+    gtiRank: 25,
+    attacksPerYear: 60,
+    fatalities5yr: 340,
+    activistGroups: 3,
+    mostActiveGroup: "Al-Shabaab",
+    primaryThreat: "Cross-border Al-Shabaab attacks",
+    riskLevel: "High",
+    trend: "improving",
+    note: "Al-Shabaab targets Nairobi, coast, and northeastern counties. Kenya is front-line state in counter-terrorism.",
+    year: 2025,
+  },
+  td: {
+    gtiScore: 5.6,
+    gtiRank: 18,
+    attacksPerYear: 140,
+    fatalities5yr: 1800,
+    activistGroups: 5,
+    mostActiveGroup: "Boko Haram / ISWAP",
+    primaryThreat: "Jihadist insurgency (Lake Chad Basin)",
+    riskLevel: "High",
+    trend: "stable",
+    year: 2025,
+  },
+  sd: {
+    gtiScore: 5.2,
+    gtiRank: 20,
+    attacksPerYear: 180,
+    fatalities5yr: 2400,
+    activistGroups: 8,
+    mostActiveGroup: "RSF / SPLM-N",
+    primaryThreat: "Civil war + armed factions",
+    riskLevel: "Critical",
+    trend: "worsening",
+    note: "Sudan civil war (SAF vs RSF, since April 2023) — tens of thousands dead, worst displacement crisis globally.",
+    year: 2025,
+  },
+  mm: {
+    gtiScore: 5.5,
+    gtiRank: 18,
+    attacksPerYear: 280,
+    fatalities5yr: 1800,
+    activistGroups: 18,
+    mostActiveGroup: "People's Defence Force (PDF)",
+    primaryThreat: "Anti-junta resistance insurgency",
+    riskLevel: "High",
+    trend: "worsening",
+    note: "Post-2021 coup, resistance forces (PDFs) fighting military junta. Arakan Army controls much of Rakhine state.",
+    year: 2025,
+  },
+  bi: {
+    gtiScore: 4.6,
+    gtiRank: 28,
+    attacksPerYear: 80,
+    fatalities5yr: 560,
+    activistGroups: 4,
+    mostActiveGroup: "RED-Tabara",
+    primaryThreat: "Political violence & rebel groups",
+    riskLevel: "High",
+    trend: "stable",
+    year: 2025,
+  },
+  cf: {
+    gtiScore: 5.8,
+    gtiRank: 15,
+    attacksPerYear: 240,
+    fatalities5yr: 2800,
+    activistGroups: 12,
+    mostActiveGroup: "CPC coalition / UPC",
+    primaryThreat: "Armed militia insurgency",
+    riskLevel: "Critical",
+    trend: "stable",
+    note: "Russian Wagner (Africa Corps) troops support CAR government against rebel coalitions.",
+    year: 2025,
+  },
+  // Medium risk
+  iq: {
+    gtiScore: 8.4,
+    gtiRank: 2,
+    attacksPerYear: 580,
+    fatalities5yr: 3800,
+    activistGroups: 6,
+    mostActiveGroup: "Islamic State (IS/ISIS)",
+    primaryThreat: "Jihadist insurgency & militia conflict",
+    riskLevel: "Critical",
+    trend: "improving",
+    note: "Territorial defeat of ISIS (2019) but persistent insurgent activity in Sunni heartlands.",
+    year: 2025,
+  },
+  ua: {
+    gtiScore: 7.6,
+    gtiRank: 6,
+    attacksPerYear: 2800,
+    fatalities5yr: 58000,
+    activistGroups: 1,
+    mostActiveGroup: "Russian Armed Forces",
+    primaryThreat: "State-sponsored warfare / terrorism",
+    riskLevel: "Critical",
+    trend: "worsening",
+    note: "Russia's full-scale invasion (Feb 2022) classifies as state terrorism under international law. Russian missile/drone attacks on civilian infrastructure constitute war crimes per ICC.",
+    year: 2025,
+  },
+  ru: {
+    gtiScore: 5.4,
+    gtiRank: 20,
+    attacksPerYear: 60,
+    fatalities5yr: 380,
+    activistGroups: 4,
+    mostActiveGroup: "ISIS-K (Khorasan Province)",
+    primaryThreat: "Jihadist attacks & Chechen conflict legacy",
+    riskLevel: "High",
+    trend: "stable",
+    note: "Crocus City Hall attack (March 2024, 145 dead) was Russia's deadliest in decades. IS-K claimed responsibility.",
+    year: 2025,
+  },
+  iq: {
+    gtiScore: 8.4,
+    gtiRank: 2,
+    attacksPerYear: 580,
+    fatalities5yr: 3800,
+    activistGroups: 6,
+    mostActiveGroup: "Islamic State (IS/ISIS)",
+    primaryThreat: "Jihadist insurgency & militia conflict",
+    riskLevel: "Critical",
+    trend: "improving",
+    year: 2025,
+  },
+  tr: {
+    gtiScore: 4.8,
+    gtiRank: 24,
+    attacksPerYear: 82,
+    fatalities5yr: 420,
+    activistGroups: 5,
+    mostActiveGroup: "PKK / TAK (Kurdish)",
+    primaryThreat: "Kurdish separatist insurgency",
+    riskLevel: "Medium",
+    trend: "improving",
+    note: "PKK ceasefire declared February 2025 — potential historic peace deal ending 40-year conflict.",
+    year: 2025,
+  },
+  il_as: {
+    gtiScore: 6.2,
+    gtiRank: 14,
+    attacksPerYear: 480,
+    fatalities5yr: 4200,
+    activistGroups: 8,
+    mostActiveGroup: "Hamas / Palestinian Islamic Jihad",
+    primaryThreat: "Hamas attacks + settler violence",
+    riskLevel: "Critical",
+    trend: "worsening",
+    note: "October 7, 2023 Hamas attack killed ~1,200 Israelis. Ongoing Gaza war. West Bank settler violence elevated.",
+    year: 2025,
+  },
+  lb: {
+    gtiScore: 4.2,
+    gtiRank: 32,
+    attacksPerYear: 38,
+    fatalities5yr: 280,
+    activistGroups: 4,
+    mostActiveGroup: "Hezbollah",
+    primaryThreat: "Hezbollah Iran-proxy activities",
+    riskLevel: "High",
+    trend: "improving",
+    note: "Hezbollah significantly weakened after 2024 Lebanon-Israel conflict (leadership killed). Syrian border tensions persist.",
+    year: 2025,
+  },
+  ps: {
+    gtiScore: 8.0,
+    gtiRank: 3,
+    attacksPerYear: 1200,
+    fatalities5yr: 48000,
+    activistGroups: 6,
+    mostActiveGroup: "Hamas / Islamic Jihad",
+    primaryThreat: "Armed conflict (Gaza War)",
+    riskLevel: "Critical",
+    trend: "worsening",
+    note: "Gaza War (since Oct 7 2023) — over 45,000 Palestinian fatalities documented by WHO. Hamas and IDF operations ongoing.",
+    year: 2025,
+  },
+  id: {
+    gtiScore: 3.8,
+    gtiRank: 36,
+    attacksPerYear: 28,
+    fatalities5yr: 110,
+    activistGroups: 5,
+    mostActiveGroup: "Jamaah Islamiyah remnants / MIT",
+    primaryThreat: "Jihadist cells",
+    riskLevel: "Medium",
+    trend: "improving",
+    note: "Jamaah Islamiyah (JI) formally disbanded 2023 but splinter groups remain. Poso (Sulawesi) MIT active.",
+    year: 2025,
+  },
+  my: {
+    gtiScore: 3.2,
+    gtiRank: 44,
+    attacksPerYear: 8,
+    fatalities5yr: 22,
+    activistGroups: 3,
+    mostActiveGroup: "IS-affiliated cells",
+    primaryThreat: "IS recruitment & dormant cells",
+    riskLevel: "Medium",
+    trend: "stable",
+    note: "Several IS-linked plots disrupted by PDRM. High foreign fighter recruitment in 2013–2017 period.",
+    year: 2025,
+  },
+  bd: {
+    gtiScore: 3.8,
+    gtiRank: 37,
+    attacksPerYear: 32,
+    fatalities5yr: 140,
+    activistGroups: 4,
+    mostActiveGroup: "Ansar Al-Islam / JMB",
+    primaryThreat: "Jihadist cells",
+    riskLevel: "Medium",
+    trend: "stable",
+    note: "Holey Artisan Bakery attack (2016) was major wake-up. Cells disrupted but threat persists.",
+    year: 2025,
+  },
+  // Low risk — major democracies with periodic threats
+  fr: {
+    gtiScore: 3.0,
+    gtiRank: 46,
+    attacksPerYear: 12,
+    fatalities5yr: 28,
+    activistGroups: 3,
+    mostActiveGroup: "IS-inspired lone actors",
+    primaryThreat: "Lone-actor Islamist attacks",
+    riskLevel: "Medium",
+    trend: "stable",
+    note: "France experienced 246 deaths from terrorist attacks 2015-2025. High threat level maintained (Vigipirate).",
+    year: 2025,
+  },
+  de: {
+    gtiScore: 2.8,
+    gtiRank: 52,
+    attacksPerYear: 8,
+    fatalities5yr: 18,
+    activistGroups: 4,
+    mostActiveGroup: "Far-right extremists / IS-inspired",
+    primaryThreat: "Far-right terrorism & lone-actor attacks",
+    riskLevel: "Low",
+    trend: "stable",
+    note: "Solingen stabbings (2024, 3 dead). German far-right violence rising. Both IS-inspired and domestic extremism tracked.",
+    year: 2025,
+  },
+  gb: {
+    gtiScore: 2.6,
+    gtiRank: 58,
+    attacksPerYear: 6,
+    fatalities5yr: 12,
+    activistGroups: 5,
+    mostActiveGroup: "IS-inspired lone actors / dissident republicans",
+    primaryThreat: "Lone-actor jihadist attacks",
+    riskLevel: "Low",
+    trend: "stable",
+    note: "UK terrorism threat remains SUBSTANTIAL (MI5). Dissident Republican groups in Northern Ireland. IS-inspired plots regularly disrupted.",
+    year: 2025,
+  },
+  us: {
+    gtiScore: 3.6,
+    gtiRank: 38,
+    attacksPerYear: 42,
+    fatalities5yr: 92,
+    activistGroups: 12,
+    mostActiveGroup: "Far-right militias / lone actors",
+    primaryThreat: "Domestic extremism (far-right + IS-inspired)",
+    riskLevel: "Medium",
+    trend: "stable",
+    note: "Domestic violent extremism (DVE) is the primary FBI-designated threat. Far-right groups (White Supremacists, anti-government militias) responsible for majority of domestic attacks since 2015.",
+    year: 2025,
+  },
+  au_oc: {
+    gtiScore: 2.2,
+    gtiRank: 68,
+    attacksPerYear: 4,
+    fatalities5yr: 8,
+    activistGroups: 3,
+    mostActiveGroup: "IS-inspired lone actors",
+    primaryThreat: "Lone-actor attacks",
+    riskLevel: "Low",
+    trend: "stable",
+    note: "ASIO (Australian Security Intelligence Organisation) threat level at PROBABLE. Bondi Junction attack (2024) reclassified as not terrorism.",
+    year: 2025,
+  },
+  ca: {
+    gtiScore: 2.0,
+    gtiRank: 72,
+    attacksPerYear: 6,
+    fatalities5yr: 10,
+    activistGroups: 4,
+    mostActiveGroup: "IS-inspired lone actors / domestic extremists",
+    primaryThreat: "Lone-actor attacks",
+    riskLevel: "Low",
+    trend: "stable",
+    year: 2025,
+  },
+  // Minimal risk
+  jp: {
+    gtiScore: 1.2,
+    gtiRank: 124,
+    attacksPerYear: 2,
+    fatalities5yr: 4,
+    activistGroups: 2,
+    mostActiveGroup: "Aum Shinrikyo remnants (Aleph)",
+    primaryThreat: "Domestic cult extremism",
+    riskLevel: "Minimal",
+    trend: "stable",
+    note: "Aum Shinrikyo (rebranded Aleph) still monitored by NPA. Shinzo Abe assassination (2022) not classified as terrorism.",
+    year: 2025,
+  },
+  kr: {
+    gtiScore: 1.4,
+    gtiRank: 112,
+    attacksPerYear: 2,
+    fatalities5yr: 2,
+    activistGroups: 1,
+    mostActiveGroup: "North Korean state actors",
+    primaryThreat: "State-sponsored provocations",
+    riskLevel: "Low",
+    trend: "stable",
+    note: "Primary security threat is North Korean state action (cyber, espionage, rare infiltration). Domestic terrorism extremely rare.",
+    year: 2025,
+  },
+  sg: {
+    gtiScore: 0.8,
+    gtiRank: 142,
+    attacksPerYear: 0,
+    fatalities5yr: 0,
+    activistGroups: 1,
+    mostActiveGroup: "IS-inspired individual cells",
+    primaryThreat: "IS recruitment and planning",
+    riskLevel: "Minimal",
+    trend: "stable",
+    note: "No successful attacks since 2001. ISA (Internal Security Act) used proactively. High detection rate by ISD.",
+    year: 2025,
+  },
+  ae: {
+    gtiScore: 1.8,
+    gtiRank: 88,
+    attacksPerYear: 4,
+    fatalities5yr: 8,
+    activistGroups: 2,
+    mostActiveGroup: "Houthi missile / drone attacks",
+    primaryThreat: "State-directed attacks (Houthi)",
+    riskLevel: "Medium",
+    trend: "stable",
+    note: "Abu Dhabi attacks (2022) by Houthis. UAE heavily involved in Yemen war. IS cells disrupted.",
+    year: 2025,
+  },
+  sa: {
+    gtiScore: 3.4,
+    gtiRank: 40,
+    attacksPerYear: 18,
+    fatalities5yr: 62,
+    activistGroups: 3,
+    mostActiveGroup: "IS affiliate / Houthi attacks",
+    primaryThreat: "Houthi missile attacks + IS cells",
+    riskLevel: "Medium",
+    trend: "improving",
+    note: "Saudi Arabia was major IS target 2015-2018. MBS crackdown largely dismantled domestic IS network. Continued Houthi missile attacks on southern cities.",
+    year: 2025,
+  },
+  // Europe
+  es: {
+    gtiScore: 2.4,
+    gtiRank: 62,
+    attacksPerYear: 6,
+    fatalities5yr: 8,
+    activistGroups: 3,
+    mostActiveGroup: "IS-inspired lone actors",
+    primaryThreat: "Jihadist lone-actor attacks",
+    riskLevel: "Medium",
+    trend: "stable",
+    note: "2017 Barcelona vehicle attack (16 dead). ETA Basque separatist group dissolved 2018. High IS threat level maintained.",
+    year: 2025,
+  },
+  be: {
+    gtiScore: 2.8,
+    gtiRank: 54,
+    attacksPerYear: 6,
+    fatalities5yr: 10,
+    activistGroups: 3,
+    mostActiveGroup: "IS-inspired cells",
+    primaryThreat: "Jihadist cells",
+    riskLevel: "Medium",
+    trend: "improving",
+    note: "Brussels/Molenbeek nexus in 2015-2016 attacks. EU counter-terrorism infrastructure strengthened significantly.",
+    year: 2025,
+  },
+  se: {
+    gtiScore: 2.2,
+    gtiRank: 66,
+    attacksPerYear: 4,
+    fatalities5yr: 8,
+    activistGroups: 3,
+    mostActiveGroup: "Far-right / IS-inspired",
+    primaryThreat: "Far-right extremism & lone-actor attacks",
+    riskLevel: "Low",
+    trend: "stable",
+    note: "Stockholm truck attack (2017). Quran burning protests 2023 triggered IS threats. Elevated threat level.",
+    year: 2025,
+  },
+  no: {
+    gtiScore: 1.6,
+    gtiRank: 104,
+    attacksPerYear: 2,
+    fatalities5yr: 4,
+    activistGroups: 2,
+    mostActiveGroup: "Far-right lone actors",
+    primaryThreat: "Far-right extremism",
+    riskLevel: "Minimal",
+    trend: "stable",
+    note: "Anders Breivik massacre (2011) shaped Norwegian CT approach. Far-right monitoring intensified.",
+    year: 2025,
+  },
+  ru: {
+    gtiScore: 5.4,
+    gtiRank: 20,
+    attacksPerYear: 60,
+    fatalities5yr: 380,
+    activistGroups: 4,
+    mostActiveGroup: "ISIS-K (Khorasan Province)",
+    primaryThreat: "Jihadist attacks & Chechen conflict legacy",
+    riskLevel: "High",
+    trend: "stable",
+    year: 2025,
+  },
+  // Americas
+  mx: {
+    gtiScore: 4.8,
+    gtiRank: 22,
+    attacksPerYear: 1200,
+    fatalities5yr: 18000,
+    activistGroups: 8,
+    mostActiveGroup: "CJNG / Sinaloa Cartel",
+    primaryThreat: "Cartel narco-terrorism",
+    riskLevel: "High",
+    trend: "stable",
+    note: "Mexican cartels classified as narco-terrorist organizations by US State Dept (2025). Mass violence against civilians, public officials, and journalists. Government assassination rate is among highest globally.",
+    year: 2025,
+  },
+  co_co: {
+    gtiScore: 4.2,
+    gtiRank: 30,
+    attacksPerYear: 140,
+    fatalities5yr: 860,
+    activistGroups: 6,
+    mostActiveGroup: "ELN / FARC dissidents",
+    primaryThreat: "Guerrilla insurgency & narco-terrorism",
+    riskLevel: "High",
+    trend: "stable",
+    note: "FARC peace deal (2016) fragmented into dissidents. ELN still active. Gustavo Petro pursuing 'Total Peace' negotiations.",
+    year: 2025,
+  },
+  ve: {
+    gtiScore: 3.6,
+    gtiRank: 38,
+    attacksPerYear: 60,
+    fatalities5yr: 280,
+    activistGroups: 5,
+    mostActiveGroup: "Tren de Aragua / ELN Venezuela",
+    primaryThreat: "Gang terrorism & criminal insurgency",
+    riskLevel: "High",
+    trend: "stable",
+    note: "Tren de Aragua gang designated global terrorist organization by US (2024). Operations in 21 countries.",
+    year: 2025,
+  },
+  br: {
+    gtiScore: 3.2,
+    gtiRank: 44,
+    attacksPerYear: 28,
+    fatalities5yr: 88,
+    activistGroups: 4,
+    mostActiveGroup: "PCC / CV criminal factions",
+    primaryThreat: "Gang terrorism & far-right plots",
+    riskLevel: "Medium",
+    trend: "stable",
+    note: "January 8 2023 insurrection attempt. Far-right extremist Bolsonaro movement. PCC and CV gang violence with terrorist characteristics.",
+    year: 2025,
+  },
+  // Asia Pacific
+  cn: {
+    gtiScore: 2.4,
+    gtiRank: 60,
+    attacksPerYear: 14,
+    fatalities5yr: 48,
+    activistGroups: 3,
+    mostActiveGroup: "East Turkestan Islamic Movement (ETIM)",
+    primaryThreat: "Uyghur separatist cells",
+    riskLevel: "Low",
+    trend: "improving",
+    note: "ETIM largely suppressed. Xinjiang under mass surveillance and detention. Knife/vehicle attacks in Han Chinese cities rare but occur.",
+    year: 2025,
+  },
+  th: {
+    gtiScore: 3.4,
+    gtiRank: 41,
+    attacksPerYear: 48,
+    fatalities5yr: 180,
+    activistGroups: 3,
+    mostActiveGroup: "BRN (Barisan Revolusi Nasional)",
+    primaryThreat: "Southern separatist insurgency",
+    riskLevel: "Medium",
+    trend: "stable",
+    note: "Deep south (Pattani, Yala, Narathiwat provinces) has ongoing Malay Muslim separatist insurgency since 2004.",
+    year: 2025,
+  },
+  vn: {
+    gtiScore: 1.2,
+    gtiRank: 126,
+    attacksPerYear: 2,
+    fatalities5yr: 6,
+    activistGroups: 2,
+    mostActiveGroup: "FULRO remnants / lone actors",
+    primaryThreat: "Minimal — rare lone-actor incidents",
+    riskLevel: "Minimal",
+    trend: "stable",
+    year: 2025,
+  },
+  kz: {
+    gtiScore: 2.6,
+    gtiRank: 56,
+    attacksPerYear: 8,
+    fatalities5yr: 28,
+    activistGroups: 3,
+    mostActiveGroup: "IS-affiliated cells",
+    primaryThreat: "Jihadist sleeper cells",
+    riskLevel: "Low",
+    trend: "stable",
+    note: "Almaty protests (January 2022) involved violent extremist elements. Central Asia IS recruitment historically significant.",
+    year: 2025,
+  },
+  // Africa (additional)
+  tn: {
+    gtiScore: 3.6,
+    gtiRank: 40,
+    attacksPerYear: 22,
+    fatalities5yr: 68,
+    activistGroups: 3,
+    mostActiveGroup: "Katibat Uqba ibn Nafi",
+    primaryThreat: "Jihadist cells (Sahel spillover)",
+    riskLevel: "Medium",
+    trend: "improving",
+    note: "Post-Arab Spring instability enabled jihadist networks. Bardo Museum and Sousse attacks (2015). Improved CT since 2016.",
+    year: 2025,
+  },
+  ma: {
+    gtiScore: 2.8,
+    gtiRank: 52,
+    attacksPerYear: 10,
+    fatalities5yr: 22,
+    activistGroups: 3,
+    mostActiveGroup: "IS-affiliated cells",
+    primaryThreat: "Jihadist cells",
+    riskLevel: "Low",
+    trend: "stable",
+    note: "Imlil hikers murdered (2018). Morocco dismantled 400+ terror cells 2015-2023. Strong preventive CT framework.",
+    year: 2025,
+  },
+  ly: {
+    gtiScore: 5.2,
+    gtiRank: 22,
+    attacksPerYear: 120,
+    fatalities5yr: 980,
+    activistGroups: 8,
+    mostActiveGroup: "IS-Libya / Derna-based groups",
+    primaryThreat: "Jihadist groups amid civil war",
+    riskLevel: "High",
+    trend: "stable",
+    note: "Libya is major transit hub for terrorism and arms trafficking. IS-Libya conducts sporadic attacks in south.",
+    year: 2025,
+  },
+  dz: {
+    gtiScore: 2.4,
+    gtiRank: 61,
+    attacksPerYear: 12,
+    fatalities5yr: 36,
+    activistGroups: 2,
+    mostActiveGroup: "GSIM / AQIM remnants",
+    primaryThreat: "Residual Sahel jihadist threat",
+    riskLevel: "Low",
+    trend: "improving",
+    note: "Algeria dismantled AQIM in mountains. Porous southern borders with Mali/Niger remain concern.",
+    year: 2025,
+  },
+  // Pacific / other
+  au_oc: {
+    gtiScore: 2.2,
+    gtiRank: 68,
+    attacksPerYear: 4,
+    fatalities5yr: 8,
+    activistGroups: 3,
+    mostActiveGroup: "IS-inspired lone actors",
+    primaryThreat: "Lone-actor attacks",
+    riskLevel: "Low",
+    trend: "stable",
+    year: 2025,
+  },
+  nz: {
+    gtiScore: 1.8,
+    gtiRank: 90,
+    attacksPerYear: 2,
+    fatalities5yr: 52,
+    activistGroups: 2,
+    mostActiveGroup: "Far-right lone actors",
+    primaryThreat: "Far-right extremism",
+    riskLevel: "Low",
+    trend: "improving",
+    note: "Christchurch mosque shootings (2019, 51 dead). Counter-extremism reforms since. Hizb ut-Tahrir monitored.",
+    year: 2025,
+  },
+  // Middle East
+  jo: {
+    gtiScore: 2.6,
+    gtiRank: 57,
+    attacksPerYear: 8,
+    fatalities5yr: 24,
+    activistGroups: 3,
+    mostActiveGroup: "IS-affiliated lone actors",
+    primaryThreat: "Lone-actor IS-inspired attacks",
+    riskLevel: "Low",
+    trend: "stable",
+    note: "Aqaba attack (2023). Jordan's proximity to Syria and Iraq creates spillover risk.",
+    year: 2025,
+  },
+  // Gulf
+  kw: {
+    gtiScore: 1.4,
+    gtiRank: 114,
+    attacksPerYear: 2,
+    fatalities5yr: 4,
+    activistGroups: 2,
+    mostActiveGroup: "IS-affiliated cells",
+    primaryThreat: "IS-inspired lone actors",
+    riskLevel: "Minimal",
+    trend: "stable",
+    note: "Kuwait City mosque bombing (2015, 27 dead) — most serious recent attack. Strong CT measures since.",
+    year: 2025,
+  },
+  qa: {
+    gtiScore: 1.2,
+    gtiRank: 128,
+    attacksPerYear: 0,
+    fatalities5yr: 2,
+    activistGroups: 1,
+    mostActiveGroup: "IS-affiliated individuals",
+    primaryThreat: "Extremist financing (historic)",
+    riskLevel: "Minimal",
+    trend: "improving",
+    note: "Qatar historically accused of terrorism financing (especially Hamas, MB). 2017 blockade by Gulf states partly over this issue.",
+    year: 2025,
+  },
+  // South America
+  pe: {
+    gtiScore: 3.0,
+    gtiRank: 48,
+    attacksPerYear: 28,
+    fatalities5yr: 84,
+    activistGroups: 3,
+    mostActiveGroup: "Sendero Luminoso (Shining Path) remnants",
+    primaryThreat: "Narco-terrorism (Sendero-narco hybrid)",
+    riskLevel: "Medium",
+    trend: "stable",
+    note: "Sendero Luminoso now primarily narco-trafficking organization in VRAEM valley. Coca cultivation financing.",
+    year: 2025,
+  },
+  ec: {
+    gtiScore: 4.0,
+    gtiRank: 34,
+    attacksPerYear: 80,
+    fatalities5yr: 420,
+    activistGroups: 5,
+    mostActiveGroup: "Lobos / Los Choneros / FARC dissidents",
+    primaryThreat: "Narco-terrorism / gang terrorism",
+    riskLevel: "High",
+    trend: "worsening",
+    note: "Ecuador declared 'internal armed conflict' (2024) after unprecedented cartel violence. TV studio siege, prison massacres. Candidate Fernando Villavicencio assassinated 2023.",
+    year: 2025,
+  },
+};
+
+const SRC_TERRORISM = [
+  {
+    label: "IEP – Global Terrorism Index 2024",
+    url: "https://www.visionofhumanity.org/maps/global-terrorism-index/",
+  },
+  {
+    label: "START Global Terrorism Database",
+    url: "https://www.start.umd.edu/gtd/",
+  },
+  { label: "ACLED Conflict Data", url: "https://acleddata.com/" },
+  {
+    label: "CTED – UN Security Council Counter-Terrorism",
+    url: "https://www.un.org/securitycouncil/ctc/",
+  },
+];
+
+const TERRORISM_RISK_COLORS: Record<
+  TerrorismStats["riskLevel"],
+  { text: string; border: string; bg: string; bar: string }
+> = {
+  Critical: {
+    text: "text-red-400",
+    border: "border-red-500/30",
+    bg: "bg-red-500/10",
+    bar: "hsl(0,72%,55%)",
+  },
+  High: {
+    text: "text-orange-400",
+    border: "border-orange-500/30",
+    bg: "bg-orange-500/10",
+    bar: "hsl(22,88%,55%)",
+  },
+  Medium: {
+    text: "text-yellow-400",
+    border: "border-yellow-500/30",
+    bg: "bg-yellow-500/10",
+    bar: "hsl(38,92%,50%)",
+  },
+  Low: {
+    text: "text-blue-400",
+    border: "border-blue-500/30",
+    bg: "bg-blue-500/10",
+    bar: "hsl(213,85%,55%)",
+  },
+  Minimal: {
+    text: "text-green-400",
+    border: "border-green-500/30",
+    bg: "bg-green-500/10",
+    bar: "hsl(142,71%,45%)",
+  },
+};
+
+const TERRORISM_TREND_ICON: Record<
+  TerrorismStats["trend"],
+  { icon: string; color: string }
+> = {
+  worsening: { icon: "↑", color: "text-red-400" },
+  stable: { icon: "→", color: "text-yellow-400" },
+  improving: { icon: "↓", color: "text-green-400" },
+};
+
+function CountryTerrorismPanel({ country }: { country: Country }) {
+  const ts = COUNTRY_TERRORISM[country.id];
+  if (!ts) return null;
+  const rc = TERRORISM_RISK_COLORS[ts.riskLevel];
+  const tr = TERRORISM_TREND_ICON[ts.trend];
+
+  return (
+    <div className="modal-tile rounded-lg p-4 mt-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div
+            className={`p-1.5 rounded-md border ${rc.bg} ${rc.border} shrink-0`}
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className={rc.text}
+            >
+              <path
+                d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                stroke="currentColor"
+                strokeWidth="2"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+              Terrorism Statistics
+            </h3>
+            <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+              Global Terrorism Index · threat assessment · {ts.year} data
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span
+            className={`text-[10px] font-mono px-2 py-0.5 rounded-full border font-semibold ${rc.text} ${rc.border} ${rc.bg}`}
+          >
+            {ts.riskLevel} Risk
+          </span>
+          <span
+            className={`text-[10px] font-mono font-semibold ${tr.color}`}
+            title={`Trend: ${ts.trend}`}
+          >
+            {tr.icon} {ts.trend}
+          </span>
+        </div>
+      </div>
+
+      {/* GTI Score + KPI tiles */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+        <div
+          className={`rounded-lg border p-3 text-center ${rc.border} ${rc.bg}`}
+        >
+          <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
+            GTI Score
+          </p>
+          <p className={`text-2xl font-bold font-mono ${rc.text}`}>
+            {ts.gtiScore}
+          </p>
+          <p className="text-[9px] text-muted-foreground font-sans mt-0.5">
+            out of 10
+          </p>
+          <div className="mt-1.5 h-1.5 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${(ts.gtiScore / 10) * 100}%`,
+                background: rc.bar,
+              }}
+            />
+          </div>
+        </div>
+        <div className="rounded-lg border border-border bg-background/40 p-3 text-center">
+          <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
+            GTI World Rank
+          </p>
+          <p className="text-2xl font-bold font-mono text-foreground">
+            #{ts.gtiRank}
+          </p>
+          <p className="text-[9px] text-muted-foreground font-sans mt-0.5">
+            of 163 countries
+          </p>
+        </div>
+        <div className="rounded-lg border border-border bg-background/40 p-3 text-center">
+          <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
+            Attacks / Year
+          </p>
+          <p className="text-2xl font-bold font-mono text-orange-400">
+            {ts.attacksPerYear.toLocaleString()}
+          </p>
+          <p className="text-[9px] text-muted-foreground font-sans mt-0.5">
+            5-yr average
+          </p>
+        </div>
+        <div className="rounded-lg border border-border bg-background/40 p-3 text-center">
+          <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
+            Fatalities (5yr)
+          </p>
+          <p className="text-2xl font-bold font-mono text-red-400">
+            {ts.fatalities5yr.toLocaleString()}
+          </p>
+          <p className="text-[9px] text-muted-foreground font-sans mt-0.5">
+            total deaths
+          </p>
+        </div>
+      </div>
+
+      {/* Active groups + primary threat */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+        <div className="rounded-lg border border-border bg-background/30 p-3">
+          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+            Primary Threat
+          </p>
+          <p className="text-xs font-semibold font-sans text-foreground mb-1">
+            {ts.primaryThreat}
+          </p>
+          {ts.mostActiveGroup && (
+            <p className="text-[10px] text-muted-foreground font-sans">
+              Most active:{" "}
+              <span className={`font-semibold ${rc.text}`}>
+                {ts.mostActiveGroup}
+              </span>
+            </p>
+          )}
+        </div>
+        <div className="rounded-lg border border-border bg-background/30 p-3">
+          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+            Active Groups
+          </p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xl font-bold font-mono text-foreground">
+              {ts.activistGroups}
+            </span>
+            <span className="text-[10px] text-muted-foreground font-sans">
+              tracked organizations
+            </span>
+          </div>
+          <div className="flex gap-0.5">
+            {Array.from({ length: Math.min(ts.activistGroups, 15) }).map(
+              (_, i) => (
+                <div
+                  key={i}
+                  className={`h-3 w-3 rounded-sm ${i < ts.activistGroups ? rc.bg : "bg-muted"} border ${rc.border}`}
+                />
+              ),
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Analyst note */}
+      {ts.note && (
+        <div className={`rounded-lg border p-3 mb-3 ${rc.bg} ${rc.border}`}>
+          <p className="text-[10px] font-bold font-sans uppercase tracking-widest mb-1.5 text-muted-foreground">
+            Analyst Note
+          </p>
+          <p className="text-[11px] font-sans text-foreground leading-relaxed">
+            {ts.note}
+          </p>
+        </div>
+      )}
+
+      <SourceLink sources={SRC_TERRORISM} className="mt-2" />
+    </div>
+  );
+}
+
+const CRIME_BAR_COLORS: Record<string, string> = {
+  Homicide: "hsl(0,72%,55%)",
+  Robbery: "hsl(22,88%,55%)",
+  Assault: "hsl(38,92%,50%)",
+  Burglary: "hsl(45,90%,50%)",
+  "Vehicle Theft": "hsl(200,85%,55%)",
+  "Drug Offenses": "hsl(270,60%,60%)",
+};
+
+function CountryCrimeStatsPanel({ country }: { country: Country }) {
+  const cs = COUNTRY_CRIME_STATS[country.id];
+  if (!cs) return null;
+
+  const safetyColor =
+    cs.safetyIndex >= 65
+      ? "text-success"
+      : cs.safetyIndex >= 45
+        ? "text-warning"
+        : "text-destructive";
+  const crimeColor =
+    cs.crimeIndex >= 60
+      ? "text-destructive"
+      : cs.crimeIndex >= 40
+        ? "text-warning"
+        : "text-success";
+
+  const chartData = [
+    {
+      name: "Homicide",
+      value: cs.homicideRate * 10,
+      raw: cs.homicideRate,
+      color: CRIME_BAR_COLORS["Homicide"],
+    },
+    {
+      name: "Robbery",
+      value: Math.min(cs.robberyRate, 600),
+      raw: cs.robberyRate,
+      color: CRIME_BAR_COLORS["Robbery"],
+    },
+    {
+      name: "Assault",
+      value: Math.min(cs.assaultRate, 600),
+      raw: cs.assaultRate,
+      color: CRIME_BAR_COLORS["Assault"],
+    },
+    {
+      name: "Burglary",
+      value: Math.min(cs.burglaryRate, 600),
+      raw: cs.burglaryRate,
+      color: CRIME_BAR_COLORS["Burglary"],
+    },
+    {
+      name: "Vehicle Theft",
+      value: Math.min(cs.vehicleTheftRate, 600),
+      raw: cs.vehicleTheftRate,
+      color: CRIME_BAR_COLORS["Vehicle Theft"],
+    },
+    {
+      name: "Drug Offenses",
+      value: Math.min(cs.drugOffenseRate, 600),
+      raw: cs.drugOffenseRate,
+      color: CRIME_BAR_COLORS["Drug Offenses"],
+    },
+  ];
+
+  const maxVal = Math.max(...chartData.map((d) => d.value));
+
+  return (
+    <div className="modal-tile rounded-lg p-4 mt-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-red-500/10 rounded-md border border-red-500/20 shrink-0">
+            <Shield size={13} weight="fill" className="text-red-400" />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+              Crime Statistics
+            </h3>
+            <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+              Rates per 100,000 residents · {cs.year} data
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span
+            className={`text-[10px] font-mono px-2 py-0.5 rounded-full border font-semibold ${cs.safetyIndex >= 65 ? "text-green-400 border-green-500/30 bg-green-500/10" : cs.safetyIndex >= 45 ? "text-yellow-400 border-yellow-500/30 bg-yellow-500/10" : "text-red-400 border-red-500/30 bg-red-500/10"}`}
+          >
+            Safety {cs.safetyIndex}/100
+          </span>
+        </div>
+      </div>
+
+      {/* Safety vs Crime index tiles */}
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="rounded-lg border border-border bg-background/40 p-3 text-center">
+          <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
+            Safety Index
+          </p>
+          <p className={`text-2xl font-bold font-mono ${safetyColor}`}>
+            {cs.safetyIndex}
+          </p>
+          <p className="text-[9px] text-muted-foreground font-sans mt-0.5">
+            out of 100
+          </p>
+          <div className="mt-1.5 h-1.5 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${cs.safetyIndex}%`,
+                background:
+                  cs.safetyIndex >= 65
+                    ? "hsl(142,71%,45%)"
+                    : cs.safetyIndex >= 45
+                      ? "hsl(38,92%,50%)"
+                      : "hsl(0,70%,55%)",
+              }}
+            />
+          </div>
+        </div>
+        <div className="rounded-lg border border-border bg-background/40 p-3 text-center">
+          <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
+            Crime Index
+          </p>
+          <p className={`text-2xl font-bold font-mono ${crimeColor}`}>
+            {cs.crimeIndex}
+          </p>
+          <p className="text-[9px] text-muted-foreground font-sans mt-0.5">
+            out of 100
+          </p>
+          <div className="mt-1.5 h-1.5 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${cs.crimeIndex}%`,
+                background:
+                  cs.crimeIndex >= 60
+                    ? "hsl(0,70%,55%)"
+                    : cs.crimeIndex >= 40
+                      ? "hsl(38,92%,50%)"
+                      : "hsl(142,71%,45%)",
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Bar chart */}
+      <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-3">
+        Crime Rates (per 100,000 pop.)
+      </p>
+      <div className="h-44 mb-3">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={chartData}
+            margin={{ top: 2, right: 4, left: 0, bottom: 28 }}
+            barSize={28}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="hsl(222,30%,22%)"
+              vertical={false}
+            />
+            <XAxis
+              dataKey="name"
+              tick={{
+                fill: "hsl(0,0%,55%)",
+                fontSize: 9,
+                fontFamily: "IBM Plex Mono",
+              }}
+              axisLine={false}
+              tickLine={false}
+              interval={0}
+              angle={-30}
+              textAnchor="end"
+            />
+            <YAxis hide />
+            <Tooltip
+              content={({ active, payload, label }) =>
+                active && payload?.length ? (
+                  <div className="bg-card border border-border rounded-md p-2 text-xs font-mono shadow-lg">
+                    <p className="font-semibold text-foreground mb-1">
+                      {label}
+                    </p>
+                    <p style={{ color: payload[0].payload.color }}>
+                      {payload[0].payload.raw} per 100,000
+                    </p>
+                  </div>
+                ) : null
+              }
+            />
+            <Bar dataKey="value" radius={[3, 3, 0, 0]}>
+              {chartData.map((entry, i) => (
+                <Cell key={i} fill={entry.color} fillOpacity={0.85} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Horizontal bar breakdown */}
+      <div className="space-y-2">
+        {[
+          {
+            label: "🔴 Homicide",
+            value: cs.homicideRate,
+            max: 50,
+            color: CRIME_BAR_COLORS["Homicide"],
+          },
+          {
+            label: "🟠 Robbery",
+            value: cs.robberyRate,
+            max: 700,
+            color: CRIME_BAR_COLORS["Robbery"],
+          },
+          {
+            label: "🟡 Assault",
+            value: cs.assaultRate,
+            max: 700,
+            color: CRIME_BAR_COLORS["Assault"],
+          },
+          {
+            label: "🟡 Burglary",
+            value: cs.burglaryRate,
+            max: 700,
+            color: CRIME_BAR_COLORS["Burglary"],
+          },
+          {
+            label: "🔵 Vehicle Theft",
+            value: cs.vehicleTheftRate,
+            max: 700,
+            color: CRIME_BAR_COLORS["Vehicle Theft"],
+          },
+          {
+            label: "🟣 Drug Offenses",
+            value: cs.drugOffenseRate,
+            max: 700,
+            color: CRIME_BAR_COLORS["Drug Offenses"],
+          },
+        ].map((s) => (
+          <div key={s.label} className="flex items-center gap-2">
+            <span className="text-[10px] font-sans text-muted-foreground w-28 shrink-0 truncate">
+              {s.label}
+            </span>
+            <div className="flex-1 h-3 bg-black/20 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700 flex items-center justify-end pr-1"
+                style={{
+                  width: `${Math.min(100, (s.value / s.max) * 100)}%`,
+                  backgroundColor: s.color,
+                  opacity: 0.85,
+                }}
+              />
+            </div>
+            <span
+              className="text-[10px] font-mono w-10 text-right shrink-0"
+              style={{ color: s.color }}
+            >
+              {s.value}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <SourceLink sources={SRC_CRIME} className="mt-3" />
+    </div>
+  );
+}
+
+// ── Age Distribution Data ────────────────────────────────────────────────────
+interface AgeGroup {
+  group: string;
+  pct: number;
+}
+const COUNTRY_AGE_DIST: Record<string, AgeGroup[]> = {
+  us: [
+    { group: "0–14", pct: 18.2 },
+    { group: "15–24", pct: 12.9 },
+    { group: "25–54", pct: 39.0 },
+    { group: "55–64", pct: 13.1 },
+    { group: "65+", pct: 16.8 },
+  ],
+  cn: [
+    { group: "0–14", pct: 17.0 },
+    { group: "15–24", pct: 11.8 },
+    { group: "25–54", pct: 46.3 },
+    { group: "55–64", pct: 13.6 },
+    { group: "65+", pct: 11.3 },
+  ],
+  de: [
+    { group: "0–14", pct: 13.8 },
+    { group: "15–24", pct: 9.7 },
+    { group: "25–54", pct: 39.3 },
+    { group: "55–64", pct: 16.2 },
+    { group: "65+", pct: 21.0 },
+  ],
+  gb: [
+    { group: "0–14", pct: 17.6 },
+    { group: "15–24", pct: 11.4 },
+    { group: "25–54", pct: 40.0 },
+    { group: "55–64", pct: 12.9 },
+    { group: "65+", pct: 18.1 },
+  ],
+  fr: [
+    { group: "0–14", pct: 18.1 },
+    { group: "15–24", pct: 11.7 },
+    { group: "25–54", pct: 37.9 },
+    { group: "55–64", pct: 13.4 },
+    { group: "65+", pct: 18.9 },
+  ],
+  jp: [
+    { group: "0–14", pct: 12.1 },
+    { group: "15–24", pct: 9.4 },
+    { group: "25–54", pct: 36.5 },
+    { group: "55–64", pct: 13.6 },
+    { group: "65+", pct: 28.4 },
+  ],
+  in: [
+    { group: "0–14", pct: 26.2 },
+    { group: "15–24", pct: 17.8 },
+    { group: "25–54", pct: 40.8 },
+    { group: "55–64", pct: 8.4 },
+    { group: "65+", pct: 6.8 },
+  ],
+  br: [
+    { group: "0–14", pct: 21.0 },
+    { group: "15–24", pct: 15.6 },
+    { group: "25–54", pct: 43.7 },
+    { group: "55–64", pct: 10.0 },
+    { group: "65+", pct: 9.7 },
+  ],
+  ru: [
+    { group: "0–14", pct: 17.2 },
+    { group: "15–24", pct: 9.7 },
+    { group: "25–54", pct: 43.2 },
+    { group: "55–64", pct: 13.8 },
+    { group: "65+", pct: 16.1 },
+  ],
+  au_oc: [
+    { group: "0–14", pct: 18.7 },
+    { group: "15–24", pct: 12.5 },
+    { group: "25–54", pct: 41.7 },
+    { group: "55–64", pct: 11.9 },
+    { group: "65+", pct: 15.2 },
+  ],
+  ca: [
+    { group: "0–14", pct: 15.8 },
+    { group: "15–24", pct: 11.2 },
+    { group: "25–54", pct: 40.2 },
+    { group: "55–64", pct: 14.6 },
+    { group: "65+", pct: 18.2 },
+  ],
+  kr: [
+    { group: "0–14", pct: 11.4 },
+    { group: "15–24", pct: 10.5 },
+    { group: "25–54", pct: 44.3 },
+    { group: "55–64", pct: 16.2 },
+    { group: "65+", pct: 17.6 },
+  ],
+  sg: [
+    { group: "0–14", pct: 12.6 },
+    { group: "15–24", pct: 10.8 },
+    { group: "25–54", pct: 50.0 },
+    { group: "55–64", pct: 14.8 },
+    { group: "65+", pct: 11.8 },
+  ],
+  ae: [
+    { group: "0–14", pct: 15.2 },
+    { group: "15–24", pct: 14.0 },
+    { group: "25–54", pct: 63.0 },
+    { group: "55–64", pct: 5.8 },
+    { group: "65+", pct: 2.0 },
+  ],
+  il_as: [
+    { group: "0–14", pct: 27.2 },
+    { group: "15–24", pct: 15.4 },
+    { group: "25–54", pct: 38.2 },
+    { group: "55–64", pct: 9.6 },
+    { group: "65+", pct: 9.6 },
+  ],
+  tr: [
+    { group: "0–14", pct: 22.5 },
+    { group: "15–24", pct: 15.5 },
+    { group: "25–54", pct: 43.3 },
+    { group: "55–64", pct: 10.2 },
+    { group: "65+", pct: 8.5 },
+  ],
+  za: [
+    { group: "0–14", pct: 28.4 },
+    { group: "15–24", pct: 18.4 },
+    { group: "25–54", pct: 39.5 },
+    { group: "55–64", pct: 7.8 },
+    { group: "65+", pct: 5.9 },
+  ],
+  ng: [
+    { group: "0–14", pct: 43.2 },
+    { group: "15–24", pct: 19.3 },
+    { group: "25–54", pct: 30.7 },
+    { group: "55–64", pct: 4.0 },
+    { group: "65+", pct: 2.8 },
+  ],
+  eg: [
+    { group: "0–14", pct: 33.6 },
+    { group: "15–24", pct: 18.9 },
+    { group: "25–54", pct: 36.1 },
+    { group: "55–64", pct: 6.6 },
+    { group: "65+", pct: 4.8 },
+  ],
+  mx: [
+    { group: "0–14", pct: 25.6 },
+    { group: "15–24", pct: 17.5 },
+    { group: "25–54", pct: 40.9 },
+    { group: "55–64", pct: 9.0 },
+    { group: "65+", pct: 7.0 },
+  ],
+  ar: [
+    { group: "0–14", pct: 24.4 },
+    { group: "15–24", pct: 15.6 },
+    { group: "25–54", pct: 39.2 },
+    { group: "55–64", pct: 10.0 },
+    { group: "65+", pct: 10.8 },
+  ],
+  sa: [
+    { group: "0–14", pct: 25.4 },
+    { group: "15–24", pct: 16.1 },
+    { group: "25–54", pct: 50.5 },
+    { group: "55–64", pct: 5.8 },
+    { group: "65+", pct: 2.2 },
+  ],
+  id: [
+    { group: "0–14", pct: 26.2 },
+    { group: "15–24", pct: 16.9 },
+    { group: "25–54", pct: 42.4 },
+    { group: "55–64", pct: 8.6 },
+    { group: "65+", pct: 5.9 },
+  ],
+  pk: [
+    { group: "0–14", pct: 36.0 },
+    { group: "15–24", pct: 20.5 },
+    { group: "25–54", pct: 34.8 },
+    { group: "55–64", pct: 5.5 },
+    { group: "65+", pct: 3.2 },
+  ],
+  bd: [
+    { group: "0–14", pct: 28.4 },
+    { group: "15–24", pct: 18.5 },
+    { group: "25–54", pct: 40.4 },
+    { group: "55–64", pct: 7.3 },
+    { group: "65+", pct: 5.4 },
+  ],
+  vn: [
+    { group: "0–14", pct: 24.4 },
+    { group: "15–24", pct: 15.6 },
+    { group: "25–54", pct: 45.2 },
+    { group: "55–64", pct: 9.2 },
+    { group: "65+", pct: 5.6 },
+  ],
+  ph: [
+    { group: "0–14", pct: 31.4 },
+    { group: "15–24", pct: 19.3 },
+    { group: "25–54", pct: 37.8 },
+    { group: "55–64", pct: 6.9 },
+    { group: "65+", pct: 4.6 },
+  ],
+  th: [
+    { group: "0–14", pct: 16.5 },
+    { group: "15–24", pct: 12.8 },
+    { group: "25–54", pct: 45.7 },
+    { group: "55–64", pct: 14.3 },
+    { group: "65+", pct: 10.7 },
+  ],
+  my: [
+    { group: "0–14", pct: 26.5 },
+    { group: "15–24", pct: 16.6 },
+    { group: "25–54", pct: 41.5 },
+    { group: "55–64", pct: 9.0 },
+    { group: "65+", pct: 6.4 },
+  ],
+  pl: [
+    { group: "0–14", pct: 15.2 },
+    { group: "15–24", pct: 9.7 },
+    { group: "25–54", pct: 43.3 },
+    { group: "55–64", pct: 14.9 },
+    { group: "65+", pct: 16.9 },
+  ],
+  it: [
+    { group: "0–14", pct: 13.2 },
+    { group: "15–24", pct: 9.5 },
+    { group: "25–54", pct: 40.0 },
+    { group: "55–64", pct: 14.8 },
+    { group: "65+", pct: 22.5 },
+  ],
+  es: [
+    { group: "0–14", pct: 14.8 },
+    { group: "15–24", pct: 9.7 },
+    { group: "25–54", pct: 42.0 },
+    { group: "55–64", pct: 13.9 },
+    { group: "65+", pct: 19.6 },
+  ],
+  ua: [
+    { group: "0–14", pct: 15.8 },
+    { group: "15–24", pct: 9.4 },
+    { group: "25–54", pct: 43.2 },
+    { group: "55–64", pct: 13.5 },
+    { group: "65+", pct: 18.1 },
+  ],
+  se: [
+    { group: "0–14", pct: 17.4 },
+    { group: "15–24", pct: 11.3 },
+    { group: "25–54", pct: 38.9 },
+    { group: "55–64", pct: 12.8 },
+    { group: "65+", pct: 19.6 },
+  ],
+  no: [
+    { group: "0–14", pct: 17.6 },
+    { group: "15–24", pct: 11.8 },
+    { group: "25–54", pct: 39.4 },
+    { group: "55–64", pct: 13.0 },
+    { group: "65+", pct: 18.2 },
+  ],
+  kp: [
+    { group: "0–14", pct: 20.8 },
+    { group: "15–24", pct: 15.3 },
+    { group: "25–54", pct: 45.2 },
+    { group: "55–64", pct: 10.2 },
+    { group: "65+", pct: 8.5 },
+  ],
+  ir: [
+    { group: "0–14", pct: 24.1 },
+    { group: "15–24", pct: 14.9 },
+    { group: "25–54", pct: 45.0 },
+    { group: "55–64", pct: 9.5 },
+    { group: "65+", pct: 6.5 },
+  ],
+  et: [
+    { group: "0–14", pct: 40.8 },
+    { group: "15–24", pct: 19.9 },
+    { group: "25–54", pct: 32.2 },
+    { group: "55–64", pct: 4.4 },
+    { group: "65+", pct: 2.7 },
+  ],
+  ke: [
+    { group: "0–14", pct: 38.8 },
+    { group: "15–24", pct: 20.5 },
+    { group: "25–54", pct: 33.5 },
+    { group: "55–64", pct: 4.7 },
+    { group: "65+", pct: 2.5 },
+  ],
+  cl: [
+    { group: "0–14", pct: 18.8 },
+    { group: "15–24", pct: 14.0 },
+    { group: "25–54", pct: 43.9 },
+    { group: "55–64", pct: 12.5 },
+    { group: "65+", pct: 10.8 },
+  ],
+};
+const DEFAULT_AGE_DIST: AgeGroup[] = [
+  { group: "0–14", pct: 27.0 },
+  { group: "15–24", pct: 17.0 },
+  { group: "25–54", pct: 38.0 },
+  { group: "55–64", pct: 9.0 },
+  { group: "65+", pct: 9.0 },
+];
+const AGE_COLORS = ["#60a5fa", "#34d399", "#fbbf24", "#fb923c", "#f472b6"];
+
+function CountryDemographicsChart({ country }: { country: Country }) {
+  const ext = COUNTRY_EXTENDED[country.id];
+  const ageDist = COUNTRY_AGE_DIST[country.id] ?? DEFAULT_AGE_DIST;
+
+  return (
+    <div className="modal-tile rounded-lg p-4 mt-4">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="p-1.5 bg-violet-500/10 rounded-md border border-violet-500/20 shrink-0">
+          <Users size={13} weight="fill" className="text-violet-400" />
+        </div>
+        <div>
+          <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+            Demographics
+          </h3>
+          <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+            Population structure &amp; vital stats
+          </p>
+        </div>
+      </div>
+
+      {/* Top stats row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
+          <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5">
+            Population
+          </p>
+          <p className="text-sm font-bold font-mono text-foreground">
+            {fmtPop(country.population)}
+          </p>
+        </div>
+        {ext?.medianAge != null && (
+          <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
+            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5">
+              Median Age
+            </p>
+            <p className="text-sm font-bold font-mono text-foreground">
+              {ext.medianAge} yrs
+            </p>
+          </div>
+        )}
+        {ext?.urbanPct != null && (
+          <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
+            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5">
+              Urban
+            </p>
+            <p className="text-sm font-bold font-mono text-foreground">
+              {ext.urbanPct}%
+            </p>
+          </div>
+        )}
+        {ext?.birthRate != null && (
+          <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
+            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5">
+              Birth Rate
+            </p>
+            <p className="text-sm font-bold font-mono text-foreground">
+              {ext.birthRate}
+              <span className="text-[9px] text-muted-foreground">/1k</span>
+            </p>
+          </div>
+        )}
+      </div>
+      {/* Death Rate tile intentionally removed */}
+
+      {/* Age distribution chart */}
+      <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+        Age Distribution
+      </p>
+      <div className="space-y-2 mb-3">
+        {ageDist.map((a, i) => (
+          <div key={a.group} className="flex items-center gap-2">
+            <span className="text-[10px] font-mono text-muted-foreground w-12 shrink-0 text-right">
+              {a.group}
+            </span>
+            <div className="flex-1 h-5 bg-background/40 rounded-md overflow-hidden">
+              <div
+                className="h-full rounded-md transition-all duration-700 flex items-center pl-2"
+                style={{
+                  width: `${(a.pct / 50) * 100}%`,
+                  backgroundColor: AGE_COLORS[i % AGE_COLORS.length],
+                  opacity: 0.85,
+                }}
+              >
+                <span className="text-[9px] font-mono text-white/90 font-bold">
+                  {a.pct}%
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Stacked age bar */}
+      <div className="flex h-3 rounded-full overflow-hidden gap-px mb-2">
+        {ageDist.map((a, i) => (
+          <div
+            key={a.group}
+            className="h-full transition-all duration-700"
+            style={{
+              width: `${a.pct}%`,
+              backgroundColor: AGE_COLORS[i % AGE_COLORS.length],
+            }}
+            title={`${a.group}: ${a.pct}%`}
+          />
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3">
+        {ageDist.map((a, i) => (
+          <span
+            key={a.group}
+            className="flex items-center gap-1 text-[9px] font-sans text-muted-foreground"
+          >
+            <span
+              className="w-1.5 h-1.5 rounded-full shrink-0"
+              style={{ backgroundColor: AGE_COLORS[i % AGE_COLORS.length] }}
+            />
+            {a.group}
+          </span>
+        ))}
+      </div>
+
+      {/* HDI + Life Expectancy */}
+      <div className="mt-2 pt-3 border-t border-border/50 space-y-2">
+        <div>
+          <div className="flex justify-between text-[10px] mb-1">
+            <span className="text-muted-foreground font-sans">HDI Score</span>
+            <span className="font-mono font-semibold text-foreground">
+              {country.humanDevelopmentIndex}
+            </span>
+          </div>
+          <div className="h-2 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${country.humanDevelopmentIndex * 100}%`,
+                background:
+                  country.humanDevelopmentIndex >= 0.8
+                    ? "#34d399"
+                    : country.humanDevelopmentIndex >= 0.6
+                      ? "#fbbf24"
+                      : "#f87171",
+              }}
+            />
+          </div>
+          <div className="flex justify-between text-[9px] mt-0.5 text-muted-foreground">
+            <span>Low</span>
+            <span>Medium</span>
+            <span>High</span>
+            <span>Very High</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] text-muted-foreground font-sans">
+            Life Expectancy
+          </span>
+          <span className="text-xs font-mono font-bold text-foreground">
+            {country.lifeExpectancy} yrs
+          </span>
+        </div>
+      </div>
+      <SourceLink
+        sources={[
+          {
+            label: "UN Population Division",
+            url: "https://population.un.org/wpp/",
+          },
+          { label: "World Bank Open Data", url: "https://data.worldbank.org/" },
+        ]}
+        className="mt-2"
+      />
+    </div>
+  );
+}
+
 // ── Country Sociological Breakdown ──────────────────────────────────────────
 const SOCIO_PALETTE = [
   "#60a5fa",
@@ -2446,72 +8856,186 @@ function CountrySociologicalBreakdown({ country }: { country: Country }) {
           </div>
         )}
 
-        {/* Human Development */}
-        <div className="modal-tile rounded-lg p-4">
-          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-3">
-            Human Development
-          </p>
-          <div className="space-y-2.5">
-            <div>
-              <div className="flex justify-between text-[10px] mb-1">
-                <span className="text-muted-foreground font-sans">
-                  HDI Score
-                </span>
-                <span className="font-mono font-semibold text-foreground">
-                  {country.humanDevelopmentIndex}
-                </span>
-              </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{
-                    width: `${country.humanDevelopmentIndex * 100}%`,
-                    background:
-                      country.humanDevelopmentIndex >= 0.8
-                        ? "#34d399"
-                        : country.humanDevelopmentIndex >= 0.6
-                          ? "#fbbf24"
-                          : "#f87171",
-                  }}
-                />
-              </div>
-              <div className="flex justify-between text-[9px] mt-0.5 text-muted-foreground">
-                <span>Low</span>
-                <span>Medium</span>
-                <span>High</span>
-                <span>Very High</span>
-              </div>
+        {/* Rural / Urban Development tile */}
+        {(() => {
+          const ext = COUNTRY_EXTENDED[country.id];
+          const urbanPct = ext?.urbanPct;
+          const ruralPct = urbanPct != null ? 100 - urbanPct : null;
+          const housing = COUNTRY_HOUSING_TRANSPORT[country.id];
+          const pop = country.population;
+          const urbanPop =
+            urbanPct != null ? Math.round(pop * (urbanPct / 100)) : null;
+          const ruralPop = urbanPop != null ? pop - urbanPop : null;
+          const urbanColor = "hsl(200,85%,55%)";
+          const ruralColor = "hsl(142,60%,45%)";
+          return (
+            <div className="modal-tile rounded-lg p-4">
+              <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-3">
+                Rural / Urban Development
+              </p>
+              {urbanPct != null && ruralPct != null ? (
+                <>
+                  {/* Stacked bar */}
+                  <div className="flex h-4 rounded-full overflow-hidden gap-px mb-2">
+                    <div
+                      className="h-full transition-all duration-700 flex items-center justify-center"
+                      style={{
+                        width: `${urbanPct}%`,
+                        backgroundColor: urbanColor,
+                      }}
+                      title={`Urban: ${urbanPct}%`}
+                    >
+                      {urbanPct > 20 && (
+                        <span className="text-[9px] font-mono text-white/90 font-bold px-1 truncate">
+                          Urban {urbanPct}%
+                        </span>
+                      )}
+                    </div>
+                    <div
+                      className="h-full transition-all duration-700 flex items-center justify-center"
+                      style={{
+                        width: `${ruralPct}%`,
+                        backgroundColor: ruralColor,
+                      }}
+                      title={`Rural: ${ruralPct}%`}
+                    >
+                      {ruralPct > 20 && (
+                        <span className="text-[9px] font-mono text-white/90 font-bold px-1 truncate">
+                          Rural {ruralPct}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {/* Legend */}
+                  <div className="flex gap-3 mb-3">
+                    <span className="flex items-center gap-1 text-[10px] font-sans text-muted-foreground">
+                      <span
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ backgroundColor: urbanColor }}
+                      />
+                      Urban {urbanPct}%
+                    </span>
+                    <span className="flex items-center gap-1 text-[10px] font-sans text-muted-foreground">
+                      <span
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ backgroundColor: ruralColor }}
+                      />
+                      Rural {ruralPct}%
+                    </span>
+                  </div>
+                  {/* Population breakdown */}
+                  {urbanPop != null && ruralPop != null && (
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      <div className="rounded-lg border border-border bg-background/40 p-2 text-center">
+                        <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5">
+                          Urban Pop.
+                        </p>
+                        <p
+                          className="text-sm font-bold font-mono"
+                          style={{ color: urbanColor }}
+                        >
+                          {fmtPop(urbanPop)}
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-border bg-background/40 p-2 text-center">
+                        <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5">
+                          Rural Pop.
+                        </p>
+                        <p
+                          className="text-sm font-bold font-mono"
+                          style={{ color: ruralColor }}
+                        >
+                          {fmtPop(ruralPop)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-[11px] text-muted-foreground font-sans italic mb-3">
+                  Urbanization data unavailable
+                </p>
+              )}
+              {/* Housing affordability & transit quick stats */}
+              {housing && (
+                <div className="space-y-1.5 pt-2 border-t border-border/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-muted-foreground font-sans">
+                      Housing Affordability
+                    </span>
+                    <span
+                      className={`text-[10px] font-mono font-semibold ${housing.housing.affordabilityIndex >= 50 ? "text-success" : housing.housing.affordabilityIndex >= 35 ? "text-warning" : "text-destructive"}`}
+                    >
+                      {housing.housing.affordabilityIndex}/100
+                    </span>
+                  </div>
+                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${housing.housing.affordabilityIndex}%`,
+                        background:
+                          housing.housing.affordabilityIndex >= 50
+                            ? "hsl(142,71%,45%)"
+                            : housing.housing.affordabilityIndex >= 35
+                              ? "hsl(38,92%,50%)"
+                              : "hsl(0,70%,55%)",
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-muted-foreground font-sans">
+                      Public Transit Usage
+                    </span>
+                    <span
+                      className={`text-[10px] font-mono font-semibold ${housing.transport.publicTransitUsagePct >= 40 ? "text-success" : housing.transport.publicTransitUsagePct >= 20 ? "text-secondary" : "text-warning"}`}
+                    >
+                      {housing.transport.publicTransitUsagePct}%
+                    </span>
+                  </div>
+                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${housing.transport.publicTransitUsagePct}%`,
+                        background:
+                          housing.transport.publicTransitUsagePct >= 40
+                            ? "hsl(142,71%,45%)"
+                            : "hsl(200,85%,55%)",
+                      }}
+                    />
+                  </div>
+                  {ext?.birthRate != null && ext?.deathRate != null && (
+                    <div className="flex gap-2 pt-1">
+                      <div className="flex-1 rounded border border-border bg-background/30 p-1.5 text-center">
+                        <p className="text-[9px] text-muted-foreground font-sans">
+                          Birth Rate
+                        </p>
+                        <p className="text-xs font-bold font-mono text-foreground">
+                          {ext.birthRate}
+                          <span className="text-[9px] text-muted-foreground">
+                            /1k
+                          </span>
+                        </p>
+                      </div>
+                      <div className="flex-1 rounded border border-border bg-background/30 p-1.5 text-center">
+                        <p className="text-[9px] text-muted-foreground font-sans">
+                          Death Rate
+                        </p>
+                        <p className="text-xs font-bold font-mono text-foreground">
+                          {ext.deathRate}
+                          <span className="text-[9px] text-muted-foreground">
+                            /1k
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            <div className="flex items-center justify-between pt-1 border-t border-border">
-              <span className="text-[10px] text-muted-foreground font-sans">
-                Life Expectancy
-              </span>
-              <span className="text-xs font-mono font-bold text-foreground">
-                {country.lifeExpectancy} yrs
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-muted-foreground font-sans">
-                Population
-              </span>
-              <span className="text-xs font-mono font-bold text-foreground">
-                {fmtPop(country.population)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-muted-foreground font-sans">
-                Official Language(s)
-              </span>
-              <span className="text-xs font-sans text-foreground truncate max-w-[140px] text-right">
-                {country.officialLanguages.join(", ")}
-              </span>
-            </div>
-            <SourceLink
-              sources={SRC_UNDP}
-              className="pt-2 border-t border-border mt-2"
-            />
-          </div>
-        </div>
+          );
+        })()}
 
         {/* Political & Governance Culture */}
         <div className="modal-tile rounded-lg p-4">
@@ -6587,6 +13111,2245 @@ const DEFAULT_LEGAL = {
     "This country operates under a constitutional legal framework combining codified statutes with judicial precedent and customary norms.",
 };
 
+// ── Per-country legal status data ────────────────────────────────────────────
+interface LegalItem {
+  label: string;
+  status: "legal" | "illegal" | "restricted" | "decriminalized";
+  note?: string;
+}
+
+interface CountryLegalStatus {
+  items: LegalItem[];
+}
+
+const COUNTRY_LEGAL_STATUS: Record<string, CountryLegalStatus> = {
+  us: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Obergefell v. Hodges (2015), codified 2022",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Dobbs (2022) returned to states; banned in ~14 states",
+      },
+      {
+        label: "Cannabis (recreational)",
+        status: "restricted",
+        note: "Legal in 24 states; federally illegal Schedule I",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Active in 27 states; federal also active",
+      },
+      {
+        label: "Gun ownership",
+        status: "legal",
+        note: "Constitutional right (2nd Amendment); state restrictions vary",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized federally (FOSTA-SESTA); varies by state",
+      },
+      {
+        label: "Euthanasia (medical aid in dying)",
+        status: "restricted",
+        note: "Legal in 10 states (Oregon, California, etc.)",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Varies by state; online gambling limited",
+      },
+      {
+        label: "Assisted suicide",
+        status: "restricted",
+        note: "Legal in limited jurisdictions with strict criteria",
+      },
+      {
+        label: "Polygamy",
+        status: "illegal",
+        note: "Illegal in all 50 states",
+      },
+    ],
+  },
+  cn: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; no civil partnership framework",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Broadly available; government now encourages more births",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Strictly prohibited; severe penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "World's largest executor (~1,000+ per year, state secret)",
+      },
+      {
+        label: "Gun ownership (civilian)",
+        status: "illegal",
+        note: "Prohibited for civilians",
+      },
+      {
+        label: "VPN usage",
+        status: "restricted",
+        note: "Technically illegal without government approval",
+      },
+      {
+        label: "Political opposition",
+        status: "illegal",
+        note: "One-party state; opposition parties banned",
+      },
+      {
+        label: "Falun Gong practice",
+        status: "illegal",
+        note: "Banned since 1999; practitioners persecuted",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized; periodic crackdowns",
+      },
+      {
+        label: "Gambling",
+        status: "illegal",
+        note: "Prohibited on mainland; legal in Macau",
+      },
+    ],
+  },
+  de: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized October 2017",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Legal up to 12 weeks; counseling required; reform debate ongoing",
+      },
+      {
+        label: "Cannabis (recreational)",
+        status: "legal",
+        note: "Legalized April 2024 (up to 25g personal possession)",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1949 (West), 1987 (East); constitutionally banned",
+      },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "Heavily regulated; permit required; sport/hunting use",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Legalized and regulated since 2002 (Prostitution Act)",
+      },
+      {
+        label: "Euthanasia",
+        status: "legal",
+        note: "Assisted suicide legal (BVerfG ruling 2020)",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Regulated; online gambling requires state license",
+      },
+      {
+        label: "Nazi symbols/hate speech",
+        status: "illegal",
+        note: "§86a StGB; Holocaust denial illegal",
+      },
+      {
+        label: "Polygamy",
+        status: "illegal",
+        note: "Criminal offense under §172 StGB",
+      },
+    ],
+  },
+  gb: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "England/Wales 2014, Scotland 2014, N. Ireland 2020",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Up to 24 weeks; NHS-funded in England/Wales/Scotland",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Class B drug; decriminalization debated but not enacted",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1969 (England/Wales), 1973 (N. Ireland)",
+      },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "Handguns banned (1997); shotguns/rifles with license",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Selling sex legal; brothel-keeping and soliciting illegal",
+      },
+      {
+        label: "Euthanasia",
+        status: "illegal",
+        note: "Assisted dying bill passed House of Commons 2024; Lords stage",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Legal and regulated under Gambling Act 2005",
+      },
+      {
+        label: "Fox hunting",
+        status: "illegal",
+        note: "Banned Hunting Act 2004",
+      },
+      {
+        label: "Polygamy",
+        status: "illegal",
+        note: "Criminal offense; bigamy law applies",
+      },
+    ],
+  },
+  fr: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized May 2013 (Loi Taubira)",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Up to 14 weeks; constitutionally enshrined March 2024",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Illegal; possession fined €200 (forfait pénal)",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1981 under Mitterrand",
+      },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "Regulated; category-based licensing system",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Selling sex decriminalized; buying sex illegal (2016 law)",
+      },
+      {
+        label: "Euthanasia",
+        status: "restricted",
+        note: "Deep sedation until death legal; active euthanasia bill debated",
+      },
+      {
+        label: "Religious face coverings in public",
+        status: "illegal",
+        note: "Banned in public spaces since 2011",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Regulated by ANJ; online and physical gambling legal",
+      },
+      {
+        label: "Hate speech",
+        status: "illegal",
+        note: "Loi Gayssot (1990); Holocaust denial and incitement illegal",
+      },
+    ],
+  },
+  jp: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized nationally; local partnerships exist in 300+ cities",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Legal up to ~22 weeks but requires spousal consent; reform pending",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Zero-tolerance; revised law 2023 criminalizes use",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Active; executions often carried out with minimal notice",
+      },
+      {
+        label: "Gun ownership",
+        status: "illegal",
+        note: "Virtually banned; one of the world's strictest regimes",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Prostitution Act 1956 bans direct prostitution; gray areas persist",
+      },
+      {
+        label: "Gambling (casino)",
+        status: "restricted",
+        note: "Casinos legalized 2018 (IR Promotion Act); first opening ~2029",
+      },
+      {
+        label: "Dual citizenship",
+        status: "illegal",
+        note: "Adults must choose one nationality",
+      },
+      {
+        label: "Pornography (uncensored)",
+        status: "illegal",
+        note: "Genitalia must be pixelated under obscenity law",
+      },
+      {
+        label: "Polygamy",
+        status: "illegal",
+        note: "Criminal offense; Japan only recognizes monogamous marriage",
+      },
+    ],
+  },
+  in: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized 2018 (Navtej Singh Johar); marriage not yet recognized",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Up to 24 weeks under MTP Act 2021",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "NDPS Act bans; Bhang (traditional drink) permitted in some states",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Active; used for 'rarest of rare' crimes",
+      },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "Permitted with license under Arms Act 1959",
+      },
+      {
+        label: "Cow slaughter",
+        status: "illegal",
+        note: "Banned in most states; federal protection varies",
+      },
+      {
+        label: "Conversion therapy (court-ordered)",
+        status: "illegal",
+        note: "SC guidelines restrict; state laws vary",
+      },
+      {
+        label: "Triple talaq (instant Muslim divorce)",
+        status: "illegal",
+        note: "Criminalized 2019 (Muslim Women Protection Act)",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Most gambling illegal; Goa and Sikkim have casinos",
+      },
+      {
+        label: "Untouchability practice",
+        status: "illegal",
+        note: "Art. 17 Constitution; Civil Rights Act 1955",
+      },
+    ],
+  },
+  br: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legal since 2013 by Supreme Court ruling",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Only for rape, risk to mother, or anencephaly; reform pending",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Personal use decriminalized; cultivation/sale illegal",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Banned by 1988 Constitution (except wartime)",
+      },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "Heavily restricted under Disarmament Statute; relaxed under Bolsonaro, being reversed",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Selling sex legal; running a brothel/living off earnings illegal",
+      },
+      {
+        label: "Gambling (casinos)",
+        status: "illegal",
+        note: "Banned since 1946; reform bill passed Senate 2023",
+      },
+      {
+        label: "Deforestation in protected areas",
+        status: "illegal",
+        note: "Forest Code; enforcement has been historically weak",
+      },
+      {
+        label: "Hate speech (racism)",
+        status: "illegal",
+        note: "Racism is a non-bailable crime under Lei Caó (1989)",
+      },
+      {
+        label: "Polygamy",
+        status: "illegal",
+        note: "Criminal offense under Penal Code",
+      },
+    ],
+  },
+  ru: {
+    items: [
+      {
+        label: "Same-sex marriage/relationships",
+        status: "illegal",
+        note: "'LGBT movement' designated extremist organization Nov 2023",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Up to 12 weeks; government restricting access in some regions",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Strictly prohibited; criminal penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Moratorium since 1996; Chechen republic reportedly uses it",
+      },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "Permitted with license; handguns for self-defense limited",
+      },
+      {
+        label: "Criticizing the war in Ukraine",
+        status: "illegal",
+        note: "'Discrediting the army' law 2022; up to 15 years imprisonment",
+      },
+      {
+        label: "'Gay propaganda' promotion",
+        status: "illegal",
+        note: "Extended to all ages in 2023",
+      },
+      {
+        label: "VPN usage",
+        status: "restricted",
+        note: "Unauthorized VPNs blocked; use is technically restricted",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Legal in 4 special zones only; online gambling banned",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized under Administrative Code",
+      },
+    ],
+  },
+  kp: {
+    items: [
+      {
+        label: "Political opposition",
+        status: "illegal",
+        note: "Death penalty or kwanliso (concentration camp)",
+      },
+      {
+        label: "Foreign media/music",
+        status: "illegal",
+        note: "K-pop listeners sentenced to death; USB drives banned",
+      },
+      {
+        label: "Christianity/unauthorized religion",
+        status: "illegal",
+        note: "Death penalty; documented in UN COI 2014",
+      },
+      {
+        label: "Unauthorized movement within country",
+        status: "illegal",
+        note: "Internal travel permit required",
+      },
+      {
+        label: "Contacting foreigners without permission",
+        status: "illegal",
+        note: "Considered espionage; severe punishment",
+      },
+      {
+        label: "Jeans/Western fashion",
+        status: "restricted",
+        note: "Blue jeans and Western clothing subject to fines/detention",
+      },
+      {
+        label: "Abortion (unauthorized)",
+        status: "illegal",
+        note: "State controls reproduction; coerced abortions documented",
+      },
+      {
+        label: "Internet access (public)",
+        status: "illegal",
+        note: "Only state intranet (Kwangmyong) available to most citizens",
+      },
+      {
+        label: "Leaving the country without permission",
+        status: "illegal",
+        note: "Defectors face imprisonment or execution if caught",
+      },
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized; no documented legal cases but severe social control",
+      },
+    ],
+  },
+  au_oc: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized December 2017 by referendum",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Decriminalized in all states by 2022; access varies",
+      },
+      {
+        label: "Cannabis (recreational)",
+        status: "restricted",
+        note: "Legal in ACT (personal use); decriminalized in SA",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished by all states and territories",
+      },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "Heavily regulated post-Port Arthur massacre (1996)",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Varies by state; decriminalized in NSW, Victoria, and ACT",
+      },
+      {
+        label: "Euthanasia (voluntary assisted dying)",
+        status: "legal",
+        note: "Legal in all 6 states with strict criteria",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Legal and heavily regulated; Australians are world's biggest gamblers per capita",
+      },
+      {
+        label: "Hate speech",
+        status: "illegal",
+        note: "Racial Discrimination Act; state-level vilification laws",
+      },
+      {
+        label: "Smoking in enclosed public spaces",
+        status: "illegal",
+        note: "Banned nationally and in all states",
+      },
+    ],
+  },
+  ca: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized July 2005 — first G7 nation",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Fully legal with no gestational limits; no criminal restrictions",
+      },
+      {
+        label: "Cannabis (recreational)",
+        status: "legal",
+        note: "Federally legalized October 2018",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1976; last execution 1962",
+      },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "License required; handguns tightly regulated; assault rifles banned",
+      },
+      {
+        label: "Medical assistance in dying (MAID)",
+        status: "legal",
+        note: "Expanded 2021; for physical illness; mental illness expansion delayed",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Selling sex legal; buying sex illegal under 'Nordic model' (2014)",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Provincial jurisdiction; online gambling legal",
+      },
+      {
+        label: "Conversion therapy",
+        status: "illegal",
+        note: "Criminalized federally 2022",
+      },
+      {
+        label: "Polygamy",
+        status: "illegal",
+        note: "Criminal Code s.293; Bountiful BC case upheld prohibition (2011)",
+      },
+    ],
+  },
+  kr: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; Court ruled lack of health benefits unconstitutional 2023",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Decriminalized 2021; up to 14 weeks without restriction",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Strictly prohibited; even use abroad by Koreans is criminal",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Legal but de facto moratorium since 1997",
+      },
+      {
+        label: "Gun ownership",
+        status: "illegal",
+        note: "Essentially banned for civilians",
+      },
+      {
+        label: "National Security Law violations",
+        status: "illegal",
+        note: "Praising North Korea or 'anti-state' activity criminalized",
+      },
+      {
+        label: "Gambling (casinos)",
+        status: "restricted",
+        note: "18 casinos legal only for foreigners; one (Kangwon Land) for Koreans",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Special Act on Sex Trade (2004) criminalized all parties",
+      },
+      {
+        label: "Defamation (true facts)",
+        status: "illegal",
+        note: "Truth is no absolute defense; criminal defamation law",
+      },
+      {
+        label: "Adultery",
+        status: "legal",
+        note: "Decriminalized by Constitutional Court 2015",
+      },
+    ],
+  },
+  sg: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitution amended 2023 to lock in opposite-sex definition",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Up to 24 weeks; legal under Termination of Pregnancy Act",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Death penalty for trafficking >500g; zero tolerance",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Mandatory for many drug offenses; active use",
+      },
+      {
+        label: "Gun ownership",
+        status: "illegal",
+        note: "Essentially banned; Arms Offences Act",
+      },
+      {
+        label: "Chewing gum (import/sale)",
+        status: "illegal",
+        note: "Banned since 1992; medical gum with prescription exempted",
+      },
+      {
+        label: "Littering/jaywalking",
+        status: "illegal",
+        note: "S$300–S$1,000 fine; repeated offenders face community work",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Legal in designated red-light districts; street solicitation banned",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Two casinos licensed (Marina Bay Sands, RWS)",
+      },
+      {
+        label: "Oral/anal sex (consensual adults)",
+        status: "legal",
+        note: "Section 377A (same-sex) repealed October 2022",
+      },
+    ],
+  },
+  ae: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Federal Penal Code; up to 10 years imprisonment",
+      },
+      {
+        label: "Alcohol consumption",
+        status: "restricted",
+        note: "Legal for non-Muslims in licensed venues and at home",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Zero tolerance; imprisonment for any amount",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Active; applied for murder, drug trafficking, terrorism",
+      },
+      {
+        label: "Adultery/cohabitation outside marriage",
+        status: "illegal",
+        note: "Criminal offence; reformed 2020 but unmarried couples still at risk",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized; significant underground trade in Dubai",
+      },
+      {
+        label: "Criticism of ruling family/government",
+        status: "illegal",
+        note: "Up to 15 years under Cybercrime Law",
+      },
+      {
+        label: "Gambling",
+        status: "illegal",
+        note: "Prohibited under Islamic law; no casinos; Dubai Lottery existed briefly",
+      },
+      {
+        label: "Proselytizing non-Muslim religions",
+        status: "illegal",
+        note: "Attempting to convert Muslims is a criminal offense",
+      },
+      {
+        label: "Import of pork products (Muslim-only spaces)",
+        status: "restricted",
+        note: "Available in some outlets for non-Muslims; not sold publicly",
+      },
+    ],
+  },
+  il_as: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not performed domestically; foreign same-sex marriages recognized",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Legal with committee approval; broadly available in practice",
+      },
+      {
+        label: "Cannabis (recreational)",
+        status: "decriminalized",
+        note: "Decriminalized 2019; medical legal; full legalization debated",
+      },
+      {
+        label: "Death penalty (civilian)",
+        status: "illegal",
+        note: "Abolished for civilian crimes; legal for genocide/wartime treason",
+      },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "Permitted for security/military personnel; civilians with need",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Purchase of sexual services criminalized 2019",
+      },
+      {
+        label: "Conversion therapy",
+        status: "illegal",
+        note: "Banned by medical bodies; formal law passed 2023",
+      },
+      {
+        label: "Gambling",
+        status: "illegal",
+        note: "Largely prohibited; state lottery and sports betting legal",
+      },
+      {
+        label: "Marriage without religious ceremony",
+        status: "illegal",
+        note: "No civil marriage; must use religious (Jewish/Muslim/Christian) courts",
+      },
+      {
+        label: "Holocaust denial",
+        status: "illegal",
+        note: "Denied or minimized Holocaust Law",
+      },
+    ],
+  },
+  tr: {
+    items: [
+      {
+        label: "Same-sex marriage/civil union",
+        status: "illegal",
+        note: "Constitution defines marriage as opposite-sex (2010 amendment)",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Legal up to 10 weeks; government discourages access since 2012",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; limited industrial hemp cultivation allowed",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 2004 (EU accession prerequisite)",
+      },
+      {
+        label: "Insulting the President",
+        status: "illegal",
+        note: "Article 299 TCK; thousands prosecuted including cartoonists",
+      },
+      {
+        label: "Insulting 'Turkishness'",
+        status: "illegal",
+        note: "Article 301 TCK; used against journalists and academics",
+      },
+      {
+        label: "Kurdish language in public sphere",
+        status: "restricted",
+        note: "Partially liberalized; TV/education still restricted",
+      },
+      {
+        label: "Gambling",
+        status: "illegal",
+        note: "Casinos banned 1997; horse racing and state lottery permitted",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Regulated in licensed state brothels (genelevs); street work illegal",
+      },
+      {
+        label: "Alcohol (advertising restrictions)",
+        status: "restricted",
+        note: "Sale restricted near mosques/schools; advertising heavily limited",
+      },
+    ],
+  },
+  za: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized 2006 — first in Africa, fifth in world",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks (Choice on Termination of Pregnancy Act 1996)",
+      },
+      {
+        label: "Cannabis (recreational)",
+        status: "decriminalized",
+        note: "Private use/possession decriminalized 2018 (Prince case); commercial framework pending",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1995; Constitutional Court ruling",
+      },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "License required; Firearms Control Act 2000",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized; legal reform debated (Sex Workers Education and Advocacy Taskforce)",
+      },
+      {
+        label: "Hate speech/apartheid symbolism",
+        status: "illegal",
+        note: "Equality Act; hate speech with serious intent illegal",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Regulated by National Gambling Board; casinos in all provinces",
+      },
+      {
+        label: "Polygamy",
+        status: "restricted",
+        note: "Legal under customary law (Recognition of Customary Marriages Act)",
+      },
+      {
+        label: "Corporal punishment in schools",
+        status: "illegal",
+        note: "Banned 1996; Constitutional Court upheld ban",
+      },
+    ],
+  },
+  ng: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Same Sex Marriage Prohibition Act 2014; up to 14 years prison",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Criminal Code; only legal to save mother's life; unsafe abortions widespread",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "NDLEA strictly enforces; industrial hemp licences introduced 2021",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Active; hanging and firing squad; Sharia stoning in 12 northern states",
+      },
+      {
+        label: "Blasphemy",
+        status: "illegal",
+        note: "Sharia criminal law in 12 northern states; death penalty imposed",
+      },
+      {
+        label: "Criticizing the government (online)",
+        status: "restricted",
+        note: "Cybercrime Act 2015 s.24 used to silence critics",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized under federal and state law",
+      },
+      {
+        label: "Gambling (sports betting)",
+        status: "legal",
+        note: "Multi-billion dollar industry; regulated by NLRC",
+      },
+      {
+        label: "Child marriage (under 18)",
+        status: "illegal",
+        note: "Child Rights Act 2003; not ratified by all states (12 North resist)",
+      },
+      {
+        label: "Alcohol",
+        status: "restricted",
+        note: "Prohibited in 12 northern Sharia states; legal elsewhere",
+      },
+    ],
+  },
+  eg: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Article 278 Penal Code; 'debauchery' law used; up to 3 years",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Criminalized except to save mother's life",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; use common in some areas historically",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Active; one of Africa's most frequent users",
+      },
+      {
+        label: "Criticizing the President/government",
+        status: "illegal",
+        note: "Law 180/2018 Anti-Cybercrime; thousands imprisoned",
+      },
+      {
+        label: "Atheism/apostasy (public expression)",
+        status: "restricted",
+        note: "Not formally illegal but prosecuted under blasphemy/contempt of religion laws",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized; periodic crackdowns, often used against LGBTQ+ individuals",
+      },
+      {
+        label: "Gambling",
+        status: "illegal",
+        note: "Prohibited except in licensed tourist hotels",
+      },
+      {
+        label: "Alcohol",
+        status: "restricted",
+        note: "Legal for non-Muslims; sale in licensed venues only",
+      },
+      {
+        label: "Female genital mutilation (FGM)",
+        status: "illegal",
+        note: "Banned 2008; amended 2021 with tougher penalties; practice persists",
+      },
+    ],
+  },
+  mx: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legal in all 31 states and CDMX (completed 2022)",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Decriminalized by Supreme Court 2021; legal in 12+ states; illegal in others",
+      },
+      {
+        label: "Cannabis (recreational)",
+        status: "decriminalized",
+        note: "Personal use decriminalized; legalization framework stalled in Congress",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2005" },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "One legal gun store (SEDENA); heavily restricted but illegal guns endemic",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Selling sex legal; organizing/profiting from it illegal; varies by state",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Regulated; state-licensed casinos and betting shops",
+      },
+      {
+        label: "Drug trafficking",
+        status: "illegal",
+        note: "Federally criminalized; cartel enforcement exists parallel to state law",
+      },
+      {
+        label: "Euthanasia",
+        status: "illegal",
+        note: "Not legal; palliative care right recognized",
+      },
+      {
+        label: "Polygamy",
+        status: "illegal",
+        note: "Criminal offense nationwide",
+      },
+    ],
+  },
+  sa: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Death penalty under Sharia for men; Vision 2030 reforms minimal",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Only permitted to save mother's life; medical exception allowed",
+      },
+      {
+        label: "Alcohol",
+        status: "illegal",
+        note: "Prohibited for all; vision 2030 introduced non-alcoholic venues",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Death penalty for trafficking; severe penalties for possession",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "One of world's highest per capita executors; beheading method",
+      },
+      {
+        label: "Religious conversion from Islam",
+        status: "illegal",
+        note: "Apostasy is death penalty under Sharia interpretation",
+      },
+      {
+        label: "Women driving",
+        status: "legal",
+        note: "Legalized June 2018 under Vision 2030 reforms",
+      },
+      {
+        label: "Cinema/entertainment",
+        status: "legal",
+        note: "Cinemas reopened 2018 after 35-year ban; concerts now allowed",
+      },
+      { label: "Sex work", status: "illegal", note: "Strictly prohibited" },
+      {
+        label: "Criticism of ruling family",
+        status: "illegal",
+        note: "Imprisonment and torture documented (Jamal Khashoggi case)",
+      },
+    ],
+  },
+  ar: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized July 2010 — first in Latin America",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Legalized up to 14 weeks December 2020",
+      },
+      {
+        label: "Cannabis (recreational)",
+        status: "decriminalized",
+        note: "Personal use decriminalized; medical legal since 2017",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for peacetime offenses since 1984",
+      },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "License required; strict controls",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Selling sex tolerated; third-party exploitation illegal",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Provincial jurisdiction; casinos and sports betting legal",
+      },
+      {
+        label: "Currency controls",
+        status: "restricted",
+        note: "Cepo cambiario (FX controls) historically present; Milei loosening",
+      },
+      {
+        label: "Dual citizenship",
+        status: "legal",
+        note: "Argentina permits dual nationality",
+      },
+      { label: "Polygamy", status: "illegal", note: "Criminal offense" },
+    ],
+  },
+  cl: {
+    items: [
+      {
+        label: "Same-sex civil union",
+        status: "legal",
+        note: "AUC (civil union) since 2015; full marriage legalized Dec 2021",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Legal only in 3 cases: rape, fetal malformation, risk to mother (2017)",
+      },
+      {
+        label: "Cannabis (recreational)",
+        status: "decriminalized",
+        note: "Personal use (up to 10g) decriminalized; medicinal legal",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 2001 for peacetime crimes",
+      },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "License required; Ley de Control de Armas",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Selling sex legal; brothels and pimping illegal",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Regulated casinos under Ley de Casinos",
+      },
+      {
+        label: "Indigenous land occupation protests",
+        status: "restricted",
+        note: "Mapuche protests regularly prosecuted under anti-terrorism law",
+      },
+      {
+        label: "Euthanasia",
+        status: "illegal",
+        note: "Not legal; euthanasia bill repeatedly rejected",
+      },
+      {
+        label: "Polygamy",
+        status: "illegal",
+        note: "Criminal offense under Penal Code",
+      },
+    ],
+  },
+  ir: {
+    items: [
+      {
+        label: "Same-sex relationships (male)",
+        status: "illegal",
+        note: "Death penalty under Sharia; documented executions",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Criminalized except to save mother's life; limited fetal defect exceptions",
+      },
+      {
+        label: "Alcohol",
+        status: "illegal",
+        note: "Prohibited since Islamic Revolution 1979; underground trade",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Death penalty for trafficking; imprisonment for use",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "World's 2nd most executions; hanging and stoning documented",
+      },
+      {
+        label: "Hijab for women",
+        status: "illegal",
+        note: "Mandatory by law since 1983; Woman-Life-Freedom uprising 2022",
+      },
+      {
+        label: "Satellite dish / foreign media",
+        status: "illegal",
+        note: "Widespread use despite ban; periodic confiscations",
+      },
+      {
+        label: "Insulting Supreme Leader",
+        status: "illegal",
+        note: "Up to 5 years imprisonment under Article 514 IC",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized; temporary marriage (sigheh) provides legal gray area",
+      },
+      {
+        label: "Social media (unfiltered)",
+        status: "illegal",
+        note: "WhatsApp, Instagram banned; VPN use widespread but restricted",
+      },
+    ],
+  },
+  my: {
+    items: [
+      {
+        label: "Same-sex relationships (male)",
+        status: "illegal",
+        note: "Section 377A PC up to 20 years; Sharia caning for Muslims",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Legal up to 120 days if health risk; broad access in practice",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Death penalty for trafficking >200g; severe penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Active; mandatory for drug trafficking (reform underway 2023)",
+      },
+      {
+        label: "Alcohol",
+        status: "restricted",
+        note: "Legal for non-Muslims; prohibited for Muslims under Sharia",
+      },
+      {
+        label: "Gambling (non-Muslim)",
+        status: "restricted",
+        note: "Genting Highland casino legal; online and street gambling illegal",
+      },
+      {
+        label: "Sedition/criticism of royalty",
+        status: "illegal",
+        note: "Sedition Act 1948; Penal Code 499; MCMC cyber laws used",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized under Penal Code and Sharia law",
+      },
+      {
+        label: "Proselytizing to Muslims",
+        status: "illegal",
+        note: "Evangelizing to Muslims is criminal under state Sharia laws",
+      },
+      {
+        label: "Dual citizenship",
+        status: "illegal",
+        note: "Generally not permitted; automatic loss upon acquiring another",
+      },
+    ],
+  },
+  vn: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; same-sex ceremonies not criminalized since 2015",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Broadly legal up to 22 weeks; widely available",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Death penalty for large-scale trafficking; imprisonment for use",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Active; mainly for drug trafficking, murder, terrorism",
+      },
+      {
+        label: "Criticizing the Communist Party",
+        status: "illegal",
+        note: "Article 117/331 Penal Code; journalists and bloggers imprisoned",
+      },
+      {
+        label: "Gun ownership",
+        status: "illegal",
+        note: "Effectively banned for civilians",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Prohibited for Vietnamese citizens; allowed for foreigners in designated resorts; reform ongoing",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized; widespread practice",
+      },
+      {
+        label: "Formation of independent unions",
+        status: "illegal",
+        note: "Only state-controlled VGCL permitted; independent unions banned",
+      },
+      {
+        label: "Spreading 'false information' online",
+        status: "illegal",
+        note: "Cybersecurity Law 2019; broad definition used to silence dissent",
+      },
+    ],
+  },
+  id: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Not federally criminalized but Aceh province applies Sharia caning; new KUHP 2022 vague",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "New Penal Code 2022: banned except rape and health risk; medical exceptions limited",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Strict; possession can lead to 12-year imprisonment",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Active; mainly for drug trafficking and terrorism",
+      },
+      {
+        label: "Blasphemy",
+        status: "illegal",
+        note: "Blasphemy Law (No.1/PNPS/1965); up to 5 years; used against minorities",
+      },
+      {
+        label: "Sex outside marriage (new KUHP)",
+        status: "illegal",
+        note: "Criminalized in 2022 Criminal Code (effective 2026); controversial",
+      },
+      {
+        label: "Gambling",
+        status: "illegal",
+        note: "Prohibited; widespread illegal gambling",
+      },
+      {
+        label: "Alcohol",
+        status: "restricted",
+        note: "Legal nationally; banned in several Sharia-influenced districts",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized under public morals laws",
+      },
+      {
+        label: "Cohabitation outside marriage (new KUHP)",
+        status: "illegal",
+        note: "Criminalized under 2022 KUHP; applies to foreigners too",
+      },
+    ],
+  },
+  th: {
+    items: [
+      {
+        label: "Same-sex civil partnership",
+        status: "legal",
+        note: "Marriage Equality Act passed September 2024; effective January 2025",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Legal up to 12 weeks (2021 reform); up to 20 weeks for health",
+      },
+      {
+        label: "Cannabis (recreational)",
+        status: "restricted",
+        note: "Decriminalized 2022 but 2024 law re-restricts recreational use; medical legal",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Active; lethal injection since 2003; rare use",
+      },
+      {
+        label: "Lèse-majesté (criticizing monarchy)",
+        status: "illegal",
+        note: "Article 112 Criminal Code; up to 15 years; hundreds charged 2020-2024",
+      },
+      {
+        label: "Gambling (casinos)",
+        status: "illegal",
+        note: "Prohibited; government studying legalization (2024 commission)",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized but widespread; 'massage parlor' economy tolerated",
+      },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "License required; regulations less strict than many Asian nations",
+      },
+      {
+        label: "Magic mushrooms (psilocybin)",
+        status: "illegal",
+        note: "Narcotic; removed from traditional medicine list 2021",
+      },
+      {
+        label: "Dual citizenship",
+        status: "illegal",
+        note: "Generally not permitted; some exceptions",
+      },
+    ],
+  },
+  pk: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Section 377 PPC; up to 2 years or life imprisonment",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save mother's life; widespread unsafe abortions",
+      },
+      {
+        label: "Blasphemy",
+        status: "illegal",
+        note: "Death penalty under 295-C PPC; widely misused; extrajudicial killings",
+      },
+      {
+        label: "Alcohol",
+        status: "restricted",
+        note: "Prohibited for Muslims; licensed for non-Muslims",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited under CNSA; traditional cannabis (charas) use widespread",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Active; one of highest death-row populations in the world",
+      },
+      {
+        label: "Criticizing the military",
+        status: "illegal",
+        note: "PECA cybercrime law; Army Act used; thousands of cases",
+      },
+      {
+        label: "Apostasy (leaving Islam)",
+        status: "restricted",
+        note: "Not explicitly illegal but treated as blasphemy in practice; life-threatening",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized; practiced in designated red-light areas in major cities",
+      },
+      {
+        label: "Child marriage (under 16 girls)",
+        status: "illegal",
+        note: "Child Marriage Restraint Act; enforcement weak in rural areas",
+      },
+    ],
+  },
+  bd: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Section 377 Penal Code (British colonial era); up to life imprisonment",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "'Menstrual regulation' (MR) widely available up to 10 weeks; otherwise illegal",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; enforcement inconsistent",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Active; used for murder, rape, and terrorism",
+      },
+      {
+        label: "Alcohol",
+        status: "restricted",
+        note: "Permits required for non-Muslims; widely available in cities",
+      },
+      {
+        label: "Blasphemy / criticizing Islam",
+        status: "illegal",
+        note: "Digital Security Act 2018 used; online critics imprisoned",
+      },
+      {
+        label: "Criticizing the government online",
+        status: "illegal",
+        note: "DSA/Cyber Security Act; 1,000+ cases filed 2018-2023",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized; Kandapara brothel is an officially registered exception",
+      },
+      {
+        label: "Gambling",
+        status: "illegal",
+        note: "Prohibited; widespread cricket/kabaddi betting underground",
+      },
+      {
+        label: "Child labor (under 14)",
+        status: "illegal",
+        note: "BLCA 2006 prohibits; enforcement weak in garment industry",
+      },
+    ],
+  },
+  et: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Article 629 Criminal Code; up to 15 years imprisonment",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Legal for rape, incest, fetal defect, and mother's health; access limited",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited under Drug Administration Law",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Active; used for terrorism and atrocity crimes",
+      },
+      {
+        label: "Criticizing the government",
+        status: "restricted",
+        note: "Anti-terrorism proclamation 2009 used broadly; journalists imprisoned",
+      },
+      {
+        label: "Hate speech (ethnic incitement)",
+        status: "illegal",
+        note: "Hate Speech and Disinformation Law 2020; concerns about misuse",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized under Proclamation 414/2004",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Some legal casinos in Addis Ababa; regulation inconsistent",
+      },
+      {
+        label: "Female genital mutilation (FGM)",
+        status: "illegal",
+        note: "Criminalized 2005 but practiced in ~65% of girls in rural areas",
+      },
+      {
+        label: "Child marriage",
+        status: "illegal",
+        note: "FDRE Family Law sets 18 minimum age; enforcement weak in remote areas",
+      },
+    ],
+  },
+  ke: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Sections 162-165 Penal Code; upheld by Supreme Court 2023",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Only when mother's life at risk; Access limited despite broader Article 26(4) Constitution",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; Narcotic Drugs and Psychotropic Substances Act",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Legal but de facto moratorium since 1987; commuted to life sentences",
+      },
+      {
+        label: "Corruption (formal law)",
+        status: "illegal",
+        note: "EACC Act; Anti-Corruption prosecutions have increased under Ruto",
+      },
+      {
+        label: "Female genital mutilation (FGM)",
+        status: "illegal",
+        note: "Prohibition of FGM Act 2011; practice persists in some communities",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized but enforcement inconsistent in Nairobi",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Regulated by Betting Control and Licensing Board; M-Pesa betting major industry",
+      },
+      {
+        label: "Child marriage",
+        status: "illegal",
+        note: "Marriage Act 2014; minimum age 18",
+      },
+      {
+        label: "Drug trafficking",
+        status: "illegal",
+        note: "Narcotic Drugs Act; Mombasa port a significant transit point",
+      },
+    ],
+  },
+  ua: {
+    items: [
+      {
+        label: "Same-sex civil partnership",
+        status: "restricted",
+        note: "Bill 9103 proposed 2023; under wartime consideration; not yet passed",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Up to 12 weeks; up to 22 weeks for health reasons",
+      },
+      {
+        label: "Cannabis (medical)",
+        status: "legal",
+        note: "Medical cannabis legalized July 2023; recreational still illegal",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 2000; moratorium preceded abolition",
+      },
+      {
+        label: "Defection/desertion (wartime)",
+        status: "illegal",
+        note: "Military Code; severe penalties under martial law",
+      },
+      {
+        label: "Collaboration with Russia (wartime)",
+        status: "illegal",
+        note: "Criminal Code amendments 2022; up to life imprisonment",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Online gambling legalized 2020; industry growing rapidly",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized under Administrative Code Article 181",
+      },
+      {
+        label: "Denial of Russian aggression as war",
+        status: "illegal",
+        note: "Legitimizing or justifying Russian aggression criminalized",
+      },
+      {
+        label: "Dual citizenship",
+        status: "illegal",
+        note: "Officially prohibited; enforcement limited given diaspora scale",
+      },
+    ],
+  },
+  pl: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitution defines marriage as man-woman; civil partnership bill pending (Tusk govt)",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Near-total ban since 2021 (Constitutional Tribunal); life-threatening exceptions remain; reform stalled",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Medical cannabis legal 2017; recreational illegal",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1997" },
+      {
+        label: "Holocaust statement violations",
+        status: "illegal",
+        note: "'Defamation of the Polish nation' law 2018 (IPN Act); partially amended after protest",
+      },
+      {
+        label: "Hate speech (racial/ethnic)",
+        status: "illegal",
+        note: "Article 256 KK; incitement to hatred criminalized",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "State monopoly on slot machines; online gambling restricted to licensed operators",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Selling sex legal; buying and organizing illegal",
+      },
+      {
+        label: "Conversion therapy",
+        status: "restricted",
+        note: "Not explicitly illegal; Tusk government seeking ban",
+      },
+      {
+        label: "Dual citizenship",
+        status: "legal",
+        note: "Permitted; common among Polish diaspora",
+      },
+    ],
+  },
+  it: {
+    items: [
+      {
+        label: "Same-sex civil union",
+        status: "legal",
+        note: "Unioni Civili legalized 2016; adoption rights limited",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Up to 90 days (Law 194/1978); but 70%+ of doctors are conscientious objectors",
+      },
+      {
+        label: "Cannabis (personal)",
+        status: "decriminalized",
+        note: "Administrative fine; medical cannabis legal",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1948 (constitution); military abolition 1994",
+      },
+      {
+        label: "Fascist apologia (public glorification)",
+        status: "illegal",
+        note: "Mancino Law 1993; promotion of fascism or racial hatred illegal",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Selling sex legal; procuring/pimping/brothels illegal (Law Merlin 1958)",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Regulated by ADM; major gambling market; loot box debate ongoing",
+      },
+      {
+        label: "Surrogate pregnancy",
+        status: "illegal",
+        note: "Law 40/2004; illegal for Italian couples; 2024 extended ban for overseas surrogacy",
+      },
+      {
+        label: "Dual citizenship",
+        status: "legal",
+        note: "Permitted; jus sanguinis allows Italian descent claims generations back",
+      },
+      { label: "Polygamy", status: "illegal", note: "Criminal offense" },
+    ],
+  },
+  se: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized May 2009",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 18 weeks; counseling available but not required",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Strictly illegal; one of Europe's most restrictive approaches",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1972" },
+      {
+        label: "Sex work (buying)",
+        status: "illegal",
+        note: "Purchasing sex illegal since 1999 (Nordic model); selling legal",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Regulated under Gambling Act 2019 by Spelinspektionen",
+      },
+      {
+        label: "Hate speech",
+        status: "illegal",
+        note: "Chapter 16 §8 BrB; ethnicity, religion, sexuality protected",
+      },
+      {
+        label: "Surrogate pregnancy",
+        status: "illegal",
+        note: "Commercial surrogacy illegal; altruistic surrogacy legal gray area",
+      },
+      {
+        label: "Euthanasia / assisted suicide",
+        status: "illegal",
+        note: "Not legal; palliative sedation only",
+      },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "License required for hunting/sport; strict criteria",
+      },
+    ],
+  },
+  no: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized January 2009",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks; to 18 weeks with committee approval",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Decriminalization reform reversed 2023; possession fined/imprisoned",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1979 (civilian), 1979 (military)",
+      },
+      {
+        label: "Sex work (buying)",
+        status: "illegal",
+        note: "Nordic model since 2009; selling sex legal",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "State monopoly (Norsk Tipping); independent online operators blocked",
+      },
+      {
+        label: "Hate speech",
+        status: "illegal",
+        note: "Section 185 Penal Code; race, religion, sexual orientation protected",
+      },
+      {
+        label: "Euthanasia",
+        status: "illegal",
+        note: "Not legal; government commission studying 2024",
+      },
+      {
+        label: "Dual citizenship",
+        status: "legal",
+        note: "Permitted since 2020 reform",
+      },
+      {
+        label: "Alcohol (spirits) monopoly",
+        status: "restricted",
+        note: "Vinmonopolet state monopoly for wines and spirits above 4.75% ABV",
+      },
+    ],
+  },
+  ru: {
+    items: [
+      {
+        label: "Same-sex marriage/relationships",
+        status: "illegal",
+        note: "'LGBT movement' designated extremist organization Nov 2023",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Up to 12 weeks; government restricting access in some regions 2024",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Strictly prohibited; criminal penalties from 3 years",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Moratorium since 1996; Chechnya reportedly uses it",
+      },
+      {
+        label: "Criticizing the war in Ukraine",
+        status: "illegal",
+        note: "'Discrediting the army' law 2022; up to 15 years",
+      },
+      {
+        label: "'Gay propaganda'",
+        status: "illegal",
+        note: "Extended to all ages in 2023",
+      },
+      {
+        label: "VPN usage",
+        status: "restricted",
+        note: "Unauthorized VPNs blocked; use technically restricted",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Legal in 4 special zones only; online gambling banned",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized under Administrative Code",
+      },
+      {
+        label: "Foreign agent activities without registration",
+        status: "illegal",
+        note: "Foreign Agents Law broadly applied to NGOs and journalists",
+      },
+    ],
+  },
+};
+
+const STATUS_CONFIG: Record<
+  LegalItem["status"],
+  { label: string; bg: string; text: string; dot: string }
+> = {
+  legal: {
+    label: "Legal",
+    bg: "bg-green-500/10",
+    text: "text-green-400",
+    dot: "bg-green-400",
+  },
+  illegal: {
+    label: "Illegal",
+    bg: "bg-red-500/10",
+    text: "text-red-400",
+    dot: "bg-red-400",
+  },
+  restricted: {
+    label: "Restricted",
+    bg: "bg-yellow-500/10",
+    text: "text-yellow-400",
+    dot: "bg-yellow-400",
+  },
+  decriminalized: {
+    label: "Decriminalized",
+    bg: "bg-blue-500/10",
+    text: "text-blue-400",
+    dot: "bg-blue-400",
+  },
+};
+
+const SRC_LEGAL = [
+  {
+    label: "ILGA World – Homophobia Report",
+    url: "https://ilga.org/reports-and-data/state-sponsored-homophobia-report/",
+  },
+  { label: "Equaldex – Global LGBTQ+ Laws", url: "https://equaldex.com/" },
+  {
+    label: "Center for Reproductive Rights",
+    url: "https://reproductiverights.org/maps/abortion-laws/",
+  },
+  { label: "UNODC Drug Laws", url: "https://www.unodc.org/wdr2023/" },
+];
+
+function CountryLegalStatusSection({ country }: { country: Country }) {
+  const data = COUNTRY_LEGAL_STATUS[country.id];
+  const [filter, setFilter] = React.useState<LegalItem["status"] | "all">(
+    "all",
+  );
+  if (!data) return null;
+
+  const filtered =
+    filter === "all"
+      ? data.items
+      : data.items.filter((i) => i.status === filter);
+  const counts = {
+    legal: data.items.filter((i) => i.status === "legal").length,
+    illegal: data.items.filter((i) => i.status === "illegal").length,
+    restricted: data.items.filter((i) => i.status === "restricted").length,
+    decriminalized: data.items.filter((i) => i.status === "decriminalized")
+      .length,
+  };
+
+  return (
+    <div className="modal-tile rounded-xl p-4 mt-4">
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-4">
+        <div className="p-1.5 bg-indigo-500/10 rounded-md border border-indigo-500/20 shrink-0">
+          <Scales size={13} weight="fill" className="text-indigo-400" />
+        </div>
+        <div>
+          <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+            What&#39;s Legal &amp; Illegal
+          </h3>
+          <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+            Key laws on civil liberties, substances, rights &amp; activities
+          </p>
+        </div>
+      </div>
+
+      {/* Summary tiles */}
+      <div className="grid grid-cols-4 gap-2 mb-4">
+        {(["legal", "illegal", "restricted", "decriminalized"] as const).map(
+          (s) => {
+            const cfg = STATUS_CONFIG[s];
+            return (
+              <button
+                key={s}
+                onClick={() => setFilter(filter === s ? "all" : s)}
+                className={`rounded-lg border p-2 text-center transition-all cursor-pointer ${filter === s ? `${cfg.bg} border-current ${cfg.text}` : "border-border bg-background/40 text-muted-foreground hover:bg-muted/60"}`}
+              >
+                <p
+                  className={`text-lg font-bold font-mono ${filter === s ? cfg.text : "text-foreground"}`}
+                >
+                  {counts[s]}
+                </p>
+                <p className="text-[9px] font-sans capitalize leading-tight">
+                  {s}
+                </p>
+              </button>
+            );
+          },
+        )}
+      </div>
+
+      {/* Items list */}
+      <div className="space-y-2">
+        {filtered.map((item, i) => {
+          const cfg = STATUS_CONFIG[item.status];
+          return (
+            <div
+              key={i}
+              className={`flex items-start gap-3 rounded-lg border p-3 ${cfg.bg} border-current/20`}
+            >
+              <span
+                className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${cfg.dot}`}
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-xs font-semibold font-sans text-foreground">
+                    {item.label}
+                  </p>
+                  <span
+                    className={`text-[10px] font-sans px-1.5 py-0.5 rounded-full border font-medium ${cfg.text} border-current/30 bg-background/30`}
+                  >
+                    {cfg.label}
+                  </span>
+                </div>
+                {item.note && (
+                  <p className="text-[10px] text-muted-foreground font-sans mt-0.5 leading-relaxed">
+                    {item.note}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <SourceLink sources={SRC_LEGAL} className="mt-3" />
+    </div>
+  );
+}
+
 function getLegalSystem(country: Country) {
   return LEGAL_SYSTEMS[country.id] ?? DEFAULT_LEGAL;
 }
@@ -6890,7 +15653,10 @@ function ConstitutionTab({ country }: { country: Country }) {
         </div>
       </div>
 
-      {/* ── 5. KEY CONSTITUTIONAL ARTICLES (collapsed under disclosure) ── */}
+      {/* ── 5. LEGAL STATUS SECTION ── */}
+      <CountryLegalStatusSection country={country} />
+
+      {/* ── 6. KEY CONSTITUTIONAL ARTICLES (collapsed under disclosure) ── */}
       <details className="group">
         <summary className="flex items-center gap-2 cursor-pointer select-none modal-tile rounded-xl px-4 py-3 hover:bg-muted/60 transition-colors">
           <BookOpen size={12} weight="fill" className="text-muted-foreground" />
@@ -7512,7 +16278,7 @@ function CountryDetailPanel({
   onCompare?: (c: Country) => void;
 }) {
   const [activeTab, setActiveTab] = useState<
-    "overview" | "map" | "constitution"
+    "overview" | "map" | "constitution" | "metrics"
   >("overview");
   const { openNote } = useNotes();
 
@@ -7531,6 +16297,11 @@ function CountryDetailPanel({
       id: "constitution" as const,
       label: "Governance",
       icon: <Scales size={13} weight="fill" />,
+    },
+    {
+      id: "metrics" as const,
+      label: "Metrics",
+      icon: <ChartBar size={13} weight="fill" />,
     },
   ];
 
@@ -7583,7 +16354,10 @@ function CountryDetailPanel({
           <div className="flex items-center gap-2 shrink-0">
             {onCompare && (
               <button
-                onClick={() => onCompare(country)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCompare(country);
+                }}
                 className="px-2.5 py-1 rounded-full text-xs bg-secondary/15 text-secondary border border-secondary/30 hover:bg-secondary/25 transition-colors font-sans cursor-pointer flex items-center gap-1.5"
               >
                 <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
@@ -7689,17 +16463,97 @@ function CountryDetailPanel({
           </div>
         )}
 
+        {/* ── METRICS TAB ── */}
+        {activeTab === "metrics" && (
+          <MetricsPanel entityId={country.id} entityType="country" />
+        )}
+
         {/* ── CONSTITUTION TAB ── */}
         {activeTab === "constitution" && <ConstitutionTab country={country} />}
 
         {/* ── OVERVIEW TAB ── */}
         {activeTab === "overview" && (
           <div>
-            {/* ── ECONOMIC OVERVIEW ── */}
-            <div className="mb-5">
-              <p className="text-[10px] font-semibold font-sans text-muted-foreground uppercase tracking-widest mb-3">
-                Economic Overview
-              </p>
+            {/* ── SOCIAL STATS ── */}
+            {(() => {
+              const ss = getCountrySocialStats(country.id);
+              if (!ss) return null;
+              return (
+                <div className="modal-tile rounded-lg p-4 mb-4">
+                  <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-3">
+                    Social Statistics{" "}
+                    <span className="normal-case font-normal">
+                      (per 100k residents)
+                    </span>
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-lg border border-border bg-background/40 p-3">
+                      <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1 flex items-center gap-1">
+                        🏚️ Homelessness Rate
+                      </p>
+                      <p
+                        className={`text-xl font-bold font-mono ${ss.homelessnessRate >= 20 ? "text-destructive" : ss.homelessnessRate >= 8 ? "text-warning" : "text-success"}`}
+                      >
+                        {ss.homelessnessRate}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+                        per 100,000
+                      </p>
+                      <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{
+                            width: `${Math.min(100, (ss.homelessnessRate / 50) * 100)}%`,
+                            background:
+                              ss.homelessnessRate >= 20
+                                ? "hsl(0,70%,55%)"
+                                : ss.homelessnessRate >= 8
+                                  ? "hsl(38,92%,50%)"
+                                  : "hsl(142,71%,45%)",
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-border bg-background/40 p-3">
+                      <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1 flex items-center gap-1">
+                        ⛓️ Incarceration Rate
+                      </p>
+                      <p
+                        className={`text-xl font-bold font-mono ${ss.incarcerationRate >= 400 ? "text-destructive" : ss.incarcerationRate >= 150 ? "text-warning" : "text-success"}`}
+                      >
+                        {ss.incarcerationRate}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+                        per 100,000
+                      </p>
+                      <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{
+                            width: `${Math.min(100, (ss.incarcerationRate / 700) * 100)}%`,
+                            background:
+                              ss.incarcerationRate >= 400
+                                ? "hsl(0,70%,55%)"
+                                : ss.incarcerationRate >= 150
+                                  ? "hsl(38,92%,50%)"
+                                  : "hsl(142,71%,45%)",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ── ECONOMIC CATEGORY (inline panel) ── */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                  📊 Economic
+                </span>
+                <div className="flex-1 h-px bg-border/60" />
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
                 {[
                   {
@@ -7742,7 +16596,7 @@ function CountryDetailPanel({
                   </div>
                 ))}
               </div>
-              {/* Score bars: economic health */}
+              {/* Score bars */}
               <div className="modal-tile rounded-lg p-4 space-y-2">
                 <ScoreBar
                   label="Unemployment"
@@ -7768,6 +16622,141 @@ function CountryDetailPanel({
                   max={90}
                   color="#60a5fa"
                 />
+                {(() => {
+                  const ext = COUNTRY_EXTENDED[country.id];
+                  if (!ext) return null;
+                  return (
+                    <>
+                      {ext.debtPct != null && (
+                        <ScoreBar
+                          label="Public Debt %"
+                          value={ext.debtPct}
+                          max={300}
+                          color="#a78bfa"
+                        />
+                      )}
+                      {ext.internetPct != null && (
+                        <ScoreBar
+                          label="Internet Penetration"
+                          value={ext.internetPct}
+                          max={100}
+                          color="#22d3ee"
+                        />
+                      )}
+                      {ext.cpiScore != null && (
+                        <ScoreBar
+                          label="Corruption Index (CPI)"
+                          value={ext.cpiScore}
+                          max={100}
+                          color="#34d399"
+                        />
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* ── SOCIAL & HUMAN DEVELOPMENT (inline panel) ── */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                  👥 Social &amp; Demographic
+                </span>
+                <div className="flex-1 h-px bg-border/60" />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {(() => {
+                  const ext = COUNTRY_EXTENDED[country.id];
+                  return [
+                    {
+                      label: "Population",
+                      value: fmtPop(country.population),
+                      color: "text-foreground",
+                    },
+                    {
+                      label: "Life Expectancy",
+                      value: `${country.lifeExpectancy} yrs`,
+                      color:
+                        country.lifeExpectancy >= 75
+                          ? "text-success"
+                          : "text-warning",
+                    },
+                    {
+                      label: "HDI",
+                      value: `${country.humanDevelopmentIndex}`,
+                      color:
+                        country.humanDevelopmentIndex >= 0.8
+                          ? "text-success"
+                          : "text-warning",
+                    },
+                    ...(ext?.medianAge != null
+                      ? [
+                          {
+                            label: "Median Age",
+                            value: `${ext.medianAge} yrs`,
+                            color: "text-foreground",
+                          },
+                        ]
+                      : []),
+                    ...(ext?.urbanPct != null
+                      ? [
+                          {
+                            label: "Urban Pop.",
+                            value: `${ext.urbanPct}%`,
+                            color: "text-foreground",
+                          },
+                        ]
+                      : []),
+                    ...(ext?.gini != null
+                      ? [
+                          {
+                            label: "Gini (Inequality)",
+                            value: `${ext.gini}`,
+                            color:
+                              ext.gini > 45
+                                ? "text-destructive"
+                                : ext.gini > 35
+                                  ? "text-warning"
+                                  : "text-success",
+                          },
+                        ]
+                      : []),
+                    ...(ext?.internetPct != null
+                      ? [
+                          {
+                            label: "Internet Access",
+                            value: `${ext.internetPct}%`,
+                            color:
+                              ext.internetPct >= 80
+                                ? "text-success"
+                                : "text-warning",
+                          },
+                        ]
+                      : []),
+                    ...(ext?.birthRate != null
+                      ? [
+                          {
+                            label: "Birth Rate",
+                            value: `${ext.birthRate}/1k`,
+                            color: "text-foreground",
+                          },
+                        ]
+                      : []),
+                  ];
+                })().map((s) => (
+                  <div
+                    key={s.label}
+                    className="modal-tile rounded-lg p-3 text-center"
+                  >
+                    <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
+                      {s.label}
+                    </p>
+                    <p className={`text-base font-bold font-mono ${s.color}`}>
+                      {s.value}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -8116,6 +17105,28 @@ function CountryDetailPanel({
             {/* ── EXTENDED DATA: Demographics, Fiscal, Trade, Credit ── */}
             <CountryExtendedPanels country={country} />
 
+            {/* ── CRIME STATISTICS ── */}
+            <CountryCrimeStatsPanel country={country} />
+
+            {/* ── DEMOGRAPHICS + GENDER STACKED ── */}
+            <div className="grid grid-cols-1 gap-4 mt-4">
+              <div>
+                <CountryDemographicsChart country={country} />
+              </div>
+              <div>
+                <CountryGenderStatsPanel country={country} />
+              </div>
+            </div>
+
+            {/* ── HOUSING & TRANSPORTATION ── */}
+            <CountryHousingTransportPanel country={country} />
+
+            {/* ── INFRASTRUCTURE STATISTICS ── */}
+            <CountryInfraPanel country={country} />
+
+            {/* ── EDUCATION RANKING & UNIVERSITIES ── */}
+            <CountryEducationPanel country={country} />
+
             {/* ── SOCIOLOGICAL BREAKDOWN ── */}
             <CountrySociologicalBreakdown country={country} />
           </div>
@@ -8151,6 +17162,17507 @@ const SRC_CREDIT = [
     url: "https://www.transparency.org/en/cpi/",
   },
 ];
+// ── Country Education Data ───────────────────────────────────────────────────
+interface UniversityEntry {
+  name: string;
+  rankTag?: string;
+  type: "Public" | "Private" | "Technical" | "Research";
+}
+interface CountryEducationData {
+  globalEduRank?: number;
+  literacyRate: number;
+  avgSchoolingYears: number;
+  pisaScore?: number;
+  topUniversities: UniversityEntry[];
+  eduNotes?: string;
+}
+
+const COUNTRY_EDUCATION: Record<string, CountryEducationData> = {
+  us: {
+    globalEduRank: 1,
+    literacyRate: 99,
+    avgSchoolingYears: 13.4,
+    pisaScore: 505,
+    topUniversities: [
+      {
+        name: "Massachusetts Institute of Technology (MIT)",
+        rankTag: "#1 World",
+        type: "Private",
+      },
+      { name: "Harvard University", rankTag: "#4 World", type: "Private" },
+      { name: "Stanford University", rankTag: "#5 World", type: "Private" },
+      {
+        name: "California Institute of Technology (Caltech)",
+        rankTag: "#10 World",
+        type: "Private",
+      },
+      { name: "University of Chicago", rankTag: "#11 World", type: "Private" },
+      { name: "Princeton University", rankTag: "#12 World", type: "Private" },
+    ],
+    eduNotes:
+      "World's top research university system. 8 Ivy League universities plus MIT, Caltech, Stanford form the global academic elite. R1 doctoral institutions number over 140.",
+  },
+  cn: {
+    globalEduRank: 9,
+    literacyRate: 97.3,
+    avgSchoolingYears: 8.1,
+    pisaScore: 579,
+    topUniversities: [
+      {
+        name: "Peking University (Beida)",
+        rankTag: "#14 World (QS)",
+        type: "Public",
+      },
+      {
+        name: "Tsinghua University",
+        rankTag: "#25 World (QS)",
+        type: "Technical",
+      },
+      { name: "Fudan University", rankTag: "#39 World", type: "Research" },
+      { name: "Zhejiang University", rankTag: "Top 50 ARWU", type: "Public" },
+      {
+        name: "Shanghai Jiao Tong University",
+        rankTag: "Top 60 ARWU",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "PISA scores consistently rank Chinese students (Shanghai/Beijing) #1 globally in math & science. Gaokao national exam is among the world's most competitive. C9 League = China's Ivy League.",
+  },
+  de: {
+    globalEduRank: 4,
+    literacyRate: 99,
+    avgSchoolingYears: 14.2,
+    pisaScore: 475,
+    topUniversities: [
+      {
+        name: "Technical University of Munich (TUM)",
+        rankTag: "#37 World (QS)",
+        type: "Technical",
+      },
+      { name: "LMU Munich", rankTag: "#54 World (QS)", type: "Research" },
+      { name: "Heidelberg University", rankTag: "#87 World", type: "Research" },
+      {
+        name: "Humboldt University Berlin",
+        rankTag: "Top 100 ARWU",
+        type: "Research",
+      },
+      {
+        name: "RWTH Aachen University",
+        rankTag: "Top Engineering",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Free tuition at all public universities (even for international students). Dual vocational training (Berufsausbildung) is globally emulated. 3 Nobel Prize laureates from German institutions per year on average.",
+  },
+  gb: {
+    globalEduRank: 2,
+    literacyRate: 99,
+    avgSchoolingYears: 13.0,
+    pisaScore: 502,
+    topUniversities: [
+      {
+        name: "University of Oxford",
+        rankTag: "#3 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "University of Cambridge",
+        rankTag: "#2 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "Imperial College London",
+        rankTag: "#8 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "University College London (UCL)",
+        rankTag: "#9 World",
+        type: "Research",
+      },
+      {
+        name: "London School of Economics (LSE)",
+        rankTag: "#45 World",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "Oxford and Cambridge ('Oxbridge') are the world's most prestigious universities by most rankings. The Russell Group (24 research-intensive universities) drives UK research output.",
+  },
+  fr: {
+    globalEduRank: 5,
+    literacyRate: 99,
+    avgSchoolingYears: 12.2,
+    pisaScore: 474,
+    topUniversities: [
+      {
+        name: "Université PSL (Paris Sciences & Lettres)",
+        rankTag: "#24 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "École Polytechnique (X)",
+        rankTag: "#59 World",
+        type: "Technical",
+      },
+      {
+        name: "École Normale Supérieure (ENS Paris)",
+        rankTag: "Top 60 ARWU",
+        type: "Research",
+      },
+      { name: "Sorbonne Université", rankTag: "Top 80 ARWU", type: "Research" },
+      {
+        name: "Sciences Po Paris",
+        rankTag: "#1 Social Sciences FR",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "Grandes Écoles (Polytechnique, HEC, ENA/INSP, ENS) are more prestigious than universities in France. Most public universities free. ~70% of Nobel prizes in science from Grandes Écoles alumni.",
+  },
+  jp: {
+    globalEduRank: 6,
+    literacyRate: 99,
+    avgSchoolingYears: 13.4,
+    pisaScore: 520,
+    topUniversities: [
+      {
+        name: "University of Tokyo (UTokyo)",
+        rankTag: "#32 World (QS)",
+        type: "Public",
+      },
+      { name: "Kyoto University", rankTag: "#46 World (QS)", type: "Research" },
+      { name: "Osaka University", rankTag: "#75 World", type: "Research" },
+      { name: "Tohoku University", rankTag: "#Top 100", type: "Research" },
+      {
+        name: "Tokyo Institute of Technology (Tokyo Tech)",
+        rankTag: "#168 World",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Japan has extremely high PISA scores, especially in math. University entrance exams (Center Test/Common Test) are fiercely competitive. Imperial universities (todai, Kyodai) dominate elite academia.",
+  },
+  in: {
+    globalEduRank: 26,
+    literacyRate: 77.7,
+    avgSchoolingYears: 6.7,
+    pisaScore: undefined,
+    topUniversities: [
+      {
+        name: "Indian Institute of Technology Bombay (IITB)",
+        rankTag: "#118 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "Indian Institute of Science (IISc) Bangalore",
+        rankTag: "#211 World",
+        type: "Research",
+      },
+      { name: "IIT Delhi", rankTag: "#197 World (QS)", type: "Technical" },
+      { name: "IIT Madras", rankTag: "#227 World (QS)", type: "Technical" },
+      { name: "University of Delhi", rankTag: "Top 500", type: "Public" },
+    ],
+    eduNotes:
+      "IITs are among the world's most competitive universities by acceptance rate (~2%). India has 800+ universities and 40,000+ colleges — world's 2nd largest higher education system.",
+  },
+  br: {
+    globalEduRank: 31,
+    literacyRate: 94.2,
+    avgSchoolingYears: 8.0,
+    pisaScore: 379,
+    topUniversities: [
+      {
+        name: "Universidade de São Paulo (USP)",
+        rankTag: "#86 World (QS)",
+        type: "Public",
+      },
+      {
+        name: "Universidade Estadual de Campinas (UNICAMP)",
+        rankTag: "#196 World",
+        type: "Research",
+      },
+      {
+        name: "Universidade Federal do Rio de Janeiro (UFRJ)",
+        rankTag: "Top 250",
+        type: "Public",
+      },
+      {
+        name: "Universidade Federal de Minas Gerais (UFMG)",
+        rankTag: "Top 300",
+        type: "Public",
+      },
+      {
+        name: "PUC-Rio (Pontifícia Universidade Católica)",
+        rankTag: "Top Private",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "USP is Latin America's top university by research output. Federal universities are free and well-regarded. ENEM national exam governs university admission.",
+  },
+  ru: {
+    globalEduRank: 22,
+    literacyRate: 99.7,
+    avgSchoolingYears: 12.0,
+    pisaScore: 479,
+    topUniversities: [
+      {
+        name: "Lomonosov Moscow State University (MSU)",
+        rankTag: "#87 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "Saint Petersburg State University (SPBU)",
+        rankTag: "#250 World",
+        type: "Research",
+      },
+      {
+        name: "MIPT (Moscow Institute of Physics & Technology)",
+        rankTag: "Top Physics",
+        type: "Technical",
+      },
+      {
+        name: "HSE University (Higher School of Economics)",
+        rankTag: "Top Social Sci.",
+        type: "Research",
+      },
+      {
+        name: "Bauman Moscow State Technical University",
+        rankTag: "Top Engineering",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Strong STEM tradition with world-class physics, math, and engineering programs. Soviet-era scientific legacy endures. International sanctions have limited foreign partnerships since 2022.",
+  },
+  kr: {
+    globalEduRank: 3,
+    literacyRate: 98.8,
+    avgSchoolingYears: 12.2,
+    pisaScore: 527,
+    topUniversities: [
+      {
+        name: "Seoul National University (SNU)",
+        rankTag: "#41 World (QS)",
+        type: "Public",
+      },
+      {
+        name: "Korea Advanced Institute of Science & Technology (KAIST)",
+        rankTag: "#56 World",
+        type: "Technical",
+      },
+      {
+        name: "POSTECH (Pohang University of Science)",
+        rankTag: "Top 100",
+        type: "Technical",
+      },
+      { name: "Yonsei University", rankTag: "#79 World", type: "Private" },
+      { name: "Korea University", rankTag: "#74 World", type: "Research" },
+    ],
+    eduNotes:
+      "SKY universities (Seoul National, Korea, Yonsei) are the most prestigious. S. Korea has one of the highest tertiary enrollment rates globally (~95%). Extreme education culture ('hagwon' private tutoring industry).",
+  },
+  au_oc: {
+    globalEduRank: 7,
+    literacyRate: 99,
+    avgSchoolingYears: 13.6,
+    pisaScore: 494,
+    topUniversities: [
+      {
+        name: "Australian National University (ANU)",
+        rankTag: "#30 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "University of Melbourne",
+        rankTag: "#13 World (QS)",
+        type: "Research",
+      },
+      { name: "University of Sydney", rankTag: "#18 World", type: "Research" },
+      {
+        name: "University of Queensland (UQ)",
+        rankTag: "#40 World",
+        type: "Research",
+      },
+      { name: "Monash University", rankTag: "#42 World", type: "Research" },
+    ],
+    eduNotes:
+      "Group of Eight (Go8) are the research-intensive flagship universities. Australia hosts 750,000+ international students — the 3rd-largest international student destination globally.",
+  },
+  ca: {
+    globalEduRank: 8,
+    literacyRate: 99,
+    avgSchoolingYears: 13.8,
+    pisaScore: 512,
+    topUniversities: [
+      {
+        name: "University of Toronto",
+        rankTag: "#21 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "McGill University",
+        rankTag: "#29 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "University of British Columbia (UBC)",
+        rankTag: "#34 World",
+        type: "Research",
+      },
+      { name: "McMaster University", rankTag: "Top 200", type: "Research" },
+      {
+        name: "University of Waterloo",
+        rankTag: "#112 World / #1 CS Canada",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "U15 group of research universities. Free K-12 education in all provinces. University of Waterloo's co-op tech program produces major Silicon Valley talent.",
+  },
+  sg: {
+    globalEduRank: 11,
+    literacyRate: 97.5,
+    avgSchoolingYears: 11.5,
+    pisaScore: 569,
+    topUniversities: [
+      {
+        name: "National University of Singapore (NUS)",
+        rankTag: "#8 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "Nanyang Technological University (NTU)",
+        rankTag: "#15 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "Singapore Management University (SMU)",
+        rankTag: "Top Business Asia",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Consistently ranks #1 in PISA for math and reading. NUS and NTU are in the global top 20. Education quality is a core Singapore national identity — 'meritocracy through education'.",
+  },
+  ae: {
+    globalEduRank: 39,
+    literacyRate: 96.3,
+    avgSchoolingYears: 10.2,
+    pisaScore: 434,
+    topUniversities: [
+      {
+        name: "Khalifa University",
+        rankTag: "#182 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "United Arab Emirates University (UAEU)",
+        rankTag: "#301 World",
+        type: "Public",
+      },
+      {
+        name: "American University of Sharjah",
+        rankTag: "Top Private UAE",
+        type: "Private",
+      },
+      {
+        name: "University of Dubai",
+        rankTag: "Top Business UAE",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Heavy investment in education under UAE Vision 2021/2031. NYU Abu Dhabi, Sorbonne Abu Dhabi, and NY Film Academy have satellite campuses. 50%+ of students are international.",
+  },
+  il_as: {
+    globalEduRank: 13,
+    literacyRate: 97.8,
+    avgSchoolingYears: 13.2,
+    pisaScore: 475,
+    topUniversities: [
+      {
+        name: "Hebrew University of Jerusalem",
+        rankTag: "Top 150 ARWU",
+        type: "Research",
+      },
+      {
+        name: "Technion – Israel Institute of Technology",
+        rankTag: "#81 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "Tel Aviv University",
+        rankTag: "Top 200 ARWU",
+        type: "Research",
+      },
+      {
+        name: "Weizmann Institute of Science",
+        rankTag: "#1 Research Impact per Faculty",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "Has more PhDs per capita than any other country. Technion alumni founded/co-founded major tech companies. R&D spending at 5.6% of GDP (world's highest).",
+  },
+  tr: {
+    globalEduRank: 43,
+    literacyRate: 97.4,
+    avgSchoolingYears: 8.8,
+    pisaScore: 453,
+    topUniversities: [
+      {
+        name: "Middle East Technical University (METU/ODTÜ)",
+        rankTag: "#475 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "Boğaziçi University",
+        rankTag: "Top 2 Turkey",
+        type: "Research",
+      },
+      {
+        name: "Istanbul Technical University (ITÜ)",
+        rankTag: "Top Engineering TR",
+        type: "Technical",
+      },
+      {
+        name: "Bilkent University",
+        rankTag: "Top Private TR",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "ÖSYM centralized exam governs all university admissions. Boğaziçi and METU are the most prestigious. Turkey has 207 state + 73 private universities.",
+  },
+  za: {
+    globalEduRank: 58,
+    literacyRate: 87.0,
+    avgSchoolingYears: 10.3,
+    pisaScore: undefined,
+    topUniversities: [
+      {
+        name: "University of Cape Town (UCT)",
+        rankTag: "#226 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "University of the Witwatersrand (Wits)",
+        rankTag: "Top 350",
+        type: "Research",
+      },
+      { name: "Stellenbosch University", rankTag: "Top 400", type: "Research" },
+      { name: "University of Pretoria", rankTag: "Top 500", type: "Public" },
+    ],
+    eduNotes:
+      "UCT is Africa's top-ranked university. Persistent inequality: matric (grade 12) pass rates remain low in poor provinces. University enrollment is ~20% — relatively low for GDP level.",
+  },
+  ng: {
+    globalEduRank: 94,
+    literacyRate: 62.0,
+    avgSchoolingYears: 6.7,
+    pisaScore: undefined,
+    topUniversities: [
+      { name: "University of Ibadan", rankTag: "#1 Nigeria", type: "Public" },
+      {
+        name: "University of Lagos (UNILAG)",
+        rankTag: "Top 2 Nigeria",
+        type: "Public",
+      },
+      {
+        name: "Covenant University",
+        rankTag: "Top Private Nigeria",
+        type: "Private",
+      },
+      {
+        name: "Obafemi Awolowo University",
+        rankTag: "Top Research Nigeria",
+        type: "Public",
+      },
+    ],
+    eduNotes:
+      "JAMB (Joint Admissions and Matriculation Board) governs university entry. 170+ federal/state universities but quality varies significantly. Over 1M students study abroad annually — Africa's largest student diaspora.",
+  },
+  eg: {
+    globalEduRank: 74,
+    literacyRate: 73.1,
+    avgSchoolingYears: 9.6,
+    pisaScore: undefined,
+    topUniversities: [
+      { name: "Cairo University", rankTag: "#551 World (QS)", type: "Public" },
+      {
+        name: "American University in Cairo (AUC)",
+        rankTag: "Top Private Egypt",
+        type: "Private",
+      },
+      { name: "Ain Shams University", rankTag: "Top 5 Egypt", type: "Public" },
+      { name: "Alexandria University", rankTag: "Top 5 Egypt", type: "Public" },
+    ],
+    eduNotes:
+      "Cairo University founded 1908 is Africa's 2nd oldest university. Al-Azhar University (founded 970 AD) is the world's oldest existing university. Enrollment rate ~35% in higher education.",
+  },
+  mx: {
+    globalEduRank: 47,
+    literacyRate: 95.2,
+    avgSchoolingYears: 9.7,
+    pisaScore: 410,
+    topUniversities: [
+      {
+        name: "Universidad Nacional Autónoma de México (UNAM)",
+        rankTag: "#105 World (QS)",
+        type: "Public",
+      },
+      {
+        name: "Instituto Politécnico Nacional (IPN)",
+        rankTag: "Top 2 Mexico",
+        type: "Technical",
+      },
+      {
+        name: "Tecnológico de Monterrey (ITESM)",
+        rankTag: "#161 World (QS)",
+        type: "Private",
+      },
+      {
+        name: "Universidad Autónoma de Nuevo León (UANL)",
+        rankTag: "Top 4 Mexico",
+        type: "Public",
+      },
+    ],
+    eduNotes:
+      "UNAM is Latin America's 2nd-largest university (360,000+ students). Public university tuition is nearly free. Universidad Iberoamericana and ITAM are elite private schools.",
+  },
+  sa: {
+    globalEduRank: 38,
+    literacyRate: 97.6,
+    avgSchoolingYears: 10.2,
+    pisaScore: 395,
+    topUniversities: [
+      {
+        name: "King Abdulaziz University (KAU)",
+        rankTag: "#136 World (QS)",
+        type: "Public",
+      },
+      {
+        name: "King Abdullah University of Science & Technology (KAUST)",
+        rankTag: "Top Research",
+        type: "Technical",
+      },
+      {
+        name: "King Fahd University of Petroleum (KFUPM)",
+        rankTag: "#186 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "Imam Mohammad Ibn Saud Islamic University",
+        rankTag: "Top Islamic Studies",
+        type: "Public",
+      },
+    ],
+    eduNotes:
+      "Vision 2030 prioritizes STEM education reform. KAUST was founded with $20B endowment in 2009 as a world-class graduate research university. Government fully funds all public university education.",
+  },
+  ar: {
+    globalEduRank: 33,
+    literacyRate: 99.1,
+    avgSchoolingYears: 10.9,
+    pisaScore: 370,
+    topUniversities: [
+      {
+        name: "Universidad de Buenos Aires (UBA)",
+        rankTag: "#67 World (QS)",
+        type: "Public",
+      },
+      {
+        name: "Universidad Nacional de Córdoba",
+        rankTag: "Top 2 Argentina",
+        type: "Public",
+      },
+      {
+        name: "Universidad Nacional de La Plata (UNLP)",
+        rankTag: "Top 3 Argentina",
+        type: "Public",
+      },
+      {
+        name: "Instituto Tecnológico de Buenos Aires (ITBA)",
+        rankTag: "Top Private",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "UBA is Latin America's highest-ranked university. Public universities charge no tuition. Argentina has the highest university enrollment rate in Latin America (~90% adult literacy).",
+  },
+  fr: {
+    globalEduRank: 5,
+    literacyRate: 99,
+    avgSchoolingYears: 12.2,
+    pisaScore: 474,
+    topUniversities: [
+      {
+        name: "Université PSL (Paris Sciences & Lettres)",
+        rankTag: "#24 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "École Polytechnique (X)",
+        rankTag: "#59 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "École Normale Supérieure (ENS Paris)",
+        rankTag: "Top 60 ARWU",
+        type: "Research",
+      },
+      { name: "Sorbonne Université", rankTag: "Top 80 ARWU", type: "Research" },
+      {
+        name: "Sciences Po Paris",
+        rankTag: "#1 Social Sciences FR",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "Grandes Écoles are more selective than universities. Free public university tuition. Baccalauréat is the gold-standard secondary exit exam.",
+  },
+  cl: {
+    globalEduRank: 35,
+    literacyRate: 96.5,
+    avgSchoolingYears: 10.6,
+    pisaScore: 448,
+    topUniversities: [
+      {
+        name: "Pontificia Universidad Católica de Chile (PUC)",
+        rankTag: "#113 World (QS)",
+        type: "Private",
+      },
+      {
+        name: "Universidad de Chile",
+        rankTag: "#156 World (QS)",
+        type: "Public",
+      },
+      {
+        name: "Universidad Adolfo Ibáñez",
+        rankTag: "Top Business Chile",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Chile has the highest PISA scores in Latin America. PUC and U. Chile are ranked in global top 200. 2023 free university tuition law for 60%+ of students.",
+  },
+  pl: {
+    globalEduRank: 20,
+    literacyRate: 99.8,
+    avgSchoolingYears: 12.5,
+    pisaScore: 516,
+    topUniversities: [
+      {
+        name: "University of Warsaw",
+        rankTag: "#284 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "Jagiellonian University (Kraków)",
+        rankTag: "#286 World",
+        type: "Research",
+      },
+      {
+        name: "Warsaw University of Technology",
+        rankTag: "Top Engineering PL",
+        type: "Technical",
+      },
+      {
+        name: "AGH University of Science & Technology",
+        rankTag: "Top 2 Technical",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Poland has one of the highest PISA score improvements in the OECD over 20 years. Jagiellonian University (founded 1364) is one of Europe's oldest universities.",
+  },
+  nl: {
+    globalEduRank: 10,
+    literacyRate: 99,
+    avgSchoolingYears: 13.2,
+    pisaScore: 514,
+    topUniversities: [
+      {
+        name: "Delft University of Technology (TU Delft)",
+        rankTag: "#47 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "University of Amsterdam",
+        rankTag: "#53 World (QS)",
+        type: "Research",
+      },
+      { name: "Leiden University", rankTag: "#127 World", type: "Research" },
+      {
+        name: "Eindhoven University of Technology",
+        rankTag: "Top STEM NL",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Netherlands has 4+Tu (4 technical universities consortium). Most programs taught in English at graduate level. Strong international student recruitment.",
+  },
+  se: {
+    globalEduRank: 12,
+    literacyRate: 99,
+    avgSchoolingYears: 13.4,
+    pisaScore: 497,
+    topUniversities: [
+      {
+        name: "KTH Royal Institute of Technology",
+        rankTag: "#98 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "Karolinska Institutet",
+        rankTag: "#145 World / #1 Medicine Nordic",
+        type: "Research",
+      },
+      { name: "Lund University", rankTag: "#107 World", type: "Research" },
+      {
+        name: "Stockholm University",
+        rankTag: "Top 4 Sweden",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "Free university tuition for EU students. Strong research universities in medicine and tech. Pisa scores have declined since 2006 — a national education policy concern.",
+  },
+  ch: {
+    globalEduRank: 9,
+    literacyRate: 99,
+    avgSchoolingYears: 13.8,
+    pisaScore: 508,
+    topUniversities: [
+      {
+        name: "ETH Zurich (Swiss Federal Institute of Technology)",
+        rankTag: "#7 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "EPFL (École Polytechnique Fédérale de Lausanne)",
+        rankTag: "#17 World (QS)",
+        type: "Technical",
+      },
+      { name: "University of Zurich", rankTag: "#83 World", type: "Research" },
+      {
+        name: "University of Basel",
+        rankTag: "Top 4 Switzerland",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "ETH Zurich and EPFL are two of the world's best STEM universities. Switzerland spends ~5.5% of GDP on education. Strong dual vocational training (Berufsbildung) parallel to university pathway.",
+  },
+  no: {
+    globalEduRank: 14,
+    literacyRate: 99,
+    avgSchoolingYears: 13.4,
+    pisaScore: 489,
+    topUniversities: [
+      {
+        name: "University of Oslo",
+        rankTag: "#119 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "Norwegian University of Science and Technology (NTNU)",
+        rankTag: "#178 World",
+        type: "Technical",
+      },
+      {
+        name: "University of Bergen",
+        rankTag: "Top 3 Norway",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "Tuition-free for all students (including international) at public universities. Norway consistently ranks in the top 10 for education quality by UNESCO.",
+  },
+  dk: {
+    globalEduRank: 15,
+    literacyRate: 99,
+    avgSchoolingYears: 13.5,
+    pisaScore: 501,
+    topUniversities: [
+      {
+        name: "University of Copenhagen (UCPH)",
+        rankTag: "#97 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "Technical University of Denmark (DTU)",
+        rankTag: "#167 World",
+        type: "Technical",
+      },
+      { name: "Aarhus University", rankTag: "#141 World", type: "Research" },
+    ],
+    eduNotes:
+      "Free university education for all EU/EEA students. Students receive a monthly stipend (SU) during studies. Copenhagen Business School ranks among Europe's top business schools.",
+  },
+  fi: {
+    globalEduRank: 16,
+    literacyRate: 99,
+    avgSchoolingYears: 13.1,
+    pisaScore: 508,
+    topUniversities: [
+      {
+        name: "University of Helsinki",
+        rankTag: "#107 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "Aalto University",
+        rankTag: "#131 World / #1 Design/Tech FI",
+        type: "Technical",
+      },
+      {
+        name: "University of Oulu",
+        rankTag: "Top 3 Finland",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "Finland's education system is globally celebrated — no standardized testing until age 16, no homework in primary school, and all teachers require master's degrees. Ranked #1 globally in PISA 2006.",
+  },
+  it: {
+    globalEduRank: 18,
+    literacyRate: 99.2,
+    avgSchoolingYears: 11.2,
+    pisaScore: 476,
+    topUniversities: [
+      {
+        name: "Politecnico di Milano",
+        rankTag: "#123 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "University of Bologna (Unibo)",
+        rankTag: "World's oldest university (1088)",
+        type: "Research",
+      },
+      {
+        name: "Scuola Normale Superiore (Pisa)",
+        rankTag: "Elite Research SNS",
+        type: "Research",
+      },
+      {
+        name: "Sapienza University of Rome",
+        rankTag: "Top 5 Italy",
+        type: "Public",
+      },
+    ],
+    eduNotes:
+      "Bologna was the world's first university (1088). Italy has 60+ state universities. Polimi is the top in design and architecture. The Bologna Process (1999) standardized European higher education.",
+  },
+  es: {
+    globalEduRank: 24,
+    literacyRate: 98.6,
+    avgSchoolingYears: 10.4,
+    pisaScore: 480,
+    topUniversities: [
+      {
+        name: "Universitat Autónoma de Barcelona (UAB)",
+        rankTag: "#161 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "Universidad Complutense de Madrid (UCM)",
+        rankTag: "#170 World",
+        type: "Public",
+      },
+      {
+        name: "Universidad de Barcelona (UB)",
+        rankTag: "Top 3 Spain",
+        type: "Research",
+      },
+      {
+        name: "IE University",
+        rankTag: "Top Business School EU",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "IE Business School and ESADE rank among Europe's top MBAs. Public university tuition is heavily subsidized (~€1,500–2,500/year). Spain leads EU in student exchange via Erasmus program.",
+  },
+  my: {
+    globalEduRank: 36,
+    literacyRate: 95.0,
+    avgSchoolingYears: 10.4,
+    pisaScore: 432,
+    topUniversities: [
+      {
+        name: "Universiti Malaya (UM)",
+        rankTag: "#65 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "Universiti Sains Malaysia (USM)",
+        rankTag: "Top 250 World",
+        type: "Research",
+      },
+      {
+        name: "Universiti Teknologi Malaysia (UTM)",
+        rankTag: "Top 3 Malaysia",
+        type: "Technical",
+      },
+      {
+        name: "Monash University Malaysia",
+        rankTag: "Top International Campus",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "UM is the highest-ranked Southeast Asian university outside Singapore. Malaysia hosts 170,000+ international students. English is widely used in higher education.",
+  },
+  id: {
+    globalEduRank: 54,
+    literacyRate: 96.0,
+    avgSchoolingYears: 8.7,
+    pisaScore: 366,
+    topUniversities: [
+      {
+        name: "University of Indonesia (UI)",
+        rankTag: "#231 World (QS)",
+        type: "Public",
+      },
+      {
+        name: "Universitas Gadjah Mada (UGM)",
+        rankTag: "Top 2 Indonesia",
+        type: "Research",
+      },
+      {
+        name: "Bandung Institute of Technology (ITB)",
+        rankTag: "Top Engineering ID",
+        type: "Technical",
+      },
+      {
+        name: "Institut Pertanian Bogor (IPB University)",
+        rankTag: "Top Agriculture",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "UI and UGM compete for top national ranking. Indonesia has 4,600+ higher education institutions — 2nd most in Southeast Asia. Kampus Merdeka (Free Campus) reform since 2020.",
+  },
+  vn: {
+    globalEduRank: 40,
+    literacyRate: 95.8,
+    avgSchoolingYears: 8.3,
+    pisaScore: 469,
+    topUniversities: [
+      {
+        name: "Vietnam National University Hanoi (VNU-HN)",
+        rankTag: "Top 500 QS Asia",
+        type: "Public",
+      },
+      {
+        name: "Vietnam National University HCMC (VNU-HCM)",
+        rankTag: "Top 2 Vietnam",
+        type: "Research",
+      },
+      {
+        name: "Hanoi University of Science and Technology (HUST)",
+        rankTag: "Top Engineering VN",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Vietnam's PISA scores are remarkably high for its income level — often outperforming OECD averages in math and science. National high school exam (THPT) is fiercely competitive.",
+  },
+  ph: {
+    globalEduRank: 60,
+    literacyRate: 98.2,
+    avgSchoolingYears: 9.3,
+    pisaScore: 353,
+    topUniversities: [
+      {
+        name: "University of the Philippines (UP) Diliman",
+        rankTag: "#350 World (QS)",
+        type: "Public",
+      },
+      {
+        name: "Ateneo de Manila University",
+        rankTag: "Top Private PH",
+        type: "Private",
+      },
+      {
+        name: "De La Salle University",
+        rankTag: "Top 3 Philippines",
+        type: "Private",
+      },
+      {
+        name: "University of Santo Tomas (UST)",
+        rankTag: "Oldest univ. in Asia (1611)",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Philippines has one of the highest English-proficiency rates in Asia — an asset for BPO sector. UST is the oldest existing university in Asia (founded 1611). ~8% of Filipinos hold a bachelor's degree.",
+  },
+  pk: {
+    globalEduRank: 77,
+    literacyRate: 58.0,
+    avgSchoolingYears: 5.2,
+    pisaScore: undefined,
+    topUniversities: [
+      {
+        name: "National University of Sciences & Technology (NUST)",
+        rankTag: "#400 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "University of Karachi",
+        rankTag: "Largest PK by enrollment",
+        type: "Public",
+      },
+      {
+        name: "Lahore University of Management Sciences (LUMS)",
+        rankTag: "Top Private PK",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Pakistan's literacy rate is among the lowest in Asia. LUMS is considered the subcontinent's Harvard equivalent. Significant gender gap: male literacy 71%, female 46%.",
+  },
+  bd: {
+    globalEduRank: 83,
+    literacyRate: 74.9,
+    avgSchoolingYears: 6.2,
+    pisaScore: undefined,
+    topUniversities: [
+      {
+        name: "University of Dhaka (DU)",
+        rankTag: "#801-1000 QS",
+        type: "Public",
+      },
+      {
+        name: "Bangladesh University of Engineering & Technology (BUET)",
+        rankTag: "Top Engineering BD",
+        type: "Technical",
+      },
+      {
+        name: "Chittagong University",
+        rankTag: "Top 3 Bangladesh",
+        type: "Public",
+      },
+    ],
+    eduNotes:
+      "Bangladesh has made dramatic literacy gains (51% in 2000 → 75% in 2024). Primary school enrollment is nearly universal. Brain drain is significant: graduates emigrate for better opportunities.",
+  },
+  ir: {
+    globalEduRank: 42,
+    literacyRate: 89.5,
+    avgSchoolingYears: 10.3,
+    pisaScore: undefined,
+    topUniversities: [
+      {
+        name: "Sharif University of Technology",
+        rankTag: "#301-350 World (QS)",
+        type: "Technical",
+      },
+      { name: "University of Tehran", rankTag: "Top 2 Iran", type: "Research" },
+      {
+        name: "Isfahan University of Technology",
+        rankTag: "Top 3 Iran",
+        type: "Technical",
+      },
+      {
+        name: "Amirkabir University (Tehran Polytechnic)",
+        rankTag: "Top 4 Iran",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Iran has one of the highest university enrollment rates in the Middle East (~50%). Strong STEM tradition. Brain drain is significant post-2022 due to sanctions and political repression.",
+  },
+  kz: {
+    globalEduRank: 55,
+    literacyRate: 99.8,
+    avgSchoolingYears: 11.8,
+    pisaScore: 430,
+    topUniversities: [
+      {
+        name: "Nazarbayev University",
+        rankTag: "Top 250 QS Asia",
+        type: "Research",
+      },
+      {
+        name: "Al-Farabi Kazakh National University (KazNU)",
+        rankTag: "Top 2 KZ",
+        type: "Research",
+      },
+      {
+        name: "NJSC Kazakh-British Technical University (KBTU)",
+        rankTag: "Top Tech KZ",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Nazarbayev University (est. 2010) is modeled after western research universities with English-only instruction. PISA participation shows mid-tier performance. Bologna Process adopted 2010.",
+  },
+  et: {
+    globalEduRank: 90,
+    literacyRate: 51.8,
+    avgSchoolingYears: 3.1,
+    pisaScore: undefined,
+    topUniversities: [
+      {
+        name: "Addis Ababa University (AAU)",
+        rankTag: "Oldest & Top Ethiopia",
+        type: "Public",
+      },
+      {
+        name: "Jimma University",
+        rankTag: "Top Medical Ethiopia",
+        type: "Research",
+      },
+      {
+        name: "Bahir Dar University",
+        rankTag: "Top 3 Ethiopia",
+        type: "Public",
+      },
+    ],
+    eduNotes:
+      "Addis Ababa University (est. 1950) is sub-Saharan Africa's oldest university. Ethiopia has 45+ public universities — a 10x increase in 20 years. Literacy still below 55% nationally.",
+  },
+  ua: {
+    globalEduRank: 28,
+    literacyRate: 99.8,
+    avgSchoolingYears: 11.3,
+    pisaScore: 466,
+    topUniversities: [
+      {
+        name: "Taras Shevchenko National University of Kyiv",
+        rankTag: "#601-650 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "Kharkiv National University (KhNU)",
+        rankTag: "Top 2 Ukraine",
+        type: "Research",
+      },
+      {
+        name: "KPI Igor Sikorsky Polytechnic Institute",
+        rankTag: "Top Engineering UA",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Ukraine has very high literacy and PISA participation. War since 2022 has severely disrupted higher education — 30%+ of students displaced. Ukrainian IT sector produces world-class engineers.",
+  },
+  tw: {
+    globalEduRank: 15,
+    literacyRate: 98.9,
+    avgSchoolingYears: 12.8,
+    pisaScore: 547,
+    topUniversities: [
+      {
+        name: "National Taiwan University (NTU)",
+        rankTag: "#68 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "National Tsing Hua University (NTHU)",
+        rankTag: "#102 World",
+        type: "Technical",
+      },
+      {
+        name: "National Cheng Kung University (NCKU)",
+        rankTag: "Top Engineering TW",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "PISA scores consistently top-5 globally, especially in math. College entrance exam (GSAT) is highly competitive. Taiwan's 8 National Research Excellent universities focus on STEM.",
+  },
+  ke: {
+    globalEduRank: 72,
+    literacyRate: 82.6,
+    avgSchoolingYears: 7.0,
+    pisaScore: undefined,
+    topUniversities: [
+      {
+        name: "University of Nairobi",
+        rankTag: "Top 1000 QS World",
+        type: "Public",
+      },
+      { name: "Kenyatta University", rankTag: "Top 2 Kenya", type: "Public" },
+      {
+        name: "Strathmore University",
+        rankTag: "Top Private Kenya",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Kenya's education system is among the best in sub-Saharan Africa. National exams (KCPE/KCSE) are highly standardized. Silicon Savannah tech hub attracts graduates from Nairobi universities.",
+  },
+};
+
+const DEFAULT_EDUCATION: CountryEducationData = {
+  literacyRate: 70,
+  avgSchoolingYears: 7.5,
+  topUniversities: [
+    { name: "National University", type: "Public" },
+    { name: "Technical University", type: "Technical" },
+  ],
+  eduNotes: "Higher education data is being compiled for this country.",
+};
+
+// ── Fill in education data for all remaining countries ─────────────────────
+const COUNTRY_EDUCATION_EXTRA: Record<string, CountryEducationData> = {
+  // Remaining Americas
+  mx: {
+    literacyRate: 95.2,
+    avgSchoolingYears: 9.7,
+    pisaScore: 410,
+    topUniversities: [
+      {
+        name: "UNAM (Univ. Nacional Autónoma de México)",
+        rankTag: "#105 World (QS)",
+        type: "Public",
+      },
+      {
+        name: "Tecnológico de Monterrey (ITESM)",
+        rankTag: "#161 World",
+        type: "Private",
+      },
+      {
+        name: "IPN (Instituto Politécnico Nacional)",
+        rankTag: "Top Technical MX",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "UNAM is Latin America's 2nd-largest university. Public university tuition is nearly free.",
+  },
+  gt: {
+    literacyRate: 83.3,
+    avgSchoolingYears: 6.5,
+    topUniversities: [
+      {
+        name: "Universidad de San Carlos (USAC)",
+        rankTag: "Largest & Oldest GT",
+        type: "Public",
+      },
+      {
+        name: "Universidad Francisco Marroquín (UFM)",
+        rankTag: "Top Private GT",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "60% of the workforce has only primary education. Indigenous language communities face significant access barriers.",
+  },
+  cu: {
+    literacyRate: 99.8,
+    avgSchoolingYears: 11.8,
+    topUniversities: [
+      { name: "Universidad de La Habana", rankTag: "Top Cuba", type: "Public" },
+      {
+        name: "Universidad de las Ciencias Informáticas (UCI)",
+        rankTag: "Top IT Cuba",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Cuba has one of the world's highest literacy rates due to the 1961 Literacy Campaign. Free education at all levels.",
+  },
+  ht: {
+    literacyRate: 61.7,
+    avgSchoolingYears: 5.4,
+    topUniversities: [
+      {
+        name: "Université d'État d'Haïti",
+        rankTag: "Oldest Haiti",
+        type: "Public",
+      },
+      {
+        name: "Université Quisqueya",
+        rankTag: "Top Private Haiti",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Lowest literacy rate in the Western Hemisphere. Gang violence and instability severely disrupted education since 2021.",
+  },
+  do: {
+    literacyRate: 95.6,
+    avgSchoolingYears: 9.5,
+    topUniversities: [
+      {
+        name: "Pontificia Universidad Católica Madre y Maestra (PUCMM)",
+        rankTag: "Top Private DO",
+        type: "Private",
+      },
+      {
+        name: "Universidad Autónoma de Santo Domingo (UASD)",
+        rankTag: "Oldest in Americas (1538)",
+        type: "Public",
+      },
+    ],
+    eduNotes:
+      "UASD (1538) is the oldest continuously operating university in the Americas.",
+  },
+  hn: {
+    literacyRate: 88.5,
+    avgSchoolingYears: 6.5,
+    topUniversities: [
+      {
+        name: "Universidad Nacional Autónoma de Honduras (UNAH)",
+        rankTag: "Top HN",
+        type: "Public",
+      },
+      { name: "UNITEC Honduras", rankTag: "Top Private HN", type: "Private" },
+    ],
+    eduNotes:
+      "High dropout rates linked to gang violence and poverty. Only 30% complete secondary school.",
+  },
+  sv: {
+    literacyRate: 89.1,
+    avgSchoolingYears: 7.0,
+    topUniversities: [
+      {
+        name: "Universidad de El Salvador (UES)",
+        rankTag: "Top Public SV",
+        type: "Public",
+      },
+      {
+        name: "Universidad Centroamericana 'José Simeón Cañas' (UCA)",
+        rankTag: "Top Jesuit SV",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Bitcoin adoption sparked tech education demand. Government invested in tech schools (Escuelas Abiertas).",
+  },
+  ni: {
+    literacyRate: 82.6,
+    avgSchoolingYears: 7.0,
+    topUniversities: [
+      {
+        name: "Universidad Nacional Autónoma de Nicaragua (UNAN-Managua)",
+        rankTag: "Top NI",
+        type: "Public",
+      },
+      {
+        name: "Universidad Centroamericana (UCA)",
+        rankTag: "Top Jesuit NI",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Ortega government cracked down on universities in 2021, expelling professors and students critical of regime.",
+  },
+  cr: {
+    literacyRate: 98.0,
+    avgSchoolingYears: 11.1,
+    pisaScore: 426,
+    topUniversities: [
+      {
+        name: "Universidad de Costa Rica (UCR)",
+        rankTag: "Top CR / Top 5 LATAM Public",
+        type: "Public",
+      },
+      {
+        name: "Instituto Tecnológico de Costa Rica (ITCR)",
+        rankTag: "Top STEM CR",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "No army since 1948; education budget exceeds defense. Literacy rate rivals developed nations.",
+  },
+  pa: {
+    literacyRate: 95.7,
+    avgSchoolingYears: 10.2,
+    topUniversities: [
+      {
+        name: "Universidad de Panamá",
+        rankTag: "Top Public PA",
+        type: "Public",
+      },
+      {
+        name: "Universidad Tecnológica de Panamá (UTP)",
+        rankTag: "Top Technical PA",
+        type: "Technical",
+      },
+      {
+        name: "Universidad Santa María La Antigua (USMA)",
+        rankTag: "Top Catholic PA",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Canal revenues fund significant public investment in bilingual education programs.",
+  },
+  jm: {
+    literacyRate: 88.7,
+    avgSchoolingYears: 9.7,
+    topUniversities: [
+      {
+        name: "University of the West Indies (UWI Mona)",
+        rankTag: "Top Caribbean Research",
+        type: "Research",
+      },
+      {
+        name: "University of Technology Jamaica (UTech)",
+        rankTag: "Top Tech JM",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "UWI Mona is the leading research university in the English-speaking Caribbean.",
+  },
+  tt: {
+    literacyRate: 99.0,
+    avgSchoolingYears: 11.8,
+    topUniversities: [
+      {
+        name: "University of the West Indies (UWI St. Augustine)",
+        rankTag: "Top TT",
+        type: "Research",
+      },
+      {
+        name: "University of Trinidad and Tobago (UTT)",
+        rankTag: "Top Technical TT",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Highest literacy in the Caribbean. Government provides free tertiary education at UWI for all citizens.",
+  },
+  bz: {
+    literacyRate: 82.7,
+    avgSchoolingYears: 9.8,
+    topUniversities: [
+      {
+        name: "University of Belize (UB)",
+        rankTag: "Only National Univ.",
+        type: "Public",
+      },
+      { name: "Galen University", rankTag: "Top Private BZ", type: "Private" },
+    ],
+    eduNotes:
+      "Small population; many students pursue higher education in Mexico, USA, and Guatemala.",
+  },
+  cl: {
+    literacyRate: 96.5,
+    avgSchoolingYears: 10.6,
+    pisaScore: 448,
+    topUniversities: [
+      {
+        name: "Pontificia Universidad Católica de Chile (PUC)",
+        rankTag: "#113 World (QS)",
+        type: "Private",
+      },
+      { name: "Universidad de Chile", rankTag: "#156 World", type: "Public" },
+      {
+        name: "Universidad Adolfo Ibáñez",
+        rankTag: "Top Business CL",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Highest PISA scores in Latin America. 2023 free university tuition for 60%+ of students.",
+  },
+  co_co: {
+    literacyRate: 95.9,
+    avgSchoolingYears: 8.8,
+    pisaScore: 412,
+    topUniversities: [
+      {
+        name: "Universidad de los Andes",
+        rankTag: "Top CO Private / Top 3 LATAM",
+        type: "Private",
+      },
+      {
+        name: "Universidad Nacional de Colombia (UNAL)",
+        rankTag: "Top CO Public",
+        type: "Public",
+      },
+      {
+        name: "Pontificia Universidad Javeriana",
+        rankTag: "Top Jesuit CO",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Universidad de los Andes consistently ranks in Latin America's top 5. Growing Medellin tech education hub.",
+  },
+  pe: {
+    literacyRate: 94.5,
+    avgSchoolingYears: 9.2,
+    topUniversities: [
+      {
+        name: "Pontificia Universidad Católica del Perú (PUCP)",
+        rankTag: "Top PE Private",
+        type: "Private",
+      },
+      {
+        name: "Universidad Nacional Mayor de San Marcos",
+        rankTag: "Oldest in Americas (1551)",
+        type: "Public",
+      },
+    ],
+    eduNotes:
+      "San Marcos (1551) is the oldest continuously operating university in the Americas. Free education access limited by quality gaps.",
+  },
+  ve: {
+    literacyRate: 97.1,
+    avgSchoolingYears: 11.5,
+    topUniversities: [
+      {
+        name: "Universidad Central de Venezuela (UCV)",
+        rankTag: "Top VE Public / UNESCO World Heritage",
+        type: "Public",
+      },
+      {
+        name: "Universidad Simón Bolívar (USB)",
+        rankTag: "Top STEM VE",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "UCV campus is a UNESCO World Heritage Site. Brain drain is severe — over 7 million Venezuelans have emigrated including most graduates.",
+  },
+  ec: {
+    literacyRate: 94.5,
+    avgSchoolingYears: 9.7,
+    topUniversities: [
+      {
+        name: "Escuela Politécnica Nacional (EPN)",
+        rankTag: "Top STEM EC",
+        type: "Technical",
+      },
+      {
+        name: "FLACSO Ecuador",
+        rankTag: "Top Social Science EC",
+        type: "Research",
+      },
+      {
+        name: "Universidad San Francisco de Quito (USFQ)",
+        rankTag: "Top Private EC",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Yachay Tech (2013) was established as Ecuador's first research university on international standards.",
+  },
+  bo: {
+    literacyRate: 92.5,
+    avgSchoolingYears: 8.2,
+    topUniversities: [
+      {
+        name: "Universidad Mayor de San Simón (UMSS)",
+        rankTag: "Top BO Cochabamba",
+        type: "Public",
+      },
+      {
+        name: "Universidad Mayor de San Andrés (UMSA)",
+        rankTag: "Top BO La Paz",
+        type: "Public",
+      },
+    ],
+    eduNotes:
+      "Education in 36 indigenous languages mandated by 2009 constitution. Female literacy has risen from 74% (2001) to 92.5% (2024).",
+  },
+  py: {
+    literacyRate: 94.5,
+    avgSchoolingYears: 8.3,
+    topUniversities: [
+      {
+        name: "Universidad Nacional de Asunción (UNA)",
+        rankTag: "Top PY Public",
+        type: "Public",
+      },
+      {
+        name: "Universidad Católica 'Nuestra Señora de la Asunción'",
+        rankTag: "Top Private PY",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Bilingual education (Spanish and Guaraní) is mandated. Rural-urban education quality gap remains significant.",
+  },
+  uy: {
+    literacyRate: 98.7,
+    avgSchoolingYears: 9.8,
+    topUniversities: [
+      {
+        name: "Universidad de la República (UdelaR)",
+        rankTag: "Top UY / Free Tuition",
+        type: "Public",
+      },
+      { name: "ORT Uruguay", rankTag: "Top Tech UY", type: "Technical" },
+    ],
+    eduNotes:
+      "One of the highest literacy rates in Latin America. Uruguay was the first country to give every student a laptop (Plan Ceibal, 2007).",
+  },
+  gy: {
+    literacyRate: 88.5,
+    avgSchoolingYears: 8.8,
+    topUniversities: [
+      { name: "University of Guyana (UG)", rankTag: "Top GY", type: "Public" },
+      {
+        name: "Texila American University",
+        rankTag: "Top Private GY",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Oil wealth is funding massive education investment post-2015 Exxon discovery. University of Guyana expanding rapidly.",
+  },
+  sr: {
+    literacyRate: 94.4,
+    avgSchoolingYears: 9.0,
+    topUniversities: [
+      {
+        name: "Anton de Kom University of Suriname (AdeKUS)",
+        rankTag: "Only National Univ.",
+        type: "Public",
+      },
+    ],
+    eduNotes:
+      "Dutch language instruction. Many students study in the Netherlands. National university founded 1968.",
+  },
+  // Europe
+  it: {
+    literacyRate: 99.2,
+    avgSchoolingYears: 11.2,
+    pisaScore: 476,
+    topUniversities: [
+      {
+        name: "Politecnico di Milano",
+        rankTag: "#123 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "University of Bologna",
+        rankTag: "World's oldest univ. (1088)",
+        type: "Research",
+      },
+      {
+        name: "Scuola Normale Superiore (Pisa)",
+        rankTag: "Elite Research SNS",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "Bologna (1088) is the world's oldest university. Italy has 60+ state universities with high quality in engineering and architecture.",
+  },
+  es: {
+    literacyRate: 98.6,
+    avgSchoolingYears: 10.4,
+    pisaScore: 480,
+    topUniversities: [
+      {
+        name: "Universitat Autónoma de Barcelona (UAB)",
+        rankTag: "#161 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "Universidad Complutense de Madrid (UCM)",
+        rankTag: "#170 World",
+        type: "Public",
+      },
+      {
+        name: "IE University",
+        rankTag: "Top Business School EU",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "IE Business School and ESADE rank among Europe's top MBAs. Leading EU in student exchange via Erasmus.",
+  },
+  nl: {
+    literacyRate: 99,
+    avgSchoolingYears: 13.2,
+    pisaScore: 514,
+    topUniversities: [
+      {
+        name: "Delft University of Technology (TU Delft)",
+        rankTag: "#47 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "University of Amsterdam",
+        rankTag: "#53 World",
+        type: "Research",
+      },
+      { name: "Leiden University", rankTag: "#127 World", type: "Research" },
+    ],
+    eduNotes:
+      "Strong international student recruitment; most graduate programs taught in English.",
+  },
+  ch: {
+    literacyRate: 99,
+    avgSchoolingYears: 13.8,
+    pisaScore: 508,
+    topUniversities: [
+      { name: "ETH Zurich", rankTag: "#7 World (QS)", type: "Technical" },
+      { name: "EPFL Lausanne", rankTag: "#17 World (QS)", type: "Technical" },
+      { name: "University of Zurich", rankTag: "#83 World", type: "Research" },
+    ],
+    eduNotes:
+      "ETH Zurich and EPFL are among the world's top STEM universities. Strong dual vocational training system.",
+  },
+  se: {
+    literacyRate: 99,
+    avgSchoolingYears: 13.4,
+    pisaScore: 497,
+    topUniversities: [
+      {
+        name: "KTH Royal Institute of Technology",
+        rankTag: "#98 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "Karolinska Institutet",
+        rankTag: "#145 World / #1 Medicine Nordic",
+        type: "Research",
+      },
+      { name: "Lund University", rankTag: "#107 World", type: "Research" },
+    ],
+    eduNotes:
+      "Free university tuition for EU students. Students receive monthly stipend (SU). PISA scores have declined since 2006.",
+  },
+  no: {
+    literacyRate: 99,
+    avgSchoolingYears: 13.4,
+    pisaScore: 489,
+    topUniversities: [
+      {
+        name: "University of Oslo",
+        rankTag: "#119 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "NTNU (Norwegian Univ. of Science & Technology)",
+        rankTag: "#178 World",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Tuition-free for all students including internationals at public universities. Consistently top-10 globally in education quality.",
+  },
+  dk: {
+    literacyRate: 99,
+    avgSchoolingYears: 13.5,
+    pisaScore: 501,
+    topUniversities: [
+      {
+        name: "University of Copenhagen (UCPH)",
+        rankTag: "#97 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "Technical University of Denmark (DTU)",
+        rankTag: "#167 World",
+        type: "Technical",
+      },
+      { name: "Aarhus University", rankTag: "#141 World", type: "Research" },
+    ],
+    eduNotes:
+      "Free university education for all EU/EEA students. Students receive monthly stipend (SU) during studies.",
+  },
+  fi: {
+    literacyRate: 99,
+    avgSchoolingYears: 13.1,
+    pisaScore: 508,
+    topUniversities: [
+      {
+        name: "University of Helsinki",
+        rankTag: "#107 World (QS)",
+        type: "Research",
+      },
+      { name: "Aalto University", rankTag: "#131 World", type: "Technical" },
+    ],
+    eduNotes:
+      "Finland's education system is globally celebrated — no standardized testing until age 16, no homework in primary school. Ranked #1 globally in PISA 2006.",
+  },
+  pl: {
+    literacyRate: 99.8,
+    avgSchoolingYears: 12.5,
+    pisaScore: 516,
+    topUniversities: [
+      {
+        name: "University of Warsaw",
+        rankTag: "#284 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "Jagiellonian University (Kraków)",
+        rankTag: "#286 World / Founded 1364",
+        type: "Research",
+      },
+      {
+        name: "Warsaw University of Technology",
+        rankTag: "Top Engineering PL",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Poland has the highest PISA score improvement in OECD over 20 years. Jagiellonian (1364) is one of Europe's oldest universities.",
+  },
+  be: {
+    literacyRate: 99,
+    avgSchoolingYears: 12.8,
+    pisaScore: 492,
+    topUniversities: [
+      { name: "KU Leuven", rankTag: "#74 World (QS)", type: "Research" },
+      {
+        name: "Ghent University",
+        rankTag: "#71 World (THE)",
+        type: "Research",
+      },
+      {
+        name: "Université Libre de Bruxelles (ULB)",
+        rankTag: "Top French-speaking BE",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "Belgium has a complex education system divided along linguistic lines. KU Leuven is one of Europe's top research universities.",
+  },
+  at: {
+    literacyRate: 99,
+    avgSchoolingYears: 12.3,
+    pisaScore: 487,
+    topUniversities: [
+      {
+        name: "University of Vienna (Universität Wien)",
+        rankTag: "#150 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "Vienna University of Technology (TU Wien)",
+        rankTag: "Top STEM AT",
+        type: "Technical",
+      },
+      {
+        name: "WU Vienna (Vienna University of Economics)",
+        rankTag: "Top Business AT",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "University of Vienna (founded 1365) is one of the oldest universities in the German-speaking world.",
+  },
+  pt: {
+    literacyRate: 96.1,
+    avgSchoolingYears: 9.3,
+    pisaScore: 492,
+    topUniversities: [
+      {
+        name: "University of Lisbon (ULisboa)",
+        rankTag: "#327 World (QS)",
+        type: "Research",
+      },
+      { name: "University of Porto", rankTag: "Top 2 PT", type: "Research" },
+      {
+        name: "Nova School of Business and Economics (Nova SBE)",
+        rankTag: "Top Business PT",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "Portugal has dramatically improved literacy (from 87% in 2000) and tertiary enrollment. Nova SBE is a rising European business school.",
+  },
+  gr: {
+    literacyRate: 98.0,
+    avgSchoolingYears: 10.7,
+    pisaScore: 447,
+    topUniversities: [
+      {
+        name: "National and Kapodistrian University of Athens (NKUA)",
+        rankTag: "Top GR Public",
+        type: "Research",
+      },
+      {
+        name: "Aristotle University of Thessaloniki",
+        rankTag: "Top 2 GR",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "Greece has free public university education. Brain drain is severe — 400,000 educated Greeks emigrated during the 2010s debt crisis.",
+  },
+  cz: {
+    literacyRate: 99,
+    avgSchoolingYears: 13.1,
+    pisaScore: 497,
+    topUniversities: [
+      {
+        name: "Charles University (Univerzita Karlova)",
+        rankTag: "#251 World (QS) / Founded 1348",
+        type: "Research",
+      },
+      {
+        name: "Czech Technical University in Prague (CTU)",
+        rankTag: "Top STEM CZ",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Charles University (1348) is one of the oldest universities in Central Europe. Free public university tuition in Czech.",
+  },
+  ro: {
+    literacyRate: 98.8,
+    avgSchoolingYears: 10.9,
+    topUniversities: [
+      {
+        name: "Babeș-Bolyai University (UBB Cluj)",
+        rankTag: "Top RO by size",
+        type: "Research",
+      },
+      {
+        name: "University of Bucharest (UniBuc)",
+        rankTag: "Top RO Research",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "Strong IT talent pipeline — Romania produces world-class programmers. EU membership accelerated investment.",
+  },
+  hu: {
+    literacyRate: 99.1,
+    avgSchoolingYears: 12.3,
+    pisaScore: 476,
+    topUniversities: [
+      {
+        name: "Eötvös Loránd University (ELTE Budapest)",
+        rankTag: "#551 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "Budapest University of Technology & Economics (BME)",
+        rankTag: "Top Engineering HU",
+        type: "Technical",
+      },
+      {
+        name: "Central European University (CEU)",
+        rankTag: "Top Liberal Arts HU",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Strong mathematics tradition (Hungarian School of Mathematics). CEU was controversially relocated to Vienna after Orbán legislation.",
+  },
+  ua: {
+    literacyRate: 99.8,
+    avgSchoolingYears: 11.3,
+    pisaScore: 466,
+    topUniversities: [
+      {
+        name: "Taras Shevchenko National University of Kyiv",
+        rankTag: "#601 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "KPI Igor Sikorsky Polytechnic Institute",
+        rankTag: "Top Engineering UA",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "War since 2022 severely disrupted higher education. Ukrainian IT sector produces world-class engineers.",
+  },
+  // Asia extras
+  tw: {
+    literacyRate: 98.9,
+    avgSchoolingYears: 12.8,
+    pisaScore: 547,
+    topUniversities: [
+      {
+        name: "National Taiwan University (NTU)",
+        rankTag: "#68 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "National Tsing Hua University (NTHU)",
+        rankTag: "#102 World",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "PISA scores consistently top-5 globally, especially in math. Taiwan's 8 National Research Excellent universities focus on STEM.",
+  },
+  ph: {
+    literacyRate: 98.2,
+    avgSchoolingYears: 9.3,
+    pisaScore: 353,
+    topUniversities: [
+      {
+        name: "University of the Philippines (UP) Diliman",
+        rankTag: "#350 World (QS)",
+        type: "Public",
+      },
+      {
+        name: "Ateneo de Manila University",
+        rankTag: "Top Private PH",
+        type: "Private",
+      },
+      {
+        name: "University of Santo Tomas (UST)",
+        rankTag: "Oldest univ. in Asia (1611)",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Philippines has one of the highest English-proficiency rates in Asia — an asset for BPO sector.",
+  },
+  vn: {
+    literacyRate: 95.8,
+    avgSchoolingYears: 8.3,
+    pisaScore: 469,
+    topUniversities: [
+      {
+        name: "Vietnam National University Hanoi (VNU-HN)",
+        rankTag: "Top 500 QS Asia",
+        type: "Public",
+      },
+      {
+        name: "Hanoi University of Science & Technology (HUST)",
+        rankTag: "Top Engineering VN",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Vietnam's PISA scores are remarkably high for its income level — often outperforming OECD averages in math and science.",
+  },
+  pk: {
+    literacyRate: 58.0,
+    avgSchoolingYears: 5.2,
+    topUniversities: [
+      {
+        name: "NUST (National Univ. of Sciences & Technology)",
+        rankTag: "#400 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "LUMS (Lahore Univ. of Management Sciences)",
+        rankTag: "Top Private PK",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Pakistan's literacy rate is among the lowest in Asia. Significant gender gap: male literacy 71%, female 46%.",
+  },
+  bd: {
+    literacyRate: 74.9,
+    avgSchoolingYears: 6.2,
+    topUniversities: [
+      {
+        name: "University of Dhaka (DU)",
+        rankTag: "#801-1000 QS",
+        type: "Public",
+      },
+      {
+        name: "BUET (Bangladesh Univ. of Engineering & Technology)",
+        rankTag: "Top Engineering BD",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Bangladesh has made dramatic literacy gains (51% in 2000 → 75% in 2024). Primary school enrollment is nearly universal.",
+  },
+  ir: {
+    literacyRate: 89.5,
+    avgSchoolingYears: 10.3,
+    topUniversities: [
+      {
+        name: "Sharif University of Technology",
+        rankTag: "#301 World (QS)",
+        type: "Technical",
+      },
+      { name: "University of Tehran", rankTag: "Top IR", type: "Research" },
+    ],
+    eduNotes:
+      "Iran has one of the highest university enrollment rates in the Middle East (~50%). Brain drain is significant post-2022.",
+  },
+  kz: {
+    literacyRate: 99.8,
+    avgSchoolingYears: 11.8,
+    pisaScore: 430,
+    topUniversities: [
+      {
+        name: "Nazarbayev University",
+        rankTag: "Top 250 QS Asia",
+        type: "Research",
+      },
+      {
+        name: "Al-Farabi Kazakh National University",
+        rankTag: "Top 2 KZ",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "Nazarbayev University (2010) is modeled after western research universities. Bologna Process adopted 2010.",
+  },
+  // Africa extras
+  et: {
+    literacyRate: 51.8,
+    avgSchoolingYears: 3.1,
+    topUniversities: [
+      {
+        name: "Addis Ababa University (AAU)",
+        rankTag: "Oldest & Top Ethiopia",
+        type: "Public",
+      },
+      { name: "Jimma University", rankTag: "Top Medical ET", type: "Research" },
+    ],
+    eduNotes:
+      "AAU (1950) is sub-Saharan Africa's oldest university. Ethiopia has 45+ public universities — a 10x increase in 20 years.",
+  },
+  ke: {
+    literacyRate: 82.6,
+    avgSchoolingYears: 7.0,
+    topUniversities: [
+      {
+        name: "University of Nairobi",
+        rankTag: "Top 1000 QS World",
+        type: "Public",
+      },
+      {
+        name: "Strathmore University",
+        rankTag: "Top Private KE",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Kenya's education system is among the best in sub-Saharan Africa. Silicon Savannah hub attracts graduates.",
+  },
+  gh: {
+    literacyRate: 79.0,
+    avgSchoolingYears: 7.2,
+    topUniversities: [
+      {
+        name: "University of Ghana (Legon)",
+        rankTag: "Top GH",
+        type: "Public",
+      },
+      {
+        name: "Kwame Nkrumah University of Science & Technology (KNUST)",
+        rankTag: "Top STEM GH",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "KNUST is one of West Africa's top technical universities. Ghana has the highest tertiary enrollment in West Africa.",
+  },
+  tz: {
+    literacyRate: 77.9,
+    avgSchoolingYears: 5.8,
+    topUniversities: [
+      {
+        name: "University of Dar es Salaam",
+        rankTag: "Top TZ",
+        type: "Public",
+      },
+      {
+        name: "Sokoine University of Agriculture (SUA)",
+        rankTag: "Top Agriculture TZ",
+        type: "Public",
+      },
+    ],
+    eduNotes:
+      "Primary education is free and compulsory since 2016. Secondary and higher education access remains limited.",
+  },
+  ma: {
+    literacyRate: 76.4,
+    avgSchoolingYears: 6.0,
+    topUniversities: [
+      {
+        name: "Mohammed V University (UM5)",
+        rankTag: "Top MA Rabat",
+        type: "Public",
+      },
+      {
+        name: "Al Akhawayn University",
+        rankTag: "Top Private MA",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "Morocco is reforming education to be more bilingual (French/English alongside Arabic). Al Akhawayn is US-style liberal arts.",
+  },
+  dz: {
+    literacyRate: 81.4,
+    avgSchoolingYears: 8.1,
+    topUniversities: [
+      {
+        name: "University of Science & Technology Houari Boumediene (USTHB)",
+        rankTag: "Top STEM DZ",
+        type: "Technical",
+      },
+      {
+        name: "University of Algiers (USDB)",
+        rankTag: "Top DZ General",
+        type: "Public",
+      },
+    ],
+    eduNotes:
+      "Free public university education. Heavy focus on STEM fields tied to oil & gas economy.",
+  },
+  // Oceania extras
+  nz: {
+    literacyRate: 99,
+    avgSchoolingYears: 12.8,
+    pisaScore: 494,
+    topUniversities: [
+      {
+        name: "University of Auckland",
+        rankTag: "#65 World (QS)",
+        type: "Research",
+      },
+      {
+        name: "Victoria University of Wellington",
+        rankTag: "Top Policy NZ",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "New Zealand's 8 universities are all government-funded. Strong programs in Māori studies and Pacific Affairs.",
+  },
+  // Middle East extras
+  sa: {
+    literacyRate: 97.6,
+    avgSchoolingYears: 10.2,
+    pisaScore: 395,
+    topUniversities: [
+      {
+        name: "King Abdulaziz University (KAU)",
+        rankTag: "#136 World (QS)",
+        type: "Public",
+      },
+      {
+        name: "KAUST (King Abdullah Univ. of Science & Technology)",
+        rankTag: "Top Research SA",
+        type: "Research",
+      },
+      {
+        name: "KFUPM (King Fahd Univ. of Petroleum)",
+        rankTag: "#186 World (QS)",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Vision 2030 prioritizes STEM education reform. KAUST was founded with $20B endowment in 2009.",
+  },
+  ae: {
+    literacyRate: 96.3,
+    avgSchoolingYears: 10.2,
+    pisaScore: 434,
+    topUniversities: [
+      {
+        name: "Khalifa University",
+        rankTag: "#182 World (QS)",
+        type: "Technical",
+      },
+      { name: "UAE University (UAEU)", rankTag: "#301 World", type: "Public" },
+      {
+        name: "NYU Abu Dhabi",
+        rankTag: "Top International Campus",
+        type: "Private",
+      },
+    ],
+    eduNotes:
+      "NYU Abu Dhabi and Sorbonne Abu Dhabi operate branch campuses. 50%+ of students are international.",
+  },
+  il_as: {
+    literacyRate: 97.8,
+    avgSchoolingYears: 13.2,
+    pisaScore: 475,
+    topUniversities: [
+      {
+        name: "Hebrew University of Jerusalem",
+        rankTag: "Top 150 ARWU",
+        type: "Research",
+      },
+      {
+        name: "Technion – Israel Institute of Technology",
+        rankTag: "#81 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "Weizmann Institute of Science",
+        rankTag: "#1 Research Impact per Faculty",
+        type: "Research",
+      },
+    ],
+    eduNotes:
+      "Has more PhDs per capita than any other country. R&D spending at 5.6% of GDP (world's highest).",
+  },
+  tr: {
+    literacyRate: 97.4,
+    avgSchoolingYears: 8.8,
+    pisaScore: 453,
+    topUniversities: [
+      {
+        name: "Middle East Technical University (METU)",
+        rankTag: "#475 World (QS)",
+        type: "Technical",
+      },
+      {
+        name: "Boğaziçi University",
+        rankTag: "Top 2 Turkey",
+        type: "Research",
+      },
+      {
+        name: "Istanbul Technical University (ITÜ)",
+        rankTag: "Top Engineering TR",
+        type: "Technical",
+      },
+    ],
+    eduNotes:
+      "Turkey has 207 state + 73 private universities. ÖSYM centralized exam governs all university admissions.",
+  },
+};
+
+function getCountryEducationFull(country: Country): CountryEducationData {
+  return (
+    COUNTRY_EDUCATION[country.id] ??
+    COUNTRY_EDUCATION_EXTRA[country.id] ??
+    DEFAULT_EDUCATION
+  );
+}
+
+function getCountryEducation(country: Country): CountryEducationData {
+  return getCountryEducationFull(country);
+}
+
+const GraduationCapIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
+  </svg>
+);
+
+function CountryEducationPanel({ country }: { country: Country }) {
+  const edu = getCountryEducation(country);
+  const typeColors: Record<string, string> = {
+    Public: "text-blue-400 border-blue-500/30 bg-blue-500/10",
+    Private: "text-purple-400 border-purple-500/30 bg-purple-500/10",
+    Technical: "text-orange-400 border-orange-500/30 bg-orange-500/10",
+    Research: "text-green-400 border-green-500/30 bg-green-500/10",
+  };
+  return (
+    <div className="modal-tile rounded-lg p-4 mt-4">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="p-1.5 bg-indigo-500/10 rounded-md border border-indigo-500/20 shrink-0">
+          <span className="text-indigo-400 flex items-center">
+            <GraduationCapIcon />
+          </span>
+        </div>
+        <div>
+          <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+            Education Ranking & Top Universities
+          </h3>
+          <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+            QS World Rankings, PISA scores &amp; literacy data
+          </p>
+        </div>
+        {edu.globalEduRank && (
+          <span className="ml-auto text-[10px] font-mono text-indigo-400 border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 rounded-full">
+            #{edu.globalEduRank} Global Edu Rank
+          </span>
+        )}
+      </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
+          <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
+            Literacy Rate
+          </p>
+          <p
+            className={`text-base font-bold font-mono ${edu.literacyRate >= 95 ? "text-success" : edu.literacyRate >= 80 ? "text-warning" : "text-destructive"}`}
+          >
+            {edu.literacyRate}%
+          </p>
+        </div>
+        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
+          <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
+            Avg. Schooling
+          </p>
+          <p className="text-base font-bold font-mono text-foreground">
+            {edu.avgSchoolingYears} yrs
+          </p>
+        </div>
+        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
+          <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
+            PISA Score
+          </p>
+          <p
+            className={`text-base font-bold font-mono ${edu.pisaScore ? (edu.pisaScore >= 520 ? "text-success" : edu.pisaScore >= 470 ? "text-secondary" : "text-warning") : "text-muted-foreground"}`}
+          >
+            {edu.pisaScore ?? "N/A"}
+          </p>
+        </div>
+      </div>
+
+      {/* Literacy bar */}
+      <div className="mb-4">
+        <div className="flex justify-between text-[10px] mb-1">
+          <span className="text-muted-foreground font-sans">Literacy Rate</span>
+          <span
+            className={`font-mono font-semibold ${edu.literacyRate >= 95 ? "text-success" : edu.literacyRate >= 80 ? "text-warning" : "text-destructive"}`}
+          >
+            {edu.literacyRate}%
+          </span>
+        </div>
+        <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-700"
+            style={{
+              width: `${edu.literacyRate}%`,
+              background:
+                edu.literacyRate >= 95
+                  ? "hsl(142,71%,45%)"
+                  : edu.literacyRate >= 80
+                    ? "hsl(38,92%,50%)"
+                    : "hsl(0,70%,55%)",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Top Universities */}
+      <div className="mb-3">
+        <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+          Top Universities & Schools
+        </p>
+        <div className="space-y-2">
+          {edu.topUniversities.map((u, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-2.5 p-2 rounded-lg bg-background/30 border border-border/40"
+            >
+              <span className="w-5 h-5 flex items-center justify-center rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-mono font-bold shrink-0">
+                {i + 1}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-sans font-medium text-foreground truncate">
+                  {u.name}
+                </p>
+                {u.rankTag && (
+                  <p className="text-[10px] font-mono text-muted-foreground">
+                    {u.rankTag}
+                  </p>
+                )}
+              </div>
+              <span
+                className={`text-[10px] font-sans px-1.5 py-0.5 rounded-full border shrink-0 ${typeColors[u.type]}`}
+              >
+                {u.type}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Notes */}
+      {edu.eduNotes && (
+        <div className="rounded-lg bg-indigo-500/5 border border-indigo-500/20 p-3">
+          <p className="text-[11px] font-sans text-muted-foreground leading-relaxed">
+            {edu.eduNotes}
+          </p>
+        </div>
+      )}
+      <SourceLink
+        sources={[
+          {
+            label: "QS World University Rankings",
+            url: "https://www.topuniversities.com/university-rankings",
+          },
+          { label: "PISA 2022 Results", url: "https://www.oecd.org/pisa/" },
+        ]}
+        className="mt-2"
+      />
+    </div>
+  );
+}
+
+// ── Housing & Transportation Data ────────────────────────────────────────────
+interface HousingStats {
+  medianHomePriceUSD: number;
+  medianRentMonthlyUSD: number;
+  homeOwnershipPct: number;
+  priceToIncomeRatio: number;
+  yoyPriceChangePct: number;
+  affordabilityIndex: number; // 0-100, higher = more affordable
+  vacancyRatePct?: number;
+  socialHousingPct?: number;
+  mortgageRateAvgPct?: number;
+}
+
+interface TransportStats {
+  publicTransitUsagePct: number; // % of commuters using public transit
+  roadDensityKmPer100km2: number;
+  railNetworkKm: number;
+  airports: number;
+  seaports?: number;
+  evAdoptionPct: number; // % of new car sales that are EV
+  avgCommuteMinutes?: number;
+  highSpeedRailKm?: number;
+  metroSystems?: number;
+}
+
+interface CountryHousingTransport {
+  housing: HousingStats;
+  transport: TransportStats;
+}
+
+const COUNTRY_HOUSING_TRANSPORT: Record<string, CountryHousingTransport> = {
+  us: {
+    housing: {
+      medianHomePriceUSD: 420000,
+      medianRentMonthlyUSD: 1820,
+      homeOwnershipPct: 65.8,
+      priceToIncomeRatio: 6.2,
+      yoyPriceChangePct: 4.1,
+      affordabilityIndex: 38,
+      vacancyRatePct: 5.8,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 7.1,
+    },
+    transport: {
+      publicTransitUsagePct: 5,
+      roadDensityKmPer100km2: 68,
+      railNetworkKm: 250000,
+      airports: 5054,
+      seaports: 400,
+      evAdoptionPct: 8.5,
+      avgCommuteMinutes: 27,
+      highSpeedRailKm: 0,
+      metroSystems: 28,
+    },
+  },
+  cn: {
+    housing: {
+      medianHomePriceUSD: 210000,
+      medianRentMonthlyUSD: 620,
+      homeOwnershipPct: 89.7,
+      priceToIncomeRatio: 16.8,
+      yoyPriceChangePct: -3.2,
+      affordabilityIndex: 22,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 5.0,
+      mortgageRateAvgPct: 3.8,
+    },
+    transport: {
+      publicTransitUsagePct: 45,
+      roadDensityKmPer100km2: 52,
+      railNetworkKm: 159000,
+      airports: 248,
+      seaports: 34,
+      evAdoptionPct: 38.0,
+      avgCommuteMinutes: 47,
+      highSpeedRailKm: 45000,
+      metroSystems: 55,
+    },
+  },
+  de: {
+    housing: {
+      medianHomePriceUSD: 380000,
+      medianRentMonthlyUSD: 1240,
+      homeOwnershipPct: 42.1,
+      priceToIncomeRatio: 9.4,
+      yoyPriceChangePct: -2.8,
+      affordabilityIndex: 44,
+      vacancyRatePct: 3.2,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 3.9,
+    },
+    transport: {
+      publicTransitUsagePct: 30,
+      roadDensityKmPer100km2: 180,
+      railNetworkKm: 39000,
+      airports: 39,
+      seaports: 12,
+      evAdoptionPct: 18.4,
+      avgCommuteMinutes: 31,
+      highSpeedRailKm: 1571,
+      metroSystems: 5,
+    },
+  },
+  gb: {
+    housing: {
+      medianHomePriceUSD: 340000,
+      medianRentMonthlyUSD: 1680,
+      homeOwnershipPct: 63.0,
+      priceToIncomeRatio: 9.1,
+      yoyPriceChangePct: 1.6,
+      affordabilityIndex: 35,
+      vacancyRatePct: 2.6,
+      socialHousingPct: 17.0,
+      mortgageRateAvgPct: 5.2,
+    },
+    transport: {
+      publicTransitUsagePct: 38,
+      roadDensityKmPer100km2: 172,
+      railNetworkKm: 16000,
+      airports: 30,
+      seaports: 48,
+      evAdoptionPct: 21.9,
+      avgCommuteMinutes: 36,
+      highSpeedRailKm: 108,
+      metroSystems: 4,
+    },
+  },
+  fr: {
+    housing: {
+      medianHomePriceUSD: 310000,
+      medianRentMonthlyUSD: 1040,
+      homeOwnershipPct: 57.8,
+      priceToIncomeRatio: 10.2,
+      yoyPriceChangePct: -3.5,
+      affordabilityIndex: 39,
+      vacancyRatePct: 8.2,
+      socialHousingPct: 17.0,
+      mortgageRateAvgPct: 4.1,
+    },
+    transport: {
+      publicTransitUsagePct: 34,
+      roadDensityKmPer100km2: 186,
+      railNetworkKm: 28000,
+      airports: 83,
+      seaports: 20,
+      evAdoptionPct: 22.1,
+      avgCommuteMinutes: 34,
+      highSpeedRailKm: 2734,
+      metroSystems: 5,
+    },
+  },
+  jp: {
+    housing: {
+      medianHomePriceUSD: 480000,
+      medianRentMonthlyUSD: 980,
+      homeOwnershipPct: 61.2,
+      priceToIncomeRatio: 13.8,
+      yoyPriceChangePct: 7.4,
+      affordabilityIndex: 28,
+      vacancyRatePct: 13.8,
+      socialHousingPct: 7.0,
+      mortgageRateAvgPct: 0.8,
+    },
+    transport: {
+      publicTransitUsagePct: 62,
+      roadDensityKmPer100km2: 330,
+      railNetworkKm: 27000,
+      airports: 97,
+      seaports: 120,
+      evAdoptionPct: 5.2,
+      avgCommuteMinutes: 48,
+      highSpeedRailKm: 3041,
+      metroSystems: 12,
+    },
+  },
+  in: {
+    housing: {
+      medianHomePriceUSD: 58000,
+      medianRentMonthlyUSD: 220,
+      homeOwnershipPct: 86.6,
+      priceToIncomeRatio: 11.2,
+      yoyPriceChangePct: 8.2,
+      affordabilityIndex: 31,
+      vacancyRatePct: 11.9,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 8.8,
+    },
+    transport: {
+      publicTransitUsagePct: 55,
+      roadDensityKmPer100km2: 156,
+      railNetworkKm: 68000,
+      airports: 137,
+      seaports: 13,
+      evAdoptionPct: 6.4,
+      avgCommuteMinutes: 51,
+      highSpeedRailKm: 0,
+      metroSystems: 20,
+    },
+  },
+  br: {
+    housing: {
+      medianHomePriceUSD: 96000,
+      medianRentMonthlyUSD: 480,
+      homeOwnershipPct: 73.8,
+      priceToIncomeRatio: 9.6,
+      yoyPriceChangePct: 6.1,
+      affordabilityIndex: 33,
+      vacancyRatePct: 7.2,
+      socialHousingPct: 1.5,
+      mortgageRateAvgPct: 10.2,
+    },
+    transport: {
+      publicTransitUsagePct: 42,
+      roadDensityKmPer100km2: 21,
+      railNetworkKm: 29849,
+      airports: 578,
+      seaports: 34,
+      evAdoptionPct: 3.2,
+      avgCommuteMinutes: 47,
+      highSpeedRailKm: 0,
+      metroSystems: 10,
+    },
+  },
+  au_oc: {
+    housing: {
+      medianHomePriceUSD: 680000,
+      medianRentMonthlyUSD: 1920,
+      homeOwnershipPct: 65.5,
+      priceToIncomeRatio: 12.4,
+      yoyPriceChangePct: 6.8,
+      affordabilityIndex: 24,
+      vacancyRatePct: 1.0,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 6.3,
+    },
+    transport: {
+      publicTransitUsagePct: 18,
+      roadDensityKmPer100km2: 10,
+      railNetworkKm: 33000,
+      airports: 480,
+      seaports: 70,
+      evAdoptionPct: 9.8,
+      avgCommuteMinutes: 32,
+      highSpeedRailKm: 0,
+      metroSystems: 3,
+    },
+  },
+  ca: {
+    housing: {
+      medianHomePriceUSD: 590000,
+      medianRentMonthlyUSD: 1740,
+      homeOwnershipPct: 66.5,
+      priceToIncomeRatio: 11.8,
+      yoyPriceChangePct: -2.1,
+      affordabilityIndex: 26,
+      vacancyRatePct: 1.5,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 5.7,
+    },
+    transport: {
+      publicTransitUsagePct: 22,
+      roadDensityKmPer100km2: 15,
+      railNetworkKm: 41000,
+      airports: 1300,
+      seaports: 30,
+      evAdoptionPct: 12.4,
+      avgCommuteMinutes: 30,
+      highSpeedRailKm: 0,
+      metroSystems: 5,
+    },
+  },
+  kr: {
+    housing: {
+      medianHomePriceUSD: 520000,
+      medianRentMonthlyUSD: 890,
+      homeOwnershipPct: 56.0,
+      priceToIncomeRatio: 17.2,
+      yoyPriceChangePct: -1.8,
+      affordabilityIndex: 26,
+      vacancyRatePct: 5.8,
+      socialHousingPct: 6.5,
+      mortgageRateAvgPct: 4.4,
+    },
+    transport: {
+      publicTransitUsagePct: 68,
+      roadDensityKmPer100km2: 142,
+      railNetworkKm: 4228,
+      airports: 15,
+      seaports: 30,
+      evAdoptionPct: 9.2,
+      avgCommuteMinutes: 41,
+      highSpeedRailKm: 1177,
+      metroSystems: 8,
+    },
+  },
+  sg: {
+    housing: {
+      medianHomePriceUSD: 1100000,
+      medianRentMonthlyUSD: 3200,
+      homeOwnershipPct: 89.3,
+      priceToIncomeRatio: 20.4,
+      yoyPriceChangePct: 2.8,
+      affordabilityIndex: 18,
+      vacancyRatePct: 5.0,
+      socialHousingPct: 78.0,
+      mortgageRateAvgPct: 4.0,
+    },
+    transport: {
+      publicTransitUsagePct: 74,
+      roadDensityKmPer100km2: 490,
+      railNetworkKm: 230,
+      airports: 1,
+      seaports: 1,
+      evAdoptionPct: 5.0,
+      avgCommuteMinutes: 41,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  ae: {
+    housing: {
+      medianHomePriceUSD: 580000,
+      medianRentMonthlyUSD: 2800,
+      homeOwnershipPct: 22.0,
+      priceToIncomeRatio: 11.4,
+      yoyPriceChangePct: 14.2,
+      affordabilityIndex: 32,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 0.5,
+      mortgageRateAvgPct: 5.2,
+    },
+    transport: {
+      publicTransitUsagePct: 22,
+      roadDensityKmPer100km2: 94,
+      railNetworkKm: 130,
+      airports: 8,
+      seaports: 12,
+      evAdoptionPct: 1.6,
+      avgCommuteMinutes: 38,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  il_as: {
+    housing: {
+      medianHomePriceUSD: 640000,
+      medianRentMonthlyUSD: 2100,
+      homeOwnershipPct: 67.3,
+      priceToIncomeRatio: 18.6,
+      yoyPriceChangePct: -3.2,
+      affordabilityIndex: 20,
+      vacancyRatePct: 3.2,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 5.4,
+    },
+    transport: {
+      publicTransitUsagePct: 28,
+      roadDensityKmPer100km2: 240,
+      railNetworkKm: 1510,
+      airports: 7,
+      seaports: 5,
+      evAdoptionPct: 16.2,
+      avgCommuteMinutes: 43,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  tr: {
+    housing: {
+      medianHomePriceUSD: 110000,
+      medianRentMonthlyUSD: 520,
+      homeOwnershipPct: 56.8,
+      priceToIncomeRatio: 7.6,
+      yoyPriceChangePct: 78.2,
+      affordabilityIndex: 30,
+      vacancyRatePct: 10.4,
+      socialHousingPct: 5.0,
+      mortgageRateAvgPct: 42.0,
+    },
+    transport: {
+      publicTransitUsagePct: 39,
+      roadDensityKmPer100km2: 52,
+      railNetworkKm: 13710,
+      airports: 55,
+      seaports: 24,
+      evAdoptionPct: 3.4,
+      avgCommuteMinutes: 42,
+      highSpeedRailKm: 1213,
+      metroSystems: 7,
+    },
+  },
+  za: {
+    housing: {
+      medianHomePriceUSD: 76000,
+      medianRentMonthlyUSD: 380,
+      homeOwnershipPct: 53.2,
+      priceToIncomeRatio: 9.8,
+      yoyPriceChangePct: 1.4,
+      affordabilityIndex: 36,
+      vacancyRatePct: 14.6,
+      socialHousingPct: 28.0,
+      mortgageRateAvgPct: 12.0,
+    },
+    transport: {
+      publicTransitUsagePct: 48,
+      roadDensityKmPer100km2: 38,
+      railNetworkKm: 20490,
+      airports: 47,
+      seaports: 8,
+      evAdoptionPct: 0.3,
+      avgCommuteMinutes: 58,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  ng: {
+    housing: {
+      medianHomePriceUSD: 42000,
+      medianRentMonthlyUSD: 210,
+      homeOwnershipPct: 73.1,
+      priceToIncomeRatio: 12.4,
+      yoyPriceChangePct: 38.4,
+      affordabilityIndex: 22,
+      vacancyRatePct: 18.0,
+      socialHousingPct: 0.5,
+      mortgageRateAvgPct: 28.0,
+    },
+    transport: {
+      publicTransitUsagePct: 68,
+      roadDensityKmPer100km2: 22,
+      railNetworkKm: 3505,
+      airports: 36,
+      seaports: 6,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 66,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  eg: {
+    housing: {
+      medianHomePriceUSD: 68000,
+      medianRentMonthlyUSD: 290,
+      homeOwnershipPct: 78.4,
+      priceToIncomeRatio: 14.2,
+      yoyPriceChangePct: 52.0,
+      affordabilityIndex: 21,
+      vacancyRatePct: 22.0,
+      socialHousingPct: 8.0,
+      mortgageRateAvgPct: 27.5,
+    },
+    transport: {
+      publicTransitUsagePct: 58,
+      roadDensityKmPer100km2: 14,
+      railNetworkKm: 10500,
+      airports: 22,
+      seaports: 8,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 72,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  ru: {
+    housing: {
+      medianHomePriceUSD: 128000,
+      medianRentMonthlyUSD: 480,
+      homeOwnershipPct: 89.0,
+      priceToIncomeRatio: 7.4,
+      yoyPriceChangePct: 12.8,
+      affordabilityIndex: 40,
+      vacancyRatePct: 6.0,
+      socialHousingPct: 14.0,
+      mortgageRateAvgPct: 16.5,
+    },
+    transport: {
+      publicTransitUsagePct: 56,
+      roadDensityKmPer100km2: 6,
+      railNetworkKm: 85600,
+      airports: 227,
+      seaports: 22,
+      evAdoptionPct: 1.4,
+      avgCommuteMinutes: 44,
+      highSpeedRailKm: 380,
+      metroSystems: 7,
+    },
+  },
+  sa: {
+    housing: {
+      medianHomePriceUSD: 270000,
+      medianRentMonthlyUSD: 1100,
+      homeOwnershipPct: 67.0,
+      priceToIncomeRatio: 9.6,
+      yoyPriceChangePct: 5.2,
+      affordabilityIndex: 44,
+      vacancyRatePct: 16.0,
+      socialHousingPct: 10.0,
+      mortgageRateAvgPct: 5.8,
+    },
+    transport: {
+      publicTransitUsagePct: 12,
+      roadDensityKmPer100km2: 6,
+      railNetworkKm: 5400,
+      airports: 27,
+      seaports: 12,
+      evAdoptionPct: 0.8,
+      avgCommuteMinutes: 44,
+      highSpeedRailKm: 450,
+      metroSystems: 2,
+    },
+  },
+  ar: {
+    housing: {
+      medianHomePriceUSD: 74000,
+      medianRentMonthlyUSD: 320,
+      homeOwnershipPct: 67.4,
+      priceToIncomeRatio: 8.2,
+      yoyPriceChangePct: 168.0,
+      affordabilityIndex: 34,
+      vacancyRatePct: 9.8,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 120.0,
+    },
+    transport: {
+      publicTransitUsagePct: 58,
+      roadDensityKmPer100km2: 8,
+      railNetworkKm: 25000,
+      airports: 150,
+      seaports: 10,
+      evAdoptionPct: 0.8,
+      avgCommuteMinutes: 52,
+      highSpeedRailKm: 0,
+      metroSystems: 2,
+    },
+  },
+  mx: {
+    housing: {
+      medianHomePriceUSD: 82000,
+      medianRentMonthlyUSD: 420,
+      homeOwnershipPct: 74.5,
+      priceToIncomeRatio: 8.8,
+      yoyPriceChangePct: 9.4,
+      affordabilityIndex: 38,
+      vacancyRatePct: 14.2,
+      socialHousingPct: 7.0,
+      mortgageRateAvgPct: 10.8,
+    },
+    transport: {
+      publicTransitUsagePct: 62,
+      roadDensityKmPer100km2: 20,
+      railNetworkKm: 20900,
+      airports: 76,
+      seaports: 18,
+      evAdoptionPct: 2.2,
+      avgCommuteMinutes: 51,
+      highSpeedRailKm: 0,
+      metroSystems: 4,
+    },
+  },
+  id: {
+    housing: {
+      medianHomePriceUSD: 52000,
+      medianRentMonthlyUSD: 280,
+      homeOwnershipPct: 80.6,
+      priceToIncomeRatio: 9.4,
+      yoyPriceChangePct: 4.6,
+      affordabilityIndex: 36,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 2.5,
+      mortgageRateAvgPct: 11.2,
+    },
+    transport: {
+      publicTransitUsagePct: 54,
+      roadDensityKmPer100km2: 22,
+      railNetworkKm: 8159,
+      airports: 237,
+      seaports: 111,
+      evAdoptionPct: 3.0,
+      avgCommuteMinutes: 55,
+      highSpeedRailKm: 142,
+      metroSystems: 3,
+    },
+  },
+  my: {
+    housing: {
+      medianHomePriceUSD: 118000,
+      medianRentMonthlyUSD: 560,
+      homeOwnershipPct: 76.2,
+      priceToIncomeRatio: 8.6,
+      yoyPriceChangePct: 3.8,
+      affordabilityIndex: 40,
+      vacancyRatePct: 11.4,
+      socialHousingPct: 5.0,
+      mortgageRateAvgPct: 4.2,
+    },
+    transport: {
+      publicTransitUsagePct: 32,
+      roadDensityKmPer100km2: 44,
+      railNetworkKm: 3000,
+      airports: 38,
+      seaports: 7,
+      evAdoptionPct: 4.8,
+      avgCommuteMinutes: 44,
+      highSpeedRailKm: 0,
+      metroSystems: 3,
+    },
+  },
+  vn: {
+    housing: {
+      medianHomePriceUSD: 64000,
+      medianRentMonthlyUSD: 310,
+      homeOwnershipPct: 82.0,
+      priceToIncomeRatio: 11.2,
+      yoyPriceChangePct: 6.4,
+      affordabilityIndex: 28,
+      vacancyRatePct: 14.8,
+      socialHousingPct: 1.5,
+      mortgageRateAvgPct: 9.8,
+    },
+    transport: {
+      publicTransitUsagePct: 48,
+      roadDensityKmPer100km2: 44,
+      railNetworkKm: 2652,
+      airports: 22,
+      seaports: 44,
+      evAdoptionPct: 12.0,
+      avgCommuteMinutes: 46,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  th: {
+    housing: {
+      medianHomePriceUSD: 88000,
+      medianRentMonthlyUSD: 490,
+      homeOwnershipPct: 81.4,
+      priceToIncomeRatio: 8.4,
+      yoyPriceChangePct: 2.6,
+      affordabilityIndex: 42,
+      vacancyRatePct: 18.6,
+      socialHousingPct: 1.5,
+      mortgageRateAvgPct: 7.2,
+    },
+    transport: {
+      publicTransitUsagePct: 44,
+      roadDensityKmPer100km2: 52,
+      railNetworkKm: 4180,
+      airports: 38,
+      seaports: 10,
+      evAdoptionPct: 11.2,
+      avgCommuteMinutes: 50,
+      highSpeedRailKm: 0,
+      metroSystems: 3,
+    },
+  },
+  ph: {
+    housing: {
+      medianHomePriceUSD: 78000,
+      medianRentMonthlyUSD: 360,
+      homeOwnershipPct: 54.8,
+      priceToIncomeRatio: 10.8,
+      yoyPriceChangePct: 3.2,
+      affordabilityIndex: 30,
+      vacancyRatePct: 18.0,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 7.8,
+    },
+    transport: {
+      publicTransitUsagePct: 72,
+      roadDensityKmPer100km2: 20,
+      railNetworkKm: 1060,
+      airports: 85,
+      seaports: 32,
+      evAdoptionPct: 0.8,
+      avgCommuteMinutes: 68,
+      highSpeedRailKm: 0,
+      metroSystems: 3,
+    },
+  },
+  pk: {
+    housing: {
+      medianHomePriceUSD: 38000,
+      medianRentMonthlyUSD: 180,
+      homeOwnershipPct: 62.0,
+      priceToIncomeRatio: 10.4,
+      yoyPriceChangePct: 22.0,
+      affordabilityIndex: 25,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 0.5,
+      mortgageRateAvgPct: 22.0,
+    },
+    transport: {
+      publicTransitUsagePct: 64,
+      roadDensityKmPer100km2: 32,
+      railNetworkKm: 7791,
+      airports: 48,
+      seaports: 3,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 58,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  bd: {
+    housing: {
+      medianHomePriceUSD: 32000,
+      medianRentMonthlyUSD: 160,
+      homeOwnershipPct: 72.0,
+      priceToIncomeRatio: 12.0,
+      yoyPriceChangePct: 8.8,
+      affordabilityIndex: 22,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 12.0,
+    },
+    transport: {
+      publicTransitUsagePct: 66,
+      roadDensityKmPer100km2: 28,
+      railNetworkKm: 3000,
+      airports: 8,
+      seaports: 2,
+      evAdoptionPct: 0.3,
+      avgCommuteMinutes: 64,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  ua: {
+    housing: {
+      medianHomePriceUSD: 58000,
+      medianRentMonthlyUSD: 380,
+      homeOwnershipPct: 93.0,
+      priceToIncomeRatio: 6.8,
+      yoyPriceChangePct: -18.0,
+      affordabilityIndex: 46,
+      vacancyRatePct: 28.0,
+      socialHousingPct: 12.0,
+      mortgageRateAvgPct: 18.0,
+    },
+    transport: {
+      publicTransitUsagePct: 64,
+      roadDensityKmPer100km2: 28,
+      railNetworkKm: 21600,
+      airports: 22,
+      seaports: 8,
+      evAdoptionPct: 8.2,
+      avgCommuteMinutes: 38,
+      highSpeedRailKm: 0,
+      metroSystems: 3,
+    },
+  },
+  pl: {
+    housing: {
+      medianHomePriceUSD: 220000,
+      medianRentMonthlyUSD: 840,
+      homeOwnershipPct: 84.2,
+      priceToIncomeRatio: 10.8,
+      yoyPriceChangePct: 12.4,
+      affordabilityIndex: 34,
+      vacancyRatePct: 4.8,
+      socialHousingPct: 8.0,
+      mortgageRateAvgPct: 7.4,
+    },
+    transport: {
+      publicTransitUsagePct: 38,
+      roadDensityKmPer100km2: 92,
+      railNetworkKm: 19000,
+      airports: 14,
+      seaports: 4,
+      evAdoptionPct: 4.6,
+      avgCommuteMinutes: 32,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  it: {
+    housing: {
+      medianHomePriceUSD: 210000,
+      medianRentMonthlyUSD: 820,
+      homeOwnershipPct: 72.4,
+      priceToIncomeRatio: 9.2,
+      yoyPriceChangePct: 0.8,
+      affordabilityIndex: 42,
+      vacancyRatePct: 22.0,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 4.1,
+    },
+    transport: {
+      publicTransitUsagePct: 28,
+      roadDensityKmPer100km2: 174,
+      railNetworkKm: 16700,
+      airports: 45,
+      seaports: 30,
+      evAdoptionPct: 4.8,
+      avgCommuteMinutes: 35,
+      highSpeedRailKm: 921,
+      metroSystems: 5,
+    },
+  },
+  es: {
+    housing: {
+      medianHomePriceUSD: 260000,
+      medianRentMonthlyUSD: 980,
+      homeOwnershipPct: 76.0,
+      priceToIncomeRatio: 10.4,
+      yoyPriceChangePct: 7.2,
+      affordabilityIndex: 38,
+      vacancyRatePct: 14.4,
+      socialHousingPct: 2.5,
+      mortgageRateAvgPct: 4.8,
+    },
+    transport: {
+      publicTransitUsagePct: 32,
+      roadDensityKmPer100km2: 120,
+      railNetworkKm: 15000,
+      airports: 47,
+      seaports: 46,
+      evAdoptionPct: 5.8,
+      avgCommuteMinutes: 36,
+      highSpeedRailKm: 3900,
+      metroSystems: 4,
+    },
+  },
+  ir: {
+    housing: {
+      medianHomePriceUSD: 96000,
+      medianRentMonthlyUSD: 440,
+      homeOwnershipPct: 71.2,
+      priceToIncomeRatio: 12.8,
+      yoyPriceChangePct: 44.0,
+      affordabilityIndex: 24,
+      vacancyRatePct: 20.0,
+      socialHousingPct: 6.0,
+      mortgageRateAvgPct: 28.0,
+    },
+    transport: {
+      publicTransitUsagePct: 46,
+      roadDensityKmPer100km2: 12,
+      railNetworkKm: 13500,
+      airports: 54,
+      seaports: 10,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 54,
+      highSpeedRailKm: 0,
+      metroSystems: 5,
+    },
+  },
+  et: {
+    housing: {
+      medianHomePriceUSD: 24000,
+      medianRentMonthlyUSD: 110,
+      homeOwnershipPct: 60.2,
+      priceToIncomeRatio: 8.8,
+      yoyPriceChangePct: 22.0,
+      affordabilityIndex: 28,
+      vacancyRatePct: 6.0,
+      socialHousingPct: 8.0,
+      mortgageRateAvgPct: 14.0,
+    },
+    transport: {
+      publicTransitUsagePct: 58,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 660,
+      airports: 57,
+      seaports: 0,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 60,
+      highSpeedRailKm: 756,
+      metroSystems: 0,
+    },
+  },
+  ke: {
+    housing: {
+      medianHomePriceUSD: 38000,
+      medianRentMonthlyUSD: 190,
+      homeOwnershipPct: 54.4,
+      priceToIncomeRatio: 9.6,
+      yoyPriceChangePct: 6.2,
+      affordabilityIndex: 30,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 14.5,
+    },
+    transport: {
+      publicTransitUsagePct: 72,
+      roadDensityKmPer100km2: 8,
+      railNetworkKm: 3400,
+      airports: 16,
+      seaports: 2,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 62,
+      highSpeedRailKm: 485,
+      metroSystems: 0,
+    },
+  },
+  se: {
+    housing: {
+      medianHomePriceUSD: 420000,
+      medianRentMonthlyUSD: 1380,
+      homeOwnershipPct: 64.2,
+      priceToIncomeRatio: 10.8,
+      yoyPriceChangePct: -2.4,
+      affordabilityIndex: 36,
+      vacancyRatePct: 1.2,
+      socialHousingPct: 20.0,
+      mortgageRateAvgPct: 4.6,
+    },
+    transport: {
+      publicTransitUsagePct: 36,
+      roadDensityKmPer100km2: 48,
+      railNetworkKm: 10000,
+      airports: 32,
+      seaports: 56,
+      evAdoptionPct: 38.2,
+      avgCommuteMinutes: 29,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  no: {
+    housing: {
+      medianHomePriceUSD: 440000,
+      medianRentMonthlyUSD: 1480,
+      homeOwnershipPct: 77.4,
+      priceToIncomeRatio: 8.2,
+      yoyPriceChangePct: 4.8,
+      affordabilityIndex: 42,
+      vacancyRatePct: 1.8,
+      socialHousingPct: 5.0,
+      mortgageRateAvgPct: 5.6,
+    },
+    transport: {
+      publicTransitUsagePct: 32,
+      roadDensityKmPer100km2: 30,
+      railNetworkKm: 3964,
+      airports: 52,
+      seaports: 90,
+      evAdoptionPct: 82.4,
+      avgCommuteMinutes: 28,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  cl: {
+    housing: {
+      medianHomePriceUSD: 168000,
+      medianRentMonthlyUSD: 680,
+      homeOwnershipPct: 67.8,
+      priceToIncomeRatio: 9.4,
+      yoyPriceChangePct: 3.6,
+      affordabilityIndex: 36,
+      vacancyRatePct: 4.8,
+      socialHousingPct: 10.0,
+      mortgageRateAvgPct: 6.8,
+    },
+    transport: {
+      publicTransitUsagePct: 52,
+      roadDensityKmPer100km2: 12,
+      railNetworkKm: 6380,
+      airports: 82,
+      seaports: 16,
+      evAdoptionPct: 2.8,
+      avgCommuteMinutes: 46,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  kp: {
+    housing: {
+      medianHomePriceUSD: 12000,
+      medianRentMonthlyUSD: 40,
+      homeOwnershipPct: 10.0,
+      priceToIncomeRatio: 4.2,
+      yoyPriceChangePct: 0.0,
+      affordabilityIndex: 55,
+      vacancyRatePct: 2.0,
+      socialHousingPct: 90.0,
+      mortgageRateAvgPct: 0.0,
+    },
+    transport: {
+      publicTransitUsagePct: 82,
+      roadDensityKmPer100km2: 10,
+      railNetworkKm: 7542,
+      airports: 22,
+      seaports: 8,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 38,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  // ── Europe (additional) ──────────────────────────────────────────────────
+  es: {
+    housing: {
+      medianHomePriceUSD: 260000,
+      medianRentMonthlyUSD: 980,
+      homeOwnershipPct: 76.0,
+      priceToIncomeRatio: 10.4,
+      yoyPriceChangePct: 7.2,
+      affordabilityIndex: 38,
+      vacancyRatePct: 14.4,
+      socialHousingPct: 2.5,
+      mortgageRateAvgPct: 4.8,
+    },
+    transport: {
+      publicTransitUsagePct: 32,
+      roadDensityKmPer100km2: 120,
+      railNetworkKm: 15000,
+      airports: 47,
+      seaports: 46,
+      evAdoptionPct: 5.8,
+      avgCommuteMinutes: 36,
+      highSpeedRailKm: 3900,
+      metroSystems: 4,
+    },
+  },
+  nl: {
+    housing: {
+      medianHomePriceUSD: 430000,
+      medianRentMonthlyUSD: 1540,
+      homeOwnershipPct: 69.2,
+      priceToIncomeRatio: 11.8,
+      yoyPriceChangePct: 8.4,
+      affordabilityIndex: 32,
+      vacancyRatePct: 2.2,
+      socialHousingPct: 34.0,
+      mortgageRateAvgPct: 4.2,
+    },
+    transport: {
+      publicTransitUsagePct: 40,
+      roadDensityKmPer100km2: 280,
+      railNetworkKm: 3200,
+      airports: 6,
+      seaports: 4,
+      evAdoptionPct: 30.4,
+      avgCommuteMinutes: 29,
+      highSpeedRailKm: 120,
+      metroSystems: 4,
+    },
+  },
+  ch: {
+    housing: {
+      medianHomePriceUSD: 780000,
+      medianRentMonthlyUSD: 1920,
+      homeOwnershipPct: 36.4,
+      priceToIncomeRatio: 14.2,
+      yoyPriceChangePct: 2.8,
+      affordabilityIndex: 22,
+      vacancyRatePct: 1.1,
+      socialHousingPct: 15.0,
+      mortgageRateAvgPct: 2.2,
+    },
+    transport: {
+      publicTransitUsagePct: 44,
+      roadDensityKmPer100km2: 172,
+      railNetworkKm: 5400,
+      airports: 5,
+      seaports: 0,
+      evAdoptionPct: 26.8,
+      avgCommuteMinutes: 26,
+      highSpeedRailKm: 0,
+      metroSystems: 3,
+    },
+  },
+  dk: {
+    housing: {
+      medianHomePriceUSD: 480000,
+      medianRentMonthlyUSD: 1680,
+      homeOwnershipPct: 60.8,
+      priceToIncomeRatio: 12.4,
+      yoyPriceChangePct: 3.6,
+      affordabilityIndex: 34,
+      vacancyRatePct: 3.4,
+      socialHousingPct: 21.0,
+      mortgageRateAvgPct: 4.8,
+    },
+    transport: {
+      publicTransitUsagePct: 38,
+      roadDensityKmPer100km2: 178,
+      railNetworkKm: 2667,
+      airports: 8,
+      seaports: 18,
+      evAdoptionPct: 42.6,
+      avgCommuteMinutes: 28,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  fi: {
+    housing: {
+      medianHomePriceUSD: 320000,
+      medianRentMonthlyUSD: 1120,
+      homeOwnershipPct: 68.0,
+      priceToIncomeRatio: 9.8,
+      yoyPriceChangePct: -4.2,
+      affordabilityIndex: 38,
+      vacancyRatePct: 3.2,
+      socialHousingPct: 15.0,
+      mortgageRateAvgPct: 4.4,
+    },
+    transport: {
+      publicTransitUsagePct: 30,
+      roadDensityKmPer100km2: 88,
+      railNetworkKm: 5900,
+      airports: 18,
+      seaports: 22,
+      evAdoptionPct: 34.2,
+      avgCommuteMinutes: 26,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  be: {
+    housing: {
+      medianHomePriceUSD: 320000,
+      medianRentMonthlyUSD: 1080,
+      homeOwnershipPct: 71.2,
+      priceToIncomeRatio: 10.8,
+      yoyPriceChangePct: 0.4,
+      affordabilityIndex: 38,
+      vacancyRatePct: 3.6,
+      socialHousingPct: 7.0,
+      mortgageRateAvgPct: 4.2,
+    },
+    transport: {
+      publicTransitUsagePct: 34,
+      roadDensityKmPer100km2: 508,
+      railNetworkKm: 3600,
+      airports: 5,
+      seaports: 2,
+      evAdoptionPct: 22.8,
+      avgCommuteMinutes: 33,
+      highSpeedRailKm: 140,
+      metroSystems: 2,
+    },
+  },
+  at: {
+    housing: {
+      medianHomePriceUSD: 380000,
+      medianRentMonthlyUSD: 1240,
+      homeOwnershipPct: 55.4,
+      priceToIncomeRatio: 11.4,
+      yoyPriceChangePct: -3.8,
+      affordabilityIndex: 36,
+      vacancyRatePct: 4.8,
+      socialHousingPct: 26.0,
+      mortgageRateAvgPct: 4.2,
+    },
+    transport: {
+      publicTransitUsagePct: 38,
+      roadDensityKmPer100km2: 144,
+      railNetworkKm: 5800,
+      airports: 6,
+      seaports: 0,
+      evAdoptionPct: 16.4,
+      avgCommuteMinutes: 28,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  pt: {
+    housing: {
+      medianHomePriceUSD: 280000,
+      medianRentMonthlyUSD: 1080,
+      homeOwnershipPct: 73.8,
+      priceToIncomeRatio: 13.2,
+      yoyPriceChangePct: 6.4,
+      affordabilityIndex: 28,
+      vacancyRatePct: 12.8,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 5.2,
+    },
+    transport: {
+      publicTransitUsagePct: 28,
+      roadDensityKmPer100km2: 132,
+      railNetworkKm: 2546,
+      airports: 12,
+      seaports: 5,
+      evAdoptionPct: 17.4,
+      avgCommuteMinutes: 32,
+      highSpeedRailKm: 0,
+      metroSystems: 2,
+    },
+  },
+  gr: {
+    housing: {
+      medianHomePriceUSD: 180000,
+      medianRentMonthlyUSD: 640,
+      homeOwnershipPct: 72.4,
+      priceToIncomeRatio: 11.8,
+      yoyPriceChangePct: 11.4,
+      affordabilityIndex: 30,
+      vacancyRatePct: 26.0,
+      socialHousingPct: 0.4,
+      mortgageRateAvgPct: 5.4,
+    },
+    transport: {
+      publicTransitUsagePct: 36,
+      roadDensityKmPer100km2: 88,
+      railNetworkKm: 2600,
+      airports: 40,
+      seaports: 52,
+      evAdoptionPct: 4.2,
+      avgCommuteMinutes: 38,
+      highSpeedRailKm: 0,
+      metroSystems: 2,
+    },
+  },
+  cz: {
+    housing: {
+      medianHomePriceUSD: 240000,
+      medianRentMonthlyUSD: 780,
+      homeOwnershipPct: 79.0,
+      priceToIncomeRatio: 14.4,
+      yoyPriceChangePct: -2.8,
+      affordabilityIndex: 26,
+      vacancyRatePct: 3.2,
+      socialHousingPct: 10.0,
+      mortgageRateAvgPct: 5.4,
+    },
+    transport: {
+      publicTransitUsagePct: 44,
+      roadDensityKmPer100km2: 190,
+      railNetworkKm: 9500,
+      airports: 8,
+      seaports: 0,
+      evAdoptionPct: 6.2,
+      avgCommuteMinutes: 30,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  ro: {
+    housing: {
+      medianHomePriceUSD: 120000,
+      medianRentMonthlyUSD: 440,
+      homeOwnershipPct: 95.8,
+      priceToIncomeRatio: 9.6,
+      yoyPriceChangePct: 5.8,
+      affordabilityIndex: 38,
+      vacancyRatePct: 6.4,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 6.4,
+    },
+    transport: {
+      publicTransitUsagePct: 46,
+      roadDensityKmPer100km2: 58,
+      railNetworkKm: 10800,
+      airports: 18,
+      seaports: 4,
+      evAdoptionPct: 3.2,
+      avgCommuteMinutes: 42,
+      highSpeedRailKm: 0,
+      metroSystems: 2,
+    },
+  },
+  hu: {
+    housing: {
+      medianHomePriceUSD: 144000,
+      medianRentMonthlyUSD: 540,
+      homeOwnershipPct: 91.2,
+      priceToIncomeRatio: 10.4,
+      yoyPriceChangePct: 3.4,
+      affordabilityIndex: 36,
+      vacancyRatePct: 3.8,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 7.2,
+    },
+    transport: {
+      publicTransitUsagePct: 48,
+      roadDensityKmPer100km2: 162,
+      railNetworkKm: 7600,
+      airports: 5,
+      seaports: 0,
+      evAdoptionPct: 4.8,
+      avgCommuteMinutes: 36,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  // ── Asia / Oceania (additional) ──────────────────────────────────────────
+  tw: {
+    housing: {
+      medianHomePriceUSD: 560000,
+      medianRentMonthlyUSD: 840,
+      homeOwnershipPct: 84.2,
+      priceToIncomeRatio: 22.4,
+      yoyPriceChangePct: 4.2,
+      affordabilityIndex: 18,
+      vacancyRatePct: 9.8,
+      socialHousingPct: 1.5,
+      mortgageRateAvgPct: 2.0,
+    },
+    transport: {
+      publicTransitUsagePct: 52,
+      roadDensityKmPer100km2: 272,
+      railNetworkKm: 1700,
+      airports: 15,
+      seaports: 10,
+      evAdoptionPct: 2.4,
+      avgCommuteMinutes: 36,
+      highSpeedRailKm: 345,
+      metroSystems: 6,
+    },
+  },
+  nz: {
+    housing: {
+      medianHomePriceUSD: 580000,
+      medianRentMonthlyUSD: 1620,
+      homeOwnershipPct: 64.8,
+      priceToIncomeRatio: 12.8,
+      yoyPriceChangePct: 2.4,
+      affordabilityIndex: 26,
+      vacancyRatePct: 1.8,
+      socialHousingPct: 4.5,
+      mortgageRateAvgPct: 6.8,
+    },
+    transport: {
+      publicTransitUsagePct: 14,
+      roadDensityKmPer100km2: 32,
+      railNetworkKm: 3900,
+      airports: 40,
+      seaports: 8,
+      evAdoptionPct: 6.4,
+      avgCommuteMinutes: 28,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  kz: {
+    housing: {
+      medianHomePriceUSD: 88000,
+      medianRentMonthlyUSD: 360,
+      homeOwnershipPct: 86.2,
+      priceToIncomeRatio: 6.4,
+      yoyPriceChangePct: 22.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 8.4,
+      socialHousingPct: 6.0,
+      mortgageRateAvgPct: 14.0,
+    },
+    transport: {
+      publicTransitUsagePct: 46,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 15000,
+      airports: 22,
+      seaports: 2,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 44,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  iq: {
+    housing: {
+      medianHomePriceUSD: 88000,
+      medianRentMonthlyUSD: 420,
+      homeOwnershipPct: 78.8,
+      priceToIncomeRatio: 8.4,
+      yoyPriceChangePct: 12.0,
+      affordabilityIndex: 40,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 8.0,
+      mortgageRateAvgPct: 9.0,
+    },
+    transport: {
+      publicTransitUsagePct: 52,
+      roadDensityKmPer100km2: 12,
+      railNetworkKm: 2272,
+      airports: 8,
+      seaports: 2,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 56,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  om: {
+    housing: {
+      medianHomePriceUSD: 188000,
+      medianRentMonthlyUSD: 840,
+      homeOwnershipPct: 72.4,
+      priceToIncomeRatio: 8.2,
+      yoyPriceChangePct: 3.6,
+      affordabilityIndex: 48,
+      vacancyRatePct: 18.0,
+      socialHousingPct: 8.0,
+      mortgageRateAvgPct: 5.0,
+    },
+    transport: {
+      publicTransitUsagePct: 10,
+      roadDensityKmPer100km2: 6,
+      railNetworkKm: 0,
+      airports: 6,
+      seaports: 8,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 40,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  qa: {
+    housing: {
+      medianHomePriceUSD: 620000,
+      medianRentMonthlyUSD: 2600,
+      homeOwnershipPct: 14.8,
+      priceToIncomeRatio: 8.8,
+      yoyPriceChangePct: 2.2,
+      affordabilityIndex: 44,
+      vacancyRatePct: 20.0,
+      socialHousingPct: 0.5,
+      mortgageRateAvgPct: 4.4,
+    },
+    transport: {
+      publicTransitUsagePct: 18,
+      roadDensityKmPer100km2: 60,
+      railNetworkKm: 76,
+      airports: 1,
+      seaports: 2,
+      evAdoptionPct: 1.8,
+      avgCommuteMinutes: 36,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  // ── Americas (additional) ────────────────────────────────────────────────
+  co_co: {
+    housing: {
+      medianHomePriceUSD: 88000,
+      medianRentMonthlyUSD: 380,
+      homeOwnershipPct: 62.4,
+      priceToIncomeRatio: 10.4,
+      yoyPriceChangePct: 8.4,
+      affordabilityIndex: 34,
+      vacancyRatePct: 8.8,
+      socialHousingPct: 5.0,
+      mortgageRateAvgPct: 14.0,
+    },
+    transport: {
+      publicTransitUsagePct: 60,
+      roadDensityKmPer100km2: 12,
+      railNetworkKm: 3000,
+      airports: 100,
+      seaports: 8,
+      evAdoptionPct: 1.8,
+      avgCommuteMinutes: 58,
+      highSpeedRailKm: 0,
+      metroSystems: 2,
+    },
+  },
+  pe: {
+    housing: {
+      medianHomePriceUSD: 78000,
+      medianRentMonthlyUSD: 340,
+      homeOwnershipPct: 68.2,
+      priceToIncomeRatio: 9.8,
+      yoyPriceChangePct: 5.4,
+      affordabilityIndex: 36,
+      vacancyRatePct: 9.6,
+      socialHousingPct: 5.0,
+      mortgageRateAvgPct: 8.8,
+    },
+    transport: {
+      publicTransitUsagePct: 62,
+      roadDensityKmPer100km2: 6,
+      railNetworkKm: 1920,
+      airports: 54,
+      seaports: 12,
+      evAdoptionPct: 0.8,
+      avgCommuteMinutes: 56,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  ve: {
+    housing: {
+      medianHomePriceUSD: 24000,
+      medianRentMonthlyUSD: 80,
+      homeOwnershipPct: 75.4,
+      priceToIncomeRatio: 3.6,
+      yoyPriceChangePct: 80.0,
+      affordabilityIndex: 55,
+      vacancyRatePct: 6.0,
+      socialHousingPct: 5.0,
+      mortgageRateAvgPct: 58.0,
+    },
+    transport: {
+      publicTransitUsagePct: 58,
+      roadDensityKmPer100km2: 10,
+      railNetworkKm: 447,
+      airports: 62,
+      seaports: 10,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 62,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  ec: {
+    housing: {
+      medianHomePriceUSD: 72000,
+      medianRentMonthlyUSD: 320,
+      homeOwnershipPct: 68.0,
+      priceToIncomeRatio: 9.4,
+      yoyPriceChangePct: 4.8,
+      affordabilityIndex: 38,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 10.4,
+    },
+    transport: {
+      publicTransitUsagePct: 54,
+      roadDensityKmPer100km2: 14,
+      railNetworkKm: 965,
+      airports: 22,
+      seaports: 6,
+      evAdoptionPct: 0.8,
+      avgCommuteMinutes: 52,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  bo: {
+    housing: {
+      medianHomePriceUSD: 54000,
+      medianRentMonthlyUSD: 220,
+      homeOwnershipPct: 72.4,
+      priceToIncomeRatio: 8.4,
+      yoyPriceChangePct: 6.2,
+      affordabilityIndex: 42,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 7.8,
+    },
+    transport: {
+      publicTransitUsagePct: 68,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 3504,
+      airports: 16,
+      seaports: 0,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 60,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  py: {
+    housing: {
+      medianHomePriceUSD: 58000,
+      medianRentMonthlyUSD: 260,
+      homeOwnershipPct: 76.8,
+      priceToIncomeRatio: 8.8,
+      yoyPriceChangePct: 6.8,
+      affordabilityIndex: 42,
+      vacancyRatePct: 8.4,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 8.8,
+    },
+    transport: {
+      publicTransitUsagePct: 62,
+      roadDensityKmPer100km2: 6,
+      railNetworkKm: 36,
+      airports: 12,
+      seaports: 1,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 52,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  uy: {
+    housing: {
+      medianHomePriceUSD: 148000,
+      medianRentMonthlyUSD: 580,
+      homeOwnershipPct: 63.8,
+      priceToIncomeRatio: 8.2,
+      yoyPriceChangePct: 8.8,
+      affordabilityIndex: 42,
+      vacancyRatePct: 7.8,
+      socialHousingPct: 8.0,
+      mortgageRateAvgPct: 8.0,
+    },
+    transport: {
+      publicTransitUsagePct: 56,
+      roadDensityKmPer100km2: 14,
+      railNetworkKm: 1641,
+      airports: 10,
+      seaports: 4,
+      evAdoptionPct: 2.2,
+      avgCommuteMinutes: 44,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  // ── Africa (additional) ──────────────────────────────────────────────────
+  ma: {
+    housing: {
+      medianHomePriceUSD: 82000,
+      medianRentMonthlyUSD: 340,
+      homeOwnershipPct: 64.2,
+      priceToIncomeRatio: 12.8,
+      yoyPriceChangePct: 4.6,
+      affordabilityIndex: 30,
+      vacancyRatePct: 22.0,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 6.2,
+    },
+    transport: {
+      publicTransitUsagePct: 52,
+      roadDensityKmPer100km2: 18,
+      railNetworkKm: 2100,
+      airports: 20,
+      seaports: 6,
+      evAdoptionPct: 0.6,
+      avgCommuteMinutes: 50,
+      highSpeedRailKm: 323,
+      metroSystems: 1,
+    },
+  },
+  gh: {
+    housing: {
+      medianHomePriceUSD: 44000,
+      medianRentMonthlyUSD: 220,
+      homeOwnershipPct: 62.4,
+      priceToIncomeRatio: 11.4,
+      yoyPriceChangePct: 26.0,
+      affordabilityIndex: 24,
+      vacancyRatePct: 22.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 32.0,
+    },
+    transport: {
+      publicTransitUsagePct: 72,
+      roadDensityKmPer100km2: 14,
+      railNetworkKm: 947,
+      airports: 12,
+      seaports: 2,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 64,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  tz: {
+    housing: {
+      medianHomePriceUSD: 32000,
+      medianRentMonthlyUSD: 140,
+      homeOwnershipPct: 70.8,
+      priceToIncomeRatio: 8.4,
+      yoyPriceChangePct: 8.0,
+      affordabilityIndex: 36,
+      vacancyRatePct: 14.0,
+      socialHousingPct: 1.5,
+      mortgageRateAvgPct: 16.0,
+    },
+    transport: {
+      publicTransitUsagePct: 66,
+      roadDensityKmPer100km2: 6,
+      railNetworkKm: 4100,
+      airports: 14,
+      seaports: 2,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 58,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  ao: {
+    housing: {
+      medianHomePriceUSD: 58000,
+      medianRentMonthlyUSD: 280,
+      homeOwnershipPct: 55.4,
+      priceToIncomeRatio: 10.8,
+      yoyPriceChangePct: 14.0,
+      affordabilityIndex: 28,
+      vacancyRatePct: 28.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 24.0,
+    },
+    transport: {
+      publicTransitUsagePct: 60,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 2761,
+      airports: 22,
+      seaports: 6,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 62,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  dz: {
+    housing: {
+      medianHomePriceUSD: 74000,
+      medianRentMonthlyUSD: 300,
+      homeOwnershipPct: 68.4,
+      priceToIncomeRatio: 8.2,
+      yoyPriceChangePct: 8.0,
+      affordabilityIndex: 38,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 16.0,
+      mortgageRateAvgPct: 8.0,
+    },
+    transport: {
+      publicTransitUsagePct: 46,
+      roadDensityKmPer100km2: 6,
+      railNetworkKm: 4700,
+      airports: 40,
+      seaports: 11,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 52,
+      highSpeedRailKm: 0,
+      metroSystems: 2,
+    },
+  },
+  rw: {
+    housing: {
+      medianHomePriceUSD: 28000,
+      medianRentMonthlyUSD: 120,
+      homeOwnershipPct: 74.4,
+      priceToIncomeRatio: 7.8,
+      yoyPriceChangePct: 9.6,
+      affordabilityIndex: 38,
+      vacancyRatePct: 6.0,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 16.0,
+    },
+    transport: {
+      publicTransitUsagePct: 62,
+      roadDensityKmPer100km2: 14,
+      railNetworkKm: 0,
+      airports: 2,
+      seaports: 0,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 44,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  sn: {
+    housing: {
+      medianHomePriceUSD: 36000,
+      medianRentMonthlyUSD: 160,
+      homeOwnershipPct: 60.2,
+      priceToIncomeRatio: 9.4,
+      yoyPriceChangePct: 7.2,
+      affordabilityIndex: 34,
+      vacancyRatePct: 14.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 8.5,
+    },
+    transport: {
+      publicTransitUsagePct: 64,
+      roadDensityKmPer100km2: 12,
+      railNetworkKm: 906,
+      airports: 10,
+      seaports: 2,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 58,
+      highSpeedRailKm: 36,
+      metroSystems: 0,
+    },
+  },
+  // ── Europe (remaining) ──────────────────────────────────────────────────
+  sk: {
+    housing: {
+      medianHomePriceUSD: 188000,
+      medianRentMonthlyUSD: 700,
+      homeOwnershipPct: 91.4,
+      priceToIncomeRatio: 11.2,
+      yoyPriceChangePct: 3.8,
+      affordabilityIndex: 34,
+      vacancyRatePct: 3.0,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 4.8,
+    },
+    transport: {
+      publicTransitUsagePct: 42,
+      roadDensityKmPer100km2: 88,
+      railNetworkKm: 3580,
+      airports: 3,
+      seaports: 0,
+      evAdoptionPct: 3.6,
+      avgCommuteMinutes: 32,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  hr: {
+    housing: {
+      medianHomePriceUSD: 200000,
+      medianRentMonthlyUSD: 780,
+      homeOwnershipPct: 90.2,
+      priceToIncomeRatio: 12.4,
+      yoyPriceChangePct: 9.2,
+      affordabilityIndex: 28,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 4.6,
+    },
+    transport: {
+      publicTransitUsagePct: 30,
+      roadDensityKmPer100km2: 68,
+      railNetworkKm: 2600,
+      airports: 9,
+      seaports: 18,
+      evAdoptionPct: 4.2,
+      avgCommuteMinutes: 34,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  rs: {
+    housing: {
+      medianHomePriceUSD: 110000,
+      medianRentMonthlyUSD: 420,
+      homeOwnershipPct: 83.8,
+      priceToIncomeRatio: 9.8,
+      yoyPriceChangePct: 7.6,
+      affordabilityIndex: 36,
+      vacancyRatePct: 5.4,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 5.8,
+    },
+    transport: {
+      publicTransitUsagePct: 44,
+      roadDensityKmPer100km2: 52,
+      railNetworkKm: 3700,
+      airports: 5,
+      seaports: 0,
+      evAdoptionPct: 2.2,
+      avgCommuteMinutes: 36,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  bg: {
+    housing: {
+      medianHomePriceUSD: 98000,
+      medianRentMonthlyUSD: 380,
+      homeOwnershipPct: 83.2,
+      priceToIncomeRatio: 8.4,
+      yoyPriceChangePct: 11.8,
+      affordabilityIndex: 38,
+      vacancyRatePct: 18.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 4.2,
+    },
+    transport: {
+      publicTransitUsagePct: 40,
+      roadDensityKmPer100km2: 34,
+      railNetworkKm: 5100,
+      airports: 6,
+      seaports: 2,
+      evAdoptionPct: 2.8,
+      avgCommuteMinutes: 38,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  ee: {
+    housing: {
+      medianHomePriceUSD: 176000,
+      medianRentMonthlyUSD: 660,
+      homeOwnershipPct: 82.4,
+      priceToIncomeRatio: 10.4,
+      yoyPriceChangePct: -2.8,
+      affordabilityIndex: 36,
+      vacancyRatePct: 4.2,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 5.8,
+    },
+    transport: {
+      publicTransitUsagePct: 36,
+      roadDensityKmPer100km2: 144,
+      railNetworkKm: 1200,
+      airports: 5,
+      seaports: 12,
+      evAdoptionPct: 12.4,
+      avgCommuteMinutes: 28,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  lv: {
+    housing: {
+      medianHomePriceUSD: 148000,
+      medianRentMonthlyUSD: 560,
+      homeOwnershipPct: 83.8,
+      priceToIncomeRatio: 9.6,
+      yoyPriceChangePct: 2.4,
+      affordabilityIndex: 38,
+      vacancyRatePct: 5.8,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 5.2,
+    },
+    transport: {
+      publicTransitUsagePct: 38,
+      roadDensityKmPer100km2: 112,
+      railNetworkKm: 1860,
+      airports: 4,
+      seaports: 8,
+      evAdoptionPct: 8.4,
+      avgCommuteMinutes: 30,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  lt: {
+    housing: {
+      medianHomePriceUSD: 164000,
+      medianRentMonthlyUSD: 600,
+      homeOwnershipPct: 92.4,
+      priceToIncomeRatio: 9.2,
+      yoyPriceChangePct: 3.6,
+      affordabilityIndex: 40,
+      vacancyRatePct: 4.6,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 5.4,
+    },
+    transport: {
+      publicTransitUsagePct: 34,
+      roadDensityKmPer100km2: 138,
+      railNetworkKm: 1900,
+      airports: 4,
+      seaports: 4,
+      evAdoptionPct: 10.8,
+      avgCommuteMinutes: 30,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  si: {
+    housing: {
+      medianHomePriceUSD: 244000,
+      medianRentMonthlyUSD: 840,
+      homeOwnershipPct: 74.4,
+      priceToIncomeRatio: 12.8,
+      yoyPriceChangePct: -1.4,
+      affordabilityIndex: 32,
+      vacancyRatePct: 4.8,
+      socialHousingPct: 6.0,
+      mortgageRateAvgPct: 4.4,
+    },
+    transport: {
+      publicTransitUsagePct: 28,
+      roadDensityKmPer100km2: 180,
+      railNetworkKm: 1200,
+      airports: 3,
+      seaports: 1,
+      evAdoptionPct: 11.4,
+      avgCommuteMinutes: 28,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  ie: {
+    housing: {
+      medianHomePriceUSD: 460000,
+      medianRentMonthlyUSD: 1960,
+      homeOwnershipPct: 69.4,
+      priceToIncomeRatio: 14.2,
+      yoyPriceChangePct: 8.4,
+      affordabilityIndex: 22,
+      vacancyRatePct: 1.8,
+      socialHousingPct: 9.0,
+      mortgageRateAvgPct: 4.4,
+    },
+    transport: {
+      publicTransitUsagePct: 28,
+      roadDensityKmPer100km2: 148,
+      railNetworkKm: 2000,
+      airports: 6,
+      seaports: 6,
+      evAdoptionPct: 14.2,
+      avgCommuteMinutes: 30,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  by: {
+    housing: {
+      medianHomePriceUSD: 64000,
+      medianRentMonthlyUSD: 260,
+      homeOwnershipPct: 80.6,
+      priceToIncomeRatio: 5.8,
+      yoyPriceChangePct: 8.2,
+      affordabilityIndex: 50,
+      vacancyRatePct: 4.0,
+      socialHousingPct: 22.0,
+      mortgageRateAvgPct: 12.0,
+    },
+    transport: {
+      publicTransitUsagePct: 56,
+      roadDensityKmPer100km2: 36,
+      railNetworkKm: 5500,
+      airports: 7,
+      seaports: 0,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 36,
+      highSpeedRailKm: 0,
+      metroSystems: 2,
+    },
+  },
+  md: {
+    housing: {
+      medianHomePriceUSD: 52000,
+      medianRentMonthlyUSD: 200,
+      homeOwnershipPct: 87.4,
+      priceToIncomeRatio: 7.2,
+      yoyPriceChangePct: 12.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 14.0,
+    },
+    transport: {
+      publicTransitUsagePct: 42,
+      roadDensityKmPer100km2: 36,
+      railNetworkKm: 1157,
+      airports: 1,
+      seaports: 0,
+      evAdoptionPct: 0.6,
+      avgCommuteMinutes: 38,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  al_al: {
+    housing: {
+      medianHomePriceUSD: 88000,
+      medianRentMonthlyUSD: 340,
+      homeOwnershipPct: 82.6,
+      priceToIncomeRatio: 9.4,
+      yoyPriceChangePct: 14.0,
+      affordabilityIndex: 36,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 5.8,
+    },
+    transport: {
+      publicTransitUsagePct: 32,
+      roadDensityKmPer100km2: 28,
+      railNetworkKm: 677,
+      airports: 3,
+      seaports: 3,
+      evAdoptionPct: 0.6,
+      avgCommuteMinutes: 38,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  mk: {
+    housing: {
+      medianHomePriceUSD: 78000,
+      medianRentMonthlyUSD: 300,
+      homeOwnershipPct: 82.8,
+      priceToIncomeRatio: 8.8,
+      yoyPriceChangePct: 6.4,
+      affordabilityIndex: 40,
+      vacancyRatePct: 6.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 5.4,
+    },
+    transport: {
+      publicTransitUsagePct: 36,
+      roadDensityKmPer100km2: 40,
+      railNetworkKm: 699,
+      airports: 2,
+      seaports: 0,
+      evAdoptionPct: 0.8,
+      avgCommuteMinutes: 36,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  ba: {
+    housing: {
+      medianHomePriceUSD: 96000,
+      medianRentMonthlyUSD: 380,
+      homeOwnershipPct: 83.4,
+      priceToIncomeRatio: 9.8,
+      yoyPriceChangePct: 8.2,
+      affordabilityIndex: 38,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 5.6,
+    },
+    transport: {
+      publicTransitUsagePct: 34,
+      roadDensityKmPer100km2: 38,
+      railNetworkKm: 1000,
+      airports: 4,
+      seaports: 0,
+      evAdoptionPct: 0.6,
+      avgCommuteMinutes: 38,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  me_eu: {
+    housing: {
+      medianHomePriceUSD: 144000,
+      medianRentMonthlyUSD: 560,
+      homeOwnershipPct: 74.8,
+      priceToIncomeRatio: 11.2,
+      yoyPriceChangePct: 16.0,
+      affordabilityIndex: 28,
+      vacancyRatePct: 16.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 5.8,
+    },
+    transport: {
+      publicTransitUsagePct: 24,
+      roadDensityKmPer100km2: 28,
+      railNetworkKm: 250,
+      airports: 2,
+      seaports: 5,
+      evAdoptionPct: 0.8,
+      avgCommuteMinutes: 36,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  xk: {
+    housing: {
+      medianHomePriceUSD: 76000,
+      medianRentMonthlyUSD: 300,
+      homeOwnershipPct: 84.2,
+      priceToIncomeRatio: 10.4,
+      yoyPriceChangePct: 9.4,
+      affordabilityIndex: 36,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 5.2,
+    },
+    transport: {
+      publicTransitUsagePct: 30,
+      roadDensityKmPer100km2: 38,
+      railNetworkKm: 430,
+      airports: 1,
+      seaports: 0,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 36,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  lu: {
+    housing: {
+      medianHomePriceUSD: 860000,
+      medianRentMonthlyUSD: 2200,
+      homeOwnershipPct: 71.4,
+      priceToIncomeRatio: 18.4,
+      yoyPriceChangePct: -2.8,
+      affordabilityIndex: 16,
+      vacancyRatePct: 1.8,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 4.0,
+    },
+    transport: {
+      publicTransitUsagePct: 48,
+      roadDensityKmPer100km2: 440,
+      railNetworkKm: 275,
+      airports: 1,
+      seaports: 0,
+      evAdoptionPct: 22.4,
+      avgCommuteMinutes: 28,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  cy: {
+    housing: {
+      medianHomePriceUSD: 260000,
+      medianRentMonthlyUSD: 960,
+      homeOwnershipPct: 68.2,
+      priceToIncomeRatio: 11.4,
+      yoyPriceChangePct: 6.8,
+      affordabilityIndex: 30,
+      vacancyRatePct: 16.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 4.8,
+    },
+    transport: {
+      publicTransitUsagePct: 14,
+      roadDensityKmPer100km2: 112,
+      railNetworkKm: 0,
+      airports: 2,
+      seaports: 3,
+      evAdoptionPct: 5.8,
+      avgCommuteMinutes: 30,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  mt_eu: {
+    housing: {
+      medianHomePriceUSD: 340000,
+      medianRentMonthlyUSD: 1200,
+      homeOwnershipPct: 77.4,
+      priceToIncomeRatio: 14.4,
+      yoyPriceChangePct: 4.4,
+      affordabilityIndex: 26,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 6.0,
+      mortgageRateAvgPct: 4.2,
+    },
+    transport: {
+      publicTransitUsagePct: 28,
+      roadDensityKmPer100km2: 1340,
+      railNetworkKm: 0,
+      airports: 1,
+      seaports: 2,
+      evAdoptionPct: 9.8,
+      avgCommuteMinutes: 26,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  is: {
+    housing: {
+      medianHomePriceUSD: 620000,
+      medianRentMonthlyUSD: 1940,
+      homeOwnershipPct: 78.4,
+      priceToIncomeRatio: 12.8,
+      yoyPriceChangePct: 6.4,
+      affordabilityIndex: 28,
+      vacancyRatePct: 1.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 6.8,
+    },
+    transport: {
+      publicTransitUsagePct: 22,
+      roadDensityKmPer100km2: 34,
+      railNetworkKm: 0,
+      airports: 7,
+      seaports: 8,
+      evAdoptionPct: 68.4,
+      avgCommuteMinutes: 24,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  sm: {
+    housing: {
+      medianHomePriceUSD: 360000,
+      medianRentMonthlyUSD: 1200,
+      homeOwnershipPct: 85.0,
+      priceToIncomeRatio: 11.2,
+      yoyPriceChangePct: 2.4,
+      affordabilityIndex: 38,
+      vacancyRatePct: 6.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 3.8,
+    },
+    transport: {
+      publicTransitUsagePct: 22,
+      roadDensityKmPer100km2: 380,
+      railNetworkKm: 0,
+      airports: 0,
+      seaports: 0,
+      evAdoptionPct: 8.0,
+      avgCommuteMinutes: 18,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  li: {
+    housing: {
+      medianHomePriceUSD: 1200000,
+      medianRentMonthlyUSD: 2800,
+      homeOwnershipPct: 62.0,
+      priceToIncomeRatio: 16.4,
+      yoyPriceChangePct: 1.8,
+      affordabilityIndex: 18,
+      vacancyRatePct: 0.8,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 2.0,
+    },
+    transport: {
+      publicTransitUsagePct: 32,
+      roadDensityKmPer100km2: 480,
+      railNetworkKm: 9,
+      airports: 0,
+      seaports: 0,
+      evAdoptionPct: 24.0,
+      avgCommuteMinutes: 22,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  ad: {
+    housing: {
+      medianHomePriceUSD: 440000,
+      medianRentMonthlyUSD: 1400,
+      homeOwnershipPct: 72.0,
+      priceToIncomeRatio: 12.8,
+      yoyPriceChangePct: 5.2,
+      affordabilityIndex: 30,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 3.4,
+    },
+    transport: {
+      publicTransitUsagePct: 24,
+      roadDensityKmPer100km2: 320,
+      railNetworkKm: 0,
+      airports: 0,
+      seaports: 0,
+      evAdoptionPct: 10.0,
+      avgCommuteMinutes: 20,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  mc: {
+    housing: {
+      medianHomePriceUSD: 3800000,
+      medianRentMonthlyUSD: 7200,
+      homeOwnershipPct: 30.0,
+      priceToIncomeRatio: 48.0,
+      yoyPriceChangePct: 3.2,
+      affordabilityIndex: 4,
+      vacancyRatePct: 6.0,
+      socialHousingPct: 15.0,
+      mortgageRateAvgPct: 2.8,
+    },
+    transport: {
+      publicTransitUsagePct: 48,
+      roadDensityKmPer100km2: 4200,
+      railNetworkKm: 2,
+      airports: 0,
+      seaports: 1,
+      evAdoptionPct: 28.0,
+      avgCommuteMinutes: 14,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  fo: {
+    housing: {
+      medianHomePriceUSD: 420000,
+      medianRentMonthlyUSD: 1480,
+      homeOwnershipPct: 76.0,
+      priceToIncomeRatio: 9.8,
+      yoyPriceChangePct: 4.2,
+      affordabilityIndex: 36,
+      vacancyRatePct: 2.0,
+      socialHousingPct: 8.0,
+      mortgageRateAvgPct: 4.8,
+    },
+    transport: {
+      publicTransitUsagePct: 26,
+      roadDensityKmPer100km2: 180,
+      railNetworkKm: 0,
+      airports: 2,
+      seaports: 6,
+      evAdoptionPct: 28.0,
+      avgCommuteMinutes: 24,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  gl: {
+    housing: {
+      medianHomePriceUSD: 240000,
+      medianRentMonthlyUSD: 960,
+      homeOwnershipPct: 56.0,
+      priceToIncomeRatio: 7.8,
+      yoyPriceChangePct: 2.4,
+      affordabilityIndex: 42,
+      vacancyRatePct: 4.0,
+      socialHousingPct: 26.0,
+      mortgageRateAvgPct: 5.2,
+    },
+    transport: {
+      publicTransitUsagePct: 18,
+      roadDensityKmPer100km2: 0.4,
+      railNetworkKm: 0,
+      airports: 18,
+      seaports: 12,
+      evAdoptionPct: 1.4,
+      avgCommuteMinutes: 22,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  bm: {
+    housing: {
+      medianHomePriceUSD: 1600000,
+      medianRentMonthlyUSD: 4200,
+      homeOwnershipPct: 62.0,
+      priceToIncomeRatio: 28.0,
+      yoyPriceChangePct: 1.4,
+      affordabilityIndex: 10,
+      vacancyRatePct: 6.0,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 4.8,
+    },
+    transport: {
+      publicTransitUsagePct: 36,
+      roadDensityKmPer100km2: 1400,
+      railNetworkKm: 0,
+      airports: 1,
+      seaports: 1,
+      evAdoptionPct: 6.0,
+      avgCommuteMinutes: 22,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  // ── North America (Central America & Caribbean) ──────────────────────────
+  gt: {
+    housing: {
+      medianHomePriceUSD: 68000,
+      medianRentMonthlyUSD: 280,
+      homeOwnershipPct: 74.4,
+      priceToIncomeRatio: 9.8,
+      yoyPriceChangePct: 8.4,
+      affordabilityIndex: 34,
+      vacancyRatePct: 14.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 8.8,
+    },
+    transport: {
+      publicTransitUsagePct: 68,
+      roadDensityKmPer100km2: 14,
+      railNetworkKm: 0,
+      airports: 8,
+      seaports: 3,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 54,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  cu: {
+    housing: {
+      medianHomePriceUSD: 28000,
+      medianRentMonthlyUSD: 60,
+      homeOwnershipPct: 89.0,
+      priceToIncomeRatio: 2.8,
+      yoyPriceChangePct: 4.0,
+      affordabilityIndex: 62,
+      vacancyRatePct: 3.0,
+      socialHousingPct: 78.0,
+      mortgageRateAvgPct: 4.0,
+    },
+    transport: {
+      publicTransitUsagePct: 64,
+      roadDensityKmPer100km2: 48,
+      railNetworkKm: 8700,
+      airports: 22,
+      seaports: 8,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 46,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  ht: {
+    housing: {
+      medianHomePriceUSD: 18000,
+      medianRentMonthlyUSD: 80,
+      homeOwnershipPct: 60.4,
+      priceToIncomeRatio: 6.4,
+      yoyPriceChangePct: 14.0,
+      affordabilityIndex: 28,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 0.5,
+      mortgageRateAvgPct: 22.0,
+    },
+    transport: {
+      publicTransitUsagePct: 78,
+      roadDensityKmPer100km2: 12,
+      railNetworkKm: 0,
+      airports: 6,
+      seaports: 2,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 68,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  do: {
+    housing: {
+      medianHomePriceUSD: 88000,
+      medianRentMonthlyUSD: 380,
+      homeOwnershipPct: 72.4,
+      priceToIncomeRatio: 9.2,
+      yoyPriceChangePct: 10.4,
+      affordabilityIndex: 36,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 9.8,
+    },
+    transport: {
+      publicTransitUsagePct: 62,
+      roadDensityKmPer100km2: 22,
+      railNetworkKm: 0,
+      airports: 8,
+      seaports: 6,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 54,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  hn: {
+    housing: {
+      medianHomePriceUSD: 44000,
+      medianRentMonthlyUSD: 180,
+      homeOwnershipPct: 68.4,
+      priceToIncomeRatio: 8.4,
+      yoyPriceChangePct: 9.0,
+      affordabilityIndex: 38,
+      vacancyRatePct: 14.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 11.0,
+    },
+    transport: {
+      publicTransitUsagePct: 72,
+      roadDensityKmPer100km2: 10,
+      railNetworkKm: 0,
+      airports: 12,
+      seaports: 3,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 58,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  sv: {
+    housing: {
+      medianHomePriceUSD: 48000,
+      medianRentMonthlyUSD: 200,
+      homeOwnershipPct: 70.2,
+      priceToIncomeRatio: 8.8,
+      yoyPriceChangePct: 7.2,
+      affordabilityIndex: 40,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 8.0,
+    },
+    transport: {
+      publicTransitUsagePct: 70,
+      roadDensityKmPer100km2: 38,
+      railNetworkKm: 0,
+      airports: 2,
+      seaports: 2,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 52,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  ni: {
+    housing: {
+      medianHomePriceUSD: 36000,
+      medianRentMonthlyUSD: 140,
+      homeOwnershipPct: 72.4,
+      priceToIncomeRatio: 7.4,
+      yoyPriceChangePct: 8.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 9.0,
+    },
+    transport: {
+      publicTransitUsagePct: 68,
+      roadDensityKmPer100km2: 8,
+      railNetworkKm: 0,
+      airports: 12,
+      seaports: 3,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 52,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  cr: {
+    housing: {
+      medianHomePriceUSD: 148000,
+      medianRentMonthlyUSD: 620,
+      homeOwnershipPct: 73.4,
+      priceToIncomeRatio: 12.4,
+      yoyPriceChangePct: 8.8,
+      affordabilityIndex: 34,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 9.2,
+    },
+    transport: {
+      publicTransitUsagePct: 54,
+      roadDensityKmPer100km2: 30,
+      railNetworkKm: 278,
+      airports: 14,
+      seaports: 3,
+      evAdoptionPct: 1.4,
+      avgCommuteMinutes: 46,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  pa: {
+    housing: {
+      medianHomePriceUSD: 148000,
+      medianRentMonthlyUSD: 640,
+      homeOwnershipPct: 68.2,
+      priceToIncomeRatio: 11.4,
+      yoyPriceChangePct: 6.4,
+      affordabilityIndex: 36,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 6.8,
+    },
+    transport: {
+      publicTransitUsagePct: 56,
+      roadDensityKmPer100km2: 20,
+      railNetworkKm: 76,
+      airports: 17,
+      seaports: 3,
+      evAdoptionPct: 0.8,
+      avgCommuteMinutes: 50,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  jm: {
+    housing: {
+      medianHomePriceUSD: 68000,
+      medianRentMonthlyUSD: 280,
+      homeOwnershipPct: 62.4,
+      priceToIncomeRatio: 10.4,
+      yoyPriceChangePct: 9.4,
+      affordabilityIndex: 30,
+      vacancyRatePct: 16.0,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 9.8,
+    },
+    transport: {
+      publicTransitUsagePct: 60,
+      roadDensityKmPer100km2: 62,
+      railNetworkKm: 0,
+      airports: 3,
+      seaports: 4,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 56,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  tt: {
+    housing: {
+      medianHomePriceUSD: 148000,
+      medianRentMonthlyUSD: 620,
+      homeOwnershipPct: 68.4,
+      priceToIncomeRatio: 9.8,
+      yoyPriceChangePct: 4.8,
+      affordabilityIndex: 40,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 7.4,
+    },
+    transport: {
+      publicTransitUsagePct: 34,
+      roadDensityKmPer100km2: 160,
+      railNetworkKm: 0,
+      airports: 2,
+      seaports: 3,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 44,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  bz: {
+    housing: {
+      medianHomePriceUSD: 78000,
+      medianRentMonthlyUSD: 340,
+      homeOwnershipPct: 68.0,
+      priceToIncomeRatio: 9.8,
+      yoyPriceChangePct: 6.4,
+      affordabilityIndex: 38,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 8.8,
+    },
+    transport: {
+      publicTransitUsagePct: 48,
+      roadDensityKmPer100km2: 8,
+      railNetworkKm: 0,
+      airports: 4,
+      seaports: 2,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 42,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  bs: {
+    housing: {
+      medianHomePriceUSD: 288000,
+      medianRentMonthlyUSD: 1100,
+      homeOwnershipPct: 68.0,
+      priceToIncomeRatio: 12.4,
+      yoyPriceChangePct: 5.4,
+      affordabilityIndex: 30,
+      vacancyRatePct: 24.0,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 6.4,
+    },
+    transport: {
+      publicTransitUsagePct: 18,
+      roadDensityKmPer100km2: 40,
+      railNetworkKm: 0,
+      airports: 26,
+      seaports: 6,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 32,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  ag: {
+    housing: {
+      medianHomePriceUSD: 248000,
+      medianRentMonthlyUSD: 900,
+      homeOwnershipPct: 68.0,
+      priceToIncomeRatio: 12.8,
+      yoyPriceChangePct: 6.8,
+      affordabilityIndex: 28,
+      vacancyRatePct: 20.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 6.8,
+    },
+    transport: {
+      publicTransitUsagePct: 20,
+      roadDensityKmPer100km2: 180,
+      railNetworkKm: 0,
+      airports: 2,
+      seaports: 2,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 28,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  dm: {
+    housing: {
+      medianHomePriceUSD: 148000,
+      medianRentMonthlyUSD: 560,
+      homeOwnershipPct: 70.0,
+      priceToIncomeRatio: 10.4,
+      yoyPriceChangePct: 7.2,
+      affordabilityIndex: 34,
+      vacancyRatePct: 14.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 6.8,
+    },
+    transport: {
+      publicTransitUsagePct: 22,
+      roadDensityKmPer100km2: 60,
+      railNetworkKm: 0,
+      airports: 2,
+      seaports: 1,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 28,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  gd: {
+    housing: {
+      medianHomePriceUSD: 148000,
+      medianRentMonthlyUSD: 580,
+      homeOwnershipPct: 72.0,
+      priceToIncomeRatio: 11.4,
+      yoyPriceChangePct: 8.0,
+      affordabilityIndex: 32,
+      vacancyRatePct: 18.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 7.2,
+    },
+    transport: {
+      publicTransitUsagePct: 18,
+      roadDensityKmPer100km2: 100,
+      railNetworkKm: 0,
+      airports: 1,
+      seaports: 2,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 26,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  bb: {
+    housing: {
+      medianHomePriceUSD: 288000,
+      medianRentMonthlyUSD: 1040,
+      homeOwnershipPct: 74.0,
+      priceToIncomeRatio: 14.4,
+      yoyPriceChangePct: 6.4,
+      affordabilityIndex: 26,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 6.8,
+    },
+    transport: {
+      publicTransitUsagePct: 28,
+      roadDensityKmPer100km2: 380,
+      railNetworkKm: 0,
+      airports: 1,
+      seaports: 1,
+      evAdoptionPct: 0.6,
+      avgCommuteMinutes: 28,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  lc: {
+    housing: {
+      medianHomePriceUSD: 148000,
+      medianRentMonthlyUSD: 580,
+      homeOwnershipPct: 68.0,
+      priceToIncomeRatio: 11.2,
+      yoyPriceChangePct: 9.4,
+      affordabilityIndex: 30,
+      vacancyRatePct: 16.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 7.2,
+    },
+    transport: {
+      publicTransitUsagePct: 20,
+      roadDensityKmPer100km2: 120,
+      railNetworkKm: 0,
+      airports: 2,
+      seaports: 2,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 26,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  vc: {
+    housing: {
+      medianHomePriceUSD: 124000,
+      medianRentMonthlyUSD: 480,
+      homeOwnershipPct: 72.0,
+      priceToIncomeRatio: 10.4,
+      yoyPriceChangePct: 8.0,
+      affordabilityIndex: 34,
+      vacancyRatePct: 16.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 7.4,
+    },
+    transport: {
+      publicTransitUsagePct: 18,
+      roadDensityKmPer100km2: 80,
+      railNetworkKm: 0,
+      airports: 6,
+      seaports: 1,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 24,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  kn: {
+    housing: {
+      medianHomePriceUSD: 248000,
+      medianRentMonthlyUSD: 880,
+      homeOwnershipPct: 74.0,
+      priceToIncomeRatio: 12.4,
+      yoyPriceChangePct: 7.2,
+      affordabilityIndex: 28,
+      vacancyRatePct: 20.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 7.2,
+    },
+    transport: {
+      publicTransitUsagePct: 16,
+      roadDensityKmPer100km2: 110,
+      railNetworkKm: 50,
+      airports: 2,
+      seaports: 2,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 24,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  pr: {
+    housing: {
+      medianHomePriceUSD: 248000,
+      medianRentMonthlyUSD: 1040,
+      homeOwnershipPct: 68.0,
+      priceToIncomeRatio: 9.4,
+      yoyPriceChangePct: 6.0,
+      affordabilityIndex: 36,
+      vacancyRatePct: 18.0,
+      socialHousingPct: 8.0,
+      mortgageRateAvgPct: 6.4,
+    },
+    transport: {
+      publicTransitUsagePct: 14,
+      roadDensityKmPer100km2: 240,
+      railNetworkKm: 16,
+      airports: 3,
+      seaports: 4,
+      evAdoptionPct: 2.8,
+      avgCommuteMinutes: 38,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  gu: {
+    housing: {
+      medianHomePriceUSD: 348000,
+      medianRentMonthlyUSD: 1400,
+      homeOwnershipPct: 54.0,
+      priceToIncomeRatio: 11.8,
+      yoyPriceChangePct: 4.8,
+      affordabilityIndex: 30,
+      vacancyRatePct: 20.0,
+      socialHousingPct: 6.0,
+      mortgageRateAvgPct: 6.4,
+    },
+    transport: {
+      publicTransitUsagePct: 14,
+      roadDensityKmPer100km2: 290,
+      railNetworkKm: 0,
+      airports: 1,
+      seaports: 1,
+      evAdoptionPct: 2.0,
+      avgCommuteMinutes: 28,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  // ── Asia (remaining) ─────────────────────────────────────────────────────
+  mm: {
+    housing: {
+      medianHomePriceUSD: 42000,
+      medianRentMonthlyUSD: 180,
+      homeOwnershipPct: 82.0,
+      priceToIncomeRatio: 7.8,
+      yoyPriceChangePct: -8.0,
+      affordabilityIndex: 36,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 14.0,
+    },
+    transport: {
+      publicTransitUsagePct: 64,
+      roadDensityKmPer100km2: 6,
+      railNetworkKm: 6100,
+      airports: 32,
+      seaports: 8,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 58,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  kh: {
+    housing: {
+      medianHomePriceUSD: 48000,
+      medianRentMonthlyUSD: 200,
+      homeOwnershipPct: 82.4,
+      priceToIncomeRatio: 8.4,
+      yoyPriceChangePct: -4.0,
+      affordabilityIndex: 38,
+      vacancyRatePct: 22.0,
+      socialHousingPct: 0.5,
+      mortgageRateAvgPct: 10.0,
+    },
+    transport: {
+      publicTransitUsagePct: 48,
+      roadDensityKmPer100km2: 10,
+      railNetworkKm: 650,
+      airports: 8,
+      seaports: 2,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 52,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  lk: {
+    housing: {
+      medianHomePriceUSD: 52000,
+      medianRentMonthlyUSD: 220,
+      homeOwnershipPct: 82.4,
+      priceToIncomeRatio: 8.8,
+      yoyPriceChangePct: 12.0,
+      affordabilityIndex: 34,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 12.0,
+    },
+    transport: {
+      publicTransitUsagePct: 62,
+      roadDensityKmPer100km2: 158,
+      railNetworkKm: 1468,
+      airports: 3,
+      seaports: 2,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 48,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  np: {
+    housing: {
+      medianHomePriceUSD: 32000,
+      medianRentMonthlyUSD: 130,
+      homeOwnershipPct: 78.0,
+      priceToIncomeRatio: 8.0,
+      yoyPriceChangePct: 6.0,
+      affordabilityIndex: 40,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 10.0,
+    },
+    transport: {
+      publicTransitUsagePct: 52,
+      roadDensityKmPer100km2: 6,
+      railNetworkKm: 59,
+      airports: 42,
+      seaports: 0,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 52,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  jo: {
+    housing: {
+      medianHomePriceUSD: 88000,
+      medianRentMonthlyUSD: 380,
+      homeOwnershipPct: 68.4,
+      priceToIncomeRatio: 12.4,
+      yoyPriceChangePct: 3.4,
+      affordabilityIndex: 32,
+      vacancyRatePct: 20.0,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 6.8,
+    },
+    transport: {
+      publicTransitUsagePct: 28,
+      roadDensityKmPer100km2: 32,
+      railNetworkKm: 293,
+      airports: 3,
+      seaports: 1,
+      evAdoptionPct: 0.6,
+      avgCommuteMinutes: 42,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  lb: {
+    housing: {
+      medianHomePriceUSD: 88000,
+      medianRentMonthlyUSD: 360,
+      homeOwnershipPct: 72.0,
+      priceToIncomeRatio: 11.4,
+      yoyPriceChangePct: -12.0,
+      affordabilityIndex: 28,
+      vacancyRatePct: 30.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 18.0,
+    },
+    transport: {
+      publicTransitUsagePct: 22,
+      roadDensityKmPer100km2: 184,
+      railNetworkKm: 0,
+      airports: 1,
+      seaports: 2,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 48,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  sy: {
+    housing: {
+      medianHomePriceUSD: 28000,
+      medianRentMonthlyUSD: 100,
+      homeOwnershipPct: 60.0,
+      priceToIncomeRatio: 4.8,
+      yoyPriceChangePct: 20.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 28.0,
+      socialHousingPct: 6.0,
+      mortgageRateAvgPct: 12.0,
+    },
+    transport: {
+      publicTransitUsagePct: 48,
+      roadDensityKmPer100km2: 18,
+      railNetworkKm: 2000,
+      airports: 8,
+      seaports: 2,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 52,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  ye: {
+    housing: {
+      medianHomePriceUSD: 18000,
+      medianRentMonthlyUSD: 60,
+      homeOwnershipPct: 74.0,
+      priceToIncomeRatio: 5.6,
+      yoyPriceChangePct: 12.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 16.0,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 14.0,
+    },
+    transport: {
+      publicTransitUsagePct: 42,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 0,
+      airports: 18,
+      seaports: 6,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 54,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  bh: {
+    housing: {
+      medianHomePriceUSD: 288000,
+      medianRentMonthlyUSD: 1100,
+      homeOwnershipPct: 42.0,
+      priceToIncomeRatio: 9.2,
+      yoyPriceChangePct: 2.8,
+      affordabilityIndex: 42,
+      vacancyRatePct: 14.0,
+      socialHousingPct: 6.0,
+      mortgageRateAvgPct: 4.4,
+    },
+    transport: {
+      publicTransitUsagePct: 12,
+      roadDensityKmPer100km2: 320,
+      railNetworkKm: 0,
+      airports: 1,
+      seaports: 3,
+      evAdoptionPct: 1.2,
+      avgCommuteMinutes: 32,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  am: {
+    housing: {
+      medianHomePriceUSD: 78000,
+      medianRentMonthlyUSD: 300,
+      homeOwnershipPct: 82.4,
+      priceToIncomeRatio: 9.4,
+      yoyPriceChangePct: 18.0,
+      affordabilityIndex: 38,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 8.0,
+    },
+    transport: {
+      publicTransitUsagePct: 44,
+      roadDensityKmPer100km2: 22,
+      railNetworkKm: 780,
+      airports: 2,
+      seaports: 0,
+      evAdoptionPct: 1.2,
+      avgCommuteMinutes: 40,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  az_as: {
+    housing: {
+      medianHomePriceUSD: 78000,
+      medianRentMonthlyUSD: 320,
+      homeOwnershipPct: 78.4,
+      priceToIncomeRatio: 8.8,
+      yoyPriceChangePct: 12.0,
+      affordabilityIndex: 42,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 9.0,
+    },
+    transport: {
+      publicTransitUsagePct: 38,
+      roadDensityKmPer100km2: 24,
+      railNetworkKm: 2100,
+      airports: 6,
+      seaports: 2,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 42,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  ge_as: {
+    housing: {
+      medianHomePriceUSD: 78000,
+      medianRentMonthlyUSD: 320,
+      homeOwnershipPct: 78.8,
+      priceToIncomeRatio: 9.2,
+      yoyPriceChangePct: 22.0,
+      affordabilityIndex: 38,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 8.4,
+    },
+    transport: {
+      publicTransitUsagePct: 38,
+      roadDensityKmPer100km2: 20,
+      railNetworkKm: 1600,
+      airports: 4,
+      seaports: 2,
+      evAdoptionPct: 1.2,
+      avgCommuteMinutes: 38,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  tm: {
+    housing: {
+      medianHomePriceUSD: 52000,
+      medianRentMonthlyUSD: 180,
+      homeOwnershipPct: 80.0,
+      priceToIncomeRatio: 6.4,
+      yoyPriceChangePct: 6.0,
+      affordabilityIndex: 52,
+      vacancyRatePct: 6.0,
+      socialHousingPct: 40.0,
+      mortgageRateAvgPct: 6.0,
+    },
+    transport: {
+      publicTransitUsagePct: 46,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 3100,
+      airports: 26,
+      seaports: 1,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 40,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  kg: {
+    housing: {
+      medianHomePriceUSD: 42000,
+      medianRentMonthlyUSD: 160,
+      homeOwnershipPct: 74.0,
+      priceToIncomeRatio: 7.2,
+      yoyPriceChangePct: 18.0,
+      affordabilityIndex: 46,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 14.0,
+    },
+    transport: {
+      publicTransitUsagePct: 46,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 470,
+      airports: 5,
+      seaports: 0,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 42,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  tj: {
+    housing: {
+      medianHomePriceUSD: 28000,
+      medianRentMonthlyUSD: 110,
+      homeOwnershipPct: 78.0,
+      priceToIncomeRatio: 6.4,
+      yoyPriceChangePct: 12.0,
+      affordabilityIndex: 50,
+      vacancyRatePct: 6.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 18.0,
+    },
+    transport: {
+      publicTransitUsagePct: 50,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 680,
+      airports: 4,
+      seaports: 0,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 44,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  af: {
+    housing: {
+      medianHomePriceUSD: 12000,
+      medianRentMonthlyUSD: 40,
+      homeOwnershipPct: 78.0,
+      priceToIncomeRatio: 4.8,
+      yoyPriceChangePct: -8.0,
+      affordabilityIndex: 52,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 14.0,
+    },
+    transport: {
+      publicTransitUsagePct: 44,
+      roadDensityKmPer100km2: 2,
+      railNetworkKm: 0,
+      airports: 52,
+      seaports: 0,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 58,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  mn_as: {
+    housing: {
+      medianHomePriceUSD: 64000,
+      medianRentMonthlyUSD: 240,
+      homeOwnershipPct: 76.4,
+      priceToIncomeRatio: 9.6,
+      yoyPriceChangePct: 22.0,
+      affordabilityIndex: 38,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 14.0,
+    },
+    transport: {
+      publicTransitUsagePct: 36,
+      roadDensityKmPer100km2: 0.4,
+      railNetworkKm: 1800,
+      airports: 46,
+      seaports: 0,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 40,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  la: {
+    housing: {
+      medianHomePriceUSD: 44000,
+      medianRentMonthlyUSD: 180,
+      homeOwnershipPct: 78.0,
+      priceToIncomeRatio: 8.8,
+      yoyPriceChangePct: 6.0,
+      affordabilityIndex: 40,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 14.0,
+    },
+    transport: {
+      publicTransitUsagePct: 44,
+      roadDensityKmPer100km2: 6,
+      railNetworkKm: 3.5,
+      airports: 12,
+      seaports: 0,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 46,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  tl: {
+    housing: {
+      medianHomePriceUSD: 32000,
+      medianRentMonthlyUSD: 140,
+      homeOwnershipPct: 80.0,
+      priceToIncomeRatio: 9.4,
+      yoyPriceChangePct: 4.8,
+      affordabilityIndex: 42,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 14.0,
+    },
+    transport: {
+      publicTransitUsagePct: 38,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 0,
+      airports: 6,
+      seaports: 2,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 46,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  bn: {
+    housing: {
+      medianHomePriceUSD: 228000,
+      medianRentMonthlyUSD: 840,
+      homeOwnershipPct: 74.4,
+      priceToIncomeRatio: 9.8,
+      yoyPriceChangePct: 2.4,
+      affordabilityIndex: 44,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 6.0,
+      mortgageRateAvgPct: 5.2,
+    },
+    transport: {
+      publicTransitUsagePct: 22,
+      roadDensityKmPer100km2: 44,
+      railNetworkKm: 0,
+      airports: 2,
+      seaports: 2,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 36,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  mv: {
+    housing: {
+      medianHomePriceUSD: 128000,
+      medianRentMonthlyUSD: 520,
+      homeOwnershipPct: 62.0,
+      priceToIncomeRatio: 16.4,
+      yoyPriceChangePct: 8.4,
+      affordabilityIndex: 26,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 6.0,
+      mortgageRateAvgPct: 8.0,
+    },
+    transport: {
+      publicTransitUsagePct: 18,
+      roadDensityKmPer100km2: 48,
+      railNetworkKm: 0,
+      airports: 17,
+      seaports: 4,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 28,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  bt: {
+    housing: {
+      medianHomePriceUSD: 36000,
+      medianRentMonthlyUSD: 140,
+      homeOwnershipPct: 72.0,
+      priceToIncomeRatio: 9.4,
+      yoyPriceChangePct: 6.0,
+      affordabilityIndex: 42,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 10.0,
+    },
+    transport: {
+      publicTransitUsagePct: 34,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 0,
+      airports: 2,
+      seaports: 0,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 42,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  uz: {
+    housing: {
+      medianHomePriceUSD: 48000,
+      medianRentMonthlyUSD: 180,
+      homeOwnershipPct: 76.0,
+      priceToIncomeRatio: 6.4,
+      yoyPriceChangePct: 14.0,
+      affordabilityIndex: 48,
+      vacancyRatePct: 6.0,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 18.0,
+    },
+    transport: {
+      publicTransitUsagePct: 48,
+      roadDensityKmPer100km2: 6,
+      railNetworkKm: 4600,
+      airports: 12,
+      seaports: 0,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 44,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  ps: {
+    housing: {
+      medianHomePriceUSD: 68000,
+      medianRentMonthlyUSD: 280,
+      homeOwnershipPct: 72.0,
+      priceToIncomeRatio: 10.4,
+      yoyPriceChangePct: -18.0,
+      affordabilityIndex: 32,
+      vacancyRatePct: 18.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 8.0,
+    },
+    transport: {
+      publicTransitUsagePct: 48,
+      roadDensityKmPer100km2: 48,
+      railNetworkKm: 0,
+      airports: 1,
+      seaports: 0,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 44,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  // ── Africa (remaining) ───────────────────────────────────────────────────
+  cd: {
+    housing: {
+      medianHomePriceUSD: 18000,
+      medianRentMonthlyUSD: 80,
+      homeOwnershipPct: 64.0,
+      priceToIncomeRatio: 7.8,
+      yoyPriceChangePct: 18.0,
+      affordabilityIndex: 36,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 22.0,
+    },
+    transport: {
+      publicTransitUsagePct: 58,
+      roadDensityKmPer100km2: 1,
+      railNetworkKm: 4000,
+      airports: 14,
+      seaports: 1,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 64,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  sd: {
+    housing: {
+      medianHomePriceUSD: 18000,
+      medianRentMonthlyUSD: 60,
+      homeOwnershipPct: 68.0,
+      priceToIncomeRatio: 5.4,
+      yoyPriceChangePct: 40.0,
+      affordabilityIndex: 36,
+      vacancyRatePct: 14.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 28.0,
+    },
+    transport: {
+      publicTransitUsagePct: 44,
+      roadDensityKmPer100km2: 2,
+      railNetworkKm: 7000,
+      airports: 16,
+      seaports: 1,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 62,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  cm: {
+    housing: {
+      medianHomePriceUSD: 28000,
+      medianRentMonthlyUSD: 110,
+      homeOwnershipPct: 68.0,
+      priceToIncomeRatio: 7.8,
+      yoyPriceChangePct: 8.0,
+      affordabilityIndex: 38,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 1.5,
+      mortgageRateAvgPct: 12.0,
+    },
+    transport: {
+      publicTransitUsagePct: 54,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 1260,
+      airports: 8,
+      seaports: 2,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 60,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  zw: {
+    housing: {
+      medianHomePriceUSD: 28000,
+      medianRentMonthlyUSD: 100,
+      homeOwnershipPct: 60.4,
+      priceToIncomeRatio: 5.8,
+      yoyPriceChangePct: 22.0,
+      affordabilityIndex: 40,
+      vacancyRatePct: 14.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 20.0,
+    },
+    transport: {
+      publicTransitUsagePct: 56,
+      roadDensityKmPer100km2: 8,
+      railNetworkKm: 3500,
+      airports: 7,
+      seaports: 0,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 56,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  mz: {
+    housing: {
+      medianHomePriceUSD: 18000,
+      medianRentMonthlyUSD: 60,
+      homeOwnershipPct: 72.0,
+      priceToIncomeRatio: 7.2,
+      yoyPriceChangePct: 8.0,
+      affordabilityIndex: 40,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 18.0,
+    },
+    transport: {
+      publicTransitUsagePct: 56,
+      roadDensityKmPer100km2: 2,
+      railNetworkKm: 3100,
+      airports: 22,
+      seaports: 3,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 56,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  mg: {
+    housing: {
+      medianHomePriceUSD: 14000,
+      medianRentMonthlyUSD: 50,
+      homeOwnershipPct: 74.0,
+      priceToIncomeRatio: 6.8,
+      yoyPriceChangePct: 8.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 18.0,
+    },
+    transport: {
+      publicTransitUsagePct: 52,
+      roadDensityKmPer100km2: 2,
+      railNetworkKm: 836,
+      airports: 97,
+      seaports: 3,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 56,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  zm: {
+    housing: {
+      medianHomePriceUSD: 24000,
+      medianRentMonthlyUSD: 90,
+      homeOwnershipPct: 56.0,
+      priceToIncomeRatio: 6.8,
+      yoyPriceChangePct: 12.0,
+      affordabilityIndex: 40,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 22.0,
+    },
+    transport: {
+      publicTransitUsagePct: 58,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 2670,
+      airports: 16,
+      seaports: 0,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 58,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  ml: {
+    housing: {
+      medianHomePriceUSD: 14000,
+      medianRentMonthlyUSD: 50,
+      homeOwnershipPct: 66.0,
+      priceToIncomeRatio: 5.8,
+      yoyPriceChangePct: 8.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 10.0,
+    },
+    transport: {
+      publicTransitUsagePct: 48,
+      roadDensityKmPer100km2: 2,
+      railNetworkKm: 729,
+      airports: 8,
+      seaports: 0,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 56,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  bf: {
+    housing: {
+      medianHomePriceUSD: 12000,
+      medianRentMonthlyUSD: 44,
+      homeOwnershipPct: 66.0,
+      priceToIncomeRatio: 5.4,
+      yoyPriceChangePct: 6.0,
+      affordabilityIndex: 46,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 9.0,
+    },
+    transport: {
+      publicTransitUsagePct: 56,
+      roadDensityKmPer100km2: 2,
+      railNetworkKm: 622,
+      airports: 23,
+      seaports: 0,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 54,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  ne: {
+    housing: {
+      medianHomePriceUSD: 10000,
+      medianRentMonthlyUSD: 36,
+      homeOwnershipPct: 68.0,
+      priceToIncomeRatio: 5.2,
+      yoyPriceChangePct: 6.0,
+      affordabilityIndex: 50,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 9.0,
+    },
+    transport: {
+      publicTransitUsagePct: 44,
+      roadDensityKmPer100km2: 1,
+      railNetworkKm: 0,
+      airports: 10,
+      seaports: 0,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 52,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  tn: {
+    housing: {
+      medianHomePriceUSD: 68000,
+      medianRentMonthlyUSD: 280,
+      homeOwnershipPct: 64.4,
+      priceToIncomeRatio: 9.2,
+      yoyPriceChangePct: 8.0,
+      affordabilityIndex: 36,
+      vacancyRatePct: 16.0,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 9.4,
+    },
+    transport: {
+      publicTransitUsagePct: 34,
+      roadDensityKmPer100km2: 28,
+      railNetworkKm: 2190,
+      airports: 8,
+      seaports: 7,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 46,
+      highSpeedRailKm: 0,
+      metroSystems: 1,
+    },
+  },
+  ly: {
+    housing: {
+      medianHomePriceUSD: 52000,
+      medianRentMonthlyUSD: 180,
+      homeOwnershipPct: 78.0,
+      priceToIncomeRatio: 6.4,
+      yoyPriceChangePct: 8.0,
+      affordabilityIndex: 48,
+      vacancyRatePct: 16.0,
+      socialHousingPct: 8.0,
+      mortgageRateAvgPct: 8.0,
+    },
+    transport: {
+      publicTransitUsagePct: 32,
+      roadDensityKmPer100km2: 2,
+      railNetworkKm: 0,
+      airports: 9,
+      seaports: 4,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 44,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  bj: {
+    housing: {
+      medianHomePriceUSD: 18000,
+      medianRentMonthlyUSD: 64,
+      homeOwnershipPct: 64.0,
+      priceToIncomeRatio: 6.8,
+      yoyPriceChangePct: 7.2,
+      affordabilityIndex: 42,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 9.0,
+    },
+    transport: {
+      publicTransitUsagePct: 58,
+      roadDensityKmPer100km2: 6,
+      railNetworkKm: 578,
+      airports: 5,
+      seaports: 1,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 54,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  ss: {
+    housing: {
+      medianHomePriceUSD: 8000,
+      medianRentMonthlyUSD: 28,
+      homeOwnershipPct: 60.0,
+      priceToIncomeRatio: 4.4,
+      yoyPriceChangePct: 22.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 24.0,
+    },
+    transport: {
+      publicTransitUsagePct: 52,
+      roadDensityKmPer100km2: 1,
+      railNetworkKm: 0,
+      airports: 25,
+      seaports: 0,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 58,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  so: {
+    housing: {
+      medianHomePriceUSD: 8000,
+      medianRentMonthlyUSD: 28,
+      homeOwnershipPct: 64.0,
+      priceToIncomeRatio: 4.8,
+      yoyPriceChangePct: 8.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 0.5,
+      mortgageRateAvgPct: 18.0,
+    },
+    transport: {
+      publicTransitUsagePct: 44,
+      roadDensityKmPer100km2: 1,
+      railNetworkKm: 0,
+      airports: 62,
+      seaports: 4,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 58,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  er: {
+    housing: {
+      medianHomePriceUSD: 8000,
+      medianRentMonthlyUSD: 28,
+      homeOwnershipPct: 68.0,
+      priceToIncomeRatio: 4.4,
+      yoyPriceChangePct: 4.0,
+      affordabilityIndex: 50,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 8.0,
+      mortgageRateAvgPct: 12.0,
+    },
+    transport: {
+      publicTransitUsagePct: 44,
+      roadDensityKmPer100km2: 2,
+      railNetworkKm: 306,
+      airports: 4,
+      seaports: 2,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 54,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  dj: {
+    housing: {
+      medianHomePriceUSD: 38000,
+      medianRentMonthlyUSD: 140,
+      homeOwnershipPct: 62.0,
+      priceToIncomeRatio: 8.4,
+      yoyPriceChangePct: 6.0,
+      affordabilityIndex: 38,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 12.0,
+    },
+    transport: {
+      publicTransitUsagePct: 38,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 100,
+      airports: 2,
+      seaports: 3,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 42,
+      highSpeedRailKm: 100,
+      metroSystems: 0,
+    },
+  },
+  bi: {
+    housing: {
+      medianHomePriceUSD: 8000,
+      medianRentMonthlyUSD: 28,
+      homeOwnershipPct: 68.0,
+      priceToIncomeRatio: 5.2,
+      yoyPriceChangePct: 22.0,
+      affordabilityIndex: 46,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 18.0,
+    },
+    transport: {
+      publicTransitUsagePct: 50,
+      roadDensityKmPer100km2: 6,
+      railNetworkKm: 0,
+      airports: 8,
+      seaports: 0,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 52,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  mw: {
+    housing: {
+      medianHomePriceUSD: 10000,
+      medianRentMonthlyUSD: 36,
+      homeOwnershipPct: 70.0,
+      priceToIncomeRatio: 5.8,
+      yoyPriceChangePct: 22.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 22.0,
+    },
+    transport: {
+      publicTransitUsagePct: 56,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 797,
+      airports: 7,
+      seaports: 0,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 54,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  na: {
+    housing: {
+      medianHomePriceUSD: 38000,
+      medianRentMonthlyUSD: 140,
+      homeOwnershipPct: 54.0,
+      priceToIncomeRatio: 6.8,
+      yoyPriceChangePct: 6.4,
+      affordabilityIndex: 38,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 10.0,
+    },
+    transport: {
+      publicTransitUsagePct: 36,
+      roadDensityKmPer100km2: 2,
+      railNetworkKm: 2628,
+      airports: 28,
+      seaports: 1,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 46,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  bw: {
+    housing: {
+      medianHomePriceUSD: 44000,
+      medianRentMonthlyUSD: 160,
+      homeOwnershipPct: 62.4,
+      priceToIncomeRatio: 6.8,
+      yoyPriceChangePct: 5.4,
+      affordabilityIndex: 44,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 9.0,
+    },
+    transport: {
+      publicTransitUsagePct: 28,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 888,
+      airports: 8,
+      seaports: 0,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 44,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  mu: {
+    housing: {
+      medianHomePriceUSD: 148000,
+      medianRentMonthlyUSD: 560,
+      homeOwnershipPct: 74.4,
+      priceToIncomeRatio: 10.4,
+      yoyPriceChangePct: 6.8,
+      affordabilityIndex: 36,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 6.0,
+      mortgageRateAvgPct: 6.4,
+    },
+    transport: {
+      publicTransitUsagePct: 28,
+      roadDensityKmPer100km2: 220,
+      railNetworkKm: 0,
+      airports: 1,
+      seaports: 1,
+      evAdoptionPct: 2.0,
+      avgCommuteMinutes: 38,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  sz: {
+    housing: {
+      medianHomePriceUSD: 28000,
+      medianRentMonthlyUSD: 100,
+      homeOwnershipPct: 60.0,
+      priceToIncomeRatio: 6.4,
+      yoyPriceChangePct: 5.2,
+      affordabilityIndex: 42,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 9.8,
+    },
+    transport: {
+      publicTransitUsagePct: 38,
+      roadDensityKmPer100km2: 22,
+      railNetworkKm: 301,
+      airports: 1,
+      seaports: 0,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 44,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  ls: {
+    housing: {
+      medianHomePriceUSD: 16000,
+      medianRentMonthlyUSD: 52,
+      homeOwnershipPct: 72.0,
+      priceToIncomeRatio: 5.8,
+      yoyPriceChangePct: 4.4,
+      affordabilityIndex: 46,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 12.0,
+    },
+    transport: {
+      publicTransitUsagePct: 44,
+      roadDensityKmPer100km2: 8,
+      railNetworkKm: 2.6,
+      airports: 3,
+      seaports: 0,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 46,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  gm: {
+    housing: {
+      medianHomePriceUSD: 12000,
+      medianRentMonthlyUSD: 44,
+      homeOwnershipPct: 64.0,
+      priceToIncomeRatio: 5.6,
+      yoyPriceChangePct: 8.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 16.0,
+    },
+    transport: {
+      publicTransitUsagePct: 58,
+      roadDensityKmPer100km2: 14,
+      railNetworkKm: 0,
+      airports: 1,
+      seaports: 1,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 48,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  gn: {
+    housing: {
+      medianHomePriceUSD: 14000,
+      medianRentMonthlyUSD: 48,
+      homeOwnershipPct: 60.0,
+      priceToIncomeRatio: 5.8,
+      yoyPriceChangePct: 9.0,
+      affordabilityIndex: 42,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 14.0,
+    },
+    transport: {
+      publicTransitUsagePct: 54,
+      roadDensityKmPer100km2: 2,
+      railNetworkKm: 1086,
+      airports: 5,
+      seaports: 1,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 56,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  gw: {
+    housing: {
+      medianHomePriceUSD: 10000,
+      medianRentMonthlyUSD: 36,
+      homeOwnershipPct: 62.0,
+      priceToIncomeRatio: 5.2,
+      yoyPriceChangePct: 6.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 12.0,
+    },
+    transport: {
+      publicTransitUsagePct: 50,
+      roadDensityKmPer100km2: 6,
+      railNetworkKm: 0,
+      airports: 8,
+      seaports: 1,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 52,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  sl: {
+    housing: {
+      medianHomePriceUSD: 10000,
+      medianRentMonthlyUSD: 36,
+      homeOwnershipPct: 64.0,
+      priceToIncomeRatio: 5.6,
+      yoyPriceChangePct: 8.0,
+      affordabilityIndex: 42,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 16.0,
+    },
+    transport: {
+      publicTransitUsagePct: 52,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 84,
+      airports: 10,
+      seaports: 1,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 54,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  lr: {
+    housing: {
+      medianHomePriceUSD: 10000,
+      medianRentMonthlyUSD: 36,
+      homeOwnershipPct: 62.0,
+      priceToIncomeRatio: 5.4,
+      yoyPriceChangePct: 6.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 16.0,
+    },
+    transport: {
+      publicTransitUsagePct: 50,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 490,
+      airports: 10,
+      seaports: 1,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 54,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  tg: {
+    housing: {
+      medianHomePriceUSD: 14000,
+      medianRentMonthlyUSD: 50,
+      homeOwnershipPct: 62.0,
+      priceToIncomeRatio: 6.4,
+      yoyPriceChangePct: 7.2,
+      affordabilityIndex: 42,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 9.0,
+    },
+    transport: {
+      publicTransitUsagePct: 56,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 568,
+      airports: 2,
+      seaports: 1,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 52,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  ga_af: {
+    housing: {
+      medianHomePriceUSD: 52000,
+      medianRentMonthlyUSD: 200,
+      homeOwnershipPct: 62.0,
+      priceToIncomeRatio: 7.8,
+      yoyPriceChangePct: 5.4,
+      affordabilityIndex: 40,
+      vacancyRatePct: 14.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 12.0,
+    },
+    transport: {
+      publicTransitUsagePct: 34,
+      roadDensityKmPer100km2: 2,
+      railNetworkKm: 681,
+      airports: 9,
+      seaports: 3,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 46,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  cg: {
+    housing: {
+      medianHomePriceUSD: 28000,
+      medianRentMonthlyUSD: 100,
+      homeOwnershipPct: 62.0,
+      priceToIncomeRatio: 6.8,
+      yoyPriceChangePct: 6.0,
+      affordabilityIndex: 40,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 14.0,
+    },
+    transport: {
+      publicTransitUsagePct: 36,
+      roadDensityKmPer100km2: 2,
+      railNetworkKm: 886,
+      airports: 9,
+      seaports: 2,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 50,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  cf: {
+    housing: {
+      medianHomePriceUSD: 8000,
+      medianRentMonthlyUSD: 28,
+      homeOwnershipPct: 62.0,
+      priceToIncomeRatio: 4.8,
+      yoyPriceChangePct: 4.0,
+      affordabilityIndex: 46,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 16.0,
+    },
+    transport: {
+      publicTransitUsagePct: 42,
+      roadDensityKmPer100km2: 1,
+      railNetworkKm: 0,
+      airports: 37,
+      seaports: 0,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 52,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  td: {
+    housing: {
+      medianHomePriceUSD: 8000,
+      medianRentMonthlyUSD: 28,
+      homeOwnershipPct: 62.0,
+      priceToIncomeRatio: 4.4,
+      yoyPriceChangePct: 5.0,
+      affordabilityIndex: 46,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 14.0,
+    },
+    transport: {
+      publicTransitUsagePct: 40,
+      roadDensityKmPer100km2: 1,
+      railNetworkKm: 0,
+      airports: 58,
+      seaports: 0,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 54,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  cv: {
+    housing: {
+      medianHomePriceUSD: 64000,
+      medianRentMonthlyUSD: 240,
+      homeOwnershipPct: 68.0,
+      priceToIncomeRatio: 9.8,
+      yoyPriceChangePct: 6.4,
+      affordabilityIndex: 36,
+      vacancyRatePct: 16.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 8.0,
+    },
+    transport: {
+      publicTransitUsagePct: 24,
+      roadDensityKmPer100km2: 68,
+      railNetworkKm: 0,
+      airports: 4,
+      seaports: 4,
+      evAdoptionPct: 0.4,
+      avgCommuteMinutes: 28,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  sc: {
+    housing: {
+      medianHomePriceUSD: 288000,
+      medianRentMonthlyUSD: 1000,
+      homeOwnershipPct: 70.0,
+      priceToIncomeRatio: 12.8,
+      yoyPriceChangePct: 6.8,
+      affordabilityIndex: 30,
+      vacancyRatePct: 14.0,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 7.4,
+    },
+    transport: {
+      publicTransitUsagePct: 20,
+      roadDensityKmPer100km2: 240,
+      railNetworkKm: 0,
+      airports: 2,
+      seaports: 1,
+      evAdoptionPct: 2.4,
+      avgCommuteMinutes: 24,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  st: {
+    housing: {
+      medianHomePriceUSD: 38000,
+      medianRentMonthlyUSD: 140,
+      homeOwnershipPct: 68.0,
+      priceToIncomeRatio: 7.4,
+      yoyPriceChangePct: 8.0,
+      affordabilityIndex: 40,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 12.0,
+    },
+    transport: {
+      publicTransitUsagePct: 28,
+      roadDensityKmPer100km2: 52,
+      railNetworkKm: 0,
+      airports: 2,
+      seaports: 1,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 22,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  gq: {
+    housing: {
+      medianHomePriceUSD: 68000,
+      medianRentMonthlyUSD: 240,
+      homeOwnershipPct: 64.0,
+      priceToIncomeRatio: 8.4,
+      yoyPriceChangePct: 4.0,
+      affordabilityIndex: 40,
+      vacancyRatePct: 14.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 12.0,
+    },
+    transport: {
+      publicTransitUsagePct: 28,
+      roadDensityKmPer100km2: 8,
+      railNetworkKm: 0,
+      airports: 7,
+      seaports: 2,
+      evAdoptionPct: 0.1,
+      avgCommuteMinutes: 38,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  km: {
+    housing: {
+      medianHomePriceUSD: 12000,
+      medianRentMonthlyUSD: 44,
+      homeOwnershipPct: 64.0,
+      priceToIncomeRatio: 6.4,
+      yoyPriceChangePct: 6.0,
+      affordabilityIndex: 42,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 12.0,
+    },
+    transport: {
+      publicTransitUsagePct: 26,
+      roadDensityKmPer100km2: 24,
+      railNetworkKm: 0,
+      airports: 4,
+      seaports: 3,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 30,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  mr: {
+    housing: {
+      medianHomePriceUSD: 16000,
+      medianRentMonthlyUSD: 56,
+      homeOwnershipPct: 62.0,
+      priceToIncomeRatio: 6.4,
+      yoyPriceChangePct: 8.0,
+      affordabilityIndex: 42,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 1.5,
+      mortgageRateAvgPct: 12.0,
+    },
+    transport: {
+      publicTransitUsagePct: 42,
+      roadDensityKmPer100km2: 1,
+      railNetworkKm: 728,
+      airports: 30,
+      seaports: 2,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 48,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  // ── Oceania (remaining) ───────────────────────────────────────────────────
+  pg: {
+    housing: {
+      medianHomePriceUSD: 28000,
+      medianRentMonthlyUSD: 100,
+      homeOwnershipPct: 74.0,
+      priceToIncomeRatio: 6.8,
+      yoyPriceChangePct: 6.0,
+      affordabilityIndex: 42,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 10.0,
+    },
+    transport: {
+      publicTransitUsagePct: 36,
+      roadDensityKmPer100km2: 2,
+      railNetworkKm: 0,
+      airports: 561,
+      seaports: 9,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 48,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  fj: {
+    housing: {
+      medianHomePriceUSD: 58000,
+      medianRentMonthlyUSD: 220,
+      homeOwnershipPct: 68.0,
+      priceToIncomeRatio: 8.4,
+      yoyPriceChangePct: 6.8,
+      affordabilityIndex: 38,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 7.4,
+    },
+    transport: {
+      publicTransitUsagePct: 28,
+      roadDensityKmPer100km2: 14,
+      railNetworkKm: 597,
+      airports: 28,
+      seaports: 4,
+      evAdoptionPct: 0.2,
+      avgCommuteMinutes: 36,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  sb: {
+    housing: {
+      medianHomePriceUSD: 22000,
+      medianRentMonthlyUSD: 80,
+      homeOwnershipPct: 74.0,
+      priceToIncomeRatio: 6.4,
+      yoyPriceChangePct: 4.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 10.0,
+    },
+    transport: {
+      publicTransitUsagePct: 18,
+      roadDensityKmPer100km2: 2,
+      railNetworkKm: 0,
+      airports: 36,
+      seaports: 3,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 30,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  vu: {
+    housing: {
+      medianHomePriceUSD: 24000,
+      medianRentMonthlyUSD: 84,
+      homeOwnershipPct: 72.0,
+      priceToIncomeRatio: 6.8,
+      yoyPriceChangePct: 5.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 1.0,
+      mortgageRateAvgPct: 9.0,
+    },
+    transport: {
+      publicTransitUsagePct: 16,
+      roadDensityKmPer100km2: 6,
+      railNetworkKm: 0,
+      airports: 31,
+      seaports: 2,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 26,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  ws: {
+    housing: {
+      medianHomePriceUSD: 44000,
+      medianRentMonthlyUSD: 160,
+      homeOwnershipPct: 78.0,
+      priceToIncomeRatio: 8.4,
+      yoyPriceChangePct: 6.4,
+      affordabilityIndex: 42,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 7.4,
+    },
+    transport: {
+      publicTransitUsagePct: 14,
+      roadDensityKmPer100km2: 12,
+      railNetworkKm: 0,
+      airports: 4,
+      seaports: 1,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 24,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  to: {
+    housing: {
+      medianHomePriceUSD: 88000,
+      medianRentMonthlyUSD: 340,
+      homeOwnershipPct: 80.0,
+      priceToIncomeRatio: 8.8,
+      yoyPriceChangePct: 4.4,
+      affordabilityIndex: 44,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 7.4,
+    },
+    transport: {
+      publicTransitUsagePct: 12,
+      roadDensityKmPer100km2: 34,
+      railNetworkKm: 0,
+      airports: 6,
+      seaports: 2,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 22,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  ki: {
+    housing: {
+      medianHomePriceUSD: 14000,
+      medianRentMonthlyUSD: 50,
+      homeOwnershipPct: 72.0,
+      priceToIncomeRatio: 6.4,
+      yoyPriceChangePct: 4.0,
+      affordabilityIndex: 46,
+      vacancyRatePct: 6.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 8.0,
+    },
+    transport: {
+      publicTransitUsagePct: 12,
+      roadDensityKmPer100km2: 18,
+      railNetworkKm: 0,
+      airports: 19,
+      seaports: 3,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 20,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  fm: {
+    housing: {
+      medianHomePriceUSD: 28000,
+      medianRentMonthlyUSD: 100,
+      homeOwnershipPct: 72.0,
+      priceToIncomeRatio: 6.4,
+      yoyPriceChangePct: 3.6,
+      affordabilityIndex: 46,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 7.4,
+    },
+    transport: {
+      publicTransitUsagePct: 10,
+      roadDensityKmPer100km2: 4,
+      railNetworkKm: 0,
+      airports: 6,
+      seaports: 4,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 24,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  pw: {
+    housing: {
+      medianHomePriceUSD: 148000,
+      medianRentMonthlyUSD: 560,
+      homeOwnershipPct: 74.0,
+      priceToIncomeRatio: 9.4,
+      yoyPriceChangePct: 4.0,
+      affordabilityIndex: 42,
+      vacancyRatePct: 10.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 6.8,
+    },
+    transport: {
+      publicTransitUsagePct: 8,
+      roadDensityKmPer100km2: 20,
+      railNetworkKm: 0,
+      airports: 3,
+      seaports: 2,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 20,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  mh: {
+    housing: {
+      medianHomePriceUSD: 28000,
+      medianRentMonthlyUSD: 100,
+      homeOwnershipPct: 70.0,
+      priceToIncomeRatio: 5.8,
+      yoyPriceChangePct: 4.0,
+      affordabilityIndex: 48,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 7.4,
+    },
+    transport: {
+      publicTransitUsagePct: 8,
+      roadDensityKmPer100km2: 8,
+      railNetworkKm: 0,
+      airports: 15,
+      seaports: 3,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 18,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  nr: {
+    housing: {
+      medianHomePriceUSD: 88000,
+      medianRentMonthlyUSD: 320,
+      homeOwnershipPct: 72.0,
+      priceToIncomeRatio: 6.4,
+      yoyPriceChangePct: 2.4,
+      affordabilityIndex: 46,
+      vacancyRatePct: 8.0,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 7.4,
+    },
+    transport: {
+      publicTransitUsagePct: 6,
+      roadDensityKmPer100km2: 280,
+      railNetworkKm: 5,
+      airports: 1,
+      seaports: 1,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 14,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  tv: {
+    housing: {
+      medianHomePriceUSD: 44000,
+      medianRentMonthlyUSD: 160,
+      homeOwnershipPct: 74.0,
+      priceToIncomeRatio: 6.8,
+      yoyPriceChangePct: 3.6,
+      affordabilityIndex: 48,
+      vacancyRatePct: 6.0,
+      socialHousingPct: 3.0,
+      mortgageRateAvgPct: 7.4,
+    },
+    transport: {
+      publicTransitUsagePct: 8,
+      roadDensityKmPer100km2: 14,
+      railNetworkKm: 0,
+      airports: 1,
+      seaports: 1,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 14,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  coo_af: {
+    housing: {
+      medianHomePriceUSD: 78000,
+      medianRentMonthlyUSD: 280,
+      homeOwnershipPct: 70.0,
+      priceToIncomeRatio: 8.4,
+      yoyPriceChangePct: 4.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 14.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 7.4,
+    },
+    transport: {
+      publicTransitUsagePct: 10,
+      roadDensityKmPer100km2: 58,
+      railNetworkKm: 0,
+      airports: 10,
+      seaports: 1,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 22,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  eh: {
+    housing: {
+      medianHomePriceUSD: 18000,
+      medianRentMonthlyUSD: 60,
+      homeOwnershipPct: 60.0,
+      priceToIncomeRatio: 5.4,
+      yoyPriceChangePct: 3.0,
+      affordabilityIndex: 44,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 4.0,
+      mortgageRateAvgPct: 8.0,
+    },
+    transport: {
+      publicTransitUsagePct: 24,
+      roadDensityKmPer100km2: 1,
+      railNetworkKm: 0,
+      airports: 6,
+      seaports: 2,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 36,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  ck: {
+    housing: {
+      medianHomePriceUSD: 88000,
+      medianRentMonthlyUSD: 320,
+      homeOwnershipPct: 72.0,
+      priceToIncomeRatio: 8.8,
+      yoyPriceChangePct: 5.2,
+      affordabilityIndex: 42,
+      vacancyRatePct: 14.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 7.4,
+    },
+    transport: {
+      publicTransitUsagePct: 8,
+      roadDensityKmPer100km2: 46,
+      railNetworkKm: 0,
+      airports: 11,
+      seaports: 1,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 20,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+  nu: {
+    housing: {
+      medianHomePriceUSD: 52000,
+      medianRentMonthlyUSD: 200,
+      homeOwnershipPct: 72.0,
+      priceToIncomeRatio: 7.4,
+      yoyPriceChangePct: 3.0,
+      affordabilityIndex: 46,
+      vacancyRatePct: 12.0,
+      socialHousingPct: 2.0,
+      mortgageRateAvgPct: 7.4,
+    },
+    transport: {
+      publicTransitUsagePct: 6,
+      roadDensityKmPer100km2: 10,
+      railNetworkKm: 0,
+      airports: 1,
+      seaports: 1,
+      evAdoptionPct: 0.0,
+      avgCommuteMinutes: 14,
+      highSpeedRailKm: 0,
+      metroSystems: 0,
+    },
+  },
+};
+
+// ── Infrastructure Statistics Data ──────────────────────────────────────────
+interface InfraStats {
+  // Power
+  electricityAccessPct: number;
+  installedCapacityGW: number;
+  powerOutagesPerYearBusiness?: number;
+  // Water & Sanitation
+  safeWaterAccessPct: number;
+  sanitationAccessPct: number;
+  // Digital
+  mobileSubscriptionsPer100: number;
+  broadbandPer100: number;
+  dataSpeedMbps?: number;
+  // Roads & Logistics
+  pavedRoadsPct: number;
+  logisticsIndex: number; // World Bank LPI 1-5
+  // Healthcare Infrastructure
+  hospitalBedsPerThousand: number;
+  physiciansPerThousand: number;
+  // Construction/Investment
+  infraInvestmentGdpPct?: number;
+  overallInfraScore: number; // 0-100 composite
+  year: number;
+}
+
+const COUNTRY_INFRA_STATS: Record<string, InfraStats> = {
+  us: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 1160,
+    powerOutagesPerYearBusiness: 5.1,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 99,
+    mobileSubscriptionsPer100: 110,
+    broadbandPer100: 37,
+    dataSpeedMbps: 236,
+    pavedRoadsPct: 67,
+    logisticsIndex: 3.99,
+    hospitalBedsPerThousand: 2.8,
+    physiciansPerThousand: 3.6,
+    infraInvestmentGdpPct: 2.4,
+    overallInfraScore: 82,
+    year: 2023,
+  },
+  cn: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 2940,
+    powerOutagesPerYearBusiness: 4.6,
+    safeWaterAccessPct: 96,
+    sanitationAccessPct: 92,
+    mobileSubscriptionsPer100: 120,
+    broadbandPer100: 36,
+    dataSpeedMbps: 182,
+    pavedRoadsPct: 73,
+    logisticsIndex: 3.68,
+    hospitalBedsPerThousand: 6.5,
+    physiciansPerThousand: 2.4,
+    infraInvestmentGdpPct: 7.2,
+    overallInfraScore: 80,
+    year: 2023,
+  },
+  de: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 259,
+    powerOutagesPerYearBusiness: 0.3,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 131,
+    broadbandPer100: 44,
+    dataSpeedMbps: 104,
+    pavedRoadsPct: 99,
+    logisticsIndex: 4.2,
+    hospitalBedsPerThousand: 7.8,
+    physiciansPerThousand: 4.5,
+    infraInvestmentGdpPct: 2.2,
+    overallInfraScore: 88,
+    year: 2023,
+  },
+  gb: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 110,
+    powerOutagesPerYearBusiness: 0.6,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 118,
+    broadbandPer100: 40,
+    dataSpeedMbps: 128,
+    pavedRoadsPct: 100,
+    logisticsIndex: 4.07,
+    hospitalBedsPerThousand: 2.5,
+    physiciansPerThousand: 3.2,
+    infraInvestmentGdpPct: 1.8,
+    overallInfraScore: 87,
+    year: 2023,
+  },
+  fr: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 152,
+    powerOutagesPerYearBusiness: 0.9,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 112,
+    broadbandPer100: 45,
+    dataSpeedMbps: 116,
+    pavedRoadsPct: 100,
+    logisticsIndex: 3.84,
+    hospitalBedsPerThousand: 5.7,
+    physiciansPerThousand: 3.4,
+    infraInvestmentGdpPct: 2.5,
+    overallInfraScore: 86,
+    year: 2023,
+  },
+  jp: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 345,
+    powerOutagesPerYearBusiness: 0.1,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 156,
+    broadbandPer100: 36,
+    dataSpeedMbps: 144,
+    pavedRoadsPct: 80,
+    logisticsIndex: 4.25,
+    hospitalBedsPerThousand: 13.0,
+    physiciansPerThousand: 2.5,
+    infraInvestmentGdpPct: 2.8,
+    overallInfraScore: 92,
+    year: 2023,
+  },
+  in: {
+    electricityAccessPct: 97,
+    installedCapacityGW: 980,
+    powerOutagesPerYearBusiness: 48.0,
+    safeWaterAccessPct: 89,
+    sanitationAccessPct: 60,
+    mobileSubscriptionsPer100: 84,
+    broadbandPer100: 8,
+    dataSpeedMbps: 53,
+    pavedRoadsPct: 62,
+    logisticsIndex: 3.18,
+    hospitalBedsPerThousand: 0.5,
+    physiciansPerThousand: 0.9,
+    infraInvestmentGdpPct: 4.9,
+    overallInfraScore: 52,
+    year: 2023,
+  },
+  br: {
+    electricityAccessPct: 99,
+    installedCapacityGW: 204,
+    powerOutagesPerYearBusiness: 22.0,
+    safeWaterAccessPct: 98,
+    sanitationAccessPct: 66,
+    mobileSubscriptionsPer100: 108,
+    broadbandPer100: 21,
+    dataSpeedMbps: 68,
+    pavedRoadsPct: 12,
+    logisticsIndex: 2.99,
+    hospitalBedsPerThousand: 2.1,
+    physiciansPerThousand: 2.3,
+    infraInvestmentGdpPct: 2.1,
+    overallInfraScore: 55,
+    year: 2023,
+  },
+  ru: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 275,
+    powerOutagesPerYearBusiness: 8.2,
+    safeWaterAccessPct: 97,
+    sanitationAccessPct: 87,
+    mobileSubscriptionsPer100: 162,
+    broadbandPer100: 25,
+    dataSpeedMbps: 78,
+    pavedRoadsPct: 70,
+    logisticsIndex: 2.76,
+    hospitalBedsPerThousand: 7.1,
+    physiciansPerThousand: 4.0,
+    infraInvestmentGdpPct: 3.2,
+    overallInfraScore: 62,
+    year: 2023,
+  },
+  au_oc: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 92,
+    powerOutagesPerYearBusiness: 1.2,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 110,
+    broadbandPer100: 37,
+    dataSpeedMbps: 92,
+    pavedRoadsPct: 40,
+    logisticsIndex: 3.74,
+    hospitalBedsPerThousand: 3.8,
+    physiciansPerThousand: 4.0,
+    infraInvestmentGdpPct: 3.4,
+    overallInfraScore: 80,
+    year: 2023,
+  },
+  ca: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 150,
+    powerOutagesPerYearBusiness: 2.4,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 88,
+    broadbandPer100: 44,
+    dataSpeedMbps: 186,
+    pavedRoadsPct: 40,
+    logisticsIndex: 3.86,
+    hospitalBedsPerThousand: 2.5,
+    physiciansPerThousand: 2.8,
+    infraInvestmentGdpPct: 2.6,
+    overallInfraScore: 82,
+    year: 2023,
+  },
+  kr: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 145,
+    powerOutagesPerYearBusiness: 0.2,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 172,
+    broadbandPer100: 47,
+    dataSpeedMbps: 294,
+    pavedRoadsPct: 92,
+    logisticsIndex: 3.79,
+    hospitalBedsPerThousand: 12.4,
+    physiciansPerThousand: 2.5,
+    infraInvestmentGdpPct: 3.0,
+    overallInfraScore: 91,
+    year: 2023,
+  },
+  sg: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 15,
+    powerOutagesPerYearBusiness: 0.04,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 161,
+    broadbandPer100: 51,
+    dataSpeedMbps: 252,
+    pavedRoadsPct: 100,
+    logisticsIndex: 4.3,
+    hospitalBedsPerThousand: 2.5,
+    physiciansPerThousand: 2.5,
+    infraInvestmentGdpPct: 4.2,
+    overallInfraScore: 95,
+    year: 2023,
+  },
+  ae: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 36,
+    powerOutagesPerYearBusiness: 0.2,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 218,
+    broadbandPer100: 40,
+    dataSpeedMbps: 188,
+    pavedRoadsPct: 100,
+    logisticsIndex: 4.03,
+    hospitalBedsPerThousand: 1.4,
+    physiciansPerThousand: 2.6,
+    infraInvestmentGdpPct: 5.8,
+    overallInfraScore: 88,
+    year: 2023,
+  },
+  il_as: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 21,
+    powerOutagesPerYearBusiness: 0.5,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 131,
+    broadbandPer100: 36,
+    dataSpeedMbps: 84,
+    pavedRoadsPct: 100,
+    logisticsIndex: 3.35,
+    hospitalBedsPerThousand: 3.1,
+    physiciansPerThousand: 3.8,
+    infraInvestmentGdpPct: 3.0,
+    overallInfraScore: 82,
+    year: 2023,
+  },
+  tr: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 110,
+    powerOutagesPerYearBusiness: 18.4,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 97,
+    mobileSubscriptionsPer100: 98,
+    broadbandPer100: 22,
+    dataSpeedMbps: 42,
+    pavedRoadsPct: 94,
+    logisticsIndex: 3.48,
+    hospitalBedsPerThousand: 2.8,
+    physiciansPerThousand: 2.2,
+    infraInvestmentGdpPct: 4.4,
+    overallInfraScore: 68,
+    year: 2023,
+  },
+  za: {
+    electricityAccessPct: 85,
+    installedCapacityGW: 57,
+    powerOutagesPerYearBusiness: 172.0,
+    safeWaterAccessPct: 89,
+    sanitationAccessPct: 68,
+    mobileSubscriptionsPer100: 170,
+    broadbandPer100: 11,
+    dataSpeedMbps: 34,
+    pavedRoadsPct: 17,
+    logisticsIndex: 3.38,
+    hospitalBedsPerThousand: 2.3,
+    physiciansPerThousand: 0.9,
+    infraInvestmentGdpPct: 2.0,
+    overallInfraScore: 42,
+    year: 2023,
+  },
+  ng: {
+    electricityAccessPct: 56,
+    installedCapacityGW: 12,
+    powerOutagesPerYearBusiness: 233.0,
+    safeWaterAccessPct: 60,
+    sanitationAccessPct: 45,
+    mobileSubscriptionsPer100: 92,
+    broadbandPer100: 2,
+    dataSpeedMbps: 18,
+    pavedRoadsPct: 15,
+    logisticsIndex: 2.53,
+    hospitalBedsPerThousand: 0.5,
+    physiciansPerThousand: 0.4,
+    infraInvestmentGdpPct: 1.8,
+    overallInfraScore: 24,
+    year: 2023,
+  },
+  eg: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 62,
+    powerOutagesPerYearBusiness: 28.0,
+    safeWaterAccessPct: 97,
+    sanitationAccessPct: 93,
+    mobileSubscriptionsPer100: 102,
+    broadbandPer100: 8,
+    dataSpeedMbps: 28,
+    pavedRoadsPct: 90,
+    logisticsIndex: 2.82,
+    hospitalBedsPerThousand: 1.5,
+    physiciansPerThousand: 0.8,
+    infraInvestmentGdpPct: 7.6,
+    overallInfraScore: 48,
+    year: 2023,
+  },
+  sa: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 80,
+    powerOutagesPerYearBusiness: 2.8,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 126,
+    broadbandPer100: 30,
+    dataSpeedMbps: 102,
+    pavedRoadsPct: 88,
+    logisticsIndex: 3.36,
+    hospitalBedsPerThousand: 2.2,
+    physiciansPerThousand: 2.6,
+    infraInvestmentGdpPct: 6.6,
+    overallInfraScore: 72,
+    year: 2023,
+  },
+  mx: {
+    electricityAccessPct: 99,
+    installedCapacityGW: 92,
+    powerOutagesPerYearBusiness: 16.0,
+    safeWaterAccessPct: 97,
+    sanitationAccessPct: 88,
+    mobileSubscriptionsPer100: 100,
+    broadbandPer100: 18,
+    dataSpeedMbps: 44,
+    pavedRoadsPct: 40,
+    logisticsIndex: 3.06,
+    hospitalBedsPerThousand: 1.5,
+    physiciansPerThousand: 2.4,
+    infraInvestmentGdpPct: 2.2,
+    overallInfraScore: 54,
+    year: 2023,
+  },
+  ar: {
+    electricityAccessPct: 99,
+    installedCapacityGW: 44,
+    powerOutagesPerYearBusiness: 31.0,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 96,
+    mobileSubscriptionsPer100: 128,
+    broadbandPer100: 22,
+    dataSpeedMbps: 38,
+    pavedRoadsPct: 30,
+    logisticsIndex: 2.65,
+    hospitalBedsPerThousand: 5.0,
+    physiciansPerThousand: 4.0,
+    infraInvestmentGdpPct: 1.4,
+    overallInfraScore: 52,
+    year: 2023,
+  },
+  cl: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 32,
+    powerOutagesPerYearBusiness: 8.6,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 97,
+    mobileSubscriptionsPer100: 138,
+    broadbandPer100: 24,
+    dataSpeedMbps: 78,
+    pavedRoadsPct: 25,
+    logisticsIndex: 3.26,
+    hospitalBedsPerThousand: 2.2,
+    physiciansPerThousand: 2.6,
+    infraInvestmentGdpPct: 4.0,
+    overallInfraScore: 66,
+    year: 2023,
+  },
+  ir: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 91,
+    powerOutagesPerYearBusiness: 38.0,
+    safeWaterAccessPct: 95,
+    sanitationAccessPct: 76,
+    mobileSubscriptionsPer100: 154,
+    broadbandPer100: 16,
+    dataSpeedMbps: 22,
+    pavedRoadsPct: 74,
+    logisticsIndex: 2.44,
+    hospitalBedsPerThousand: 1.5,
+    physiciansPerThousand: 1.6,
+    infraInvestmentGdpPct: 3.4,
+    overallInfraScore: 46,
+    year: 2023,
+  },
+  id: {
+    electricityAccessPct: 98,
+    installedCapacityGW: 80,
+    powerOutagesPerYearBusiness: 36.0,
+    safeWaterAccessPct: 90,
+    sanitationAccessPct: 76,
+    mobileSubscriptionsPer100: 128,
+    broadbandPer100: 10,
+    dataSpeedMbps: 34,
+    pavedRoadsPct: 57,
+    logisticsIndex: 3.15,
+    hospitalBedsPerThousand: 1.0,
+    physiciansPerThousand: 0.6,
+    infraInvestmentGdpPct: 3.8,
+    overallInfraScore: 52,
+    year: 2023,
+  },
+  my: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 35,
+    powerOutagesPerYearBusiness: 4.2,
+    safeWaterAccessPct: 98,
+    sanitationAccessPct: 96,
+    mobileSubscriptionsPer100: 142,
+    broadbandPer100: 28,
+    dataSpeedMbps: 72,
+    pavedRoadsPct: 80,
+    logisticsIndex: 3.22,
+    hospitalBedsPerThousand: 1.9,
+    physiciansPerThousand: 1.6,
+    infraInvestmentGdpPct: 5.0,
+    overallInfraScore: 72,
+    year: 2023,
+  },
+  th: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 52,
+    powerOutagesPerYearBusiness: 7.6,
+    safeWaterAccessPct: 97,
+    sanitationAccessPct: 98,
+    mobileSubscriptionsPer100: 196,
+    broadbandPer100: 17,
+    dataSpeedMbps: 48,
+    pavedRoadsPct: 99,
+    logisticsIndex: 3.41,
+    hospitalBedsPerThousand: 2.1,
+    physiciansPerThousand: 0.9,
+    infraInvestmentGdpPct: 2.8,
+    overallInfraScore: 68,
+    year: 2023,
+  },
+  vn: {
+    electricityAccessPct: 99,
+    installedCapacityGW: 80,
+    powerOutagesPerYearBusiness: 24.0,
+    safeWaterAccessPct: 96,
+    sanitationAccessPct: 82,
+    mobileSubscriptionsPer100: 148,
+    broadbandPer100: 22,
+    dataSpeedMbps: 62,
+    pavedRoadsPct: 47,
+    logisticsIndex: 3.27,
+    hospitalBedsPerThousand: 3.2,
+    physiciansPerThousand: 0.9,
+    infraInvestmentGdpPct: 5.8,
+    overallInfraScore: 58,
+    year: 2023,
+  },
+  ph: {
+    electricityAccessPct: 94,
+    installedCapacityGW: 28,
+    powerOutagesPerYearBusiness: 52.0,
+    safeWaterAccessPct: 92,
+    sanitationAccessPct: 73,
+    mobileSubscriptionsPer100: 110,
+    broadbandPer100: 10,
+    dataSpeedMbps: 28,
+    pavedRoadsPct: 22,
+    logisticsIndex: 2.8,
+    hospitalBedsPerThousand: 1.0,
+    physiciansPerThousand: 0.7,
+    infraInvestmentGdpPct: 5.4,
+    overallInfraScore: 44,
+    year: 2023,
+  },
+  pk: {
+    electricityAccessPct: 76,
+    installedCapacityGW: 42,
+    powerOutagesPerYearBusiness: 82.0,
+    safeWaterAccessPct: 88,
+    sanitationAccessPct: 57,
+    mobileSubscriptionsPer100: 80,
+    broadbandPer100: 4,
+    dataSpeedMbps: 16,
+    pavedRoadsPct: 66,
+    logisticsIndex: 2.81,
+    hospitalBedsPerThousand: 0.6,
+    physiciansPerThousand: 1.1,
+    infraInvestmentGdpPct: 3.0,
+    overallInfraScore: 36,
+    year: 2023,
+  },
+  bd: {
+    electricityAccessPct: 96,
+    installedCapacityGW: 22,
+    powerOutagesPerYearBusiness: 44.0,
+    safeWaterAccessPct: 98,
+    sanitationAccessPct: 60,
+    mobileSubscriptionsPer100: 108,
+    broadbandPer100: 5,
+    dataSpeedMbps: 22,
+    pavedRoadsPct: 9,
+    logisticsIndex: 2.8,
+    hospitalBedsPerThousand: 0.8,
+    physiciansPerThousand: 0.6,
+    infraInvestmentGdpPct: 3.6,
+    overallInfraScore: 36,
+    year: 2023,
+  },
+  et: {
+    electricityAccessPct: 44,
+    installedCapacityGW: 4.9,
+    powerOutagesPerYearBusiness: 148.0,
+    safeWaterAccessPct: 58,
+    sanitationAccessPct: 8,
+    mobileSubscriptionsPer100: 48,
+    broadbandPer100: 1,
+    dataSpeedMbps: 14,
+    pavedRoadsPct: 14,
+    logisticsIndex: 2.29,
+    hospitalBedsPerThousand: 0.3,
+    physiciansPerThousand: 0.1,
+    infraInvestmentGdpPct: 8.2,
+    overallInfraScore: 18,
+    year: 2023,
+  },
+  ke: {
+    electricityAccessPct: 75,
+    installedCapacityGW: 3.8,
+    powerOutagesPerYearBusiness: 56.0,
+    safeWaterAccessPct: 63,
+    sanitationAccessPct: 33,
+    mobileSubscriptionsPer100: 120,
+    broadbandPer100: 4,
+    dataSpeedMbps: 22,
+    pavedRoadsPct: 14,
+    logisticsIndex: 2.81,
+    hospitalBedsPerThousand: 1.4,
+    physiciansPerThousand: 0.2,
+    infraInvestmentGdpPct: 4.2,
+    overallInfraScore: 28,
+    year: 2023,
+  },
+  ua: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 46,
+    powerOutagesPerYearBusiness: 86.0,
+    safeWaterAccessPct: 95,
+    sanitationAccessPct: 96,
+    mobileSubscriptionsPer100: 136,
+    broadbandPer100: 22,
+    dataSpeedMbps: 48,
+    pavedRoadsPct: 97,
+    logisticsIndex: 2.83,
+    hospitalBedsPerThousand: 8.8,
+    physiciansPerThousand: 3.5,
+    infraInvestmentGdpPct: 2.4,
+    overallInfraScore: 54,
+    year: 2023,
+  },
+  pl: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 60,
+    powerOutagesPerYearBusiness: 3.6,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 98,
+    mobileSubscriptionsPer100: 138,
+    broadbandPer100: 30,
+    dataSpeedMbps: 72,
+    pavedRoadsPct: 87,
+    logisticsIndex: 3.44,
+    hospitalBedsPerThousand: 6.5,
+    physiciansPerThousand: 3.6,
+    infraInvestmentGdpPct: 4.4,
+    overallInfraScore: 76,
+    year: 2023,
+  },
+  it: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 122,
+    powerOutagesPerYearBusiness: 4.2,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 132,
+    broadbandPer100: 30,
+    dataSpeedMbps: 68,
+    pavedRoadsPct: 100,
+    logisticsIndex: 3.7,
+    hospitalBedsPerThousand: 3.2,
+    physiciansPerThousand: 4.0,
+    infraInvestmentGdpPct: 2.1,
+    overallInfraScore: 80,
+    year: 2023,
+  },
+  se: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 46,
+    powerOutagesPerYearBusiness: 0.7,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 130,
+    broadbandPer100: 44,
+    dataSpeedMbps: 152,
+    pavedRoadsPct: 80,
+    logisticsIndex: 4.05,
+    hospitalBedsPerThousand: 2.2,
+    physiciansPerThousand: 4.3,
+    infraInvestmentGdpPct: 2.8,
+    overallInfraScore: 90,
+    year: 2023,
+  },
+  no: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 42,
+    powerOutagesPerYearBusiness: 0.4,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 108,
+    broadbandPer100: 46,
+    dataSpeedMbps: 166,
+    pavedRoadsPct: 82,
+    logisticsIndex: 3.86,
+    hospitalBedsPerThousand: 3.5,
+    physiciansPerThousand: 5.2,
+    infraInvestmentGdpPct: 3.2,
+    overallInfraScore: 91,
+    year: 2023,
+  },
+  kp: {
+    electricityAccessPct: 30,
+    installedCapacityGW: 8,
+    powerOutagesPerYearBusiness: 320.0,
+    safeWaterAccessPct: 62,
+    sanitationAccessPct: 82,
+    mobileSubscriptionsPer100: 18,
+    broadbandPer100: 0,
+    dataSpeedMbps: 0,
+    pavedRoadsPct: 6,
+    logisticsIndex: 1.2,
+    hospitalBedsPerThousand: 13.2,
+    physiciansPerThousand: 3.7,
+    infraInvestmentGdpPct: 4.0,
+    overallInfraScore: 14,
+    year: 2023,
+  },
+  ir_as: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 91,
+    powerOutagesPerYearBusiness: 38.0,
+    safeWaterAccessPct: 95,
+    sanitationAccessPct: 76,
+    mobileSubscriptionsPer100: 154,
+    broadbandPer100: 16,
+    dataSpeedMbps: 22,
+    pavedRoadsPct: 74,
+    logisticsIndex: 2.44,
+    hospitalBedsPerThousand: 1.5,
+    physiciansPerThousand: 1.6,
+    overallInfraScore: 46,
+    year: 2023,
+  },
+  // ── Europe (additional) ──────────────────────────────────────────────────
+  es: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 122,
+    powerOutagesPerYearBusiness: 0.7,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 120,
+    broadbandPer100: 36,
+    dataSpeedMbps: 90,
+    pavedRoadsPct: 100,
+    logisticsIndex: 3.83,
+    hospitalBedsPerThousand: 3.0,
+    physiciansPerThousand: 4.4,
+    infraInvestmentGdpPct: 2.8,
+    overallInfraScore: 84,
+    year: 2023,
+  },
+  nl: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 38,
+    powerOutagesPerYearBusiness: 0.2,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 126,
+    broadbandPer100: 46,
+    dataSpeedMbps: 148,
+    pavedRoadsPct: 100,
+    logisticsIndex: 4.22,
+    hospitalBedsPerThousand: 3.2,
+    physiciansPerThousand: 3.8,
+    infraInvestmentGdpPct: 2.4,
+    overallInfraScore: 90,
+    year: 2023,
+  },
+  ch: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 24,
+    powerOutagesPerYearBusiness: 0.2,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 138,
+    broadbandPer100: 50,
+    dataSpeedMbps: 168,
+    pavedRoadsPct: 100,
+    logisticsIndex: 4.09,
+    hospitalBedsPerThousand: 4.6,
+    physiciansPerThousand: 4.4,
+    infraInvestmentGdpPct: 2.8,
+    overallInfraScore: 92,
+    year: 2023,
+  },
+  dk: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 17,
+    powerOutagesPerYearBusiness: 0.3,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 122,
+    broadbandPer100: 48,
+    dataSpeedMbps: 172,
+    pavedRoadsPct: 100,
+    logisticsIndex: 4.04,
+    hospitalBedsPerThousand: 2.6,
+    physiciansPerThousand: 4.1,
+    infraInvestmentGdpPct: 2.4,
+    overallInfraScore: 90,
+    year: 2023,
+  },
+  fi: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 21,
+    powerOutagesPerYearBusiness: 0.6,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 142,
+    broadbandPer100: 36,
+    dataSpeedMbps: 138,
+    pavedRoadsPct: 65,
+    logisticsIndex: 3.97,
+    hospitalBedsPerThousand: 3.6,
+    physiciansPerThousand: 3.8,
+    infraInvestmentGdpPct: 2.8,
+    overallInfraScore: 88,
+    year: 2023,
+  },
+  be: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 22,
+    powerOutagesPerYearBusiness: 0.5,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 116,
+    broadbandPer100: 44,
+    dataSpeedMbps: 132,
+    pavedRoadsPct: 78,
+    logisticsIndex: 4.11,
+    hospitalBedsPerThousand: 5.6,
+    physiciansPerThousand: 3.2,
+    infraInvestmentGdpPct: 2.0,
+    overallInfraScore: 87,
+    year: 2023,
+  },
+  at: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 28,
+    powerOutagesPerYearBusiness: 0.4,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 124,
+    broadbandPer100: 36,
+    dataSpeedMbps: 92,
+    pavedRoadsPct: 100,
+    logisticsIndex: 4.09,
+    hospitalBedsPerThousand: 7.3,
+    physiciansPerThousand: 5.3,
+    infraInvestmentGdpPct: 2.6,
+    overallInfraScore: 88,
+    year: 2023,
+  },
+  pt: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 22,
+    powerOutagesPerYearBusiness: 1.4,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 99,
+    mobileSubscriptionsPer100: 118,
+    broadbandPer100: 34,
+    dataSpeedMbps: 88,
+    pavedRoadsPct: 86,
+    logisticsIndex: 3.64,
+    hospitalBedsPerThousand: 3.4,
+    physiciansPerThousand: 5.6,
+    infraInvestmentGdpPct: 2.8,
+    overallInfraScore: 82,
+    year: 2023,
+  },
+  gr: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 22,
+    powerOutagesPerYearBusiness: 2.8,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 99,
+    mobileSubscriptionsPer100: 118,
+    broadbandPer100: 22,
+    dataSpeedMbps: 52,
+    pavedRoadsPct: 93,
+    logisticsIndex: 3.24,
+    hospitalBedsPerThousand: 4.2,
+    physiciansPerThousand: 6.1,
+    infraInvestmentGdpPct: 1.8,
+    overallInfraScore: 74,
+    year: 2023,
+  },
+  cz: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 24,
+    powerOutagesPerYearBusiness: 0.8,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 124,
+    broadbandPer100: 34,
+    dataSpeedMbps: 84,
+    pavedRoadsPct: 100,
+    logisticsIndex: 3.67,
+    hospitalBedsPerThousand: 6.6,
+    physiciansPerThousand: 4.1,
+    infraInvestmentGdpPct: 3.2,
+    overallInfraScore: 84,
+    year: 2023,
+  },
+  ro: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 22,
+    powerOutagesPerYearBusiness: 4.8,
+    safeWaterAccessPct: 96,
+    sanitationAccessPct: 80,
+    mobileSubscriptionsPer100: 112,
+    broadbandPer100: 24,
+    dataSpeedMbps: 68,
+    pavedRoadsPct: 32,
+    logisticsIndex: 3.18,
+    hospitalBedsPerThousand: 7.1,
+    physiciansPerThousand: 3.0,
+    infraInvestmentGdpPct: 4.2,
+    overallInfraScore: 64,
+    year: 2023,
+  },
+  hu: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 11,
+    powerOutagesPerYearBusiness: 1.2,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 108,
+    broadbandPer100: 28,
+    dataSpeedMbps: 72,
+    pavedRoadsPct: 38,
+    logisticsIndex: 3.43,
+    hospitalBedsPerThousand: 7.0,
+    physiciansPerThousand: 3.4,
+    infraInvestmentGdpPct: 3.6,
+    overallInfraScore: 74,
+    year: 2023,
+  },
+  // ── Asia / Oceania (additional) ──────────────────────────────────────────
+  tw: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 60,
+    powerOutagesPerYearBusiness: 0.3,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 128,
+    broadbandPer100: 38,
+    dataSpeedMbps: 142,
+    pavedRoadsPct: 100,
+    logisticsIndex: 3.64,
+    hospitalBedsPerThousand: 7.1,
+    physiciansPerThousand: 2.0,
+    infraInvestmentGdpPct: 4.2,
+    overallInfraScore: 86,
+    year: 2023,
+  },
+  nz: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 10,
+    powerOutagesPerYearBusiness: 1.6,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 114,
+    broadbandPer100: 38,
+    dataSpeedMbps: 108,
+    pavedRoadsPct: 66,
+    logisticsIndex: 3.88,
+    hospitalBedsPerThousand: 2.7,
+    physiciansPerThousand: 3.6,
+    infraInvestmentGdpPct: 4.2,
+    overallInfraScore: 82,
+    year: 2023,
+  },
+  kz: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 26,
+    powerOutagesPerYearBusiness: 9.4,
+    safeWaterAccessPct: 93,
+    sanitationAccessPct: 98,
+    mobileSubscriptionsPer100: 148,
+    broadbandPer100: 17,
+    dataSpeedMbps: 38,
+    pavedRoadsPct: 90,
+    logisticsIndex: 2.81,
+    hospitalBedsPerThousand: 6.2,
+    physiciansPerThousand: 3.9,
+    infraInvestmentGdpPct: 4.4,
+    overallInfraScore: 60,
+    year: 2023,
+  },
+  iq: {
+    electricityAccessPct: 92,
+    installedCapacityGW: 30,
+    powerOutagesPerYearBusiness: 68.0,
+    safeWaterAccessPct: 92,
+    sanitationAccessPct: 86,
+    mobileSubscriptionsPer100: 98,
+    broadbandPer100: 7,
+    dataSpeedMbps: 14,
+    pavedRoadsPct: 84,
+    logisticsIndex: 2.46,
+    hospitalBedsPerThousand: 1.3,
+    physiciansPerThousand: 0.9,
+    infraInvestmentGdpPct: 6.2,
+    overallInfraScore: 36,
+    year: 2023,
+  },
+  om: {
+    electricityAccessPct: 99,
+    installedCapacityGW: 9,
+    powerOutagesPerYearBusiness: 3.6,
+    safeWaterAccessPct: 97,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 158,
+    broadbandPer100: 22,
+    dataSpeedMbps: 72,
+    pavedRoadsPct: 98,
+    logisticsIndex: 3.14,
+    hospitalBedsPerThousand: 1.5,
+    physiciansPerThousand: 2.2,
+    infraInvestmentGdpPct: 5.0,
+    overallInfraScore: 68,
+    year: 2023,
+  },
+  qa: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 10,
+    powerOutagesPerYearBusiness: 0.3,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 168,
+    broadbandPer100: 32,
+    dataSpeedMbps: 138,
+    pavedRoadsPct: 100,
+    logisticsIndex: 3.54,
+    hospitalBedsPerThousand: 1.3,
+    physiciansPerThousand: 2.8,
+    infraInvestmentGdpPct: 8.0,
+    overallInfraScore: 82,
+    year: 2023,
+  },
+  kw: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 18,
+    powerOutagesPerYearBusiness: 1.8,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 188,
+    broadbandPer100: 26,
+    dataSpeedMbps: 88,
+    pavedRoadsPct: 85,
+    logisticsIndex: 3.15,
+    hospitalBedsPerThousand: 2.0,
+    physiciansPerThousand: 2.7,
+    infraInvestmentGdpPct: 4.0,
+    overallInfraScore: 74,
+    year: 2023,
+  },
+  // ── Americas (additional) ────────────────────────────────────────────────
+  co_co: {
+    electricityAccessPct: 98,
+    installedCapacityGW: 20,
+    powerOutagesPerYearBusiness: 32.0,
+    safeWaterAccessPct: 95,
+    sanitationAccessPct: 91,
+    mobileSubscriptionsPer100: 134,
+    broadbandPer100: 14,
+    dataSpeedMbps: 34,
+    pavedRoadsPct: 24,
+    logisticsIndex: 2.94,
+    hospitalBedsPerThousand: 1.7,
+    physiciansPerThousand: 2.3,
+    infraInvestmentGdpPct: 3.2,
+    overallInfraScore: 52,
+    year: 2023,
+  },
+  pe: {
+    electricityAccessPct: 95,
+    installedCapacityGW: 14,
+    powerOutagesPerYearBusiness: 22.0,
+    safeWaterAccessPct: 92,
+    sanitationAccessPct: 76,
+    mobileSubscriptionsPer100: 124,
+    broadbandPer100: 10,
+    dataSpeedMbps: 32,
+    pavedRoadsPct: 14,
+    logisticsIndex: 2.71,
+    hospitalBedsPerThousand: 1.6,
+    physiciansPerThousand: 1.4,
+    infraInvestmentGdpPct: 4.2,
+    overallInfraScore: 44,
+    year: 2023,
+  },
+  ve: {
+    electricityAccessPct: 91,
+    installedCapacityGW: 32,
+    powerOutagesPerYearBusiness: 128.0,
+    safeWaterAccessPct: 88,
+    sanitationAccessPct: 93,
+    mobileSubscriptionsPer100: 102,
+    broadbandPer100: 7,
+    dataSpeedMbps: 12,
+    pavedRoadsPct: 34,
+    logisticsIndex: 2.14,
+    hospitalBedsPerThousand: 0.9,
+    physiciansPerThousand: 1.9,
+    infraInvestmentGdpPct: 0.8,
+    overallInfraScore: 22,
+    year: 2023,
+  },
+  cl: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 32,
+    powerOutagesPerYearBusiness: 8.6,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 97,
+    mobileSubscriptionsPer100: 138,
+    broadbandPer100: 24,
+    dataSpeedMbps: 78,
+    pavedRoadsPct: 25,
+    logisticsIndex: 3.26,
+    hospitalBedsPerThousand: 2.2,
+    physiciansPerThousand: 2.6,
+    infraInvestmentGdpPct: 4.0,
+    overallInfraScore: 66,
+    year: 2023,
+  },
+  ec: {
+    electricityAccessPct: 97,
+    installedCapacityGW: 8,
+    powerOutagesPerYearBusiness: 18.0,
+    safeWaterAccessPct: 97,
+    sanitationAccessPct: 84,
+    mobileSubscriptionsPer100: 116,
+    broadbandPer100: 12,
+    dataSpeedMbps: 28,
+    pavedRoadsPct: 14,
+    logisticsIndex: 2.72,
+    hospitalBedsPerThousand: 1.5,
+    physiciansPerThousand: 2.1,
+    infraInvestmentGdpPct: 3.2,
+    overallInfraScore: 46,
+    year: 2023,
+  },
+  bo: {
+    electricityAccessPct: 92,
+    installedCapacityGW: 4,
+    powerOutagesPerYearBusiness: 18.0,
+    safeWaterAccessPct: 92,
+    sanitationAccessPct: 54,
+    mobileSubscriptionsPer100: 106,
+    broadbandPer100: 6,
+    dataSpeedMbps: 22,
+    pavedRoadsPct: 9,
+    logisticsIndex: 2.55,
+    hospitalBedsPerThousand: 1.1,
+    physiciansPerThousand: 1.0,
+    infraInvestmentGdpPct: 3.6,
+    overallInfraScore: 34,
+    year: 2023,
+  },
+  py: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 9,
+    powerOutagesPerYearBusiness: 12.0,
+    safeWaterAccessPct: 98,
+    sanitationAccessPct: 90,
+    mobileSubscriptionsPer100: 114,
+    broadbandPer100: 8,
+    dataSpeedMbps: 24,
+    pavedRoadsPct: 32,
+    logisticsIndex: 2.63,
+    hospitalBedsPerThousand: 0.8,
+    physiciansPerThousand: 1.4,
+    infraInvestmentGdpPct: 2.4,
+    overallInfraScore: 48,
+    year: 2023,
+  },
+  uy: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 5,
+    powerOutagesPerYearBusiness: 3.4,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 98,
+    mobileSubscriptionsPer100: 158,
+    broadbandPer100: 28,
+    dataSpeedMbps: 56,
+    pavedRoadsPct: 11,
+    logisticsIndex: 2.88,
+    hospitalBedsPerThousand: 2.5,
+    physiciansPerThousand: 4.9,
+    infraInvestmentGdpPct: 3.2,
+    overallInfraScore: 62,
+    year: 2023,
+  },
+  // ── Africa (additional) ──────────────────────────────────────────────────
+  ma: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 11,
+    powerOutagesPerYearBusiness: 6.2,
+    safeWaterAccessPct: 83,
+    sanitationAccessPct: 78,
+    mobileSubscriptionsPer100: 134,
+    broadbandPer100: 9,
+    dataSpeedMbps: 36,
+    pavedRoadsPct: 76,
+    logisticsIndex: 2.86,
+    hospitalBedsPerThousand: 1.0,
+    physiciansPerThousand: 0.7,
+    infraInvestmentGdpPct: 6.4,
+    overallInfraScore: 52,
+    year: 2023,
+  },
+  gh: {
+    electricityAccessPct: 84,
+    installedCapacityGW: 5,
+    powerOutagesPerYearBusiness: 86.0,
+    safeWaterAccessPct: 86,
+    sanitationAccessPct: 21,
+    mobileSubscriptionsPer100: 142,
+    broadbandPer100: 6,
+    dataSpeedMbps: 18,
+    pavedRoadsPct: 18,
+    logisticsIndex: 2.59,
+    hospitalBedsPerThousand: 0.9,
+    physiciansPerThousand: 0.2,
+    infraInvestmentGdpPct: 3.8,
+    overallInfraScore: 32,
+    year: 2023,
+  },
+  tz: {
+    electricityAccessPct: 42,
+    installedCapacityGW: 3.8,
+    powerOutagesPerYearBusiness: 92.0,
+    safeWaterAccessPct: 58,
+    sanitationAccessPct: 31,
+    mobileSubscriptionsPer100: 92,
+    broadbandPer100: 2,
+    dataSpeedMbps: 12,
+    pavedRoadsPct: 36,
+    logisticsIndex: 2.64,
+    hospitalBedsPerThousand: 0.7,
+    physiciansPerThousand: 0.1,
+    infraInvestmentGdpPct: 4.4,
+    overallInfraScore: 22,
+    year: 2023,
+  },
+  ao: {
+    electricityAccessPct: 46,
+    installedCapacityGW: 7,
+    powerOutagesPerYearBusiness: 72.0,
+    safeWaterAccessPct: 66,
+    sanitationAccessPct: 52,
+    mobileSubscriptionsPer100: 66,
+    broadbandPer100: 2,
+    dataSpeedMbps: 14,
+    pavedRoadsPct: 26,
+    logisticsIndex: 2.3,
+    hospitalBedsPerThousand: 0.8,
+    physiciansPerThousand: 0.2,
+    infraInvestmentGdpPct: 2.4,
+    overallInfraScore: 20,
+    year: 2023,
+  },
+  dz: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 26,
+    powerOutagesPerYearBusiness: 14.0,
+    safeWaterAccessPct: 97,
+    sanitationAccessPct: 98,
+    mobileSubscriptionsPer100: 106,
+    broadbandPer100: 7,
+    dataSpeedMbps: 22,
+    pavedRoadsPct: 70,
+    logisticsIndex: 2.68,
+    hospitalBedsPerThousand: 1.9,
+    physiciansPerThousand: 1.8,
+    infraInvestmentGdpPct: 4.8,
+    overallInfraScore: 52,
+    year: 2023,
+  },
+  rw: {
+    electricityAccessPct: 52,
+    installedCapacityGW: 0.8,
+    powerOutagesPerYearBusiness: 68.0,
+    safeWaterAccessPct: 82,
+    sanitationAccessPct: 76,
+    mobileSubscriptionsPer100: 82,
+    broadbandPer100: 1,
+    dataSpeedMbps: 16,
+    pavedRoadsPct: 22,
+    logisticsIndex: 2.61,
+    hospitalBedsPerThousand: 1.6,
+    physiciansPerThousand: 0.1,
+    infraInvestmentGdpPct: 5.2,
+    overallInfraScore: 24,
+    year: 2023,
+  },
+  sn: {
+    electricityAccessPct: 76,
+    installedCapacityGW: 1.8,
+    powerOutagesPerYearBusiness: 72.0,
+    safeWaterAccessPct: 92,
+    sanitationAccessPct: 52,
+    mobileSubscriptionsPer100: 126,
+    broadbandPer100: 3,
+    dataSpeedMbps: 20,
+    pavedRoadsPct: 30,
+    logisticsIndex: 3.0,
+    hospitalBedsPerThousand: 0.3,
+    physiciansPerThousand: 0.1,
+    infraInvestmentGdpPct: 5.6,
+    overallInfraScore: 26,
+    year: 2023,
+  },
+  ci: {
+    electricityAccessPct: 70,
+    installedCapacityGW: 2.2,
+    powerOutagesPerYearBusiness: 88.0,
+    safeWaterAccessPct: 84,
+    sanitationAccessPct: 36,
+    mobileSubscriptionsPer100: 162,
+    broadbandPer100: 2,
+    dataSpeedMbps: 16,
+    pavedRoadsPct: 22,
+    logisticsIndex: 2.83,
+    hospitalBedsPerThousand: 0.4,
+    physiciansPerThousand: 0.2,
+    infraInvestmentGdpPct: 4.0,
+    overallInfraScore: 24,
+    year: 2023,
+  },
+  // ── Europe (remaining) ──────────────────────────────────────────────────
+  sk: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 8,
+    powerOutagesPerYearBusiness: 0.8,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 122,
+    broadbandPer100: 30,
+    dataSpeedMbps: 76,
+    pavedRoadsPct: 87,
+    logisticsIndex: 3.44,
+    hospitalBedsPerThousand: 5.8,
+    physiciansPerThousand: 3.6,
+    infraInvestmentGdpPct: 3.4,
+    overallInfraScore: 80,
+    year: 2025,
+  },
+  hr: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 5,
+    powerOutagesPerYearBusiness: 1.2,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 99,
+    mobileSubscriptionsPer100: 108,
+    broadbandPer100: 28,
+    dataSpeedMbps: 68,
+    pavedRoadsPct: 92,
+    logisticsIndex: 3.28,
+    hospitalBedsPerThousand: 5.5,
+    physiciansPerThousand: 3.3,
+    infraInvestmentGdpPct: 3.2,
+    overallInfraScore: 78,
+    year: 2025,
+  },
+  rs: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 8,
+    powerOutagesPerYearBusiness: 2.4,
+    safeWaterAccessPct: 97,
+    sanitationAccessPct: 96,
+    mobileSubscriptionsPer100: 118,
+    broadbandPer100: 24,
+    dataSpeedMbps: 58,
+    pavedRoadsPct: 65,
+    logisticsIndex: 3.06,
+    hospitalBedsPerThousand: 5.6,
+    physiciansPerThousand: 3.1,
+    infraInvestmentGdpPct: 3.6,
+    overallInfraScore: 70,
+    year: 2025,
+  },
+  bg: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 13,
+    powerOutagesPerYearBusiness: 3.2,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 99,
+    mobileSubscriptionsPer100: 120,
+    broadbandPer100: 28,
+    dataSpeedMbps: 72,
+    pavedRoadsPct: 50,
+    logisticsIndex: 3.06,
+    hospitalBedsPerThousand: 8.0,
+    physiciansPerThousand: 4.2,
+    infraInvestmentGdpPct: 2.8,
+    overallInfraScore: 68,
+    year: 2025,
+  },
+  ee: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 3,
+    powerOutagesPerYearBusiness: 0.6,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 97,
+    mobileSubscriptionsPer100: 140,
+    broadbandPer100: 36,
+    dataSpeedMbps: 118,
+    pavedRoadsPct: 27,
+    logisticsIndex: 3.52,
+    hospitalBedsPerThousand: 4.7,
+    physiciansPerThousand: 3.5,
+    infraInvestmentGdpPct: 2.8,
+    overallInfraScore: 80,
+    year: 2025,
+  },
+  lv: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 3,
+    powerOutagesPerYearBusiness: 1.0,
+    safeWaterAccessPct: 97,
+    sanitationAccessPct: 88,
+    mobileSubscriptionsPer100: 136,
+    broadbandPer100: 30,
+    dataSpeedMbps: 88,
+    pavedRoadsPct: 44,
+    logisticsIndex: 3.16,
+    hospitalBedsPerThousand: 5.5,
+    physiciansPerThousand: 3.3,
+    infraInvestmentGdpPct: 2.4,
+    overallInfraScore: 72,
+    year: 2025,
+  },
+  lt: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 4,
+    powerOutagesPerYearBusiness: 0.8,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 99,
+    mobileSubscriptionsPer100: 148,
+    broadbandPer100: 32,
+    dataSpeedMbps: 96,
+    pavedRoadsPct: 36,
+    logisticsIndex: 3.34,
+    hospitalBedsPerThousand: 7.4,
+    physiciansPerThousand: 4.8,
+    infraInvestmentGdpPct: 2.8,
+    overallInfraScore: 74,
+    year: 2025,
+  },
+  si: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 4,
+    powerOutagesPerYearBusiness: 0.5,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 99,
+    mobileSubscriptionsPer100: 122,
+    broadbandPer100: 32,
+    dataSpeedMbps: 84,
+    pavedRoadsPct: 100,
+    logisticsIndex: 3.44,
+    hospitalBedsPerThousand: 4.5,
+    physiciansPerThousand: 3.3,
+    infraInvestmentGdpPct: 2.6,
+    overallInfraScore: 80,
+    year: 2025,
+  },
+  ie: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 12,
+    powerOutagesPerYearBusiness: 0.6,
+    safeWaterAccessPct: 97,
+    sanitationAccessPct: 90,
+    mobileSubscriptionsPer100: 108,
+    broadbandPer100: 38,
+    dataSpeedMbps: 108,
+    pavedRoadsPct: 100,
+    logisticsIndex: 3.54,
+    hospitalBedsPerThousand: 2.9,
+    physiciansPerThousand: 3.4,
+    infraInvestmentGdpPct: 2.8,
+    overallInfraScore: 82,
+    year: 2025,
+  },
+  by: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 10,
+    powerOutagesPerYearBusiness: 2.0,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 94,
+    mobileSubscriptionsPer100: 126,
+    broadbandPer100: 26,
+    dataSpeedMbps: 42,
+    pavedRoadsPct: 86,
+    logisticsIndex: 2.64,
+    hospitalBedsPerThousand: 10.8,
+    physiciansPerThousand: 4.0,
+    infraInvestmentGdpPct: 3.2,
+    overallInfraScore: 62,
+    year: 2025,
+  },
+  md: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 1.8,
+    powerOutagesPerYearBusiness: 4.8,
+    safeWaterAccessPct: 88,
+    sanitationAccessPct: 82,
+    mobileSubscriptionsPer100: 116,
+    broadbandPer100: 18,
+    dataSpeedMbps: 48,
+    pavedRoadsPct: 83,
+    logisticsIndex: 2.84,
+    hospitalBedsPerThousand: 6.0,
+    physiciansPerThousand: 3.0,
+    infraInvestmentGdpPct: 2.4,
+    overallInfraScore: 56,
+    year: 2025,
+  },
+  al_al: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 3,
+    powerOutagesPerYearBusiness: 8.4,
+    safeWaterAccessPct: 95,
+    sanitationAccessPct: 93,
+    mobileSubscriptionsPer100: 112,
+    broadbandPer100: 18,
+    dataSpeedMbps: 42,
+    pavedRoadsPct: 39,
+    logisticsIndex: 2.64,
+    hospitalBedsPerThousand: 2.9,
+    physiciansPerThousand: 1.3,
+    infraInvestmentGdpPct: 3.6,
+    overallInfraScore: 54,
+    year: 2025,
+  },
+  mk: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 2,
+    powerOutagesPerYearBusiness: 6.4,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 98,
+    mobileSubscriptionsPer100: 110,
+    broadbandPer100: 22,
+    dataSpeedMbps: 48,
+    pavedRoadsPct: 57,
+    logisticsIndex: 2.88,
+    hospitalBedsPerThousand: 4.4,
+    physiciansPerThousand: 2.9,
+    infraInvestmentGdpPct: 2.8,
+    overallInfraScore: 58,
+    year: 2025,
+  },
+  ba: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 4,
+    powerOutagesPerYearBusiness: 4.4,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 97,
+    mobileSubscriptionsPer100: 108,
+    broadbandPer100: 18,
+    dataSpeedMbps: 38,
+    pavedRoadsPct: 52,
+    logisticsIndex: 2.76,
+    hospitalBedsPerThousand: 3.5,
+    physiciansPerThousand: 1.9,
+    infraInvestmentGdpPct: 2.4,
+    overallInfraScore: 60,
+    year: 2025,
+  },
+  me_eu: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 1,
+    powerOutagesPerYearBusiness: 4.0,
+    safeWaterAccessPct: 97,
+    sanitationAccessPct: 92,
+    mobileSubscriptionsPer100: 168,
+    broadbandPer100: 22,
+    dataSpeedMbps: 44,
+    pavedRoadsPct: 80,
+    logisticsIndex: 2.76,
+    hospitalBedsPerThousand: 3.9,
+    physiciansPerThousand: 2.3,
+    infraInvestmentGdpPct: 3.0,
+    overallInfraScore: 60,
+    year: 2025,
+  },
+  xk: {
+    electricityAccessPct: 99,
+    installedCapacityGW: 1.8,
+    powerOutagesPerYearBusiness: 12.0,
+    safeWaterAccessPct: 97,
+    sanitationAccessPct: 96,
+    mobileSubscriptionsPer100: 104,
+    broadbandPer100: 18,
+    dataSpeedMbps: 38,
+    pavedRoadsPct: 60,
+    logisticsIndex: 2.52,
+    hospitalBedsPerThousand: 2.8,
+    physiciansPerThousand: 2.3,
+    infraInvestmentGdpPct: 3.6,
+    overallInfraScore: 50,
+    year: 2025,
+  },
+  lu: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 2,
+    powerOutagesPerYearBusiness: 0.2,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 148,
+    broadbandPer100: 44,
+    dataSpeedMbps: 144,
+    pavedRoadsPct: 100,
+    logisticsIndex: 4.04,
+    hospitalBedsPerThousand: 4.4,
+    physiciansPerThousand: 3.4,
+    infraInvestmentGdpPct: 2.8,
+    overallInfraScore: 88,
+    year: 2025,
+  },
+  cy: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 2,
+    powerOutagesPerYearBusiness: 0.6,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 140,
+    broadbandPer100: 34,
+    dataSpeedMbps: 68,
+    pavedRoadsPct: 66,
+    logisticsIndex: 3.22,
+    hospitalBedsPerThousand: 3.4,
+    physiciansPerThousand: 3.2,
+    infraInvestmentGdpPct: 2.4,
+    overallInfraScore: 74,
+    year: 2025,
+  },
+  mt_eu: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 1,
+    powerOutagesPerYearBusiness: 0.4,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 142,
+    broadbandPer100: 44,
+    dataSpeedMbps: 128,
+    pavedRoadsPct: 100,
+    logisticsIndex: 3.42,
+    hospitalBedsPerThousand: 4.6,
+    physiciansPerThousand: 2.8,
+    infraInvestmentGdpPct: 2.4,
+    overallInfraScore: 82,
+    year: 2025,
+  },
+  is: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 3,
+    powerOutagesPerYearBusiness: 0.2,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 142,
+    broadbandPer100: 46,
+    dataSpeedMbps: 148,
+    pavedRoadsPct: 36,
+    logisticsIndex: 3.84,
+    hospitalBedsPerThousand: 2.9,
+    physiciansPerThousand: 4.0,
+    infraInvestmentGdpPct: 3.2,
+    overallInfraScore: 84,
+    year: 2025,
+  },
+  sm: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.2,
+    powerOutagesPerYearBusiness: 0.2,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 128,
+    broadbandPer100: 40,
+    dataSpeedMbps: 88,
+    pavedRoadsPct: 100,
+    logisticsIndex: 3.6,
+    hospitalBedsPerThousand: 3.8,
+    physiciansPerThousand: 3.4,
+    overallInfraScore: 82,
+    year: 2025,
+  },
+  li: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.2,
+    powerOutagesPerYearBusiness: 0.2,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 118,
+    broadbandPer100: 50,
+    dataSpeedMbps: 148,
+    pavedRoadsPct: 100,
+    logisticsIndex: 4.0,
+    hospitalBedsPerThousand: 2.8,
+    physiciansPerThousand: 4.2,
+    overallInfraScore: 88,
+    year: 2025,
+  },
+  ad: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.3,
+    powerOutagesPerYearBusiness: 0.2,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 126,
+    broadbandPer100: 44,
+    dataSpeedMbps: 112,
+    pavedRoadsPct: 100,
+    logisticsIndex: 3.8,
+    hospitalBedsPerThousand: 2.5,
+    physiciansPerThousand: 3.8,
+    overallInfraScore: 86,
+    year: 2025,
+  },
+  mc: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 0.1,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 136,
+    broadbandPer100: 52,
+    dataSpeedMbps: 168,
+    pavedRoadsPct: 100,
+    logisticsIndex: 4.1,
+    hospitalBedsPerThousand: 13.8,
+    physiciansPerThousand: 7.2,
+    overallInfraScore: 92,
+    year: 2025,
+  },
+  fo: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.2,
+    powerOutagesPerYearBusiness: 0.3,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 126,
+    broadbandPer100: 48,
+    dataSpeedMbps: 138,
+    pavedRoadsPct: 80,
+    logisticsIndex: 3.8,
+    hospitalBedsPerThousand: 4.8,
+    physiciansPerThousand: 5.0,
+    overallInfraScore: 86,
+    year: 2025,
+  },
+  gl: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.6,
+    powerOutagesPerYearBusiness: 0.5,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 108,
+    broadbandPer100: 36,
+    dataSpeedMbps: 68,
+    pavedRoadsPct: 26,
+    logisticsIndex: 3.2,
+    hospitalBedsPerThousand: 5.4,
+    physiciansPerThousand: 2.4,
+    overallInfraScore: 68,
+    year: 2025,
+  },
+  bm: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.2,
+    powerOutagesPerYearBusiness: 0.4,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 132,
+    broadbandPer100: 50,
+    dataSpeedMbps: 128,
+    pavedRoadsPct: 100,
+    logisticsIndex: 3.8,
+    hospitalBedsPerThousand: 2.4,
+    physiciansPerThousand: 3.2,
+    overallInfraScore: 84,
+    year: 2025,
+  },
+  // ── North America (Central America & Caribbean) ──────────────────────────
+  gt: {
+    electricityAccessPct: 92,
+    installedCapacityGW: 5,
+    powerOutagesPerYearBusiness: 24.0,
+    safeWaterAccessPct: 92,
+    sanitationAccessPct: 63,
+    mobileSubscriptionsPer100: 122,
+    broadbandPer100: 8,
+    dataSpeedMbps: 22,
+    pavedRoadsPct: 35,
+    logisticsIndex: 2.72,
+    hospitalBedsPerThousand: 0.6,
+    physiciansPerThousand: 0.9,
+    infraInvestmentGdpPct: 2.4,
+    overallInfraScore: 38,
+    year: 2025,
+  },
+  cu: {
+    electricityAccessPct: 98,
+    installedCapacityGW: 7,
+    powerOutagesPerYearBusiness: 68.0,
+    safeWaterAccessPct: 94,
+    sanitationAccessPct: 93,
+    mobileSubscriptionsPer100: 68,
+    broadbandPer100: 4,
+    dataSpeedMbps: 8,
+    pavedRoadsPct: 49,
+    logisticsIndex: 2.2,
+    hospitalBedsPerThousand: 5.3,
+    physiciansPerThousand: 8.4,
+    overallInfraScore: 42,
+    year: 2025,
+  },
+  ht: {
+    electricityAccessPct: 48,
+    installedCapacityGW: 1,
+    powerOutagesPerYearBusiness: 288.0,
+    safeWaterAccessPct: 58,
+    sanitationAccessPct: 35,
+    mobileSubscriptionsPer100: 72,
+    broadbandPer100: 2,
+    dataSpeedMbps: 6,
+    pavedRoadsPct: 24,
+    logisticsIndex: 2.0,
+    hospitalBedsPerThousand: 0.7,
+    physiciansPerThousand: 0.2,
+    overallInfraScore: 14,
+    year: 2025,
+  },
+  do: {
+    electricityAccessPct: 98,
+    installedCapacityGW: 5,
+    powerOutagesPerYearBusiness: 28.0,
+    safeWaterAccessPct: 93,
+    sanitationAccessPct: 86,
+    mobileSubscriptionsPer100: 96,
+    broadbandPer100: 14,
+    dataSpeedMbps: 34,
+    pavedRoadsPct: 51,
+    logisticsIndex: 2.64,
+    hospitalBedsPerThousand: 1.6,
+    physiciansPerThousand: 1.6,
+    overallInfraScore: 48,
+    year: 2025,
+  },
+  hn: {
+    electricityAccessPct: 90,
+    installedCapacityGW: 3,
+    powerOutagesPerYearBusiness: 38.0,
+    safeWaterAccessPct: 92,
+    sanitationAccessPct: 83,
+    mobileSubscriptionsPer100: 96,
+    broadbandPer100: 6,
+    dataSpeedMbps: 18,
+    pavedRoadsPct: 14,
+    logisticsIndex: 2.48,
+    hospitalBedsPerThousand: 0.7,
+    physiciansPerThousand: 0.5,
+    overallInfraScore: 34,
+    year: 2025,
+  },
+  sv: {
+    electricityAccessPct: 99,
+    installedCapacityGW: 2,
+    powerOutagesPerYearBusiness: 18.0,
+    safeWaterAccessPct: 97,
+    sanitationAccessPct: 75,
+    mobileSubscriptionsPer100: 166,
+    broadbandPer100: 10,
+    dataSpeedMbps: 24,
+    pavedRoadsPct: 23,
+    logisticsIndex: 2.68,
+    hospitalBedsPerThousand: 1.2,
+    physiciansPerThousand: 1.6,
+    overallInfraScore: 44,
+    year: 2025,
+  },
+  ni: {
+    electricityAccessPct: 86,
+    installedCapacityGW: 2,
+    powerOutagesPerYearBusiness: 36.0,
+    safeWaterAccessPct: 91,
+    sanitationAccessPct: 68,
+    mobileSubscriptionsPer100: 112,
+    broadbandPer100: 5,
+    dataSpeedMbps: 16,
+    pavedRoadsPct: 13,
+    logisticsIndex: 2.48,
+    hospitalBedsPerThousand: 0.9,
+    physiciansPerThousand: 1.0,
+    overallInfraScore: 32,
+    year: 2025,
+  },
+  cr: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 4,
+    powerOutagesPerYearBusiness: 4.8,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 96,
+    mobileSubscriptionsPer100: 170,
+    broadbandPer100: 18,
+    dataSpeedMbps: 52,
+    pavedRoadsPct: 26,
+    logisticsIndex: 3.18,
+    hospitalBedsPerThousand: 1.1,
+    physiciansPerThousand: 3.3,
+    infraInvestmentGdpPct: 2.8,
+    overallInfraScore: 62,
+    year: 2025,
+  },
+  pa: {
+    electricityAccessPct: 99,
+    installedCapacityGW: 4,
+    powerOutagesPerYearBusiness: 6.4,
+    safeWaterAccessPct: 95,
+    sanitationAccessPct: 75,
+    mobileSubscriptionsPer100: 178,
+    broadbandPer100: 12,
+    dataSpeedMbps: 42,
+    pavedRoadsPct: 40,
+    logisticsIndex: 3.32,
+    hospitalBedsPerThousand: 2.3,
+    physiciansPerThousand: 1.6,
+    overallInfraScore: 58,
+    year: 2025,
+  },
+  jm: {
+    electricityAccessPct: 99,
+    installedCapacityGW: 1,
+    powerOutagesPerYearBusiness: 32.0,
+    safeWaterAccessPct: 95,
+    sanitationAccessPct: 83,
+    mobileSubscriptionsPer100: 106,
+    broadbandPer100: 10,
+    dataSpeedMbps: 28,
+    pavedRoadsPct: 48,
+    logisticsIndex: 2.52,
+    hospitalBedsPerThousand: 1.7,
+    physiciansPerThousand: 0.5,
+    overallInfraScore: 44,
+    year: 2025,
+  },
+  tt: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 2,
+    powerOutagesPerYearBusiness: 8.0,
+    safeWaterAccessPct: 96,
+    sanitationAccessPct: 93,
+    mobileSubscriptionsPer100: 156,
+    broadbandPer100: 26,
+    dataSpeedMbps: 52,
+    pavedRoadsPct: 51,
+    logisticsIndex: 2.82,
+    hospitalBedsPerThousand: 3.0,
+    physiciansPerThousand: 1.9,
+    overallInfraScore: 60,
+    year: 2025,
+  },
+  bz: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.3,
+    powerOutagesPerYearBusiness: 22.0,
+    safeWaterAccessPct: 96,
+    sanitationAccessPct: 91,
+    mobileSubscriptionsPer100: 78,
+    broadbandPer100: 6,
+    dataSpeedMbps: 18,
+    pavedRoadsPct: 18,
+    logisticsIndex: 2.52,
+    hospitalBedsPerThousand: 1.3,
+    physiciansPerThousand: 1.1,
+    overallInfraScore: 42,
+    year: 2025,
+  },
+  bs: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.6,
+    powerOutagesPerYearBusiness: 8.0,
+    safeWaterAccessPct: 96,
+    sanitationAccessPct: 92,
+    mobileSubscriptionsPer100: 98,
+    broadbandPer100: 22,
+    dataSpeedMbps: 48,
+    pavedRoadsPct: 57,
+    logisticsIndex: 2.84,
+    hospitalBedsPerThousand: 2.9,
+    physiciansPerThousand: 2.0,
+    overallInfraScore: 60,
+    year: 2025,
+  },
+  ag: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.3,
+    powerOutagesPerYearBusiness: 8.0,
+    safeWaterAccessPct: 98,
+    sanitationAccessPct: 91,
+    mobileSubscriptionsPer100: 202,
+    broadbandPer100: 16,
+    dataSpeedMbps: 38,
+    pavedRoadsPct: 33,
+    logisticsIndex: 2.64,
+    hospitalBedsPerThousand: 3.8,
+    physiciansPerThousand: 2.8,
+    overallInfraScore: 58,
+    year: 2025,
+  },
+  dm: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 8.0,
+    safeWaterAccessPct: 95,
+    sanitationAccessPct: 82,
+    mobileSubscriptionsPer100: 108,
+    broadbandPer100: 12,
+    dataSpeedMbps: 28,
+    pavedRoadsPct: 50,
+    logisticsIndex: 2.6,
+    hospitalBedsPerThousand: 3.8,
+    physiciansPerThousand: 1.1,
+    overallInfraScore: 54,
+    year: 2025,
+  },
+  gd: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 8.0,
+    safeWaterAccessPct: 97,
+    sanitationAccessPct: 98,
+    mobileSubscriptionsPer100: 132,
+    broadbandPer100: 14,
+    dataSpeedMbps: 34,
+    pavedRoadsPct: 61,
+    logisticsIndex: 2.64,
+    hospitalBedsPerThousand: 3.6,
+    physiciansPerThousand: 0.7,
+    overallInfraScore: 58,
+    year: 2025,
+  },
+  bb: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.3,
+    powerOutagesPerYearBusiness: 4.0,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 97,
+    mobileSubscriptionsPer100: 116,
+    broadbandPer100: 24,
+    dataSpeedMbps: 52,
+    pavedRoadsPct: 100,
+    logisticsIndex: 2.96,
+    hospitalBedsPerThousand: 6.0,
+    physiciansPerThousand: 2.5,
+    overallInfraScore: 70,
+    year: 2025,
+  },
+  lc: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 8.0,
+    safeWaterAccessPct: 98,
+    sanitationAccessPct: 90,
+    mobileSubscriptionsPer100: 108,
+    broadbandPer100: 14,
+    dataSpeedMbps: 32,
+    pavedRoadsPct: 65,
+    logisticsIndex: 2.64,
+    hospitalBedsPerThousand: 1.3,
+    physiciansPerThousand: 0.5,
+    overallInfraScore: 54,
+    year: 2025,
+  },
+  vc: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 8.0,
+    safeWaterAccessPct: 95,
+    sanitationAccessPct: 76,
+    mobileSubscriptionsPer100: 104,
+    broadbandPer100: 12,
+    dataSpeedMbps: 28,
+    pavedRoadsPct: 70,
+    logisticsIndex: 2.52,
+    hospitalBedsPerThousand: 5.2,
+    physiciansPerThousand: 0.7,
+    overallInfraScore: 52,
+    year: 2025,
+  },
+  kn: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 8.0,
+    safeWaterAccessPct: 98,
+    sanitationAccessPct: 96,
+    mobileSubscriptionsPer100: 128,
+    broadbandPer100: 16,
+    dataSpeedMbps: 38,
+    pavedRoadsPct: 42,
+    logisticsIndex: 2.64,
+    hospitalBedsPerThousand: 4.8,
+    physiciansPerThousand: 1.2,
+    overallInfraScore: 58,
+    year: 2025,
+  },
+  pr: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 6,
+    powerOutagesPerYearBusiness: 12.0,
+    safeWaterAccessPct: 98,
+    sanitationAccessPct: 99,
+    mobileSubscriptionsPer100: 106,
+    broadbandPer100: 30,
+    dataSpeedMbps: 68,
+    pavedRoadsPct: 94,
+    logisticsIndex: 3.2,
+    hospitalBedsPerThousand: 2.5,
+    physiciansPerThousand: 2.5,
+    overallInfraScore: 70,
+    year: 2025,
+  },
+  gu: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.6,
+    powerOutagesPerYearBusiness: 6.0,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 98,
+    mobileSubscriptionsPer100: 118,
+    broadbandPer100: 22,
+    dataSpeedMbps: 54,
+    pavedRoadsPct: 76,
+    logisticsIndex: 3.0,
+    hospitalBedsPerThousand: 2.2,
+    physiciansPerThousand: 1.6,
+    overallInfraScore: 64,
+    year: 2025,
+  },
+  // ── Asia (remaining) ─────────────────────────────────────────────────────
+  mm: {
+    electricityAccessPct: 72,
+    installedCapacityGW: 7,
+    powerOutagesPerYearBusiness: 84.0,
+    safeWaterAccessPct: 80,
+    sanitationAccessPct: 72,
+    mobileSubscriptionsPer100: 136,
+    broadbandPer100: 2,
+    dataSpeedMbps: 12,
+    pavedRoadsPct: 7,
+    logisticsIndex: 2.24,
+    hospitalBedsPerThousand: 1.0,
+    physiciansPerThousand: 0.6,
+    infraInvestmentGdpPct: 3.2,
+    overallInfraScore: 24,
+    year: 2025,
+  },
+  kh: {
+    electricityAccessPct: 88,
+    installedCapacityGW: 3,
+    powerOutagesPerYearBusiness: 46.0,
+    safeWaterAccessPct: 84,
+    sanitationAccessPct: 57,
+    mobileSubscriptionsPer100: 134,
+    broadbandPer100: 6,
+    dataSpeedMbps: 18,
+    pavedRoadsPct: 16,
+    logisticsIndex: 2.72,
+    hospitalBedsPerThousand: 0.9,
+    physiciansPerThousand: 0.2,
+    infraInvestmentGdpPct: 4.0,
+    overallInfraScore: 36,
+    year: 2025,
+  },
+  lk: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 4,
+    powerOutagesPerYearBusiness: 18.0,
+    safeWaterAccessPct: 90,
+    sanitationAccessPct: 91,
+    mobileSubscriptionsPer100: 146,
+    broadbandPer100: 5,
+    dataSpeedMbps: 18,
+    pavedRoadsPct: 81,
+    logisticsIndex: 2.64,
+    hospitalBedsPerThousand: 4.2,
+    physiciansPerThousand: 1.2,
+    overallInfraScore: 52,
+    year: 2025,
+  },
+  np: {
+    electricityAccessPct: 90,
+    installedCapacityGW: 3,
+    powerOutagesPerYearBusiness: 36.0,
+    safeWaterAccessPct: 90,
+    sanitationAccessPct: 46,
+    mobileSubscriptionsPer100: 132,
+    broadbandPer100: 3,
+    dataSpeedMbps: 14,
+    pavedRoadsPct: 11,
+    logisticsIndex: 2.52,
+    hospitalBedsPerThousand: 0.3,
+    physiciansPerThousand: 0.7,
+    overallInfraScore: 28,
+    year: 2025,
+  },
+  jo: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 6,
+    powerOutagesPerYearBusiness: 4.0,
+    safeWaterAccessPct: 98,
+    sanitationAccessPct: 99,
+    mobileSubscriptionsPer100: 98,
+    broadbandPer100: 10,
+    dataSpeedMbps: 38,
+    pavedRoadsPct: 100,
+    logisticsIndex: 3.14,
+    hospitalBedsPerThousand: 1.5,
+    physiciansPerThousand: 2.3,
+    overallInfraScore: 62,
+    year: 2025,
+  },
+  lb: {
+    electricityAccessPct: 99,
+    installedCapacityGW: 4,
+    powerOutagesPerYearBusiness: 248.0,
+    safeWaterAccessPct: 95,
+    sanitationAccessPct: 98,
+    mobileSubscriptionsPer100: 88,
+    broadbandPer100: 10,
+    dataSpeedMbps: 22,
+    pavedRoadsPct: 85,
+    logisticsIndex: 2.74,
+    hospitalBedsPerThousand: 2.8,
+    physiciansPerThousand: 2.1,
+    overallInfraScore: 32,
+    year: 2025,
+  },
+  sy: {
+    electricityAccessPct: 72,
+    installedCapacityGW: 8,
+    powerOutagesPerYearBusiness: 128.0,
+    safeWaterAccessPct: 78,
+    sanitationAccessPct: 93,
+    mobileSubscriptionsPer100: 76,
+    broadbandPer100: 3,
+    dataSpeedMbps: 8,
+    pavedRoadsPct: 64,
+    logisticsIndex: 2.0,
+    hospitalBedsPerThousand: 1.1,
+    physiciansPerThousand: 1.2,
+    overallInfraScore: 18,
+    year: 2025,
+  },
+  ye: {
+    electricityAccessPct: 48,
+    installedCapacityGW: 2,
+    powerOutagesPerYearBusiness: 244.0,
+    safeWaterAccessPct: 53,
+    sanitationAccessPct: 52,
+    mobileSubscriptionsPer100: 72,
+    broadbandPer100: 2,
+    dataSpeedMbps: 5,
+    pavedRoadsPct: 10,
+    logisticsIndex: 1.9,
+    hospitalBedsPerThousand: 0.7,
+    physiciansPerThousand: 0.3,
+    overallInfraScore: 10,
+    year: 2025,
+  },
+  bh: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 4,
+    powerOutagesPerYearBusiness: 0.4,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 220,
+    broadbandPer100: 34,
+    dataSpeedMbps: 124,
+    pavedRoadsPct: 100,
+    logisticsIndex: 3.28,
+    hospitalBedsPerThousand: 1.8,
+    physiciansPerThousand: 2.4,
+    overallInfraScore: 80,
+    year: 2025,
+  },
+  am: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 4,
+    powerOutagesPerYearBusiness: 3.6,
+    safeWaterAccessPct: 98,
+    sanitationAccessPct: 84,
+    mobileSubscriptionsPer100: 126,
+    broadbandPer100: 18,
+    dataSpeedMbps: 42,
+    pavedRoadsPct: 67,
+    logisticsIndex: 2.76,
+    hospitalBedsPerThousand: 4.2,
+    physiciansPerThousand: 4.4,
+    overallInfraScore: 60,
+    year: 2025,
+  },
+  az_as: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 8,
+    powerOutagesPerYearBusiness: 4.0,
+    safeWaterAccessPct: 90,
+    sanitationAccessPct: 88,
+    mobileSubscriptionsPer100: 116,
+    broadbandPer100: 22,
+    dataSpeedMbps: 44,
+    pavedRoadsPct: 91,
+    logisticsIndex: 2.76,
+    hospitalBedsPerThousand: 4.8,
+    physiciansPerThousand: 3.5,
+    overallInfraScore: 60,
+    year: 2025,
+  },
+  ge_as: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 4,
+    powerOutagesPerYearBusiness: 2.0,
+    safeWaterAccessPct: 96,
+    sanitationAccessPct: 94,
+    mobileSubscriptionsPer100: 146,
+    broadbandPer100: 26,
+    dataSpeedMbps: 52,
+    pavedRoadsPct: 74,
+    logisticsIndex: 2.84,
+    hospitalBedsPerThousand: 2.9,
+    physiciansPerThousand: 5.1,
+    overallInfraScore: 62,
+    year: 2025,
+  },
+  tm: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 5,
+    powerOutagesPerYearBusiness: 4.0,
+    safeWaterAccessPct: 96,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 192,
+    broadbandPer100: 8,
+    dataSpeedMbps: 14,
+    pavedRoadsPct: 81,
+    logisticsIndex: 2.4,
+    hospitalBedsPerThousand: 7.4,
+    physiciansPerThousand: 2.2,
+    overallInfraScore: 50,
+    year: 2025,
+  },
+  kg: {
+    electricityAccessPct: 99,
+    installedCapacityGW: 4,
+    powerOutagesPerYearBusiness: 22.0,
+    safeWaterAccessPct: 90,
+    sanitationAccessPct: 96,
+    mobileSubscriptionsPer100: 128,
+    broadbandPer100: 8,
+    dataSpeedMbps: 22,
+    pavedRoadsPct: 42,
+    logisticsIndex: 2.6,
+    hospitalBedsPerThousand: 4.4,
+    physiciansPerThousand: 1.9,
+    overallInfraScore: 46,
+    year: 2025,
+  },
+  tj: {
+    electricityAccessPct: 99,
+    installedCapacityGW: 6,
+    powerOutagesPerYearBusiness: 18.0,
+    safeWaterAccessPct: 87,
+    sanitationAccessPct: 95,
+    mobileSubscriptionsPer100: 114,
+    broadbandPer100: 5,
+    dataSpeedMbps: 12,
+    pavedRoadsPct: 84,
+    logisticsIndex: 2.4,
+    hospitalBedsPerThousand: 5.6,
+    physiciansPerThousand: 1.7,
+    overallInfraScore: 42,
+    year: 2025,
+  },
+  af: {
+    electricityAccessPct: 72,
+    installedCapacityGW: 2,
+    powerOutagesPerYearBusiness: 244.0,
+    safeWaterAccessPct: 67,
+    sanitationAccessPct: 43,
+    mobileSubscriptionsPer100: 72,
+    broadbandPer100: 1,
+    dataSpeedMbps: 5,
+    pavedRoadsPct: 29,
+    logisticsIndex: 1.95,
+    hospitalBedsPerThousand: 0.5,
+    physiciansPerThousand: 0.3,
+    overallInfraScore: 8,
+    year: 2025,
+  },
+  mn_as: {
+    electricityAccessPct: 92,
+    installedCapacityGW: 2,
+    powerOutagesPerYearBusiness: 22.0,
+    safeWaterAccessPct: 84,
+    sanitationAccessPct: 60,
+    mobileSubscriptionsPer100: 154,
+    broadbandPer100: 12,
+    dataSpeedMbps: 28,
+    pavedRoadsPct: 16,
+    logisticsIndex: 2.68,
+    hospitalBedsPerThousand: 8.0,
+    physiciansPerThousand: 3.6,
+    overallInfraScore: 42,
+    year: 2025,
+  },
+  la: {
+    electricityAccessPct: 96,
+    installedCapacityGW: 10,
+    powerOutagesPerYearBusiness: 32.0,
+    safeWaterAccessPct: 84,
+    sanitationAccessPct: 72,
+    mobileSubscriptionsPer100: 76,
+    broadbandPer100: 4,
+    dataSpeedMbps: 16,
+    pavedRoadsPct: 45,
+    logisticsIndex: 2.7,
+    hospitalBedsPerThousand: 1.5,
+    physiciansPerThousand: 0.4,
+    overallInfraScore: 38,
+    year: 2025,
+  },
+  tl: {
+    electricityAccessPct: 78,
+    installedCapacityGW: 0.4,
+    powerOutagesPerYearBusiness: 82.0,
+    safeWaterAccessPct: 72,
+    sanitationAccessPct: 52,
+    mobileSubscriptionsPer100: 114,
+    broadbandPer100: 2,
+    dataSpeedMbps: 8,
+    pavedRoadsPct: 25,
+    logisticsIndex: 2.1,
+    hospitalBedsPerThousand: 5.9,
+    physiciansPerThousand: 0.7,
+    overallInfraScore: 20,
+    year: 2025,
+  },
+  bn: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 1,
+    powerOutagesPerYearBusiness: 0.8,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 136,
+    broadbandPer100: 24,
+    dataSpeedMbps: 64,
+    pavedRoadsPct: 77,
+    logisticsIndex: 3.14,
+    hospitalBedsPerThousand: 2.8,
+    physiciansPerThousand: 1.8,
+    overallInfraScore: 70,
+    year: 2025,
+  },
+  mv: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.4,
+    powerOutagesPerYearBusiness: 2.0,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 98,
+    mobileSubscriptionsPer100: 222,
+    broadbandPer100: 16,
+    dataSpeedMbps: 44,
+    pavedRoadsPct: 88,
+    logisticsIndex: 2.9,
+    hospitalBedsPerThousand: 4.3,
+    physiciansPerThousand: 2.4,
+    overallInfraScore: 64,
+    year: 2025,
+  },
+  bt: {
+    electricityAccessPct: 98,
+    installedCapacityGW: 2,
+    powerOutagesPerYearBusiness: 4.0,
+    safeWaterAccessPct: 97,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 94,
+    broadbandPer100: 6,
+    dataSpeedMbps: 22,
+    pavedRoadsPct: 35,
+    logisticsIndex: 2.64,
+    hospitalBedsPerThousand: 1.7,
+    physiciansPerThousand: 0.4,
+    overallInfraScore: 48,
+    year: 2025,
+  },
+  uz: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 16,
+    powerOutagesPerYearBusiness: 14.0,
+    safeWaterAccessPct: 96,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 98,
+    broadbandPer100: 10,
+    dataSpeedMbps: 22,
+    pavedRoadsPct: 87,
+    logisticsIndex: 2.6,
+    hospitalBedsPerThousand: 4.0,
+    physiciansPerThousand: 2.4,
+    overallInfraScore: 52,
+    year: 2025,
+  },
+  ps: {
+    electricityAccessPct: 99,
+    installedCapacityGW: 1.2,
+    powerOutagesPerYearBusiness: 52.0,
+    safeWaterAccessPct: 97,
+    sanitationAccessPct: 96,
+    mobileSubscriptionsPer100: 96,
+    broadbandPer100: 8,
+    dataSpeedMbps: 18,
+    pavedRoadsPct: 42,
+    logisticsIndex: 2.3,
+    hospitalBedsPerThousand: 1.3,
+    physiciansPerThousand: 2.0,
+    overallInfraScore: 30,
+    year: 2025,
+  },
+  // ── Africa (remaining) ───────────────────────────────────────────────────
+  cd: {
+    electricityAccessPct: 20,
+    installedCapacityGW: 3,
+    powerOutagesPerYearBusiness: 256.0,
+    safeWaterAccessPct: 52,
+    sanitationAccessPct: 28,
+    mobileSubscriptionsPer100: 46,
+    broadbandPer100: 0.4,
+    dataSpeedMbps: 6,
+    pavedRoadsPct: 2,
+    logisticsIndex: 2.15,
+    hospitalBedsPerThousand: 0.8,
+    physiciansPerThousand: 0.1,
+    infraInvestmentGdpPct: 4.2,
+    overallInfraScore: 8,
+    year: 2025,
+  },
+  sd: {
+    electricityAccessPct: 48,
+    installedCapacityGW: 4,
+    powerOutagesPerYearBusiness: 168.0,
+    safeWaterAccessPct: 57,
+    sanitationAccessPct: 29,
+    mobileSubscriptionsPer100: 72,
+    broadbandPer100: 1,
+    dataSpeedMbps: 8,
+    pavedRoadsPct: 36,
+    logisticsIndex: 2.18,
+    hospitalBedsPerThousand: 0.8,
+    physiciansPerThousand: 0.3,
+    overallInfraScore: 12,
+    year: 2025,
+  },
+  cm: {
+    electricityAccessPct: 64,
+    installedCapacityGW: 2,
+    powerOutagesPerYearBusiness: 112.0,
+    safeWaterAccessPct: 64,
+    sanitationAccessPct: 39,
+    mobileSubscriptionsPer100: 88,
+    broadbandPer100: 1,
+    dataSpeedMbps: 10,
+    pavedRoadsPct: 8,
+    logisticsIndex: 2.32,
+    hospitalBedsPerThousand: 1.3,
+    physiciansPerThousand: 0.1,
+    overallInfraScore: 18,
+    year: 2025,
+  },
+  zw: {
+    electricityAccessPct: 46,
+    installedCapacityGW: 2.5,
+    powerOutagesPerYearBusiness: 188.0,
+    safeWaterAccessPct: 67,
+    sanitationAccessPct: 40,
+    mobileSubscriptionsPer100: 92,
+    broadbandPer100: 2,
+    dataSpeedMbps: 12,
+    pavedRoadsPct: 19,
+    logisticsIndex: 2.38,
+    hospitalBedsPerThousand: 1.7,
+    physiciansPerThousand: 0.2,
+    overallInfraScore: 16,
+    year: 2025,
+  },
+  mz: {
+    electricityAccessPct: 32,
+    installedCapacityGW: 3,
+    powerOutagesPerYearBusiness: 138.0,
+    safeWaterAccessPct: 52,
+    sanitationAccessPct: 22,
+    mobileSubscriptionsPer100: 48,
+    broadbandPer100: 1,
+    dataSpeedMbps: 8,
+    pavedRoadsPct: 21,
+    logisticsIndex: 2.44,
+    hospitalBedsPerThousand: 0.7,
+    physiciansPerThousand: 0.1,
+    overallInfraScore: 12,
+    year: 2025,
+  },
+  mg: {
+    electricityAccessPct: 32,
+    installedCapacityGW: 0.7,
+    powerOutagesPerYearBusiness: 124.0,
+    safeWaterAccessPct: 52,
+    sanitationAccessPct: 13,
+    mobileSubscriptionsPer100: 48,
+    broadbandPer100: 1,
+    dataSpeedMbps: 7,
+    pavedRoadsPct: 12,
+    logisticsIndex: 2.2,
+    hospitalBedsPerThousand: 0.2,
+    physiciansPerThousand: 0.2,
+    overallInfraScore: 10,
+    year: 2025,
+  },
+  zm: {
+    electricityAccessPct: 46,
+    installedCapacityGW: 3,
+    powerOutagesPerYearBusiness: 122.0,
+    safeWaterAccessPct: 67,
+    sanitationAccessPct: 31,
+    mobileSubscriptionsPer100: 104,
+    broadbandPer100: 2,
+    dataSpeedMbps: 10,
+    pavedRoadsPct: 22,
+    logisticsIndex: 2.52,
+    hospitalBedsPerThousand: 2.0,
+    physiciansPerThousand: 0.1,
+    overallInfraScore: 18,
+    year: 2025,
+  },
+  ml: {
+    electricityAccessPct: 46,
+    installedCapacityGW: 1,
+    powerOutagesPerYearBusiness: 148.0,
+    safeWaterAccessPct: 76,
+    sanitationAccessPct: 24,
+    mobileSubscriptionsPer100: 124,
+    broadbandPer100: 1,
+    dataSpeedMbps: 7,
+    pavedRoadsPct: 19,
+    logisticsIndex: 2.26,
+    hospitalBedsPerThousand: 0.1,
+    physiciansPerThousand: 0.1,
+    overallInfraScore: 10,
+    year: 2025,
+  },
+  bf: {
+    electricityAccessPct: 22,
+    installedCapacityGW: 0.5,
+    powerOutagesPerYearBusiness: 172.0,
+    safeWaterAccessPct: 72,
+    sanitationAccessPct: 20,
+    mobileSubscriptionsPer100: 102,
+    broadbandPer100: 1,
+    dataSpeedMbps: 7,
+    pavedRoadsPct: 16,
+    logisticsIndex: 2.26,
+    hospitalBedsPerThousand: 0.4,
+    physiciansPerThousand: 0.1,
+    overallInfraScore: 8,
+    year: 2025,
+  },
+  ne: {
+    electricityAccessPct: 18,
+    installedCapacityGW: 0.4,
+    powerOutagesPerYearBusiness: 182.0,
+    safeWaterAccessPct: 57,
+    sanitationAccessPct: 12,
+    mobileSubscriptionsPer100: 56,
+    broadbandPer100: 0.4,
+    dataSpeedMbps: 5,
+    pavedRoadsPct: 20,
+    logisticsIndex: 2.14,
+    hospitalBedsPerThousand: 0.3,
+    physiciansPerThousand: 0.0,
+    overallInfraScore: 6,
+    year: 2025,
+  },
+  tn: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 6,
+    powerOutagesPerYearBusiness: 8.0,
+    safeWaterAccessPct: 96,
+    sanitationAccessPct: 95,
+    mobileSubscriptionsPer100: 126,
+    broadbandPer100: 14,
+    dataSpeedMbps: 32,
+    pavedRoadsPct: 76,
+    logisticsIndex: 2.94,
+    hospitalBedsPerThousand: 2.3,
+    physiciansPerThousand: 1.3,
+    overallInfraScore: 60,
+    year: 2025,
+  },
+  ly: {
+    electricityAccessPct: 98,
+    installedCapacityGW: 7,
+    powerOutagesPerYearBusiness: 88.0,
+    safeWaterAccessPct: 96,
+    sanitationAccessPct: 97,
+    mobileSubscriptionsPer100: 170,
+    broadbandPer100: 4,
+    dataSpeedMbps: 12,
+    pavedRoadsPct: 58,
+    logisticsIndex: 2.4,
+    hospitalBedsPerThousand: 3.7,
+    physiciansPerThousand: 2.0,
+    overallInfraScore: 36,
+    year: 2025,
+  },
+  bj: {
+    electricityAccessPct: 42,
+    installedCapacityGW: 0.4,
+    powerOutagesPerYearBusiness: 118.0,
+    safeWaterAccessPct: 74,
+    sanitationAccessPct: 13,
+    mobileSubscriptionsPer100: 100,
+    broadbandPer100: 1,
+    dataSpeedMbps: 8,
+    pavedRoadsPct: 9,
+    logisticsIndex: 2.58,
+    hospitalBedsPerThousand: 0.5,
+    physiciansPerThousand: 0.1,
+    overallInfraScore: 12,
+    year: 2025,
+  },
+  ss: {
+    electricityAccessPct: 8,
+    installedCapacityGW: 0.2,
+    powerOutagesPerYearBusiness: 328.0,
+    safeWaterAccessPct: 38,
+    sanitationAccessPct: 7,
+    mobileSubscriptionsPer100: 36,
+    broadbandPer100: 0.2,
+    dataSpeedMbps: 4,
+    pavedRoadsPct: 3,
+    logisticsIndex: 1.8,
+    hospitalBedsPerThousand: 0.7,
+    physiciansPerThousand: 0.0,
+    overallInfraScore: 4,
+    year: 2025,
+  },
+  so: {
+    electricityAccessPct: 32,
+    installedCapacityGW: 0.3,
+    powerOutagesPerYearBusiness: 288.0,
+    safeWaterAccessPct: 47,
+    sanitationAccessPct: 24,
+    mobileSubscriptionsPer100: 56,
+    broadbandPer100: 0.4,
+    dataSpeedMbps: 5,
+    pavedRoadsPct: 12,
+    logisticsIndex: 1.9,
+    hospitalBedsPerThousand: 0.9,
+    physiciansPerThousand: 0.0,
+    overallInfraScore: 6,
+    year: 2025,
+  },
+  er: {
+    electricityAccessPct: 46,
+    installedCapacityGW: 0.2,
+    powerOutagesPerYearBusiness: 128.0,
+    safeWaterAccessPct: 57,
+    sanitationAccessPct: 24,
+    mobileSubscriptionsPer100: 20,
+    broadbandPer100: 0.2,
+    dataSpeedMbps: 4,
+    pavedRoadsPct: 22,
+    logisticsIndex: 2.0,
+    hospitalBedsPerThousand: 0.7,
+    physiciansPerThousand: 0.1,
+    overallInfraScore: 8,
+    year: 2025,
+  },
+  dj: {
+    electricityAccessPct: 60,
+    installedCapacityGW: 0.2,
+    powerOutagesPerYearBusiness: 64.0,
+    safeWaterAccessPct: 91,
+    sanitationAccessPct: 64,
+    mobileSubscriptionsPer100: 44,
+    broadbandPer100: 4,
+    dataSpeedMbps: 14,
+    pavedRoadsPct: 53,
+    logisticsIndex: 2.64,
+    hospitalBedsPerThousand: 1.4,
+    physiciansPerThousand: 0.2,
+    overallInfraScore: 28,
+    year: 2025,
+  },
+  bi: {
+    electricityAccessPct: 12,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 208.0,
+    safeWaterAccessPct: 62,
+    sanitationAccessPct: 45,
+    mobileSubscriptionsPer100: 66,
+    broadbandPer100: 0.4,
+    dataSpeedMbps: 5,
+    pavedRoadsPct: 10,
+    logisticsIndex: 2.0,
+    hospitalBedsPerThousand: 0.8,
+    physiciansPerThousand: 0.1,
+    overallInfraScore: 6,
+    year: 2025,
+  },
+  mw: {
+    electricityAccessPct: 16,
+    installedCapacityGW: 0.5,
+    powerOutagesPerYearBusiness: 178.0,
+    safeWaterAccessPct: 67,
+    sanitationAccessPct: 31,
+    mobileSubscriptionsPer100: 46,
+    broadbandPer100: 0.4,
+    dataSpeedMbps: 5,
+    pavedRoadsPct: 45,
+    logisticsIndex: 2.32,
+    hospitalBedsPerThousand: 1.3,
+    physiciansPerThousand: 0.0,
+    overallInfraScore: 8,
+    year: 2025,
+  },
+  na: {
+    electricityAccessPct: 54,
+    installedCapacityGW: 0.6,
+    powerOutagesPerYearBusiness: 24.0,
+    safeWaterAccessPct: 79,
+    sanitationAccessPct: 35,
+    mobileSubscriptionsPer100: 118,
+    broadbandPer100: 6,
+    dataSpeedMbps: 18,
+    pavedRoadsPct: 18,
+    logisticsIndex: 2.84,
+    hospitalBedsPerThousand: 2.7,
+    physiciansPerThousand: 0.4,
+    overallInfraScore: 30,
+    year: 2025,
+  },
+  bw: {
+    electricityAccessPct: 62,
+    installedCapacityGW: 0.6,
+    powerOutagesPerYearBusiness: 16.0,
+    safeWaterAccessPct: 93,
+    sanitationAccessPct: 62,
+    mobileSubscriptionsPer100: 174,
+    broadbandPer100: 8,
+    dataSpeedMbps: 24,
+    pavedRoadsPct: 25,
+    logisticsIndex: 2.84,
+    hospitalBedsPerThousand: 1.8,
+    physiciansPerThousand: 0.4,
+    overallInfraScore: 36,
+    year: 2025,
+  },
+  mu: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 1,
+    powerOutagesPerYearBusiness: 2.0,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 97,
+    mobileSubscriptionsPer100: 178,
+    broadbandPer100: 26,
+    dataSpeedMbps: 48,
+    pavedRoadsPct: 98,
+    logisticsIndex: 3.18,
+    hospitalBedsPerThousand: 3.4,
+    physiciansPerThousand: 2.6,
+    overallInfraScore: 68,
+    year: 2025,
+  },
+  sz: {
+    electricityAccessPct: 78,
+    installedCapacityGW: 0.3,
+    powerOutagesPerYearBusiness: 24.0,
+    safeWaterAccessPct: 74,
+    sanitationAccessPct: 58,
+    mobileSubscriptionsPer100: 100,
+    broadbandPer100: 4,
+    dataSpeedMbps: 14,
+    pavedRoadsPct: 30,
+    logisticsIndex: 2.52,
+    hospitalBedsPerThousand: 2.1,
+    physiciansPerThousand: 0.2,
+    overallInfraScore: 26,
+    year: 2025,
+  },
+  ls: {
+    electricityAccessPct: 36,
+    installedCapacityGW: 0.2,
+    powerOutagesPerYearBusiness: 52.0,
+    safeWaterAccessPct: 80,
+    sanitationAccessPct: 30,
+    mobileSubscriptionsPer100: 104,
+    broadbandPer100: 2,
+    dataSpeedMbps: 8,
+    pavedRoadsPct: 24,
+    logisticsIndex: 2.4,
+    hospitalBedsPerThousand: 1.3,
+    physiciansPerThousand: 0.1,
+    overallInfraScore: 14,
+    year: 2025,
+  },
+  gm: {
+    electricityAccessPct: 64,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 88.0,
+    safeWaterAccessPct: 84,
+    sanitationAccessPct: 41,
+    mobileSubscriptionsPer100: 162,
+    broadbandPer100: 2,
+    dataSpeedMbps: 10,
+    pavedRoadsPct: 19,
+    logisticsIndex: 2.28,
+    hospitalBedsPerThousand: 1.1,
+    physiciansPerThousand: 0.1,
+    overallInfraScore: 14,
+    year: 2025,
+  },
+  gn: {
+    electricityAccessPct: 44,
+    installedCapacityGW: 1,
+    powerOutagesPerYearBusiness: 148.0,
+    safeWaterAccessPct: 74,
+    sanitationAccessPct: 17,
+    mobileSubscriptionsPer100: 102,
+    broadbandPer100: 0.4,
+    dataSpeedMbps: 5,
+    pavedRoadsPct: 7,
+    logisticsIndex: 2.08,
+    hospitalBedsPerThousand: 0.3,
+    physiciansPerThousand: 0.1,
+    overallInfraScore: 8,
+    year: 2025,
+  },
+  gw: {
+    electricityAccessPct: 30,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 168.0,
+    safeWaterAccessPct: 78,
+    sanitationAccessPct: 20,
+    mobileSubscriptionsPer100: 86,
+    broadbandPer100: 0.4,
+    dataSpeedMbps: 5,
+    pavedRoadsPct: 28,
+    logisticsIndex: 2.12,
+    hospitalBedsPerThousand: 1.0,
+    physiciansPerThousand: 0.1,
+    overallInfraScore: 8,
+    year: 2025,
+  },
+  sl: {
+    electricityAccessPct: 26,
+    installedCapacityGW: 0.2,
+    powerOutagesPerYearBusiness: 198.0,
+    safeWaterAccessPct: 63,
+    sanitationAccessPct: 23,
+    mobileSubscriptionsPer100: 98,
+    broadbandPer100: 0.4,
+    dataSpeedMbps: 5,
+    pavedRoadsPct: 8,
+    logisticsIndex: 2.08,
+    hospitalBedsPerThousand: 0.4,
+    physiciansPerThousand: 0.0,
+    overallInfraScore: 6,
+    year: 2025,
+  },
+  lr: {
+    electricityAccessPct: 28,
+    installedCapacityGW: 0.2,
+    powerOutagesPerYearBusiness: 188.0,
+    safeWaterAccessPct: 75,
+    sanitationAccessPct: 18,
+    mobileSubscriptionsPer100: 72,
+    broadbandPer100: 0.4,
+    dataSpeedMbps: 5,
+    pavedRoadsPct: 7,
+    logisticsIndex: 2.1,
+    hospitalBedsPerThousand: 0.8,
+    physiciansPerThousand: 0.0,
+    overallInfraScore: 6,
+    year: 2025,
+  },
+  tg: {
+    electricityAccessPct: 42,
+    installedCapacityGW: 0.2,
+    powerOutagesPerYearBusiness: 128.0,
+    safeWaterAccessPct: 64,
+    sanitationAccessPct: 16,
+    mobileSubscriptionsPer100: 76,
+    broadbandPer100: 1,
+    dataSpeedMbps: 7,
+    pavedRoadsPct: 21,
+    logisticsIndex: 2.52,
+    hospitalBedsPerThousand: 0.7,
+    physiciansPerThousand: 0.1,
+    overallInfraScore: 10,
+    year: 2025,
+  },
+  ga_af: {
+    electricityAccessPct: 92,
+    installedCapacityGW: 1.5,
+    powerOutagesPerYearBusiness: 24.0,
+    safeWaterAccessPct: 87,
+    sanitationAccessPct: 42,
+    mobileSubscriptionsPer100: 166,
+    broadbandPer100: 4,
+    dataSpeedMbps: 14,
+    pavedRoadsPct: 11,
+    logisticsIndex: 2.5,
+    hospitalBedsPerThousand: 6.3,
+    physiciansPerThousand: 0.5,
+    overallInfraScore: 34,
+    year: 2025,
+  },
+  cg: {
+    electricityAccessPct: 46,
+    installedCapacityGW: 0.7,
+    powerOutagesPerYearBusiness: 98.0,
+    safeWaterAccessPct: 74,
+    sanitationAccessPct: 37,
+    mobileSubscriptionsPer100: 96,
+    broadbandPer100: 1,
+    dataSpeedMbps: 7,
+    pavedRoadsPct: 17,
+    logisticsIndex: 2.28,
+    hospitalBedsPerThousand: 2.5,
+    physiciansPerThousand: 0.2,
+    overallInfraScore: 14,
+    year: 2025,
+  },
+  cf: {
+    electricityAccessPct: 14,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 288.0,
+    safeWaterAccessPct: 43,
+    sanitationAccessPct: 22,
+    mobileSubscriptionsPer100: 30,
+    broadbandPer100: 0.2,
+    dataSpeedMbps: 3,
+    pavedRoadsPct: 24,
+    logisticsIndex: 1.8,
+    hospitalBedsPerThousand: 1.0,
+    physiciansPerThousand: 0.1,
+    overallInfraScore: 4,
+    year: 2025,
+  },
+  td: {
+    electricityAccessPct: 10,
+    installedCapacityGW: 0.3,
+    powerOutagesPerYearBusiness: 258.0,
+    safeWaterAccessPct: 52,
+    sanitationAccessPct: 9,
+    mobileSubscriptionsPer100: 48,
+    broadbandPer100: 0.2,
+    dataSpeedMbps: 4,
+    pavedRoadsPct: 3,
+    logisticsIndex: 1.85,
+    hospitalBedsPerThousand: 0.4,
+    physiciansPerThousand: 0.0,
+    overallInfraScore: 4,
+    year: 2025,
+  },
+  cv: {
+    electricityAccessPct: 93,
+    installedCapacityGW: 0.2,
+    powerOutagesPerYearBusiness: 22.0,
+    safeWaterAccessPct: 94,
+    sanitationAccessPct: 73,
+    mobileSubscriptionsPer100: 126,
+    broadbandPer100: 8,
+    dataSpeedMbps: 22,
+    pavedRoadsPct: 69,
+    logisticsIndex: 2.64,
+    hospitalBedsPerThousand: 2.1,
+    physiciansPerThousand: 0.8,
+    overallInfraScore: 42,
+    year: 2025,
+  },
+  sc: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 4.0,
+    safeWaterAccessPct: 96,
+    sanitationAccessPct: 98,
+    mobileSubscriptionsPer100: 188,
+    broadbandPer100: 28,
+    dataSpeedMbps: 48,
+    pavedRoadsPct: 96,
+    logisticsIndex: 3.04,
+    hospitalBedsPerThousand: 3.6,
+    physiciansPerThousand: 2.1,
+    overallInfraScore: 62,
+    year: 2025,
+  },
+  st: {
+    electricityAccessPct: 76,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 48.0,
+    safeWaterAccessPct: 89,
+    sanitationAccessPct: 39,
+    mobileSubscriptionsPer100: 82,
+    broadbandPer100: 2,
+    dataSpeedMbps: 10,
+    pavedRoadsPct: 68,
+    logisticsIndex: 2.3,
+    hospitalBedsPerThousand: 2.9,
+    physiciansPerThousand: 0.5,
+    overallInfraScore: 22,
+    year: 2025,
+  },
+  gq: {
+    electricityAccessPct: 66,
+    installedCapacityGW: 0.3,
+    powerOutagesPerYearBusiness: 52.0,
+    safeWaterAccessPct: 81,
+    sanitationAccessPct: 75,
+    mobileSubscriptionsPer100: 68,
+    broadbandPer100: 1,
+    dataSpeedMbps: 7,
+    pavedRoadsPct: 22,
+    logisticsIndex: 2.28,
+    hospitalBedsPerThousand: 2.1,
+    physiciansPerThousand: 0.4,
+    overallInfraScore: 22,
+    year: 2025,
+  },
+  km: {
+    electricityAccessPct: 72,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 88.0,
+    safeWaterAccessPct: 92,
+    sanitationAccessPct: 34,
+    mobileSubscriptionsPer100: 58,
+    broadbandPer100: 1,
+    dataSpeedMbps: 6,
+    pavedRoadsPct: 76,
+    logisticsIndex: 2.14,
+    hospitalBedsPerThousand: 2.2,
+    physiciansPerThousand: 0.2,
+    overallInfraScore: 16,
+    year: 2025,
+  },
+  mr: {
+    electricityAccessPct: 46,
+    installedCapacityGW: 0.6,
+    powerOutagesPerYearBusiness: 88.0,
+    safeWaterAccessPct: 58,
+    sanitationAccessPct: 40,
+    mobileSubscriptionsPer100: 116,
+    broadbandPer100: 2,
+    dataSpeedMbps: 8,
+    pavedRoadsPct: 23,
+    logisticsIndex: 2.38,
+    hospitalBedsPerThousand: 0.4,
+    physiciansPerThousand: 0.2,
+    overallInfraScore: 14,
+    year: 2025,
+  },
+  // ── Oceania (remaining) ───────────────────────────────────────────────────
+  pg: {
+    electricityAccessPct: 22,
+    installedCapacityGW: 1,
+    powerOutagesPerYearBusiness: 88.0,
+    safeWaterAccessPct: 42,
+    sanitationAccessPct: 19,
+    mobileSubscriptionsPer100: 44,
+    broadbandPer100: 1,
+    dataSpeedMbps: 6,
+    pavedRoadsPct: 4,
+    logisticsIndex: 2.3,
+    hospitalBedsPerThousand: 0.4,
+    physiciansPerThousand: 0.1,
+    overallInfraScore: 12,
+    year: 2025,
+  },
+  fj: {
+    electricityAccessPct: 96,
+    installedCapacityGW: 0.4,
+    powerOutagesPerYearBusiness: 12.0,
+    safeWaterAccessPct: 90,
+    sanitationAccessPct: 96,
+    mobileSubscriptionsPer100: 128,
+    broadbandPer100: 8,
+    dataSpeedMbps: 22,
+    pavedRoadsPct: 49,
+    logisticsIndex: 2.72,
+    hospitalBedsPerThousand: 2.0,
+    physiciansPerThousand: 0.5,
+    overallInfraScore: 44,
+    year: 2025,
+  },
+  sb: {
+    electricityAccessPct: 24,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 64.0,
+    safeWaterAccessPct: 81,
+    sanitationAccessPct: 29,
+    mobileSubscriptionsPer100: 82,
+    broadbandPer100: 1,
+    dataSpeedMbps: 6,
+    pavedRoadsPct: 3,
+    logisticsIndex: 2.18,
+    hospitalBedsPerThousand: 1.4,
+    physiciansPerThousand: 0.2,
+    overallInfraScore: 12,
+    year: 2025,
+  },
+  vu: {
+    electricityAccessPct: 62,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 22.0,
+    safeWaterAccessPct: 94,
+    sanitationAccessPct: 57,
+    mobileSubscriptionsPer100: 78,
+    broadbandPer100: 2,
+    dataSpeedMbps: 8,
+    pavedRoadsPct: 19,
+    logisticsIndex: 2.28,
+    hospitalBedsPerThousand: 1.7,
+    physiciansPerThousand: 0.2,
+    overallInfraScore: 22,
+    year: 2025,
+  },
+  ws: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 8.0,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 99,
+    mobileSubscriptionsPer100: 62,
+    broadbandPer100: 4,
+    dataSpeedMbps: 14,
+    pavedRoadsPct: 42,
+    logisticsIndex: 2.44,
+    hospitalBedsPerThousand: 1.0,
+    physiciansPerThousand: 0.4,
+    overallInfraScore: 38,
+    year: 2025,
+  },
+  to: {
+    electricityAccessPct: 98,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 8.0,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 89,
+    mobileSubscriptionsPer100: 68,
+    broadbandPer100: 4,
+    dataSpeedMbps: 14,
+    pavedRoadsPct: 27,
+    logisticsIndex: 2.44,
+    hospitalBedsPerThousand: 2.6,
+    physiciansPerThousand: 0.6,
+    overallInfraScore: 40,
+    year: 2025,
+  },
+  ki: {
+    electricityAccessPct: 86,
+    installedCapacityGW: 0.02,
+    powerOutagesPerYearBusiness: 18.0,
+    safeWaterAccessPct: 76,
+    sanitationAccessPct: 40,
+    mobileSubscriptionsPer100: 22,
+    broadbandPer100: 2,
+    dataSpeedMbps: 6,
+    pavedRoadsPct: 27,
+    logisticsIndex: 2.1,
+    hospitalBedsPerThousand: 1.8,
+    physiciansPerThousand: 0.2,
+    overallInfraScore: 22,
+    year: 2025,
+  },
+  fm: {
+    electricityAccessPct: 82,
+    installedCapacityGW: 0.03,
+    powerOutagesPerYearBusiness: 24.0,
+    safeWaterAccessPct: 78,
+    sanitationAccessPct: 56,
+    mobileSubscriptionsPer100: 32,
+    broadbandPer100: 2,
+    dataSpeedMbps: 8,
+    pavedRoadsPct: 17,
+    logisticsIndex: 2.2,
+    hospitalBedsPerThousand: 3.2,
+    physiciansPerThousand: 0.2,
+    overallInfraScore: 24,
+    year: 2025,
+  },
+  pw: {
+    electricityAccessPct: 99,
+    installedCapacityGW: 0.03,
+    powerOutagesPerYearBusiness: 6.0,
+    safeWaterAccessPct: 98,
+    sanitationAccessPct: 100,
+    mobileSubscriptionsPer100: 82,
+    broadbandPer100: 8,
+    dataSpeedMbps: 18,
+    pavedRoadsPct: 36,
+    logisticsIndex: 2.64,
+    hospitalBedsPerThousand: 4.8,
+    physiciansPerThousand: 1.2,
+    overallInfraScore: 48,
+    year: 2025,
+  },
+  mh: {
+    electricityAccessPct: 92,
+    installedCapacityGW: 0.02,
+    powerOutagesPerYearBusiness: 16.0,
+    safeWaterAccessPct: 95,
+    sanitationAccessPct: 56,
+    mobileSubscriptionsPer100: 28,
+    broadbandPer100: 2,
+    dataSpeedMbps: 7,
+    pavedRoadsPct: 4,
+    logisticsIndex: 2.14,
+    hospitalBedsPerThousand: 2.7,
+    physiciansPerThousand: 0.5,
+    overallInfraScore: 28,
+    year: 2025,
+  },
+  nr: {
+    electricityAccessPct: 99,
+    installedCapacityGW: 0.02,
+    powerOutagesPerYearBusiness: 8.0,
+    safeWaterAccessPct: 100,
+    sanitationAccessPct: 66,
+    mobileSubscriptionsPer100: 74,
+    broadbandPer100: 4,
+    dataSpeedMbps: 14,
+    pavedRoadsPct: 79,
+    logisticsIndex: 2.24,
+    hospitalBedsPerThousand: 5.0,
+    physiciansPerThousand: 1.4,
+    overallInfraScore: 38,
+    year: 2025,
+  },
+  tv: {
+    electricityAccessPct: 98,
+    installedCapacityGW: 0.01,
+    powerOutagesPerYearBusiness: 8.0,
+    safeWaterAccessPct: 98,
+    sanitationAccessPct: 91,
+    mobileSubscriptionsPer100: 28,
+    broadbandPer100: 2,
+    dataSpeedMbps: 6,
+    pavedRoadsPct: 24,
+    logisticsIndex: 2.1,
+    hospitalBedsPerThousand: 5.6,
+    physiciansPerThousand: 1.1,
+    overallInfraScore: 32,
+    year: 2025,
+  },
+  coo_af: {
+    electricityAccessPct: 92,
+    installedCapacityGW: 0.02,
+    powerOutagesPerYearBusiness: 8.0,
+    safeWaterAccessPct: 95,
+    sanitationAccessPct: 95,
+    mobileSubscriptionsPer100: 74,
+    broadbandPer100: 6,
+    dataSpeedMbps: 16,
+    pavedRoadsPct: 32,
+    logisticsIndex: 2.44,
+    hospitalBedsPerThousand: 1.6,
+    physiciansPerThousand: 1.2,
+    overallInfraScore: 40,
+    year: 2025,
+  },
+  eh: {
+    electricityAccessPct: 88,
+    installedCapacityGW: 0.1,
+    powerOutagesPerYearBusiness: 24.0,
+    safeWaterAccessPct: 83,
+    sanitationAccessPct: 52,
+    mobileSubscriptionsPer100: 52,
+    broadbandPer100: 2,
+    dataSpeedMbps: 7,
+    pavedRoadsPct: 38,
+    logisticsIndex: 2.14,
+    hospitalBedsPerThousand: 0.8,
+    physiciansPerThousand: 0.2,
+    overallInfraScore: 18,
+    year: 2025,
+  },
+  ck: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.01,
+    powerOutagesPerYearBusiness: 6.0,
+    safeWaterAccessPct: 98,
+    sanitationAccessPct: 98,
+    mobileSubscriptionsPer100: 78,
+    broadbandPer100: 8,
+    dataSpeedMbps: 18,
+    pavedRoadsPct: 57,
+    logisticsIndex: 2.64,
+    hospitalBedsPerThousand: 2.4,
+    physiciansPerThousand: 1.2,
+    overallInfraScore: 44,
+    year: 2025,
+  },
+  nu: {
+    electricityAccessPct: 100,
+    installedCapacityGW: 0.003,
+    powerOutagesPerYearBusiness: 4.0,
+    safeWaterAccessPct: 99,
+    sanitationAccessPct: 99,
+    mobileSubscriptionsPer100: 62,
+    broadbandPer100: 6,
+    dataSpeedMbps: 12,
+    pavedRoadsPct: 62,
+    logisticsIndex: 2.4,
+    hospitalBedsPerThousand: 6.2,
+    physiciansPerThousand: 2.4,
+    overallInfraScore: 46,
+    year: 2025,
+  },
+};
+
+// ── Gender / Male-Female Statistics Data ─────────────────────────────────────
+interface GenderStats {
+  malePct: number;
+  femalePct: number;
+  sexRatioAtBirth: number; // males per 100 females
+  lifeExpectancyMale: number;
+  lifeExpectancyFemale: number;
+  literacyMalePct?: number;
+  literacyFemalePct?: number;
+  laborForceMalePct?: number;
+  laborForceFemale?: number; // % of female population in labor force
+  parliamentFemale?: number; // % of parliamentary seats held by women
+  wageGapPct?: number; // gender pay gap %, positive = men earn more
+  maternalMortality?: number; // per 100,000 live births
+  femaleUniGradPct?: number; // % of university graduates who are female
+  year: number;
+}
+
+const COUNTRY_GENDER_STATS: Record<string, GenderStats> = {
+  us: {
+    malePct: 49.5,
+    femalePct: 50.5,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 74.5,
+    lifeExpectancyFemale: 80.2,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 69,
+    laborForceFemale: 57,
+    parliamentFemale: 28.9,
+    wageGapPct: 18,
+    maternalMortality: 23,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  cn: {
+    malePct: 51.1,
+    femalePct: 48.9,
+    sexRatioAtBirth: 111,
+    lifeExpectancyMale: 75.0,
+    lifeExpectancyFemale: 80.5,
+    literacyMalePct: 98.5,
+    literacyFemalePct: 94.5,
+    laborForceMalePct: 76,
+    laborForceFemale: 61,
+    parliamentFemale: 26.5,
+    wageGapPct: 22,
+    maternalMortality: 16,
+    femaleUniGradPct: 53,
+    year: 2023,
+  },
+  de: {
+    malePct: 49.4,
+    femalePct: 50.6,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 79.0,
+    lifeExpectancyFemale: 83.4,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 80,
+    laborForceFemale: 74,
+    parliamentFemale: 35.2,
+    wageGapPct: 14,
+    maternalMortality: 4,
+    femaleUniGradPct: 52,
+    year: 2023,
+  },
+  gb: {
+    malePct: 49.3,
+    femalePct: 50.7,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 79.4,
+    lifeExpectancyFemale: 83.1,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 79,
+    laborForceFemale: 72,
+    parliamentFemale: 34.4,
+    wageGapPct: 16,
+    maternalMortality: 10,
+    femaleUniGradPct: 57,
+    year: 2023,
+  },
+  fr: {
+    malePct: 48.9,
+    femalePct: 51.1,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 79.5,
+    lifeExpectancyFemale: 85.6,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 76,
+    laborForceFemale: 68,
+    parliamentFemale: 37.3,
+    wageGapPct: 16.8,
+    maternalMortality: 8,
+    femaleUniGradPct: 56,
+    year: 2023,
+  },
+  jp: {
+    malePct: 48.7,
+    femalePct: 51.3,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 81.1,
+    lifeExpectancyFemale: 87.1,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 84,
+    laborForceFemale: 54,
+    parliamentFemale: 10.4,
+    wageGapPct: 22.1,
+    maternalMortality: 4,
+    femaleUniGradPct: 51,
+    year: 2023,
+  },
+  in: {
+    malePct: 52.3,
+    femalePct: 47.7,
+    sexRatioAtBirth: 111,
+    lifeExpectancyMale: 68.4,
+    lifeExpectancyFemale: 71.4,
+    literacyMalePct: 84.7,
+    literacyFemalePct: 70.3,
+    laborForceMalePct: 77,
+    laborForceFemale: 24,
+    parliamentFemale: 15.1,
+    wageGapPct: 28,
+    maternalMortality: 103,
+    femaleUniGradPct: 43,
+    year: 2023,
+  },
+  br: {
+    malePct: 48.7,
+    femalePct: 51.3,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 73.1,
+    lifeExpectancyFemale: 80.2,
+    literacyMalePct: 93.2,
+    literacyFemalePct: 95.0,
+    laborForceMalePct: 75,
+    laborForceFemale: 54,
+    parliamentFemale: 17.9,
+    wageGapPct: 20,
+    maternalMortality: 72,
+    femaleUniGradPct: 61,
+    year: 2023,
+  },
+  ru: {
+    malePct: 46.3,
+    femalePct: 53.7,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 68.0,
+    lifeExpectancyFemale: 77.8,
+    literacyMalePct: 99.7,
+    literacyFemalePct: 99.7,
+    laborForceMalePct: 76,
+    laborForceFemale: 59,
+    parliamentFemale: 16.8,
+    wageGapPct: 28,
+    maternalMortality: 14,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  au_oc: {
+    malePct: 49.7,
+    femalePct: 50.3,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 81.3,
+    lifeExpectancyFemale: 85.4,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 79,
+    laborForceFemale: 71,
+    parliamentFemale: 38.0,
+    wageGapPct: 13,
+    maternalMortality: 4,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  ca: {
+    malePct: 49.6,
+    femalePct: 50.4,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 80.9,
+    lifeExpectancyFemale: 84.9,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 78,
+    laborForceFemale: 73,
+    parliamentFemale: 29.6,
+    wageGapPct: 12,
+    maternalMortality: 8,
+    femaleUniGradPct: 59,
+    year: 2023,
+  },
+  kr: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 80.6,
+    lifeExpectancyFemale: 86.6,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 78,
+    laborForceFemale: 55,
+    parliamentFemale: 19.2,
+    wageGapPct: 31.2,
+    maternalMortality: 8,
+    femaleUniGradPct: 50,
+    year: 2023,
+  },
+  sg: {
+    malePct: 49.5,
+    femalePct: 50.5,
+    sexRatioAtBirth: 107,
+    lifeExpectancyMale: 81.4,
+    lifeExpectancyFemale: 85.7,
+    literacyMalePct: 98.6,
+    literacyFemalePct: 96.0,
+    laborForceMalePct: 80,
+    laborForceFemale: 61,
+    parliamentFemale: 29.8,
+    wageGapPct: 16,
+    maternalMortality: 3,
+    femaleUniGradPct: 52,
+    year: 2023,
+  },
+  ae: {
+    malePct: 69.1,
+    femalePct: 30.9,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 77.2,
+    lifeExpectancyFemale: 80.9,
+    literacyMalePct: 93.8,
+    literacyFemalePct: 97.5,
+    laborForceMalePct: 95,
+    laborForceFemale: 45,
+    parliamentFemale: 50.0,
+    wageGapPct: 32,
+    maternalMortality: 3,
+    femaleUniGradPct: 70,
+    year: 2023,
+  },
+  il_as: {
+    malePct: 49.9,
+    femalePct: 50.1,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 80.6,
+    lifeExpectancyFemale: 84.3,
+    literacyMalePct: 98.5,
+    literacyFemalePct: 97.1,
+    laborForceMalePct: 76,
+    laborForceFemale: 63,
+    parliamentFemale: 30.0,
+    wageGapPct: 22,
+    maternalMortality: 4,
+    femaleUniGradPct: 59,
+    year: 2023,
+  },
+  tr: {
+    malePct: 50.2,
+    femalePct: 49.8,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 73.6,
+    lifeExpectancyFemale: 79.6,
+    literacyMalePct: 99.0,
+    literacyFemalePct: 95.5,
+    laborForceMalePct: 72,
+    laborForceFemale: 33,
+    parliamentFemale: 17.3,
+    wageGapPct: 24,
+    maternalMortality: 17,
+    femaleUniGradPct: 49,
+    year: 2023,
+  },
+  za: {
+    malePct: 48.5,
+    femalePct: 51.5,
+    sexRatioAtBirth: 102,
+    lifeExpectancyMale: 61.5,
+    lifeExpectancyFemale: 68.2,
+    literacyMalePct: 87.5,
+    literacyFemalePct: 86.5,
+    laborForceMalePct: 63,
+    laborForceFemale: 46,
+    parliamentFemale: 46.4,
+    wageGapPct: 25,
+    maternalMortality: 127,
+    femaleUniGradPct: 55,
+    year: 2023,
+  },
+  ng: {
+    malePct: 51.0,
+    femalePct: 49.0,
+    sexRatioAtBirth: 104,
+    lifeExpectancyMale: 53.7,
+    lifeExpectancyFemale: 56.3,
+    literacyMalePct: 71.3,
+    literacyFemalePct: 52.7,
+    laborForceMalePct: 62,
+    laborForceFemale: 48,
+    parliamentFemale: 4.7,
+    wageGapPct: 35,
+    maternalMortality: 1047,
+    femaleUniGradPct: 36,
+    year: 2023,
+  },
+  eg: {
+    malePct: 51.3,
+    femalePct: 48.7,
+    sexRatioAtBirth: 107,
+    lifeExpectancyMale: 70.5,
+    lifeExpectancyFemale: 74.3,
+    literacyMalePct: 79.6,
+    literacyFemalePct: 66.7,
+    laborForceMalePct: 73,
+    laborForceFemale: 16,
+    parliamentFemale: 27.3,
+    wageGapPct: 33,
+    maternalMortality: 17,
+    femaleUniGradPct: 48,
+    year: 2023,
+  },
+  mx: {
+    malePct: 48.8,
+    femalePct: 51.2,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 72.1,
+    lifeExpectancyFemale: 78.3,
+    literacyMalePct: 96.0,
+    literacyFemalePct: 94.4,
+    laborForceMalePct: 76,
+    laborForceFemale: 44,
+    parliamentFemale: 50.0,
+    wageGapPct: 19,
+    maternalMortality: 59,
+    femaleUniGradPct: 55,
+    year: 2023,
+  },
+  sa: {
+    malePct: 57.7,
+    femalePct: 42.3,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 74.9,
+    lifeExpectancyFemale: 78.6,
+    literacyMalePct: 98.0,
+    literacyFemalePct: 97.0,
+    laborForceMalePct: 81,
+    laborForceFemale: 33,
+    parliamentFemale: 19.9,
+    wageGapPct: 35,
+    maternalMortality: 17,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  ar: {
+    malePct: 49.2,
+    femalePct: 50.8,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 72.8,
+    lifeExpectancyFemale: 79.5,
+    literacyMalePct: 99.2,
+    literacyFemalePct: 99.0,
+    laborForceMalePct: 73,
+    laborForceFemale: 51,
+    parliamentFemale: 46.0,
+    wageGapPct: 21,
+    maternalMortality: 39,
+    femaleUniGradPct: 62,
+    year: 2023,
+  },
+  cl: {
+    malePct: 49.7,
+    femalePct: 50.3,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 78.7,
+    lifeExpectancyFemale: 84.0,
+    literacyMalePct: 96.8,
+    literacyFemalePct: 96.2,
+    laborForceMalePct: 74,
+    laborForceFemale: 55,
+    parliamentFemale: 35.0,
+    wageGapPct: 18,
+    maternalMortality: 15,
+    femaleUniGradPct: 57,
+    year: 2023,
+  },
+  ir: {
+    malePct: 50.5,
+    femalePct: 49.5,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 74.0,
+    lifeExpectancyFemale: 77.4,
+    literacyMalePct: 92.6,
+    literacyFemalePct: 85.6,
+    laborForceMalePct: 71,
+    laborForceFemale: 16,
+    parliamentFemale: 5.5,
+    wageGapPct: 38,
+    maternalMortality: 16,
+    femaleUniGradPct: 53,
+    year: 2023,
+  },
+  id: {
+    malePct: 50.3,
+    femalePct: 49.7,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 69.4,
+    lifeExpectancyFemale: 74.2,
+    literacyMalePct: 97.7,
+    literacyFemalePct: 94.2,
+    laborForceMalePct: 82,
+    laborForceFemale: 54,
+    parliamentFemale: 22.1,
+    wageGapPct: 26,
+    maternalMortality: 173,
+    femaleUniGradPct: 52,
+    year: 2023,
+  },
+  my: {
+    malePct: 51.3,
+    femalePct: 48.7,
+    sexRatioAtBirth: 107,
+    lifeExpectancyMale: 73.4,
+    lifeExpectancyFemale: 77.9,
+    literacyMalePct: 96.0,
+    literacyFemalePct: 93.7,
+    laborForceMalePct: 79,
+    laborForceFemale: 55,
+    parliamentFemale: 13.4,
+    wageGapPct: 22,
+    maternalMortality: 22,
+    femaleUniGradPct: 57,
+    year: 2023,
+  },
+  th: {
+    malePct: 49.3,
+    femalePct: 50.7,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 72.3,
+    lifeExpectancyFemale: 79.4,
+    literacyMalePct: 96.7,
+    literacyFemalePct: 95.0,
+    laborForceMalePct: 79,
+    laborForceFemale: 59,
+    parliamentFemale: 17.2,
+    wageGapPct: 20,
+    maternalMortality: 29,
+    femaleUniGradPct: 56,
+    year: 2023,
+  },
+  vn: {
+    malePct: 50.0,
+    femalePct: 50.0,
+    sexRatioAtBirth: 115,
+    lifeExpectancyMale: 71.5,
+    lifeExpectancyFemale: 80.5,
+    literacyMalePct: 96.7,
+    literacyFemalePct: 94.8,
+    laborForceMalePct: 84,
+    laborForceFemale: 72,
+    parliamentFemale: 30.3,
+    wageGapPct: 16,
+    maternalMortality: 46,
+    femaleUniGradPct: 54,
+    year: 2023,
+  },
+  ph: {
+    malePct: 50.4,
+    femalePct: 49.6,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 66.7,
+    lifeExpectancyFemale: 74.8,
+    literacyMalePct: 97.9,
+    literacyFemalePct: 98.5,
+    laborForceMalePct: 79,
+    laborForceFemale: 51,
+    parliamentFemale: 27.5,
+    wageGapPct: 10,
+    maternalMortality: 78,
+    femaleUniGradPct: 62,
+    year: 2023,
+  },
+  pk: {
+    malePct: 51.5,
+    femalePct: 48.5,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 66.2,
+    lifeExpectancyFemale: 67.9,
+    literacyMalePct: 71.0,
+    literacyFemalePct: 46.5,
+    laborForceMalePct: 82,
+    laborForceFemale: 21,
+    parliamentFemale: 19.9,
+    wageGapPct: 34,
+    maternalMortality: 154,
+    femaleUniGradPct: 38,
+    year: 2023,
+  },
+  bd: {
+    malePct: 50.8,
+    femalePct: 49.2,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 72.3,
+    lifeExpectancyFemale: 76.2,
+    literacyMalePct: 76.0,
+    literacyFemalePct: 73.9,
+    laborForceMalePct: 80,
+    laborForceFemale: 39,
+    parliamentFemale: 21.3,
+    wageGapPct: 22,
+    maternalMortality: 123,
+    femaleUniGradPct: 48,
+    year: 2023,
+  },
+  et: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 64.5,
+    lifeExpectancyFemale: 68.2,
+    literacyMalePct: 57.2,
+    literacyFemalePct: 44.4,
+    laborForceMalePct: 89,
+    laborForceFemale: 80,
+    parliamentFemale: 41.2,
+    wageGapPct: 25,
+    maternalMortality: 267,
+    femaleUniGradPct: 32,
+    year: 2023,
+  },
+  ke: {
+    malePct: 49.7,
+    femalePct: 50.3,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 63.4,
+    lifeExpectancyFemale: 67.9,
+    literacyMalePct: 87.1,
+    literacyFemalePct: 78.2,
+    laborForceMalePct: 72,
+    laborForceFemale: 60,
+    parliamentFemale: 23.5,
+    wageGapPct: 18,
+    maternalMortality: 342,
+    femaleUniGradPct: 40,
+    year: 2023,
+  },
+  ua: {
+    malePct: 46.2,
+    femalePct: 53.8,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 67.0,
+    lifeExpectancyFemale: 76.0,
+    literacyMalePct: 99.8,
+    literacyFemalePct: 99.7,
+    laborForceMalePct: 74,
+    laborForceFemale: 60,
+    parliamentFemale: 20.5,
+    wageGapPct: 22,
+    maternalMortality: 19,
+    femaleUniGradPct: 59,
+    year: 2023,
+  },
+  pl: {
+    malePct: 48.4,
+    femalePct: 51.6,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 74.5,
+    lifeExpectancyFemale: 82.0,
+    literacyMalePct: 99.8,
+    literacyFemalePct: 99.8,
+    laborForceMalePct: 76,
+    laborForceFemale: 63,
+    parliamentFemale: 28.7,
+    wageGapPct: 10,
+    maternalMortality: 3,
+    femaleUniGradPct: 60,
+    year: 2023,
+  },
+  it: {
+    malePct: 49.0,
+    femalePct: 51.0,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 81.0,
+    lifeExpectancyFemale: 85.2,
+    literacyMalePct: 99.3,
+    literacyFemalePct: 99.1,
+    laborForceMalePct: 72,
+    laborForceFemale: 54,
+    parliamentFemale: 34.4,
+    wageGapPct: 13,
+    maternalMortality: 5,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  es: {
+    malePct: 49.3,
+    femalePct: 50.7,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 80.9,
+    lifeExpectancyFemale: 86.2,
+    literacyMalePct: 98.8,
+    literacyFemalePct: 98.3,
+    laborForceMalePct: 74,
+    laborForceFemale: 65,
+    parliamentFemale: 44.3,
+    wageGapPct: 11.5,
+    maternalMortality: 5,
+    femaleUniGradPct: 59,
+    year: 2023,
+  },
+  se: {
+    malePct: 50.0,
+    femalePct: 50.0,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 81.3,
+    lifeExpectancyFemale: 84.7,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 83,
+    laborForceFemale: 79,
+    parliamentFemale: 46.4,
+    wageGapPct: 7.3,
+    maternalMortality: 5,
+    femaleUniGradPct: 62,
+    year: 2023,
+  },
+  no: {
+    malePct: 50.3,
+    femalePct: 49.7,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 81.8,
+    lifeExpectancyFemale: 84.7,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 83,
+    laborForceFemale: 79,
+    parliamentFemale: 45.4,
+    wageGapPct: 7.1,
+    maternalMortality: 2,
+    femaleUniGradPct: 60,
+    year: 2023,
+  },
+  kp: {
+    malePct: 49.8,
+    femalePct: 50.2,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 68.2,
+    lifeExpectancyFemale: 75.7,
+    literacyMalePct: 100,
+    literacyFemalePct: 100,
+    laborForceMalePct: 88,
+    laborForceFemale: 72,
+    parliamentFemale: 17.6,
+    wageGapPct: 30,
+    maternalMortality: 89,
+    femaleUniGradPct: 45,
+    year: 2023,
+  },
+  // ── Europe (additional) ──────────────────────────────────────────────────
+  es: {
+    malePct: 49.3,
+    femalePct: 50.7,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 80.9,
+    lifeExpectancyFemale: 86.2,
+    literacyMalePct: 98.8,
+    literacyFemalePct: 98.3,
+    laborForceMalePct: 74,
+    laborForceFemale: 65,
+    parliamentFemale: 44.3,
+    wageGapPct: 11.5,
+    maternalMortality: 5,
+    femaleUniGradPct: 59,
+    year: 2023,
+  },
+  nl: {
+    malePct: 49.5,
+    femalePct: 50.5,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 80.2,
+    lifeExpectancyFemale: 84.3,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 82,
+    laborForceFemale: 75,
+    parliamentFemale: 43.4,
+    wageGapPct: 13.0,
+    maternalMortality: 4,
+    femaleUniGradPct: 56,
+    year: 2023,
+  },
+  ch: {
+    malePct: 49.3,
+    femalePct: 50.7,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 81.9,
+    lifeExpectancyFemale: 85.4,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 88,
+    laborForceFemale: 79,
+    parliamentFemale: 41.5,
+    wageGapPct: 12.1,
+    maternalMortality: 5,
+    femaleUniGradPct: 54,
+    year: 2023,
+  },
+  dk: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 79.8,
+    lifeExpectancyFemale: 83.8,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 84,
+    laborForceFemale: 79,
+    parliamentFemale: 43.6,
+    wageGapPct: 8.7,
+    maternalMortality: 4,
+    femaleUniGradPct: 60,
+    year: 2023,
+  },
+  fi: {
+    malePct: 49.0,
+    femalePct: 51.0,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 79.0,
+    lifeExpectancyFemale: 84.4,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 78,
+    laborForceFemale: 73,
+    parliamentFemale: 46.0,
+    wageGapPct: 12.4,
+    maternalMortality: 3,
+    femaleUniGradPct: 62,
+    year: 2023,
+  },
+  be: {
+    malePct: 49.4,
+    femalePct: 50.6,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 79.8,
+    lifeExpectancyFemale: 84.5,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 78,
+    laborForceFemale: 68,
+    parliamentFemale: 44.0,
+    wageGapPct: 6.0,
+    maternalMortality: 5,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  at: {
+    malePct: 49.2,
+    femalePct: 50.8,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 79.6,
+    lifeExpectancyFemale: 84.1,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 80,
+    laborForceFemale: 72,
+    parliamentFemale: 39.3,
+    wageGapPct: 13.8,
+    maternalMortality: 4,
+    femaleUniGradPct: 56,
+    year: 2023,
+  },
+  pt: {
+    malePct: 48.2,
+    femalePct: 51.8,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 78.9,
+    lifeExpectancyFemale: 84.7,
+    literacyMalePct: 97.0,
+    literacyFemalePct: 95.2,
+    laborForceMalePct: 74,
+    laborForceFemale: 67,
+    parliamentFemale: 38.7,
+    wageGapPct: 11.9,
+    maternalMortality: 7,
+    femaleUniGradPct: 60,
+    year: 2023,
+  },
+  gr: {
+    malePct: 49.5,
+    femalePct: 50.5,
+    sexRatioAtBirth: 107,
+    lifeExpectancyMale: 80.2,
+    lifeExpectancyFemale: 84.8,
+    literacyMalePct: 98.8,
+    literacyFemalePct: 97.2,
+    laborForceMalePct: 72,
+    laborForceFemale: 56,
+    parliamentFemale: 19.7,
+    wageGapPct: 11.2,
+    maternalMortality: 3,
+    femaleUniGradPct: 60,
+    year: 2023,
+  },
+  cz: {
+    malePct: 49.2,
+    femalePct: 50.8,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 76.6,
+    lifeExpectancyFemale: 82.2,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 78,
+    laborForceFemale: 68,
+    parliamentFemale: 22.0,
+    wageGapPct: 14.8,
+    maternalMortality: 3,
+    femaleUniGradPct: 57,
+    year: 2023,
+  },
+  ro: {
+    malePct: 48.9,
+    femalePct: 51.1,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 73.5,
+    lifeExpectancyFemale: 79.8,
+    literacyMalePct: 99.3,
+    literacyFemalePct: 98.3,
+    laborForceMalePct: 73,
+    laborForceFemale: 53,
+    parliamentFemale: 21.5,
+    wageGapPct: 2.4,
+    maternalMortality: 12,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  hu: {
+    malePct: 47.8,
+    femalePct: 52.2,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 73.6,
+    lifeExpectancyFemale: 80.1,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 79,
+    laborForceFemale: 65,
+    parliamentFemale: 14.2,
+    wageGapPct: 10.7,
+    maternalMortality: 15,
+    femaleUniGradPct: 59,
+    year: 2023,
+  },
+  // ── Asia / Oceania (additional) ──────────────────────────────────────────
+  tw: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 107,
+    lifeExpectancyMale: 77.3,
+    lifeExpectancyFemale: 83.6,
+    literacyMalePct: 99.1,
+    literacyFemalePct: 98.6,
+    laborForceMalePct: 68,
+    laborForceFemale: 52,
+    parliamentFemale: 42.5,
+    wageGapPct: 16.0,
+    maternalMortality: 3,
+    femaleUniGradPct: 53,
+    year: 2023,
+  },
+  nz: {
+    malePct: 49.5,
+    femalePct: 50.5,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 80.4,
+    lifeExpectancyFemale: 84.4,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 81,
+    laborForceFemale: 74,
+    parliamentFemale: 50.0,
+    wageGapPct: 8.6,
+    maternalMortality: 13,
+    femaleUniGradPct: 62,
+    year: 2023,
+  },
+  kz: {
+    malePct: 48.8,
+    femalePct: 51.2,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 70.2,
+    lifeExpectancyFemale: 76.8,
+    literacyMalePct: 99.8,
+    literacyFemalePct: 99.8,
+    laborForceMalePct: 79,
+    laborForceFemale: 67,
+    parliamentFemale: 27.4,
+    wageGapPct: 26,
+    maternalMortality: 13,
+    femaleUniGradPct: 59,
+    year: 2023,
+  },
+  iq: {
+    malePct: 51.0,
+    femalePct: 49.0,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 68.7,
+    lifeExpectancyFemale: 73.4,
+    literacyMalePct: 91.1,
+    literacyFemalePct: 72.6,
+    laborForceMalePct: 72,
+    laborForceFemale: 12,
+    parliamentFemale: 29.1,
+    wageGapPct: 40,
+    maternalMortality: 79,
+    femaleUniGradPct: 44,
+    year: 2023,
+  },
+  om: {
+    malePct: 59.3,
+    femalePct: 40.7,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 75.8,
+    lifeExpectancyFemale: 80.2,
+    literacyMalePct: 92.1,
+    literacyFemalePct: 84.3,
+    laborForceMalePct: 88,
+    laborForceFemale: 30,
+    parliamentFemale: 2.3,
+    wageGapPct: 36,
+    maternalMortality: 11,
+    femaleUniGradPct: 55,
+    year: 2023,
+  },
+  qa: {
+    malePct: 74.5,
+    femalePct: 25.5,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 78.9,
+    lifeExpectancyFemale: 82.1,
+    literacyMalePct: 93.1,
+    literacyFemalePct: 96.7,
+    laborForceMalePct: 94,
+    laborForceFemale: 55,
+    parliamentFemale: 4.4,
+    wageGapPct: 35,
+    maternalMortality: 9,
+    femaleUniGradPct: 65,
+    year: 2023,
+  },
+  // ── Americas (additional) ────────────────────────────────────────────────
+  co_co: {
+    malePct: 48.9,
+    femalePct: 51.1,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 73.6,
+    lifeExpectancyFemale: 80.6,
+    literacyMalePct: 95.6,
+    literacyFemalePct: 96.1,
+    laborForceMalePct: 78,
+    laborForceFemale: 54,
+    parliamentFemale: 29.7,
+    wageGapPct: 20,
+    maternalMortality: 75,
+    femaleUniGradPct: 59,
+    year: 2023,
+  },
+  pe: {
+    malePct: 50.0,
+    femalePct: 50.0,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 73.8,
+    lifeExpectancyFemale: 79.7,
+    literacyMalePct: 97.2,
+    literacyFemalePct: 91.6,
+    laborForceMalePct: 80,
+    laborForceFemale: 64,
+    parliamentFemale: 38.0,
+    wageGapPct: 22,
+    maternalMortality: 69,
+    femaleUniGradPct: 52,
+    year: 2023,
+  },
+  ve: {
+    malePct: 49.4,
+    femalePct: 50.6,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 69.0,
+    lifeExpectancyFemale: 76.4,
+    literacyMalePct: 97.0,
+    literacyFemalePct: 97.2,
+    laborForceMalePct: 72,
+    laborForceFemale: 44,
+    parliamentFemale: 22.2,
+    wageGapPct: 24,
+    maternalMortality: 259,
+    femaleUniGradPct: 63,
+    year: 2023,
+  },
+  ec: {
+    malePct: 49.8,
+    femalePct: 50.2,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 74.0,
+    lifeExpectancyFemale: 79.6,
+    literacyMalePct: 95.4,
+    literacyFemalePct: 93.6,
+    laborForceMalePct: 79,
+    laborForceFemale: 50,
+    parliamentFemale: 44.3,
+    wageGapPct: 19,
+    maternalMortality: 59,
+    femaleUniGradPct: 55,
+    year: 2023,
+  },
+  bo: {
+    malePct: 49.9,
+    femalePct: 50.1,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 68.8,
+    lifeExpectancyFemale: 73.7,
+    literacyMalePct: 96.5,
+    literacyFemalePct: 88.5,
+    laborForceMalePct: 81,
+    laborForceFemale: 62,
+    parliamentFemale: 46.2,
+    wageGapPct: 22,
+    maternalMortality: 160,
+    femaleUniGradPct: 45,
+    year: 2023,
+  },
+  py: {
+    malePct: 50.2,
+    femalePct: 49.8,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 71.4,
+    lifeExpectancyFemale: 77.1,
+    literacyMalePct: 95.3,
+    literacyFemalePct: 93.7,
+    laborForceMalePct: 79,
+    laborForceFemale: 55,
+    parliamentFemale: 16.0,
+    wageGapPct: 20,
+    maternalMortality: 84,
+    femaleUniGradPct: 54,
+    year: 2023,
+  },
+  uy: {
+    malePct: 48.7,
+    femalePct: 51.3,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 74.5,
+    lifeExpectancyFemale: 81.5,
+    literacyMalePct: 98.2,
+    literacyFemalePct: 99.1,
+    laborForceMalePct: 75,
+    laborForceFemale: 61,
+    parliamentFemale: 24.0,
+    wageGapPct: 12,
+    maternalMortality: 19,
+    femaleUniGradPct: 64,
+    year: 2023,
+  },
+  // ── Africa (additional) ──────────────────────────────────────────────────
+  ma: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 75.0,
+    lifeExpectancyFemale: 77.6,
+    literacyMalePct: 85.0,
+    literacyFemalePct: 66.8,
+    laborForceMalePct: 70,
+    laborForceFemale: 21,
+    parliamentFemale: 24.5,
+    wageGapPct: 30,
+    maternalMortality: 70,
+    femaleUniGradPct: 52,
+    year: 2023,
+  },
+  gh: {
+    malePct: 49.8,
+    femalePct: 50.2,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 63.0,
+    lifeExpectancyFemale: 65.6,
+    literacyMalePct: 84.7,
+    literacyFemalePct: 73.2,
+    laborForceMalePct: 72,
+    laborForceFemale: 56,
+    parliamentFemale: 14.5,
+    wageGapPct: 22,
+    maternalMortality: 263,
+    femaleUniGradPct: 40,
+    year: 2023,
+  },
+  tz: {
+    malePct: 49.7,
+    femalePct: 50.3,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 64.0,
+    lifeExpectancyFemale: 67.2,
+    literacyMalePct: 82.7,
+    literacyFemalePct: 73.2,
+    laborForceMalePct: 87,
+    laborForceFemale: 78,
+    parliamentFemale: 37.2,
+    wageGapPct: 18,
+    maternalMortality: 238,
+    femaleUniGradPct: 35,
+    year: 2023,
+  },
+  ao: {
+    malePct: 49.0,
+    femalePct: 51.0,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 59.2,
+    lifeExpectancyFemale: 63.0,
+    literacyMalePct: 82.0,
+    literacyFemalePct: 53.4,
+    laborForceMalePct: 74,
+    laborForceFemale: 58,
+    parliamentFemale: 36.4,
+    wageGapPct: 32,
+    maternalMortality: 222,
+    femaleUniGradPct: 38,
+    year: 2023,
+  },
+  dz: {
+    malePct: 50.6,
+    femalePct: 49.4,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 75.3,
+    lifeExpectancyFemale: 77.9,
+    literacyMalePct: 87.2,
+    literacyFemalePct: 75.4,
+    laborForceMalePct: 64,
+    laborForceFemale: 17,
+    parliamentFemale: 8.0,
+    wageGapPct: 35,
+    maternalMortality: 78,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  rw: {
+    malePct: 48.1,
+    femalePct: 51.9,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 66.8,
+    lifeExpectancyFemale: 71.5,
+    literacyMalePct: 73.7,
+    literacyFemalePct: 65.7,
+    laborForceMalePct: 79,
+    laborForceFemale: 83,
+    parliamentFemale: 61.3,
+    wageGapPct: 5,
+    maternalMortality: 259,
+    femaleUniGradPct: 47,
+    year: 2023,
+  },
+  sn: {
+    malePct: 49.6,
+    femalePct: 50.4,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 67.2,
+    lifeExpectancyFemale: 70.2,
+    literacyMalePct: 68.0,
+    literacyFemalePct: 51.9,
+    laborForceMalePct: 77,
+    laborForceFemale: 44,
+    parliamentFemale: 43.0,
+    wageGapPct: 24,
+    maternalMortality: 261,
+    femaleUniGradPct: 38,
+    year: 2023,
+  },
+  ug: {
+    malePct: 50.3,
+    femalePct: 49.7,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 62.2,
+    lifeExpectancyFemale: 65.4,
+    literacyMalePct: 79.7,
+    literacyFemalePct: 65.5,
+    laborForceMalePct: 82,
+    laborForceFemale: 68,
+    parliamentFemale: 34.8,
+    wageGapPct: 28,
+    maternalMortality: 284,
+    femaleUniGradPct: 38,
+    year: 2023,
+  },
+  zm: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 59.8,
+    lifeExpectancyFemale: 63.2,
+    literacyMalePct: 85.3,
+    literacyFemalePct: 72.8,
+    laborForceMalePct: 74,
+    laborForceFemale: 60,
+    parliamentFemale: 15.2,
+    wageGapPct: 22,
+    maternalMortality: 278,
+    femaleUniGradPct: 36,
+    year: 2023,
+  },
+  ci: {
+    malePct: 50.9,
+    femalePct: 49.1,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 57.8,
+    lifeExpectancyFemale: 61.4,
+    literacyMalePct: 58.6,
+    literacyFemalePct: 41.0,
+    laborForceMalePct: 70,
+    laborForceFemale: 42,
+    parliamentFemale: 12.5,
+    wageGapPct: 30,
+    maternalMortality: 480,
+    femaleUniGradPct: 30,
+    year: 2023,
+  },
+  // ── Central America / Caribbean ──────────────────────────────────────────
+  gt: {
+    malePct: 51.2,
+    femalePct: 48.8,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 72.4,
+    lifeExpectancyFemale: 77.0,
+    literacyMalePct: 87.4,
+    literacyFemalePct: 79.0,
+    laborForceMalePct: 86,
+    laborForceFemale: 48,
+    parliamentFemale: 19.4,
+    wageGapPct: 22,
+    maternalMortality: 95,
+    femaleUniGradPct: 48,
+    year: 2023,
+  },
+  cu: {
+    malePct: 49.8,
+    femalePct: 50.2,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 76.1,
+    lifeExpectancyFemale: 80.4,
+    literacyMalePct: 99.8,
+    literacyFemalePct: 99.8,
+    laborForceMalePct: 68,
+    laborForceFemale: 42,
+    parliamentFemale: 53.4,
+    wageGapPct: 8,
+    maternalMortality: 36,
+    femaleUniGradPct: 62,
+    year: 2023,
+  },
+  ht: {
+    malePct: 49.7,
+    femalePct: 50.3,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 61.5,
+    lifeExpectancyFemale: 66.1,
+    literacyMalePct: 63.4,
+    literacyFemalePct: 59.9,
+    laborForceMalePct: 72,
+    laborForceFemale: 50,
+    parliamentFemale: 3.9,
+    wageGapPct: 28,
+    maternalMortality: 480,
+    femaleUniGradPct: 52,
+    year: 2023,
+  },
+  do: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 73.2,
+    lifeExpectancyFemale: 79.8,
+    literacyMalePct: 96.0,
+    literacyFemalePct: 95.2,
+    laborForceMalePct: 76,
+    laborForceFemale: 48,
+    parliamentFemale: 27.0,
+    wageGapPct: 16,
+    maternalMortality: 107,
+    femaleUniGradPct: 62,
+    year: 2023,
+  },
+  hn: {
+    malePct: 49.9,
+    femalePct: 50.1,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 73.1,
+    lifeExpectancyFemale: 78.6,
+    literacyMalePct: 89.6,
+    literacyFemalePct: 87.5,
+    laborForceMalePct: 85,
+    laborForceFemale: 46,
+    parliamentFemale: 21.1,
+    wageGapPct: 20,
+    maternalMortality: 72,
+    femaleUniGradPct: 59,
+    year: 2023,
+  },
+  sv: {
+    malePct: 48.6,
+    femalePct: 51.4,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 71.4,
+    lifeExpectancyFemale: 79.2,
+    literacyMalePct: 90.3,
+    literacyFemalePct: 88.1,
+    laborForceMalePct: 79,
+    laborForceFemale: 44,
+    parliamentFemale: 30.7,
+    wageGapPct: 18,
+    maternalMortality: 43,
+    femaleUniGradPct: 57,
+    year: 2023,
+  },
+  ni: {
+    malePct: 49.7,
+    femalePct: 50.3,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 73.3,
+    lifeExpectancyFemale: 79.3,
+    literacyMalePct: 82.2,
+    literacyFemalePct: 83.1,
+    laborForceMalePct: 80,
+    laborForceFemale: 46,
+    parliamentFemale: 47.3,
+    wageGapPct: 18,
+    maternalMortality: 78,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  cr: {
+    malePct: 50.3,
+    femalePct: 49.7,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 79.0,
+    lifeExpectancyFemale: 83.6,
+    literacyMalePct: 98.0,
+    literacyFemalePct: 98.0,
+    laborForceMalePct: 76,
+    laborForceFemale: 52,
+    parliamentFemale: 45.6,
+    wageGapPct: 13,
+    maternalMortality: 27,
+    femaleUniGradPct: 62,
+    year: 2023,
+  },
+  pa: {
+    malePct: 50.3,
+    femalePct: 49.7,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 76.8,
+    lifeExpectancyFemale: 82.6,
+    literacyMalePct: 96.2,
+    literacyFemalePct: 95.2,
+    laborForceMalePct: 79,
+    laborForceFemale: 51,
+    parliamentFemale: 22.2,
+    wageGapPct: 18,
+    maternalMortality: 52,
+    femaleUniGradPct: 60,
+    year: 2023,
+  },
+  jm: {
+    malePct: 49.7,
+    femalePct: 50.3,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 72.4,
+    lifeExpectancyFemale: 77.4,
+    literacyMalePct: 87.4,
+    literacyFemalePct: 90.0,
+    laborForceMalePct: 73,
+    laborForceFemale: 55,
+    parliamentFemale: 18.3,
+    wageGapPct: 14,
+    maternalMortality: 99,
+    femaleUniGradPct: 67,
+    year: 2023,
+  },
+  tt: {
+    malePct: 50.0,
+    femalePct: 50.0,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 71.6,
+    lifeExpectancyFemale: 77.6,
+    literacyMalePct: 99.0,
+    literacyFemalePct: 99.0,
+    laborForceMalePct: 71,
+    laborForceFemale: 52,
+    parliamentFemale: 31.0,
+    wageGapPct: 12,
+    maternalMortality: 67,
+    femaleUniGradPct: 65,
+    year: 2023,
+  },
+  bz: {
+    malePct: 50.2,
+    femalePct: 49.8,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 72.8,
+    lifeExpectancyFemale: 77.6,
+    literacyMalePct: 83.0,
+    literacyFemalePct: 82.4,
+    laborForceMalePct: 81,
+    laborForceFemale: 43,
+    parliamentFemale: 3.1,
+    wageGapPct: 24,
+    maternalMortality: 130,
+    femaleUniGradPct: 56,
+    year: 2023,
+  },
+  bs: {
+    malePct: 49.4,
+    femalePct: 50.6,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 71.6,
+    lifeExpectancyFemale: 76.2,
+    literacyMalePct: 96.0,
+    literacyFemalePct: 96.0,
+    laborForceMalePct: 74,
+    laborForceFemale: 60,
+    parliamentFemale: 17.4,
+    wageGapPct: 14,
+    maternalMortality: 70,
+    femaleUniGradPct: 64,
+    year: 2023,
+  },
+  bb: {
+    malePct: 48.5,
+    femalePct: 51.5,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 77.0,
+    lifeExpectancyFemale: 82.0,
+    literacyMalePct: 99.6,
+    literacyFemalePct: 99.6,
+    laborForceMalePct: 73,
+    laborForceFemale: 62,
+    parliamentFemale: 30.0,
+    wageGapPct: 10,
+    maternalMortality: 27,
+    femaleUniGradPct: 70,
+    year: 2023,
+  },
+  jm_c: {
+    malePct: 49.7,
+    femalePct: 50.3,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 72.4,
+    lifeExpectancyFemale: 77.4,
+    literacyMalePct: 87.4,
+    literacyFemalePct: 90.0,
+    laborForceMalePct: 73,
+    laborForceFemale: 55,
+    parliamentFemale: 18.3,
+    wageGapPct: 14,
+    maternalMortality: 99,
+    femaleUniGradPct: 67,
+    year: 2023,
+  },
+  dm: {
+    malePct: 49.6,
+    femalePct: 50.4,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 76.4,
+    lifeExpectancyFemale: 80.6,
+    literacyMalePct: 94.0,
+    literacyFemalePct: 94.0,
+    laborForceMalePct: 70,
+    laborForceFemale: 54,
+    parliamentFemale: 19.2,
+    wageGapPct: 12,
+    maternalMortality: 31,
+    femaleUniGradPct: 62,
+    year: 2023,
+  },
+  gd: {
+    malePct: 49.7,
+    femalePct: 50.3,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 70.4,
+    lifeExpectancyFemale: 74.6,
+    literacyMalePct: 96.0,
+    literacyFemalePct: 96.0,
+    laborForceMalePct: 71,
+    laborForceFemale: 52,
+    parliamentFemale: 33.3,
+    wageGapPct: 14,
+    maternalMortality: 25,
+    femaleUniGradPct: 65,
+    year: 2023,
+  },
+  lc: {
+    malePct: 49.0,
+    femalePct: 51.0,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 73.4,
+    lifeExpectancyFemale: 79.0,
+    literacyMalePct: 90.0,
+    literacyFemalePct: 90.0,
+    laborForceMalePct: 72,
+    laborForceFemale: 53,
+    parliamentFemale: 22.0,
+    wageGapPct: 12,
+    maternalMortality: 117,
+    femaleUniGradPct: 66,
+    year: 2023,
+  },
+  vc: {
+    malePct: 50.2,
+    femalePct: 49.8,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 71.4,
+    lifeExpectancyFemale: 76.4,
+    literacyMalePct: 96.0,
+    literacyFemalePct: 96.0,
+    laborForceMalePct: 70,
+    laborForceFemale: 48,
+    parliamentFemale: 22.2,
+    wageGapPct: 14,
+    maternalMortality: 98,
+    femaleUniGradPct: 60,
+    year: 2023,
+  },
+  kn: {
+    malePct: 50.4,
+    femalePct: 49.6,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 74.0,
+    lifeExpectancyFemale: 79.2,
+    literacyMalePct: 98.0,
+    literacyFemalePct: 98.0,
+    laborForceMalePct: 72,
+    laborForceFemale: 55,
+    parliamentFemale: 25.0,
+    wageGapPct: 10,
+    maternalMortality: 45,
+    femaleUniGradPct: 63,
+    year: 2023,
+  },
+  ag: {
+    malePct: 49.8,
+    femalePct: 50.2,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 74.8,
+    lifeExpectancyFemale: 79.4,
+    literacyMalePct: 99.0,
+    literacyFemalePct: 99.0,
+    laborForceMalePct: 74,
+    laborForceFemale: 58,
+    parliamentFemale: 25.9,
+    wageGapPct: 12,
+    maternalMortality: 42,
+    femaleUniGradPct: 64,
+    year: 2023,
+  },
+  pr: {
+    malePct: 47.9,
+    femalePct: 52.1,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 77.8,
+    lifeExpectancyFemale: 83.4,
+    literacyMalePct: 93.0,
+    literacyFemalePct: 94.0,
+    laborForceMalePct: 64,
+    laborForceFemale: 46,
+    parliamentFemale: 30.0,
+    wageGapPct: 20,
+    maternalMortality: 25,
+    femaleUniGradPct: 62,
+    year: 2023,
+  },
+  gy: {
+    malePct: 50.4,
+    femalePct: 49.6,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 68.8,
+    lifeExpectancyFemale: 73.6,
+    literacyMalePct: 88.3,
+    literacyFemalePct: 88.8,
+    laborForceMalePct: 77,
+    laborForceFemale: 53,
+    parliamentFemale: 35.7,
+    wageGapPct: 18,
+    maternalMortality: 76,
+    femaleUniGradPct: 56,
+    year: 2023,
+  },
+  sr: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 69.0,
+    lifeExpectancyFemale: 74.8,
+    literacyMalePct: 95.6,
+    literacyFemalePct: 93.2,
+    laborForceMalePct: 74,
+    laborForceFemale: 42,
+    parliamentFemale: 38.7,
+    wageGapPct: 20,
+    maternalMortality: 120,
+    femaleUniGradPct: 55,
+    year: 2023,
+  },
+  // ── Remaining Asia ───────────────────────────────────────────────────────
+  mm: {
+    malePct: 48.6,
+    femalePct: 51.4,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 63.4,
+    lifeExpectancyFemale: 69.2,
+    literacyMalePct: 93.6,
+    literacyFemalePct: 86.0,
+    laborForceMalePct: 81,
+    laborForceFemale: 48,
+    parliamentFemale: 11.2,
+    wageGapPct: 28,
+    maternalMortality: 250,
+    femaleUniGradPct: 54,
+    year: 2023,
+  },
+  kh: {
+    malePct: 48.3,
+    femalePct: 51.7,
+    sexRatioAtBirth: 104,
+    lifeExpectancyMale: 68.0,
+    lifeExpectancyFemale: 73.6,
+    literacyMalePct: 87.1,
+    literacyFemalePct: 74.8,
+    laborForceMalePct: 87,
+    laborForceFemale: 78,
+    parliamentFemale: 20.3,
+    wageGapPct: 22,
+    maternalMortality: 218,
+    femaleUniGradPct: 46,
+    year: 2023,
+  },
+  lk: {
+    malePct: 49.2,
+    femalePct: 50.8,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 74.5,
+    lifeExpectancyFemale: 80.3,
+    literacyMalePct: 93.6,
+    literacyFemalePct: 91.4,
+    laborForceMalePct: 74,
+    laborForceFemale: 36,
+    parliamentFemale: 5.4,
+    wageGapPct: 22,
+    maternalMortality: 33,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  np: {
+    malePct: 49.0,
+    femalePct: 51.0,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 68.6,
+    lifeExpectancyFemale: 72.0,
+    literacyMalePct: 78.6,
+    literacyFemalePct: 60.4,
+    laborForceMalePct: 79,
+    laborForceFemale: 28,
+    parliamentFemale: 33.2,
+    wageGapPct: 28,
+    maternalMortality: 151,
+    femaleUniGradPct: 48,
+    year: 2023,
+  },
+  jo: {
+    malePct: 51.8,
+    femalePct: 48.2,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 72.6,
+    lifeExpectancyFemale: 76.6,
+    literacyMalePct: 98.4,
+    literacyFemalePct: 96.2,
+    laborForceMalePct: 68,
+    laborForceFemale: 14,
+    parliamentFemale: 20.0,
+    wageGapPct: 30,
+    maternalMortality: 36,
+    femaleUniGradPct: 56,
+    year: 2023,
+  },
+  lb: {
+    malePct: 50.4,
+    femalePct: 49.6,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 77.2,
+    lifeExpectancyFemale: 81.0,
+    literacyMalePct: 96.5,
+    literacyFemalePct: 93.0,
+    laborForceMalePct: 72,
+    laborForceFemale: 24,
+    parliamentFemale: 6.3,
+    wageGapPct: 26,
+    maternalMortality: 29,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  sy: {
+    malePct: 50.0,
+    femalePct: 50.0,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 69.6,
+    lifeExpectancyFemale: 76.0,
+    literacyMalePct: 88.5,
+    literacyFemalePct: 74.2,
+    laborForceMalePct: 68,
+    laborForceFemale: 14,
+    parliamentFemale: 13.2,
+    wageGapPct: 36,
+    maternalMortality: 68,
+    femaleUniGradPct: 50,
+    year: 2023,
+  },
+  ye: {
+    malePct: 51.2,
+    femalePct: 48.8,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 63.6,
+    lifeExpectancyFemale: 69.4,
+    literacyMalePct: 73.6,
+    literacyFemalePct: 35.0,
+    laborForceMalePct: 72,
+    laborForceFemale: 6,
+    parliamentFemale: 0.3,
+    wageGapPct: 44,
+    maternalMortality: 164,
+    femaleUniGradPct: 28,
+    year: 2023,
+  },
+  az_as: {
+    malePct: 50.0,
+    femalePct: 50.0,
+    sexRatioAtBirth: 115,
+    lifeExpectancyMale: 70.8,
+    lifeExpectancyFemale: 77.6,
+    literacyMalePct: 99.9,
+    literacyFemalePct: 99.9,
+    laborForceMalePct: 72,
+    laborForceFemale: 59,
+    parliamentFemale: 23.2,
+    wageGapPct: 38,
+    maternalMortality: 26,
+    femaleUniGradPct: 55,
+    year: 2023,
+  },
+  ge_as: {
+    malePct: 48.0,
+    femalePct: 52.0,
+    sexRatioAtBirth: 108,
+    lifeExpectancyMale: 70.4,
+    lifeExpectancyFemale: 79.0,
+    literacyMalePct: 99.8,
+    literacyFemalePct: 99.8,
+    laborForceMalePct: 71,
+    laborForceFemale: 58,
+    parliamentFemale: 17.0,
+    wageGapPct: 34,
+    maternalMortality: 22,
+    femaleUniGradPct: 60,
+    year: 2023,
+  },
+  am: {
+    malePct: 48.0,
+    femalePct: 52.0,
+    sexRatioAtBirth: 110,
+    lifeExpectancyMale: 72.2,
+    lifeExpectancyFemale: 78.6,
+    literacyMalePct: 99.7,
+    literacyFemalePct: 99.6,
+    laborForceMalePct: 74,
+    laborForceFemale: 52,
+    parliamentFemale: 24.8,
+    wageGapPct: 30,
+    maternalMortality: 27,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  tm: {
+    malePct: 49.9,
+    femalePct: 50.1,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 65.4,
+    lifeExpectancyFemale: 72.0,
+    literacyMalePct: 99.7,
+    literacyFemalePct: 99.6,
+    laborForceMalePct: 75,
+    laborForceFemale: 50,
+    parliamentFemale: 25.8,
+    wageGapPct: 32,
+    maternalMortality: 51,
+    femaleUniGradPct: 44,
+    year: 2023,
+  },
+  kg: {
+    malePct: 49.7,
+    femalePct: 50.3,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 69.6,
+    lifeExpectancyFemale: 75.2,
+    literacyMalePct: 99.8,
+    literacyFemalePct: 99.6,
+    laborForceMalePct: 79,
+    laborForceFemale: 59,
+    parliamentFemale: 19.2,
+    wageGapPct: 28,
+    maternalMortality: 57,
+    femaleUniGradPct: 55,
+    year: 2023,
+  },
+  tj: {
+    malePct: 50.2,
+    femalePct: 49.8,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 68.4,
+    lifeExpectancyFemale: 73.6,
+    literacyMalePct: 99.8,
+    literacyFemalePct: 99.7,
+    laborForceMalePct: 78,
+    laborForceFemale: 52,
+    parliamentFemale: 24.0,
+    wageGapPct: 32,
+    maternalMortality: 22,
+    femaleUniGradPct: 38,
+    year: 2023,
+  },
+  af: {
+    malePct: 51.0,
+    femalePct: 49.0,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 60.4,
+    lifeExpectancyFemale: 63.6,
+    literacyMalePct: 55.0,
+    literacyFemalePct: 30.0,
+    laborForceMalePct: 82,
+    laborForceFemale: 22,
+    parliamentFemale: 0.0,
+    wageGapPct: 52,
+    maternalMortality: 620,
+    femaleUniGradPct: 18,
+    year: 2023,
+  },
+  mn_as: {
+    malePct: 49.6,
+    femalePct: 50.4,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 67.6,
+    lifeExpectancyFemale: 74.4,
+    literacyMalePct: 98.2,
+    literacyFemalePct: 98.2,
+    laborForceMalePct: 72,
+    laborForceFemale: 57,
+    parliamentFemale: 16.8,
+    wageGapPct: 22,
+    maternalMortality: 39,
+    femaleUniGradPct: 60,
+    year: 2023,
+  },
+  la: {
+    malePct: 49.8,
+    femalePct: 50.2,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 65.8,
+    lifeExpectancyFemale: 70.8,
+    literacyMalePct: 85.0,
+    literacyFemalePct: 72.8,
+    laborForceMalePct: 86,
+    laborForceFemale: 79,
+    parliamentFemale: 27.5,
+    wageGapPct: 20,
+    maternalMortality: 185,
+    femaleUniGradPct: 46,
+    year: 2023,
+  },
+  tl: {
+    malePct: 51.0,
+    femalePct: 49.0,
+    sexRatioAtBirth: 107,
+    lifeExpectancyMale: 67.0,
+    lifeExpectancyFemale: 71.0,
+    literacyMalePct: 68.1,
+    literacyFemalePct: 57.0,
+    laborForceMalePct: 78,
+    laborForceFemale: 25,
+    parliamentFemale: 38.5,
+    wageGapPct: 26,
+    maternalMortality: 142,
+    femaleUniGradPct: 44,
+    year: 2023,
+  },
+  bn: {
+    malePct: 52.1,
+    femalePct: 47.9,
+    sexRatioAtBirth: 107,
+    lifeExpectancyMale: 74.0,
+    lifeExpectancyFemale: 78.0,
+    literacyMalePct: 97.5,
+    literacyFemalePct: 96.2,
+    laborForceMalePct: 76,
+    laborForceFemale: 55,
+    parliamentFemale: 9.1,
+    wageGapPct: 25,
+    maternalMortality: 31,
+    femaleUniGradPct: 62,
+    year: 2023,
+  },
+  kw: {
+    malePct: 67.2,
+    femalePct: 32.8,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 75.2,
+    lifeExpectancyFemale: 80.4,
+    literacyMalePct: 96.3,
+    literacyFemalePct: 95.6,
+    laborForceMalePct: 92,
+    laborForceFemale: 42,
+    parliamentFemale: 0.0,
+    wageGapPct: 40,
+    maternalMortality: 12,
+    femaleUniGradPct: 66,
+    year: 2023,
+  },
+  bh: {
+    malePct: 65.3,
+    femalePct: 34.7,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 77.0,
+    lifeExpectancyFemale: 81.6,
+    literacyMalePct: 97.0,
+    literacyFemalePct: 97.0,
+    laborForceMalePct: 90,
+    laborForceFemale: 44,
+    parliamentFemale: 6.3,
+    wageGapPct: 28,
+    maternalMortality: 14,
+    femaleUniGradPct: 70,
+    year: 2023,
+  },
+  mv: {
+    malePct: 50.9,
+    femalePct: 49.1,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 78.2,
+    lifeExpectancyFemale: 81.6,
+    literacyMalePct: 98.0,
+    literacyFemalePct: 98.0,
+    laborForceMalePct: 72,
+    laborForceFemale: 44,
+    parliamentFemale: 4.6,
+    wageGapPct: 22,
+    maternalMortality: 57,
+    femaleUniGradPct: 52,
+    year: 2023,
+  },
+  bt: {
+    malePct: 51.2,
+    femalePct: 48.8,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 69.6,
+    lifeExpectancyFemale: 72.0,
+    literacyMalePct: 75.0,
+    literacyFemalePct: 57.0,
+    laborForceMalePct: 72,
+    laborForceFemale: 62,
+    parliamentFemale: 15.3,
+    wageGapPct: 20,
+    maternalMortality: 60,
+    femaleUniGradPct: 44,
+    year: 2023,
+  },
+  uz: {
+    malePct: 50.0,
+    femalePct: 50.0,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 70.2,
+    lifeExpectancyFemale: 75.8,
+    literacyMalePct: 99.8,
+    literacyFemalePct: 99.7,
+    laborForceMalePct: 73,
+    laborForceFemale: 50,
+    parliamentFemale: 36.0,
+    wageGapPct: 30,
+    maternalMortality: 30,
+    femaleUniGradPct: 46,
+    year: 2023,
+  },
+  ps: {
+    malePct: 50.8,
+    femalePct: 49.2,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 71.6,
+    lifeExpectancyFemale: 76.6,
+    literacyMalePct: 98.0,
+    literacyFemalePct: 95.6,
+    laborForceMalePct: 71,
+    laborForceFemale: 18,
+    parliamentFemale: 0.0,
+    wageGapPct: 38,
+    maternalMortality: 27,
+    femaleUniGradPct: 54,
+    year: 2023,
+  },
+  // ── Remaining Europe ─────────────────────────────────────────────────────
+  by: {
+    malePct: 46.8,
+    femalePct: 53.2,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 69.2,
+    lifeExpectancyFemale: 79.8,
+    literacyMalePct: 99.8,
+    literacyFemalePct: 99.8,
+    laborForceMalePct: 76,
+    laborForceFemale: 61,
+    parliamentFemale: 35.2,
+    wageGapPct: 24,
+    maternalMortality: 2,
+    femaleUniGradPct: 60,
+    year: 2023,
+  },
+  md: {
+    malePct: 47.8,
+    femalePct: 52.2,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 68.2,
+    lifeExpectancyFemale: 76.6,
+    literacyMalePct: 99.8,
+    literacyFemalePct: 99.7,
+    laborForceMalePct: 72,
+    laborForceFemale: 57,
+    parliamentFemale: 27.0,
+    wageGapPct: 14,
+    maternalMortality: 12,
+    femaleUniGradPct: 62,
+    year: 2023,
+  },
+  al_al: {
+    malePct: 49.9,
+    femalePct: 50.1,
+    sexRatioAtBirth: 107,
+    lifeExpectancyMale: 76.4,
+    lifeExpectancyFemale: 81.4,
+    literacyMalePct: 98.7,
+    literacyFemalePct: 97.2,
+    laborForceMalePct: 68,
+    laborForceFemale: 46,
+    parliamentFemale: 31.0,
+    wageGapPct: 16,
+    maternalMortality: 15,
+    femaleUniGradPct: 59,
+    year: 2023,
+  },
+  mk: {
+    malePct: 50.3,
+    femalePct: 49.7,
+    sexRatioAtBirth: 107,
+    lifeExpectancyMale: 74.2,
+    lifeExpectancyFemale: 78.6,
+    literacyMalePct: 98.5,
+    literacyFemalePct: 97.2,
+    laborForceMalePct: 65,
+    laborForceFemale: 42,
+    parliamentFemale: 41.7,
+    wageGapPct: 16,
+    maternalMortality: 7,
+    femaleUniGradPct: 56,
+    year: 2023,
+  },
+  ba: {
+    malePct: 49.6,
+    femalePct: 50.4,
+    sexRatioAtBirth: 107,
+    lifeExpectancyMale: 75.0,
+    lifeExpectancyFemale: 80.6,
+    literacyMalePct: 99.3,
+    literacyFemalePct: 97.8,
+    laborForceMalePct: 60,
+    laborForceFemale: 38,
+    parliamentFemale: 21.4,
+    wageGapPct: 18,
+    maternalMortality: 10,
+    femaleUniGradPct: 56,
+    year: 2023,
+  },
+  me_eu: {
+    malePct: 49.6,
+    femalePct: 50.4,
+    sexRatioAtBirth: 107,
+    lifeExpectancyMale: 74.6,
+    lifeExpectancyFemale: 79.4,
+    literacyMalePct: 99.5,
+    literacyFemalePct: 99.0,
+    laborForceMalePct: 64,
+    laborForceFemale: 42,
+    parliamentFemale: 25.8,
+    wageGapPct: 18,
+    maternalMortality: 7,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  xk: {
+    malePct: 50.2,
+    femalePct: 49.8,
+    sexRatioAtBirth: 107,
+    lifeExpectancyMale: 69.4,
+    lifeExpectancyFemale: 74.8,
+    literacyMalePct: 98.5,
+    literacyFemalePct: 96.0,
+    laborForceMalePct: 62,
+    laborForceFemale: 34,
+    parliamentFemale: 33.3,
+    wageGapPct: 22,
+    maternalMortality: 9,
+    femaleUniGradPct: 60,
+    year: 2023,
+  },
+  sk: {
+    malePct: 49.0,
+    femalePct: 51.0,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 74.6,
+    lifeExpectancyFemale: 81.6,
+    literacyMalePct: 99.6,
+    literacyFemalePct: 99.6,
+    laborForceMalePct: 76,
+    laborForceFemale: 64,
+    parliamentFemale: 20.0,
+    wageGapPct: 11,
+    maternalMortality: 5,
+    femaleUniGradPct: 60,
+    year: 2023,
+  },
+  hr: {
+    malePct: 48.8,
+    femalePct: 51.2,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 75.4,
+    lifeExpectancyFemale: 81.8,
+    literacyMalePct: 99.7,
+    literacyFemalePct: 99.6,
+    laborForceMalePct: 68,
+    laborForceFemale: 56,
+    parliamentFemale: 31.3,
+    wageGapPct: 8,
+    maternalMortality: 5,
+    femaleUniGradPct: 62,
+    year: 2023,
+  },
+  rs: {
+    malePct: 49.5,
+    femalePct: 50.5,
+    sexRatioAtBirth: 107,
+    lifeExpectancyMale: 72.8,
+    lifeExpectancyFemale: 78.2,
+    literacyMalePct: 98.9,
+    literacyFemalePct: 98.3,
+    laborForceMalePct: 68,
+    laborForceFemale: 52,
+    parliamentFemale: 38.4,
+    wageGapPct: 10,
+    maternalMortality: 12,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  bg: {
+    malePct: 49.0,
+    femalePct: 51.0,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 71.6,
+    lifeExpectancyFemale: 79.0,
+    literacyMalePct: 98.4,
+    literacyFemalePct: 98.4,
+    laborForceMalePct: 68,
+    laborForceFemale: 55,
+    parliamentFemale: 26.0,
+    wageGapPct: 12,
+    maternalMortality: 10,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  ee: {
+    malePct: 46.8,
+    femalePct: 53.2,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 75.0,
+    lifeExpectancyFemale: 82.8,
+    literacyMalePct: 99.9,
+    literacyFemalePct: 99.9,
+    laborForceMalePct: 78,
+    laborForceFemale: 70,
+    parliamentFemale: 30.3,
+    wageGapPct: 14,
+    maternalMortality: 3,
+    femaleUniGradPct: 63,
+    year: 2023,
+  },
+  lv: {
+    malePct: 46.2,
+    femalePct: 53.8,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 70.8,
+    lifeExpectancyFemale: 80.8,
+    literacyMalePct: 99.9,
+    literacyFemalePct: 99.9,
+    laborForceMalePct: 76,
+    laborForceFemale: 68,
+    parliamentFemale: 30.0,
+    wageGapPct: 16,
+    maternalMortality: 18,
+    femaleUniGradPct: 64,
+    year: 2023,
+  },
+  lt: {
+    malePct: 47.2,
+    femalePct: 52.8,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 71.6,
+    lifeExpectancyFemale: 81.2,
+    literacyMalePct: 99.8,
+    literacyFemalePct: 99.8,
+    laborForceMalePct: 75,
+    laborForceFemale: 68,
+    parliamentFemale: 26.7,
+    wageGapPct: 14,
+    maternalMortality: 5,
+    femaleUniGradPct: 65,
+    year: 2023,
+  },
+  si: {
+    malePct: 49.7,
+    femalePct: 50.3,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 78.4,
+    lifeExpectancyFemale: 84.4,
+    literacyMalePct: 99.7,
+    literacyFemalePct: 99.7,
+    laborForceMalePct: 74,
+    laborForceFemale: 67,
+    parliamentFemale: 40.9,
+    wageGapPct: 3,
+    maternalMortality: 6,
+    femaleUniGradPct: 63,
+    year: 2023,
+  },
+  ie: {
+    malePct: 50.3,
+    femalePct: 49.7,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 80.4,
+    lifeExpectancyFemale: 83.8,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 79,
+    laborForceFemale: 69,
+    parliamentFemale: 22.7,
+    wageGapPct: 9,
+    maternalMortality: 7,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  lu: {
+    malePct: 50.6,
+    femalePct: 49.4,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 80.8,
+    lifeExpectancyFemale: 85.8,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 78,
+    laborForceFemale: 72,
+    parliamentFemale: 28.3,
+    wageGapPct: 4,
+    maternalMortality: 5,
+    femaleUniGradPct: 55,
+    year: 2023,
+  },
+  cy: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 79.0,
+    lifeExpectancyFemale: 83.8,
+    literacyMalePct: 99.1,
+    literacyFemalePct: 98.7,
+    laborForceMalePct: 78,
+    laborForceFemale: 66,
+    parliamentFemale: 19.6,
+    wageGapPct: 14,
+    maternalMortality: 6,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  mt_eu: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 80.4,
+    lifeExpectancyFemale: 83.4,
+    literacyMalePct: 94.4,
+    literacyFemalePct: 95.8,
+    laborForceMalePct: 80,
+    laborForceFemale: 66,
+    parliamentFemale: 15.4,
+    wageGapPct: 8,
+    maternalMortality: 6,
+    femaleUniGradPct: 55,
+    year: 2023,
+  },
+  is: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 81.0,
+    lifeExpectancyFemale: 84.0,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 88,
+    laborForceFemale: 84,
+    parliamentFemale: 47.6,
+    wageGapPct: 6,
+    maternalMortality: 3,
+    femaleUniGradPct: 64,
+    year: 2023,
+  },
+  sm: {
+    malePct: 50.0,
+    femalePct: 50.0,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 83.0,
+    lifeExpectancyFemale: 87.8,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 80,
+    laborForceFemale: 74,
+    parliamentFemale: 32.5,
+    wageGapPct: 6,
+    maternalMortality: 0,
+    femaleUniGradPct: 56,
+    year: 2023,
+  },
+  li: {
+    malePct: 49.8,
+    femalePct: 50.2,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 81.4,
+    lifeExpectancyFemale: 86.4,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 86,
+    laborForceFemale: 80,
+    parliamentFemale: 24.0,
+    wageGapPct: 8,
+    maternalMortality: 0,
+    femaleUniGradPct: 52,
+    year: 2023,
+  },
+  ad: {
+    malePct: 50.6,
+    femalePct: 49.4,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 81.2,
+    lifeExpectancyFemale: 86.2,
+    literacyMalePct: 100,
+    literacyFemalePct: 100,
+    laborForceMalePct: 82,
+    laborForceFemale: 74,
+    parliamentFemale: 42.9,
+    wageGapPct: 6,
+    maternalMortality: 0,
+    femaleUniGradPct: 55,
+    year: 2023,
+  },
+  mc: {
+    malePct: 49.0,
+    femalePct: 51.0,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 86.0,
+    lifeExpectancyFemale: 93.0,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 76,
+    laborForceFemale: 68,
+    parliamentFemale: 26.1,
+    wageGapPct: 5,
+    maternalMortality: 0,
+    femaleUniGradPct: 54,
+    year: 2023,
+  },
+  // ── Remaining Africa ─────────────────────────────────────────────────────
+  cd: {
+    malePct: 49.9,
+    femalePct: 50.1,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 58.4,
+    lifeExpectancyFemale: 62.2,
+    literacyMalePct: 88.5,
+    literacyFemalePct: 66.5,
+    laborForceMalePct: 74,
+    laborForceFemale: 56,
+    parliamentFemale: 12.7,
+    wageGapPct: 35,
+    maternalMortality: 547,
+    femaleUniGradPct: 24,
+    year: 2023,
+  },
+  ly: {
+    malePct: 53.6,
+    femalePct: 46.4,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 70.8,
+    lifeExpectancyFemale: 75.2,
+    literacyMalePct: 96.8,
+    literacyFemalePct: 86.4,
+    laborForceMalePct: 75,
+    laborForceFemale: 26,
+    parliamentFemale: 16.5,
+    wageGapPct: 34,
+    maternalMortality: 72,
+    femaleUniGradPct: 60,
+    year: 2023,
+  },
+  tn: {
+    malePct: 50.5,
+    femalePct: 49.5,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 74.4,
+    lifeExpectancyFemale: 79.4,
+    literacyMalePct: 87.2,
+    literacyFemalePct: 78.6,
+    laborForceMalePct: 71,
+    laborForceFemale: 28,
+    parliamentFemale: 22.5,
+    wageGapPct: 28,
+    maternalMortality: 29,
+    femaleUniGradPct: 62,
+    year: 2023,
+  },
+  sd: {
+    malePct: 51.0,
+    femalePct: 49.0,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 63.2,
+    lifeExpectancyFemale: 68.4,
+    literacyMalePct: 65.4,
+    literacyFemalePct: 47.6,
+    laborForceMalePct: 72,
+    laborForceFemale: 30,
+    parliamentFemale: 30.5,
+    wageGapPct: 36,
+    maternalMortality: 270,
+    femaleUniGradPct: 34,
+    year: 2023,
+  },
+  er: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 64.2,
+    lifeExpectancyFemale: 68.2,
+    literacyMalePct: 73.4,
+    literacyFemalePct: 57.4,
+    laborForceMalePct: 74,
+    laborForceFemale: 52,
+    parliamentFemale: 22.0,
+    wageGapPct: 30,
+    maternalMortality: 322,
+    femaleUniGradPct: 28,
+    year: 2023,
+  },
+  dj: {
+    malePct: 50.8,
+    femalePct: 49.2,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 65.2,
+    lifeExpectancyFemale: 69.8,
+    literacyMalePct: 78.2,
+    literacyFemalePct: 61.0,
+    laborForceMalePct: 55,
+    laborForceFemale: 30,
+    parliamentFemale: 26.2,
+    wageGapPct: 34,
+    maternalMortality: 248,
+    femaleUniGradPct: 36,
+    year: 2023,
+  },
+  bi: {
+    malePct: 48.7,
+    femalePct: 51.3,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 59.6,
+    lifeExpectancyFemale: 64.0,
+    literacyMalePct: 88.0,
+    literacyFemalePct: 84.4,
+    laborForceMalePct: 82,
+    laborForceFemale: 78,
+    parliamentFemale: 38.0,
+    wageGapPct: 18,
+    maternalMortality: 494,
+    femaleUniGradPct: 30,
+    year: 2023,
+  },
+  mw: {
+    malePct: 49.9,
+    femalePct: 50.1,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 61.6,
+    lifeExpectancyFemale: 65.2,
+    literacyMalePct: 80.1,
+    literacyFemalePct: 68.6,
+    laborForceMalePct: 81,
+    laborForceFemale: 72,
+    parliamentFemale: 22.9,
+    wageGapPct: 22,
+    maternalMortality: 439,
+    femaleUniGradPct: 34,
+    year: 2023,
+  },
+  na: {
+    malePct: 49.8,
+    femalePct: 50.2,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 61.4,
+    lifeExpectancyFemale: 66.0,
+    literacyMalePct: 92.2,
+    literacyFemalePct: 92.2,
+    laborForceMalePct: 68,
+    laborForceFemale: 56,
+    parliamentFemale: 46.2,
+    wageGapPct: 22,
+    maternalMortality: 195,
+    femaleUniGradPct: 55,
+    year: 2023,
+  },
+  bw: {
+    malePct: 49.2,
+    femalePct: 50.8,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 67.2,
+    lifeExpectancyFemale: 72.0,
+    literacyMalePct: 89.0,
+    literacyFemalePct: 88.4,
+    laborForceMalePct: 67,
+    laborForceFemale: 56,
+    parliamentFemale: 11.1,
+    wageGapPct: 18,
+    maternalMortality: 152,
+    femaleUniGradPct: 52,
+    year: 2023,
+  },
+  mu: {
+    malePct: 50.2,
+    femalePct: 49.8,
+    sexRatioAtBirth: 107,
+    lifeExpectancyMale: 73.0,
+    lifeExpectancyFemale: 77.0,
+    literacyMalePct: 91.8,
+    literacyFemalePct: 89.4,
+    laborForceMalePct: 75,
+    laborForceFemale: 52,
+    parliamentFemale: 20.0,
+    wageGapPct: 20,
+    maternalMortality: 84,
+    femaleUniGradPct: 56,
+    year: 2023,
+  },
+  sz: {
+    malePct: 49.6,
+    femalePct: 50.4,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 55.2,
+    lifeExpectancyFemale: 60.4,
+    literacyMalePct: 87.9,
+    literacyFemalePct: 85.8,
+    laborForceMalePct: 72,
+    laborForceFemale: 56,
+    parliamentFemale: 12.3,
+    wageGapPct: 22,
+    maternalMortality: 437,
+    femaleUniGradPct: 52,
+    year: 2023,
+  },
+  ls: {
+    malePct: 49.7,
+    femalePct: 50.3,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 51.6,
+    lifeExpectancyFemale: 57.2,
+    literacyMalePct: 76.3,
+    literacyFemalePct: 83.1,
+    laborForceMalePct: 70,
+    laborForceFemale: 52,
+    parliamentFemale: 27.0,
+    wageGapPct: 18,
+    maternalMortality: 544,
+    femaleUniGradPct: 60,
+    year: 2023,
+  },
+  gm: {
+    malePct: 50.3,
+    femalePct: 49.7,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 60.4,
+    lifeExpectancyFemale: 63.4,
+    literacyMalePct: 64.9,
+    literacyFemalePct: 48.3,
+    laborForceMalePct: 72,
+    laborForceFemale: 52,
+    parliamentFemale: 11.7,
+    wageGapPct: 28,
+    maternalMortality: 289,
+    femaleUniGradPct: 32,
+    year: 2023,
+  },
+  gn: {
+    malePct: 50.9,
+    femalePct: 49.1,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 60.4,
+    lifeExpectancyFemale: 64.0,
+    literacyMalePct: 35.5,
+    literacyFemalePct: 21.8,
+    laborForceMalePct: 74,
+    laborForceFemale: 52,
+    parliamentFemale: 21.9,
+    wageGapPct: 30,
+    maternalMortality: 576,
+    femaleUniGradPct: 24,
+    year: 2023,
+  },
+  gw: {
+    malePct: 49.2,
+    femalePct: 50.8,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 57.0,
+    lifeExpectancyFemale: 61.4,
+    literacyMalePct: 71.8,
+    literacyFemalePct: 47.6,
+    laborForceMalePct: 72,
+    laborForceFemale: 60,
+    parliamentFemale: 13.7,
+    wageGapPct: 26,
+    maternalMortality: 667,
+    femaleUniGradPct: 28,
+    year: 2023,
+  },
+  sl: {
+    malePct: 49.4,
+    femalePct: 50.6,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 53.0,
+    lifeExpectancyFemale: 56.6,
+    literacyMalePct: 53.1,
+    literacyFemalePct: 38.6,
+    laborForceMalePct: 68,
+    laborForceFemale: 55,
+    parliamentFemale: 12.3,
+    wageGapPct: 30,
+    maternalMortality: 443,
+    femaleUniGradPct: 26,
+    year: 2023,
+  },
+  lr: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 62.4,
+    lifeExpectancyFemale: 65.8,
+    literacyMalePct: 62.4,
+    literacyFemalePct: 32.8,
+    laborForceMalePct: 70,
+    laborForceFemale: 52,
+    parliamentFemale: 10.7,
+    wageGapPct: 30,
+    maternalMortality: 652,
+    femaleUniGradPct: 26,
+    year: 2023,
+  },
+  tg: {
+    malePct: 49.8,
+    femalePct: 50.2,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 59.4,
+    lifeExpectancyFemale: 62.6,
+    literacyMalePct: 75.5,
+    literacyFemalePct: 56.5,
+    laborForceMalePct: 74,
+    laborForceFemale: 62,
+    parliamentFemale: 17.6,
+    wageGapPct: 28,
+    maternalMortality: 396,
+    femaleUniGradPct: 28,
+    year: 2023,
+  },
+  ga_af: {
+    malePct: 50.6,
+    femalePct: 49.4,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 64.0,
+    lifeExpectancyFemale: 69.4,
+    literacyMalePct: 94.4,
+    literacyFemalePct: 90.8,
+    laborForceMalePct: 64,
+    laborForceFemale: 46,
+    parliamentFemale: 15.4,
+    wageGapPct: 24,
+    maternalMortality: 227,
+    femaleUniGradPct: 42,
+    year: 2023,
+  },
+  cg: {
+    malePct: 49.9,
+    femalePct: 50.1,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 62.4,
+    lifeExpectancyFemale: 68.2,
+    literacyMalePct: 97.0,
+    literacyFemalePct: 94.1,
+    laborForceMalePct: 70,
+    laborForceFemale: 56,
+    parliamentFemale: 14.4,
+    wageGapPct: 28,
+    maternalMortality: 378,
+    femaleUniGradPct: 36,
+    year: 2023,
+  },
+  cf: {
+    malePct: 50.0,
+    femalePct: 50.0,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 51.8,
+    lifeExpectancyFemale: 56.2,
+    literacyMalePct: 50.7,
+    literacyFemalePct: 24.4,
+    laborForceMalePct: 72,
+    laborForceFemale: 58,
+    parliamentFemale: 9.5,
+    wageGapPct: 36,
+    maternalMortality: 829,
+    femaleUniGradPct: 18,
+    year: 2023,
+  },
+  td: {
+    malePct: 50.2,
+    femalePct: 49.8,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 52.4,
+    lifeExpectancyFemale: 56.4,
+    literacyMalePct: 31.3,
+    literacyFemalePct: 14.0,
+    laborForceMalePct: 72,
+    laborForceFemale: 60,
+    parliamentFemale: 14.9,
+    wageGapPct: 40,
+    maternalMortality: 1140,
+    femaleUniGradPct: 12,
+    year: 2023,
+  },
+  cv: {
+    malePct: 49.2,
+    femalePct: 50.8,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 71.2,
+    lifeExpectancyFemale: 76.0,
+    literacyMalePct: 89.6,
+    literacyFemalePct: 83.2,
+    laborForceMalePct: 68,
+    laborForceFemale: 50,
+    parliamentFemale: 38.3,
+    wageGapPct: 18,
+    maternalMortality: 58,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  sc: {
+    malePct: 49.1,
+    femalePct: 50.9,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 71.6,
+    lifeExpectancyFemale: 76.2,
+    literacyMalePct: 95.0,
+    literacyFemalePct: 94.4,
+    laborForceMalePct: 72,
+    laborForceFemale: 60,
+    parliamentFemale: 29.4,
+    wageGapPct: 14,
+    maternalMortality: 53,
+    femaleUniGradPct: 60,
+    year: 2023,
+  },
+  st: {
+    malePct: 50.0,
+    femalePct: 50.0,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 68.4,
+    lifeExpectancyFemale: 73.4,
+    literacyMalePct: 93.0,
+    literacyFemalePct: 88.8,
+    laborForceMalePct: 66,
+    laborForceFemale: 52,
+    parliamentFemale: 18.2,
+    wageGapPct: 18,
+    maternalMortality: 74,
+    femaleUniGradPct: 56,
+    year: 2023,
+  },
+  gq: {
+    malePct: 51.4,
+    femalePct: 48.6,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 57.4,
+    lifeExpectancyFemale: 62.6,
+    literacyMalePct: 98.4,
+    literacyFemalePct: 92.3,
+    laborForceMalePct: 76,
+    laborForceFemale: 56,
+    parliamentFemale: 19.4,
+    wageGapPct: 28,
+    maternalMortality: 301,
+    femaleUniGradPct: 38,
+    year: 2023,
+  },
+  km: {
+    malePct: 50.2,
+    femalePct: 49.8,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 61.4,
+    lifeExpectancyFemale: 65.4,
+    literacyMalePct: 80.0,
+    literacyFemalePct: 73.9,
+    laborForceMalePct: 70,
+    laborForceFemale: 39,
+    parliamentFemale: 3.0,
+    wageGapPct: 34,
+    maternalMortality: 273,
+    femaleUniGradPct: 42,
+    year: 2023,
+  },
+  mr: {
+    malePct: 50.8,
+    femalePct: 49.2,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 63.4,
+    lifeExpectancyFemale: 67.6,
+    literacyMalePct: 68.4,
+    literacyFemalePct: 46.0,
+    laborForceMalePct: 70,
+    laborForceFemale: 30,
+    parliamentFemale: 24.6,
+    wageGapPct: 36,
+    maternalMortality: 554,
+    femaleUniGradPct: 30,
+    year: 2023,
+  },
+  bj: {
+    malePct: 50.5,
+    femalePct: 49.5,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 60.2,
+    lifeExpectancyFemale: 64.2,
+    literacyMalePct: 50.8,
+    literacyFemalePct: 30.7,
+    laborForceMalePct: 70,
+    laborForceFemale: 68,
+    parliamentFemale: 7.2,
+    wageGapPct: 30,
+    maternalMortality: 397,
+    femaleUniGradPct: 22,
+    year: 2023,
+  },
+  ss: {
+    malePct: 50.6,
+    femalePct: 49.4,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 53.4,
+    lifeExpectancyFemale: 57.4,
+    literacyMalePct: 35.0,
+    literacyFemalePct: 16.0,
+    laborForceMalePct: 72,
+    laborForceFemale: 68,
+    parliamentFemale: 26.5,
+    wageGapPct: 38,
+    maternalMortality: 1150,
+    femaleUniGradPct: 12,
+    year: 2023,
+  },
+  so: {
+    malePct: 50.5,
+    femalePct: 49.5,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 55.2,
+    lifeExpectancyFemale: 60.4,
+    literacyMalePct: 40.2,
+    literacyFemalePct: 25.8,
+    laborForceMalePct: 66,
+    laborForceFemale: 38,
+    parliamentFemale: 24.4,
+    wageGapPct: 40,
+    maternalMortality: 692,
+    femaleUniGradPct: 18,
+    year: 2023,
+  },
+  ml: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 57.8,
+    lifeExpectancyFemale: 61.0,
+    literacyMalePct: 42.8,
+    literacyFemalePct: 27.0,
+    laborForceMalePct: 76,
+    laborForceFemale: 64,
+    parliamentFemale: 6.0,
+    wageGapPct: 34,
+    maternalMortality: 562,
+    femaleUniGradPct: 18,
+    year: 2023,
+  },
+  bf: {
+    malePct: 49.5,
+    femalePct: 50.5,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 59.2,
+    lifeExpectancyFemale: 63.4,
+    literacyMalePct: 43.0,
+    literacyFemalePct: 28.2,
+    laborForceMalePct: 82,
+    laborForceFemale: 76,
+    parliamentFemale: 6.3,
+    wageGapPct: 28,
+    maternalMortality: 320,
+    femaleUniGradPct: 24,
+    year: 2023,
+  },
+  ne: {
+    malePct: 50.3,
+    femalePct: 49.7,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 60.4,
+    lifeExpectancyFemale: 64.4,
+    literacyMalePct: 27.3,
+    literacyFemalePct: 11.0,
+    laborForceMalePct: 80,
+    laborForceFemale: 40,
+    parliamentFemale: 25.1,
+    wageGapPct: 38,
+    maternalMortality: 441,
+    femaleUniGradPct: 14,
+    year: 2023,
+  },
+  mz: {
+    malePct: 48.9,
+    femalePct: 51.1,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 59.0,
+    lifeExpectancyFemale: 63.0,
+    literacyMalePct: 71.3,
+    literacyFemalePct: 48.7,
+    laborForceMalePct: 74,
+    laborForceFemale: 68,
+    parliamentFemale: 39.2,
+    wageGapPct: 26,
+    maternalMortality: 289,
+    femaleUniGradPct: 36,
+    year: 2023,
+  },
+  mg: {
+    malePct: 50.2,
+    femalePct: 49.8,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 66.2,
+    lifeExpectancyFemale: 69.6,
+    literacyMalePct: 77.0,
+    literacyFemalePct: 72.4,
+    laborForceMalePct: 78,
+    laborForceFemale: 72,
+    parliamentFemale: 17.4,
+    wageGapPct: 22,
+    maternalMortality: 335,
+    femaleUniGradPct: 42,
+    year: 2023,
+  },
+  zm: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 59.8,
+    lifeExpectancyFemale: 63.2,
+    literacyMalePct: 85.3,
+    literacyFemalePct: 72.8,
+    laborForceMalePct: 74,
+    laborForceFemale: 60,
+    parliamentFemale: 15.2,
+    wageGapPct: 22,
+    maternalMortality: 278,
+    femaleUniGradPct: 36,
+    year: 2023,
+  },
+  zw: {
+    malePct: 49.4,
+    femalePct: 50.6,
+    sexRatioAtBirth: 103,
+    lifeExpectancyMale: 59.2,
+    lifeExpectancyFemale: 63.4,
+    literacyMalePct: 90.0,
+    literacyFemalePct: 86.0,
+    laborForceMalePct: 74,
+    laborForceFemale: 62,
+    parliamentFemale: 31.5,
+    wageGapPct: 22,
+    maternalMortality: 357,
+    femaleUniGradPct: 40,
+    year: 2023,
+  },
+  // ── Oceania ───────────────────────────────────────────────────────────────
+  pg: {
+    malePct: 51.2,
+    femalePct: 48.8,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 63.2,
+    lifeExpectancyFemale: 67.2,
+    literacyMalePct: 64.2,
+    literacyFemalePct: 62.8,
+    laborForceMalePct: 72,
+    laborForceFemale: 70,
+    parliamentFemale: 4.0,
+    wageGapPct: 26,
+    maternalMortality: 145,
+    femaleUniGradPct: 38,
+    year: 2023,
+  },
+  fj: {
+    malePct: 51.1,
+    femalePct: 48.9,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 67.4,
+    lifeExpectancyFemale: 73.2,
+    literacyMalePct: 93.7,
+    literacyFemalePct: 91.9,
+    laborForceMalePct: 72,
+    laborForceFemale: 42,
+    parliamentFemale: 19.6,
+    wageGapPct: 20,
+    maternalMortality: 30,
+    femaleUniGradPct: 55,
+    year: 2023,
+  },
+  sb: {
+    malePct: 50.8,
+    femalePct: 49.2,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 71.2,
+    lifeExpectancyFemale: 75.4,
+    literacyMalePct: 85.5,
+    literacyFemalePct: 80.2,
+    laborForceMalePct: 68,
+    laborForceFemale: 44,
+    parliamentFemale: 2.0,
+    wageGapPct: 24,
+    maternalMortality: 104,
+    femaleUniGradPct: 46,
+    year: 2023,
+  },
+  vu: {
+    malePct: 50.3,
+    femalePct: 49.7,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 68.2,
+    lifeExpectancyFemale: 72.8,
+    literacyMalePct: 87.5,
+    literacyFemalePct: 82.8,
+    laborForceMalePct: 76,
+    laborForceFemale: 68,
+    parliamentFemale: 0.0,
+    wageGapPct: 28,
+    maternalMortality: 78,
+    femaleUniGradPct: 40,
+    year: 2023,
+  },
+  ws: {
+    malePct: 50.2,
+    femalePct: 49.8,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 71.2,
+    lifeExpectancyFemale: 75.6,
+    literacyMalePct: 99.0,
+    literacyFemalePct: 99.0,
+    laborForceMalePct: 62,
+    laborForceFemale: 36,
+    parliamentFemale: 10.0,
+    wageGapPct: 22,
+    maternalMortality: 43,
+    femaleUniGradPct: 56,
+    year: 2023,
+  },
+  to: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 68.4,
+    lifeExpectancyFemale: 73.4,
+    literacyMalePct: 99.0,
+    literacyFemalePct: 99.0,
+    laborForceMalePct: 65,
+    laborForceFemale: 42,
+    parliamentFemale: 3.3,
+    wageGapPct: 22,
+    maternalMortality: 52,
+    femaleUniGradPct: 56,
+    year: 2023,
+  },
+  ki: {
+    malePct: 50.1,
+    femalePct: 49.9,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 66.6,
+    lifeExpectancyFemale: 71.2,
+    literacyMalePct: 95.0,
+    literacyFemalePct: 95.0,
+    laborForceMalePct: 62,
+    laborForceFemale: 45,
+    parliamentFemale: 6.5,
+    wageGapPct: 20,
+    maternalMortality: 92,
+    femaleUniGradPct: 50,
+    year: 2023,
+  },
+  fm: {
+    malePct: 50.4,
+    femalePct: 49.6,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 68.8,
+    lifeExpectancyFemale: 73.0,
+    literacyMalePct: 89.0,
+    literacyFemalePct: 88.0,
+    laborForceMalePct: 64,
+    laborForceFemale: 38,
+    parliamentFemale: 0.0,
+    wageGapPct: 22,
+    maternalMortality: 88,
+    femaleUniGradPct: 48,
+    year: 2023,
+  },
+  pw: {
+    malePct: 52.2,
+    femalePct: 47.8,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 71.2,
+    lifeExpectancyFemale: 76.4,
+    literacyMalePct: 98.0,
+    literacyFemalePct: 98.0,
+    laborForceMalePct: 70,
+    laborForceFemale: 52,
+    parliamentFemale: 0.0,
+    wageGapPct: 18,
+    maternalMortality: 53,
+    femaleUniGradPct: 54,
+    year: 2023,
+  },
+  mh: {
+    malePct: 50.5,
+    femalePct: 49.5,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 72.0,
+    lifeExpectancyFemale: 75.8,
+    literacyMalePct: 98.0,
+    literacyFemalePct: 98.0,
+    laborForceMalePct: 62,
+    laborForceFemale: 40,
+    parliamentFemale: 6.1,
+    wageGapPct: 20,
+    maternalMortality: 89,
+    femaleUniGradPct: 50,
+    year: 2023,
+  },
+  nr: {
+    malePct: 51.0,
+    femalePct: 49.0,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 61.0,
+    lifeExpectancyFemale: 66.4,
+    literacyMalePct: 96.0,
+    literacyFemalePct: 96.0,
+    laborForceMalePct: 63,
+    laborForceFemale: 42,
+    parliamentFemale: 10.5,
+    wageGapPct: 20,
+    maternalMortality: 142,
+    femaleUniGradPct: 52,
+    year: 2023,
+  },
+  tv: {
+    malePct: 50.0,
+    femalePct: 50.0,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 63.4,
+    lifeExpectancyFemale: 68.0,
+    literacyMalePct: 98.0,
+    literacyFemalePct: 98.0,
+    laborForceMalePct: 60,
+    laborForceFemale: 42,
+    parliamentFemale: 7.7,
+    wageGapPct: 18,
+    maternalMortality: 170,
+    femaleUniGradPct: 50,
+    year: 2023,
+  },
+  gu: {
+    malePct: 50.6,
+    femalePct: 49.4,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 76.2,
+    lifeExpectancyFemale: 81.6,
+    literacyMalePct: 99.0,
+    literacyFemalePct: 99.0,
+    laborForceMalePct: 70,
+    laborForceFemale: 60,
+    parliamentFemale: 20.0,
+    wageGapPct: 18,
+    maternalMortality: 10,
+    femaleUniGradPct: 60,
+    year: 2023,
+  },
+  bm: {
+    malePct: 49.0,
+    femalePct: 51.0,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 79.2,
+    lifeExpectancyFemale: 83.4,
+    literacyMalePct: 98.0,
+    literacyFemalePct: 98.0,
+    laborForceMalePct: 74,
+    laborForceFemale: 66,
+    parliamentFemale: 36.4,
+    wageGapPct: 12,
+    maternalMortality: 0,
+    femaleUniGradPct: 62,
+    year: 2023,
+  },
+  fo: {
+    malePct: 52.2,
+    femalePct: 47.8,
+    sexRatioAtBirth: 106,
+    lifeExpectancyMale: 80.4,
+    lifeExpectancyFemale: 85.4,
+    literacyMalePct: 99,
+    literacyFemalePct: 99,
+    laborForceMalePct: 88,
+    laborForceFemale: 78,
+    parliamentFemale: 38.5,
+    wageGapPct: 8,
+    maternalMortality: 0,
+    femaleUniGradPct: 58,
+    year: 2023,
+  },
+  gl: {
+    malePct: 52.8,
+    femalePct: 47.2,
+    sexRatioAtBirth: 107,
+    lifeExpectancyMale: 71.2,
+    lifeExpectancyFemale: 76.4,
+    literacyMalePct: 100,
+    literacyFemalePct: 100,
+    laborForceMalePct: 76,
+    laborForceFemale: 60,
+    parliamentFemale: 29.6,
+    wageGapPct: 12,
+    maternalMortality: 0,
+    femaleUniGradPct: 54,
+    year: 2023,
+  },
+  eh: {
+    malePct: 51.2,
+    femalePct: 48.8,
+    sexRatioAtBirth: 105,
+    lifeExpectancyMale: 68.4,
+    lifeExpectancyFemale: 72.2,
+    literacyMalePct: 76.0,
+    literacyFemalePct: 55.0,
+    laborForceMalePct: 70,
+    laborForceFemale: 28,
+    parliamentFemale: 6.0,
+    wageGapPct: 38,
+    maternalMortality: 82,
+    femaleUniGradPct: 30,
+    year: 2023,
+  },
+};
+
+const SRC_GENDER = [
+  { label: "UN Women Data Hub", url: "https://data.unwomen.org/" },
+  {
+    label: "World Bank Gender Data Portal",
+    url: "https://genderdata.worldbank.org/",
+  },
+  { label: "ILO Labor Statistics", url: "https://ilostat.ilo.org/" },
+  {
+    label: "IPU Parline – Women in Parliament",
+    url: "https://data.ipu.org/women-ranking",
+  },
+];
+
+function CountryGenderStatsPanel({ country }: { country: Country }) {
+  const gs = COUNTRY_GENDER_STATS[country.id];
+  if (!gs) return null;
+
+  const lifeExpGap = (gs.lifeExpectancyFemale - gs.lifeExpectancyMale).toFixed(
+    1,
+  );
+  const literacyGap =
+    gs.literacyMalePct != null && gs.literacyFemalePct != null
+      ? (gs.literacyMalePct - gs.literacyFemalePct).toFixed(1)
+      : null;
+  const lfGap =
+    gs.laborForceMalePct != null && gs.laborForceFemale != null
+      ? gs.laborForceMalePct - gs.laborForceFemale
+      : null;
+
+  return (
+    <div className="modal-tile rounded-lg p-4 mt-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-pink-500/10 rounded-md border border-pink-500/20 shrink-0">
+            <Users size={13} weight="fill" className="text-pink-400" />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+              Male / Female Statistics
+            </h3>
+            <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+              Gender demographics, health, labor &amp; representation ·{" "}
+              {gs.year}
+            </p>
+          </div>
+        </div>
+        <span className="text-[10px] font-mono text-muted-foreground border border-border px-2 py-0.5 rounded-full bg-background/50">
+          {gs.sexRatioAtBirth} males per 100 females (birth)
+        </span>
+      </div>
+
+      {/* Population split bar */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between text-[10px] mb-1.5">
+          <span className="flex items-center gap-1 text-blue-400 font-semibold font-sans">
+            <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
+            Male {gs.malePct}%
+          </span>
+          <span className="text-muted-foreground font-sans font-medium">
+            Population split
+          </span>
+          <span className="flex items-center gap-1 text-pink-400 font-semibold font-sans">
+            Female {gs.femalePct}%
+            <span className="w-2 h-2 rounded-full bg-pink-400 shrink-0" />
+          </span>
+        </div>
+        <div className="flex h-5 rounded-full overflow-hidden gap-px">
+          <div
+            className="h-full flex items-center justify-center transition-all duration-700"
+            style={{ width: `${gs.malePct}%`, background: "hsl(213,85%,55%)" }}
+          >
+            {gs.malePct > 20 && (
+              <span className="text-[9px] font-mono text-white/90 font-bold px-1">
+                {gs.malePct}%
+              </span>
+            )}
+          </div>
+          <div
+            className="h-full flex items-center justify-center transition-all duration-700"
+            style={{
+              width: `${gs.femalePct}%`,
+              background: "hsl(330,70%,55%)",
+            }}
+          >
+            {gs.femalePct > 20 && (
+              <span className="text-[9px] font-mono text-white/90 font-bold px-1">
+                {gs.femalePct}%
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Life Expectancy comparison */}
+      <div className="mb-4">
+        <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+          Life Expectancy
+        </p>
+        <div className="grid grid-cols-2 gap-2 mb-2">
+          <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-3 text-center">
+            <p className="text-[10px] text-blue-400 font-sans mb-0.5">
+              ♂ Male
+            </p>
+            <p className="text-xl font-bold font-mono text-blue-400">
+              {gs.lifeExpectancyMale}
+            </p>
+            <p className="text-[9px] text-muted-foreground font-sans">years</p>
+          </div>
+          <div className="rounded-lg border border-pink-500/20 bg-pink-500/5 p-3 text-center">
+            <p className="text-[10px] text-pink-400 font-sans mb-0.5">
+              ♀ Female
+            </p>
+            <p className="text-xl font-bold font-mono text-pink-400">
+              {gs.lifeExpectancyFemale}
+            </p>
+            <p className="text-[9px] text-muted-foreground font-sans">years</p>
+          </div>
+        </div>
+        <div className="rounded-lg bg-background/30 border border-border/50 px-3 py-2 flex items-center justify-between">
+          <span className="text-[10px] text-muted-foreground font-sans">
+            Gender life-expectancy gap
+          </span>
+          <span className="text-xs font-mono font-semibold text-pink-400">
+            +{lifeExpGap} yrs (women live longer)
+          </span>
+        </div>
+      </div>
+
+      {/* Dual progress bars for key metrics */}
+      <div className="space-y-3 mb-4">
+        {/* Literacy */}
+        {gs.literacyMalePct != null && gs.literacyFemalePct != null && (
+          <div>
+            <div className="flex items-center justify-between text-[10px] mb-1">
+              <span className="text-muted-foreground font-sans font-semibold uppercase tracking-wider">
+                Literacy Rate
+              </span>
+              {literacyGap && (
+                <span
+                  className={`font-mono text-[10px] ${parseFloat(literacyGap) > 5 ? "text-warning" : "text-muted-foreground"}`}
+                >
+                  {parseFloat(literacyGap) > 0
+                    ? `♂ +${literacyGap}%`
+                    : parseFloat(literacyGap) < 0
+                      ? `♀ +${Math.abs(parseFloat(literacyGap))}%`
+                      : "Equal"}
+                </span>
+              )}
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-sans text-blue-400 w-8 shrink-0">
+                  ♂ Male
+                </span>
+                <div className="flex-1 h-3 bg-black/20 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{
+                      width: `${gs.literacyMalePct}%`,
+                      background: "hsl(213,85%,55%)",
+                    }}
+                  />
+                </div>
+                <span className="text-[9px] font-mono text-blue-400 w-10 text-right shrink-0">
+                  {gs.literacyMalePct}%
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-sans text-pink-400 w-8 shrink-0">
+                  ♀ Female
+                </span>
+                <div className="flex-1 h-3 bg-black/20 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{
+                      width: `${gs.literacyFemalePct}%`,
+                      background: "hsl(330,70%,55%)",
+                    }}
+                  />
+                </div>
+                <span className="text-[9px] font-mono text-pink-400 w-10 text-right shrink-0">
+                  {gs.literacyFemalePct}%
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Labor Force Participation */}
+        {gs.laborForceMalePct != null && gs.laborForceFemale != null && (
+          <div>
+            <div className="flex items-center justify-between text-[10px] mb-1">
+              <span className="text-muted-foreground font-sans font-semibold uppercase tracking-wider">
+                Labor Force Participation
+              </span>
+              {lfGap != null && (
+                <span
+                  className={`font-mono text-[10px] ${lfGap > 20 ? "text-warning" : "text-muted-foreground"}`}
+                >
+                  Gap: {lfGap}pp
+                </span>
+              )}
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-sans text-blue-400 w-8 shrink-0">
+                  ♂ Male
+                </span>
+                <div className="flex-1 h-3 bg-black/20 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{
+                      width: `${gs.laborForceMalePct}%`,
+                      background: "hsl(213,85%,55%)",
+                    }}
+                  />
+                </div>
+                <span className="text-[9px] font-mono text-blue-400 w-10 text-right shrink-0">
+                  {gs.laborForceMalePct}%
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-sans text-pink-400 w-8 shrink-0">
+                  ♀ Female
+                </span>
+                <div className="flex-1 h-3 bg-black/20 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{
+                      width: `${gs.laborForceFemale}%`,
+                      background: "hsl(330,70%,55%)",
+                    }}
+                  />
+                </div>
+                <span className="text-[9px] font-mono text-pink-400 w-10 text-right shrink-0">
+                  {gs.laborForceFemale}%
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* KPI tiles: parliament, wage gap, maternal mortality, uni grads */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+        {gs.parliamentFemale != null && (
+          <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
+            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5 leading-tight">
+              Women in Parliament
+            </p>
+            <p
+              className={`text-base font-bold font-mono ${gs.parliamentFemale >= 40 ? "text-success" : gs.parliamentFemale >= 25 ? "text-secondary" : "text-warning"}`}
+            >
+              {gs.parliamentFemale}%
+            </p>
+            <div className="mt-1 h-1 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${gs.parliamentFemale}%`,
+                  background:
+                    gs.parliamentFemale >= 40
+                      ? "hsl(142,71%,45%)"
+                      : gs.parliamentFemale >= 25
+                        ? "hsl(200,85%,55%)"
+                        : "hsl(38,92%,50%)",
+                }}
+              />
+            </div>
+          </div>
+        )}
+        {gs.wageGapPct != null && (
+          <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
+            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5 leading-tight">
+              Gender Pay Gap
+            </p>
+            <p
+              className={`text-base font-bold font-mono ${gs.wageGapPct >= 25 ? "text-destructive" : gs.wageGapPct >= 15 ? "text-warning" : "text-success"}`}
+            >
+              {gs.wageGapPct}%
+            </p>
+            <p className="text-[8px] text-muted-foreground font-sans mt-0.5">
+              men earn more
+            </p>
+          </div>
+        )}
+        {gs.maternalMortality != null && (
+          <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
+            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5 leading-tight">
+              Maternal Mortality
+            </p>
+            <p
+              className={`text-base font-bold font-mono ${gs.maternalMortality >= 100 ? "text-destructive" : gs.maternalMortality >= 25 ? "text-warning" : "text-success"}`}
+            >
+              {gs.maternalMortality}
+            </p>
+            <p className="text-[8px] text-muted-foreground font-sans mt-0.5">
+              per 100k births
+            </p>
+          </div>
+        )}
+        {gs.femaleUniGradPct != null && (
+          <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
+            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5 leading-tight">
+              Female Uni Grads
+            </p>
+            <p
+              className={`text-base font-bold font-mono ${gs.femaleUniGradPct >= 50 ? "text-pink-400" : "text-warning"}`}
+            >
+              {gs.femaleUniGradPct}%
+            </p>
+            <p className="text-[8px] text-muted-foreground font-sans mt-0.5">
+              of all graduates
+            </p>
+          </div>
+        )}
+      </div>
+
+      <SourceLink sources={SRC_GENDER} className="mt-2" />
+    </div>
+  );
+}
+
+const SRC_INFRA = [
+  {
+    label: "World Bank Infrastructure",
+    url: "https://data.worldbank.org/topic/infrastructure",
+  },
+  {
+    label: "ITU Digital Stats",
+    url: "https://www.itu.int/en/ITU-D/Statistics/Pages/stat/default.aspx",
+  },
+  { label: "WHO Health Infrastructure", url: "https://www.who.int/data/gho" },
+  {
+    label: "WB Logistics Performance Index",
+    url: "https://lpi.worldbank.org/",
+  },
+];
+
+function CountryInfraPanel({ country }: { country: Country }) {
+  const data = COUNTRY_INFRA_STATS[country.id];
+  if (!data) return null;
+
+  const scoreColor =
+    data.overallInfraScore >= 80
+      ? "text-success"
+      : data.overallInfraScore >= 55
+        ? "text-warning"
+        : "text-destructive";
+  const scoreBg =
+    data.overallInfraScore >= 80
+      ? "hsl(142,71%,45%)"
+      : data.overallInfraScore >= 55
+        ? "hsl(38,92%,50%)"
+        : "hsl(0,70%,55%)";
+
+  const categories = [
+    {
+      label: "⚡ Power & Energy",
+      color: "text-yellow-400",
+      border: "border-yellow-500/20",
+      bg: "bg-yellow-500/5",
+      items: [
+        {
+          label: "Electricity Access",
+          value: `${data.electricityAccessPct}%`,
+          bar: data.electricityAccessPct,
+          max: 100,
+          goodAbove: 95,
+        },
+        {
+          label: "Installed Capacity",
+          value: `${data.installedCapacityGW.toLocaleString()} GW`,
+          bar: null,
+        },
+        ...(data.powerOutagesPerYearBusiness != null
+          ? [
+              {
+                label: "Power Outages/yr (Business)",
+                value: `${data.powerOutagesPerYearBusiness}`,
+                bar: Math.min(
+                  100,
+                  (data.powerOutagesPerYearBusiness / 400) * 100,
+                ),
+                max: 100,
+                goodAbove: -1,
+                invertBar: true,
+              },
+            ]
+          : []),
+      ],
+    },
+    {
+      label: "💧 Water & Sanitation",
+      color: "text-blue-400",
+      border: "border-blue-500/20",
+      bg: "bg-blue-500/5",
+      items: [
+        {
+          label: "Safe Water Access",
+          value: `${data.safeWaterAccessPct}%`,
+          bar: data.safeWaterAccessPct,
+          max: 100,
+          goodAbove: 90,
+        },
+        {
+          label: "Sanitation Access",
+          value: `${data.sanitationAccessPct}%`,
+          bar: data.sanitationAccessPct,
+          max: 100,
+          goodAbove: 80,
+        },
+      ],
+    },
+    {
+      label: "📡 Digital & Telecoms",
+      color: "text-purple-400",
+      border: "border-purple-500/20",
+      bg: "bg-purple-500/5",
+      items: [
+        {
+          label: "Mobile Subscriptions /100",
+          value: `${data.mobileSubscriptionsPer100}`,
+          bar: Math.min(100, data.mobileSubscriptionsPer100),
+          max: 100,
+          goodAbove: 90,
+        },
+        {
+          label: "Broadband /100 people",
+          value: `${data.broadbandPer100}`,
+          bar: Math.min(100, (data.broadbandPer100 / 60) * 100),
+          max: 100,
+          goodAbove: 50,
+        },
+        ...(data.dataSpeedMbps != null
+          ? [
+              {
+                label: "Avg Data Speed",
+                value: `${data.dataSpeedMbps} Mbps`,
+                bar: Math.min(100, (data.dataSpeedMbps / 300) * 100),
+                max: 100,
+                goodAbove: 60,
+              },
+            ]
+          : []),
+      ],
+    },
+    {
+      label: "🛣️ Roads & Logistics",
+      color: "text-orange-400",
+      border: "border-orange-500/20",
+      bg: "bg-orange-500/5",
+      items: [
+        {
+          label: "Paved Roads",
+          value: `${data.pavedRoadsPct}%`,
+          bar: data.pavedRoadsPct,
+          max: 100,
+          goodAbove: 70,
+        },
+        {
+          label: "Logistics Index (LPI)",
+          value: `${data.logisticsIndex}/5`,
+          bar: (data.logisticsIndex / 5) * 100,
+          max: 100,
+          goodAbove: 70,
+        },
+      ],
+    },
+    {
+      label: "🏥 Healthcare Infrastructure",
+      color: "text-green-400",
+      border: "border-green-500/20",
+      bg: "bg-green-500/5",
+      items: [
+        {
+          label: "Hospital Beds /1,000",
+          value: `${data.hospitalBedsPerThousand}`,
+          bar: Math.min(100, (data.hospitalBedsPerThousand / 14) * 100),
+          max: 100,
+          goodAbove: 30,
+        },
+        {
+          label: "Physicians /1,000",
+          value: `${data.physiciansPerThousand}`,
+          bar: Math.min(100, (data.physiciansPerThousand / 6) * 100),
+          max: 100,
+          goodAbove: 30,
+        },
+      ],
+    },
+  ];
+
+  return (
+    <div className="modal-tile rounded-lg p-4 mt-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-teal-500/10 rounded-md border border-teal-500/20 shrink-0">
+            <Buildings size={13} weight="fill" className="text-teal-400" />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+              Infrastructure Statistics
+            </h3>
+            <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+              Power, water, digital, transport &amp; health infrastructure ·{" "}
+              {data.year}
+            </p>
+          </div>
+        </div>
+        <span
+          className={`text-[10px] font-mono px-2 py-0.5 rounded-full border font-semibold ${data.overallInfraScore >= 80 ? "text-green-400 border-green-500/30 bg-green-500/10" : data.overallInfraScore >= 55 ? "text-yellow-400 border-yellow-500/30 bg-yellow-500/10" : "text-red-400 border-red-500/30 bg-red-500/10"}`}
+        >
+          Score {data.overallInfraScore}/100
+        </span>
+      </div>
+
+      {/* Overall score — value only */}
+      <div className="mb-4 flex items-center justify-between rounded-lg bg-background/30 border border-border/50 px-3 py-2">
+        <span className="text-[10px] text-muted-foreground font-sans">
+          Overall Infrastructure Score
+        </span>
+        <span className={`text-sm font-mono font-bold ${scoreColor}`}>
+          {data.overallInfraScore}/100
+        </span>
+      </div>
+
+      {/* Investment tile if available */}
+      {data.infraInvestmentGdpPct != null && (
+        <div className="flex items-center justify-between rounded-lg bg-teal-500/5 border border-teal-500/20 px-3 py-2 mb-4">
+          <span className="text-[10px] text-muted-foreground font-sans">
+            Infrastructure Investment (% of GDP)
+          </span>
+          <span
+            className={`text-xs font-mono font-bold ${data.infraInvestmentGdpPct >= 4 ? "text-teal-400" : data.infraInvestmentGdpPct >= 2 ? "text-secondary" : "text-warning"}`}
+          >
+            {data.infraInvestmentGdpPct}%
+          </span>
+        </div>
+      )}
+
+      {/* Category sections */}
+      <div className="space-y-3">
+        {categories.map((cat) => (
+          <div
+            key={cat.label}
+            className={`rounded-lg border p-3 ${cat.border} ${cat.bg}`}
+          >
+            <p
+              className={`text-[10px] font-bold font-sans uppercase tracking-widest mb-2 ${cat.color}`}
+            >
+              {cat.label}
+            </p>
+            <div className="space-y-2">
+              {cat.items.map((item) => {
+                const valueColor =
+                  item.bar != null && item.goodAbove != null
+                    ? item.invertBar
+                      ? item.bar <= 10
+                        ? "text-success"
+                        : item.bar <= 30
+                          ? "text-warning"
+                          : "text-destructive"
+                      : item.bar >= item.goodAbove
+                        ? "text-success"
+                        : item.bar >= item.goodAbove * 0.6
+                          ? "text-warning"
+                          : "text-destructive"
+                    : "text-foreground";
+                const barColor =
+                  item.bar != null && item.goodAbove != null
+                    ? item.invertBar
+                      ? item.bar <= 10
+                        ? "hsl(142,71%,45%)"
+                        : item.bar <= 30
+                          ? "hsl(38,92%,50%)"
+                          : "hsl(0,70%,55%)"
+                      : item.bar >= item.goodAbove
+                        ? "hsl(142,71%,45%)"
+                        : item.bar >= item.goodAbove * 0.6
+                          ? "hsl(38,92%,50%)"
+                          : "hsl(0,70%,55%)"
+                    : "hsl(200,85%,55%)";
+                return (
+                  <div key={item.label}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-sans text-muted-foreground">
+                        {item.label}
+                      </span>
+                      <span
+                        className={`text-[10px] font-mono font-semibold ${valueColor}`}
+                      >
+                        {item.value}
+                      </span>
+                    </div>
+                    {item.bar != null && (
+                      <div className="h-1.5 bg-black/20 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{
+                            width: `${Math.max(2, item.bar)}%`,
+                            backgroundColor: barColor,
+                            opacity: 0.85,
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <SourceLink sources={SRC_INFRA} className="mt-3" />
+    </div>
+  );
+}
+
+const SRC_HOUSING = [
+  {
+    label: "OECD Affordable Housing Database",
+    url: "https://www.oecd.org/housing/data/affordable-housing-database/",
+  },
+  {
+    label: "Numbeo Housing Index",
+    url: "https://www.numbeo.com/property-investment/rankings_by_country.jsp",
+  },
+];
+const SRC_TRANSPORT = [
+  {
+    label: "ITF Transport Outlook",
+    url: "https://www.itf-oecd.org/transport-outlook",
+  },
+  {
+    label: "World Bank Transport Data",
+    url: "https://data.worldbank.org/topic/transport",
+  },
+];
+
+function fmtPrice(usd: number): string {
+  if (usd >= 1_000_000) return `$${(usd / 1_000_000).toFixed(2)}M`;
+  if (usd >= 1000) return `$${(usd / 1000).toFixed(0)}K`;
+  return `$${usd}`;
+}
+
+// ── Natural Resources Data ───────────────────────────────────────────────────
+interface ResourceEntry {
+  name: string;
+  category:
+    | "Energy"
+    | "Minerals"
+    | "Agriculture"
+    | "Forestry"
+    | "Water"
+    | "Fisheries";
+  significance: "Major" | "Significant" | "Minor";
+  note?: string;
+}
+
+interface CountryResourceData {
+  resources: ResourceEntry[];
+  topExportResource?: string;
+  resourceRentGdpPct?: number; // % of GDP from natural resource rents
+  year: number;
+}
+
+const RESOURCE_CATEGORY_COLORS: Record<
+  ResourceEntry["category"],
+  { text: string; bg: string; border: string; dot: string }
+> = {
+  Energy: {
+    text: "text-yellow-400",
+    bg: "bg-yellow-500/10",
+    border: "border-yellow-500/30",
+    dot: "bg-yellow-400",
+  },
+  Minerals: {
+    text: "text-blue-400",
+    bg: "bg-blue-500/10",
+    border: "border-blue-500/30",
+    dot: "bg-blue-400",
+  },
+  Agriculture: {
+    text: "text-green-400",
+    bg: "bg-green-500/10",
+    border: "border-green-500/30",
+    dot: "bg-green-400",
+  },
+  Forestry: {
+    text: "text-emerald-400",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/30",
+    dot: "bg-emerald-400",
+  },
+  Water: {
+    text: "text-cyan-400",
+    bg: "bg-cyan-500/10",
+    border: "border-cyan-500/30",
+    dot: "bg-cyan-400",
+  },
+  Fisheries: {
+    text: "text-indigo-400",
+    bg: "bg-indigo-500/10",
+    border: "border-indigo-500/30",
+    dot: "bg-indigo-400",
+  },
+};
+
+const SIGNIFICANCE_COLORS: Record<ResourceEntry["significance"], string> = {
+  Major: "text-green-400",
+  Significant: "text-yellow-400",
+  Minor: "text-muted-foreground",
+};
+
+const COUNTRY_RESOURCES: Record<string, CountryResourceData> = {
+  us: {
+    topExportResource: "Crude Oil & Gas",
+    resourceRentGdpPct: 1.4,
+    year: 2025,
+    resources: [
+      {
+        name: "Crude Oil & Natural Gas",
+        category: "Energy",
+        significance: "Major",
+        note: "World's largest oil & gas producer; shale revolution via fracking",
+      },
+      {
+        name: "Coal",
+        category: "Energy",
+        significance: "Major",
+        note: "Vast Appalachian & Powder River Basin reserves",
+      },
+      {
+        name: "Copper",
+        category: "Minerals",
+        significance: "Major",
+        note: "Bingham Canyon (UT) — one of world's largest open-pit mines",
+      },
+      {
+        name: "Gold",
+        category: "Minerals",
+        significance: "Major",
+        note: "Nevada is the #1 gold-producing US state",
+      },
+      {
+        name: "Lithium",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Thacker Pass (NV) is North America's largest known lithium deposit",
+      },
+      {
+        name: "Timber & Lumber",
+        category: "Forestry",
+        significance: "Major",
+        note: "Pacific Northwest; world's 2nd largest forest products exporter",
+      },
+      {
+        name: "Corn & Soybeans",
+        category: "Agriculture",
+        significance: "Major",
+        note: "Midwest corn belt; #1 global soybean exporter",
+      },
+      {
+        name: "Freshwater (Great Lakes)",
+        category: "Water",
+        significance: "Major",
+        note: "~21% of world surface fresh water",
+      },
+    ],
+  },
+  cn: {
+    topExportResource: "Rare Earth Elements",
+    resourceRentGdpPct: 2.3,
+    year: 2025,
+    resources: [
+      {
+        name: "Coal",
+        category: "Energy",
+        significance: "Major",
+        note: "World's largest producer & consumer of coal",
+      },
+      {
+        name: "Rare Earth Elements",
+        category: "Minerals",
+        significance: "Major",
+        note: "~60% of global production; critical for tech supply chains",
+      },
+      {
+        name: "Iron Ore",
+        category: "Minerals",
+        significance: "Major",
+        note: "Largest iron ore importer but also major domestic producer",
+      },
+      {
+        name: "Tungsten",
+        category: "Minerals",
+        significance: "Major",
+        note: "~80% of global tungsten production",
+      },
+      {
+        name: "Natural Gas (Sichuan Basin)",
+        category: "Energy",
+        significance: "Significant",
+        note: "World's largest shale gas reserves",
+      },
+      {
+        name: "Lithium (Tibet Plateau)",
+        category: "Minerals",
+        significance: "Major",
+        note: "2nd largest lithium reserves globally",
+      },
+      {
+        name: "Rice & Wheat",
+        category: "Agriculture",
+        significance: "Major",
+        note: "Largest wheat & rice producer globally",
+      },
+      {
+        name: "Timber (Northeast/SW China)",
+        category: "Forestry",
+        significance: "Significant",
+        note: "Major reforestation program since 1990s",
+      },
+    ],
+  },
+  de: {
+    topExportResource: "Lignite (Brown Coal)",
+    resourceRentGdpPct: 0.1,
+    year: 2025,
+    resources: [
+      {
+        name: "Lignite (Brown Coal)",
+        category: "Energy",
+        significance: "Significant",
+        note: "EU's largest lignite reserves, being phased out by 2030",
+      },
+      {
+        name: "Potash",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Kali + Salz AG is a global potash leader",
+      },
+      {
+        name: "Salt",
+        category: "Minerals",
+        significance: "Minor",
+        note: "Northern German salt domes",
+      },
+      {
+        name: "Timber",
+        category: "Forestry",
+        significance: "Significant",
+        note: "32% of Germany is forested; Bavarian Alps timber",
+      },
+      {
+        name: "Agricultural Land",
+        category: "Agriculture",
+        significance: "Major",
+        note: "Major grain, rapeseed and sugar beet producer",
+      },
+    ],
+  },
+  gb: {
+    topExportResource: "North Sea Oil & Gas",
+    resourceRentGdpPct: 0.7,
+    year: 2025,
+    resources: [
+      {
+        name: "North Sea Oil & Gas",
+        category: "Energy",
+        significance: "Significant",
+        note: "Declining reserves; UK Continental Shelf licenses ongoing",
+      },
+      {
+        name: "Coal (legacy)",
+        category: "Energy",
+        significance: "Minor",
+        note: "Last deep coal mine closed 2015; coal phased out by 2025",
+      },
+      {
+        name: "Tin & Tungsten (Cornwall)",
+        category: "Minerals",
+        significance: "Minor",
+        note: "Historic mining; South Crofty tin mine potential revival",
+      },
+      {
+        name: "Agricultural Land",
+        category: "Agriculture",
+        significance: "Significant",
+        note: "Wheat, barley, potatoes; self-sufficient in key grains",
+      },
+      {
+        name: "Timber",
+        category: "Forestry",
+        significance: "Minor",
+        note: "12% forest cover; mainly commercial Sitka spruce",
+      },
+      {
+        name: "Fisheries (North Atlantic)",
+        category: "Fisheries",
+        significance: "Significant",
+        note: "Post-Brexit fisheries sovereignty a political priority",
+      },
+    ],
+  },
+  fr: {
+    topExportResource: "Nuclear Fuel (Uranium imports, domestic cycle)",
+    resourceRentGdpPct: 0.1,
+    year: 2025,
+    resources: [
+      {
+        name: "Agricultural Land",
+        category: "Agriculture",
+        significance: "Major",
+        note: "EU's largest agricultural nation; wine, wheat, sunflower",
+      },
+      {
+        name: "Timber",
+        category: "Forestry",
+        significance: "Significant",
+        note: "31% forest cover; 4th largest timber producer in EU",
+      },
+      {
+        name: "Bauxite (Var/Hérault)",
+        category: "Minerals",
+        significance: "Minor",
+        note: "Historic production; where the mineral was named (Les Baux)",
+      },
+      {
+        name: "Uranium (legacy Limousin)",
+        category: "Energy",
+        significance: "Minor",
+        note: "Last mine closed 2001; now imports for nuclear cycle",
+      },
+      {
+        name: "Fisheries (Atlantic/Mediterranean)",
+        category: "Fisheries",
+        significance: "Significant",
+        note: "Major fishing fleet in Atlantic and Mediterranean",
+      },
+    ],
+  },
+  jp: {
+    topExportResource: "Fisheries",
+    resourceRentGdpPct: 0.1,
+    year: 2025,
+    resources: [
+      {
+        name: "Fisheries (Pacific/Sea of Japan)",
+        category: "Fisheries",
+        significance: "Major",
+        note: "3rd largest fishing nation; tuna, salmon, crab",
+      },
+      {
+        name: "Timber",
+        category: "Forestry",
+        significance: "Significant",
+        note: "68% of land is forested; mainly cedar and cypress",
+      },
+      {
+        name: "Coal (Hokkaido, legacy)",
+        category: "Energy",
+        significance: "Minor",
+        note: "Last major mine closed 2002; now imports 90% of coal",
+      },
+      {
+        name: "Copper & Gold (Honshu)",
+        category: "Minerals",
+        significance: "Minor",
+        note: "Small but historic mining; Besshi and Ashio mines",
+      },
+      {
+        name: "Methane Hydrates (deep sea)",
+        category: "Energy",
+        significance: "Significant",
+        note: "World's first successful methane hydrate extraction (2013); potentially vast reserves",
+      },
+    ],
+  },
+  in: {
+    topExportResource: "Iron Ore & Coal",
+    resourceRentGdpPct: 2.2,
+    year: 2025,
+    resources: [
+      {
+        name: "Coal (Jharkhand/Odisha)",
+        category: "Energy",
+        significance: "Major",
+        note: "World's 2nd largest coal reserves; Jharia coalfield burns underground",
+      },
+      {
+        name: "Iron Ore",
+        category: "Minerals",
+        significance: "Major",
+        note: "4th largest reserves globally; major exporter to China",
+      },
+      {
+        name: "Manganese",
+        category: "Minerals",
+        significance: "Major",
+        note: "7th largest global producer",
+      },
+      {
+        name: "Bauxite & Aluminium",
+        category: "Minerals",
+        significance: "Significant",
+        note: "5th largest bauxite reserves",
+      },
+      {
+        name: "Rare Earths (Monazite)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "6th largest rare earth reserves in beach sands",
+      },
+      {
+        name: "Diamonds (Panna)",
+        category: "Minerals",
+        significance: "Minor",
+        note: "Only diamond-producing region in Asia",
+      },
+      {
+        name: "Rice, Wheat & Cotton",
+        category: "Agriculture",
+        significance: "Major",
+        note: "World's largest rice & cotton exporter",
+      },
+      {
+        name: "Timber",
+        category: "Forestry",
+        significance: "Significant",
+        note: "22% forest cover; teak, sal, bamboo",
+      },
+    ],
+  },
+  br: {
+    topExportResource: "Iron Ore (Carajás)",
+    resourceRentGdpPct: 5.1,
+    year: 2025,
+    resources: [
+      {
+        name: "Iron Ore (Carajás)",
+        category: "Minerals",
+        significance: "Major",
+        note: "World's largest iron ore reserves; Vale's Carajás mine",
+      },
+      {
+        name: "Oil & Gas (Pre-salt)",
+        category: "Energy",
+        significance: "Major",
+        note: "Petrobras pre-salt fields offshore; ~3.5 mbpd production",
+      },
+      {
+        name: "Soy, Corn & Coffee",
+        category: "Agriculture",
+        significance: "Major",
+        note: "#1 global soybean & coffee exporter",
+      },
+      {
+        name: "Sugarcane & Ethanol",
+        category: "Agriculture",
+        significance: "Major",
+        note: "World's largest ethanol from sugarcane producer",
+      },
+      {
+        name: "Amazon Timber & Biodiversity",
+        category: "Forestry",
+        significance: "Major",
+        note: "60% of Amazon within Brazil; 10% of global biodiversity",
+      },
+      {
+        name: "Lithium (Minas Gerais)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "7th largest lithium reserves globally",
+      },
+      {
+        name: "Nickel & Manganese",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Major nickel producer; Vale's Onça Puma mine",
+      },
+      {
+        name: "Freshwater (Amazon basin)",
+        category: "Water",
+        significance: "Major",
+        note: "~12% of world's surface fresh water",
+      },
+    ],
+  },
+  ru: {
+    topExportResource: "Natural Gas & Crude Oil",
+    resourceRentGdpPct: 14.2,
+    year: 2025,
+    resources: [
+      {
+        name: "Natural Gas",
+        category: "Energy",
+        significance: "Major",
+        note: "World's largest gas reserves; Gazprom; Yamal & Urengoy fields",
+      },
+      {
+        name: "Crude Oil",
+        category: "Energy",
+        significance: "Major",
+        note: "2nd largest oil producer; West Siberian Basin",
+      },
+      {
+        name: "Coal",
+        category: "Energy",
+        significance: "Major",
+        note: "2nd largest coal reserves; Kuznetsk Basin",
+      },
+      {
+        name: "Nickel & Palladium (Norilsk)",
+        category: "Minerals",
+        significance: "Major",
+        note: "~40% of global palladium; Nornickel Norilsk complex",
+      },
+      {
+        name: "Iron Ore & Steel",
+        category: "Minerals",
+        significance: "Major",
+        note: "Kursk Magnetic Anomaly — world's largest iron ore deposit",
+      },
+      {
+        name: "Diamonds (Yakutia)",
+        category: "Minerals",
+        significance: "Major",
+        note: "~25% of global diamond production; Alrosa",
+      },
+      {
+        name: "Timber (Siberia)",
+        category: "Forestry",
+        significance: "Major",
+        note: "World's largest forest area (taiga); 22% of global forests",
+      },
+      {
+        name: "Fisheries (Barents/Pacific)",
+        category: "Fisheries",
+        significance: "Major",
+        note: "4th largest fishing nation; pollock, salmon, crab",
+      },
+    ],
+  },
+  au_oc: {
+    topExportResource: "Iron Ore",
+    resourceRentGdpPct: 8.4,
+    year: 2025,
+    resources: [
+      {
+        name: "Iron Ore (Pilbara)",
+        category: "Minerals",
+        significance: "Major",
+        note: "World's largest exporter; BHP, Rio Tinto, Fortescue",
+      },
+      {
+        name: "Coal (Queensland/NSW)",
+        category: "Energy",
+        significance: "Major",
+        note: "World's largest metallurgical coal exporter",
+      },
+      {
+        name: "Lithium (Pilgangoora)",
+        category: "Minerals",
+        significance: "Major",
+        note: "World's largest lithium export country",
+      },
+      {
+        name: "Gold",
+        category: "Minerals",
+        significance: "Major",
+        note: "2nd largest gold producer; Kalgoorlie Super Pit",
+      },
+      {
+        name: "Natural Gas (LNG)",
+        category: "Energy",
+        significance: "Major",
+        note: "World's largest LNG exporter; North West Shelf, Gorgon",
+      },
+      {
+        name: "Copper & Nickel",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Olympic Dam (SA) holds world's largest uranium deposit too",
+      },
+      {
+        name: "Agriculture (Wheat/Beef)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "Top 5 wheat & beef exporter",
+      },
+      {
+        name: "Fisheries (Southern Ocean)",
+        category: "Fisheries",
+        significance: "Significant",
+        note: "Lobster, tuna, abalone major exports",
+      },
+    ],
+  },
+  ca: {
+    topExportResource: "Crude Oil (Oil Sands)",
+    resourceRentGdpPct: 4.6,
+    year: 2025,
+    resources: [
+      {
+        name: "Oil Sands (Alberta)",
+        category: "Energy",
+        significance: "Major",
+        note: "3rd largest oil reserves; 170 billion barrels recoverable",
+      },
+      {
+        name: "Natural Gas",
+        category: "Energy",
+        significance: "Major",
+        note: "4th largest natural gas exporter; BC and Alberta",
+      },
+      {
+        name: "Potash (Saskatchewan)",
+        category: "Minerals",
+        significance: "Major",
+        note: "~30% of world's potash reserves; Nutrien headquarters",
+      },
+      {
+        name: "Uranium (Athabasca Basin)",
+        category: "Minerals",
+        significance: "Major",
+        note: "World's highest-grade uranium deposits; Cameco",
+      },
+      {
+        name: "Gold & Diamonds",
+        category: "Minerals",
+        significance: "Significant",
+        note: "3rd largest gold producer; Diavik and Ekati diamond mines",
+      },
+      {
+        name: "Timber (BC Boreal)",
+        category: "Forestry",
+        significance: "Major",
+        note: "2nd largest forest products exporter",
+      },
+      {
+        name: "Freshwater",
+        category: "Water",
+        significance: "Major",
+        note: "20% of world's freshwater lakes",
+      },
+      {
+        name: "Agriculture (Wheat/Canola)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "Prairies: 3rd largest wheat exporter; #1 canola producer",
+      },
+    ],
+  },
+  kr: {
+    topExportResource: "None (resource-poor)",
+    resourceRentGdpPct: 0.2,
+    year: 2025,
+    resources: [
+      {
+        name: "Tungsten & Molybdenum",
+        category: "Minerals",
+        significance: "Minor",
+        note: "Sangdong tungsten mine — one of world's largest",
+      },
+      {
+        name: "Anthracite Coal",
+        category: "Energy",
+        significance: "Minor",
+        note: "Domestic coal production declining; heavily imports",
+      },
+      {
+        name: "Fisheries (Yellow/East Sea)",
+        category: "Fisheries",
+        significance: "Significant",
+        note: "Major squid, mackerel, anchovy fisheries",
+      },
+      {
+        name: "Agricultural Land",
+        category: "Agriculture",
+        significance: "Minor",
+        note: "Limited arable land; major rice importer",
+      },
+    ],
+  },
+  sg: {
+    topExportResource: "Semiconductor trade (processed)",
+    resourceRentGdpPct: 0.0,
+    year: 2025,
+    resources: [
+      {
+        name: "Marine Sand (historic)",
+        category: "Minerals",
+        significance: "Minor",
+        note: "Used for extensive land reclamation; neighbors banned export to SG",
+      },
+      {
+        name: "Fisheries (Straits of Malacca)",
+        category: "Fisheries",
+        significance: "Minor",
+        note: "Small-scale coastal fishing; mostly imported",
+      },
+    ],
+  },
+  ae: {
+    topExportResource: "Crude Oil (Abu Dhabi)",
+    resourceRentGdpPct: 21.4,
+    year: 2025,
+    resources: [
+      {
+        name: "Crude Oil (Murban/Zakum)",
+        category: "Energy",
+        significance: "Major",
+        note: "7th largest oil reserves; ADNOC operates Abu Dhabi fields",
+      },
+      {
+        name: "Natural Gas",
+        category: "Energy",
+        significance: "Major",
+        note: "7th largest natural gas reserves",
+      },
+      {
+        name: "Solar Irradiance",
+        category: "Energy",
+        significance: "Significant",
+        note: "World's largest single-site solar plant (Al Dhafra, 2.1 GW)",
+      },
+    ],
+  },
+  sa: {
+    topExportResource: "Crude Oil (Ghawar)",
+    resourceRentGdpPct: 37.2,
+    year: 2025,
+    resources: [
+      {
+        name: "Crude Oil (Ghawar)",
+        category: "Energy",
+        significance: "Major",
+        note: "World's largest oil field; ~8 million bpd capacity via Aramco",
+      },
+      {
+        name: "Natural Gas (Haradh)",
+        category: "Energy",
+        significance: "Major",
+        note: "Master Gas System — 2nd largest gas reserves in Middle East",
+      },
+      {
+        name: "Phosphate (Wa'ad al-Shamal)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Ma'aden phosphate project — one of world's largest",
+      },
+      {
+        name: "Gold & Copper (Mahd Ad-Dahab)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Ancient 'Cradle of Gold' region; Ma'aden mining",
+      },
+      {
+        name: "Solar Irradiance",
+        category: "Energy",
+        significance: "Major",
+        note: "NEOM region targeting 100+ GW solar; world's highest solar irradiance",
+      },
+    ],
+  },
+  il_as: {
+    topExportResource: "Natural Gas (Leviathan)",
+    resourceRentGdpPct: 1.8,
+    year: 2025,
+    resources: [
+      {
+        name: "Natural Gas (Leviathan/Tamar)",
+        category: "Energy",
+        significance: "Major",
+        note: "Leviathan field discovered 2010; exports to Egypt, Jordan, Europe",
+      },
+      {
+        name: "Potash (Dead Sea)",
+        category: "Minerals",
+        significance: "Major",
+        note: "ICL Group harvests potash from Dead Sea; 10% global production",
+      },
+      {
+        name: "Diamonds (processing hub)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "World's #1 polished diamond trading hub (Tel Aviv)",
+      },
+      {
+        name: "Agricultural Innovation",
+        category: "Agriculture",
+        significance: "Significant",
+        note: "Drip irrigation pioneer; desert agriculture world leader",
+      },
+    ],
+  },
+  tr: {
+    topExportResource: "Chromium & Boron",
+    resourceRentGdpPct: 0.6,
+    year: 2025,
+    resources: [
+      {
+        name: "Boron (Kırka/Emet)",
+        category: "Minerals",
+        significance: "Major",
+        note: "70%+ of world's boron reserves; Eti Maden state company",
+      },
+      {
+        name: "Chromium",
+        category: "Minerals",
+        significance: "Major",
+        note: "5th largest chromium producer globally",
+      },
+      {
+        name: "Marble & Travertine",
+        category: "Minerals",
+        significance: "Significant",
+        note: "World's largest marble exporter; Afyon & Muğla",
+      },
+      {
+        name: "Coal (Afşin-Elbistan)",
+        category: "Energy",
+        significance: "Significant",
+        note: "Large lignite reserves; major power generation fuel",
+      },
+      {
+        name: "Agricultural Land",
+        category: "Agriculture",
+        significance: "Major",
+        note: "World's #1 hazelnut & fig producer; major wheat & cotton",
+      },
+      {
+        name: "Fisheries (Black Sea/Aegean)",
+        category: "Fisheries",
+        significance: "Significant",
+        note: "Major anchovy, tuna and trout fisheries",
+      },
+    ],
+  },
+  za: {
+    topExportResource: "Platinum & Gold",
+    resourceRentGdpPct: 7.1,
+    year: 2025,
+    resources: [
+      {
+        name: "Platinum Group Metals",
+        category: "Minerals",
+        significance: "Major",
+        note: "~75% of world's platinum reserves; Bushveld Complex",
+      },
+      {
+        name: "Gold (Witwatersrand)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Historic world's largest producer; now declining depths",
+      },
+      {
+        name: "Chromium",
+        category: "Minerals",
+        significance: "Major",
+        note: "~75% of world's chromite reserves",
+      },
+      {
+        name: "Manganese",
+        category: "Minerals",
+        significance: "Major",
+        note: "~80% of world's known manganese reserves (Kalahari)",
+      },
+      {
+        name: "Coal (Mpumalanga)",
+        category: "Energy",
+        significance: "Major",
+        note: "Eskom's power plants are coal-dependent; major exporter via Richards Bay",
+      },
+      {
+        name: "Diamonds",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Kimberley historic; Namaqualand coast alluvial",
+      },
+      {
+        name: "Agriculture (Wine/Citrus/Maize)",
+        category: "Agriculture",
+        significance: "Significant",
+        note: "Major wine exporter; Cape Winelands",
+      },
+    ],
+  },
+  ng: {
+    topExportResource: "Crude Oil (Niger Delta)",
+    resourceRentGdpPct: 9.4,
+    year: 2025,
+    resources: [
+      {
+        name: "Crude Oil (Niger Delta)",
+        category: "Energy",
+        significance: "Major",
+        note: "10th largest oil reserves; Shell, Chevron, TotalEnergies operate",
+      },
+      {
+        name: "Natural Gas (associated gas)",
+        category: "Energy",
+        significance: "Major",
+        note: "World's 9th largest reserves; gas flaring a major issue",
+      },
+      {
+        name: "Tin & Columbite (Jos Plateau)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Historic tin mining; columbite-tantalite important",
+      },
+      {
+        name: "Iron Ore (Itakpe)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Ajaokuta steel project (unfinished since 1979)",
+      },
+      {
+        name: "Agriculture (Cocoa/Palm Oil)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "4th largest cocoa producer; palm oil major smallholder crop",
+      },
+    ],
+  },
+  eg: {
+    topExportResource: "Natural Gas & Oil",
+    resourceRentGdpPct: 5.8,
+    year: 2025,
+    resources: [
+      {
+        name: "Natural Gas (Mediterranean/Nile Delta)",
+        category: "Energy",
+        significance: "Major",
+        note: "Zohr field (2015) — largest gas discovery in Mediterranean history",
+      },
+      {
+        name: "Crude Oil",
+        category: "Energy",
+        significance: "Significant",
+        note: "Western Desert & Gulf of Suez; declining production",
+      },
+      {
+        name: "Phosphate",
+        category: "Minerals",
+        significance: "Major",
+        note: "3rd largest phosphate reserves; Abu Tartur & Red Sea coast",
+      },
+      {
+        name: "Gold (Eastern Desert)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Ancient Egyptian gold mines; Centamin's Sukari mine",
+      },
+      {
+        name: "Iron Ore (Bahariya)",
+        category: "Minerals",
+        significance: "Minor",
+        note: "Bahariya Oasis deposits; limited extraction",
+      },
+      {
+        name: "Agricultural Land (Nile Valley)",
+        category: "Agriculture",
+        significance: "Significant",
+        note: "Only 4% of land arable; Nile Valley & Delta extremely fertile",
+      },
+    ],
+  },
+  mx: {
+    topExportResource: "Crude Oil & Silver",
+    resourceRentGdpPct: 6.1,
+    year: 2025,
+    resources: [
+      {
+        name: "Crude Oil (Gulf of Mexico)",
+        category: "Energy",
+        significance: "Major",
+        note: "PEMEX state monopoly; deep-water Cantarell & Ku-Maloob-Zaap fields",
+      },
+      {
+        name: "Silver",
+        category: "Minerals",
+        significance: "Major",
+        note: "World's #1 silver producer (Fresnillo, Zacatecas, Sonora)",
+      },
+      {
+        name: "Copper (Sonora)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Buenavista del Cobre — one of world's largest copper mines",
+      },
+      {
+        name: "Gold",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Major gold deposits in Sonora and Sinaloa",
+      },
+      {
+        name: "Zinc & Lead",
+        category: "Minerals",
+        significance: "Significant",
+        note: "World's 4th largest zinc producer",
+      },
+      {
+        name: "Agriculture (Avocado/Tomato/Tequila)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "#1 avocado exporter; major tomato & tequila agave producer",
+      },
+      {
+        name: "Fisheries (Pacific/Gulf)",
+        category: "Fisheries",
+        significance: "Significant",
+        note: "Shrimp, tuna, sardine fisheries; major fishing nation",
+      },
+    ],
+  },
+  ar: {
+    topExportResource: "Soybeans & Lithium",
+    resourceRentGdpPct: 7.3,
+    year: 2025,
+    resources: [
+      {
+        name: "Lithium (Puna Region)",
+        category: "Minerals",
+        significance: "Major",
+        note: "2nd largest lithium reserves; Salta, Jujuy, Catamarca salars",
+      },
+      {
+        name: "Soybeans & Grains (Pampa)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "World's #3 soybean exporter; #1 soy flour exporter (Rosario)",
+      },
+      {
+        name: "Vaca Muerta Shale (Neuquén)",
+        category: "Energy",
+        significance: "Major",
+        note: "2nd largest shale gas & 4th largest shale oil reserves globally",
+      },
+      {
+        name: "Copper & Gold (Andes)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Josemaría, MARA, and Altar copper-gold projects",
+      },
+      {
+        name: "Fisheries (South Atlantic)",
+        category: "Fisheries",
+        significance: "Major",
+        note: "Argentine hake, squid; Puerto Madryn major fishing port",
+      },
+      {
+        name: "Beef & Cattle",
+        category: "Agriculture",
+        significance: "Major",
+        note: "World's 5th largest beef exporter; Pampas grasslands",
+      },
+    ],
+  },
+  cl: {
+    topExportResource: "Copper (Atacama)",
+    resourceRentGdpPct: 11.2,
+    year: 2025,
+    resources: [
+      {
+        name: "Copper (Atacama/Andes)",
+        category: "Minerals",
+        significance: "Major",
+        note: "World's #1 copper producer & exporter (~27% global); Escondida mine",
+      },
+      {
+        name: "Lithium (Atacama Salt Flat)",
+        category: "Minerals",
+        significance: "Major",
+        note: "World's 2nd largest lithium production; SQM, Albemarle, Codelco",
+      },
+      {
+        name: "Molybdenum & Gold",
+        category: "Minerals",
+        significance: "Significant",
+        note: "By-products of copper mining; Los Pelambres",
+      },
+      {
+        name: "Salmon (Aquaculture)",
+        category: "Fisheries",
+        significance: "Major",
+        note: "World's 2nd largest salmon producer",
+      },
+      {
+        name: "Wine & Agriculture",
+        category: "Agriculture",
+        significance: "Significant",
+        note: "Central Valley wine; 5th largest wine exporter",
+      },
+      {
+        name: "Timber (Araucanía)",
+        category: "Forestry",
+        significance: "Significant",
+        note: "Pine & eucalyptus plantations; major pulp exporter",
+      },
+    ],
+  },
+  ir: {
+    topExportResource: "Crude Oil & Gas",
+    resourceRentGdpPct: 25.3,
+    year: 2025,
+    resources: [
+      {
+        name: "Crude Oil",
+        category: "Energy",
+        significance: "Major",
+        note: "4th largest oil reserves; sanctions limit exports but trade via China/India",
+      },
+      {
+        name: "Natural Gas (South Pars)",
+        category: "Energy",
+        significance: "Major",
+        note: "World's 2nd largest gas reserves; South Pars shared with Qatar",
+      },
+      {
+        name: "Copper (Sar Cheshmeh)",
+        category: "Minerals",
+        significance: "Major",
+        note: "One of world's largest copper deposits (Sar Cheshmeh, Kerman)",
+      },
+      {
+        name: "Iron Ore (Gol-e-Gohar)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Major iron ore and steel production",
+      },
+      {
+        name: "Zinc & Lead",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Angouran zinc mine — world's largest zinc mine",
+      },
+      {
+        name: "Agriculture (Pistachios/Saffron/Dates)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "#1 saffron exporter; #1 pistachio exporter",
+      },
+    ],
+  },
+  id: {
+    topExportResource: "Palm Oil & Nickel",
+    resourceRentGdpPct: 7.8,
+    year: 2025,
+    resources: [
+      {
+        name: "Nickel (Sulawesi/Maluku)",
+        category: "Minerals",
+        significance: "Major",
+        note: "World's largest nickel reserves (~42%); export ban drives EV battery industry",
+      },
+      {
+        name: "Coal (Kalimantan/Sumatra)",
+        category: "Energy",
+        significance: "Major",
+        note: "World's largest thermal coal exporter",
+      },
+      {
+        name: "Palm Oil",
+        category: "Agriculture",
+        significance: "Major",
+        note: "World's #1 palm oil producer (~55% global)",
+      },
+      {
+        name: "Copper & Gold (Grasberg)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Freeport's Grasberg — world's largest gold/copper mine",
+      },
+      {
+        name: "Tin (Bangka-Belitung)",
+        category: "Minerals",
+        significance: "Major",
+        note: "World's 2nd largest tin exporter",
+      },
+      {
+        name: "Timber & Tropical Forest",
+        category: "Forestry",
+        significance: "Major",
+        note: "3rd largest tropical forest globally; deforestation a major issue",
+      },
+      {
+        name: "Fisheries (Indo-Pacific)",
+        category: "Fisheries",
+        significance: "Major",
+        note: "2nd largest fishing nation in SE Asia",
+      },
+      {
+        name: "Natural Gas (LNG — Papua/E Kalimantan)",
+        category: "Energy",
+        significance: "Major",
+        note: "Major LNG producer; Bontang LNG terminal",
+      },
+    ],
+  },
+  my: {
+    topExportResource: "Palm Oil & LNG",
+    resourceRentGdpPct: 8.2,
+    year: 2025,
+    resources: [
+      {
+        name: "Palm Oil (Sabah/Peninsular)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "World's 2nd largest palm oil producer; Felda plantations",
+      },
+      {
+        name: "LNG (Sabah/Sarawak)",
+        category: "Energy",
+        significance: "Major",
+        note: "PETRONAS' Bintulu LNG; 5th largest LNG exporter",
+      },
+      {
+        name: "Crude Oil",
+        category: "Energy",
+        significance: "Significant",
+        note: "Declining offshore fields; Malaysia offshore deepwater production",
+      },
+      {
+        name: "Timber (Sarawak)",
+        category: "Forestry",
+        significance: "Significant",
+        note: "Tropical hardwoods; Sarawak is SE Asia's largest timber exporter",
+      },
+      {
+        name: "Tin (legacy Klang Valley)",
+        category: "Minerals",
+        significance: "Minor",
+        note: "Historically world's largest tin producer; now largely depleted",
+      },
+      {
+        name: "Copper & Gold (Sabah)",
+        category: "Minerals",
+        significance: "Minor",
+        note: "Mamut copper mine; small-scale gold",
+      },
+    ],
+  },
+  th: {
+    topExportResource: "Natural Rubber & Tin",
+    resourceRentGdpPct: 1.6,
+    year: 2025,
+    resources: [
+      {
+        name: "Natural Rubber",
+        category: "Agriculture",
+        significance: "Major",
+        note: "World's #2 natural rubber producer (Southern Thailand)",
+      },
+      {
+        name: "Rice",
+        category: "Agriculture",
+        significance: "Major",
+        note: "Top 5 global rice exporter; Thai Hom Mali (jasmine) rice is premium",
+      },
+      {
+        name: "Tin (legacy)",
+        category: "Minerals",
+        significance: "Minor",
+        note: "Historically major producer; now largely exhausted",
+      },
+      {
+        name: "Potash (Udon Thani)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Large untapped potash deposits under development",
+      },
+      {
+        name: "Limestone & Gypsum",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Major cement raw material exporter",
+      },
+      {
+        name: "Fisheries (Gulf/Andaman)",
+        category: "Fisheries",
+        significance: "Major",
+        note: "3rd largest fishing nation in SE Asia; tuna, shrimp major exports",
+      },
+      {
+        name: "Timber (Teak legacy)",
+        category: "Forestry",
+        significance: "Minor",
+        note: "Teak logging banned 1989; some legal plantation timber",
+      },
+    ],
+  },
+  vn: {
+    topExportResource: "Coal & Fisheries",
+    resourceRentGdpPct: 3.1,
+    year: 2025,
+    resources: [
+      {
+        name: "Coal (Quang Ninh — Ha Long Bay)",
+        category: "Energy",
+        significance: "Significant",
+        note: "Anthracite coal; Vinacomin state miner; environmental concerns near Ha Long Bay",
+      },
+      {
+        name: "Crude Oil (offshore)",
+        category: "Energy",
+        significance: "Significant",
+        note: "Bach Ho field (PetroVietnam); declining production",
+      },
+      {
+        name: "Bauxite (Central Highlands)",
+        category: "Minerals",
+        significance: "Major",
+        note: "3rd largest global reserves; controversial Chinese-linked development",
+      },
+      {
+        name: "Rare Earths",
+        category: "Minerals",
+        significance: "Significant",
+        note: "2nd largest global reserves; Yen Bai & Lai Chau provinces",
+      },
+      {
+        name: "Rice & Coffee",
+        category: "Agriculture",
+        significance: "Major",
+        note: "Top 3 rice exporter; world's #2 coffee exporter (Robusta)",
+      },
+      {
+        name: "Fisheries (South China Sea/Mekong)",
+        category: "Fisheries",
+        significance: "Major",
+        note: "3rd largest global aquaculture producer; shrimp, catfish major exports",
+      },
+      {
+        name: "Timber",
+        category: "Forestry",
+        significance: "Minor",
+        note: "Reforestation ongoing; hardwood imports from Laos/Cambodia",
+      },
+    ],
+  },
+  ph: {
+    topExportResource: "Nickel & Gold",
+    resourceRentGdpPct: 1.8,
+    year: 2025,
+    resources: [
+      {
+        name: "Nickel",
+        category: "Minerals",
+        significance: "Major",
+        note: "3rd largest nickel reserves; Surigao del Norte mining",
+      },
+      {
+        name: "Gold (Mindanao/Luzon)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "3rd largest gold reserves in SE Asia",
+      },
+      {
+        name: "Copper (Cebu/Sipalay)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Carmen Copper — major open pit; Atlas Mining",
+      },
+      {
+        name: "Chromite",
+        category: "Minerals",
+        significance: "Significant",
+        note: "2nd largest chromite reserves globally",
+      },
+      {
+        name: "Coconut & Abaca",
+        category: "Agriculture",
+        significance: "Major",
+        note: "World's #1 coconut oil exporter; #1 abaca (Manila hemp) producer",
+      },
+      {
+        name: "Fisheries (Coral Triangle)",
+        category: "Fisheries",
+        significance: "Major",
+        note: "Center of world's coral triangle; tuna, sardines, milkfish",
+      },
+      {
+        name: "Geothermal Energy",
+        category: "Energy",
+        significance: "Significant",
+        note: "2nd largest geothermal producer globally",
+      },
+    ],
+  },
+  pk: {
+    topExportResource: "Salt & Coal",
+    resourceRentGdpPct: 2.0,
+    year: 2025,
+    resources: [
+      {
+        name: "Coal (Thar Desert)",
+        category: "Energy",
+        significance: "Major",
+        note: "Thar coalfield — one of world's largest lignite deposits (~175 billion tonnes)",
+      },
+      {
+        name: "Salt (Khewra Mine)",
+        category: "Minerals",
+        significance: "Major",
+        note: "World's 2nd largest salt mine; Himalayan pink salt export",
+      },
+      {
+        name: "Copper & Gold (Reko Diq)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Reko Diq (Balochistan) — one of world's largest undeveloped Cu-Au deposits; $15B Barrick project",
+      },
+      {
+        name: "Natural Gas (Sui)",
+        category: "Energy",
+        significance: "Significant",
+        note: "Sui gas field historically domestic supply backbone; declining",
+      },
+      {
+        name: "Marble & Gemstones",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Chitral emeralds; rubies, peridot; Balochistan marble",
+      },
+      {
+        name: "Cotton & Agriculture",
+        category: "Agriculture",
+        significance: "Major",
+        note: "4th largest cotton producer; Indus Valley irrigation",
+      },
+    ],
+  },
+  bd: {
+    topExportResource: "Natural Gas & Garment trade (raw cotton)",
+    resourceRentGdpPct: 1.2,
+    year: 2025,
+    resources: [
+      {
+        name: "Natural Gas (Bay of Bengal)",
+        category: "Energy",
+        significance: "Significant",
+        note: "Domestic gas fields declining; Petrobangla state company",
+      },
+      {
+        name: "Coal (Barapukuria)",
+        category: "Energy",
+        significance: "Minor",
+        note: "Only operating coal mine; limited reserves",
+      },
+      {
+        name: "Agricultural Land (Ganges Delta)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "Most fertile delta land; rice, jute, shrimp production",
+      },
+      {
+        name: "Jute",
+        category: "Agriculture",
+        significance: "Major",
+        note: "World's 2nd largest jute producer; 'golden fiber' of Bangladesh",
+      },
+      {
+        name: "Fisheries (Bay of Bengal/Rivers)",
+        category: "Fisheries",
+        significance: "Major",
+        note: "3rd largest freshwater fish producer; hilsa is national fish",
+      },
+      {
+        name: "Silica Sand",
+        category: "Minerals",
+        significance: "Minor",
+        note: "Beach sands; glass manufacturing potential",
+      },
+    ],
+  },
+  et: {
+    topExportResource: "Coffee & Gold",
+    resourceRentGdpPct: 3.8,
+    year: 2025,
+    resources: [
+      {
+        name: "Coffee (Kaffa, birthplace)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "Birthplace of Arabica coffee; Yirgacheffe & Sidama premium beans; #1 African coffee exporter",
+      },
+      {
+        name: "Gold (Oromia/Tigray)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "3rd largest gold producer in Africa",
+      },
+      {
+        name: "Tantalum & Niobium",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Kenticha mine — major tantalum producer",
+      },
+      {
+        name: "Potash (Danakil Depression)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Colluli potash project; one of world's shallowest potash deposits",
+      },
+      {
+        name: "Hydropower (Blue Nile/Omo)",
+        category: "Water",
+        significance: "Major",
+        note: "GERD dam — Africa's largest hydropower dam (6.45 GW capacity)",
+      },
+      {
+        name: "Geothermal (Rift Valley)",
+        category: "Energy",
+        significance: "Significant",
+        note: "East African Rift geothermal potential; Aluto-Langano projects",
+      },
+      {
+        name: "Flowers (Roses/Carnations)",
+        category: "Agriculture",
+        significance: "Significant",
+        note: "3rd largest flower exporter to EU; Dutch auction-linked",
+      },
+    ],
+  },
+  ke: {
+    topExportResource: "Tea & Flowers",
+    resourceRentGdpPct: 1.9,
+    year: 2025,
+    resources: [
+      {
+        name: "Tea (Rift Valley/Highlands)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "World's #1 black tea exporter (CTC grade); Kericho estates",
+      },
+      {
+        name: "Flowers (Naivasha)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "EU's #1 flower supplier; Lake Naivasha rose farms",
+      },
+      {
+        name: "Geothermal Energy (Olkaria)",
+        category: "Energy",
+        significance: "Major",
+        note: "Africa's largest geothermal field; 1,000+ MW capacity",
+      },
+      {
+        name: "Titanium & Zircon (Coast)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Base Titanium's Kwale mine; beach mineral sands",
+      },
+      {
+        name: "Soda Ash (Lake Magadi)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Tata Chemicals Magadi; world's purest natural soda ash",
+      },
+      {
+        name: "Fisheries (Lake Victoria)",
+        category: "Fisheries",
+        significance: "Significant",
+        note: "Nile perch; major freshwater fishery",
+      },
+    ],
+  },
+  ua: {
+    topExportResource: "Grain & Iron Ore",
+    resourceRentGdpPct: 6.4,
+    year: 2025,
+    resources: [
+      {
+        name: "Agricultural Chernozem (Black Earth)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "World's largest chernozem belt; 'breadbasket of Europe'; #3 wheat exporter",
+      },
+      {
+        name: "Iron Ore (Krivyi Rih)",
+        category: "Minerals",
+        significance: "Major",
+        note: "World's 5th largest iron ore exporter; Metinvest, ArcelorMittal",
+      },
+      {
+        name: "Manganese (Nikopol)",
+        category: "Minerals",
+        significance: "Major",
+        note: "World's largest manganese reserves basin",
+      },
+      {
+        name: "Coal (Donbas)",
+        category: "Energy",
+        significance: "Significant",
+        note: "Most Donbas coal mines now under Russian occupation",
+      },
+      {
+        name: "Titanium & Zirconium",
+        category: "Minerals",
+        significance: "Major",
+        note: "2nd largest titanium reserves; Velta and Sukha Balka deposits",
+      },
+      {
+        name: "Uranium (Zheltye Vody)",
+        category: "Energy",
+        significance: "Significant",
+        note: "Largest uranium deposits in Europe; Energoatom supply chain",
+      },
+      {
+        name: "Sunflower Oil",
+        category: "Agriculture",
+        significance: "Major",
+        note: "World's #1 sunflower oil exporter",
+      },
+    ],
+  },
+  pl: {
+    topExportResource: "Coal & Copper",
+    resourceRentGdpPct: 1.8,
+    year: 2025,
+    resources: [
+      {
+        name: "Coal (Silesia)",
+        category: "Energy",
+        significance: "Major",
+        note: "EU's 2nd largest hard coal producer; transition plan by 2049",
+      },
+      {
+        name: "Copper & Silver (KGHM)",
+        category: "Minerals",
+        significance: "Major",
+        note: "KGHM — EU's largest copper producer (Legnica-Głogów basin)",
+      },
+      {
+        name: "Zinc & Lead (Silesia)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Olkusz-Bukowno — major zinc-lead deposits",
+      },
+      {
+        name: "Amber (Baltic coast)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "~80% of world's amber reserves; Baltic amber export",
+      },
+      {
+        name: "Salt (Wieliczka)",
+        category: "Minerals",
+        significance: "Minor",
+        note: "UNESCO-listed Wieliczka salt mine; operational since 13th century",
+      },
+      {
+        name: "Agricultural Land",
+        category: "Agriculture",
+        significance: "Significant",
+        note: "Rye, potatoes, wheat, triticale major crops",
+      },
+      {
+        name: "Timber",
+        category: "Forestry",
+        significance: "Significant",
+        note: "30% forested; IKEA's largest timber supplier",
+      },
+    ],
+  },
+  it: {
+    topExportResource: "Marble & Agriculture",
+    resourceRentGdpPct: 0.2,
+    year: 2025,
+    resources: [
+      {
+        name: "Marble (Carrara)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Carrara white marble — world's most famous; used since ancient Rome",
+      },
+      {
+        name: "Travertine & Natural Stone",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Major stone exporter; Tivoli travertine",
+      },
+      {
+        name: "Natural Gas (Po Valley, declining)",
+        category: "Energy",
+        significance: "Minor",
+        note: "Domestic gas production <5% of needs; mainly imports",
+      },
+      {
+        name: "Sulfur (Sicily, legacy)",
+        category: "Minerals",
+        significance: "Minor",
+        note: "Once world's dominant sulfur source; no longer competitive",
+      },
+      {
+        name: "Agriculture (Wine/Olive Oil/Tomatoes)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "#1 wine producer by volume; #1 olive oil producer; premium tomato exports",
+      },
+      {
+        name: "Geothermal (Larderello)",
+        category: "Energy",
+        significance: "Significant",
+        note: "World's first geothermal power plant (1911) still operating",
+      },
+    ],
+  },
+  es: {
+    topExportResource: "Olive Oil & Copper",
+    resourceRentGdpPct: 0.4,
+    year: 2025,
+    resources: [
+      {
+        name: "Olive Oil (Andalucía)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "World's #1 olive oil producer & exporter (~45% global)",
+      },
+      {
+        name: "Copper (Iberian Pyrite Belt)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Rio Tinto (Huelva) — ancient mine; Atalaya Mining, Lundin projects",
+      },
+      {
+        name: "Wind & Solar Resources",
+        category: "Energy",
+        significance: "Major",
+        note: "EU's largest wind installed capacity; massive solar irradiance",
+      },
+      {
+        name: "Potash (Cardona, Catalonia)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "ICL Iberia potash mine in Catalonia",
+      },
+      {
+        name: "Agricultural Land (Almería/La Mancha)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "Europe's market garden; plastic greenhouse sea of Almería",
+      },
+      {
+        name: "Fisheries (Atlantic/Mediterranean)",
+        category: "Fisheries",
+        significance: "Significant",
+        note: "EU's largest fishing fleet; sardine, anchovy, tuna",
+      },
+    ],
+  },
+  ru_res: {
+    topExportResource: "Oil & Gas",
+    resourceRentGdpPct: 14.2,
+    year: 2025,
+    resources: [],
+  },
+  se: {
+    topExportResource: "Iron Ore & Timber",
+    resourceRentGdpPct: 2.1,
+    year: 2025,
+    resources: [
+      {
+        name: "Iron Ore (Kiruna)",
+        category: "Minerals",
+        significance: "Major",
+        note: "LKAB Kiruna — Europe's largest iron ore mine; being moved deeper",
+      },
+      {
+        name: "Copper & Gold (Aitik)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Aitik — Europe's largest copper mine (Boliden)",
+      },
+      {
+        name: "Timber & Pulp (Boreal Forest)",
+        category: "Forestry",
+        significance: "Major",
+        note: "EU's largest timber exporter; SCA, Stora Enso, Holmen",
+      },
+      {
+        name: "Rare Earths (Norra Kärr/Per Geijer)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "LKAB 2023: EU's largest rare earth discovery (1M+ tonnes)",
+      },
+      {
+        name: "Hydropower",
+        category: "Energy",
+        significance: "Major",
+        note: "~45% of electricity from hydro; Norrland river system",
+      },
+      {
+        name: "Fisheries (North Sea/Baltic)",
+        category: "Fisheries",
+        significance: "Significant",
+        note: "Herring, cod, salmon; Göteborg seafood trading hub",
+      },
+    ],
+  },
+  no: {
+    topExportResource: "Oil & Gas (North Sea)",
+    resourceRentGdpPct: 28.4,
+    year: 2025,
+    resources: [
+      {
+        name: "Crude Oil (North Sea — Ekofisk/Johan Sverdrup)",
+        category: "Energy",
+        significance: "Major",
+        note: "15th largest oil exporter; Johan Sverdrup 700,000 bpd peak",
+      },
+      {
+        name: "Natural Gas (Troll/Sleipner)",
+        category: "Energy",
+        significance: "Major",
+        note: "EU's #1 gas supplier post-Russia sanctions; Troll field",
+      },
+      {
+        name: "Hydropower",
+        category: "Water",
+        significance: "Major",
+        note: "99% of electricity from hydro; Hardanger fjord dam network",
+      },
+      {
+        name: "Fisheries (Barents/North Atlantic)",
+        category: "Fisheries",
+        significance: "Major",
+        note: "World's largest cod, herring, salmon fisheries; Mowi salmon farming",
+      },
+      {
+        name: "Phosphate Rock (legacy Telemark)",
+        category: "Minerals",
+        significance: "Minor",
+        note: "Yara's phosphate history; now imports from Morocco",
+      },
+      {
+        name: "Titanium (Titania, Rogaland)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Titania AS — Europe's only ilmenite mine",
+      },
+      {
+        name: "Timber & Boreal Forest",
+        category: "Forestry",
+        significance: "Significant",
+        note: "37% forested; Moelven, Norfor timber groups",
+      },
+    ],
+  },
+  rs: {
+    topExportResource: "Copper & Lithium (emerging)",
+    resourceRentGdpPct: 2.8,
+    year: 2025,
+    resources: [
+      {
+        name: "Lithium & Boron (Jadar Valley)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Jadarite mineral deposit — projected to supply ~90% of EU's lithium needs by 2030; Rio Tinto $2.4B project approved 2025",
+      },
+      {
+        name: "Copper & Gold (Bor)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Bor copper mine — one of Europe's largest; Zijin Mining Chinese-owned since 2018",
+      },
+      {
+        name: "Coal (Kolubara/Kostolac)",
+        category: "Energy",
+        significance: "Significant",
+        note: "Lignite powers ~70% of Serbia's electricity; EPS state company",
+      },
+      {
+        name: "Lead & Zinc (Trepča)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Trepča mines (Kosovo border) historically major lead-zinc-silver",
+      },
+      {
+        name: "Agricultural Land",
+        category: "Agriculture",
+        significance: "Significant",
+        note: "Vojvodina plains — Serbia is EU/regional sunflower, corn, wheat supplier",
+      },
+      {
+        name: "Timber (Serbia Forests)",
+        category: "Forestry",
+        significance: "Minor",
+        note: "31% forest cover; beech and oak timber",
+      },
+      {
+        name: "Antimony (Zajača)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "EU's only significant antimony deposit; strategic critical mineral",
+      },
+    ],
+  },
+  kz: {
+    topExportResource: "Crude Oil & Uranium",
+    resourceRentGdpPct: 22.4,
+    year: 2025,
+    resources: [
+      {
+        name: "Crude Oil (Tengiz/Kashagan)",
+        category: "Energy",
+        significance: "Major",
+        note: "Tengiz and Kashagan — two of world's largest oil fields; TengizChevroil, NCOC",
+      },
+      {
+        name: "Uranium",
+        category: "Energy",
+        significance: "Major",
+        note: "World's #1 uranium producer (~45% of global); Kazatomprom",
+      },
+      {
+        name: "Chromite",
+        category: "Minerals",
+        significance: "Major",
+        note: "World's 2nd largest chromite reserves; Kazchrome",
+      },
+      {
+        name: "Copper (Zhezkazgan)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Kazakhmys's Zhezkazgan — one of world's largest copper deposits",
+      },
+      {
+        name: "Coal (Karaganda)",
+        category: "Energy",
+        significance: "Major",
+        note: "Major coking coal for steel industry",
+      },
+      {
+        name: "Zinc & Lead",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Shymkent, Ridder — major zinc-lead smelting",
+      },
+      {
+        name: "Agricultural Land (steppes)",
+        category: "Agriculture",
+        significance: "Significant",
+        note: "Wheat growing steppes; major grain exporter",
+      },
+    ],
+  },
+  iq: {
+    topExportResource: "Crude Oil",
+    resourceRentGdpPct: 44.6,
+    year: 2025,
+    resources: [
+      {
+        name: "Crude Oil (Rumaila/Kirkuk)",
+        category: "Energy",
+        significance: "Major",
+        note: "5th largest oil reserves; Rumaila is one of world's largest active fields",
+      },
+      {
+        name: "Natural Gas (associated)",
+        category: "Energy",
+        significance: "Significant",
+        note: "Large gas flaring problem; limited gas capture infrastructure",
+      },
+      {
+        name: "Phosphate Rock (Akashat)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Akashat deposits in western Iraq; partly damaged in ISIS era",
+      },
+      {
+        name: "Sulfur (Mishraq)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "One of world's largest natural sulfur deposits near Mosul",
+      },
+      {
+        name: "Agricultural Land (Fertile Crescent)",
+        category: "Agriculture",
+        significance: "Significant",
+        note: "Tigris-Euphrates delta; dates, wheat, barley historically",
+      },
+    ],
+  },
+  qa: {
+    topExportResource: "LNG",
+    resourceRentGdpPct: 44.2,
+    year: 2025,
+    resources: [
+      {
+        name: "Natural Gas (North Dome/South Pars)",
+        category: "Energy",
+        significance: "Major",
+        note: "World's largest single natural gas field (shared with Iran); QatarEnergy world's #1 LNG exporter",
+      },
+      {
+        name: "Crude Oil",
+        category: "Energy",
+        significance: "Significant",
+        note: "Al-Shaheen oil field; declining but still significant",
+      },
+      {
+        name: "Helium",
+        category: "Energy",
+        significance: "Major",
+        note: "World's 2nd largest helium producer (extracted from LNG streams)",
+      },
+    ],
+  },
+  om: {
+    topExportResource: "Crude Oil",
+    resourceRentGdpPct: 25.1,
+    year: 2025,
+    resources: [
+      {
+        name: "Crude Oil (Marmul/Fahud)",
+        category: "Energy",
+        significance: "Major",
+        note: "PDO (Shell/TotalEnergies/OmanOil) Enhanced Oil Recovery operations",
+      },
+      {
+        name: "Natural Gas (LNG — Sur Plant)",
+        category: "Energy",
+        significance: "Major",
+        note: "Oman LNG; Khazzan tight gas field major new discovery",
+      },
+      {
+        name: "Copper (ancient Magan)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Lasail copper mine; ancient copper smelting centre",
+      },
+      {
+        name: "Fisheries (Arabian Sea)",
+        category: "Fisheries",
+        significance: "Significant",
+        note: "Abalone, kingfish, lobster; declining stocks concern",
+      },
+      {
+        name: "Frankincense (Dhofar)",
+        category: "Agriculture",
+        significance: "Minor",
+        note: "Boswellia sacra trees — Omani frankincense globally premium",
+      },
+    ],
+  },
+  co_co: {
+    topExportResource: "Crude Oil & Coal",
+    resourceRentGdpPct: 5.4,
+    year: 2025,
+    resources: [
+      {
+        name: "Crude Oil (Llanos/Pacific)",
+        category: "Energy",
+        significance: "Major",
+        note: "Ecopetrol state company; ~750,000 bpd production",
+      },
+      {
+        name: "Coal (El Cerrejón/Drummond)",
+        category: "Energy",
+        significance: "Major",
+        note: "World's largest open-pit coal mines; Cerrejón in La Guajira",
+      },
+      {
+        name: "Emeralds (Muzo/Chivor)",
+        category: "Minerals",
+        significance: "Major",
+        note: "~70–90% of world's premium emeralds from Boyacá",
+      },
+      {
+        name: "Gold (Antioquia)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Medellín gold rush heritage; Gran Colombia Gold, AngloGold projects",
+      },
+      {
+        name: "Coffee (Axis Cafetero)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "World's #3 Arabica exporter; Colombian Supremo premium",
+      },
+      {
+        name: "Flowers (Bogotá Savanna)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "#2 global flower exporter; Bogotá airport world's busiest cut-flower hub",
+      },
+      {
+        name: "Nickel (Cerro Matoso)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "South America's only operating nickel mine (ferronickel)",
+      },
+    ],
+  },
+  pe: {
+    topExportResource: "Copper & Gold (Andes)",
+    resourceRentGdpPct: 9.2,
+    year: 2025,
+    resources: [
+      {
+        name: "Copper (Las Bambas/Cerro Verde)",
+        category: "Minerals",
+        significance: "Major",
+        note: "World's #2 copper producer; Andes copper belt",
+      },
+      {
+        name: "Gold (Yanacocha)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Newmont's Yanacocha — South America's largest gold mine",
+      },
+      {
+        name: "Silver & Zinc",
+        category: "Minerals",
+        significance: "Major",
+        note: "World's #2 silver & zinc producer; Antamina, Cerro de Pasco",
+      },
+      {
+        name: "Fisheries (Humboldt Current)",
+        category: "Fisheries",
+        significance: "Major",
+        note: "World's #1 fish flour producer; anchoveta fishing (El Niño impacts)",
+      },
+      {
+        name: "Lithium (Puno/Ayacucho)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Significant deposits under development",
+      },
+      {
+        name: "Agriculture (Asparagus/Avocado/Quinoa)",
+        category: "Agriculture",
+        significance: "Significant",
+        note: "#1 asparagus exporter; #1 avocado exporter globally (2024)",
+      },
+    ],
+  },
+  gh: {
+    topExportResource: "Gold & Cocoa",
+    resourceRentGdpPct: 8.4,
+    year: 2025,
+    resources: [
+      {
+        name: "Gold (Ashanti Belt)",
+        category: "Minerals",
+        significance: "Major",
+        note: "#1 African gold producer; Newmont Ahafo, Asante Gold",
+      },
+      {
+        name: "Cocoa (Ashanti/Brong-Ahafo)",
+        category: "Agriculture",
+        significance: "Major",
+        note: "World's #2 cocoa producer; COCOBOD marketing board",
+      },
+      {
+        name: "Crude Oil (Jubilee/TEN)",
+        category: "Energy",
+        significance: "Significant",
+        note: "Jubilee field discovered 2007; Tullow/Kosmos/GNPC",
+      },
+      {
+        name: "Bauxite (Awaso)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Ghana Bauxite Company; Integrated Aluminium Industry ambitions",
+      },
+      {
+        name: "Manganese (Nsuta)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "3rd largest manganese exporter in Africa",
+      },
+      {
+        name: "Timber",
+        category: "Forestry",
+        significance: "Significant",
+        note: "Tropical hardwoods; reduced logging post-deforestation",
+      },
+    ],
+  },
+  tz: {
+    topExportResource: "Gold & Tanzanite",
+    resourceRentGdpPct: 4.6,
+    year: 2025,
+    resources: [
+      {
+        name: "Gold (Lake Victoria Belt)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Geita Gold Mine (AngloGold) — 2nd largest in Africa",
+      },
+      {
+        name: "Tanzanite (Mererani)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Tanzanite found ONLY in Tanzania; Mererani Hills near Kilimanjaro",
+      },
+      {
+        name: "Natural Gas (Tanzania offshore)",
+        category: "Energy",
+        significance: "Major",
+        note: "50+ TCF offshore; Equinor/Shell LNG project delayed",
+      },
+      {
+        name: "Diamonds (Shinyanga)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Williamson Diamond mine — historic; Mwadui kimberlite",
+      },
+      {
+        name: "Agriculture (Coffee/Tea/Cloves — Zanzibar)",
+        category: "Agriculture",
+        significance: "Significant",
+        note: "Zanzibar cloves; Kilimanjaro Arabica coffee; Usambara tea",
+      },
+      {
+        name: "Fisheries (Lake Victoria/Indian Ocean)",
+        category: "Fisheries",
+        significance: "Significant",
+        note: "Nile perch; Indian Ocean tuna fisheries",
+      },
+    ],
+  },
+  ma: {
+    topExportResource: "Phosphate (OCP)",
+    resourceRentGdpPct: 6.8,
+    year: 2025,
+    resources: [
+      {
+        name: "Phosphate Rock (Khouribga/Benguerir)",
+        category: "Minerals",
+        significance: "Major",
+        note: "World's largest phosphate reserves (~70%); OCP Group — world's #1 exporter",
+      },
+      {
+        name: "Silver & Lead (Zgounder/Imiter)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Zgounder — one of world's largest silver deposits",
+      },
+      {
+        name: "Cobalt (Bou-Azzer)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Bou-Azzer — world's only primary cobalt mine (not a by-product)",
+      },
+      {
+        name: "Agriculture (Olive Oil/Citrus/Argan)",
+        category: "Agriculture",
+        significance: "Significant",
+        note: "Argan oil only from SW Morocco; major citrus for EU",
+      },
+      {
+        name: "Fisheries (Atlantic Coast)",
+        category: "Fisheries",
+        significance: "Major",
+        note: "One of Africa's largest fish catches; sardines, octopus; Agadir processing",
+      },
+      {
+        name: "Wind & Solar (Solar Atlas)",
+        category: "Energy",
+        significance: "Major",
+        note: "Noor Ouarzazate — Africa's largest CSP solar plant; major wind corridor",
+      },
+    ],
+  },
+  ao: {
+    topExportResource: "Crude Oil",
+    resourceRentGdpPct: 38.2,
+    year: 2025,
+    resources: [
+      {
+        name: "Crude Oil (Block 17/15-06)",
+        category: "Energy",
+        significance: "Major",
+        note: "Africa's 3rd largest oil producer; TotalEnergies, ExxonMobil, Chevron deepwater",
+      },
+      {
+        name: "Natural Gas (Angola LNG)",
+        category: "Energy",
+        significance: "Significant",
+        note: "Angola LNG plant (Soyo) — first sub-Saharan LNG facility",
+      },
+      {
+        name: "Diamonds (Lundas)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Endiama state company; Catoca mine — 4th largest kimberlite mine globally",
+      },
+      {
+        name: "Iron Ore (Kassinga)",
+        category: "Minerals",
+        significance: "Minor",
+        note: "Cuima-Cassinga deposits; historically significant",
+      },
+      {
+        name: "Agriculture (Coffee/Timber)",
+        category: "Agriculture",
+        significance: "Significant",
+        note: "Coffee was colonial commodity; Arabica potential revival",
+      },
+    ],
+  },
+  dz: {
+    topExportResource: "Natural Gas & Crude Oil",
+    resourceRentGdpPct: 18.6,
+    year: 2025,
+    resources: [
+      {
+        name: "Natural Gas (Hassi R'Mel)",
+        category: "Energy",
+        significance: "Major",
+        note: "Hassi R'Mel — one of world's largest gas fields; Sonatrach state company",
+      },
+      {
+        name: "Crude Oil (Hassi Messaoud)",
+        category: "Energy",
+        significance: "Major",
+        note: "Hassi Messaoud — Algeria's largest oil field since 1956",
+      },
+      {
+        name: "Phosphate (Djebel Onk)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Large untapped reserves in northeast Algeria",
+      },
+      {
+        name: "Iron Ore (Gara Djebilet)",
+        category: "Minerals",
+        significance: "Major",
+        note: "Gara Djebilet — one of world's largest iron ore deposits (3.5 billion tonnes)",
+      },
+      {
+        name: "Zinc & Lead (Oued Amizour)",
+        category: "Minerals",
+        significance: "Significant",
+        note: "Tala Hamza project — major zinc-lead-silver discovery",
+      },
+      {
+        name: "Solar (Sahara)",
+        category: "Energy",
+        significance: "Major",
+        note: "Highest solar irradiance globally; Desertec concept foundation",
+      },
+    ],
+  },
+  za_res2: {
+    topExportResource: "Platinum & Coal",
+    resourceRentGdpPct: 7.1,
+    year: 2025,
+    resources: [],
+  },
+};
+
+const SRC_RESOURCES = [
+  {
+    label: "USGS Mineral Resources Data",
+    url: "https://www.usgs.gov/centers/national-minerals-information-center",
+  },
+  {
+    label: "BGR Raw Materials Information",
+    url: "https://www.bgr.bund.de/EN/Themen/Min_rohstoffe/min_rohstoffe_node_en.html",
+  },
+  {
+    label: "World Bank Commodity Markets",
+    url: "https://www.worldbank.org/en/research/commodity-markets",
+  },
+];
+
+function CountryResourcesPanel({ country }: { country: Country }) {
+  const data = COUNTRY_RESOURCES[country.id];
+  if (!data || data.resources.length === 0) return null;
+
+  const categoryCounts = data.resources.reduce<Record<string, number>>(
+    (acc, r) => {
+      acc[r.category] = (acc[r.category] || 0) + 1;
+      return acc;
+    },
+    {},
+  );
+
+  const majorCount = data.resources.filter(
+    (r) => r.significance === "Major",
+  ).length;
+
+  return (
+    <div className="modal-tile rounded-lg p-4 mt-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-amber-500/10 rounded-md border border-amber-500/20 shrink-0">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="text-amber-400"
+            >
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+              Natural Resources
+            </h3>
+            <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+              Key mineral, energy &amp; agricultural resources · {data.year}
+            </p>
+          </div>
+        </div>
+        <span className="text-[10px] font-mono text-amber-400 border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 rounded-full">
+          {majorCount} Major
+        </span>
+      </div>
+
+      {/* Quick stats row */}
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        {data.topExportResource && (
+          <div className="rounded-lg border border-border bg-background/40 p-3">
+            <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
+              Top Export Resource
+            </p>
+            <p className="text-xs font-semibold font-sans text-amber-400 leading-snug">
+              {data.topExportResource}
+            </p>
+          </div>
+        )}
+        {data.resourceRentGdpPct != null && (
+          <div className="rounded-lg border border-border bg-background/40 p-3">
+            <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
+              Resource Rent / GDP
+            </p>
+            <p
+              className={`text-base font-bold font-mono ${data.resourceRentGdpPct >= 15 ? "text-amber-400" : data.resourceRentGdpPct >= 5 ? "text-yellow-400" : "text-foreground"}`}
+            >
+              {data.resourceRentGdpPct}%
+            </p>
+            <div className="mt-1.5 h-1.5 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${Math.min(100, (data.resourceRentGdpPct / 50) * 100)}%`,
+                  background:
+                    data.resourceRentGdpPct >= 15
+                      ? "hsl(38,92%,50%)"
+                      : "hsl(200,85%,55%)",
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Category legend */}
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {(Object.keys(categoryCounts) as ResourceEntry["category"][]).map(
+          (cat) => {
+            const cfg = RESOURCE_CATEGORY_COLORS[cat];
+            return (
+              <span
+                key={cat}
+                className={`text-[10px] font-sans px-2 py-0.5 rounded-full border ${cfg.text} ${cfg.border} ${cfg.bg}`}
+              >
+                {cat} ({categoryCounts[cat]})
+              </span>
+            );
+          },
+        )}
+      </div>
+
+      {/* Resource list */}
+      <div className="space-y-2">
+        {data.resources.map((res, i) => {
+          const cfg = RESOURCE_CATEGORY_COLORS[res.category];
+          const sigColor = SIGNIFICANCE_COLORS[res.significance];
+          return (
+            <div
+              key={i}
+              className={`rounded-lg border p-3 ${cfg.bg} ${cfg.border}`}
+            >
+              <div className="flex items-start gap-2">
+                <span
+                  className={`w-2 h-2 rounded-full mt-1 shrink-0 ${cfg.dot}`}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                    <p className="text-xs font-semibold font-sans text-foreground">
+                      {res.name}
+                    </p>
+                    <span
+                      className={`text-[10px] font-sans px-1.5 py-0.5 rounded border font-medium ${cfg.text} ${cfg.border} bg-background/30`}
+                    >
+                      {res.category}
+                    </span>
+                    <span
+                      className={`text-[10px] font-mono font-semibold ml-auto ${sigColor}`}
+                    >
+                      {res.significance}
+                    </span>
+                  </div>
+                  {res.note && (
+                    <p className="text-[10px] text-muted-foreground font-sans leading-relaxed">
+                      {res.note}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <SourceLink sources={SRC_RESOURCES} className="mt-3" />
+    </div>
+  );
+}
+
+function CountryHousingTransportPanel({ country }: { country: Country }) {
+  const data = COUNTRY_HOUSING_TRANSPORT[country.id];
+  if (!data) return null;
+  const { housing: h, transport: t } = data;
+
+  const afColor =
+    h.affordabilityIndex >= 50
+      ? "text-success"
+      : h.affordabilityIndex >= 35
+        ? "text-warning"
+        : "text-destructive";
+  const afBg =
+    h.affordabilityIndex >= 50
+      ? "hsl(142,71%,45%)"
+      : h.affordabilityIndex >= 35
+        ? "hsl(38,92%,50%)"
+        : "hsl(0,70%,55%)";
+  const yoyColor =
+    h.yoyPriceChangePct >= 0 ? "text-success" : "text-destructive";
+
+  return (
+    <div className="space-y-4 mt-4">
+      {/* ── HOUSING ── */}
+      <div className="modal-tile rounded-lg p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="p-1.5 bg-orange-500/10 rounded-md border border-orange-500/20 shrink-0">
+            <Buildings size={13} weight="fill" className="text-orange-400" />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+              Housing Market
+            </h3>
+            <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+              Prices, affordability &amp; ownership
+            </p>
+          </div>
+          <span
+            className={`ml-auto text-[10px] font-sans px-2 py-0.5 rounded-full border font-semibold ${h.affordabilityIndex >= 50 ? "text-green-400 border-green-500/30 bg-green-500/10" : h.affordabilityIndex >= 35 ? "text-yellow-400 border-yellow-500/30 bg-yellow-500/10" : "text-red-400 border-red-500/30 bg-red-500/10"}`}
+          >
+            {h.affordabilityIndex >= 50
+              ? "Affordable"
+              : h.affordabilityIndex >= 35
+                ? "Moderate"
+                : "Unaffordable"}
+          </span>
+        </div>
+
+        {/* KPI grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+          {[
+            {
+              label: "Median Home Price",
+              value: fmtPrice(h.medianHomePriceUSD),
+              color: "text-orange-400",
+            },
+            {
+              label: "Median Monthly Rent",
+              value: fmtPrice(h.medianRentMonthlyUSD),
+              color: "text-amber-400",
+            },
+            {
+              label: "Ownership Rate",
+              value: `${h.homeOwnershipPct}%`,
+              color: h.homeOwnershipPct >= 65 ? "text-success" : "text-warning",
+            },
+            {
+              label: "YoY Price Change",
+              value: `${h.yoyPriceChangePct > 0 ? "+" : ""}${h.yoyPriceChangePct}%`,
+              color: yoyColor,
+            },
+          ].map((s) => (
+            <div
+              key={s.label}
+              className="rounded-lg border border-border bg-background/40 p-3 text-center"
+            >
+              <p className="text-[10px] text-muted-foreground font-sans mb-0.5 leading-tight">
+                {s.label}
+              </p>
+              <p className={`text-base font-bold font-mono ${s.color}`}>
+                {s.value}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Affordability index — value only */}
+        <div className="mb-3 flex items-center justify-between rounded-lg bg-background/30 border border-border/50 px-3 py-2">
+          <span className="text-[10px] text-muted-foreground font-sans">
+            Affordability Index
+          </span>
+          <span className={`text-xs font-mono font-semibold ${afColor}`}>
+            {h.affordabilityIndex}/100
+          </span>
+        </div>
+
+        {/* Price-to-income — value only */}
+        <div className="mb-3 flex items-center justify-between rounded-lg bg-background/30 border border-border/50 px-3 py-2">
+          <span className="text-[10px] text-muted-foreground font-sans">
+            Price-to-Income Ratio
+          </span>
+          <span
+            className={`text-xs font-mono font-semibold ${h.priceToIncomeRatio > 12 ? "text-destructive" : h.priceToIncomeRatio > 8 ? "text-warning" : "text-success"}`}
+          >
+            {h.priceToIncomeRatio}×
+          </span>
+        </div>
+
+        {/* Quick stats row */}
+        <div className="grid grid-cols-3 gap-2">
+          {h.mortgageRateAvgPct != null && (
+            <div className="rounded-lg bg-background/30 border border-border/50 p-2 text-center">
+              <p className="text-[9px] text-muted-foreground font-sans">
+                Mortgage Rate
+              </p>
+              <p
+                className={`text-sm font-bold font-mono ${h.mortgageRateAvgPct > 10 ? "text-destructive" : h.mortgageRateAvgPct > 5 ? "text-warning" : "text-success"}`}
+              >
+                {h.mortgageRateAvgPct}%
+              </p>
+            </div>
+          )}
+          {h.vacancyRatePct != null && (
+            <div className="rounded-lg bg-background/30 border border-border/50 p-2 text-center">
+              <p className="text-[9px] text-muted-foreground font-sans">
+                Vacancy Rate
+              </p>
+              <p className="text-sm font-bold font-mono text-foreground">
+                {h.vacancyRatePct}%
+              </p>
+            </div>
+          )}
+          {h.socialHousingPct != null && (
+            <div className="rounded-lg bg-background/30 border border-border/50 p-2 text-center">
+              <p className="text-[9px] text-muted-foreground font-sans">
+                Social Housing
+              </p>
+              <p className="text-sm font-bold font-mono text-secondary">
+                {h.socialHousingPct}%
+              </p>
+            </div>
+          )}
+        </div>
+
+        <SourceLink sources={SRC_HOUSING} className="mt-3" />
+      </div>
+
+      {/* ── TRANSPORTATION ── */}
+      <div className="modal-tile rounded-lg p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="p-1.5 bg-blue-500/10 rounded-md border border-blue-500/20 shrink-0">
+            <Airplane size={13} weight="fill" className="text-blue-400" />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+              Transportation
+            </h3>
+            <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+              Infrastructure, transit &amp; mobility
+            </p>
+          </div>
+          <span className="ml-auto text-[10px] font-mono text-muted-foreground border border-border px-2 py-0.5 rounded-full bg-background/40">
+            {t.publicTransitUsagePct}% use public transit
+          </span>
+        </div>
+
+        {/* Key metrics grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+          {[
+            {
+              label: "Rail Network",
+              value: `${t.railNetworkKm.toLocaleString()} km`,
+              color: "text-foreground",
+            },
+            {
+              label: "Airports",
+              value: `${t.airports.toLocaleString()}`,
+              color: "text-foreground",
+            },
+            {
+              label: "EV Adoption",
+              value: `${t.evAdoptionPct}%`,
+              color:
+                t.evAdoptionPct >= 20
+                  ? "text-success"
+                  : t.evAdoptionPct >= 5
+                    ? "text-secondary"
+                    : "text-muted-foreground",
+            },
+            ...(t.avgCommuteMinutes != null
+              ? [
+                  {
+                    label: "Avg Commute",
+                    value: `${t.avgCommuteMinutes} min`,
+                    color:
+                      t.avgCommuteMinutes > 50
+                        ? "text-destructive"
+                        : t.avgCommuteMinutes > 35
+                          ? "text-warning"
+                          : "text-success",
+                  },
+                ]
+              : []),
+            ...(t.highSpeedRailKm != null
+              ? [
+                  {
+                    label: "High-Speed Rail",
+                    value:
+                      t.highSpeedRailKm > 0
+                        ? `${t.highSpeedRailKm.toLocaleString()} km`
+                        : "None",
+                    color:
+                      t.highSpeedRailKm > 0
+                        ? "text-success"
+                        : "text-muted-foreground",
+                  },
+                ]
+              : []),
+            ...(t.metroSystems != null
+              ? [
+                  {
+                    label: "Metro Systems",
+                    value: `${t.metroSystems}`,
+                    color: "text-foreground",
+                  },
+                ]
+              : []),
+          ].map((s) => (
+            <div
+              key={s.label}
+              className="rounded-lg border border-border bg-background/40 p-3 text-center"
+            >
+              <p className="text-[10px] text-muted-foreground font-sans mb-0.5 leading-tight">
+                {s.label}
+              </p>
+              <p className={`text-sm font-bold font-mono ${s.color}`}>
+                {s.value}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Public transit — value only */}
+        <div className="mb-3 flex items-center justify-between rounded-lg bg-background/30 border border-border/50 px-3 py-2">
+          <span className="text-[10px] text-muted-foreground font-sans">
+            Public Transit Usage
+          </span>
+          <span
+            className={`text-xs font-mono font-semibold ${t.publicTransitUsagePct >= 40 ? "text-success" : t.publicTransitUsagePct >= 20 ? "text-secondary" : "text-warning"}`}
+          >
+            {t.publicTransitUsagePct}%
+          </span>
+        </div>
+
+        {/* EV adoption — value only */}
+        <div className="mb-3 flex items-center justify-between rounded-lg bg-background/30 border border-border/50 px-3 py-2">
+          <span className="text-[10px] text-muted-foreground font-sans">
+            EV Adoption (% of new car sales)
+          </span>
+          <span
+            className={`text-xs font-mono font-semibold ${t.evAdoptionPct >= 20 ? "text-success" : t.evAdoptionPct >= 5 ? "text-secondary" : "text-muted-foreground"}`}
+          >
+            {t.evAdoptionPct}%
+          </span>
+        </div>
+
+        {/* Road density */}
+        <div className="flex items-center justify-between rounded-lg bg-background/30 border border-border/50 px-3 py-2">
+          <span className="text-[10px] text-muted-foreground font-sans">
+            Road Density
+          </span>
+          <span className="text-xs font-mono font-bold text-foreground">
+            {t.roadDensityKmPer100km2} km per 100 km²
+          </span>
+        </div>
+        {t.seaports != null && (
+          <div className="flex items-center justify-between rounded-lg bg-background/30 border border-border/50 px-3 py-2 mt-2">
+            <span className="text-[10px] text-muted-foreground font-sans">
+              Major Seaports
+            </span>
+            <span className="text-xs font-mono font-bold text-foreground">
+              {t.seaports}
+            </span>
+          </div>
+        )}
+
+        <SourceLink sources={SRC_TRANSPORT} className="mt-3" />
+      </div>
+    </div>
+  );
+}
+
 const SRC_PMI = [
   {
     label: "S&P Global PMI",
@@ -8427,109 +34939,94 @@ function CountryExtendedPanels({ country }: { country: Country }) {
       )}
 
       {/* ── CREDIT & GOVERNANCE ── */}
-      {ext &&
-        (ext.creditRating ||
-          ext.cpiScore != null ||
-          ext.easeOfBusinessRank != null) && (
-          <div className="modal-tile rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="p-1.5 bg-green-500/10 rounded-md border border-green-500/20 shrink-0">
-                <Shield size={13} weight="fill" className="text-green-400" />
-              </div>
-              <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-                Credit &amp; Governance
-              </p>
+      {ext && (ext.creditRating || ext.cpiScore != null) && (
+        <div className="modal-tile rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-1.5 bg-green-500/10 rounded-md border border-green-500/20 shrink-0">
+              <Shield size={13} weight="fill" className="text-green-400" />
             </div>
-            <div className="grid grid-cols-3 gap-3 mb-3">
-              {ext.creditRating && (
-                <div className="rounded-lg border border-border bg-background/40 p-3 text-center">
-                  <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-                    Credit Rating
-                  </p>
-                  <p
-                    className={`text-base font-bold font-mono ${
-                      ["AAA", "AA+", "AA", "AA-"].includes(ext.creditRating)
-                        ? "text-green-400"
-                        : ["A+", "A", "A-", "BBB+", "BBB", "BBB-"].includes(
-                              ext.creditRating,
-                            )
-                          ? "text-secondary"
-                          : ["BB+", "BB", "BB-"].includes(ext.creditRating)
-                            ? "text-yellow-400"
-                            : "text-destructive"
-                    }`}
-                  >
-                    {ext.creditRating}
-                  </p>
-                  <p className="text-[9px] text-muted-foreground font-mono mt-0.5">
-                    {ext.creditAgency}
-                  </p>
-                </div>
-              )}
-              {ext.cpiScore != null && (
-                <div className="rounded-lg border border-border bg-background/40 p-3 text-center">
-                  <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-                    CPI Score
-                  </p>
-                  <p
-                    className={`text-base font-bold font-mono ${ext.cpiScore >= 60 ? "text-success" : ext.cpiScore >= 40 ? "text-warning" : "text-destructive"}`}
-                  >
-                    {ext.cpiScore}
-                    <span className="text-[10px] text-muted-foreground">
-                      /100
-                    </span>
-                  </p>
-                </div>
-              )}
-              {ext.easeOfBusinessRank != null && ext.easeOfBusinessRank > 0 && (
-                <div className="rounded-lg border border-border bg-background/40 p-3 text-center">
-                  <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-                    Business Ease
-                  </p>
-                  <p
-                    className={`text-base font-bold font-mono ${ext.easeOfBusinessRank <= 30 ? "text-success" : ext.easeOfBusinessRank <= 80 ? "text-warning" : "text-destructive"}`}
-                  >
-                    #{ext.easeOfBusinessRank}
-                  </p>
-                </div>
-              )}
-            </div>
-            {ext.cpiScore != null && (
-              <div>
-                <div className="flex justify-between text-[10px] mb-1">
-                  <span className="text-muted-foreground font-sans">
-                    Corruption Perception Index
-                  </span>
-                  <span
-                    className={`font-mono ${ext.cpiScore >= 60 ? "text-success" : ext.cpiScore >= 40 ? "text-warning" : "text-destructive"}`}
-                  >
-                    {ext.cpiScore}/100
-                  </span>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{
-                      width: `${ext.cpiScore}%`,
-                      background:
-                        ext.cpiScore >= 60
-                          ? "hsl(142,71%,45%)"
-                          : ext.cpiScore >= 40
-                            ? "hsl(38,92%,50%)"
-                            : "hsl(0,70%,55%)",
-                    }}
-                  />
-                </div>
-                <div className="flex justify-between text-[9px] mt-0.5 text-muted-foreground">
-                  <span>Very Corrupt</span>
-                  <span>Moderate</span>
-                  <span>Very Clean</span>
-                </div>
+            <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+              Credit &amp; Governance
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            {ext.creditRating && (
+              <div className="rounded-lg border border-border bg-background/40 p-3 text-center">
+                <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
+                  Credit Rating
+                </p>
+                <p
+                  className={`text-base font-bold font-mono ${
+                    ["AAA", "AA+", "AA", "AA-"].includes(ext.creditRating)
+                      ? "text-green-400"
+                      : ["A+", "A", "A-", "BBB+", "BBB", "BBB-"].includes(
+                            ext.creditRating,
+                          )
+                        ? "text-secondary"
+                        : ["BB+", "BB", "BB-"].includes(ext.creditRating)
+                          ? "text-yellow-400"
+                          : "text-destructive"
+                  }`}
+                >
+                  {ext.creditRating}
+                </p>
+                <p className="text-[9px] text-muted-foreground font-mono mt-0.5">
+                  {ext.creditAgency}
+                </p>
               </div>
             )}
-            <SourceLink sources={SRC_CREDIT} className="mt-2" />
+            {ext.cpiScore != null && (
+              <div className="rounded-lg border border-border bg-background/40 p-3 text-center">
+                <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
+                  CPI Score
+                </p>
+                <p
+                  className={`text-base font-bold font-mono ${ext.cpiScore >= 60 ? "text-success" : ext.cpiScore >= 40 ? "text-warning" : "text-destructive"}`}
+                >
+                  {ext.cpiScore}
+                  <span className="text-[10px] text-muted-foreground">
+                    /100
+                  </span>
+                </p>
+              </div>
+            )}
           </div>
-        )}
+          {ext.cpiScore != null && (
+            <div>
+              <div className="flex justify-between text-[10px] mb-1">
+                <span className="text-muted-foreground font-sans">
+                  Corruption Perception Index
+                </span>
+                <span
+                  className={`font-mono ${ext.cpiScore >= 60 ? "text-success" : ext.cpiScore >= 40 ? "text-warning" : "text-destructive"}`}
+                >
+                  {ext.cpiScore}/100
+                </span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${ext.cpiScore}%`,
+                    background:
+                      ext.cpiScore >= 60
+                        ? "hsl(142,71%,45%)"
+                        : ext.cpiScore >= 40
+                          ? "hsl(38,92%,50%)"
+                          : "hsl(0,70%,55%)",
+                  }}
+                />
+              </div>
+              <div className="flex justify-between text-[9px] mt-0.5 text-muted-foreground">
+                <span>Very Corrupt</span>
+                <span>Moderate</span>
+                <span>Very Clean</span>
+              </div>
+            </div>
+          )}
+          <SourceLink sources={SRC_CREDIT} className="mt-2" />
+        </div>
+      )}
 
       {/* ── ECONOMIC STRUCTURE ── */}
       {ext?.economicStructure && (
@@ -8753,12 +35250,384 @@ function CountryExtendedPanels({ country }: { country: Country }) {
   );
 }
 
+function exportCountriesToCSV(
+  countries: ReturnType<typeof Array.prototype.map>,
+) {
+  const cs = countries as any[];
+  const headers = [
+    "Name",
+    "Code",
+    "Continent",
+    "Capital",
+    "GDP (B USD)",
+    "GDP Per Capita",
+    "GDP Growth %",
+    "Population",
+    "Unemployment %",
+    "Inflation %",
+    "Life Expectancy",
+    "HDI",
+    "Trade Balance (B)",
+    "Government Type",
+    "Currency",
+  ];
+  const rows = cs.map((c: any) => [
+    c.name,
+    c.code,
+    c.continent,
+    c.capital,
+    c.gdp,
+    c.gdpPerCapita,
+    c.gdpGrowth,
+    c.population,
+    c.unemploymentRate,
+    c.inflationRate,
+    c.lifeExpectancy,
+    c.humanDevelopmentIndex,
+    c.tradeBalance,
+    c.governmentType,
+    c.currency,
+  ]);
+  const csv = [headers, ...rows]
+    .map((r) => r.map((v: any) => `"${v}"`).join(","))
+    .join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "countries_data.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Comparison Section ────────────────────────────────────────────────────────
+function CountryCompareSection({
+  countries,
+  onRemove,
+  onClear,
+}: {
+  countries: Country[];
+  onRemove: (id: string) => void;
+  onClear: () => void;
+}) {
+  if (countries.length === 0) return null;
+
+  const metrics: {
+    key: keyof Country;
+    label: string;
+    fmt: (v: any) => string;
+    higherIsBetter?: boolean;
+  }[] = [
+    { key: "gdp", label: "GDP", fmt: fmtGDP, higherIsBetter: true },
+    {
+      key: "gdpPerCapita",
+      label: "GDP Per Capita",
+      fmt: (v) => `$${v.toLocaleString()}`,
+      higherIsBetter: true,
+    },
+    {
+      key: "gdpGrowth",
+      label: "GDP Growth",
+      fmt: (v) => `${v > 0 ? "+" : ""}${v}%`,
+      higherIsBetter: true,
+    },
+    {
+      key: "population",
+      label: "Population",
+      fmt: fmtPop,
+      higherIsBetter: true,
+    },
+    {
+      key: "unemploymentRate",
+      label: "Unemployment",
+      fmt: (v) => `${v}%`,
+      higherIsBetter: false,
+    },
+    {
+      key: "inflationRate",
+      label: "Inflation",
+      fmt: (v) => `${v}%`,
+      higherIsBetter: false,
+    },
+    {
+      key: "lifeExpectancy",
+      label: "Life Expectancy",
+      fmt: (v) => `${v} yrs`,
+      higherIsBetter: true,
+    },
+    {
+      key: "humanDevelopmentIndex",
+      label: "HDI",
+      fmt: (v) => `${v}`,
+      higherIsBetter: true,
+    },
+    {
+      key: "tradeBalance",
+      label: "Trade Balance",
+      fmt: (v) => `${v >= 0 ? "+" : ""}$${v}B`,
+      higherIsBetter: true,
+    },
+  ];
+
+  function best(key: keyof Country, higherIsBetter = true): string | undefined {
+    if (countries.length < 2) return undefined;
+    const sorted = [...countries].sort((a, b) =>
+      higherIsBetter
+        ? (b[key] as number) - (a[key] as number)
+        : (a[key] as number) - (b[key] as number),
+    );
+    return sorted[0].id;
+  }
+
+  const extMetrics: {
+    key: keyof CountryExtended;
+    label: string;
+    fmt: (v: any) => string;
+    higherIsBetter?: boolean;
+  }[] = [
+    {
+      key: "cpiScore",
+      label: "Corruption Index",
+      fmt: (v) => `${v}/100`,
+      higherIsBetter: true,
+    },
+    {
+      key: "gini",
+      label: "Gini (Inequality)",
+      fmt: (v) => `${v}`,
+      higherIsBetter: false,
+    },
+    {
+      key: "debtPct",
+      label: "Debt/GDP",
+      fmt: (v) => `${v}%`,
+      higherIsBetter: false,
+    },
+    {
+      key: "internetPct",
+      label: "Internet Penetration",
+      fmt: (v) => `${v}%`,
+      higherIsBetter: true,
+    },
+    {
+      key: "medianAge",
+      label: "Median Age",
+      fmt: (v) => `${v} yrs`,
+      higherIsBetter: undefined,
+    },
+    {
+      key: "easeOfBusinessRank",
+      label: "Business Ease Rank",
+      fmt: (v) => `#${v}`,
+      higherIsBetter: false,
+    },
+  ];
+
+  function bestExt(
+    key: keyof CountryExtended,
+    higherIsBetter?: boolean,
+  ): string | undefined {
+    if (countries.length < 2 || higherIsBetter === undefined) return undefined;
+    const withData = countries.filter(
+      (c) => COUNTRY_EXTENDED[c.id]?.[key] != null,
+    );
+    if (withData.length < 2) return undefined;
+    const sorted = [...withData].sort((a, b) => {
+      const av = COUNTRY_EXTENDED[a.id]![key] as number;
+      const bv = COUNTRY_EXTENDED[b.id]![key] as number;
+      return higherIsBetter ? bv - av : av - bv;
+    });
+    return sorted[0].id;
+  }
+
+  return (
+    <div className="mb-6 bg-card border border-border rounded-2xl overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-muted/30">
+        <div className="flex items-center gap-2">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 16 16"
+            fill="none"
+            className="text-secondary"
+          >
+            <path
+              d="M2 8h12M10 4l4 4-4 4M6 12l-4-4 4-4"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+            Country Comparison
+          </p>
+          <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+            {countries.length}/3 selected
+          </span>
+        </div>
+        <button
+          onClick={onClear}
+          className="text-[11px] text-muted-foreground hover:text-foreground font-sans cursor-pointer px-2 py-0.5 rounded hover:bg-muted transition-colors"
+        >
+          Clear all
+        </button>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs font-sans border-collapse min-w-[500px]">
+          {/* Country headers */}
+          <thead>
+            <tr>
+              <th className="text-left px-5 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest w-36 bg-muted/20 border-b border-border">
+                Metric
+              </th>
+              {countries.map((c) => (
+                <th
+                  key={c.id}
+                  className="px-4 py-3 border-b border-border bg-muted/10 min-w-[140px]"
+                >
+                  <div className="flex flex-col items-center gap-1.5">
+                    <div className="relative">
+                      <img
+                        src={`https://flagcdn.com/w80/${c.code.toLowerCase()}.png`}
+                        alt={`${c.name} flag`}
+                        className="w-10 h-7 object-cover rounded border border-border shadow-sm"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    </div>
+                    <span className="text-xs font-semibold text-foreground text-center leading-tight">
+                      {c.name}
+                    </span>
+                    <button
+                      onClick={() => onRemove(c.id)}
+                      className="text-[10px] text-muted-foreground hover:text-destructive cursor-pointer transition-colors"
+                      title={`Remove ${c.name}`}
+                    >
+                      ✕ Remove
+                    </button>
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {/* Core metrics */}
+            {metrics.map((m, i) => {
+              const bestId = best(m.key, m.higherIsBetter);
+              return (
+                <tr
+                  key={m.key}
+                  className={i % 2 === 0 ? "bg-background/30" : ""}
+                >
+                  <td className="px-5 py-2.5 text-[10px] text-muted-foreground font-sans uppercase tracking-wider font-semibold border-r border-border/40">
+                    {m.label}
+                  </td>
+                  {countries.map((c) => {
+                    const val = c[m.key] as number;
+                    const isBest = bestId === c.id;
+                    return (
+                      <td
+                        key={c.id}
+                        className="px-4 py-2.5 text-center border-r border-border/20 last:border-r-0"
+                      >
+                        <span
+                          className={`font-mono font-bold text-sm ${
+                            isBest
+                              ? "text-secondary"
+                              : m.key === "gdpGrowth" ||
+                                  m.key === "tradeBalance"
+                                ? val >= 0
+                                  ? "text-success"
+                                  : "text-destructive"
+                                : "text-foreground"
+                          }`}
+                        >
+                          {m.fmt(val)}
+                        </span>
+                        {isBest && (
+                          <span className="ml-1 text-[9px] text-secondary">
+                            ▲
+                          </span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+            {/* Extended metrics */}
+            {extMetrics.map((m, i) => {
+              const bestId = bestExt(m.key, m.higherIsBetter);
+              const anyHasData = countries.some(
+                (c) => COUNTRY_EXTENDED[c.id]?.[m.key] != null,
+              );
+              if (!anyHasData) return null;
+              return (
+                <tr
+                  key={m.key}
+                  className={
+                    (metrics.length + i) % 2 === 0 ? "bg-background/30" : ""
+                  }
+                >
+                  <td className="px-5 py-2.5 text-[10px] text-muted-foreground font-sans uppercase tracking-wider font-semibold border-r border-border/40">
+                    {m.label}
+                  </td>
+                  {countries.map((c) => {
+                    const ext = COUNTRY_EXTENDED[c.id];
+                    const val = ext?.[m.key];
+                    const isBest = bestId === c.id;
+                    return (
+                      <td
+                        key={c.id}
+                        className="px-4 py-2.5 text-center border-r border-border/20 last:border-r-0"
+                      >
+                        {val != null ? (
+                          <span
+                            className={`font-mono font-bold text-sm ${isBest ? "text-secondary" : "text-foreground"}`}
+                          >
+                            {m.fmt(val)}
+                            {isBest && (
+                              <span className="ml-1 text-[9px] text-secondary">
+                                ▲
+                              </span>
+                            )}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-[11px]">
+                            —
+                          </span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {countries.length < 3 && (
+        <div className="px-5 py-3 border-t border-border/40 bg-muted/10 text-center">
+          <p className="text-[11px] text-muted-foreground font-sans">
+            Click <span className="text-secondary font-semibold">Compare</span>{" "}
+            on any country card to add it · up to 3 countries
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CountriesPage() {
   const {
     countries: liveCountries,
     isRefreshing,
     lastUpdated,
-    patchedCount,
     refresh,
   } = useLiveData();
   const [search, setSearch] = useState("");
@@ -8766,15 +35635,28 @@ export function CountriesPage() {
   const [sortBy, setSortBy] = useState<
     "gdp" | "population" | "gdpGrowth" | "humanDevelopmentIndex"
   >("gdp");
-  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   const [modalCountry, setModalCountry] = useState<Country | null>(null);
+
+  // Deep-link: open entity from search bar via ?open=<id>
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const openId = params.get("open");
+    if (openId) {
+      const found = liveCountries.find((c) => c.id === openId);
+      if (found) setModalCountry(found);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("open");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [liveCountries]);
 
   const continents = [
     "All",
     "North America",
-    "Asia",
-    "Europe",
     "South America",
+    "Europe",
+    "Asia",
+    "Africa",
     "Oceania",
   ];
 
@@ -8782,87 +35664,108 @@ export function CountriesPage() {
     .filter((c) => {
       const matchSearch =
         c.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.code.toLowerCase().includes(search.toLowerCase());
+        c.code.toLowerCase().includes(search.toLowerCase()) ||
+        c.capital.toLowerCase().includes(search.toLowerCase());
       const matchContinent =
         continentFilter === "All" || c.continent === continentFilter;
       return matchSearch && matchContinent;
     })
     .sort((a, b) => b[sortBy] - a[sortBy]);
 
+  // Summary stats
+  const totalGDP = liveCountries.reduce((s, c) => s + c.gdp, 0);
+  const totalPop = liveCountries.reduce((s, c) => s + c.population, 0);
+  const highHDI = liveCountries.filter(
+    (c) => c.humanDevelopmentIndex >= 0.8,
+  ).length;
+  const fastestGrowth = [...liveCountries].sort(
+    (a, b) => b.gdpGrowth - a.gdpGrowth,
+  )[0];
+
   return (
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between gap-3 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-secondary/20 rounded-lg">
-              <Globe size={26} weight="fill" className="text-secondary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold font-sans text-foreground">
-                Countries
-              </h1>
-              <p className="text-muted-foreground text-sm font-sans">
-                In-depth data on sovereign nations — economics, population,
-                governance, and development
-              </p>
-            </div>
+        {/* ── PAGE HEADER ── */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2.5 bg-secondary/20 rounded-lg">
+            <Globe size={26} weight="fill" className="text-secondary" />
           </div>
-          <div className="flex items-center gap-3 shrink-0">
-            {lastUpdated && (
-              <p className="text-xs text-muted-foreground font-mono hidden sm:block">
-                Live · {patchedCount} updated ·{" "}
-                {lastUpdated.toLocaleTimeString()}
-              </p>
-            )}
-            <button
-              onClick={refresh}
-              disabled={isRefreshing}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-card border border-border text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer disabled:opacity-50"
-              title="Refresh live data"
-            >
-              <ArrowsClockwise
-                size={13}
-                className={isRefreshing ? "animate-spin" : ""}
-              />
-              {isRefreshing ? "Updating…" : "Refresh"}
-            </button>
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold font-sans text-foreground">
+              World Countries
+            </h1>
+            <p className="text-muted-foreground text-sm font-sans">
+              Demographics, economics, military, governance &amp; infrastructure
+              data for countries worldwide
+            </p>
+          </div>
+          <button
+            onClick={() => exportCountriesToCSV(filtered)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-[11px] font-sans cursor-pointer"
+          >
+            <DownloadSimple size={13} weight="bold" />
+            Export CSV
+          </button>
+          <div
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-mono transition-all ${isRefreshing ? "bg-warning/10 border-warning/30 text-warning" : lastUpdated ? "bg-success/10 border-success/30 text-success" : "bg-muted/50 border-border text-muted-foreground"}`}
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full shrink-0 ${isRefreshing ? "bg-warning animate-pulse" : lastUpdated ? "bg-success animate-pulse" : "bg-muted-foreground"}`}
+            />
+            {isRefreshing
+              ? "Updating…"
+              : lastUpdated
+                ? "Live data"
+                : "Static data"}
           </div>
         </div>
 
-        {/* Summary Strip */}
+        {/* ── SUMMARY METRICS ── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
             {
               label: "Countries Tracked",
-              value: "195+",
+              value: `${liveCountries.length}+`,
+              icon: <Globe size={18} weight="fill" />,
               color: "text-secondary",
             },
             {
-              label: "World Population",
-              value: "8.12B",
+              label: "Combined GDP",
+              value: fmtGDP(totalGDP),
+              icon: <CurrencyDollar size={18} weight="fill" />,
               color: "text-success",
             },
-            { label: "Global GDP", value: "$104.5T", color: "text-warning" },
-            { label: "Avg HDI", value: "0.739", color: "text-secondary" },
+            {
+              label: "World Population",
+              value: fmtPop(totalPop),
+              icon: <Users size={18} weight="fill" />,
+              color: "text-warning",
+            },
+            {
+              label: "High HDI (≥0.8)",
+              value: `${highHDI} nations`,
+              icon: <Star size={18} weight="fill" />,
+              color: "text-secondary",
+            },
           ].map((s) => (
             <div
               key={s.label}
-              className="bg-card border border-border rounded-lg p-4"
+              className="bg-card border border-border rounded-lg p-4 flex items-center gap-3"
             >
-              <p className="text-xs text-muted-foreground font-sans">
-                {s.label}
-              </p>
-              <p className={`text-xl font-bold font-mono ${s.color}`}>
-                {s.value}
-              </p>
+              <span className={s.color}>{s.icon}</span>
+              <div>
+                <p className="text-xs text-muted-foreground font-sans">
+                  {s.label}
+                </p>
+                <p className="text-base font-bold font-mono text-foreground">
+                  {s.value}
+                </p>
+              </div>
             </div>
           ))}
         </div>
 
-        <SourceLink sources={SRC_WORLDBANK} className="mb-5 -mt-2" />
-
-        {/* Unified Search + Filter Bar */}
+        {/* ── SEARCH + FILTER BAR ── */}
         <div className="flex flex-col bg-card border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
           {/* Row 1: Search */}
           <div className="flex items-center gap-2">
@@ -8872,19 +35775,19 @@ export function CountriesPage() {
             />
             <input
               type="text"
-              placeholder="Search countries..."
+              placeholder="Search countries, capitals…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="flex-1 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
             />
           </div>
-          {/* Row 2: Filters */}
+          {/* Row 2: Continent pills + sort */}
           <div className="flex flex-wrap items-center gap-2 pt-2 mt-1 border-t border-border/60">
             {continents.map((c) => (
               <button
                 key={c}
                 onClick={() => setContinentFilter(c)}
-                className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
+                className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
                   continentFilter === c
                     ? "bg-secondary/20 text-secondary border-secondary/40"
                     : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
@@ -8893,7 +35796,7 @@ export function CountriesPage() {
                 {c}
               </button>
             ))}
-            <div className="w-px h-4 bg-border shrink-0" />
+            <div className="w-px h-5 bg-border shrink-0" />
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
@@ -8907,6 +35810,7 @@ export function CountriesPage() {
           </div>
         </div>
 
+        {/* ── MODAL ── */}
         {modalCountry && (
           <CountryModal
             country={modalCountry}
@@ -8914,126 +35818,168 @@ export function CountriesPage() {
           />
         )}
 
-        <div className="grid grid-cols-1 gap-6">
-          {/* Country Cards */}
-          <div className="xl:col-span-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {filtered.map((country) => (
-                <article
-                  key={country.id}
-                  onClick={() => setModalCountry(country)}
-                  className="modal-tile rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40"
-                >
-                  {/* Card header — flag background + name */}
-                  <div className="relative flex items-start justify-between mb-3 -mx-5 -mt-5 px-5 pt-5 pb-4 rounded-t-xl overflow-hidden">
-                    {/* Flag as blurred background */}
-                    <img
-                      src={`https://flagcdn.com/w320/${country.code.toLowerCase()}.png`}
-                      alt=""
-                      aria-hidden="true"
-                      className="absolute inset-0 w-full h-full object-cover opacity-20 blur-[2px] scale-105 select-none pointer-events-none"
-                    />
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-card/60 via-card/70 to-card pointer-events-none" />
-                    {/* Content */}
-                    <div className="relative flex items-center gap-3">
-                      <div className="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 shadow-md">
-                        <img
-                          src={`https://flagcdn.com/w80/${country.code.toLowerCase()}.png`}
-                          alt={`${country.name} flag`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const t = e.currentTarget;
-                            t.onerror = null;
-                            t.style.display = "none";
-                            const fb =
-                              t.nextElementSibling as HTMLElement | null;
-                            if (fb) fb.style.display = "flex";
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-1 items-center justify-center hidden">
-                          <span className="text-xs font-bold font-mono text-primary-foreground">
-                            {country.code}
-                          </span>
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold font-sans text-foreground text-sm">
-                          {country.name}
-                        </h3>
-                        <p className="text-xs text-muted-foreground font-sans">
-                          {country.capital}
-                        </p>
-                      </div>
-                    </div>
-                    <span
-                      className={`relative text-xs border px-2 py-0.5 rounded-full font-sans shrink-0 ${continentColors[country.continent] ?? "text-muted-foreground border-border bg-muted"}`}
-                    >
-                      {country.continent}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 mb-3">
-                    <div>
-                      <p className="text-xs text-muted-foreground font-sans">
-                        GDP
-                      </p>
-                      <p className="text-sm font-bold font-mono text-foreground">
-                        {fmtGDP(country.gdp)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground font-sans">
-                        GDP Growth
-                      </p>
-                      <p
-                        className={`text-sm font-bold font-mono ${country.gdpGrowth >= 0 ? "text-success" : "text-destructive"}`}
-                      >
-                        {country.gdpGrowth >= 0 ? "+" : ""}
-                        {country.gdpGrowth}%
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground font-sans">
-                        Population
-                      </p>
-                      <p className="text-sm font-bold font-mono text-foreground">
-                        {fmtPop(country.population)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground font-sans">
-                        HDI
-                      </p>
-                      <p className="text-sm font-bold font-mono text-foreground">
-                        {country.humanDevelopmentIndex}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* HDI bar */}
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-muted-foreground font-sans">
-                        Human Dev. Index
-                      </span>
-                      <span className="font-mono text-foreground">
-                        {(country.humanDevelopmentIndex * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-secondary transition-all duration-500"
-                        style={{
-                          width: `${country.humanDevelopmentIndex * 100}%`,
+        {/* ── COUNTRY CARDS GRID ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {filtered.map((country) => {
+            const ext = COUNTRY_EXTENDED[country.id];
+            const hdiBg = hdiBadge(country.humanDevelopmentIndex);
+            const continentCls =
+              continentColors[country.continent] ??
+              "text-muted-foreground border-border bg-muted";
+            return (
+              <article
+                key={country.id}
+                onClick={() => setModalCountry(country)}
+                className="modal-tile rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40"
+              >
+                {/* Card header with flag background */}
+                <div className="relative flex items-start justify-between mb-3 -mx-5 -mt-5 px-5 pt-5 pb-4 rounded-t-xl overflow-hidden">
+                  {/* Flag background */}
+                  <img
+                    src={`https://flagcdn.com/w320/${country.code.toLowerCase()}.png`}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 w-full h-full object-cover opacity-20 blur-[2px] scale-105 select-none pointer-events-none"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-card/60 via-card/70 to-card pointer-events-none" />
+                  {/* Flag + name */}
+                  <div className="relative flex items-center gap-3">
+                    <div className="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 shadow-md">
+                      <img
+                        src={`https://flagcdn.com/w80/${country.code.toLowerCase()}.png`}
+                        alt={`${country.name} flag`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const t = e.currentTarget;
+                          t.onerror = null;
+                          t.style.display = "none";
+                          const fb = t.nextElementSibling as HTMLElement | null;
+                          if (fb) fb.style.display = "flex";
                         }}
                       />
+                      <div className="absolute inset-0 bg-gradient-1 items-center justify-center hidden">
+                        <span className="text-[10px] font-bold font-mono text-primary-foreground">
+                          {country.code}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold font-sans text-foreground text-sm">
+                        {country.name}
+                      </h3>
+                      <p className="text-xs text-muted-foreground font-sans flex items-center gap-1">
+                        <MapPin size={10} />
+                        {country.capital} · {country.continent}
+                      </p>
                     </div>
                   </div>
-                </article>
-              ))}
+                  {/* HDI badge */}
+                  <span
+                    className={`relative text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full ${hdiBg}`}
+                  >
+                    HDI {country.humanDevelopmentIndex}
+                  </span>
+                </div>
+
+                {/* Key stats */}
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground font-sans">
+                      GDP
+                    </p>
+                    <p className="text-sm font-bold font-mono text-foreground">
+                      {fmtGDP(country.gdp)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground font-sans">
+                      Population
+                    </p>
+                    <p className="text-sm font-bold font-mono text-foreground">
+                      {fmtPop(country.population)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground font-sans">
+                      GDP Growth
+                    </p>
+                    <p
+                      className={`text-sm font-bold font-mono ${country.gdpGrowth >= 0 ? "text-success" : "text-destructive"}`}
+                    >
+                      {country.gdpGrowth >= 0 ? "+" : ""}
+                      {country.gdpGrowth}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground font-sans">
+                      Life Expect.
+                    </p>
+                    <p className="text-sm font-bold font-mono text-foreground">
+                      {country.lifeExpectancy} yrs
+                    </p>
+                  </div>
+                </div>
+
+                {/* HDI progress bar */}
+                <div className="mb-2">
+                  <div className="flex justify-between text-[10px] mb-1">
+                    <span className="text-muted-foreground font-sans">
+                      Human Development
+                    </span>
+                    <span className="font-mono font-semibold text-foreground">
+                      {country.humanDevelopmentIndex}
+                    </span>
+                  </div>
+                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${country.humanDevelopmentIndex * 100}%`,
+                        background:
+                          country.humanDevelopmentIndex >= 0.8
+                            ? "hsl(142,71%,45%)"
+                            : country.humanDevelopmentIndex >= 0.65
+                              ? "hsl(38,92%,50%)"
+                              : "hsl(0,70%,55%)",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Continent + government tag row */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span
+                    className={`text-[10px] border px-2 py-0.5 rounded-full font-sans ${continentCls}`}
+                  >
+                    {country.continent}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground font-sans px-2 py-0.5 rounded-full border border-border/60 bg-muted/40 truncate max-w-[140px]">
+                    {country.governmentType.length > 22
+                      ? country.governmentType.slice(0, 22) + "…"
+                      : country.governmentType}
+                  </span>
+                  {ext?.cpiScore != null && (
+                    <span
+                      className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ml-auto shrink-0 ${ext.cpiScore >= 60 ? "text-success border-success/30 bg-success/10" : ext.cpiScore >= 40 ? "text-warning border-warning/30 bg-warning/10" : "text-destructive border-destructive/30 bg-destructive/10"}`}
+                    >
+                      CPI {ext.cpiScore}
+                    </span>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+
+          {filtered.length === 0 && (
+            <div className="col-span-3 modal-tile rounded-xl p-12 text-center">
+              <p className="text-muted-foreground font-sans text-sm">
+                No countries match your filters.
+              </p>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

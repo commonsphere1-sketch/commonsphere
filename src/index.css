@@ -1,114 +1,170 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=IBM+Plex+Mono:wght@400;500;600&family=Cormorant+Garant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --hero-gradient: #0b0b14;
-  --color-header-bg: #08080f;
-  --color-primary: hsl(184, 45%, 88%);
-  --color-primary-foreground: hsl(184, 40%, 20%);
-  --color-secondary: hsl(200, 85%, 68%);
-  --color-secondary-foreground: hsl(210, 30%, 12%);
-  --color-tertiary: hsl(190, 75%, 62%);
+  --hero-gradient: #050509;
+  --color-header-bg: #030308;
+  --color-primary: hsl(42, 22%, 94%);
+  --color-primary-foreground: hsl(40, 25%, 8%);
+  --color-secondary: hsl(0, 0%, 92%);
+  --color-secondary-foreground: hsl(0, 0%, 8%);
+  --color-tertiary: hsl(0, 0%, 80%);
   --color-tertiary-foreground: hsl(0, 0%, 100%);
   --color-neutral: hsl(0, 0%, 98%);
-  --color-neutral-foreground: hsl(220, 10%, 15%);
-  --color-success: hsl(150, 55%, 45%);
-  --color-warning: hsl(35, 100%, 50%);
-  --color-background: #0b0b14;
-  --color-foreground: hsl(240, 20%, 94%);
-  --color-card: rgba(255, 255, 255, 0.04);
-  --color-card-foreground: hsl(240, 20%, 94%);
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-muted: rgba(255, 255, 255, 0.06);
-  --color-muted-foreground: rgba(255, 255, 255, 0.38);
+  --color-neutral-foreground: hsl(220, 10%, 12%);
+  --color-success: hsl(158, 52%, 38%);
+  --color-warning: hsl(38, 100%, 50%);
+  --color-background: #050509;
+  --color-foreground: hsl(40, 16%, 92%);
+  --color-card: rgba(255, 255, 255, 0.032);
+  --color-card-foreground: hsl(40, 16%, 92%);
+  --color-border: rgba(255, 255, 255, 0.065);
+  --color-muted: rgba(255, 255, 255, 0.045);
+  --color-muted-foreground: rgba(255, 255, 255, 0.42);
   --font-sans: "DM Sans", sans-serif;
+  --font-display: "Playfair Display", "Cormorant Garant", Georgia, serif;
   --font-mono: "IBM Plex Mono", monospace;
-  --border-radius: 8px;
+  --border-radius: 12px;
+
+  /* Luxury silver gradient for accent lines / shimmer */
+  --gold-shimmer: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(0, 0%, 97%) 30%,
+    hsl(0, 0%, 93%) 50%,
+    hsl(0, 0%, 84%) 70%,
+    transparent 100%
+  );
+  /* Subtle inner glow for cards */
+  --card-glow:
+    inset 0 1px 0 rgba(200, 200, 200, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035), 0 0 0 1px rgba(0, 0, 0, 0.4);
+  /* Premium shadow */
+  --premium-shadow: 0 4px 24px rgba(0, 0, 0, 0.5), 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+html,
+body,
+#app {
+  min-height: 100vh;
 }
 
 html,
 body {
-  background-color: #0b0b14;
-  color: hsl(240, 20%, 94%);
+  background-color: #050509;
+  color: hsl(40, 16%, 92%);
   font-family: "DM Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  letter-spacing: 0.01em;
+}
+
+/* Premium text rendering for headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  letter-spacing: -0.02em;
+  font-feature-settings:
+    "kern" 1,
+    "liga" 1;
 }
 
 /* ── Light mode overrides ───────────────────────────────── */
 html.light {
-  --hero-gradient: #ffffff;
-  --color-header-bg: #ffffff;
-  --color-primary: hsl(184, 45%, 88%);
-  --color-primary-foreground: hsl(184, 40%, 20%);
-  --color-secondary: hsl(200, 90%, 60%);
-  --color-secondary-foreground: hsl(210, 30%, 10%);
-  --color-tertiary: hsl(190, 80%, 54%);
+  --hero-gradient: #f8f6f1;
+  --color-header-bg: #fefcf8;
+  --color-primary: hsl(40, 20%, 90%);
+  --color-primary-foreground: hsl(40, 25%, 12%);
+  --color-secondary: hsl(0, 0%, 68%);
+  --color-secondary-foreground: hsl(0, 0%, 100%);
+  --color-tertiary: hsl(0, 0%, 56%);
   --color-tertiary-foreground: hsl(0, 0%, 100%);
-  --color-neutral: hsl(210, 15%, 92%);
-  --color-neutral-foreground: hsl(222, 15%, 15%);
-  --color-success: hsl(150, 55%, 38%);
-  --color-warning: hsl(35, 100%, 45%);
-  --color-background: hsl(210, 20%, 96%);
-  --color-foreground: hsl(222, 20%, 12%);
+  --color-neutral: hsl(42, 20%, 93%);
+  --color-neutral-foreground: hsl(38, 15%, 15%);
+  --color-success: hsl(152, 52%, 32%);
+  --color-warning: hsl(35, 90%, 42%);
+  --color-background: hsl(0, 0%, 96%);
+  --color-foreground: hsl(38, 18%, 8%);
   --color-card: hsl(0, 0%, 100%);
-  --color-card-foreground: hsl(222, 20%, 12%);
-  --color-border: hsl(210, 18%, 82%);
-  --color-muted: hsl(210, 18%, 90%);
-  --color-muted-foreground: hsl(222, 12%, 40%);
+  --color-card-foreground: hsl(38, 18%, 8%);
+  --color-border: hsl(40, 18%, 85%);
+  --color-muted: hsl(42, 16%, 92%);
+  --color-muted-foreground: hsl(38, 10%, 40%);
+  --card-glow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 html.light body {
-  background-color: hsl(210, 20%, 96%);
-  color: hsl(222, 20%, 12%);
+  background-color: hsl(0, 0%, 96%);
+  color: hsl(38, 18%, 8%);
 }
 
 /* ── Header frosted-glass search ───────────────────────── */
 .header-search-input {
-  background: #000000 !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border-color: rgba(255, 255, 255, 0.18) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
   color: inherit !important;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease !important;
+}
+.header-search-input:focus {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(180, 180, 180, 0.45) !important;
+  box-shadow: 0 0 0 1px rgba(180, 180, 180, 0.15) !important;
 }
 .header-search-input::placeholder {
-  color: rgba(255, 255, 255, 0.55) !important;
+  color: rgba(255, 255, 255, 0.32) !important;
 }
 html.light .header-search-input {
-  background: rgba(255, 255, 255, 0.55) !important;
-  border-color: rgba(0, 0, 0, 0.12) !important;
-  color: hsl(222, 20%, 12%) !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  color: hsl(38, 18%, 10%) !important;
+}
+html.light .header-search-input:focus {
+  border-color: rgba(120, 120, 120, 0.4) !important;
+  box-shadow: 0 0 0 1px rgba(120, 120, 120, 0.12) !important;
 }
 html.light .header-search-input::placeholder {
-  color: rgba(0, 0, 0, 0.4) !important;
+  color: rgba(0, 0, 0, 0.36) !important;
 }
 
 /* ── Header icon/text — dark mode white, light mode dark ─── */
 .header-action-icon {
-  color: #ffffff !important;
+  color: rgba(255, 255, 255, 0.75) !important;
 }
 .header-action-icon:hover {
-  color: hsl(200, 85%, 68%) !important;
+  color: hsl(0, 0%, 92%) !important;
 }
 
 html.light .header-action-icon {
-  color: hsl(222, 20%, 18%) !important;
+  color: hsl(0, 0%, 22%) !important;
 }
 html.light .header-action-icon:hover {
-  color: hsl(200, 85%, 42%) !important;
+  color: hsl(0, 0%, 38%) !important;
+}
+html.light .header-action-icon:hover {
+  color: hsl(0, 0%, 38%) !important;
 }
 .header-logo-text {
-  color: #ffffff !important;
+  color: rgba(255, 255, 255, 0.92) !important;
 }
 html.light .header-logo-text {
-  color: hsl(222, 20%, 18%) !important;
+  color: hsl(38, 18%, 12%) !important;
 }
 html.light .header-username {
-  color: hsl(222, 20%, 18%) !important;
+  color: hsl(38, 18%, 18%) !important;
 }
 html.light .header-search-icon {
-  color: rgba(0, 0, 0, 0.45) !important;
+  color: rgba(0, 0, 0, 0.38) !important;
 }
 
 /* ── Logo mark dark/light switching ─────────────────────── */
@@ -130,32 +186,167 @@ html.light .logo-light {
 
 /* ── Modal frosted glass — white & clear ─────────────── */
 .modal-glass {
-  background: rgba(255, 255, 255, 0.1) !important;
-  backdrop-filter: blur(28px) saturate(180%) brightness(1.15) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.15) !important;
-  border-color: rgba(255, 255, 255, 0.22) !important;
+  background: rgba(8, 7, 18, 0.88) !important;
+  backdrop-filter: blur(40px) saturate(180%) brightness(1.08) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.08) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
   box-shadow:
-    0 8px 48px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+    0 32px 100px rgba(0, 0, 0, 0.65),
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(200, 200, 200, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
 }
 html.light .modal-glass {
-  background: rgba(255, 255, 255, 0.6) !important;
-  backdrop-filter: blur(28px) saturate(200%) brightness(1.08) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.08) !important;
-  border-color: rgba(255, 255, 255, 0.7) !important;
+  background: rgba(255, 254, 250, 0.85) !important;
+  backdrop-filter: blur(40px) saturate(220%) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(220%) brightness(1.04) !important;
+  border-color: rgba(200, 180, 130, 0.25) !important;
   box-shadow:
-    0 8px 48px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    0 32px 100px rgba(0, 0, 0, 0.1),
+    0 8px 32px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.98) !important;
+}
+
+/* Remove any browser-default blue outline/ring from .selected containers */
+.selected {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Inner section tiles inside modals */
 .modal-tile {
-  background: rgba(255, 255, 255, 0.09) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
 }
 html.light .modal-tile {
-  background: rgba(255, 255, 255, 0.55) !important;
-  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1px solid rgba(200, 180, 130, 0.18) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+/* ── Luxury card polish ───────────────────────────── */
+/* Cards with rounded-xl or rounded-2xl get a faint top-edge shimmer in dark mode */
+.rounded-xl,
+.rounded-2xl {
+  box-shadow: var(--card-glow);
+}
+
+/* Premium card hover state */
+.luxury-card {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.035) 0%,
+    rgba(255, 255, 255, 0.015) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: var(--card-glow), var(--premium-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.luxury-card:hover {
+  border-color: rgba(220, 220, 220, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(220, 220, 220, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 8px 32px rgba(0, 0, 0, 0.55),
+    0 2px 8px rgba(0, 0, 0, 0.35);
+  transform: translateY(-1px);
+}
+
+/* Elegant section dividers */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(200, 200, 200, 0.15) 20%,
+    rgba(200, 200, 200, 0.15) 80%,
+    transparent 100%
+  );
+}
+
+/* Premium button base */
+.luxury-button {
+  background: linear-gradient(135deg, hsl(0, 0%, 96%) 0%, hsl(0, 0%, 84%) 100%);
+  color: hsl(0, 0%, 8%);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.luxury-button:hover {
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+/* Frosted glass panels */
+.glass-panel {
+  background: rgba(8, 8, 16, 0.85);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Gold accent underline for prominent headings */
+.luxury-heading {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+/* Shimmer top-border line for section headers */
+.luxury-divider {
+  height: 1px;
+  background: var(--gold-shimmer);
+  opacity: 0.45;
+  border: none;
+}
+
+/* Premium badge / chip */
+.luxury-chip {
+  background: linear-gradient(
+    135deg,
+    rgba(240, 240, 240, 0.18) 0%,
+    rgba(225, 225, 225, 0.12) 100%
+  );
+  border: 1px solid rgba(240, 240, 240, 0.38);
+  color: hsl(0, 0%, 94%);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 100px;
+}
+/* ── White header & sidebar in light mode ─────────────── */
+html.light .header-bar {
+  background: #ffffff !important;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.light .sidebar-bar {
+  background: #ffffff !important;
+  box-shadow: 1px 0 0 rgba(0, 0, 0, 0.06) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.light .luxury-chip {
+  background: linear-gradient(
+    135deg,
+    rgba(100, 100, 100, 0.08) 0%,
+    rgba(80, 80, 80, 0.05) 100%
+  );
+  border-color: rgba(100, 100, 100, 0.2);
+  color: hsl(0, 0%, 34%);
 }
 
 /* Chart grid lines adaptive */
@@ -165,8 +356,8 @@ html.light .recharts-cartesian-grid line {
 
 /* ── Leader detail modal — active tab stronger in light mode ── */
 html.light .leader-tab-active {
-  color: hsl(205, 90%, 38%) !important;
-  border-color: hsl(205, 90%, 38%) !important;
+  color: hsl(0, 0%, 32%) !important;
+  border-color: hsl(0, 0%, 32%) !important;
 }
 
 /* ── Newsletter input dark placeholder ─────────────────── */
@@ -179,24 +370,31 @@ html.light .leader-tab-active {
 
 /* ── Frosted glass scrollbar — adaptive dark/light ───────── */
 :root {
-  --sb-track: rgba(255, 255, 255, 0.05);
-  --sb-thumb: rgba(255, 255, 255, 0.2);
-  --sb-thumb-hover: rgba(255, 255, 255, 0.32);
-  --sb-border: rgba(255, 255, 255, 0.13);
-  --sb-border-hover: rgba(255, 255, 255, 0.24);
+  --sb-track: rgba(255, 255, 255, 0.03);
+  --sb-thumb: rgba(235, 235, 235, 0.32);
+  --sb-thumb-hover: rgba(245, 245, 245, 0.52);
+  --sb-border: rgba(235, 235, 235, 0.18);
+  --sb-border-hover: rgba(245, 245, 245, 0.35);
 }
 
 html.light {
-  --sb-track: rgba(0, 0, 0, 0.05);
-  --sb-thumb: rgba(0, 0, 0, 0.16);
-  --sb-thumb-hover: rgba(0, 0, 0, 0.26);
-  --sb-border: rgba(0, 0, 0, 0.09);
-  --sb-border-hover: rgba(0, 0, 0, 0.16);
+  --sb-track: rgba(0, 0, 0, 0.04);
+  --sb-thumb: rgba(120, 120, 120, 0.18);
+  --sb-thumb-hover: rgba(120, 120, 120, 0.3);
+  --sb-border: rgba(120, 120, 120, 0.1);
+  --sb-border-hover: rgba(120, 120, 120, 0.2);
+}
+
+/* ── Smooth focus ring ───────────────────────────────── */
+*:focus-visible {
+  outline: 2px solid rgba(240, 240, 240, 0.75);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -211,8 +409,8 @@ html.light {
   border-radius: 100px;
   border: 1px solid var(--sb-border);
   transition:
-    background 0.2s ease,
-    border-color 0.2s ease;
+    background 0.25s ease,
+    border-color 0.25s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {

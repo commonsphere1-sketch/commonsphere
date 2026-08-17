@@ -29,6 +29,10 @@ export interface Economy {
     navyStrength: string;
     maritimeTrade: string;
   };
+  /** Up-and-coming / high-growth industries to watch */
+  upcomingIndustries?: { name: string; growth: string; color: string }[];
+  /** Total venture / private-equity / FDI funding raised in latest year (USD billions) */
+  fundingRaisedB?: number;
 }
 
 export const economiesData: Economy[] = [
@@ -99,6 +103,13 @@ export const economiesData: Economy[] = [
       maritimeTrade:
         "The US relies on maritime trade for ~70% of its import/export volume. The Gulf Coast handles the majority of energy cargo, while both coasts manage consumer and industrial goods. The US Merchant Marine Act (Jones Act) mandates domestic shipping between US ports use US-built and crewed vessels.",
     },
+    upcomingIndustries: [
+      { name: "AI & Data Centers", growth: "+42%", color: "#a855f7" },
+      { name: "Clean Energy", growth: "+28%", color: "#10b981" },
+      { name: "Defense Tech", growth: "+22%", color: "#ef4444" },
+      { name: "Biotech", growth: "+19%", color: "#06b6d4" },
+    ],
+    fundingRaisedB: 312,
   },
   {
     id: "china-eco",
@@ -155,6 +166,13 @@ export const economiesData: Economy[] = [
       maritimeTrade:
         "China is the world\'s largest trading nation and operates the busiest container ports globally. Shanghai and Ningbo-Zhoushan together handle over 80 million TEUs annually. China\'s Belt and Road Initiative has expanded its maritime influence across Indo-Pacific, Africa, and European ports.",
     },
+    upcomingIndustries: [
+      { name: "Electric Vehicles", growth: "+38%", color: "#10b981" },
+      { name: "Semiconductor Fab", growth: "+31%", color: "#6366f1" },
+      { name: "Robotics", growth: "+27%", color: "#f59e0b" },
+      { name: "Green Hydrogen", growth: "+24%", color: "#06b6d4" },
+    ],
+    fundingRaisedB: 172,
   },
   {
     id: "eu-eco",
@@ -217,6 +235,13 @@ export const economiesData: Economy[] = [
       maritimeTrade:
         "The EU is the world\'s largest single market for maritime services. Rotterdam is Europe\'s largest port and a critical gateway for energy and manufactured goods. EU maritime policy focuses on green shipping corridors and reducing carbon emissions by 30% by 2030 under FuelEU Maritime.",
     },
+    upcomingIndustries: [
+      { name: "Green Hydrogen", growth: "+35%", color: "#10b981" },
+      { name: "Defense Industry", growth: "+29%", color: "#ef4444" },
+      { name: "Circular Economy", growth: "+21%", color: "#06b6d4" },
+      { name: "FinTech", growth: "+18%", color: "#6366f1" },
+    ],
+    fundingRaisedB: 202,
   },
   {
     id: "japan-eco",
@@ -285,6 +310,13 @@ export const economiesData: Economy[] = [
       maritimeTrade:
         "As an island nation with virtually no natural resources, Japan is existentially dependent on maritime trade. Over 99% of its international trade by volume moves by sea. Japan is one of the world\'s largest ship operators and a leading shipbuilding nation, particularly in LNG tankers.",
     },
+    upcomingIndustries: [
+      { name: "Hydrogen Economy", growth: "+33%", color: "#06b6d4" },
+      { name: "Advanced Robotics", growth: "+26%", color: "#f59e0b" },
+      { name: "Space Tech", growth: "+22%", color: "#a855f7" },
+      { name: "Quantum Computing", growth: "+18%", color: "#6366f1" },
+    ],
+    fundingRaisedB: 40,
   },
   {
     id: "india-eco",
@@ -347,6 +379,13 @@ export const economiesData: Economy[] = [
       maritimeTrade:
         "India\'s maritime trade accounts for ~77% of trade by value and 95% by volume. The government\'s Sagarmala initiative aims to modernize ~200 ports and reduce logistics costs. India sits astride key Indian Ocean shipping lanes connecting the Middle East, Africa, and Southeast Asia.",
     },
+    upcomingIndustries: [
+      { name: "Digital Services", growth: "+44%", color: "#6366f1" },
+      { name: "Clean Energy", growth: "+37%", color: "#10b981" },
+      { name: "EV Manufacturing", growth: "+31%", color: "#f59e0b" },
+      { name: "Space & Defense", growth: "+25%", color: "#ef4444" },
+    ],
+    fundingRaisedB: 95,
   },
   {
     id: "uk-eco",
@@ -403,6 +442,13 @@ export const economiesData: Economy[] = [
       maritimeTrade:
         "Post-Brexit, the UK is rebuilding independent maritime trade agreements. Felixstowe handles ~36% of UK container traffic. The UK\'s maritime sector contributes £46bn to GDP annually and employs over 180,000 people. The National Shipbuilding Strategy aims to revitalize domestic shipbuilding through 2030.",
     },
+    upcomingIndustries: [
+      { name: "FinTech & AI", growth: "+38%", color: "#6366f1" },
+      { name: "Offshore Wind", growth: "+32%", color: "#10b981" },
+      { name: "Life Sciences", growth: "+24%", color: "#06b6d4" },
+      { name: "Creative Industries", growth: "+16%", color: "#a855f7" },
+    ],
+    fundingRaisedB: 60,
   },
   {
     id: "germany-eco",
@@ -465,6 +511,13 @@ export const economiesData: Economy[] = [
       maritimeTrade:
         "Hamburg is Germany\'s gateway to the world, handling ~8.3 million TEUs annually. Germany is the EU\'s largest exporter and relies heavily on seaborne trade for automotive and industrial supply chains. Post-energy crisis, Germany is investing in LNG import terminals to diversify energy imports.",
     },
+    upcomingIndustries: [
+      { name: "Green Steel", growth: "+29%", color: "#10b981" },
+      { name: "Battery Tech", growth: "+35%", color: "#f59e0b" },
+      { name: "Defense & Space", growth: "+27%", color: "#ef4444" },
+      { name: "Software & SaaS", growth: "+21%", color: "#6366f1" },
+    ],
+    fundingRaisedB: 82,
   },
   {
     id: "france-eco",

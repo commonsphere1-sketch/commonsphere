@@ -13,6 +13,11 @@ import {
   Globe,
   Lightning,
   Target,
+  Users,
+  Leaf,
+  Package,
+  DeviceMobile,
+  ShieldWarning,
 } from "@phosphor-icons/react";
 import {
   AreaChart,
@@ -197,6 +202,170 @@ const GROWTH_TRENDS = [
     color: "#10b981",
     data: [2.9, 3.1, 2.8, 3.0, 3.2, 3.1, 3.3],
     trend: "up",
+  },
+];
+
+/* ─── Population & Demographics ─────────────────────────────────────── */
+const POPULATION_TRENDS = [
+  { year: "2020", world: 7.8, africa: 1.34, asia: 4.64, europe: 0.745 },
+  { year: "2022", world: 7.95, africa: 1.39, asia: 4.72, europe: 0.744 },
+  { year: "2024", world: 8.09, africa: 1.45, asia: 4.79, europe: 0.742 },
+  { year: "2026", world: 8.22, africa: 1.51, asia: 4.85, europe: 0.74 },
+  { year: "2028", world: 8.35, africa: 1.57, asia: 4.9, europe: 0.738 },
+  { year: "2030", world: 8.47, africa: 1.64, asia: 4.95, europe: 0.736 },
+];
+
+const AGING_STATS = [
+  { country: "Japan", over65Pct: 29.9, medianAge: 49.5, color: "#ef4444" },
+  { country: "Italy", over65Pct: 24.1, medianAge: 47.7, color: "#f97316" },
+  { country: "Germany", over65Pct: 22.7, medianAge: 46.8, color: "#6366f1" },
+  { country: "USA", over65Pct: 17.3, medianAge: 38.9, color: "#3b82f6" },
+  { country: "China", over65Pct: 14.2, medianAge: 38.4, color: "#ef4444" },
+  { country: "India", over65Pct: 7.1, medianAge: 29.5, color: "#f59e0b" },
+  { country: "Nigeria", over65Pct: 3.0, medianAge: 18.4, color: "#10b981" },
+];
+
+/* ─── Climate & Energy ───────────────────────────────────────────────── */
+const RENEWABLE_CAPACITY = [
+  { year: "2019", solar: 627, wind: 623, hydro: 1310 },
+  { year: "2020", solar: 714, wind: 733, hydro: 1332 },
+  { year: "2021", solar: 849, wind: 825, hydro: 1360 },
+  { year: "2022", solar: 1053, wind: 899, hydro: 1392 },
+  { year: "2023", solar: 1419, wind: 1017, hydro: 1421 },
+  { year: "2024", solar: 1900, wind: 1150, hydro: 1445 },
+  { year: "2025", solar: 2340, wind: 1280, hydro: 1460 },
+];
+
+const CLIMATE_INDICATORS = [
+  {
+    label: "Global Temp Anomaly",
+    value: "+1.45°C",
+    delta: "2024 vs pre-industrial",
+    color: "#ef4444",
+    up: true,
+  },
+  {
+    label: "CO₂ Concentration",
+    value: "422 ppm",
+    delta: "+2.4 ppm/yr",
+    color: "#f97316",
+    up: true,
+  },
+  {
+    label: "Arctic Sea Ice Loss",
+    value: "-13%/decade",
+    delta: "vs 1981–2010 avg",
+    color: "#3b82f6",
+    up: false,
+  },
+  {
+    label: "Clean Energy Share",
+    value: "30.3%",
+    delta: "+4.1pp vs 2020",
+    color: "#10b981",
+    up: true,
+  },
+];
+
+/* ─── Global Trade ───────────────────────────────────────────────────── */
+const TRADE_DATA = [
+  { year: "2019", volume: 19.0, fdi: 1.54 },
+  { year: "2020", volume: 17.4, fdi: 0.99 },
+  { year: "2021", volume: 22.3, fdi: 1.6 },
+  { year: "2022", volume: 25.1, fdi: 1.3 },
+  { year: "2023", volume: 24.2, fdi: 1.33 },
+  { year: "2024", volume: 25.6, fdi: 1.45 },
+  { year: "2025", volume: 26.8, fdi: 1.58 },
+];
+
+const TOP_TRADE_FLOWS = [
+  { route: "China → USA", value: "$438B", share: 92, color: "#ef4444" },
+  { route: "EU → USA", value: "$606B", share: 100, color: "#3b82f6" },
+  { route: "China → EU", value: "$575B", share: 95, color: "#f97316" },
+  { route: "USA → Mexico", value: "$323B", share: 53, color: "#10b981" },
+  { route: "Japan → USA", value: "$148B", share: 24, color: "#a855f7" },
+  { route: "India → EU", value: "$76B", share: 13, color: "#f59e0b" },
+];
+
+/* ─── Digital Economy ────────────────────────────────────────────────── */
+const DIGITAL_METRICS = [
+  { year: "2019", ecommerce: 3.5, aiMarket: 0.27, cloudSpend: 0.24 },
+  { year: "2020", ecommerce: 4.3, aiMarket: 0.38, cloudSpend: 0.37 },
+  { year: "2021", ecommerce: 5.2, aiMarket: 0.52, cloudSpend: 0.49 },
+  { year: "2022", ecommerce: 5.8, aiMarket: 0.72, cloudSpend: 0.63 },
+  { year: "2023", ecommerce: 6.3, aiMarket: 1.07, cloudSpend: 0.72 },
+  { year: "2024", ecommerce: 6.9, aiMarket: 1.84, cloudSpend: 0.84 },
+  { year: "2025", ecommerce: 7.6, aiMarket: 2.74, cloudSpend: 0.98 },
+];
+
+const INTERNET_ADOPTION = [
+  { region: "North America", pct: 93, color: "#3b82f6" },
+  { region: "Europe", pct: 89, color: "#6366f1" },
+  { region: "Latin America", pct: 77, color: "#10b981" },
+  { region: "East Asia", pct: 74, color: "#f97316" },
+  { region: "Middle East", pct: 71, color: "#f59e0b" },
+  { region: "Southeast Asia", pct: 67, color: "#a855f7" },
+  { region: "South Asia", pct: 48, color: "#ef4444" },
+  { region: "Sub-Saharan Africa", pct: 37, color: "#ec4899" },
+];
+
+/* ─── Geopolitical Risk Heat ─────────────────────────────────────────── */
+const GEO_RISK_TABLE = [
+  {
+    region: "Taiwan Strait",
+    risk: 87,
+    trend: "up",
+    category: "Military",
+    color: "#ef4444",
+  },
+  {
+    region: "Russia–Ukraine",
+    risk: 82,
+    trend: "stable",
+    category: "Conflict",
+    color: "#ef4444",
+  },
+  {
+    region: "Middle East",
+    risk: 74,
+    trend: "down",
+    category: "Multi-front",
+    color: "#f97316",
+  },
+  {
+    region: "Korean Peninsula",
+    risk: 61,
+    trend: "up",
+    category: "Nuclear",
+    color: "#f59e0b",
+  },
+  {
+    region: "South China Sea",
+    risk: 58,
+    trend: "up",
+    category: "Maritime",
+    color: "#f59e0b",
+  },
+  {
+    region: "Sahel Region",
+    risk: 54,
+    trend: "up",
+    category: "Insurgency",
+    color: "#f59e0b",
+  },
+  {
+    region: "Venezuela",
+    risk: 42,
+    trend: "stable",
+    category: "Political",
+    color: "#10b981",
+  },
+  {
+    region: "Western Balkans",
+    risk: 31,
+    trend: "down",
+    category: "Ethnic",
+    color: "#10b981",
   },
 ];
 
@@ -1215,22 +1384,6 @@ export function TrendsPage() {
                         </span>
                       </div>
                     </div>
-                    <div
-                      className="h-1 rounded-full overflow-hidden mb-2"
-                      style={{
-                        background: isLight
-                          ? "rgba(0,0,0,0.07)"
-                          : "rgba(255,255,255,0.08)",
-                      }}
-                    >
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${s.probability}%`,
-                          background: s.color,
-                        }}
-                      />
-                    </div>
                     {activeScenario === s.id && (
                       <div
                         className="mt-2 pt-2"
@@ -1394,6 +1547,971 @@ export function TrendsPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* ── POPULATION & DEMOGRAPHICS ──────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Population projection chart */}
+          <div
+            className="lg:col-span-5 rounded-2xl p-5"
+            style={{
+              background: cardBg,
+              border: cardBorder,
+              boxShadow: cardShadow,
+            }}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <Users
+                size={13}
+                weight="fill"
+                style={{ color: isLight ? "#6366f1" : "#a78bfa" }}
+              />
+              <p
+                className="text-[10px] font-mono uppercase tracking-widest"
+                style={{ color: isLight ? "#6366f1" : "rgba(167,139,250,0.7)" }}
+              >
+                Population Trends
+              </p>
+            </div>
+            <h2
+              className="text-base font-bold font-sans mb-4"
+              style={{ color: headText }}
+            >
+              World Population by Region
+              <span
+                className="ml-2 text-[9px] font-mono px-2 py-0.5 rounded-full"
+                style={{ background: "#6366f115", color: "#6366f1" }}
+              >
+                2020–2030
+              </span>
+            </h2>
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart
+                data={POPULATION_TRENDS}
+                margin={{ top: 4, right: 4, left: -10, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="popWorldGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#a855f7" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#a855f7" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient
+                    id="popAfricaGrad"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="popAsiaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f97316" stopOpacity={0.25} />
+                    <stop offset="100%" stopColor="#f97316" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke={gridLine} strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="year"
+                  tick={{
+                    fontSize: 9,
+                    fill: mutedText,
+                    fontFamily: "monospace",
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{
+                    fontSize: 9,
+                    fill: mutedText,
+                    fontFamily: "monospace",
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => `${v}B`}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: isLight ? "#fff" : "#1a1730",
+                    border: isLight
+                      ? "1px solid rgba(0,0,0,0.1)"
+                      : "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 10,
+                    fontSize: 11,
+                    fontFamily: "monospace",
+                    color: headText,
+                  }}
+                  formatter={(v: number, name: string) => [
+                    `${v}B`,
+                    name === "world"
+                      ? "World"
+                      : name === "africa"
+                        ? "Africa"
+                        : name === "asia"
+                          ? "Asia"
+                          : "Europe",
+                  ]}
+                  labelStyle={{ color: mutedText }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="asia"
+                  stroke="#f97316"
+                  fill="url(#popAsiaGrad)"
+                  strokeWidth={1.5}
+                  dot={false}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="africa"
+                  stroke="#10b981"
+                  fill="url(#popAfricaGrad)"
+                  strokeWidth={1.5}
+                  dot={false}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="world"
+                  stroke="#a855f7"
+                  fill="url(#popWorldGrad)"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+            <div className="flex items-center gap-4 mt-2 justify-center">
+              {[
+                { label: "World", color: "#a855f7" },
+                { label: "Asia", color: "#f97316" },
+                { label: "Africa", color: "#10b981" },
+              ].map((l) => (
+                <div key={l.label} className="flex items-center gap-1">
+                  <div
+                    className="w-3 h-0.5 rounded-full"
+                    style={{ background: l.color }}
+                  />
+                  <span
+                    className="text-[10px] font-mono"
+                    style={{ color: mutedText }}
+                  >
+                    {l.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <SourceLink
+              sources={{
+                label: "UN World Population Prospects 2024",
+                url: "https://population.un.org/wpp/",
+              }}
+              className="mt-3"
+            />
+          </div>
+
+          {/* Aging stats */}
+          <div
+            className="lg:col-span-3 rounded-2xl p-5"
+            style={{
+              background: cardBg,
+              border: cardBorder,
+              boxShadow: cardShadow,
+            }}
+          >
+            <SectionHeader
+              title="Global Aging Index"
+              sub="Demographics"
+              isLight={isLight}
+            />
+            <div className="flex flex-col gap-2">
+              {AGING_STATS.map((a) => (
+                <div
+                  key={a.country}
+                  className="flex items-center gap-2 py-1.5"
+                  style={{ borderBottom: `1px solid ${gridLine}` }}
+                >
+                  <span
+                    className="text-xs font-semibold font-sans w-16 shrink-0"
+                    style={{ color: headText }}
+                  >
+                    {a.country}
+                  </span>
+                  <div className="flex-1">
+                    <div
+                      className="w-full h-1.5 rounded-full overflow-hidden"
+                      style={{
+                        background: isLight
+                          ? "rgba(0,0,0,0.07)"
+                          : "rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${(a.over65Pct / 32) * 100}%`,
+                          background: a.color,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <span
+                    className="text-[10px] font-mono w-10 text-right"
+                    style={{ color: a.color }}
+                  >
+                    {a.over65Pct}%
+                  </span>
+                  <span
+                    className="text-[9px] font-mono w-12 text-right"
+                    style={{ color: mutedText }}
+                  >
+                    age {a.medianAge}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p
+              className="text-[9px] font-mono mt-2"
+              style={{ color: mutedText }}
+            >
+              % of population aged 65+
+            </p>
+            <SourceLink
+              sources={{
+                label: "UN DESA Population Division",
+                url: "https://population.un.org",
+              }}
+              className="mt-2"
+            />
+          </div>
+
+          {/* Climate indicators */}
+          <div
+            className="lg:col-span-4 rounded-2xl p-5"
+            style={{
+              background: cardBg,
+              border: cardBorder,
+              boxShadow: cardShadow,
+            }}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <Leaf size={13} weight="fill" style={{ color: "#10b981" }} />
+              <p
+                className="text-[10px] font-mono uppercase tracking-widest"
+                style={{ color: "#10b981" }}
+              >
+                Climate &amp; Energy
+              </p>
+            </div>
+            <h2
+              className="text-base font-bold font-sans mb-4"
+              style={{ color: headText }}
+            >
+              Key Climate Indicators 2025
+            </h2>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {CLIMATE_INDICATORS.map((c) => (
+                <div
+                  key={c.label}
+                  className="rounded-xl p-3"
+                  style={{
+                    background: isLight
+                      ? "rgba(0,0,0,0.025)"
+                      : "rgba(255,255,255,0.04)",
+                    border: `1px solid ${c.color}25`,
+                  }}
+                >
+                  <p
+                    className="text-[9px] font-mono uppercase tracking-widest mb-1"
+                    style={{ color: mutedText }}
+                  >
+                    {c.label}
+                  </p>
+                  <p
+                    className="text-lg font-bold font-mono"
+                    style={{ color: c.color }}
+                  >
+                    {c.value}
+                  </p>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    {c.up ? (
+                      <ArrowUp size={9} weight="bold" color={c.color} />
+                    ) : (
+                      <ArrowDown size={9} weight="bold" color={c.color} />
+                    )}
+                    <span
+                      className="text-[9px] font-mono"
+                      style={{ color: mutedText }}
+                    >
+                      {c.delta}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <SectionHeader
+              title="Renewable Capacity GW"
+              sub="Solar · Wind · Hydro"
+              isLight={isLight}
+            />
+            <ResponsiveContainer width="100%" height={130}>
+              <AreaChart
+                data={RENEWABLE_CAPACITY}
+                margin={{ top: 2, right: 4, left: -10, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="solarGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="windGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke={gridLine} strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="year"
+                  tick={{
+                    fontSize: 9,
+                    fill: mutedText,
+                    fontFamily: "monospace",
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{
+                    fontSize: 9,
+                    fill: mutedText,
+                    fontFamily: "monospace",
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => `${v}`}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: isLight ? "#fff" : "#1a1730",
+                    border: isLight
+                      ? "1px solid rgba(0,0,0,0.1)"
+                      : "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 10,
+                    fontSize: 11,
+                    fontFamily: "monospace",
+                    color: headText,
+                  }}
+                  formatter={(v: number, name: string) => [
+                    `${v} GW`,
+                    name.charAt(0).toUpperCase() + name.slice(1),
+                  ]}
+                  labelStyle={{ color: mutedText }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="hydro"
+                  stroke="#6366f1"
+                  fill="none"
+                  strokeWidth={1.5}
+                  dot={false}
+                  strokeDasharray="4 2"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="wind"
+                  stroke="#3b82f6"
+                  fill="url(#windGrad)"
+                  strokeWidth={1.5}
+                  dot={false}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="solar"
+                  stroke="#f59e0b"
+                  fill="url(#solarGrad)"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+            <div className="flex items-center gap-4 mt-2 justify-center">
+              {[
+                { label: "Solar", color: "#f59e0b" },
+                { label: "Wind", color: "#3b82f6" },
+                { label: "Hydro", color: "#6366f1" },
+              ].map((l) => (
+                <div key={l.label} className="flex items-center gap-1">
+                  <div
+                    className="w-3 h-0.5 rounded-full"
+                    style={{ background: l.color }}
+                  />
+                  <span
+                    className="text-[10px] font-mono"
+                    style={{ color: mutedText }}
+                  >
+                    {l.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <SourceLink
+              sources={[
+                { label: "IRENA Renewable Capacity", url: "https://irena.org" },
+                {
+                  label: "IEA World Energy Outlook",
+                  url: "https://iea.org/weo",
+                },
+              ]}
+              className="mt-3"
+            />
+          </div>
+        </div>
+
+        {/* ── TRADE & DIGITAL ECONOMY ────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Global Trade Volume */}
+          <div
+            className="lg:col-span-4 rounded-2xl p-5"
+            style={{
+              background: cardBg,
+              border: cardBorder,
+              boxShadow: cardShadow,
+            }}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <Package
+                size={13}
+                weight="fill"
+                style={{ color: isLight ? "#f97316" : "#fb923c" }}
+              />
+              <p
+                className="text-[10px] font-mono uppercase tracking-widest"
+                style={{ color: isLight ? "#f97316" : "#fb923c" }}
+              >
+                Global Trade
+              </p>
+            </div>
+            <h2
+              className="text-base font-bold font-sans mb-4"
+              style={{ color: headText }}
+            >
+              Trade Volume &amp; FDI Flows
+              <span
+                className="ml-2 text-[9px] font-mono px-2 py-0.5 rounded-full"
+                style={{ background: "#f9731615", color: "#f97316" }}
+              >
+                2019–2025
+              </span>
+            </h2>
+            <ResponsiveContainer width="100%" height={175}>
+              <LineChart
+                data={TRADE_DATA}
+                margin={{ top: 4, right: 4, left: -10, bottom: 0 }}
+              >
+                <CartesianGrid stroke={gridLine} strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="year"
+                  tick={{
+                    fontSize: 9,
+                    fill: mutedText,
+                    fontFamily: "monospace",
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{
+                    fontSize: 9,
+                    fill: mutedText,
+                    fontFamily: "monospace",
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => `$${v}T`}
+                />
+                <ReferenceLine
+                  x="2025"
+                  stroke={mutedText}
+                  strokeDasharray="4 2"
+                  label={{
+                    value: "Now",
+                    position: "top",
+                    fontSize: 9,
+                    fill: mutedText,
+                  }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: isLight ? "#fff" : "#1a1730",
+                    border: isLight
+                      ? "1px solid rgba(0,0,0,0.1)"
+                      : "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 10,
+                    fontSize: 11,
+                    fontFamily: "monospace",
+                    color: headText,
+                  }}
+                  formatter={(v: number, name: string) => [
+                    `$${v}T`,
+                    name === "volume" ? "Trade Volume" : "FDI Inflows",
+                  ]}
+                  labelStyle={{ color: mutedText }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="volume"
+                  stroke="#f97316"
+                  strokeWidth={2}
+                  dot={{ fill: "#f97316", r: 2.5, strokeWidth: 0 }}
+                  activeDot={{ r: 4 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="fdi"
+                  stroke="#6366f1"
+                  strokeWidth={2}
+                  strokeDasharray="5 2"
+                  dot={{ fill: "#6366f1", r: 2.5, strokeWidth: 0 }}
+                  activeDot={{ r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+            <div className="flex items-center gap-4 mt-2 justify-center">
+              {[
+                { label: "Trade Volume", color: "#f97316" },
+                { label: "FDI Inflows", color: "#6366f1" },
+              ].map((l) => (
+                <div key={l.label} className="flex items-center gap-1">
+                  <div
+                    className="w-3 h-0.5 rounded-full"
+                    style={{ background: l.color }}
+                  />
+                  <span
+                    className="text-[10px] font-mono"
+                    style={{ color: mutedText }}
+                  >
+                    {l.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <SourceLink
+              sources={[
+                { label: "WTO Statistics", url: "https://stats.wto.org" },
+                {
+                  label: "UNCTAD FDI Data",
+                  url: "https://unctad.org/topic/investment/world-investment-report",
+                },
+              ]}
+              className="mt-3"
+            />
+          </div>
+
+          {/* Top Trade Flows */}
+          <div
+            className="lg:col-span-3 rounded-2xl p-5"
+            style={{
+              background: cardBg,
+              border: cardBorder,
+              boxShadow: cardShadow,
+            }}
+          >
+            <SectionHeader
+              title="Top Bilateral Trade Flows"
+              sub="2024 Estimates"
+              isLight={isLight}
+            />
+            <div className="flex flex-col gap-2">
+              {TOP_TRADE_FLOWS.map((t) => (
+                <div
+                  key={t.route}
+                  className="flex items-center gap-2 py-1.5"
+                  style={{ borderBottom: `1px solid ${gridLine}` }}
+                >
+                  <span
+                    className="text-[11px] font-sans flex-1 min-w-0 truncate"
+                    style={{ color: headText }}
+                  >
+                    {t.route}
+                  </span>
+                  <div
+                    className="w-16 h-1.5 rounded-full overflow-hidden shrink-0"
+                    style={{
+                      background: isLight
+                        ? "rgba(0,0,0,0.07)"
+                        : "rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${t.share}%`, background: t.color }}
+                    />
+                  </div>
+                  <span
+                    className="text-[10px] font-mono w-12 text-right shrink-0"
+                    style={{ color: t.color }}
+                  >
+                    {t.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <SourceLink
+              sources={{
+                label: "WTO Trade Profiles 2024",
+                url: "https://stats.wto.org",
+              }}
+              className="mt-3"
+            />
+          </div>
+
+          {/* Digital Economy */}
+          <div
+            className="lg:col-span-5 rounded-2xl p-5"
+            style={{
+              background: cardBg,
+              border: cardBorder,
+              boxShadow: cardShadow,
+            }}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <DeviceMobile
+                size={13}
+                weight="fill"
+                style={{ color: "#a855f7" }}
+              />
+              <p
+                className="text-[10px] font-mono uppercase tracking-widest"
+                style={{ color: "#a855f7" }}
+              >
+                Digital Economy
+              </p>
+            </div>
+            <h2
+              className="text-base font-bold font-sans mb-4"
+              style={{ color: headText }}
+            >
+              E-Commerce · AI · Cloud Market Size ($T)
+              <span
+                className="ml-2 text-[9px] font-mono px-2 py-0.5 rounded-full"
+                style={{ background: "#a855f715", color: "#a855f7" }}
+              >
+                2019–2025
+              </span>
+            </h2>
+            <ResponsiveContainer width="100%" height={170}>
+              <AreaChart
+                data={DIGITAL_METRICS}
+                margin={{ top: 4, right: 4, left: -10, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="ecomGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#a855f7" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#a855f7" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="aiGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="cloudGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke={gridLine} strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="year"
+                  tick={{
+                    fontSize: 9,
+                    fill: mutedText,
+                    fontFamily: "monospace",
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{
+                    fontSize: 9,
+                    fill: mutedText,
+                    fontFamily: "monospace",
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => `$${v}T`}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: isLight ? "#fff" : "#1a1730",
+                    border: isLight
+                      ? "1px solid rgba(0,0,0,0.1)"
+                      : "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 10,
+                    fontSize: 11,
+                    fontFamily: "monospace",
+                    color: headText,
+                  }}
+                  formatter={(v: number, name: string) => [
+                    `$${v}T`,
+                    name === "ecommerce"
+                      ? "E-Commerce"
+                      : name === "aiMarket"
+                        ? "AI Market"
+                        : "Cloud Spend",
+                  ]}
+                  labelStyle={{ color: mutedText }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="cloudSpend"
+                  stroke="#3b82f6"
+                  fill="url(#cloudGrad)"
+                  strokeWidth={1.5}
+                  dot={false}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="aiMarket"
+                  stroke="#f59e0b"
+                  fill="url(#aiGrad)"
+                  strokeWidth={2}
+                  dot={false}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="ecommerce"
+                  stroke="#a855f7"
+                  fill="url(#ecomGrad)"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+            <div className="flex items-center gap-4 mt-2 justify-center">
+              {[
+                { label: "E-Commerce", color: "#a855f7" },
+                { label: "AI Market", color: "#f59e0b" },
+                { label: "Cloud Spend", color: "#3b82f6" },
+              ].map((l) => (
+                <div key={l.label} className="flex items-center gap-1">
+                  <div
+                    className="w-3 h-0.5 rounded-full"
+                    style={{ background: l.color }}
+                  />
+                  <span
+                    className="text-[10px] font-mono"
+                    style={{ color: mutedText }}
+                  >
+                    {l.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <SourceLink
+              sources={[
+                {
+                  label: "Statista Digital Economy Report",
+                  url: "https://statista.com",
+                },
+                { label: "IDC Cloud & AI Tracker", url: "https://idc.com" },
+              ]}
+              className="mt-3"
+            />
+          </div>
+        </div>
+
+        {/* ── GEOPOLITICAL RISK + INTERNET ADOPTION ──────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Geopolitical Risk Table */}
+          <div
+            className="lg:col-span-7 rounded-2xl p-5"
+            style={{
+              background: cardBg,
+              border: cardBorder,
+              boxShadow: cardShadow,
+            }}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <ShieldWarning
+                size={13}
+                weight="fill"
+                style={{ color: "#ef4444" }}
+              />
+              <p
+                className="text-[10px] font-mono uppercase tracking-widest"
+                style={{ color: "#ef4444" }}
+              >
+                Geopolitical Risk
+              </p>
+            </div>
+            <h2
+              className="text-base font-bold font-sans mb-4"
+              style={{ color: headText }}
+            >
+              Global Risk Heat Map — 2025
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {GEO_RISK_TABLE.map((r) => (
+                <div
+                  key={r.region}
+                  className="rounded-xl p-3 flex items-center gap-3"
+                  style={{
+                    background: isLight
+                      ? "rgba(0,0,0,0.025)"
+                      : "rgba(255,255,255,0.035)",
+                    border: `1px solid ${r.color}22`,
+                  }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-xs font-bold font-sans leading-snug"
+                      style={{ color: headText }}
+                    >
+                      {r.region}
+                    </p>
+                    <span
+                      className="text-[9px] font-mono px-1.5 py-0.5 rounded-full mt-0.5 inline-block"
+                      style={{ background: r.color + "20", color: r.color }}
+                    >
+                      {r.category}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-center shrink-0 w-16">
+                    <div
+                      className="w-full h-1.5 rounded-full overflow-hidden mb-1"
+                      style={{
+                        background: isLight
+                          ? "rgba(0,0,0,0.07)"
+                          : "rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${r.risk}%`, background: r.color }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span
+                        className="text-sm font-bold font-mono"
+                        style={{ color: r.color }}
+                      >
+                        {r.risk}
+                      </span>
+                      <span
+                        className="text-[9px] font-mono"
+                        style={{ color: mutedText }}
+                      >
+                        {r.trend === "up"
+                          ? "↑"
+                          : r.trend === "down"
+                            ? "↓"
+                            : "→"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p
+              className="text-[9px] font-mono mt-2"
+              style={{ color: mutedText }}
+            >
+              Risk score 0–100 composite index. ↑ Rising ↓ Falling → Stable
+            </p>
+            <SourceLink
+              sources={[
+                { label: "EIU Country Risk", url: "https://eiu.com" },
+                {
+                  label: "Control Risks GRRC",
+                  url: "https://controlrisks.com",
+                },
+              ]}
+              className="mt-2"
+            />
+          </div>
+
+          {/* Internet Adoption */}
+          <div
+            className="lg:col-span-5 rounded-2xl p-5"
+            style={{
+              background: cardBg,
+              border: cardBorder,
+              boxShadow: cardShadow,
+            }}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <Globe size={13} weight="fill" style={{ color: "#3b82f6" }} />
+              <p
+                className="text-[10px] font-mono uppercase tracking-widest"
+                style={{ color: "#3b82f6" }}
+              >
+                Connectivity
+              </p>
+            </div>
+            <h2
+              className="text-base font-bold font-sans mb-4"
+              style={{ color: headText }}
+            >
+              Internet Adoption by Region — 2025
+            </h2>
+            <div className="flex flex-col gap-3">
+              {INTERNET_ADOPTION.map((r) => (
+                <div key={r.region} className="flex items-center gap-3">
+                  <span
+                    className="text-[11px] font-sans w-36 shrink-0"
+                    style={{ color: headText }}
+                  >
+                    {r.region}
+                  </span>
+                  <div
+                    className="flex-1 h-2 rounded-full overflow-hidden"
+                    style={{
+                      background: isLight
+                        ? "rgba(0,0,0,0.07)"
+                        : "rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{ width: `${r.pct}%`, background: r.color }}
+                    />
+                  </div>
+                  <span
+                    className="text-[11px] font-mono w-9 text-right shrink-0"
+                    style={{ color: r.color }}
+                  >
+                    {r.pct}%
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div
+              className="mt-4 p-3 rounded-xl"
+              style={{
+                background: isLight
+                  ? "rgba(59,130,246,0.05)"
+                  : "rgba(59,130,246,0.08)",
+                border: "1px solid rgba(59,130,246,0.15)",
+              }}
+            >
+              <p className="text-[10px] font-mono" style={{ color: mutedText }}>
+                ~2.6B people remain offline globally. Africa and South Asia
+                represent the largest unconnected populations, with mobile-first
+                connectivity driving the fastest growth.
+              </p>
+            </div>
+            <SourceLink
+              sources={[
+                {
+                  label: "ITU Digital Development 2025",
+                  url: "https://itu.int/en/ITU-D/Statistics",
+                },
+                {
+                  label: "DataReportal Global Overview",
+                  url: "https://datareportal.com",
+                },
+              ]}
+              className="mt-3"
+            />
           </div>
         </div>
 

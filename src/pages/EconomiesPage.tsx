@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   CurrencyDollar,
   TrendUp,
@@ -6,6 +6,7 @@ import {
   MagnifyingGlass,
   ArrowUp,
   ArrowDown,
+  ArrowsLeftRight,
   Anchor,
   Package,
   Boat,
@@ -13,6 +14,11 @@ import {
   Flag,
   MapTrifold,
   Buildings,
+  CaretDown,
+  Tree,
+  MapPin,
+  ChartBar,
+  Diamond,
 } from "@phosphor-icons/react";
 import {
   AreaChart,
@@ -27,9 +33,1162 @@ import {
   BarChart,
   Bar,
   ReferenceLine,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import { economiesData, type Economy } from "../data/economiesData";
 import { SourceLink } from "../components/SourceLink";
+import { countriesData } from "../data/countriesData";
+
+// ── Rare Earth Minerals data per economy ────────────────────────────────────
+type RareEarthMineral = {
+  name: string;
+  symbol: string;
+  has: boolean; // does this economy have known reserves?
+  surplus: boolean; // is it a net exporter / surplus producer?
+  reserveKt: number | null; // known reserves in kt (null = trace/unknown)
+  globalShare: string;
+  use: string; // primary strategic use
+  color: string;
+};
+
+const RARE_EARTH_MINERALS: Record<string, RareEarthMineral[]> = {
+  usa: [
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: 1400,
+      globalShare: "~1.8%",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Dysprosium",
+      symbol: "Dy",
+      has: true,
+      surplus: false,
+      reserveKt: 180,
+      globalShare: "~1.2%",
+      use: "High-temp magnets",
+      color: "#8b5cf6",
+    },
+    {
+      name: "Lanthanum",
+      symbol: "La",
+      has: true,
+      surplus: false,
+      reserveKt: 900,
+      globalShare: "~1.5%",
+      use: "Catalysts, optics",
+      color: "#a78bfa",
+    },
+    {
+      name: "Cerium",
+      symbol: "Ce",
+      has: true,
+      surplus: false,
+      reserveKt: 2100,
+      globalShare: "~2.1%",
+      use: "Polishing, glass",
+      color: "#c4b5fd",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: 9800,
+      globalShare: "~8%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: true,
+      surplus: false,
+      reserveKt: 68,
+      globalShare: "~1%",
+      use: "Battery cathodes",
+      color: "#4f46e5",
+    },
+    {
+      name: "Europium",
+      symbol: "Eu",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.5%",
+      use: "Phosphors, displays",
+      color: "#818cf8",
+    },
+    {
+      name: "Terbium",
+      symbol: "Tb",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.5%",
+      use: "Solid-state devices",
+      color: "#a5b4fc",
+    },
+  ],
+  china: [
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: true,
+      reserveKt: 44000,
+      globalShare: "~60%",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Dysprosium",
+      symbol: "Dy",
+      has: true,
+      surplus: true,
+      reserveKt: 4200,
+      globalShare: "~58%",
+      use: "High-temp magnets",
+      color: "#8b5cf6",
+    },
+    {
+      name: "Lanthanum",
+      symbol: "La",
+      has: true,
+      surplus: true,
+      reserveKt: 36000,
+      globalShare: "~55%",
+      use: "Catalysts, optics",
+      color: "#a78bfa",
+    },
+    {
+      name: "Cerium",
+      symbol: "Ce",
+      has: true,
+      surplus: true,
+      reserveKt: 55000,
+      globalShare: "~58%",
+      use: "Polishing, glass",
+      color: "#c4b5fd",
+    },
+    {
+      name: "Europium",
+      symbol: "Eu",
+      has: true,
+      surplus: true,
+      reserveKt: 320,
+      globalShare: "~65%",
+      use: "Phosphors, displays",
+      color: "#818cf8",
+    },
+    {
+      name: "Terbium",
+      symbol: "Tb",
+      has: true,
+      surplus: true,
+      reserveKt: 140,
+      globalShare: "~60%",
+      use: "Solid-state devices",
+      color: "#a5b4fc",
+    },
+    {
+      name: "Yttrium",
+      symbol: "Y",
+      has: true,
+      surplus: true,
+      reserveKt: 8200,
+      globalShare: "~52%",
+      use: "LEDs, superconductors",
+      color: "#67e8f9",
+    },
+    {
+      name: "Praseodymium",
+      symbol: "Pr",
+      has: true,
+      surplus: true,
+      reserveKt: 12000,
+      globalShare: "~57%",
+      use: "Aircraft engines",
+      color: "#38bdf8",
+    },
+  ],
+  eu: [
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: 1100,
+      globalShare: "~1.4%",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: 5800,
+      globalShare: "~4.8%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: true,
+      surplus: false,
+      reserveKt: 140,
+      globalShare: "~2%",
+      use: "Battery cathodes",
+      color: "#4f46e5",
+    },
+    {
+      name: "Lanthanum",
+      symbol: "La",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.5%",
+      use: "Catalysts, optics",
+      color: "#a78bfa",
+    },
+    {
+      name: "Dysprosium",
+      symbol: "Dy",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.3%",
+      use: "High-temp magnets",
+      color: "#8b5cf6",
+    },
+    {
+      name: "Cerium",
+      symbol: "Ce",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.5%",
+      use: "Polishing, glass",
+      color: "#c4b5fd",
+    },
+    {
+      name: "Scandium",
+      symbol: "Sc",
+      has: true,
+      surplus: false,
+      reserveKt: 18,
+      globalShare: "~3%",
+      use: "Aerospace alloys",
+      color: "#34d399",
+    },
+    {
+      name: "Gallium",
+      symbol: "Ga",
+      has: true,
+      surplus: false,
+      reserveKt: 31,
+      globalShare: "~4%",
+      use: "Semiconductors",
+      color: "#6ee7b7",
+    },
+  ],
+  germany: [
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.1%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.1%",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.1%",
+      use: "Battery cathodes",
+      color: "#4f46e5",
+    },
+    {
+      name: "Indium",
+      symbol: "In",
+      has: true,
+      surplus: false,
+      reserveKt: 8,
+      globalShare: "~3%",
+      use: "Thin-film solar, displays",
+      color: "#f59e0b",
+    },
+    {
+      name: "Germanium",
+      symbol: "Ge",
+      has: true,
+      surplus: false,
+      reserveKt: 12,
+      globalShare: "~5%",
+      use: "Fiber optics, IR optics",
+      color: "#84cc16",
+    },
+    {
+      name: "Gallium",
+      symbol: "Ga",
+      has: true,
+      surplus: false,
+      reserveKt: 19,
+      globalShare: "~3.5%",
+      use: "Semiconductors",
+      color: "#6ee7b7",
+    },
+    {
+      name: "Scandium",
+      symbol: "Sc",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.5%",
+      use: "Aerospace alloys",
+      color: "#34d399",
+    },
+    {
+      name: "Dysprosium",
+      symbol: "Dy",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.2%",
+      use: "High-temp magnets",
+      color: "#8b5cf6",
+    },
+  ],
+  india: [
+    {
+      name: "Lanthanum",
+      symbol: "La",
+      has: true,
+      surplus: false,
+      reserveKt: 6900,
+      globalShare: "~6%",
+      use: "Catalysts, optics",
+      color: "#a78bfa",
+    },
+    {
+      name: "Cerium",
+      symbol: "Ce",
+      has: true,
+      surplus: false,
+      reserveKt: 8200,
+      globalShare: "~8%",
+      use: "Polishing, glass",
+      color: "#c4b5fd",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: 3400,
+      globalShare: "~4.5%",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Thorium",
+      symbol: "Th",
+      has: true,
+      surplus: true,
+      reserveKt: 290000,
+      globalShare: "~25%",
+      use: "Next-gen nuclear",
+      color: "#f97316",
+    },
+    {
+      name: "Monazite",
+      symbol: "—",
+      has: true,
+      surplus: true,
+      reserveKt: 11000,
+      globalShare: "~10%",
+      use: "REE source mineral",
+      color: "#fbbf24",
+    },
+    {
+      name: "Yttrium",
+      symbol: "Y",
+      has: true,
+      surplus: false,
+      reserveKt: 410,
+      globalShare: "~2.5%",
+      use: "LEDs, superconductors",
+      color: "#67e8f9",
+    },
+    {
+      name: "Dysprosium",
+      symbol: "Dy",
+      has: true,
+      surplus: false,
+      reserveKt: 290,
+      globalShare: "~3%",
+      use: "High-temp magnets",
+      color: "#8b5cf6",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: 5900,
+      globalShare: "~5%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+  ],
+  japan: [
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.1%",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Dysprosium",
+      symbol: "Dy",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.1%",
+      use: "High-temp magnets",
+      color: "#8b5cf6",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.1%",
+      use: "Battery cathodes",
+      color: "#4f46e5",
+    },
+    {
+      name: "Indium",
+      symbol: "In",
+      has: true,
+      surplus: false,
+      reserveKt: 220,
+      globalShare: "~5.2%",
+      use: "Thin-film solar, displays",
+      color: "#f59e0b",
+    },
+    {
+      name: "Iodine",
+      symbol: "I",
+      has: true,
+      surplus: true,
+      reserveKt: 9500,
+      globalShare: "~27%",
+      use: "Medical, chemicals",
+      color: "#a21caf",
+    },
+    {
+      name: "Scandium",
+      symbol: "Sc",
+      has: true,
+      surplus: false,
+      reserveKt: 24,
+      globalShare: "~4%",
+      use: "Aerospace alloys",
+      color: "#34d399",
+    },
+    {
+      name: "Seabed REE",
+      symbol: "—",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Emerging",
+      use: "Future ocean mining",
+      color: "#06b6d4",
+    },
+    {
+      name: "Gallium",
+      symbol: "Ga",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.5%",
+      use: "Semiconductors",
+      color: "#6ee7b7",
+    },
+  ],
+  brazil: [
+    {
+      name: "Niobium",
+      symbol: "Nb",
+      has: true,
+      surplus: true,
+      reserveKt: 10900000,
+      globalShare: "~92%",
+      use: "Steel alloys, superconductors",
+      color: "#f97316",
+    },
+    {
+      name: "Tantalum",
+      symbol: "Ta",
+      has: true,
+      surplus: true,
+      reserveKt: 52000,
+      globalShare: "~35%",
+      use: "Capacitors, electronics",
+      color: "#fb923c",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: true,
+      reserveKt: 220000,
+      globalShare: "~19%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: 3200,
+      globalShare: "~4.2%",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lanthanum",
+      symbol: "La",
+      has: true,
+      surplus: false,
+      reserveKt: 4800,
+      globalShare: "~4%",
+      use: "Catalysts, optics",
+      color: "#a78bfa",
+    },
+    {
+      name: "Cerium",
+      symbol: "Ce",
+      has: true,
+      surplus: false,
+      reserveKt: 5400,
+      globalShare: "~5.4%",
+      use: "Polishing, glass",
+      color: "#c4b5fd",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: true,
+      surplus: false,
+      reserveKt: 91,
+      globalShare: "~1.3%",
+      use: "Battery cathodes",
+      color: "#4f46e5",
+    },
+    {
+      name: "Scandium",
+      symbol: "Sc",
+      has: true,
+      surplus: false,
+      reserveKt: 4,
+      globalShare: "~1.5%",
+      use: "Aerospace alloys",
+      color: "#34d399",
+    },
+  ],
+  "saudi-arabia": [
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: 420,
+      globalShare: "~0.6%",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Phosphate",
+      symbol: "P",
+      has: true,
+      surplus: true,
+      reserveKt: 3800000,
+      globalShare: "~5%",
+      use: "Fertilizers",
+      color: "#84cc16",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: true,
+      surplus: false,
+      reserveKt: 32,
+      globalShare: "~0.5%",
+      use: "Battery cathodes",
+      color: "#4f46e5",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: 890,
+      globalShare: "~0.7%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Lanthanum",
+      symbol: "La",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.3%",
+      use: "Catalysts, optics",
+      color: "#a78bfa",
+    },
+    {
+      name: "Dysprosium",
+      symbol: "Dy",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.3%",
+      use: "High-temp magnets",
+      color: "#8b5cf6",
+    },
+    {
+      name: "Tantalum",
+      symbol: "Ta",
+      has: true,
+      surplus: false,
+      reserveKt: 280,
+      globalShare: "~0.8%",
+      use: "Capacitors, electronics",
+      color: "#fb923c",
+    },
+    {
+      name: "Scandium",
+      symbol: "Sc",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "<0.5%",
+      use: "Aerospace alloys",
+      color: "#34d399",
+    },
+  ],
+};
+
+// Default for economies without specific data
+const DEFAULT_RARE_EARTHS: RareEarthMineral[] = [
+  {
+    name: "Neodymium",
+    symbol: "Nd",
+    has: false,
+    surplus: false,
+    reserveKt: null,
+    globalShare: "Unknown",
+    use: "EV motors, wind turbines",
+    color: "#6366f1",
+  },
+  {
+    name: "Lithium",
+    symbol: "Li",
+    has: false,
+    surplus: false,
+    reserveKt: null,
+    globalShare: "Unknown",
+    use: "Batteries",
+    color: "#7c3aed",
+  },
+  {
+    name: "Cobalt",
+    symbol: "Co",
+    has: false,
+    surplus: false,
+    reserveKt: null,
+    globalShare: "Unknown",
+    use: "Battery cathodes",
+    color: "#4f46e5",
+  },
+  {
+    name: "Dysprosium",
+    symbol: "Dy",
+    has: false,
+    surplus: false,
+    reserveKt: null,
+    globalShare: "Unknown",
+    use: "High-temp magnets",
+    color: "#8b5cf6",
+  },
+  {
+    name: "Lanthanum",
+    symbol: "La",
+    has: false,
+    surplus: false,
+    reserveKt: null,
+    globalShare: "Unknown",
+    use: "Catalysts, optics",
+    color: "#a78bfa",
+  },
+  {
+    name: "Cerium",
+    symbol: "Ce",
+    has: false,
+    surplus: false,
+    reserveKt: null,
+    globalShare: "Unknown",
+    use: "Polishing, glass",
+    color: "#c4b5fd",
+  },
+  {
+    name: "Scandium",
+    symbol: "Sc",
+    has: false,
+    surplus: false,
+    reserveKt: null,
+    globalShare: "Unknown",
+    use: "Aerospace alloys",
+    color: "#34d399",
+  },
+  {
+    name: "Yttrium",
+    symbol: "Y",
+    has: false,
+    surplus: false,
+    reserveKt: null,
+    globalShare: "Unknown",
+    use: "LEDs, superconductors",
+    color: "#67e8f9",
+  },
+];
+
+// ── Per-economy natural resources data ──────────────────────────────────────
+const ECONOMY_RESOURCES: Record<
+  string,
+  {
+    name: string;
+    value: number;
+    unit: string;
+    color: string;
+    icon: string;
+    share: string;
+  }[]
+> = {
+  usa: [
+    {
+      name: "Natural Gas",
+      value: 12.6,
+      unit: "tcf/yr",
+      color: "#6366f1",
+      icon: "🔥",
+      share: "Top 1 producer",
+    },
+    {
+      name: "Crude Oil",
+      value: 13.2,
+      unit: "mb/d",
+      color: "#f97316",
+      icon: "🛢️",
+      share: "Top 1 producer",
+    },
+    {
+      name: "Coal",
+      value: 485,
+      unit: "Mt/yr",
+      color: "#6b7280",
+      icon: "⛏️",
+      share: "3rd global",
+    },
+    {
+      name: "Gold",
+      value: 170,
+      unit: "t/yr",
+      color: "#f59e0b",
+      icon: "🥇",
+      share: "4th global",
+    },
+    {
+      name: "Copper",
+      value: 1.1,
+      unit: "Mt/yr",
+      color: "#dc2626",
+      icon: "🔩",
+      share: "4th global",
+    },
+  ],
+  china: [
+    {
+      name: "Coal",
+      value: 4560,
+      unit: "Mt/yr",
+      color: "#6b7280",
+      icon: "⛏️",
+      share: "50% of global",
+    },
+    {
+      name: "Rare Earth",
+      value: 210,
+      unit: "kt/yr",
+      color: "#059669",
+      icon: "🧲",
+      share: "60% of global",
+    },
+    {
+      name: "Steel",
+      value: 1018,
+      unit: "Mt/yr",
+      color: "#94a3b8",
+      icon: "🏗️",
+      share: "57% of global",
+    },
+    {
+      name: "Copper",
+      value: 1.9,
+      unit: "Mt/yr",
+      color: "#dc2626",
+      icon: "🔩",
+      share: "1st global",
+    },
+    {
+      name: "Gold",
+      value: 330,
+      unit: "t/yr",
+      color: "#f59e0b",
+      icon: "🥇",
+      share: "1st global",
+    },
+  ],
+  eu: [
+    {
+      name: "Natural Gas",
+      value: 47,
+      unit: "bcm/yr",
+      color: "#6366f1",
+      icon: "🔥",
+      share: "Imports ~80%",
+    },
+    {
+      name: "Coal",
+      value: 132,
+      unit: "Mt/yr",
+      color: "#6b7280",
+      icon: "⛏️",
+      share: "Declining",
+    },
+    {
+      name: "Lithium",
+      value: 0.9,
+      unit: "kt/yr",
+      color: "#7c3aed",
+      icon: "🔋",
+      share: "Growing",
+    },
+    {
+      name: "Copper",
+      value: 0.8,
+      unit: "Mt/yr",
+      color: "#dc2626",
+      icon: "🔩",
+      share: "Refining hub",
+    },
+    {
+      name: "Uranium",
+      value: 0.4,
+      unit: "kt/yr",
+      color: "#84cc16",
+      icon: "☢️",
+      share: "Czech/France",
+    },
+  ],
+  germany: [
+    {
+      name: "Coal",
+      value: 131,
+      unit: "Mt/yr",
+      color: "#6b7280",
+      icon: "⛏️",
+      share: "EU largest",
+    },
+    {
+      name: "Potash",
+      value: 3.9,
+      unit: "Mt/yr",
+      color: "#a3a3a3",
+      icon: "🌿",
+      share: "3rd global",
+    },
+    {
+      name: "Salt",
+      value: 14,
+      unit: "Mt/yr",
+      color: "#e2e8f0",
+      icon: "🧂",
+      share: "Major EU",
+    },
+    {
+      name: "Gravel/Sand",
+      value: 260,
+      unit: "Mt/yr",
+      color: "#d97706",
+      icon: "🪨",
+      share: "EU top",
+    },
+    {
+      name: "Natural Gas",
+      value: 5,
+      unit: "bcm/yr",
+      color: "#6366f1",
+      icon: "🔥",
+      share: "Imports 90%",
+    },
+  ],
+  india: [
+    {
+      name: "Coal",
+      value: 898,
+      unit: "Mt/yr",
+      color: "#6b7280",
+      icon: "⛏️",
+      share: "2nd global",
+    },
+    {
+      name: "Iron Ore",
+      value: 230,
+      unit: "Mt/yr",
+      color: "#b45309",
+      icon: "⚙️",
+      share: "3rd global",
+    },
+    {
+      name: "Mica",
+      value: 0.9,
+      unit: "Mt/yr",
+      color: "#f0abfc",
+      icon: "💎",
+      share: "1st global",
+    },
+    {
+      name: "Manganese",
+      value: 3.2,
+      unit: "Mt/yr",
+      color: "#8b5cf6",
+      icon: "🔬",
+      share: "5th global",
+    },
+    {
+      name: "Chromite",
+      value: 3.5,
+      unit: "Mt/yr",
+      color: "#0ea5e9",
+      icon: "🧲",
+      share: "2nd global",
+    },
+  ],
+  japan: [
+    {
+      name: "Iodine",
+      value: 9.5,
+      unit: "kt/yr",
+      color: "#a21caf",
+      icon: "💧",
+      share: "2nd global",
+    },
+    {
+      name: "Pyrophyllite",
+      value: 0.4,
+      unit: "Mt/yr",
+      color: "#78716c",
+      icon: "🪨",
+      share: "Significant",
+    },
+    {
+      name: "Zinc",
+      value: 0.1,
+      unit: "Mt/yr",
+      color: "#71717a",
+      icon: "🔩",
+      share: "Limited",
+    },
+    {
+      name: "Natural Gas",
+      value: 3.5,
+      unit: "bcm/yr",
+      color: "#6366f1",
+      icon: "🔥",
+      share: "Imports 98%",
+    },
+    {
+      name: "Fish Catch",
+      value: 3.2,
+      unit: "Mt/yr",
+      color: "#06b6d4",
+      icon: "🐟",
+      share: "6th global",
+    },
+  ],
+  brazil: [
+    {
+      name: "Iron Ore",
+      value: 411,
+      unit: "Mt/yr",
+      color: "#b45309",
+      icon: "⚙️",
+      share: "2nd global",
+    },
+    {
+      name: "Crude Oil",
+      value: 3.6,
+      unit: "mb/d",
+      color: "#f97316",
+      icon: "🛢️",
+      share: "8th global",
+    },
+    {
+      name: "Soybeans",
+      value: 154,
+      unit: "Mt/yr",
+      color: "#65a30d",
+      icon: "🌱",
+      share: "1st global",
+    },
+    {
+      name: "Sugar",
+      value: 42,
+      unit: "Mt/yr",
+      color: "#fde68a",
+      icon: "🍬",
+      share: "1st global",
+    },
+    {
+      name: "Copper",
+      value: 0.4,
+      unit: "Mt/yr",
+      color: "#dc2626",
+      icon: "🔩",
+      share: "Growing",
+    },
+  ],
+  "saudi-arabia": [
+    {
+      name: "Crude Oil",
+      value: 10.5,
+      unit: "mb/d",
+      color: "#f97316",
+      icon: "🛢️",
+      share: "2nd global",
+    },
+    {
+      name: "Natural Gas",
+      value: 4.6,
+      unit: "tcf/yr",
+      color: "#6366f1",
+      icon: "🔥",
+      share: "Top 10",
+    },
+    {
+      name: "Petrochemicals",
+      value: 8.6,
+      unit: "%GDP",
+      color: "#a78bfa",
+      icon: "🧪",
+      share: "Major exporter",
+    },
+    {
+      name: "Gold",
+      value: 8,
+      unit: "t/yr",
+      color: "#f59e0b",
+      icon: "🥇",
+      share: "Growing",
+    },
+    {
+      name: "Phosphate",
+      value: 3.8,
+      unit: "Mt/yr",
+      color: "#84cc16",
+      icon: "🌿",
+      share: "Significant",
+    },
+  ],
+};
+
+// Fallback generic resources for economies not explicitly listed
+const FALLBACK_RESOURCES = [
+  {
+    name: "Agricultural",
+    value: 45,
+    unit: "% land",
+    color: "#4ade80",
+    icon: "🌾",
+    share: "Varies",
+  },
+  {
+    name: "Hydro Power",
+    value: 28,
+    unit: "TWh/yr",
+    color: "#38bdf8",
+    icon: "💧",
+    share: "Regional",
+  },
+  {
+    name: "Forestry",
+    value: 22,
+    unit: "% coverage",
+    color: "#65a30d",
+    icon: "🌲",
+    share: "Regional",
+  },
+  {
+    name: "Fisheries",
+    value: 18,
+    unit: "Mt/yr",
+    color: "#06b6d4",
+    icon: "🐟",
+    share: "Regional",
+  },
+  {
+    name: "Minerals",
+    value: 12,
+    unit: "% exports",
+    color: "#94a3b8",
+    icon: "⛏️",
+    share: "Varies",
+  },
+];
 
 const SRC_IMF = [
   {
@@ -121,6 +1280,288 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   IQD: "ع.د",
   COP: "$",
 };
+
+// Static mid-market rates vs USD (Aug 2026 approx.)
+const FX_RATES: Record<string, number> = {
+  USD: 1,
+  EUR: 0.921,
+  GBP: 0.787,
+  JPY: 149.8,
+  CNY: 7.24,
+  INR: 83.5,
+  BRL: 4.97,
+  CAD: 1.363,
+  AUD: 1.531,
+  KRW: 1325,
+  RUB: 91.2,
+  MXN: 17.15,
+  IDR: 15640,
+  CHF: 0.894,
+  ARS: 874,
+  AED: 3.673,
+  SAR: 3.751,
+  TRY: 32.4,
+  PLN: 3.96,
+  SEK: 10.42,
+  DKK: 6.87,
+  NOK: 10.55,
+  SGD: 1.339,
+  MYR: 4.71,
+  ILS: 3.73,
+  EGP: 30.9,
+  ZAR: 18.62,
+  THB: 35.1,
+  NGN: 1480,
+  PKR: 278,
+  VND: 24350,
+  CLP: 897,
+  PHP: 56.2,
+  BDT: 110,
+  NZD: 1.628,
+  HUF: 352,
+  CZK: 22.7,
+  RON: 4.58,
+  UAH: 37.2,
+  KWD: 0.308,
+  QAR: 3.641,
+  TWD: 31.9,
+  HKD: 7.825,
+  HKD2: 7.825,
+  KZT: 455,
+  MMK: 2098,
+  LKR: 327,
+};
+
+const CURRENCY_NAMES: Record<string, string> = {
+  USD: "US Dollar",
+  EUR: "Euro",
+  GBP: "British Pound",
+  JPY: "Japanese Yen",
+  CNY: "Chinese Yuan",
+  INR: "Indian Rupee",
+  BRL: "Brazilian Real",
+  CAD: "Canadian Dollar",
+  AUD: "Australian Dollar",
+  KRW: "South Korean Won",
+  RUB: "Russian Ruble",
+  MXN: "Mexican Peso",
+  IDR: "Indonesian Rupiah",
+  CHF: "Swiss Franc",
+  ARS: "Argentine Peso",
+  AED: "UAE Dirham",
+  SAR: "Saudi Riyal",
+  TRY: "Turkish Lira",
+  PLN: "Polish Złoty",
+  SEK: "Swedish Krona",
+  DKK: "Danish Krone",
+  NOK: "Norwegian Krone",
+  SGD: "Singapore Dollar",
+  MYR: "Malaysian Ringgit",
+  ILS: "Israeli Shekel",
+  EGP: "Egyptian Pound",
+  ZAR: "South African Rand",
+  THB: "Thai Baht",
+  NGN: "Nigerian Naira",
+  PKR: "Pakistani Rupee",
+  VND: "Vietnamese Dong",
+  CLP: "Chilean Peso",
+  PHP: "Philippine Peso",
+  BDT: "Bangladeshi Taka",
+  NZD: "New Zealand Dollar",
+  HUF: "Hungarian Forint",
+  CZK: "Czech Koruna",
+  RON: "Romanian Leu",
+  UAH: "Ukrainian Hryvnia",
+  KWD: "Kuwaiti Dinar",
+  QAR: "Qatari Riyal",
+  TWD: "Taiwan Dollar",
+  HKD: "Hong Kong Dollar",
+  KZT: "Kazakhstani Tenge",
+  MMK: "Myanmar Kyat",
+  LKR: "Sri Lankan Rupee",
+};
+
+const POPULAR_PAIRS = [
+  { from: "USD", to: "EUR" },
+  { from: "USD", to: "GBP" },
+  { from: "USD", to: "JPY" },
+  { from: "EUR", to: "GBP" },
+  { from: "GBP", to: "JPY" },
+  { from: "USD", to: "CNY" },
+];
+
+function CurrencyConverter() {
+  const [amount, setAmount] = useState("1");
+  const [fromCur, setFromCur] = useState("USD");
+  const [toCur, setToCur] = useState("EUR");
+
+  const convert = useCallback((val: string, from: string, to: string) => {
+    const n = parseFloat(val);
+    if (isNaN(n) || !FX_RATES[from] || !FX_RATES[to]) return "—";
+    const inUSD = n / FX_RATES[from];
+    const result = inUSD * FX_RATES[to];
+    if (result >= 1e6)
+      return result.toLocaleString("en-US", { maximumFractionDigits: 0 });
+    if (result >= 1000)
+      return result.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    return result.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 4,
+    });
+  }, []);
+
+  const rate = useCallback((from: string, to: string) => {
+    if (!FX_RATES[from] || !FX_RATES[to]) return "—";
+    const r = FX_RATES[to] / FX_RATES[from];
+    if (r >= 100)
+      return r.toLocaleString("en-US", { maximumFractionDigits: 1 });
+    return r.toLocaleString("en-US", {
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 4,
+    });
+  }, []);
+
+  const swap = () => {
+    setFromCur(toCur);
+    setToCur(fromCur);
+  };
+
+  const fromSym = CURRENCY_SYMBOLS[fromCur] ?? fromCur;
+  const toSym = CURRENCY_SYMBOLS[toCur] ?? toCur;
+  const resultVal = convert(amount, fromCur, toCur);
+  const currencies = Object.keys(FX_RATES).filter((c) => c !== "HKD2");
+
+  return (
+    <div className="bg-card border border-border rounded-2xl p-5 mb-6">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="p-1.5 rounded-lg bg-secondary/20">
+          <ArrowsLeftRight size={16} weight="fill" className="text-secondary" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold font-sans text-foreground leading-tight">
+            Currency Converter
+          </p>
+          <p className="text-[10px] text-muted-foreground font-sans">
+            Mid-market rates · Aug 2026
+          </p>
+        </div>
+        <div className="ml-auto flex items-center gap-1.5">
+          {POPULAR_PAIRS.map((p) => (
+            <button
+              key={`${p.from}-${p.to}`}
+              onClick={() => {
+                setFromCur(p.from);
+                setToCur(p.to);
+              }}
+              className={`text-[10px] font-mono px-2 py-0.5 rounded-full border transition-colors cursor-pointer ${fromCur === p.from && toCur === p.to ? "bg-secondary/20 border-secondary/40 text-secondary" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
+            >
+              {p.from}/{p.to}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        {/* FROM */}
+        <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+          <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            Amount
+          </label>
+          <div className="flex items-center gap-2 bg-background/60 border border-border rounded-xl px-3 py-2.5">
+            <span className="text-sm font-bold font-mono text-secondary shrink-0">
+              {fromSym}
+            </span>
+            <input
+              type="number"
+              min="0"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="flex-1 bg-transparent text-sm font-mono text-foreground focus:outline-none min-w-0"
+              placeholder="1"
+            />
+            <select
+              value={fromCur}
+              onChange={(e) => setFromCur(e.target.value)}
+              className="bg-transparent text-xs font-mono text-muted-foreground focus:outline-none cursor-pointer shrink-0"
+            >
+              {currencies.map((c) => (
+                <option key={c} value={c}>
+                  {c} — {CURRENCY_NAMES[c] ?? c}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* SWAP */}
+        <button
+          onClick={swap}
+          className="flex items-center justify-center w-9 h-9 rounded-full bg-muted border border-border text-muted-foreground hover:text-foreground hover:bg-secondary/20 hover:border-secondary/40 transition-all cursor-pointer self-end sm:self-auto mb-1 sm:mb-0 shrink-0"
+          aria-label="Swap currencies"
+        >
+          <ArrowsLeftRight size={14} weight="bold" />
+        </button>
+
+        {/* TO */}
+        <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+          <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            Result
+          </label>
+          <div className="flex items-center gap-2 bg-secondary/5 border border-secondary/20 rounded-xl px-3 py-2.5">
+            <span className="text-sm font-bold font-mono text-secondary shrink-0">
+              {toSym}
+            </span>
+            <span className="flex-1 text-sm font-mono font-bold text-foreground min-w-0 truncate">
+              {resultVal}
+            </span>
+            <select
+              value={toCur}
+              onChange={(e) => setToCur(e.target.value)}
+              className="bg-transparent text-xs font-mono text-muted-foreground focus:outline-none cursor-pointer shrink-0"
+            >
+              {currencies.map((c) => (
+                <option key={c} value={c}>
+                  {c} — {CURRENCY_NAMES[c] ?? c}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Rate row */}
+      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/40">
+        <div className="flex items-center gap-4">
+          <div>
+            <p className="text-[9px] text-muted-foreground font-mono uppercase tracking-wide">
+              1 {fromCur}
+            </p>
+            <p className="text-sm font-bold font-mono text-foreground">
+              = {rate(fromCur, toCur)} {toCur}
+            </p>
+          </div>
+          <div className="w-px h-8 bg-border" />
+          <div>
+            <p className="text-[9px] text-muted-foreground font-mono uppercase tracking-wide">
+              1 {toCur}
+            </p>
+            <p className="text-sm font-bold font-mono text-foreground">
+              = {rate(toCur, fromCur)} {fromCur}
+            </p>
+          </div>
+        </div>
+        <p className="text-[10px] text-muted-foreground font-sans text-right">
+          Indicative rates only.
+          <br />
+          Not for transactional use.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 const getCurrencyDisplay = (code: string, name: string) => {
   const sym = CURRENCY_SYMBOLS[code];
@@ -236,105 +1677,102 @@ function SectorBar({ name, share }: { name: string; share: number }) {
 
 function SectorDonut({
   sectors,
+  economyId,
 }: {
   sectors: { name: string; shareOfGDP: number }[];
+  economyId: string;
 }) {
-  const total = sectors.reduce((s, x) => s + x.shareOfGDP, 0);
-  const size = 88;
-  const cx = size / 2;
-  const cy = size / 2;
-  const r = 32;
-  const innerR = 18;
-
-  let cumAngle = -Math.PI / 2;
-  const arcs = sectors.map((s) => {
-    const frac = s.shareOfGDP / total;
-    const startAngle = cumAngle;
-    const endAngle = cumAngle + frac * 2 * Math.PI;
-    cumAngle = endAngle;
-
-    const x1 = cx + r * Math.cos(startAngle);
-    const y1 = cy + r * Math.sin(startAngle);
-    const x2 = cx + r * Math.cos(endAngle);
-    const y2 = cy + r * Math.sin(endAngle);
-    const ix1 = cx + innerR * Math.cos(startAngle);
-    const iy1 = cy + innerR * Math.sin(startAngle);
-    const ix2 = cx + innerR * Math.cos(endAngle);
-    const iy2 = cy + innerR * Math.sin(endAngle);
-    const large = frac > 0.5 ? 1 : 0;
-
-    const d = [
-      `M ${x1} ${y1}`,
-      `A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`,
-      `L ${ix2} ${iy2}`,
-      `A ${innerR} ${innerR} 0 ${large} 0 ${ix1} ${iy1}`,
-      "Z",
-    ].join(" ");
-
-    return { ...s, d, color: getSectorColor(s.name) };
-  });
-
   const dominant = [...sectors].sort((a, b) => b.shareOfGDP - a.shareOfGDP)[0];
+  const pieData = sectors.map((s) => ({ name: s.name, value: s.shareOfGDP }));
+
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload?.length) {
+      const entry = payload[0];
+      return (
+        <div className="bg-card border border-border rounded-lg p-2.5 text-xs font-mono shadow-lg">
+          <p
+            style={{ color: getSectorColor(entry.name) }}
+            className="font-semibold"
+          >
+            {entry.name}
+          </p>
+          <p className="text-foreground">{entry.value}% of GDP</p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
-    <div className="flex items-center gap-3">
-      <svg
-        width={size}
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        className="shrink-0"
-      >
-        {arcs.map((arc) => (
-          <path
-            key={arc.name}
-            d={arc.d}
-            fill={arc.color}
-            stroke="hsl(222,30%,12%)"
-            strokeWidth="1"
-          />
-        ))}
-        <text
-          x={cx}
-          y={cy - 4}
-          textAnchor="middle"
-          fill="white"
-          fontSize="10"
-          fontFamily="IBM Plex Mono"
-          fontWeight="bold"
-        >
-          {dominant.shareOfGDP}%
-        </text>
-        <text
-          x={cx}
-          y={cy + 7}
-          textAnchor="middle"
-          fill="hsl(0,0%,55%)"
-          fontSize="6.5"
-          fontFamily="DM Sans"
-        >
-          {dominant.name.length > 10
-            ? dominant.name.slice(0, 9) + "…"
-            : dominant.name}
-        </text>
-      </svg>
-      <div className="flex flex-col gap-1 flex-1 min-w-0">
-        {sectors.slice(0, 4).map((s) => (
-          <div key={s.name} className="flex items-center gap-1.5 min-w-0">
-            <div
-              className="w-2 h-2 rounded-sm shrink-0"
-              style={{ background: getSectorColor(s.name) }}
-            />
-            <span className="text-[10px] font-sans text-muted-foreground truncate flex-1">
-              {s.name}
-            </span>
+    <div>
+      <div className="flex items-center gap-1 mb-3">
+        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+          Sector Distribution
+        </p>
+      </div>
+      <div className="flex items-center gap-4">
+        {/* Recharts PieChart donut */}
+        <div className="shrink-0" style={{ width: 110, height: 110 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                innerRadius={28}
+                outerRadius={50}
+                paddingAngle={2}
+                dataKey="value"
+                startAngle={90}
+                endAngle={-270}
+                isAnimationActive
+                animationDuration={600}
+              >
+                {pieData.map((entry) => (
+                  <Cell
+                    key={entry.name}
+                    fill={getSectorColor(entry.name)}
+                    stroke="transparent"
+                  />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        {/* Center label overlay via absolute-ish trick using a separate div */}
+        <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+          {/* Dominant callout */}
+          <div className="flex items-baseline gap-1.5 mb-1">
             <span
-              className="text-[10px] font-mono shrink-0"
-              style={{ color: getSectorColor(s.name) }}
+              className="text-xl font-bold font-mono"
+              style={{ color: getSectorColor(dominant.name) }}
             >
-              {s.shareOfGDP}%
+              {dominant.shareOfGDP}%
+            </span>
+            <span className="text-xs font-sans text-muted-foreground">
+              {dominant.name}
             </span>
           </div>
-        ))}
+          {/* Legend rows */}
+          {sectors.slice(0, 5).map((s) => (
+            <div key={s.name} className="flex items-center gap-2 min-w-0">
+              <div
+                className="w-2 h-2 rounded-sm shrink-0"
+                style={{ background: getSectorColor(s.name) }}
+              />
+              <span className="text-[11px] font-sans text-foreground truncate flex-1">
+                {s.name}
+              </span>
+              <span
+                className="text-[11px] font-mono shrink-0"
+                style={{ color: getSectorColor(s.name) }}
+              >
+                {s.shareOfGDP}%
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -370,6 +1808,7 @@ function EconomyModal({
   const [activeChart, setActiveChart] = useState<
     "gdp" | "growth" | "inflation"
   >("gdp");
+  const [isExpanded, setIsExpanded] = React.useState(false);
 
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -418,6 +1857,8 @@ function EconomyModal({
         ? "hsl(150,55%,45%)"
         : "hsl(35,100%,50%)";
 
+  const resources = ECONOMY_RESOURCES[economy.id] ?? FALLBACK_RESOURCES;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
@@ -426,412 +1867,1473 @@ function EconomyModal({
       }}
     >
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative z-10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-fade-in modal-glass border">
+      <div
+        className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
+      >
         <div className="p-6">
-          {/* Header */}
-          <div className="flex items-start justify-between mb-5">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <h2 className="text-xl font-bold font-sans text-foreground">
+          {/* ── HEADER with flag-style background ── */}
+          <div className="relative flex items-start justify-between mb-0 -mx-6 -mt-6 px-6 pt-6 pb-5 rounded-t-2xl overflow-hidden">
+            {/* Gradient background banner */}
+            <div className="absolute inset-0 bg-gradient-to-r from-secondary/25 via-secondary/10 to-secondary/20 pointer-events-none" />
+            <div
+              className="absolute inset-0 opacity-[0.04] pointer-events-none"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)",
+                backgroundSize: "80px 80px",
+              }}
+            />
+
+            {/* Left: entity icon + name */}
+            <div className="relative flex items-center gap-4">
+              {/* Entity icon circle */}
+              <div className="w-14 h-14 rounded-xl shrink-0 border border-white/20 shadow-md bg-gradient-to-br from-secondary/30 to-secondary/10 flex items-center justify-center text-2xl">
+                {economy.entityType === "Country"
+                  ? "🌍"
+                  : economy.entityType === "Bloc"
+                    ? "🤝"
+                    : "🗺️"}
+              </div>
+              <div>
+                <h2 className="text-xl font-bold font-sans text-foreground leading-tight">
                   {economy.name}
                 </h2>
-                <span className="text-xs font-mono text-muted-foreground border border-border px-2 py-0.5 rounded-full">
-                  {economy.entityType}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span
-                  className={`text-xs border px-2 py-0.5 rounded-full font-mono font-semibold ${ratingColor(economy.creditRating)}`}
-                >
-                  {economy.creditRating}
-                </span>
-                <span className="text-xs text-muted-foreground font-sans">
-                  {economy.currencyCode}
-                </span>
-                <span
-                  className={`flex items-center gap-1 text-xs font-mono ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}
-                >
-                  {economy.gdpGrowthRate >= 0 ? (
-                    <ArrowUp size={12} />
-                  ) : (
-                    <ArrowDown size={12} />
-                  )}
-                  {economy.gdpGrowthRate}% growth
-                </span>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <span className="text-xs font-mono text-muted-foreground border border-border/60 px-2 py-0.5 rounded-full bg-background/40">
+                    {economy.entityType}
+                  </span>
+                  <span
+                    className={`text-xs border px-2 py-0.5 rounded-full font-mono font-semibold ${ratingColor(economy.creditRating)}`}
+                  >
+                    {economy.creditRating}
+                  </span>
+                  <span className="text-xs text-muted-foreground font-sans">
+                    {economy.currencyCode}
+                  </span>
+                  <span
+                    className={`flex items-center gap-1 text-xs font-mono ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}
+                  >
+                    {economy.gdpGrowthRate >= 0 ? (
+                      <ArrowUp size={11} />
+                    ) : (
+                      <ArrowDown size={11} />
+                    )}
+                    {economy.gdpGrowthRate}% growth
+                  </span>
+                </div>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer shrink-0"
-              aria-label="Close"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M12 4L4 12M4 4l8 8"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
+
+            {/* Right: expand + close */}
+            <div className="relative flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => setIsExpanded((v) => !v)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                aria-label={
+                  isExpanded ? "Collapse modal" : "Expand to full screen"
+                }
+                title={isExpanded ? "Collapse" : "Expand to full screen"}
+              >
+                {isExpanded ? (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path
+                      d="M5 1H1v4M11 1h4v4M5 15H1v-4M11 15h4v-4"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path
+                      d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M12 4L4 12M4 4l8 8"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
 
-          {/* Key Stats — condensed 3-col grid */}
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            {[
-              {
-                label: "GDP",
-                value: `$${economy.gdpTrillions.toFixed(2)}T`,
-                color: "text-secondary",
-              },
-              {
-                label: "Per Capita",
-                value: `$${economy.gdpPerCapita.toLocaleString()}`,
-                color: "text-foreground",
-              },
-              {
-                label: "Inflation",
-                value: `${economy.inflationRate}%`,
-                color:
-                  economy.inflationRate > 5
-                    ? "text-destructive"
-                    : "text-success",
-              },
-              {
-                label: "Unemployment",
-                value: `${economy.unemploymentRate}%`,
-                color:
-                  economy.unemploymentRate > 6
-                    ? "text-warning"
-                    : "text-success",
-              },
-              {
-                label: "Debt/GDP",
-                value: `${economy.debtToGDPRatio}%`,
-                color:
-                  economy.debtToGDPRatio > 100
-                    ? "text-destructive"
-                    : "text-warning",
-              },
-              {
-                label: "Interest",
-                value: `${economy.interestRate}%`,
-                color: "text-foreground",
-              },
-              {
-                label: "Trade Vol.",
-                value: `$${economy.tradeVolumeTrillions}T`,
-                color: "text-foreground",
-              },
-              {
-                label: "FDI",
-                value: `$${economy.fdiInflowBillions}B`,
-                color: "text-secondary",
-              },
-              {
-                label: "Mkt Cap",
-                value: `$${economy.stockMarketCap}T`,
-                color: "text-foreground",
-              },
-              ...(economy.cpi != null
-                ? [
+          {/* ── ALL SECTIONS ── */}
+          <div className="mt-4 space-y-4 animate-fade-in">
+            {/* ════════════════════════════════════════
+                SECTION: OVERVIEW
+            ════════════════════════════════════════ */}
+            <div className="space-y-4">
+              {/* ── ECONOMIC CATEGORY ── */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                    📊 Key Economic Metrics
+                  </span>
+                  <div className="flex-1 h-px bg-border/60" />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
                     {
-                      label: "CPI",
-                      value: economy.cpi.toLocaleString(undefined, {
-                        maximumFractionDigits: 1,
-                      }),
+                      label: "GDP",
+                      value: `$${economy.gdpTrillions.toFixed(2)}T`,
+                      color: "text-secondary",
+                    },
+                    {
+                      label: "Per Capita",
+                      value: `$${economy.gdpPerCapita.toLocaleString()}`,
                       color: "text-foreground",
                     },
-                  ]
-                : []),
-            ].map((s) => (
-              <div
-                key={s.label}
-                className="modal-tile rounded-lg px-3 py-2 flex items-center justify-between gap-2"
-              >
-                <p className="text-xs text-muted-foreground font-sans truncate">
-                  {s.label}
-                </p>
-                <p
-                  className={`text-sm font-bold font-mono whitespace-nowrap ${s.color}`}
-                >
-                  {s.value}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <SourceLink sources={SRC_IMF} className="mb-3" />
-
-          {/* Accordion sections */}
-          <div className="space-y-2">
-            {/* Chart */}
-            <AccordionSection title="5-Year Trends" defaultOpen>
-              <div className="flex gap-1 mb-3">
-                {(["gdp", "growth", "inflation"] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveChart(tab)}
-                    className={`px-2 py-0.5 rounded text-xs font-sans transition-colors cursor-pointer ${activeChart === tab ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  </button>
-                ))}
-              </div>
-              <div className="h-36">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={economy.trends}
-                    margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
-                  >
-                    <defs>
-                      <linearGradient
-                        id={`ecoGrad-${economy.id}`}
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="5%"
-                          stopColor={chartColor}
-                          stopOpacity={0.3}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor={chartColor}
-                          stopOpacity={0}
-                        />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="hsl(222,30%,25%)"
-                      vertical={false}
-                    />
-                    <XAxis
-                      dataKey="year"
-                      tick={{
-                        fill: "hsl(0,0%,60%)",
-                        fontSize: 10,
-                        fontFamily: "IBM Plex Mono",
-                      }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      tick={{
-                        fill: "hsl(0,0%,60%)",
-                        fontSize: 10,
-                        fontFamily: "IBM Plex Mono",
-                      }}
-                      axisLine={false}
-                      tickLine={false}
-                      width={40}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Area
-                      type="monotone"
-                      dataKey={chartDataKey}
-                      name={chartName}
-                      stroke={chartColor}
-                      strokeWidth={2}
-                      fill={`url(#ecoGrad-${economy.id})`}
-                      dot={false}
-                      isAnimationActive
-                      animationDuration={600}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </AccordionSection>
-
-            {/* Sectors */}
-            <AccordionSection title="GDP Composition by Sector">
-              {/* Donut + legend */}
-              <div className="mb-3 p-3 rounded-lg bg-background/60 border border-border/40">
-                <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
-                  Sector Distribution
-                </p>
-                <SectorDonut sectors={economy.topSectors} />
-              </div>
-
-              {/* Bars */}
-              <div className="space-y-2 mb-3">
-                {economy.topSectors.map((s) => (
-                  <SectorBar key={s.name} name={s.name} share={s.shareOfGDP} />
-                ))}
-              </div>
-
-              {/* Summary stats row */}
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/40">
-                <div className="text-center">
-                  <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
-                    Dominant
-                  </p>
-                  <p className="text-xs font-bold font-sans text-foreground mt-0.5">
                     {
-                      [...economy.topSectors].sort(
-                        (a, b) => b.shareOfGDP - a.shareOfGDP,
-                      )[0]?.name
-                    }
-                  </p>
-                  <p
-                    className="text-[10px] font-mono"
-                    style={{
-                      color: getSectorColor(
-                        [...economy.topSectors].sort(
-                          (a, b) => b.shareOfGDP - a.shareOfGDP,
-                        )[0]?.name,
-                      ),
-                    }}
-                  >
-                    {
-                      [...economy.topSectors].sort(
-                        (a, b) => b.shareOfGDP - a.shareOfGDP,
-                      )[0]?.shareOfGDP
-                    }
-                    % of GDP
-                  </p>
-                </div>
-                <div className="text-center border-x border-border/40">
-                  <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
-                    Sectors
-                  </p>
-                  <p className="text-xl font-bold font-mono text-foreground mt-0.5">
-                    {economy.topSectors.length}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground font-sans">
-                    tracked
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
-                    Diversification
-                  </p>
-                  <p
-                    className="text-xs font-bold font-sans mt-0.5"
-                    style={{
+                      label: "Inflation",
+                      value: `${economy.inflationRate}%`,
                       color:
-                        economy.topSectors.length >= 4 ? "#4ade80" : "#fb923c",
-                    }}
-                  >
-                    {economy.topSectors.length >= 4
-                      ? "High"
-                      : economy.topSectors.length >= 3
-                        ? "Medium"
-                        : "Low"}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground font-sans">
-                    {economy.topSectors.length >= 4
-                      ? "Multi-sector"
-                      : "Concentrated"}
-                  </p>
+                        economy.inflationRate > 5
+                          ? "text-destructive"
+                          : "text-success",
+                    },
+                    {
+                      label: "Unemployment",
+                      value: `${economy.unemploymentRate}%`,
+                      color:
+                        economy.unemploymentRate > 6
+                          ? "text-warning"
+                          : "text-success",
+                    },
+                    {
+                      label: "Debt/GDP",
+                      value: `${economy.debtToGDPRatio}%`,
+                      color:
+                        economy.debtToGDPRatio > 100
+                          ? "text-destructive"
+                          : "text-warning",
+                    },
+                    {
+                      label: "Interest Rate",
+                      value: `${economy.interestRate}%`,
+                      color: "text-foreground",
+                    },
+                    {
+                      label: "Trade Volume",
+                      value: `$${economy.tradeVolumeTrillions}T`,
+                      color: "text-foreground",
+                    },
+                    {
+                      label: "FDI Inflow",
+                      value: `$${economy.fdiInflowBillions}B`,
+                      color: "text-secondary",
+                    },
+                    {
+                      label: "Mkt Cap",
+                      value: `$${economy.stockMarketCap}T`,
+                      color: "text-foreground",
+                    },
+                  ].map((s) => (
+                    <div
+                      key={s.label}
+                      className="modal-tile rounded-lg px-3 py-2.5 flex items-center justify-between gap-2"
+                    >
+                      <p className="text-xs text-muted-foreground font-sans truncate">
+                        {s.label}
+                      </p>
+                      <p
+                        className={`text-sm font-bold font-mono whitespace-nowrap ${s.color}`}
+                      >
+                        {s.value}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </AccordionSection>
 
-            {/* Trade */}
-            <AccordionSection title="Trade & Partners">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-xs text-muted-foreground font-sans mb-1.5">
-                    Top Exports
-                  </p>
-                  <div className="flex flex-wrap gap-1">
-                    {economy.topExports.slice(0, 4).map((e) => (
-                      <span
-                        key={e}
-                        className="text-xs bg-secondary/10 text-secondary border border-secondary/20 px-2 py-0.5 rounded-full font-sans"
+              <SourceLink sources={SRC_IMF} />
+
+              {/* ── 5-YEAR TRENDS CHART ── */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                    📈 5-Year Trends
+                  </span>
+                  <div className="flex-1 h-px bg-border/60" />
+                  <div className="flex gap-1">
+                    {(["gdp", "growth", "inflation"] as const).map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveChart(tab)}
+                        className={`px-2 py-0.5 rounded text-xs font-sans transition-colors cursor-pointer ${activeChart === tab ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:text-foreground"}`}
                       >
-                        {e}
-                      </span>
+                        {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                      </button>
                     ))}
                   </div>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-sans mb-1.5">
-                    Top Partners
-                  </p>
-                  <div className="flex flex-wrap gap-1">
-                    {economy.tradingPartners.slice(0, 4).map((p) => (
-                      <span
-                        key={p}
-                        className="text-xs bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-full font-sans"
+                <div className="modal-tile rounded-xl p-4">
+                  <div className="h-40">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={economy.trends}
+                        margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
                       >
-                        {p}
-                      </span>
+                        <defs>
+                          <linearGradient
+                            id={`ecoGrad-${economy.id}`}
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor={chartColor}
+                              stopOpacity={0.3}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor={chartColor}
+                              stopOpacity={0}
+                            />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="hsl(222,30%,25%)"
+                          vertical={false}
+                        />
+                        <XAxis
+                          dataKey="year"
+                          tick={{
+                            fill: "hsl(0,0%,60%)",
+                            fontSize: 10,
+                            fontFamily: "IBM Plex Mono",
+                          }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <YAxis
+                          tick={{
+                            fill: "hsl(0,0%,60%)",
+                            fontSize: 10,
+                            fontFamily: "IBM Plex Mono",
+                          }}
+                          axisLine={false}
+                          tickLine={false}
+                          width={40}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Area
+                          type="monotone"
+                          dataKey={chartDataKey}
+                          name={chartName}
+                          stroke={chartColor}
+                          strokeWidth={2}
+                          fill={`url(#ecoGrad-${economy.id})`}
+                          dot={false}
+                          isAnimationActive
+                          animationDuration={600}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── GDP SECTOR COMPOSITION ── */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                    🏭 GDP Composition by Sector
+                  </span>
+                  <div className="flex-1 h-px bg-border/60" />
+                </div>
+                <div className="modal-tile rounded-xl p-4">
+                  <div className="mb-4">
+                    <SectorDonut
+                      sectors={economy.topSectors}
+                      economyId={economy.id}
+                    />
+                  </div>
+                  <div className="space-y-2 mb-3">
+                    {economy.topSectors.map((s) => (
+                      <SectorBar
+                        key={s.name}
+                        name={s.name}
+                        share={s.shareOfGDP}
+                      />
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/40">
+                    <div className="text-center">
+                      <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
+                        Dominant
+                      </p>
+                      <p className="text-xs font-bold font-sans text-foreground mt-0.5">
+                        {
+                          [...economy.topSectors].sort(
+                            (a, b) => b.shareOfGDP - a.shareOfGDP,
+                          )[0]?.name
+                        }
+                      </p>
+                      <p
+                        className="text-[10px] font-mono"
+                        style={{
+                          color: getSectorColor(
+                            [...economy.topSectors].sort(
+                              (a, b) => b.shareOfGDP - a.shareOfGDP,
+                            )[0]?.name,
+                          ),
+                        }}
+                      >
+                        {
+                          [...economy.topSectors].sort(
+                            (a, b) => b.shareOfGDP - a.shareOfGDP,
+                          )[0]?.shareOfGDP
+                        }
+                        % of GDP
+                      </p>
+                    </div>
+                    <div className="text-center border-x border-border/40">
+                      <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
+                        Sectors
+                      </p>
+                      <p className="text-xl font-bold font-mono text-foreground mt-0.5">
+                        {economy.topSectors.length}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground font-sans">
+                        tracked
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
+                        Diversification
+                      </p>
+                      <p
+                        className="text-xs font-bold font-sans mt-0.5"
+                        style={{
+                          color:
+                            economy.topSectors.length >= 4
+                              ? "#4ade80"
+                              : "#fb923c",
+                        }}
+                      >
+                        {economy.topSectors.length >= 4
+                          ? "High"
+                          : economy.topSectors.length >= 3
+                            ? "Medium"
+                            : "Low"}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground font-sans">
+                        {economy.topSectors.length >= 4
+                          ? "Multi-sector"
+                          : "Concentrated"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── TRADE & PARTNERS ── */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                    🌐 Trade &amp; Partners
+                  </span>
+                  <div className="flex-1 h-px bg-border/60" />
+                </div>
+                <div className="modal-tile rounded-xl p-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground font-sans mb-1.5">
+                        Top Exports
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {economy.topExports.slice(0, 4).map((e) => (
+                          <span
+                            key={e}
+                            className="text-xs bg-secondary/10 text-secondary border border-secondary/20 px-2 py-0.5 rounded-full font-sans"
+                          >
+                            {e}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground font-sans mb-1.5">
+                        Top Partners
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {economy.tradingPartners.slice(0, 4).map((p) => (
+                          <span
+                            key={p}
+                            className="text-xs bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-full font-sans"
+                          >
+                            {p}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ════════════════════════════════════════
+                SECTION DIVIDER: MARKETS
+            ════════════════════════════════════════ */}
+            <div className="flex items-center gap-2 pt-2">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/15 border border-secondary/30">
+                <span className="text-xs">💹</span>
+                <span className="text-[10px] font-bold font-sans text-secondary uppercase tracking-widest">
+                  Markets
+                </span>
+              </div>
+              <div className="flex-1 h-px bg-border/60" />
+            </div>
+
+            <div className="space-y-4">
+              {/* Quick KPI tiles */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                    💹 Financial Markets
+                  </span>
+                  <div className="flex-1 h-px bg-border/60" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    {
+                      label: "Stock Market Cap",
+                      value: `$${economy.stockMarketCap}T`,
+                      color: "text-secondary",
+                      icon: "📈",
+                    },
+                    {
+                      label: "FDI Inflow",
+                      value: `$${economy.fdiInflowBillions}B`,
+                      color: "text-green-400",
+                      icon: "💰",
+                    },
+                    {
+                      label: "Trade Volume",
+                      value: `$${economy.tradeVolumeTrillions}T`,
+                      color: "text-blue-400",
+                      icon: "🔄",
+                    },
+                    {
+                      label: "Interest Rate",
+                      value: `${economy.interestRate}%`,
+                      color:
+                        economy.interestRate > 5
+                          ? "text-warning"
+                          : "text-success",
+                      icon: "🏦",
+                    },
+                    {
+                      label: "Debt / GDP",
+                      value: `${economy.debtToGDPRatio}%`,
+                      color:
+                        economy.debtToGDPRatio > 100
+                          ? "text-destructive"
+                          : economy.debtToGDPRatio > 60
+                            ? "text-warning"
+                            : "text-success",
+                      icon: "📋",
+                    },
+                    {
+                      label: "Credit Rating",
+                      value: economy.creditRating,
+                      color: ratingColor(economy.creditRating).split(" ")[0],
+                      icon: "⭐",
+                    },
+                  ].map((s) => (
+                    <div
+                      key={s.label}
+                      className="modal-tile rounded-xl p-3 flex items-center gap-3"
+                    >
+                      <span className="text-xl shrink-0">{s.icon}</span>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground font-sans">
+                          {s.label}
+                        </p>
+                        <p
+                          className={`text-base font-bold font-mono ${s.color}`}
+                        >
+                          {s.value}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Inflation vs Growth trend */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                    📉 Growth vs Inflation Trend
+                  </span>
+                  <div className="flex-1 h-px bg-border/60" />
+                </div>
+                <div className="modal-tile rounded-xl p-4">
+                  <div className="h-44">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={economy.trends}
+                        margin={{ top: 4, right: 8, left: -16, bottom: 0 }}
+                      >
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="rgba(255,255,255,0.06)"
+                          vertical={false}
+                        />
+                        <XAxis
+                          dataKey="year"
+                          tick={{
+                            fill: "hsl(0,0%,55%)",
+                            fontSize: 9,
+                            fontFamily: "IBM Plex Mono",
+                          }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <YAxis
+                          tick={{
+                            fill: "hsl(0,0%,55%)",
+                            fontSize: 9,
+                            fontFamily: "IBM Plex Mono",
+                          }}
+                          axisLine={false}
+                          tickLine={false}
+                          tickFormatter={(v) => `${v}%`}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar
+                          dataKey="growth"
+                          name="GDP Growth %"
+                          fill="hsl(142,60%,45%)"
+                          radius={[2, 2, 0, 0]}
+                          maxBarSize={18}
+                        />
+                        <Bar
+                          dataKey="inflation"
+                          name="Inflation %"
+                          fill="hsl(35,100%,50%)"
+                          radius={[2, 2, 0, 0]}
+                          maxBarSize={18}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex justify-center gap-4 mt-2">
+                    {[
+                      { label: "GDP Growth", color: "hsl(142,60%,45%)" },
+                      { label: "Inflation", color: "hsl(35,100%,50%)" },
+                    ].map((l) => (
+                      <div key={l.label} className="flex items-center gap-1.5">
+                        <div
+                          className="w-3 h-3 rounded-sm"
+                          style={{ background: l.color }}
+                        />
+                        <span className="text-[10px] font-mono text-muted-foreground">
+                          {l.label}
+                        </span>
+                      </div>
                     ))}
                   </div>
                 </div>
               </div>
-            </AccordionSection>
 
-            {/* Trade */}
-            {/* source already after trade section */}
-            {/* Maritime */}
-            <AccordionSection title="Maritime Trade">
-              <p className="text-xs text-muted-foreground font-sans leading-relaxed mb-3">
-                {economy.maritime.maritimeTrade}
-              </p>
-              <div className="grid grid-cols-3 gap-2 mb-3">
-                <div className="bg-background/50 rounded-md p-2">
-                  <p className="text-xs text-muted-foreground font-sans">
-                    Annual Cargo
-                  </p>
-                  <p className="text-sm font-bold font-mono text-secondary">
-                    {economy.maritime.annualCargoMT.toLocaleString()} MT
-                  </p>
-                </div>
-                <div className="bg-background/50 rounded-md p-2">
-                  <p className="text-xs text-muted-foreground font-sans">TEU</p>
-                  <p className="text-sm font-bold font-mono text-foreground">
-                    {(economy.maritime.containersTEU / 1000000).toFixed(1)}M
-                  </p>
-                </div>
-                <div className="bg-background/50 rounded-md p-2">
-                  <p className="text-xs text-muted-foreground font-sans">
-                    Navy
-                  </p>
-                  <p className="text-xs font-mono text-foreground leading-tight mt-0.5">
-                    {economy.maritime.navyStrength.split("—")[0].trim()}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-1 mb-2">
-                <span className="text-xs text-muted-foreground font-sans mr-1">
-                  Ports:
-                </span>
-                {economy.maritime.majorPorts.map((port) => (
-                  <span
-                    key={port}
-                    className="text-xs bg-secondary/10 text-secondary border border-secondary/20 px-2 py-0.5 rounded-full font-sans"
-                  >
-                    {port}
+              {/* GDP absolute trajectory */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                    📊 GDP Trajectory ($T)
                   </span>
-                ))}
+                  <div className="flex-1 h-px bg-border/60" />
+                </div>
+                <div className="modal-tile rounded-xl p-4">
+                  <div className="h-40">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={economy.trends}
+                        margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id={`gdpTabGrad-${economy.id}`}
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="hsl(200,85%,50%)"
+                              stopOpacity={0.3}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="hsl(200,85%,50%)"
+                              stopOpacity={0}
+                            />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="hsl(222,30%,25%)"
+                          vertical={false}
+                        />
+                        <XAxis
+                          dataKey="year"
+                          tick={{
+                            fill: "hsl(0,0%,60%)",
+                            fontSize: 10,
+                            fontFamily: "IBM Plex Mono",
+                          }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <YAxis
+                          tick={{
+                            fill: "hsl(0,0%,60%)",
+                            fontSize: 10,
+                            fontFamily: "IBM Plex Mono",
+                          }}
+                          axisLine={false}
+                          tickLine={false}
+                          width={40}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Area
+                          type="monotone"
+                          dataKey="gdp"
+                          name="GDP ($T)"
+                          stroke="hsl(200,85%,50%)"
+                          strokeWidth={2}
+                          fill={`url(#gdpTabGrad-${economy.id})`}
+                          dot={false}
+                          isAnimationActive
+                          animationDuration={600}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-wrap gap-1">
-                <span className="text-xs text-muted-foreground font-sans mr-1">
-                  Lanes:
+
+              <SourceLink sources={SRC_OECD} />
+            </div>
+
+            {/* ════════════════════════════════════════
+                SECTION DIVIDER: RESOURCES
+            ════════════════════════════════════════ */}
+            <div className="flex items-center gap-2 pt-2">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30">
+                <span className="text-xs">⛏️</span>
+                <span className="text-[10px] font-bold font-sans text-amber-400 uppercase tracking-widest">
+                  Resources
                 </span>
-                {economy.maritime.shippingLanes.map((lane) => (
-                  <span
-                    key={lane}
-                    className="text-xs bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-full font-sans"
-                  >
-                    {lane}
-                  </span>
-                ))}
               </div>
-              <SourceLink sources={SRC_MARITIME} className="mt-2" />
-            </AccordionSection>
+              <div className="flex-1 h-px bg-border/60" />
+            </div>
+
+            <div className="space-y-4">
+              {(() => {
+                const pieData = resources.map((r) => ({
+                  name: r.name,
+                  value: r.value,
+                }));
+                const ResourceTooltip = ({ active, payload }: any) => {
+                  if (active && payload?.length) {
+                    const entry = payload[0];
+                    const res = resources.find((r) => r.name === entry.name);
+                    return (
+                      <div className="bg-card border border-border rounded-lg p-2.5 text-xs font-mono shadow-lg">
+                        <p
+                          style={{ color: res?.color ?? "#fff" }}
+                          className="font-semibold"
+                        >
+                          {entry.name}
+                        </p>
+                        <p className="text-foreground">
+                          {entry.value} {res?.unit}
+                        </p>
+                        <p className="text-muted-foreground">{res?.share}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                };
+                return (
+                  <>
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                          ⛏️ Natural Resources &amp; Commodities
+                        </span>
+                        <div className="flex-1 h-px bg-border/60" />
+                        <span className="text-[10px] font-mono text-muted-foreground border border-border px-2 py-0.5 rounded-full bg-background/50">
+                          {resources.length} tracked
+                        </span>
+                      </div>
+
+                      {/* Donut + legend */}
+                      <div className="modal-tile rounded-xl p-4 mb-3">
+                        <div className="flex items-center gap-4">
+                          <div
+                            className="shrink-0"
+                            style={{ width: 120, height: 120 }}
+                          >
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie
+                                  data={pieData}
+                                  cx="50%"
+                                  cy="50%"
+                                  innerRadius={30}
+                                  outerRadius={54}
+                                  paddingAngle={2}
+                                  dataKey="value"
+                                  startAngle={90}
+                                  endAngle={-270}
+                                  isAnimationActive
+                                  animationDuration={600}
+                                >
+                                  {pieData.map((entry) => {
+                                    const res = resources.find(
+                                      (r) => r.name === entry.name,
+                                    );
+                                    return (
+                                      <Cell
+                                        key={entry.name}
+                                        fill={res?.color ?? "#94a3b8"}
+                                        stroke="transparent"
+                                      />
+                                    );
+                                  })}
+                                </Pie>
+                                <Tooltip content={<ResourceTooltip />} />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
+                          <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                            <div className="flex items-baseline gap-1.5 mb-0.5">
+                              <span
+                                className="text-sm font-bold font-mono"
+                                style={{ color: resources[0]?.color }}
+                              >
+                                {resources[0]?.icon} {resources[0]?.name}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground font-sans">
+                                {resources[0]?.share}
+                              </span>
+                            </div>
+                            {resources.slice(0, 5).map((r) => (
+                              <div
+                                key={r.name}
+                                className="flex items-center gap-2 min-w-0"
+                              >
+                                <div
+                                  className="w-2 h-2 rounded-sm shrink-0"
+                                  style={{ background: r.color }}
+                                />
+                                <span className="text-[11px] font-sans text-foreground truncate flex-1">
+                                  {r.name}
+                                </span>
+                                <span className="text-[10px] font-mono shrink-0 text-muted-foreground">
+                                  {r.unit}
+                                </span>
+                                <span
+                                  className="text-[10px] font-mono shrink-0"
+                                  style={{ color: r.color }}
+                                >
+                                  {r.share}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Horizontal bar chart */}
+                      <div className="modal-tile rounded-xl p-4 mb-3">
+                        <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-3">
+                          Production &amp; Output
+                        </p>
+                        <div className="h-44">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={resources}
+                              layout="vertical"
+                              margin={{ top: 0, right: 50, left: 0, bottom: 0 }}
+                            >
+                              <CartesianGrid
+                                strokeDasharray="3 3"
+                                stroke="rgba(255,255,255,0.05)"
+                                horizontal={false}
+                              />
+                              <XAxis
+                                type="number"
+                                tick={{
+                                  fill: "hsl(0,0%,50%)",
+                                  fontSize: 9,
+                                  fontFamily: "IBM Plex Mono",
+                                }}
+                                axisLine={false}
+                                tickLine={false}
+                              />
+                              <YAxis
+                                type="category"
+                                dataKey="name"
+                                tick={{
+                                  fill: "hsl(0,0%,65%)",
+                                  fontSize: 9,
+                                  fontFamily: "DM Sans",
+                                }}
+                                axisLine={false}
+                                tickLine={false}
+                                width={80}
+                              />
+                              <Tooltip
+                                contentStyle={{
+                                  background: "hsl(222,30%,14%)",
+                                  border: "1px solid rgba(255,255,255,0.1)",
+                                  borderRadius: 10,
+                                  fontSize: 11,
+                                  fontFamily: "IBM Plex Mono",
+                                }}
+                                formatter={(
+                                  v: number,
+                                  _: string,
+                                  props: any,
+                                ) => {
+                                  const res = resources.find(
+                                    (r) => r.name === props.payload.name,
+                                  );
+                                  return [
+                                    `${v} ${res?.unit ?? ""}`,
+                                    props.payload.name,
+                                  ];
+                                }}
+                                labelFormatter={() => ""}
+                              />
+                              <Bar
+                                dataKey="value"
+                                radius={[0, 4, 4, 0]}
+                                maxBarSize={14}
+                              >
+                                {resources.map((r) => (
+                                  <Cell key={r.name} fill={r.color} />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+
+                      {/* Summary strip */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="modal-tile rounded-xl p-3 text-center">
+                          <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
+                            Resources
+                          </p>
+                          <p className="text-xl font-bold font-mono text-foreground mt-0.5">
+                            {resources.length}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground font-sans">
+                            tracked
+                          </p>
+                        </div>
+                        <div className="modal-tile rounded-xl p-3 text-center">
+                          <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
+                            Top Resource
+                          </p>
+                          <p
+                            className="text-xs font-bold font-sans mt-0.5"
+                            style={{ color: resources[0]?.color }}
+                          >
+                            {resources[0]?.icon} {resources[0]?.name}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground font-sans">
+                            {resources[0]?.share}
+                          </p>
+                        </div>
+                        <div className="modal-tile rounded-xl p-3 text-center">
+                          <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
+                            Data Source
+                          </p>
+                          <p className="text-[10px] font-sans text-muted-foreground mt-0.5 leading-snug">
+                            World Bank · IEA · BGS 2025
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* ── Rare Earth Minerals ── */}
+                      {(() => {
+                        const rareEarths =
+                          RARE_EARTH_MINERALS[economy.id] ??
+                          DEFAULT_RARE_EARTHS;
+                        const hasCount = rareEarths.filter((r) => r.has).length;
+                        const surplusCount = rareEarths.filter(
+                          (r) => r.surplus,
+                        ).length;
+                        return (
+                          <div className="mt-4 pt-4 border-t border-border/50">
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                                🧲 Rare Earth &amp; Critical Minerals
+                              </span>
+                              <div className="flex-1 h-px bg-border/60" />
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                  {hasCount} has
+                                </span>
+                                <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                  {surplusCount} surplus
+                                </span>
+                              </div>
+                            </div>
+                            {/* Legend */}
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="flex items-center gap-1.5">
+                                <div className="w-3 h-3 rounded-sm bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+                                  <span className="text-[8px] text-emerald-400">
+                                    ✓
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-muted-foreground font-sans">
+                                  Has reserves
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <div className="w-3 h-3 rounded-sm bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
+                                  <span className="text-[8px] text-amber-400">
+                                    ↑
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-muted-foreground font-sans">
+                                  Net surplus / exporter
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <div className="w-3 h-3 rounded-sm bg-muted border border-border flex items-center justify-center">
+                                  <span className="text-[8px] text-muted-foreground">
+                                    –
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-muted-foreground font-sans">
+                                  Scarce / imports
+                                </span>
+                              </div>
+                            </div>
+                            {/* Minerals grid */}
+                            <div className="grid grid-cols-2 gap-2">
+                              {rareEarths.map((m) => (
+                                <div
+                                  key={m.name}
+                                  className={`rounded-xl border p-2.5 transition-colors ${
+                                    m.surplus
+                                      ? "bg-amber-500/8 border-amber-500/25"
+                                      : m.has
+                                        ? "bg-emerald-500/8 border-emerald-500/20"
+                                        : "bg-muted/30 border-border/40"
+                                  }`}
+                                >
+                                  <div className="flex items-start justify-between gap-1 mb-1">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <span
+                                        className="text-[10px] font-bold font-mono px-1 py-0.5 rounded"
+                                        style={{
+                                          color: m.color,
+                                          background: `${m.color}18`,
+                                        }}
+                                      >
+                                        {m.symbol}
+                                      </span>
+                                      <span className="text-[11px] font-semibold font-sans text-foreground truncate">
+                                        {m.name}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-1 shrink-0">
+                                      {m.surplus && (
+                                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/25 leading-none">
+                                          surplus
+                                        </span>
+                                      )}
+                                      <span
+                                        className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full leading-none border ${
+                                          m.has
+                                            ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/25"
+                                            : "bg-muted text-muted-foreground border-border"
+                                        }`}
+                                      >
+                                        {m.has ? "has" : "none"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <p className="text-[9px] text-muted-foreground font-sans leading-snug mb-1 truncate">
+                                    {m.use}
+                                  </p>
+                                  <div className="flex items-center justify-between gap-1">
+                                    <span className="text-[9px] font-mono text-muted-foreground">
+                                      {m.reserveKt != null
+                                        ? m.reserveKt >= 1000
+                                          ? `${(m.reserveKt / 1000).toFixed(0)}Mt reserves`
+                                          : `${m.reserveKt}kt reserves`
+                                        : "reserves N/A"}
+                                    </span>
+                                    <span
+                                      className="text-[9px] font-mono shrink-0"
+                                      style={{
+                                        color: m.has
+                                          ? m.color
+                                          : "hsl(0,0%,45%)",
+                                      }}
+                                    >
+                                      {m.globalShare}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                    <SourceLink sources={SRC_WTO} />
+                  </>
+                );
+              })()}
+            </div>
+
+            {/* ════════════════════════════════════════
+                SECTION DIVIDER: MARITIME
+            ════════════════════════════════════════ */}
+            <div className="flex items-center gap-2 pt-2">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/30">
+                <span className="text-xs">🚢</span>
+                <span className="text-[10px] font-bold font-sans text-blue-400 uppercase tracking-widest">
+                  Maritime
+                </span>
+              </div>
+              <div className="flex-1 h-px bg-border/60" />
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                    🚢 Maritime Trade
+                  </span>
+                  <div className="flex-1 h-px bg-border/60" />
+                </div>
+                <div className="modal-tile rounded-xl p-4">
+                  <p className="text-xs text-muted-foreground font-sans leading-relaxed mb-4">
+                    {economy.maritime.maritimeTrade}
+                  </p>
+
+                  {/* KPI tiles */}
+                  <div className="grid grid-cols-3 gap-2 mb-4">
+                    <div className="rounded-xl border border-border bg-background/40 p-3 text-center">
+                      <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
+                        Annual Cargo
+                      </p>
+                      <p className="text-base font-bold font-mono text-secondary">
+                        {economy.maritime.annualCargoMT.toLocaleString()}
+                      </p>
+                      <p className="text-[9px] text-muted-foreground font-sans">
+                        metric tonnes
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-border bg-background/40 p-3 text-center">
+                      <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
+                        TEU
+                      </p>
+                      <p className="text-base font-bold font-mono text-foreground">
+                        {(economy.maritime.containersTEU / 1000000).toFixed(1)}M
+                      </p>
+                      <p className="text-[9px] text-muted-foreground font-sans">
+                        containers
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-border bg-background/40 p-3 text-center">
+                      <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
+                        Navy
+                      </p>
+                      <p className="text-xs font-mono text-foreground leading-tight mt-0.5">
+                        {economy.maritime.navyStrength.split("—")[0].trim()}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Ports */}
+                  <div className="mb-3">
+                    <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">
+                      ⚓ Major Ports
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {economy.maritime.majorPorts.map((port) => (
+                        <span
+                          key={port}
+                          className="text-xs bg-secondary/10 text-secondary border border-secondary/20 px-2 py-0.5 rounded-full font-sans"
+                        >
+                          {port}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Shipping lanes */}
+                  <div>
+                    <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">
+                      🌊 Shipping Lanes
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {economy.maritime.shippingLanes.map((lane) => (
+                        <span
+                          key={lane}
+                          className="text-xs bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-full font-sans"
+                        >
+                          {lane}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <SourceLink sources={SRC_MARITIME} />
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+type ViewMode = "economies" | "resources" | "region" | "valueStats";
+
+const REGION_DATA = [
+  {
+    region: "North America",
+    gdp: 30.1,
+    growth: 2.4,
+    countries: 3,
+    color: "#3b82f6",
+    flag: "🌎",
+  },
+  {
+    region: "European Union",
+    gdp: 19.4,
+    growth: 1.6,
+    countries: 27,
+    color: "#6366f1",
+    flag: "🇪🇺",
+  },
+  {
+    region: "East Asia & Pacific",
+    gdp: 38.2,
+    growth: 4.1,
+    countries: 37,
+    color: "#ef4444",
+    flag: "🌏",
+  },
+  {
+    region: "South Asia",
+    gdp: 5.8,
+    growth: 6.2,
+    countries: 8,
+    color: "#f97316",
+    flag: "🌏",
+  },
+  {
+    region: "Latin America",
+    gdp: 6.2,
+    growth: 2.1,
+    countries: 33,
+    color: "#10b981",
+    flag: "🌎",
+  },
+  {
+    region: "Middle East & N. Africa",
+    gdp: 4.9,
+    growth: 3.3,
+    countries: 21,
+    color: "#f59e0b",
+    flag: "🌍",
+  },
+  {
+    region: "Sub-Saharan Africa",
+    gdp: 2.1,
+    growth: 3.8,
+    countries: 48,
+    color: "#ec4899",
+    flag: "🌍",
+  },
+  {
+    region: "Central Asia",
+    gdp: 0.7,
+    growth: 4.5,
+    countries: 5,
+    color: "#a855f7",
+    flag: "🌏",
+  },
+];
+
+const RESOURCES_DATA = [
+  {
+    name: "Crude Oil",
+    unit: "$/bbl",
+    price: 83.2,
+    change: +1.8,
+    holder: "Saudi Arabia",
+    reserve: "17% of global",
+    color: "#f97316",
+    icon: "🛢️",
+  },
+  {
+    name: "Natural Gas",
+    unit: "$/MMBtu",
+    price: 2.84,
+    change: -0.3,
+    holder: "Russia",
+    reserve: "24% of global",
+    color: "#6366f1",
+    icon: "🔥",
+  },
+  {
+    name: "Gold",
+    unit: "$/troy oz",
+    price: 2341,
+    change: +0.6,
+    holder: "USA",
+    reserve: "8,133 tons",
+    color: "#f59e0b",
+    icon: "🥇",
+  },
+  {
+    name: "Coal",
+    unit: "$/ton",
+    price: 128,
+    change: -2.1,
+    holder: "China",
+    reserve: "21% of global",
+    color: "#6b7280",
+    icon: "⛏️",
+  },
+  {
+    name: "Iron Ore",
+    unit: "$/ton",
+    price: 114,
+    change: +0.4,
+    holder: "Australia",
+    reserve: "28% of global",
+    color: "#b45309",
+    icon: "⚙️",
+  },
+  {
+    name: "Copper",
+    unit: "$/ton",
+    price: 9280,
+    change: +1.2,
+    holder: "Chile",
+    reserve: "23% of global",
+    color: "#dc2626",
+    icon: "🔩",
+  },
+  {
+    name: "Lithium",
+    unit: "$/ton",
+    price: 15400,
+    change: +3.4,
+    holder: "Chile",
+    reserve: "36% of global",
+    color: "#7c3aed",
+    icon: "🔋",
+  },
+  {
+    name: "Wheat",
+    unit: "$/bushel",
+    price: 5.62,
+    change: -0.8,
+    holder: "Russia",
+    reserve: "17% exports",
+    color: "#ca8a04",
+    icon: "🌾",
+  },
+  {
+    name: "Rare Earth",
+    unit: "$/kg avg",
+    price: 42,
+    change: +2.1,
+    holder: "China",
+    reserve: "38% of global",
+    color: "#059669",
+    icon: "🧲",
+  },
+  {
+    name: "Uranium",
+    unit: "$/lb",
+    price: 91.5,
+    change: +4.2,
+    holder: "Kazakhstan",
+    reserve: "29% of global",
+    color: "#84cc16",
+    icon: "☢️",
+  },
+  {
+    name: "Aluminum",
+    unit: "$/ton",
+    price: 2410,
+    change: +0.9,
+    holder: "China",
+    reserve: "N/A (produced)",
+    color: "#94a3b8",
+    icon: "🏗️",
+  },
+  {
+    name: "Silver",
+    unit: "$/troy oz",
+    price: 29.4,
+    change: +1.1,
+    holder: "Mexico",
+    reserve: "23% of global",
+    color: "#cbd5e1",
+    icon: "🥈",
+  },
+];
+
+const VALUE_STATS_DATA = [
+  {
+    category: "Stock Markets",
+    items: [
+      {
+        label: "NYSE + NASDAQ",
+        value: "$46.2T",
+        sub: "Market cap",
+        color: "text-blue-400",
+      },
+      {
+        label: "Shanghai SSE",
+        value: "$8.1T",
+        sub: "Market cap",
+        color: "text-red-400",
+      },
+      {
+        label: "Tokyo TSE",
+        value: "$6.9T",
+        sub: "Market cap",
+        color: "text-green-400",
+      },
+      {
+        label: "London LSE",
+        value: "$3.8T",
+        sub: "Market cap",
+        color: "text-purple-400",
+      },
+    ],
+  },
+  {
+    category: "Bond Markets",
+    items: [
+      {
+        label: "US Treasuries",
+        value: "$26.3T",
+        sub: "Outstanding",
+        color: "text-blue-400",
+      },
+      {
+        label: "EU Sovereign",
+        value: "$11.4T",
+        sub: "Outstanding",
+        color: "text-indigo-400",
+      },
+      {
+        label: "Japan JGBs",
+        value: "$9.8T",
+        sub: "Outstanding",
+        color: "text-green-400",
+      },
+      {
+        label: "China Gov't",
+        value: "$7.2T",
+        sub: "Outstanding",
+        color: "text-red-400",
+      },
+    ],
+  },
+  {
+    category: "Real Estate",
+    items: [
+      {
+        label: "Global RE Value",
+        value: "$326.5T",
+        sub: "Total 2025",
+        color: "text-amber-400",
+      },
+      {
+        label: "Residential",
+        value: "$258.5T",
+        sub: "79% of total",
+        color: "text-orange-400",
+      },
+      {
+        label: "Commercial",
+        value: "$38.0T",
+        sub: "11.6% of total",
+        color: "text-yellow-400",
+      },
+      {
+        label: "Industrial",
+        value: "$30.0T",
+        sub: "9.2% of total",
+        color: "text-lime-400",
+      },
+    ],
+  },
+  {
+    category: "Commodities",
+    items: [
+      {
+        label: "Oil & Gas Market",
+        value: "$5.8T",
+        sub: "Annual trade",
+        color: "text-orange-400",
+      },
+      {
+        label: "Metals Market",
+        value: "$3.2T",
+        sub: "Annual trade",
+        color: "text-slate-400",
+      },
+      {
+        label: "Agri Commodities",
+        value: "$1.9T",
+        sub: "Annual trade",
+        color: "text-green-400",
+      },
+      {
+        label: "Crypto (total)",
+        value: "$2.4T",
+        sub: "Market cap",
+        color: "text-purple-400",
+      },
+    ],
+  },
+];
 
 export function EconomiesPage() {
   const [search, setSearch] = useState("");
@@ -841,6 +3343,20 @@ export function EconomiesPage() {
   >("gdpTrillions");
   const [selectedEconomy, setSelectedEconomy] = useState<Economy | null>(null);
   const [modalEconomy, setModalEconomy] = useState<Economy | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("economies");
+
+  // Deep-link: open entity from search bar via ?open=<id>
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const openId = params.get("open");
+    if (openId) {
+      const found = economiesData.find((e) => e.id === openId);
+      if (found) setModalEconomy(found);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("open");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, []);
 
   const types = ["All", "Country", "Region", "Bloc"];
 
@@ -861,7 +3377,7 @@ export function EconomiesPage() {
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-4">
           <div className="p-2.5 bg-secondary/20 rounded-lg">
             <CurrencyDollar
               size={26}
@@ -878,6 +3394,47 @@ export function EconomiesPage() {
               breakdowns
             </p>
           </div>
+        </div>
+
+        {/* View Mode Tabs */}
+        <div className="flex flex-wrap items-center gap-2 mb-6">
+          {(
+            [
+              {
+                id: "economies",
+                label: "Economies",
+                icon: <CurrencyDollar size={13} weight="fill" />,
+              },
+              {
+                id: "resources",
+                label: "Resources",
+                icon: <Tree size={13} weight="fill" />,
+              },
+              {
+                id: "region",
+                label: "Region",
+                icon: <MapPin size={13} weight="fill" />,
+              },
+              {
+                id: "valueStats",
+                label: "Value Statistics",
+                icon: <ChartBar size={13} weight="fill" />,
+              },
+            ] as const
+          ).map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setViewMode(tab.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+                viewMode === tab.id
+                  ? "bg-secondary/20 border-secondary/40 text-secondary"
+                  : "bg-card border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {/* Summary Strip */}
@@ -924,6 +3481,127 @@ export function EconomiesPage() {
             </div>
           ))}
         </div>
+
+        {/* ── Trending & Frequently Looked-Up Stats ── */}
+        <div className="mb-6 bg-card border border-border rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+            <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+              Trending &amp; Frequently Looked-Up
+            </p>
+            <span className="ml-auto text-[10px] text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-full">
+              2026 data
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[
+              {
+                label: "📊 Global GDP",
+                value: "$105.4T",
+                sub: "+2.7% YoY",
+                color: "text-secondary",
+                bg: "bg-secondary/10 border-secondary/20",
+              },
+              {
+                label: "💱 USD/EUR Rate",
+                value: "0.921",
+                sub: "Mid-market Aug 2026",
+                color: "text-yellow-400",
+                bg: "bg-yellow-500/10 border-yellow-500/20",
+              },
+              {
+                label: "📈 Fastest Growing",
+                value: "India +6.3%",
+                sub: "Largest major economy",
+                color: "text-orange-400",
+                bg: "bg-orange-500/10 border-orange-500/20",
+              },
+              {
+                label: "🏦 US Fed Rate",
+                value: "5.25%",
+                sub: "Hold — Jun 2026",
+                color: "text-purple-400",
+                bg: "bg-purple-500/10 border-purple-500/20",
+              },
+              {
+                label: "⚡ Brent Crude",
+                value: "$83/bbl",
+                sub: "+1.8% last week",
+                color: "text-red-400",
+                bg: "bg-red-500/10 border-red-500/20",
+              },
+              {
+                label: "🥇 Gold (XAU)",
+                value: "$2,341",
+                sub: "Near all-time high",
+                color: "text-amber-400",
+                bg: "bg-amber-500/10 border-amber-500/20",
+              },
+            ].map((s) => (
+              <div
+                key={s.label}
+                className={`rounded-xl p-3 border ${s.bg} flex flex-col gap-1`}
+              >
+                <p className="text-[10px] font-sans text-muted-foreground leading-snug">
+                  {s.label}
+                </p>
+                <p className={`text-lg font-bold font-mono ${s.color}`}>
+                  {s.value}
+                </p>
+                <p className={`text-[10px] font-sans ${s.color} opacity-80`}>
+                  {s.sub}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 pt-3 border-t border-border/40">
+            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+              🔥 Upcoming to Watch
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                {
+                  label:
+                    "India overtaking Japan as 3rd largest economy · ~2027",
+                  color:
+                    "text-orange-400 border-orange-500/30 bg-orange-500/10",
+                },
+                {
+                  label: "Fed pivot probability rising · Sep 2026 FOMC meeting",
+                  color:
+                    "text-purple-400 border-purple-500/30 bg-purple-500/10",
+                },
+                {
+                  label: "BRICS common currency proposal — summit Oct 2026",
+                  color: "text-red-400 border-red-500/30 bg-red-500/10",
+                },
+                {
+                  label: "EU Carbon Border Adjustment — full enforcement 2026",
+                  color: "text-green-400 border-green-500/30 bg-green-500/10",
+                },
+                {
+                  label:
+                    "Argentina economic stabilization · Milei Year 3 review",
+                  color: "text-amber-400 border-amber-500/30 bg-amber-500/10",
+                },
+                {
+                  label: "Saudi Aramco dividend policy revision · Q4 2026",
+                  color:
+                    "text-yellow-400 border-yellow-500/30 bg-yellow-500/10",
+                },
+              ].map((e) => (
+                <span
+                  key={e.label}
+                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.color}`}
+                >
+                  {e.label}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <CurrencyConverter />
 
         <SourceLink sources={SRC_IMF} className="mb-4 -mt-2" />
 
@@ -979,541 +3657,292 @@ export function EconomiesPage() {
           />
         )}
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Economy Cards */}
-          <div className="xl:col-span-2 space-y-4 min-w-0">
-            {filtered.map((economy) => (
-              <div
-                key={economy.id}
-                className="flex gap-3 items-stretch min-w-0 overflow-hidden"
-              >
-                {/* ── Main card ── */}
-                <article
-                  onClick={() => setModalEconomy(economy)}
-                  className="modal-tile rounded-xl p-2 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40 flex-1 min-w-0"
-                >
-                  <div className="flex items-start justify-between mb-1">
-                    <div>
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <h3 className="text-sm font-semibold font-sans text-foreground leading-tight">
-                          {economy.name}
-                        </h3>
-                        <span
-                          className={`text-[10px] border px-1.5 py-px rounded-full font-mono font-semibold ${ratingColor(economy.creditRating)}`}
-                        >
-                          {economy.creditRating}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground border border-border px-1.5 py-px rounded-full font-sans">
-                          {economy.entityType}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground font-sans leading-tight">
-                        {getCurrencyDisplay(
-                          economy.currencyCode,
-                          economy.currencyName,
-                        )}{" "}
-                        · Interest Rate: {economy.interestRate}%
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-base font-bold font-mono text-secondary leading-tight">
-                        ${economy.gdpTrillions.toFixed(2)}T
-                      </p>
-                      <p
-                        className={`text-[10px] font-mono flex items-center gap-0.5 justify-end ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}
-                      >
-                        {economy.gdpGrowthRate >= 0 ? (
-                          <TrendUp size={10} weight="bold" />
-                        ) : (
-                          <TrendDown size={10} weight="bold" />
-                        )}
-                        {economy.gdpGrowthRate >= 0 ? "+" : ""}
-                        {economy.gdpGrowthRate}%
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-2 gap-y-0.5 mb-1.5">
-                    <div>
-                      <p className="text-[9px] text-muted-foreground font-sans">
-                        GDP/Capita
-                      </p>
-                      <p className="text-xs font-bold font-mono text-foreground leading-tight">
-                        ${economy.gdpPerCapita.toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] text-muted-foreground font-sans">
-                        Inflation
-                      </p>
-                      <p
-                        className={`text-xs font-bold font-mono leading-tight ${economy.inflationRate > 6 ? "text-destructive" : economy.inflationRate > 3 ? "text-warning" : "text-success"}`}
-                      >
-                        {economy.inflationRate}%
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] text-muted-foreground font-sans">
-                        Unemployment
-                      </p>
-                      <p className="text-xs font-bold font-mono text-foreground leading-tight">
-                        {economy.unemploymentRate}%
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] text-muted-foreground font-sans">
-                        Debt/GDP
-                      </p>
-                      <p
-                        className={`text-xs font-bold font-mono leading-tight ${economy.debtToGDPRatio > 120 ? "text-destructive" : economy.debtToGDPRatio > 80 ? "text-warning" : "text-success"}`}
-                      >
-                        {economy.debtToGDPRatio}%
-                      </p>
-                    </div>
-                    {economy.cpi != null && (
-                      <div>
-                        <p className="text-[9px] text-muted-foreground font-sans">
-                          CPI
-                        </p>
-                        <p className="text-xs font-bold font-mono text-foreground leading-tight">
-                          {economy.cpi.toLocaleString(undefined, {
-                            maximumFractionDigits: 1,
-                          })}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* GDP share bar */}
-                  <div className="mb-1">
-                    <div className="flex justify-between text-[9px] mb-0.5">
-                      <span className="text-muted-foreground font-sans">
-                        Share of Global GDP
-                      </span>
-                      <span className="font-mono text-muted-foreground">
-                        {((economy.gdpTrillions / 104.5) * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="h-1 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-secondary transition-all duration-500"
-                        style={{
-                          width: `${Math.min(100, (economy.gdpTrillions / 104.5) * 100 * 4)}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Top sectors pills */}
-                  <div className="flex flex-wrap gap-1">
-                    {economy.topExports.slice(0, 3).map((exp) => (
-                      <span
-                        key={exp}
-                        className="text-[10px] bg-secondary/10 text-secondary border border-secondary/20 px-1.5 py-px rounded-full font-sans"
-                      >
-                        {exp}
-                      </span>
-                    ))}
-                    <span className="text-[10px] text-muted-foreground border border-border px-1.5 py-px rounded-full font-sans">
-                      +{economy.topExports.length - 3} more
-                    </span>
-                  </div>
-                </article>
-
-                {/* ── GDP chart box ── */}
+        {/* ── Resources View ── */}
+        {viewMode === "resources" && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h2 className="text-lg font-bold font-sans text-foreground">
+                  Global Resource Markets
+                </h2>
+                <p className="text-xs text-muted-foreground font-sans">
+                  Commodity prices, reserves & top holders · Aug 2026
+                </p>
+              </div>
+              <span className="text-[10px] font-mono bg-muted border border-border px-2.5 py-1 rounded-full text-muted-foreground">
+                {RESOURCES_DATA.length} commodities tracked
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {RESOURCES_DATA.map((r) => (
                 <div
-                  onClick={(e) => e.stopPropagation()}
-                  className="hidden sm:flex w-28 md:w-36 h-28 md:h-36 shrink-0 bg-card border border-border rounded-xl p-2 flex-col justify-between"
+                  key={r.name}
+                  className="bg-card border border-border rounded-xl p-4 hover:border-secondary/40 transition-colors"
                 >
-                  <div className="mb-0.5">
-                    <p className="text-[9px] font-mono uppercase tracking-widest text-secondary leading-none">
-                      GDP $T
-                    </p>
-                  </div>
-                  <div className="flex-1 min-h-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart
-                        data={economy.trends}
-                        margin={{ top: 4, right: 2, left: -28, bottom: 0 }}
-                      >
-                        <defs>
-                          <linearGradient
-                            id={`cardGdpGrad-${economy.id}`}
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop
-                              offset="0%"
-                              stopColor="hsl(200,85%,50%)"
-                              stopOpacity={0.4}
-                            />
-                            <stop
-                              offset="100%"
-                              stopColor="hsl(200,85%,50%)"
-                              stopOpacity={0}
-                            />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                          stroke="rgba(255,255,255,0.05)"
-                          vertical={false}
-                        />
-                        <XAxis
-                          dataKey="year"
-                          tick={{
-                            fill: "hsl(0,0%,50%)",
-                            fontSize: 8,
-                            fontFamily: "IBM Plex Mono",
-                          }}
-                          axisLine={false}
-                          tickLine={false}
-                          interval={1}
-                        />
-                        <YAxis
-                          tick={{
-                            fill: "hsl(0,0%,50%)",
-                            fontSize: 8,
-                            fontFamily: "IBM Plex Mono",
-                          }}
-                          axisLine={false}
-                          tickLine={false}
-                          tickFormatter={(v) => `${v}`}
-                          width={28}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            background: "hsl(222,30%,14%)",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            borderRadius: 8,
-                            fontSize: 10,
-                            fontFamily: "IBM Plex Mono",
-                          }}
-                          formatter={(v: number) => [`$${v}T`, "GDP"]}
-                          labelStyle={{ color: "hsl(0,0%,55%)" }}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="gdp"
-                          name="GDP"
-                          stroke="hsl(200,85%,50%)"
-                          fill={`url(#cardGdpGrad-${economy.id})`}
-                          strokeWidth={1.5}
-                          dot={false}
-                          isAnimationActive
-                          animationDuration={600}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                  {/* growth badge */}
-                  <div className="mt-1 flex items-center justify-between gap-1 min-w-0">
-                    <span className="text-[8px] text-muted-foreground font-mono truncate">
-                      {economy.trends[0]?.year}–
-                      {economy.trends[economy.trends.length - 1]?.year}
-                    </span>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{r.icon}</span>
+                      <div>
+                        <p className="text-sm font-bold font-sans text-foreground">
+                          {r.name}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground font-mono">
+                          {r.unit}
+                        </p>
+                      </div>
+                    </div>
                     <span
-                      className={`text-[9px] font-mono font-bold shrink-0 ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}
+                      className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full ${r.change >= 0 ? "bg-success/10 text-success border border-success/20" : "bg-destructive/10 text-destructive border border-destructive/20"}`}
                     >
-                      {economy.gdpGrowthRate >= 0 ? "+" : ""}
-                      {economy.gdpGrowthRate}%
+                      {r.change >= 0 ? "+" : ""}
+                      {r.change}%
+                    </span>
+                  </div>
+                  <p
+                    className="text-2xl font-bold font-mono mb-1"
+                    style={{ color: r.color }}
+                  >
+                    {r.price.toLocaleString()}
+                  </p>
+                  <div className="mt-3 pt-3 border-t border-border/40 space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] text-muted-foreground font-sans">
+                        Top Holder
+                      </span>
+                      <span className="text-[10px] font-semibold font-sans text-foreground">
+                        {r.holder}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] text-muted-foreground font-sans">
+                        Reserve
+                      </span>
+                      <span className="text-[10px] font-mono text-foreground">
+                        {r.reserve}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${Math.min(100, Math.abs(r.change) * 15 + 30)}%`,
+                        background: r.color,
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* ── Rare Earth Minerals Global Overview ── */}
+            <div className="mt-2">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-base font-bold font-sans text-foreground">
+                    🧲 Rare Earth &amp; Critical Minerals — Global Overview
+                  </h2>
+                  <p className="text-xs text-muted-foreground font-sans">
+                    Which economies have reserves vs. surplus · USGS / BGS 2025
+                  </p>
+                </div>
+              </div>
+              {/* Economy comparison table */}
+              <div className="bg-card border border-border rounded-2xl overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-border bg-muted/20">
+                        <th className="text-left px-4 py-2.5 text-muted-foreground font-semibold min-w-[110px]">
+                          Mineral
+                        </th>
+                        {[
+                          "USA",
+                          "China",
+                          "EU",
+                          "Germany",
+                          "India",
+                          "Japan",
+                          "Brazil",
+                          "Saudi Arabia",
+                        ].map((eco) => (
+                          <th
+                            key={eco}
+                            className="text-center px-3 py-2.5 text-muted-foreground font-semibold whitespace-nowrap min-w-[80px]"
+                          >
+                            {eco}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        "Neodymium",
+                        "Lithium",
+                        "Cobalt",
+                        "Dysprosium",
+                        "Lanthanum",
+                        "Cerium",
+                        "Niobium",
+                        "Terbium",
+                        "Scandium",
+                        "Yttrium",
+                      ].map((mineralName, idx) => {
+                        const econKeys = [
+                          "usa",
+                          "china",
+                          "eu",
+                          "germany",
+                          "india",
+                          "japan",
+                          "brazil",
+                          "saudi-arabia",
+                        ];
+                        return (
+                          <tr
+                            key={mineralName}
+                            className={`border-b border-border/40 ${idx % 2 === 0 ? "" : "bg-muted/10"}`}
+                          >
+                            <td className="px-4 py-2.5 font-semibold text-foreground">
+                              {mineralName}
+                            </td>
+                            {econKeys.map((ecoId) => {
+                              const minerals =
+                                RARE_EARTH_MINERALS[ecoId] ??
+                                DEFAULT_RARE_EARTHS;
+                              const m = minerals.find(
+                                (x) => x.name === mineralName,
+                              );
+                              return (
+                                <td
+                                  key={ecoId}
+                                  className="px-3 py-2.5 text-center"
+                                >
+                                  {m?.surplus ? (
+                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/25 text-[9px] font-mono">
+                                      ↑ surplus
+                                    </span>
+                                  ) : m?.has ? (
+                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 text-[9px] font-mono">
+                                      ✓ has
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground border border-border text-[9px] font-mono">
+                                      — none
+                                    </span>
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="px-4 py-3 border-t border-border bg-muted/10 flex items-center gap-4 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/25 text-[9px] font-mono">
+                      ↑ surplus
+                    </span>
+                    <span className="text-[10px] text-muted-foreground font-sans">
+                      Net exporter / strategic surplus
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 text-[9px] font-mono">
+                      ✓ has
+                    </span>
+                    <span className="text-[10px] text-muted-foreground font-sans">
+                      Known reserves, not surplus
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border text-[9px] font-mono">
+                      — none
+                    </span>
+                    <span className="text-[10px] text-muted-foreground font-sans">
+                      Scarce / must import
                     </span>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* ── GDP Growth Projections Sidebar ─────────────────────── */}
-          <div className="xl:col-span-1 flex flex-col gap-5 min-w-0">
-            {/* GDP Growth Bar Chart */}
-            <div className="bg-card border border-border rounded-2xl p-5">
-              <p className="text-[10px] font-mono uppercase tracking-widest text-secondary mb-1">
-                GDP Growth Projections
-              </p>
-              <h3 className="text-sm font-bold font-sans text-foreground mb-4">
-                Projected GDP Growth 2025–2030
-              </h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart
-                  data={[
-                    {
-                      year: "2025",
-                      world: 3.1,
-                      usa: 2.3,
-                      china: 4.6,
-                      india: 6.5,
-                      eu: 1.4,
-                    },
-                    {
-                      year: "2026",
-                      world: 3.3,
-                      usa: 2.5,
-                      china: 4.8,
-                      india: 6.8,
-                      eu: 1.7,
-                    },
-                    {
-                      year: "2027",
-                      world: 3.4,
-                      usa: 2.4,
-                      china: 4.9,
-                      india: 7.0,
-                      eu: 1.8,
-                    },
-                    {
-                      year: "2028",
-                      world: 3.2,
-                      usa: 2.6,
-                      china: 5.0,
-                      india: 7.1,
-                      eu: 1.9,
-                    },
-                    {
-                      year: "2029",
-                      world: 3.3,
-                      usa: 2.5,
-                      china: 5.1,
-                      india: 7.3,
-                      eu: 2.0,
-                    },
-                    {
-                      year: "2030",
-                      world: 3.4,
-                      usa: 2.7,
-                      china: 5.2,
-                      india: 7.5,
-                      eu: 2.1,
-                    },
-                  ]}
-                  margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="rgba(255,255,255,0.06)"
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="year"
-                    tick={{
-                      fill: "hsl(0,0%,55%)",
-                      fontSize: 9,
-                      fontFamily: "IBM Plex Mono",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{
-                      fill: "hsl(0,0%,55%)",
-                      fontSize: 9,
-                      fontFamily: "IBM Plex Mono",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(v) => `${v}%`}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: "hsl(222,30%,14%)",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: 10,
-                      fontSize: 11,
-                      fontFamily: "IBM Plex Mono",
-                    }}
-                    formatter={(v: number, name: string) => [
-                      `${v}%`,
-                      name.toUpperCase(),
-                    ]}
-                    labelStyle={{ color: "hsl(0,0%,55%)", marginBottom: 2 }}
-                  />
-                  <Bar
-                    dataKey="world"
-                    name="World"
-                    fill="#a855f7"
-                    radius={[2, 2, 0, 0]}
-                    maxBarSize={8}
-                  />
-                  <Bar
-                    dataKey="usa"
-                    name="USA"
-                    fill="#3b82f6"
-                    radius={[2, 2, 0, 0]}
-                    maxBarSize={8}
-                  />
-                  <Bar
-                    dataKey="china"
-                    name="China"
-                    fill="#ef4444"
-                    radius={[2, 2, 0, 0]}
-                    maxBarSize={8}
-                  />
-                  <Bar
-                    dataKey="india"
-                    name="India"
-                    fill="#f97316"
-                    radius={[2, 2, 0, 0]}
-                    maxBarSize={8}
-                  />
-                  <Bar
-                    dataKey="eu"
-                    name="EU"
-                    fill="#10b981"
-                    radius={[2, 2, 0, 0]}
-                    maxBarSize={8}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-              <div className="flex flex-wrap items-center gap-3 mt-3 justify-center">
+              {/* Strategic context callout */}
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
-                  { label: "World", color: "#a855f7" },
-                  { label: "USA", color: "#3b82f6" },
-                  { label: "China", color: "#ef4444" },
-                  { label: "India", color: "#f97316" },
-                  { label: "EU", color: "#10b981" },
-                ].map((l) => (
-                  <div key={l.label} className="flex items-center gap-1">
-                    <div
-                      className="w-2.5 h-2.5 rounded-sm"
-                      style={{ background: l.color }}
-                    />
-                    <span className="text-[9px] font-mono text-muted-foreground">
-                      {l.label}
-                    </span>
+                  {
+                    flag: "🇨🇳",
+                    title: "China dominates",
+                    body: "Controls ~60% of global rare earth mining and ~85% of processing capacity. Key leverage in tech supply chains.",
+                    color: "border-red-500/30 bg-red-500/8",
+                  },
+                  {
+                    flag: "🇧🇷",
+                    title: "Brazil — rising force",
+                    body: "Holds ~92% of global Niobium reserves and growing Lithium deposits. Positioned as a critical counterweight.",
+                    color: "border-green-500/30 bg-green-500/8",
+                  },
+                  {
+                    flag: "🇮🇳",
+                    title: "India — Thorium giant",
+                    body: "World's largest Thorium reserves (~25%). Pursuing rare earth self-sufficiency under PM Gati Shakti.",
+                    color: "border-orange-500/30 bg-orange-500/8",
+                  },
+                ].map((c) => (
+                  <div
+                    key={c.title}
+                    className={`rounded-xl border p-4 ${c.color}`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xl">{c.flag}</span>
+                      <span className="text-xs font-bold font-sans text-foreground">
+                        {c.title}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground font-sans leading-relaxed">
+                      {c.body}
+                    </p>
                   </div>
                 ))}
               </div>
             </div>
+            <SourceLink sources={SRC_WTO} className="mt-2" />
+          </div>
+        )}
 
-            {/* Area chart: GDP absolute $T */}
+        {/* ── Region View ── */}
+        {viewMode === "region" && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h2 className="text-lg font-bold font-sans text-foreground">
+                  GDP by World Region
+                </h2>
+                <p className="text-xs text-muted-foreground font-sans">
+                  Regional economic output & growth rates · 2025 estimates
+                </p>
+              </div>
+              <span className="text-[10px] font-mono bg-muted border border-border px-2.5 py-1 rounded-full text-muted-foreground">
+                {REGION_DATA.length} regions
+              </span>
+            </div>
+            {/* Bar chart */}
             <div className="bg-card border border-border rounded-2xl p-5">
-              <p className="text-[10px] font-mono uppercase tracking-widest text-secondary mb-1">
-                GDP Trajectory
+              <p className="text-xs font-bold font-sans text-foreground mb-4">
+                GDP ($T) by Region — 2025
               </p>
-              <h3 className="text-sm font-bold font-sans text-foreground mb-1">
-                Nominal GDP ($T) to 2030
-              </h3>
-              <p className="text-[10px] text-muted-foreground font-sans mb-4">
-                IMF WEO projections by economy
-              </p>
-              <ResponsiveContainer width="100%" height={210}>
-                <AreaChart
-                  data={[
-                    {
-                      year: "2024",
-                      usa: 27.4,
-                      china: 18.5,
-                      india: 3.9,
-                      germany: 4.5,
-                      japan: 4.2,
-                    },
-                    {
-                      year: "2025",
-                      usa: 28.2,
-                      china: 19.8,
-                      india: 4.3,
-                      germany: 4.7,
-                      japan: 4.3,
-                    },
-                    {
-                      year: "2026",
-                      usa: 29.5,
-                      china: 21.2,
-                      india: 4.8,
-                      germany: 4.9,
-                      japan: 4.4,
-                    },
-                    {
-                      year: "2027",
-                      usa: 30.8,
-                      china: 22.8,
-                      india: 5.4,
-                      germany: 5.1,
-                      japan: 4.5,
-                    },
-                    {
-                      year: "2028",
-                      usa: 32.1,
-                      china: 24.6,
-                      india: 6.1,
-                      germany: 5.3,
-                      japan: 4.6,
-                    },
-                    {
-                      year: "2029",
-                      usa: 33.4,
-                      china: 26.5,
-                      india: 6.9,
-                      germany: 5.5,
-                      japan: 4.7,
-                    },
-                    {
-                      year: "2030",
-                      usa: 34.9,
-                      china: 28.6,
-                      india: 7.8,
-                      germany: 5.8,
-                      japan: 4.8,
-                    },
-                  ]}
-                  margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart
+                  data={REGION_DATA}
+                  layout="vertical"
+                  margin={{ top: 0, right: 40, left: 0, bottom: 0 }}
                 >
-                  <defs>
-                    <linearGradient id="ecoUsaGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="0%"
-                        stopColor="#3b82f6"
-                        stopOpacity={0.35}
-                      />
-                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient
-                      id="ecoChinaGrad"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor="#ef4444"
-                        stopOpacity={0.25}
-                      />
-                      <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient
-                      id="ecoIndiaGrad"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor="#f97316"
-                        stopOpacity={0.25}
-                      />
-                      <stop offset="100%" stopColor="#f97316" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke="rgba(255,255,255,0.06)"
-                    vertical={false}
+                    horizontal={false}
                   />
                   <XAxis
-                    dataKey="year"
-                    tick={{
-                      fill: "hsl(0,0%,55%)",
-                      fontSize: 9,
-                      fontFamily: "IBM Plex Mono",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
+                    type="number"
                     tick={{
                       fill: "hsl(0,0%,55%)",
                       fontSize: 9,
@@ -1523,201 +3952,17 @@ export function EconomiesPage() {
                     tickLine={false}
                     tickFormatter={(v) => `$${v}T`}
                   />
-                  <ReferenceLine
-                    x="2025"
-                    stroke="rgba(255,255,255,0.2)"
-                    strokeDasharray="4 2"
-                    label={{
-                      value: "Now",
-                      position: "top",
-                      fontSize: 9,
-                      fill: "hsl(0,0%,55%)",
-                    }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: "hsl(222,30%,14%)",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: 10,
-                      fontSize: 11,
-                      fontFamily: "IBM Plex Mono",
-                    }}
-                    formatter={(v: number, name: string) => [
-                      `$${v}T`,
-                      name.toUpperCase(),
-                    ]}
-                    labelStyle={{ color: "hsl(0,0%,55%)", marginBottom: 2 }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="usa"
-                    name="USA"
-                    stroke="#3b82f6"
-                    fill="url(#ecoUsaGrad)"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="china"
-                    name="China"
-                    stroke="#ef4444"
-                    fill="url(#ecoChinaGrad)"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="india"
-                    name="India"
-                    stroke="#f97316"
-                    fill="url(#ecoIndiaGrad)"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="germany"
-                    name="Germany"
-                    stroke="#6366f1"
-                    fill="none"
-                    strokeWidth={1.5}
-                    strokeDasharray="4 2"
-                    dot={false}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="japan"
-                    name="Japan"
-                    stroke="#10b981"
-                    fill="none"
-                    strokeWidth={1.5}
-                    strokeDasharray="4 2"
-                    dot={false}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-              <div className="flex flex-wrap items-center gap-3 mt-2 justify-center">
-                {[
-                  { label: "USA", color: "#3b82f6" },
-                  { label: "China", color: "#ef4444" },
-                  { label: "India", color: "#f97316" },
-                  { label: "Germany", color: "#6366f1" },
-                  { label: "Japan", color: "#10b981" },
-                ].map((l) => (
-                  <div key={l.label} className="flex items-center gap-1">
-                    <div
-                      className="w-3 h-0.5 rounded-full"
-                      style={{ background: l.color }}
-                    />
-                    <span className="text-[9px] font-mono text-muted-foreground">
-                      {l.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Growth Rate Line Chart */}
-            <div className="bg-card border border-border rounded-2xl p-5">
-              <p className="text-[10px] font-mono uppercase tracking-widest text-secondary mb-1">
-                Annual Growth Rate
-              </p>
-              <h3 className="text-sm font-bold font-sans text-foreground mb-4">
-                YoY GDP Growth % Forecast
-              </h3>
-              <ResponsiveContainer width="100%" height={180}>
-                <LineChart
-                  data={[
-                    {
-                      year: "2022",
-                      usa: 2.1,
-                      china: 3.0,
-                      india: 7.2,
-                      world: 3.5,
-                    },
-                    {
-                      year: "2023",
-                      usa: 2.5,
-                      china: 5.2,
-                      india: 8.2,
-                      world: 3.2,
-                    },
-                    {
-                      year: "2024",
-                      usa: 2.3,
-                      china: 4.6,
-                      india: 6.1,
-                      world: 3.1,
-                    },
-                    {
-                      year: "2025",
-                      usa: 2.3,
-                      china: 4.8,
-                      india: 6.5,
-                      world: 3.1,
-                    },
-                    {
-                      year: "2026",
-                      usa: 2.5,
-                      china: 4.9,
-                      india: 6.8,
-                      world: 3.3,
-                    },
-                    {
-                      year: "2027",
-                      usa: 2.4,
-                      china: 5.0,
-                      india: 7.0,
-                      world: 3.4,
-                    },
-                    {
-                      year: "2028",
-                      usa: 2.6,
-                      china: 5.1,
-                      india: 7.1,
-                      world: 3.2,
-                    },
-                    {
-                      year: "2030",
-                      usa: 2.7,
-                      china: 5.2,
-                      india: 7.5,
-                      world: 3.4,
-                    },
-                  ]}
-                  margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="rgba(255,255,255,0.06)"
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="year"
-                    tick={{
-                      fill: "hsl(0,0%,55%)",
-                      fontSize: 9,
-                      fontFamily: "IBM Plex Mono",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
                   <YAxis
+                    type="category"
+                    dataKey="region"
                     tick={{
-                      fill: "hsl(0,0%,55%)",
+                      fill: "hsl(0,0%,65%)",
                       fontSize: 9,
-                      fontFamily: "IBM Plex Mono",
+                      fontFamily: "DM Sans",
                     }}
                     axisLine={false}
                     tickLine={false}
-                    tickFormatter={(v) => `${v}%`}
-                    domain={[0, "auto"]}
-                  />
-                  <ReferenceLine
-                    x="2025"
-                    stroke="rgba(255,255,255,0.2)"
-                    strokeDasharray="4 2"
+                    width={130}
                   />
                   <Tooltip
                     contentStyle={{
@@ -1727,134 +3972,1209 @@ export function EconomiesPage() {
                       fontSize: 11,
                       fontFamily: "IBM Plex Mono",
                     }}
-                    formatter={(v: number, name: string) => [
-                      `${v}%`,
-                      name.toUpperCase(),
-                    ]}
-                    labelStyle={{ color: "hsl(0,0%,55%)", marginBottom: 2 }}
+                    formatter={(v: number) => [`$${v}T`, "GDP"]}
+                    labelStyle={{ color: "hsl(0,0%,55%)" }}
                   />
-                  <Line
-                    type="monotone"
-                    dataKey="world"
-                    name="World"
-                    stroke="#a855f7"
-                    strokeWidth={2}
-                    dot={{ fill: "#a855f7", r: 2.5, strokeWidth: 0 }}
-                    activeDot={{ r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="usa"
-                    name="USA"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    dot={{ fill: "#3b82f6", r: 2.5, strokeWidth: 0 }}
-                    activeDot={{ r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="china"
-                    name="China"
-                    stroke="#ef4444"
-                    strokeWidth={2}
-                    dot={{ fill: "#ef4444", r: 2.5, strokeWidth: 0 }}
-                    activeDot={{ r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="india"
-                    name="India"
-                    stroke="#f97316"
-                    strokeWidth={2}
-                    dot={{ fill: "#f97316", r: 2.5, strokeWidth: 0 }}
-                    activeDot={{ r: 4 }}
-                  />
-                </LineChart>
+                  <Bar
+                    dataKey="gdp"
+                    name="GDP"
+                    radius={[0, 4, 4, 0]}
+                    maxBarSize={18}
+                  >
+                    {REGION_DATA.map((r) => (
+                      <Cell key={r.region} fill={r.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
-              <div className="flex flex-wrap items-center gap-3 mt-2 justify-center">
-                {[
-                  { label: "World", color: "#a855f7" },
-                  { label: "USA", color: "#3b82f6" },
-                  { label: "China", color: "#ef4444" },
-                  { label: "India", color: "#f97316" },
-                ].map((l) => (
-                  <div key={l.label} className="flex items-center gap-1">
-                    <div
-                      className="w-3 h-0.5 rounded-full"
-                      style={{ background: l.color }}
-                    />
-                    <span className="text-[9px] font-mono text-muted-foreground">
-                      {l.label}
-                    </span>
+            </div>
+            {/* Region cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {REGION_DATA.map((r) => (
+                <div
+                  key={r.region}
+                  className="bg-card border border-border rounded-xl p-4 hover:border-secondary/40 transition-colors"
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xl">{r.flag}</span>
+                    <p className="text-xs font-bold font-sans text-foreground leading-tight">
+                      {r.region}
+                    </p>
                   </div>
-                ))}
+                  <p
+                    className="text-2xl font-bold font-mono mb-0.5"
+                    style={{ color: r.color }}
+                  >
+                    ${r.gdp}T
+                  </p>
+                  <p className="text-[10px] text-muted-foreground font-sans mb-3">
+                    Nominal GDP
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-background/50 rounded-lg p-2 border border-border/40">
+                      <p className="text-[9px] text-muted-foreground font-sans">
+                        Growth
+                      </p>
+                      <p
+                        className={`text-sm font-bold font-mono ${r.growth >= 3 ? "text-success" : r.growth >= 2 ? "text-warning" : "text-muted-foreground"}`}
+                      >
+                        +{r.growth}%
+                      </p>
+                    </div>
+                    <div className="bg-background/50 rounded-lg p-2 border border-border/40">
+                      <p className="text-[9px] text-muted-foreground font-sans">
+                        Countries
+                      </p>
+                      <p className="text-sm font-bold font-mono text-foreground">
+                        {r.countries}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-3 h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${(r.gdp / 38.2) * 100}%`,
+                        background: r.color,
+                      }}
+                    />
+                  </div>
+                  <p className="text-[9px] text-muted-foreground font-mono mt-1 text-right">
+                    {((r.gdp / 104.5) * 100).toFixed(1)}% of global GDP
+                  </p>
+                </div>
+              ))}
+            </div>
+            <SourceLink sources={SRC_IMF} className="mt-2" />
+          </div>
+        )}
+
+        {/* ── Value Statistics View ── */}
+        {viewMode === "valueStats" && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h2 className="text-lg font-bold font-sans text-foreground">
+                  Global Value Statistics
+                </h2>
+                <p className="text-xs text-muted-foreground font-sans">
+                  Stock markets, bonds, real estate & commodities · 2025
+                </p>
               </div>
-              <p className="text-[10px] text-muted-foreground font-sans mt-3">
-                Dashed line = 2025 threshold.
-              </p>
-              <SourceLink sources={SRC_OECD} className="mt-1" />
+              <span className="text-[10px] font-mono bg-muted border border-border px-2.5 py-1 rounded-full text-muted-foreground">
+                4 asset classes
+              </span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {VALUE_STATS_DATA.map((cat) => (
+                <div
+                  key={cat.category}
+                  className="bg-card border border-border rounded-2xl p-5"
+                >
+                  <p className="text-xs font-bold font-sans text-foreground mb-4 uppercase tracking-wide">
+                    {cat.category}
+                  </p>
+                  <div className="space-y-3">
+                    {cat.items.map((item) => (
+                      <div
+                        key={item.label}
+                        className="flex items-center justify-between gap-3 p-3 rounded-xl bg-background/50 border border-border/40 hover:border-border transition-colors"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold font-sans text-foreground">
+                            {item.label}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground font-sans">
+                            {item.sub}
+                          </p>
+                        </div>
+                        <p
+                          className={`text-lg font-bold font-mono shrink-0 ${item.color}`}
+                        >
+                          {item.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Mini bar chart for relative sizes */}
+                  <div className="mt-4 pt-3 border-t border-border/40 space-y-2">
+                    {cat.items.map((item) => {
+                      const numericVal = parseFloat(
+                        item.value.replace(/[$T%,]/g, ""),
+                      );
+                      const max = Math.max(
+                        ...cat.items.map((i) =>
+                          parseFloat(i.value.replace(/[$T%,]/g, "")),
+                        ),
+                      );
+                      return (
+                        <div
+                          key={item.label}
+                          className="flex items-center gap-2"
+                        >
+                          <span className="text-[9px] font-sans text-muted-foreground w-28 truncate shrink-0">
+                            {item.label}
+                          </span>
+                          <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${item.color.replace("text-", "bg-")}`}
+                              style={{ width: `${(numericVal / max) * 100}%` }}
+                            />
+                          </div>
+                          <span
+                            className={`text-[9px] font-mono shrink-0 ${item.color}`}
+                          >
+                            {item.value}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <SourceLink sources={SRC_OECD} className="mt-2" />
+          </div>
+        )}
+
+        {/* ── Economies View (default) ── */}
+        {viewMode === "economies" && (
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            {/* Economy Cards */}
+            <div className="xl:col-span-2 space-y-4 min-w-0">
+              {filtered.map((economy) => (
+                <div
+                  key={economy.id}
+                  className="flex gap-3 items-stretch min-w-0 overflow-hidden"
+                >
+                  {/* ── Main card ── */}
+                  <article
+                    onClick={() => setModalEconomy(economy)}
+                    className="modal-tile rounded-xl p-2 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40 flex-1 min-w-0"
+                  >
+                    <div className="flex items-start justify-between mb-1">
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <h3 className="text-sm font-semibold font-sans text-foreground leading-tight">
+                            {economy.name}
+                          </h3>
+                          <span
+                            className={`text-[10px] border px-1.5 py-px rounded-full font-mono font-semibold ${ratingColor(economy.creditRating)}`}
+                          >
+                            {economy.creditRating}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground border border-border px-1.5 py-px rounded-full font-sans">
+                            {economy.entityType}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground font-sans leading-tight">
+                          {getCurrencyDisplay(
+                            economy.currencyCode,
+                            economy.currencyName,
+                          )}{" "}
+                          · Interest Rate: {economy.interestRate}%
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-base font-bold font-mono text-secondary leading-tight">
+                          ${economy.gdpTrillions.toFixed(2)}T
+                        </p>
+                        <p
+                          className={`text-[10px] font-mono flex items-center gap-0.5 justify-end ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}
+                        >
+                          {economy.gdpGrowthRate >= 0 ? (
+                            <TrendUp size={10} weight="bold" />
+                          ) : (
+                            <TrendDown size={10} weight="bold" />
+                          )}
+                          {economy.gdpGrowthRate >= 0 ? "+" : ""}
+                          {economy.gdpGrowthRate}%
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-2 gap-y-0.5 mb-1.5">
+                      <div>
+                        <p className="text-[9px] text-muted-foreground font-sans">
+                          GDP/Capita
+                        </p>
+                        <p className="text-xs font-bold font-mono text-foreground leading-tight">
+                          ${economy.gdpPerCapita.toLocaleString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-muted-foreground font-sans">
+                          Inflation
+                        </p>
+                        <p
+                          className={`text-xs font-bold font-mono leading-tight ${economy.inflationRate > 6 ? "text-destructive" : economy.inflationRate > 3 ? "text-warning" : "text-success"}`}
+                        >
+                          {economy.inflationRate}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-muted-foreground font-sans">
+                          Unemployment
+                        </p>
+                        <p className="text-xs font-bold font-mono text-foreground leading-tight">
+                          {economy.unemploymentRate}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-muted-foreground font-sans">
+                          Debt/GDP
+                        </p>
+                        <p
+                          className={`text-xs font-bold font-mono leading-tight ${economy.debtToGDPRatio > 120 ? "text-destructive" : economy.debtToGDPRatio > 80 ? "text-warning" : "text-success"}`}
+                        >
+                          {economy.debtToGDPRatio}%
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* GDP share bar */}
+                    <div className="mb-1">
+                      <div className="flex justify-between text-[9px] mb-0.5">
+                        <span className="text-muted-foreground font-sans">
+                          Share of Global GDP
+                        </span>
+                        <span className="font-mono text-muted-foreground">
+                          {((economy.gdpTrillions / 104.5) * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                      <div className="h-1 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-secondary transition-all duration-500"
+                          style={{
+                            width: `${Math.min(100, (economy.gdpTrillions / 104.5) * 100 * 4)}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* ── Inline country economic stats (for Country-type economies) ── */}
+                    {economy.entityType === "Country" &&
+                      (() => {
+                        const country = countriesData.find(
+                          (c) => c.name === economy.name || c.id === economy.id,
+                        );
+                        if (!country) return null;
+                        const stats = [
+                          {
+                            label: "GDP Per Capita",
+                            value: `$${country.gdpPerCapita.toLocaleString()}`,
+                            color: "text-foreground",
+                          },
+                          {
+                            label: "GDP Growth",
+                            value: `${country.gdpGrowth > 0 ? "+" : ""}${country.gdpGrowth}%`,
+                            color:
+                              country.gdpGrowth >= 0
+                                ? "text-success"
+                                : "text-destructive",
+                          },
+                          {
+                            label: "Unemployment",
+                            value: `${country.unemploymentRate}%`,
+                            color:
+                              country.unemploymentRate <= 5
+                                ? "text-success"
+                                : country.unemploymentRate <= 10
+                                  ? "text-warning"
+                                  : "text-destructive",
+                          },
+                          {
+                            label: "Inflation",
+                            value: `${country.inflationRate}%`,
+                            color:
+                              country.inflationRate <= 3
+                                ? "text-success"
+                                : country.inflationRate <= 8
+                                  ? "text-warning"
+                                  : "text-destructive",
+                          },
+                          {
+                            label: "Trade Balance",
+                            value: `${country.tradeBalance >= 0 ? "+" : ""}$${country.tradeBalance}B`,
+                            color:
+                              country.tradeBalance >= 0
+                                ? "text-success"
+                                : "text-destructive",
+                          },
+                        ];
+                        return (
+                          <div className="mt-2 pt-2 border-t border-border/40">
+                            <p className="text-[9px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">
+                              Country Economic Stats
+                            </p>
+                            <div className="grid grid-cols-5 gap-1">
+                              {stats.map((s) => (
+                                <div
+                                  key={s.label}
+                                  className="rounded-md bg-background/50 border border-border/40 px-1.5 py-1 text-center"
+                                >
+                                  <p className="text-[8px] text-muted-foreground font-sans leading-tight mb-0.5">
+                                    {s.label}
+                                  </p>
+                                  <p
+                                    className={`text-[10px] font-bold font-mono leading-tight ${s.color}`}
+                                  >
+                                    {s.value}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                    {/* Top sectors pills */}
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {economy.topExports.slice(0, 3).map((exp) => (
+                        <span
+                          key={exp}
+                          className="text-[10px] bg-secondary/10 text-secondary border border-secondary/20 px-1.5 py-px rounded-full font-sans"
+                        >
+                          {exp}
+                        </span>
+                      ))}
+                      <span className="text-[10px] text-muted-foreground border border-border px-1.5 py-px rounded-full font-sans">
+                        +{economy.topExports.length - 3} more
+                      </span>
+                    </div>
+                  </article>
+
+                  {/* ── GDP chart box ── */}
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="hidden sm:flex w-28 md:w-36 h-28 md:h-36 shrink-0 bg-card border border-border rounded-xl p-2 flex-col justify-between"
+                  >
+                    {(() => {
+                      const gdpVals = economy.trends.map((t) => t.gdp);
+                      const minGdp = Math.min(...gdpVals);
+                      const maxGdp = Math.max(...gdpVals);
+                      const pad = (maxGdp - minGdp) * 0.12 || maxGdp * 0.05;
+                      const domainMin = Math.max(0, minGdp - pad);
+                      const domainMax = maxGdp + pad;
+                      const loPoint = economy.trends.find(
+                        (t) => t.gdp === minGdp,
+                      );
+                      const hiPoint = economy.trends.find(
+                        (t) => t.gdp === maxGdp,
+                      );
+                      return (
+                        <>
+                          <div className="flex items-center justify-between mb-0.5">
+                            <p className="text-[9px] font-mono uppercase tracking-widest text-secondary leading-none">
+                              GDP $T
+                            </p>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[8px] font-mono text-emerald-400 leading-none">
+                                ▲{maxGdp.toFixed(2)}
+                              </span>
+                              <span className="text-[8px] font-mono text-rose-400 leading-none">
+                                ▼{minGdp.toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex-1 min-h-0">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <AreaChart
+                                data={economy.trends}
+                                margin={{
+                                  top: 4,
+                                  right: 2,
+                                  left: -28,
+                                  bottom: 0,
+                                }}
+                              >
+                                <defs>
+                                  <linearGradient
+                                    id={`cardGdpGrad-${economy.id}`}
+                                    x1="0"
+                                    y1="0"
+                                    x2="0"
+                                    y2="1"
+                                  >
+                                    <stop
+                                      offset="0%"
+                                      stopColor="hsl(200,85%,50%)"
+                                      stopOpacity={0.4}
+                                    />
+                                    <stop
+                                      offset="100%"
+                                      stopColor="hsl(200,85%,50%)"
+                                      stopOpacity={0}
+                                    />
+                                  </linearGradient>
+                                </defs>
+                                <CartesianGrid
+                                  strokeDasharray="3 3"
+                                  stroke="rgba(255,255,255,0.05)"
+                                  vertical={false}
+                                />
+                                <XAxis
+                                  dataKey="year"
+                                  tick={{
+                                    fill: "hsl(0,0%,50%)",
+                                    fontSize: 8,
+                                    fontFamily: "IBM Plex Mono",
+                                  }}
+                                  axisLine={false}
+                                  tickLine={false}
+                                  interval={1}
+                                />
+                                <YAxis
+                                  domain={[domainMin, domainMax]}
+                                  tick={{
+                                    fill: "hsl(0,0%,50%)",
+                                    fontSize: 8,
+                                    fontFamily: "IBM Plex Mono",
+                                  }}
+                                  axisLine={false}
+                                  tickLine={false}
+                                  tickFormatter={(v) =>
+                                    `${v % 1 === 0 ? v : v.toFixed(1)}`
+                                  }
+                                  tickCount={4}
+                                  width={28}
+                                />
+                                <Tooltip
+                                  contentStyle={{
+                                    background: "hsl(222,30%,14%)",
+                                    border: "1px solid rgba(255,255,255,0.1)",
+                                    borderRadius: 8,
+                                    fontSize: 10,
+                                    fontFamily: "IBM Plex Mono",
+                                  }}
+                                  formatter={(v: number) => [`$${v}T`, "GDP"]}
+                                  labelStyle={{ color: "hsl(0,0%,55%)" }}
+                                />
+                                <Area
+                                  type="monotone"
+                                  dataKey="gdp"
+                                  name="GDP"
+                                  stroke="hsl(200,85%,50%)"
+                                  fill={`url(#cardGdpGrad-${economy.id})`}
+                                  strokeWidth={1.5}
+                                  dot={(props: any) => {
+                                    const { cx, cy, payload } = props;
+                                    if (payload.gdp === maxGdp) {
+                                      return (
+                                        <circle
+                                          key={`hi-${economy.id}`}
+                                          cx={cx}
+                                          cy={cy}
+                                          r={3}
+                                          fill="#4ade80"
+                                          stroke="hsl(222,30%,14%)"
+                                          strokeWidth={1}
+                                        />
+                                      );
+                                    }
+                                    if (payload.gdp === minGdp) {
+                                      return (
+                                        <circle
+                                          key={`lo-${economy.id}`}
+                                          cx={cx}
+                                          cy={cy}
+                                          r={3}
+                                          fill="#f87171"
+                                          stroke="hsl(222,30%,14%)"
+                                          strokeWidth={1}
+                                        />
+                                      );
+                                    }
+                                    return (
+                                      <circle
+                                        key={`dot-${economy.id}-${cx}`}
+                                        cx={cx}
+                                        cy={cy}
+                                        r={0}
+                                        fill="transparent"
+                                      />
+                                    );
+                                  }}
+                                  isAnimationActive
+                                  animationDuration={600}
+                                />
+                              </AreaChart>
+                            </ResponsiveContainer>
+                          </div>
+                          {/* growth badge */}
+                          <div className="mt-1 flex items-center justify-between gap-1 min-w-0">
+                            <span className="text-[8px] text-muted-foreground font-mono truncate">
+                              {economy.trends[0]?.year}–
+                              {economy.trends[economy.trends.length - 1]?.year}
+                            </span>
+                            <span
+                              className={`text-[9px] font-mono font-bold shrink-0 ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}
+                            >
+                              {economy.gdpGrowthRate >= 0 ? "+" : ""}
+                              {economy.gdpGrowthRate}%
+                            </span>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+              ))}
             </div>
 
-            {/* Confidence/Forecast quality strip */}
-            <div className="bg-card border border-border rounded-2xl p-5">
-              <p className="text-[10px] font-mono uppercase tracking-widest text-secondary mb-1">
-                Forecast Quality
-              </p>
-              <h3 className="text-sm font-bold font-sans text-foreground mb-4">
-                Model Confidence
-              </h3>
-              <div className="flex flex-col gap-3">
-                {[
-                  { label: "GDP ($T) path", confidence: 81, color: "#3b82f6" },
-                  {
-                    label: "Growth rate (YoY)",
-                    confidence: 74,
-                    color: "#a855f7",
-                  },
-                  {
-                    label: "Emerging markets",
-                    confidence: 63,
-                    color: "#f97316",
-                  },
-                  {
-                    label: "High-income bloc",
-                    confidence: 79,
-                    color: "#10b981",
-                  },
-                  {
-                    label: "Transition economies",
-                    confidence: 58,
-                    color: "#f59e0b",
-                  },
-                ].map((f) => (
-                  <div key={f.label} className="flex items-center gap-3">
-                    <span className="text-[11px] font-sans text-foreground flex-1 truncate">
-                      {f.label}
-                    </span>
-                    <div className="w-20 h-1.5 rounded-full overflow-hidden bg-muted shrink-0">
+            {/* ── GDP Growth Projections Sidebar ─────────────────────── */}
+            <div className="xl:col-span-1 flex flex-col gap-5 min-w-0">
+              {/* GDP Growth Bar Chart */}
+              <div className="bg-card border border-border rounded-2xl p-5">
+                <p className="text-[10px] font-mono uppercase tracking-widest text-secondary mb-1">
+                  GDP Growth Projections
+                </p>
+                <h3 className="text-sm font-bold font-sans text-foreground mb-4">
+                  Projected GDP Growth 2025–2030
+                </h3>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart
+                    data={[
+                      {
+                        year: "2025",
+                        world: 3.1,
+                        usa: 2.3,
+                        china: 4.6,
+                        india: 6.5,
+                        eu: 1.4,
+                      },
+                      {
+                        year: "2026",
+                        world: 3.3,
+                        usa: 2.5,
+                        china: 4.8,
+                        india: 6.8,
+                        eu: 1.7,
+                      },
+                      {
+                        year: "2027",
+                        world: 3.4,
+                        usa: 2.4,
+                        china: 4.9,
+                        india: 7.0,
+                        eu: 1.8,
+                      },
+                      {
+                        year: "2028",
+                        world: 3.2,
+                        usa: 2.6,
+                        china: 5.0,
+                        india: 7.1,
+                        eu: 1.9,
+                      },
+                      {
+                        year: "2029",
+                        world: 3.3,
+                        usa: 2.5,
+                        china: 5.1,
+                        india: 7.3,
+                        eu: 2.0,
+                      },
+                      {
+                        year: "2030",
+                        world: 3.4,
+                        usa: 2.7,
+                        china: 5.2,
+                        india: 7.5,
+                        eu: 2.1,
+                      },
+                    ]}
+                    margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="rgba(255,255,255,0.06)"
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="year"
+                      tick={{
+                        fill: "hsl(0,0%,55%)",
+                        fontSize: 9,
+                        fontFamily: "IBM Plex Mono",
+                      }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{
+                        fill: "hsl(0,0%,55%)",
+                        fontSize: 9,
+                        fontFamily: "IBM Plex Mono",
+                      }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(v) => `${v}%`}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: "hsl(222,30%,14%)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        borderRadius: 10,
+                        fontSize: 11,
+                        fontFamily: "IBM Plex Mono",
+                      }}
+                      formatter={(v: number, name: string) => [
+                        `${v}%`,
+                        name.toUpperCase(),
+                      ]}
+                      labelStyle={{ color: "hsl(0,0%,55%)", marginBottom: 2 }}
+                    />
+                    <Bar
+                      dataKey="world"
+                      name="World"
+                      fill="#a855f7"
+                      radius={[2, 2, 0, 0]}
+                      maxBarSize={8}
+                    />
+                    <Bar
+                      dataKey="usa"
+                      name="USA"
+                      fill="#3b82f6"
+                      radius={[2, 2, 0, 0]}
+                      maxBarSize={8}
+                    />
+                    <Bar
+                      dataKey="china"
+                      name="China"
+                      fill="#ef4444"
+                      radius={[2, 2, 0, 0]}
+                      maxBarSize={8}
+                    />
+                    <Bar
+                      dataKey="india"
+                      name="India"
+                      fill="#f97316"
+                      radius={[2, 2, 0, 0]}
+                      maxBarSize={8}
+                    />
+                    <Bar
+                      dataKey="eu"
+                      name="EU"
+                      fill="#10b981"
+                      radius={[2, 2, 0, 0]}
+                      maxBarSize={8}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+                <div className="flex flex-wrap items-center gap-3 mt-3 justify-center">
+                  {[
+                    { label: "World", color: "#a855f7" },
+                    { label: "USA", color: "#3b82f6" },
+                    { label: "China", color: "#ef4444" },
+                    { label: "India", color: "#f97316" },
+                    { label: "EU", color: "#10b981" },
+                  ].map((l) => (
+                    <div key={l.label} className="flex items-center gap-1">
                       <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${f.confidence}%`,
-                          background: f.color,
-                        }}
+                        className="w-2.5 h-2.5 rounded-sm"
+                        style={{ background: l.color }}
                       />
+                      <span className="text-[9px] font-mono text-muted-foreground">
+                        {l.label}
+                      </span>
                     </div>
-                    <span
-                      className="text-[10px] font-mono w-8 text-right shrink-0"
-                      style={{ color: f.color }}
-                    >
-                      {f.confidence}%
-                    </span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-              <p className="text-[10px] text-muted-foreground font-sans mt-3">
-                Confidence reflects model back-test accuracy on 5-year horizons.
-              </p>
+
+              {/* Area chart: GDP absolute $T */}
+              <div className="bg-card border border-border rounded-2xl p-5">
+                <p className="text-[10px] font-mono uppercase tracking-widest text-secondary mb-1">
+                  GDP Trajectory
+                </p>
+                <h3 className="text-sm font-bold font-sans text-foreground mb-1">
+                  Nominal GDP ($T) to 2030
+                </h3>
+                <p className="text-[10px] text-muted-foreground font-sans mb-4">
+                  IMF WEO projections by economy
+                </p>
+                <ResponsiveContainer width="100%" height={210}>
+                  <AreaChart
+                    data={[
+                      {
+                        year: "2024",
+                        usa: 27.4,
+                        china: 18.5,
+                        india: 3.9,
+                        germany: 4.5,
+                        japan: 4.2,
+                      },
+                      {
+                        year: "2025",
+                        usa: 28.2,
+                        china: 19.8,
+                        india: 4.3,
+                        germany: 4.7,
+                        japan: 4.3,
+                      },
+                      {
+                        year: "2026",
+                        usa: 29.5,
+                        china: 21.2,
+                        india: 4.8,
+                        germany: 4.9,
+                        japan: 4.4,
+                      },
+                      {
+                        year: "2027",
+                        usa: 30.8,
+                        china: 22.8,
+                        india: 5.4,
+                        germany: 5.1,
+                        japan: 4.5,
+                      },
+                      {
+                        year: "2028",
+                        usa: 32.1,
+                        china: 24.6,
+                        india: 6.1,
+                        germany: 5.3,
+                        japan: 4.6,
+                      },
+                      {
+                        year: "2029",
+                        usa: 33.4,
+                        china: 26.5,
+                        india: 6.9,
+                        germany: 5.5,
+                        japan: 4.7,
+                      },
+                      {
+                        year: "2030",
+                        usa: 34.9,
+                        china: 28.6,
+                        india: 7.8,
+                        germany: 5.8,
+                        japan: 4.8,
+                      },
+                    ]}
+                    margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient
+                        id="ecoUsaGrad"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#3b82f6"
+                          stopOpacity={0.35}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#3b82f6"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                      <linearGradient
+                        id="ecoChinaGrad"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#ef4444"
+                          stopOpacity={0.25}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#ef4444"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                      <linearGradient
+                        id="ecoIndiaGrad"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#f97316"
+                          stopOpacity={0.25}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#f97316"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="rgba(255,255,255,0.06)"
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="year"
+                      tick={{
+                        fill: "hsl(0,0%,55%)",
+                        fontSize: 9,
+                        fontFamily: "IBM Plex Mono",
+                      }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{
+                        fill: "hsl(0,0%,55%)",
+                        fontSize: 9,
+                        fontFamily: "IBM Plex Mono",
+                      }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(v) => `$${v}T`}
+                    />
+                    <ReferenceLine
+                      x="2025"
+                      stroke="rgba(255,255,255,0.2)"
+                      strokeDasharray="4 2"
+                      label={{
+                        value: "Now",
+                        position: "top",
+                        fontSize: 9,
+                        fill: "hsl(0,0%,55%)",
+                      }}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: "hsl(222,30%,14%)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        borderRadius: 10,
+                        fontSize: 11,
+                        fontFamily: "IBM Plex Mono",
+                      }}
+                      formatter={(v: number, name: string) => [
+                        `$${v}T`,
+                        name.toUpperCase(),
+                      ]}
+                      labelStyle={{ color: "hsl(0,0%,55%)", marginBottom: 2 }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="usa"
+                      name="USA"
+                      stroke="#3b82f6"
+                      fill="url(#ecoUsaGrad)"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="china"
+                      name="China"
+                      stroke="#ef4444"
+                      fill="url(#ecoChinaGrad)"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="india"
+                      name="India"
+                      stroke="#f97316"
+                      fill="url(#ecoIndiaGrad)"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="germany"
+                      name="Germany"
+                      stroke="#6366f1"
+                      fill="none"
+                      strokeWidth={1.5}
+                      strokeDasharray="4 2"
+                      dot={false}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="japan"
+                      name="Japan"
+                      stroke="#10b981"
+                      fill="none"
+                      strokeWidth={1.5}
+                      strokeDasharray="4 2"
+                      dot={false}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+                <div className="flex flex-wrap items-center gap-3 mt-2 justify-center">
+                  {[
+                    { label: "USA", color: "#3b82f6" },
+                    { label: "China", color: "#ef4444" },
+                    { label: "India", color: "#f97316" },
+                    { label: "Germany", color: "#6366f1" },
+                    { label: "Japan", color: "#10b981" },
+                  ].map((l) => (
+                    <div key={l.label} className="flex items-center gap-1">
+                      <div
+                        className="w-3 h-0.5 rounded-full"
+                        style={{ background: l.color }}
+                      />
+                      <span className="text-[9px] font-mono text-muted-foreground">
+                        {l.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Growth Rate Line Chart */}
+              <div className="bg-card border border-border rounded-2xl p-5">
+                <p className="text-[10px] font-mono uppercase tracking-widest text-secondary mb-1">
+                  Annual Growth Rate
+                </p>
+                <h3 className="text-sm font-bold font-sans text-foreground mb-4">
+                  YoY GDP Growth % Forecast
+                </h3>
+                <ResponsiveContainer width="100%" height={180}>
+                  <LineChart
+                    data={[
+                      {
+                        year: "2022",
+                        usa: 2.1,
+                        china: 3.0,
+                        india: 7.2,
+                        world: 3.5,
+                      },
+                      {
+                        year: "2023",
+                        usa: 2.5,
+                        china: 5.2,
+                        india: 8.2,
+                        world: 3.2,
+                      },
+                      {
+                        year: "2024",
+                        usa: 2.3,
+                        china: 4.6,
+                        india: 6.1,
+                        world: 3.1,
+                      },
+                      {
+                        year: "2025",
+                        usa: 2.3,
+                        china: 4.8,
+                        india: 6.5,
+                        world: 3.1,
+                      },
+                      {
+                        year: "2026",
+                        usa: 2.5,
+                        china: 4.9,
+                        india: 6.8,
+                        world: 3.3,
+                      },
+                      {
+                        year: "2027",
+                        usa: 2.4,
+                        china: 5.0,
+                        india: 7.0,
+                        world: 3.4,
+                      },
+                      {
+                        year: "2028",
+                        usa: 2.6,
+                        china: 5.1,
+                        india: 7.1,
+                        world: 3.2,
+                      },
+                      {
+                        year: "2030",
+                        usa: 2.7,
+                        china: 5.2,
+                        india: 7.5,
+                        world: 3.4,
+                      },
+                    ]}
+                    margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="rgba(255,255,255,0.06)"
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="year"
+                      tick={{
+                        fill: "hsl(0,0%,55%)",
+                        fontSize: 9,
+                        fontFamily: "IBM Plex Mono",
+                      }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{
+                        fill: "hsl(0,0%,55%)",
+                        fontSize: 9,
+                        fontFamily: "IBM Plex Mono",
+                      }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(v) => `${v}%`}
+                      domain={[0, "auto"]}
+                    />
+                    <ReferenceLine
+                      x="2025"
+                      stroke="rgba(255,255,255,0.2)"
+                      strokeDasharray="4 2"
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: "hsl(222,30%,14%)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        borderRadius: 10,
+                        fontSize: 11,
+                        fontFamily: "IBM Plex Mono",
+                      }}
+                      formatter={(v: number, name: string) => [
+                        `${v}%`,
+                        name.toUpperCase(),
+                      ]}
+                      labelStyle={{ color: "hsl(0,0%,55%)", marginBottom: 2 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="world"
+                      name="World"
+                      stroke="#a855f7"
+                      strokeWidth={2}
+                      dot={{ fill: "#a855f7", r: 2.5, strokeWidth: 0 }}
+                      activeDot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="usa"
+                      name="USA"
+                      stroke="#3b82f6"
+                      strokeWidth={2}
+                      dot={{ fill: "#3b82f6", r: 2.5, strokeWidth: 0 }}
+                      activeDot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="china"
+                      name="China"
+                      stroke="#ef4444"
+                      strokeWidth={2}
+                      dot={{ fill: "#ef4444", r: 2.5, strokeWidth: 0 }}
+                      activeDot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="india"
+                      name="India"
+                      stroke="#f97316"
+                      strokeWidth={2}
+                      dot={{ fill: "#f97316", r: 2.5, strokeWidth: 0 }}
+                      activeDot={{ r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+                <div className="flex flex-wrap items-center gap-3 mt-2 justify-center">
+                  {[
+                    { label: "World", color: "#a855f7" },
+                    { label: "USA", color: "#3b82f6" },
+                    { label: "China", color: "#ef4444" },
+                    { label: "India", color: "#f97316" },
+                  ].map((l) => (
+                    <div key={l.label} className="flex items-center gap-1">
+                      <div
+                        className="w-3 h-0.5 rounded-full"
+                        style={{ background: l.color }}
+                      />
+                      <span className="text-[9px] font-mono text-muted-foreground">
+                        {l.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-muted-foreground font-sans mt-3">
+                  Dashed line = 2025 threshold.
+                </p>
+                <SourceLink sources={SRC_OECD} className="mt-1" />
+              </div>
+
+              {/* Confidence/Forecast quality strip */}
+              <div className="bg-card border border-border rounded-2xl p-5">
+                <p className="text-[10px] font-mono uppercase tracking-widest text-secondary mb-1">
+                  Forecast Quality
+                </p>
+                <h3 className="text-sm font-bold font-sans text-foreground mb-4">
+                  Model Confidence
+                </h3>
+                <div className="flex flex-col gap-3">
+                  {[
+                    {
+                      label: "GDP ($T) path",
+                      confidence: 81,
+                      color: "#3b82f6",
+                    },
+                    {
+                      label: "Growth rate (YoY)",
+                      confidence: 74,
+                      color: "#a855f7",
+                    },
+                    {
+                      label: "Emerging markets",
+                      confidence: 63,
+                      color: "#f97316",
+                    },
+                    {
+                      label: "High-income bloc",
+                      confidence: 79,
+                      color: "#10b981",
+                    },
+                    {
+                      label: "Transition economies",
+                      confidence: 58,
+                      color: "#f59e0b",
+                    },
+                  ].map((f) => (
+                    <div key={f.label} className="flex items-center gap-3">
+                      <span className="text-[11px] font-sans text-foreground flex-1 truncate">
+                        {f.label}
+                      </span>
+                      <div className="w-20 h-1.5 rounded-full overflow-hidden bg-muted shrink-0">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${f.confidence}%`,
+                            background: f.color,
+                          }}
+                        />
+                      </div>
+                      <span
+                        className="text-[10px] font-mono w-8 text-right shrink-0"
+                        style={{ color: f.color }}
+                      >
+                        {f.confidence}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-muted-foreground font-sans mt-3">
+                  Confidence reflects model back-test accuracy on 5-year
+                  horizons.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

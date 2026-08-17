@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useCallback } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import {
   Lectern,
   Globe,
@@ -22,13 +22,30 @@ import {
   MagnifyingGlass,
   Compass,
   ListBullets,
+  Clock,
+  Crown,
+  CrownSimple,
+  Briefcase,
+  Money,
+  TrendUp,
+  Factory,
+  Bank,
+  ShoppingBag,
+  Cpu,
+  Newspaper,
 } from "@phosphor-icons/react";
+import {
+  getElectionInfo,
+  getCountdownDays,
+  formatCountdown,
+  getCountdownBreakdown,
+} from "../data/electionCountdowns";
+import { ROYAL_FAMILIES, type RoyalMember } from "../data/royalFamiliesData";
 import { SourceLink } from "../components/SourceLink";
 // Globe is used in LeaderDetail tabs — do not remove
 
 // ── Political Compass Coordinates ─────────────────────────────────────────────
-// economicX: -10 (far left) to +10 (far right)
-// socialY:   -10 (authoritarian) to +10 (libertarian)
+// economicX: -10 (far left) to +10 (far right) | socialY: -10 (authoritarian) to +10 (libertarian)
 interface CompassCoords {
   economicX: number;
   socialY: number;
@@ -13946,6 +13963,95 @@ function ApprovalBar({
   );
 }
 
+function ElectionCountdownBadge({
+  leaderId,
+  compact = false,
+}: {
+  leaderId: string;
+  compact?: boolean;
+}) {
+  const info = getElectionInfo(leaderId);
+  if (!info) return null;
+  if (!info.isScheduled || !info.nextElection) return null;
+
+  const days = getCountdownDays(info.nextElection);
+  if (days === null) return null;
+
+  const breakdown = getCountdownBreakdown(info.nextElection);
+
+  const isPast = days === 0;
+  const isUrgent = days > 0 && days <= 90;
+  const isSoon = days > 90 && days <= 365;
+
+  const color = isPast
+    ? "text-muted-foreground"
+    : isUrgent
+      ? "text-red-400"
+      : isSoon
+        ? "text-amber-400"
+        : "text-sky-400";
+
+  const bgColor = isPast
+    ? "bg-muted/30 border-border"
+    : isUrgent
+      ? "bg-red-500/10 border-red-500/30"
+      : isSoon
+        ? "bg-amber-500/10 border-amber-500/30"
+        : "bg-sky-500/10 border-sky-500/30";
+
+  // Compact label: short election type
+  const shortType = info.electionType
+    .replace("Presidential Election", "Pres.")
+    .replace("Parliamentary Election", "Parl.")
+    .replace("General Election", "Gen.")
+    .replace("Federal Election", "Fed.")
+    .replace("Legislative Election", "Legis.")
+    .replace("Election", "")
+    .trim();
+
+  if (compact) {
+    const countdownStr = isPast ? "Due" : formatCountdown(days);
+    return (
+      <div className={`flex flex-col gap-0.5 w-full`}>
+        <div
+          className={`flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-medium font-mono ${bgColor} ${color}`}
+        >
+          <Clock size={9} className="shrink-0" />
+          <span className="truncate">{shortType}</span>
+          <span className="ml-auto font-bold shrink-0">{countdownStr}</span>
+        </div>
+        {!isPast && breakdown && breakdown.totalDays > 0 && (
+          <div className="flex items-center gap-1 px-1.5 text-[9px] text-muted-foreground font-mono">
+            {breakdown.years > 0 && <span>{breakdown.years}y</span>}
+            {breakdown.months > 0 && <span>{breakdown.months}mo</span>}
+            {breakdown.weeks > 0 && <span>{breakdown.weeks}wk</span>}
+            {breakdown.days > 0 && breakdown.years === 0 && (
+              <span>{breakdown.days}d</span>
+            )}
+            <span className="ml-auto">
+              {new Date(info.nextElection).toLocaleDateString("en-GB", {
+                month: "short",
+                year: "numeric",
+              })}
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-xs font-medium ${bgColor} ${color}`}
+    >
+      <Clock size={12} />
+      <span>
+        {isPast ? "Election overdue" : `Election in ${formatCountdown(days)}`}
+      </span>
+    </div>
+  );
+}
+
 function LeaderCard({
   leader,
   onClick,
@@ -14007,14 +14113,14 @@ function LeaderCard({
             <span className="mx-1 text-border">·</span>
             <span>{yearsInCurrentRole}y in role</span>
           </p>
-          {leader.approvalRating !== null && (
-            <div className="mt-2">
+          <div className="mt-2 flex flex-col gap-1.5">
+            {leader.approvalRating !== null && (
               <ApprovalBar
                 value={leader.approvalRating}
                 trend={leader.approvalTrend}
               />
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </button>
@@ -14202,6 +14308,96 @@ function LeaderDetail({
                 trend={leader.approvalTrend}
               />
             </div>
+            {(() => {
+              const info = getElectionInfo(leader.id);
+              if (!info) return null;
+              const days = getCountdownDays(info.nextElection);
+              const isPast = days === 0;
+              const isUrgent = days !== null && days > 0 && days <= 90;
+              const isSoon = days !== null && days > 90 && days <= 365;
+              const color = !info.isScheduled
+                ? "text-muted-foreground"
+                : isPast
+                  ? "text-muted-foreground"
+                  : isUrgent
+                    ? "text-red-400"
+                    : isSoon
+                      ? "text-amber-400"
+                      : "text-sky-400";
+              const bg = !info.isScheduled
+                ? "bg-muted/20 border-border"
+                : isPast
+                  ? "bg-muted/20 border-border"
+                  : isUrgent
+                    ? "bg-red-500/10 border-red-500/30"
+                    : isSoon
+                      ? "bg-amber-500/10 border-amber-500/30"
+                      : "bg-sky-500/10 border-sky-500/30";
+              return (
+                <div className={`modal-tile rounded-xl p-4 border ${bg}`}>
+                  <h4
+                    className={`text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5 ${color}`}
+                  >
+                    <Clock size={12} /> Next Election / Mandate
+                  </h4>
+                  <p className={`text-sm font-semibold ${color}`}>
+                    {info.electionType}
+                  </p>
+                  {info.isScheduled && info.nextElection && (
+                    <div className="flex flex-col gap-1 mt-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground font-mono">
+                          {new Date(info.nextElection).toLocaleDateString(
+                            "en-GB",
+                            { day: "numeric", month: "long", year: "numeric" },
+                          )}
+                        </span>
+                        {days !== null && days > 0 && (
+                          <span
+                            className={`text-xs font-bold font-mono ${color}`}
+                          >
+                            — {formatCountdown(days)} away
+                          </span>
+                        )}
+                      </div>
+                      {days !== null &&
+                        days > 0 &&
+                        (() => {
+                          const bd = getCountdownBreakdown(info.nextElection!);
+                          if (!bd) return null;
+                          const parts: string[] = [];
+                          if (bd.years > 0)
+                            parts.push(
+                              `${bd.years} year${bd.years !== 1 ? "s" : ""}`,
+                            );
+                          if (bd.months > 0)
+                            parts.push(
+                              `${bd.months} month${bd.months !== 1 ? "s" : ""}`,
+                            );
+                          if (bd.weeks > 0)
+                            parts.push(
+                              `${bd.weeks} week${bd.weeks !== 1 ? "s" : ""}`,
+                            );
+                          if (bd.days > 0)
+                            parts.push(
+                              `${bd.days} day${bd.days !== 1 ? "s" : ""}`,
+                            );
+                          return (
+                            <p
+                              className={`text-xs font-mono font-semibold ${color}`}
+                            >
+                              {parts.join(", ")}
+                            </p>
+                          );
+                        })()}
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    {info.notes}
+                  </p>
+                </div>
+              );
+            })()}
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
                 <Flag size={12} /> Status
@@ -14758,13 +14954,2012 @@ function PoliticalCompass({
   );
 }
 
+// ── MonarchCard ───────────────────────────────────────────────────────────────
+const SYSTEM_COLORS: Record<string, string> = {
+  Absolute: "bg-red-500/15 text-red-400 border-red-500/30",
+  Constitutional: "bg-green-500/15 text-green-400 border-green-500/30",
+  "Semi-Constitutional": "bg-amber-500/15 text-amber-400 border-amber-500/30",
+};
+
+function MonarchCard({
+  monarch,
+  onClick,
+  isSelected,
+}: {
+  monarch: RoyalMember;
+  onClick: () => void;
+  isSelected: boolean;
+}) {
+  const yearsReigning = new Date().getFullYear() - monarch.reignSince;
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full text-left rounded-xl border transition-all duration-200 overflow-hidden group ${
+        isSelected
+          ? "border-yellow-500/50 bg-yellow-500/5 ring-1 ring-yellow-500/20"
+          : "border-border bg-card hover:border-yellow-500/30 hover:bg-card/80 hover:scale-[1.01] hover:shadow-lg"
+      }`}
+    >
+      <div className="p-4 flex items-start gap-3">
+        {/* Flag */}
+        <div className="w-14 h-14 rounded-lg overflow-hidden border border-border flex items-center justify-center bg-muted/30 shrink-0">
+          <img
+            src={`https://flagcdn.com/w80/${monarch.countryCode.toLowerCase()}.png`}
+            alt={`${monarch.country} flag`}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+              (e.currentTarget.parentElement as HTMLElement).innerHTML =
+                `<span class="text-2xl">${monarch.flag}</span>`;
+            }}
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-0.5">
+            <p className="font-semibold text-sm text-foreground leading-tight truncate">
+              {monarch.name}
+            </p>
+            <span
+              className={`shrink-0 text-[9px] font-medium px-1.5 py-0.5 rounded border ${SYSTEM_COLORS[monarch.systemType]}`}
+            >
+              {monarch.systemType === "Semi-Constitutional"
+                ? "Semi-Const."
+                : monarch.systemType}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mb-0.5 truncate">
+            {monarch.country}
+          </p>
+          <p className="text-xs text-muted-foreground truncate italic">
+            {monarch.houseName}
+          </p>
+          <div className="mt-2 flex items-center gap-2">
+            <span className="flex items-center gap-1 text-[10px] text-yellow-400 font-mono font-semibold">
+              <Crown size={9} weight="fill" />
+              Since {monarch.reignSince}
+            </span>
+            <span className="text-[10px] text-muted-foreground font-mono">
+              ·
+            </span>
+            <span className="text-[10px] text-muted-foreground font-mono">
+              {yearsReigning}y reign
+            </span>
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1 truncate">
+            {monarch.successionOrder}
+          </p>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+// ── MonarchDetail ─────────────────────────────────────────────────────────────
+function MonarchDetail({
+  monarch,
+  onClose,
+}: {
+  monarch: RoyalMember;
+  onClose: () => void;
+}) {
+  const yearsReigning = new Date().getFullYear() - monarch.reignSince;
+
+  return (
+    <div className="modal-glass border rounded-xl overflow-hidden animate-fade-in max-h-[90vh] overflow-y-auto">
+      {/* Hero */}
+      <div className="relative h-28 overflow-hidden shrink-0 bg-gradient-to-br from-yellow-900/30 to-amber-900/20">
+        <div className="absolute inset-0 flex items-center justify-center opacity-10">
+          <Crown size={120} weight="fill" className="text-yellow-400" />
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 p-5 flex items-end gap-4">
+          <div className="pb-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-xl font-bold text-foreground">
+                {monarch.name}
+              </h2>
+              <span className="text-lg">{monarch.flag}</span>
+              <span
+                className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${SYSTEM_COLORS[monarch.systemType]}`}
+              >
+                {monarch.systemType}
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">{monarch.title}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Close */}
+      <button
+        onClick={onClose}
+        className="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors"
+      >
+        <XCircle size={18} weight="fill" />
+      </button>
+
+      {/* Stats strip */}
+      <div className="grid grid-cols-4 divide-x divide-border/40 border-b border-border/40">
+        {[
+          {
+            label: "Reigning Since",
+            value: String(monarch.reignSince),
+            sub: `${yearsReigning} years`,
+          },
+          {
+            label: "Age",
+            value: String(monarch.age),
+            sub: `b. ${monarch.born}`,
+          },
+          {
+            label: "System",
+            value:
+              monarch.systemType === "Semi-Constitutional"
+                ? "Semi-Const."
+                : monarch.systemType,
+            sub: "Monarchy type",
+          },
+          {
+            label: "Dynasty",
+            value: monarch.houseName.split(" ").slice(0, 2).join(" "),
+            sub: monarch.dynasty,
+          },
+        ].map((s) => (
+          <div key={s.label} className="px-4 py-3 text-center modal-tile">
+            <p className="text-xs text-muted-foreground">{s.label}</p>
+            <p
+              className="text-sm font-bold font-mono text-foreground truncate"
+              title={s.value}
+            >
+              {s.value}
+            </p>
+            <p
+              className="text-[10px] text-muted-foreground truncate"
+              title={s.sub}
+            >
+              {s.sub}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* All content displayed at once — no tabs */}
+      <div className="p-5 space-y-4">
+        {/* ── OVERVIEW ── */}
+        <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400 flex items-center gap-1.5">
+          <Globe size={13} /> Overview
+        </h3>
+
+        <div className="modal-tile rounded-xl p-4">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+            <BookOpen size={12} /> Background
+          </h4>
+          <p className="text-sm text-foreground leading-relaxed">
+            {monarch.background}
+          </p>
+        </div>
+
+        <div className="modal-tile rounded-xl p-4">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+            <Star size={12} /> Key Facts
+          </h4>
+          <ul className="space-y-1.5">
+            {monarch.keyFacts.map((f, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-2 text-sm text-foreground"
+              >
+                <Crown
+                  size={12}
+                  weight="fill"
+                  className="text-yellow-400 mt-0.5 shrink-0"
+                />
+                <span dangerouslySetInnerHTML={{ __html: f }} />
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {monarch.religionRole && (
+          <div className="modal-tile rounded-xl p-4">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+              <Flag size={12} /> Religious Role
+            </h4>
+            <p className="text-sm text-foreground">{monarch.religionRole}</p>
+          </div>
+        )}
+
+        {monarch.netWorthNote && (
+          <div className="modal-tile rounded-xl p-4">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+              <ChartLineUp size={12} /> Wealth Note
+            </h4>
+            <p className="text-sm text-foreground">{monarch.netWorthNote}</p>
+          </div>
+        )}
+
+        {/* ── DYNASTY & HOUSE ── */}
+        <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400 flex items-center gap-1.5 pt-2">
+          <Crown size={13} /> Dynasty &amp; House
+        </h3>
+
+        <div className="modal-tile rounded-xl p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0">
+              <CrownSimple
+                size={18}
+                weight="fill"
+                className="text-yellow-400"
+              />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                {monarch.houseName}
+              </p>
+              <p className="text-xs text-muted-foreground">{monarch.dynasty}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="modal-tile rounded-lg p-3">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                Reigning Since
+              </p>
+              <p className="text-sm font-mono font-bold text-yellow-400">
+                {monarch.reignSince}
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                {yearsReigning} years on throne
+              </p>
+            </div>
+            <div className="modal-tile rounded-lg p-3">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                System
+              </p>
+              <p
+                className={`text-sm font-medium ${monarch.systemType === "Absolute" ? "text-red-400" : monarch.systemType === "Constitutional" ? "text-green-400" : "text-amber-400"}`}
+              >
+                {monarch.systemType}
+              </p>
+              <p className="text-[10px] text-muted-foreground">Monarchy type</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="modal-tile rounded-xl p-4">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+            <Flag size={12} /> Country &amp; Region
+          </h4>
+          <div className="flex items-center gap-3">
+            <img
+              src={`https://flagcdn.com/w80/${monarch.countryCode.toLowerCase()}.png`}
+              alt={monarch.country}
+              className="w-12 h-8 object-cover rounded border border-border"
+            />
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                {monarch.country}
+              </p>
+              <p className="text-xs text-muted-foreground">{monarch.region}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* ── SUCCESSION & FAMILY ── */}
+        <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400 flex items-center gap-1.5 pt-2">
+          <Users size={13} /> Succession &amp; Family
+        </h3>
+
+        <div className="modal-tile rounded-xl p-4">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+            <CrownSimple size={12} weight="fill" /> Succession Order
+          </h4>
+          <div className="flex items-start gap-2">
+            <CrownSimple
+              size={14}
+              weight="fill"
+              className="text-yellow-400 mt-0.5 shrink-0"
+            />
+            <p className="text-sm text-foreground">{monarch.successionOrder}</p>
+          </div>
+        </div>
+
+        {monarch.spouses && monarch.spouses.length > 0 && (
+          <div className="modal-tile rounded-xl p-4">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+              <Handshake size={12} /> Spouse(s)
+            </h4>
+            <ul className="space-y-1">
+              {monarch.spouses.map((s, i) => (
+                <li
+                  key={i}
+                  className="text-sm text-foreground flex items-start gap-2"
+                >
+                  <CheckCircle
+                    size={13}
+                    weight="fill"
+                    className="text-secondary mt-0.5 shrink-0"
+                  />
+                  {s}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {monarch.children && monarch.children.length > 0 && (
+          <div className="modal-tile rounded-xl p-4">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+              <Users size={12} /> Children
+            </h4>
+            <ul className="space-y-1">
+              {monarch.children.map((c, i) => (
+                <li
+                  key={i}
+                  className="text-sm text-foreground flex items-start gap-2"
+                >
+                  <Star
+                    size={12}
+                    weight="fill"
+                    className="text-yellow-400 mt-0.5 shrink-0"
+                  />
+                  <span dangerouslySetInnerHTML={{ __html: c }} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Richest Families Data ─────────────────────────────────────────────────────
+interface RichFamily {
+  id: string;
+  family: string;
+  patriarch: string;
+  country: string;
+  countryCode: string;
+  flag: string;
+  netWorth: string; // e.g. "$250B"
+  netWorthNum: number; // in billions for sorting
+  source: string;
+  industry: string;
+  sector:
+    | "Tech"
+    | "Finance"
+    | "Energy"
+    | "Retail"
+    | "Media"
+    | "Diversified"
+    | "Real Estate"
+    | "Manufacturing";
+  founded: number;
+  description: string;
+  keyAssets: string[];
+  members: string[];
+  trend: "up" | "down" | "stable";
+}
+
+const SECTOR_ICON: Record<RichFamily["sector"], React.ReactNode> = {
+  Tech: <Cpu size={13} className="text-sky-400" />,
+  Finance: <Bank size={13} className="text-green-400" />,
+  Energy: <Factory size={13} className="text-orange-400" />,
+  Retail: <ShoppingBag size={13} className="text-pink-400" />,
+  Media: <Newspaper size={13} className="text-purple-400" />,
+  Diversified: <TrendUp size={13} className="text-amber-400" />,
+  "Real Estate": <Buildings size={13} className="text-teal-400" />,
+  Manufacturing: <Factory size={13} className="text-zinc-400" />,
+};
+
+const SECTOR_COLOR: Record<RichFamily["sector"], string> = {
+  Tech: "bg-sky-500/15 text-sky-400 border-sky-500/30",
+  Finance: "bg-green-500/15 text-green-400 border-green-500/30",
+  Energy: "bg-orange-500/15 text-orange-400 border-orange-500/30",
+  Retail: "bg-pink-500/15 text-pink-400 border-pink-500/30",
+  Media: "bg-purple-500/15 text-purple-400 border-purple-500/30",
+  Diversified: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+  "Real Estate": "bg-teal-500/15 text-teal-400 border-teal-500/30",
+  Manufacturing: "bg-zinc-500/15 text-zinc-400 border-zinc-500/30",
+};
+
+const RICHEST_FAMILIES: RichFamily[] = [
+  {
+    id: "walton",
+    family: "Walton Family",
+    patriarch: "Sam Walton (founder, d.1992) · Heirs: Jim, Rob, Alice, Lukas",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    netWorth: "$267B",
+    netWorthNum: 267,
+    source: "Walmart (WMT)",
+    industry: "Retail",
+    sector: "Retail",
+    founded: 1945,
+    description:
+      "The world&#39;s wealthiest family by combined net worth, the Waltons control roughly 45% of Walmart — the planet&#39;s largest retailer with $650B+ in annual revenues and 2.1 million employees. Their philanthropy spans education reform, conservation, and arts.",
+    keyAssets: [
+      "Walmart (45% stake, ~$300B market value)",
+      "Arvest Bank (private)",
+      "Walton Enterprises LLC",
+      "Crystal Bridges Museum of American Art",
+      "Patagonia stake (Alice)",
+    ],
+    members: [
+      "Rob Walton ($25B)",
+      "Jim Walton ($24B)",
+      "Alice Walton ($38B)",
+      "Lukas Walton ($25B)",
+      "S. Robson Walton Jr.",
+    ],
+    trend: "up",
+  },
+  {
+    id: "mars",
+    family: "Mars Family",
+    patriarch: "Frank C. Mars (founder) / Forrest Mars Sr.",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    netWorth: "$160B",
+    netWorthNum: 160,
+    source: "Mars, Inc. (private)",
+    industry: "Confectionery / Petcare",
+    sector: "Retail",
+    founded: 1911,
+    description:
+      "One of the world&#39;s largest private companies, Mars Inc. produces M&amp;M&#39;s, Snickers, Twix, Bounty, and owns the world&#39;s largest petcare business (Royal Canin, Pedigree, Whiskas). Annual revenues exceed $47B. The family is famously private — three siblings avoid public life entirely.",
+    keyAssets: [
+      "Mars Inc. (100% private, ~$47B revenue)",
+      "Wrigley Company (gum brands)",
+      "VCA Animal Hospitals",
+      "Banfield Pet Hospital",
+      "Royal Canin",
+    ],
+    members: [
+      "Jacqueline Mars (~$40B)",
+      "John Mars (~$40B)",
+      "Victoria Mars",
+      "Stephen Badger (CEO)",
+    ],
+    trend: "stable",
+  },
+  {
+    id: "koch",
+    family: "Koch Family",
+    patriarch: "Fred Koch (founder) · Charles Koch, David Koch (d.2019)",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    netWorth: "$130B",
+    netWorthNum: 130,
+    source: "Koch Industries (private)",
+    industry: "Energy / Chemicals / Manufacturing",
+    sector: "Energy",
+    founded: 1940,
+    description:
+      "Charles Koch&#39;s Koch Industries is the second-largest private company in the US with $125B+ in annual revenues. The family is enormously influential in US libertarian-conservative politics through their network of think tanks, universities, and political action. Charles is one of the most consequential political donors in American history.",
+    keyAssets: [
+      "Koch Industries (refining, chemicals, forest products)",
+      "Georgia-Pacific (paper/lumber)",
+      "Molex (electronics)",
+      "Infor (software)",
+      "Flint Hills Resources (refining)",
+    ],
+    members: [
+      "Charles Koch (~$60B)",
+      "David Koch estate (d.2019, ~$60B to heirs)",
+      "Elizabeth Koch",
+      "Chase Koch",
+    ],
+    trend: "stable",
+  },
+  {
+    id: "ambani",
+    family: "Ambani Family",
+    patriarch: "Dhirubhai Ambani (founder, d.2002) · Mukesh &amp; Anil Ambani",
+    country: "India",
+    countryCode: "IN",
+    flag: "🇮🇳",
+    netWorth: "$120B",
+    netWorthNum: 120,
+    source: "Reliance Industries (RIL)",
+    industry: "Energy / Telecom / Retail",
+    sector: "Diversified",
+    founded: 1966,
+    description:
+      "Mukesh Ambani&#39;s Reliance Industries is India&#39;s most valuable company and the largest employer in the private sector. The group spans petrochemicals, refining, telecom (Jio), retail (JioMart, Reliance Retail), and media (Network18). Mukesh is Asia&#39;s richest person; his son Anant&#39;s 2024 wedding was the most expensive in modern history at ~$600M.",
+    keyAssets: [
+      "Reliance Industries (RIL, ~$230B market cap)",
+      "Jio Platforms (India&#39;s largest telecom)",
+      "Reliance Retail (India&#39;s largest retailer)",
+      "Network18 Media",
+      "Jio Financial Services",
+    ],
+    members: [
+      "Mukesh Ambani (~$114B)",
+      "Isha Ambani",
+      "Akash Ambani",
+      "Anant Ambani",
+      "Nita Ambani",
+    ],
+    trend: "up",
+  },
+  {
+    id: "al-saud",
+    family: "House of Saud",
+    patriarch: "Ibn Saud (Kingdom founder, d.1953) · King Salman",
+    country: "Saudi Arabia",
+    countryCode: "SA",
+    flag: "🇸🇦",
+    netWorth: "$100B+",
+    netWorthNum: 100,
+    source: "Saudi Aramco / Royal estates / State assets",
+    industry: "Energy / State Wealth",
+    sector: "Energy",
+    founded: 1744,
+    description:
+      "The ruling family of Saudi Arabia — with thousands of princes — controls the world&#39;s largest oil company (Saudi Aramco, 98.5% state-owned), vast real estate, and state investments through the $900B+ Public Investment Fund (PIF). Individual members vary enormously in wealth from billionaires to modestly affluent princes.",
+    keyAssets: [
+      "Saudi Aramco (state, ~$1.7T valuation)",
+      "Public Investment Fund ($900B AUM)",
+      "Saudi Royal estates globally",
+      "STC (Saudi Telecom)",
+      "Al Bilad Bank",
+    ],
+    members: [
+      "Crown Prince MBS (estimated $25-50B personal)",
+      "King Salman",
+      "Prince Alwaleed Bin Talal (~$18B)",
+      "Hundreds of princes",
+    ],
+    trend: "stable",
+  },
+  {
+    id: "wertheimer",
+    family: "Wertheimer Family",
+    patriarch:
+      "Théophile Wertheimer (co-founder) · Alain &amp; Gérard Wertheimer",
+    country: "France",
+    countryCode: "FR",
+    flag: "🇫🇷",
+    netWorth: "$89B",
+    netWorthNum: 89,
+    source: "Chanel S.A. (private)",
+    industry: "Luxury / Fashion",
+    sector: "Retail",
+    founded: 1910,
+    description:
+      "The Wertheimer brothers own 100% of Chanel S.A. — the world&#39;s most profitable private luxury brand with revenues of $20B+ and operating margins above 30%. Coco Chanel sold the company to their grandfather in 1924. The family is extremely private and operates from Geneva.",
+    keyAssets: [
+      "Chanel S.A. (100%, ~$70B+ estimated value)",
+      "Château Rauzan-Ségla (Bordeaux wines)",
+      "Cheval Blanc racehorses",
+      "Rothschild &amp; Co stake",
+    ],
+    members: [
+      "Alain Wertheimer (~$45B, co-CEO)",
+      "Gérard Wertheimer (~$44B)",
+      "Leonie Wertheimer (next generation)",
+    ],
+    trend: "up",
+  },
+  {
+    id: "cargill-macmillan",
+    family: "Cargill / MacMillan Family",
+    patriarch: "W.W. Cargill (founder, 1865) · MacMillan descendants",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    netWorth: "$75B",
+    netWorthNum: 75,
+    source: "Cargill Inc. (private)",
+    industry: "Agriculture / Food",
+    sector: "Diversified",
+    founded: 1865,
+    description:
+      "Cargill is the largest private company in the United States by revenue ($177B), controlling a significant portion of global grain trading, food processing, and agricultural supply chains. The family controls ~88% through hundreds of descendants of W.W. Cargill and John MacMillan.",
+    keyAssets: [
+      "Cargill Inc. (88% family-owned, $177B revenue)",
+      "Mosaic Company (fertilizers, 11% stake)",
+      "Diamond V (animal nutrition)",
+      "BlackRock stake (historical)",
+    ],
+    members: [
+      "~300 Cargill-MacMillan family descendants",
+      "Marianne Liebmann",
+      "Gwendolyn Sontheim",
+      "James Cargill II",
+    ],
+    trend: "stable",
+  },
+  {
+    id: "thomson",
+    family: "Thomson / Woodbridge Family",
+    patriarch: "Roy Thomson (1st Baron Thomson) · David Thomson",
+    country: "Canada",
+    countryCode: "CA",
+    flag: "🇨🇦",
+    netWorth: "$72B",
+    netWorthNum: 72,
+    source: "Thomson Reuters / Woodbridge Co.",
+    industry: "Media / Financial Data",
+    sector: "Media",
+    founded: 1934,
+    description:
+      "David Thomson controls The Woodbridge Company, which holds 65%+ of Thomson Reuters — the world&#39;s leading provider of business information and legal/tax data services. The Thomson family built their wealth through newspapers, then television, then financial information — a three-generation evolution from small-town Canadian media to global data empire.",
+    keyAssets: [
+      "Thomson Reuters (65% via Woodbridge, ~$65B market cap)",
+      "Globe and Mail (100%)",
+      "The Woodbridge Co. Ltd.",
+      "Major Canadian real estate holdings",
+    ],
+    members: [
+      "David Thomson, 3rd Baron Thomson (~$65B)",
+      "Peter Thomson",
+      "Ken Thomson estate",
+    ],
+    trend: "up",
+  },
+  {
+    id: "hermes",
+    family: "Hermès Family",
+    patriarch: "Thierry Hermès (1837) · Multiple generations",
+    country: "France",
+    countryCode: "FR",
+    flag: "🇫🇷",
+    netWorth: "$150B",
+    netWorthNum: 150,
+    source: "Hermès International (RMS.PA)",
+    industry: "Luxury / Fashion",
+    sector: "Retail",
+    founded: 1837,
+    description:
+      "Six generations of the Hermès family still control ~67% of Hermès International — maker of the Birkin and Kelly bags, Silk scarves, and exclusive leather goods. The company&#39;s exceptional pricing power (Birkin bags start at $10,000+) has made it one of Europe&#39;s most valuable companies. LVMH&#39;s Arnault unsuccessfully attempted a hostile takeover in 2010-2013.",
+    keyAssets: [
+      "Hermès International (67% family stake, €250B+ market cap)",
+      "Hermès manufacturing ateliers (300+ artisans per bag)",
+      "Hermès Sellier (leather)",
+      "John Lobb (footwear)",
+      "Puiforcat (silverware)",
+    ],
+    members: [
+      "Axel Dumas (CEO, 6th generation)",
+      "Pierre-Alexis Dumas",
+      "Multiple Guerrand &amp; Puech family branches",
+      "~65 family shareholders",
+    ],
+    trend: "up",
+  },
+  {
+    id: "arnault",
+    family: "Arnault Family",
+    patriarch: "Bernard Arnault (founder/CEO)",
+    country: "France",
+    countryCode: "FR",
+    flag: "🇫🇷",
+    netWorth: "$175B",
+    netWorthNum: 175,
+    source: "LVMH Moët Hennessy Louis Vuitton",
+    industry: "Luxury / Fashion",
+    sector: "Retail",
+    founded: 1987,
+    description:
+      "Bernard Arnault is the world&#39;s second or third richest person and controls ~47% of LVMH — the world&#39;s largest luxury conglomerate with 75 Maisons including Louis Vuitton, Dior, Givenchy, Tiffany &amp; Co, Moët &amp; Chandon, Hennessy, Sephora, and Le Bon Marché. He has groomed all five children for potential succession.",
+    keyAssets: [
+      "LVMH (47% family stake, €330B+ market cap)",
+      "Louis Vuitton (largest brand, ~30% of LVMH profit)",
+      "Christian Dior SE (97%)",
+      "Tiffany &amp; Co ($15.8B acquisition 2021)",
+      "Groupe Arnault (holding)",
+    ],
+    members: [
+      "Bernard Arnault (~$175B)",
+      "Delphine Arnault (CEO, Dior)",
+      "Antoine Arnault (CEO, Berluti)",
+      "Alexandre Arnault (LVMH EVP)",
+      "Frédéric Arnault (CEO, LVMH Watches)",
+      "Jean Arnault (LVMH Watches)",
+    ],
+    trend: "up",
+  },
+  {
+    id: "al-thani-qatar",
+    family: "Al Thani Family (Qatar)",
+    patriarch: "Sheikh Jassim bin Mohammed Al Thani (19th c.) · Emir Tamim",
+    country: "Qatar",
+    countryCode: "QA",
+    flag: "🇶🇦",
+    netWorth: "$330B+",
+    netWorthNum: 330,
+    source: "Qatar Investment Authority (QIA) / LNG revenues",
+    industry: "Sovereign Wealth / Energy",
+    sector: "Energy",
+    founded: 1825,
+    description:
+      "The ruling family of Qatar oversees the $475B+ Qatar Investment Authority — sovereign wealth fund generated from the world&#39;s largest LNG exporter per capita. QIA owns stakes in Volkswagen, Barclays, Harrods, The Shard, Heathrow Airport, Paris Saint-Germain FC, and much of London&#39;s Mayfair.",
+    keyAssets: [
+      "Qatar Investment Authority ($475B AUM)",
+      "Qatar Petroleum (state LNG)",
+      "Harrods (100%)",
+      "Heathrow Airport (20% stake)",
+      "Paris Saint-Germain FC (100%)",
+      "Barclays Bank (5%)",
+    ],
+    members: [
+      "Emir Tamim bin Hamad",
+      "Sheikh Abdullah bin Mohammed Al Thani",
+      "Sheikh Khalid bin Khalifa Al Thani (former PM)",
+      "Hundreds of Al Thani princes",
+    ],
+    trend: "stable",
+  },
+  {
+    id: "pritzker",
+    family: "Pritzker Family",
+    patriarch: "A.N. Pritzker (1896-1986) · Multiple branches",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    netWorth: "$43B",
+    netWorthNum: 43,
+    source: "Hyatt Hotels / Diversified",
+    industry: "Hotels / Real Estate / Finance",
+    sector: "Real Estate",
+    founded: 1957,
+    description:
+      "The Pritzkers founded the Hyatt hotel chain and built a vast private equity and real estate empire over three generations. The family is now spread across several branches; Jennifer Pritzker is a notable philanthropist, and Jay Pritzker became the 43rd Governor of Illinois. The family also endows the Pritzker Architecture Prize.",
+    keyAssets: [
+      "Hyatt Hotels Corp (38% stake)",
+      "Marmon Holdings (industrial conglomerate)",
+      "Pritzker Private Capital",
+      "Triton Container International",
+      "Pritzker Architecture Prize",
+    ],
+    members: [
+      "Tom Pritzker (~$8B)",
+      "Jay Pritzker (~$3.6B, Governor of Illinois)",
+      "J.B. Pritzker",
+      "Jennifer Pritzker",
+      "Nick Pritzker",
+      "Penny Pritzker (former US Sec. of Commerce)",
+    ],
+    trend: "stable",
+  },
+  {
+    id: "mulliez",
+    family: "Mulliez Family",
+    patriarch: "Gérard Mulliez (Auchan founder, 1921-2022)",
+    country: "France",
+    countryCode: "FR",
+    flag: "🇫🇷",
+    netWorth: "$52B",
+    netWorthNum: 52,
+    source: "Auchan / Decathlon / Leroy Merlin",
+    industry: "Retail",
+    sector: "Retail",
+    founded: 1961,
+    description:
+      "The Mulliez family controls the Association Familiale Mulliez (AFM) — a family holding shared by 700+ family members across 700 companies. Their portfolio includes Auchan (hypermarkets), Decathlon (sporting goods, world&#39;s largest), Leroy Merlin (home improvement), and Kiabi (fashion). Europe&#39;s largest family business consortium.",
+    keyAssets: [
+      "Auchan Retail (private, 350+ hypermarkets)",
+      "Decathlon (private, world&#39;s largest sporting goods)",
+      "Leroy Merlin (home improvement)",
+      "Kiabi (fashion)",
+      "Norauto (auto services)",
+    ],
+    members: [
+      "700+ family shareholders in AFM",
+      "Vianney Mulliez (Auchan Chairman)",
+      "Guillaume Mulliez",
+      "Laurent Mulliez (Auchan CEO)",
+    ],
+    trend: "down",
+  },
+  {
+    id: "kwok",
+    family: "Kwok Family",
+    patriarch: "Kwok Tak-seng (founder, d.1990) · Raymond, Thomas, Walter",
+    country: "Hong Kong",
+    countryCode: "HK",
+    flag: "🇭🇰",
+    netWorth: "$40B",
+    netWorthNum: 40,
+    source: "Sun Hung Kai Properties",
+    industry: "Real Estate",
+    sector: "Real Estate",
+    founded: 1963,
+    description:
+      "The Kwok family controls Sun Hung Kai Properties — Hong Kong&#39;s largest property developer by market cap, building some of the city&#39;s most iconic skyscrapers including Two International Finance Centre and the International Commerce Centre. The family has been embroiled in high-profile legal battles including a corruption case involving former patriarch Walter Kwok.",
+    keyAssets: [
+      "Sun Hung Kai Properties (~HK$300B market cap)",
+      "Kowloon Motor Bus",
+      "SmarTone Telecom",
+      "Invested in over 100 hotels and shopping malls",
+    ],
+    members: [
+      "Raymond Kwok (~$20B)",
+      "Thomas Kwok",
+      "Walter Kwok (deceased 2018)",
+      "Thy Kwok",
+    ],
+    trend: "down",
+  },
+  {
+    id: "azim-premji",
+    family: "Premji Family",
+    patriarch: "Azim Premji",
+    country: "India",
+    countryCode: "IN",
+    flag: "🇮🇳",
+    netWorth: "$28B",
+    netWorthNum: 28,
+    source: "Wipro Limited",
+    industry: "Technology / IT Services",
+    sector: "Tech",
+    founded: 1945,
+    description:
+      "Azim Premji transformed his father&#39;s cooking oil company Wipro into one of India&#39;s largest IT services and consulting firms, generating $11B+ in annual revenue. He has given away over $22B to his philanthropic foundation — one of the largest charitable commitments by any individual in history outside the US.",
+    keyAssets: [
+      "Wipro Ltd (72% stake, ~$28B market cap)",
+      "Wipro Enterprises (private FMCG &amp; infrastructure)",
+      "Azim Premji Foundation ($22B+ pledged)",
+      "Azim Premji University",
+    ],
+    members: [
+      "Azim Premji (~$28B)",
+      "Rishad Premji (CEO, Wipro)",
+      "Tariq Premji",
+    ],
+    trend: "stable",
+  },
+  {
+    id: "al-nahyan-abu-dhabi",
+    family: "Al Nahyan Family (Abu Dhabi / UAE)",
+    patriarch: "Sheikh Zayed bin Sultan Al Nahyan (d.2004) · Sheikh MBZ",
+    country: "United Arab Emirates",
+    countryCode: "AE",
+    flag: "🇦🇪",
+    netWorth: "$300B+",
+    netWorthNum: 300,
+    source: "Abu Dhabi Investment Authority / UAE oil",
+    industry: "Sovereign Wealth / Energy",
+    sector: "Energy",
+    founded: 1761,
+    description:
+      "The ruling family of Abu Dhabi oversees the Abu Dhabi Investment Authority (ADIA) — one of the world&#39;s largest sovereign wealth funds at ~$993B — plus Mubadala ($285B) and Abu Dhabi National Oil Company (ADNOC). Sheikh MBZ personally has a net worth estimated at $25-30B separate from state assets.",
+    keyAssets: [
+      "ADIA (~$993B sovereign wealth fund)",
+      "Mubadala Investment Company ($285B)",
+      "ADNOC (state oil, 4Mbbl/day)",
+      "Manchester City FC (via ADUG)",
+      "Abu Dhabi National Energy Company",
+    ],
+    members: [
+      "Sheikh MBZ (President, ~$25-30B personal)",
+      "Sheikh Mohamed bin Zayed",
+      "Sheikh Mansour (Manchester City owner)",
+      "Sheikh Abdullah",
+      "Dozens of Al Nahyan princes",
+    ],
+    trend: "up",
+  },
+];
+
+// ── CEO Data ──────────────────────────────────────────────────────────────────
+interface CEOProfile {
+  id: string;
+  name: string;
+  company: string;
+  country: string;
+  countryCode: string;
+  flag: string;
+  title: string;
+  netWorth: string;
+  netWorthNum: number;
+  marketCap: string;
+  revenue: string;
+  employees: string;
+  sector: RichFamily["sector"];
+  tenureSince: number;
+  age: number;
+  education: string;
+  background: string;
+  achievements: string[];
+  compensation: string;
+  trend: "up" | "down" | "stable";
+}
+
+const CEO_DATA: CEOProfile[] = [
+  {
+    id: "elon-musk",
+    name: "Elon Musk",
+    company: "Tesla / SpaceX / X / xAI",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    title: "CEO, Tesla &amp; SpaceX &amp; xAI; Owner, X",
+    netWorth: "$315B",
+    netWorthNum: 315,
+    marketCap: "$1.3T (Tesla)",
+    revenue: "$97B (Tesla, 2024)",
+    employees: "130,000+ (Tesla); 13,000+ (SpaceX)",
+    sector: "Tech",
+    tenureSince: 2008,
+    age: 53,
+    education: "B.A. Physics &amp; Economics, UPenn; Ph.D. (dropped) Stanford",
+    background:
+      "Born in Pretoria, South Africa. Co-founded Zip2, sold for $307M. Founded X.com (became PayPal, sold to eBay for $1.5B in 2002). Founded SpaceX (2002), joined Tesla as chairman (2004), became CEO (2008). Acquired Twitter for $44B (2022) and rebranded as X. Founded xAI (2023) and Grok AI. In 2025 appointed to lead US DOGE advisory body under Trump.",
+    achievements: [
+      "World&#39;s richest person (multiple times)",
+      "Tesla became world&#39;s most valuable automaker",
+      "SpaceX first private company to reach orbit &amp; ISS",
+      "Reusable rocket technology (Falcon 9, Starship)",
+      "Starlink — world&#39;s largest satellite internet constellation (7,000+ satellites)",
+      "Grok AI challenger to ChatGPT launched",
+    ],
+    compensation:
+      "~$56B Tesla comp package (contested); primarily equity-based",
+    trend: "up",
+  },
+  {
+    id: "jeff-bezos",
+    name: "Jeff Bezos",
+    company: "Amazon / Blue Origin",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    title: "Executive Chairman, Amazon (former CEO)",
+    netWorth: "$220B",
+    netWorthNum: 220,
+    marketCap: "$2.4T (Amazon)",
+    revenue: "$620B (Amazon, 2024)",
+    employees: "1.5M+ (Amazon)",
+    sector: "Tech",
+    tenureSince: 1994,
+    age: 61,
+    education: "B.S. Electrical Engineering &amp; Computer Science, Princeton",
+    background:
+      "Founded Amazon in a garage in 1994 as an online bookstore. Expanded relentlessly into every retail category, then cloud computing (AWS — now 16% of revenues but 67% of operating profit), streaming (Prime Video), smart home (Alexa), and grocery (Whole Foods). Stepped down as CEO in 2021, handing the role to Andy Jassy. Now focuses on Blue Origin space company and $100M philanthropic initiatives.",
+    achievements: [
+      "Built world&#39;s most valuable company (briefly $1.8T)",
+      "AWS — created the cloud computing industry standard",
+      "Amazon Prime — 200M+ subscribers globally",
+      "The Washington Post (purchased 2013 for $250M)",
+      "Blue Origin New Shepard commercial space flights",
+      "World&#39;s largest e-commerce platform by GMV",
+    ],
+    compensation:
+      "$81,840 base salary (token amount); wealth is via stock holdings",
+    trend: "stable",
+  },
+  {
+    id: "tim-cook",
+    name: "Tim Cook",
+    company: "Apple Inc.",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    title: "Chief Executive Officer, Apple Inc.",
+    netWorth: "$2.2B",
+    netWorthNum: 2.2,
+    marketCap: "$3.4T (world&#39;s largest company)",
+    revenue: "$391B (FY2024)",
+    employees: "161,000+",
+    sector: "Tech",
+    tenureSince: 2011,
+    age: 64,
+    education: "B.S. Industrial Engineering, Auburn; MBA, Duke (Fuqua)",
+    background:
+      "Former COO of Apple who succeeded Steve Jobs after his death in October 2011. Supply chain genius who transformed Apple&#39;s manufacturing capabilities at Compaq and IBM before joining Apple in 1998. Under Cook, Apple&#39;s market cap grew from $350B to $3.4T — adding more value than any company in history. Cook is the first Fortune 500 CEO to come out as gay.",
+    achievements: [
+      "Apple became world&#39;s first $1T, $2T, and $3T company",
+      "iPhone sales generated over $2T cumulative revenue under his tenure",
+      "Services business grew from $8B to $100B annually",
+      "M1 chip transition — Apple Silicon surpasses Intel",
+      "Apple Watch — dominant smartwatch market leader",
+      "Apple Intelligence (AI) launch 2024",
+    ],
+    compensation: "$63M (2023); primarily RSUs and performance bonuses",
+    trend: "up",
+  },
+  {
+    id: "jensen-huang",
+    name: "Jensen Huang",
+    company: "NVIDIA Corporation",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    title: "Founder &amp; Chief Executive Officer, NVIDIA",
+    netWorth: "$120B",
+    netWorthNum: 120,
+    marketCap: "$3.3T",
+    revenue: "$130B (FY2025 est.)",
+    employees: "36,000+",
+    sector: "Tech",
+    tenureSince: 1993,
+    age: 62,
+    education: "B.S. Electrical Engineering, Oregon State; M.S. EE, Stanford",
+    background:
+      "Born in Tainan, Taiwan. Co-founded NVIDIA in 1993 after working at AMD and LSI Logic. Transformed NVIDIA from a graphics chip maker for gaming into the backbone of the AI revolution. NVIDIA&#39;s H100 and B200 GPUs are now the most critical hardware in existence — every major AI model is trained on NVIDIA chips. NVIDIA became the world&#39;s most valuable company briefly in 2024.",
+    achievements: [
+      "NVIDIA H100 GPU — most sought-after chip in history",
+      "CUDA platform — created the standard AI computing framework",
+      "NVIDIA surpassed Microsoft and Apple as world&#39;s most valuable company (Jun 2024)",
+      "Stock rose 240% in 2023 alone (AI boom)",
+      "DGX Supercomputer — AI data center solutions",
+      "GeForce RTX — dominant gaming GPU market",
+    ],
+    compensation: "$34M (2023); primarily stock awards",
+    trend: "up",
+  },
+  {
+    id: "satya-nadella",
+    name: "Satya Nadella",
+    company: "Microsoft Corporation",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    title: "Chairman &amp; Chief Executive Officer, Microsoft",
+    netWorth: "$1.5B",
+    netWorthNum: 1.5,
+    marketCap: "$3.1T",
+    revenue: "$245B (FY2024)",
+    employees: "228,000+",
+    sector: "Tech",
+    tenureSince: 2014,
+    age: 57,
+    education:
+      "B.S. Electrical Engineering, Manipal; M.S. Computer Science, Univ. of Wisconsin-Milwaukee; MBA, University of Chicago",
+    background:
+      "Born in Hyderabad, India. Joined Microsoft in 1992. Took over from Steve Ballmer in 2014 when Microsoft was seen as a fading tech giant. His &#39;cloud-first, mobile-first&#39; strategy transformed Microsoft around Azure — now the world&#39;s second-largest cloud platform. His $69B acquisition of Activision Blizzard (2023) and $13B investment in OpenAI have positioned Microsoft as the leading AI corporate partner.",
+    achievements: [
+      "Microsoft tripled in value from $300B to $3.1T under his leadership",
+      "Azure — grew from $3B to $100B+ in annual revenues",
+      "$69B Activision Blizzard acquisition (2023)",
+      "$13B investment in OpenAI — Copilot AI integration",
+      "LinkedIn acquisition ($26B, 2016)",
+      "Teams — dominant workplace collaboration platform (320M users)",
+    ],
+    compensation: "$79M (2023); primarily stock awards",
+    trend: "up",
+  },
+  {
+    id: "larry-ellison",
+    name: "Larry Ellison",
+    company: "Oracle Corporation",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    title: "Chairman &amp; CTO, Oracle (co-founder)",
+    netWorth: "$190B",
+    netWorthNum: 190,
+    marketCap: "$500B",
+    revenue: "$54B (FY2024)",
+    employees: "159,000+",
+    sector: "Tech",
+    tenureSince: 1977,
+    age: 80,
+    education:
+      "University of Illinois (dropped out); University of Chicago (dropped out)",
+    background:
+      "College dropout who founded Oracle in 1977, building it into the world&#39;s second-largest software company. Known for his combative personality, America&#39;s Cup sailing victories, and massive personal spending (buying 98% of Lana&#39;i island in Hawaii). Stepped down as CEO in 2014 but remains Chairman and CTO. Oracle&#39;s pivot to cloud computing under his direction has reinvigorated the company in the AI era.",
+    achievements: [
+      "Oracle Database — world&#39;s most used enterprise database",
+      "PeopleSoft ($10.3B hostile takeover, 2005)",
+      "Sun Microsystems ($7.4B acquisition, 2010 — brought Java)",
+      "Oracle Cloud Infrastructure — $8B/year and growing 50%+ annually",
+      "America&#39;s Cup yacht racing — multiple victories",
+      "Owns 98% of Lana&#39;i, Hawaii",
+    ],
+    compensation:
+      "~$1 salary; $60B+ net worth increase via equity in last 3 years",
+    trend: "up",
+  },
+  {
+    id: "mark-zuckerberg",
+    name: "Mark Zuckerberg",
+    company: "Meta Platforms Inc.",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    title: "Founder, Chairman &amp; CEO, Meta Platforms",
+    netWorth: "$210B",
+    netWorthNum: 210,
+    marketCap: "$1.7T",
+    revenue: "$165B (2024)",
+    employees: "67,000+",
+    sector: "Tech",
+    tenureSince: 2004,
+    age: 40,
+    education:
+      "B.A. Computer Science &amp; Psychology, Harvard (dropped out 2004)",
+    background:
+      "Founded Facebook from his Harvard dorm room at 19. Took company public in 2012 at $104B valuation. Made audacious $1B Instagram acquisition (2012) and $19B WhatsApp acquisition (2014). Renamed company Meta in 2021 to pursue the metaverse — a costly pivot that destroyed $700B in market cap before pivoting to AI in 2023. Meta&#39;s Llama AI models became the most widely-used open-source AI systems in the world.",
+    achievements: [
+      "Facebook — 3.3B daily active users across Meta family of apps",
+      "Instagram — $1B acquisition grew to ~$40B in value",
+      "WhatsApp — 3B+ users globally",
+      "Meta AI — Llama models downloaded 650M+ times",
+      "Ray-Ban Meta smart glasses — consumer AI hardware hit",
+      "Threads — 200M+ users in first year",
+    ],
+    compensation: "$24.4M (2023) + $1 base salary",
+    trend: "up",
+  },
+  {
+    id: "warren-buffett",
+    name: "Warren Buffett",
+    company: "Berkshire Hathaway",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    title: "Chairman &amp; CEO, Berkshire Hathaway",
+    netWorth: "$145B",
+    netWorthNum: 145,
+    marketCap: "$1.0T",
+    revenue: "$371B (2024)",
+    employees: "392,000+",
+    sector: "Finance",
+    tenureSince: 1965,
+    age: 94,
+    education:
+      "B.S. Business, University of Nebraska; M.S. Economics, Columbia (studied under Benjamin Graham)",
+    background:
+      "The Oracle of Omaha. Bought a controlling stake in the struggling Berkshire Hathaway textile company in 1965 and transformed it into the world&#39;s most successful investment conglomerate. His 20%+ compound annual returns over 60 years are unmatched in financial history. Has pledged to give away 99%+ of his wealth — the largest single charitable commitment in history.",
+    achievements: [
+      "Berkshire&#39;s stock price grew from $19 (1965) to $700,000+ (2024)",
+      "Best long-term stock market track record in history",
+      "Apple stake worth $90B+ (bought 2016-2018 at ~$35B)",
+      "Pledged $100B+ to Gates Foundation and family foundations",
+      "Precision Castparts ($32B largest acquisition)",
+      "BNSF Railway ($44B acquisition, 2010)",
+    ],
+    compensation: "$100,000 annual salary (unchanged since 1980)",
+    trend: "stable",
+  },
+  {
+    id: "sam-altman",
+    name: "Sam Altman",
+    company: "OpenAI",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    title: "Chief Executive Officer, OpenAI",
+    netWorth: "$2.8B",
+    netWorthNum: 2.8,
+    marketCap: "$300B (private, Oct 2024 funding round)",
+    revenue: "$3.7B (2024, growing rapidly)",
+    employees: "3,000+",
+    sector: "Tech",
+    tenureSince: 2019,
+    age: 39,
+    education: "Computer Science, Stanford (dropped out after 2 years)",
+    background:
+      "Former President of Y Combinator who took over OpenAI in 2019. Oversaw the release of GPT-3, DALL-E, and ChatGPT — the fastest-growing consumer product in history (100M users in 2 months). Was briefly fired by OpenAI&#39;s board in November 2023 in a dramatic 5-day crisis that ended with his reinstatement after Microsoft threatened to hire him and 700 of 770 OpenAI employees signed a letter demanding his return.",
+    achievements: [
+      "ChatGPT — 200M+ weekly active users (fastest product to 100M ever)",
+      "GPT-4 — most capable AI model of its era",
+      "DALL-E 3 — leading text-to-image AI",
+      "OpenAI valued at $300B (highest AI company valuation)",
+      "Sora — video generation AI",
+      "Restructuring OpenAI to for-profit model (2024)",
+    ],
+    compensation:
+      "No equity at OpenAI (unusual for a CEO); net worth from early investments",
+    trend: "up",
+  },
+  {
+    id: "sundar-pichai",
+    name: "Sundar Pichai",
+    company: "Alphabet Inc. / Google",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    title: "CEO, Alphabet Inc. &amp; Google",
+    netWorth: "$1.4B",
+    netWorthNum: 1.4,
+    marketCap: "$2.3T",
+    revenue: "$350B (2024)",
+    employees: "182,000+",
+    sector: "Tech",
+    tenureSince: 2015,
+    age: 52,
+    education:
+      "B.Tech Metallurgical Engineering, IIT Kharagpur; M.S. Material Sciences, Stanford; MBA, Wharton",
+    background:
+      "Born in Chennai, India. Joined Google in 2004, rose to lead Chrome (world&#39;s most used browser) and Android (world&#39;s most used OS). Became CEO of Google in 2015 and Alphabet in 2019. Led Google&#39;s response to the AI challenge — deploying Gemini AI across Google products after ChatGPT&#39;s emergence, though Google&#39;s initial AI launches faced criticism.",
+    achievements: [
+      "Chrome Browser — 4B+ users, 65% market share",
+      "Android OS — 3B+ active devices",
+      "Google Cloud — $50B annual revenue",
+      "Google AI Overviews — AI search rollout to 1B+ users",
+      "Waymo — leading autonomous vehicle company",
+      "DeepMind Gemini Ultra — competing with GPT-4",
+    ],
+    compensation: "$226M (2022, primarily stock); $10M base",
+    trend: "stable",
+  },
+  {
+    id: "andy-jassy",
+    name: "Andy Jassy",
+    company: "Amazon.com Inc.",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    title: "President &amp; CEO, Amazon",
+    netWorth: "$700M",
+    netWorthNum: 0.7,
+    marketCap: "$2.4T",
+    revenue: "$620B (2024)",
+    employees: "1.5M+",
+    sector: "Tech",
+    tenureSince: 2021,
+    age: 57,
+    education: "B.A. Government, Harvard; MBA, Harvard Business School",
+    background:
+      "Joined Amazon in 1997, built Amazon Web Services (AWS) from scratch — the world&#39;s largest cloud platform generating $100B/year. Succeeded Jeff Bezos as CEO in July 2021. Has led significant workforce restructuring (27,000 layoffs in 2023) while accelerating AI investment and Amazon&#39;s healthcare ambitions.",
+    achievements: [
+      "Built AWS from zero to $100B annual revenue",
+      "Amazon&#39;s profitability turnaround — $59B net income in 2024",
+      "Amazon Bedrock AI platform for enterprise",
+      "Anthropic investment ($4B+)",
+      "Amazon Nova AI models",
+      "Amazon Pharmacy and One Medical acquisition",
+    ],
+    compensation: "$29M (2023); primarily RSUs",
+    trend: "up",
+  },
+  {
+    id: "dimon",
+    name: "Jamie Dimon",
+    company: "JPMorgan Chase &amp; Co.",
+    country: "United States",
+    countryCode: "US",
+    flag: "🇺🇸",
+    title: "Chairman &amp; Chief Executive Officer",
+    netWorth: "$2.5B",
+    netWorthNum: 2.5,
+    marketCap: "$750B (world&#39;s most valuable bank)",
+    revenue: "$178B (2024 net revenue)",
+    employees: "316,000+",
+    sector: "Finance",
+    tenureSince: 2005,
+    age: 68,
+    education:
+      "B.A. Psychology &amp; Economics, Tufts; MBA, Harvard Business School",
+    background:
+      "The most powerful banker in the world, having led JPMorgan through the 2008 financial crisis, acquiring Washington Mutual and Bear Stearns at fire-sale prices. Under his leadership JPMorgan became the world&#39;s most profitable and valuable bank. Known for his frank annual shareholder letters, his 2023 letter warned of &#39;storm clouds&#39; facing the economy. Repeatedly mentioned as potential Treasury Secretary or presidential candidate.",
+    achievements: [
+      "JPMorgan Chase became world&#39;s most valuable bank by market cap",
+      "Navigated 2008 financial crisis — acquired Bear Stearns ($2/share) and WaMu",
+      "First Horizon acquisition attempt (2023, abandoned)",
+      "JPMorgan AI — 200+ AI use cases deployed",
+      "Annual letter to shareholders — most read in banking",
+      "Survivor of 2014 esophageal cancer",
+    ],
+    compensation: "$36M (2023); primarily stock",
+    trend: "up",
+  },
+  {
+    id: "bernard-arnault-ceo",
+    name: "Bernard Arnault",
+    company: "LVMH Moët Hennessy Louis Vuitton",
+    country: "France",
+    countryCode: "FR",
+    flag: "🇫🇷",
+    title: "Chairman &amp; CEO, LVMH",
+    netWorth: "$175B",
+    netWorthNum: 175,
+    marketCap: "€340B",
+    revenue: "€84B (2024)",
+    employees: "213,000+",
+    sector: "Retail",
+    tenureSince: 1987,
+    age: 76,
+    education: "Polytechnique (Grande École), Paris (B.S. Engineering)",
+    background:
+      "The &#39;Wolf in Cashmere&#39; — Arnault gained control of LVMH in a famous hostile takeover in 1987-1989. He has since acquired over 75 luxury brands through aggressive corporate expansion while retaining each brand&#39;s unique identity. Was the world&#39;s richest person for much of 2022-2023. His five children are all being groomed for succession across LVMH&#39;s key divisions.",
+    achievements: [
+      "Built world&#39;s largest luxury conglomerate (75 Maisons)",
+      "Tiffany &amp; Co acquisition — $15.8B (2021)",
+      "Louis Vuitton — world&#39;s most profitable luxury brand",
+      "LVMH revenues grew from €3B to €84B under his leadership",
+      "Only luxury CEO to compete with tech giants by market cap",
+      "2024 Paris Olympics — LVMH Title Sponsor",
+    ],
+    compensation: "€10M salary + dividends from LVMH stake",
+    trend: "stable",
+  },
+  {
+    id: "mukesh-ambani-ceo",
+    name: "Mukesh Ambani",
+    company: "Reliance Industries Limited",
+    country: "India",
+    countryCode: "IN",
+    flag: "🇮🇳",
+    title: "Chairman &amp; Managing Director, Reliance Industries",
+    netWorth: "$114B",
+    netWorthNum: 114,
+    marketCap: "₹18T (~$220B)",
+    revenue: "₹10T (~$120B, FY2024)",
+    employees: "350,000+",
+    sector: "Diversified",
+    tenureSince: 2002,
+    age: 67,
+    education: "B.Com, University of Mumbai; M.B.A., Stanford (incomplete)",
+    background:
+      "Asia&#39;s richest person. Took over Reliance Industries after father Dhirubhai Ambani&#39;s death in 2002, then navigated a bitter split with brother Anil. Under his leadership, Reliance became India&#39;s most valuable company. His ₹1.5 lakh crore investment in Jio (2016-2019) — offering free data and calls — destroyed India&#39;s incumbents and added 450M subscribers in 3 years.",
+    achievements: [
+      "Jio — 450M subscribers added in 3 years, disrupted India&#39;s telecom",
+      "Reliance Retail — India&#39;s largest retailer ($35B valuation)",
+      "KG-D6 gas discovery — India&#39;s largest domestic gas find",
+      "Reliance Jio Financial Services IPO 2023",
+      "IPL team Mumbai Indians — most valuable cricket franchise",
+      "Net debt-free Reliance achieved in 2020",
+    ],
+    compensation: "₹15 crore ($1.8M) annual salary",
+    trend: "up",
+  },
+  {
+    id: "sam-bankman-fried",
+    name: "Gina Rinehart",
+    company: "Hancock Prospecting",
+    country: "Australia",
+    countryCode: "AU",
+    flag: "🇦🇺",
+    title: "Executive Chairman, Hancock Prospecting",
+    netWorth: "$32B",
+    netWorthNum: 32,
+    marketCap: "Private",
+    revenue: "A$8B+ (estimated)",
+    employees: "3,000+",
+    sector: "Manufacturing",
+    tenureSince: 1992,
+    age: 71,
+    education: "No formal university degree (left before completing)",
+    background:
+      "Australia&#39;s richest person and the world&#39;s richest woman for several years. Inherited Lang Hancock&#39;s iron ore and coal empire and expanded it dramatically. Hancock Prospecting produces 70+ million tonnes of iron ore per year. She is politically outspoken — advocating for lower taxes, immigration of skilled workers, and against climate change regulation. Has a complicated public family life — her children have sued her over a trust dispute.",
+    achievements: [
+      "Australia&#39;s richest person for over a decade",
+      "Roy Hill iron ore mine — $10B project built and operational",
+      "Hancock Prospecting — 70M tonnes iron ore per year",
+      "Fairfax Media stake (controversial media investment)",
+      "Carrington Farms (agricultural diversification)",
+      "Agriculture &amp; energy diversification strategy",
+    ],
+    compensation: "Owner-operator; compensated through dividends",
+    trend: "stable",
+  },
+];
+
+// ── RichestFamiliesView ───────────────────────────────────────────────────────
+function RichestFamiliesView() {
+  const [selectedFamily, setSelectedFamily] = useState<RichFamily | null>(null);
+  const [sectorFilter, setSectorFilter] = useState<
+    "All" | RichFamily["sector"]
+  >("All");
+  const [sortBy, setSortBy] = useState<"wealth" | "founded">("wealth");
+
+  const sectors = [
+    "All",
+    ...Array.from(new Set(RICHEST_FAMILIES.map((f) => f.sector))).sort(),
+  ];
+
+  const sorted = useMemo(() => {
+    let list =
+      sectorFilter === "All"
+        ? RICHEST_FAMILIES
+        : RICHEST_FAMILIES.filter((f) => f.sector === sectorFilter);
+    if (sortBy === "wealth")
+      return [...list].sort((a, b) => b.netWorthNum - a.netWorthNum);
+    return [...list].sort((a, b) => a.founded - b.founded);
+  }, [sectorFilter, sortBy]);
+
+  const totalWealth = RICHEST_FAMILIES.reduce((a, f) => a + f.netWorthNum, 0);
+
+  return (
+    <div className="space-y-5">
+      {/* Stat strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {[
+          {
+            label: "Families Tracked",
+            value: String(RICHEST_FAMILIES.length),
+            color: "text-amber-400",
+          },
+          {
+            label: "Combined Est. Wealth",
+            value: `$${totalWealth}B+`,
+            color: "text-green-400",
+          },
+          { label: "Oldest Dynasty", value: "1744", color: "text-purple-400" },
+          {
+            label: "Countries Covered",
+            value: String(new Set(RICHEST_FAMILIES.map((f) => f.country)).size),
+            color: "text-sky-400",
+          },
+        ].map((s) => (
+          <div
+            key={s.label}
+            className="bg-card border border-border rounded-lg p-4"
+          >
+            <p className="text-xs text-muted-foreground">{s.label}</p>
+            <p className={`text-xl font-bold font-mono ${s.color}`}>
+              {s.value}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-2">
+        {sectors.map((s) => (
+          <button
+            key={s}
+            onClick={() => setSectorFilter(s as typeof sectorFilter)}
+            className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${sectorFilter === s ? "bg-amber-500/15 text-amber-400 border-amber-500/40" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
+          >
+            {s === "All" ? "All Sectors" : s}
+          </button>
+        ))}
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Sort:</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+            className="bg-transparent text-xs text-muted-foreground focus:outline-none cursor-pointer border border-border rounded-lg px-2 py-1"
+          >
+            <option value="wealth">Net Worth</option>
+            <option value="founded">Founded</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Cards grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {sorted.map((f, idx) => (
+          <button
+            key={f.id}
+            onClick={() => setSelectedFamily(f)}
+            className={`w-full text-left rounded-xl border transition-all duration-200 overflow-hidden group hover:scale-[1.01] hover:shadow-lg ${selectedFamily?.id === f.id ? "border-amber-500/50 bg-amber-500/5 ring-1 ring-amber-500/20" : "border-border bg-card hover:border-amber-500/30"}`}
+          >
+            <div className="p-4">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold font-mono text-amber-400">
+                    #{sortBy === "wealth" ? idx + 1 : ""}
+                  </span>
+                  <img
+                    src={`https://flagcdn.com/w40/${f.countryCode.toLowerCase()}.png`}
+                    alt={f.country}
+                    className="w-7 h-5 object-cover rounded border border-border"
+                  />
+                </div>
+                <span
+                  className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${SECTOR_COLOR[f.sector]}`}
+                >
+                  {f.sector}
+                </span>
+              </div>
+              <p className="font-bold text-sm text-foreground mb-0.5">
+                {f.family}
+              </p>
+              <p className="text-xs text-muted-foreground mb-2 truncate">
+                {f.source}
+              </p>
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-2xl font-bold font-mono text-amber-400">
+                    {f.netWorth}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    estimated net worth
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground font-mono">
+                    est. {f.founded}
+                  </p>
+                  <div
+                    className={`flex items-center gap-0.5 justify-end text-[10px] font-medium ${f.trend === "up" ? "text-green-400" : f.trend === "down" ? "text-red-400" : "text-muted-foreground"}`}
+                  >
+                    {f.trend === "up" ? "↑" : f.trend === "down" ? "↓" : "→"}{" "}
+                    {f.trend}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Detail modal */}
+      {selectedFamily && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSelectedFamily(null);
+          }}
+        >
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-amber-500/20 bg-card animate-fade-in">
+            <button
+              onClick={() => setSelectedFamily(null)}
+              className="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors"
+            >
+              <XCircle size={18} weight="fill" />
+            </button>
+            <div className="p-6 space-y-5">
+              <div className="flex items-start gap-4">
+                <div className="w-14 h-10 rounded-lg overflow-hidden border border-border flex items-center justify-center bg-muted/30 shrink-0">
+                  <img
+                    src={`https://flagcdn.com/w80/${selectedFamily.countryCode.toLowerCase()}.png`}
+                    alt={selectedFamily.country}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-xl font-bold text-foreground">
+                      {selectedFamily.family}
+                    </h2>
+                    <span
+                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${SECTOR_COLOR[selectedFamily.sector]}`}
+                    >
+                      {selectedFamily.sector}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedFamily.source} · Est. {selectedFamily.founded}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  {
+                    label: "Net Worth",
+                    value: selectedFamily.netWorth,
+                    color: "text-amber-400",
+                  },
+                  {
+                    label: "Founded",
+                    value: String(selectedFamily.founded),
+                    color: "text-purple-400",
+                  },
+                  {
+                    label: "Trend",
+                    value:
+                      selectedFamily.trend === "up"
+                        ? "↑ Growing"
+                        : selectedFamily.trend === "down"
+                          ? "↓ Declining"
+                          : "→ Stable",
+                    color:
+                      selectedFamily.trend === "up"
+                        ? "text-green-400"
+                        : selectedFamily.trend === "down"
+                          ? "text-red-400"
+                          : "text-muted-foreground",
+                  },
+                ].map((s) => (
+                  <div
+                    key={s.label}
+                    className="bg-muted/20 rounded-lg p-3 border border-border/40"
+                  >
+                    <p className="text-[10px] text-muted-foreground">
+                      {s.label}
+                    </p>
+                    <p className={`text-sm font-bold font-mono ${s.color}`}>
+                      {s.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-muted/20 rounded-xl p-4 border border-border/40">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <BookOpen size={12} /> About
+                </h4>
+                <p
+                  className="text-sm text-foreground leading-relaxed"
+                  dangerouslySetInnerHTML={{
+                    __html: selectedFamily.description,
+                  }}
+                />
+              </div>
+
+              <div className="bg-muted/20 rounded-xl p-4 border border-border/40">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <Trophy size={12} /> Key Assets
+                </h4>
+                <ul className="space-y-1.5">
+                  {selectedFamily.keyAssets.map((a, i) => (
+                    <li
+                      key={i}
+                      className="flex items-start gap-2 text-sm text-foreground"
+                    >
+                      <CheckCircle
+                        size={13}
+                        weight="fill"
+                        className="text-amber-400 mt-0.5 shrink-0"
+                      />
+                      <span dangerouslySetInnerHTML={{ __html: a }} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-muted/20 rounded-xl p-4 border border-border/40">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <Users size={12} /> Key Members
+                </h4>
+                <ul className="space-y-1">
+                  {selectedFamily.members.map((m, i) => (
+                    <li
+                      key={i}
+                      className="flex items-center gap-2 text-sm text-foreground"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                      <span dangerouslySetInnerHTML={{ __html: m }} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-muted/20 rounded-xl p-4 border border-border/40">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1.5">
+                  <Flag size={12} /> Patriarch / Founder
+                </h4>
+                <p
+                  className="text-sm text-foreground"
+                  dangerouslySetInnerHTML={{ __html: selectedFamily.patriarch }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── CEOsView ──────────────────────────────────────────────────────────────────
+function CEOsView() {
+  const [selectedCEO, setSelectedCEO] = useState<CEOProfile | null>(null);
+  const [sectorFilter, setSectorFilter] = useState<
+    "All" | RichFamily["sector"]
+  >("All");
+  const [sortBy, setSortBy] = useState<"wealth" | "marketcap" | "tenure">(
+    "wealth",
+  );
+
+  const sectors = [
+    "All",
+    ...Array.from(new Set(CEO_DATA.map((c) => c.sector))).sort(),
+  ];
+
+  const sorted = useMemo(() => {
+    let list =
+      sectorFilter === "All"
+        ? CEO_DATA
+        : CEO_DATA.filter((c) => c.sector === sectorFilter);
+    if (sortBy === "wealth")
+      return [...list].sort((a, b) => b.netWorthNum - a.netWorthNum);
+    if (sortBy === "tenure")
+      return [...list].sort((a, b) => a.tenureSince - b.tenureSince);
+    return list;
+  }, [sectorFilter, sortBy]);
+
+  return (
+    <div className="space-y-5">
+      {/* Stat strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {[
+          {
+            label: "CEOs Profiled",
+            value: String(CEO_DATA.length),
+            color: "text-sky-400",
+          },
+          {
+            label: "Combined Net Worth",
+            value: `$${CEO_DATA.reduce((a, c) => a + c.netWorthNum, 0).toFixed(0)}B+`,
+            color: "text-green-400",
+          },
+          {
+            label: "Richest CEO",
+            value:
+              CEO_DATA.sort((a, b) => b.netWorthNum - a.netWorthNum)[0]
+                ?.name.split(" ")
+                .pop() ?? "—",
+            color: "text-amber-400",
+          },
+          {
+            label: "Avg Tenure",
+            value: `${Math.round(CEO_DATA.reduce((a, c) => a + (2025 - c.tenureSince), 0) / CEO_DATA.length)}y`,
+            color: "text-purple-400",
+          },
+        ].map((s) => (
+          <div
+            key={s.label}
+            className="bg-card border border-border rounded-lg p-4"
+          >
+            <p className="text-xs text-muted-foreground">{s.label}</p>
+            <p className={`text-xl font-bold font-mono ${s.color}`}>
+              {s.value}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-2">
+        {sectors.map((s) => (
+          <button
+            key={s}
+            onClick={() => setSectorFilter(s as typeof sectorFilter)}
+            className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${sectorFilter === s ? "bg-sky-500/15 text-sky-400 border-sky-500/40" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
+          >
+            {s === "All" ? "All Sectors" : s}
+          </button>
+        ))}
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Sort:</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+            className="bg-transparent text-xs text-muted-foreground focus:outline-none cursor-pointer border border-border rounded-lg px-2 py-1"
+          >
+            <option value="wealth">Net Worth</option>
+            <option value="tenure">Tenure (Longest)</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {sorted.map((ceo) => (
+          <button
+            key={ceo.id}
+            onClick={() => setSelectedCEO(ceo)}
+            className={`w-full text-left rounded-xl border transition-all duration-200 overflow-hidden group hover:scale-[1.01] hover:shadow-lg ${selectedCEO?.id === ceo.id ? "border-sky-500/50 bg-sky-500/5 ring-1 ring-sky-500/20" : "border-border bg-card hover:border-sky-500/30"}`}
+          >
+            <div className="p-4">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                  <img
+                    src={`https://flagcdn.com/w40/${ceo.countryCode.toLowerCase()}.png`}
+                    alt={ceo.country}
+                    className="w-7 h-5 object-cover rounded border border-border"
+                  />
+                  <span
+                    className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${SECTOR_COLOR[ceo.sector]}`}
+                  >
+                    {ceo.sector}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <div
+                    className={`text-[10px] font-medium ${ceo.trend === "up" ? "text-green-400" : ceo.trend === "down" ? "text-red-400" : "text-muted-foreground"}`}
+                  >
+                    {ceo.trend === "up"
+                      ? "↑"
+                      : ceo.trend === "down"
+                        ? "↓"
+                        : "→"}
+                  </div>
+                </div>
+              </div>
+              <p className="font-bold text-sm text-foreground mb-0.5">
+                {ceo.name}
+              </p>
+              <p
+                className="text-xs text-muted-foreground mb-1 truncate"
+                dangerouslySetInnerHTML={{ __html: ceo.company }}
+              />
+              <p
+                className="text-[10px] text-muted-foreground mb-3 truncate italic"
+                dangerouslySetInnerHTML={{ __html: ceo.title }}
+              />
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-xl font-bold font-mono text-sky-400">
+                    {ceo.netWorth}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">net worth</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-mono text-muted-foreground">
+                    Since {ceo.tenureSince}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {2025 - ceo.tenureSince}y tenure
+                  </p>
+                </div>
+              </div>
+              <div className="mt-2 pt-2 border-t border-border/40">
+                <p className="text-[10px] text-muted-foreground">
+                  Market Cap:{" "}
+                  <span className="text-foreground font-mono">
+                    {ceo.marketCap}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* CEO Detail Modal */}
+      {selectedCEO && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSelectedCEO(null);
+          }}
+        >
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-sky-500/20 bg-card animate-fade-in">
+            <button
+              onClick={() => setSelectedCEO(null)}
+              className="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors"
+            >
+              <XCircle size={18} weight="fill" />
+            </button>
+            <div className="p-6 space-y-5">
+              <div className="flex items-start gap-4">
+                <div className="w-14 h-10 rounded-lg overflow-hidden border border-border flex items-center justify-center bg-muted/30 shrink-0">
+                  <img
+                    src={`https://flagcdn.com/w80/${selectedCEO.countryCode.toLowerCase()}.png`}
+                    alt={selectedCEO.country}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-xl font-bold text-foreground">
+                      {selectedCEO.name}
+                    </h2>
+                    <span
+                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${SECTOR_COLOR[selectedCEO.sector]}`}
+                    >
+                      {selectedCEO.sector}
+                    </span>
+                  </div>
+                  <p
+                    className="text-sm text-muted-foreground"
+                    dangerouslySetInnerHTML={{ __html: selectedCEO.title }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  {
+                    label: "Net Worth",
+                    value: selectedCEO.netWorth,
+                    color: "text-sky-400",
+                  },
+                  {
+                    label: "Market Cap",
+                    value: selectedCEO.marketCap,
+                    color: "text-amber-400",
+                  },
+                  {
+                    label: "Revenue",
+                    value: selectedCEO.revenue,
+                    color: "text-green-400",
+                  },
+                  {
+                    label: "Employees",
+                    value: selectedCEO.employees,
+                    color: "text-purple-400",
+                  },
+                ].map((s) => (
+                  <div
+                    key={s.label}
+                    className="bg-muted/20 rounded-lg p-3 border border-border/40"
+                  >
+                    <p className="text-[10px] text-muted-foreground">
+                      {s.label}
+                    </p>
+                    <p
+                      className={`text-sm font-bold font-mono ${s.color} leading-tight`}
+                    >
+                      {s.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-muted/20 rounded-xl p-4 border border-border/40">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <GraduationCap size={12} /> Education
+                </h4>
+                <p
+                  className="text-sm text-foreground"
+                  dangerouslySetInnerHTML={{ __html: selectedCEO.education }}
+                />
+              </div>
+
+              <div className="bg-muted/20 rounded-xl p-4 border border-border/40">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <BookOpen size={12} /> Background
+                </h4>
+                <p
+                  className="text-sm text-foreground leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: selectedCEO.background }}
+                />
+              </div>
+
+              <div className="bg-muted/20 rounded-xl p-4 border border-border/40">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <Trophy size={12} /> Key Achievements
+                </h4>
+                <ul className="space-y-1.5">
+                  {selectedCEO.achievements.map((a, i) => (
+                    <li
+                      key={i}
+                      className="flex items-start gap-2 text-sm text-foreground"
+                    >
+                      <CheckCircle
+                        size={13}
+                        weight="fill"
+                        className="text-sky-400 mt-0.5 shrink-0"
+                      />
+                      <span dangerouslySetInnerHTML={{ __html: a }} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-muted/20 rounded-lg p-3 border border-border/40">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                    CEO Since
+                  </p>
+                  <p className="text-sm font-mono font-bold text-sky-400">
+                    {selectedCEO.tenureSince}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {2025 - selectedCEO.tenureSince} years
+                  </p>
+                </div>
+                <div className="bg-muted/20 rounded-lg p-3 border border-border/40">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                    Age
+                  </p>
+                  <p className="text-sm font-mono font-bold text-foreground">
+                    {selectedCEO.age}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-muted/20 rounded-xl p-4 border border-border/40">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1.5">
+                  <Money size={12} /> Compensation
+                </h4>
+                <p
+                  className="text-sm text-foreground"
+                  dangerouslySetInnerHTML={{ __html: selectedCEO.compensation }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 export function WorldMapPage() {
   const [region, setRegion] = useState("All Regions");
   const [ideology, setIdeology] = useState("All");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Leader | null>(null);
-  const [viewMode, setViewMode] = useState<"list" | "compass">("list");
+  const [viewMode, setViewMode] = useState<
+    "list" | "compass" | "monarchies" | "richest"
+  >("list");
 
   const ideologies = [
     "All",
@@ -14785,6 +16980,16 @@ export function WorldMapPage() {
       return matchRegion && matchIdeology && matchSearch;
     });
   }, [region, ideology, search]);
+
+  const [monarchyRegion, setMonarchyRegion] = useState("All Regions");
+  const [selectedMonarch, setSelectedMonarch] = useState<RoyalMember | null>(
+    null,
+  );
+
+  const filteredMonarchs = useMemo(() => {
+    if (monarchyRegion === "All Regions") return ROYAL_FAMILIES;
+    return ROYAL_FAMILIES.filter((r) => r.region === monarchyRegion);
+  }, [monarchyRegion]);
 
   const inOffice = LEADERS.filter(
     (l) => l.status === "In Office" || l.status === "Incumbent (Disputed)",
@@ -14900,7 +17105,7 @@ export function WorldMapPage() {
         </div>
 
         {/* View Mode Toggle */}
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex flex-wrap items-center gap-2 mb-4">
           <button
             onClick={() => setViewMode("list")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${viewMode === "list" ? "bg-secondary/20 text-secondary border-secondary/40" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
@@ -14921,6 +17126,26 @@ export function WorldMapPage() {
             />
             Political Compass
           </button>
+          <button
+            onClick={() => setViewMode("monarchies")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${viewMode === "monarchies" ? "bg-secondary/20 text-secondary border-secondary/40" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+          >
+            <Crown
+              size={13}
+              weight={viewMode === "monarchies" ? "fill" : "regular"}
+            />
+            Royal Families &amp; Monarchies
+          </button>
+          <button
+            onClick={() => setViewMode("richest")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${viewMode === "richest" ? "bg-amber-500/20 text-amber-400 border-amber-500/40" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+          >
+            <Money
+              size={13}
+              weight={viewMode === "richest" ? "fill" : "regular"}
+            />
+            Richest Families
+          </button>
           {viewMode === "compass" && (
             <span className="text-xs text-muted-foreground ml-1">
               Showing {filtered.filter((l) => COMPASS_DATA[l.id]).length}{" "}
@@ -14928,6 +17153,95 @@ export function WorldMapPage() {
             </span>
           )}
         </div>
+
+        {/* ── Richest Families View ── */}
+        {viewMode === "richest" && <RichestFamiliesView />}
+
+        {/* Monarchies View */}
+        {viewMode === "monarchies" && (
+          <div className="space-y-4">
+            {/* Monarchy stat strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[
+                {
+                  label: "Reigning Monarchs",
+                  value: String(ROYAL_FAMILIES.length),
+                  color: "text-yellow-400",
+                },
+                {
+                  label: "Absolute Monarchies",
+                  value: String(
+                    ROYAL_FAMILIES.filter((r) => r.systemType === "Absolute")
+                      .length,
+                  ),
+                  color: "text-red-400",
+                },
+                {
+                  label: "Constitutional",
+                  value: String(
+                    ROYAL_FAMILIES.filter(
+                      (r) => r.systemType === "Constitutional",
+                    ).length,
+                  ),
+                  color: "text-green-400",
+                },
+                {
+                  label: "Semi-Constitutional",
+                  value: String(
+                    ROYAL_FAMILIES.filter(
+                      (r) => r.systemType === "Semi-Constitutional",
+                    ).length,
+                  ),
+                  color: "text-amber-400",
+                },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  className="bg-card border border-border rounded-lg p-4"
+                >
+                  <p className="text-xs text-muted-foreground">{s.label}</p>
+                  <p className={`text-xl font-bold font-mono ${s.color}`}>
+                    {s.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+            {/* Region filter */}
+            <div className="flex flex-wrap items-center gap-2">
+              {[
+                "All Regions",
+                "Europe",
+                "Middle East",
+                "Asia-Pacific",
+                "Africa",
+                "Americas",
+              ].map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setMonarchyRegion(r)}
+                  className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                    monarchyRegion === r
+                      ? "bg-yellow-500/15 text-yellow-400 border-yellow-500/40"
+                      : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                  }`}
+                >
+                  {r === "All Regions" ? "All" : r}
+                </button>
+              ))}
+            </div>
+            {/* Monarch cards grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredMonarchs.map((m) => (
+                <MonarchCard
+                  key={m.id}
+                  monarch={m}
+                  onClick={() => setSelectedMonarch(m)}
+                  isSelected={selectedMonarch?.id === m.id}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Political Compass View */}
         {viewMode === "compass" && (
@@ -14941,7 +17255,7 @@ export function WorldMapPage() {
           </div>
         )}
 
-        {/* Card grid */}
+        {/* Leader card grid */}
         {viewMode === "list" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filtered.length === 0 ? (
@@ -14964,6 +17278,23 @@ export function WorldMapPage() {
                 />
               ))
             )}
+          </div>
+        )}
+
+        {/* Monarch modal */}
+        {selectedMonarch && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSelectedMonarch(null);
+            }}
+          >
+            <div className="relative w-full max-w-2xl">
+              <MonarchDetail
+                monarch={selectedMonarch}
+                onClose={() => setSelectedMonarch(null)}
+              />
+            </div>
           </div>
         )}
 

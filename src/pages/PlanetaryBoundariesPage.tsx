@@ -1106,10 +1106,27 @@ function BoundarySummaryCard({
   return (
     <button
       onClick={onSelect}
-      className="flex items-center gap-3 py-2.5 px-3 rounded-xl text-left w-full transition-all"
+      className="flex items-center gap-3 py-2.5 px-3 rounded-xl text-left w-full transition-all hover:opacity-90"
+      onMouseEnter={(e) => {
+        if (!selected) {
+          (e.currentTarget as HTMLButtonElement).style.background =
+            boundary.color + "0d";
+          (e.currentTarget as HTMLButtonElement).style.border =
+            `1px solid ${boundary.color}30`;
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!selected) {
+          (e.currentTarget as HTMLButtonElement).style.background =
+            "transparent";
+          (e.currentTarget as HTMLButtonElement).style.border =
+            `1px solid ${gridLine}`;
+        }
+      }}
       style={{
         background: selected ? boundary.color + "12" : "transparent",
         border: `1px solid ${selected ? boundary.color + "35" : gridLine}`,
+        outline: "none",
       }}
     >
       <div
@@ -1171,149 +1188,63 @@ export function PlanetaryBoundariesPage() {
   const safe = BOUNDARIES.filter((b) => b.status === "safe").length;
 
   return (
-    <div
-      className="min-h-screen w-full animate-fade-in"
-      style={{ background: isLight ? "#f8fafc" : "#0b0b14", color: bodyText }}
-    >
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-4 flex flex-col gap-4">
-        {/* ── HERO ──────────────────────────────────────────────────────── */}
-        <div
-          className="rounded-2xl px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 overflow-hidden relative"
-          style={{
-            background: isLight
-              ? "linear-gradient(130deg, #f0fdf4 0%, #dcfce7 40%, #d1fae5 70%, #ecfdf5 100%)"
-              : "linear-gradient(130deg, #052e16 0%, #0b0b14 50%, #022c22 100%)",
-            border: isLight
-              ? "1px solid rgba(34,197,94,0.25)"
-              : "1px solid rgba(34,197,94,0.2)",
-          }}
-        >
-          <div
-            className="absolute inset-0 pointer-events-none opacity-[0.04]"
-            style={{
-              backgroundImage: `radial-gradient(circle, ${isLight ? "#16a34a" : "#22c55e"} 1px, transparent 1px)`,
-              backgroundSize: "28px 28px",
-            }}
-          />
-          <div className="relative">
-            <div className="flex items-center gap-2 mb-1">
-              <Leaf
-                size={12}
-                weight="fill"
-                style={{ color: isLight ? "#16a34a" : "#4ade80" }}
-              />
-              <span
-                className="text-[10px] font-mono uppercase tracking-widest"
-                style={{ color: isLight ? "#16a34a" : "#4ade80" }}
-              >
-                Earth System Science · Ecological Boundaries
-              </span>
-            </div>
-            <h1
-              className="text-xl sm:text-2xl font-bold font-sans leading-tight"
-              style={{ color: headText }}
-            >
+    <div className="min-h-screen bg-background text-foreground animate-fade-in">
+      <div className="px-6 py-8 max-w-screen-2xl mx-auto">
+        {/* ── HERO HEADER ───────────────────────────────────────────────── */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2.5 bg-green-500/15 rounded-lg">
+            <Leaf size={26} weight="fill" className="text-green-500" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold font-sans text-foreground">
               Planetary Boundaries
             </h1>
-            <p
-              className="text-xs font-sans mt-1 max-w-lg"
-              style={{ color: mutedText }}
-            >
-              The nine processes that regulate the stability and resilience of
-              the Earth System. Crossing these boundaries risks destabilising
-              the Holocene conditions under which human civilisation developed.
+            <p className="text-muted-foreground text-sm font-sans">
+              Nine Earth-system processes that define the safe operating space
+              for humanity
             </p>
-          </div>
-          <div className="relative flex flex-wrap gap-2 shrink-0">
-            {[
-              { v: `${highRisk}`, l: "Transgressed", col: "#ef4444" },
-              { v: `${increasing}`, l: "At Risk", col: "#f59e0b" },
-              { v: `${safe}`, l: "Within Limits", col: "#22c55e" },
-              {
-                v: "2024",
-                l: "Data Year",
-                col: isLight ? "#0f172a" : "#f1f0ff",
-              },
-            ].map((s) => (
-              <div
-                key={s.l}
-                className="rounded-xl px-3 py-1.5 text-center"
-                style={{
-                  background: isLight
-                    ? "rgba(255,255,255,0.7)"
-                    : "rgba(255,255,255,0.07)",
-                  border: isLight
-                    ? "1px solid rgba(34,197,94,0.18)"
-                    : "1px solid rgba(255,255,255,0.1)",
-                }}
-              >
-                <p
-                  className="text-sm font-bold font-mono"
-                  style={{ color: s.col }}
-                >
-                  {s.v}
-                </p>
-                <p
-                  className="text-[10px] font-sans"
-                  style={{ color: mutedText }}
-                >
-                  {s.l}
-                </p>
-              </div>
-            ))}
           </div>
         </div>
 
-        {/* ── KPI PILLS ─────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {/* ── KPI STRIP ─────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
             {
               label: "Boundaries Transgressed",
               value: `${highRisk} / 9`,
-              color: "#ef4444",
-              sub: "As of 2024",
+              color: "text-red-500",
+              sub: "As of 2026",
             },
             {
               label: "CO₂ Concentration",
-              value: "424 ppm",
-              color: "#f97316",
+              value: "428 ppm",
+              color: "text-orange-500",
               sub: "Safe: 350 ppm",
             },
             {
               label: "Species Loss Rate",
               value: "100×",
-              color: "#dc2626",
+              color: "text-red-600",
               sub: "Natural background",
             },
             {
               label: "Reactive N Loading",
-              value: "150 Tg/yr",
-              color: "#f59e0b",
+              value: "152 Tg/yr",
+              color: "text-amber-500",
               sub: "Limit: 62 Tg/yr",
             },
           ].map((k) => (
             <div
               key={k.label}
-              className="rounded-2xl px-5 py-4 flex flex-col gap-1.5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
+              className="bg-card border border-border rounded-lg p-4"
             >
-              <p
-                className="text-[11px] font-sans uppercase tracking-widest"
-                style={{ color: mutedText }}
-              >
+              <p className="text-xs text-muted-foreground font-sans">
                 {k.label}
               </p>
-              <p
-                className="text-xl font-bold font-mono"
-                style={{ color: k.color }}
-              >
+              <p className={`text-xl font-bold font-mono ${k.color}`}>
                 {k.value}
               </p>
-              <p className="text-[10px] font-mono" style={{ color: mutedText }}>
+              <p className="text-xs text-muted-foreground font-sans mt-0.5">
                 {k.sub}
               </p>
             </div>
@@ -1321,21 +1252,11 @@ export function PlanetaryBoundariesPage() {
         </div>
 
         {/* ── MAIN CONTENT GRID ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
           {/* LEFT: Boundary list */}
-          <div className="lg:col-span-3 flex flex-col gap-2">
-            <div
-              className="rounded-2xl p-4"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest mb-3"
-                style={{ color: mutedText }}
-              >
+          <div className="lg:col-span-3 flex flex-col gap-4">
+            <div className="bg-card border border-border rounded-2xl p-4 flex-1">
+              <p className="text-[10px] font-mono uppercase tracking-widest mb-3 text-muted-foreground">
                 All Nine Boundaries
               </p>
               <div className="flex flex-col gap-1.5">
@@ -1355,18 +1276,8 @@ export function PlanetaryBoundariesPage() {
             </div>
 
             {/* Legend */}
-            <div
-              className="rounded-2xl p-4"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest mb-3"
-                style={{ color: mutedText }}
-              >
+            <div className="bg-card border border-border rounded-2xl p-4">
+              <p className="text-[10px] font-mono uppercase tracking-widest mb-3 text-muted-foreground">
                 Legend
               </p>
               <div className="flex flex-col gap-2">
@@ -1376,19 +1287,13 @@ export function PlanetaryBoundariesPage() {
                       className="w-3 h-3 rounded-full shrink-0"
                       style={{ background: cfg.color }}
                     />
-                    <span
-                      className="text-[10px] font-sans"
-                      style={{ color: headText }}
-                    >
+                    <span className="text-[10px] font-sans text-foreground">
                       {cfg.label}
                     </span>
                   </div>
                 ))}
               </div>
-              <div
-                className="mt-3 pt-3 text-[10px] font-sans leading-relaxed"
-                style={{ borderTop: `1px solid ${gridLine}`, color: mutedText }}
-              >
+              <div className="mt-3 pt-3 text-[10px] font-sans leading-relaxed text-muted-foreground border-t border-border">
                 The inner green circle represents the Safe Operating Space.
                 Segments extending beyond the dashed boundary line indicate
                 transgression.
@@ -1398,33 +1303,17 @@ export function PlanetaryBoundariesPage() {
 
           {/* CENTER: Radial Chart */}
           <div className="lg:col-span-5 flex flex-col gap-4">
-            <div
-              className="rounded-2xl p-4 flex flex-col"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
+            <div className="bg-card border border-border rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p
-                    className="text-[10px] font-mono uppercase tracking-widest"
-                    style={{ color: isLight ? "#16a34a" : "#4ade80" }}
-                  >
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-green-500">
                     Earth System Status
                   </p>
-                  <h2
-                    className="text-sm font-bold font-sans"
-                    style={{ color: headText }}
-                  >
+                  <h2 className="text-sm font-bold font-sans text-foreground">
                     Planetary Boundaries Dashboard
                   </h2>
                 </div>
-                <span
-                  className="text-[9px] font-mono px-2 py-1 rounded-full"
-                  style={{ background: "#ef444415", color: "#ef4444" }}
-                >
+                <span className="text-[9px] font-mono px-2 py-1 rounded-full bg-red-500/10 text-red-500">
                   {highRisk} of 9 exceeded
                 </span>
               </div>
@@ -1434,34 +1323,18 @@ export function PlanetaryBoundariesPage() {
                 onSelect={setSelectedId}
                 isLight={isLight}
               />
-              <p
-                className="text-[10px] font-sans mt-2 text-center"
-                style={{ color: mutedText }}
-              >
+              <p className="text-[10px] font-sans mt-2 text-center text-muted-foreground">
                 Click any segment to explore data. Red = transgressed, amber =
                 increasing risk, green = within limits.
               </p>
             </div>
 
             {/* Geopolitical Matrix */}
-            <div
-              className="rounded-2xl p-5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest mb-1"
-                style={{ color: isLight ? "#16a34a" : "#4ade80" }}
-              >
+            <div className="bg-card border border-border rounded-2xl p-5 flex-1">
+              <p className="text-[10px] font-mono uppercase tracking-widest mb-1 text-green-500">
                 Geopolitical Risk Matrix
               </p>
-              <h2
-                className="text-sm font-bold font-sans mb-4"
-                style={{ color: headText }}
-              >
+              <h2 className="text-sm font-bold font-sans mb-4 text-foreground">
                 Boundaries ↔ Global Security Linkages
               </h2>
               <div className="flex flex-col gap-0">
@@ -1533,28 +1406,15 @@ export function PlanetaryBoundariesPage() {
                       style={{ background: row.color }}
                     />
                     <div className="flex-1 min-w-0">
-                      <p
-                        className="text-[11px] font-semibold font-sans truncate"
-                        style={{ color: headText }}
-                      >
+                      <p className="text-[11px] font-semibold font-sans text-foreground">
                         {row.boundary}
                       </p>
-                      <p
-                        className="text-[9px] font-sans truncate"
-                        style={{ color: mutedText }}
-                      >
+                      <p className="text-[9px] font-sans text-muted-foreground">
                         {row.risk}
                       </p>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <div
-                        className="w-14 h-1.5 rounded-full overflow-hidden"
-                        style={{
-                          background: isLight
-                            ? "rgba(0,0,0,0.07)"
-                            : "rgba(255,255,255,0.08)",
-                        }}
-                      >
+                      <div className="w-14 h-1.5 rounded-full overflow-hidden bg-muted">
                         <div
                           className="h-full rounded-full"
                           style={{
@@ -1573,10 +1433,7 @@ export function PlanetaryBoundariesPage() {
                   </div>
                 ))}
               </div>
-              <p
-                className="text-[10px] font-sans mt-3"
-                style={{ color: mutedText }}
-              >
+              <p className="text-[10px] font-sans mt-3 text-muted-foreground">
                 Security index reflects geopolitical instability risk per
                 boundary. Composite of expert consensus and conflict literature.
               </p>
@@ -1584,16 +1441,8 @@ export function PlanetaryBoundariesPage() {
           </div>
 
           {/* RIGHT: Detail panel */}
-          <div className="lg:col-span-4 flex flex-col gap-4">
-            <div
-              className="rounded-2xl p-5 flex-1 overflow-y-auto"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-                maxHeight: "calc(100vh - 180px)",
-              }}
-            >
+          <div className="lg:col-span-4 flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
+            <div className="bg-card border border-border rounded-2xl p-5">
               <BoundaryDetailPanel
                 boundary={selected}
                 isLight={isLight}
@@ -1605,41 +1454,21 @@ export function PlanetaryBoundariesPage() {
             </div>
 
             {/* Science Note */}
-            <div
-              className="rounded-2xl p-4"
-              style={{
-                background: isLight
-                  ? "rgba(34,197,94,0.05)"
-                  : "rgba(34,197,94,0.07)",
-                border: isLight
-                  ? "1px solid rgba(34,197,94,0.18)"
-                  : "1px solid rgba(34,197,94,0.2)",
-              }}
-            >
+            <div className="bg-green-500/5 border border-green-500/20 rounded-2xl p-4">
               <div className="flex items-start gap-2.5">
                 <Info
                   size={14}
                   weight="fill"
-                  style={{
-                    color: isLight ? "#16a34a" : "#4ade80",
-                    flexShrink: 0,
-                    marginTop: 1,
-                  }}
+                  className="text-green-500 shrink-0 mt-0.5"
                 />
                 <div>
-                  <p
-                    className="text-[11px] font-bold font-sans mb-1"
-                    style={{ color: isLight ? "#15803d" : "#4ade80" }}
-                  >
+                  <p className="text-[11px] font-bold font-sans mb-1 text-green-600 dark:text-green-400">
                     About Planetary Boundaries
                   </p>
-                  <p
-                    className="text-[10px] font-sans leading-relaxed"
-                    style={{ color: mutedText }}
-                  >
+                  <p className="text-[10px] font-sans leading-relaxed text-muted-foreground">
                     Framework introduced by Johan Rockström and colleagues in
                     2009 (Nature). Updated in 2015 (Science) and 2023. As of
-                    2024, six of nine boundaries are transgressed. Biosphere
+                    2026, six of nine boundaries are transgressed. Biosphere
                     integrity and novel entities are most severely exceeded.
                   </p>
                 </div>
@@ -1649,7 +1478,7 @@ export function PlanetaryBoundariesPage() {
         </div>
 
         {/* ── ECOLOGICAL TRENDS SECTION ─────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {[
             {
               title: "Tipping Points & Cascades",
@@ -1744,12 +1573,7 @@ export function PlanetaryBoundariesPage() {
           ].map((section) => (
             <div
               key={section.title}
-              className="rounded-2xl p-5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
+              className="bg-card border border-border rounded-2xl p-5"
             >
               <p
                 className="text-[10px] font-mono uppercase tracking-widest mb-3"
@@ -1794,9 +1618,1634 @@ export function PlanetaryBoundariesPage() {
           ))}
         </div>
 
+        {/* ── PUBLIC ENVIRONMENTAL DATA ─────────────────────────────────── */}
+        {/* Section header */}
+        <div className="flex items-center gap-3 mb-4">
+          <Globe size={16} weight="fill" className="text-sky-500" />
+          <span className="text-[11px] font-mono uppercase tracking-widest text-sky-500">
+            Most Publicly Inquired Environmental Data
+          </span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+
+        {/* Row 1 — Air Quality + Global Temp + Sea Level */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          {/* Air Quality Index — Global Cities */}
+          <div className="bg-card border border-border rounded-2xl p-5">
+            <p
+              className="text-[10px] font-mono uppercase tracking-widest mb-0.5"
+              style={{ color: mutedText }}
+            >
+              Air Quality Index
+            </p>
+            <h3
+              className="text-sm font-bold font-sans mb-3"
+              style={{ color: headText }}
+            >
+              Major Cities — PM2.5 / AQI 2026
+            </h3>
+            <div className="flex flex-col gap-0">
+              {[
+                {
+                  city: "Delhi, India",
+                  aqi: 189,
+                  pm25: 124,
+                  cat: "Very Unhealthy",
+                  color: "#dc2626",
+                },
+                {
+                  city: "Lahore, Pakistan",
+                  aqi: 168,
+                  pm25: 108,
+                  cat: "Unhealthy",
+                  color: "#ef4444",
+                },
+                {
+                  city: "Dhaka, Bangladesh",
+                  aqi: 155,
+                  pm25: 97,
+                  cat: "Unhealthy",
+                  color: "#ef4444",
+                },
+                {
+                  city: "Beijing, China",
+                  aqi: 102,
+                  pm25: 58,
+                  cat: "Moderate",
+                  color: "#f59e0b",
+                },
+                {
+                  city: "Jakarta, Indonesia",
+                  aqi: 96,
+                  pm25: 51,
+                  cat: "Moderate",
+                  color: "#f59e0b",
+                },
+                {
+                  city: "Cairo, Egypt",
+                  aqi: 88,
+                  pm25: 44,
+                  cat: "Moderate",
+                  color: "#f59e0b",
+                },
+                {
+                  city: "London, UK",
+                  aqi: 42,
+                  pm25: 12,
+                  cat: "Good",
+                  color: "#22c55e",
+                },
+                {
+                  city: "New York, US",
+                  aqi: 38,
+                  pm25: 9,
+                  cat: "Good",
+                  color: "#22c55e",
+                },
+                {
+                  city: "Sydney, Australia",
+                  aqi: 22,
+                  pm25: 5,
+                  cat: "Good",
+                  color: "#10b981",
+                },
+              ].map((row, i, arr) => (
+                <div
+                  key={row.city}
+                  className="flex items-center gap-3 py-2"
+                  style={{
+                    borderBottom:
+                      i < arr.length - 1 ? `1px solid ${gridLine}` : "none",
+                  }}
+                >
+                  <div
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ background: row.color }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-[11px] font-semibold font-sans truncate"
+                      style={{ color: headText }}
+                    >
+                      {row.city}
+                    </p>
+                    <p
+                      className="text-[9px] font-mono"
+                      style={{ color: row.color }}
+                    >
+                      {row.cat}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p
+                      className="text-[13px] font-bold font-mono"
+                      style={{ color: row.color }}
+                    >
+                      {row.aqi}
+                    </p>
+                    <p
+                      className="text-[8px] font-mono"
+                      style={{ color: mutedText }}
+                    >
+                      AQI · {row.pm25} μg/m³
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p
+              className="text-[9px] font-sans mt-3"
+              style={{ color: mutedText }}
+            >
+              Source: IQAir World Air Quality Report 2024 · WHO PM2.5 guideline:
+              5 μg/m³
+            </p>
+          </div>
+
+          {/* Global Temperature Anomaly */}
+          <div className="bg-card border border-border rounded-2xl p-5">
+            <p
+              className="text-[10px] font-mono uppercase tracking-widest mb-0.5"
+              style={{ color: mutedText }}
+            >
+              Global Temperature
+            </p>
+            <h3
+              className="text-sm font-bold font-sans mb-3"
+              style={{ color: headText }}
+            >
+              Anomaly vs. 1850–1900 Baseline
+            </h3>
+            <div className="flex flex-col gap-2 mb-4">
+              {[
+                { year: "1980", anomaly: +0.27, bar: 17 },
+                { year: "1990", anomaly: +0.44, bar: 27 },
+                { year: "2000", anomaly: +0.42, bar: 26 },
+                { year: "2010", anomaly: +0.63, bar: 39 },
+                { year: "2015", anomaly: +0.87, bar: 54 },
+                { year: "2020", anomaly: +1.02, bar: 63 },
+                { year: "2022", anomaly: +1.15, bar: 71 },
+                { year: "2023", anomaly: +1.45, bar: 90 },
+                { year: "2024", anomaly: +1.54, bar: 96 },
+                { year: "2025", anomaly: +1.58, bar: 98 },
+                { year: "2026 (est.)", anomaly: +1.61, bar: 100 },
+              ].map((row) => (
+                <div key={row.year} className="flex items-center gap-2">
+                  <span
+                    className="text-[9px] font-mono w-20 shrink-0"
+                    style={{ color: mutedText }}
+                  >
+                    {row.year}
+                  </span>
+                  <div
+                    className="flex-1 h-3 rounded-full overflow-hidden"
+                    style={{
+                      background: isLight
+                        ? "rgba(0,0,0,0.07)"
+                        : "rgba(255,255,255,0.07)",
+                    }}
+                  >
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${row.bar}%`,
+                        background:
+                          row.anomaly > 1.0
+                            ? "#ef4444"
+                            : row.anomaly > 0.6
+                              ? "#f97316"
+                              : "#f59e0b",
+                      }}
+                    />
+                  </div>
+                  <span
+                    className="text-[10px] font-bold font-mono w-12 text-right shrink-0"
+                    style={{
+                      color:
+                        row.anomaly > 1.0
+                          ? "#ef4444"
+                          : row.anomaly > 0.6
+                            ? "#f97316"
+                            : "#f59e0b",
+                    }}
+                  >
+                    +{row.anomaly}°C
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div
+              className="rounded-xl px-3 py-2.5 mt-2"
+              style={{ background: "#ef444412", border: "1px solid #ef444425" }}
+            >
+              <p
+                className="text-[10px] font-bold font-sans"
+                style={{ color: "#ef4444" }}
+              >
+                2024–2025 confirmed hottest consecutive years in recorded
+                history
+              </p>
+              <p
+                className="text-[9px] font-sans mt-0.5"
+                style={{ color: mutedText }}
+              >
+                Paris Agreement 1.5°C limit officially breached as annual mean
+                in 2024
+              </p>
+            </div>
+            <p
+              className="text-[9px] font-sans mt-3"
+              style={{ color: mutedText }}
+            >
+              Source: Copernicus C3S / NASA GISS / NOAA GlobalTemp 2026
+            </p>
+          </div>
+
+          {/* Sea Level Rise */}
+          <div className="bg-card border border-border rounded-2xl p-5">
+            <p
+              className="text-[10px] font-mono uppercase tracking-widest mb-0.5"
+              style={{ color: mutedText }}
+            >
+              Sea Level Rise
+            </p>
+            <h3
+              className="text-sm font-bold font-sans mb-3"
+              style={{ color: headText }}
+            >
+              Global Mean Sea Level (GMSL)
+            </h3>
+            <div className="flex flex-col gap-2 mb-3">
+              {[
+                {
+                  label: "Rise since 1993 (satellite era)",
+                  value: "+115 mm",
+                  color: "#3b82f6",
+                  sub: "Measured by altimetry",
+                },
+                {
+                  label: "Current rate (2026)",
+                  value: "+4.8 mm/yr",
+                  color: "#ef4444",
+                  sub: "Accelerating from 3.1 mm/yr in 1990s",
+                },
+                {
+                  label: "Projected rise by 2050 (RCP4.5)",
+                  value: "+25–30 cm",
+                  color: "#f97316",
+                  sub: "Above 2000 baseline",
+                },
+                {
+                  label: "Projected rise by 2100 (RCP8.5)",
+                  value: "+0.6–1.1 m",
+                  color: "#dc2626",
+                  sub: "High-end scenario",
+                },
+                {
+                  label: "Thermal expansion contribution",
+                  value: "~43%",
+                  color: "#6366f1",
+                  sub: "Of total GMSL rise",
+                },
+                {
+                  label: "Ice sheet melt contribution",
+                  value: "~36%",
+                  color: "#06b6d4",
+                  sub: "Greenland + Antarctica",
+                },
+              ].map((row) => (
+                <div
+                  key={row.label}
+                  className="rounded-lg px-3 py-2"
+                  style={{
+                    background: isLight
+                      ? "rgba(0,0,0,0.025)"
+                      : "rgba(255,255,255,0.04)",
+                    border: `1px solid ${gridLine}`,
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <p
+                      className="text-[10px] font-sans font-semibold"
+                      style={{ color: headText }}
+                    >
+                      {row.label}
+                    </p>
+                    <p
+                      className="text-sm font-bold font-mono"
+                      style={{ color: row.color }}
+                    >
+                      {row.value}
+                    </p>
+                  </div>
+                  <p
+                    className="text-[9px] font-sans"
+                    style={{ color: mutedText }}
+                  >
+                    {row.sub}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div
+              className="rounded-xl px-3 py-2.5"
+              style={{ background: "#3b82f612", border: "1px solid #3b82f625" }}
+            >
+              <p
+                className="text-[10px] font-bold font-sans"
+                style={{ color: "#3b82f6" }}
+              >
+                ~1 billion people live in low-elevation coastal zones
+              </p>
+              <p
+                className="text-[9px] font-sans mt-0.5"
+                style={{ color: mutedText }}
+              >
+                Bangladesh, Vietnam, Indonesia most exposed to inundation by
+                2100
+              </p>
+            </div>
+            <p
+              className="text-[9px] font-sans mt-3"
+              style={{ color: mutedText }}
+            >
+              Source: NASA Sea Level Change / IPCC SROCC / Copernicus 2026
+            </p>
+          </div>
+        </div>
+
+        {/* Row 2 — Arctic Ice + Deforestation + Plastic Pollution */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          {/* Arctic & Antarctic Ice */}
+          <div className="bg-card border border-border rounded-2xl p-5">
+            <p
+              className="text-[10px] font-mono uppercase tracking-widest mb-0.5"
+              style={{ color: mutedText }}
+            >
+              Polar Ice Coverage
+            </p>
+            <h3
+              className="text-sm font-bold font-sans mb-3"
+              style={{ color: headText }}
+            >
+              Arctic &amp; Antarctic Ice Extent 2026
+            </h3>
+            <div className="flex flex-col gap-3 mb-3">
+              {[
+                {
+                  label: "Arctic Sea Ice (Sept 2023 minimum)",
+                  value: "4.23 M km²",
+                  prev: "Lowest on record",
+                  color: "#06b6d4",
+                  pct: 28,
+                },
+                {
+                  label: "Arctic Sea Ice (1980s avg. minimum)",
+                  value: "7.05 M km²",
+                  prev: "Historical baseline",
+                  color: "#22c55e",
+                  pct: 47,
+                },
+                {
+                  label: "Antarctic Sea Ice (Feb 2023)",
+                  value: "1.91 M km²",
+                  prev: "Record low — 1M below avg.",
+                  color: "#ef4444",
+                  pct: 13,
+                },
+                {
+                  label: "Greenland Ice Mass Loss (2023)",
+                  value: "−280 Gt/yr",
+                  prev: "Accelerating since 2000s",
+                  color: "#f97316",
+                  pct: 65,
+                },
+                {
+                  label: "Arctic warming rate",
+                  value: "×3–4 faster",
+                  prev: "Than global mean",
+                  color: "#dc2626",
+                  pct: 90,
+                },
+              ].map((row) => (
+                <div key={row.label}>
+                  <div className="flex items-center justify-between mb-1">
+                    <p
+                      className="text-[10px] font-sans font-semibold truncate pr-2"
+                      style={{ color: headText }}
+                    >
+                      {row.label}
+                    </p>
+                    <p
+                      className="text-[11px] font-bold font-mono shrink-0"
+                      style={{ color: row.color }}
+                    >
+                      {row.value}
+                    </p>
+                  </div>
+                  <div
+                    className="w-full h-2 rounded-full overflow-hidden"
+                    style={{
+                      background: isLight
+                        ? "rgba(0,0,0,0.07)"
+                        : "rgba(255,255,255,0.07)",
+                    }}
+                  >
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${row.pct}%`, background: row.color }}
+                    />
+                  </div>
+                  <p
+                    className="text-[8px] font-mono mt-0.5"
+                    style={{ color: mutedText }}
+                  >
+                    {row.prev}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p
+              className="text-[9px] font-sans mt-2"
+              style={{ color: mutedText }}
+            >
+              Source: NSIDC / ESA CryoSat / NASA GRACE-FO 2026
+            </p>
+          </div>
+
+          {/* Deforestation Tracker */}
+          <div className="bg-card border border-border rounded-2xl p-5">
+            <p
+              className="text-[10px] font-mono uppercase tracking-widest mb-0.5"
+              style={{ color: mutedText }}
+            >
+              Deforestation
+            </p>
+            <h3
+              className="text-sm font-bold font-sans mb-3"
+              style={{ color: headText }}
+            >
+              Global Forest Loss Tracker 2025
+            </h3>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {[
+                {
+                  label: "Tropical forest lost (2023)",
+                  value: "3.7M ha",
+                  color: "#ef4444",
+                },
+                {
+                  label: "Brazil Amazon loss",
+                  value: "1.1M ha",
+                  color: "#f97316",
+                },
+                {
+                  label: "DRC Congo Basin loss",
+                  value: "0.49M ha",
+                  color: "#f59e0b",
+                },
+                { label: "Bolivia loss", value: "0.39M ha", color: "#f97316" },
+                {
+                  label: "Trees lost per minute",
+                  value: "~25 ha",
+                  color: "#dc2626",
+                },
+                {
+                  label: "Global tree cover (change)",
+                  value: "−2.3%",
+                  color: "#ef4444",
+                },
+              ].map((kpi) => (
+                <div
+                  key={kpi.label}
+                  className="rounded-xl px-3 py-2.5"
+                  style={{
+                    background: isLight
+                      ? "rgba(0,0,0,0.025)"
+                      : "rgba(255,255,255,0.04)",
+                    border: `1px solid ${gridLine}`,
+                  }}
+                >
+                  <p
+                    className="text-[16px] font-bold font-mono"
+                    style={{ color: kpi.color }}
+                  >
+                    {kpi.value}
+                  </p>
+                  <p
+                    className="text-[9px] font-sans leading-tight"
+                    style={{ color: mutedText }}
+                  >
+                    {kpi.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col gap-0">
+              {[
+                {
+                  region: "Southeast Asia",
+                  driver: "Palm oil & pulpwood",
+                  loss: 88,
+                },
+                {
+                  region: "South America",
+                  driver: "Cattle ranching & soy",
+                  loss: 95,
+                },
+                {
+                  region: "Central Africa",
+                  driver: "Subsistence & logging",
+                  loss: 72,
+                },
+                {
+                  region: "South Asia",
+                  driver: "Agriculture expansion",
+                  loss: 61,
+                },
+              ].map((row, i, arr) => (
+                <div
+                  key={row.region}
+                  className="flex items-center gap-3 py-2"
+                  style={{
+                    borderBottom:
+                      i < arr.length - 1 ? `1px solid ${gridLine}` : "none",
+                  }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-[10px] font-semibold font-sans"
+                      style={{ color: headText }}
+                    >
+                      {row.region}
+                    </p>
+                    <p
+                      className="text-[9px] font-sans"
+                      style={{ color: mutedText }}
+                    >
+                      {row.driver}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <div
+                      className="w-16 h-1.5 rounded-full overflow-hidden"
+                      style={{
+                        background: isLight
+                          ? "rgba(0,0,0,0.07)"
+                          : "rgba(255,255,255,0.07)",
+                      }}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${row.loss}%`, background: "#ef4444" }}
+                      />
+                    </div>
+                    <span
+                      className="text-[9px] font-mono w-6 text-right"
+                      style={{ color: "#ef4444" }}
+                    >
+                      {row.loss}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p
+              className="text-[9px] font-sans mt-3"
+              style={{ color: mutedText }}
+            >
+              Source: Global Forest Watch / Hansen et al. 2025 / PRODES/INPE
+            </p>
+          </div>
+
+          {/* Plastic Pollution */}
+          <div className="bg-card border border-border rounded-2xl p-5">
+            <p
+              className="text-[10px] font-mono uppercase tracking-widest mb-0.5"
+              style={{ color: mutedText }}
+            >
+              Plastic Pollution
+            </p>
+            <h3
+              className="text-sm font-bold font-sans mb-3"
+              style={{ color: headText }}
+            >
+              Global Plastic Waste 2026
+            </h3>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {[
+                {
+                  label: "Plastic produced annually",
+                  value: "430 MT",
+                  color: "#dc2626",
+                },
+                {
+                  label: "Ocean plastic stock",
+                  value: "~170 MT",
+                  color: "#3b82f6",
+                },
+                {
+                  label: "New ocean input per year",
+                  value: "11 MT",
+                  color: "#f97316",
+                },
+                {
+                  label: "Recycling rate (global)",
+                  value: "9%",
+                  color: "#f59e0b",
+                },
+                {
+                  label: "Single-use plastic share",
+                  value: "36%",
+                  color: "#ef4444",
+                },
+                {
+                  label: "Microplastic in ocean",
+                  value: "24.4 T",
+                  color: "#6366f1",
+                },
+              ].map((kpi) => (
+                <div
+                  key={kpi.label}
+                  className="rounded-xl px-3 py-2.5"
+                  style={{
+                    background: isLight
+                      ? "rgba(0,0,0,0.025)"
+                      : "rgba(255,255,255,0.04)",
+                    border: `1px solid ${gridLine}`,
+                  }}
+                >
+                  <p
+                    className="text-[16px] font-bold font-mono"
+                    style={{ color: kpi.color }}
+                  >
+                    {kpi.value}
+                  </p>
+                  <p
+                    className="text-[9px] font-sans leading-tight"
+                    style={{ color: mutedText }}
+                  >
+                    {kpi.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col gap-0">
+              {[
+                {
+                  country: "Philippines",
+                  share: 36,
+                  note: "Top ocean polluter by mass",
+                },
+                {
+                  country: "India",
+                  share: 13,
+                  note: "Ganges river plastic source",
+                },
+                {
+                  country: "Malaysia",
+                  share: 9,
+                  note: "Import & domestic waste",
+                },
+                {
+                  country: "China",
+                  share: 8,
+                  note: "Reduced from 28% in 2010",
+                },
+                {
+                  country: "Indonesia",
+                  share: 7,
+                  note: "Java & Sumatra coastlines",
+                },
+              ].map((row, i, arr) => (
+                <div
+                  key={row.country}
+                  className="flex items-center gap-3 py-2"
+                  style={{
+                    borderBottom:
+                      i < arr.length - 1 ? `1px solid ${gridLine}` : "none",
+                  }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-[10px] font-semibold font-sans"
+                      style={{ color: headText }}
+                    >
+                      {row.country}
+                    </p>
+                    <p
+                      className="text-[9px] font-sans"
+                      style={{ color: mutedText }}
+                    >
+                      {row.note}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <div
+                      className="w-16 h-1.5 rounded-full overflow-hidden"
+                      style={{
+                        background: isLight
+                          ? "rgba(0,0,0,0.07)"
+                          : "rgba(255,255,255,0.07)",
+                      }}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${row.share * 2.5}%`,
+                          background: "#3b82f6",
+                        }}
+                      />
+                    </div>
+                    <span
+                      className="text-[9px] font-mono w-6 text-right"
+                      style={{ color: "#3b82f6" }}
+                    >
+                      {row.share}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p
+              className="text-[9px] font-sans mt-3"
+              style={{ color: mutedText }}
+            >
+              Source: Our World in Data / UNEP 2025 / Science (Borrelle et al.)
+            </p>
+          </div>
+        </div>
+
+        {/* Row 3 — Renewable Energy + Extreme Weather + Water Stress */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          {/* Renewable Energy Progress */}
+          <div className="bg-card border border-border rounded-2xl p-5">
+            <p
+              className="text-[10px] font-mono uppercase tracking-widest mb-0.5"
+              style={{ color: mutedText }}
+            >
+              Clean Energy
+            </p>
+            <h3
+              className="text-sm font-bold font-sans mb-3"
+              style={{ color: headText }}
+            >
+              Renewable Energy Share by Country 2026
+            </h3>
+            <div className="flex flex-col gap-2 mb-3">
+              {[
+                {
+                  country: "Iceland",
+                  pct: 99,
+                  source: "Geothermal + Hydro",
+                  color: "#10b981",
+                },
+                {
+                  country: "Norway",
+                  pct: 98,
+                  source: "Hydropower",
+                  color: "#10b981",
+                },
+                {
+                  country: "Denmark",
+                  pct: 88,
+                  source: "Wind dominant",
+                  color: "#22c55e",
+                },
+                {
+                  country: "Germany",
+                  pct: 62,
+                  source: "Wind + Solar",
+                  color: "#84cc16",
+                },
+                {
+                  country: "China",
+                  pct: 38,
+                  source: "Fastest growing",
+                  color: "#f59e0b",
+                },
+                {
+                  country: "USA",
+                  pct: 28,
+                  source: "Wind + Solar surge",
+                  color: "#f59e0b",
+                },
+                {
+                  country: "India",
+                  pct: 27,
+                  source: "Solar expansion",
+                  color: "#f97316",
+                },
+                {
+                  country: "Saudi Arabia",
+                  pct: 6,
+                  source: "Vision 2030 solar",
+                  color: "#ef4444",
+                },
+                {
+                  country: "World avg.",
+                  pct: 34,
+                  source: "IEA 2026",
+                  color: "#3b82f6",
+                },
+              ].map((row) => (
+                <div key={row.country} className="flex items-center gap-2">
+                  <span
+                    className="text-[9px] font-sans w-24 shrink-0 font-semibold truncate"
+                    style={{ color: headText }}
+                  >
+                    {row.country}
+                  </span>
+                  <div
+                    className="flex-1 h-2.5 rounded-full overflow-hidden"
+                    style={{
+                      background: isLight
+                        ? "rgba(0,0,0,0.07)"
+                        : "rgba(255,255,255,0.07)",
+                    }}
+                  >
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${row.pct}%`, background: row.color }}
+                    />
+                  </div>
+                  <span
+                    className="text-[10px] font-bold font-mono w-8 text-right shrink-0"
+                    style={{ color: row.color }}
+                  >
+                    {row.pct}%
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div
+              className="rounded-xl px-3 py-2.5 mt-1"
+              style={{ background: "#22c55e12", border: "1px solid #22c55e25" }}
+            >
+              <p
+                className="text-[10px] font-bold font-sans"
+                style={{ color: "#22c55e" }}
+              >
+                Solar capacity has grown ×350 since 2010
+              </p>
+              <p
+                className="text-[9px] font-sans mt-0.5"
+                style={{ color: mutedText }}
+              >
+                Cost of solar PV fell 92% over the same period · IEA 2026
+              </p>
+            </div>
+            <p
+              className="text-[9px] font-sans mt-3"
+              style={{ color: mutedText }}
+            >
+              Source: IEA World Energy Outlook 2026 / IRENA 2026
+            </p>
+          </div>
+
+          {/* Extreme Weather Events */}
+          <div className="bg-card border border-border rounded-2xl p-5">
+            <p
+              className="text-[10px] font-mono uppercase tracking-widest mb-0.5"
+              style={{ color: mutedText }}
+            >
+              Extreme Weather
+            </p>
+            <h3
+              className="text-sm font-bold font-sans mb-3"
+              style={{ color: headText }}
+            >
+              Climate Disaster Statistics 2025–2026
+            </h3>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {[
+                {
+                  label: "Billion-dollar disasters (2025)",
+                  value: "34",
+                  color: "#ef4444",
+                },
+                {
+                  label: "Economic losses (2025)",
+                  value: "$320B",
+                  color: "#dc2626",
+                },
+                {
+                  label: "Flood events (2025)",
+                  value: "198",
+                  color: "#3b82f6",
+                },
+                {
+                  label: "Wildfires (2025, global)",
+                  value: "341K",
+                  color: "#f97316",
+                },
+                {
+                  label: "Extreme heat days (US 2026)",
+                  value: "+18%",
+                  color: "#f59e0b",
+                },
+                {
+                  label: "Cat. 4–5 hurricanes (2025)",
+                  value: "11",
+                  color: "#dc2626",
+                },
+              ].map((kpi) => (
+                <div
+                  key={kpi.label}
+                  className="rounded-xl px-3 py-2.5"
+                  style={{
+                    background: isLight
+                      ? "rgba(0,0,0,0.025)"
+                      : "rgba(255,255,255,0.04)",
+                    border: `1px solid ${gridLine}`,
+                  }}
+                >
+                  <p
+                    className="text-[16px] font-bold font-mono"
+                    style={{ color: kpi.color }}
+                  >
+                    {kpi.value}
+                  </p>
+                  <p
+                    className="text-[9px] font-sans leading-tight"
+                    style={{ color: mutedText }}
+                  >
+                    {kpi.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col gap-0">
+              {[
+                {
+                  event: "Canada Wildfires 2023",
+                  impact: "18.5M ha burned — largest ever",
+                  color: "#f97316",
+                },
+                {
+                  event: "Valencia Floods (Oct 2024)",
+                  impact: "230+ dead — deadliest EU flood in decades",
+                  color: "#3b82f6",
+                },
+                {
+                  event: "LA Wildfires Jan 2025",
+                  impact: "Palisades & Eaton fires — $135B damage",
+                  color: "#ef4444",
+                },
+                {
+                  event: "India Heat Wave 2026",
+                  impact: "53.4°C in Rajasthan — new record",
+                  color: "#f59e0b",
+                },
+                {
+                  event: "Brazil Floods 2024",
+                  impact: "Rio Grande do Sul — 150+ dead, 400K displaced",
+                  color: "#06b6d4",
+                },
+              ].map((row, i, arr) => (
+                <div
+                  key={row.event}
+                  className="flex items-start gap-2.5 py-2"
+                  style={{
+                    borderBottom:
+                      i < arr.length - 1 ? `1px solid ${gridLine}` : "none",
+                  }}
+                >
+                  <div
+                    className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5"
+                    style={{ background: row.color }}
+                  />
+                  <div>
+                    <p
+                      className="text-[10px] font-bold font-sans"
+                      style={{ color: headText }}
+                    >
+                      {row.event}
+                    </p>
+                    <p
+                      className="text-[9px] font-sans"
+                      style={{ color: mutedText }}
+                      dangerouslySetInnerHTML={{ __html: row.impact }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p
+              className="text-[9px] font-sans mt-3"
+              style={{ color: mutedText }}
+            >
+              Source: NOAA NCEI / Munich Re NatCatSERVICE / EM-DAT 2026
+            </p>
+          </div>
+
+          {/* Water Stress & Access */}
+          <div className="bg-card border border-border rounded-2xl p-5">
+            <p
+              className="text-[10px] font-mono uppercase tracking-widest mb-0.5"
+              style={{ color: mutedText }}
+            >
+              Water Stress &amp; Access
+            </p>
+            <h3
+              className="text-sm font-bold font-sans mb-3"
+              style={{ color: headText }}
+            >
+              Global Freshwater Security 2026
+            </h3>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {[
+                {
+                  label: "People under high water stress",
+                  value: "3.6B",
+                  color: "#ef4444",
+                },
+                {
+                  label: "Without safe drinking water",
+                  value: "2.2B",
+                  color: "#dc2626",
+                },
+                {
+                  label: "Without basic sanitation",
+                  value: "3.5B",
+                  color: "#f97316",
+                },
+                {
+                  label: "Aquifers under depletion threat",
+                  value: "~37",
+                  color: "#f59e0b",
+                },
+                {
+                  label: "Annual freshwater withdrawal",
+                  value: "4,000 km³",
+                  color: "#3b82f6",
+                },
+                {
+                  label: "Ag share of water use",
+                  value: "70%",
+                  color: "#22c55e",
+                },
+              ].map((kpi) => (
+                <div
+                  key={kpi.label}
+                  className="rounded-xl px-3 py-2.5"
+                  style={{
+                    background: isLight
+                      ? "rgba(0,0,0,0.025)"
+                      : "rgba(255,255,255,0.04)",
+                    border: `1px solid ${gridLine}`,
+                  }}
+                >
+                  <p
+                    className="text-[16px] font-bold font-mono"
+                    style={{ color: kpi.color }}
+                  >
+                    {kpi.value}
+                  </p>
+                  <p
+                    className="text-[9px] font-sans leading-tight"
+                    style={{ color: mutedText }}
+                  >
+                    {kpi.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col gap-0">
+              {[
+                {
+                  country: "Qatar",
+                  stress: 98,
+                  note: "Extremely high baseline stress",
+                },
+                {
+                  country: "Israel",
+                  stress: 95,
+                  note: "Desalination-dependent",
+                },
+                {
+                  country: "Lebanon",
+                  stress: 90,
+                  note: "Infrastructure collapse",
+                },
+                { country: "India", stress: 83, note: "Groundwater crisis" },
+                {
+                  country: "South Africa",
+                  stress: 72,
+                  note: "Cape Town day-zero event",
+                },
+                { country: "USA", stress: 41, note: "West/Southwest critical" },
+              ].map((row, i, arr) => (
+                <div
+                  key={row.country}
+                  className="flex items-center gap-3 py-2"
+                  style={{
+                    borderBottom:
+                      i < arr.length - 1 ? `1px solid ${gridLine}` : "none",
+                  }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-[10px] font-semibold font-sans"
+                      style={{ color: headText }}
+                    >
+                      {row.country}
+                    </p>
+                    <p
+                      className="text-[9px] font-sans"
+                      style={{ color: mutedText }}
+                    >
+                      {row.note}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <div
+                      className="w-16 h-1.5 rounded-full overflow-hidden"
+                      style={{
+                        background: isLight
+                          ? "rgba(0,0,0,0.07)"
+                          : "rgba(255,255,255,0.07)",
+                      }}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${row.stress}%`,
+                          background:
+                            row.stress > 80
+                              ? "#ef4444"
+                              : row.stress > 55
+                                ? "#f97316"
+                                : "#f59e0b",
+                        }}
+                      />
+                    </div>
+                    <span
+                      className="text-[9px] font-mono w-6 text-right"
+                      style={{
+                        color:
+                          row.stress > 80
+                            ? "#ef4444"
+                            : row.stress > 55
+                              ? "#f97316"
+                              : "#f59e0b",
+                      }}
+                    >
+                      {row.stress}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p
+              className="text-[9px] font-sans mt-3"
+              style={{ color: mutedText }}
+            >
+              Source: WRI Aqueduct 4.0 / WHO/UNICEF JMP 2026 / FAO AQUASTAT
+            </p>
+          </div>
+        </div>
+
+        {/* Row 4 — CO2 Emissions + Biodiversity + Soil Degradation */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          {/* CO2 Emissions by Country */}
+          <div className="bg-card border border-border rounded-2xl p-5">
+            <p
+              className="text-[10px] font-mono uppercase tracking-widest mb-0.5"
+              style={{ color: mutedText }}
+            >
+              CO₂ Emissions
+            </p>
+            <h3
+              className="text-sm font-bold font-sans mb-3"
+              style={{ color: headText }}
+            >
+              Top Emitters &amp; Per-Capita 2025
+            </h3>
+            <div className="flex flex-col gap-2 mb-3">
+              {[
+                {
+                  country: "China",
+                  total: 12.4,
+                  perCap: 8.7,
+                  pct: 31,
+                  color: "#ef4444",
+                },
+                {
+                  country: "USA",
+                  total: 4.8,
+                  perCap: 14.2,
+                  pct: 12,
+                  color: "#f97316",
+                },
+                {
+                  country: "India",
+                  total: 3.2,
+                  perCap: 2.2,
+                  pct: 8,
+                  color: "#f59e0b",
+                },
+                {
+                  country: "Russia",
+                  total: 1.8,
+                  perCap: 12.4,
+                  pct: 4,
+                  color: "#f97316",
+                },
+                {
+                  country: "Japan",
+                  total: 1.0,
+                  perCap: 8.3,
+                  pct: 3,
+                  color: "#f59e0b",
+                },
+                {
+                  country: "Germany",
+                  total: 0.6,
+                  perCap: 7.2,
+                  pct: 2,
+                  color: "#84cc16",
+                },
+                {
+                  country: "Saudi Arabia",
+                  total: 0.8,
+                  perCap: 20.1,
+                  pct: 2,
+                  color: "#f59e0b",
+                },
+                {
+                  country: "EU-27",
+                  total: 2.4,
+                  perCap: 5.4,
+                  pct: 6,
+                  color: "#22c55e",
+                },
+              ].map((row) => (
+                <div key={row.country} className="flex items-center gap-2">
+                  <span
+                    className="text-[9px] font-sans w-24 shrink-0 font-semibold truncate"
+                    style={{ color: headText }}
+                  >
+                    {row.country}
+                  </span>
+                  <div
+                    className="flex-1 h-2.5 rounded-full overflow-hidden"
+                    style={{
+                      background: isLight
+                        ? "rgba(0,0,0,0.07)"
+                        : "rgba(255,255,255,0.07)",
+                    }}
+                  >
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${row.pct * 3}%`,
+                        background: row.color,
+                      }}
+                    />
+                  </div>
+                  <span
+                    className="text-[9px] font-mono w-14 text-right shrink-0"
+                    style={{ color: row.color }}
+                  >
+                    {row.total} Gt
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div
+              className="flex flex-col gap-1 rounded-xl px-3 py-2.5"
+              style={{
+                background: isLight
+                  ? "rgba(0,0,0,0.025)"
+                  : "rgba(255,255,255,0.04)",
+                border: `1px solid ${gridLine}`,
+              }}
+            >
+              <p
+                className="text-[10px] font-bold font-sans"
+                style={{ color: headText }}
+              >
+                Global total 2025: 37.8 Gt CO₂ — new record
+              </p>
+              <p className="text-[9px] font-sans" style={{ color: mutedText }}>
+                Carbon Budget: ~180 Gt remaining for 1.5°C (7 yrs at current
+                pace)
+              </p>
+            </div>
+            <p
+              className="text-[9px] font-sans mt-3"
+              style={{ color: mutedText }}
+            >
+              Source: Global Carbon Project 2025 / IEA 2026
+            </p>
+          </div>
+
+          {/* Biodiversity Loss */}
+          <div className="bg-card border border-border rounded-2xl p-5">
+            <p
+              className="text-[10px] font-mono uppercase tracking-widest mb-0.5"
+              style={{ color: mutedText }}
+            >
+              Biodiversity
+            </p>
+            <h3
+              className="text-sm font-bold font-sans mb-3"
+              style={{ color: headText }}
+            >
+              Species Loss &amp; Ecosystem Health 2026
+            </h3>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {[
+                {
+                  label: "Species at risk of extinction",
+                  value: "44,000+",
+                  color: "#dc2626",
+                },
+                {
+                  label: "Vertebrate pop. decline 1970–2020",
+                  value: "−69%",
+                  color: "#ef4444",
+                },
+                {
+                  label: "Insect pop. decline (global)",
+                  value: "−45%",
+                  color: "#f97316",
+                },
+                {
+                  label: "Coral reef loss since 1950s",
+                  value: "−50%",
+                  color: "#f59e0b",
+                },
+                {
+                  label: "Wetlands lost since 1700",
+                  value: "−35%",
+                  color: "#3b82f6",
+                },
+                {
+                  label: "Mangrove loss since 1980",
+                  value: "−25%",
+                  color: "#10b981",
+                },
+              ].map((kpi) => (
+                <div
+                  key={kpi.label}
+                  className="rounded-xl px-3 py-2.5"
+                  style={{
+                    background: isLight
+                      ? "rgba(0,0,0,0.025)"
+                      : "rgba(255,255,255,0.04)",
+                    border: `1px solid ${gridLine}`,
+                  }}
+                >
+                  <p
+                    className="text-[16px] font-bold font-mono"
+                    style={{ color: kpi.color }}
+                  >
+                    {kpi.value}
+                  </p>
+                  <p
+                    className="text-[9px] font-sans leading-tight"
+                    style={{ color: mutedText }}
+                  >
+                    {kpi.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col gap-0">
+              {[
+                { group: "Amphibians", threatened: 41, color: "#ef4444" },
+                { group: "Sharks & Rays", threatened: 37, color: "#f97316" },
+                { group: "Freshwater fish", threatened: 33, color: "#3b82f6" },
+                { group: "Mammals", threatened: 26, color: "#f59e0b" },
+                { group: "Birds", threatened: 14, color: "#84cc16" },
+              ].map((row, i, arr) => (
+                <div
+                  key={row.group}
+                  className="flex items-center gap-3 py-2"
+                  style={{
+                    borderBottom:
+                      i < arr.length - 1 ? `1px solid ${gridLine}` : "none",
+                  }}
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <p
+                        className="text-[10px] font-semibold font-sans"
+                        style={{ color: headText }}
+                      >
+                        {row.group}
+                      </p>
+                      <p
+                        className="text-[10px] font-bold font-mono"
+                        style={{ color: row.color }}
+                      >
+                        {row.threatened}% threatened
+                      </p>
+                    </div>
+                    <div
+                      className="w-full h-1.5 rounded-full overflow-hidden"
+                      style={{
+                        background: isLight
+                          ? "rgba(0,0,0,0.07)"
+                          : "rgba(255,255,255,0.07)",
+                      }}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${row.threatened * 2.4}%`,
+                          background: row.color,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p
+              className="text-[9px] font-sans mt-3"
+              style={{ color: mutedText }}
+            >
+              Source: IUCN Red List 2026 / WWF Living Planet Report 2024
+            </p>
+          </div>
+
+          {/* Soil Degradation & Food Security */}
+          <div className="bg-card border border-border rounded-2xl p-5">
+            <p
+              className="text-[10px] font-mono uppercase tracking-widest mb-0.5"
+              style={{ color: mutedText }}
+            >
+              Soil &amp; Food Security
+            </p>
+            <h3
+              className="text-sm font-bold font-sans mb-3"
+              style={{ color: headText }}
+            >
+              Land Degradation &amp; Hunger 2026
+            </h3>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {[
+                {
+                  label: "Degraded land globally",
+                  value: "3.2B ha",
+                  color: "#a16207",
+                },
+                {
+                  label: "Topsoil lost per year",
+                  value: "24 Gt",
+                  color: "#b45309",
+                },
+                {
+                  label: "People facing food insecurity",
+                  value: "733M",
+                  color: "#ef4444",
+                },
+                {
+                  label: "Undernourished globally",
+                  value: "9.2%",
+                  color: "#f97316",
+                },
+                {
+                  label: "Loss from land degradation/yr",
+                  value: "$6.3T",
+                  color: "#dc2626",
+                },
+                {
+                  label: "Soil carbon loss (est. historic)",
+                  value: "~133 Gt",
+                  color: "#78716c",
+                },
+              ].map((kpi) => (
+                <div
+                  key={kpi.label}
+                  className="rounded-xl px-3 py-2.5"
+                  style={{
+                    background: isLight
+                      ? "rgba(0,0,0,0.025)"
+                      : "rgba(255,255,255,0.04)",
+                    border: `1px solid ${gridLine}`,
+                  }}
+                >
+                  <p
+                    className="text-[16px] font-bold font-mono"
+                    style={{ color: kpi.color }}
+                  >
+                    {kpi.value}
+                  </p>
+                  <p
+                    className="text-[9px] font-sans leading-tight"
+                    style={{ color: mutedText }}
+                  >
+                    {kpi.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col gap-0">
+              {[
+                {
+                  region: "Sub-Saharan Africa",
+                  hunger: 22,
+                  note: "Rising conflict + drought",
+                },
+                {
+                  region: "South Asia",
+                  hunger: 16,
+                  note: "Climate-driven crop failures",
+                },
+                {
+                  region: "SE Asia",
+                  hunger: 9,
+                  note: "Improving but vulnerable",
+                },
+                {
+                  region: "Latin America",
+                  hunger: 8,
+                  note: "Inequality-driven",
+                },
+                {
+                  region: "Near East/N. Africa",
+                  hunger: 12,
+                  note: "Water scarcity primary driver",
+                },
+              ].map((row, i, arr) => (
+                <div
+                  key={row.region}
+                  className="flex items-center gap-3 py-2"
+                  style={{
+                    borderBottom:
+                      i < arr.length - 1 ? `1px solid ${gridLine}` : "none",
+                  }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-[10px] font-semibold font-sans"
+                      style={{ color: headText }}
+                    >
+                      {row.region}
+                    </p>
+                    <p
+                      className="text-[9px] font-sans"
+                      style={{ color: mutedText }}
+                    >
+                      {row.note}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <div
+                      className="w-16 h-1.5 rounded-full overflow-hidden"
+                      style={{
+                        background: isLight
+                          ? "rgba(0,0,0,0.07)"
+                          : "rgba(255,255,255,0.07)",
+                      }}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${row.hunger * 4}%`,
+                          background:
+                            row.hunger > 15
+                              ? "#ef4444"
+                              : row.hunger > 10
+                                ? "#f97316"
+                                : "#f59e0b",
+                        }}
+                      />
+                    </div>
+                    <span
+                      className="text-[9px] font-mono w-8 text-right"
+                      style={{
+                        color:
+                          row.hunger > 15
+                            ? "#ef4444"
+                            : row.hunger > 10
+                              ? "#f97316"
+                              : "#f59e0b",
+                      }}
+                    >
+                      {row.hunger}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p
+              className="text-[9px] font-sans mt-3"
+              style={{ color: mutedText }}
+            >
+              Source: FAO SOFO 2026 / UNCCD / WFP Global Report on Food Crises
+              2026
+            </p>
+          </div>
+        </div>
+
         {/* ── FOOTER ────────────────────────────────────────────────────── */}
-        <div className="text-center py-3">
-          <p className="text-[11px] font-sans" style={{ color: mutedText }}>
+        <div className="text-center py-3 border-t border-border mt-2">
+          <p className="text-[11px] font-sans text-muted-foreground">
             © {new Date().getFullYear()} CommonSphere · Planetary Boundaries ·
             Sources: Rockström et al., IPCC, IPBES, Stockholm Resilience Centre
           </p>

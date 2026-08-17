@@ -21,7 +21,7 @@ import {
 const RATE_KEY_EDU_PAGE = "auth:edu:page";
 
 const EDU_PERKS = [
-  "Full Research plan — free for verified students & faculty",
+  "Full Professional plan — free for verified students & faculty",
   "Unlimited API calls during enrollment",
   "Collaborative research workspaces",
   "Export to CSV, PDF, and BibTeX",
@@ -41,7 +41,9 @@ export function EduSignInPage() {
     if (!checkRateLimit(RATE_KEY_EDU_PAGE, 5, 15 * 60 * 1000)) {
       const secs = getRateLimitCooldown(RATE_KEY_EDU_PAGE, 15 * 60 * 1000);
       const mins = Math.ceil(secs / 60);
-      setError(`Too many attempts. Please wait ${mins} minute${mins !== 1 ? "s" : ""} and try again.`);
+      setError(
+        `Too many attempts. Please wait ${mins} minute${mins !== 1 ? "s" : ""} and try again.`,
+      );
       return;
     }
 
@@ -75,7 +77,9 @@ export function EduSignInPage() {
         <Globe size={20} weight="fill" className="text-sky-400 mr-2" />
         <span className="font-bold text-sm">CommonSphere</span>
         <span className="ml-2 text-slate-600 text-sm">/</span>
-        <span className="ml-2 text-emerald-300 text-sm font-semibold">Edu Sign-in</span>
+        <span className="ml-2 text-emerald-300 text-sm font-semibold">
+          Edu Sign-in
+        </span>
       </nav>
 
       <main className="flex-1 pt-14 flex items-center justify-center px-6">
@@ -85,16 +89,28 @@ export function EduSignInPage() {
             <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-1.5 text-emerald-400 text-xs font-semibold mb-5">
               <GraduationCap size={13} /> Education Program
             </div>
-            <h1 className="text-3xl font-bold mb-3" style={{ fontFamily: "Georgia, serif" }}>
-              Free for Students<br />& Educators
+            <h1
+              className="text-3xl font-bold mb-3"
+              style={{ fontFamily: "Georgia, serif" }}
+            >
+              Free for Students
+              <br />& Educators
             </h1>
             <p className="text-slate-400 text-sm mb-6">
-              Verify your .edu email and unlock everything CommonSphere has to offer — at no cost, for the duration of your enrollment.
+              Verify your .edu email and unlock everything CommonSphere has to
+              offer — at no cost, for the duration of your enrollment.
             </p>
             <ul className="space-y-3">
               {EDU_PERKS.map((perk) => (
-                <li key={perk} className="flex items-start gap-2.5 text-sm text-slate-300">
-                  <CheckCircle size={16} weight="fill" className="text-emerald-400 shrink-0 mt-0.5" />
+                <li
+                  key={perk}
+                  className="flex items-start gap-2.5 text-sm text-slate-300"
+                >
+                  <CheckCircle
+                    size={16}
+                    weight="fill"
+                    className="text-emerald-400 shrink-0 mt-0.5"
+                  />
                   {perk}
                 </li>
               ))}
@@ -109,14 +125,24 @@ export function EduSignInPage() {
           <div className="rounded-2xl border border-slate-800 bg-[#0d1f35]/80 p-8">
             {submitted ? (
               <div className="text-center py-4">
-                <CheckCircle size={40} weight="fill" className="text-emerald-400 mx-auto mb-4" />
+                <CheckCircle
+                  size={40}
+                  weight="fill"
+                  className="text-emerald-400 mx-auto mb-4"
+                />
                 <h2 className="text-xl font-bold mb-2">Check your inbox</h2>
                 <p className="text-slate-400 text-sm">
-                  We&#39;ve sent a verification link to <span className="text-emerald-300 font-mono text-xs">{email}</span>.
-                  Click it to activate your free Research plan.
+                  We&#39;ve sent a verification link to{" "}
+                  <span className="text-emerald-300 font-mono text-xs">
+                    {email}
+                  </span>
+                  . Click it to activate your free Student plan.
                 </p>
                 <button
-                  onClick={() => { setSubmitted(false); setEmail(""); }}
+                  onClick={() => {
+                    setSubmitted(false);
+                    setEmail("");
+                  }}
                   className="mt-6 text-sky-400 hover:text-sky-300 text-sm underline"
                 >
                   Use a different email
@@ -126,14 +152,19 @@ export function EduSignInPage() {
               <>
                 <div className="flex items-center gap-2 mb-1">
                   <EnvelopeSimple size={18} className="text-emerald-400" />
-                  <h2 className="text-base font-semibold">Sign in with .edu email</h2>
+                  <h2 className="text-base font-semibold">
+                    Sign in with .edu email
+                  </h2>
                 </div>
                 <p className="text-slate-400 text-xs mb-6">
-                  Enter your institutional email address below. We&#39;ll send you a magic link to verify your enrollment.
+                  Enter your institutional email address below. We&#39;ll send
+                  you a magic link to verify your enrollment.
                 </p>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5">Institutional email</label>
+                    <label className="block text-xs text-slate-400 mb-1.5">
+                      Institutional email
+                    </label>
                     <input
                       type="email"
                       required
@@ -148,7 +179,9 @@ export function EduSignInPage() {
                       placeholder="you@university.edu"
                       className="w-full bg-[#06101f] border border-slate-700 focus:border-emerald-500 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-colors"
                     />
-                    {error && <p className="text-red-400 text-xs mt-1.5">{error}</p>}
+                    {error && (
+                      <p className="text-red-400 text-xs mt-1.5">{error}</p>
+                    )}
                   </div>
                   <button
                     type="submit"
@@ -158,7 +191,8 @@ export function EduSignInPage() {
                   </button>
                 </form>
                 <p className="text-slate-500 text-[11px] mt-5 text-center">
-                  By continuing you agree to our Terms of Service. Verified annually.
+                  By continuing you agree to our Terms of Service. Verified
+                  annually.
                 </p>
 
                 <div className="border-t border-slate-700/60 mt-5 pt-5 text-center">

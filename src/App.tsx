@@ -42,12 +42,6 @@ const PolicyPage = lazy(() =>
 const AboutPage = lazy(() =>
   import("./pages/AboutPage").then((m) => ({ default: m.AboutPage })),
 );
-const AnalystPage = lazy(() =>
-  import("./pages/AnalystPage").then((m) => ({ default: m.AnalystPage })),
-);
-const TrendsPage = lazy(() =>
-  import("./pages/TrendsPage").then((m) => ({ default: m.TrendsPage })),
-);
 const PlanetaryBoundariesPage = lazy(() =>
   import("./pages/PlanetaryBoundariesPage").then((m) => ({
     default: m.PlanetaryBoundariesPage,
@@ -56,7 +50,19 @@ const PlanetaryBoundariesPage = lazy(() =>
 const CrimeStatsPage = lazy(() =>
   import("./pages/CrimeStatsPage").then((m) => ({ default: m.CrimeStatsPage })),
 );
-
+const HumanitarianPage = lazy(() =>
+  import("./pages/HumanitarianPage").then((m) => ({
+    default: m.HumanitarianPage,
+  })),
+);
+const RankingsPage = lazy(() =>
+  import("./pages/RankingsPage").then((m) => ({ default: m.RankingsPage })),
+);
+const GlobalIndexesPage = lazy(() =>
+  import("./pages/GlobalIndexesPage").then((m) => ({
+    default: m.GlobalIndexesPage,
+  })),
+);
 // WorldMapPage fetches a 3MB TopoJSON file — keep lazy to avoid stalling the bundler
 const WorldMapPage = lazy(() =>
   import("./pages/WorldMapPage").then((m) => ({ default: m.WorldMapPage })),
@@ -91,13 +97,16 @@ export default function App() {
               <Route path="worldmap" element={<WorldMapPage />} />
               <Route path="comparisons" element={<ComparisonsPage />} />
               <Route path="about" element={<AboutPage />} />
-              <Route path="analysts" element={<AnalystPage />} />
-              <Route path="trends" element={<TrendsPage />} />
               <Route
                 path="planetary-boundaries"
                 element={<PlanetaryBoundariesPage />}
               />
               <Route path="crime" element={<CrimeStatsPage />} />
+              <Route path="humanitarian" element={<HumanitarianPage />} />
+              <Route path="rankings" element={<RankingsPage />} />
+              <Route path="indexes" element={<GlobalIndexesPage />} />
+              {/* Catch-all: redirect unknown dashboard routes to /dashboard */}
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
           </Routes>
         </Suspense>

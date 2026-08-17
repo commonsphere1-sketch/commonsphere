@@ -144,15 +144,24 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
   }, []);
 
   const handleSelect = (result: SearchResult) => {
-    navigate(result.route);
+    // Strip the leading "state-", "country-", "city-", "economy-" prefix to get the raw entity id
+    const rawId = result.id.replace(/^(state|country|city|economy)-/, "");
+    navigate(`${result.route}?open=${encodeURIComponent(rawId)}`);
     setSearchValue("");
     setOpen(false);
   };
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-40 h-16 border-b border-border flex items-center px-4 gap-4"
-      style={{ backgroundColor: "var(--color-header-bg)" }}
+      className="fixed top-0 left-0 right-0 z-40 h-16 border-b border-border/40 flex items-center px-5 gap-5 header-bar"
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(5, 5, 12, 0.95) 0%, rgba(3, 3, 8, 0.92) 100%)",
+        backdropFilter: "blur(28px) saturate(180%)",
+        WebkitBackdropFilter: "blur(28px) saturate(180%)",
+        boxShadow:
+          "0 1px 0 rgba(255, 220, 120, 0.05), inset 0 -1px 0 rgba(255, 255, 255, 0.02), 0 4px 32px rgba(0,0,0,0.5)",
+      }}
     >
       {/* Logo */}
       <Link
@@ -179,13 +188,14 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
         <span
           className="header-logo-text text-primary-foreground hidden sm:block"
           style={{
-            fontFamily: "'Inter', 'DM Sans', sans-serif",
-            fontSize: "1rem",
-            fontWeight: 700,
-            letterSpacing: "-0.02em",
+            fontFamily:
+              "'Playfair Display', 'Cormorant Garant', Georgia, serif",
+            fontSize: "1.1rem",
+            fontWeight: 600,
+            letterSpacing: "-0.01em",
           }}
         >
-          Common<span>Sphere</span>
+          Common<span style={{ color: "hsl(0, 0%, 75%)" }}>Sphere</span>
         </span>
       </Link>
 
@@ -294,7 +304,13 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
                   src={(user as any)?.profilePictureUrl || ""}
                   alt="User avatar"
                 />
-                <AvatarFallback className="bg-secondary text-secondary-foreground text-xs font-bold">
+                <AvatarFallback
+                  className="text-xs font-bold"
+                  style={{
+                    background: "hsl(0,0%,60%)",
+                    color: "hsl(0,0%,10%)",
+                  }}
+                >
                   {user?.name
                     ? user.name
                         .split(" ")

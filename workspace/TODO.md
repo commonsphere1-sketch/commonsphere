@@ -44,7 +44,3 @@ Interactive Map View
 Add a choropleth/world map view to States and Countries pages using a lightweight mapping library
 </todo>
 
-<todo id="export-bookmark">
-Bookmark Entity Pages
-Wire up a Bookmark button on state/country/city cards to create SDK Bookmark records; add CSV export
-</todo>

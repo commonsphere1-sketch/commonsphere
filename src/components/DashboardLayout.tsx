@@ -17,9 +17,13 @@ export function DashboardLayout() {
       <div className="flex flex-1 pt-16">
         {/* Desktop Sidebar */}
         <aside
-          className={`hidden md:flex flex-col fixed left-0 top-16 bottom-0 z-30 bg-white dark:bg-[#080810] border-r border-border transition-all duration-200 ease-in-out ${
-            sidebarOpen ? "w-40" : "w-12"
+          className={`sidebar-bar hidden md:flex flex-col fixed left-0 top-16 bottom-0 z-30 border-r border-border/50 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+            sidebarOpen ? "w-44" : "w-14"
           }`}
+          style={{
+            backdropFilter: "blur(24px) saturate(150%)",
+            boxShadow: "1px 0 0 rgba(255, 220, 120, 0.03)",
+          }}
         >
           <SidebarNav
             collapsed={!sidebarOpen}
@@ -37,9 +41,12 @@ export function DashboardLayout() {
         )}
         {/* Mobile Sidebar */}
         <aside
-          className={`fixed left-0 top-0 bottom-0 z-50 w-64 bg-card dark:bg-black border-r border-border flex flex-col md:hidden transition-transform duration-200 ease-in-out ${
+          className={`sidebar-bar fixed left-0 top-0 bottom-0 z-50 w-64 border-r border-border/50 flex flex-col md:hidden transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
+          style={{
+            backdropFilter: "blur(24px) saturate(150%)",
+          }}
         >
           <div className="flex items-center justify-between px-4 h-16 border-b border-border">
             <span className="text-foreground font-bold text-lg font-sans">
@@ -62,8 +69,8 @@ export function DashboardLayout() {
 
         {/* Main Content */}
         <main
-          className={`flex-1 min-h-0 transition-all duration-200 ease-in-out ${
-            sidebarOpen ? "md:ml-40" : "md:ml-12"
+          className={`flex-1 min-h-0 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+            sidebarOpen ? "md:ml-44" : "md:ml-14"
           }`}
           id="main-content"
         >

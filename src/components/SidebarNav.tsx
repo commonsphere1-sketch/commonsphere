@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ReactDOM from "react-dom";
 import { NavLink } from "react-router-dom";
 import {
   SquaresFour,
@@ -12,6 +13,7 @@ import {
   NotePencil,
   Warning,
   Lectern,
+  HandHeart,
   Crown,
   Scales,
   Users,
@@ -27,6 +29,8 @@ import {
   Lightning,
   ArrowSquareOut,
   Leaf,
+  Trophy,
+  BookOpen,
 } from "@phosphor-icons/react";
 
 interface SidebarNavProps {
@@ -49,6 +53,7 @@ const mainNav = [
 ];
 
 const analysisNav = [
+  { to: "/dashboard/rankings", label: "Rankings", icon: Trophy, end: false },
   { to: "/dashboard/policy", label: "Policy", icon: Scales, end: false },
   {
     to: "/dashboard/worldmap",
@@ -56,8 +61,12 @@ const analysisNav = [
     icon: Lectern,
     end: false,
   },
-  { to: "/dashboard/analysts", label: "Analysts", icon: Users, end: false },
-  { to: "/dashboard/trends", label: "Trends", icon: ChartLine, end: false },
+  {
+    to: "/dashboard/humanitarian",
+    label: "Humanitarian",
+    icon: HandHeart,
+    end: false,
+  },
   {
     to: "/dashboard/planetary-boundaries",
     label: "Planetary Boundaries",
@@ -262,11 +271,6 @@ const FEATURES = [
     icon: ChartLine,
     label: "Trends & Analysis",
     desc: "Sector outlooks, forecasts, and macroeconomic trend signals",
-  },
-  {
-    icon: Users,
-    label: "Analyst Publisher",
-    desc: "Official analysts can publish verified data insights to the platform",
   },
   {
     icon: NotePencil,
@@ -569,11 +573,11 @@ function NavItem({
         to={to}
         end={end}
         className={({ isActive }) =>
-          `flex items-center py-[5px] rounded-md transition-colors duration-150 cursor-pointer group w-full ${
+          `flex items-center py-2 rounded-lg transition-all duration-250 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer group w-full ${
             isActive
-              ? "bg-blue-500/20 text-blue-400"
-              : "text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground"
-          } ${collapsed && !mobile ? "justify-center px-0" : "gap-2.5 px-2.5"}`
+              ? "bg-secondary text-secondary-foreground border border-secondary/60 shadow-[0_1px_4px_rgba(160,160,160,0.2)]"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border"
+          } ${collapsed && !mobile ? "justify-center px-0" : "gap-3 px-3"}`
         }
         title={collapsed && !mobile ? label : undefined}
         aria-label={collapsed && !mobile ? label : undefined}
@@ -583,10 +587,10 @@ function NavItem({
             <Icon
               size={18}
               weight={isActive ? "fill" : "regular"}
-              className="shrink-0"
+              className={`shrink-0 transition-colors duration-200 ${isActive ? "text-secondary-foreground" : ""}`}
             />
             {(!collapsed || mobile) && (
-              <span className="text-[11px] leading-none font-normal font-sans truncate">
+              <span className="text-[12px] leading-none font-medium font-sans truncate tracking-wide">
                 {label}
               </span>
             )}
@@ -607,10 +611,10 @@ function SectionLabel({
   mobile: boolean;
 }) {
   if (collapsed && !mobile)
-    return <div className="my-2 border-t border-border" />;
+    return <div className="my-3 mx-2 border-t border-border" />;
   return (
-    <li className="px-2.5 pt-4 pb-1">
-      <span className="text-[9px] font-semibold uppercase tracking-widest text-black/25 dark:text-white/20 font-sans">
+    <li className="px-3 pt-5 pb-1.5">
+      <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/50 font-sans">
         {label}
       </span>
     </li>
@@ -670,13 +674,13 @@ export function SidebarNav({
         <li>
           <button
             onClick={() => setShowAbout(true)}
-            className={`flex items-center py-[5px] rounded-md transition-colors duration-150 cursor-pointer group w-full text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground ${collapsed && !mobile ? "justify-center px-0" : "gap-2.5 px-2.5"}`}
+            className={`flex items-center py-2 rounded-lg transition-all duration-250 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer group w-full text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border ${collapsed && !mobile ? "justify-center px-0" : "gap-3 px-3"}`}
             title={collapsed && !mobile ? "About" : undefined}
             aria-label="About CommonSphere"
           >
             <Info size={18} weight="regular" className="shrink-0" />
             {(!collapsed || mobile) && (
-              <span className="text-[11px] leading-none font-normal font-sans truncate">
+              <span className="text-[12px] leading-none font-medium font-sans truncate tracking-wide">
                 About
               </span>
             )}
@@ -684,24 +688,28 @@ export function SidebarNav({
         </li>
       </ul>
 
-      {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
+      {showAbout &&
+        ReactDOM.createPortal(
+          <AboutModal onClose={() => setShowAbout(false)} />,
+          document.body,
+        )}
 
       {/* Collapse toggle — desktop only */}
       {!mobile && (
-        <div className="px-2 pt-2 border-t border-border mt-1">
+        <div className="px-2 pt-3 border-t border-border mt-2">
           <button
             onClick={onToggle}
-            className={`flex items-center gap-2 px-2 py-1.5 rounded-md w-full text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground transition-colors duration-150 cursor-pointer ${
+            className={`flex items-center gap-2 px-2.5 py-2 rounded-lg w-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-250 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer ${
               collapsed ? "justify-center px-0" : ""
             }`}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {collapsed ? (
-              <CaretRight size={13} weight="bold" />
+              <CaretRight size={14} weight="bold" />
             ) : (
               <>
-                <CaretLeft size={13} weight="bold" />
-                <span className="text-[10px] font-normal font-sans">
+                <CaretLeft size={14} weight="bold" />
+                <span className="text-[11px] font-medium font-sans tracking-wide">
                   Collapse
                 </span>
               </>

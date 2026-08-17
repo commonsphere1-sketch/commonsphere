@@ -104,7 +104,7 @@ export function UserMenu() {
             <div className="relative mt-3 flex items-center justify-between">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-secondary/10 border border-secondary/20 text-[11px] font-semibold text-secondary tracking-wide uppercase">
                 <Crown size={10} weight="fill" />
-                Pro Plan
+                Public Plan
               </div>
               <button
                 onClick={() => handleNav("/dashboard/settings")}

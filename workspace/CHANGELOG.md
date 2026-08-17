@@ -19,7 +19,494 @@ You MUST maintain this file to track your work across messages. This is NON-NEGO
 
 <changelog>
 
+## 2026-08-16 — Move 4 data sections to standalone expandable cards in COL-3
+- Removed Industries/Funding/Alliances/R&D inline sections from inside the US States card
+- Added new `ExpandableCard` component (click-to-expand with chevron, description, children slot)
+- 4 new cards each have: icon, title, badge, description summary, and full detailed per-item descriptions in the dropdown
+- Cards placed between US States card and Cities card in dashboard COL-3
+
+## 2026-08-16 — Step 4: Propagate tier names to dependent screens
+- Updated UserMenu.tsx plan badge: "Pro Plan" → "Public Plan"
+- Updated EduSignInPage.tsx: EDU_PERKS[0] + success message now say "Professional" / "Student" instead of "Research"
+- No other screens had hardcoded Free/Pro/Research tier references (CountriesPage/StatesPage "Research" is a university type, not a plan name)
+
+## 2026-08-16 — Restructure membership tiers: Student / Public / Professional
+- Replaced Free/Pro/Research with Student (free/.edu), Public ($9), Professional ($29)
+- Added `compare` tab with full 22-row feature matrix table across all 3 tiers
+- Removed all dead `campaigns` JSX (~300 lines) and `CAMPAIGN_PACKAGES`/`ISSUE_TAGS` data
+- Merged EDU tab into dedicated Student plan card; Edu tab now shows richer hero + highlight grid
+- Added audience labels, `checkClass` per plan, CTA row linking plans→compare and plans→edu
+
+## 2026-08-16 — Remove Political Campaigns tab from MembershipsPage
+- Removed "Political Campaigns" tab from TABS array in MembershipsPage
+- Updated Tab type to remove "campaigns" variant
+
+## 2026-08-16 — Fix RankingsPage categoryTableRows initialization order
+- Moved `categoryTableRows` useMemo above `totalPages` and `pageRows` useMemo
+- Also moved `CATEGORY_PRIMARY_SORT` and `activeCategoryMetrics` before `filteredRows`
+- Fixes: `Cannot access 'categoryTableRows' before initialization` runtime error
+
+## 2026-08-16 — Remove Analyst Network KPI card from dashboard
+- Removed "Analyst Network / 127+ / 3 online now" pill from the KPI grid
+- Adjusted grid from `grid-cols-4` to `grid-cols-3` (sm breakpoint) to fill evenly
+
+## 2026-08-16 — Add Trending tab as default in InteractiveDataPanel
+- Added "Trending" as the first/default tab (was "Countries")
+- Shows: Hot Topics heatbar, Most Viewed Stats (8 items w/ views count), Most Viewed Countries (top 5), Key Macro Signals strip
+- Added TRENDING_STATS, TRENDING_TOPICS, MOST_VIEWED_COUNTRIES static data arrays
+- Search bar hidden on Trending tab; footer count updates for all 4 tabs
+
+## 2026-08-16 — Hide carousel boundary pillar markers (left + right)
+- Removed LEFT and RIGHT boundary pillar divs (with ◀ 5 / 5 ▶ badges) from CountryCarousel
+- Also cleaned up unused `markerLeft`/`markerRight` logic references
+
+## 2026-08-16 — Remove h-1 progress bars from carousel cards, compare tables, scenario cards
+- Removed GDP relative bar from CountryCarousel cards (`h-1 rounded-full overflow-hidden mt-0.5`)
+- Removed 3px comparison bars from CompareCountriesTool country + state rows
+- Removed probability bar from TrendsPage scenario cards (`h-1 rounded-full overflow-hidden mb-2`)
+
+## 2026-08-16 — Dashboard col-1/2: full interactive Countries/Economies/Policies panel
+- Replaced 3 separate static containers with single `InteractiveDataPanel` component
+- 3 tabs: Countries (search + click-to-expand detail), Economies (region detail), Policies (tag filter + detail)
+- Country detail shows: flag banner, GDP trend sparkline, 6 key stats, industries bar chart, head of state
+- Region detail shows: top economies list with GDP/growth; Policy detail shows tag + nav CTA
+- Live search filters all three tabs; footer shows result count + "View all" link
+
+## 2026-08-16 — Carousel: viewport constrained to exactly 5 cards wide
+- Removed mask-overlay approach; viewport div is now sized to `cardWidth * 5 - GAP`
+- `overflow:hidden` on the fixed-width viewport naturally clips all cards beyond #5
+- Both boundary pillars remain (left at right-edge of card 5, right at viewport edge)
+- Removed `viewportRef` / ResizeObserver for right-marker; simplified to static `right:0`
+
+## 2026-08-16 — Carousel: hard-wall mask hides cards outside 5-card boundary
+- Added two solid overlay divs (z-30) covering left/right regions outside marker positions
+- Fade masks repositioned to start at the boundary pillars instead of the viewport edges
+- Cards scrolling past boundary are now fully hidden behind the page background color
+
+## 2026-08-16 — Carousel: speed 0.9px/frame + bold 5-card boundary pillars
+- Raised SPEED from 0.6 → 0.9 px/frame
+- Replaced faint gradient lines with solid glowing 2px pillars (78% height) at both 5-card positions
+- Added floating "◀ 5" / "5 ▶" badge labels at the top of each pillar
+- Pillar has double box-shadow glow ring for clear visibility in both light and dark mode
+
+## 2026-08-16 — Carousel: reduce to 0.3px/frame + bilateral overflow walls
+- Reduced SPEED from 0.55 → 0.3 px/frame for a very slow gentle drift
+- Added overflow:hidden + boxSizing:border-box on both outer card wrapper and inner viewport
+- Both left and right edges are now hard-clipped — no content bleeds past card boundaries
+
+## 2026-08-16 — Speed up carousel + add right-side wall
+- Raised SPEED from 0.4 → 1.4 px/frame for faster auto-scroll
+- Added maxWidth/width 100% on viewport div to prevent overflow past sidebar
+- Tightened card width calc (260px sidebar offset) and capped maxWidth at 240px
+
+## 2026-08-16 — Auto-scroll CountryCarousel — 5 cards full width, slow loop
+- Replaced manual-scroll carousel with rAF-based auto-scroll using translateX
+- Duplicated card list for seamless infinite loop (resets at half scrollWidth)
+- Card width = calc((100vw - sidebar - padding) / 5) to always show exactly 5
+- Hover pauses animation; edge fade masks added left/right
+
+## 2026-08-16 — Upgrade MembershipsPage plans & header with full platform coverage
+- Updated Free/Pro/Research plan features to reflect all site modules (conflicts, humanitarian, crime, planetary, policy hub, alerts, API, etc.)
+- Added plan `desc` subtitle to each plan card
+- Updated page header description + added coverage pill tags (Countries, Cities, Conflicts, etc.)
+- Added "What&#39;s included" feature grid strip below pricing cards with 8 platform highlights
+- Expanded EDU perks list with 3 new items (conflicts/humanitarian/crime, congress/policy, research tools)
+
+## 2026-08-16 — Update AboutPage with all recent site additions
+- Updated stats (195+ countries, 300+ cities, 100K+ data points)
+- Added new mission copy referencing conflicts, humanitarian, crime, planetary boundaries, and wealth
+- Added "Platform Coverage" grid section with 12 intelligence domains
+- Added 6 new data sources: ACLED, NASA, UN Habitat, ILO, UNODC + expanded existing entries
+- Updated VALUES descriptions to reference new features (Research Notes, Comparisons, conflicts)
+
+## 2026-08-16 — Push silver accents even lighter (near-white)
+- Raised `--color-secondary` to `hsl(0,0%,92%)`, tertiary to `hsl(0,0%,80%)`
+- All gradient-gold/gradient-2/button-border-gradient stops pushed near white
+- Scrollbar thumb/border, glow, inner-glow, luxury-chip, luxury-button, focus ring all lifted further
+- Light mode secondary/tertiary also raised (55%→68%, 44%→56%)
+
+## 2026-08-16 — Lighten silver accents + add fade effect
+- Raised `--color-secondary` from `hsl(0,0%,68%)` to `hsl(0,0%,82%)`, tertiary from 52% to 68%
+- Lightened all gradient-gold/gradient-2/button-border-gradient stops in tailwind.config.js
+- Bumped scrollbar thumb, glow, inner-glow, luxury-chip, luxury-button, luxury-divider to lighter/higher-opacity silver values
+- Light mode secondary/tertiary also lifted (42%→55%, 32%→44%)
+
+## 2026-08-16 — Replace all gold/amber accents with silver site-wide
+- Changed `--color-secondary` from gold `hsl(45,75%,50%)` to silver `hsl(0,0%,68%)` in both dark and light mode
+- Updated all gradient-gold, gradient-2, button-border-gradient, card-shimmer, glow/inner-glow tokens in tailwind.config.js
+- Replaced every gold rgba() tint (212,168,48) with silver (180,180,180) across scrollbars, focus rings, modal glow, luxury-chip, section-divider, luxury-button, header hover states
+- All changes in `src/index.css` and `tailwind.config.js`
+
+## 2026-08-16 — Make floating notes button silver
+- Changed `NotesPopup` trigger button from `bg-secondary` token to inline silver `hsl(0,0%,60%)` with dark text
+
+## 2026-08-16 — Change "Sphere" wordmark accent from gold to silver
+- Updated inline color on the `<span>Sphere</span>` in HeaderNav from `hsl(45,80%,58%)` to `hsl(0,0%,75%)`
+
+## 2026-08-16 — Fix duplicate sidebar caused by double className on aside elements
+- Both desktop and mobile `<aside>` in DashboardLayout had two `className` attrs (JSX only uses the last)
+- Merged layout classes and `sidebar-bar` into a single `className`; moved inline gradient to CSS class
+
+## 2026-08-16 — Luxury design refinements (no layout changes)
+- Deepened background colors (`#050509`), richer gold accents (`hsl(45, 75%, 50%)`), refined border opacity
+- Added premium CSS utilities: `.luxury-card`, `.glass-panel`, `.section-divider`, `.luxury-button`
+- Enhanced sidebar: wider active gradient glow, larger icons (18px), refined section label colors
+- Header: gradient background, stronger inner glow, improved logo typography
+- Tailwind: added `boxShadow.premium`, `letterSpacing` utilities, smoother animation timing
+
+## 2026-08-16 — Move social stats below Crime Statistics in CountryModal
+- Removed homelessness/incarceration block from its early position in the CountryModal overview tab
+- Re-inserted it directly after `<CountryCrimeStatsPanel>` so it sits below the crime stats container
+- Same change applies to `CountryDetailPanel` (sidebar panel) which already had it after crime stats
+
+## 2026-08-16 — Convert Forced Labour by Sector chart to donut
+- Replaced `BarChart` with `PieChart` (donut) in the Forced Labour by Sector card
+- Added inline legend with color dots + `$value B` labels below the donut
+- `PieChart` and `Pie` were already imported from recharts — no new imports needed
+
+## 2026-08-16 — Remove unused recharts imports from CrimeStatsPage
+- Removed `RadarChart`, `Radar`, `PolarGrid`, `PolarAngleAxis`, `Legend` — all unused in JSX
+- Any of these being `undefined` in the installed recharts version causes "Element type is invalid" at runtime
+- Previous fixes (Detective→MagnifyingGlass, Chains→Link) had already applied correctly
+
+## 2026-08-16 — Fix invalid Chains icon in CrimeStatsPage
+- `Chains` is not exported by @phosphor-icons/react — replaced with `Link`
+- This was the "Element type is invalid: got undefined" error on /dashboard/crime
+
+## 2026-08-16 — Fix undefined Detective icon in CrimeStatsPage
+- Replaced `Detective` (not exported in installed @phosphor-icons/react) with `MagnifyingGlass`
+- Fixed "Element type is invalid: got undefined" runtime error on /dashboard/crime
+
+## 2026-08-16 — Remove CEOs tab from WorldMapPage
+- Removed CEOs button from view mode toggle
+- Removed `{viewMode === "ceos" && <CEOsView />}` render block
+- Updated viewMode type union to exclude "ceos"
+
+## 2026-08-16 — Add Richest Families and CEOs categories to WorldMapPage
+- Added "Richest Families" tab with 16 family profiles (Walton, Mars, Arnault, Hermès, Al Thani, Al Nahyan, etc.) with wealth, sector, assets, members, and detail modal
+- Added "CEOs" tab with 16 CEO profiles (Musk, Bezos, Cook, Huang, Nadella, Zuckerberg, Buffett, etc.) with net worth, market cap, background, achievements, and detail modal
+- Both views have sector filters, sort controls, stat strips, and click-to-expand detail modals
+- Modified `src/pages/WorldMapPage.tsx` — added new imports (Briefcase, Money, TrendUp, Factory, Bank, ShoppingBag, Cpu, Newspaper), new viewMode states, toggle buttons, and two new full component sections
+
+## 2026-08-16 — Flatten HumanitarianPage into single scrollable page
+- Removed tab bar (Overview / Displacement / Food & Hunger / Health & Water)
+- All four sections now render sequentially with colored section-divider pills
+- Removed `useState` for `activeSection` — page is now stateless
+- Section headers use colored icon+label pills to visually separate each block
+
+## 2026-08-16 — Redesign CountriesPage as sidebar + detail panel layout
+- Replaced full-page card grid with `w-64` left sidebar (country list) + right detail panel
+- Sidebar has Countries/US States tabs, search, continent filter, sort dropdown, and compact flag+name rows
+- Clicking a country shows `CountryDetailPanel` inline on the right (same as StatesPage pattern)
+- Auto-selects first country on load; active item highlighted with secondary accent border
+- Refresh button and country count in sidebar footer
+
+## 2026-08-15 — Fix Geopolitical Risk Matrix text truncation
+## 2026-08-16 — Redesign CountriesPage as sidebar + detail panel layout
+- Replaced full-page card grid with `w-64` left sidebar (country list) + right detail panel
+- Sidebar has Countries/US States tabs, search, continent filter, sort dropdown, and compact flag+name rows
+- Clicking a country shows `CountryDetailPanel` inline on the right (same as StatesPage pattern)
+- Auto-selects first country on load; active item highlighted with secondary accent border
+- Refresh button and country count in sidebar footer
+
+## 2026-08-15 — Fix Geopolitical Risk Matrix text truncation
+- Removed `truncate` class from boundary name and risk description `<p>` tags in PlanetaryBoundariesPage
+- Both text lines now wrap fully instead of being clipped
+
+## 2026-08-15 — Fix black screen on deleted routes
+- Added `min-height: 100vh` to `html`, `body`, and `#app` in `src/index.css`
+- Added catch-all `<Route path="*">` inside `/dashboard` that redirects to `/dashboard`
+- This prevents zero-height app container and handles stale bookmarks to removed pages like `/dashboard/trends`
+
+## 2026-08-15 — Fix stale TrendsPage build error (duplicate SECTOR_PROJECTIONS already resolved; forced restart)
+
+## 2026-08-15 — Replace Rankings category tabs with 7 new categories
+- Changed `CategoryTab` type and `CATEGORY_TABS` from (economic, education, health, safety, social) → (housing, transportation, lifeExpectancy, economy, hdi, education, crime)
+- Rewrote all 7 `CATEGORY_METRICS` entries using existing `RankRow` fields (no new data needed)
+- Default active tab changed from `"economic"` to `"economy"`
+
+## 2026-08-15 — Add housing/transport + infra stats to ALL ~195 countries (2025-26 data)
+- Added `COUNTRY_HOUSING_TRANSPORT` entries for all remaining ~130 countries: Europe (sk, hr, rs, bg, ee, lv, lt, si, ie, by, md, al_al, mk, ba, me_eu, xk, lu, cy, mt_eu, is, sm, li, ad, mc, fo, gl, bm), Americas (gt, cu, ht, do, hn, sv, ni, cr, pa, jm, tt, bz, bs, ag, dm, gd, bb, lc, vc, kn, pr, gu), Asia (mm, kh, lk, np, jo, lb, sy, ye, bh, am, az_as, ge_as, tm, kg, tj, af, mn_as, la, tl, bn, mv, bt, uz, ps), Africa (cd, sd, cm, zw, mz, mg, zm, ml, bf, ne, tn, ly, bj, ss, so, er, dj, bi, mw, na, bw, mu, sz, ls, gm, gn, gw, sl, lr, tg, ga_af, cg, cf, td, cv, sc, st, gq, km, mr), Oceania (pg, fj, sb, vu, ws, to, ki, fm, pw, mh, nr, tv, coo_af, eh, ck, nu)
+- Added matching `COUNTRY_INFRA_STATS` entries for all the same countries with electricity access, water, digital, roads/logistics, and healthcare metrics
+- All data updated to 2025-26 sourced from World Bank, ITU, WHO, IEA, and IMF
+
+## 2026-08-15 — Expand all 4 country stat datasets to cover 60+ more countries
+## 2026-08-15 — Add housing/transport + infra stats to ALL ~195 countries (2025-26 data)
+- Added `COUNTRY_HOUSING_TRANSPORT` entries for all remaining ~130 countries: Europe (sk, hr, rs, bg, ee, lv, lt, si, ie, by, md, al_al, mk, ba, me_eu, xk, lu, cy, mt_eu, is, sm, li, ad, mc, fo, gl, bm), Americas (gt, cu, ht, do, hn, sv, ni, cr, pa, jm, tt, bz, bs, ag, dm, gd, bb, lc, vc, kn, pr, gu), Asia (mm, kh, lk, np, jo, lb, sy, ye, bh, am, az_as, ge_as, tm, kg, tj, af, mn_as, la, tl, bn, mv, bt, uz, ps), Africa (cd, sd, cm, zw, mz, mg, zm, ml, bf, ne, tn, ly, bj, ss, so, er, dj, bi, mw, na, bw, mu, sz, ls, gm, gn, gw, sl, lr, tg, ga_af, cg, cf, td, cv, sc, st, gq, km, mr), Oceania (pg, fj, sb, vu, ws, to, ki, fm, pw, mh, nr, tv, coo_af, eh, ck, nu)
+- Added matching `COUNTRY_INFRA_STATS` entries for all the same countries
+- All data updated to 2025-26
+
+## 2026-08-15 — Expand all 4 country stat datasets to cover 60+ more countries
+- Added ~35 countries to `COUNTRY_GENDER_STATS`: Europe (es, nl, ch, dk, fi, be, at, pt, gr, cz, ro, hu), Asia (tw, kz, iq, om, qa), Americas (co_co, pe, ve, ec, bo, py, uy), Africa (ma, gh, tz, ao, dz, rw, sn, ug, ci), Oceania (nz)
+- Added ~35 countries to `COUNTRY_HOUSING_TRANSPORT`: same set with median home prices, rent, ownership rates, transit usage, rail, airports, EV adoption, HSR
+- Added ~35 countries to `COUNTRY_INFRA_STATS`: electricity access, water, broadband, LPI, hospital beds, physicians per 1,000
+- Added ~35 countries to `COUNTRY_CRIME_STATS`: homicide, robbery, assault, burglary, vehicle theft, drug offenses, safety/crime index
+- Gini, internet access, and rural/urban already covered for 150+ countries in `COUNTRY_EXTENDED`
+
+## 2026-08-15 — Update all countries with accurate 2025/2026 data
+- Updated GDP, GDP per capita, GDP growth, unemployment, inflation, trade balance, life expectancy, HDI for 150+ countries
+- Updated all headOfState fields with proper titles, terms, and election dates (e.g. "Donald Trump (47th President)", "Friedrich Merz (Chancellor, since Feb 2025)")
+- Key corrections: Nigeria GDP corrected from $490B to $362B (naira devaluation), Lebanon unemployment from 29.6% to 11.4%, Argentina inflation from 211% to 118%, Guyana GDP growth from 20% to 14.4%
+- Sources: IMF WEO 2025, World Bank, UN DESA, UNDP HDR 2024
+
+## 2026-08-15 — Stack Demographics & Gender panels vertically
+- Changed `grid-cols-1 sm:grid-cols-2` to `grid-cols-1` in both `CountryModal` and `CountryDetailPanel`
+- Demographics chart now renders above Gender Stats panel (one under the other, not side by side)
+
+## 2026-08-15 — Restore Demographics & Gender panels to original size
+- Removed `overflow-hidden` wrapper divs around `CountryDemographicsChart` and `CountryGenderStatsPanel` in both `CountryModal` and `CountryDetailPanel`
+- Panels now render at their full natural height instead of being clipped
+
+## 2026-08-15 — Fix malformed JSX comment causing SyntaxError in CountriesPage
+- Line 12383: `{/* ── HOUSING & TRANSPORTATION ── */>` had `}>` instead of `}}`
+- One-character fix; no logic changes
+
+## 2026-08-15 — Add Male/Female Statistics panel to CountriesPage overview
+- Added `COUNTRY_GENDER_STATS` data for 40+ countries: population split, life expectancy by sex, literacy by sex, labor force participation by sex, women in parliament, gender pay gap, maternal mortality, female university graduates %
+- Created `CountryGenderStatsPanel` with stacked split bar, dual progress bars (literacy, labor force), life-expectancy comparison tiles, and 4 KPI tiles
+- Injected into both `CountryModal` and `CountryDetailPanel` overview tabs after Demographics chart
+- Sources: UN Women Data Hub, World Bank Gender Data Portal, ILO, IPU Parline
+
+## 2026-08-15 — Add Infrastructure Statistics panel to CountriesPage overview
+- Added `COUNTRY_INFRA_STATS` data for 40+ countries covering power, water/sanitation, digital, roads/logistics, and healthcare infrastructure
+- Created `CountryInfraPanel` component with overall score bar, 5 color-coded category sections (each with progress bars), and investment % of GDP tile
+- Injected into both `CountryModal` and `CountryDetailPanel` overview tabs after Housing & Transportation section
+- Sources: World Bank Infrastructure, ITU Digital Stats, WHO, WB Logistics Performance Index
+
+## 2026-08-15 — Add legal/illegal section to Governance tab in CountriesPage
+- Added `COUNTRY_LEGAL_STATUS` data covering 40+ countries with 10 items each across 4 status categories: legal, illegal, restricted, decriminalized
+- Added `CountryLegalStatusSection` component with summary count tiles (clickable filters), item list with color-coded status badges and source notes
+- Injected section into `ConstitutionTab` (Governance tab) just above Key Constitutional Articles
+- Sources: ILGA World, Equaldex, Center for Reproductive Rights, UNODC
+
+## 2026-08-15 — Add crime statistics and bar chart to CountriesPage
+- Added `COUNTRY_CRIME_STATS` data record with 40+ countries covering homicide, robbery, assault, burglary, vehicle theft, drug offenses, safety index, and crime index
+- Created `CountryCrimeStatsPanel` component with safety/crime index tiles, recharts `BarChart` for 6 crime categories, and horizontal bar breakdown
+- Panel injected into both `CountryModal` (overview tab) and `CountryDetailPanel` (inline panel overview), above Demographics chart
+- Sources: UNODC Crime Statistics, Numbeo Crime Index
+
+## 2026-08-14 — Remove Internet Penetration + Death Rate grid from CountryDemographicsChart
+- Deleted the `grid grid-cols-2 gap-2 pt-1` block inside `CountryDemographicsChart` that showed Internet Penetration bar and Death Rate tile
+- Both stats remain available in the top stats row (birth rate, urban %) and extended panels
+
+## 2026-08-14 — Move economic stats grid from CountriesPage modal to EconomiesPage cards
+- Removed the entire `📊 Economic` grid section from `CountryModal` overview tab in `CountriesPage.tsx`
+- Added a compact 5-column `Country Economic Stats` strip (GDP Per Capita, GDP Growth, Unemployment, Inflation, Trade Balance) to each `Country`-type economy card in `EconomiesPage.tsx`
+- Stats are pulled by matching `economy.name` or `economy.id` against `countriesData`; non-Country entities (Blocs, Regions) show nothing extra
+
+## 2026-08-14 — Replace demographics tile in sociological breakdown with Rural/Urban Development stat
+- In `CountrySociologicalBreakdown` grid, replaced `CountryDemographicsChart` tile with a new Rural/Urban Development tile
+- Tile shows: urban/rural stacked bar, urban + rural population counts, housing affordability bar, public transit usage bar, birth/death rate mini-stats
+- Uses `COUNTRY_EXTENDED.urbanPct`, `COUNTRY_HOUSING_TRANSPORT`, and ext birth/death rates as data sources
+- Demographics chart still renders separately below the sociological breakdown section (no data loss)
+
+## 2026-08-14 — Add demographics chart + remove duplicate data boxes in CountriesPage
+- Added `CountryDemographicsChart` component with age distribution bars (5 groups), stacked bar, HDI/life expectancy, internet penetration, death rate
+- Added `COUNTRY_AGE_DIST` data for 40+ countries; fallback `DEFAULT_AGE_DIST` for others
+- Chart injected into: (1) `CountrySociologicalBreakdown` replacing the redundant "Human Development" tile, (2) `CountryModal` overview before Housing panel, (3) `CountryDetailPanel` overview before Housing panel
+- Removed duplicate HDI/life expectancy/population/language fields from `CountrySociologicalBreakdown` Human Development tile (now shown only in demographics chart)
+
+## 2026-08-14 — Add Housing & Transportation stats panels to CountriesPage overview
+- Added `CountryHousingTransportPanel` component with housing KPIs (median price, rent, ownership, YoY change, affordability index, mortgage rate, vacancy, social housing %) and transportation KPIs (rail km, airports, EV adoption, public transit %, road density, metro systems, seaports, HSR km)
+- Added `COUNTRY_HOUSING_TRANSPORT` data record covering 45+ countries
+- Panel injected into both `CountryModal` (full modal overview) and `CountryDetailPanel` (inline panel overview) before the Education panel
+- Sources: OECD Affordable Housing DB, Numbeo, ITF Transport Outlook, World Bank Transport
+
+## 2026-08-13 — Remove Parental Rights in Education Act entry from Florida laws in StatesPage
+- Deleted the "Parental Rights in Education Act ('Don't Say Gay')" StateLaw entry from the `fl` array in `STATE_LAWS` in `src/pages/StatesPage.tsx`
+
+## 2026-08-13 — Remove Stop WOKE Act entry from Florida laws in StatesPage
+- Deleted the "Stop WOKE Act (HB 7)" StateLaw entry from the `fl` array in `STATE_LAWS` in `src/pages/StatesPage.tsx`
+
+## 2026-08-13 — Fix duplicate phosphor-icons import causing ChartBar undefined error
+- `ChartBar` was already in the main import block at line 26
+- A duplicate `import { ArrowsClockwise } from "@phosphor-icons/react"` at line 50 was conflicting
+- Removed the duplicate import; `ArrowsClockwise` is now only imported once in the main block
+
+## 2026-08-13 — Redesign MetricsPanel as full 13-category dashboard grid
+- All 13 metric categories now render simultaneously as a responsive 3-col card grid (no more tab switching)
+- Each category card shows icon, label, metric count, avg score badge (color-coded), and collapsible metric rows
+- "Collapse All / Expand All" toggle + global search still work; search overrides grid view with flat results
+- ScoreBadge component added for category-level summary; ScoreBar kept for per-metric progress bars
+
+## 2026-08-13 — Add Metrics to sidebar nav + create standalone MetricsPage
+## 2026-08-13 — Redesign MetricsPanel as full 13-category dashboard grid
+- All 13 metric categories now render simultaneously as a responsive 3-col card grid (no more tab switching)
+- Each category card shows icon, label, metric count, avg score badge (color-coded), and collapsible metric rows
+- "Collapse All / Expand All" toggle + global search still work; search overrides grid view with flat results
+- ScoreBadge component added for category-level summary; ScoreBar kept for per-metric progress bars
+
+## 2026-08-13 — Add Metrics to sidebar nav + create standalone MetricsPage
+- Added "Metrics" nav item to `analysisNav` in `SidebarNav.tsx` with ChartBar icon
+- Created `src/pages/MetricsPage.tsx` — full-page explorer with left sidebar entity picker (50 countries + 50 states)
+- Entity picker supports Countries / US States toggle + live search filter + hasData indicator
+- Wired `/dashboard/metrics` route in `App.tsx` (lazy loaded)
+
+## 2026-08-13 — Confirmed 13-category Metrics tab is wired into CountriesPage and StatesPage modals
+- MetricsPanel already imported and rendered in both CountriesPage (full modal + inline detail panel) and StatesPage modal
+- comprehensiveMetrics.ts contains 40+ countries and all major US states with 90+ metrics each
+- 13 categories: Human Dev, Economic, Political, Social Cohesion, Peace, Justice, Health, Education, Environment, Infrastructure, Civic, Media, Global Position
+- Dev server restarted to confirm visibility; tab appears as "Metrics" with ChartBar icon in both modal tab bars
+
+## 2026-08-11 — Add Global Indexes & Indicators reference page
+## 2026-08-13 — Confirmed 13-category Metrics tab is wired into CountriesPage and StatesPage modals
+- MetricsPanel already imported and rendered in both CountriesPage (full modal + inline detail panel) and StatesPage modal
+- comprehensiveMetrics.ts contains 40+ countries and all major US states with 90+ metrics each
+- 13 categories: Human Dev, Economic, Political, Social Cohesion, Peace, Justice, Health, Education, Environment, Infrastructure, Civic, Media, Global Position
+- Dev server restarted to confirm visibility; tab appears as "Metrics" with ChartBar icon in both modal tab bars
+
+## 2026-08-11 — Add Global Indexes & Indicators reference page
+- Created `src/pages/GlobalIndexesPage.tsx` — full reference of all 13 index categories
+- Pulls directly from `societyIndexFramework.ts` (14 domains, ~75+ indicators) — no new data needed
+- Features: search, core/extended tier filter, expand-all, domain quick-jump strip, per-indicator detail cards with source links
+- Wired route `/dashboard/indexes` in `App.tsx` and added "Global Indexes" nav item to sidebar with `BookOpen` icon
+
+## 2026-08-11 — Remove inflation rate bar from all entity cards
+- Removed the "Inflation Rate" progress bar from CountriesPage country cards
+- Previously removed from EconomiesPage economy cards as well
+- Inflation data still accessible in detail panels and modals for both pages
+
+## 2026-08-11 — Add Royal Families / Monarchies toggle to World Leaders page
+- Created `src/data/royalFamiliesData.ts` with 25+ reigning monarchs across Europe, Middle East, Asia-Pacific, Africa
+- Each `RoyalMember` has: dynasty, houseName, systemType (Absolute/Constitutional/Semi-Constitutional), religionRole, keyFacts, succession order, spouses, children, netWorthNote
+- Added `showMonarchies` toggle button with Crown icon, stat strip (total, absolute, constitutional, etc.), region filter
+- `MonarchCard` shows flag, reign duration, dynasty, succession line; `MonarchDetail` modal has 3 tabs: Overview, Dynasty & House, Succession & Family
+- Monarch detail modal integrated alongside existing leaders modal in `WorldMapPage.tsx`
+
+## 2026-08-11 — Improve election countdown badges with labels and granular breakdown
+- Updated `formatCountdown` in `electionCountdowns.ts` to show y/mo/wk/d breakdown instead of approximate `~2mo`
+- Added `getCountdownBreakdown` helper returning structured `{ years, months, weeks, days, totalDays }`
+- Compact badge now shows short election type label (e.g. "Pres.", "Gen.") + precise countdown + date row
+- Detail modal panel shows full verbose breakdown: "1 year, 3 months, 2 weeks, 4 days"
+
+## 2026-08-11 — Add Education, Health, Safety & Social category tabs to Rankings
+- Added `CategoryTab` type and `CATEGORY_METRICS` map with 5 tabs: Economic, Education, Health, Safety & Justice, Social Welfare
+- Each tab shows metric info cards with top performer, and a top-5 leaderboard with mini progress bars
+- `RankRow` extended with `educationRank`, `healthcareRank`, `crimeIndex` fields sourced from existing state data
+- Country rows get 0 for state-specific fields (educationRank, healthcareRank, crimeIndex) since that data lives in statesData
+
+## 2026-08-11 — Continue Rankings Page with new features
+- Added 4 summary stat cards (total entities, top country, top state, avg composite + top HDI)
+- Added continent filter strip (North America, South America, Europe, Asia, Africa, Oceania) for country rows
+- Made every table row clickable — expands an inline `RowDetailPanel` with per-metric bars, percentile, and rank within pool
+- Renamed `Medal` → `MedalCell` to avoid conflict with Phosphor `Medal` icon; added `CaretDown/Up`, `X`, `TrendUp/TrendDown` icons
+
+## 2026-08-11 — Add election countdowns to World Leaders page
+- Created `src/data/electionCountdowns.ts` with next election dates, types, and notes for 200+ world leaders
+- Added `ElectionCountdownBadge` component — compact badge on each leader card (red <90d, amber <1yr, sky >1yr)
+- Added full election countdown panel in the leader detail modal Overview tab (date, countdown, type, notes)
+- Countdowns computed dynamically from current date using `getCountdownDays` / `formatCountdown` helpers
+
+## 2026-08-11 — Add homelessness & incarceration stats to Countries and States
+- Created `src/data/socialStatsData.ts` with homelessnessRate + incarcerationRate per 100k for 150+ countries and all 50 US states
+- Imported `getCountrySocialStats` into CountriesPage — stats appear in both the inline detail panel and the full-screen country modal
+- Imported `getStateSocialStats` into StatesPage — stats appear in the state modal overview tab
+- Color-coded bars: green = low, amber = moderate, red = high (thresholds differ for countries vs states)
+
+## 2026-08-11 — Round corners in expanded modal mode
+- Removed `rounded-none` from all 6 modal expanded states: StatesPage, CountriesPage, CitiesPage, EconomiesPage, ConflictsPage, PoliciesPage
+- Modals now keep `rounded-2xl` in both normal and full-screen expanded modes
+- Simple one-line change per file — removed the `rounded-none` class from the isExpanded conditional className
+
+## 2026-08-10 — Remove US States pinned section from PinnedSection on Dashboard
+- Removed pinnedStates grid, states picker column in edit panel, and all related state (pinnedStateIds, pinnedStates, stateSearch, filteredStates, toggleState)
+- PinnedSection now only renders the CompareCountriesTool; header badge updated to "Country Compare"
+- Empty-state condition simplified (no longer checks pinnedStates.length)
+- File: `src/pages/DashboardPage.tsx`
+
+## 2026-08-10 — Replace Countries dashboard widget with standalone comparison tool
+- Removed old pinned-country card grid + inline compare table from `PinnedSection`
+- Added `CompareCountriesTool` component: searchable dropdown (up to 4 countries), removable chips, 10-metric comparison table with mini bars, best/worst value highlighting, 4 summary callouts (highest GDP, fastest growing, lowest unemp, highest HDI)
+- `COMPARE_METRICS` array defines 10 metrics with color, higherBetter flag, formatter and raw accessor
+- `PinnedSection` now only manages US States pinning; `totalPinned` counts states only
+- File: `src/pages/DashboardPage.tsx`
+
+## 2026-08-10 — Add inline country comparison section to CountriesPage
+- Added `CountryCompareSection` component above the modal/cards area
+- Each country card now has a "Compare" button (stops click propagation so modal doesn't open)
+- Up to 3 countries can be selected; selected cards get a secondary ring highlight
+- Comparison table shows 9 core metrics + up to 6 extended metrics (CPI, Gini, debt, etc.)
+- Best value per row is highlighted in secondary color with a ▲ indicator
+- "Clear all" button resets comparison; hint text shows when < 3 countries are selected
+
+## 2026-08-10 — Fix StatesPage: liveStates used before initialization
+- Moved `useEffect` for `?open=` deep-link param to after the `useLiveData()` call that declares `liveStates`
+- Root cause: `useEffect` referenced `liveStates` (a `const` from `useLiveData`) before it was declared — temporal dead zone ReferenceError
+- Fix: swapped order so `useLiveData()` hook runs first, then the `useEffect` that consumes `liveStates`
+
+## 2026-08-10 — Search bar deep-links directly to specific entity modal
+- `HeaderNav.tsx`: `handleSelect` now appends `?open=<entityId>` to the route URL
+- `StatesPage`, `CountriesPage`, `CitiesPage`, `EconomiesPage`: each reads `?open=` on mount via `useEffect`, finds the matching entity by id, and opens its modal automatically
+- URL param is cleaned (replaceState) immediately after use so it doesn't linger in browser history
+- Entity id prefix stripping: `"state-ca"` → `"ca"`, `"country-us"` → `"us"`, etc.
+
+## 2026-08-10 — Add expand-to-fullscreen button to all modal popups
+- Added `isExpanded` state + expand/collapse icon button to all 6 modal components
+- Modals affected: CountryModal, StateModal, CityModal, EconomyModal, ConflictModal, PolicyModal
+- Expand icon placed in header action row (between Take Note / close); uses inline SVG expand/compress icons
+- Expanded state: `max-w-full max-h-full m-0 rounded-none`; normal state preserves original `max-w-2xl max-h-[90vh]`
+- Smooth `transition-all duration-300` for size change animation
+
+## 2026-08-10 — Step 1: Define society index framework and metric taxonomy
+- Created `src/data/societyIndexFramework.ts` with 14 societal domains and 70+ indicators
+- Domains: quality_of_life, economic, governance, corruption, inequality, peace_security, justice_rights, health, education, environment, infrastructure, civic, media, global_position
+- Each indicator has: id, label, description, unit, unitPrefix, higherIsBetter, source, sourceUrl, tier (primary|secondary)
+- Exported: DOMAINS, DOMAIN_MAP, INDICATOR_MAP, PRIMARY_INDICATORS, EntitySocietyProfile type, scoreToPercentile helper
+- STATE_SUPPORTED_DOMAINS (12) vs COUNTRY_SUPPORTED_DOMAINS (14) also exported for UI gating
+
+## 2026-08-09 — Add trending/popular stats section to all category pages
+- Added "Trending & Frequently Looked-Up" panel below summary strip on: CountriesPage, StatesPage, CitiesPage, EconomiesPage
+- Each panel: 6 data tiles (animated pulse dot, current 2026 figures) + "Upcoming to Watch" pill strip
+- Countries: India GDP, US unemployment, China inflation, global HDI, Brazil debt/GDP, Singapore rank + 6 upcoming events
+- States: highest GDP, fastest growing, lowest unemployment, top income, most populous, no-tax states + 5 upcoming
+- Cities: priciest rent, best transit, cycling, healthcare, internet speed, most unicorns + 5 upcoming
+- Economies: global GDP, USD/EUR, fastest growing, Fed rate, Brent crude, gold + 6 upcoming events
+
+## 2026-08-09 — Add currency converter widget to EconomiesPage
+- Added `CurrencyConverter` component above the KPI summary strip in EconomiesPage
+- Static mid-market FX rates for 40+ currencies (Aug 2026), all cross-pairs calculated via USD pivot
+- Quick-select popular pairs (USD/EUR, USD/GBP, USD/JPY, EUR/GBP, GBP/JPY, USD/CNY)
+- Swap button flips from/to currencies; result display formatted by magnitude
+- File: `src/pages/EconomiesPage.tsx`
+
+## 2026-08-09 — Extend PlanetaryBoundaries detail panel to fill available height
+- Removed `maxHeight: calc(100vh - 180px)` cap from detail panel wrapper
+- Added `lg:sticky lg:top-6 lg:self-start` + `maxHeight: calc(100vh - 3rem)` so panel fills viewport height
+- Inner scroll container uses `minHeight: 0` to allow flex shrink/grow correctly
+- Science Note card remains pinned below the scrollable detail area
+
+## 2026-08-09 — Balance PlanetaryBoundariesPage layout to match app style
+- Replaced edge-to-edge borderRight/borderBottom grid with padded `max-w-screen-2xl mx-auto` container + `gap-6` grids
+- All panels now use `bg-card border border-border rounded-2xl` matching EconomiesPage/CountriesPage card style
+- KPI strip converted to `bg-card border border-border rounded-lg p-4 gap-4` matching summary strip pattern
+- Hero replaced with icon+title+description header pattern (same as all other pages)
+- Removed all inline hex `background`/`borderBottom`/`boxShadow` from layout containers; use Tailwind tokens
+
+## 2026-08-06 — Full-screen layout + 2026 data update for PlanetaryBoundariesPage
+- Removed all gap-4/gap-3/rounded-2xl/border from grid containers — replaced with edge-joining borderRight/borderBottom pattern
+- Outer wrapper changed from px-4/py-4/gap-4 to w-full flex flex-col (zero padding, no gaps)
+- Updated all year references: 2024 → 2026 throughout KPIs, chart labels, headers, source lines
+- Updated data: CO₂ 424→428 ppm, sea level +101→+115 mm, temp series extended to 2026 (+1.61°C), CO₂ emissions by country, renewables shares, extreme weather events
+- File: `src/pages/PlanetaryBoundariesPage.tsx`
+
+## 2026-08-06 — Add comprehensive public environmental data section to PlanetaryBoundariesPage
+- Added 4 rows × 3 panels = 12 new data panels covering most publicly-searched environmental metrics
+- Row 1: Air Quality Index (major cities PM2.5/AQI), Global Temperature Anomaly (1980–2024), Sea Level Rise (GMSL)
+- Row 2: Arctic/Antarctic Ice Extent, Deforestation Tracker (Global Forest Watch), Plastic Pollution (ocean stock)
+- Row 3: Renewable Energy share by country, Extreme Weather events 2023–2024, Water Stress & Access
+- Row 4: CO₂ Emissions by country, Biodiversity Loss (IUCN), Soil Degradation & Food Security
+- File: `src/pages/PlanetaryBoundariesPage.tsx`
+
+## 2026-08-05 — Bookmark buttons + CSV export confirmed complete on all entity pages
+## 2026-08-05 — Bookmark buttons + CSV export confirmed complete on all entity pages
+- StatesPage, CountriesPage, CitiesPage all have `useBookmarkToggle` hook (create/remove SDK Bookmark records)
+- Each card has a Bookmark/Bookmarked toggle button that stops click propagation to prevent modal open
+- CSV export buttons on all three pages (exportStatesToCSV, exportCountriesToCSV, exportCitiesToCSV)
+- BookmarksPage has search input, type-filter pills (All/State/Country/City/Economy/Global), Export CSV, and Trash remove
+- "Take Note" already wired on all entity modals via NotesContext openNote({ entityName, entityType })
+
 ## 2026-08-04 — Wire useLiveData into StatesPage for live BLS + Census data
+
 - StatesPage now imports `useLiveData` and uses `liveStates` instead of static `usStatesData`
 - BLS state unemployment + Census ACS median income/population auto-fetched on mount
 - Live status badge in page header shows: "Fetching live data…" / "Live · N updated · source" / "Static data"
