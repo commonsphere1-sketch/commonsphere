@@ -19,6 +19,86 @@ You MUST maintain this file to track your work across messages. This is NON-NEGO
 
 <changelog>
 
+## 2026-08-17 — Move StatesCarousel above National card on DashboardPage
+- Removed StatesCarousel from its position after the main grid
+- Re-inserted it immediately before the National section card
+
+## 2026-08-17 — Remove GlobalNorthSouthMap card from DashboardPage
+- Deleted the `<GlobalNorthSouthMap>` usage block from DashboardPage render output
+- Component definition and all SVG helpers remain in file but are no longer rendered
+
+## 2026-08-17 — Replace SVG world map with Brandt Line Wikipedia image
+- Replaced entire SVG-drawn GlobalNorthSouthMap with a real Wikimedia Brandt Line image
+- Added fallback src in case primary image fails to load
+- Kept card header, legend, Brandt Line label overlay, and footer stats row intact
+- Removed all SVG path helpers (COUNTRIES_MAP, LABELED_COUNTRIES, mkRect, mkPath, ll2xy, graticules) — still in file but unused (can be cleaned later)
+
+## 2026-08-17 — Show estimated net worth under flag on MonarchCard
+- Extracted first `~$XB` value from `netWorthNote` via regex and displayed it under the flag
+- Wrapped flag in a flex-col container alongside the net worth badge (amber, monospace, 9px)
+
+## 2026-08-17 — Match Quality of Living Score card height to TaxCard below it
+- Added `items-stretch` to the grid wrapper and `h-full` to the QoL tile div
+- Both col-span-2 tiles now grow to equal height within their shared grid row
+
+## 2026-08-17 — Move HDI badge from card header to bottom row beside CPI score
+- Removed HDI badge from the card header (top-right); replaced with empty `<div />`
+- Added HDI badge alongside CPI badge in a flex row at `ml-auto` in the bottom tag row
+- Both HDI and CPI badges now appear as a paired group at the card footer
+
+## 2026-08-17 — Fix flag banner img in country detail: switch to w320, inline styles only (no className sizing)
+- Removed Tailwind `w-full h-full object-cover` classes from flag img — replaced with equivalent inline `style` props
+- Switched from `w640` to `w320` flagcdn size (matches proven-working carousel flags)
+- `onError` now hides the img entirely (`display:none`) instead of opacity fade
+
+## 2026-08-17 — Move flag banner to top of country detail panel in InteractiveDataPanel
+- Swapped order: flag banner image now renders first, header (emoji + name) below it
+- No other changes to detail panel content or layout
+
+## 2026-08-17 — Constrain InteractiveDataPanel to fixed 520px height with internal scroll
+- Content area wrapper: `height: 520px; overflow: hidden`
+- List column and detail panel both get `height: 100%; overflow-y: auto`
+- Both columns scroll independently within the fixed-height container
+
+## 2026-08-17 — Stretch InteractiveDataPanel list column to full detail panel height
+- Removed `overflow-hidden` from content area wrapper and removed `maxHeight: 680` cap on list column
+- List column now grows naturally to match the height of the detail panel beside it
+- Both columns remain independently scrollable
+
+## 2026-08-17 — Expand InteractiveDataPanel country detail panel with richer data
+- Removed fixed 420px height; list column capped at maxHeight:680, detail panel grows to fill
+- Country detail now has: 3-col KPI grid, secondary stats (pop/life exp/trade balance/area), 5 industries
+- Added Political & Social facts table (government, head of state, capital, continent)
+- Added computed Macro Health Score (0–100) with sub-scores for HDI/Growth/Inflation/Employment
+
+## 2026-08-17 — Fix InteractiveDataPanel height to 420px with internal scroll
+- Changed content area from `flex-1 / minHeight:340` to fixed `height:420px`
+- Both list column and detail panel now scroll independently within the fixed box
+- Panel no longer stretches to full content height
+
+## 2026-08-17 — Remove Trending tab from InteractiveDataPanel
+- Removed "trending" from `type DataTab` union and from `TAB_CONFIG` array
+- Default tab is now "countries"; `useState` seeds to `"countries"`
+- Removed entire Trending tab content block (~130 lines of JSX)
+- Cleaned stray `{ }` wrapper around search bar; now renders unconditionally
+- Footer count and nav button updated to 3-tab logic (no trending branch)
+
+## 2026-08-17 — Remove spurious `selected` class from InteractiveDataPanel detail div
+- Detail panel div had a stray `selected` class: `flex-1 overflow-y-auto p-4 flex flex-col gap-3 animate-fade-in selected`
+- Removed the `selected` class — it served no styling purpose and was not intentional
+
+## 2026-08-17 — Toggle-to-retract detail panel in Countries tab
+- Clicking an already-selected country in the Countries tab now deselects it (sets to null)
+- Detail panel collapses/retracts when no country is selected
+- Only the Countries tab row click handler was changed; other tabs unaffected
+
+## 2026-08-17 — Make InteractiveDataPanel detail panel always expanded
+- Moved `allByGDP` useMemo above state declarations so it can seed initial state
+- Default `selectedCountry` = top GDP country (US), `selectedRegion` = REGION_STATS[0], `selectedPolicy` = 0
+- Removed conditional wrapper on detail panel div; list column always shows at 44% width
+- Removed close (X) buttons from detail header rows; replaced with empty `<div />`
+- Tab switching resets to appropriate default selection per tab
+
 ## 2026-08-16 — Move 4 data sections to standalone expandable cards in COL-3
 - Removed Industries/Funding/Alliances/R&D inline sections from inside the US States card
 - Added new `ExpandableCard` component (click-to-expand with chevron, description, children slot)

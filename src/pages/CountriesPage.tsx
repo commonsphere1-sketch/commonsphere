@@ -35839,12 +35839,11 @@ export function CountriesPage() {
                     src={`https://flagcdn.com/w320/${country.code.toLowerCase()}.png`}
                     alt=""
                     aria-hidden="true"
-                    className="absolute inset-0 w-full h-full object-cover opacity-20 blur-[2px] scale-105 select-none pointer-events-none"
+                    className="absolute inset-0 w-full h-full object-cover opacity-20 scale-105 select-none pointer-events-none"
                     onError={(e) => {
                       e.currentTarget.style.display = "none";
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-b from-card/60 via-card/70 to-card pointer-events-none" />
                   {/* Flag + name */}
                   <div className="relative flex items-center gap-3">
                     <div className="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 shadow-md">
@@ -35876,12 +35875,7 @@ export function CountriesPage() {
                       </p>
                     </div>
                   </div>
-                  {/* HDI badge */}
-                  <span
-                    className={`relative text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full ${hdiBg}`}
-                  >
-                    HDI {country.humanDevelopmentIndex}
-                  </span>
+                  <div />
                 </div>
 
                 {/* Key stats */}
@@ -35961,13 +35955,20 @@ export function CountriesPage() {
                       ? country.governmentType.slice(0, 22) + "…"
                       : country.governmentType}
                   </span>
-                  {ext?.cpiScore != null && (
+                  <div className="flex items-center gap-1.5 ml-auto">
                     <span
-                      className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ml-auto shrink-0 ${ext.cpiScore >= 60 ? "text-success border-success/30 bg-success/10" : ext.cpiScore >= 40 ? "text-warning border-warning/30 bg-warning/10" : "text-destructive border-destructive/30 bg-destructive/10"}`}
+                      className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full ${hdiBg}`}
                     >
-                      CPI {ext.cpiScore}
+                      HDI {country.humanDevelopmentIndex}
                     </span>
-                  )}
+                    {ext?.cpiScore != null && (
+                      <span
+                        className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${ext.cpiScore >= 60 ? "text-success border-success/30 bg-success/10" : ext.cpiScore >= 40 ? "text-warning border-warning/30 bg-warning/10" : "text-destructive border-destructive/30 bg-destructive/10"}`}
+                      >
+                        CPI {ext.cpiScore}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </article>
             );

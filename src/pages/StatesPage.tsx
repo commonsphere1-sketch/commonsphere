@@ -12031,8 +12031,8 @@ function StateModal({
                 </div>
 
                 {/* Quality of Living tile */}
-                <div className="grid grid-cols-2 gap-3 mb-0">
-                  <div className="modal-tile rounded-lg p-4 flex flex-col gap-1 col-span-2">
+                <div className="grid grid-cols-2 gap-3 mb-0 items-stretch">
+                  <div className="modal-tile rounded-lg p-4 flex flex-col gap-1 col-span-2 h-full">
                     <p className="text-xs text-muted-foreground font-sans">
                       Quality of Living Score
                     </p>
@@ -13338,10 +13338,9 @@ export function StatesPage() {
                   src={`https://flagcdn.com/w320/us-${state.id}.png`}
                   alt=""
                   aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover opacity-20 blur-[2px] scale-105 select-none pointer-events-none"
+                  className="absolute inset-0 w-full h-full object-cover opacity-20 scale-105 select-none pointer-events-none"
                 />
                 {/* Gradient overlay so text stays readable */}
-                <div className="absolute inset-0 bg-gradient-to-b from-card/60 via-card/70 to-card pointer-events-none" />
                 {/* Content */}
                 <div className="relative flex items-center gap-3">
                   <div className="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 shadow-md">

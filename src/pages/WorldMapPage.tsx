@@ -14981,18 +14981,32 @@ function MonarchCard({
       }`}
     >
       <div className="p-4 flex items-start gap-3">
-        {/* Flag */}
-        <div className="w-14 h-14 rounded-lg overflow-hidden border border-border flex items-center justify-center bg-muted/30 shrink-0">
-          <img
-            src={`https://flagcdn.com/w80/${monarch.countryCode.toLowerCase()}.png`}
-            alt={`${monarch.country} flag`}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.display = "none";
-              (e.currentTarget.parentElement as HTMLElement).innerHTML =
-                `<span class="text-2xl">${monarch.flag}</span>`;
-            }}
-          />
+        {/* Flag + net worth */}
+        <div className="flex flex-col items-center gap-1 shrink-0">
+          <div className="w-14 h-14 rounded-lg overflow-hidden border border-border flex items-center justify-center bg-muted/30">
+            <img
+              src={`https://flagcdn.com/w80/${monarch.countryCode.toLowerCase()}.png`}
+              alt={`${monarch.country} flag`}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+                (e.currentTarget.parentElement as HTMLElement).innerHTML =
+                  `<span class="text-2xl">${monarch.flag}</span>`;
+              }}
+            />
+          </div>
+          {monarch.netWorthNote &&
+            (() => {
+              const match = monarch.netWorthNote.match(
+                /~?[£€\$][\d.,]+[BMT][\d.]*\+?/,
+              );
+              if (!match) return null;
+              return (
+                <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1 py-0.5 leading-tight text-center whitespace-nowrap">
+                  {match[0]}
+                </span>
+              );
+            })()}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-0.5">

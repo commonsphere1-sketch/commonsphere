@@ -17,12 +17,11 @@ export function DashboardLayout() {
       <div className="flex flex-1 pt-16">
         {/* Desktop Sidebar */}
         <aside
-          className={`sidebar-bar hidden md:flex flex-col fixed left-0 top-16 bottom-0 z-30 border-r border-border/50 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+          className={`sidebar-bar hidden md:flex flex-col fixed left-0 top-16 bottom-0 z-30 border-r border-transparent transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
             sidebarOpen ? "w-44" : "w-14"
           }`}
           style={{
             backdropFilter: "blur(24px) saturate(150%)",
-            boxShadow: "1px 0 0 rgba(255, 220, 120, 0.03)",
           }}
         >
           <SidebarNav

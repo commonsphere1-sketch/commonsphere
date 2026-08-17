@@ -2448,7 +2448,7 @@ function CityPhotosGrid({ city }: { city: City }) {
           src={`https://flagcdn.com/w320/${city.countryCode?.toLowerCase() ?? "un"}.png`}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover opacity-30 blur-[2px] scale-105"
+          className="absolute inset-0 w-full h-full object-cover opacity-30 scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-card/80 via-card/60 to-card/40" />
         <img
@@ -3661,10 +3661,9 @@ export function CitiesPage() {
                   src={`https://flagcdn.com/w320/${city.countryCode?.toLowerCase() ?? "un"}.png`}
                   alt=""
                   aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover opacity-20 blur-[2px] scale-105 select-none pointer-events-none"
+                  className="absolute inset-0 w-full h-full object-cover opacity-20 scale-105 select-none pointer-events-none"
                 />
                 {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-b from-card/60 via-card/70 to-card pointer-events-none" />
                 {/* Content */}
                 <div className="relative flex items-center gap-3">
                   <div className="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 shadow-md">

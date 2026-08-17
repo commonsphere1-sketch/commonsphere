@@ -383,6 +383,312 @@ function CountryCarousel({
   );
 }
 
+/* ─── States Carousel ───────────────────────────────────────────────────── */
+function StatesCarousel({
+  isLight,
+  cardBg,
+  cardBorder,
+  headText,
+  mutedText,
+  gridLine,
+  onNav,
+}: {
+  isLight: boolean;
+  cardBg: string;
+  cardBorder: string;
+  headText: string;
+  mutedText: string;
+  gridLine: string;
+  onNav: (path: string) => void;
+}) {
+  const sorted = React.useMemo(
+    () => [...usStatesData].sort((a, b) => b.gdp - a.gdp),
+    [],
+  );
+
+  const items = [...sorted, ...sorted];
+
+  const trackRef = useRef<HTMLDivElement>(null);
+  const animRef = useRef<number>(0);
+  const posRef = useRef(0);
+  const pausedRef = useRef(false);
+  const [cardWidth, setCardWidth] = useState(0);
+  const GAP = 12;
+  const VISIBLE = 5;
+  const SPEED = 0.7;
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const step = () => {
+      if (!pausedRef.current) {
+        posRef.current += SPEED;
+        const halfWidth = track.scrollWidth / 2;
+        if (posRef.current >= halfWidth) posRef.current -= halfWidth;
+        track.style.transform = `translateX(-${posRef.current}px)`;
+      }
+      animRef.current = requestAnimationFrame(step);
+    };
+    animRef.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animRef.current);
+  }, []);
+
+  useEffect(() => {
+    const measure = () => {
+      const track = trackRef.current;
+      if (!track) return;
+      const firstCard = track.querySelector<HTMLElement>("[data-state-card]");
+      if (firstCard) setCardWidth(firstCard.offsetWidth + GAP);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  const viewportWidth = cardWidth > 0 ? cardWidth * VISIBLE - GAP : null;
+
+  const fmtGDP = (b: number) =>
+    b >= 1000 ? `$${(b / 1000).toFixed(1)}T` : `$${Math.round(b)}B`;
+
+  const fmtPop = (n: number) => {
+    if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+    return `${Math.round(n / 1000)}K`;
+  };
+
+  const STATE_COLORS = [
+    "#3b82f6",
+    "#6366f1",
+    "#10b981",
+    "#f59e0b",
+    "#a855f7",
+    "#ef4444",
+    "#06b6d4",
+    "#f97316",
+    "#84cc16",
+    "#ec4899",
+  ];
+
+  return (
+    <div
+      className="rounded-2xl"
+      style={{
+        background: cardBg,
+        border: cardBorder,
+        overflow: "hidden",
+        maxWidth: "100%",
+        boxSizing: "border-box",
+      }}
+    >
+      {/* Header */}
+      <div
+        className="flex items-center justify-between px-5 py-3.5"
+        style={{ borderBottom: `1px solid ${gridLine}` }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+            style={{ background: "#3b82f612", border: "1px solid #3b82f622" }}
+          >
+            <MapTrifold size={13} weight="fill" style={{ color: "#3b82f6" }} />
+          </div>
+          <span
+            className="text-sm font-bold font-sans"
+            style={{ color: headText }}
+          >
+            US States
+          </span>
+          <span
+            className="text-[10px] font-mono px-2 py-0.5 rounded-full"
+            style={{ background: "#3b82f614", color: "#3b82f6" }}
+          >
+            {sorted.length} tracked
+          </span>
+        </div>
+        <button
+          onClick={() => onNav("/dashboard/states")}
+          className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70"
+          style={{ color: "#3b82f6" }}
+        >
+          All States <ArrowRight size={10} weight="bold" />
+        </button>
+      </div>
+
+      {/* Carousel */}
+      <div className="relative py-4 flex justify-center px-4">
+        <div
+          className="relative overflow-hidden"
+          style={{
+            width: viewportWidth !== null ? viewportWidth : "100%",
+            maxWidth: "100%",
+          }}
+          onMouseEnter={() => {
+            pausedRef.current = true;
+          }}
+          onMouseLeave={() => {
+            pausedRef.current = false;
+          }}
+        >
+          {/* Left fade */}
+          <div
+            className="absolute inset-y-0 left-0 pointer-events-none z-10"
+            style={{
+              width: 28,
+              background: `linear-gradient(to right, ${isLight ? "#f8fafc" : "#0b0b14"}, transparent)`,
+            }}
+          />
+          {/* Right fade */}
+          <div
+            className="absolute inset-y-0 right-0 pointer-events-none z-10"
+            style={{
+              width: 28,
+              background: `linear-gradient(to left, ${isLight ? "#f8fafc" : "#0b0b14"}, transparent)`,
+            }}
+          />
+
+          {/* Track */}
+          <div
+            ref={trackRef}
+            className="flex gap-3"
+            style={{ willChange: "transform", width: "max-content" }}
+          >
+            {items.map((state, idx) => {
+              const color = STATE_COLORS[idx % STATE_COLORS.length];
+              return (
+                <div
+                  key={`${state.id}-${idx}`}
+                  data-state-card
+                  onClick={() => onNav("/dashboard/states")}
+                  className="rounded-xl overflow-hidden cursor-pointer transition-opacity duration-200 hover:opacity-90 shrink-0"
+                  style={{
+                    width: "calc((100vw - 260px - 56px) / 5)",
+                    minWidth: 140,
+                    maxWidth: 230,
+                    background: isLight
+                      ? "rgba(255,255,255,0.9)"
+                      : "rgba(255,255,255,0.06)",
+                    border: `1px solid ${gridLine}`,
+                    boxShadow: isLight ? "0 2px 8px rgba(0,0,0,0.07)" : "none",
+                  }}
+                >
+                  {/* Flag banner with actual state flag */}
+                  <div
+                    className="relative overflow-hidden"
+                    style={{
+                      height: 64,
+                      borderBottom: `1px solid ${gridLine}`,
+                      background: isLight ? "#e8eaf0" : "#1a1a2e",
+                    }}
+                  >
+                    <img
+                      src={`https://flagcdn.com/w320/us-${state.id}.png`}
+                      alt={`${state.name} flag`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const img = e.currentTarget as HTMLImageElement;
+                        img.style.display = "none";
+                        const fallback = img.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = "flex";
+                      }}
+                    />
+                    {/* Fallback: colored gradient with abbreviation */}
+                    <div
+                      className="absolute inset-0 items-center justify-center"
+                      style={{
+                        display: "none",
+                        background: `linear-gradient(135deg, ${color}22, ${color}44)`,
+                      }}
+                    >
+                      <span
+                        className="text-2xl font-black font-mono"
+                        style={{ color, letterSpacing: "-0.03em" }}
+                      >
+                        {state.abbreviation}
+                      </span>
+                    </div>
+                    {/* Dark overlay + region badge */}
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        background:
+                          "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.48) 100%)",
+                      }}
+                    />
+                    <div
+                      className="absolute bottom-1.5 right-2 text-[8px] font-mono px-1.5 py-0.5 rounded-full"
+                      style={{ background: "rgba(0,0,0,0.45)", color: "#fff" }}
+                    >
+                      {state.region}
+                    </div>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="px-3 py-2.5 flex flex-col gap-1.5">
+                    <p
+                      className="text-[11px] font-bold font-sans truncate"
+                      style={{ color: headText }}
+                    >
+                      {state.name}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span
+                        className="text-[10px] font-sans"
+                        style={{ color: mutedText }}
+                      >
+                        GDP
+                      </span>
+                      <span
+                        className="text-[11px] font-bold font-mono"
+                        style={{ color: headText }}
+                      >
+                        {fmtGDP(state.gdp)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span
+                        className="text-[10px] font-sans"
+                        style={{ color: mutedText }}
+                      >
+                        Pop.
+                      </span>
+                      <span
+                        className="text-[11px] font-mono"
+                        style={{ color: headText }}
+                      >
+                        {fmtPop(state.population)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span
+                        className="text-[10px] font-sans"
+                        style={{ color: mutedText }}
+                      >
+                        Unemp.
+                      </span>
+                      <span
+                        className="text-[11px] font-bold font-mono"
+                        style={{
+                          color:
+                            state.unemploymentRate < 4
+                              ? "#10b981"
+                              : state.unemploymentRate < 6
+                                ? "#f59e0b"
+                                : "#ef4444",
+                        }}
+                      >
+                        {state.unemploymentRate.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Helpers ──────────────────────────────────────────────────────────── */
 const fmtB = (n: number) =>
   n >= 1000 ? `$${(n / 1000).toFixed(1)}T` : `$${n.toFixed(0)}B`;
@@ -868,6 +1174,1043 @@ const US_RD_BREAKTHROUGHS = [
     agency: "DOE / NIF",
   },
 ];
+
+/* ─── Trends & Projections static data ────────────────────────────────── */
+const GDP_PROJECTION_DATA = [
+  { year: "2023", actual: 104.5, projected: null },
+  { year: "2024", actual: 105.4, projected: null },
+  { year: "2025", actual: null, projected: 107.1 },
+  { year: "2026", actual: null, projected: 109.8 },
+  { year: "2027", actual: null, projected: 113.2 },
+  { year: "2028", actual: null, projected: 116.9 },
+];
+
+const GDP_PROJECTION_COMBINED = [
+  { year: "2020", gdp: 84.9, type: "actual" },
+  { year: "2021", gdp: 96.1, type: "actual" },
+  { year: "2022", gdp: 100.6, type: "actual" },
+  { year: "2023", gdp: 104.5, type: "actual" },
+  { year: "2024", gdp: 105.4, type: "actual" },
+  { year: "2025", gdp: 107.1, type: "projected" },
+  { year: "2026", gdp: 109.8, type: "projected" },
+  { year: "2027", gdp: 113.2, type: "projected" },
+  { year: "2028", gdp: 116.9, type: "projected" },
+];
+
+const RISK_SCENARIOS = [
+  {
+    title: "US-China Decoupling Accelerates",
+    probability: 64,
+    impact: "High",
+    impactColor: "#ef4444",
+    tag: "Trade",
+    color: "#ef4444",
+    desc: "Full semiconductor + EV supply chain separation by 2027. Est. $2.1T drag on global trade.",
+  },
+  {
+    title: "AI Productivity Boom (Base Case)",
+    probability: 71,
+    impact: "Positive",
+    impactColor: "#10b981",
+    tag: "Tech",
+    color: "#a855f7",
+    desc: "Generative AI raises productivity 1.5–2.9 pp/yr in advanced economies. McKinsey estimates $4.4T annual value.",
+  },
+  {
+    title: "Climate Tipping Point: Coral Collapse",
+    probability: 48,
+    impact: "Severe",
+    impactColor: "#ef4444",
+    tag: "Climate",
+    color: "#10b981",
+    desc: "90% coral bleaching triggers fisheries collapse affecting 600M people in coastal Southeast Asia.",
+  },
+  {
+    title: "Fed Soft Landing Achieved",
+    probability: 58,
+    impact: "Positive",
+    impactColor: "#10b981",
+    tag: "Macro",
+    color: "#3b82f6",
+    desc: "Inflation converges to 2.1% by Q4 2025 without recession. Rate cuts commence Q1 2026.",
+  },
+  {
+    title: "Middle East Conflict Expands",
+    probability: 37,
+    impact: "High",
+    impactColor: "#ef4444",
+    tag: "Conflict",
+    color: "#f97316",
+    desc: "Regional escalation drives Brent Crude above $110/bbl, adding 1.2 pp to global inflation.",
+  },
+];
+
+const MACRO_FORECAST_2026 = [
+  {
+    label: "World GDP Growth",
+    value: "+3.1%",
+    delta: "+0.3pp vs 2025",
+    up: true,
+    color: "#6366f1",
+  },
+  {
+    label: "G20 Inflation",
+    value: "2.8%",
+    delta: "-1.1pp",
+    up: false,
+    color: "#10b981",
+  },
+  {
+    label: "Global Trade Vol.",
+    value: "+3.7%",
+    delta: "+1.4pp",
+    up: true,
+    color: "#3b82f6",
+  },
+  {
+    label: "EM Growth Premium",
+    value: "+2.4pp",
+    delta: "over advanced",
+    up: true,
+    color: "#f59e0b",
+  },
+];
+
+const SECTOR_FORECAST_DETAIL = [
+  {
+    sector: "AI Infrastructure",
+    outlook2025: "+42%",
+    outlook2026: "+38%",
+    color: "#a855f7",
+    drivers: "Hyperscaler capex, sovereign AI funds",
+  },
+  {
+    sector: "Defense & Security",
+    outlook2025: "+18%",
+    outlook2026: "+14%",
+    color: "#ef4444",
+    drivers: "NATO spending pledges, Indo-Pacific arms",
+  },
+  {
+    sector: "Renewable Energy",
+    outlook2025: "+24%",
+    outlook2026: "+29%",
+    color: "#10b981",
+    drivers: "IRA incentives, EU Green Deal",
+  },
+  {
+    sector: "Semiconductors",
+    outlook2025: "+31%",
+    outlook2026: "+22%",
+    color: "#6366f1",
+    drivers: "CHIPS Act, AI chip demand, reshoring",
+  },
+  {
+    sector: "Biotech / Pharma",
+    outlook2025: "+19%",
+    outlook2026: "+23%",
+    color: "#06b6d4",
+    drivers: "GLP-1 drugs, cancer vaccines, mRNA",
+  },
+];
+
+const COUNTRY_GDP_PROJECTIONS = [
+  {
+    country: "USA",
+    flag: "🇺🇸",
+    gdp2025: 29.2,
+    gdp2028: 33.1,
+    cagr: "+4.3%",
+    color: "#6366f1",
+  },
+  {
+    country: "China",
+    flag: "🇨🇳",
+    gdp2025: 19.5,
+    gdp2028: 23.4,
+    cagr: "+6.2%",
+    color: "#ef4444",
+  },
+  {
+    country: "India",
+    flag: "🇮🇳",
+    gdp2025: 4.1,
+    gdp2028: 5.8,
+    cagr: "+12.2%",
+    color: "#f59e0b",
+  },
+  {
+    country: "Germany",
+    flag: "🇩🇪",
+    gdp2025: 4.7,
+    gdp2028: 5.0,
+    cagr: "+2.1%",
+    color: "#10b981",
+  },
+  {
+    country: "Japan",
+    flag: "🇯🇵",
+    gdp2025: 4.3,
+    gdp2028: 4.4,
+    cagr: "+0.8%",
+    color: "#3b82f6",
+  },
+];
+
+/* ─── Trends & Projections Panel ───────────────────────────────────────── */
+type TrendsTab = "macro" | "sectors" | "scenarios" | "countries";
+
+function TrendsProjectionsPanel({
+  isLight,
+  cardBg,
+  cardBorder,
+  cardShadow,
+  gridLine,
+  headText,
+  mutedText,
+  bodyText,
+  onNav,
+}: {
+  isLight: boolean;
+  cardBg: string;
+  cardBorder: string;
+  cardShadow: string;
+  gridLine: string;
+  headText: string;
+  mutedText: string;
+  bodyText: string;
+  onNav: (path: string) => void;
+}) {
+  const [activeTab, setActiveTab] = useState<TrendsTab>("macro");
+
+  const TABS: {
+    id: TrendsTab;
+    label: string;
+    icon: React.ReactNode;
+    color: string;
+    badge: string;
+  }[] = [
+    {
+      id: "macro",
+      label: "Macro Outlook",
+      icon: <ChartLineUp size={12} weight="fill" />,
+      color: "#6366f1",
+      badge: "2025–28",
+    },
+    {
+      id: "sectors",
+      label: "Sectors",
+      icon: <ChartBar size={12} weight="fill" />,
+      color: "#10b981",
+      badge: "5 key",
+    },
+    {
+      id: "scenarios",
+      label: "Scenarios",
+      icon: <Target size={12} weight="fill" />,
+      color: "#f97316",
+      badge: `${RISK_SCENARIOS.length}`,
+    },
+    {
+      id: "countries",
+      label: "Country GDP",
+      icon: <Globe size={12} weight="fill" />,
+      color: "#3b82f6",
+      badge: "Forecast",
+    },
+  ];
+
+  const curColor = TABS.find((t) => t.id === activeTab)?.color ?? "#6366f1";
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}
+    >
+      {/* Panel header */}
+      <div
+        className="flex items-center justify-between px-5 py-3.5"
+        style={{ borderBottom: `1px solid ${gridLine}` }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+            style={{ background: "#6366f112", border: "1px solid #6366f122" }}
+          >
+            <TrendUp size={13} weight="fill" style={{ color: "#6366f1" }} />
+          </div>
+          <span
+            className="text-sm font-bold font-sans"
+            style={{ color: headText }}
+          >
+            Trends &amp; Projections
+          </span>
+          <span
+            className="text-[10px] font-mono px-2 py-0.5 rounded-full"
+            style={{ background: "#6366f114", color: "#6366f1" }}
+          >
+            2025 – 2028
+          </span>
+        </div>
+        <button
+          onClick={() => onNav("/dashboard/trends")}
+          className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70"
+          style={{ color: "#6366f1" }}
+        >
+          Full Analysis <ArrowRight size={10} weight="bold" />
+        </button>
+      </div>
+
+      {/* Tab bar */}
+      <div
+        className="flex items-center gap-0 border-b"
+        style={{ borderColor: gridLine }}
+      >
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className="flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold font-sans transition-all"
+            style={{
+              color: activeTab === tab.id ? tab.color : mutedText,
+              background:
+                activeTab === tab.id
+                  ? isLight
+                    ? "rgba(0,0,0,0.03)"
+                    : "rgba(255,255,255,0.04)"
+                  : "transparent",
+              borderBottom:
+                activeTab === tab.id
+                  ? `2px solid ${tab.color}`
+                  : "2px solid transparent",
+              marginBottom: -1,
+            }}
+          >
+            <span style={{ color: tab.color }}>{tab.icon}</span>
+            {tab.label}
+            <span
+              className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
+              style={{ background: tab.color + "15", color: tab.color }}
+            >
+              {tab.badge}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      <div className="p-5">
+        {/* ── MACRO OUTLOOK ─────────────────────────────────────────────── */}
+        {activeTab === "macro" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left: World GDP projection chart */}
+            <div>
+              <p
+                className="text-[9px] font-mono uppercase tracking-widest mb-3"
+                style={{ color: mutedText }}
+              >
+                World GDP — Actual vs IMF Projection (USD Trillions)
+              </p>
+              <ResponsiveContainer width="100%" height={180}>
+                <AreaChart
+                  data={GDP_PROJECTION_COMBINED}
+                  margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient
+                      id="gdpActualGrad"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="0%" stopColor="#6366f1" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient
+                      id="gdpProjGrad"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="0%" stopColor="#a855f7" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#a855f7" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    stroke={gridLine}
+                    strokeDasharray="3 3"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="year"
+                    tick={{
+                      fontSize: 9,
+                      fill: mutedText,
+                      fontFamily: "monospace",
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{
+                      fontSize: 9,
+                      fill: mutedText,
+                      fontFamily: "monospace",
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v) => `$${v}T`}
+                    domain={[80, 120]}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: isLight ? "#fff" : "#1a1730",
+                      border: `1px solid ${gridLine}`,
+                      borderRadius: 8,
+                      fontSize: 10,
+                      fontFamily: "monospace",
+                      color: headText,
+                    }}
+                    formatter={(v: number, _: string, entry: any) => [
+                      `$${v}T`,
+                      entry.payload.type === "projected"
+                        ? "Projected"
+                        : "Actual",
+                    ]}
+                    labelStyle={{ color: mutedText }}
+                  />
+                  <ReferenceLine
+                    x="2024"
+                    stroke={gridLine}
+                    strokeDasharray="4 4"
+                    label={{ value: "Now", fill: mutedText, fontSize: 9 }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="gdp"
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    fill="url(#gdpActualGrad)"
+                    dot={(props: any) => {
+                      const { cx, cy, payload } = props;
+                      if (payload.type !== "actual")
+                        return <g key={`dot-${payload.year}`} />;
+                      return (
+                        <circle
+                          key={`dot-${payload.year}`}
+                          cx={cx}
+                          cy={cy}
+                          r={3}
+                          fill="#6366f1"
+                          stroke="none"
+                        />
+                      );
+                    }}
+                    activeDot={{ r: 4, fill: "#6366f1" }}
+                    strokeDasharray={(entry: any) =>
+                      entry?.type === "projected" ? "5 4" : "0"
+                    }
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+              {/* Legend */}
+              <div className="flex items-center gap-4 mt-2">
+                {[
+                  { label: "Actual", color: "#6366f1", dash: false },
+                  { label: "Projected (IMF)", color: "#a855f7", dash: true },
+                ].map((l) => (
+                  <div key={l.label} className="flex items-center gap-1.5">
+                    <svg width="20" height="8" viewBox="0 0 20 8">
+                      {l.dash ? (
+                        <line
+                          x1="0"
+                          y1="4"
+                          x2="20"
+                          y2="4"
+                          stroke={l.color}
+                          strokeWidth="2"
+                          strokeDasharray="4 3"
+                        />
+                      ) : (
+                        <line
+                          x1="0"
+                          y1="4"
+                          x2="20"
+                          y2="4"
+                          stroke={l.color}
+                          strokeWidth="2"
+                        />
+                      )}
+                    </svg>
+                    <span
+                      className="text-[9px] font-mono"
+                      style={{ color: mutedText }}
+                    >
+                      {l.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right: 2026 macro forecasts + signals */}
+            <div className="flex flex-col gap-4">
+              <div>
+                <p
+                  className="text-[9px] font-mono uppercase tracking-widest mb-2.5"
+                  style={{ color: mutedText }}
+                >
+                  2026 Consensus Forecasts
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {MACRO_FORECAST_2026.map((m) => (
+                    <div
+                      key={m.label}
+                      className="rounded-xl px-3 py-2.5"
+                      style={{
+                        background: isLight
+                          ? "rgba(0,0,0,0.03)"
+                          : "rgba(255,255,255,0.04)",
+                        border: `1px solid ${gridLine}`,
+                      }}
+                    >
+                      <p
+                        className="text-[9px] font-sans"
+                        style={{ color: mutedText }}
+                      >
+                        {m.label}
+                      </p>
+                      <p
+                        className="text-lg font-bold font-mono"
+                        style={{ color: m.color }}
+                      >
+                        {m.value}
+                      </p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        {m.up ? (
+                          <TrendUp
+                            size={9}
+                            weight="fill"
+                            style={{ color: "#10b981" }}
+                          />
+                        ) : (
+                          <TrendDown
+                            size={9}
+                            weight="fill"
+                            style={{ color: "#10b981" }}
+                          />
+                        )}
+                        <span
+                          className="text-[9px] font-mono"
+                          style={{ color: "#10b981" }}
+                        >
+                          {m.delta}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Key macro signals */}
+              <div>
+                <p
+                  className="text-[9px] font-mono uppercase tracking-widest mb-2"
+                  style={{ color: mutedText }}
+                >
+                  Live Macro Signals
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  {MACRO_SIGNALS.map((m) => (
+                    <div
+                      key={m.label}
+                      className="flex items-center justify-between py-1"
+                      style={{ borderBottom: `1px solid ${gridLine}` }}
+                    >
+                      <span
+                        className="text-[10px] font-sans"
+                        style={{ color: mutedText }}
+                      >
+                        {m.label}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="text-[11px] font-mono font-bold"
+                          style={{ color: headText }}
+                        >
+                          {m.value}
+                        </span>
+                        <span
+                          className="text-[10px] font-mono"
+                          style={{
+                            color: m.neutral
+                              ? mutedText
+                              : m.up
+                                ? "#10b981"
+                                : "#ef4444",
+                          }}
+                        >
+                          {m.delta}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── SECTORS ───────────────────────────────────────────────────── */}
+        {activeTab === "sectors" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left: bar chart comparison */}
+            <div>
+              <p
+                className="text-[9px] font-mono uppercase tracking-widest mb-3"
+                style={{ color: mutedText }}
+              >
+                Sector Outlook — 2025 vs 2026 Projected Growth
+              </p>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart
+                  data={SECTOR_FORECAST_DETAIL.map((s) => ({
+                    name: s.sector.split(" ")[0],
+                    "2025": parseInt(s.outlook2025),
+                    "2026": parseInt(s.outlook2026),
+                    color: s.color,
+                  }))}
+                  margin={{ top: 4, right: 4, left: -14, bottom: 0 }}
+                  barSize={10}
+                  barGap={3}
+                >
+                  <CartesianGrid
+                    stroke={gridLine}
+                    strokeDasharray="3 3"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="name"
+                    tick={{
+                      fontSize: 8,
+                      fill: mutedText,
+                      fontFamily: "monospace",
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{
+                      fontSize: 8,
+                      fill: mutedText,
+                      fontFamily: "monospace",
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v) => `+${v}%`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: isLight ? "#fff" : "#1a1730",
+                      border: `1px solid ${gridLine}`,
+                      borderRadius: 8,
+                      fontSize: 10,
+                      fontFamily: "monospace",
+                      color: headText,
+                    }}
+                    formatter={(v: number, n: string) => [`+${v}%`, n]}
+                    labelStyle={{ color: mutedText }}
+                  />
+                  <Bar
+                    dataKey="2025"
+                    fill="#6366f1"
+                    radius={[3, 3, 0, 0]}
+                    fillOpacity={0.85}
+                  />
+                  <Bar
+                    dataKey="2026"
+                    fill="#a855f7"
+                    radius={[3, 3, 0, 0]}
+                    fillOpacity={0.55}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="flex items-center gap-4 mt-2">
+                {[
+                  { label: "2025", color: "#6366f1" },
+                  { label: "2026 (proj.)", color: "#a855f7" },
+                ].map((l) => (
+                  <div key={l.label} className="flex items-center gap-1.5">
+                    <div
+                      className="w-3 h-2 rounded-sm"
+                      style={{ background: l.color }}
+                    />
+                    <span
+                      className="text-[9px] font-mono"
+                      style={{ color: mutedText }}
+                    >
+                      {l.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right: sector detail list */}
+            <div>
+              <p
+                className="text-[9px] font-mono uppercase tracking-widest mb-3"
+                style={{ color: mutedText }}
+              >
+                Key Growth Drivers
+              </p>
+              <div className="flex flex-col gap-0">
+                {SECTOR_FORECAST_DETAIL.map((s, i) => (
+                  <div
+                    key={s.sector}
+                    className="py-3"
+                    style={{
+                      borderBottom:
+                        i < SECTOR_FORECAST_DETAIL.length - 1
+                          ? `1px solid ${gridLine}`
+                          : "none",
+                    }}
+                  >
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ background: s.color }}
+                      />
+                      <span
+                        className="text-xs font-bold font-sans flex-1 truncate"
+                        style={{ color: headText }}
+                      >
+                        {s.sector}
+                      </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span
+                          className="text-[10px] font-mono font-bold"
+                          style={{ color: "#6366f1" }}
+                        >
+                          {s.outlook2025}
+                        </span>
+                        <ArrowRight
+                          size={8}
+                          weight="bold"
+                          style={{ color: mutedText }}
+                        />
+                        <span
+                          className="text-[10px] font-mono font-bold"
+                          style={{ color: "#a855f7" }}
+                        >
+                          {s.outlook2026}
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      className="w-full h-1.5 rounded-full overflow-hidden mb-1.5"
+                      style={{
+                        background: isLight
+                          ? "rgba(0,0,0,0.06)"
+                          : "rgba(255,255,255,0.07)",
+                      }}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${Math.min(100, Math.abs(parseInt(s.outlook2025)))}%`,
+                          background: s.color,
+                        }}
+                      />
+                    </div>
+                    <p
+                      className="text-[10px] font-sans"
+                      style={{ color: mutedText }}
+                    >
+                      {s.drivers}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── SCENARIOS ─────────────────────────────────────────────────── */}
+        {activeTab === "scenarios" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {RISK_SCENARIOS.map((s, i) => (
+              <div
+                key={s.title}
+                className="rounded-xl p-4 flex flex-col gap-2"
+                style={{
+                  background: s.color + "08",
+                  border: `1px solid ${s.color}20`,
+                }}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span
+                      className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
+                      style={{ background: s.color + "18", color: s.color }}
+                    >
+                      {s.tag}
+                    </span>
+                    <span
+                      className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
+                      style={{
+                        background: s.impactColor + "15",
+                        color: s.impactColor,
+                      }}
+                    >
+                      {s.impact} Impact
+                    </span>
+                  </div>
+                  <span
+                    className="text-[13px] font-bold font-mono shrink-0"
+                    style={{ color: s.probability >= 60 ? s.color : mutedText }}
+                  >
+                    {s.probability}%
+                  </span>
+                </div>
+                <p
+                  className="text-xs font-bold font-sans leading-snug"
+                  style={{ color: headText }}
+                >
+                  {s.title}
+                </p>
+                {/* Probability bar */}
+                <div
+                  className="w-full h-1.5 rounded-full overflow-hidden"
+                  style={{
+                    background: isLight
+                      ? "rgba(0,0,0,0.07)"
+                      : "rgba(255,255,255,0.08)",
+                  }}
+                >
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${s.probability}%`, background: s.color }}
+                  />
+                </div>
+                <p
+                  className="text-[10px] font-sans leading-snug"
+                  style={{ color: mutedText }}
+                >
+                  {s.desc}
+                </p>
+              </div>
+            ))}
+            {/* Attribution note */}
+            <div
+              className="lg:col-span-2 rounded-xl px-4 py-3 flex items-start gap-3"
+              style={{
+                background: isLight
+                  ? "rgba(0,0,0,0.025)"
+                  : "rgba(255,255,255,0.03)",
+                border: `1px solid ${gridLine}`,
+              }}
+            >
+              <Info
+                size={13}
+                weight="fill"
+                style={{ color: mutedText, marginTop: 1, flexShrink: 0 }}
+              />
+              <p
+                className="text-[10px] font-sans leading-relaxed"
+                style={{ color: mutedText }}
+              >
+                Scenario probabilities are consensus estimates derived from IMF
+                World Economic Outlook, World Bank Global Economic Prospects,
+                and Goldman Sachs Research. All projections carry significant
+                uncertainty and should not be used as financial advice.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ── COUNTRY GDP FORECAST ──────────────────────────────────────── */}
+        {activeTab === "countries" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left: projected growth bar chart */}
+            <div>
+              <p
+                className="text-[9px] font-mono uppercase tracking-widest mb-3"
+                style={{ color: mutedText }}
+              >
+                GDP 2025 → 2028 Projection (USD Trillions)
+              </p>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart
+                  data={COUNTRY_GDP_PROJECTIONS.map((c) => ({
+                    name: c.flag + " " + c.country,
+                    "2025": c.gdp2025,
+                    "2028": c.gdp2028,
+                    color: c.color,
+                  }))}
+                  margin={{ top: 4, right: 4, left: -10, bottom: 0 }}
+                  barSize={14}
+                  barGap={4}
+                >
+                  <CartesianGrid
+                    stroke={gridLine}
+                    strokeDasharray="3 3"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="name"
+                    tick={{
+                      fontSize: 8,
+                      fill: mutedText,
+                      fontFamily: "monospace",
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{
+                      fontSize: 8,
+                      fill: mutedText,
+                      fontFamily: "monospace",
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v) => `$${v}T`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: isLight ? "#fff" : "#1a1730",
+                      border: `1px solid ${gridLine}`,
+                      borderRadius: 8,
+                      fontSize: 10,
+                      fontFamily: "monospace",
+                      color: headText,
+                    }}
+                    formatter={(v: number, n: string) => [`$${v}T`, n]}
+                    labelStyle={{ color: mutedText }}
+                  />
+                  <Bar
+                    dataKey="2025"
+                    fill="#6366f1"
+                    radius={[3, 3, 0, 0]}
+                    fillOpacity={0.7}
+                  />
+                  <Bar
+                    dataKey="2028"
+                    fill="#a855f7"
+                    radius={[3, 3, 0, 0]}
+                    fillOpacity={0.45}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="flex items-center gap-4 mt-2">
+                {[
+                  { label: "2025 (est.)", color: "#6366f1" },
+                  { label: "2028 (proj.)", color: "#a855f7" },
+                ].map((l) => (
+                  <div key={l.label} className="flex items-center gap-1.5">
+                    <div
+                      className="w-3 h-2 rounded-sm"
+                      style={{ background: l.color }}
+                    />
+                    <span
+                      className="text-[9px] font-mono"
+                      style={{ color: mutedText }}
+                    >
+                      {l.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right: country detail rows */}
+            <div>
+              <p
+                className="text-[9px] font-mono uppercase tracking-widest mb-3"
+                style={{ color: mutedText }}
+              >
+                3-Year GDP CAGR Projection
+              </p>
+              <div className="flex flex-col gap-0">
+                {COUNTRY_GDP_PROJECTIONS.map((c, i) => (
+                  <div
+                    key={c.country}
+                    className="flex items-center gap-3 py-3"
+                    style={{
+                      borderBottom:
+                        i < COUNTRY_GDP_PROJECTIONS.length - 1
+                          ? `1px solid ${gridLine}`
+                          : "none",
+                    }}
+                  >
+                    <span className="text-xl w-7 shrink-0">{c.flag}</span>
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className="text-xs font-bold font-sans"
+                        style={{ color: headText }}
+                      >
+                        {c.country}
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span
+                          className="text-[10px] font-mono"
+                          style={{ color: mutedText }}
+                        >
+                          ${c.gdp2025}T → ${c.gdp2028}T
+                        </span>
+                      </div>
+                      <div
+                        className="w-full h-1 rounded-full overflow-hidden mt-1.5"
+                        style={{
+                          background: isLight
+                            ? "rgba(0,0,0,0.07)"
+                            : "rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${Math.min(100, (c.gdp2025 / 33) * 100)}%`,
+                            background: c.color,
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p
+                        className="text-sm font-bold font-mono"
+                        style={{ color: c.color }}
+                      >
+                        {c.cagr}
+                      </p>
+                      <p
+                        className="text-[9px] font-mono"
+                        style={{ color: mutedText }}
+                      >
+                        CAGR
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Source note */}
+              <p
+                className="text-[9px] font-sans mt-3"
+                style={{ color: mutedText }}
+              >
+                Source: IMF World Economic Outlook (Apr 2025), World Bank
+                projections. Figures in current USD trillions.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const SECTOR_SPARKLINES: Record<string, { v: number }[]> = {
   "AI Infrastructure": [
@@ -2275,7 +3618,7 @@ const MOST_VIEWED_COUNTRIES = [
 ];
 
 /* ─── Interactive Data Panel (Countries / Economies / Policies tabs) ──── */
-type DataTab = "trending" | "countries" | "economies" | "policies";
+type DataTab = "countries" | "economies" | "policies";
 
 function InteractiveDataPanel({
   isLight,
@@ -2300,19 +3643,22 @@ function InteractiveDataPanel({
   topCountries: typeof countriesData;
   onNav: (path: string) => void;
 }) {
-  const [activeTab, setActiveTab] = useState<DataTab>("trending");
+  const [activeTab, setActiveTab] = useState<DataTab>("countries");
   const [search, setSearch] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState<
-    (typeof countriesData)[0] | null
-  >(null);
-  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
-  const [selectedPolicy, setSelectedPolicy] = useState<number | null>(null);
 
   // sorted all countries by GDP desc
   const allByGDP = useMemo(
     () => [...countriesData].sort((a, b) => b.gdp - a.gdp),
     [],
   );
+
+  const [selectedCountry, setSelectedCountry] = useState<
+    (typeof countriesData)[0] | null
+  >(() => [...countriesData].sort((a, b) => b.gdp - a.gdp)[0] ?? null);
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(
+    REGION_STATS[0]?.region ?? null,
+  );
+  const [selectedPolicy, setSelectedPolicy] = useState<number | null>(0);
 
   const filteredCountries = useMemo(() => {
     const q = search.toLowerCase();
@@ -2346,13 +3692,6 @@ function InteractiveDataPanel({
     color: string;
     badge: string;
   }[] = [
-    {
-      id: "trending",
-      label: "Trending",
-      icon: <Fire size={12} weight="fill" />,
-      color: "#f97316",
-      badge: "Hot",
-    },
     {
       id: "countries",
       label: "Countries",
@@ -2398,9 +3737,18 @@ function InteractiveDataPanel({
             onClick={() => {
               setActiveTab(tab.id);
               setSearch("");
-              setSelectedCountry(null);
-              setSelectedRegion(null);
-              setSelectedPolicy(null);
+              setSelectedCountry(
+                tab.id === "countries"
+                  ? ([...countriesData].sort((a, b) => b.gdp - a.gdp)[0] ??
+                      null)
+                  : null,
+              );
+              setSelectedRegion(
+                tab.id === "economies"
+                  ? (REGION_STATS[0]?.region ?? null)
+                  : null,
+              );
+              setSelectedPolicy(tab.id === "policies" ? 0 : null);
             }}
             className="flex items-center gap-1.5 px-4 py-3 text-[11px] font-bold font-sans transition-all relative"
             style={{
@@ -2431,298 +3779,48 @@ function InteractiveDataPanel({
       </div>
 
       {/* ── Search bar ── */}
-      {activeTab !== "trending" && (
-        <div
-          className="px-4 py-2.5 border-b flex items-center gap-2"
-          style={{ borderColor: gridLine }}
-        >
-          <MagnifyingGlass size={13} style={{ color: mutedText }} />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setSelectedCountry(null);
-              setSelectedRegion(null);
-              setSelectedPolicy(null);
-            }}
-            placeholder={
-              activeTab === "countries"
-                ? "Search countries, continents…"
-                : activeTab === "economies"
-                  ? "Search regions…"
-                  : "Search policies, tags…"
-            }
-            className="flex-1 bg-transparent text-[11px] font-sans outline-none border-none"
-            style={{ color: bodyText }}
-          />
-          {search && (
-            <button onClick={() => setSearch("")} style={{ color: mutedText }}>
-              <X size={11} weight="bold" />
-            </button>
-          )}
-        </div>
-      )}
+      <div
+        className="px-4 py-2.5 border-b flex items-center gap-2"
+        style={{ borderColor: gridLine }}
+      >
+        <MagnifyingGlass size={13} style={{ color: mutedText }} />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setSelectedCountry(null);
+            setSelectedRegion(null);
+            setSelectedPolicy(null);
+          }}
+          placeholder={
+            activeTab === "countries"
+              ? "Search countries, continents…"
+              : activeTab === "economies"
+                ? "Search regions…"
+                : "Search policies, tags…"
+          }
+          className="flex-1 bg-transparent text-[11px] font-sans outline-none border-none"
+          style={{ color: bodyText }}
+        />
+        {search && (
+          <button onClick={() => setSearch("")} style={{ color: mutedText }}>
+            <X size={11} weight="bold" />
+          </button>
+        )}
+      </div>
 
       {/* ── Content area ── */}
-      <div className="flex flex-1 overflow-hidden" style={{ minHeight: 340 }}>
-        {/* List column */}
+      <div className="flex" style={{ height: 520, overflow: "hidden" }}>
+        {/* List column — fixed height, internal scroll */}
         <div
           className="flex flex-col overflow-y-auto"
           style={{
-            width:
-              selectedCountry ||
-              selectedRegion !== null ||
-              selectedPolicy !== null
-                ? "44%"
-                : "100%",
-            borderRight:
-              selectedCountry ||
-              selectedRegion !== null ||
-              selectedPolicy !== null
-                ? `1px solid ${gridLine}`
-                : "none",
+            width: "44%",
+            borderRight: `1px solid ${gridLine}`,
+            height: "100%",
           }}
         >
-          {/* ── TRENDING tab ── */}
-          {activeTab === "trending" && (
-            <>
-              {/* Hot topics bar */}
-              <div className="px-4 pt-4 pb-2">
-                <p
-                  className="text-[9px] font-mono uppercase tracking-widest mb-2.5"
-                  style={{ color: mutedText }}
-                >
-                  🔥 Hot Topics Right Now
-                </p>
-                <div className="flex flex-col gap-1.5">
-                  {TRENDING_TOPICS.map((t) => (
-                    <div key={t.label} className="flex items-center gap-2.5">
-                      <span
-                        className="text-[10px] font-sans font-semibold w-28 shrink-0 truncate"
-                        style={{ color: headText }}
-                      >
-                        {t.label}
-                      </span>
-                      <div
-                        className="flex-1 h-2 rounded-full overflow-hidden"
-                        style={{
-                          background: isLight
-                            ? "rgba(0,0,0,0.07)"
-                            : "rgba(255,255,255,0.07)",
-                        }}
-                      >
-                        <div
-                          className="h-full rounded-full"
-                          style={{ width: `${t.heat}%`, background: t.color }}
-                        />
-                      </div>
-                      <span
-                        className="text-[9px] font-mono w-6 text-right shrink-0"
-                        style={{ color: t.color }}
-                      >
-                        {t.heat}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div
-                style={{
-                  borderTop: `1px solid ${gridLine}`,
-                  margin: "4px 16px",
-                }}
-              />
-
-              {/* Top trending stats */}
-              <div className="px-4 py-2">
-                <p
-                  className="text-[9px] font-mono uppercase tracking-widest mb-2"
-                  style={{ color: mutedText }}
-                >
-                  Most Viewed Stats This Week
-                </p>
-              </div>
-              {TRENDING_STATS.map((s, i) => (
-                <div
-                  key={s.rank}
-                  className="flex items-center gap-3 px-4 py-2.5"
-                  style={{
-                    borderBottom:
-                      i < TRENDING_STATS.length - 1
-                        ? `1px solid ${gridLine}`
-                        : "none",
-                  }}
-                >
-                  <span
-                    className="text-[10px] font-mono font-bold w-4 shrink-0 text-center"
-                    style={{ color: mutedText }}
-                  >
-                    {s.rank}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className="text-xs font-semibold font-sans truncate"
-                      style={{ color: headText }}
-                    >
-                      {s.label}
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span
-                        className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
-                        style={{ background: s.color + "15", color: s.color }}
-                      >
-                        {s.tag}
-                      </span>
-                      <span
-                        className="text-[10px] font-mono"
-                        style={{ color: mutedText }}
-                      >
-                        {s.delta}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p
-                      className="text-[12px] font-bold font-mono"
-                      style={{ color: s.up ? "#10b981" : "#ef4444" }}
-                    >
-                      {s.value}
-                    </p>
-                    <p
-                      className="text-[9px] font-mono"
-                      style={{ color: mutedText }}
-                    >
-                      {s.views} views
-                    </p>
-                  </div>
-                </div>
-              ))}
-
-              {/* Divider */}
-              <div
-                style={{
-                  borderTop: `1px solid ${gridLine}`,
-                  margin: "4px 16px",
-                }}
-              />
-
-              {/* Most viewed countries */}
-              <div className="px-4 py-2">
-                <p
-                  className="text-[9px] font-mono uppercase tracking-widest mb-2"
-                  style={{ color: mutedText }}
-                >
-                  Most Viewed Countries
-                </p>
-              </div>
-              {MOST_VIEWED_COUNTRIES.map((c, i) => (
-                <button
-                  key={c.code}
-                  onClick={() => onNav("/dashboard/countries")}
-                  className="flex items-center gap-3 px-4 py-2 w-full text-left hover:opacity-80 transition-opacity"
-                  style={{
-                    borderBottom:
-                      i < MOST_VIEWED_COUNTRIES.length - 1
-                        ? `1px solid ${gridLine}`
-                        : "none",
-                  }}
-                >
-                  <span
-                    className="text-[10px] font-mono font-bold w-4 shrink-0 text-center"
-                    style={{ color: mutedText }}
-                  >
-                    #{i + 1}
-                  </span>
-                  <span className="text-base w-6 shrink-0">{c.flag}</span>
-                  <span
-                    className="flex-1 text-xs font-semibold font-sans truncate"
-                    style={{ color: headText }}
-                  >
-                    {c.name}
-                  </span>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <div
-                      className="w-12 h-1 rounded-full overflow-hidden"
-                      style={{
-                        background: isLight
-                          ? "rgba(0,0,0,0.07)"
-                          : "rgba(255,255,255,0.07)",
-                      }}
-                    >
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${Math.round((parseInt(c.views) / 204) * 100)}%`,
-                          background: c.color,
-                        }}
-                      />
-                    </div>
-                    <span
-                      className="text-[9px] font-mono w-10 text-right"
-                      style={{ color: mutedText }}
-                    >
-                      {c.views}
-                    </span>
-                  </div>
-                </button>
-              ))}
-
-              {/* Macro signals strip */}
-              <div
-                style={{
-                  borderTop: `1px solid ${gridLine}`,
-                  margin: "4px 16px",
-                }}
-              />
-              <div className="px-4 py-3">
-                <p
-                  className="text-[9px] font-mono uppercase tracking-widest mb-2"
-                  style={{ color: mutedText }}
-                >
-                  Key Macro Signals
-                </p>
-                <div className="flex flex-col gap-1.5">
-                  {MACRO_SIGNALS.map((m) => (
-                    <div
-                      key={m.label}
-                      className="flex items-center justify-between"
-                    >
-                      <span
-                        className="text-[10px] font-sans"
-                        style={{ color: mutedText }}
-                      >
-                        {m.label}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="text-[11px] font-mono font-bold"
-                          style={{ color: headText }}
-                        >
-                          {m.value}
-                        </span>
-                        <span
-                          className="text-[10px] font-mono"
-                          style={{
-                            color: m.neutral
-                              ? mutedText
-                              : m.up
-                                ? "#10b981"
-                                : "#ef4444",
-                          }}
-                        >
-                          {m.delta}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-
           {/* ── COUNTRIES tab ── */}
           {activeTab === "countries" && (
             <>
@@ -2809,7 +3907,11 @@ function InteractiveDataPanel({
                 return (
                   <button
                     key={c.id}
-                    onClick={() => setSelectedCountry(isSelected ? null : c)}
+                    onClick={() =>
+                      setSelectedCountry(
+                        selectedCountry?.id === c.id ? null : c,
+                      )
+                    }
                     className="flex items-center gap-2.5 px-4 py-2.5 text-left transition-all hover:opacity-90"
                     style={{
                       borderBottom: `1px solid ${gridLine}`,
@@ -2951,9 +4053,7 @@ function InteractiveDataPanel({
                 return (
                   <button
                     key={r.region}
-                    onClick={() =>
-                      setSelectedRegion(isSelected ? null : r.region)
-                    }
+                    onClick={() => setSelectedRegion(r.region)}
                     className="flex items-center gap-2.5 px-4 py-2.5 text-left transition-all hover:opacity-90"
                     style={{
                       borderBottom: `1px solid ${gridLine}`,
@@ -3147,7 +4247,7 @@ function InteractiveDataPanel({
                 return (
                   <button
                     key={i}
-                    onClick={() => setSelectedPolicy(isSelected ? null : i)}
+                    onClick={() => setSelectedPolicy(i)}
                     className="flex items-start gap-3 px-4 py-3 text-left transition-all hover:opacity-90"
                     style={{
                       borderBottom: `1px solid ${gridLine}`,
@@ -3212,661 +4312,893 @@ function InteractiveDataPanel({
           )}
         </div>
 
-        {/* Detail panel */}
-        {(selectedCountry ||
-          selectedRegion !== null ||
-          selectedPolicy !== null) && (
-          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 animate-fade-in">
-            {/* ── Country detail ── */}
-            {activeTab === "countries" &&
-              selectedCountry &&
-              (() => {
-                const c = selectedCountry;
-                const gdpUp = c.gdpGrowth >= 0;
-                return (
-                  <>
-                    <div className="flex items-center justify-between">
+        {/* Detail panel — fixed height, internal scroll */}
+        <div
+          className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 animate-fade-in"
+          style={{ height: "100%" }}
+        >
+          {/* ── Country detail ── */}
+          {activeTab === "countries" &&
+            selectedCountry &&
+            (() => {
+              const c = selectedCountry;
+              const gdpUp = c.gdpGrowth >= 0;
+              const fmtPop = (n: number) => {
+                if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
+                if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+                return `${Math.round(n / 1000)}K`;
+              };
+              return (
+                <>
+                  {/* Flag banner — hero image with country name overlay */}
+                  <div
+                    className="rounded-xl overflow-hidden relative flex-shrink-0"
+                    style={{
+                      height: 96,
+                      background: `linear-gradient(135deg, #1e2040 0%, #0f1535 100%)`,
+                    }}
+                  >
+                    {/* Actual flag image */}
+                    <img
+                      src={`https://flagcdn.com/w320/${c.code.toLowerCase()}.png`}
+                      alt={`${c.name} flag`}
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display =
+                          "none";
+                      }}
+                    />
+                    {/* Dark gradient overlay */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background:
+                          "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.65) 100%)",
+                      }}
+                    />
+                    {/* Country name + subtitle at bottom-left */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        padding: "8px 12px",
+                        display: "flex",
+                        alignItems: "flex-end",
+                        justifyContent: "space-between",
+                      }}
+                    >
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl">
+                        <span style={{ fontSize: 20, lineHeight: 1 }}>
                           {(c as any).flag ?? c.code}
                         </span>
                         <div>
                           <p
-                            className="text-sm font-bold font-sans"
-                            style={{ color: headText }}
+                            className="font-bold font-sans drop-shadow"
+                            style={{
+                              color: "#fff",
+                              fontSize: 13,
+                              lineHeight: 1.2,
+                            }}
                           >
                             {c.name}
                           </p>
                           <p
-                            className="text-[10px] font-mono"
-                            style={{ color: mutedText }}
+                            className="font-mono drop-shadow"
+                            style={{
+                              color: "rgba(255,255,255,0.75)",
+                              fontSize: 9,
+                            }}
                           >
                             {c.continent} · {c.governmentType}
                           </p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => setSelectedCountry(null)}
-                        style={{ color: mutedText }}
-                      >
-                        <X size={13} weight="bold" />
-                      </button>
-                    </div>
-                    {/* Flag */}
-                    <div className="rounded-xl overflow-hidden h-20 relative">
-                      <img
-                        src={`https://flagcdn.com/w640/${c.code.toLowerCase()}.png`}
-                        alt={c.name}
-                        className="w-full h-full object-cover"
-                      />
-                      <div
-                        className="absolute inset-0"
+                      <span
+                        className="font-mono font-bold"
                         style={{
-                          background:
-                            "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.5))",
+                          fontSize: 9,
+                          padding: "2px 7px",
+                          borderRadius: 999,
+                          background: gdpUp
+                            ? "rgba(16,185,129,0.3)"
+                            : "rgba(239,68,68,0.3)",
+                          color: gdpUp ? "#6ee7b7" : "#fca5a5",
+                          border: `1px solid ${gdpUp ? "#10b98155" : "#ef444455"}`,
                         }}
-                      />
-                      <div className="absolute bottom-2 left-3">
-                        <span className="text-white text-[10px] font-mono font-bold">
-                          {c.capital}
-                        </span>
-                      </div>
+                      >
+                        GDP {gdpUp ? "+" : ""}
+                        {c.gdpGrowth}%
+                      </span>
                     </div>
-                    {/* Key stats */}
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {[
-                        {
-                          label: "GDP",
-                          value: fmtGDPShort(c.gdp),
-                          color: "#6366f1",
-                        },
-                        {
-                          label: "Growth",
-                          value: `${gdpUp ? "+" : ""}${c.gdpGrowth}%`,
-                          color: gdpUp ? "#10b981" : "#ef4444",
-                        },
-                        {
-                          label: "GDP/Capita",
-                          value: `$${c.gdpPerCapita.toLocaleString()}`,
-                          color: "#3b82f6",
-                        },
-                        {
-                          label: "Inflation",
-                          value: `${c.inflationRate}%`,
-                          color: c.inflationRate > 6 ? "#ef4444" : "#f59e0b",
-                        },
-                        {
-                          label: "Unemployment",
-                          value: `${c.unemploymentRate.toFixed(1)}%`,
-                          color: c.unemploymentRate < 5 ? "#10b981" : "#f59e0b",
-                        },
-                        {
-                          label: "HDI",
-                          value: c.humanDevelopmentIndex.toFixed(3),
-                          color:
-                            c.humanDevelopmentIndex >= 0.8
-                              ? "#10b981"
-                              : c.humanDevelopmentIndex >= 0.65
-                                ? "#f59e0b"
-                                : "#ef4444",
-                        },
-                      ].map((m) => (
-                        <div
-                          key={m.label}
-                          className="rounded-lg px-2.5 py-2"
-                          style={{
-                            background: isLight
-                              ? "rgba(0,0,0,0.03)"
-                              : "rgba(255,255,255,0.04)",
-                            border: `1px solid ${gridLine}`,
-                          }}
+                  </div>
+
+                  {/* Primary KPI grid — 3 cols */}
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[
+                      {
+                        label: "GDP",
+                        value: fmtGDPShort(c.gdp),
+                        color: "#6366f1",
+                      },
+                      {
+                        label: "Growth",
+                        value: `${gdpUp ? "+" : ""}${c.gdpGrowth}%`,
+                        color: gdpUp ? "#10b981" : "#ef4444",
+                      },
+                      {
+                        label: "GDP/Cap",
+                        value: `$${c.gdpPerCapita.toLocaleString()}`,
+                        color: "#3b82f6",
+                      },
+                      {
+                        label: "Inflation",
+                        value: `${c.inflationRate}%`,
+                        color: c.inflationRate > 6 ? "#ef4444" : "#f59e0b",
+                      },
+                      {
+                        label: "Unemp.",
+                        value: `${c.unemploymentRate.toFixed(1)}%`,
+                        color: c.unemploymentRate < 5 ? "#10b981" : "#f59e0b",
+                      },
+                      {
+                        label: "HDI",
+                        value: c.humanDevelopmentIndex.toFixed(3),
+                        color:
+                          c.humanDevelopmentIndex >= 0.8
+                            ? "#10b981"
+                            : c.humanDevelopmentIndex >= 0.65
+                              ? "#f59e0b"
+                              : "#ef4444",
+                      },
+                    ].map((m) => (
+                      <div
+                        key={m.label}
+                        className="rounded-lg px-2 py-2"
+                        style={{
+                          background: isLight
+                            ? "rgba(0,0,0,0.03)"
+                            : "rgba(255,255,255,0.04)",
+                          border: `1px solid ${gridLine}`,
+                        }}
+                      >
+                        <p
+                          className="text-[9px] font-mono"
+                          style={{ color: mutedText }}
                         >
+                          {m.label}
+                        </p>
+                        <p
+                          className="text-sm font-bold font-mono"
+                          style={{ color: m.color }}
+                        >
+                          {m.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Secondary stats row */}
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {[
+                      {
+                        label: "Population",
+                        value: fmtPop(c.population),
+                        icon: <Users size={10} weight="fill" />,
+                        color: "#06b6d4",
+                      },
+                      {
+                        label: "Life Expectancy",
+                        value: `${c.lifeExpectancy} yrs`,
+                        icon: <Heart size={10} weight="fill" />,
+                        color: "#ec4899",
+                      },
+                      {
+                        label: "Trade Balance",
+                        value: `${c.tradeBalance >= 0 ? "+" : ""}$${c.tradeBalance}B`,
+                        icon: <Scales size={10} weight="fill" />,
+                        color: c.tradeBalance >= 0 ? "#10b981" : "#ef4444",
+                      },
+                      {
+                        label: "Area",
+                        value:
+                          c.areaKm2 >= 1_000_000
+                            ? `${(c.areaKm2 / 1_000_000).toFixed(1)}M km²`
+                            : `${c.areaKm2.toLocaleString()} km²`,
+                        icon: <MapPin size={10} weight="fill" />,
+                        color: "#a855f7",
+                      },
+                    ].map((m) => (
+                      <div
+                        key={m.label}
+                        className="rounded-lg px-2.5 py-2 flex items-center gap-2"
+                        style={{
+                          background: isLight
+                            ? "rgba(0,0,0,0.025)"
+                            : "rgba(255,255,255,0.03)",
+                          border: `1px solid ${gridLine}`,
+                        }}
+                      >
+                        <span style={{ color: m.color }}>{m.icon}</span>
+                        <div className="min-w-0">
                           <p
-                            className="text-[9px] font-mono"
+                            className="text-[9px] font-mono truncate"
                             style={{ color: mutedText }}
                           >
                             {m.label}
                           </p>
                           <p
-                            className="text-sm font-bold font-mono"
+                            className="text-[12px] font-bold font-mono"
                             style={{ color: m.color }}
                           >
                             {m.value}
                           </p>
                         </div>
-                      ))}
-                    </div>
-                    {/* GDP trend sparkline */}
-                    {c.trends && c.trends.length > 0 && (
-                      <>
-                        <p
-                          className="text-[9px] font-mono uppercase tracking-widest"
-                          style={{ color: mutedText }}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* GDP trend sparkline */}
+                  {c.trends && c.trends.length > 0 && (
+                    <>
+                      <p
+                        className="text-[9px] font-mono uppercase tracking-widest"
+                        style={{ color: mutedText }}
+                      >
+                        GDP Trend
+                      </p>
+                      <ResponsiveContainer width="100%" height={72}>
+                        <AreaChart
+                          data={c.trends}
+                          margin={{ top: 2, right: 2, left: -28, bottom: 0 }}
                         >
-                          GDP Trend
-                        </p>
-                        <ResponsiveContainer width="100%" height={60}>
-                          <AreaChart
-                            data={c.trends}
-                            margin={{ top: 2, right: 2, left: -28, bottom: 0 }}
-                          >
-                            <defs>
-                              <linearGradient
-                                id={`ctrySpark-${c.id}`}
-                                x1="0"
-                                y1="0"
-                                x2="0"
-                                y2="1"
-                              >
-                                <stop
-                                  offset="0%"
-                                  stopColor="#6366f1"
-                                  stopOpacity={0.35}
-                                />
-                                <stop
-                                  offset="100%"
-                                  stopColor="#6366f1"
-                                  stopOpacity={0}
-                                />
-                              </linearGradient>
-                            </defs>
-                            <XAxis
-                              dataKey="year"
-                              tick={{
-                                fontSize: 8,
-                                fill: mutedText,
-                                fontFamily: "monospace",
-                              }}
-                              axisLine={false}
-                              tickLine={false}
-                            />
-                            <YAxis
-                              tick={{
-                                fontSize: 8,
-                                fill: mutedText,
-                                fontFamily: "monospace",
-                              }}
-                              axisLine={false}
-                              tickLine={false}
-                              tickFormatter={(v) =>
-                                `$${v >= 1000 ? (v / 1000).toFixed(0) + "T" : v + "B"}`
-                              }
-                            />
-                            <Tooltip
-                              contentStyle={{
-                                background: isLight ? "#fff" : "#1a1730",
-                                border: `1px solid ${gridLine}`,
-                                borderRadius: 8,
-                                fontSize: 10,
-                                color: headText,
-                              }}
-                              formatter={(v: number) => [
-                                v >= 1000
-                                  ? `$${(v / 1000).toFixed(1)}T`
-                                  : `$${v}B`,
-                                "GDP",
-                              ]}
-                              labelStyle={{ color: mutedText }}
-                            />
-                            <Area
-                              type="monotone"
-                              dataKey="gdp"
-                              stroke="#6366f1"
-                              fill={`url(#ctrySpark-${c.id})`}
-                              strokeWidth={1.5}
-                              dot={false}
-                            />
-                          </AreaChart>
-                        </ResponsiveContainer>
-                      </>
-                    )}
-                    {/* Industries */}
-                    {c.keyIndustries && c.keyIndustries.length > 0 && (
-                      <>
-                        <p
-                          className="text-[9px] font-mono uppercase tracking-widest"
-                          style={{ color: mutedText }}
-                        >
-                          Key Industries
-                        </p>
-                        <div className="flex flex-col gap-1">
-                          {c.keyIndustries.slice(0, 4).map((ind) => (
-                            <div
-                              key={ind.name}
-                              className="flex items-center gap-2"
+                          <defs>
+                            <linearGradient
+                              id={`ctrySpark-${c.id}`}
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
                             >
-                              <span
-                                className="text-[10px] font-sans truncate flex-1"
-                                style={{ color: headText }}
-                              >
-                                {ind.name}
-                              </span>
+                              <stop
+                                offset="0%"
+                                stopColor="#6366f1"
+                                stopOpacity={0.35}
+                              />
+                              <stop
+                                offset="100%"
+                                stopColor="#6366f1"
+                                stopOpacity={0}
+                              />
+                            </linearGradient>
+                          </defs>
+                          <XAxis
+                            dataKey="year"
+                            tick={{
+                              fontSize: 8,
+                              fill: mutedText,
+                              fontFamily: "monospace",
+                            }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <YAxis
+                            tick={{
+                              fontSize: 8,
+                              fill: mutedText,
+                              fontFamily: "monospace",
+                            }}
+                            axisLine={false}
+                            tickLine={false}
+                            tickFormatter={(v) =>
+                              `$${v >= 1000 ? (v / 1000).toFixed(0) + "T" : v + "B"}`
+                            }
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              background: isLight ? "#fff" : "#1a1730",
+                              border: `1px solid ${gridLine}`,
+                              borderRadius: 8,
+                              fontSize: 10,
+                              color: headText,
+                            }}
+                            formatter={(v: number) => [
+                              v >= 1000
+                                ? `$${(v / 1000).toFixed(1)}T`
+                                : `$${v}B`,
+                              "GDP",
+                            ]}
+                            labelStyle={{ color: mutedText }}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="gdp"
+                            stroke="#6366f1"
+                            fill={`url(#ctrySpark-${c.id})`}
+                            strokeWidth={1.5}
+                            dot={false}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </>
+                  )}
+
+                  {/* Key Industries */}
+                  {c.keyIndustries && c.keyIndustries.length > 0 && (
+                    <>
+                      <p
+                        className="text-[9px] font-mono uppercase tracking-widest"
+                        style={{ color: mutedText }}
+                      >
+                        Key Industries
+                      </p>
+                      <div className="flex flex-col gap-1.5">
+                        {c.keyIndustries.slice(0, 5).map((ind) => (
+                          <div
+                            key={ind.name}
+                            className="flex items-center gap-2"
+                          >
+                            <div
+                              className="w-1.5 h-1.5 rounded-full shrink-0"
+                              style={{ background: ind.color }}
+                            />
+                            <span
+                              className="text-[10px] font-sans truncate flex-1"
+                              style={{ color: headText }}
+                            >
+                              {ind.name}
+                            </span>
+                            <div
+                              className="w-16 h-1.5 rounded-full overflow-hidden"
+                              style={{
+                                background: isLight
+                                  ? "rgba(0,0,0,0.07)"
+                                  : "rgba(255,255,255,0.08)",
+                              }}
+                            >
                               <div
-                                className="w-16 h-1.5 rounded-full overflow-hidden"
+                                className="h-full rounded-full"
                                 style={{
-                                  background: isLight
-                                    ? "rgba(0,0,0,0.07)"
-                                    : "rgba(255,255,255,0.08)",
+                                  width: `${ind.gdpShare}%`,
+                                  background: ind.color,
                                 }}
-                              >
-                                <div
-                                  className="h-full rounded-full"
-                                  style={{
-                                    width: `${ind.gdpShare}%`,
-                                    background: ind.color,
-                                  }}
-                                />
-                              </div>
-                              <span
-                                className="text-[9px] font-mono w-6 text-right shrink-0"
-                                style={{ color: mutedText }}
-                              >
-                                {ind.gdpShare}%
-                              </span>
+                              />
                             </div>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                    {/* Head of state */}
-                    <div
-                      className="rounded-lg px-3 py-2"
-                      style={{
-                        background: isLight
-                          ? "rgba(99,102,241,0.05)"
-                          : "rgba(99,102,241,0.1)",
-                        border: `1px solid ${gridLine}`,
-                      }}
-                    >
-                      <p
-                        className="text-[9px] font-mono uppercase tracking-widest mb-0.5"
-                        style={{ color: "#6366f1" }}
+                            <span
+                              className="text-[9px] font-mono w-6 text-right shrink-0"
+                              style={{ color: mutedText }}
+                            >
+                              {ind.gdpShare}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Divider */}
+                  <div style={{ borderTop: `1px solid ${gridLine}` }} />
+
+                  {/* Political & Social facts */}
+                  <p
+                    className="text-[9px] font-mono uppercase tracking-widest"
+                    style={{ color: mutedText }}
+                  >
+                    Political &amp; Social
+                  </p>
+                  <div className="flex flex-col gap-1.5">
+                    {[
+                      { label: "Government", value: c.governmentType },
+                      { label: "Head of State", value: c.headOfState },
+                      { label: "Capital", value: c.capital },
+                      { label: "Continent", value: c.continent },
+                    ].map((row) => (
+                      <div
+                        key={row.label}
+                        className="flex items-center justify-between py-1"
+                        style={{ borderBottom: `1px solid ${gridLine}` }}
                       >
-                        Head of State
-                      </p>
-                      <p
-                        className="text-[11px] font-sans font-semibold"
-                        style={{ color: headText }}
-                      >
-                        {c.headOfState}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => onNav("/dashboard/countries")}
-                      className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-[11px] font-bold transition-all hover:opacity-80"
-                      style={{
-                        background: "#6366f118",
-                        color: "#6366f1",
-                        border: "1px solid #6366f125",
-                      }}
-                    >
-                      Full Profile <ArrowRight size={11} weight="bold" />
-                    </button>
-                  </>
-                );
-              })()}
-
-            {/* ── Region detail ── */}
-            {activeTab === "economies" &&
-              selectedRegion !== null &&
-              (() => {
-                const r = REGION_STATS.find((x) => x.region === selectedRegion);
-                if (!r) return null;
-                const regionMap: Record<string, string[]> = {
-                  "North America": ["North America"],
-                  "European Union": ["Europe"],
-                  "Asia-Pacific": ["Asia", "Oceania"],
-                  "Middle East": ["Asia"],
-                  "Sub-Saharan Africa": ["Africa"],
-                  "Latin America": ["South America"],
-                };
-                const topInRegion = countriesData
-                  .filter((c) => regionMap[r.region]?.includes(c.continent))
-                  .sort((a, b) => b.gdp - a.gdp)
-                  .slice(0, 5);
-
-                // Pull economies data for this region's countries to aggregate upcoming industries + funding
-                const ecoIds = topInRegion.map((c) => c.id);
-                const regionEconomies = economiesData.filter((e) =>
-                  ecoIds.some(
-                    (id) =>
-                      e.id.startsWith(id.replace(/-/g, "").toLowerCase()) ||
-                      e.name
-                        .toLowerCase()
-                        .includes(
-                          topInRegion
-                            .find((x) => x.id === id)
-                            ?.name.toLowerCase() ?? "",
-                        ),
-                  ),
-                );
-                // Collect all upcoming industries across region economies
-                const allUpcoming = regionEconomies
-                  .flatMap((e) => e.upcomingIndustries ?? [])
-                  .reduce<
-                    {
-                      name: string;
-                      growth: string;
-                      color: string;
-                      pct: number;
-                    }[]
-                  >((acc, ind) => {
-                    const existing = acc.find((x) => x.name === ind.name);
-                    const pct =
-                      parseInt(ind.growth.replace(/[^0-9]/g, ""), 10) || 0;
-                    if (!existing) acc.push({ ...ind, pct });
-                    else if (pct > existing.pct) {
-                      existing.growth = ind.growth;
-                      existing.pct = pct;
-                      existing.color = ind.color;
-                    }
-                    return acc;
-                  }, [])
-                  .sort((a, b) => b.pct - a.pct)
-                  .slice(0, 4);
-
-                const totalFunding = regionEconomies.reduce(
-                  (s, e) => s + (e.fundingRaisedB ?? 0),
-                  0,
-                );
-
-                return (
-                  <>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p
-                          className="text-sm font-bold font-sans"
-                          style={{ color: headText }}
-                        >
-                          {r.region}
-                        </p>
-                        <p
+                        <span
                           className="text-[10px] font-mono"
                           style={{ color: mutedText }}
                         >
-                          Regional Economy
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => setSelectedRegion(null)}
-                        style={{ color: mutedText }}
-                      >
-                        <X size={13} weight="bold" />
-                      </button>
-                    </div>
-
-                    {/* KPI row */}
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {[
-                        { label: "Total GDP", value: r.gdp, color: "#f59e0b" },
-                        {
-                          label: "Growth",
-                          value: r.growth,
-                          color: r.up ? "#10b981" : "#ef4444",
-                        },
-                        {
-                          label: "Funding Raised",
-                          value:
-                            totalFunding > 0
-                              ? `$${totalFunding.toFixed(0)}B`
-                              : "N/A",
-                          color: "#6366f1",
-                        },
-                        {
-                          label: "Top Economies",
-                          value: `${topInRegion.length}`,
-                          color: "#3b82f6",
-                        },
-                      ].map((m) => (
-                        <div
-                          key={m.label}
-                          className="rounded-lg px-2.5 py-2"
-                          style={{
-                            background: isLight
-                              ? "rgba(0,0,0,0.03)"
-                              : "rgba(255,255,255,0.04)",
-                            border: `1px solid ${gridLine}`,
-                          }}
-                        >
-                          <p
-                            className="text-[9px] font-mono"
-                            style={{ color: mutedText }}
-                          >
-                            {m.label}
-                          </p>
-                          <p
-                            className="text-sm font-bold font-mono"
-                            style={{ color: m.color }}
-                          >
-                            {m.value}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Up-and-coming industries */}
-                    {allUpcoming.length > 0 && (
-                      <>
-                        <div className="flex items-center gap-1.5">
-                          <Sparkle
-                            size={11}
-                            weight="fill"
-                            style={{ color: "#f97316" }}
-                          />
-                          <p
-                            className="text-[9px] font-mono uppercase tracking-widest"
-                            style={{ color: mutedText }}
-                          >
-                            Up-and-coming Industries
-                          </p>
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                          {allUpcoming.map((ind) => (
-                            <div
-                              key={ind.name}
-                              className="flex items-center gap-2"
-                            >
-                              <div
-                                className="w-1.5 h-1.5 rounded-full shrink-0"
-                                style={{ background: ind.color }}
-                              />
-                              <span
-                                className="text-[11px] font-sans font-semibold flex-1 truncate"
-                                style={{ color: headText }}
-                              >
-                                {ind.name}
-                              </span>
-                              <div
-                                className="w-14 h-1.5 rounded-full overflow-hidden shrink-0"
-                                style={{
-                                  background: isLight
-                                    ? "rgba(0,0,0,0.07)"
-                                    : "rgba(255,255,255,0.08)",
-                                }}
-                              >
-                                <div
-                                  className="h-full rounded-full"
-                                  style={{
-                                    width: `${Math.min(100, ind.pct)}%`,
-                                    background: ind.color,
-                                  }}
-                                />
-                              </div>
-                              <span
-                                className="text-[10px] font-mono font-bold w-9 text-right shrink-0"
-                                style={{ color: ind.color }}
-                              >
-                                {ind.growth}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    )}
-
-                    {/* Top economies list */}
-                    <p
-                      className="text-[9px] font-mono uppercase tracking-widest"
-                      style={{ color: mutedText }}
-                    >
-                      Top economies in region
-                    </p>
-                    {topInRegion.map((c, i) => {
-                      const eco = economiesData.find(
-                        (e) =>
-                          e.name.toLowerCase() === c.name.toLowerCase() ||
-                          e.id.startsWith(c.id.replace(/-/g, "")),
-                      );
-                      return (
-                        <div
-                          key={c.id}
-                          className="flex items-center gap-2 py-1.5"
-                          style={{
-                            borderBottom:
-                              i < topInRegion.length - 1
-                                ? `1px solid ${gridLine}`
-                                : "none",
-                          }}
-                        >
-                          <span className="text-sm w-6">
-                            {(c as any).flag ?? c.code}
-                          </span>
-                          <span
-                            className="flex-1 text-[11px] font-sans font-semibold truncate"
-                            style={{ color: headText }}
-                          >
-                            {c.name}
-                          </span>
-                          <span
-                            className="text-[11px] font-mono shrink-0"
-                            style={{ color: headText }}
-                          >
-                            {fmtGDPShort(c.gdp)}
-                          </span>
-                          <span
-                            className="text-[10px] font-mono shrink-0 w-10 text-right"
-                            style={{
-                              color: c.gdpGrowth >= 0 ? "#10b981" : "#ef4444",
-                            }}
-                          >
-                            {c.gdpGrowth >= 0 ? "+" : ""}
-                            {c.gdpGrowth}%
-                          </span>
-                          {eco?.fundingRaisedB !== undefined && (
-                            <span
-                              className="text-[9px] font-mono shrink-0 w-10 text-right"
-                              style={{ color: "#6366f1" }}
-                            >
-                              ${eco.fundingRaisedB}B
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-
-                    <button
-                      onClick={() => onNav("/dashboard/economies")}
-                      className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-[11px] font-bold transition-all hover:opacity-80"
-                      style={{
-                        background: "#f59e0b18",
-                        color: "#f59e0b",
-                        border: "1px solid #f59e0b25",
-                      }}
-                    >
-                      Full Explorer <ArrowRight size={11} weight="bold" />
-                    </button>
-                  </>
-                );
-              })()}
-
-            {/* ── Policy detail ── */}
-            {activeTab === "policies" &&
-              selectedPolicy !== null &&
-              (() => {
-                const p = filteredPolicies[selectedPolicy];
-                if (!p) return null;
-                return (
-                  <>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-7 h-7 rounded-lg flex items-center justify-center"
-                          style={{ background: p.color + "18", color: p.color }}
-                        >
-                          <Scales size={14} weight="fill" />
-                        </div>
+                          {row.label}
+                        </span>
                         <span
-                          className="text-[10px] font-mono px-1.5 py-0.5 rounded-full"
-                          style={{ background: p.color + "15", color: p.color }}
+                          className="text-[11px] font-sans font-semibold text-right max-w-[55%] truncate"
+                          style={{ color: headText }}
                         >
-                          {p.tag}
+                          {row.value}
                         </span>
                       </div>
-                      <button
-                        onClick={() => setSelectedPolicy(null)}
-                        style={{ color: mutedText }}
-                      >
-                        <X size={13} weight="bold" />
-                      </button>
-                    </div>
-                    <div
-                      className="rounded-xl px-3 py-3"
-                      style={{
-                        background: p.color + "08",
-                        border: `1px solid ${p.color}18`,
-                      }}
+                    ))}
+                  </div>
+
+                  {/* Macro health bar */}
+                  <div
+                    className="rounded-xl px-3 py-3"
+                    style={{
+                      background: isLight
+                        ? "rgba(0,0,0,0.025)"
+                        : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${gridLine}`,
+                    }}
+                  >
+                    <p
+                      className="text-[9px] font-mono uppercase tracking-widest mb-2"
+                      style={{ color: mutedText }}
                     >
+                      Macro Health Score
+                    </p>
+                    {(() => {
+                      const hdiScore = c.humanDevelopmentIndex * 40;
+                      const growthScore = Math.min(
+                        20,
+                        Math.max(0, (c.gdpGrowth + 2) * 4),
+                      );
+                      const inflScore = Math.max(0, 20 - c.inflationRate * 2);
+                      const unempScore = Math.max(
+                        0,
+                        20 - c.unemploymentRate * 2,
+                      );
+                      const total = Math.round(
+                        hdiScore + growthScore + inflScore + unempScore,
+                      );
+                      const scoreColor =
+                        total >= 75
+                          ? "#10b981"
+                          : total >= 50
+                            ? "#f59e0b"
+                            : "#ef4444";
+                      return (
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span
+                              className="text-[10px] font-mono"
+                              style={{ color: mutedText }}
+                            >
+                              Overall
+                            </span>
+                            <span
+                              className="text-[13px] font-bold font-mono"
+                              style={{ color: scoreColor }}
+                            >
+                              {total}/100
+                            </span>
+                          </div>
+                          <div
+                            className="w-full h-2.5 rounded-full overflow-hidden"
+                            style={{
+                              background: isLight
+                                ? "rgba(0,0,0,0.07)"
+                                : "rgba(255,255,255,0.08)",
+                            }}
+                          >
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{
+                                width: `${total}%`,
+                                background: `linear-gradient(90deg, ${scoreColor}99, ${scoreColor})`,
+                              }}
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 gap-1 mt-2">
+                            {[
+                              {
+                                label: "HDI",
+                                score: Math.round(hdiScore),
+                                color: "#a855f7",
+                              },
+                              {
+                                label: "Growth",
+                                score: Math.round(growthScore),
+                                color: "#10b981",
+                              },
+                              {
+                                label: "Inflation",
+                                score: Math.round(inflScore),
+                                color: "#f59e0b",
+                              },
+                              {
+                                label: "Employ.",
+                                score: Math.round(unempScore),
+                                color: "#3b82f6",
+                              },
+                            ].map((sub) => (
+                              <div key={sub.label} className="text-center">
+                                <p
+                                  className="text-[10px] font-bold font-mono"
+                                  style={{ color: sub.color }}
+                                >
+                                  {sub.score}
+                                </p>
+                                <p
+                                  className="text-[8px] font-mono"
+                                  style={{ color: mutedText }}
+                                >
+                                  {sub.label}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  <button
+                    onClick={() => onNav("/dashboard/countries")}
+                    className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl text-[11px] font-bold transition-all hover:opacity-80"
+                    style={{
+                      background: "#6366f118",
+                      color: "#6366f1",
+                      border: "1px solid #6366f125",
+                    }}
+                  >
+                    Full Country Profile <ArrowRight size={11} weight="bold" />
+                  </button>
+                </>
+              );
+            })()}
+
+          {/* ── Region detail ── */}
+          {activeTab === "economies" &&
+            selectedRegion !== null &&
+            (() => {
+              const r = REGION_STATS.find((x) => x.region === selectedRegion);
+              if (!r) return null;
+              const regionMap: Record<string, string[]> = {
+                "North America": ["North America"],
+                "European Union": ["Europe"],
+                "Asia-Pacific": ["Asia", "Oceania"],
+                "Middle East": ["Asia"],
+                "Sub-Saharan Africa": ["Africa"],
+                "Latin America": ["South America"],
+              };
+              const topInRegion = countriesData
+                .filter((c) => regionMap[r.region]?.includes(c.continent))
+                .sort((a, b) => b.gdp - a.gdp)
+                .slice(0, 5);
+
+              // Pull economies data for this region's countries to aggregate upcoming industries + funding
+              const ecoIds = topInRegion.map((c) => c.id);
+              const regionEconomies = economiesData.filter((e) =>
+                ecoIds.some(
+                  (id) =>
+                    e.id.startsWith(id.replace(/-/g, "").toLowerCase()) ||
+                    e.name
+                      .toLowerCase()
+                      .includes(
+                        topInRegion
+                          .find((x) => x.id === id)
+                          ?.name.toLowerCase() ?? "",
+                      ),
+                ),
+              );
+              // Collect all upcoming industries across region economies
+              const allUpcoming = regionEconomies
+                .flatMap((e) => e.upcomingIndustries ?? [])
+                .reduce<
+                  {
+                    name: string;
+                    growth: string;
+                    color: string;
+                    pct: number;
+                  }[]
+                >((acc, ind) => {
+                  const existing = acc.find((x) => x.name === ind.name);
+                  const pct =
+                    parseInt(ind.growth.replace(/[^0-9]/g, ""), 10) || 0;
+                  if (!existing) acc.push({ ...ind, pct });
+                  else if (pct > existing.pct) {
+                    existing.growth = ind.growth;
+                    existing.pct = pct;
+                    existing.color = ind.color;
+                  }
+                  return acc;
+                }, [])
+                .sort((a, b) => b.pct - a.pct)
+                .slice(0, 4);
+
+              const totalFunding = regionEconomies.reduce(
+                (s, e) => s + (e.fundingRaisedB ?? 0),
+                0,
+              );
+
+              return (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div>
                       <p
-                        className="text-sm font-bold font-sans leading-snug"
+                        className="text-sm font-bold font-sans"
                         style={{ color: headText }}
                       >
-                        {p.title}
+                        {r.region}
                       </p>
                       <p
-                        className="text-[10px] font-mono mt-1"
+                        className="text-[10px] font-mono"
                         style={{ color: mutedText }}
                       >
-                        {p.date}
+                        Regional Economy
                       </p>
                     </div>
-                    <div
-                      className="rounded-xl px-3 py-3"
-                      style={{
-                        background: isLight
-                          ? "rgba(0,0,0,0.03)"
-                          : "rgba(255,255,255,0.04)",
-                        border: `1px solid ${gridLine}`,
-                      }}
-                    >
-                      <p
-                        className="text-[9px] font-mono uppercase tracking-widest mb-1"
-                        style={{ color: mutedText }}
+                    <div />
+                  </div>
+
+                  {/* KPI row */}
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {[
+                      { label: "Total GDP", value: r.gdp, color: "#f59e0b" },
+                      {
+                        label: "Growth",
+                        value: r.growth,
+                        color: r.up ? "#10b981" : "#ef4444",
+                      },
+                      {
+                        label: "Funding Raised",
+                        value:
+                          totalFunding > 0
+                            ? `$${totalFunding.toFixed(0)}B`
+                            : "N/A",
+                        color: "#6366f1",
+                      },
+                      {
+                        label: "Top Economies",
+                        value: `${topInRegion.length}`,
+                        color: "#3b82f6",
+                      },
+                    ].map((m) => (
+                      <div
+                        key={m.label}
+                        className="rounded-lg px-2.5 py-2"
+                        style={{
+                          background: isLight
+                            ? "rgba(0,0,0,0.03)"
+                            : "rgba(255,255,255,0.04)",
+                          border: `1px solid ${gridLine}`,
+                        }}
                       >
-                        Category
-                      </p>
-                      <p
-                        className="text-[11px] font-sans"
-                        style={{ color: headText }}
+                        <p
+                          className="text-[9px] font-mono"
+                          style={{ color: mutedText }}
+                        >
+                          {m.label}
+                        </p>
+                        <p
+                          className="text-sm font-bold font-mono"
+                          style={{ color: m.color }}
+                        >
+                          {m.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Up-and-coming industries */}
+                  {allUpcoming.length > 0 && (
+                    <>
+                      <div className="flex items-center gap-1.5">
+                        <Sparkle
+                          size={11}
+                          weight="fill"
+                          style={{ color: "#f97316" }}
+                        />
+                        <p
+                          className="text-[9px] font-mono uppercase tracking-widest"
+                          style={{ color: mutedText }}
+                        >
+                          Up-and-coming Industries
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        {allUpcoming.map((ind) => (
+                          <div
+                            key={ind.name}
+                            className="flex items-center gap-2"
+                          >
+                            <div
+                              className="w-1.5 h-1.5 rounded-full shrink-0"
+                              style={{ background: ind.color }}
+                            />
+                            <span
+                              className="text-[11px] font-sans font-semibold flex-1 truncate"
+                              style={{ color: headText }}
+                            >
+                              {ind.name}
+                            </span>
+                            <div
+                              className="w-14 h-1.5 rounded-full overflow-hidden shrink-0"
+                              style={{
+                                background: isLight
+                                  ? "rgba(0,0,0,0.07)"
+                                  : "rgba(255,255,255,0.08)",
+                              }}
+                            >
+                              <div
+                                className="h-full rounded-full"
+                                style={{
+                                  width: `${Math.min(100, ind.pct)}%`,
+                                  background: ind.color,
+                                }}
+                              />
+                            </div>
+                            <span
+                              className="text-[10px] font-mono font-bold w-9 text-right shrink-0"
+                              style={{ color: ind.color }}
+                            >
+                              {ind.growth}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Top economies list */}
+                  <p
+                    className="text-[9px] font-mono uppercase tracking-widest"
+                    style={{ color: mutedText }}
+                  >
+                    Top economies in region
+                  </p>
+                  {topInRegion.map((c, i) => {
+                    const eco = economiesData.find(
+                      (e) =>
+                        e.name.toLowerCase() === c.name.toLowerCase() ||
+                        e.id.startsWith(c.id.replace(/-/g, "")),
+                    );
+                    return (
+                      <div
+                        key={c.id}
+                        className="flex items-center gap-2 py-1.5"
+                        style={{
+                          borderBottom:
+                            i < topInRegion.length - 1
+                              ? `1px solid ${gridLine}`
+                              : "none",
+                        }}
                       >
-                        {p.tag} Policy
-                      </p>
+                        <span className="text-sm w-6">
+                          {(c as any).flag ?? c.code}
+                        </span>
+                        <span
+                          className="flex-1 text-[11px] font-sans font-semibold truncate"
+                          style={{ color: headText }}
+                        >
+                          {c.name}
+                        </span>
+                        <span
+                          className="text-[11px] font-mono shrink-0"
+                          style={{ color: headText }}
+                        >
+                          {fmtGDPShort(c.gdp)}
+                        </span>
+                        <span
+                          className="text-[10px] font-mono shrink-0 w-10 text-right"
+                          style={{
+                            color: c.gdpGrowth >= 0 ? "#10b981" : "#ef4444",
+                          }}
+                        >
+                          {c.gdpGrowth >= 0 ? "+" : ""}
+                          {c.gdpGrowth}%
+                        </span>
+                        {eco?.fundingRaisedB !== undefined && (
+                          <span
+                            className="text-[9px] font-mono shrink-0 w-10 text-right"
+                            style={{ color: "#6366f1" }}
+                          >
+                            ${eco.fundingRaisedB}B
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => onNav("/dashboard/economies")}
+                    className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-[11px] font-bold transition-all hover:opacity-80"
+                    style={{
+                      background: "#f59e0b18",
+                      color: "#f59e0b",
+                      border: "1px solid #f59e0b25",
+                    }}
+                  >
+                    Full Explorer <ArrowRight size={11} weight="bold" />
+                  </button>
+                </>
+              );
+            })()}
+
+          {/* ── Policy detail ── */}
+          {activeTab === "policies" &&
+            selectedPolicy !== null &&
+            (() => {
+              const p = filteredPolicies[selectedPolicy];
+              if (!p) return null;
+              return (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-7 h-7 rounded-lg flex items-center justify-center"
+                        style={{ background: p.color + "18", color: p.color }}
+                      >
+                        <Scales size={14} weight="fill" />
+                      </div>
+                      <span
+                        className="text-[10px] font-mono px-1.5 py-0.5 rounded-full"
+                        style={{ background: p.color + "15", color: p.color }}
+                      >
+                        {p.tag}
+                      </span>
                     </div>
-                    <button
-                      onClick={() => onNav("/dashboard/policy")}
-                      className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-[11px] font-bold transition-all hover:opacity-80"
-                      style={{
-                        background: "#a855f718",
-                        color: "#a855f7",
-                        border: "1px solid #a855f725",
-                      }}
+                    <div />
+                  </div>
+                  <div
+                    className="rounded-xl px-3 py-3"
+                    style={{
+                      background: p.color + "08",
+                      border: `1px solid ${p.color}18`,
+                    }}
+                  >
+                    <p
+                      className="text-sm font-bold font-sans leading-snug"
+                      style={{ color: headText }}
                     >
-                      Policy Hub <ArrowRight size={11} weight="bold" />
-                    </button>
-                  </>
-                );
-              })()}
-          </div>
-        )}
+                      {p.title}
+                    </p>
+                    <p
+                      className="text-[10px] font-mono mt-1"
+                      style={{ color: mutedText }}
+                    >
+                      {p.date}
+                    </p>
+                  </div>
+                  <div
+                    className="rounded-xl px-3 py-3"
+                    style={{
+                      background: isLight
+                        ? "rgba(0,0,0,0.03)"
+                        : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${gridLine}`,
+                    }}
+                  >
+                    <p
+                      className="text-[9px] font-mono uppercase tracking-widest mb-1"
+                      style={{ color: mutedText }}
+                    >
+                      Category
+                    </p>
+                    <p
+                      className="text-[11px] font-sans"
+                      style={{ color: headText }}
+                    >
+                      {p.tag} Policy
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => onNav("/dashboard/policy")}
+                    className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-[11px] font-bold transition-all hover:opacity-80"
+                    style={{
+                      background: "#a855f718",
+                      color: "#a855f7",
+                      border: "1px solid #a855f725",
+                    }}
+                  >
+                    Policy Hub <ArrowRight size={11} weight="bold" />
+                  </button>
+                </>
+              );
+            })()}
+        </div>
       </div>
 
       {/* ── Footer nav ── */}
@@ -3875,24 +5207,20 @@ function InteractiveDataPanel({
         style={{ borderColor: gridLine }}
       >
         <span className="text-[10px] font-mono" style={{ color: mutedText }}>
-          {activeTab === "trending"
-            ? `${TRENDING_STATS.length} trending stats`
-            : activeTab === "countries"
-              ? `${filteredCountries.length} of ${allByGDP.length} countries`
-              : activeTab === "economies"
-                ? `${filteredRegions.length} regions`
-                : `${filteredPolicies.length} policies`}
+          {activeTab === "countries"
+            ? `${filteredCountries.length} of ${allByGDP.length} countries`
+            : activeTab === "economies"
+              ? `${filteredRegions.length} regions`
+              : `${filteredPolicies.length} policies`}
         </span>
         <button
           onClick={() =>
             onNav(
-              activeTab === "trending"
+              activeTab === "countries"
                 ? "/dashboard/countries"
-                : activeTab === "countries"
-                  ? "/dashboard/countries"
-                  : activeTab === "economies"
-                    ? "/dashboard/economies"
-                    : "/dashboard/policy",
+                : activeTab === "economies"
+                  ? "/dashboard/economies"
+                  : "/dashboard/policy",
             )
           }
           className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70"
@@ -4014,6 +5342,991 @@ function ExpandableCard({
 
       {/* Expandable content */}
       {open && <div className="px-5 py-4 animate-fade-in">{children}</div>}
+    </div>
+  );
+}
+
+/* ─── Global North / South Map ─────────────────────────────────────────── */
+// Country paths are simplified SVG shapes on a 1000×500 equirectangular projection
+// Each country has: id, name, path, lat (rough centroid), lon, isNorth (Global North = true)
+type CountryShape = {
+  id: string;
+  name: string;
+  d: string;
+  cx: number; // label x
+  cy: number; // label y
+  isNorth: boolean;
+};
+
+// Helper to convert lon/lat → SVG x/y (equirectangular, 1000×500)
+const ll2xy = (lon: number, lat: number): [number, number] => [
+  ((lon + 180) / 360) * 1000,
+  ((90 - lat) / 180) * 500,
+];
+
+// Build simplified country outlines as SVG path strings from bounding-box rectangles
+// For each country we use a rough polygon approximation
+const mkRect = (
+  lon1: number,
+  lat1: number,
+  lon2: number,
+  lat2: number,
+): string => {
+  const [x1, y1] = ll2xy(lon1, lat1);
+  const [x2, y2] = ll2xy(lon2, lat2);
+  return `M${x1.toFixed(1)},${y1.toFixed(1)} L${x2.toFixed(1)},${y1.toFixed(1)} L${x2.toFixed(1)},${y2.toFixed(1)} L${x1.toFixed(1)},${y2.toFixed(1)} Z`;
+};
+
+const mkPath = (coords: [number, number][]): string => {
+  return (
+    coords
+      .map(([lon, lat], i) => {
+        const [x, y] = ll2xy(lon, lat);
+        return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(" ") + " Z"
+  );
+};
+
+const COUNTRIES_MAP: CountryShape[] = [
+  // ── NORTH AMERICA ──
+  {
+    id: "us",
+    name: "United States",
+    d: mkPath([
+      [-124, 49],
+      [-66, 49],
+      [-66, 25],
+      [-80, 25],
+      [-87, 30],
+      [-97, 26],
+      [-117, 32],
+      [-124, 38],
+    ]),
+    cx: ll2xy(-96, 38)[0],
+    cy: ll2xy(-96, 38)[1],
+    isNorth: true,
+  },
+  {
+    id: "ca",
+    name: "Canada",
+    d: mkPath([
+      [-141, 83],
+      [-52, 83],
+      [-52, 47],
+      [-84, 46],
+      [-95, 49],
+      [-110, 49],
+      [-123, 49],
+      [-141, 60],
+    ]),
+    cx: ll2xy(-95, 62)[0],
+    cy: ll2xy(-95, 62)[1],
+    isNorth: true,
+  },
+  {
+    id: "mx",
+    name: "Mexico",
+    d: mkPath([
+      [-117, 32],
+      [-97, 26],
+      [-87, 16],
+      [-89, 15],
+      [-92, 18],
+      [-90, 21],
+      [-90, 22],
+      [-87, 22],
+      [-86, 23],
+      [-86, 24],
+      [-88, 27],
+      [-97, 27],
+      [-117, 32],
+    ]),
+    cx: ll2xy(-102, 23)[0],
+    cy: ll2xy(-102, 23)[1],
+    isNorth: false,
+  },
+  // ── SOUTH AMERICA ──
+  {
+    id: "br",
+    name: "Brazil",
+    d: mkPath([
+      [-73, 5],
+      [-35, 5],
+      [-35, -5],
+      [-34, -13],
+      [-39, -16],
+      [-44, -23],
+      [-48, -28],
+      [-53, -33],
+      [-58, -34],
+      [-65, -28],
+      [-68, -20],
+      [-73, -12],
+      [-73, 0],
+    ]),
+    cx: ll2xy(-53, -10)[0],
+    cy: ll2xy(-53, -10)[1],
+    isNorth: false,
+  },
+  {
+    id: "ar",
+    name: "Argentina",
+    d: mkPath([
+      [-68, -22],
+      [-53, -22],
+      [-53, -34],
+      [-58, -38],
+      [-62, -42],
+      [-66, -46],
+      [-68, -54],
+      [-72, -52],
+      [-72, -40],
+      [-68, -30],
+    ]),
+    cx: ll2xy(-64, -35)[0],
+    cy: ll2xy(-64, -35)[1],
+    isNorth: false,
+  },
+  {
+    id: "co",
+    name: "Colombia",
+    d: mkPath([
+      [-77, 8],
+      [-67, 8],
+      [-67, 1],
+      [-72, -4],
+      [-77, -2],
+      [-79, 2],
+      [-77, 8],
+    ]),
+    cx: ll2xy(-74, 4)[0],
+    cy: ll2xy(-74, 4)[1],
+    isNorth: false,
+  },
+  {
+    id: "ve",
+    name: "Venezuela",
+    d: mkPath([
+      [-73, 12],
+      [-60, 12],
+      [-60, 6],
+      [-67, 2],
+      [-73, 6],
+    ]),
+    cx: ll2xy(-66, 8)[0],
+    cy: ll2xy(-66, 8)[1],
+    isNorth: false,
+  },
+  {
+    id: "pe",
+    name: "Peru",
+    d: mkPath([
+      [-81, -4],
+      [-74, -4],
+      [-70, -10],
+      [-68, -14],
+      [-68, -18],
+      [-75, -18],
+      [-80, -10],
+    ]),
+    cx: ll2xy(-75, -10)[0],
+    cy: ll2xy(-75, -10)[1],
+    isNorth: false,
+  },
+  {
+    id: "cl",
+    name: "Chile",
+    d: mkPath([
+      [-70, -18],
+      [-66, -18],
+      [-66, -22],
+      [-67, -28],
+      [-69, -35],
+      [-71, -42],
+      [-72, -50],
+      [-76, -52],
+      [-72, -30],
+      [-70, -22],
+    ]),
+    cx: ll2xy(-70, -33)[0],
+    cy: ll2xy(-70, -33)[1],
+    isNorth: false,
+  },
+  // ── EUROPE ──
+  {
+    id: "gb",
+    name: "UK",
+    d: mkPath([
+      [-5, 58],
+      [2, 58],
+      [2, 51],
+      [-3, 50],
+      [-5, 53],
+      [-5, 58],
+    ]),
+    cx: ll2xy(-2, 54)[0],
+    cy: ll2xy(-2, 54)[1],
+    isNorth: true,
+  },
+  {
+    id: "fr",
+    name: "France",
+    d: mkPath([
+      [-5, 51],
+      [8, 51],
+      [8, 44],
+      [3, 43],
+      [-2, 43],
+      [-5, 47],
+    ]),
+    cx: ll2xy(2, 47)[0],
+    cy: ll2xy(2, 47)[1],
+    isNorth: true,
+  },
+  {
+    id: "de",
+    name: "Germany",
+    d: mkPath([
+      [6, 55],
+      [15, 55],
+      [15, 47],
+      [6, 47],
+    ]),
+    cx: ll2xy(10, 51)[0],
+    cy: ll2xy(10, 51)[1],
+    isNorth: true,
+  },
+  {
+    id: "es",
+    name: "Spain",
+    d: mkPath([
+      [-9, 44],
+      [3, 44],
+      [3, 36],
+      [-6, 36],
+      [-9, 39],
+    ]),
+    cx: ll2xy(-4, 40)[0],
+    cy: ll2xy(-4, 40)[1],
+    isNorth: true,
+  },
+  {
+    id: "it",
+    name: "Italy",
+    d: mkPath([
+      [7, 44],
+      [14, 44],
+      [18, 40],
+      [15, 37],
+      [13, 38],
+      [13, 41],
+      [8, 44],
+    ]),
+    cx: ll2xy(13, 42)[0],
+    cy: ll2xy(13, 42)[1],
+    isNorth: true,
+  },
+  {
+    id: "pl",
+    name: "Poland",
+    d: mkPath([
+      [14, 55],
+      [24, 55],
+      [24, 49],
+      [14, 49],
+    ]),
+    cx: ll2xy(20, 52)[0],
+    cy: ll2xy(20, 52)[1],
+    isNorth: true,
+  },
+  {
+    id: "se",
+    name: "Sweden",
+    d: mkPath([
+      [11, 69],
+      [24, 69],
+      [24, 55],
+      [11, 55],
+    ]),
+    cx: ll2xy(17, 62)[0],
+    cy: ll2xy(17, 62)[1],
+    isNorth: true,
+  },
+  {
+    id: "no",
+    name: "Norway",
+    d: mkPath([
+      [4, 71],
+      [30, 71],
+      [30, 58],
+      [4, 58],
+    ]),
+    cx: ll2xy(15, 65)[0],
+    cy: ll2xy(15, 65)[1],
+    isNorth: true,
+  },
+  {
+    id: "fi",
+    name: "Finland",
+    d: mkPath([
+      [20, 70],
+      [30, 70],
+      [30, 60],
+      [20, 60],
+    ]),
+    cx: ll2xy(26, 65)[0],
+    cy: ll2xy(26, 65)[1],
+    isNorth: true,
+  },
+  {
+    id: "nl",
+    name: "Netherlands",
+    d: mkRect(3.36, 53.55, 7.23, 50.75),
+    cx: ll2xy(5.3, 52.3)[0],
+    cy: ll2xy(5.3, 52.3)[1],
+    isNorth: true,
+  },
+  {
+    id: "ch",
+    name: "Switzerland",
+    d: mkRect(5.96, 47.8, 10.49, 45.82),
+    cx: ll2xy(8.2, 46.8)[0],
+    cy: ll2xy(8.2, 46.8)[1],
+    isNorth: true,
+  },
+  // ── RUSSIA ──
+  {
+    id: "ru",
+    name: "Russia",
+    d: mkPath([
+      [28, 72],
+      [180, 72],
+      [180, 50],
+      [140, 43],
+      [130, 42],
+      [105, 51],
+      [90, 51],
+      [65, 51],
+      [50, 45],
+      [30, 45],
+      [27, 55],
+      [28, 60],
+    ]),
+    cx: ll2xy(100, 61)[0],
+    cy: ll2xy(100, 61)[1],
+    isNorth: true,
+  },
+  // ── MIDDLE EAST / CENTRAL ASIA ──
+  {
+    id: "sa",
+    name: "Saudi Arabia",
+    d: mkPath([
+      [36, 32],
+      [55, 32],
+      [55, 22],
+      [50, 16],
+      [43, 15],
+      [38, 22],
+      [36, 28],
+    ]),
+    cx: ll2xy(45, 24)[0],
+    cy: ll2xy(45, 24)[1],
+    isNorth: false,
+  },
+  {
+    id: "tr",
+    name: "Turkey",
+    d: mkPath([
+      [26, 42],
+      [45, 42],
+      [45, 37],
+      [36, 36],
+      [26, 37],
+    ]),
+    cx: ll2xy(35, 39)[0],
+    cy: ll2xy(35, 39)[1],
+    isNorth: true,
+  },
+  {
+    id: "ir",
+    name: "Iran",
+    d: mkPath([
+      [44, 39],
+      [63, 39],
+      [63, 25],
+      [56, 25],
+      [48, 28],
+      [44, 37],
+    ]),
+    cx: ll2xy(53, 33)[0],
+    cy: ll2xy(53, 33)[1],
+    isNorth: false,
+  },
+  // ── AFRICA ──
+  {
+    id: "ng",
+    name: "Nigeria",
+    d: mkPath([
+      [3, 14],
+      [15, 14],
+      [15, 4],
+      [3, 4],
+    ]),
+    cx: ll2xy(9, 9)[0],
+    cy: ll2xy(9, 9)[1],
+    isNorth: false,
+  },
+  {
+    id: "et",
+    name: "Ethiopia",
+    d: mkPath([
+      [33, 15],
+      [48, 15],
+      [48, 3],
+      [38, -2],
+      [36, 4],
+      [33, 8],
+    ]),
+    cx: ll2xy(40, 9)[0],
+    cy: ll2xy(40, 9)[1],
+    isNorth: false,
+  },
+  {
+    id: "eg",
+    name: "Egypt",
+    d: mkRect(25, 32, 37, 22),
+    cx: ll2xy(30, 27)[0],
+    cy: ll2xy(30, 27)[1],
+    isNorth: false,
+  },
+  {
+    id: "za",
+    name: "South Africa",
+    d: mkPath([
+      [17, -29],
+      [33, -29],
+      [33, -35],
+      [26, -35],
+      [18, -33],
+      [17, -31],
+    ]),
+    cx: ll2xy(25, -31)[0],
+    cy: ll2xy(25, -31)[1],
+    isNorth: false,
+  },
+  {
+    id: "cd",
+    name: "Congo (DRC)",
+    d: mkPath([
+      [12, -5],
+      [30, -5],
+      [30, -13],
+      [24, -13],
+      [18, -10],
+      [12, -4],
+    ]),
+    cx: ll2xy(24, -4)[0],
+    cy: ll2xy(24, -4)[1],
+    isNorth: false,
+  },
+  {
+    id: "dz",
+    name: "Algeria",
+    d: mkRect(-9, 37, 12, 20),
+    cx: ll2xy(3, 28)[0],
+    cy: ll2xy(3, 28)[1],
+    isNorth: false,
+  },
+  {
+    id: "sd",
+    name: "Sudan",
+    d: mkRect(22, 22, 38, 10),
+    cx: ll2xy(30, 16)[0],
+    cy: ll2xy(30, 16)[1],
+    isNorth: false,
+  },
+  {
+    id: "ma",
+    name: "Morocco",
+    d: mkRect(-13, 36, -2, 28),
+    cx: ll2xy(-7, 32)[0],
+    cy: ll2xy(-7, 32)[1],
+    isNorth: false,
+  },
+  // ── SOUTH / SOUTHEAST ASIA ──
+  {
+    id: "cn",
+    name: "China",
+    d: mkPath([
+      [73, 53],
+      [134, 53],
+      [134, 22],
+      [110, 18],
+      [105, 20],
+      [100, 22],
+      [98, 25],
+      [92, 28],
+      [78, 35],
+      [73, 40],
+      [73, 48],
+    ]),
+    cx: ll2xy(104, 37)[0],
+    cy: ll2xy(104, 37)[1],
+    isNorth: true,
+  },
+  {
+    id: "in",
+    name: "India",
+    d: mkPath([
+      [68, 37],
+      [78, 36],
+      [85, 27],
+      [88, 22],
+      [80, 8],
+      [76, 8],
+      [68, 20],
+      [66, 24],
+      [68, 37],
+    ]),
+    cx: ll2xy(78, 22)[0],
+    cy: ll2xy(78, 22)[1],
+    isNorth: false,
+  },
+  {
+    id: "pk",
+    name: "Pakistan",
+    d: mkPath([
+      [61, 37],
+      [74, 37],
+      [74, 27],
+      [68, 24],
+      [66, 25],
+      [60, 30],
+    ]),
+    cx: ll2xy(68, 30)[0],
+    cy: ll2xy(68, 30)[1],
+    isNorth: false,
+  },
+  {
+    id: "bd",
+    name: "Bangladesh",
+    d: mkRect(88, 26.5, 92.5, 20.7),
+    cx: ll2xy(90.3, 23.5)[0],
+    cy: ll2xy(90.3, 23.5)[1],
+    isNorth: false,
+  },
+  {
+    id: "id",
+    name: "Indonesia",
+    d: mkPath([
+      [95, -5],
+      [140, -5],
+      [140, -8],
+      [130, -8],
+      [120, -9],
+      [110, -8],
+      [100, -6],
+      [95, -5],
+    ]),
+    cx: ll2xy(118, -3)[0],
+    cy: ll2xy(118, -3)[1],
+    isNorth: false,
+  },
+  {
+    id: "mm",
+    name: "Myanmar",
+    d: mkRect(92, 28, 101, 10),
+    cx: ll2xy(96, 19)[0],
+    cy: ll2xy(96, 19)[1],
+    isNorth: false,
+  },
+  {
+    id: "th",
+    name: "Thailand",
+    d: mkRect(98, 21, 106, 5),
+    cx: ll2xy(102, 15)[0],
+    cy: ll2xy(102, 15)[1],
+    isNorth: false,
+  },
+  {
+    id: "vn",
+    name: "Vietnam",
+    d: mkRect(102, 23, 110, 8),
+    cx: ll2xy(106, 16)[0],
+    cy: ll2xy(106, 16)[1],
+    isNorth: false,
+  },
+  {
+    id: "ph",
+    name: "Philippines",
+    d: mkRect(117, 21, 127, 5),
+    cx: ll2xy(122, 13)[0],
+    cy: ll2xy(122, 13)[1],
+    isNorth: false,
+  },
+  {
+    id: "jp",
+    name: "Japan",
+    d: mkPath([
+      [130, 45],
+      [142, 45],
+      [142, 31],
+      [130, 31],
+    ]),
+    cx: ll2xy(136, 38)[0],
+    cy: ll2xy(136, 38)[1],
+    isNorth: true,
+  },
+  {
+    id: "kr",
+    name: "South Korea",
+    d: mkRect(125.7, 38.6, 129.6, 34.3),
+    cx: ll2xy(128, 36.5)[0],
+    cy: ll2xy(128, 36.5)[1],
+    isNorth: true,
+  },
+  {
+    id: "kp",
+    name: "North Korea",
+    d: mkRect(124, 43, 130, 38),
+    cx: ll2xy(127, 40)[0],
+    cy: ll2xy(127, 40)[1],
+    isNorth: false,
+  },
+  // ── OCEANIA ──
+  {
+    id: "au",
+    name: "Australia",
+    d: mkPath([
+      [114, -22],
+      [154, -22],
+      [154, -39],
+      [146, -44],
+      [137, -36],
+      [128, -35],
+      [114, -26],
+    ]),
+    cx: ll2xy(134, -27)[0],
+    cy: ll2xy(134, -27)[1],
+    isNorth: false,
+  },
+  {
+    id: "nz",
+    name: "New Zealand",
+    d: mkPath([
+      [172, -34],
+      [178, -34],
+      [178, -40],
+      [174, -45],
+      [169, -46],
+      [169, -42],
+      [172, -37],
+    ]),
+    cx: ll2xy(173, -41)[0],
+    cy: ll2xy(173, -41)[1],
+    isNorth: false,
+  },
+  // ── CENTRAL AMERICA / CARIBBEAN ──
+  {
+    id: "gt",
+    name: "Guatemala",
+    d: mkRect(-92, 17.8, -88.2, 13.7),
+    cx: ll2xy(-90, 15.8)[0],
+    cy: ll2xy(-90, 15.8)[1],
+    isNorth: false,
+  },
+  {
+    id: "hn",
+    name: "Honduras",
+    d: mkRect(-89.4, 16, -83.2, 13),
+    cx: ll2xy(-86.5, 14.5)[0],
+    cy: ll2xy(-86.5, 14.5)[1],
+    isNorth: false,
+  },
+  {
+    id: "cu",
+    name: "Cuba",
+    d: mkPath([
+      [-85, 23],
+      [-75, 23],
+      [-74, 20],
+      [-82, 20],
+      [-85, 23],
+    ]),
+    cx: ll2xy(-79.5, 22)[0],
+    cy: ll2xy(-79.5, 22)[1],
+    isNorth: false,
+  },
+  // ── SCANDINAVIA extra ──
+  {
+    id: "dk",
+    name: "Denmark",
+    d: mkRect(8, 57.8, 12.7, 54.6),
+    cx: ll2xy(10, 56)[0],
+    cy: ll2xy(10, 56)[1],
+    isNorth: true,
+  },
+  // ── UKRAINE ──
+  {
+    id: "ua",
+    name: "Ukraine",
+    d: mkRect(22, 52.5, 40.2, 44.4),
+    cx: ll2xy(31, 49)[0],
+    cy: ll2xy(31, 49)[1],
+    isNorth: true,
+  },
+  // ── KAZAKHSTAN ──
+  {
+    id: "kz",
+    name: "Kazakhstan",
+    d: mkRect(50, 55, 87, 41),
+    cx: ll2xy(68, 48)[0],
+    cy: ll2xy(68, 48)[1],
+    isNorth: true,
+  },
+  // ── MONGOLIA ──
+  {
+    id: "mn",
+    name: "Mongolia",
+    d: mkRect(87, 52, 120, 41),
+    cx: ll2xy(103, 46)[0],
+    cy: ll2xy(103, 46)[1],
+    isNorth: true,
+  },
+  // ── GREENLAND ──
+  {
+    id: "gl",
+    name: "Greenland",
+    d: mkRect(-73, 84, -12, 60),
+    cx: ll2xy(-42, 72)[0],
+    cy: ll2xy(-42, 72)[1],
+    isNorth: true,
+  },
+  // ── WEST AFRICA ──
+  {
+    id: "gh",
+    name: "Ghana",
+    d: mkRect(-3.3, 11.2, 1.2, 4.7),
+    cx: ll2xy(-1.0, 8)[0],
+    cy: ll2xy(-1.0, 8)[1],
+    isNorth: false,
+  },
+  {
+    id: "cm",
+    name: "Cameroon",
+    d: mkRect(8.5, 13, 16.2, 1.7),
+    cx: ll2xy(12, 7)[0],
+    cy: ll2xy(12, 7)[1],
+    isNorth: false,
+  },
+  {
+    id: "ke",
+    name: "Kenya",
+    d: mkRect(34, 5, 42, -4.7),
+    cx: ll2xy(38, 1)[0],
+    cy: ll2xy(38, 1)[1],
+    isNorth: false,
+  },
+  {
+    id: "tz",
+    name: "Tanzania",
+    d: mkRect(29.5, -1, 40.5, -11.7),
+    cx: ll2xy(35, -6)[0],
+    cy: ll2xy(35, -6)[1],
+    isNorth: false,
+  },
+  {
+    id: "mz",
+    name: "Mozambique",
+    d: mkRect(32.2, -10.5, 40.8, -26.9),
+    cx: ll2xy(35.5, -18)[0],
+    cy: ll2xy(35.5, -18)[1],
+    isNorth: false,
+  },
+];
+
+// Which countries to show labels for (to avoid clutter)
+const LABELED_COUNTRIES = new Set([
+  "us",
+  "ca",
+  "mx",
+  "br",
+  "ar",
+  "gb",
+  "fr",
+  "de",
+  "ru",
+  "cn",
+  "in",
+  "jp",
+  "au",
+  "za",
+  "ng",
+  "et",
+  "eg",
+  "id",
+  "tr",
+  "sa",
+  "kr",
+  "vn",
+  "th",
+  "ph",
+  "pe",
+  "cl",
+  "co",
+  "ua",
+  "kz",
+  "gl",
+  "ir",
+  "pk",
+]);
+
+function GlobalNorthSouthMap({
+  isLight,
+  cardBg,
+  cardBorder,
+  cardShadow,
+  gridLine,
+  headText,
+  mutedText,
+}: {
+  isLight: boolean;
+  cardBg: string;
+  cardBorder: string;
+  cardShadow: string;
+  gridLine: string;
+  headText: string;
+  mutedText: string;
+}) {
+  const northColor = isLight ? "#6366f1" : "#818cf8";
+  const southColor = isLight ? "#10b981" : "#34d399";
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}
+    >
+      {/* Header */}
+      <div
+        className="flex items-center justify-between px-5 py-3.5"
+        style={{ borderBottom: `1px solid ${gridLine}` }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+            style={{ background: "#6366f112", border: "1px solid #6366f122" }}
+          >
+            <Planet size={13} weight="fill" style={{ color: "#6366f1" }} />
+          </div>
+          <span
+            className="text-sm font-bold font-sans"
+            style={{ color: headText }}
+          >
+            Global North &amp; South
+          </span>
+          <span
+            className="text-[10px] font-mono px-2 py-0.5 rounded-full"
+            style={{ background: "#6366f114", color: "#6366f1" }}
+          >
+            World Map
+          </span>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <div
+              className="w-3 h-3 rounded-sm"
+              style={{ background: northColor, opacity: 0.9 }}
+            />
+            <span
+              className="text-[10px] font-mono"
+              style={{ color: mutedText }}
+            >
+              Global North
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div
+              className="w-3 h-3 rounded-sm"
+              style={{ background: southColor, opacity: 0.9 }}
+            />
+            <span
+              className="text-[10px] font-mono"
+              style={{ color: mutedText }}
+            >
+              Global South
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Map image */}
+      <div
+        className="relative"
+        style={{ background: isLight ? "#dbeafe" : "#090f2a" }}
+      >
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/2000px_Brandt_Line.svg/2000px-Brandt_Line.svg.png"
+          alt="World map showing Global North (blue) and Global South (red) divided by the Brandt Line"
+          style={{
+            width: "100%",
+            display: "block",
+            objectFit: "cover",
+            maxHeight: 480,
+            filter: isLight ? "none" : "brightness(0.82) saturate(1.1)",
+          }}
+          onError={(e) => {
+            const img = e.currentTarget as HTMLImageElement;
+            img.src =
+              "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/World_map_-_low_resolution.svg/2560px-World_map_-_low_resolution.svg.png";
+          }}
+        />
+        {/* Brandt Line label overlay */}
+        <div
+          className="absolute left-1/2 pointer-events-none"
+          style={{
+            top: "38%",
+            transform: "translateX(-50%)",
+            background: "rgba(0,0,0,0.55)",
+            borderRadius: 6,
+            padding: "2px 10px",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <span
+            className="text-[10px] font-mono"
+            style={{ color: "#f87171", letterSpacing: "0.08em" }}
+          >
+            ─ ─ Brandt Line (approx. 30°N) ─ ─
+          </span>
+        </div>
+      </div>
+
+      {/* Footer stats */}
+      <div
+        className="px-5 py-3 flex items-center gap-6 flex-wrap"
+        style={{ borderTop: `1px solid ${gridLine}` }}
+      >
+        {[
+          { label: "Global North Countries", value: "~57", color: northColor },
+          { label: "Global South Countries", value: "~138", color: southColor },
+          { label: "North GDP Share", value: "~78%", color: northColor },
+          { label: "South Population Share", value: "~85%", color: southColor },
+          { label: "Divide", value: "Brandt Line ~30°N", color: mutedText },
+        ].map((s) => (
+          <div key={s.label} className="flex flex-col gap-0.5">
+            <span className="text-[9px] font-mono" style={{ color: mutedText }}>
+              {s.label}
+            </span>
+            <span
+              className="text-[12px] font-bold font-mono"
+              style={{ color: s.color }}
+            >
+              {s.value}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -4245,6 +6558,19 @@ export function DashboardPage() {
           mutedText={mutedText}
           bodyText={bodyText}
           topCountries={topCountries}
+          onNav={navigate}
+        />
+
+        {/* ── TRENDS & PROJECTIONS PANEL ────────────────────────────────── */}
+        <TrendsProjectionsPanel
+          isLight={isLight}
+          cardBg={cardBg}
+          cardBorder={cardBorder}
+          cardShadow={cardShadow}
+          gridLine={gridLine}
+          headText={headText}
+          mutedText={mutedText}
+          bodyText={bodyText}
           onNav={navigate}
         />
 
@@ -5220,6 +7546,17 @@ export function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* ── US STATES CAROUSEL ────────────────────────────────────────── */}
+        <StatesCarousel
+          isLight={isLight}
+          cardBg={cardBg}
+          cardBorder={cardBorder}
+          headText={headText}
+          mutedText={mutedText}
+          gridLine={gridLine}
+          onNav={navigate}
+        />
 
         {/* ── NATIONAL SECTION ──────────────────────────────────────────── */}
         <div
