@@ -2490,7 +2490,7 @@ function CityPhotosGrid({ city }: { city: City }) {
       {/* Lightbox */}
       {lightbox !== null && (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85"
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
           onClick={() => setLightbox(null)}
         >
           <button
@@ -2498,34 +2498,43 @@ function CityPhotosGrid({ city }: { city: City }) {
               e.stopPropagation();
               setLightbox((lightbox - 1 + photos.length) % photos.length);
             }}
-            className="absolute left-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full modal-glass border text-foreground hover:text-white transition-colors z-10"
           >
             <ArrowLeft size={20} weight="bold" />
           </button>
-          <img
-            src={photos[lightbox]}
-            alt={`${city.name} photo ${lightbox + 1}`}
-            className="max-w-[90vw] max-h-[85vh] rounded-xl shadow-2xl object-contain"
+          <div
+            className="relative modal-glass border rounded-2xl overflow-hidden shadow-2xl animate-fade-in max-w-[90vw] max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
-          />
+          >
+            <img
+              src={photos[lightbox]}
+              alt={`${city.name} photo ${lightbox + 1}`}
+              className="max-w-[85vw] max-h-[80vh] object-contain"
+            />
+            <div className="flex items-center justify-between px-4 py-2.5 modal-tile border-t border-border/40 shrink-0">
+              <span className="text-xs text-muted-foreground font-sans">
+                {city.name}
+              </span>
+              <span className="text-xs font-mono text-muted-foreground">
+                {lightbox + 1} / {photos.length}
+              </span>
+              <button
+                onClick={() => setLightbox(null)}
+                className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X size={16} weight="bold" />
+              </button>
+            </div>
+          </div>
           <button
             onClick={(e) => {
               e.stopPropagation();
               setLightbox((lightbox + 1) % photos.length);
             }}
-            className="absolute right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full modal-glass border text-foreground hover:text-white transition-colors z-10"
           >
             <ArrowLeft size={20} weight="bold" className="rotate-180" />
           </button>
-          <button
-            onClick={() => setLightbox(null)}
-            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-          >
-            <X size={18} weight="bold" />
-          </button>
-          <div className="absolute bottom-4 text-white/60 text-xs font-mono">
-            {lightbox + 1} / {photos.length}
-          </div>
         </div>
       )}
     </div>
@@ -2640,9 +2649,9 @@ function CityUrbanStatsPanel({ city }: { city: City }) {
         ? "bg-warning"
         : "bg-success";
   const aqiColor =
-    s.airQualityIndex < 30
+    city.airQualityIndex < 30
       ? "bg-success"
-      : s.airQualityIndex < 60
+      : city.airQualityIndex < 60
         ? "bg-warning"
         : "bg-destructive";
 
@@ -2915,12 +2924,11 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
       <div
         className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
       >

@@ -197,7 +197,7 @@ export function NotesPopup() {
 
   return (
     <div
-      className="fixed bottom-6 right-6 z-50 rounded-xl shadow-2xl flex flex-col overflow-hidden bg-card border border-border"
+      className="fixed bottom-6 right-6 z-50 rounded-xl shadow-2xl flex flex-col overflow-hidden modal-glass border"
       style={{
         width: "17rem",
         maxHeight: minimized ? "48px" : "560px",
@@ -205,7 +205,7 @@ export function NotesPopup() {
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-secondary/10 border-b border-border shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 modal-tile border-b border-border/40 shrink-0">
         <div className="flex items-center gap-2">
           <NotePencil size={18} weight="fill" className="text-secondary" />
           <span className="text-sm font-semibold font-sans text-foreground">
@@ -252,7 +252,7 @@ export function NotesPopup() {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Title (optional)…"
             maxLength={LIMITS.NOTE_TITLE}
-            className="bg-muted border border-border rounded px-2.5 py-1.5 text-xs font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-secondary"
+            className="modal-tile border border-border/60 rounded px-2.5 py-1.5 text-xs font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-secondary/50 w-full"
           />
           <textarea
             value={content}
@@ -260,7 +260,7 @@ export function NotesPopup() {
             placeholder="Write your note here…"
             rows={3}
             maxLength={LIMITS.NOTE_CONTENT}
-            className="bg-muted border border-border rounded px-2.5 py-1.5 text-xs font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-secondary resize-none"
+            className="modal-tile border border-border/60 rounded px-2.5 py-1.5 text-xs font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-secondary/50 resize-none w-full"
           />
           {content.length > LIMITS.NOTE_CONTENT * 0.9 && (
             <p className="text-[10px] text-muted-foreground text-right font-mono">
@@ -281,7 +281,7 @@ export function NotesPopup() {
                 onKeyDown={(e) => e.key === "Enter" && addLink()}
                 placeholder="https://…"
                 maxLength={LIMITS.NOTE_LINK_URL}
-                className="flex-1 bg-muted border border-border rounded px-2 py-1 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-secondary"
+                className="flex-1 modal-tile border border-border/60 rounded px-2 py-1 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-secondary/50"
               />
               <button
                 onClick={addLink}

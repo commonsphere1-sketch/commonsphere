@@ -7,7 +7,6 @@ import {
   Users,
   Sword,
   Airplane,
-  Anchor,
   Buildings,
   Flag,
   CurrencyDollar,
@@ -23,7 +22,6 @@ import {
   NotePencil,
   DownloadSimple,
   ChartBar,
-  ArrowsClockwise,
 } from "@phosphor-icons/react";
 import { useNotes } from "../contexts/NotesContext";
 import { getMilitary, fmtPers, type MilitaryStats } from "../data/militaryData";
@@ -3063,12 +3061,6 @@ const SRC_WORLDBANK = [
     url: "https://www.imf.org/en/Publications/WEO",
   },
 ];
-const SRC_UNDP = [
-  {
-    label: "UNDP Human Development Report",
-    url: "https://hdr.undp.org/data-center/human-development-index",
-  },
-];
 const SRC_MILITARY = [
   {
     label: "SIPRI Military Expenditure DB",
@@ -3088,45 +3080,6 @@ const SRC_ENERGY = [
 ];
 const SRC_CONSTITUTION = [
   { label: "Constitute Project", url: "https://www.constituteproject.org/" },
-];
-
-const WORLD_BANK_SOURCES = [
-  { label: "World Bank Open Data", url: "https://data.worldbank.org/" },
-  { label: "UN Population Division", url: "https://population.un.org/wpp/" },
-];
-
-const HDI_SOURCES = [
-  {
-    label: "UNDP Human Development Report",
-    url: "https://hdr.undp.org/data-center/human-development-index",
-  },
-];
-
-const MILITARY_SOURCES = [
-  {
-    label: "SIPRI Military Expenditure DB",
-    url: "https://www.sipri.org/databases/milex",
-  },
-  { label: "Global Firepower Index", url: "https://www.globalfirepower.com/" },
-];
-
-const ENERGY_SOURCES = [
-  {
-    label: "IEA World Energy Balances",
-    url: "https://www.iea.org/data-and-statistics/data-product/world-energy-balances",
-  },
-  {
-    label: "Our World in Data – Energy",
-    url: "https://ourworldindata.org/energy",
-  },
-];
-
-const CONSTITUTION_SOURCES = [
-  { label: "Constitute Project", url: "https://www.constituteproject.org/" },
-  {
-    label: "World Constitutions Illustrated",
-    url: "https://heinonline.org/HOL/Index?collection=cow",
-  },
 ];
 
 // Format GDP: show B for < 1T, T for >= 1T
@@ -3369,12 +3322,11 @@ function CountryModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
       <div
         className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
       >
@@ -4183,17 +4135,11 @@ function ModalPhotosGrid({
 
       {lightboxIdx !== null && (
         <div
-          className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
           onClick={() => setLightboxIdx(null)}
         >
           <button
-            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-            onClick={() => setLightboxIdx(null)}
-          >
-            <X size={20} />
-          </button>
-          <button
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full modal-glass border text-foreground hover:text-white transition-colors z-10"
             onClick={(e) => {
               e.stopPropagation();
               setLightboxIdx((lightboxIdx - 1 + photos.length) % photos.length);
@@ -4201,8 +4147,34 @@ function ModalPhotosGrid({
           >
             <ArrowLeft size={18} />
           </button>
+          <div
+            className="relative modal-glass border rounded-2xl overflow-hidden shadow-2xl animate-fade-in max-w-3xl w-full flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={photos[lightboxIdx].url}
+              alt={photos[lightboxIdx].caption}
+              className="w-full max-h-[72vh] object-cover"
+            />
+            <div className="flex items-center justify-between px-4 py-2.5 modal-tile border-t border-border/40 shrink-0">
+              <p className="text-sm font-sans text-foreground">
+                {photos[lightboxIdx].caption}
+              </p>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-mono text-muted-foreground">
+                  {lightboxIdx + 1} / {photos.length}
+                </span>
+                <button
+                  className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => setLightboxIdx(null)}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
           <button
-            className="absolute right-14 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full modal-glass border text-foreground hover:text-white transition-colors z-10"
             onClick={(e) => {
               e.stopPropagation();
               setLightboxIdx((lightboxIdx + 1) % photos.length);
@@ -4210,22 +4182,6 @@ function ModalPhotosGrid({
           >
             <ArrowRight size={18} />
           </button>
-          <div
-            className="max-w-3xl w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={photos[lightboxIdx].url}
-              alt={photos[lightboxIdx].caption}
-              className="w-full max-h-[75vh] object-cover rounded-xl shadow-2xl"
-            />
-            <p className="text-center text-sm text-white/70 mt-3 font-sans">
-              {photos[lightboxIdx].caption}
-            </p>
-            <p className="text-center text-xs text-white/40 mt-1 font-mono">
-              {lightboxIdx + 1} / {photos.length}
-            </p>
-          </div>
         </div>
       )}
     </>

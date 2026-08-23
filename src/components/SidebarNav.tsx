@@ -296,9 +296,9 @@ function AboutModal({ onClose }: { onClose: () => void }) {
       />
 
       {/* Panel */}
-      <div className="relative w-full max-w-2xl max-h-[90vh] flex flex-col bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
+      <div className="relative w-full max-w-2xl max-h-[90vh] flex flex-col modal-glass border rounded-2xl overflow-hidden animate-fade-in">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border/40 modal-tile shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-secondary/10">
               <Globe size={18} weight="fill" className="text-secondary" />
@@ -386,7 +386,7 @@ function AboutModal({ onClose }: { onClose: () => void }) {
                 ].map((s) => (
                   <div
                     key={s.lbl}
-                    className="bg-muted/50 border border-border rounded-xl p-3 text-center"
+                    className="modal-tile rounded-xl p-3 text-center"
                   >
                     <p className="text-xl font-bold font-mono text-secondary">
                       {s.val}
@@ -434,7 +434,7 @@ function AboutModal({ onClose }: { onClose: () => void }) {
                   return (
                     <div
                       key={v.title}
-                      className="flex gap-3 bg-muted/30 border border-border/60 rounded-xl p-3.5"
+                      className="flex gap-3 modal-tile rounded-xl p-3.5"
                     >
                       <div
                         className={`p-2 rounded-lg ${v.bg} ${v.color} w-fit h-fit shrink-0`}
@@ -463,7 +463,7 @@ function AboutModal({ onClose }: { onClose: () => void }) {
                 return (
                   <div
                     key={f.label}
-                    className="flex gap-3 bg-muted/30 border border-border/60 rounded-xl p-3.5"
+                    className="flex gap-3 modal-tile rounded-xl p-3.5"
                   >
                     <div className="p-2 rounded-lg bg-secondary/10 w-fit h-fit shrink-0">
                       <Icon
@@ -499,7 +499,7 @@ function AboutModal({ onClose }: { onClose: () => void }) {
                   return (
                     <div
                       key={src.name}
-                      className="flex gap-3 bg-muted/30 border border-border/60 rounded-xl p-3.5"
+                      className="flex gap-3 modal-tile rounded-xl p-3.5"
                     >
                       <div
                         className={`p-2 rounded-lg ${src.bg} w-fit h-fit shrink-0`}
@@ -539,7 +539,7 @@ function AboutModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 border-t border-border bg-muted/30 shrink-0 flex items-center justify-between">
+        <div className="px-6 py-3 border-t border-border/40 modal-tile shrink-0 flex items-center justify-between">
           <span className="text-[10px] text-muted-foreground font-sans">
             © 2024 CommonSphere. All rights reserved.
           </span>

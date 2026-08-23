@@ -19,6 +19,34 @@ You MUST maintain this file to track your work across messages. This is NON-NEGO
 
 <changelog>
 
+## 2026-08-23 — Apply glass backdrop to all modal overlays (6 pages)
+- Added `bg-black/60 backdrop-blur-sm animate-fade-in` directly to the overlay `div` in CitiesPage, ConflictsPage, CountriesPage, EconomiesPage, PoliciesPage, and StatesPage
+- Removed the separate `<div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />` inner backdrop div from all 6 modals (merged into the outer wrapper)
+- All modal popups on every page now share an identical frosted-glass dimmed overlay consistent with WorldMapPage
+
+## 2026-08-23 — Apply modal-glass to all WorldMapPage modals
+- RichestFamilies modal: changed from `rounded-xl border-amber-500/20 bg-card` to `rounded-2xl modal-glass border`
+- CEO detail modal: changed from `rounded-xl border-sky-500/20 bg-card` to `rounded-2xl modal-glass border`
+- Monarch detail & Leader detail were already using `modal-glass border rounded-xl`; updated to `rounded-2xl` for full consistency
+- All four WorldMapPage popup modals now match the frosted-glass shell used elsewhere in the app
+
+## 2026-08-23 — Fix TypeScript build errors causing bundler timeout
+- CountriesPage.tsx: removed unused `ArrowsClockwise` import (tsconfig `noUnusedLocals: true` is a hard error)
+- CitiesPage.tsx: fixed `s.airQualityIndex` → `city.airQualityIndex` in `CityUrbanStatsPanel` (`airQualityIndex` does not exist on `UrbanStats` interface, only on `City`)
+- Both errors caused the Sandpack bundler to timeout after 30s without producing output
+
+## 2026-08-18 — Apply modal-glass to photo lightboxes (Cities & Countries)
+- CitiesPage photo lightbox: changed from solid `bg-black/85` to `bg-black/60 backdrop-blur-sm` backdrop, inner panel now uses `modal-glass border rounded-2xl` with `modal-tile` footer strip
+- CountriesPage ModalPhotosGrid lightbox: changed from `bg-black/90` to `bg-black/60 backdrop-blur-sm`, inner panel now uses `modal-glass border rounded-2xl` with `modal-tile` caption footer
+- Navigation arrows on both lightboxes now use `modal-glass border` pill style instead of `bg-white/10`
+- All modal popups on the site now consistently use the frosted glass aesthetic
+
+## 2026-08-18 — Apply modal-glass aesthetic to AuthModal, NotesPopup, SidebarNav AboutModal
+- AuthModal: backdrop-blur-sm overlay, `modal-glass border` panel, `modal-tile` input field
+- NotesPopup: `modal-glass border` container, `modal-tile` header strip and all input fields
+- SidebarNav AboutModal: `modal-glass border` panel, `modal-tile` header/footer, all feature/source cards use `modal-tile`
+- Consistent frosted glass look in both dark (deep blur, dark bg) and light (warm white bg, soft shadow)
+
 ## 2026-08-17 — Fix state flag URLs to use SVG (flagcdn.com serves subdivisions as SVG only)
 - Changed StatesCarousel flag src from `w320/us-${id}.png` → `us-${id}.svg` (no size prefix)
 - flagcdn.com only serves US state subdivision flags as SVG, not as sized PNG

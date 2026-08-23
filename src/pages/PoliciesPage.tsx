@@ -819,12 +819,11 @@ function PolicyModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
       <div className={`relative z-10 w-full rounded-2xl animate-fade-in shadow-2xl modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-lg max-h-[90vh]"}`}>
         <div className="p-6">
           {/* Header */}

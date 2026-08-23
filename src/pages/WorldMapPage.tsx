@@ -16496,7 +16496,7 @@ function RichestFamiliesView() {
             if (e.target === e.currentTarget) setSelectedFamily(null);
           }}
         >
-          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-amber-500/20 bg-card animate-fade-in">
+          <div className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl modal-glass border animate-fade-in">
             <button
               onClick={() => setSelectedFamily(null)}
               className="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors"
@@ -16812,7 +16812,7 @@ function CEOsView() {
             if (e.target === e.currentTarget) setSelectedCEO(null);
           }}
         >
-          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-sky-500/20 bg-card animate-fade-in">
+          <div className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl modal-glass border animate-fade-in">
             <button
               onClick={() => setSelectedCEO(null)}
               className="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors"
