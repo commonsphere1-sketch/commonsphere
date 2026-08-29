@@ -7,18 +7,9 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowsLeftRight,
-  Anchor,
-  Package,
-  Boat,
-  Globe,
-  Flag,
-  MapTrifold,
-  Buildings,
-  CaretDown,
-  Tree,
+Tree,
   MapPin,
   ChartBar,
-  Diamond,
 } from "@phosphor-icons/react";
 import {
   AreaChart,
@@ -4461,7 +4452,7 @@ export function EconomiesPage() {
                                     if (payload.gdp === maxGdp) {
                                       return (
                                         <circle
-                                          key={`hi-${economy.id}`}
+                                          key={`hi-${economy.id}-${cx}`}
                                           cx={cx}
                                           cy={cy}
                                           r={3}
@@ -4474,7 +4465,7 @@ export function EconomiesPage() {
                                     if (payload.gdp === minGdp) {
                                       return (
                                         <circle
-                                          key={`lo-${economy.id}`}
+                                          key={`lo-${economy.id}-${cx}`}
                                           cx={cx}
                                           cy={cy}
                                           r={3}

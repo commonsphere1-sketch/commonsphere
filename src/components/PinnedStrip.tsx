@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   PushPin,
@@ -13,6 +13,14 @@ import { usStatesData } from "../data/statesData";
 
 const LS_KEY_COUNTRIES = "cs_pinned_countries";
 const LS_KEY_STATES = "cs_pinned_states";
+/** Country has no `flag` field — derive the emoji from its ISO alpha-2 code
+ *  by mapping each letter to its regional-indicator symbol. */
+function flagEmoji(code: string): string {
+  if (!/^[A-Za-z]{2}$/.test(code)) return "";
+  return String.fromCodePoint(
+    ...[...code.toUpperCase()].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65),
+  );
+}
 
 function usePinned(key: string, defaultIds: string[]) {
   const [ids, setIds] = useState<string[]>(() => {
@@ -149,7 +157,7 @@ export function PinnedStrip() {
                 title={c.name}
               >
                 <span className="text-xl leading-none select-none">
-                  {c.flag}
+                  {flagEmoji(c.code)}
                 </span>
                 {/* Remove badge in edit mode */}
                 {editing && (

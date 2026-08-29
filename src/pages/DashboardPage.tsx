@@ -19,37 +19,16 @@ import {
   Atom,
   Flag,
   ShareNetwork,
-  Users,
-  ChatTeardropDots,
-  Newspaper,
+  Users,  Newspaper,
   Bank,
   Handshake,
   Sparkle,
   Info,
-  Target,
-  BookOpen,
-  FileMagnifyingGlass,
-  ChartLineUp,
-  MapPin,
-  PushPin,
-  PushPinSlash,
-  MagnifyingGlass,
-  X,
-  Pencil,
-  CheckCircle,
-  Heart,
-  Student,
-  Leaf,
-  Wifi,
-  Gavel,
-  ShieldCheck,
-  PersonArmsSpread,
-  Megaphone,
-  Planet,
-  ChartDonut,
-  Smiley,
-  TreePalm,
-} from "@phosphor-icons/react";
+  Target,ChartLineUp,
+  MapPin,MagnifyingGlass,
+  X,  CheckCircle,
+  Heart,Planet,
+  ChartDonut,} from "@phosphor-icons/react";
 import {
   AreaChart,
   Area,
@@ -1011,7 +990,7 @@ const POLICY_FEED = [
     title: "WTO rules in favour of India on steel tariff dispute",
     date: "Jun 2025",
     description:
-      "The WTO Dispute Settlement Body upheld India&#39;s challenge against US Section 232 steel and aluminium tariffs imposed in 2018, ruling them inconsistent with GATT Article XI and the Safeguards Agreement. The panel found the US failed to demonstrate a genuine national security justification under GATT Article XXI. The US has 60 days to appeal to the Appellate Body or negotiate a bilateral solution. India has indicated it may reintroduce retaliatory tariffs on US goods worth $2.4B if no agreement is reached.",
+      "The WTO Dispute Settlement Body upheld India's challenge against US Section 232 steel and aluminium tariffs imposed in 2018, ruling them inconsistent with GATT Article XI and the Safeguards Agreement. The panel found the US failed to demonstrate a genuine national security justification under GATT Article XXI. The US has 60 days to appeal to the Appellate Body or negotiate a bilateral solution. India has indicated it may reintroduce retaliatory tariffs on US goods worth $2.4B if no agreement is reached.",
   },
   {
     tag: "Defense",
@@ -1204,6 +1183,16 @@ const GDP_PROJECTION_COMBINED = [
   { year: "2027", gdp: 113.2, type: "projected" },
   { year: "2028", gdp: 116.9, type: "projected" },
 ];
+
+// Recharts cannot vary stroke style within a single <Area>, so the series is
+// split into two data keys and drawn as two Areas. The projected key also
+// carries the last actual point so the two segments join without a gap.
+const GDP_PROJECTION_CHART = GDP_PROJECTION_COMBINED.map((d, i, arr) => ({
+  ...d,
+  gdpActual: d.type === "actual" ? d.gdp : null,
+  gdpProjected:
+    d.type === "projected" || arr[i + 1]?.type === "projected" ? d.gdp : null,
+}));
 
 const RISK_SCENARIOS = [
   {
@@ -1521,7 +1510,7 @@ function TrendsProjectionsPanel({
               </p>
               <ResponsiveContainer width="100%" height={180}>
                 <AreaChart
-                  data={GDP_PROJECTION_COMBINED}
+                  data={GDP_PROJECTION_CHART}
                   margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
                 >
                   <defs>
@@ -1581,12 +1570,7 @@ function TrendsProjectionsPanel({
                       fontFamily: "monospace",
                       color: headText,
                     }}
-                    formatter={(v: number, _: string, entry: any) => [
-                      `$${v}T`,
-                      entry.payload.type === "projected"
-                        ? "Projected"
-                        : "Actual",
-                    ]}
+                    formatter={(v: number, n: string) => [`$${v}T`, n]}
                     labelStyle={{ color: mutedText }}
                   />
                   <ReferenceLine
@@ -1595,31 +1579,30 @@ function TrendsProjectionsPanel({
                     strokeDasharray="4 4"
                     label={{ value: "Now", fill: mutedText, fontSize: 9 }}
                   />
+                  {/* Actual: solid line, indigo fill */}
                   <Area
                     type="monotone"
-                    dataKey="gdp"
+                    dataKey="gdpActual"
+                    name="Actual"
                     stroke="#6366f1"
                     strokeWidth={2}
                     fill="url(#gdpActualGrad)"
-                    dot={(props: any) => {
-                      const { cx, cy, payload } = props;
-                      if (payload.type !== "actual")
-                        return <g key={`dot-${payload.year}`} />;
-                      return (
-                        <circle
-                          key={`dot-${payload.year}`}
-                          cx={cx}
-                          cy={cy}
-                          r={3}
-                          fill="#6366f1"
-                          stroke="none"
-                        />
-                      );
-                    }}
+                    connectNulls={false}
+                    dot={{ r: 3, fill: "#6366f1", stroke: "none" }}
                     activeDot={{ r: 4, fill: "#6366f1" }}
-                    strokeDasharray={(entry: any) =>
-                      entry?.type === "projected" ? "5 4" : "0"
-                    }
+                  />
+                  {/* Projection: dashed line, purple fill, no dots */}
+                  <Area
+                    type="monotone"
+                    dataKey="gdpProjected"
+                    name="Projected"
+                    stroke="#a855f7"
+                    strokeWidth={2}
+                    strokeDasharray="5 4"
+                    fill="url(#gdpProjGrad)"
+                    connectNulls={false}
+                    dot={false}
+                    activeDot={{ r: 4, fill: "#a855f7" }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -1949,7 +1932,7 @@ function TrendsProjectionsPanel({
         {/* ── SCENARIOS ─────────────────────────────────────────────────── */}
         {activeTab === "scenarios" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {RISK_SCENARIOS.map((s, i) => (
+            {RISK_SCENARIOS.map((s, _i) => (
               <div
                 key={s.title}
                 className="rounded-xl p-4 flex flex-col gap-2"
@@ -3475,29 +3458,8 @@ function PinnedSection({
   bodyText: string;
   onNav: (path: string) => void;
 }) {
-  const [editing, setEditing] = useState(false);
-  const [countrySearch, setCountrySearch] = useState("");
-
-  const { ids: pinnedCountryIds, toggle: toggleCountry } = usePinned(
-    LS_KEY_COUNTRIES,
-    ["us", "cn", "de", "gb", "jp"],
-  );
-
-  const filteredCountries = useMemo(
-    () =>
-      countriesData.filter((c) =>
-        c.name.toLowerCase().includes(countrySearch.toLowerCase()),
-      ),
-    [countrySearch],
-  );
-
-  const accent = "#6366f1";
-  const pillBg = isLight ? "rgba(99,102,241,0.07)" : "rgba(99,102,241,0.12)";
-  const pillBorder = isLight
-    ? "rgba(99,102,241,0.22)"
-    : "rgba(99,102,241,0.28)";
-
-  /* ── Empty state ── */
+  // Body was reduced to a pass-through; the former local state (pin editing,
+  // country search, usePinned) is gone because nothing rendered it.
   return (
     <CompareCountriesTool
       isLight={isLight}
@@ -3909,7 +3871,7 @@ function InteractiveDataPanel({
                     : "Top countries by GDP"}
                 </p>
               </div>
-              {filteredCountries.map((c, i) => {
+              {filteredCountries.map((c, _i) => {
                 const isSelected = selectedCountry?.id === c.id;
                 const gdpUp = c.gdpGrowth >= 0;
                 return (
@@ -4056,7 +4018,7 @@ function InteractiveDataPanel({
                   Regional GDP
                 </p>
               </div>
-              {filteredRegions.map((r, i) => {
+              {filteredRegions.map((r, _i) => {
                 const isSelected = selectedRegion === r.region;
                 return (
                   <button
@@ -6886,7 +6848,7 @@ export function DashboardPage() {
               mutedText={mutedText}
             >
               <div className="flex flex-col gap-3">
-                {US_ALLIANCES.map((a, i) => (
+                {US_ALLIANCES.map((a, _i) => (
                   <div
                     key={a.name}
                     className="rounded-xl px-3 py-3"
@@ -7010,15 +6972,15 @@ export function DashboardPage() {
                       style={{ color: mutedText }}
                     >
                       {r.agency === "DARPA" &&
-                        "DARPA&#39;s Air Combat Evolution (ACE) program pit an AI-controlled F-16 against a human pilot in a live dogfight. The AI won 5-0 using reinforcement learning trained on millions of simulated engagements. Marks a pivotal shift in autonomous combat doctrine."}
+                        "DARPA's Air Combat Evolution (ACE) program pit an AI-controlled F-16 against a human pilot in a live dogfight. The AI won 5-0 using reinforcement learning trained on millions of simulated engagements. Marks a pivotal shift in autonomous combat doctrine."}
                       {r.agency === "NIH" &&
-                        "FDA approved Casgevy — the world&#39;s first CRISPR-based therapy — for sickle-cell disease. NIH-funded research spanning 15 years enabled the breakthrough. Treatment edits patients&#39; own stem cells to produce functional haemoglobin, potentially offering a functional cure."}
+                        "FDA approved Casgevy — the world's first CRISPR-based therapy — for sickle-cell disease. NIH-funded research spanning 15 years enabled the breakthrough. Treatment edits patients' own stem cells to produce functional haemoglobin, potentially offering a functional cure."}
                       {r.agency === "NIST" &&
                         "NIST finalized three post-quantum cryptographic algorithms (CRYSTALS-Kyber, CRYSTALS-Dilithium, SPHINCS+) as federal standards, hardening US government communications against future quantum decryption attacks. Implementation deadline for federal agencies set for 2030."}
                       {r.agency === "NASA" &&
                         "Artemis II carried four astronauts — including the first woman and first Canadian — on a 10-day lunar flyby at 8,900 km altitude. Validated Orion life-support and deep-space communications systems ahead of the Artemis III crewed lunar landing."}
                       {r.agency === "DOE / NIF" &&
-                        "National Ignition Facility at Lawrence Livermore achieved ignition — releasing more fusion energy than laser energy delivered — for the third consecutive time, demonstrating repeatability. DOE&#39;s milestone roadmap now targets a 10× energy gain pilot plant by 2035."}
+                        "National Ignition Facility at Lawrence Livermore achieved ignition — releasing more fusion energy than laser energy delivered — for the third consecutive time, demonstrating repeatability. DOE's milestone roadmap now targets a 10× energy gain pilot plant by 2035."}
                     </p>
                   </div>
                 ))}
