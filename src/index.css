@@ -5,6 +5,10 @@
 @tailwind utilities;
 
 :root {
+  /* Tells the browser to paint native controls (select popups, scrollbars,
+     date pickers) with dark chrome. Without it the currency-converter
+     dropdown rendered its options on the default white system popup. */
+  color-scheme: dark;
   --hero-gradient: #050509;
   --color-header-bg: #030308;
   --color-primary: hsl(42, 22%, 94%);
@@ -78,6 +82,7 @@ h6 {
 
 /* ── Light mode overrides ───────────────────────────────── */
 html.light {
+  color-scheme: light;
   --hero-gradient: #f8f6f1;
   --color-header-bg: #fefcf8;
   --color-primary: hsl(40, 20%, 90%);
@@ -507,4 +512,27 @@ html.light {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--sb-thumb-hover);
   border-color: var(--sb-border-hover);
+}
+
+/* ── Native select dropdowns ─────────────────────────────
+   The selects in the app are styled `bg-transparent` so they blend into
+   their container. That is fine for the closed control, but the popup
+   list inherits it: in dark mode the options came out as
+   rgba(255,255,255,0.42) text on the browser's white popup — invisible.
+
+   color-scheme (set on :root / html.light) fixes the popup chrome in
+   modern browsers; these rules pin the option colours explicitly so the
+   list stays readable even where the platform ignores it, and give the
+   text full opacity rather than the 42% the control inherits. */
+select option,
+select optgroup {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+/* The closed control keeps its transparent background, but its own text
+   should be legible against the card behind it. */
+select:focus-visible {
+  outline: 1px solid var(--color-secondary);
+  outline-offset: 2px;
 }
