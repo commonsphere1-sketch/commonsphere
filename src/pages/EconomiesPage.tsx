@@ -4,10 +4,8 @@ import {
   TrendUp,
   TrendDown,
   MagnifyingGlass,
-  ArrowUp,
-  ArrowDown,
   ArrowsLeftRight,
-Tree,
+  Tree,
   MapPin,
   ChartBar,
 } from "@phosphor-icons/react";
@@ -1592,45 +1590,16 @@ const SECTOR_COLORS: Record<string, string> = {
   Textiles: "#10b981",
 };
 
-const SECTOR_ICONS: Record<string, string> = {
-  Services: "🏢",
-  Industry: "🏭",
-  Agriculture: "🌾",
-  Manufacturing: "⚙️",
-  Finance: "💰",
-  Technology: "💻",
-  Energy: "⚡",
-  Mining: "⛏️",
-  Tourism: "✈️",
-  IT: "🖥️",
-  Logistics: "🚢",
-  Chemicals: "🧪",
-  "Trade & Logistics": "📦",
-  Pharmaceuticals: "💊",
-  Semiconductors: "🔬",
-  BPO: "📞",
-  Fisheries: "🐟",
-  Garments: "👗",
-  Automotive: "🚗",
-  Textiles: "🧵",
-};
-
 function getSectorColor(name: string): string {
   return SECTOR_COLORS[name] ?? "#94a3b8";
 }
 
-function getSectorIcon(name: string): string {
-  return SECTOR_ICONS[name] ?? "📊";
-}
-
 function SectorBar({ name, share }: { name: string; share: number }) {
   const color = getSectorColor(name);
-  const icon = getSectorIcon(name);
   return (
     <div className="p-2.5 rounded-lg bg-background/50 border border-border/40 hover:border-border/70 transition-colors">
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-1.5">
-          <span className="text-sm">{icon}</span>
           <span className="text-xs font-semibold font-sans text-foreground">
             {name}
           </span>
@@ -1876,14 +1845,6 @@ function EconomyModal({
 
             {/* Left: entity icon + name */}
             <div className="relative flex items-center gap-4">
-              {/* Entity icon circle */}
-              <div className="w-14 h-14 rounded-xl shrink-0 border border-white/20 shadow-md bg-gradient-to-br from-secondary/30 to-secondary/10 flex items-center justify-center text-2xl">
-                {economy.entityType === "Country"
-                  ? "🌍"
-                  : economy.entityType === "Bloc"
-                    ? "🤝"
-                    : "🗺️"}
-              </div>
               <div>
                 <h2 className="text-xl font-bold font-sans text-foreground leading-tight">
                   {economy.name}
@@ -1903,11 +1864,6 @@ function EconomyModal({
                   <span
                     className={`flex items-center gap-1 text-xs font-mono ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}
                   >
-                    {economy.gdpGrowthRate >= 0 ? (
-                      <ArrowUp size={11} />
-                    ) : (
-                      <ArrowDown size={11} />
-                    )}
                     {economy.gdpGrowthRate}% growth
                   </span>
                 </div>
@@ -1924,41 +1880,16 @@ function EconomyModal({
                 }
                 title={isExpanded ? "Collapse" : "Expand to full screen"}
               >
-                {isExpanded ? (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M5 1H1v4M11 1h4v4M5 15H1v-4M11 15h4v-4"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
+                <span className="text-xs font-sans font-medium">
+                  {isExpanded ? "Collapse" : "Expand"}
+                </span>
               </button>
               <button
                 onClick={onClose}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-label="Close"
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M12 4L4 12M4 4l8 8"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
+                <span className="text-xs font-sans font-medium">Close</span>
               </button>
             </div>
           </div>
@@ -1973,7 +1904,7 @@ function EconomyModal({
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    📊 Key Economic Metrics
+                    Key Economic Metrics
                   </span>
                   <div className="flex-1 h-px bg-border/60" />
                 </div>
@@ -2051,13 +1982,13 @@ function EconomyModal({
                 </div>
               </div>
 
-              <SourceLink sources={SRC_IMF} />
+              <SourceLink sources={SRC_IMF} showIcon={false} />
 
               {/* ── 5-YEAR TRENDS CHART ── */}
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    📈 5-Year Trends
+                    5-Year Trends
                   </span>
                   <div className="flex-1 h-px bg-border/60" />
                   <div className="flex gap-1">
@@ -2146,7 +2077,7 @@ function EconomyModal({
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    🏭 GDP Composition by Sector
+                    GDP Composition by Sector
                   </span>
                   <div className="flex-1 h-px bg-border/60" />
                 </div>
@@ -2240,7 +2171,7 @@ function EconomyModal({
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    🌐 Trade &amp; Partners
+                    Trade &amp; Partners
                   </span>
                   <div className="flex-1 h-px bg-border/60" />
                 </div>
@@ -2286,7 +2217,6 @@ function EconomyModal({
             ════════════════════════════════════════ */}
             <div className="flex items-center gap-2 pt-2">
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/15 border border-secondary/30">
-                <span className="text-xs">💹</span>
                 <span className="text-[10px] font-bold font-sans text-secondary uppercase tracking-widest">
                   Markets
                 </span>
@@ -2299,7 +2229,7 @@ function EconomyModal({
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    💹 Financial Markets
+                    Financial Markets
                   </span>
                   <div className="flex-1 h-px bg-border/60" />
                 </div>
@@ -2309,19 +2239,16 @@ function EconomyModal({
                       label: "Stock Market Cap",
                       value: `$${economy.stockMarketCap}T`,
                       color: "text-secondary",
-                      icon: "📈",
                     },
                     {
                       label: "FDI Inflow",
                       value: `$${economy.fdiInflowBillions}B`,
                       color: "text-green-400",
-                      icon: "💰",
                     },
                     {
                       label: "Trade Volume",
                       value: `$${economy.tradeVolumeTrillions}T`,
                       color: "text-blue-400",
-                      icon: "🔄",
                     },
                     {
                       label: "Interest Rate",
@@ -2330,7 +2257,6 @@ function EconomyModal({
                         economy.interestRate > 5
                           ? "text-warning"
                           : "text-success",
-                      icon: "🏦",
                     },
                     {
                       label: "Debt / GDP",
@@ -2341,20 +2267,17 @@ function EconomyModal({
                           : economy.debtToGDPRatio > 60
                             ? "text-warning"
                             : "text-success",
-                      icon: "📋",
                     },
                     {
                       label: "Credit Rating",
                       value: economy.creditRating,
                       color: ratingColor(economy.creditRating).split(" ")[0],
-                      icon: "⭐",
                     },
                   ].map((s) => (
                     <div
                       key={s.label}
                       className="modal-tile rounded-xl p-3 flex items-center gap-3"
                     >
-                      <span className="text-xl shrink-0">{s.icon}</span>
                       <div>
                         <p className="text-[10px] text-muted-foreground font-sans">
                           {s.label}
@@ -2374,7 +2297,7 @@ function EconomyModal({
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    📉 Growth vs Inflation Trend
+                    Growth vs Inflation Trend
                   </span>
                   <div className="flex-1 h-px bg-border/60" />
                 </div>
@@ -2451,7 +2374,7 @@ function EconomyModal({
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    📊 GDP Trajectory ($T)
+                    GDP Trajectory ($T)
                   </span>
                   <div className="flex-1 h-px bg-border/60" />
                 </div>
@@ -2525,7 +2448,7 @@ function EconomyModal({
                 </div>
               </div>
 
-              <SourceLink sources={SRC_OECD} />
+              <SourceLink sources={SRC_OECD} showIcon={false} />
             </div>
 
             {/* ════════════════════════════════════════
@@ -2533,7 +2456,6 @@ function EconomyModal({
             ════════════════════════════════════════ */}
             <div className="flex items-center gap-2 pt-2">
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30">
-                <span className="text-xs">⛏️</span>
                 <span className="text-[10px] font-bold font-sans text-amber-400 uppercase tracking-widest">
                   Resources
                 </span>
@@ -2573,7 +2495,7 @@ function EconomyModal({
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                          ⛏️ Natural Resources &amp; Commodities
+                          Natural Resources &amp; Commodities
                         </span>
                         <div className="flex-1 h-px bg-border/60" />
                         <span className="text-[10px] font-mono text-muted-foreground border border-border px-2 py-0.5 rounded-full bg-background/50">
@@ -2626,7 +2548,7 @@ function EconomyModal({
                                 className="text-sm font-bold font-mono"
                                 style={{ color: resources[0]?.color }}
                               >
-                                {resources[0]?.icon} {resources[0]?.name}
+                               {resources[0]?.name}
                               </span>
                               <span className="text-[10px] text-muted-foreground font-sans">
                                 {resources[0]?.share}
@@ -2756,7 +2678,7 @@ function EconomyModal({
                             className="text-xs font-bold font-sans mt-0.5"
                             style={{ color: resources[0]?.color }}
                           >
-                            {resources[0]?.icon} {resources[0]?.name}
+                           {resources[0]?.name}
                           </p>
                           <p className="text-[10px] text-muted-foreground font-sans">
                             {resources[0]?.share}
@@ -2785,7 +2707,7 @@ function EconomyModal({
                           <div className="mt-4 pt-4 border-t border-border/50">
                             <div className="flex items-center gap-2 mb-3">
                               <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                                🧲 Rare Earth &amp; Critical Minerals
+                                Rare Earth &amp; Critical Minerals
                               </span>
                               <div className="flex-1 h-px bg-border/60" />
                               <div className="flex items-center gap-2 shrink-0">
@@ -2904,7 +2826,7 @@ function EconomyModal({
                         );
                       })()}
                     </div>
-                    <SourceLink sources={SRC_WTO} />
+                    <SourceLink sources={SRC_WTO} showIcon={false} />
                   </>
                 );
               })()}
@@ -2915,7 +2837,6 @@ function EconomyModal({
             ════════════════════════════════════════ */}
             <div className="flex items-center gap-2 pt-2">
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/30">
-                <span className="text-xs">🚢</span>
                 <span className="text-[10px] font-bold font-sans text-blue-400 uppercase tracking-widest">
                   Maritime
                 </span>
@@ -2927,7 +2848,7 @@ function EconomyModal({
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    🚢 Maritime Trade
+                    Maritime Trade
                   </span>
                   <div className="flex-1 h-px bg-border/60" />
                 </div>
@@ -2973,7 +2894,7 @@ function EconomyModal({
                   {/* Ports */}
                   <div className="mb-3">
                     <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">
-                      ⚓ Major Ports
+                      Major Ports
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {economy.maritime.majorPorts.map((port) => (
@@ -2990,7 +2911,7 @@ function EconomyModal({
                   {/* Shipping lanes */}
                   <div>
                     <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">
-                      🌊 Shipping Lanes
+                      Shipping Lanes
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {economy.maritime.shippingLanes.map((lane) => (
@@ -3005,7 +2926,7 @@ function EconomyModal({
                   </div>
                 </div>
               </div>
-              <SourceLink sources={SRC_MARITIME} />
+              <SourceLink sources={SRC_MARITIME} showIcon={false} />
             </div>
           </div>
         </div>

@@ -1,8 +1,7 @@
 /**
  * SourceLink.tsx
  * Small reusable citation component placed under displayed data.
- * Renders a subtle hyperlink with an external-link icon so users can
- * verify where a statistic comes from.
+ * Renders a subtle hyperlink so users can verify where a statistic comes from.
  */
 import { ArrowSquareOut } from "@phosphor-icons/react";
 
@@ -14,9 +13,18 @@ interface Source {
 interface SourceLinkProps {
   sources: Source | Source[];
   className?: string;
+  /**
+   * Show the external-link icon after each label. Defaults to true; the
+   * economies modal opts out because that dialog is deliberately icon-free.
+   */
+  showIcon?: boolean;
 }
 
-export function SourceLink({ sources, className = "" }: SourceLinkProps) {
+export function SourceLink({
+  sources,
+  className = "",
+  showIcon = true,
+}: SourceLinkProps) {
   const list = Array.isArray(sources) ? sources : [sources];
 
   return (
@@ -37,7 +45,7 @@ export function SourceLink({ sources, className = "" }: SourceLinkProps) {
           title={`Open ${src.label}`}
         >
           {src.label}
-          <ArrowSquareOut size={8} className="shrink-0 opacity-70" />
+          {showIcon && <ArrowSquareOut size={8} className="shrink-0 opacity-70" />}
         </a>
       ))}
     </div>
