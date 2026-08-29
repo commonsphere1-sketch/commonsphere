@@ -184,27 +184,39 @@ html.light .logo-light {
   display: block;
 }
 
-/* ── Modal frosted glass — white & clear ─────────────── */
+/* ── Modal frosted glass — genuinely transparent ─────────
+   The panel is not filled with black or white. Legibility comes from
+   backdrop-filter brightness(), which pushes whatever is behind the
+   modal toward dark (dark mode) or light (light mode) while still
+   letting colour and shape read through it. The rgba fills below are
+   deliberately faint — they are an edge sheen, not a background. */
 .modal-glass {
-  background: rgba(8, 7, 18, 0.88) !important;
-  backdrop-filter: blur(40px) saturate(180%) brightness(1.08) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.08) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(44px) saturate(190%) brightness(0.5) !important;
+  -webkit-backdrop-filter: blur(44px) saturate(190%) brightness(0.5) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
   box-shadow:
-    0 32px 100px rgba(0, 0, 0, 0.65),
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(200, 200, 200, 0.12),
+    0 32px 100px rgba(0, 0, 0, 0.55),
+    0 8px 32px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
     inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
 }
 html.light .modal-glass {
-  background: rgba(255, 254, 250, 0.85) !important;
-  backdrop-filter: blur(40px) saturate(220%) brightness(1.04) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(220%) brightness(1.04) !important;
-  border-color: rgba(200, 180, 130, 0.25) !important;
+  background: rgba(255, 255, 255, 0.46) !important;
+  backdrop-filter: blur(44px) saturate(165%) brightness(1.18) !important;
+  -webkit-backdrop-filter: blur(44px) saturate(165%) brightness(1.18) !important;
+  border-color: rgba(120, 100, 70, 0.22) !important;
   box-shadow:
-    0 32px 100px rgba(0, 0, 0, 0.1),
-    0 8px 32px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.98) !important;
+    0 32px 100px rgba(0, 0, 0, 0.16),
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75) !important;
+}
+
+/* The overlay scrim sits behind the glass, so it decides how much of the
+   page shows through. bg-black/60 is right for dark mode but turns the
+   light theme muddy, so lighten it there. */
+html.light .fixed.inset-0:has(.modal-glass) {
+  background: rgba(38, 30, 18, 0.26) !important;
 }
 
 /* Remove any browser-default blue outline/ring from .selected containers */
@@ -213,16 +225,23 @@ html.light .modal-glass {
   box-shadow: none !important;
 }
 
-/* Inner section tiles inside modals */
+/* Inner section tiles inside modals — a sheen, not a fill.
+   No brightness() here: these sit inside .modal-glass, whose own
+   backdrop-filter has already shifted the backdrop, and nested
+   backdrop-filters compound. */
 .modal-tile {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
 }
 html.light .modal-tile {
-  background: rgba(255, 255, 255, 0.72) !important;
-  border: 1px solid rgba(200, 180, 130, 0.18) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  background: rgba(255, 255, 255, 0.58) !important;
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  border: 1px solid rgba(120, 100, 70, 0.16) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
 }
 
 /* ── Modal content containers: frosted glass ─────────────
@@ -247,7 +266,7 @@ html.light .modal-tile {
     [class^="bg-secondary/"],
     [class*=" bg-secondary/"]
   ):not([class*="rounded-full"]) {
-  background: rgba(255, 255, 255, 0.055) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
   backdrop-filter: blur(18px) saturate(160%);
   -webkit-backdrop-filter: blur(18px) saturate(160%);
   border-color: rgba(255, 255, 255, 0.1) !important;
@@ -268,7 +287,7 @@ html.light
     [class^="bg-secondary/"],
     [class*=" bg-secondary/"]
   ):not([class*="rounded-full"]) {
-  background: rgba(255, 255, 255, 0.55) !important;
+  background: rgba(255, 255, 255, 0.60) !important;
   backdrop-filter: blur(18px) saturate(180%);
   -webkit-backdrop-filter: blur(18px) saturate(180%);
   border-color: rgba(200, 180, 130, 0.22) !important;
