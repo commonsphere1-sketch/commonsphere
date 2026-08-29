@@ -36,6 +36,7 @@ import {
 } from "recharts";
 import { usStatesData, type USState } from "../data/statesData";
 import { getStateSocialStats } from "../data/socialStatsData";
+import { getUpcoming } from "../data/upcomingToWatch";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
 
@@ -13140,34 +13141,10 @@ export function StatesPage() {
               🔥 Upcoming to Watch
             </p>
             <div className="flex flex-wrap gap-2">
-              {[
-                {
-                  label:
-                    "Texas EV manufacturing boom — 2026 Tesla & Toyota expansions",
-                  color: "text-amber-400 border-amber-500/30 bg-amber-500/10",
-                },
-                {
-                  label: "California budget gap $45B — fiscal reckoning 2026",
-                  color: "text-red-400 border-red-500/30 bg-red-500/10",
-                },
-                {
-                  label: "Florida gambling expansion ballot · Nov 2026",
-                  color:
-                    "text-purple-400 border-purple-500/30 bg-purple-500/10",
-                },
-                {
-                  label: "NY congestion pricing impact data · mid-2026",
-                  color: "text-secondary border-secondary/30 bg-secondary/10",
-                },
-                {
-                  label:
-                    "AI job market shift hitting tech states — 2026 BLS report",
-                  color: "text-green-400 border-green-500/30 bg-green-500/10",
-                },
-              ].map((e) => (
+              {getUpcoming("states").map((e) => (
                 <span
-                  key={e.label}
-                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.color}`}
+                  key={e.id}
+                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.className}`}
                 >
                   {e.label}
                 </span>

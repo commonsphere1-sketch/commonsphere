@@ -29,6 +29,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { citiesData, type City } from "../data/citiesData";
+import { getUpcoming } from "../data/upcomingToWatch";
 import { SourceLink } from "../components/SourceLink";
 
 const SRC_CITIES = [
@@ -3496,34 +3497,10 @@ export function CitiesPage() {
               🔥 Upcoming to Watch
             </p>
             <div className="flex flex-wrap gap-2">
-              {[
-                {
-                  label: "Riyadh skyscraper boom — world's tallest by 2030",
-                  color: "text-amber-400 border-amber-500/30 bg-amber-500/10",
-                },
-                {
-                  label: "NYC congestion pricing impact on commute data · 2026",
-                  color: "text-secondary border-secondary/30 bg-secondary/10",
-                },
-                {
-                  label: "Singapore Changi T5 opening — aviation hub status",
-                  color:
-                    "text-purple-400 border-purple-500/30 bg-purple-500/10",
-                },
-                {
-                  label:
-                    "Lagos digital economy: Africa's Silicon Lagoon scaling",
-                  color: "text-green-400 border-green-500/30 bg-green-500/10",
-                },
-                {
-                  label: "Dubai 15-minute city policy rollout · 2026–2030",
-                  color:
-                    "text-orange-400 border-orange-500/30 bg-orange-500/10",
-                },
-              ].map((e) => (
+              {getUpcoming("cities").map((e) => (
                 <span
-                  key={e.label}
-                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.color}`}
+                  key={e.id}
+                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.className}`}
                 >
                   {e.label}
                 </span>

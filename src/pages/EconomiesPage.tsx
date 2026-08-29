@@ -27,6 +27,7 @@ import {
   Cell,
 } from "recharts";
 import { economiesData, type Economy } from "../data/economiesData";
+import { getUpcoming } from "../data/upcomingToWatch";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
 
@@ -3400,40 +3401,10 @@ export function EconomiesPage() {
               🔥 Upcoming to Watch
             </p>
             <div className="flex flex-wrap gap-2">
-              {[
-                {
-                  label:
-                    "India overtaking Japan as 3rd largest economy · ~2027",
-                  color:
-                    "text-orange-400 border-orange-500/30 bg-orange-500/10",
-                },
-                {
-                  label: "Fed pivot probability rising · Sep 2026 FOMC meeting",
-                  color:
-                    "text-purple-400 border-purple-500/30 bg-purple-500/10",
-                },
-                {
-                  label: "BRICS common currency proposal — summit Oct 2026",
-                  color: "text-red-400 border-red-500/30 bg-red-500/10",
-                },
-                {
-                  label: "EU Carbon Border Adjustment — full enforcement 2026",
-                  color: "text-green-400 border-green-500/30 bg-green-500/10",
-                },
-                {
-                  label:
-                    "Argentina economic stabilization · Milei Year 3 review",
-                  color: "text-amber-400 border-amber-500/30 bg-amber-500/10",
-                },
-                {
-                  label: "Saudi Aramco dividend policy revision · Q4 2026",
-                  color:
-                    "text-yellow-400 border-yellow-500/30 bg-yellow-500/10",
-                },
-              ].map((e) => (
+              {getUpcoming("economies").map((e) => (
                 <span
-                  key={e.label}
-                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.color}`}
+                  key={e.id}
+                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.className}`}
                 >
                   {e.label}
                 </span>
