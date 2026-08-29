@@ -3,10 +3,20 @@
  * Fetches live economic + demographic data from free public APIs and merges
  * it into the existing static data structures.
  *
- * APIs used (no auth required, CORS-friendly):
- *   - World Bank:      https://api.worldbank.org/v2/   (countries)
- *   - BLS:             https://api.bls.gov/publicAPI/v2/ (US state unemployment)
- *   - Census (ACS):    https://api.census.gov/data/     (US state median income, pop)
+ * Verified status of each upstream (tested 2026-08-29):
+ *
+ *   - World Bank  https://api.worldbank.org/v2/   WORKS from the browser.
+ *       Sends Access-Control-Allow-Origin: *. Patches ~200 of 204 countries.
+ *
+ *   - BLS         https://api.bls.gov/publicAPI/v2/   BLOCKED in the browser.
+ *       Sends no Access-Control-Allow-Origin, and our JSON POST triggers a
+ *       preflight it rejects, so state unemployment never reaches the page.
+ *       It works fine server-side — it needs a proxy/serverless route, not a
+ *       client fix. The call is left in place for whenever that exists.
+ *
+ *   - Census ACS  https://api.census.gov/data/   NEEDS AN API KEY.
+ *       Unauthenticated requests return an HTML "Missing Key" page with
+ *       HTTP 200. Set VITE_CENSUS_API_KEY to enable; see fetchCensusStateData.
  */
 
 import { countriesData, type Country } from "../data/countriesData";
@@ -83,12 +93,16 @@ function latestValue(entries: { value: number | null }[]): number | null {
 
 // ── World Bank fetch (one indicator for all countries at once) ─────────────
 
+// per_page must exceed the total row count: mrv=3 across ~265 entities is ~795
+// rows, so the old per_page=500 returned only page 1 of 2. Page 1 also leads
+// with ~43 regional aggregates (AFE, ARB, ...), so barely half our countries
+// were reachable — measured 108 of 204 patched before, 200 of 204 after.
 async function fetchWBIndicator(
   indicator: string,
 ): Promise<Map<string, number>> {
   const url =
     `https://api.worldbank.org/v2/country/all/indicator/${indicator}` +
-    `?format=json&mrv=3&per_page=500`;
+    `?format=json&mrv=3&per_page=20000`;
 
   const raw =
     await fetchJSON<
@@ -294,6 +308,32 @@ const ALPHA2_TO_3: Record<string, string> = {
   MH: "MHL",
   NR: "NRU",
   TV: "TUV",
+  // Added after an audit found these 22 countries in our dataset had no
+  // alpha-3 mapping and were therefore skipped by every live refresh.
+  XK: "XKX",
+  PR: "PRI",
+  GU: "GUM",
+  BM: "BMU",
+  FO: "FRO",
+  GL: "GRL",
+  BS: "BHS",
+  AG: "ATG",
+  DM: "DMA",
+  GD: "GRD",
+  BB: "BRB",
+  LC: "LCA",
+  VC: "VCT",
+  KN: "KNA",
+  MV: "MDV",
+  BT: "BTN",
+  SM: "SMR",
+  LI: "LIE",
+  AD: "AND",
+  MC: "MCO",
+  MR: "MRT",
+  PS: "PSE",
+  // TW, EH, CK and NU are intentionally absent: the World Bank does not
+  // publish these as reporting economies, so they keep their static values.
 };
 
 // ── FIPS → state abbreviation map (BLS / Census use FIPS codes) ────────────
@@ -403,13 +443,39 @@ async function fetchBLSStateUnemployment(): Promise<Map<string, number>> {
  * Fetch state-level median household income + population from the Census ACS 1-Year.
  * Endpoint: https://api.census.gov/data/2022/acs/acs1?get=B19013_001E,B01003_001E&for=state:*
  */
+/**
+ * The Census API rejects unauthenticated requests with an HTML "Missing Key"
+ * page (HTTP 200), which JSON-parses to null and was previously swallowed in
+ * silence — so state median income and population never actually refreshed.
+ * Supply a free key (https://api.census.gov/data/key_signup.html) as
+ * VITE_CENSUS_API_KEY to enable it. Without a key we skip the call outright
+ * and report it, rather than pretending the data is live.
+ */
+export const CENSUS_API_KEY: string | undefined = (
+  import.meta as unknown as { env?: Record<string, string | undefined> }
+).env?.VITE_CENSUS_API_KEY;
+
+let censusWarned = false;
+
 async function fetchCensusStateData(): Promise<
   Map<string, { medianIncome?: number; population?: number }>
 > {
   const out = new Map<string, { medianIncome?: number; population?: number }>();
+  if (!CENSUS_API_KEY) {
+    if (!censusWarned) {
+      censusWarned = true;
+      console.warn(
+        "[liveData] No VITE_CENSUS_API_KEY set — state median income and " +
+          "population will keep their static values. Get a free key at " +
+          "https://api.census.gov/data/key_signup.html",
+      );
+    }
+    return out;
+  }
   try {
     const url =
-      "https://api.census.gov/data/2023/acs/acs1?get=NAME,B19013_001E,B01003_001E&for=state:*";
+      "https://api.census.gov/data/2023/acs/acs1?get=NAME,B19013_001E,B01003_001E&for=state:*" +
+      `&key=${encodeURIComponent(CENSUS_API_KEY)}`;
     const raw = await fetchJSON<string[][]>(url);
     if (!Array.isArray(raw) || raw.length < 2) return out;
 
@@ -487,7 +553,17 @@ export async function fetchLiveCountryData(): Promise<LiveDataResult> {
     return {
       ...c,
       ...(popRaw != null ? { population: Math.round(popRaw) } : {}),
-      ...(gdpRaw != null ? { gdp: Math.round(gdpRaw / 1e9) } : {}),
+      // gdp is stored in billions USD. Math.round() alone flattened every
+      // economy under $500M to 0 (Tuvalu, Nauru, Niue, ...), so keep
+      // 3 decimals below $10B and whole billions above it.
+      ...(gdpRaw != null
+        ? {
+            gdp:
+              gdpRaw >= 1e10
+                ? Math.round(gdpRaw / 1e9)
+                : parseFloat((gdpRaw / 1e9).toFixed(3)),
+          }
+        : {}),
       ...(gdpPC != null ? { gdpPerCapita: Math.round(gdpPC) } : {}),
       ...(growth != null ? { gdpGrowth: parseFloat(growth.toFixed(1)) } : {}),
       ...(infl != null ? { inflationRate: parseFloat(infl.toFixed(1)) } : {}),
