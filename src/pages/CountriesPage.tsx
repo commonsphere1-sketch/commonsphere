@@ -40,7 +40,6 @@ import {
 } from "recharts";
 import {
   type Country,
-  type Industry,
   type EnergyStats,
 } from "../data/countriesData";
 import { getCountrySocialStats } from "../data/socialStatsData";
@@ -130,7 +129,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 92,
     medianAge: 38.9,
     economicStructure:
-      "The world&#39;s largest economy by nominal GDP runs a consumption-driven mixed market. Private consumption (~70% of GDP) anchors growth. The services sector dominates at ~80% of GDP — led by healthcare, finance, technology, and professional services. Manufacturing (~11%) remains vital in aerospace, defense, and advanced electronics. The US dollar serves as the global reserve currency, giving the federal government unique borrowing capacity. Key tensions: widening fiscal deficit, deindustrialization pressures, and technology platform concentration.",
+      "The world's largest economy by nominal GDP runs a consumption-driven mixed market. Private consumption (~70% of GDP) anchors growth. The services sector dominates at ~80% of GDP — led by healthcare, finance, technology, and professional services. Manufacturing (~11%) remains vital in aerospace, defense, and advanced electronics. The US dollar serves as the global reserve currency, giving the federal government unique borrowing capacity. Key tensions: widening fiscal deficit, deindustrialization pressures, and technology platform concentration.",
     futures: {
       stockIndex: "S&P 500",
       indexValue: "5,320",
@@ -170,7 +169,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 74,
     medianAge: 39.0,
     economicStructure:
-      "China operates a state-directed mixed economy (\'socialism with Chinese characteristics\') where the Party shapes investment allocation, currency management, and strategic sectors. Manufacturing (~27% of GDP) remains the global workshop — electronics, steel, chemicals, textiles. The services sector is growing (~54%) but faces structural limits on financial liberalization. Real estate accounted for ~25% of economic activity before the 2021 property crisis. China is the world&#39;s largest exporter and holds ~$3.1T in foreign exchange reserves. State-owned enterprises control commanding heights while private firms drive innovation.",
+      "China operates a state-directed mixed economy (\'socialism with Chinese characteristics\') where the Party shapes investment allocation, currency management, and strategic sectors. Manufacturing (~27% of GDP) remains the global workshop — electronics, steel, chemicals, textiles. The services sector is growing (~54%) but faces structural limits on financial liberalization. Real estate accounted for ~25% of economic activity before the 2021 property crisis. China is the world's largest exporter and holds ~$3.1T in foreign exchange reserves. State-owned enterprises control commanding heights while private firms drive innovation.",
     futures: {
       stockIndex: "CSI 300",
       indexValue: "3,580",
@@ -209,7 +208,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 94,
     medianAge: 47.9,
     economicStructure:
-      "Germany is Europe&#39;s largest economy and the world leader in export-oriented industrial production — \'Mittelstand\' (medium-sized, family-owned specialists) form the backbone of its engineering, chemical, and automotive sectors. The social market economy (Soziale Marktwirtschaft) balances private enterprise with strong labor co-determination (Mitbestimmung) and a comprehensive welfare state. Key challenges: ageing population, energy transition costs post-Energiewende, automotive sector electrification disruption, and declining competitiveness amid high energy prices.",
+      "Germany is Europe's largest economy and the world leader in export-oriented industrial production — \'Mittelstand\' (medium-sized, family-owned specialists) form the backbone of its engineering, chemical, and automotive sectors. The social market economy (Soziale Marktwirtschaft) balances private enterprise with strong labor co-determination (Mitbestimmung) and a comprehensive welfare state. Key challenges: ageing population, energy transition costs post-Energiewende, automotive sector electrification disruption, and declining competitiveness amid high energy prices.",
     futures: {
       stockIndex: "DAX 40",
       indexValue: "18,420",
@@ -248,7 +247,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 96,
     medianAge: 40.7,
     economicStructure:
-      "The UK has one of the world&#39;s most service-dominant economies — financial services alone contribute ~12% of GDP and London is a global banking hub for forex, derivatives, and asset management. Post-Brexit, the UK has lost passporting rights to EU financial markets, driving some activity to Amsterdam and Dublin. Manufacturing has declined structurally to ~9% of GDP. The NHS (~10% of GDP) is the largest single-employer in Europe. Key tensions: productivity gap vs. Germany/France, housing supply crisis, persistent current account deficit, and post-Brexit trade friction.",
+      "The UK has one of the world's most service-dominant economies — financial services alone contribute ~12% of GDP and London is a global banking hub for forex, derivatives, and asset management. Post-Brexit, the UK has lost passporting rights to EU financial markets, driving some activity to Amsterdam and Dublin. Manufacturing has declined structurally to ~9% of GDP. The NHS (~10% of GDP) is the largest single-employer in Europe. Key tensions: productivity gap vs. Germany/France, housing supply crisis, persistent current account deficit, and post-Brexit trade friction.",
     futures: {
       stockIndex: "FTSE 100",
       indexValue: "8,140",
@@ -287,7 +286,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 93,
     medianAge: 42.3,
     economicStructure:
-      "France blends a large public sector (~57% of GDP in government expenditure) with strong luxury goods, aerospace-defense, and nuclear energy industries. The state retains strategic stakes in EDF, Air France, Renault, and others. Tourism (~8% GDP) is the world&#39;s most visited country. The CAC 40 includes global champions: LVMH, TotalEnergies, Sanofi, Airbus. Key structural challenges: rigid labour market, high structural unemployment, public sector wage bill, and energy transition costs.",
+      "France blends a large public sector (~57% of GDP in government expenditure) with strong luxury goods, aerospace-defense, and nuclear energy industries. The state retains strategic stakes in EDF, Air France, Renault, and others. Tourism (~8% GDP) is the world's most visited country. The CAC 40 includes global champions: LVMH, TotalEnergies, Sanofi, Airbus. Key structural challenges: rigid labour market, high structural unemployment, public sector wage bill, and energy transition costs.",
     futures: {
       stockIndex: "CAC 40",
       indexValue: "7,980",
@@ -326,7 +325,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 93,
     medianAge: 48.7,
     economicStructure:
-      "Japan is a highly developed, capital-intensive export economy anchored by manufacturing keiretsu (cross-shareholding conglomerates): Toyota, Sony, Mitsubishi, and Hitachi. Services (~70% of GDP) are driven by domestic consumption and finance. Despite the world&#39;s highest debt-to-GDP ratio (~250%), Japan finances it domestically — the Bank of Japan holds ~50% of JGBs. Post-Abenomics, the BOJ maintained near-zero rates until 2024 when it began normalizing. Structural challenges: world&#39;s fastest-ageing population, deflationary mindset, and low immigration constraining labour supply.",
+      "Japan is a highly developed, capital-intensive export economy anchored by manufacturing keiretsu (cross-shareholding conglomerates): Toyota, Sony, Mitsubishi, and Hitachi. Services (~70% of GDP) are driven by domestic consumption and finance. Despite the world's highest debt-to-GDP ratio (~250%), Japan finances it domestically — the Bank of Japan holds ~50% of JGBs. Post-Abenomics, the BOJ maintained near-zero rates until 2024 when it began normalizing. Structural challenges: world's fastest-ageing population, deflationary mindset, and low immigration constraining labour supply.",
     futures: {
       stockIndex: "Nikkei 225",
       indexValue: "38,450",
@@ -369,7 +368,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 52,
     medianAge: 28.7,
     economicStructure:
-      "India&#39;s dual economy features a world-class IT services sector alongside hundreds of millions in subsistence agriculture. Services (~55% of GDP) are led by IT/BPO, finance, and telecoms. Agriculture (~17% GDP) employs ~44% of the workforce — a structural distortion. India is the world&#39;s largest democracy and the fastest-growing major economy. The government&#39;s \'Make in India\' and PLI (production-linked incentive) programs are driving manufacturing expansion, particularly in semiconductors, smartphones, and electric vehicles. Remittances (~$120B/year) are the world&#39;s largest.",
+      "India's dual economy features a world-class IT services sector alongside hundreds of millions in subsistence agriculture. Services (~55% of GDP) are led by IT/BPO, finance, and telecoms. Agriculture (~17% GDP) employs ~44% of the workforce — a structural distortion. India is the world's largest democracy and the fastest-growing major economy. The government's \'Make in India\' and PLI (production-linked incentive) programs are driving manufacturing expansion, particularly in semiconductors, smartphones, and electric vehicles. Remittances (~$120B/year) are the world's largest.",
     futures: {
       stockIndex: "SENSEX",
       indexValue: "73,800",
@@ -408,7 +407,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 84,
     medianAge: 33.4,
     economicStructure:
-      "Brazil is Latin America&#39;s largest economy with the world&#39;s most biodiverse agricultural system. Agribusiness (~25% of GDP including supply chains) is a global powerhouse — Brazil is the top exporter of soybeans, beef, coffee, sugar, and orange juice. The services sector (~73% of GDP) is anchored by a sophisticated banking system (Itaú, Bradesco, BTG Pactual), the Bolsa Família social program, and a growing fintech ecosystem. Petrobras&#39; pre-salt oil fields make Brazil a major crude exporter. Key challenges: extreme inequality (Gini ~53), fiscal instability, bureaucratic burden, and infrastructure gaps.",
+      "Brazil is Latin America's largest economy with the world's most biodiverse agricultural system. Agribusiness (~25% of GDP including supply chains) is a global powerhouse — Brazil is the top exporter of soybeans, beef, coffee, sugar, and orange juice. The services sector (~73% of GDP) is anchored by a sophisticated banking system (Itaú, Bradesco, BTG Pactual), the Bolsa Família social program, and a growing fintech ecosystem. Petrobras' pre-salt oil fields make Brazil a major crude exporter. Key challenges: extreme inequality (Gini ~53), fiscal instability, bureaucratic burden, and infrastructure gaps.",
     futures: {
       stockIndex: "Bovespa (B3)",
       indexValue: "127,400",
@@ -447,7 +446,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 85,
     medianAge: 40.6,
     economicStructure:
-      "Russia&#39;s economy is heavily resource-dependent — oil, gas, and mining constitute ~35% of GDP and ~50% of federal revenues. The state controls strategic sectors via Gazprom, Rosneft, Sberbank, and others. Since the 2022 Ukraine invasion and Western sanctions, Russia has pivoted East: China now accounts for ~38% of trade. The war economy stimulus (defense spending ~7% of GDP in 2024) is masking underlying structural weakness: capital flight, technology embargo, and demographic decline. The ruble has depreciated significantly; official GDP figures understate real purchasing power losses.",
+      "Russia's economy is heavily resource-dependent — oil, gas, and mining constitute ~35% of GDP and ~50% of federal revenues. The state controls strategic sectors via Gazprom, Rosneft, Sberbank, and others. Since the 2022 Ukraine invasion and Western sanctions, Russia has pivoted East: China now accounts for ~38% of trade. The war economy stimulus (defense spending ~7% of GDP in 2024) is masking underlying structural weakness: capital flight, technology embargo, and demographic decline. The ruble has depreciated significantly; official GDP figures understate real purchasing power losses.",
     futures: {
       stockIndex: "MOEX Russia",
       indexValue: "3,210",
@@ -486,7 +485,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 91,
     medianAge: 38.7,
     economicStructure:
-      "Australia&#39;s \'lucky country\' economy benefits from vast mineral wealth (iron ore, coal, gold, lithium) and proximity to Asia&#39;s growing middle class. Mining (~10% of GDP, ~60% of exports) is anchored by BHP, Rio Tinto, and Fortescue. The services sector (~70%) is led by finance, healthcare, and education (international students ~$40B/year). The Reserve Bank of Australia maintained unusual monetary stability — Australia went 28 years without recession (1991–2020). Key risks: housing affordability crisis, Chinese economic slowdown cutting commodity demand, and energy transition disrupting coal revenues.",
+      "Australia's \'lucky country\' economy benefits from vast mineral wealth (iron ore, coal, gold, lithium) and proximity to Asia's growing middle class. Mining (~10% of GDP, ~60% of exports) is anchored by BHP, Rio Tinto, and Fortescue. The services sector (~70%) is led by finance, healthcare, and education (international students ~$40B/year). The Reserve Bank of Australia maintained unusual monetary stability — Australia went 28 years without recession (1991–2020). Key risks: housing affordability crisis, Chinese economic slowdown cutting commodity demand, and energy transition disrupting coal revenues.",
     futures: {
       stockIndex: "ASX 200",
       indexValue: "7,780",
@@ -525,7 +524,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 97,
     medianAge: 44.0,
     economicStructure:
-      "South Korea&#39;s economy is defined by \'chaebol\' — large family-controlled conglomerates (Samsung, Hyundai, LG, SK, Lotte) that drive exports of semiconductors, electronics, autos, and shipbuilding. The country transformed from one of the world&#39;s poorest in the 1950s to a high-income OECD economy in 50 years — the \'Miracle on the Han River.\' Semiconductors alone account for ~20% of exports. K-pop, Korean drama, and cultural exports (Hallyu wave) are a growing soft-power economic asset. Key challenges: world&#39;s lowest fertility rate (0.72), demographic cliff, chaebol governance concerns, and North Korea risk premium.",
+      "South Korea's economy is defined by \'chaebol\' — large family-controlled conglomerates (Samsung, Hyundai, LG, SK, Lotte) that drive exports of semiconductors, electronics, autos, and shipbuilding. The country transformed from one of the world's poorest in the 1950s to a high-income OECD economy in 50 years — the \'Miracle on the Han River.\' Semiconductors alone account for ~20% of exports. K-pop, Korean drama, and cultural exports (Hallyu wave) are a growing soft-power economic asset. Key challenges: world's lowest fertility rate (0.72), demographic cliff, chaebol governance concerns, and North Korea risk premium.",
     futures: {
       stockIndex: "KOSPI",
       indexValue: "2,680",
@@ -564,7 +563,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 94,
     medianAge: 41.9,
     economicStructure:
-      "Canada&#39;s economy is tightly integrated with the US (75% of exports go south) but resource-rich: oil sands (~4.2 mbpd), minerals, timber, and potash. The financial sector is dominated by the Big Six banks (RBC, TD, BMO, Scotiabank, CIBC, National) — among the world&#39;s most stable due to strict OSFI regulation. The services sector (~70%) is led by real estate, finance, and healthcare. The housing affordability crisis has become a structural macroeconomic issue — household debt-to-income is among the OECD&#39;s highest. US tariff threats under Trump (2025) have accelerated economic sovereignty diversification efforts.",
+      "Canada's economy is tightly integrated with the US (75% of exports go south) but resource-rich: oil sands (~4.2 mbpd), minerals, timber, and potash. The financial sector is dominated by the Big Six banks (RBC, TD, BMO, Scotiabank, CIBC, National) — among the world's most stable due to strict OSFI regulation. The services sector (~70%) is led by real estate, finance, and healthcare. The housing affordability crisis has become a structural macroeconomic issue — household debt-to-income is among the OECD's highest. US tariff threats under Trump (2025) have accelerated economic sovereignty diversification efforts.",
     futures: {
       stockIndex: "S&P/TSX Composite",
       indexValue: "21,840",
@@ -607,7 +606,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 98,
     medianAge: 29.7,
     economicStructure:
-      "Saudi Arabia&#39;s economy remains petrostate-structured — oil revenues fund ~60% of government expenditures and Aramco is the world&#39;s most profitable company. Vision 2030 is attempting structural diversification: NEOM mega-city ($500B), Red Sea tourism, sports investments (LIV Golf, PIF stakes in global sports), and domestic entertainment liberalization (allowing cinemas, concerts, mixed-gender events). Non-oil sectors are growing (finance, tourism, petrochemicals) but the private sector still employs mostly expatriates (~38% of population). Subsidized fuel and utilities create structural fiscal vulnerabilities when oil prices fall.",
+      "Saudi Arabia's economy remains petrostate-structured — oil revenues fund ~60% of government expenditures and Aramco is the world's most profitable company. Vision 2030 is attempting structural diversification: NEOM mega-city ($500B), Red Sea tourism, sports investments (LIV Golf, PIF stakes in global sports), and domestic entertainment liberalization (allowing cinemas, concerts, mixed-gender events). Non-oil sectors are growing (finance, tourism, petrochemicals) but the private sector still employs mostly expatriates (~38% of population). Subsidized fuel and utilities create structural fiscal vulnerabilities when oil prices fall.",
     futures: {
       stockIndex: "Tadawul (TASI)",
       indexValue: "11,420",
@@ -646,7 +645,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 99,
     medianAge: 33.5,
     economicStructure:
-      "The UAE operates a dual-engine economy: Abu Dhabi&#39;s oil wealth (90% of UAE oil reserves) funds sovereign wealth (ADIA ~$1T, Mubadala ~$300B) while Dubai has deliberately built a near oil-free economy in trade, tourism, finance, and real estate. Dubai is home to the world&#39;s busiest international airport, Jebel Ali Port (9th globally), and DIFC — a major financial center with English common law courts. The UAE has aggressively liberalized with 100% foreign ownership laws, 10-year golden visas, and removal of alcohol restrictions to attract global talent.",
+      "The UAE operates a dual-engine economy: Abu Dhabi's oil wealth (90% of UAE oil reserves) funds sovereign wealth (ADIA ~$1T, Mubadala ~$300B) while Dubai has deliberately built a near oil-free economy in trade, tourism, finance, and real estate. Dubai is home to the world's busiest international airport, Jebel Ali Port (9th globally), and DIFC — a major financial center with English common law courts. The UAE has aggressively liberalized with 100% foreign ownership laws, 10-year golden visas, and removal of alcohol restrictions to attract global talent.",
     futures: {
       stockIndex: "DFM General Index",
       indexValue: "4,180",
@@ -685,7 +684,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 99,
     medianAge: 42.2,
     economicStructure:
-      "Singapore is an open, trade-reliant city-state with no natural resources — its economy is built on world-class port infrastructure, financial services, and semiconductor manufacturing. The Monetary Authority of Singapore (MAS) manages monetary policy through the SGD exchange rate band rather than interest rates. GLCs (Government-Linked Companies) — Temasek, GIC — control key strategic sectors while the government promotes \'productivity-led growth\' to counter labour shortage. Singapore is Asia&#39;s premier wealth management hub (~$5T AUM) and biomedical research cluster. Its effective corporate tax regime and stable governance make it the preferred Asia-Pacific HQ for multinationals.",
+      "Singapore is an open, trade-reliant city-state with no natural resources — its economy is built on world-class port infrastructure, financial services, and semiconductor manufacturing. The Monetary Authority of Singapore (MAS) manages monetary policy through the SGD exchange rate band rather than interest rates. GLCs (Government-Linked Companies) — Temasek, GIC — control key strategic sectors while the government promotes \'productivity-led growth\' to counter labour shortage. Singapore is Asia's premier wealth management hub (~$5T AUM) and biomedical research cluster. Its effective corporate tax regime and stable governance make it the preferred Asia-Pacific HQ for multinationals.",
     futures: {
       stockIndex: "STI (Straits Times Index)",
       indexValue: "3,380",
@@ -724,7 +723,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 76,
     medianAge: 29.3,
     economicStructure:
-      "Mexico is the US&#39;s top trading partner (USMCA framework) and a major nearshoring destination as companies de-risk from China. The maquiladora system (export-processing factories near the US border) generates 80% of manufactured exports. Remittances (~$64B in 2023) surpass oil revenues. PEMEX — once the world&#39;s most profitable company — is deeply indebted (~$100B) and declining in production. The incoming Claudia Sheinbaum administration faces balancing energy nationalism with need for private investment. Cartel violence and judicial independence concerns under AMLO&#39;s 2024 judicial reform are key investor risks.",
+      "Mexico is the US's top trading partner (USMCA framework) and a major nearshoring destination as companies de-risk from China. The maquiladora system (export-processing factories near the US border) generates 80% of manufactured exports. Remittances (~$64B in 2023) surpass oil revenues. PEMEX — once the world's most profitable company — is deeply indebted (~$100B) and declining in production. The incoming Claudia Sheinbaum administration faces balancing energy nationalism with need for private investment. Cartel violence and judicial independence concerns under AMLO's 2024 judicial reform are key investor risks.",
     futures: {
       stockIndex: "BMV IPC",
       indexValue: "54,200",
@@ -763,7 +762,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 72,
     medianAge: 27.6,
     economicStructure:
-      "South Africa is the world&#39;s most unequal major economy (Gini ~63). Its \'minerals-energy complex\' — platinum, gold, coal, and manganese — has historically defined growth but is structurally stagnant. The services sector (~70%) is anchored by financial services (JSE, major African banks), retail, and government. Structural challenges are severe: 31% unemployment (youth unemployment ~60%), rolling electricity blackouts (loadshedding ~200+ days/year), water infrastructure collapse, and port/rail inefficiencies. The 2024 Government of National Unity (ANC+DA) offers hope of pragmatic reform but institutional capacity remains stretched.",
+      "South Africa is the world's most unequal major economy (Gini ~63). Its \'minerals-energy complex\' — platinum, gold, coal, and manganese — has historically defined growth but is structurally stagnant. The services sector (~70%) is anchored by financial services (JSE, major African banks), retail, and government. Structural challenges are severe: 31% unemployment (youth unemployment ~60%), rolling electricity blackouts (loadshedding ~200+ days/year), water infrastructure collapse, and port/rail inefficiencies. The 2024 Government of National Unity (ANC+DA) offers hope of pragmatic reform but institutional capacity remains stretched.",
     futures: {
       stockIndex: "JSE Top 40",
       indexValue: "68,400",
@@ -802,7 +801,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 57,
     medianAge: 18.6,
     economicStructure:
-      "Nigeria is Africa&#39;s largest economy by GDP yet paradoxically one of the world&#39;s highest poverty rates (~40% below $2.15/day). Oil dominates exports (~95%) but contributes only ~6% of GDP — a structural paradox driven by the dominance of services and informal economy. Lagos is sub-Saharan Africa&#39;s largest city and emerging tech hub (\'Silicon Lagoon\': Flutterwave, Paystack, Interswitch). The removal of petrol subsidies in 2023 (under Tinubu) caused immediate inflation spike but was fiscally necessary. The naira has lost ~70% of value (2022–2024), driving dollarization and a large parallel FX market.",
+      "Nigeria is Africa's largest economy by GDP yet paradoxically one of the world's highest poverty rates (~40% below $2.15/day). Oil dominates exports (~95%) but contributes only ~6% of GDP — a structural paradox driven by the dominance of services and informal economy. Lagos is sub-Saharan Africa's largest city and emerging tech hub (\'Silicon Lagoon\': Flutterwave, Paystack, Interswitch). The removal of petrol subsidies in 2023 (under Tinubu) caused immediate inflation spike but was fiscally necessary. The naira has lost ~70% of value (2022–2024), driving dollarization and a large parallel FX market.",
     futures: {
       stockIndex: "NGX All Share Index",
       indexValue: "97,400",
@@ -845,7 +844,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 72,
     medianAge: 24.6,
     economicStructure:
-      "Egypt&#39;s economy is structurally constrained: the Suez Canal (~$9B/year pre-Houthi disruptions), tourism, and remittances from Gulf expatriates are the key hard-currency earners. The military economy (SCAF-linked enterprises) controls an estimated 20–40% of GDP across construction, food, fuel, and hospitality. The pound has lost ~70% of value since 2022 under IMF restructuring requirements. Real estate speculation and construction have crowded out productive investment. Despite a young population (60% under 30) and large labour force, structural unemployment and underemployment are pervasive.",
+      "Egypt's economy is structurally constrained: the Suez Canal (~$9B/year pre-Houthi disruptions), tourism, and remittances from Gulf expatriates are the key hard-currency earners. The military economy (SCAF-linked enterprises) controls an estimated 20–40% of GDP across construction, food, fuel, and hospitality. The pound has lost ~70% of value since 2022 under IMF restructuring requirements. Real estate speculation and construction have crowded out productive investment. Despite a young population (60% under 30) and large labour force, structural unemployment and underemployment are pervasive.",
     futures: {
       stockIndex: "EGX 30",
       indexValue: "29,600",
@@ -923,7 +922,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 88,
     medianAge: 31.9,
     economicStructure:
-      "Argentina is a resource-rich economy that has suffered serial crises — 9 sovereign defaults since 1816, 211% inflation in 2023, and chronic capital controls. The Pampas agricultural heartland (soybeans, wheat, corn, beef) generates the hard currency that services the economy. Lithium deposits (second largest globally) offer a future beyond agriculture. Milei&#39;s shock therapy (2024–) has slashed the fiscal deficit but caused severe social pain — poverty exceeded 40%. The Vaca Muerta shale formation (~2nd largest global shale gas reserves) is a transformative opportunity if investment conditions stabilize. Structural impediments: peso instability, export taxes, and unpredictable policy swings.",
+      "Argentina is a resource-rich economy that has suffered serial crises — 9 sovereign defaults since 1816, 211% inflation in 2023, and chronic capital controls. The Pampas agricultural heartland (soybeans, wheat, corn, beef) generates the hard currency that services the economy. Lithium deposits (second largest globally) offer a future beyond agriculture. Milei's shock therapy (2024–) has slashed the fiscal deficit but caused severe social pain — poverty exceeded 40%. The Vaca Muerta shale formation (~2nd largest global shale gas reserves) is a transformative opportunity if investment conditions stabilize. Structural impediments: peso instability, export taxes, and unpredictable policy swings.",
     futures: {
       stockIndex: "MERVAL (S&P Merval)",
       indexValue: "1,620,000",
@@ -962,7 +961,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 83,
     medianAge: 32.6,
     economicStructure:
-      "Turkey straddles Europe and Asia as a manufacturing hub — automotive (Ford, Fiat, Renault, Toyota), textiles, construction materials, and defense industries drive exports. Tourism (~4% GDP) makes Turkey the world&#39;s 4th most visited country. The lira has lost ~95% of value vs. the dollar since 2018 due to unorthodox monetary policy (President Erdoğan long resisted rate hikes). Post-2023 earthquake and election, Turkey shifted to orthodox economics under new central bank governor Hafize Erkan/Fatih Karahan — rates rose from 8.5% to 50%. Real estate and construction are politically sensitive sectors given 2023 earthquake failures.",
+      "Turkey straddles Europe and Asia as a manufacturing hub — automotive (Ford, Fiat, Renault, Toyota), textiles, construction materials, and defense industries drive exports. Tourism (~4% GDP) makes Turkey the world's 4th most visited country. The lira has lost ~95% of value vs. the dollar since 2018 due to unorthodox monetary policy (President Erdoğan long resisted rate hikes). Post-2023 earthquake and election, Turkey shifted to orthodox economics under new central bank governor Hafize Erkan/Fatih Karahan — rates rose from 8.5% to 50%. Real estate and construction are politically sensitive sectors given 2023 earthquake failures.",
     futures: {
       stockIndex: "BIST 100 (Borsa Istanbul)",
       indexValue: "9,840",
@@ -1001,7 +1000,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 77,
     medianAge: 29.7,
     economicStructure:
-      "Indonesia is the world&#39;s 4th most populous nation and Southeast Asia&#39;s largest economy — a commodity powerhouse (nickel, coal, palm oil, rubber) combined with a large domestic consumption market. Nickel is strategically critical: Indonesia holds ~42% of global reserves and has mandated nickel ore export bans since 2020 to drive domestic battery/EV supply chain development. The digital economy (Gojek, Tokopedia, Traveloka) is the fastest-growing in Southeast Asia. Structural constraints: excessive dependence on commodity cycles, infrastructure gaps across 17,000 islands, and bureaucratic fragmentation across regional governments.",
+      "Indonesia is the world's 4th most populous nation and Southeast Asia's largest economy — a commodity powerhouse (nickel, coal, palm oil, rubber) combined with a large domestic consumption market. Nickel is strategically critical: Indonesia holds ~42% of global reserves and has mandated nickel ore export bans since 2020 to drive domestic battery/EV supply chain development. The digital economy (Gojek, Tokopedia, Traveloka) is the fastest-growing in Southeast Asia. Structural constraints: excessive dependence on commodity cycles, infrastructure gaps across 17,000 islands, and bureaucratic fragmentation across regional governments.",
     futures: {
       stockIndex: "IDX Composite (IHSG)",
       indexValue: "7,240",
@@ -1040,7 +1039,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 89,
     medianAge: 29.2,
     economicStructure:
-      "Malaysia has successfully diversified from a commodity economy to a manufacturing powerhouse in electronics and semiconductors (Penang&#39;s \'Silicon Island\' concentration). It is one of the world&#39;s top palm oil producers and a significant LNG exporter. PETRONAS funds ~20% of government revenues. The services sector (~54%) is led by finance (Kuala Lumpur as Islamic finance hub), retail, and tourism. Bumiputera affirmative action policies create structural inefficiencies but are politically non-negotiable. A major nearshoring beneficiary from US-China decoupling — Intel, Micron, Infineon, and NXP have large Malaysian facilities.",
+      "Malaysia has successfully diversified from a commodity economy to a manufacturing powerhouse in electronics and semiconductors (Penang's \'Silicon Island\' concentration). It is one of the world's top palm oil producers and a significant LNG exporter. PETRONAS funds ~20% of government revenues. The services sector (~54%) is led by finance (Kuala Lumpur as Islamic finance hub), retail, and tourism. Bumiputera affirmative action policies create structural inefficiencies but are politically non-negotiable. A major nearshoring beneficiary from US-China decoupling — Intel, Micron, Infineon, and NXP have large Malaysian facilities.",
     futures: {
       stockIndex: "FTSE Bursa Malaysia KLCI",
       indexValue: "1,580",
@@ -1079,7 +1078,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 88,
     medianAge: 40.1,
     economicStructure:
-      "Thailand is a middle-income Southeast Asian economy anchored by automotive manufacturing (Detroit of Asia — 2M vehicles/year), electronics exports, and the world&#39;s largest tourism sector relative to GDP. Agriculture (rice, rubber, cassava) remains significant for rural employment (~30% of workforce). The services sector (~57% of GDP) is dominated by tourism, finance, and government. Thailand faces \'middle income trap\' challenges — declining manufacturing competitiveness vs. Vietnam, limited R&D investment, and an ageing population. The military&#39;s political influence (Constitution 2017, appointed Senate) constrains institutional reform.",
+      "Thailand is a middle-income Southeast Asian economy anchored by automotive manufacturing (Detroit of Asia — 2M vehicles/year), electronics exports, and the world's largest tourism sector relative to GDP. Agriculture (rice, rubber, cassava) remains significant for rural employment (~30% of workforce). The services sector (~57% of GDP) is dominated by tourism, finance, and government. Thailand faces \'middle income trap\' challenges — declining manufacturing competitiveness vs. Vietnam, limited R&D investment, and an ageing population. The military's political influence (Constitution 2017, appointed Senate) constrains institutional reform.",
     futures: {
       stockIndex: "SET Index",
       indexValue: "1,340",
@@ -1122,7 +1121,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 79,
     medianAge: 31.5,
     economicStructure:
-      "Vietnam is one of the world&#39;s premier manufacturing relocation destinations — Samsung alone produces ~50% of its global smartphones in Vietnam, contributing ~25% of Vietnam&#39;s total exports. The economy has grown at ~6% for 20+ years via FDI-led export industrialization (similar to China&#39;s 1990s model). Agriculture (rice, coffee, cashews, shrimp) remains a significant rural employer. The services sector is growing rapidly (fintech, e-commerce, tourism). Key challenges: dependence on FDI for technology transfer, limited domestic R&D, infrastructure bottlenecks (especially power supply), and governance concerns under the \'blazing furnace\' anti-corruption drive.",
+      "Vietnam is one of the world's premier manufacturing relocation destinations — Samsung alone produces ~50% of its global smartphones in Vietnam, contributing ~25% of Vietnam's total exports. The economy has grown at ~6% for 20+ years via FDI-led export industrialization (similar to China's 1990s model). Agriculture (rice, coffee, cashews, shrimp) remains a significant rural employer. The services sector is growing rapidly (fintech, e-commerce, tourism). Key challenges: dependence on FDI for technology transfer, limited domestic R&D, infrastructure bottlenecks (especially power supply), and governance concerns under the \'blazing furnace\' anti-corruption drive.",
     futures: {
       stockIndex: "VN-Index (HOSE)",
       indexValue: "1,240",
@@ -1161,7 +1160,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 73,
     medianAge: 25.7,
     economicStructure:
-      "The Philippines&#39; economy is uniquely service-driven for a middle-income Asian country. BPO/IT-BPM (call centers, shared services, IT outsourcing) generates ~$35B annually — comparable to remittances (~$38B). OCW remittances are the second-largest economic sector. Manufacturing remains underdeveloped relative to peers (electronics assembly, food processing). The services sector (~62% of GDP) is the dominant growth engine. Structural constraints: geographic fragmentation (7,100 islands), typhoon vulnerability, and inadequate infrastructure.",
+      "The Philippines' economy is uniquely service-driven for a middle-income Asian country. BPO/IT-BPM (call centers, shared services, IT outsourcing) generates ~$35B annually — comparable to remittances (~$38B). OCW remittances are the second-largest economic sector. Manufacturing remains underdeveloped relative to peers (electronics assembly, food processing). The services sector (~62% of GDP) is the dominant growth engine. Structural constraints: geographic fragmentation (7,100 islands), typhoon vulnerability, and inadequate infrastructure.",
     futures: {
       stockIndex: "PSEi (Philippine Stock Exchange)",
       indexValue: "6,640",
@@ -4602,17 +4601,6 @@ const COUNTRY_CRIME_STATS: Record<string, CrimeStats> = {
     crimeIndex: 42,
     year: 2023,
   },
-  fr: {
-    homicideRate: 1.2,
-    robberyRate: 105,
-    assaultRate: 241,
-    burglaryRate: 372,
-    vehicleTheftRate: 212,
-    drugOffenseRate: 264,
-    safetyIndex: 53,
-    crimeIndex: 47,
-    year: 2023,
-  },
   pl: {
     homicideRate: 0.7,
     robberyRate: 38,
@@ -4801,17 +4789,6 @@ const COUNTRY_CRIME_STATS: Record<string, CrimeStats> = {
     year: 2023,
   },
   // ── Europe (additional) ──────────────────────────────────────────────────
-  es: {
-    homicideRate: 0.7,
-    robberyRate: 82,
-    assaultRate: 112,
-    burglaryRate: 248,
-    vehicleTheftRate: 188,
-    drugOffenseRate: 214,
-    safetyIndex: 58,
-    crimeIndex: 42,
-    year: 2023,
-  },
   nl: {
     homicideRate: 0.6,
     robberyRate: 52,
@@ -5012,17 +4989,6 @@ const COUNTRY_CRIME_STATS: Record<string, CrimeStats> = {
     year: 2023,
   },
   // ── Americas (additional) ────────────────────────────────────────────────
-  co_co: {
-    homicideRate: 25.4,
-    robberyRate: 444,
-    assaultRate: 244,
-    burglaryRate: 348,
-    vehicleTheftRate: 288,
-    drugOffenseRate: 348,
-    safetyIndex: 28,
-    crimeIndex: 72,
-    year: 2023,
-  },
   pe: {
     homicideRate: 7.8,
     robberyRate: 348,
@@ -5190,83 +5156,6 @@ const COUNTRY_CRIME_STATS: Record<string, CrimeStats> = {
     year: 2023,
   },
   // ── Additional Europe ──────────────────────────────────────────────────
-  be: {
-    homicideRate: 1.1,
-    robberyRate: 68,
-    assaultRate: 118,
-    burglaryRate: 148,
-    vehicleTheftRate: 88,
-    drugOffenseRate: 188,
-    safetyIndex: 60,
-    crimeIndex: 40,
-    year: 2023,
-  },
-  at: {
-    homicideRate: 0.7,
-    robberyRate: 32,
-    assaultRate: 84,
-    burglaryRate: 122,
-    vehicleTheftRate: 52,
-    drugOffenseRate: 144,
-    safetyIndex: 68,
-    crimeIndex: 32,
-    year: 2023,
-  },
-  pt: {
-    homicideRate: 0.7,
-    robberyRate: 58,
-    assaultRate: 78,
-    burglaryRate: 148,
-    vehicleTheftRate: 88,
-    drugOffenseRate: 132,
-    safetyIndex: 64,
-    crimeIndex: 36,
-    year: 2023,
-  },
-  gr: {
-    homicideRate: 0.9,
-    robberyRate: 42,
-    assaultRate: 58,
-    burglaryRate: 148,
-    vehicleTheftRate: 72,
-    drugOffenseRate: 112,
-    safetyIndex: 66,
-    crimeIndex: 34,
-    year: 2023,
-  },
-  cz: {
-    homicideRate: 0.6,
-    robberyRate: 22,
-    assaultRate: 68,
-    burglaryRate: 112,
-    vehicleTheftRate: 62,
-    drugOffenseRate: 132,
-    safetyIndex: 66,
-    crimeIndex: 34,
-    year: 2023,
-  },
-  ro: {
-    homicideRate: 1.4,
-    robberyRate: 38,
-    assaultRate: 62,
-    burglaryRate: 92,
-    vehicleTheftRate: 42,
-    drugOffenseRate: 88,
-    safetyIndex: 60,
-    crimeIndex: 40,
-    year: 2023,
-  },
-  hu: {
-    homicideRate: 1.0,
-    robberyRate: 28,
-    assaultRate: 74,
-    burglaryRate: 102,
-    vehicleTheftRate: 58,
-    drugOffenseRate: 104,
-    safetyIndex: 62,
-    crimeIndex: 38,
-    year: 2023,
-  },
   sk: {
     homicideRate: 1.2,
     robberyRate: 28,
@@ -5532,83 +5421,6 @@ const COUNTRY_CRIME_STATS: Record<string, CrimeStats> = {
     year: 2023,
   },
   // ── Additional Asia ──────────────────────────────────────────────────────
-  tw: {
-    homicideRate: 0.6,
-    robberyRate: 12,
-    assaultRate: 44,
-    burglaryRate: 68,
-    vehicleTheftRate: 88,
-    drugOffenseRate: 88,
-    safetyIndex: 74,
-    crimeIndex: 26,
-    year: 2023,
-  },
-  nz: {
-    homicideRate: 1.0,
-    robberyRate: 38,
-    assaultRate: 148,
-    burglaryRate: 348,
-    vehicleTheftRate: 172,
-    drugOffenseRate: 188,
-    safetyIndex: 54,
-    crimeIndex: 46,
-    year: 2023,
-  },
-  kz: {
-    homicideRate: 5.4,
-    robberyRate: 78,
-    assaultRate: 108,
-    burglaryRate: 152,
-    vehicleTheftRate: 88,
-    drugOffenseRate: 148,
-    safetyIndex: 46,
-    crimeIndex: 54,
-    year: 2023,
-  },
-  iq: {
-    homicideRate: 4.8,
-    robberyRate: 82,
-    assaultRate: 88,
-    burglaryRate: 112,
-    vehicleTheftRate: 52,
-    drugOffenseRate: 88,
-    safetyIndex: 40,
-    crimeIndex: 60,
-    year: 2023,
-  },
-  om: {
-    homicideRate: 0.6,
-    robberyRate: 12,
-    assaultRate: 28,
-    burglaryRate: 32,
-    vehicleTheftRate: 22,
-    drugOffenseRate: 54,
-    safetyIndex: 80,
-    crimeIndex: 20,
-    year: 2023,
-  },
-  qa: {
-    homicideRate: 0.3,
-    robberyRate: 8,
-    assaultRate: 22,
-    burglaryRate: 18,
-    vehicleTheftRate: 12,
-    drugOffenseRate: 38,
-    safetyIndex: 84,
-    crimeIndex: 16,
-    year: 2023,
-  },
-  kw: {
-    homicideRate: 0.8,
-    robberyRate: 14,
-    assaultRate: 32,
-    burglaryRate: 28,
-    vehicleTheftRate: 18,
-    drugOffenseRate: 68,
-    safetyIndex: 76,
-    crimeIndex: 24,
-    year: 2023,
-  },
   uz: {
     homicideRate: 2.8,
     robberyRate: 38,
@@ -6139,17 +5951,6 @@ const COUNTRY_CRIME_STATS: Record<string, CrimeStats> = {
     year: 2023,
   },
   // ── Additional Africa ──────────────────────────────────────────────────
-  tz: {
-    homicideRate: 3.6,
-    robberyRate: 78,
-    assaultRate: 68,
-    burglaryRate: 108,
-    vehicleTheftRate: 48,
-    drugOffenseRate: 72,
-    safetyIndex: 50,
-    crimeIndex: 50,
-    year: 2023,
-  },
   ly: {
     homicideRate: 8.8,
     robberyRate: 98,
@@ -6181,17 +5982,6 @@ const COUNTRY_CRIME_STATS: Record<string, CrimeStats> = {
     drugOffenseRate: 72,
     safetyIndex: 28,
     crimeIndex: 72,
-    year: 2023,
-  },
-  ug: {
-    homicideRate: 6.8,
-    robberyRate: 108,
-    assaultRate: 88,
-    burglaryRate: 128,
-    vehicleTheftRate: 52,
-    drugOffenseRate: 72,
-    safetyIndex: 38,
-    crimeIndex: 62,
     year: 2023,
   },
   cm: {
@@ -7130,19 +6920,6 @@ const COUNTRY_TERRORISM: Record<string, TerrorismStats> = {
     year: 2025,
   },
   // Medium risk
-  iq: {
-    gtiScore: 8.4,
-    gtiRank: 2,
-    attacksPerYear: 580,
-    fatalities5yr: 3800,
-    activistGroups: 6,
-    mostActiveGroup: "Islamic State (IS/ISIS)",
-    primaryThreat: "Jihadist insurgency & militia conflict",
-    riskLevel: "Critical",
-    trend: "improving",
-    note: "Territorial defeat of ISIS (2019) but persistent insurgent activity in Sunni heartlands.",
-    year: 2025,
-  },
   ua: {
     gtiScore: 7.6,
     gtiRank: 6,
@@ -7167,18 +6944,6 @@ const COUNTRY_TERRORISM: Record<string, TerrorismStats> = {
     riskLevel: "High",
     trend: "stable",
     note: "Crocus City Hall attack (March 2024, 145 dead) was Russia's deadliest in decades. IS-K claimed responsibility.",
-    year: 2025,
-  },
-  iq: {
-    gtiScore: 8.4,
-    gtiRank: 2,
-    attacksPerYear: 580,
-    fatalities5yr: 3800,
-    activistGroups: 6,
-    mostActiveGroup: "Islamic State (IS/ISIS)",
-    primaryThreat: "Jihadist insurgency & militia conflict",
-    riskLevel: "Critical",
-    trend: "improving",
     year: 2025,
   },
   tr: {
@@ -7469,18 +7234,6 @@ const COUNTRY_TERRORISM: Record<string, TerrorismStats> = {
     note: "Anders Breivik massacre (2011) shaped Norwegian CT approach. Far-right monitoring intensified.",
     year: 2025,
   },
-  ru: {
-    gtiScore: 5.4,
-    gtiRank: 20,
-    attacksPerYear: 60,
-    fatalities5yr: 380,
-    activistGroups: 4,
-    mostActiveGroup: "ISIS-K (Khorasan Province)",
-    primaryThreat: "Jihadist attacks & Chechen conflict legacy",
-    riskLevel: "High",
-    trend: "stable",
-    year: 2025,
-  },
   // Americas
   mx: {
     gtiScore: 4.8,
@@ -7640,18 +7393,6 @@ const COUNTRY_TERRORISM: Record<string, TerrorismStats> = {
     year: 2025,
   },
   // Pacific / other
-  au_oc: {
-    gtiScore: 2.2,
-    gtiRank: 68,
-    attacksPerYear: 4,
-    fatalities5yr: 8,
-    activistGroups: 3,
-    mostActiveGroup: "IS-inspired lone actors",
-    primaryThreat: "Lone-actor attacks",
-    riskLevel: "Low",
-    trend: "stable",
-    year: 2025,
-  },
   nz: {
     gtiScore: 1.8,
     gtiRank: 90,
@@ -9045,7 +8786,7 @@ function CountrySociologicalBreakdown({ country }: { country: Country }) {
                   Governance Style
                 </p>
                 <div className="flex flex-wrap gap-1">
-                  {governanceStyle.map((gs, i) => (
+                  {governanceStyle.map((gs, _i) => (
                     <span
                       key={gs}
                       className="text-[10px] font-sans px-1.5 py-0.5 rounded border bg-muted/60 text-muted-foreground border-border"
@@ -9138,7 +8879,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       "Rule of Law",
     ],
     summary:
-      "Ratified in 1788 and effective March 4, 1789, the U.S. Constitution is the world&#39;s oldest functioning codified national constitution. It replaced the Articles of Confederation, creating a stronger federal government while balancing state sovereignty. Its 27 amendments — the first ten known as the Bill of Rights (1791) — codify civil liberties that have influenced constitutional design worldwide.",
+      "Ratified in 1788 and effective March 4, 1789, the U.S. Constitution is the world's oldest functioning codified national constitution. It replaced the Articles of Confederation, creating a stronger federal government while balancing state sovereignty. Its 27 amendments — the first ten known as the Bill of Rights (1791) — codify civil liberties that have influenced constitutional design worldwide.",
     articles: [
       {
         title: "Article I — The Legislative Branch",
@@ -9207,7 +8948,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
         type: "principle",
       },
       {
-        title: "19th Amendment — Women&#39;s Suffrage",
+        title: "19th Amendment — Women's Suffrage",
         description:
           "The right of citizens to vote shall not be denied or abridged on account of sex. Ratified August 18, 1920 after a 72-year suffrage movement, enfranchising approximately 26 million women.",
         type: "right",
@@ -9222,7 +8963,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
     ],
   },
   cn: {
-    name: "Constitution of the People&#39;s Republic of China",
+    name: "Constitution of the People's Republic of China",
     adopted: 1982,
     lastAmended: 2018,
     type: "Unitary One-Party Socialist State",
@@ -9232,10 +8973,10 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       "Deng Xiaoping Theory",
       "Socialism with Chinese Characteristics",
       "Xi Jinping Thought on Socialism",
-      "People&#39;s Democratic Centralism",
+      "People's Democratic Centralism",
     ],
     summary:
-      "The PRC&#39;s fourth constitution since 1949 (following versions in 1954, 1975, and 1978), the 1982 constitution has been amended five times, most significantly in 2018, when presidential term limits were abolished and Xi Jinping Thought was added to the Preamble. It combines Soviet-style socialist structure with uniquely Chinese characteristics and CCP supremacy over all state organs.",
+      "The PRC's fourth constitution since 1949 (following versions in 1954, 1975, and 1978), the 1982 constitution has been amended five times, most significantly in 2018, when presidential term limits were abolished and Xi Jinping Thought was added to the Preamble. It combines Soviet-style socialist structure with uniquely Chinese characteristics and CCP supremacy over all state organs.",
     articles: [
       {
         title: "Preamble — CCP Leadership (2018 Amendment)",
@@ -9245,21 +8986,21 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
         year: 2018,
       },
       {
-        title: "Article 1 — People&#39;s Democratic Dictatorship",
+        title: "Article 1 — People's Democratic Dictatorship",
         description:
-          "The People&#39;s Republic of China is a socialist state under the people&#39;s democratic dictatorship led by the working class and based on the alliance of workers and peasants. The socialist system is the basic system of the PRC — no organization or individual may sabotage it.",
+          "The People's Republic of China is a socialist state under the people's democratic dictatorship led by the working class and based on the alliance of workers and peasants. The socialist system is the basic system of the PRC — no organization or individual may sabotage it.",
         type: "principle",
       },
       {
         title: "Article 2 — All Power Belongs to the People",
         description:
-          "All power in the PRC belongs to the people. The National People&#39;s Congress (NPC) and local People&#39;s Congresses are the organs through which the people exercise state power. In practice, the NPC operates under CCP direction and typically ratifies decisions made by the Party&#39;s Politburo Standing Committee.",
+          "All power in the PRC belongs to the people. The National People's Congress (NPC) and local People's Congresses are the organs through which the people exercise state power. In practice, the NPC operates under CCP direction and typically ratifies decisions made by the Party's Politburo Standing Committee.",
         type: "principle",
       },
       {
-        title: "National People&#39;s Congress — Highest State Organ",
+        title: "National People's Congress — Highest State Organ",
         description:
-          "The NPC is China&#39;s national legislature with 2,977 deputies serving 5-year terms. It elects the President, approves the Premier and State Council, ratifies constitutional amendments (by two-thirds majority), and adopts the national budget. Sessions are held annually and last approximately two weeks.",
+          "The NPC is China's national legislature with 2,977 deputies serving 5-year terms. It elects the President, approves the Premier and State Council, ratifies constitutional amendments (by two-thirds majority), and adopts the national budget. Sessions are held annually and last approximately two weeks.",
         type: "structure",
       },
       {
@@ -9271,11 +9012,11 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Article 15 — Socialist Market Economy",
         description:
-          "The state practices a socialist market economy, upholding the basic economic system with public ownership as the dominant form while allowing diverse forms of ownership to develop together. The 1993 amendment replaced \'planned economy\' with \'socialist market economy,\' reflecting Deng&#39;s reforms.",
+          "The state practices a socialist market economy, upholding the basic economic system with public ownership as the dominant form while allowing diverse forms of ownership to develop together. The 1993 amendment replaced \'planned economy\' with \'socialist market economy,\' reflecting Deng's reforms.",
         type: "doctrine",
       },
       {
-        title: "Article 35 — Citizens&#39; Freedoms",
+        title: "Article 35 — Citizens' Freedoms",
         description:
           "Citizens enjoy freedom of speech, the press, assembly, association, procession, and demonstration. These rights are subject to restrictions under national security, social order, and other laws — in practice, the Great Firewall censors internet content and public protests require prior authorization.",
         type: "right",
@@ -9283,7 +9024,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "One Country, Two Systems — Article 31",
         description:
-          "The state may establish Special Administrative Regions when necessary. Hong Kong (1997) and Macau (1999) operate under \'one country, two systems\' frameworks — maintaining separate legal, economic, and political systems until 2047 and 2049 respectively, though the 2020 National Security Law altered Hong Kong&#39;s autonomy significantly.",
+          "The state may establish Special Administrative Regions when necessary. Hong Kong (1997) and Macau (1999) operate under \'one country, two systems\' frameworks — maintaining separate legal, economic, and political systems until 2047 and 2049 respectively, though the 2020 National Security Law altered Hong Kong's autonomy significantly.",
         type: "principle",
       },
       {
@@ -9344,13 +9085,13 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Eternity Clause — Article 79(3)",
         description:
-          "Amendments to the Basic Law shall be inadmissible if they affect the division of the Federation into Länder, the participation of the Länder in legislation, or the principles laid down in Articles 1 and 20. This makes Germany&#39;s core constitutional identity — federal, democratic, respectful of human dignity — literally unconstitutionable to remove.",
+          "Amendments to the Basic Law shall be inadmissible if they affect the division of the Federation into Länder, the participation of the Länder in legislation, or the principles laid down in Articles 1 and 20. This makes Germany's core constitutional identity — federal, democratic, respectful of human dignity — literally unconstitutionable to remove.",
         type: "principle",
       },
       {
         title: "Bundestag — Federal Parliament",
         description:
-          "The Bundestag is Germany&#39;s primary legislative chamber, elected every 4 years by a mixed-member proportional system. The \'5% threshold\' prevents small parties from fragmenting parliament. The Bundestag elects the Federal Chancellor, who leads government — making Germany a parliamentary (not presidential) republic.",
+          "The Bundestag is Germany's primary legislative chamber, elected every 4 years by a mixed-member proportional system. The \'5% threshold\' prevents small parties from fragmenting parliament. The Bundestag elects the Federal Chancellor, who leads government — making Germany a parliamentary (not presidential) republic.",
         type: "structure",
       },
       {
@@ -9368,19 +9109,19 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Federal Constitutional Court (Bundesverfassungsgericht)",
         description:
-          "Germany&#39;s dedicated constitutional court, based in Karlsruhe, can ban political parties threatening the free democratic basic order (used against neo-Nazi and far-left parties), review all legislation for constitutionality, and adjudicate federalism disputes. Its judgments are legally binding on all state organs.",
+          "Germany's dedicated constitutional court, based in Karlsruhe, can ban political parties threatening the free democratic basic order (used against neo-Nazi and far-left parties), review all legislation for constitutionality, and adjudicate federalism disputes. Its judgments are legally binding on all state organs.",
         type: "structure",
       },
       {
         title: "Social State Principle — Article 20",
         description:
-          "Germany is constitutionally a \'social state\' (Sozialstaat), obligating the government to provide social security, equalize living conditions across regions (Länderfinanzausgleich), and ensure citizens&#39; basic needs are met. The Federal Constitutional Court derives a constitutional right to a subsistence minimum from Articles 1 and 20.",
+          "Germany is constitutionally a \'social state\' (Sozialstaat), obligating the government to provide social security, equalize living conditions across regions (Länderfinanzausgleich), and ensure citizens' basic needs are met. The Federal Constitutional Court derives a constitutional right to a subsistence minimum from Articles 1 and 20.",
         type: "doctrine",
       },
       {
         title: "Article 16a — Right of Asylum",
         description:
-          "Persons persecuted on political grounds shall have the right of asylum. Germany&#39;s asylum protections are constitutionally enshrined, though the 1993 amendment introduced the \'safe country of origin\' rule limiting claims. Germany has historically accepted the most asylum seekers of any EU member state.",
+          "Persons persecuted on political grounds shall have the right of asylum. Germany's asylum protections are constitutionally enshrined, though the 1993 amendment introduced the \'safe country of origin\' rule limiting claims. Germany has historically accepted the most asylum seekers of any EU member state.",
         type: "right",
       },
       {
@@ -9443,14 +9184,14 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Act of Union (1707) — Parliament of Great Britain",
         description:
-          "United the Scottish and English parliaments into a single Parliament of Great Britain, creating the Kingdom of Great Britain. Scotland retained its separate legal system (Scots law, Presbyterian Church), and 45 Scottish MPs joined the Commons. Foundational to the UK&#39;s constitutional identity and the basis for ongoing Scottish independence debate.",
+          "United the Scottish and English parliaments into a single Parliament of Great Britain, creating the Kingdom of Great Britain. Scotland retained its separate legal system (Scots law, Presbyterian Church), and 45 Scottish MPs joined the Commons. Foundational to the UK's constitutional identity and the basis for ongoing Scottish independence debate.",
         type: "structure",
         year: 1707,
       },
       {
-        title: "Parliamentary Sovereignty — Dicey&#39;s Doctrine",
+        title: "Parliamentary Sovereignty — Dicey's Doctrine",
         description:
-          "Constitutionalist A.V. Dicey (1885) described parliamentary sovereignty as Parliament&#39;s right to make or unmake any law, with no body able to override or disregard its acts. While formally absolute, this doctrine is qualified in practice by EU retained law (post-Brexit), the Human Rights Act, and devolution settlements.",
+          "Constitutionalist A.V. Dicey (1885) described parliamentary sovereignty as Parliament's right to make or unmake any law, with no body able to override or disregard its acts. While formally absolute, this doctrine is qualified in practice by EU retained law (post-Brexit), the Human Rights Act, and devolution settlements.",
         type: "doctrine",
       },
       {
@@ -9469,21 +9210,21 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Scotland Act 1998 — Devolution",
         description:
-          "Created the Scottish Parliament with primary legislative powers over devolved matters (health, education, justice, housing) and, since 2016, some tax-varying powers. The fundamental principle of the devolution settlements is that Westminster retains sovereignty but has permanently altered the UK&#39;s constitutional landscape.",
+          "Created the Scottish Parliament with primary legislative powers over devolved matters (health, education, justice, housing) and, since 2016, some tax-varying powers. The fundamental principle of the devolution settlements is that Westminster retains sovereignty but has permanently altered the UK's constitutional landscape.",
         type: "structure",
         year: 1998,
       },
       {
         title: "Fixed-term Parliaments Act 2011 (Repealed 2022)",
         description:
-          "Attempted to codify 5-year fixed parliamentary terms, removing the Prime Minister&#39;s prerogative to call early elections. Repealed by the Dissolution and Calling of Parliament Act 2022, which restored royal prerogative to dissolve Parliament on Prime Ministerial advice — illustrating how UK constitutional arrangements can be rapidly altered by simple statute.",
+          "Attempted to codify 5-year fixed parliamentary terms, removing the Prime Minister's prerogative to call early elections. Repealed by the Dissolution and Calling of Parliament Act 2022, which restored royal prerogative to dissolve Parliament on Prime Ministerial advice — illustrating how UK constitutional arrangements can be rapidly altered by simple statute.",
         type: "structure",
         year: 2011,
       },
       {
         title: "Rule of Law — Separation of Powers",
         description:
-          "The Constitutional Reform Act 2005 created a Supreme Court (replacing the Law Lords in the House of Lords), reinforcing judicial independence. The Lord Chancellor&#39;s judicial functions were transferred to the Lord Chief Justice. UK&#39;s separation of powers is less strict than U.S. — Cabinet Ministers sit in Parliament, for example.",
+          "The Constitutional Reform Act 2005 created a Supreme Court (replacing the Law Lords in the House of Lords), reinforcing judicial independence. The Lord Chancellor's judicial functions were transferred to the Lord Chief Justice. UK's separation of powers is less strict than U.S. — Cabinet Ministers sit in Parliament, for example.",
         type: "principle",
         year: 2005,
       },
@@ -9510,18 +9251,18 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       "Popular Sovereignty",
     ],
     summary:
-      "France&#39;s current constitution — its fifth since the Revolution — was drafted under Charles de Gaulle and approved by referendum (79.25%) on September 28, 1958. It created a strong presidency to end the chronic governmental instability of the Fourth Republic (25 governments in 12 years). The constitutional bloc also includes the 1789 Declaration of Rights, the 1946 Preamble, and the Charter for the Environment (2004).",
+      "France's current constitution — its fifth since the Revolution — was drafted under Charles de Gaulle and approved by referendum (79.25%) on September 28, 1958. It created a strong presidency to end the chronic governmental instability of the Fourth Republic (25 governments in 12 years). The constitutional bloc also includes the 1789 Declaration of Rights, the 1946 Preamble, and the Charter for the Environment (2004).",
     articles: [
       {
         title: "Article 1 — Republican Principles",
         description:
-          "France is an indivisible, secular, democratic and social Republic. It shall ensure the equality of all citizens before the law, without distinction of origin, race or religion. The Republic&#39;s motto is Liberté, Égalité, Fraternité. Its principle is government of the people, by the people, and for the people.",
+          "France is an indivisible, secular, democratic and social Republic. It shall ensure the equality of all citizens before the law, without distinction of origin, race or religion. The Republic's motto is Liberté, Égalité, Fraternité. Its principle is government of the people, by the people, and for the people.",
         type: "principle",
       },
       {
         title: "Laïcité — Constitutional Secularism",
         description:
-          "France&#39;s strict separation of church and state — encoded in the 1905 Law on Separation of Churches and State and incorporated into constitutional identity. The state neither recognizes nor funds religious organizations (with Alsace-Moselle exceptions). Laïcité prohibits religious symbols in public schools (2004 law) and face coverings in public spaces (2010 law).",
+          "France's strict separation of church and state — encoded in the 1905 Law on Separation of Churches and State and incorporated into constitutional identity. The state neither recognizes nor funds religious organizations (with Alsace-Moselle exceptions). Laïcité prohibits religious symbols in public schools (2004 law) and face coverings in public spaces (2010 law).",
         type: "doctrine",
       },
       {
@@ -9539,7 +9280,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Prime Minister and the Government",
         description:
-          "The Prime Minister directs the Government&#39;s actions and is responsible to the National Assembly. In \'cohabitation\' periods (1986-88, 1993-95, 1997-2002), a President and Prime Minister of opposing parties must govern together — a uniquely French constitutional dynamic. The PM can be ousted by a motion of censure but not directly by the President.",
+          "The Prime Minister directs the Government's actions and is responsible to the National Assembly. In \'cohabitation\' periods (1986-88, 1993-95, 1997-2002), a President and Prime Minister of opposing parties must govern together — a uniquely French constitutional dynamic. The PM can be ousted by a motion of censure but not directly by the President.",
         type: "structure",
       },
       {
@@ -9596,7 +9337,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       "International Cooperation",
     ],
     summary:
-      "Drafted primarily by American lawyers in MacArthur&#39;s GHQ during the U.S. occupation and promulgated on November 3, 1946, Japan&#39;s constitution came into effect May 3, 1947. In 78 years it has never once been amended — the only major democratic constitution to hold this distinction. Its Article 9 pacifist clause creates an ongoing constitutional debate as Japan&#39;s Self-Defense Forces have grown into a substantial military force.",
+      "Drafted primarily by American lawyers in MacArthur's GHQ during the U.S. occupation and promulgated on November 3, 1946, Japan's constitution came into effect May 3, 1947. In 78 years it has never once been amended — the only major democratic constitution to hold this distinction. Its Article 9 pacifist clause creates an ongoing constitutional debate as Japan's Self-Defense Forces have grown into a substantial military force.",
     articles: [
       {
         title: "Article 1 — The Emperor as Symbol",
@@ -9607,7 +9348,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Article 9 — Renunciation of War",
         description:
-          "Aspiring sincerely to an international peace based on justice and order, the Japanese people forever renounce war as a sovereign right of the nation and the threat or use of force as means of settling international disputes. Paragraph 2: war potential shall never be maintained. The right of belligerency of the state will not be recognized. Japan&#39;s Self-Defense Forces (300,000+ personnel, ¥6.8T defense budget) exist in legal tension with this article.",
+          "Aspiring sincerely to an international peace based on justice and order, the Japanese people forever renounce war as a sovereign right of the nation and the threat or use of force as means of settling international disputes. Paragraph 2: war potential shall never be maintained. The right of belligerency of the state will not be recognized. Japan's Self-Defense Forces (300,000+ personnel, ¥6.8T defense budget) exist in legal tension with this article.",
         type: "doctrine",
       },
       {
@@ -9643,7 +9384,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Article 25 — Right to Minimum Standards of Living",
         description:
-          "All people shall have the right to maintain the minimum standards of wholesome and cultured living. In all spheres of life, the State shall use its endeavors for the promotion and extension of social welfare and security, and of public health. Foundation for Japan&#39;s universal healthcare system and comprehensive social security programs.",
+          "All people shall have the right to maintain the minimum standards of wholesome and cultured living. In all spheres of life, the State shall use its endeavors for the promotion and extension of social welfare and security, and of public health. Foundation for Japan's universal healthcare system and comprehensive social security programs.",
         type: "right",
       },
       {
@@ -9680,7 +9421,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       "Non-Alignment",
     ],
     summary:
-      "The world&#39;s longest written national constitution, with 448 articles, 12 schedules, 5 appendices, and 105 amendments. Drafted in 2 years, 11 months and 17 days by a Constituent Assembly chaired by B.R. Ambedkar, it came into force January 26, 1950 (Republic Day). Drawing from the Government of India Act 1935, the U.S., Irish, Canadian, and Australian constitutions, it was designed to hold a vast, diverse nation together through constitutional democracy and social transformation.",
+      "The world's longest written national constitution, with 448 articles, 12 schedules, 5 appendices, and 105 amendments. Drafted in 2 years, 11 months and 17 days by a Constituent Assembly chaired by B.R. Ambedkar, it came into force January 26, 1950 (Republic Day). Drawing from the Government of India Act 1935, the U.S., Irish, Canadian, and Australian constitutions, it was designed to hold a vast, diverse nation together through constitutional democracy and social transformation.",
     articles: [
       {
         title: "Preamble — The Constitutional Vision",
@@ -9711,19 +9452,19 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Union and State Legislature — Parliament",
         description:
-          "India&#39;s Parliament comprises: Rajya Sabha (Council of States, 245 members, 6-year terms, elected by state legislatures plus 12 Presidential nominees) and Lok Sabha (House of the People, 543 elected members, 5-year terms). The Prime Minister, who commands Lok Sabha majority, heads the Cabinet. A money bill (Article 110) can only originate in the Lok Sabha.",
+          "India's Parliament comprises: Rajya Sabha (Council of States, 245 members, 6-year terms, elected by state legislatures plus 12 Presidential nominees) and Lok Sabha (House of the People, 543 elected members, 5-year terms). The Prime Minister, who commands Lok Sabha majority, heads the Cabinet. A money bill (Article 110) can only originate in the Lok Sabha.",
         type: "structure",
       },
       {
         title: "Quasi-Federal Structure with Strong Centre",
         description:
-          "India&#39;s federalism is asymmetric: the Union List (97 subjects — defence, foreign affairs, banking), State List (66 subjects — police, agriculture, public health), and Concurrent List (47 subjects — education, forests, electricity). In case of conflict, Union law prevails. The Centre can assume state subjects in national emergency or if directed by Rajya Sabha resolution.",
+          "India's federalism is asymmetric: the Union List (97 subjects — defence, foreign affairs, banking), State List (66 subjects — police, agriculture, public health), and Concurrent List (47 subjects — education, forests, electricity). In case of conflict, Union law prevails. The Centre can assume state subjects in national emergency or if directed by Rajya Sabha resolution.",
         type: "structure",
       },
       {
-        title: "Article 356 — President&#39;s Rule",
+        title: "Article 356 — President's Rule",
         description:
-          "If the President is satisfied that the government of a state cannot be carried on in accordance with the provisions of the Constitution, s/he may impose President&#39;s Rule, dismissing the state government and dissolving the Assembly. Has been invoked 100+ times since 1950 — frequently misused for political purposes until S.R. Bommai case (1994) established judicial review of proclamations.",
+          "If the President is satisfied that the government of a state cannot be carried on in accordance with the provisions of the Constitution, s/he may impose President's Rule, dismissing the state government and dissolving the Assembly. Has been invoked 100+ times since 1950 — frequently misused for political purposes until S.R. Bommai case (1994) established judicial review of proclamations.",
         type: "doctrine",
       },
       {
@@ -9749,7 +9490,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Article 370 — J&K Special Status (Abrogated 2019)",
         description:
-          "Granted Jammu and Kashmir special autonomous status, applying only specific provisions of the Indian Constitution unless J&K&#39;s own Constituent Assembly concurred. Abrogated by Presidential Order on August 5, 2019, reorganizing J&K into two Union Territories: J&K (with legislature) and Ladakh (without legislature). Upheld by Supreme Court December 2023 as constitutional.",
+          "Granted Jammu and Kashmir special autonomous status, applying only specific provisions of the Indian Constitution unless J&K's own Constituent Assembly concurred. Abrogated by Presidential Order on August 5, 2019, reorganizing J&K into two Union Territories: J&K (with legislature) and Ladakh (without legislature). Upheld by Supreme Court December 2023 as constitutional.",
         type: "principle",
         year: 2019,
       },
@@ -11019,7 +10760,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
     ],
   },
   kp: {
-    name: "Socialist Constitution of the Democratic People&#39;s Republic of Korea",
+    name: "Socialist Constitution of the Democratic People's Republic of Korea",
     adopted: 1972,
     lastAmended: 2023,
     type: "Unitary One-Party Juche State (Hereditary Dictatorship)",
@@ -11032,40 +10773,40 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       "Totalitarianism",
     ],
     summary:
-      "North Korea is not a democracy. The DPRK&#39;s constitution, adopted in 1972 under Kim Il-sung and heavily amended in 1992, 1998, 2009, 2012, 2016, 2019, and 2023, is the legal facade of a totalitarian hereditary dynasty. Real power resides in the Korean Workers&#39; Party (KWP) and its supreme leader Kim Jong-un, who holds the titles of General Secretary of the KWP, Chairman of the State Affairs Commission, and Supreme Commander of the armed forces. The constitution declares the DPRK a \'Juche-oriented socialist state\' — but all state institutions operate as instruments of KWP and supreme leader authority.",
+      "North Korea is not a democracy. The DPRK's constitution, adopted in 1972 under Kim Il-sung and heavily amended in 1992, 1998, 2009, 2012, 2016, 2019, and 2023, is the legal facade of a totalitarian hereditary dynasty. Real power resides in the Korean Workers' Party (KWP) and its supreme leader Kim Jong-un, who holds the titles of General Secretary of the KWP, Chairman of the State Affairs Commission, and Supreme Commander of the armed forces. The constitution declares the DPRK a \'Juche-oriented socialist state\' — but all state institutions operate as instruments of KWP and supreme leader authority.",
     articles: [
       {
         title: "Article 1 — DPRK as Juche-Oriented Socialist State",
         description:
-          "The Democratic People&#39;s Republic of Korea is an independent socialist state representing the interests of all the Korean people. In practice, it is a one-party state ruled by the Korean Workers&#39; Party with no multi-party elections, no independent courts, and no free press. The word \'democratic\' in the name reflects Soviet-era naming conventions, not electoral democracy.",
+          "The Democratic People's Republic of Korea is an independent socialist state representing the interests of all the Korean people. In practice, it is a one-party state ruled by the Korean Workers' Party with no multi-party elections, no independent courts, and no free press. The word \'democratic\' in the name reflects Soviet-era naming conventions, not electoral democracy.",
         type: "doctrine",
       },
       {
         title: "Juche Ideology — State Philosophy",
         description:
-          "Juche (self-reliance) was developed by Kim Il-sung as the DPRK&#39;s official state ideology, placing it above Marxism-Leninism. It holds that the masses are the master of their destiny only when guided by the supreme leader. The 1992 amendment removed references to Marxism-Leninism and replaced them with Juche. Kimilsungism-Kimjongilism was added in the 2012 amendment following Kim Jong-il&#39;s death.",
+          "Juche (self-reliance) was developed by Kim Il-sung as the DPRK's official state ideology, placing it above Marxism-Leninism. It holds that the masses are the master of their destiny only when guided by the supreme leader. The 1992 amendment removed references to Marxism-Leninism and replaced them with Juche. Kimilsungism-Kimjongilism was added in the 2012 amendment following Kim Jong-il's death.",
         type: "doctrine",
       },
       {
         title: "Songun — Military-First Policy",
         description:
-          "Songun (military-first) was adopted as state policy under Kim Jong-il and codified constitutionally in 1998. It prioritizes the Korean People&#39;s Army in all political, economic, and social affairs. Defense spending consumes an estimated 15–25% of GDP. North Korea maintains 1.28 million active troops — the world&#39;s fourth largest military.",
+          "Songun (military-first) was adopted as state policy under Kim Jong-il and codified constitutionally in 1998. It prioritizes the Korean People's Army in all political, economic, and social affairs. Defense spending consumes an estimated 15–25% of GDP. North Korea maintains 1.28 million active troops — the world's fourth largest military.",
         type: "doctrine",
       },
       {
         title: "Supreme Leader — Kim Jong-un",
         description:
-          "Kim Jong-un assumed power in 2011 upon his father&#39;s death and holds three supreme positions: General Secretary of the Korean Workers&#39; Party (established 1949), Chairman of the State Affairs Commission, and Supreme Commander of the KPA. The 2012 constitution explicitly designated the Kim family&#39;s political lineage as the foundation of DPRK statehood. There is no constitutional term limit or electoral mechanism to remove him.",
+          "Kim Jong-un assumed power in 2011 upon his father's death and holds three supreme positions: General Secretary of the Korean Workers' Party (established 1949), Chairman of the State Affairs Commission, and Supreme Commander of the KPA. The 2012 constitution explicitly designated the Kim family's political lineage as the foundation of DPRK statehood. There is no constitutional term limit or electoral mechanism to remove him.",
         type: "structure",
       },
       {
-        title: "Korean Workers&#39; Party (KWP) Supremacy",
+        title: "Korean Workers' Party (KWP) Supremacy",
         description:
-          "The KWP is constitutionally the \'guiding force of the state and society.\' The Party&#39;s Political Bureau Presidium, currently led by Kim Jong-un, makes all significant policy decisions. The Supreme People&#39;s Assembly (SPA) — the nominal legislature — meets only 1–2 days per year and unanimously rubber-stamps KWP decisions. All candidates for the SPA run unopposed.",
+          "The KWP is constitutionally the \'guiding force of the state and society.\' The Party's Political Bureau Presidium, currently led by Kim Jong-un, makes all significant policy decisions. The Supreme People's Assembly (SPA) — the nominal legislature — meets only 1–2 days per year and unanimously rubber-stamps KWP decisions. All candidates for the SPA run unopposed.",
         type: "structure",
       },
       {
-        title: "Supreme People&#39;s Assembly — Nominal Legislature",
+        title: "Supreme People's Assembly — Nominal Legislature",
         description:
           "The SPA has 687 deputies elected every 5 years in elections where a single KWP-approved candidate appears on each ballot. Voter turnout is reported at 99.99%. The SPA formally appoints the Cabinet (Naegak) and ratifies constitutional amendments. Real legislative authority rests with the KWP Secretariat and the State Affairs Commission.",
         type: "structure",
@@ -11079,7 +10820,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Songbun — Hereditary Social Classification",
         description:
-          "Not in the constitution but codified in practice: Songbun is a three-tier hereditary loyalty classification (core/wavering/hostile) assigned based on a family&#39;s perceived loyalty to the Kim regime dating from the Korean War era. Songbun determines access to food, education, residence, employment, and Party membership — affecting all 26 million citizens across generations.",
+          "Not in the constitution but codified in practice: Songbun is a three-tier hereditary loyalty classification (core/wavering/hostile) assigned based on a family's perceived loyalty to the Kim regime dating from the Korean War era. Songbun determines access to food, education, residence, employment, and Party membership — affecting all 26 million citizens across generations.",
         type: "doctrine",
       },
       {
@@ -11096,9 +10837,9 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
         type: "principle",
       },
       {
-        title: "Korean People&#39;s Army — Constitutional Role",
+        title: "Korean People's Army — Constitutional Role",
         description:
-          "The KPA is constitutionally the defender of the revolution and the state, under the direct command of the Supreme Commander (Kim Jong-un). Mandatory military service applies to men (10 years) and women (7 years). The DPRK&#39;s military expenditure relative to GDP is among the highest globally, sustaining a nuclear weapons program, ballistic missile forces, and asymmetric cyber capabilities (Lazarus Group).",
+          "The KPA is constitutionally the defender of the revolution and the state, under the direct command of the Supreme Commander (Kim Jong-un). Mandatory military service applies to men (10 years) and women (7 years). The DPRK's military expenditure relative to GDP is among the highest globally, sustaining a nuclear weapons program, ballistic missile forces, and asymmetric cyber capabilities (Lazarus Group).",
         type: "structure",
       },
       {
@@ -11122,7 +10863,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       "Social Pluralism",
     ],
     summary:
-      "Brazil&#39;s seventh constitution was promulgated October 5, 1988 following 21 years (1964–1985) of military dictatorship. Nicknamed the \'Citizen Constitution\' by Assembly President Ulysses Guimarães, it is one of the world&#39;s most detailed constitutions (250 articles + 97 transitional provisions), enshrining an unusually extensive bill of social rights. It has been amended 109 times (as of 2023) — a reflection of Brazil&#39;s dynamic political environment.",
+      "Brazil's seventh constitution was promulgated October 5, 1988 following 21 years (1964–1985) of military dictatorship. Nicknamed the \'Citizen Constitution\' by Assembly President Ulysses Guimarães, it is one of the world's most detailed constitutions (250 articles + 97 transitional provisions), enshrining an unusually extensive bill of social rights. It has been amended 109 times (as of 2023) — a reflection of Brazil's dynamic political environment.",
     articles: [
       {
         title: "Article 1 — Founding Principles",
@@ -11133,19 +10874,19 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Article 3 — Fundamental Objectives",
         description:
-          "The Republic&#39;s objectives are: (I) build a free, just, and united society; (II) guarantee national development; (III) eradicate poverty and marginalization and reduce social and regional inequalities; (IV) promote the well-being of all, without prejudice based on origin, race, sex, color, age, or any other form of discrimination. Unique for inscribing social transformation goals directly into constitutional text.",
+          "The Republic's objectives are: (I) build a free, just, and united society; (II) guarantee national development; (III) eradicate poverty and marginalization and reduce social and regional inequalities; (IV) promote the well-being of all, without prejudice based on origin, race, sex, color, age, or any other form of discrimination. Unique for inscribing social transformation goals directly into constitutional text.",
         type: "principle",
       },
       {
         title: "Article 5 — Fundamental Rights (78 clauses)",
         description:
-          "The most expansive constitutional rights article in the world. All persons are equal before the law. Specific rights include: inviolability of home; privacy and honor; freedom of conscience and religion; free manifestation of thought; right of reply; right of assembly; right of association; opposition to torture; habeas corpus; habeas data (unique: right to access one&#39;s own government file); mandado de injunção (compels legislation to give effect to constitutional rights).",
+          "The most expansive constitutional rights article in the world. All persons are equal before the law. Specific rights include: inviolability of home; privacy and honor; freedom of conscience and religion; free manifestation of thought; right of reply; right of assembly; right of association; opposition to torture; habeas corpus; habeas data (unique: right to access one's own government file); mandado de injunção (compels legislation to give effect to constitutional rights).",
         type: "right",
       },
       {
         title: "Article 6 — Social Rights",
         description:
-          "Social rights are: education, health, food, work, housing, transport, leisure, security, social security (previdência social), protection of motherhood and childhood, and assistance to the destitute. \'Food\' and \'transport\' were added by amendments (2010 and 2015 respectively), reflecting constitutional amendment as a social policy tool. Brazil&#39;s Bolsa Família program operates under this mandate.",
+          "Social rights are: education, health, food, work, housing, transport, leisure, security, social security (previdência social), protection of motherhood and childhood, and assistance to the destitute. \'Food\' and \'transport\' were added by amendments (2010 and 2015 respectively), reflecting constitutional amendment as a social policy tool. Brazil's Bolsa Família program operates under this mandate.",
         type: "right",
       },
       {
@@ -11157,7 +10898,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Federal Structure — Articles 18-36",
         description:
-          "Brazil&#39;s federation comprises: 26 states + Federal District + 5,570 municipalities, all constitutionally recognized as autonomous federative entities with self-governance, self-taxation, and self-legislation. Municipalities are uniquely granted federated status — rare globally. Powers are divided among Union (exclusive), states (residual), and concurrent (Union + states), and municipalities (local interest).",
+          "Brazil's federation comprises: 26 states + Federal District + 5,570 municipalities, all constitutionally recognized as autonomous federative entities with self-governance, self-taxation, and self-legislation. Municipalities are uniquely granted federated status — rare globally. Powers are divided among Union (exclusive), states (residual), and concurrent (Union + states), and municipalities (local interest).",
         type: "structure",
       },
       {
@@ -11169,17 +10910,17 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Article 225 — Environmental Rights",
         description:
-          "Everyone has the right to an ecologically balanced environment, which is a public good for the people&#39;s use and essential to a healthy quality of life. Both the Government and the community have a duty to defend and preserve it for present and future generations. Additionally: the Amazon Forest, Atlantic Forest, Serra do Mar, Pantanal, and coastal zone are \'national heritage\' requiring special protection.",
+          "Everyone has the right to an ecologically balanced environment, which is a public good for the people's use and essential to a healthy quality of life. Both the Government and the community have a duty to defend and preserve it for present and future generations. Additionally: the Amazon Forest, Atlantic Forest, Serra do Mar, Pantanal, and coastal zone are \'national heritage\' requiring special protection.",
         type: "doctrine",
       },
       {
         title: "Articles 196-200 — Right to Health",
         description:
-          "Health is the right of all and the duty of the State, guaranteed through social and economic policies aimed at reducing illness risk. Created the Sistema Único de Saúde (SUS), Brazil&#39;s universal public health system — one of the world&#39;s largest. 2023: SUS serves 150+ million people. Courts frequently compel the state to provide specific medications or procedures under this constitutional right.",
+          "Health is the right of all and the duty of the State, guaranteed through social and economic policies aimed at reducing illness risk. Created the Sistema Único de Saúde (SUS), Brazil's universal public health system — one of the world's largest. 2023: SUS serves 150+ million people. Courts frequently compel the state to provide specific medications or procedures under this constitutional right.",
         type: "right",
       },
       {
-        title: "Articles 231-232 — Indigenous Peoples&#39; Rights",
+        title: "Articles 231-232 — Indigenous Peoples' Rights",
         description:
           "The Indians are recognized their social organization, customs, languages, creeds and traditions, and the original rights over the lands they traditionally occupy, which the Union is obliged to demarcate and protect. The concept of \'marco temporal\' (temporal milestone) — debated in the STF — would have limited indigenous land claims to areas occupied in 1988; the STF rejected this in 2023, restoring broader protections.",
         type: "right",
@@ -13511,60 +13252,6 @@ const COUNTRY_LEGAL_STATUS: Record<string, CountryLegalStatus> = {
       },
     ],
   },
-  ru: {
-    items: [
-      {
-        label: "Same-sex marriage/relationships",
-        status: "illegal",
-        note: "'LGBT movement' designated extremist organization Nov 2023",
-      },
-      {
-        label: "Abortion",
-        status: "legal",
-        note: "Up to 12 weeks; government restricting access in some regions",
-      },
-      {
-        label: "Cannabis",
-        status: "illegal",
-        note: "Strictly prohibited; criminal penalties",
-      },
-      {
-        label: "Death penalty",
-        status: "restricted",
-        note: "Moratorium since 1996; Chechen republic reportedly uses it",
-      },
-      {
-        label: "Gun ownership",
-        status: "restricted",
-        note: "Permitted with license; handguns for self-defense limited",
-      },
-      {
-        label: "Criticizing the war in Ukraine",
-        status: "illegal",
-        note: "'Discrediting the army' law 2022; up to 15 years imprisonment",
-      },
-      {
-        label: "'Gay propaganda' promotion",
-        status: "illegal",
-        note: "Extended to all ages in 2023",
-      },
-      {
-        label: "VPN usage",
-        status: "restricted",
-        note: "Unauthorized VPNs blocked; use is technically restricted",
-      },
-      {
-        label: "Gambling",
-        status: "restricted",
-        note: "Legal in 4 special zones only; online gambling banned",
-      },
-      {
-        label: "Sex work",
-        status: "illegal",
-        note: "Criminalized under Administrative Code",
-      },
-    ],
-  },
   kp: {
     items: [
       {
@@ -15839,7 +15526,7 @@ const COUNTRY_PHOTOS: Record<string, { url: string; caption: string }[]> = {
     },
     {
       url: "https://images.unsplash.com/photo-1513415277900-a62401e19be4?w=800&q=80",
-      caption: "Terracotta Army, Xi&#39;an",
+      caption: "Terracotta Army, Xi'an",
     },
     {
       url: "https://images.unsplash.com/photo-1568275279434-ee8948fe7d63?w=800&q=80",
@@ -15983,7 +15670,7 @@ const COUNTRY_PHOTOS: Record<string, { url: string; caption: string }[]> = {
     },
     {
       url: "https://images.unsplash.com/photo-1556983703-27576e5afa24?w=800&q=80",
-      caption: "St. Basil&#39;s Cathedral, Moscow",
+      caption: "St. Basil's Cathedral, Moscow",
     },
     {
       url: "https://images.unsplash.com/photo-1529988885170-24e5c8571f91?w=800&q=80",
@@ -16017,7 +15704,7 @@ const COUNTRY_PHOTOS: Record<string, { url: string; caption: string }[]> = {
     },
     {
       url: "https://images.unsplash.com/photo-1590001155093-a3c66ab0c3ff?w=800&q=80",
-      caption: "Hegra (Mada&#39;in Saleh)",
+      caption: "Hegra (Mada'in Saleh)",
     },
     {
       url: "https://images.unsplash.com/photo-1620459482813-91de1d2f9892?w=800&q=80",
@@ -17246,37 +16933,6 @@ const COUNTRY_EDUCATION: Record<string, CountryEducationData> = {
     ],
     eduNotes:
       "Oxford and Cambridge ('Oxbridge') are the world's most prestigious universities by most rankings. The Russell Group (24 research-intensive universities) drives UK research output.",
-  },
-  fr: {
-    globalEduRank: 5,
-    literacyRate: 99,
-    avgSchoolingYears: 12.2,
-    pisaScore: 474,
-    topUniversities: [
-      {
-        name: "Université PSL (Paris Sciences & Lettres)",
-        rankTag: "#24 World (QS)",
-        type: "Research",
-      },
-      {
-        name: "École Polytechnique (X)",
-        rankTag: "#59 World",
-        type: "Technical",
-      },
-      {
-        name: "École Normale Supérieure (ENS Paris)",
-        rankTag: "Top 60 ARWU",
-        type: "Research",
-      },
-      { name: "Sorbonne Université", rankTag: "Top 80 ARWU", type: "Research" },
-      {
-        name: "Sciences Po Paris",
-        rankTag: "#1 Social Sciences FR",
-        type: "Research",
-      },
-    ],
-    eduNotes:
-      "Grandes Écoles (Polytechnique, HEC, ENA/INSP, ENS) are more prestigious than universities in France. Most public universities free. ~70% of Nobel prizes in science from Grandes Écoles alumni.",
   },
   jp: {
     globalEduRank: 6,
@@ -20635,30 +20291,6 @@ const COUNTRY_HOUSING_TRANSPORT: Record<string, CountryHousingTransport> = {
     },
   },
   // ── Europe (additional) ──────────────────────────────────────────────────
-  es: {
-    housing: {
-      medianHomePriceUSD: 260000,
-      medianRentMonthlyUSD: 980,
-      homeOwnershipPct: 76.0,
-      priceToIncomeRatio: 10.4,
-      yoyPriceChangePct: 7.2,
-      affordabilityIndex: 38,
-      vacancyRatePct: 14.4,
-      socialHousingPct: 2.5,
-      mortgageRateAvgPct: 4.8,
-    },
-    transport: {
-      publicTransitUsagePct: 32,
-      roadDensityKmPer100km2: 120,
-      railNetworkKm: 15000,
-      airports: 47,
-      seaports: 46,
-      evAdoptionPct: 5.8,
-      avgCommuteMinutes: 36,
-      highSpeedRailKm: 3900,
-      metroSystems: 4,
-    },
-  },
   nl: {
     housing: {
       medianHomePriceUSD: 430000,
@@ -25591,23 +25223,6 @@ const COUNTRY_INFRA_STATS: Record<string, InfraStats> = {
     overallInfraScore: 22,
     year: 2023,
   },
-  cl: {
-    electricityAccessPct: 100,
-    installedCapacityGW: 32,
-    powerOutagesPerYearBusiness: 8.6,
-    safeWaterAccessPct: 99,
-    sanitationAccessPct: 97,
-    mobileSubscriptionsPer100: 138,
-    broadbandPer100: 24,
-    dataSpeedMbps: 78,
-    pavedRoadsPct: 25,
-    logisticsIndex: 3.26,
-    hospitalBedsPerThousand: 2.2,
-    physiciansPerThousand: 2.6,
-    infraInvestmentGdpPct: 4.0,
-    overallInfraScore: 66,
-    year: 2023,
-  },
   ec: {
     electricityAccessPct: 97,
     installedCapacityGW: 8,
@@ -28569,22 +28184,6 @@ const COUNTRY_GENDER_STATS: Record<string, GenderStats> = {
     year: 2023,
   },
   // ── Europe (additional) ──────────────────────────────────────────────────
-  es: {
-    malePct: 49.3,
-    femalePct: 50.7,
-    sexRatioAtBirth: 106,
-    lifeExpectancyMale: 80.9,
-    lifeExpectancyFemale: 86.2,
-    literacyMalePct: 98.8,
-    literacyFemalePct: 98.3,
-    laborForceMalePct: 74,
-    laborForceFemale: 65,
-    parliamentFemale: 44.3,
-    wageGapPct: 11.5,
-    maternalMortality: 5,
-    femaleUniGradPct: 59,
-    year: 2023,
-  },
   nl: {
     malePct: 49.5,
     femalePct: 50.5,
@@ -30894,22 +30493,6 @@ const COUNTRY_GENDER_STATS: Record<string, GenderStats> = {
     wageGapPct: 22,
     maternalMortality: 335,
     femaleUniGradPct: 42,
-    year: 2023,
-  },
-  zm: {
-    malePct: 50.1,
-    femalePct: 49.9,
-    sexRatioAtBirth: 103,
-    lifeExpectancyMale: 59.8,
-    lifeExpectancyFemale: 63.2,
-    literacyMalePct: 85.3,
-    literacyFemalePct: 72.8,
-    laborForceMalePct: 74,
-    laborForceFemale: 60,
-    parliamentFemale: 15.2,
-    wageGapPct: 22,
-    maternalMortality: 278,
-    femaleUniGradPct: 36,
     year: 2023,
   },
   zw: {

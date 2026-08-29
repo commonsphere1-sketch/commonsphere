@@ -175,7 +175,7 @@ export const conflictsData: Conflict[] = [
     startYear: 2023,
     active: true,
     description:
-      "Military conflict ignited by Hamas&#39;s October 7, 2023 attack on Israel, followed by a massive Israeli ground and air offensive in the Gaza Strip. Escalated to include Hezbollah in Lebanon and regional proxy exchanges.",
+      "Military conflict ignited by Hamas's October 7, 2023 attack on Israel, followed by a massive Israeli ground and air offensive in the Gaza Strip. Escalated to include Hezbollah in Lebanon and regional proxy exchanges.",
     casualties: 45000,
     displaced: 1.9,
     tags: [
@@ -375,7 +375,7 @@ export const conflictsData: Conflict[] = [
     startYear: 2021,
     active: true,
     description:
-      "Intensified multi-front civil war following the 2021 military coup. Armed resistance by the People&#39;s Defence Force and ethnic armed organizations has dramatically expanded in 2023–24, with the junta losing territory.",
+      "Intensified multi-front civil war following the 2021 military coup. Armed resistance by the People's Defence Force and ethnic armed organizations has dramatically expanded in 2023–24, with the junta losing territory.",
     casualties: 50000,
     displaced: 2.6,
     tags: ["military junta", "ethnic armies", "coup", "resistance"],
@@ -470,7 +470,7 @@ export const conflictsData: Conflict[] = [
     startYear: 2020,
     active: false,
     description:
-      "Two-year war between the Ethiopian government and Tigray People&#39;s Liberation Front. Ceasefire signed in November 2022, but fragile peace remains with ongoing Amhara and Oromia unrest.",
+      "Two-year war between the Ethiopian government and Tigray People's Liberation Front. Ceasefire signed in November 2022, but fragile peace remains with ongoing Amhara and Oromia unrest.",
     casualties: 300000,
     displaced: 2.2,
     tags: ["TPLF", "ceasefire", "famine risk", "Amhara"],
@@ -818,7 +818,7 @@ export const conflictsData: Conflict[] = [
     startYear: 2020,
     active: false,
     description:
-      "Azerbaijan&#39;s September 2023 offensive retook all of Nagorno-Karabakh, ending Armenian control. Over 100,000 Armenians fled. Peace negotiations ongoing over final borders.",
+      "Azerbaijan's September 2023 offensive retook all of Nagorno-Karabakh, ending Armenian control. Over 100,000 Armenians fled. Peace negotiations ongoing over final borders.",
     casualties: 7000,
     displaced: 0.1,
     tags: ["ceasefire", "Armenia", "Azerbaijan", "peace talks"],
@@ -939,7 +939,7 @@ export const conflictsData: Conflict[] = [
     startYear: 2021,
     active: true,
     description:
-      "Armed gang coalitions control much of Port-au-Prince after PM Ariel Henry&#39;s resignation in 2024. Kenya-led multinational security mission deployed. State near collapse.",
+      "Armed gang coalitions control much of Port-au-Prince after PM Ariel Henry's resignation in 2024. Kenya-led multinational security mission deployed. State near collapse.",
     casualties: 5000,
     displaced: 0.6,
     tags: ["gangs", "state collapse", "Kenya mission", "MSS"],
@@ -992,7 +992,7 @@ export const conflictsData: Conflict[] = [
     startYear: 2023,
     active: false,
     description:
-      "Devastating M7.8 earthquake struck on February 6, 2023. Over 59,000 killed, 100,000+ buildings destroyed. Reconstruction ongoing; worst natural disaster in Turkey&#39;s modern history.",
+      "Devastating M7.8 earthquake struck on February 6, 2023. Over 59,000 killed, 100,000+ buildings destroyed. Reconstruction ongoing; worst natural disaster in Turkey's modern history.",
     casualties: 59259,
     displaced: 3.5,
     tags: ["earthquake", "reconstruction", "WHO response"],
@@ -1049,7 +1049,7 @@ export const conflictsData: Conflict[] = [
     startYear: 2023,
     active: false,
     description:
-      "Multiple severe earthquakes struck Herat province in October 2023, killing over 1,400. Taliban restrictions on female aid workers hampered relief. Afghanistan remains the world&#39;s worst humanitarian crisis.",
+      "Multiple severe earthquakes struck Herat province in October 2023, killing over 1,400. Taliban restrictions on female aid workers hampered relief. Afghanistan remains the world's worst humanitarian crisis.",
     casualties: 1400,
     displaced: 0.2,
     tags: ["earthquake", "Taliban", "humanitarian access"],
@@ -1087,7 +1087,7 @@ export const conflictsData: Conflict[] = [
     startYear: 2023,
     active: true,
     description:
-      "Annual inflation reached 211% in 2023. President Milei implemented deep austerity under the &#39;chainsaw plan.&#39; IMF negotiations, peso devaluation, and social unrest from spending cuts continue.",
+      "Annual inflation reached 211% in 2023. President Milei implemented deep austerity under the 'chainsaw plan.' IMF negotiations, peso devaluation, and social unrest from spending cuts continue.",
     tags: ["hyperinflation", "Milei", "IMF", "austerity"],
     lastUpdate: "2026-04",
     trend: "De-escalating",
@@ -1149,7 +1149,7 @@ export const conflictsData: Conflict[] = [
   },
   {
     id: "pakistan-debt-crisis",
-    name: "Pakistan Debt &amp; IMF Crisis",
+    name: "Pakistan Debt & IMF Crisis",
     type: "Economic Crisis",
     intensity: "High",
     region: "South Asia",
@@ -1315,9 +1315,9 @@ export const conflictsData: Conflict[] = [
     startYear: 2022,
     active: false,
     description:
-      "Mass protests erupted in September 2022 following Mahsa Amini&#39;s death in morality police custody. Hundreds killed, thousands arrested. Movement reframed as revolution; suppressed by late 2023.",
+      "Mass protests erupted in September 2022 following Mahsa Amini's death in morality police custody. Hundreds killed, thousands arrested. Movement reframed as revolution; suppressed by late 2023.",
     casualties: 530,
-    tags: ["women&#39;s rights", "hijab", "protests", "crackdown"],
+    tags: ["women's rights", "hijab", "protests", "crackdown"],
     lastUpdate: "2025-12",
     trend: "De-escalating",
     lat: 35.7,
@@ -1490,7 +1490,7 @@ export const conflictsData: Conflict[] = [
   },
   {
     id: "china-tech-crackdown",
-    name: "China – Xinjiang &amp; Hong Kong Suppression",
+    name: "China – Xinjiang & Hong Kong Suppression",
     type: "Political Instability",
     intensity: "Medium",
     region: "East Asia",

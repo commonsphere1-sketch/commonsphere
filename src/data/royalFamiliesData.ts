@@ -49,7 +49,7 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     keyFacts: [
       "Head of State of 14 Commonwealth Realms including Australia, Canada, New Zealand",
       "First British monarch to be a grandfather before becoming king",
-      "The Prince&#39;s Trust has helped over 1 million young people since 1976",
+      "The Prince's Trust has helped over 1 million young people since 1976",
       "Diagnosed with cancer in early 2024 — continued public duties during treatment",
       "Coronation at Westminster Abbey, May 2023 — first coronation in 70 years",
     ],
@@ -125,7 +125,7 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
       "Married Australian-born Queen Mary — boosted royal popularity",
       "Served in the Danish Frogman Corps (special forces)",
       "Greenland sovereignty question intensified during his reign",
-      "Denmark&#39;s constitution places him as head of state with limited executive powers",
+      "Denmark's constitution places him as head of state with limited executive powers",
     ],
     spouses: ["Queen Mary of Denmark, née Mary Donaldson (2004–present)"],
     children: [
@@ -161,7 +161,7 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
       "Reigned 52 years — longest-serving Danish monarch",
       "First Danish abdication in 900 years",
       "Accomplished artist, watercolourist, and translator",
-      "Translated Simone de Beauvoir&#39;s works and J.R.R. Tolkien&#39;s Lord of the Rings into Danish",
+      "Translated Simone de Beauvoir's works and J.R.R. Tolkien's Lord of the Rings into Danish",
       "Her husband Prince Henrik died 2018 — declined to be buried beside her",
     ],
     spouses: ["Prince Henrik of Denmark (1967–2018, his death)"],
@@ -188,11 +188,11 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     systemType: "Constitutional",
     religionRole: "No formal religious role",
     background:
-      "The first Dutch king in 123 years — his mother Queen Beatrix abdicated in 2013. Former international water management expert with an MSc in History from Leiden University. Passionate about aviation — secretly held a commercial pilot&#39;s license for years. Married Máxima Zorreguieta of Argentina in 2002.",
+      "The first Dutch king in 123 years — his mother Queen Beatrix abdicated in 2013. Former international water management expert with an MSc in History from Leiden University. Passionate about aviation — secretly held a commercial pilot's license for years. Married Máxima Zorreguieta of Argentina in 2002.",
     keyFacts: [
       "First Dutch king since 1890 when Beatrix abdicated",
-      "International water expert — chaired UN Secretary-General&#39;s Advisory Board on Water",
-      "Holds a commercial pilot&#39;s license — flew KLM passengers in secret for years",
+      "International water expert — chaired UN Secretary-General's Advisory Board on Water",
+      "Holds a commercial pilot's license — flew KLM passengers in secret for years",
       "Married Queen Máxima, Argentine-born, in 2002",
       "Three daughters: Princesses Amalia, Alexia, and Ariane",
     ],
@@ -224,12 +224,12 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     systemType: "Constitutional",
     religionRole: "No formal religious role",
     background:
-      "Succeeded his father King Albert II who abdicated in 2013. Former F-16 fighter pilot and paratrooper. Speaks fluent Dutch, French, English and German. Has navigated Belgium&#39;s complex linguistic divide between Flemish and Walloon communities. His daughter Princess Elisabeth trained at the Royal Military Academy.",
+      "Succeeded his father King Albert II who abdicated in 2013. Former F-16 fighter pilot and paratrooper. Speaks fluent Dutch, French, English and German. Has navigated Belgium's complex linguistic divide between Flemish and Walloon communities. His daughter Princess Elisabeth trained at the Royal Military Academy.",
     keyFacts: [
       "King of a deeply divided federal state — French and Dutch speaking communities",
       "Former F-16 fighter pilot and qualified paratrooper",
       "Fluent in 4 languages — essential for governing a bilingual kingdom",
-      "Issued Belgium&#39;s first formal apology for colonial abuses in Congo (2020)",
+      "Issued Belgium's first formal apology for colonial abuses in Congo (2020)",
       "Daughter Elisabeth is first female heir in Belgian history",
     ],
     spouses: ["Queen Mathilde of Belgium (1999–present)"],
@@ -262,9 +262,9 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     religionRole:
       "No formal religious role (Sweden severed state–church tie in 2000)",
     background:
-      "Europe&#39;s longest-reigning monarch. Became king at 27 after his grandfather King Gustaf VI Adolf died. The 1974 Instrument of Government removed all governmental powers from the monarch — making Sweden&#39;s king purely ceremonial. Known for his commitment to environmental sustainability. Married Silvia Sommerlath, a German commoner, in 1976.",
+      "Europe's longest-reigning monarch. Became king at 27 after his grandfather King Gustaf VI Adolf died. The 1974 Instrument of Government removed all governmental powers from the monarch — making Sweden's king purely ceremonial. Known for his commitment to environmental sustainability. Married Silvia Sommerlath, a German commoner, in 1976.",
     keyFacts: [
-      "Europe&#39;s longest-reigning living monarch — over 51 years on the throne",
+      "Europe's longest-reigning living monarch — over 51 years on the throne",
       "1974 constitutional reform stripped monarch of all political power",
       "Father of three children; Crown Princess Victoria is heiress",
       "Strong environmental advocate — scout and nature ambassador",
@@ -298,13 +298,13 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     systemType: "Constitutional",
     religionRole: "Former Head of the Church of Norway (until 2017 separation)",
     background:
-      "Became King on January 17, 1991 following his father King Olav V&#39;s death. In 2025, aged 87, he took an extended medical leave following health complications. His son Crown Prince Haakon has been handling many royal duties. Known for sailing — competed in three Olympics. Broke royal tradition by marrying a commoner, Sonja Haraldsen.",
+      "Became King on January 17, 1991 following his father King Olav V's death. In 2025, aged 87, he took an extended medical leave following health complications. His son Crown Prince Haakon has been handling many royal duties. Known for sailing — competed in three Olympics. Broke royal tradition by marrying a commoner, Sonja Haraldsen.",
     keyFacts: [
       "Broke royal tradition by refusing to marry a princess — waited 9 years for permission to marry Sonja",
       "Competed in sailing at 1964, 1968, and 1972 Olympics",
       "Extended medical leave in 2025 — Crown Prince Haakon handling duties",
-      "Norway&#39;s most admired public figure in multiple polls",
-      "His 1968 speech: &#39;All Norwegians were born equal&#39; — defining inclusivity moment",
+      "Norway's most admired public figure in multiple polls",
+      "His 1968 speech: 'All Norwegians were born equal' — defining inclusivity moment",
     ],
     spouses: ["Queen Sonja of Norway (1968–present)"],
     children: ["Crown Prince Haakon", "Princess Märtha Louise"],
@@ -335,14 +335,14 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
       "Succeeded his father Juan Carlos I who abdicated amid corruption scandals",
       "First Spanish monarch to marry a divorcee — Queen Letizia",
       "Spoke Catalan during his 2018 address after independence referendum",
-      "Stripped father Juan Carlos of state funding and King&#39;s allowance (2020)",
+      "Stripped father Juan Carlos of state funding and King's allowance (2020)",
       "Princess Leonor completed military training at military academies",
     ],
     spouses: ["Queen Letizia of Spain (2004–present)"],
     children: ["Princess Leonor of Asturias (heir)", "Princess Sofía"],
     region: "Europe",
     netWorthNote:
-      "Spanish Civil List ~€8M/year; personal assets modest; father Juan Carlos&#39;s offshore wealth controversially involved royal family",
+      "Spanish Civil List ~€8M/year; personal assets modest; father Juan Carlos's offshore wealth controversially involved royal family",
   },
   {
     id: "albert2-monaco-royal",
@@ -362,10 +362,10 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     systemType: "Semi-Constitutional",
     religionRole: "Catholic faith — Monaco is officially Catholic",
     background:
-      "Rules the world&#39;s second-smallest sovereign state (0.7 km²) and wealthiest country per capita. The Grimaldi family has ruled Monaco since 1297 — the world&#39;s oldest reigning royal dynasty. Albert is a passionate environmentalist and Olympian (bobsled). Married Charlene Wittstock of South Africa in 2011.",
+      "Rules the world's second-smallest sovereign state (0.7 km²) and wealthiest country per capita. The Grimaldi family has ruled Monaco since 1297 — the world's oldest reigning royal dynasty. Albert is a passionate environmentalist and Olympian (bobsled). Married Charlene Wittstock of South Africa in 2011.",
     keyFacts: [
-      "House of Grimaldi has ruled since 1297 — world&#39;s oldest reigning dynasty",
-      "Monaco is the world&#39;s most densely populated sovereign state",
+      "House of Grimaldi has ruled since 1297 — world's oldest reigning dynasty",
+      "Monaco is the world's most densely populated sovereign state",
       "Competed in 5 Winter Olympics as bobsledder",
       "Founded Prince Albert II of Monaco Foundation for environment",
       "Only ~38,000 citizens in 0.7 km² — no income tax for residents",
@@ -397,10 +397,10 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     systemType: "Constitutional",
     religionRole: "Catholic — Luxembourg is traditionally Catholic",
     background:
-      "Became Grand Duke in 2000 when his father Jean abdicated. Luxembourg is the world&#39;s only grand duchy. Constitutional monarch with strictly ceremonial duties. Studied political science at the University of Geneva. Married María Teresa Mestre of Cuba in 1981.",
+      "Became Grand Duke in 2000 when his father Jean abdicated. Luxembourg is the world's only grand duchy. Constitutional monarch with strictly ceremonial duties. Studied political science at the University of Geneva. Married María Teresa Mestre of Cuba in 1981.",
     keyFacts: [
-      "Head of state of the world&#39;s only grand duchy",
-      "Luxembourg has world&#39;s highest GDP per capita",
+      "Head of state of the world's only grand duchy",
+      "Luxembourg has world's highest GDP per capita",
       "Constitutional role — no political power in practice",
       "Married Grand Duchess María Teresa, born in Cuba",
       "Five children; son Guillaume is heir and married in 2012",
@@ -436,10 +436,10 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     systemType: "Semi-Constitutional",
     religionRole: "Catholic — head of the House of Liechtenstein",
     background:
-      "Europe&#39;s last truly reigning prince — holds substantial constitutional executive powers unlike most European monarchs. A constitutional reform in 2003 significantly expanded his powers. The Liechtenstein Royal Family is Europe&#39;s wealthiest royal family. Delegated day-to-day governance to son Alois in 2004 while retaining formal sovereignty.",
+      "Europe's last truly reigning prince — holds substantial constitutional executive powers unlike most European monarchs. A constitutional reform in 2003 significantly expanded his powers. The Liechtenstein Royal Family is Europe's wealthiest royal family. Delegated day-to-day governance to son Alois in 2004 while retaining formal sovereignty.",
     keyFacts: [
-      "Europe&#39;s last monarch with substantial executive constitutional powers",
-      "House of Liechtenstein is Europe&#39;s wealthiest royal family — estimated ~€7B",
+      "Europe's last monarch with substantial executive constitutional powers",
+      "House of Liechtenstein is Europe's wealthiest royal family — estimated ~€7B",
       "Liechtenstein has ~38,000 people — one of the smallest nations",
       "Privatised the state bank and postal service — runs country like a business",
       "Delegated day-to-day duties to son Alois since 2004",
@@ -475,13 +475,13 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     religionRole:
       "Custodian of the Two Holy Mosques (Mecca and Medina) — supreme religious legitimacy in Islam",
     background:
-      "Became King on January 23, 2015 following the death of his half-brother King Abdullah. At 89, health issues mean Crown Prince MBS effectively runs the government. Saudi Arabia is the world&#39;s largest oil exporter and home to Islam&#39;s two holiest sites, giving the Al Saud family immense religious and geopolitical authority.",
+      "Became King on January 23, 2015 following the death of his half-brother King Abdullah. At 89, health issues mean Crown Prince MBS effectively runs the government. Saudi Arabia is the world's largest oil exporter and home to Islam's two holiest sites, giving the Al Saud family immense religious and geopolitical authority.",
     keyFacts: [
       "Custodian of the Two Holy Mosques — highest title in Islamic world",
-      "Saudi Arabia controls 17% of world&#39;s proven oil reserves",
+      "Saudi Arabia controls 17% of world's proven oil reserves",
       "Crown Prince MBS effectively governs day-to-day",
-      "Aramco IPO in 2019 made Saudi company world&#39;s most valuable briefly",
-      "Reigned during historic first women&#39;s driving rights (2018)",
+      "Aramco IPO in 2019 made Saudi company world's most valuable briefly",
+      "Reigned during historic first women's driving rights (2018)",
     ],
     spouses: ["Multiple wives per Islamic tradition"],
     children: [
@@ -511,7 +511,7 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     religionRole:
       "Head of a Sunni royal family ruling a Shia-majority population",
     background:
-      "Transformed Bahrain from an emirate to a constitutional monarchy in 2002. Signed the Abraham Accords normalising relations with Israel in 2020. Bahrain hosts the US Navy&#39;s Fifth Fleet — critical to Gulf security architecture. Cracked down on Arab Spring protests in 2011 with Saudi military assistance.",
+      "Transformed Bahrain from an emirate to a constitutional monarchy in 2002. Signed the Abraham Accords normalising relations with Israel in 2020. Bahrain hosts the US Navy's Fifth Fleet — critical to Gulf security architecture. Cracked down on Arab Spring protests in 2011 with Saudi military assistance.",
     keyFacts: [
       "First king of Bahrain (previously emir) — introduced constitutional reforms in 2002",
       "Abraham Accords signatory — normalised Bahrain–Israel relations (2020)",
@@ -543,10 +543,10 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     systemType: "Semi-Constitutional",
     religionRole: "Head of state of predominantly Sunni Islamic nation",
     background:
-      "Became Emir on December 16, 2023 following the death of Sheikh Nawaf. Former head of intelligence. Kuwait has a relatively active parliament (National Assembly) that has clashed with the royal family repeatedly, making it one of the Gulf&#39;s more politically active monarchies. Kuwait holds ~6% of world oil reserves.",
+      "Became Emir on December 16, 2023 following the death of Sheikh Nawaf. Former head of intelligence. Kuwait has a relatively active parliament (National Assembly) that has clashed with the royal family repeatedly, making it one of the Gulf's more politically active monarchies. Kuwait holds ~6% of world oil reserves.",
     keyFacts: [
-      "Became Emir December 2023 after Sheikh Nawaf&#39;s death",
-      "Kuwait has the Gulf&#39;s most politically active parliament (National Assembly)",
+      "Became Emir December 2023 after Sheikh Nawaf's death",
+      "Kuwait has the Gulf's most politically active parliament (National Assembly)",
       "Kuwait holds ~6% of world proven oil reserves",
       "Kuwait Investment Authority manages ~$900B sovereign wealth fund",
       "Parliament dissolved multiple times by the Emir due to political deadlock",
@@ -579,10 +579,10 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
       "Succeeded the legendary Sultan Qaboos on January 11, 2020. Oxford-educated. His country plays a unique diplomatic role hosting simultaneous US military facilities, Iran back-channel negotiations, and Houthi talks. Oman Vision 2040 aims to diversify from oil dependency.",
     keyFacts: [
       "Oman maintains relations with Iran, Israel, US, and Houthis simultaneously",
-      "Oman Vision 2040 — largest economic diversification in country&#39;s history",
+      "Oman Vision 2040 — largest economic diversification in country's history",
       "Mediated 5 US–Iran prisoner swaps since 2022",
       "Ibadi Islam — unique Islamic tradition found only in Oman",
-      "World&#39;s largest planned green hydrogen project (HYNO) in Oman",
+      "World's largest planned green hydrogen project (HYNO) in Oman",
     ],
     spouses: ["Her Highness Ahad bint Abdullah Al Busaidiyah"],
     children: ["Theyazin bin Haitham (designated heir)"],
@@ -607,14 +607,14 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
       "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/King_Abdullah_II_of_Jordan_%28cropped%29.jpg/440px-King_Abdullah_II_of_Jordan_%28cropped%29.jpg",
     systemType: "Semi-Constitutional",
     religionRole:
-      "Custodian of Jerusalem&#39;s Islamic and Christian holy sites (Waqf authority)",
+      "Custodian of Jerusalem's Islamic and Christian holy sites (Waqf authority)",
     background:
-      "The Hashemite dynasty traces its lineage directly to the Prophet Mohammed, giving King Abdullah exceptional religious authority. Custodian of the Islamic and Christian holy sites in Jerusalem. Jordanians are among the world&#39;s highest-per-capita refugee hosts (1.3M+ Syrians). Jordan intercepted Iranian drones targeting Israel in April 2024.",
+      "The Hashemite dynasty traces its lineage directly to the Prophet Mohammed, giving King Abdullah exceptional religious authority. Custodian of the Islamic and Christian holy sites in Jerusalem. Jordanians are among the world's highest-per-capita refugee hosts (1.3M+ Syrians). Jordan intercepted Iranian drones targeting Israel in April 2024.",
     keyFacts: [
       "Direct descendant of the Prophet Mohammed — Hashemite lineage",
-      "Custodian of Jerusalem&#39;s Islamic and Christian holy sites",
+      "Custodian of Jerusalem's Islamic and Christian holy sites",
       "Jordanian Air Force pilot — personally flew combat missions vs ISIS",
-      "Hosts 1.3M+ Syrian refugees — world&#39;s second highest per capita",
+      "Hosts 1.3M+ Syrian refugees — world's second highest per capita",
       "Maintained Israel peace treaty for 30+ years despite public opposition",
     ],
     spouses: ["Queen Rania Al Abdullah (1993–present)"],
@@ -651,7 +651,7 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
       "Qatar hosts US military HQ (CENTCOM) and Hamas political bureau simultaneously",
       "Hosted 2022 FIFA World Cup — first Arab nation ever",
       "Al Jazeera Arabic — most watched Arabic news network globally",
-      "Qatar&#39;s North Field — largest single natural gas reservoir in the world",
+      "Qatar's North Field — largest single natural gas reservoir in the world",
       "Survived 3.5-year Saudi/UAE/Egypt blockade (2017–2021)",
     ],
     spouses: ["Multiple wives per Islamic tradition"],
@@ -678,13 +678,13 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     systemType: "Absolute",
     religionRole: "Head of state in majority Sunni Islamic state",
     background:
-      "Known as MBZ. The de facto ruler of the UAE for nearly two decades before officially becoming President in 2022. Third son of UAE founder Sheikh Zayed. Architect of the UAE&#39;s transformation into a regional military, financial, and tech hub. Sandhurst-trained military officer.",
+      "Known as MBZ. The de facto ruler of the UAE for nearly two decades before officially becoming President in 2022. Third son of UAE founder Sheikh Zayed. Architect of the UAE's transformation into a regional military, financial, and tech hub. Sandhurst-trained military officer.",
     keyFacts: [
       "Architect of modern UAE — from desert federation to global city hub",
       "Abraham Accords signatory — UAE normalised with Israel in 2020",
-      "UAE&#39;s Hope Mars Mission — first Arab interplanetary spacecraft",
+      "UAE's Hope Mars Mission — first Arab interplanetary spacecraft",
       "Abu Dhabi Investment Authority (ADIA) manages ~$1T in assets",
-      "Positioned UAE as world&#39;s leading AI and tech investment hub",
+      "Positioned UAE as world's leading AI and tech investment hub",
     ],
     spouses: ["Sheikha Fatima bint Mubarak Al Ketbi (senior wife) and others"],
     children: [
@@ -715,10 +715,10 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     religionRole:
       "High Priest of State Shinto — performs ancient Shinto rituals for the state",
     background:
-      "Japan&#39;s 126th emperor, ascending to the Chrysanthemum Throne in May 2019 when his father Akihito abdicated — the first abdication in 200 years. The Imperial House of Japan is the world&#39;s oldest continuous hereditary monarchy — over 2,600 years. Oxford-educated historian who specialises in water transport history.",
+      "Japan's 126th emperor, ascending to the Chrysanthemum Throne in May 2019 when his father Akihito abdicated — the first abdication in 200 years. The Imperial House of Japan is the world's oldest continuous hereditary monarchy — over 2,600 years. Oxford-educated historian who specialises in water transport history.",
     keyFacts: [
       "126th emperor — oldest continuous imperial dynasty in the world (2,600+ years)",
-      "Father Akihito&#39;s abdication in 2019 was first in 200 years",
+      "Father Akihito's abdication in 2019 was first in 200 years",
       "Oxford-educated — studied at Merton College, wrote thesis on Thames transport",
       "Imperial succession crisis — only male-line succession allowed by law",
       "Deep Shinto ceremonial role — performs ancient court rituals",
@@ -751,10 +751,10 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     systemType: "Absolute",
     religionRole: "Head of Islam in Brunei — Supreme Defender of the Faith",
     background:
-      "One of the world&#39;s longest-reigning monarchs and for decades its wealthiest individual. Rules an absolute monarchy — also serving as Prime Minister, Finance Minister, and Defence Minister. Known for the Istana Nurul Iman — the world&#39;s largest residential palace (1,788 rooms). Implemented sharia criminal law in 2019.",
+      "One of the world's longest-reigning monarchs and for decades its wealthiest individual. Rules an absolute monarchy — also serving as Prime Minister, Finance Minister, and Defence Minister. Known for the Istana Nurul Iman — the world's largest residential palace (1,788 rooms). Implemented sharia criminal law in 2019.",
     keyFacts: [
-      "58+ year reign — among the world&#39;s longest-reigning monarchs",
-      "Istana Nurul Iman — world&#39;s largest residential palace with 1,788 rooms",
+      "58+ year reign — among the world's longest-reigning monarchs",
+      "Istana Nurul Iman — world's largest residential palace with 1,788 rooms",
       "No income tax in Brunei — oil wealth distributed as citizen welfare",
       "Also serves as own Prime Minister, Finance Minister, and Defence Minister",
       "2019 sharia law implementation including death penalty clauses — triggered boycotts",
@@ -787,12 +787,12 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     systemType: "Constitutional",
     religionRole: "Defender and Patron of Buddhism in Thailand",
     background:
-      "Became king on October 13, 2016 following the death of his father King Bhumibol Adulyadej, one of the most revered monarchs in the world. Vajiralongkorn is a trained military officer and commercial pilot. He is controversial — spends much time in Germany, has been married four times. Thailand&#39;s lèse-majesté laws (Section 112) carry up to 15 years imprisonment.",
+      "Became king on October 13, 2016 following the death of his father King Bhumibol Adulyadej, one of the most revered monarchs in the world. Vajiralongkorn is a trained military officer and commercial pilot. He is controversial — spends much time in Germany, has been married four times. Thailand's lèse-majesté laws (Section 112) carry up to 15 years imprisonment.",
     keyFacts: [
-      "Thailand&#39;s lèse-majesté law — criticising the monarchy carries up to 15 years in prison",
+      "Thailand's lèse-majesté law — criticising the monarchy carries up to 15 years in prison",
       "Spends much time in Bavaria, Germany — controversial for Thai public",
       "Issued massive personal land management to Bureau of the Royal Household",
-      "Father King Bhumibol was one of the world&#39;s most revered monarchs (reigned 70 years)",
+      "Father King Bhumibol was one of the world's most revered monarchs (reigned 70 years)",
       "Pro-democracy protests 2020–21 openly called for monarchy reform — unprecedented",
     ],
     spouses: [
@@ -827,9 +827,9 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     systemType: "Absolute",
     religionRole: "Symbolic spiritual head in Swazi traditional religion",
     background:
-      "Africa&#39;s last absolute monarch — the world&#39;s only remaining traditional absolute kingdom without any form of elected parliament. Ascended aged 18 from Sherborne School in England. All political parties are banned. Inherited from father Sobhuza II who reigned 82 years — the world&#39;s longest-reigning monarch ever.",
+      "Africa's last absolute monarch — the world's only remaining traditional absolute kingdom without any form of elected parliament. Ascended aged 18 from Sherborne School in England. All political parties are banned. Inherited from father Sobhuza II who reigned 82 years — the world's longest-reigning monarch ever.",
     keyFacts: [
-      "Africa&#39;s last absolute monarch — no parliament, all parties banned",
+      "Africa's last absolute monarch — no parliament, all parties banned",
       "Father Sobhuza II held world record for longest reign — 82 years (1899–1982)",
       "Has 15 wives and 23+ children by tradition",
       "63% of Eswatinis live below the poverty line despite royal wealth",
@@ -860,19 +860,19 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     religionRole:
       "Amir Al-Mouminine (Commander of the Faithful) — supreme religious authority in Morocco",
     background:
-      "The Alaoui dynasty traces its origins to the Prophet Mohammed through Fatima, his daughter. Morocco&#39;s dual religious-political authority makes Mohammed VI one of the most legitimised rulers in the Arab world. Has overseen significant social reforms including women&#39;s rights advances. Abraham Accords — Morocco normalised with Israel in 2020.",
+      "The Alaoui dynasty traces its origins to the Prophet Mohammed through Fatima, his daughter. Morocco's dual religious-political authority makes Mohammed VI one of the most legitimised rulers in the Arab world. Has overseen significant social reforms including women's rights advances. Abraham Accords — Morocco normalised with Israel in 2020.",
     keyFacts: [
       "Amir Al-Mouminine — Commander of the Faithful, supreme Islamic authority in Morocco",
       "Alaoui dynasty claims descent from Prophet Mohammed through Fatima",
       "Abraham Accords signatory — Morocco normalised Israel relations (2020) in exchange for Western Sahara recognition",
       "Morocco reached FIFA World Cup semifinals 2022 — first African and Arab nation",
-      "Social reforms — Mudawwana family code (2004) expanded women&#39;s rights significantly",
+      "Social reforms — Mudawwana family code (2004) expanded women's rights significantly",
     ],
     spouses: ["Princess Lalla Salma (2002–present, separated)"],
     children: ["Crown Prince Moulay Hassan", "Princess Lalla Khadija"],
     region: "Africa",
     netWorthNote:
-      "Personal assets estimated ~$5.7B; controls significant business interests through Société Nationale d&#39;Investissement",
+      "Personal assets estimated ~$5.7B; controls significant business interests through Société Nationale d'Investissement",
   },
   {
     id: "haile-lesotho-royal",
@@ -892,15 +892,15 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     systemType: "Constitutional",
     religionRole: "No formal religious role",
     background:
-      "King of the mountain kingdom of Lesotho — a country entirely surrounded by South Africa. A constitutional monarch with limited formal powers. His dynasty was founded by King Moshoeshoe I who united the Basotho people and secured British protection to prevent Boer expansion. Lesotho is known as the &#39;Kingdom in the Sky&#39;.",
+      "King of the mountain kingdom of Lesotho — a country entirely surrounded by South Africa. A constitutional monarch with limited formal powers. His dynasty was founded by King Moshoeshoe I who united the Basotho people and secured British protection to prevent Boer expansion. Lesotho is known as the 'Kingdom in the Sky'.",
     keyFacts: [
       "Kingdom of Lesotho is entirely landlocked within South Africa",
       "Moshoeshoe dynasty founded to protect Basotho from Boer expansion",
       "Constitutional monarchy — limited executive powers",
-      "Lesotho is one of the world&#39;s highest countries — high plateau at 1,400m+ minimum",
+      "Lesotho is one of the world's highest countries — high plateau at 1,400m+ minimum",
       "Major water exporter to South Africa via Lesotho Highlands Water Project",
     ],
-    spouses: ["Queen &#39;Masenate Mohato Seeiso (1990–present)"],
+    spouses: ["Queen 'Masenate Mohato Seeiso (1990–present)"],
     children: ["Crown Prince Lerotholi Seeiso", "Daughter Letsebe Lydia"],
     region: "Africa",
     netWorthNote:
@@ -924,11 +924,11 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     systemType: "Constitutional",
     religionRole: "Cultural and spiritual leader of the Zulu nation",
     background:
-      "Became King of the Zulu Nation in 2021 following the death of his father King Goodwill Zwelithini who reigned 50 years. The Zulu are South Africa&#39;s largest ethnic group (~12 million people). The position is recognised by the South African government which provides funding. His succession was contested within the royal family.",
+      "Became King of the Zulu Nation in 2021 following the death of his father King Goodwill Zwelithini who reigned 50 years. The Zulu are South Africa's largest ethnic group (~12 million people). The position is recognised by the South African government which provides funding. His succession was contested within the royal family.",
     keyFacts: [
-      "King of South Africa&#39;s largest ethnic group — ~12 million Zulu people",
+      "King of South Africa's largest ethnic group — ~12 million Zulu people",
       "Ingonyama Trust — holds 2.8 million hectares of KwaZulu-Natal land in trust",
-      "Father King Goodwill Zwelithini reigned 50 years — South Africa&#39;s longest-reigning traditional leader",
+      "Father King Goodwill Zwelithini reigned 50 years — South Africa's longest-reigning traditional leader",
       "South African government recognises and funds the Zulu monarchy",
       "Zulu royal house contested his succession — court battles in 2022",
     ],
@@ -957,7 +957,7 @@ export const ROYAL_FAMILIES: RoyalMember[] = [
     systemType: "Constitutional",
     religionRole: "Methodist Christian — Tonga is deeply Christian",
     background:
-      "The Kingdom of Tonga is the Pacific&#39;s only remaining monarchy. The Tupou dynasty dates from 1875 when King George Tupou I united the islands. A constitutional monarchy since 2010 reforms that transferred significant powers from the king to an elected parliament. Tonga was devastated by the Hunga Tonga–Hunga Haʻapai volcanic eruption in January 2022.",
+      "The Kingdom of Tonga is the Pacific's only remaining monarchy. The Tupou dynasty dates from 1875 when King George Tupou I united the islands. A constitutional monarchy since 2010 reforms that transferred significant powers from the king to an elected parliament. Tonga was devastated by the Hunga Tonga–Hunga Haʻapai volcanic eruption in January 2022.",
     keyFacts: [
       "Only remaining monarchy in the Pacific",
       "Tupou dynasty has reigned since 1845 — longest-ruling Pacific dynasty",

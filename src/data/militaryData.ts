@@ -162,8 +162,6 @@ export const MILITARY: Record<string, MilitaryStats> = {
 
   // ── CENTRAL AMERICA / CARIBBEAN ──
   bz:   M(1500,    700,    60,   4,     0,   0.03, ["Belize Defence Force"]),
-  jm:   M(3300,    900,    80,   4,     0,   0.10, ["Jamaica Defence Force"]),
-  tt:   M(4200,    0,      110,  4,     0,   0.14, ["Army", "Coast Guard", "Air Guard"]),
   bs:   M(1300,    0,      60,   3,     0,   0.06, ["Royal Bahamas Defence Force"]),
   bb:   M(600,     430,    30,   2,     0,   0.02, ["Barbados Defence Force"]),
   lc:   M(0,       0,      0,    0,     0,   0.01, ["Royal Saint Lucia Police Force"]),
@@ -172,10 +170,6 @@ export const MILITARY: Record<string, MilitaryStats> = {
   ag:   M(340,     0,      20,   1,     0,   0.01, ["Antigua and Barbuda Defence Force"]),
   dm:   M(0,       0,      0,    0,     0,   0.01, ["State Police"]),
   kn:   M(350,     0,      20,   1,     0,   0.01, ["Saint Kitts and Nevis Defence Force"]),
-
-  // ── SOUTH AMERICA (MISSING) ──
-  ve:   M(123000,  8000,   3600,  30,  0,   0.82, ["Army", "Navy", "Air Force", "National Guard"]),
-  ec:   M(60000,   118000, 1800,  22,  0,   2.4,  ["Army", "Navy", "Air Force"]),
 
   // ── AFRICA (MISSING) ──
   ug:   M(45000,   0,      1200,  20,  4,   0.88, ["Uganda People's Defence Force (UPDF)"]),
@@ -217,7 +211,6 @@ export const MILITARY: Record<string, MilitaryStats> = {
   sz:   M(3000,    500,    120,  4,    0,   0.07, ["Umbutfo Eswatini Defence Force"]),
   ls:   M(2000,    0,      80,   3,    0,   0.04, ["Lesotho Defence Force"]),
   gm:   M(2000,    0,      80,   3,    0,   0.03, ["Gambia Armed Forces"]),
-  gh:   M(15500,   0,      480,  10,   4,   0.32, ["Army", "Navy", "Air Force"]),
   cv:   M(1200,    0,      60,   3,    0,   0.02, ["Armed Forces of Cape Verde"]),
   sc:   M(500,     0,      40,   2,    0,   0.01, ["Seychelles People's Defence Forces"]),
   st:   M(0,       0,      0,    0,    0,   0.00, ["Armed Forces of STP"]),
@@ -225,7 +218,6 @@ export const MILITARY: Record<string, MilitaryStats> = {
   km:   M(500,     0,      30,   2,    0,   0.02, ["National Army of the Comoros"]),
   eh:   M(4000,    0,      200,  6,    0,   0.00, ["Polisario / Royal Moroccan Army"]),
   cd:   M(134250,  0,      3200,  40,  0,   0.87, ["Armed Forces of the DRC (FARDC)"]),
-  tz:   M(27000,   80000,  980,  18,   2,   0.63, ["Tanzania People's Defence Force"]),
 
   // ── ASIA (MISSING) ──
   lb:   M(80000,   0,      2200,  24,  0,   0.68, ["Lebanese Armed Forces"]),
@@ -249,7 +241,6 @@ export const MILITARY: Record<string, MilitaryStats> = {
   fo:   M(0,       0,      0,    0,    0,   0.00, ["Danish defence umbrella"]),
   gl:   M(0,       0,      0,    0,    0,   0.00, ["Danish defence umbrella"]),
   mt_eu:M(1950,    170,    120,  2,    1,   0.09, ["Armed Forces of Malta"]),
-  lu:   M(900,     0,      120,  3,    2,   0.70, ["Luxembourg Army"]),
 
   // ── TERRITORIES ──
   pr:   M(0,       18000,  0,    5,    0,   0.00, ["Puerto Rico Army National Guard", "Air National Guard"]),
@@ -259,11 +250,6 @@ export const MILITARY: Record<string, MilitaryStats> = {
   // ── SOUTH ASIA (MISSING) ──
   mv:   M(400,     100,    40,   2,    0,   0.06, ["Maldives National Defence Force"]),
   bt:   M(6000,    0,      120,  4,    0,   0.03, ["Royal Bhutan Army"]),
-
-  // ── CARIBBEAN (REMAINING) ──
-  ht:   M(2100,    0,      120,  5,    0,   0.11, ["Army", "Coast Guard"]),
-  do:   M(56000,   22000,  960,  12,   0,   0.72, ["Army", "Navy", "Air Force"]),
-  cu:   M(49000,   39000,  1100,  18,  0,   0.67, ["Revolutionary Army", "Navy", "Air Force"]),
 };
 
 export function getMilitary(countryId: string): MilitaryStats | null {

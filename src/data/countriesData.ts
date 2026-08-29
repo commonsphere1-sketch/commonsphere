@@ -62,8 +62,9 @@ export interface Country {
   code: string;
   continent: string;
   capital: string;
-  /** High-level classification of economic system */
-  economyType: EconomyType;
+  /** High-level classification of economic system. Not yet populated for any
+   *  country — optional like every other enrichment field on this interface. */
+  economyType?: EconomyType;
   population: number;
   gdp: number; // billions USD
   gdpPerCapita: number;
@@ -4459,7 +4460,7 @@ export const countriesData: Country[] = [
       ["Hydro", 8, "hsl(190,70%,50%)"],
       ["Solar", 6, "hsl(50,95%,55%)"],
     ]),
-    capital: "Sana&#39;a",
+    capital: "Sana'a",
     population: 33696614,
     gdp: 21,
     gdpPerCapita: 623,
@@ -5609,7 +5610,7 @@ export const countriesData: Country[] = [
   },
   {
     id: "ci",
-    name: "Côte d&#39;Ivoire",
+    name: "Côte d'Ivoire",
     code: "CI",
     continent: "Africa",
     energy: mkEnergy(78, 68, [
@@ -7174,7 +7175,7 @@ export const countriesData: Country[] = [
       ["Biomass", 10, "hsl(90,60%,40%)"],
       ["Hydro", 6, "hsl(190,70%,50%)"],
     ]),
-    capital: "N&#39;Djamena",
+    capital: "N'Djamena",
     population: 17413580,
     gdp: 13,
     gdpPerCapita: 747,
@@ -7347,7 +7348,7 @@ export const countriesData: Country[] = [
     currency: "XAF",
     governmentType: "Presidential Republic",
     headOfState:
-      "Teodoro Obiang Nguema Mbasogo (President, since 1979 — world&#39;s longest-serving)",
+      "Teodoro Obiang Nguema Mbasogo (President, since 1979 — world's longest-serving)",
     officialLanguages: ["Spanish", "French", "Portuguese"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 56, color: "hsl(45,90%,55%)" },
@@ -7805,7 +7806,7 @@ export const countriesData: Country[] = [
       ["Solar", 26, "hsl(50,95%,55%)"],
       ["Wind", 8, "hsl(200,85%,55%)"],
     ]),
-    capital: "Nuku&#39;alofa",
+    capital: "Nuku'alofa",
     population: 100651,
     gdp: 1,
     gdpPerCapita: 9942,
@@ -7846,7 +7847,7 @@ export const countriesData: Country[] = [
     ]),
     capital: "South Tarawa",
     population: 121388,
-    gdp: 0,
+    gdp: 0.349,
     gdpPerCapita: 1650,
     gdpGrowth: 2.5,
     currency: "AUD",
@@ -7889,7 +7890,7 @@ export const countriesData: Country[] = [
     ]),
     capital: "Palikir",
     population: 115023,
-    gdp: 0,
+    gdp: 0.502,
     gdpPerCapita: 3520,
     gdpGrowth: 2.8,
     currency: "USD",
@@ -7932,7 +7933,7 @@ export const countriesData: Country[] = [
     ]),
     capital: "Ngerulmud",
     population: 18055,
-    gdp: 0,
+    gdp: 0.345,
     gdpPerCapita: 16670,
     gdpGrowth: 12.8,
     currency: "USD",
@@ -7972,7 +7973,7 @@ export const countriesData: Country[] = [
     ]),
     capital: "Majuro",
     population: 42050,
-    gdp: 0,
+    gdp: 0.308,
     gdpPerCapita: 4760,
     gdpGrowth: 3.6,
     currency: "USD",
@@ -8011,7 +8012,7 @@ export const countriesData: Country[] = [
     ]),
     capital: "Yaren",
     population: 10834,
-    gdp: 0,
+    gdp: 0.176,
     gdpPerCapita: 11000,
     gdpGrowth: 1.5,
     currency: "AUD",
@@ -8058,7 +8059,7 @@ export const countriesData: Country[] = [
     ]),
     capital: "Funafuti",
     population: 11792,
-    gdp: 0,
+    gdp: 0.057,
     gdpPerCapita: 5150,
     gdpGrowth: 3.5,
     currency: "AUD",
@@ -8221,7 +8222,7 @@ export const countriesData: Country[] = [
       "Horseshoe Bay Beach",
       "Crystal Caves",
       "Royal Naval Dockyard",
-      "St. George&#39;s (UNESCO)",
+      "St. George's (UNESCO)",
       "Somerset Bridge",
     ],
     religions: [
@@ -8524,7 +8525,7 @@ export const countriesData: Country[] = [
       ["Wind", 14, "hsl(200,85%,55%)"],
       ["Solar", 10, "hsl(50,95%,55%)"],
     ]),
-    capital: "St. George&#39;s",
+    capital: "St. George's",
     population: 113475,
     gdp: 1,
     gdpPerCapita: 11500,
@@ -9302,54 +9303,6 @@ export const countriesData: Country[] = [
   },
   // ── AFRICA (REMAINING) ──
   {
-    id: "coo_af",
-    name: "Côte d&#39;Ivoire (Ivory Coast)",
-    code: "CI",
-    continent: "Africa",
-    energy: mkEnergy(78, 68, [
-      ["Natural Gas", 52, "hsl(45,90%,55%)"],
-      ["Hydro", 36, "hsl(190,70%,50%)"],
-      ["Oil", 8, "hsl(30,70%,45%)"],
-      ["Solar", 4, "hsl(50,95%,55%)"],
-    ]),
-    capital: "Yamoussoukro",
-    population: 27477768,
-    gdp: 79,
-    gdpPerCapita: 2876,
-    gdpGrowth: 6.5,
-    currency: "XOF",
-    governmentType: "Presidential Republic",
-    headOfState: "Alassane Ouattara (President)",
-    officialLanguages: ["French"],
-    keyIndustries: [
-      {
-        name: "Agriculture (Cocoa/Coffee/Rubber)",
-        gdpShare: 30,
-        color: "hsl(90,60%,40%)",
-      },
-      { name: "Oil & Gas", gdpShare: 18, color: "hsl(45,90%,55%)" },
-      {
-        name: "Manufacturing (Food/Textiles)",
-        gdpShare: 14,
-        color: "hsl(18,80%,55%)",
-      },
-      { name: "Trade & Services", gdpShare: 12, color: "hsl(200,85%,55%)" },
-      {
-        name: "Mining (Gold/Manganese)",
-        gdpShare: 10,
-        color: "hsl(30,70%,45%)",
-      },
-      { name: "Tourism", gdpShare: 6, color: "hsl(150,60%,45%)" },
-    ],
-    unemploymentRate: 3.4,
-    lifeExpectancy: 59.3,
-    humanDevelopmentIndex: 0.55,
-    tradeBalance: 3,
-    inflationRate: 4.2,
-    areaKm2: 322463,
-    trends: mkTrends(79, 0.55),
-  },
-  {
     id: "eh",
     name: "Western Sahara",
     code: "EH",
@@ -9450,7 +9403,7 @@ export const countriesData: Country[] = [
     ]),
     capital: "Avarua",
     population: 17459,
-    gdp: 0,
+    gdp: 0.202,
     gdpPerCapita: 11550,
     gdpGrowth: 6.6,
     currency: "NZD",
@@ -9492,7 +9445,7 @@ export const countriesData: Country[] = [
     ]),
     capital: "Alofi",
     population: 1549,
-    gdp: 0,
+    gdp: 0.01,
     gdpPerCapita: 6500,
     gdpGrowth: 2.0,
     currency: "NZD",
