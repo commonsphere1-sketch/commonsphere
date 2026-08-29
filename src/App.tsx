@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { DashboardLayout } from "./components/DashboardLayout";
 import { NotesProvider } from "./contexts/NotesContext";
@@ -37,7 +37,7 @@ const EduSignInPage = lazy(() =>
   import("./pages/EduSignInPage").then((m) => ({ default: m.EduSignInPage })),
 );
 const PolicyPage = lazy(() =>
-  import("./pages/PolicyPage").then((m) => ({ default: m.PolicyPage })),
+  import("./pages/countiresPolicyPage").then((m) => ({ default: m.PolicyPage })),
 );
 const AboutPage = lazy(() =>
   import("./pages/AboutPage").then((m) => ({ default: m.AboutPage })),
@@ -65,7 +65,7 @@ const GlobalIndexesPage = lazy(() =>
 );
 // WorldMapPage fetches a 3MB TopoJSON file — keep lazy to avoid stalling the bundler
 const WorldMapPage = lazy(() =>
-  import("./pages/WorldMapPage").then((m) => ({ default: m.WorldMapPage })),
+  import("./pages/WorldleadersPage").then((m) => ({ default: m.WorldMapPage })),
 );
 
 function PageFallback() {
@@ -108,6 +108,9 @@ export default function App() {
               {/* Catch-all: redirect unknown dashboard routes to /dashboard */}
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
+            {/* Top-level catch-all: unknown paths fall back to the dashboard
+                instead of rendering a blank page */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Suspense>
       </NotesProvider>

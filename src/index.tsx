@@ -1,14 +1,22 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
 import { AnimaProvider } from "@animaapp/playground-react-sdk";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import App from "./App";
 import "./index.css";
 
+// AuthProvider must sit inside AnimaProvider — it consumes the SDK's useAuth().
+// ErrorBoundary wraps everything so a render error shows a message instead of
+// a blank white screen.
 ReactDOM.createRoot(document.getElementById("app")!).render(
-  <AnimaProvider>
-    <ThemeProvider>
-      <App />
-    </ThemeProvider>
-  </AnimaProvider>,
+  <ErrorBoundary>
+    <AnimaProvider>
+      <AuthProvider>
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </AuthProvider>
+    </AnimaProvider>
+  </ErrorBoundary>,
 );
