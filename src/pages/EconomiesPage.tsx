@@ -6,8 +6,6 @@ import {
   MagnifyingGlass,
   ArrowsLeftRight,
   Tree,
-  MapPin,
-  ChartBar,
 } from "@phosphor-icons/react";
 import {
   AreaChart,
@@ -2936,74 +2934,7 @@ function EconomyModal({
   );
 }
 
-type ViewMode = "economies" | "resources" | "region" | "valueStats";
-
-const REGION_DATA = [
-  {
-    region: "North America",
-    gdp: 30.1,
-    growth: 2.4,
-    countries: 3,
-    color: "#3b82f6",
-    flag: "🌎",
-  },
-  {
-    region: "European Union",
-    gdp: 19.4,
-    growth: 1.6,
-    countries: 27,
-    color: "#6366f1",
-    flag: "🇪🇺",
-  },
-  {
-    region: "East Asia & Pacific",
-    gdp: 38.2,
-    growth: 4.1,
-    countries: 37,
-    color: "#ef4444",
-    flag: "🌏",
-  },
-  {
-    region: "South Asia",
-    gdp: 5.8,
-    growth: 6.2,
-    countries: 8,
-    color: "#f97316",
-    flag: "🌏",
-  },
-  {
-    region: "Latin America",
-    gdp: 6.2,
-    growth: 2.1,
-    countries: 33,
-    color: "#10b981",
-    flag: "🌎",
-  },
-  {
-    region: "Middle East & N. Africa",
-    gdp: 4.9,
-    growth: 3.3,
-    countries: 21,
-    color: "#f59e0b",
-    flag: "🌍",
-  },
-  {
-    region: "Sub-Saharan Africa",
-    gdp: 2.1,
-    growth: 3.8,
-    countries: 48,
-    color: "#ec4899",
-    flag: "🌍",
-  },
-  {
-    region: "Central Asia",
-    gdp: 0.7,
-    growth: 4.5,
-    countries: 5,
-    color: "#a855f7",
-    flag: "🌏",
-  },
-];
+type ViewMode = "economies" | "resources";
 
 const RESOURCES_DATA = [
   {
@@ -3128,125 +3059,6 @@ const RESOURCES_DATA = [
   },
 ];
 
-const VALUE_STATS_DATA = [
-  {
-    category: "Stock Markets",
-    items: [
-      {
-        label: "NYSE + NASDAQ",
-        value: "$46.2T",
-        sub: "Market cap",
-        color: "text-blue-400",
-      },
-      {
-        label: "Shanghai SSE",
-        value: "$8.1T",
-        sub: "Market cap",
-        color: "text-red-400",
-      },
-      {
-        label: "Tokyo TSE",
-        value: "$6.9T",
-        sub: "Market cap",
-        color: "text-green-400",
-      },
-      {
-        label: "London LSE",
-        value: "$3.8T",
-        sub: "Market cap",
-        color: "text-purple-400",
-      },
-    ],
-  },
-  {
-    category: "Bond Markets",
-    items: [
-      {
-        label: "US Treasuries",
-        value: "$26.3T",
-        sub: "Outstanding",
-        color: "text-blue-400",
-      },
-      {
-        label: "EU Sovereign",
-        value: "$11.4T",
-        sub: "Outstanding",
-        color: "text-indigo-400",
-      },
-      {
-        label: "Japan JGBs",
-        value: "$9.8T",
-        sub: "Outstanding",
-        color: "text-green-400",
-      },
-      {
-        label: "China Gov't",
-        value: "$7.2T",
-        sub: "Outstanding",
-        color: "text-red-400",
-      },
-    ],
-  },
-  {
-    category: "Real Estate",
-    items: [
-      {
-        label: "Global RE Value",
-        value: "$326.5T",
-        sub: "Total 2025",
-        color: "text-amber-400",
-      },
-      {
-        label: "Residential",
-        value: "$258.5T",
-        sub: "79% of total",
-        color: "text-orange-400",
-      },
-      {
-        label: "Commercial",
-        value: "$38.0T",
-        sub: "11.6% of total",
-        color: "text-yellow-400",
-      },
-      {
-        label: "Industrial",
-        value: "$30.0T",
-        sub: "9.2% of total",
-        color: "text-lime-400",
-      },
-    ],
-  },
-  {
-    category: "Commodities",
-    items: [
-      {
-        label: "Oil & Gas Market",
-        value: "$5.8T",
-        sub: "Annual trade",
-        color: "text-orange-400",
-      },
-      {
-        label: "Metals Market",
-        value: "$3.2T",
-        sub: "Annual trade",
-        color: "text-slate-400",
-      },
-      {
-        label: "Agri Commodities",
-        value: "$1.9T",
-        sub: "Annual trade",
-        color: "text-green-400",
-      },
-      {
-        label: "Crypto (total)",
-        value: "$2.4T",
-        sub: "Market cap",
-        color: "text-purple-400",
-      },
-    ],
-  },
-];
-
 export function EconomiesPage() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
@@ -3270,7 +3082,6 @@ export function EconomiesPage() {
     }
   }, []);
 
-  const types = ["All", "Country", "Region", "Bloc"];
 
   const filtered = economiesData
     .filter((e) => {
@@ -3321,16 +3132,6 @@ export function EconomiesPage() {
                 id: "resources",
                 label: "Resources",
                 icon: <Tree size={13} weight="fill" />,
-              },
-              {
-                id: "region",
-                label: "Region",
-                icon: <MapPin size={13} weight="fill" />,
-              },
-              {
-                id: "valueStats",
-                label: "Value Statistics",
-                icon: <ChartBar size={13} weight="fill" />,
               },
             ] as const
           ).map((tab) => (
@@ -3416,7 +3217,7 @@ export function EconomiesPage() {
           </div>
           {/* Row 2: Filters */}
           <div className="flex flex-wrap items-center gap-2 pt-2 mt-1 border-t border-border/60">
-            {(["All", "Country", "Region", "Bloc"] as const).map((t) => (
+            {(["All", "Country", "Bloc"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTypeFilter(t)}
@@ -3718,234 +3519,6 @@ export function EconomiesPage() {
               </div>
             </div>
             <SourceLink sources={SRC_WTO} className="mt-2" />
-          </div>
-        )}
-
-        {/* ── Region View ── */}
-        {viewMode === "region" && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <h2 className="text-lg font-bold font-sans text-foreground">
-                  GDP by World Region
-                </h2>
-                <p className="text-xs text-muted-foreground font-sans">
-                  Regional economic output & growth rates · 2025 estimates
-                </p>
-              </div>
-              <span className="text-[10px] font-mono bg-muted border border-border px-2.5 py-1 rounded-full text-muted-foreground">
-                {REGION_DATA.length} regions
-              </span>
-            </div>
-            {/* Bar chart */}
-            <div className="bg-card border border-border rounded-2xl p-5">
-              <p className="text-xs font-bold font-sans text-foreground mb-4">
-                GDP ($T) by Region — 2025
-              </p>
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart
-                  data={REGION_DATA}
-                  layout="vertical"
-                  margin={{ top: 0, right: 40, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="rgba(255,255,255,0.06)"
-                    horizontal={false}
-                  />
-                  <XAxis
-                    type="number"
-                    tick={{
-                      fill: "hsl(0,0%,55%)",
-                      fontSize: 9,
-                      fontFamily: "IBM Plex Mono",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(v) => `$${v}T`}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="region"
-                    tick={{
-                      fill: "hsl(0,0%,65%)",
-                      fontSize: 9,
-                      fontFamily: "DM Sans",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                    width={130}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: "hsl(222,30%,14%)",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: 10,
-                      fontSize: 11,
-                      fontFamily: "IBM Plex Mono",
-                    }}
-                    formatter={(v: number) => [`$${v}T`, "GDP"]}
-                    labelStyle={{ color: "hsl(0,0%,55%)" }}
-                  />
-                  <Bar
-                    dataKey="gdp"
-                    name="GDP"
-                    radius={[0, 4, 4, 0]}
-                    maxBarSize={18}
-                  >
-                    {REGION_DATA.map((r) => (
-                      <Cell key={r.region} fill={r.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            {/* Region cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {REGION_DATA.map((r) => (
-                <div
-                  key={r.region}
-                  className="bg-card border border-border rounded-xl p-4 hover:border-secondary/40 transition-colors"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xl">{r.flag}</span>
-                    <p className="text-xs font-bold font-sans text-foreground leading-tight">
-                      {r.region}
-                    </p>
-                  </div>
-                  <p
-                    className="text-2xl font-bold font-mono mb-0.5"
-                    style={{ color: r.color }}
-                  >
-                    ${r.gdp}T
-                  </p>
-                  <p className="text-[10px] text-muted-foreground font-sans mb-3">
-                    Nominal GDP
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-background/50 rounded-lg p-2 border border-border/40">
-                      <p className="text-[9px] text-muted-foreground font-sans">
-                        Growth
-                      </p>
-                      <p
-                        className={`text-sm font-bold font-mono ${r.growth >= 3 ? "text-success" : r.growth >= 2 ? "text-warning" : "text-muted-foreground"}`}
-                      >
-                        +{r.growth}%
-                      </p>
-                    </div>
-                    <div className="bg-background/50 rounded-lg p-2 border border-border/40">
-                      <p className="text-[9px] text-muted-foreground font-sans">
-                        Countries
-                      </p>
-                      <p className="text-sm font-bold font-mono text-foreground">
-                        {r.countries}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-3 h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${(r.gdp / 38.2) * 100}%`,
-                        background: r.color,
-                      }}
-                    />
-                  </div>
-                  <p className="text-[9px] text-muted-foreground font-mono mt-1 text-right">
-                    {((r.gdp / 104.5) * 100).toFixed(1)}% of global GDP
-                  </p>
-                </div>
-              ))}
-            </div>
-            <SourceLink sources={SRC_IMF} className="mt-2" />
-          </div>
-        )}
-
-        {/* ── Value Statistics View ── */}
-        {viewMode === "valueStats" && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <h2 className="text-lg font-bold font-sans text-foreground">
-                  Global Value Statistics
-                </h2>
-                <p className="text-xs text-muted-foreground font-sans">
-                  Stock markets, bonds, real estate & commodities · 2025
-                </p>
-              </div>
-              <span className="text-[10px] font-mono bg-muted border border-border px-2.5 py-1 rounded-full text-muted-foreground">
-                4 asset classes
-              </span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {VALUE_STATS_DATA.map((cat) => (
-                <div
-                  key={cat.category}
-                  className="bg-card border border-border rounded-2xl p-5"
-                >
-                  <p className="text-xs font-bold font-sans text-foreground mb-4 uppercase tracking-wide">
-                    {cat.category}
-                  </p>
-                  <div className="space-y-3">
-                    {cat.items.map((item) => (
-                      <div
-                        key={item.label}
-                        className="flex items-center justify-between gap-3 p-3 rounded-xl bg-background/50 border border-border/40 hover:border-border transition-colors"
-                      >
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold font-sans text-foreground">
-                            {item.label}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground font-sans">
-                            {item.sub}
-                          </p>
-                        </div>
-                        <p
-                          className={`text-lg font-bold font-mono shrink-0 ${item.color}`}
-                        >
-                          {item.value}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                  {/* Mini bar chart for relative sizes */}
-                  <div className="mt-4 pt-3 border-t border-border/40 space-y-2">
-                    {cat.items.map((item) => {
-                      const numericVal = parseFloat(
-                        item.value.replace(/[$T%,]/g, ""),
-                      );
-                      const max = Math.max(
-                        ...cat.items.map((i) =>
-                          parseFloat(i.value.replace(/[$T%,]/g, "")),
-                        ),
-                      );
-                      return (
-                        <div
-                          key={item.label}
-                          className="flex items-center gap-2"
-                        >
-                          <span className="text-[9px] font-sans text-muted-foreground w-28 truncate shrink-0">
-                            {item.label}
-                          </span>
-                          <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full ${item.color.replace("text-", "bg-")}`}
-                              style={{ width: `${(numericVal / max) * 100}%` }}
-                            />
-                          </div>
-                          <span
-                            className={`text-[9px] font-mono shrink-0 ${item.color}`}
-                          >
-                            {item.value}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <SourceLink sources={SRC_OECD} className="mt-2" />
           </div>
         )}
 
