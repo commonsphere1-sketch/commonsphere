@@ -13134,25 +13134,6 @@ export function StatesPage() {
           ))}
         </div>
 
-        {/* ── Upcoming to Watch ── */}
-        <div className="mb-6 bg-card border border-border rounded-2xl p-5">
-          <div>
-            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-              🔥 Upcoming to Watch
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {getUpcoming("states").map((e) => (
-                <span
-                  key={e.id}
-                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.className}`}
-                >
-                  {e.label}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
         {/* Unified Search + Filter Bar */}
         <div className="flex flex-col bg-card border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
           {/* Row 1: Search */}
@@ -13220,6 +13201,25 @@ export function StatesPage() {
               <option value="medianIncome">Sort: Median Income</option>
               <option value="approvalRating">Sort: Approval</option>
             </select>
+          </div>
+        </div>
+
+        {/* ── Upcoming to Watch ── */}
+        <div className="mb-6 bg-card border border-border rounded-2xl p-5">
+          <div>
+            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+              🔥 Upcoming to Watch
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {getUpcoming("states").map((e) => (
+                <span
+                  key={e.id}
+                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.className}`}
+                >
+                  {e.label}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 

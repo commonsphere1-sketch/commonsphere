@@ -3394,25 +3394,6 @@ export function EconomiesPage() {
           ))}
         </div>
 
-        {/* ── Upcoming to Watch ── */}
-        <div className="mb-6 bg-card border border-border rounded-2xl p-5">
-          <div>
-            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-              🔥 Upcoming to Watch
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {getUpcoming("economies").map((e) => (
-                <span
-                  key={e.id}
-                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.className}`}
-                >
-                  {e.label}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
         <CurrencyConverter />
 
         <SourceLink sources={SRC_IMF} className="mb-4 -mt-2" />
@@ -3459,6 +3440,25 @@ export function EconomiesPage() {
               <option value="inflationRate">Sort: Inflation</option>
               <option value="stockMarketCap">Sort: Mkt Cap</option>
             </select>
+          </div>
+        </div>
+
+        {/* ── Upcoming to Watch ── */}
+        <div className="mb-6 bg-card border border-border rounded-2xl p-5">
+          <div>
+            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+              🔥 Upcoming to Watch
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {getUpcoming("economies").map((e) => (
+                <span
+                  key={e.id}
+                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.className}`}
+                >
+                  {e.label}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
