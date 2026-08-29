@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo,} from "react";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
 import {
@@ -20,10 +20,7 @@ import {
   CaretDown,
   CaretUp,
   X,
-  TrendUp,
-  TrendDown,
-  Medal,
-  MagnifyingGlass,
+MagnifyingGlass,
 } from "@phosphor-icons/react";
 
 // ─── Metric definitions ──────────────────────────────────────────────────────

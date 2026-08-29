@@ -24,9 +24,7 @@ import {
   Newspaper,
   Flag,
   UserCircle,
-  BookOpen,
-  BellSimple,
-  Cpu,
+  BookOpen,  Cpu,
   Users,
   FileText,
   MagnifyingGlass,
@@ -35,12 +33,7 @@ import {
   Heartbeat,
   Scales,
   Atom,
-  Fingerprint,
-  ExportSimple,
-  Clipboard,
-  NotePencil,
-  MapPin,
-} from "@phosphor-icons/react";
+  Fingerprint,} from "@phosphor-icons/react";
 
 // ─── Entitlement Matrix ───────────────────────────────────────────────────────
 

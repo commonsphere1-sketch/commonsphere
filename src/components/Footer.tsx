@@ -1,4 +1,3 @@
-import React from "react";
 import { Globe, Moon, Sun } from "@phosphor-icons/react";
 import { useState } from "react";
 

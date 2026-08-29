@@ -1,20 +1,16 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState,} from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import {
   Leaf,
-  Warning,
   Info,
   ArrowRight,
-  CaretDown,
-  CaretUp,
-  Globe,
+Globe,
   Drop,
   Wind,
   Atom,
   Fish,
   Tree,
   CloudSlash,
-  Snowflake,
   Flask,
 } from "@phosphor-icons/react";
 

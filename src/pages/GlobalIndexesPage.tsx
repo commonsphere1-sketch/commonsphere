@@ -24,7 +24,6 @@ import {
   MagnifyingGlass,
   ArrowSquareOut,
   Star,
-  StarHalf,
   CaretDown,
   CaretUp,
   X,

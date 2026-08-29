@@ -15,7 +15,6 @@ import {
   FirstAid,
   GraduationCap,
   WifiHigh,
-  Leaf,
   ChartBar,
   Rocket,
 } from "@phosphor-icons/react";
@@ -1074,7 +1073,7 @@ const CITY_LAWS: Record<string, CityLaw[]> = {
       category: "Environment",
       title: "Tokyo Cap-and-Trade Program",
       description:
-        "World&#39;s first urban emissions trading scheme requiring large facilities to cut CO₂.",
+        "World's first urban emissions trading scheme requiring large facilities to cut CO₂.",
       enacted: "2010",
       status: "Active",
       color: "#34d399",
@@ -1146,7 +1145,7 @@ const CITY_LAWS: Record<string, CityLaw[]> = {
     },
     {
       category: "Housing",
-      title: "Mayor&#39;s London Plan",
+      title: "Mayor's London Plan",
       description:
         "Requires 35–50% affordable housing in new residential developments.",
       enacted: "2021",
@@ -1354,7 +1353,7 @@ const CITY_LAWS: Record<string, CityLaw[]> = {
       category: "Environment",
       title: "Net Zero Emissions by 2035 Strategy",
       description:
-        "City of Sydney&#39;s commitment to decarbonise council operations and support district renewable energy.",
+        "City of Sydney's commitment to decarbonise council operations and support district renewable energy.",
       enacted: "2021",
       status: "Active",
       color: "#34d399",
@@ -1428,7 +1427,7 @@ const CITY_LAWS: Record<string, CityLaw[]> = {
       category: "Transport",
       title: "Mobility Act (Mobilitätsgesetz)",
       description:
-        "Germany&#39;s first state mobility law, prioritising cycling, pedestrians, and public transit.",
+        "Germany's first state mobility law, prioritising cycling, pedestrians, and public transit.",
       enacted: "2018",
       status: "Active",
       color: "#60a5fa",
@@ -3571,7 +3570,7 @@ export function CitiesPage() {
             <div className="flex flex-wrap gap-2">
               {[
                 {
-                  label: "Riyadh skyscraper boom — world&#39;s tallest by 2030",
+                  label: "Riyadh skyscraper boom — world's tallest by 2030",
                   color: "text-amber-400 border-amber-500/30 bg-amber-500/10",
                 },
                 {
@@ -3585,7 +3584,7 @@ export function CitiesPage() {
                 },
                 {
                   label:
-                    "Lagos digital economy: Africa&#39;s Silicon Lagoon scaling",
+                    "Lagos digital economy: Africa's Silicon Lagoon scaling",
                   color: "text-green-400 border-green-500/30 bg-green-500/10",
                 },
                 {

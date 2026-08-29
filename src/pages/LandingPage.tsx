@@ -131,7 +131,7 @@ const CAPABILITIES = [
   {
     icon: Star,
     title: "Custom Dashboard",
-    desc: "Save metrics and charts to a personal dashboard. Build your own view of the world&#39;s data.",
+    desc: "Save metrics and charts to a personal dashboard. Build your own view of the world's data.",
     tag: "Personalization",
   },
   {

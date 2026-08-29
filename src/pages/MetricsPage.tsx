@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { MetricsPanel } from "../components/MetricsPanel";
 import { COUNTRY_METRICS, STATE_METRICS } from "../data/comprehensiveMetrics";
 import { MagnifyingGlass, Globe, Buildings } from "@phosphor-icons/react";

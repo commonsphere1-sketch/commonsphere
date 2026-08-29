@@ -1,29 +1,19 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import {
   ShieldCheck,
-  Warning,
   TrendUp,
   TrendDown,
   ArrowUp,
   ArrowDown,
   CaretRight,
   Info,
-  Globe,
   MagnifyingGlass,
   Skull,
-  HandFist,
   Lock,
-  Car,
   Flame,
-  Target,
-  MapPin,
-  Coins,
-  Scales,
-  Handshake,
-  Buildings,
-  Link,
+Link,
   Users,
   Briefcase,
   House,

@@ -4,7 +4,6 @@
  * Renders a subtle hyperlink with an external-link icon so users can
  * verify where a statistic comes from.
  */
-import React from "react";
 import { ArrowSquareOut } from "@phosphor-icons/react";
 
 interface Source {

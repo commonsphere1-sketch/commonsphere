@@ -1626,7 +1626,7 @@ function TransportationPanel({ state }: { state: USState }) {
                   isAnimationActive
                   animationDuration={600}
                 >
-                  {commuteModeData.map((d, i) => (
+                  {commuteModeData.map((_d, i) => (
                     <Cell key={i} fill={`url(#transGrad-${state.id}-${i})`} />
                   ))}
                 </Pie>
@@ -12498,7 +12498,7 @@ function StateModal({
                                     isAnimationActive
                                     animationDuration={600}
                                   >
-                                    {crimeData.map((d, i) => (
+                                    {crimeData.map((_d, i) => (
                                       <Cell
                                         key={i}
                                         fill={`url(#crimeGrad-${state.id}-${i})`}

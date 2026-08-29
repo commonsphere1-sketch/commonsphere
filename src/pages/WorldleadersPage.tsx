@@ -25,7 +25,6 @@ import {
   Clock,
   Crown,
   CrownSimple,
-  Briefcase,
   Money,
   TrendUp,
   Factory,
@@ -418,7 +417,7 @@ const LEADERS: Leader[] = [
       {
         year: 2020,
         event:
-          "China&#39;s COVID-19 handling — initial suppression then zero-COVID",
+          "China's COVID-19 handling — initial suppression then zero-COVID",
         impact: "negative",
       },
       {
@@ -429,7 +428,7 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Lifted 800M+ people from poverty (party data)",
-      "Made China world&#39;s largest EV & solar manufacturer",
+      "Made China world's largest EV & solar manufacturer",
       "Belt and Road: infrastructure across 140+ countries",
       "Consolidated military modernisation — largest navy by hulls",
     ],
@@ -503,7 +502,7 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Stabilised Russia&#39;s economy after 1990s collapse",
+      "Stabilised Russia's economy after 1990s collapse",
       "Rebuilt Russian military into modern force",
       "Led Russia out of 1998 debt default through energy revenues",
       "Maintained strong domestic approval across 25 years",
@@ -514,7 +513,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Reshaped Europe&#39;s security architecture through Ukraine invasion. Faces unprecedented Western sanctions while pivoting Russia toward China and the Global South.",
+      "Reshaped Europe's security architecture through Ukraine invasion. Faces unprecedented Western sanctions while pivoting Russia toward China and the Global South.",
     region: "Europe",
   },
   {
@@ -555,7 +554,7 @@ const LEADERS: Leader[] = [
       {
         year: 2019,
         event:
-          "Revocation of Article 370 — Kashmir&#39;s special status removed",
+          "Revocation of Article 370 — Kashmir's special status removed",
         impact: "neutral",
       },
       {
@@ -587,7 +586,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Positioned India as indispensable swing state in global geopolitics. Balances ties with US, Russia, and China while pushing India&#39;s emergence as a major manufacturing and tech hub.",
+      "Positioned India as indispensable swing state in global geopolitics. Balances ties with US, Russia, and China while pushing India's emergence as a major manufacturing and tech hub.",
     region: "Asia-Pacific",
   },
   {
@@ -609,7 +608,7 @@ const LEADERS: Leader[] = [
         year: 2001,
       },
       {
-        institution: "École Nationale d&#39;Administration (ENA)",
+        institution: "École Nationale d'Administration (ENA)",
         degree: "Civil Service Elite Graduate",
         year: 2004,
       },
@@ -648,7 +647,7 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Revitalised France&#39;s EU leadership role",
+      "Revitalised France's EU leadership role",
       "Tech & green investment via France 2030 plan",
       "European Strategic Autonomy concept championed",
       "Successful Notre-Dame de Paris restoration",
@@ -690,7 +689,7 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2021, to: 2025 }],
     background:
-      "Long-serving Hamburg politician and Finance Minister before becoming Chancellor. Led the traffic-light coalition with FDP and Greens. Lost the February 2025 snap elections to Friedrich Merz&#39;s CDU/CSU following coalition collapse.",
+      "Long-serving Hamburg politician and Finance Minister before becoming Chancellor. Led the traffic-light coalition with FDP and Greens. Lost the February 2025 snap elections to Friedrich Merz's CDU/CSU following coalition collapse.",
     significantEvents: [
       {
         year: 2022,
@@ -700,7 +699,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2022,
-        event: "Germany&#39;s gas crisis; LNG terminals built at record speed",
+        event: "Germany's gas crisis; LNG terminals built at record speed",
         impact: "neutral",
       },
       {
@@ -721,13 +720,13 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Managed Germany&#39;s energy transition from Russian gas",
+      "Managed Germany's energy transition from Russian gas",
       "G7 Ukraine financial support framework leadership",
       "€200B domestic energy subsidy shield",
       "Maintained social stability during energy shock",
     ],
     politicalViews:
-      "Social democratic centre-left. Pro-European, cautious on military deployments, welfare-state defence, strong workers&#39; rights, gradual green transition. More sceptical of deep defence commitments than allies.",
+      "Social democratic centre-left. Pro-European, cautious on military deployments, welfare-state defence, strong workers' rights, gradual green transition. More sceptical of deep defence commitments than allies.",
     approvalRating: 20,
     approvalTrend: "down",
     status: "Former",
@@ -768,16 +767,16 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2022, to: 2024 }],
     background:
-      "Former Goldman Sachs analyst and hedge fund manager who served as Chancellor of the Exchequer before becoming the UK&#39;s first British-Asian Prime Minister in 2022. Lost the 2024 general election in a landslide to Labour.",
+      "Former Goldman Sachs analyst and hedge fund manager who served as Chancellor of the Exchequer before becoming the UK's first British-Asian Prime Minister in 2022. Lost the 2024 general election in a landslide to Labour.",
     significantEvents: [
       {
         year: 2022,
-        event: "Became UK&#39;s first British-Asian PM — historic milestone",
+        event: "Became UK's first British-Asian PM — historic milestone",
         impact: "positive",
       },
       {
         year: 2023,
-        event: "Struck the Windsor Framework on NI&#39;s Brexit arrangements",
+        event: "Struck the Windsor Framework on NI's Brexit arrangements",
         impact: "positive",
       },
       {
@@ -794,7 +793,7 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Windsor Framework resolved Northern Ireland Brexit impasse",
-      "CPTPP accession — UK&#39;s largest post-Brexit trade deal",
+      "CPTPP accession — UK's largest post-Brexit trade deal",
       "Maintained UK support for Ukraine",
       "Halved UK inflation from 11% to ~2% during tenure",
     ],
@@ -859,10 +858,10 @@ const LEADERS: Leader[] = [
       "Historic 2024 election win — 400+ seats for Labour",
       "GB Energy founded to own clean energy assets",
       "National Wealth Fund established for industrial investment",
-      "Workers&#39; Rights Bill — biggest labour reform in decades",
+      "Workers' Rights Bill — biggest labour reform in decades",
     ],
     politicalViews:
-      "Centre-left pragmatist. Pro-European cooperation without re-joining EU. Climate mission, NHS investment, workers&#39; rights, national wealth fund. Hawkish on crime; international rules-based order.",
+      "Centre-left pragmatist. Pro-European cooperation without re-joining EU. Climate mission, NHS investment, workers' rights, national wealth fund. Hawkish on crime; international rules-based order.",
     approvalRating: 28,
     approvalTrend: "down",
     status: "In Office",
@@ -971,7 +970,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2019,
-        event: "Saudi Aramco IPO — world&#39;s largest at $1.7T valuation",
+        event: "Saudi Aramco IPO — world's largest at $1.7T valuation",
         impact: "positive",
       },
       {
@@ -997,7 +996,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Transformed Saudi society at breakneck speed while eliminating political rivals. His leadership will define the post-oil transition era for the world&#39;s most important energy exporter.",
+      "Transformed Saudi society at breakneck speed while eliminating political rivals. His leadership will define the post-oil transition era for the world's most important energy exporter.",
     region: "Middle East",
   },
   {
@@ -1019,7 +1018,7 @@ const LEADERS: Leader[] = [
         year: 1963,
       },
     ],
-    party: "Workers&#39; Party (PT)",
+    party: "Workers' Party (PT)",
     ideology: "Social Democrat",
     termsInOffice: [
       { from: 2003, to: 2011 },
@@ -1093,7 +1092,7 @@ const LEADERS: Leader[] = [
         year: 2009,
       },
     ],
-    party: "Korean Workers&#39; Party",
+    party: "Korean Workers' Party",
     ideology: "Authoritarian",
     termsInOffice: [{ from: 2011, to: "present" }],
     background:
@@ -1169,7 +1168,7 @@ const LEADERS: Leader[] = [
       { from: 2022, to: "present" },
     ],
     background:
-      "Israel&#39;s longest-serving Prime Minister (cumulative). Former special forces officer who served in the Sayeret Matkal. Has dominated Israeli politics for three decades but faces ongoing corruption trial.",
+      "Israel's longest-serving Prime Minister (cumulative). Former special forces officer who served in the Sayeret Matkal. Has dominated Israeli politics for three decades but faces ongoing corruption trial.",
     significantEvents: [
       {
         year: 2015,
@@ -1201,7 +1200,7 @@ const LEADERS: Leader[] = [
     achievements: [
       "Abraham Accords: UAE, Bahrain, Sudan, Morocco normalised",
       "Iron Dome widely credited to his defence investment",
-      "Israel&#39;s tech economy became Startup Nation globally",
+      "Israel's tech economy became Startup Nation globally",
       "Eliminated multiple top-tier adversary commanders",
     ],
     politicalViews:
@@ -1270,7 +1269,7 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Turkey&#39;s GDP tripled during his rule",
+      "Turkey's GDP tripled during his rule",
       "Grain corridor deal between Ukraine and Russia",
       "TEKNOFEST aerospace and defence industry built nationally",
       "Bayraktar TB2 drone became globally significant weapon",
@@ -1307,7 +1306,7 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "Italy&#39;s first female Prime Minister and youngest person to hold the office. Rose through post-fascist party politics from age 15, becoming Youth Minister at 31. Her FdI party roots trace to the Italian Social Movement (MSI), a post-war neo-fascist party.",
+      "Italy's first female Prime Minister and youngest person to hold the office. Rose through post-fascist party politics from age 15, becoming Youth Minister at 31. Her FdI party roots trace to the Italian Social Movement (MSI), a post-war neo-fascist party.",
     significantEvents: [
       {
         year: 2022,
@@ -1332,7 +1331,7 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "First female Prime Minister in Italian history",
-      "Italy&#39;s immigration deal with Albania as EU model",
+      "Italy's immigration deal with Albania as EU model",
       "Stabilised Italian government after years of instability",
       "Kept Italy in Ukraine support coalition despite far-right roots",
     ],
@@ -1342,7 +1341,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Defied expectations of populist chaos, delivering stable governance while reshaping Italy&#39;s role in EU migration policy and positioning Rome as a key Washington ally.",
+      "Defied expectations of populist chaos, delivering stable governance while reshaping Italy's role in EU migration policy and positioning Rome as a key Washington ally.",
     region: "Europe",
   },
   {
@@ -1373,17 +1372,17 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Climate scientist and IPCC contributor who served as Mexico City mayor (2018–2023) before winning the 2024 presidential election with a record 59% of the vote — Mexico&#39;s first female president and first with a science doctorate.",
+      "Climate scientist and IPCC contributor who served as Mexico City mayor (2018–2023) before winning the 2024 presidential election with a record 59% of the vote — Mexico's first female president and first with a science doctorate.",
     significantEvents: [
       {
         year: 2024,
-        event: "Elected Mexico&#39;s first female president by historic margin",
+        event: "Elected Mexico's first female president by historic margin",
         impact: "positive",
       },
       {
         year: 2024,
         event:
-          "Inherited AMLO&#39;s controversial judicial reform — 2,500+ judges up for public vote",
+          "Inherited AMLO's controversial judicial reform — 2,500+ judges up for public vote",
         impact: "negative",
       },
       {
@@ -1398,18 +1397,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "First female president in Mexico&#39;s 200-year history",
+      "First female president in Mexico's 200-year history",
       "Former IPCC co-author on climate change",
-      "Reduced Mexico City&#39;s carbon emissions as mayor",
+      "Reduced Mexico City's carbon emissions as mayor",
       "Expanded public transit and cycling infrastructure in CDMX",
     ],
     politicalViews:
-      "Centre-left, pro-social welfare, nationalist on energy (state-owned Pemex and CFE), climate-conscious. Continuity with AMLO&#39;s Morena agenda but with more technocratic approach.",
+      "Centre-left, pro-social welfare, nationalist on energy (state-owned Pemex and CFE), climate-conscious. Continuity with AMLO's Morena agenda but with more technocratic approach.",
     approvalRating: 71,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Historic presidency reshaping Mexico&#39;s identity. Faces the tightest US–Mexico relationship since NAFTA as she navigates Trump&#39;s trade and immigration pressures.",
+      "Historic presidency reshaping Mexico's identity. Faces the tightest US–Mexico relationship since NAFTA as she navigates Trump's trade and immigration pressures.",
     region: "Americas",
   },
   {
@@ -1445,7 +1444,7 @@ const LEADERS: Leader[] = [
       {
         year: 2023,
         event:
-          "Voice to Parliament referendum defeated despite Albanese&#39;s support",
+          "Voice to Parliament referendum defeated despite Albanese's support",
         impact: "negative",
       },
       {
@@ -1472,12 +1471,12 @@ const LEADERS: Leader[] = [
       "National Anti-Corruption Commission established",
     ],
     politicalViews:
-      "Centre-left social democrat. Pro-climate action, pro-AUKUS alliance, pro-Indigenous recognition. Multilateralist — pushes Australia&#39;s middle-power role in Indo-Pacific while balancing US and China.",
+      "Centre-left social democrat. Pro-climate action, pro-AUKUS alliance, pro-Indigenous recognition. Multilateralist — pushes Australia's middle-power role in Indo-Pacific while balancing US and China.",
     approvalRating: 49,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Reshaped Australia&#39;s foreign policy by repairing China relations while deepening AUKUS defence ties. Domestic legacy mixed after failed Voice referendum.",
+      "Reshaped Australia's foreign policy by repairing China relations while deepening AUKUS defence ties. Domestic legacy mixed after failed Voice referendum.",
     region: "Asia-Pacific",
   },
   {
@@ -1503,7 +1502,7 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2018, to: "present" }],
     background:
-      "Former anti-apartheid activist, NUM trade union leader, and key negotiator in South Africa&#39;s democratic transition. Became a billionaire businessman before returning to politics. Replaced Jacob Zuma after corruption scandal.",
+      "Former anti-apartheid activist, NUM trade union leader, and key negotiator in South Africa's democratic transition. Became a billionaire businessman before returning to politics. Replaced Jacob Zuma after corruption scandal.",
     significantEvents: [
       {
         year: 2018,
@@ -1517,7 +1516,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2023,
-        event: "BRICS expanded under South Africa&#39;s chairmanship",
+        event: "BRICS expanded under South Africa's chairmanship",
         impact: "neutral",
       },
       {
@@ -1533,7 +1532,7 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Ended Zuma-era state capture; launched anti-corruption inquiries",
-      "Steered South Africa&#39;s post-COVID economic recovery",
+      "Steered South Africa's post-COVID economic recovery",
       "BRICS 2023 chair; expanded bloc to include 6 nations",
       "Government of National Unity — historic post-ANC majority deal",
     ],
@@ -1543,7 +1542,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Navigated South Africa&#39;s most significant political transition since Mandela, forming the first GNU in 30 years after the ANC&#39;s historic loss of its parliamentary majority.",
+      "Navigated South Africa's most significant political transition since Mandela, forming the first GNU in 30 years after the ANC's historic loss of its parliamentary majority.",
     region: "Africa",
   },
   {
@@ -1572,7 +1571,7 @@ const LEADERS: Leader[] = [
       { from: 2024, to: "present" },
     ],
     background:
-      "Younger brother of three-time PM Nawaz Sharif. Served as Chief Minister of Punjab for 13 years, earning a reputation as a doer and administrator. Became PM after Imran Khan&#39;s ouster via no-confidence vote in 2022 and again after disputed 2024 elections.",
+      "Younger brother of three-time PM Nawaz Sharif. Served as Chief Minister of Punjab for 13 years, earning a reputation as a doer and administrator. Became PM after Imran Khan's ouster via no-confidence vote in 2022 and again after disputed 2024 elections.",
     significantEvents: [
       {
         year: 2022,
@@ -1598,8 +1597,8 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "IMF bailout secured — prevented sovereign default",
-      "Managed Punjab&#39;s infrastructure for over a decade",
-      "Reduced Pakistan&#39;s energy circular debt partially",
+      "Managed Punjab's infrastructure for over a decade",
+      "Reduced Pakistan's energy circular debt partially",
       "Maintained China–Pakistan Economic Corridor (CPEC) investments",
     ],
     politicalViews:
@@ -1639,7 +1638,7 @@ const LEADERS: Leader[] = [
     ideology: "Liberal",
     termsInOffice: [{ from: 2023, to: "present" }],
     background:
-      "Former TV political commentator and economist who became Argentina&#39;s most disruptive political outsider. Known for wielding a chainsaw at rallies as a symbol of state cuts. Won 2023 election with 56% promising radical libertarian shock therapy to end Argentina&#39;s repeat economic crises.",
+      "Former TV political commentator and economist who became Argentina's most disruptive political outsider. Known for wielding a chainsaw at rallies as a symbol of state cuts. Won 2023 election with 56% promising radical libertarian shock therapy to end Argentina's repeat economic crises.",
     significantEvents: [
       {
         year: 2023,
@@ -1650,7 +1649,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Slashed public spending by 30% — achieved Argentina&#39;s first surplus in 16 years",
+          "Slashed public spending by 30% — achieved Argentina's first surplus in 16 years",
         impact: "positive",
       },
       {
@@ -1661,7 +1660,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "IMF praised Argentina&#39;s fiscal consolidation — new $20B deal",
+          "IMF praised Argentina's fiscal consolidation — new $20B deal",
         impact: "positive",
       },
       {
@@ -1753,7 +1752,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "up",
     status: "In Office",
     impact:
-      "Taking power at the most fraught moment in Canada–US relations since NAFTA negotiations. His central bank credibility is his greatest asset in managing Trump&#39;s trade war.",
+      "Taking power at the most fraught moment in Canada–US relations since NAFTA negotiations. His central bank credibility is his greatest asset in managing Trump's trade war.",
     region: "Americas",
   },
   {
@@ -1790,21 +1789,21 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "Japan&#39;s defence budget raised to 2% of GDP — historic shift",
+          "Japan's defence budget raised to 2% of GDP — historic shift",
         impact: "positive",
       },
       {
         year: 2025,
         event:
-          "US–Japan tariff negotiations under Trump&#39;s 24% tariff threat",
+          "US–Japan tariff negotiations under Trump's 24% tariff threat",
         impact: "negative",
       },
     ],
     achievements: [
-      "Pushed Japan&#39;s defence budget to NATO-level 2% of GDP",
-      "Advanced Japan&#39;s counterstrike capability doctrine",
+      "Pushed Japan's defence budget to NATO-level 2% of GDP",
+      "Advanced Japan's counterstrike capability doctrine",
       "Promoted transparent LDP party reform after slush fund scandal",
-      "Maintained Japan&#39;s security alliance with US under pressure",
+      "Maintained Japan's security alliance with US under pressure",
     ],
     politicalViews:
       "Conservative nationalist, strong US alliance advocate but also interested in an Asian NATO concept. Pro-defence spending increase. Willing to break from LDP taboos — has discussed nuclear sharing debate openly.",
@@ -1812,7 +1811,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Leads Japan through its most significant military expansion since WWII while navigating coalition politics after losing the LDP&#39;s lower house majority.",
+      "Leads Japan through its most significant military expansion since WWII while navigating coalition politics after losing the LDP's lower house majority.",
     region: "Asia-Pacific",
   },
   {
@@ -1839,14 +1838,14 @@ const LEADERS: Leader[] = [
         year: 2012,
       },
     ],
-    party: "Spanish Socialist Workers&#39; Party (PSOE)",
+    party: "Spanish Socialist Workers' Party (PSOE)",
     ideology: "Social Democrat",
     termsInOffice: [
       { from: 2018, to: 2019 },
       { from: 2019, to: "present" },
     ],
     background:
-      "Overcame his own party&#39;s ouster to return as PSOE leader and PM — earning the nickname 'Pedro el Resistente'. Governs in a fragile coalition dependent on Catalan separatist and far-left parties. PhD in economics; one of the most academically qualified EU leaders.",
+      "Overcame his own party's ouster to return as PSOE leader and PM — earning the nickname 'Pedro el Resistente'. Governs in a fragile coalition dependent on Catalan separatist and far-left parties. PhD in economics; one of the most academically qualified EU leaders.",
     significantEvents: [
       {
         year: 2020,
@@ -1855,7 +1854,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2021,
-        event: "Spain&#39;s EU recovery fund — €140B secured",
+        event: "Spain's EU recovery fund — €140B secured",
         impact: "positive",
       },
       {
@@ -1877,7 +1876,7 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Spain&#39;s GDP grew fastest of major EU economies in 2023–24",
+      "Spain's GDP grew fastest of major EU economies in 2023–24",
       "Euthanasia and gender-affirming care legalised",
       "EU Recovery Fund champion — largest in Spanish history",
       "Raised minimum wage by 54% since taking office",
@@ -1888,7 +1887,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Master of political survival who has kept power through a patchwork of unlikely alliances. Spain&#39;s economy is Europe&#39;s growth outperformer under his tenure, even as institutional trust erodes.",
+      "Master of political survival who has kept power through a patchwork of unlikely alliances. Spain's economy is Europe's growth outperformer under his tenure, even as institutional trust erodes.",
     region: "Europe",
   },
   {
@@ -1914,7 +1913,7 @@ const LEADERS: Leader[] = [
     ideology: "Populist",
     termsInOffice: [{ from: 2019, to: "present" }],
     background:
-      "Former mayor of Nuevo Cuscatlán and San Salvador who founded his own party and won the presidency at 37. Became globally famous for his Bitcoin experiment and radical anti-gang crackdown that turned El Salvador from murder capital of the world to one of Central America&#39;s safest countries — though at serious civil liberties cost.",
+      "Former mayor of Nuevo Cuscatlán and San Salvador who founded his own party and won the presidency at 37. Became globally famous for his Bitcoin experiment and radical anti-gang crackdown that turned El Salvador from murder capital of the world to one of Central America's safest countries — though at serious civil liberties cost.",
     significantEvents: [
       {
         year: 2021,
@@ -1987,7 +1986,7 @@ const LEADERS: Leader[] = [
     ideology: "Nationalist",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Former Army Special Forces commander and son-in-law of dictator Suharto. After two failed presidential bids in 2014 and 2019 — and allegations of human rights abuses in East Timor — formed an alliance with outgoing President Jokowi&#39;s son and won the 2024 election with 58% of the vote.",
+      "Former Army Special Forces commander and son-in-law of dictator Suharto. After two failed presidential bids in 2014 and 2019 — and allegations of human rights abuses in East Timor — formed an alliance with outgoing President Jokowi's son and won the 2024 election with 58% of the vote.",
     significantEvents: [
       {
         year: 1998,
@@ -2018,18 +2017,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Won Indonesia&#39;s presidency on third attempt",
-      "Maintained Jokowi&#39;s infrastructure development continuity",
+      "Won Indonesia's presidency on third attempt",
+      "Maintained Jokowi's infrastructure development continuity",
       "Launched largest school nutrition programme in Indonesian history",
-      "Maintained Indonesia&#39;s non-aligned ASEAN strategic posture",
+      "Maintained Indonesia's non-aligned ASEAN strategic posture",
     ],
     politicalViews:
-      "Nationalist, pro-military, Indonesian sovereignty first. Maintains Jokowi&#39;s economic development model. Non-aligned between US and China — strategic autonomy as ASEAN&#39;s largest economy. Strong state role in economy.",
+      "Nationalist, pro-military, Indonesian sovereignty first. Maintains Jokowi's economic development model. Non-aligned between US and China — strategic autonomy as ASEAN's largest economy. Strong state role in economy.",
     approvalRating: 74,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Leads the world&#39;s third-largest democracy and largest Muslim-majority nation. His military background and contested past make him a complex figure as Indonesia navigates US–China competition in Southeast Asia.",
+      "Leads the world's third-largest democracy and largest Muslim-majority nation. His military background and contested past make him a complex figure as Indonesia navigates US–China competition in Southeast Asia.",
     region: "Asia-Pacific",
   },
   {
@@ -2096,12 +2095,12 @@ const LEADERS: Leader[] = [
       "Reduced immediate risk of Iran–Israel military escalation through measured response",
     ],
     politicalViews:
-      "Reformist moderate within Iran&#39;s clerical system. Advocates diplomatic engagement over confrontation, economic normalisation through nuclear deal, relaxed social restrictions domestically. Operates within boundaries set by Supreme Leader Khamenei.",
+      "Reformist moderate within Iran's clerical system. Advocates diplomatic engagement over confrontation, economic normalisation through nuclear deal, relaxed social restrictions domestically. Operates within boundaries set by Supreme Leader Khamenei.",
     approvalRating: 44,
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Represents Iran&#39;s best opening for nuclear diplomacy in a decade, but operates under hard constraints from Supreme Leader Khamenei, the IRGC, and hardliner-dominated institutions.",
+      "Represents Iran's best opening for nuclear diplomacy in a decade, but operates under hard constraints from Supreme Leader Khamenei, the IRGC, and hardliner-dominated institutions.",
     region: "Middle East",
   },
   {
@@ -2132,7 +2131,7 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "Career technocrat and trade economist who served as Minister of Trade and Prime Minister under Roh Moo-hyun before returning to government under Yoon Suk-yeol. Became acting president twice in 2024–25 following the extraordinary political crisis triggered by Yoon&#39;s short-lived martial law declaration.",
+      "Career technocrat and trade economist who served as Minister of Trade and Prime Minister under Roh Moo-hyun before returning to government under Yoon Suk-yeol. Became acting president twice in 2024–25 following the extraordinary political crisis triggered by Yoon's short-lived martial law declaration.",
     significantEvents: [
       {
         year: 2022,
@@ -2148,7 +2147,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Became Acting President after Yoon&#39;s impeachment by parliament",
+          "Became Acting President after Yoon's impeachment by parliament",
         impact: "neutral",
       },
       {
@@ -2165,18 +2164,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Maintained governmental continuity during South Korea&#39;s worst constitutional crisis in decades",
+      "Maintained governmental continuity during South Korea's worst constitutional crisis in decades",
       "Kept US–South Korea alliance stable during political turmoil",
-      "Experienced negotiator of South Korea&#39;s US free trade agreement (KORUS FTA)",
-      "Harvard-trained economist — one of Asia&#39;s leading trade policy experts",
+      "Experienced negotiator of South Korea's US free trade agreement (KORUS FTA)",
+      "Harvard-trained economist — one of Asia's leading trade policy experts",
     ],
     politicalViews:
-      "Technocratic centrist conservative. Prioritises trade liberalisation, US alliance, and South Korea&#39;s export-driven economic model. Non-partisan in style; pragmatic in governance. Cautious on North Korea engagement.",
+      "Technocratic centrist conservative. Prioritises trade liberalisation, US alliance, and South Korea's export-driven economic model. Non-partisan in style; pragmatic in governance. Cautious on North Korea engagement.",
     approvalRating: 38,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "An accidental president thrust into power by constitutional crisis. His steady-hand caretaker governance prevented South Korea&#39;s political meltdown from becoming an economic one.",
+      "An accidental president thrust into power by constitutional crisis. His steady-hand caretaker governance prevented South Korea's political meltdown from becoming an economic one.",
     region: "Asia-Pacific",
   },
   {
@@ -2198,7 +2197,7 @@ const LEADERS: Leader[] = [
         year: 1980,
       },
     ],
-    party: "Civic Coalition (KO) / European People&#39;s Party",
+    party: "Civic Coalition (KO) / European People's Party",
     ideology: "Liberal",
     termsInOffice: [
       { from: 2007, to: 2014 },
@@ -2224,19 +2223,19 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2024,
-        event: "Began dismantling PiS&#39;s judicial and media capture",
+        event: "Began dismantling PiS's judicial and media capture",
         impact: "positive",
       },
       {
         year: 2024,
         event:
-          "Poland&#39;s defence budget raised to 4% of GDP — highest in NATO",
+          "Poland's defence budget raised to 4% of GDP — highest in NATO",
         impact: "positive",
       },
     ],
     achievements: [
       "Ousted PiS — restored judicial independence and public media",
-      "Poland&#39;s NATO defence spending raised to 4% — world&#39;s highest share",
+      "Poland's NATO defence spending raised to 4% — world's highest share",
       "Strong EU recovery fund utilisation champion",
       "Instrumental in European unity on Ukraine and Russia sanctions",
     ],
@@ -2246,7 +2245,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "One of Europe&#39;s most consequential political comebacks — returning to dismantle a decade of populist institutional capture and reassert Poland as a core EU and NATO pillar.",
+      "One of Europe's most consequential political comebacks — returning to dismantle a decade of populist institutional capture and reassert Poland as a core EU and NATO pillar.",
     region: "Europe",
   },
   {
@@ -2272,11 +2271,11 @@ const LEADERS: Leader[] = [
     ideology: "Authoritarian",
     termsInOffice: [{ from: 2013, to: "present" }],
     background:
-      "Former bus driver and trade union activist who rose through Hugo Chávez&#39;s Bolivarian movement. Handpicked by Chávez as successor before his death in 2013. Has clung to power through hyperinflation, economic collapse, mass exodus of 7.7M Venezuelans, and disputed elections, surviving with military and Cuban backing.",
+      "Former bus driver and trade union activist who rose through Hugo Chávez's Bolivarian movement. Handpicked by Chávez as successor before his death in 2013. Has clung to power through hyperinflation, economic collapse, mass exodus of 7.7M Venezuelans, and disputed elections, surviving with military and Cuban backing.",
     significantEvents: [
       {
         year: 2013,
-        event: "Won disputed election after Chávez&#39;s death by 1.5% margin",
+        event: "Won disputed election after Chávez's death by 1.5% margin",
         impact: "neutral",
       },
       {
@@ -2310,12 +2309,12 @@ const LEADERS: Leader[] = [
       "Weathered Guaidó challenge that had US recognition for 3 years",
     ],
     politicalViews:
-      "Bolivarian socialist. Anti-US imperialism, pro-ALBA regional bloc, state control of economy and PDVSA oil. Maintains Chávez&#39;s cult of personality as legitimising device. Deep ties to Cuba&#39;s security establishment.",
+      "Bolivarian socialist. Anti-US imperialism, pro-ALBA regional bloc, state control of economy and PDVSA oil. Maintains Chávez's cult of personality as legitimising device. Deep ties to Cuba's security establishment.",
     approvalRating: 21,
     approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
-      "Presided over the largest economic collapse in Latin American history outside wartime — GDP fell 80%, 7.7M fled the country. Survival through repression despite international isolation is his most remarkable &#39;achievement&#39;.",
+      "Presided over the largest economic collapse in Latin American history outside wartime — GDP fell 80%, 7.7M fled the country. Survival through repression despite international isolation is his most remarkable 'achievement'.",
     region: "Americas",
   },
   {
@@ -2346,7 +2345,7 @@ const LEADERS: Leader[] = [
     ideology: "Authoritarian",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "Known as MBZ. The de facto ruler of the UAE for nearly two decades before officially becoming President in 2022 following Sheikh Khalifa&#39;s death. Third son of UAE founder Sheikh Zayed. Architect of the UAE&#39;s transformation into a regional military, financial, and tech hub.",
+      "Known as MBZ. The de facto ruler of the UAE for nearly two decades before officially becoming President in 2022 following Sheikh Khalifa's death. Third son of UAE founder Sheikh Zayed. Architect of the UAE's transformation into a regional military, financial, and tech hub.",
     significantEvents: [
       {
         year: 2011,
@@ -2362,7 +2361,7 @@ const LEADERS: Leader[] = [
       {
         year: 2021,
         event:
-          "UAE&#39;s Hope Probe reaches Mars orbit — first Arab interplanetary mission",
+          "UAE's Hope Probe reaches Mars orbit — first Arab interplanetary mission",
         impact: "positive",
       },
       {
@@ -2378,9 +2377,9 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Abraham Accords signatory — UAE–Israel full normalisation",
-      "Hope Mars Mission — Arab world&#39;s first interplanetary spacecraft",
+      "Hope Mars Mission — Arab world's first interplanetary spacecraft",
       "UAE ranked globally top for safety, business, and quality of life",
-      "Positioned UAE as the Gulf&#39;s leading AI and tech investment hub",
+      "Positioned UAE as the Gulf's leading AI and tech investment hub",
     ],
     politicalViews:
       "Absolute monarchy pragmatist. Pro-Western security alignment but increasingly independent from US direction. Anti-Islamist (Muslim Brotherhood considered terrorist organisation in UAE). Pro-business liberalisation, zero tolerance for political opposition. Plays all sides — US, China, Russia — for maximum leverage.",
@@ -2388,7 +2387,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Transformed a federation of desert sheikhdoms into one of the world&#39;s most influential small states. UAE punch exceeds its size dramatically in finance, diplomacy, military, and AI investment under his leadership.",
+      "Transformed a federation of desert sheikhdoms into one of the world's most influential small states. UAE punch exceeds its size dramatically in finance, diplomacy, military, and AI investment under his leadership.",
     region: "Middle East",
   },
   // ── BATCH 4: Africa ────────────────────────────────────────────────────────
@@ -2479,7 +2478,7 @@ const LEADERS: Leader[] = [
     ideology: "Authoritarian",
     termsInOffice: [{ from: 2000, to: "present" }],
     background:
-      "Led the RPF military force that ended the 1994 Rwandan genocide. Built Rwanda from one of Africa&#39;s most devastated nations into a model of economic development, tech investment, and governance — though at the cost of political pluralism and press freedom.",
+      "Led the RPF military force that ended the 1994 Rwandan genocide. Built Rwanda from one of Africa's most devastated nations into a model of economic development, tech investment, and governance — though at the cost of political pluralism and press freedom.",
     significantEvents: [
       {
         year: 1994,
@@ -2510,8 +2509,8 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Rwanda transformed from genocide-devastated to fastest-growing African economy",
-      "Kigali ranked Africa&#39;s cleanest and safest city",
-      "30%+ female MPs — world&#39;s highest proportion since 2008",
+      "Kigali ranked Africa's cleanest and safest city",
+      "30%+ female MPs — world's highest proportion since 2008",
       "Universal health insurance coverage achieved",
     ],
     politicalViews:
@@ -2520,7 +2519,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "One of Africa&#39;s most debated leaders — remarkable development record built on suppression of political opposition and alleged extraterritorial assassinations of dissidents. The Rwanda paradox defines African development discourse.",
+      "One of Africa's most debated leaders — remarkable development record built on suppression of political opposition and alleged extraterritorial assassinations of dissidents. The Rwanda paradox defines African development discourse.",
     region: "Africa",
   },
   {
@@ -2546,7 +2545,7 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2023, to: "present" }],
     background:
-      "Former Lagos State Governor (1999–2007) widely credited with transforming Lagos into Africa&#39;s largest economy. Master political kingmaker who engineered Buhari&#39;s 2015 election win before winning the presidency himself in 2023 in a three-way contested race.",
+      "Former Lagos State Governor (1999–2007) widely credited with transforming Lagos into Africa's largest economy. Master political kingmaker who engineered Buhari's 2015 election win before winning the presidency himself in 2023 in a three-way contested race.",
     significantEvents: [
       {
         year: 2023,
@@ -2577,7 +2576,7 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Removed fuel subsidy costing $10B/yr — necessary fiscal reform",
-      "Unified Nigeria&#39;s multiple exchange rates",
+      "Unified Nigeria's multiple exchange rates",
       "Increased federal revenue collection significantly",
       "ECOWAS mediation in Sahel military coup crisis",
     ],
@@ -2587,7 +2586,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Leading Africa&#39;s most populous nation through painful economic reforms. Fuel subsidy removal and naira float are structurally necessary but have caused severe short-term hardship for ordinary Nigerians.",
+      "Leading Africa's most populous nation through painful economic reforms. Fuel subsidy removal and naira float are structurally necessary but have caused severe short-term hardship for ordinary Nigerians.",
     region: "Africa",
   },
   {
@@ -2662,7 +2661,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Nobel Peace Prize winner who then prosecuted one of Africa&#39;s bloodiest civil wars. His contradictory record — diplomacy peace and domestic war — defines the tragedy of Ethiopia&#39;s post-2020 trajectory.",
+      "Nobel Peace Prize winner who then prosecuted one of Africa's bloodiest civil wars. His contradictory record — diplomacy peace and domestic war — defines the tragedy of Ethiopia's post-2020 trajectory.",
     region: "Africa",
   },
   {
@@ -2693,7 +2692,7 @@ const LEADERS: Leader[] = [
     ideology: "Authoritarian",
     termsInOffice: [{ from: 2014, to: "present" }],
     background:
-      "Former army chief and head of military intelligence who led the 2013 coup against elected President Mohamed Morsi. Has presided over Egypt&#39;s largest wave of political repression in modern history while undertaking the largest construction programme since the Pharaohs.",
+      "Former army chief and head of military intelligence who led the 2013 coup against elected President Mohamed Morsi. Has presided over Egypt's largest wave of political repression in modern history while undertaking the largest construction programme since the Pharaohs.",
     significantEvents: [
       {
         year: 2013,
@@ -2731,12 +2730,12 @@ const LEADERS: Leader[] = [
       "Large-scale energy infrastructure including el-Dabaa nuclear plant",
     ],
     politicalViews:
-      "Military nationalism, secular authoritarianism, anti-Islamism. Anti-Iran, anti-Muslim Brotherhood. Balances US military aid with Russian nuclear deal and Gulf funding. Maintains Egypt&#39;s pivotal role as Arab world mediator.",
+      "Military nationalism, secular authoritarianism, anti-Islamism. Anti-Iran, anti-Muslim Brotherhood. Balances US military aid with Russian nuclear deal and Gulf funding. Maintains Egypt's pivotal role as Arab world mediator.",
     approvalRating: 50,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Built Egypt&#39;s largest infrastructure programme in modern history while jailing 60,000+ political prisoners. Egypt teeters on economic default under his rule, sustained only by Gulf and IMF bailouts.",
+      "Built Egypt's largest infrastructure programme in modern history while jailing 60,000+ political prisoners. Egypt teeters on economic default under his rule, sustained only by Gulf and IMF bailouts.",
     region: "Africa",
   },
   // ── BATCH 5: Asia ─────────────────────────────────────────────────────────
@@ -2768,7 +2767,7 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Nobel Peace Prize-winning economist and founder of the Grameen Bank microfinance model. Was called out of retirement to lead Bangladesh&#39;s interim government after student-led protests deposed Sheikh Hasina who fled to India in August 2024.",
+      "Nobel Peace Prize-winning economist and founder of the Grameen Bank microfinance model. Was called out of retirement to lead Bangladesh's interim government after student-led protests deposed Sheikh Hasina who fled to India in August 2024.",
     significantEvents: [
       {
         year: 1983,
@@ -2794,16 +2793,16 @@ const LEADERS: Leader[] = [
     achievements: [
       "Nobel Peace Prize 2006 — Grameen Bank served 9M+ borrowers",
       "Microfinance model replicated in 100+ countries",
-      "Called to lead Bangladesh&#39;s democratic transition at age 84",
+      "Called to lead Bangladesh's democratic transition at age 84",
       "Anti-corruption reform commissions established",
     ],
     politicalViews:
-      "Social entrepreneur, poverty reduction through market mechanisms. Pro-democratic governance reform, anti-corruption. Non-partisan reformist. Advocates &#39;social business&#39; model globally. Internationally respected.",
+      "Social entrepreneur, poverty reduction through market mechanisms. Pro-democratic governance reform, anti-corruption. Non-partisan reformist. Advocates 'social business' model globally. Internationally respected.",
     approvalRating: 62,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Global icon of poverty alleviation who became an accidental head of state. His leadership of Bangladesh&#39;s fragile transition is defining the country&#39;s post-authoritarian political future.",
+      "Global icon of poverty alleviation who became an accidental head of state. His leadership of Bangladesh's fragile transition is defining the country's post-authoritarian political future.",
     region: "Asia-Pacific",
   },
   {
@@ -2825,16 +2824,16 @@ const LEADERS: Leader[] = [
         year: 1995,
       },
     ],
-    party: "National People&#39;s Power (NPP) / JVP",
+    party: "National People's Power (NPP) / JVP",
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Marxist-rooted opposition leader who won Sri Lanka&#39;s 2024 presidential election on an anti-corruption platform following the 2022 economic collapse and ouster of Gotabaya Rajapaksa. First president elected from outside the two traditional party dynasties in Sri Lanka&#39;s history.",
+      "Marxist-rooted opposition leader who won Sri Lanka's 2024 presidential election on an anti-corruption platform following the 2022 economic collapse and ouster of Gotabaya Rajapaksa. First president elected from outside the two traditional party dynasties in Sri Lanka's history.",
     significantEvents: [
       {
         year: 2022,
         event:
-          "Aragalaya uprising deposes Gotabaya — Dissanayake&#39;s party gains support",
+          "Aragalaya uprising deposes Gotabaya — Dissanayake's party gains support",
         impact: "positive",
       },
       {
@@ -2855,7 +2854,7 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "First president from outside Sri Lanka&#39;s traditional political dynasties",
+      "First president from outside Sri Lanka's traditional political dynasties",
       "Won snap parliamentary 2/3 majority — unprecedented for new party",
       "Anti-corruption campaign arrests senior officials",
       "Maintained IMF restructuring to stabilise post-crisis economy",
@@ -2866,7 +2865,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Historic mandate reflecting Sri Lanka&#39;s rejection of corrupt elite politics after the 2022 economic collapse. Leading the country&#39;s most consequential political transition in decades.",
+      "Historic mandate reflecting Sri Lanka's rejection of corrupt elite politics after the 2022 economic collapse. Leading the country's most consequential political transition in decades.",
     region: "Asia-Pacific",
   },
   {
@@ -2897,7 +2896,7 @@ const LEADERS: Leader[] = [
       {
         year: 2022,
         event:
-          "Won election with 59% — despite father&#39;s martial law legacy",
+          "Won election with 59% — despite father's martial law legacy",
         impact: "neutral",
       },
       {
@@ -2924,12 +2923,12 @@ const LEADERS: Leader[] = [
       "Infrastructure programmes continued from Duterte era",
     ],
     politicalViews:
-      "Conservative nationalist, strong US alliance pivot after Duterte&#39;s China tilt. Defends Philippine sovereignty against China in South China Sea. Pro-foreign investment, agriculture modernisation. Avoids confronting father&#39;s martial law legacy.",
+      "Conservative nationalist, strong US alliance pivot after Duterte's China tilt. Defends Philippine sovereignty against China in South China Sea. Pro-foreign investment, agriculture modernisation. Avoids confronting father's martial law legacy.",
     approvalRating: 48,
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Repositioned Philippines dramatically toward the US, making it a centerpiece of Washington&#39;s Indo-Pacific strategy — but faces domestic political turbulence from his Duterte alliance collapse.",
+      "Repositioned Philippines dramatically toward the US, making it a centerpiece of Washington's Indo-Pacific strategy — but faces domestic political turbulence from his Duterte alliance collapse.",
     region: "Asia-Pacific",
   },
   {
@@ -2956,11 +2955,11 @@ const LEADERS: Leader[] = [
     ideology: "Populist",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Youngest Thai PM and daughter of exiled former PM Thaksin Shinawatra and niece of PM Yingluck Shinawatra. Both were ousted in military coups. Became PM after the Constitutional Court dissolved her predecessor&#39;s party over election ethics violations.",
+      "Youngest Thai PM and daughter of exiled former PM Thaksin Shinawatra and niece of PM Yingluck Shinawatra. Both were ousted in military coups. Became PM after the Constitutional Court dissolved her predecessor's party over election ethics violations.",
     significantEvents: [
       {
         year: 2024,
-        event: "Became Thailand&#39;s youngest and third Shinawatra-family PM",
+        event: "Became Thailand's youngest and third Shinawatra-family PM",
         impact: "neutral",
       },
       {
@@ -2971,7 +2970,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Constitutional Court dissolved her predecessor&#39;s Move Forward party",
+          "Constitutional Court dissolved her predecessor's Move Forward party",
         impact: "negative",
       },
       {
@@ -2987,7 +2986,7 @@ const LEADERS: Leader[] = [
       "ASEAN engagement on Myanmar humanitarian crisis",
     ],
     politicalViews:
-      "Populist centre — flagship free money stimulus, rural welfare. Continuity of Thaksin&#39;s pro-rural, pro-poor policy line. Needs to maintain balance with military establishment that ousted her family twice.",
+      "Populist centre — flagship free money stimulus, rural welfare. Continuity of Thaksin's pro-rural, pro-poor policy line. Needs to maintain balance with military establishment that ousted her family twice.",
     approvalRating: 42,
     approvalTrend: "stable",
     status: "In Office",
@@ -3014,11 +3013,11 @@ const LEADERS: Leader[] = [
         year: 1971,
       },
     ],
-    party: "Pakatan Harapan (People&#39;s Justice Party core)",
+    party: "Pakatan Harapan (People's Justice Party core)",
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "Held as a political prisoner twice on sodomy charges widely seen as politically motivated. Waited 24 years to become PM after originally being Mahathir&#39;s deputy in the 1990s. Finally realised his ambition at 75 in November 2022 after a hung parliament gave him the kingmaker advantage.",
+      "Held as a political prisoner twice on sodomy charges widely seen as politically motivated. Waited 24 years to become PM after originally being Mahathir's deputy in the 1990s. Finally realised his ambition at 75 in November 2022 after a hung parliament gave him the kingmaker advantage.",
     significantEvents: [
       {
         year: 1998,
@@ -3043,9 +3042,9 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Completed Malaysia&#39;s most significant democratic transition",
+      "Completed Malaysia's most significant democratic transition",
       "Advanced 1MDB corruption prosecutions",
-      "Strengthened Malaysia&#39;s economic ties with both US and China",
+      "Strengthened Malaysia's economic ties with both US and China",
       "MADANI social reform framework launched",
     ],
     politicalViews:
@@ -3114,12 +3113,12 @@ const LEADERS: Leader[] = [
       "Popular constitutional monarch with highest public support ratings",
     ],
     politicalViews:
-      "Constitutional monarchy — non-political role. Personally vocal on climate change and environmental protection. Denmark&#39;s constitutional monarch acts on advice of elected government.",
+      "Constitutional monarchy — non-political role. Personally vocal on climate change and environmental protection. Denmark's constitutional monarch acts on advice of elected government.",
     approvalRating: 82,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "New constitutional monarch at a time when Greenland&#39;s sovereignty is being tested by Trump&#39;s acquisition threats. Royal diplomacy and positioning of Denmark&#39;s Arctic interests is newly significant.",
+      "New constitutional monarch at a time when Greenland's sovereignty is being tested by Trump's acquisition threats. Royal diplomacy and positioning of Denmark's Arctic interests is newly significant.",
     region: "Europe",
   },
   {
@@ -3145,7 +3144,7 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "Led the right-wing coalition to victory in 2022, governing with parliamentary support from the Sweden Democrats — a party with neo-Nazi roots. Critically, navigated Sweden&#39;s accession to NATO, ending over 200 years of military non-alignment.",
+      "Led the right-wing coalition to victory in 2022, governing with parliamentary support from the Sweden Democrats — a party with neo-Nazi roots. Critically, navigated Sweden's accession to NATO, ending over 200 years of military non-alignment.",
     significantEvents: [
       {
         year: 2022,
@@ -3160,7 +3159,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Sweden&#39;s gang violence crisis — bombing and shootings at record high",
+          "Sweden's gang violence crisis — bombing and shootings at record high",
         impact: "negative",
       },
       {
@@ -3170,18 +3169,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Completed Sweden&#39;s NATO accession — historic end to 200+ years of neutrality",
+      "Completed Sweden's NATO accession — historic end to 200+ years of neutrality",
       "Deployed military to domestic gang crime areas",
       "Increased defence spending to meet NATO commitments",
-      "Sweden&#39;s economic stability maintained despite European downturn",
+      "Sweden's economic stability maintained despite European downturn",
     ],
     politicalViews:
-      "Conservative, pro-NATO, market liberal economics. Tough on crime/immigration. Pro-EU but sceptical of European fiscal union. Strong Ukraine support. Maintains Sweden&#39;s traditionally high social welfare model.",
+      "Conservative, pro-NATO, market liberal economics. Tough on crime/immigration. Pro-EU but sceptical of European fiscal union. Strong Ukraine support. Maintains Sweden's traditionally high social welfare model.",
     approvalRating: 42,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Redefined Sweden&#39;s strategic identity by joining NATO. Governing a society in tension — wealthy, liberal, but experiencing serious gang violence that has no European precedent in scale.",
+      "Redefined Sweden's strategic identity by joining NATO. Governing a society in tension — wealthy, liberal, but experiencing serious gang violence that has no European precedent in scale.",
     region: "Europe",
   },
   {
@@ -3207,7 +3206,7 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2023, to: "present" }],
     background:
-      "Led Finland&#39;s right-wing coalition government from April 2023. Finland joined NATO in April 2023 under the previous Sanna Marin government, meaning Orpo leads a NATO Finland for the first time. Finland&#39;s 1,300km border with Russia makes it NATO&#39;s most militarily significant new member.",
+      "Led Finland's right-wing coalition government from April 2023. Finland joined NATO in April 2023 under the previous Sanna Marin government, meaning Orpo leads a NATO Finland for the first time. Finland's 1,300km border with Russia makes it NATO's most militarily significant new member.",
     significantEvents: [
       {
         year: 2023,
@@ -3229,23 +3228,23 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Coalition partner Finns Party&#39;s minister resigned over racist writing scandal",
+          "Coalition partner Finns Party's minister resigned over racist writing scandal",
         impact: "negative",
       },
     ],
     achievements: [
-      "Managed Finland&#39;s first full year as NATO member",
+      "Managed Finland's first full year as NATO member",
       "Closed Russia border in response to hybrid attack",
-      "Launched austerity programme to address Finland&#39;s deficit",
+      "Launched austerity programme to address Finland's deficit",
       "Increased defence spending and military readiness on Russian border",
     ],
     politicalViews:
-      "Conservative, NATO hawk given 1,300km Russia border, fiscal austerity to reduce Finland&#39;s deficit. Pro-EU, pro-Ukraine, strong rule of law. Coalition with nationalist Finns Party creates ideological tensions.",
+      "Conservative, NATO hawk given 1,300km Russia border, fiscal austerity to reduce Finland's deficit. Pro-EU, pro-Ukraine, strong rule of law. Coalition with nationalist Finns Party creates ideological tensions.",
     approvalRating: 40,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Governs NATO&#39;s most exposed flank — Finland&#39;s 1,300km Russia border gives him heightened security stakes. Fiscal austerity programme is politically contentious in a Nordic welfare state.",
+      "Governs NATO's most exposed flank — Finland's 1,300km Russia border gives him heightened security stakes. Fiscal austerity programme is politically contentious in a Nordic welfare state.",
     region: "Europe",
   },
   // ── BATCH 7: Middle East / Africa completion ───────────────────────────────
@@ -3272,7 +3271,7 @@ const LEADERS: Leader[] = [
     ideology: "Theocrat",
     termsInOffice: [{ from: 1989, to: "present" }],
     background:
-      "Iran&#39;s second and longest-serving Supreme Leader, holding power since Ayatollah Khomeini&#39;s death in 1989. Former president (1981–89) who controls the armed forces, judiciary, state media, and nuclear programme. His fatwa on nuclear weapons — that they are forbidden in Islam — is frequently cited in diplomacy despite evidence of weapons-relevant progress.",
+      "Iran's second and longest-serving Supreme Leader, holding power since Ayatollah Khomeini's death in 1989. Former president (1981–89) who controls the armed forces, judiciary, state media, and nuclear programme. His fatwa on nuclear weapons — that they are forbidden in Islam — is frequently cited in diplomacy despite evidence of weapons-relevant progress.",
     significantEvents: [
       {
         year: 2003,
@@ -3299,7 +3298,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Hamas Oct 7 attack and Gaza war reshapes Iran&#39;s regional position",
+          "Hamas Oct 7 attack and Gaza war reshapes Iran's regional position",
         impact: "neutral",
       },
     ],
@@ -3315,7 +3314,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "The most consequential figure in Middle Eastern geopolitics after MBS. His direction of the Axis of Resistance has defined regional conflict for a generation. Iran&#39;s nuclear programme under his watch has reached threshold status.",
+      "The most consequential figure in Middle Eastern geopolitics after MBS. His direction of the Axis of Resistance has defined regional conflict for a generation. Iran's nuclear programme under his watch has reached threshold status.",
     region: "Middle East",
   },
   {
@@ -3346,12 +3345,12 @@ const LEADERS: Leader[] = [
     ideology: "Military Junta",
     termsInOffice: [{ from: 2025, to: "present" }],
     background:
-      "Commander of the Lebanese Armed Forces who was elected president by parliament in January 2025, ending a 26-month presidential vacuum. His election — backed by US and Saudi pressure — followed Hezbollah&#39;s weakening after Oct 7 war. First army commander to become president since Michel Suleiman 2008.",
+      "Commander of the Lebanese Armed Forces who was elected president by parliament in January 2025, ending a 26-month presidential vacuum. His election — backed by US and Saudi pressure — followed Hezbollah's weakening after Oct 7 war. First army commander to become president since Michel Suleiman 2008.",
     significantEvents: [
       {
         year: 2019,
         event:
-          "Led LAF through Lebanon&#39;s economic collapse and Oct 2019 revolution",
+          "Led LAF through Lebanon's economic collapse and Oct 2019 revolution",
         impact: "neutral",
       },
       {
@@ -3362,7 +3361,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Hezbollah weakened by Israel&#39;s campaign — political vacuum opens",
+          "Hezbollah weakened by Israel's campaign — political vacuum opens",
         impact: "neutral",
       },
       {
@@ -3373,10 +3372,10 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Ended Lebanon&#39;s historic 26-month presidential vacuum",
+      "Ended Lebanon's historic 26-month presidential vacuum",
       "Secured early US and Saudi backing for reform agenda",
       "Maintained LAF neutrality during years of political paralysis",
-      "International donor pledges linked to his government&#39;s reforms secured",
+      "International donor pledges linked to his government's reforms secured",
     ],
     politicalViews:
       "Military institutionalist — Lebanese sovereignty, armed forces supremacy, Hezbollah disarmament goal. Works with West and Saudi Arabia. Pro-reform and reconstruction.",
@@ -3384,7 +3383,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Represents Lebanon&#39;s best opportunity for reform and sovereignty restoration since the Taif Agreement. His success depends on whether post-Hezbollah political realignment holds.",
+      "Represents Lebanon's best opportunity for reform and sovereignty restoration since the Taif Agreement. His success depends on whether post-Hezbollah political realignment holds.",
     region: "Middle East",
   },
   {
@@ -3410,7 +3409,7 @@ const LEADERS: Leader[] = [
     ideology: "Nationalist",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Former al-Qaeda affiliate who rebranded as a pragmatic Islamist nationalist. HTS forces led the spectacular offensive that toppled Bashar al-Assad in December 2024 in just 12 days. Now leads Syria&#39;s transitional government and repositioned Syria toward Turkey and the West.",
+      "Former al-Qaeda affiliate who rebranded as a pragmatic Islamist nationalist. HTS forces led the spectacular offensive that toppled Bashar al-Assad in December 2024 in just 12 days. Now leads Syria's transitional government and repositioned Syria toward Turkey and the West.",
     significantEvents: [
       {
         year: 2013,
@@ -3437,8 +3436,8 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Ended Assad family&#39;s 54-year rule over Syria",
-      "Freed thousands from Assad&#39;s notorious prisons",
+      "Ended Assad family's 54-year rule over Syria",
+      "Freed thousands from Assad's notorious prisons",
       "Secured international diplomatic recognition for transitional government",
       "Maintained relative stability in Damascus post-transition",
     ],
@@ -3448,7 +3447,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "Transitional",
     impact:
-      "The most dramatic leadership transition in Middle Eastern history in a decade. His ability to consolidate Syria&#39;s transition and prevent new civil war will define the region for years.",
+      "The most dramatic leadership transition in Middle Eastern history in a decade. His ability to consolidate Syria's transition and prevent new civil war will define the region for years.",
     region: "Middle East",
   },
   {
@@ -3501,17 +3500,17 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Maintained KRG stability through ISIS and regional instability",
-      "Secured Western investment in Kurdistan&#39;s oil sector",
+      "Secured Western investment in Kurdistan's oil sector",
       "Kept Peshmerga as frontline partner for US counter-ISIS operations",
-      "Navigated Iraq&#39;s complex federal politics for maximum autonomy",
+      "Navigated Iraq's complex federal politics for maximum autonomy",
     ],
     politicalViews:
-      "Kurdish nationalist, pro-Western security ties, pro-Israel informally. Economic liberalism in KRG. Balances Baghdad autonomy demands with Ankara&#39;s anti-PKK operations in KRG territory.",
+      "Kurdish nationalist, pro-Western security ties, pro-Israel informally. Economic liberalism in KRG. Balances Baghdad autonomy demands with Ankara's anti-PKK operations in KRG territory.",
     approvalRating: 51,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Holds together one of the Middle East&#39;s most stable and pro-Western entities amid ISIS legacy, Iranian pressure, Turkish military operations, and Baghdad political negotiations.",
+      "Holds together one of the Middle East's most stable and pro-Western entities amid ISIS legacy, Iranian pressure, Turkish military operations, and Baghdad political negotiations.",
     region: "Middle East",
   },
   // ── BATCH 8: More Americas ─────────────────────────────────────────────────
@@ -3538,11 +3537,11 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "Former M-19 guerrilla turned politician who became Colombia&#39;s first left-wing president in 2022. Was Bogotá mayor 2012–2015. His election ended the traditional Conservative-Liberal duopoly that has governed Colombia since independence.",
+      "Former M-19 guerrilla turned politician who became Colombia's first left-wing president in 2022. Was Bogotá mayor 2012–2015. His election ended the traditional Conservative-Liberal duopoly that has governed Colombia since independence.",
     significantEvents: [
       {
         year: 2022,
-        event: "Won election — Colombia&#39;s first left-wing president",
+        event: "Won election — Colombia's first left-wing president",
         impact: "positive",
       },
       {
@@ -3565,7 +3564,7 @@ const LEADERS: Leader[] = [
     achievements: [
       "Historic first left-wing president in Colombia",
       "Total Peace dialogue engaged 6+ armed groups simultaneously",
-      "Colombia&#39;s first female VP — Francia Márquez, Afro-Colombian activist",
+      "Colombia's first female VP — Francia Márquez, Afro-Colombian activist",
       "Restored Venezuela relations — 3 years of diplomatic rupture ended",
     ],
     politicalViews:
@@ -3574,7 +3573,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Historic figure whose peace agenda has struggled against armed groups&#39; continued violence. His anti-oil position threatens Colombia&#39;s fiscal base; progressive agenda faces implementation barriers in a conservative congress.",
+      "Historic figure whose peace agenda has struggled against armed groups' continued violence. His anti-oil position threatens Colombia's fiscal base; progressive agenda faces implementation barriers in a conservative congress.",
     region: "Americas",
   },
   {
@@ -3600,12 +3599,12 @@ const LEADERS: Leader[] = [
     ideology: "Centrist",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "Peru&#39;s first female president who assumed office after President Pedro Castillo&#39;s failed self-coup in December 2022. Peru has had 6 presidents in 7 years. Boluarte&#39;s government used deadly force against protesters in early 2023, killing 49 people.",
+      "Peru's first female president who assumed office after President Pedro Castillo's failed self-coup in December 2022. Peru has had 6 presidents in 7 years. Boluarte's government used deadly force against protesters in early 2023, killing 49 people.",
     significantEvents: [
       {
         year: 2022,
         event:
-          "Became president after Castillo&#39;s failed self-coup and impeachment",
+          "Became president after Castillo's failed self-coup and impeachment",
         impact: "neutral",
       },
       {
@@ -3629,7 +3628,7 @@ const LEADERS: Leader[] = [
     achievements: [
       "First female president in Peruvian history",
       "Maintained macroeconomic stability during political chaos",
-      "Peru&#39;s economy remains one of LatAm&#39;s most stable",
+      "Peru's economy remains one of LatAm's most stable",
       "Completed Callao deepwater port expansion (Chinese-invested)",
     ],
     politicalViews:
@@ -3638,7 +3637,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Symbol of Peru&#39;s chronic political dysfunction — the country&#39;s 6th president in 7 years. Governs with rock-bottom approval amid congressional blockage and ongoing criminal investigations.",
+      "Symbol of Peru's chronic political dysfunction — the country's 6th president in 7 years. Governs with rock-bottom approval amid congressional blockage and ongoing criminal investigations.",
     region: "Americas",
   },
   {
@@ -3669,17 +3668,17 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2023, to: "present" }],
     background:
-      "Son of banana billionaire Álvaro Noboa — one of Ecuador&#39;s wealthiest families. Youngest Ecuadorian president ever at 35. Won from nowhere declaring war on drug cartels that had turned Ecuador from one of LatAm&#39;s most peaceful countries into one of its most violent.",
+      "Son of banana billionaire Álvaro Noboa — one of Ecuador's wealthiest families. Youngest Ecuadorian president ever at 35. Won from nowhere declaring war on drug cartels that had turned Ecuador from one of LatAm's most peaceful countries into one of its most violent.",
     significantEvents: [
       {
         year: 2023,
-        event: "Won election as Ecuador&#39;s youngest-ever president",
+        event: "Won election as Ecuador's youngest-ever president",
         impact: "positive",
       },
       {
         year: 2024,
         event:
-          "Declared &#39;internal armed conflict&#39; against gangs; military deployed",
+          "Declared 'internal armed conflict' against gangs; military deployed",
         impact: "neutral",
       },
       {
@@ -3695,7 +3694,7 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Youngest president in Ecuador&#39;s modern history",
+      "Youngest president in Ecuador's modern history",
       "Military crackdown reduced homicide rate in key cities",
       "Built El Rodeo maximum security prison for cartel leaders",
       "Re-elected with strong mandate on security platform",
@@ -3706,7 +3705,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Transformed Ecuador&#39;s political narrative from fragile stability to active wartime anti-cartel president. His iron-fist approach has shown results in some cities but at significant human rights concerns.",
+      "Transformed Ecuador's political narrative from fragile stability to active wartime anti-cartel president. His iron-fist approach has shown results in some cities but at significant human rights concerns.",
     region: "Americas",
   },
   // ── BATCH 9: More Africa ───────────────────────────────────────────────────
@@ -3738,7 +3737,7 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "Rose from selling chickens on the roadside to become Kenya&#39;s 5th president. Former deputy president under Kenyatta who fell out with his running mate to run independently. Campaigned on 'hustler nation' bottom-up economics but faced gen Z-led #RejectFinanceBill uprising in 2024.",
+      "Rose from selling chickens on the roadside to become Kenya's 5th president. Former deputy president under Kenyatta who fell out with his running mate to run independently. Campaigned on 'hustler nation' bottom-up economics but faced gen Z-led #RejectFinanceBill uprising in 2024.",
     significantEvents: [
       {
         year: 2022,
@@ -3841,7 +3840,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "Transitional",
     impact:
-      "Epitomises the Sahel&#39;s anti-French coup wave. Mali&#39;s security situation has worsened under Wagner support, with jihadist control expanding. His Russia pivot is part of a geopolitical realignment of West Africa away from the West.",
+      "Epitomises the Sahel's anti-French coup wave. Mali's security situation has worsened under Wagner support, with jihadist control expanding. His Russia pivot is part of a geopolitical realignment of West Africa away from the West.",
     region: "Africa",
   },
   {
@@ -3867,7 +3866,7 @@ const LEADERS: Leader[] = [
     ideology: "Military Junta",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "Captain who became one of Africa&#39;s youngest heads of state at 34 after leading Burkina Faso&#39;s second coup of 2022. Expelled French forces, invited Wagner/Africa Corps and became a social media celebrity among Pan-Africanist youth despite worsening jihadist violence.",
+      "Captain who became one of Africa's youngest heads of state at 34 after leading Burkina Faso's second coup of 2022. Expelled French forces, invited Wagner/Africa Corps and became a social media celebrity among Pan-Africanist youth despite worsening jihadist violence.",
     significantEvents: [
       {
         year: 2022,
@@ -3901,7 +3900,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "Transitional",
     impact:
-      "Burkina Faso&#39;s security situation dramatically worsened under his rule — 40% of territory effectively outside state control. His social media popularity among African youth exceeds his governance reality.",
+      "Burkina Faso's security situation dramatically worsened under his rule — 40% of territory effectively outside state control. His social media popularity among African youth exceeds his governance reality.",
     region: "Africa",
   },
   // ── BATCH 10: Asia completion ──────────────────────────────────────────────
@@ -3933,7 +3932,7 @@ const LEADERS: Leader[] = [
     ideology: "Communist",
     termsInOffice: [{ from: 2021, to: "present" }],
     background:
-      "Former security and intelligence official who became PM in 2021. Vietnam has pursued a multi-directional foreign policy (doi ngoai da phuong) balancing US, China, Russia, and India ties — the &#39;bamboo diplomacy&#39; strategy. Vietnam&#39;s economy is one of Asia&#39;s fastest-growing.",
+      "Former security and intelligence official who became PM in 2021. Vietnam has pursued a multi-directional foreign policy (doi ngoai da phuong) balancing US, China, Russia, and India ties — the 'bamboo diplomacy' strategy. Vietnam's economy is one of Asia's fastest-growing.",
     significantEvents: [
       {
         year: 2021,
@@ -3954,23 +3953,23 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Vietnam&#39;s Dot Dieu anti-corruption campaign — top leaders jailed",
+          "Vietnam's Dot Dieu anti-corruption campaign — top leaders jailed",
         impact: "positive",
       },
     ],
     achievements: [
-      "Vietnam&#39;s GDP growth of 7%+ — among Asia&#39;s fastest",
+      "Vietnam's GDP growth of 7%+ — among Asia's fastest",
       "Comprehensive Strategic Partnerships with both US and China",
       "Manufacturing hub shift from China accelerated under his tenure",
       "Major semiconductor and tech FDI attracted",
     ],
     politicalViews:
-      "Communist developmentalism, pragmatic economic engagement. Bamboo diplomacy — bends but doesn&#39;t break, tilts with all partners. South China Sea disputes managed through ASEAN and bilateral channels without direct confrontation.",
+      "Communist developmentalism, pragmatic economic engagement. Bamboo diplomacy — bends but doesn't break, tilts with all partners. South China Sea disputes managed through ASEAN and bilateral channels without direct confrontation.",
     approvalRating: null,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Oversees Vietnam&#39;s emergence as a key manufacturing alternative to China and one of SE Asia&#39;s most important growth stories — while maintaining one-party communist governance.",
+      "Oversees Vietnam's emergence as a key manufacturing alternative to China and one of SE Asia's most important growth stories — while maintaining one-party communist governance.",
     region: "Asia-Pacific",
   },
   {
@@ -3998,11 +3997,11 @@ const LEADERS: Leader[] = [
         year: 2019,
       },
     ],
-    party: "Cambodian People&#39;s Party (CPP)",
+    party: "Cambodian People's Party (CPP)",
     ideology: "Authoritarian",
     termsInOffice: [{ from: 2023, to: "present" }],
     background:
-      "Son of former strongman Hun Sen who ruled Cambodia for 38 years. Credentialed at West Point and NYU — a technocratic facade on a nepo-state transition. Took power in August 2023 after his father&#39;s orchestrated &#39;abdication&#39;. First Cambodian PM to hold a US military academy degree.",
+      "Son of former strongman Hun Sen who ruled Cambodia for 38 years. Credentialed at West Point and NYU — a technocratic facade on a nepo-state transition. Took power in August 2023 after his father's orchestrated 'abdication'. First Cambodian PM to hold a US military academy degree.",
     significantEvents: [
       {
         year: 2023,
@@ -4029,7 +4028,7 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Smooth dynastic power transition — averted instability",
-      "Continued Cambodia&#39;s economic growth trajectory",
+      "Continued Cambodia's economic growth trajectory",
       "Partial crackdown on Sihanoukville cyber scam compounds",
       "Maintained ASEAN membership and multilateral engagement",
     ],
@@ -4039,7 +4038,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Represents Southeast Asia&#39;s most explicit authoritarian dynastic transition. Cambodia&#39;s scam compound crisis and Chinese military base are defining him as a security concern for the region.",
+      "Represents Southeast Asia's most explicit authoritarian dynastic transition. Cambodia's scam compound crisis and Chinese military base are defining him as a security concern for the region.",
     region: "Asia-Pacific",
   },
   {
@@ -4071,21 +4070,21 @@ const LEADERS: Leader[] = [
         year: 2005,
       },
     ],
-    party: "People&#39;s Action Party (PAP)",
+    party: "People's Action Party (PAP)",
     ideology: "Conservative",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Singapore&#39;s 4th Prime Minister, succeeding Lee Hsien Loong who held office for 20 years. Served as co-chair of Singapore&#39;s Multi-Ministry Taskforce during COVID-19 and gained national prominence for his calm, clear communication during the crisis. Harvard-trained economist and career civil servant.",
+      "Singapore's 4th Prime Minister, succeeding Lee Hsien Loong who held office for 20 years. Served as co-chair of Singapore's Multi-Ministry Taskforce during COVID-19 and gained national prominence for his calm, clear communication during the crisis. Harvard-trained economist and career civil servant.",
     significantEvents: [
       {
         year: 2020,
         event:
-          "Led Singapore&#39;s COVID-19 response task force — one of Asia&#39;s most effective",
+          "Led Singapore's COVID-19 response task force — one of Asia's most effective",
         impact: "positive",
       },
       {
         year: 2024,
-        event: "Became Singapore&#39;s 4th PM after Lee Hsien Loong steps down",
+        event: "Became Singapore's 4th PM after Lee Hsien Loong steps down",
         impact: "positive",
       },
       {
@@ -4101,10 +4100,10 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Led one of Asia&#39;s best COVID-19 responses",
-      "Smooth transition of Singapore&#39;s leadership after 20 years of Lee HL",
-      "Singapore remains world&#39;s top financial hub and logistics centre",
-      "Maintained Singapore&#39;s AAA credit rating and #1 global competitiveness ranking",
+      "Led one of Asia's best COVID-19 responses",
+      "Smooth transition of Singapore's leadership after 20 years of Lee HL",
+      "Singapore remains world's top financial hub and logistics centre",
+      "Maintained Singapore's AAA credit rating and #1 global competitiveness ranking",
     ],
     politicalViews:
       "PAP technocratic governance — meritocracy, social order, long-term economic planning. Pragmatic balance between US and China. Singapore as indispensable neutral hub in great power competition.",
@@ -4112,7 +4111,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Inherits Singapore&#39;s most difficult geopolitical moment — navigating between US and China in an era of decoupling. His competence-first image gives Singapore strong soft power in a turbulent world.",
+      "Inherits Singapore's most difficult geopolitical moment — navigating between US and China in an era of decoupling. His competence-first image gives Singapore strong soft power in a turbulent world.",
     region: "Asia-Pacific",
   },
   {
@@ -4139,7 +4138,7 @@ const LEADERS: Leader[] = [
         year: 2013,
       },
     ],
-    party: "People&#39;s National Congress (PNC)",
+    party: "People's National Congress (PNC)",
     ideology: "Conservative",
     termsInOffice: [{ from: 2023, to: "present" }],
     background:
@@ -4147,7 +4146,7 @@ const LEADERS: Leader[] = [
     significantEvents: [
       {
         year: 2023,
-        event: "Won election on &#39;India Out&#39; anti-India platform",
+        event: "Won election on 'India Out' anti-India platform",
         impact: "neutral",
       },
       {
@@ -4169,18 +4168,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Maldives&#39; first China FTA signed",
+      "Maldives' first China FTA signed",
       "Expanded Chinese infrastructure investment in Maldives",
       "Maintained tourism as GDP pillar despite diplomatic tensions",
       "Navigated India–China tug-of-war over small island state",
     ],
     politicalViews:
-      "Pro-China pivot, Maldivian sovereignty, Islamic identity politics. Opposes Indian military presence. Sees China as development partner over India&#39;s regional hegemony. Climate vulnerability — sea level rise existential issue.",
+      "Pro-China pivot, Maldivian sovereignty, Islamic identity politics. Opposes Indian military presence. Sees China as development partner over India's regional hegemony. Climate vulnerability — sea level rise existential issue.",
     approvalRating: 46,
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Maldives&#39; China pivot is a symbolic and strategic blow to India&#39;s Indian Ocean dominance. His country&#39;s existential vulnerability to climate change gives him unusual global leverage on environmental issues.",
+      "Maldives' China pivot is a symbolic and strategic blow to India's Indian Ocean dominance. His country's existential vulnerability to climate change gives him unusual global leverage on environmental issues.",
     region: "Asia-Pacific",
   },
   // ── BATCH 11: Final Europe + LA Completion ──────────────────────────────────
@@ -4238,7 +4237,7 @@ const LEADERS: Leader[] = [
     achievements: [
       "Opened Cyprus humanitarian corridor for Gaza aid shipping",
       "Reunification talks restarted after years of stalemate",
-      "EU&#39;s Gaza aid floating pier concept championed",
+      "EU's Gaza aid floating pier concept championed",
       "Cyprus positioned as indispensable Eastern Med humanitarian hub",
     ],
     politicalViews:
@@ -4281,7 +4280,7 @@ const LEADERS: Leader[] = [
       { from: 2010, to: "present" },
     ],
     background:
-      "Former anti-communist liberal activist who sharply pivoted to illiberal nationalism. Has systematically reshaped Hungary&#39;s judicial, media, and electoral systems in Fidesz&#39;s favour. Often described as the EU&#39;s only illiberal democracy and Putin&#39;s closest European ally.",
+      "Former anti-communist liberal activist who sharply pivoted to illiberal nationalism. Has systematically reshaped Hungary's judicial, media, and electoral systems in Fidesz's favour. Often described as the EU's only illiberal democracy and Putin's closest European ally.",
     significantEvents: [
       {
         year: 2010,
@@ -4315,12 +4314,12 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Longest-serving current EU leader",
-      "Hungary&#39;s economy grew 4%+ annually pre-COVID",
-      "Family policy: Hungary&#39;s birth rate increased",
+      "Hungary's economy grew 4%+ annually pre-COVID",
+      "Family policy: Hungary's birth rate increased",
       "Maintains cheapest energy in EU through Russian gas deal",
     ],
     politicalViews:
-      "Illiberal national conservatism, Christian democracy, anti-immigration, anti-LGBTQ legislation, pro-Russia energy dependency. Defines himself against 'Brussels&#39; and Western liberal values. Trumpist before Trump.",
+      "Illiberal national conservatism, Christian democracy, anti-immigration, anti-LGBTQ legislation, pro-Russia energy dependency. Defines himself against 'Brussels' and Western liberal values. Trumpist before Trump.",
     approvalRating: 49,
     approvalTrend: "stable",
     status: "In Office",
@@ -4358,7 +4357,7 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2025, to: "present" }],
     background:
-      "Corporate lawyer and former Bundestag member who spent years at BlackRock Germany before returning to politics. Won the CDU leadership after Merkel&#39;s departure and led the CDU/CSU to victory in the February 2025 snap elections following Scholz&#39;s coalition collapse. Became Chancellor in March 2025.",
+      "Corporate lawyer and former Bundestag member who spent years at BlackRock Germany before returning to politics. Won the CDU leadership after Merkel's departure and led the CDU/CSU to victory in the February 2025 snap elections following Scholz's coalition collapse. Became Chancellor in March 2025.",
     significantEvents: [
       {
         year: 2000,
@@ -4393,8 +4392,8 @@ const LEADERS: Leader[] = [
     achievements: [
       "Became Chancellor after 16 years of CDU opposition waiting",
       "Debt brake reform — unlocked €500B infrastructure and defence fund",
-      "Germany&#39;s fastest defence budget increase since reunification",
-      "Rebuilt CDU as Germany&#39;s dominant party post-Merkel",
+      "Germany's fastest defence budget increase since reunification",
+      "Rebuilt CDU as Germany's dominant party post-Merkel",
     ],
     politicalViews:
       "Traditional CDU conservatism — fiscal discipline (before the debt brake reform), pro-business, Atlantic alliance, tough on immigration and crime. More hawkish than Scholz on Russia and China. Advocates German leadership in European defence.",
@@ -4425,7 +4424,7 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2025, to: "present" }],
     background:
-      "Former Governor of Gyeonggi Province and multiple-time presidential candidate. Rose from extreme poverty — worked in a factory from age 12, losing a finger in an industrial accident. Won the June 2025 snap presidential election following Yoon Suk-yeol&#39;s impeachment and removal after his short-lived martial law declaration.",
+      "Former Governor of Gyeonggi Province and multiple-time presidential candidate. Rose from extreme poverty — worked in a factory from age 12, losing a finger in an industrial accident. Won the June 2025 snap presidential election following Yoon Suk-yeol's impeachment and removal after his short-lived martial law declaration.",
     significantEvents: [
       {
         year: 2022,
@@ -4441,7 +4440,7 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "Won snap presidential election after Yoon&#39;s constitutional crisis",
+          "Won snap presidential election after Yoon's constitutional crisis",
         impact: "positive",
       },
       {
@@ -4453,7 +4452,7 @@ const LEADERS: Leader[] = [
     achievements: [
       "Won presidency after surviving assassination attempt",
       "Launched basic income pilot as Gyeonggi Governor",
-      "Restored South Korea&#39;s democratic continuity after constitutional crisis",
+      "Restored South Korea's democratic continuity after constitutional crisis",
       "Re-engaged North Korea on humanitarian channels",
     ],
     politicalViews:
@@ -4488,7 +4487,7 @@ const LEADERS: Leader[] = [
     ideology: "Progressive",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "Former student movement leader and congressman who became Chile&#39;s youngest-ever president at 35 in March 2022. Emerged from the 2019 social uprising that demanded constitutional reform. Governing Chile through a turbulent period of rejected constitutional referendums and rising crime.",
+      "Former student movement leader and congressman who became Chile's youngest-ever president at 35 in March 2022. Emerged from the 2019 social uprising that demanded constitutional reform. Governing Chile through a turbulent period of rejected constitutional referendums and rising crime.",
     significantEvents: [
       {
         year: 2011,
@@ -4499,7 +4498,7 @@ const LEADERS: Leader[] = [
       {
         year: 2022,
         event:
-          "Won runoff defeating far-right Kast — became Chile&#39;s youngest president",
+          "Won runoff defeating far-right Kast — became Chile's youngest president",
         impact: "positive",
       },
       {
@@ -4600,8 +4599,8 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Jordan&#39;s stability maintained through 25+ years of regional chaos",
-      "Hosts 1.3M+ Syrian refugees — world&#39;s second-highest per capita",
+      "Jordan's stability maintained through 25+ years of regional chaos",
+      "Hosts 1.3M+ Syrian refugees — world's second-highest per capita",
       "Peace treaty with Israel maintained despite intense popular opposition",
       "Intercepted Iranian drones in April 2024 — rare military action in defense of Israel",
     ],
@@ -4611,7 +4610,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Jordan&#39;s stability in one of the world&#39;s most volatile regions is Abdullah&#39;s remarkable achievement. The kingdom is the linchpin of Middle Eastern diplomacy — without it, refugee crises, ISIS containment, and Israeli–Arab dialogue would all worsen dramatically.",
+      "Jordan's stability in one of the world's most volatile regions is Abdullah's remarkable achievement. The kingdom is the linchpin of Middle Eastern diplomacy — without it, refugee crises, ISIS containment, and Israeli–Arab dialogue would all worsen dramatically.",
     region: "Middle East",
   },
   {
@@ -4642,7 +4641,7 @@ const LEADERS: Leader[] = [
     ideology: "Authoritarian",
     termsInOffice: [{ from: 2013, to: "present" }],
     background:
-      "Became Emir at 33 after his father Sheikh Hamad abdicated. Oversaw the 2022 FIFA World Cup — Qatar&#39;s most globally visible moment. Hosts Al Jazeera Arabic, Hamas political bureau, and US CENTCOM&#39;s regional headquarters simultaneously — making Qatar the world&#39;s most ambitious small-state geopolitical broker.",
+      "Became Emir at 33 after his father Sheikh Hamad abdicated. Oversaw the 2022 FIFA World Cup — Qatar's most globally visible moment. Hosts Al Jazeera Arabic, Hamas political bureau, and US CENTCOM's regional headquarters simultaneously — making Qatar the world's most ambitious small-state geopolitical broker.",
     significantEvents: [
       {
         year: 2017,
@@ -4675,7 +4674,7 @@ const LEADERS: Leader[] = [
     achievements: [
       "Hosted FIFA World Cup 2022 — first Arab country ever",
       "Survived 3.5-year Saudi-led blockade without capitulating",
-      "Al Jazeera established as world&#39;s most watched Arabic news network",
+      "Al Jazeera established as world's most watched Arabic news network",
       "Gaza peace mediation — co-hosted all major 2024–25 ceasefire talks",
     ],
     politicalViews:
@@ -4710,11 +4709,11 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2019, to: "present" }],
     background:
-      "Former youth socialism activist who became Denmark&#39;s youngest-ever Prime Minister at 41. Defied social democratic convention by coupling tough immigration rhetoric with expanded welfare — dubbed the 'welfare nationalist'. Led Denmark through COVID with one of Europe&#39;s strongest records.",
+      "Former youth socialism activist who became Denmark's youngest-ever Prime Minister at 41. Defied social democratic convention by coupling tough immigration rhetoric with expanded welfare — dubbed the 'welfare nationalist'. Led Denmark through COVID with one of Europe's strongest records.",
     significantEvents: [
       {
         year: 2019,
-        event: "Became Denmark&#39;s youngest PM at 41",
+        event: "Became Denmark's youngest PM at 41",
         impact: "positive",
       },
       {
@@ -4732,14 +4731,14 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "Greenland sovereignty debate — resists Trump&#39;s acquisition rhetoric",
+          "Greenland sovereignty debate — resists Trump's acquisition rhetoric",
         impact: "positive",
       },
     ],
     achievements: [
-      "Denmark&#39;s COVID mortality among Europe&#39;s lowest",
+      "Denmark's COVID mortality among Europe's lowest",
       "Voters approved removal of Danish EU defence opt-out — historic referendum",
-      "Denmark&#39;s energy self-sufficiency goals accelerated",
+      "Denmark's energy self-sufficiency goals accelerated",
       "Greenland sovereignty defended against US pressure",
     ],
     politicalViews:
@@ -4748,7 +4747,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Her &#39;welfare nationalism&#39; model has influenced centre-left parties across Europe navigating the migration debate. Defending Greenland&#39;s sovereignty has given Denmark an outsized role in Arctic geopolitics.",
+      "Her 'welfare nationalism' model has influenced centre-left parties across Europe navigating the migration debate. Defending Greenland's sovereignty has given Denmark an outsized role in Arctic geopolitics.",
     region: "Europe",
   },
   {
@@ -4779,7 +4778,7 @@ const LEADERS: Leader[] = [
     ideology: "Progressive",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Former tax inspector who was released from prison just 10 days before winning Senegal&#39;s March 2024 presidential election — the most dramatic electoral comeback in African politics in decades. Closely allied with opposition figure Ousmane Sonko, who was barred from running. Won with 54% as the anti-establishment candidate.",
+      "Former tax inspector who was released from prison just 10 days before winning Senegal's March 2024 presidential election — the most dramatic electoral comeback in African politics in decades. Closely allied with opposition figure Ousmane Sonko, who was barred from running. Won with 54% as the anti-establishment candidate.",
     significantEvents: [
       {
         year: 2023,
@@ -4800,13 +4799,13 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "Launched Senegal&#39;s oil and gas first production — transformative revenue source",
+          "Launched Senegal's oil and gas first production — transformative revenue source",
         impact: "positive",
       },
     ],
     achievements: [
       "Won presidency 10 days after prison release — historic democratic moment",
-      "Launched Senegal&#39;s first oil & gas production era",
+      "Launched Senegal's first oil & gas production era",
       "Resource sovereignty renegotiations with Western energy companies",
       "Wolof and Diola cultural identity elevated alongside French",
     ],
@@ -4816,7 +4815,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Symbolises a new generation of African leaders elected on genuine anti-corruption mandates. Senegal&#39;s new oil wealth under his watch will test whether resource sovereignty rhetoric translates to equitable development.",
+      "Symbolises a new generation of African leaders elected on genuine anti-corruption mandates. Senegal's new oil wealth under his watch will test whether resource sovereignty rhetoric translates to equitable development.",
     region: "Africa",
   },
   {
@@ -4842,12 +4841,12 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2019, to: "present" }],
     background:
-      "Son of legendary DRC opposition figure Étienne Tshisekedi. Won the 2018 election in a disputed process and was re-elected in contested 2023 elections. Leads the world&#39;s most resource-rich yet conflict-devastated large nation — the DRC has the world&#39;s largest cobalt reserves but its eastern regions remain locked in devastating armed conflict.",
+      "Son of legendary DRC opposition figure Étienne Tshisekedi. Won the 2018 election in a disputed process and was re-elected in contested 2023 elections. Leads the world's most resource-rich yet conflict-devastated large nation — the DRC has the world's largest cobalt reserves but its eastern regions remain locked in devastating armed conflict.",
     significantEvents: [
       {
         year: 2019,
         event:
-          "Assumed presidency in DRC&#39;s first peaceful power transfer since independence",
+          "Assumed presidency in DRC's first peaceful power transfer since independence",
         impact: "positive",
       },
       {
@@ -4880,7 +4879,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Leads one of the world&#39;s most consequential but overlooked crises — the DRC&#39;s eastern conflict has killed more people than any war since WWII. Its mineral wealth will define the global electric vehicle and renewable energy transition.",
+      "Leads one of the world's most consequential but overlooked crises — the DRC's eastern conflict has killed more people than any war since WWII. Its mineral wealth will define the global electric vehicle and renewable energy transition.",
     region: "Africa",
   },
   {
@@ -4955,7 +4954,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "Transitional",
     impact:
-      "Triggered one of Asia&#39;s worst humanitarian crises since the Vietnam War. His coup destroyed Myanmar&#39;s democratic transition and unleashed a resistance movement he cannot defeat but refuses to negotiate with.",
+      "Triggered one of Asia's worst humanitarian crises since the Vietnam War. His coup destroyed Myanmar's democratic transition and unleashed a resistance movement he cannot defeat but refuses to negotiate with.",
     region: "Asia-Pacific",
   },
   {
@@ -4991,7 +4990,7 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Fluent in five languages and an Ironman triathlete, Stubb is one of Europe&#39;s most cosmopolitan political figures. Former PM, Finance Minister, and Foreign Minister of Finland who won the presidency in February 2024 — just months before Finland&#39;s first full NATO year under Orpo&#39;s government. A passionate Atlanticist with deep transatlantic network.",
+      "Fluent in five languages and an Ironman triathlete, Stubb is one of Europe's most cosmopolitan political figures. Former PM, Finance Minister, and Foreign Minister of Finland who won the presidency in February 2024 — just months before Finland's first full NATO year under Orpo's government. A passionate Atlanticist with deep transatlantic network.",
     significantEvents: [
       {
         year: 2019,
@@ -5007,7 +5006,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "First state visit to Washington to reinforce Finland&#39;s new NATO role",
+          "First state visit to Washington to reinforce Finland's new NATO role",
         impact: "positive",
       },
       {
@@ -5018,8 +5017,8 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Won Finland&#39;s presidency on first attempt against veteran politicians",
-      "Championed Finland&#39;s NATO accession for years before it happened",
+      "Won Finland's presidency on first attempt against veteran politicians",
+      "Championed Finland's NATO accession for years before it happened",
       "EIB Vice-President — financial diplomacy expertise",
       "Ironman triathlete — visible public health advocate",
     ],
@@ -5029,7 +5028,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "As President of NATO&#39;s most exposed member-state, his role in managing the 1,300km Russian border relationship has outsized European security implications. Among Europe&#39;s most credible faces for the US–Europe security conversation.",
+      "As President of NATO's most exposed member-state, his role in managing the 1,300km Russian border relationship has outsized European security implications. Among Europe's most credible faces for the US–Europe security conversation.",
     region: "Europe",
   },
   // ── BATCH 13: Europe continuation + Oceania ────────────────────────────────
@@ -5056,7 +5055,7 @@ const LEADERS: Leader[] = [
     ideology: "Centrist",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Veteran centrist politician who ran for president three times (2002, 2007, 2012) before becoming Macron&#39;s closest political ally. Appointed Prime Minister in December 2024 after Michel Barnier&#39;s government fell on a no-confidence vote — the third PM Macron has gone through. Mayor of Pau since 1993.",
+      "Veteran centrist politician who ran for president three times (2002, 2007, 2012) before becoming Macron's closest political ally. Appointed Prime Minister in December 2024 after Michel Barnier's government fell on a no-confidence vote — the third PM Macron has gone through. Mayor of Pau since 1993.",
     significantEvents: [
       {
         year: 2002,
@@ -5078,7 +5077,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Appointed PM after Barnier&#39;s government fell on no-confidence",
+          "Appointed PM after Barnier's government fell on no-confidence",
         impact: "neutral",
       },
       {
@@ -5089,17 +5088,17 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Longest political career of any French serving centrist",
-      "Founded MoDem — France&#39;s most durable centrist party",
+      "Founded MoDem — France's most durable centrist party",
       "Survived as PM despite minority government in hostile parliament",
-      "Mayor of Pau for 30+ years — one of France&#39;s longest-serving mayors",
+      "Mayor of Pau for 30+ years — one of France's longest-serving mayors",
     ],
     politicalViews:
-      "Christian democratic centrist. Pro-European integration, proportional representation advocate, institutional reform. Catholic social teaching influences. Supports Macron&#39;s agenda while pushing for broader coalition.",
+      "Christian democratic centrist. Pro-European integration, proportional representation advocate, institutional reform. Catholic social teaching influences. Supports Macron's agenda while pushing for broader coalition.",
     approvalRating: 22,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "France&#39;s parliamentary crisis has made the PM role nearly impossible. Bayrou&#39;s political longevity and centrism make him better positioned than predecessors — but France&#39;s fragmented National Assembly fundamentally limits any PM&#39;s power.",
+      "France's parliamentary crisis has made the PM role nearly impossible. Bayrou's political longevity and centrism make him better positioned than predecessors — but France's fragmented National Assembly fundamentally limits any PM's power.",
     region: "Europe",
   },
   {
@@ -5157,7 +5156,7 @@ const LEADERS: Leader[] = [
     achievements: [
       "Led Air New Zealand to profitability as CEO",
       "Fast-track infrastructure act to accelerate building consents",
-      "Restored fiscal discipline after Labour&#39;s spending period",
+      "Restored fiscal discipline after Labour's spending period",
       "Free trade agreement with Gulf Cooperation Council negotiated",
     ],
     politicalViews:
@@ -5198,7 +5197,7 @@ const LEADERS: Leader[] = [
       {
         year: 2022,
         event:
-          "Led PSD as opposition leader through Socialists&#39; absolute majority",
+          "Led PSD as opposition leader through Socialists' absolute majority",
         impact: "neutral",
       },
       {
@@ -5215,7 +5214,7 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "Navigates EU AI Act and Portugal&#39;s digital economy positioning",
+          "Navigates EU AI Act and Portugal's digital economy positioning",
         impact: "neutral",
       },
     ],
@@ -5231,7 +5230,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Governing Portugal at a pivotal moment as the country becomes a leading Southern European tech hub. His minority government&#39;s survival depends on fragile parliamentary arithmetic.",
+      "Governing Portugal at a pivotal moment as the country becomes a leading Southern European tech hub. His minority government's survival depends on fragile parliamentary arithmetic.",
     region: "Europe",
   },
   {
@@ -5258,11 +5257,11 @@ const LEADERS: Leader[] = [
         year: 2000,
       },
     ],
-    party: "Austrian People&#39;s Party (ÖVP)",
+    party: "Austrian People's Party (ÖVP)",
     ideology: "Conservative",
     termsInOffice: [{ from: 2021, to: 2025 }],
     background:
-      "Former interior minister who became Chancellor in January 2022 after Schallenberg&#39;s brief tenure. Led the ÖVP through the 2024 election which saw the far-right FPÖ come first for the first time in Austrian history. Resigned in January 2025 when coalition negotiations failed and the FPÖ was asked to form government.",
+      "Former interior minister who became Chancellor in January 2022 after Schallenberg's brief tenure. Led the ÖVP through the 2024 election which saw the far-right FPÖ come first for the first time in Austrian history. Resigned in January 2025 when coalition negotiations failed and the FPÖ was asked to form government.",
     significantEvents: [
       {
         year: 2022,
@@ -5273,7 +5272,7 @@ const LEADERS: Leader[] = [
       {
         year: 2023,
         event:
-          "Austria&#39;s anti-migration policies tightened — asylum applications cut",
+          "Austria's anti-migration policies tightened — asylum applications cut",
         impact: "neutral",
       },
       {
@@ -5289,10 +5288,10 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Navigated Austria&#39;s complex COVID response",
-      "Maintained Austria&#39;s economic stability as Chancellor",
+      "Navigated Austria's complex COVID response",
+      "Maintained Austria's economic stability as Chancellor",
       "Reduced irregular migration significantly during tenure",
-      "Kept Austria&#39;s neutrality status functional during Ukraine war",
+      "Kept Austria's neutrality status functional during Ukraine war",
     ],
     politicalViews:
       "Conservative Christian democratic, tough on migration, pro-Austrian neutrality. Fiscal discipline, small business support. Refused to form government with FPÖ —ultimately unsuccessfully blocking them.",
@@ -5300,7 +5299,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "Former",
     impact:
-      "His refusal to govern with FPÖ after their 2024 victory ultimately failed — the FPÖ formed government with ÖVP under a new Chancellor. Represents the mainstream right&#39;s losing battle against far-right surge across Europe.",
+      "His refusal to govern with FPÖ after their 2024 victory ultimately failed — the FPÖ formed government with ÖVP under a new Chancellor. Represents the mainstream right's losing battle against far-right surge across Europe.",
     region: "Europe",
   },
   {
@@ -5326,7 +5325,7 @@ const LEADERS: Leader[] = [
     ideology: "Nationalist",
     termsInOffice: [{ from: 2025, to: "present" }],
     background:
-      "FPÖ leader who led his party to first place in the September 2024 Austrian election — the far-right&#39;s first election win in Austrian history. After months of failed coalition talks by ÖVP, was asked by the President to form government in January 2025. Became Chancellor in March 2025 — the first far-right chancellor in Austria in the post-WWII era.",
+      "FPÖ leader who led his party to first place in the September 2024 Austrian election — the far-right's first election win in Austrian history. After months of failed coalition talks by ÖVP, was asked by the President to form government in January 2025. Became Chancellor in March 2025 — the first far-right chancellor in Austria in the post-WWII era.",
     significantEvents: [
       {
         year: 2017,
@@ -5353,13 +5352,13 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "FPÖ&#39;s historic first-place election victory in 2024",
-      "Became Austria&#39;s first far-right post-WWII chancellor",
+      "FPÖ's historic first-place election victory in 2024",
+      "Became Austria's first far-right post-WWII chancellor",
       "Built FPÖ from party in scandal to election winners in 5 years",
       "Implemented strict anti-migration agenda as key campaign promise",
     ],
     politicalViews:
-      "Far-right nationalist, anti-immigration absolutist, Eurosceptic, pro-Russia (opposes Ukraine sanctions), anti-COVID mandate legacy. Frames politics as &#39;Fortress Austria&#39;. Opposed to EU federalism and climate regulation mandates.",
+      "Far-right nationalist, anti-immigration absolutist, Eurosceptic, pro-Russia (opposes Ukraine sanctions), anti-COVID mandate legacy. Frames politics as 'Fortress Austria'. Opposed to EU federalism and climate regulation mandates.",
     approvalRating: 38,
     approvalTrend: "stable",
     status: "In Office",
@@ -5395,7 +5394,7 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2021, to: "present" }],
     background:
-      "Political science professor who led the SPOLU coalition to defeat Babiš in the 2021 elections, ending the era of Czech oligarch politics. Pro-NATO hawk and one of Eastern Europe&#39;s most committed Ukraine supporters. Re-elected in 2025 elections.",
+      "Political science professor who led the SPOLU coalition to defeat Babiš in the 2021 elections, ending the era of Czech oligarch politics. Pro-NATO hawk and one of Eastern Europe's most committed Ukraine supporters. Re-elected in 2025 elections.",
     significantEvents: [
       {
         year: 2021,
@@ -5405,7 +5404,7 @@ const LEADERS: Leader[] = [
       {
         year: 2022,
         event:
-          "Chaired EU Council presidency during Ukraine war&#39;s first year",
+          "Chaired EU Council presidency during Ukraine war's first year",
         impact: "positive",
       },
       {
@@ -5421,18 +5420,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Organised Europe&#39;s largest non-US artillery package for Ukraine (800K shells)",
+      "Organised Europe's largest non-US artillery package for Ukraine (800K shells)",
       "Czech EU Council presidency — managed Ukraine war entry into EU frameworks",
       "Defeated Babiš — restored institutional independence",
       "Czech Republic hosts major NATO exercises as eastern flank state",
     ],
     politicalViews:
-      "Conservative, strong NATO commitment, hawkish Russia policy, pro-EU member state rights (Czech sovereignty). Economic liberalism, anti-corruption, rule of law. Among Eastern Europe&#39;s most pro-Ukraine voices.",
+      "Conservative, strong NATO commitment, hawkish Russia policy, pro-EU member state rights (Czech sovereignty). Economic liberalism, anti-corruption, rule of law. Among Eastern Europe's most pro-Ukraine voices.",
     approvalRating: 39,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "One of Europe&#39;s most consequential small-state leaders on Ukraine — the Czech ammunition initiative filled a critical gap in EU military support. Czech Republic punches above its weight under Fiala&#39;s government.",
+      "One of Europe's most consequential small-state leaders on Ukraine — the Czech ammunition initiative filled a critical gap in EU military support. Czech Republic punches above its weight under Fiala's government.",
     region: "Europe",
   },
   {
@@ -5468,13 +5467,13 @@ const LEADERS: Leader[] = [
     significantEvents: [
       {
         year: 2019,
-        event: "Won landslide — ended Syriza&#39;s left-wing government",
+        event: "Won landslide — ended Syriza's left-wing government",
         impact: "positive",
       },
       {
         year: 2020,
         event:
-          "Greece&#39;s COVID response rated among Europe&#39;s best initially",
+          "Greece's COVID response rated among Europe's best initially",
         impact: "positive",
       },
       {
@@ -5491,12 +5490,12 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2024,
-        event: "Greece&#39;s GDP grew fastest of all EU economies in 2023–24",
+        event: "Greece's GDP grew fastest of all EU economies in 2023–24",
         impact: "positive",
       },
     ],
     achievements: [
-      "Greece&#39;s fastest economic growth in EU — investment grade credit restored",
+      "Greece's fastest economic growth in EU — investment grade credit restored",
       "Successful completion of ESM bailout programme",
       "Defence upgrades — Greece bought French Rafale fighters and frigates",
       "Greece positioned as key EU energy hub for LNG post-Russia crisis",
@@ -5507,7 +5506,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Transformed Greece from Europe&#39;s most economically embarrassed state to a growth leader. His business-first approach and Harvard credentials give him unusual credibility with European and US investors. Greece&#39;s geopolitical importance in Eastern Med is growing.",
+      "Transformed Greece from Europe's most economically embarrassed state to a growth leader. His business-first approach and Harvard credentials give him unusual credibility with European and US investors. Greece's geopolitical importance in Eastern Med is growing.",
     region: "Europe",
   },
   {
@@ -5529,7 +5528,7 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Former Director-General of the Dutch Intelligence Service (AIVD) and National Coordinator for Security and Counterterrorism, appointed as PM by Geert Wilders&#39; coalition in July 2024. Not a politician himself — a civil servant and intelligence chief tapped to lead the most right-wing Dutch government in modern history after Wilders&#39; historic election victory.",
+      "Former Director-General of the Dutch Intelligence Service (AIVD) and National Coordinator for Security and Counterterrorism, appointed as PM by Geert Wilders' coalition in July 2024. Not a politician himself — a civil servant and intelligence chief tapped to lead the most right-wing Dutch government in modern history after Wilders' historic election victory.",
     significantEvents: [
       {
         year: 2023,
@@ -5551,23 +5550,23 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "Netherlands navigates Trump tariffs as EU&#39;s most trade-exposed economy",
+          "Netherlands navigates Trump tariffs as EU's most trade-exposed economy",
         impact: "negative",
       },
     ],
     achievements: [
-      "Led AIVD (Dutch intelligence) during Russia&#39;s most aggressive espionage era",
+      "Led AIVD (Dutch intelligence) during Russia's most aggressive espionage era",
       "MH17 investigation in AIVD oversight era",
       "Stabilised coalition governance for a historically difficult right-wing alliance",
-      "Maintained Netherlands&#39; NATO and EU commitments despite far-right coalition partners",
+      "Maintained Netherlands' NATO and EU commitments despite far-right coalition partners",
     ],
     politicalViews:
-      "Career civil servant — non-partisan. Governs with PVV (Wilders), VVD, NSC and BBB coalition. Policies: strict immigration, farmers&#39; rights, EU scepticism on regulation but pro-NATO. Personally moderate conservative.",
+      "Career civil servant — non-partisan. Governs with PVV (Wilders), VVD, NSC and BBB coalition. Policies: strict immigration, farmers' rights, EU scepticism on regulation but pro-NATO. Personally moderate conservative.",
     approvalRating: 33,
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "A technocratic fig-leaf for Europe&#39;s most prominent far-right governing coalition. His intelligence background makes him a credible NATO partner, but Wilders&#39; influence shapes his political constraints fundamentally.",
+      "A technocratic fig-leaf for Europe's most prominent far-right governing coalition. His intelligence background makes him a credible NATO partner, but Wilders' influence shapes his political constraints fundamentally.",
     region: "Europe",
   },
   // ── BATCH 15: SE Europe, Baltics, Alpine, Micro-states ────────────────────
@@ -5599,7 +5598,7 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Speaker of Bulgaria&#39;s National Assembly who became Prime Minister in January 2024 after yet another round of protracted coalition negotiations — Bulgaria held 6 elections in 3 years. Led by Boyko Borisov&#39;s GERB party, Zhelyazkov heads a coalition that ended the political paralysis.",
+      "Speaker of Bulgaria's National Assembly who became Prime Minister in January 2024 after yet another round of protracted coalition negotiations — Bulgaria held 6 elections in 3 years. Led by Boyko Borisov's GERB party, Zhelyazkov heads a coalition that ended the political paralysis.",
     significantEvents: [
       {
         year: 2022,
@@ -5609,7 +5608,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2023,
-        event: "Denkov&#39;s reformist government collapsed after 6 months",
+        event: "Denkov's reformist government collapsed after 6 months",
         impact: "negative",
       },
       {
@@ -5626,18 +5625,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Ended Bulgaria&#39;s three-year political deadlock",
+      "Ended Bulgaria's three-year political deadlock",
       "Schengen land border access achieved after years of delay",
       "Eurozone accession roadmap advanced",
       "Anti-corruption measures and judicial reform continued",
     ],
     politicalViews:
-      "Centre-right, pro-EU, pro-NATO. GERB&#39;s pragmatic conservatism — business-friendly, tough on corruption. Supports Bulgaria&#39;s full EU integration including Schengen and Eurozone. Atlanticist security posture.",
+      "Centre-right, pro-EU, pro-NATO. GERB's pragmatic conservatism — business-friendly, tough on corruption. Supports Bulgaria's full EU integration including Schengen and Eurozone. Atlanticist security posture.",
     approvalRating: 31,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Brings much-needed stability to one of the EU&#39;s most politically fractured member states. Bulgaria&#39;s Eurozone and full Schengen integration under his watch would complete the country&#39;s post-communist European transformation.",
+      "Brings much-needed stability to one of the EU's most politically fractured member states. Bulgaria's Eurozone and full Schengen integration under his watch would complete the country's post-communist European transformation.",
     region: "Europe",
   },
   {
@@ -5659,7 +5658,7 @@ const LEADERS: Leader[] = [
     ideology: "Nationalist",
     termsInOffice: [{ from: 2017, to: "present" }],
     background:
-      "Former information minister under Milošević who reinvented himself as a pro-EU conservative. Dominates Serbian politics — previously as PM, now as President. Plays the delicate game of pursuing EU membership while refusing to sanction Russia and maintaining Serbia&#39;s refusal to recognise Kosovo&#39;s independence.",
+      "Former information minister under Milošević who reinvented himself as a pro-EU conservative. Dominates Serbian politics — previously as PM, now as President. Plays the delicate game of pursuing EU membership while refusing to sanction Russia and maintaining Serbia's refusal to recognise Kosovo's independence.",
     significantEvents: [
       {
         year: 2017,
@@ -5681,7 +5680,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Lithium &#39;Jadar&#39; project deal with EU and UK — Serbia as critical minerals hub",
+          "Lithium 'Jadar' project deal with EU and UK — Serbia as critical minerals hub",
         impact: "positive",
       },
       {
@@ -5692,18 +5691,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Serbia&#39;s GDP grew to highest level in modern history",
-      "Jadar lithium project deal — Serbia becomes EU&#39;s critical minerals partner",
-      "Belgrade&#39;s major infrastructure investment boom",
-      "Maintained Serbia&#39;s EU candidacy despite Russia refusal",
+      "Serbia's GDP grew to highest level in modern history",
+      "Jadar lithium project deal — Serbia becomes EU's critical minerals partner",
+      "Belgrade's major infrastructure investment boom",
+      "Maintained Serbia's EU candidacy despite Russia refusal",
     ],
     politicalViews:
-      "Serbian nationalist, officially pro-EU but refuses anti-Russia consensus. &#39;Four pillars&#39; foreign policy — EU, Russia, China, US simultaneously. Kosovo non-recognition is red line. Controls vast media ownership domestically.",
+      "Serbian nationalist, officially pro-EU but refuses anti-Russia consensus. 'Four pillars' foreign policy — EU, Russia, China, US simultaneously. Kosovo non-recognition is red line. Controls vast media ownership domestically.",
     approvalRating: 42,
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "The Balkans&#39; most consequential leader — Serbia&#39;s EU path, Kosovo&#39;s status, and Russian influence in SE Europe all run through him. His lithium deal with the EU marks a strategic pivot that Beijing and Moscow have noted with concern.",
+      "The Balkans' most consequential leader — Serbia's EU path, Kosovo's status, and Russian influence in SE Europe all run through him. His lithium deal with the EU marks a strategic pivot that Beijing and Moscow have noted with concern.",
     region: "Europe",
   },
   {
@@ -5729,7 +5728,7 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2013, to: "present" }],
     background:
-      "Artist and former Mayor of Tirana who painted the city&#39;s grey communist-era buildings in bright colours as a metaphor for transformation. Has been PM for over a decade — the longest-serving current Albanian PM. Albania opened EU accession negotiations in 2022 under his leadership.",
+      "Artist and former Mayor of Tirana who painted the city's grey communist-era buildings in bright colours as a metaphor for transformation. Has been PM for over a decade — the longest-serving current Albanian PM. Albania opened EU accession negotiations in 2022 under his leadership.",
     significantEvents: [
       {
         year: 2013,
@@ -5770,7 +5769,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Transformed Albania from a post-Hoxha recluse to an EU candidate with global diplomatic punch above its weight via the Italy migration deal. His artistic sensibility and political durability make him one of the Balkans&#39; most distinctive leaders.",
+      "Transformed Albania from a post-Hoxha recluse to an EU candidate with global diplomatic punch above its weight via the Italy migration deal. His artistic sensibility and political durability make him one of the Balkans' most distinctive leaders.",
     region: "Europe",
   },
   {
@@ -5801,7 +5800,7 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2019, to: "present" }],
     background:
-      "Interpreter-turned-politician who rose through cantonal politics in St. Gallen before joining the Federal Council. Served as Justice and Police head (2019–2023) before taking Finance. As 2024 Federal President, handled Switzerland&#39;s central bank diplomacy and EU bilateral framework negotiations.",
+      "Interpreter-turned-politician who rose through cantonal politics in St. Gallen before joining the Federal Council. Served as Justice and Police head (2019–2023) before taking Finance. As 2024 Federal President, handled Switzerland's central bank diplomacy and EU bilateral framework negotiations.",
     significantEvents: [
       {
         year: 2023,
@@ -5839,7 +5838,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Her handling of Credit Suisse — the most consequential Swiss banking crisis in history — defined her tenure. The weekend she orchestrated UBS&#39;s acquisition may have prevented the largest European bank failure since 2008.",
+      "Her handling of Credit Suisse — the most consequential Swiss banking crisis in history — defined her tenure. The weekend she orchestrated UBS's acquisition may have prevented the largest European bank failure since 2008.",
     region: "Europe",
   },
   {
@@ -5853,7 +5852,7 @@ const LEADERS: Leader[] = [
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Robert_Abela_2022_%28cropped%29.jpg/440px-Robert_Abela_2022_%28cropped%29.jpg",
     age: 47,
     birthYear: 1977,
-    birthPlace: "Ta&#39; Xbiex, Malta",
+    birthPlace: "Ta' Xbiex, Malta",
     education: [
       { institution: "University of Malta", degree: "B.A. Law", year: 2001 },
       {
@@ -5866,7 +5865,7 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2020, to: "present" }],
     background:
-      "Lawyer who became PM at 42 after Joseph Muscat resigned over the Daphne Caruana Galizia murder scandal. Won the 2022 election with a record 55% majority — the largest in Maltese history. Malta&#39;s unique position as a small EU island state gives it outsized influence on migration and Mediterranean policy.",
+      "Lawyer who became PM at 42 after Joseph Muscat resigned over the Daphne Caruana Galizia murder scandal. Won the 2022 election with a record 55% majority — the largest in Maltese history. Malta's unique position as a small EU island state gives it outsized influence on migration and Mediterranean policy.",
     significantEvents: [
       {
         year: 2020,
@@ -5892,10 +5891,10 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Won Malta&#39;s largest-ever election majority (55%)",
+      "Won Malta's largest-ever election majority (55%)",
       "Removed Malta from FATF financial crime grey list",
-      "Malta&#39;s GDP among EU&#39;s fastest growing — gaming and fintech hub",
-      "Maintained Malta&#39;s neutrality and non-aligned defence policy",
+      "Malta's GDP among EU's fastest growing — gaming and fintech hub",
+      "Maintained Malta's neutrality and non-aligned defence policy",
     ],
     politicalViews:
       "Centre-left social democratic, pro-EU, non-aligned defence (no NATO membership). Business-friendly — gaming, financial services, aviation leasing. Mediterranean migration management. Progressive social agenda — same-sex marriage, cannabis decriminalisation.",
@@ -5903,7 +5902,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Leads EU&#39;s smallest member state by population with outsized influence on migration policy and Mediterranean diplomacy. Malta&#39;s non-NATO status gives it a unique mediating role in the EU&#39;s security debates.",
+      "Leads EU's smallest member state by population with outsized influence on migration policy and Mediterranean diplomacy. Malta's non-NATO status gives it a unique mediating role in the EU's security debates.",
     region: "Europe",
   },
   {
@@ -5927,11 +5926,11 @@ const LEADERS: Leader[] = [
       { institution: "Harvard Law School", degree: "LL.M.", year: 1989 },
       { institution: "University of Paris I", degree: "Ph.D. Law", year: 1993 },
     ],
-    party: "Christian Social People&#39;s Party (CSV)",
+    party: "Christian Social People's Party (CSV)",
     ideology: "Conservative",
     termsInOffice: [{ from: 2023, to: "present" }],
     background:
-      "Harvard and Cambridge-educated lawyer who returned to politics after a career in banking at BGL BNP Paribas. Became PM after CSV won the October 2023 elections, ending the liberal DP-LSAP coalition. Luxembourg is the EU&#39;s wealthiest country per capita and home to major EU institutions.",
+      "Harvard and Cambridge-educated lawyer who returned to politics after a career in banking at BGL BNP Paribas. Became PM after CSV won the October 2023 elections, ending the liberal DP-LSAP coalition. Luxembourg is the EU's wealthiest country per capita and home to major EU institutions.",
     significantEvents: [
       {
         year: 2023,
@@ -5941,7 +5940,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Luxembourg&#39;s space mining legislation — first EU country to regulate space resources",
+          "Luxembourg's space mining legislation — first EU country to regulate space resources",
         impact: "positive",
       },
       {
@@ -5957,7 +5956,7 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Luxembourg&#39;s EU institutional hosting expanded",
+      "Luxembourg's EU institutional hosting expanded",
       "Space resources legal framework — global regulatory pioneer",
       "Financial centre maintained top European status post-Brexit",
       "Investment fund industry regulation balanced with growth",
@@ -5968,7 +5967,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Leads the EU&#39;s wealthiest state and one of its most important financial and institutional hubs. Luxembourg&#39;s space mining legislation positions it as a global regulatory pioneer for the next frontier of resource law.",
+      "Leads the EU's wealthiest state and one of its most important financial and institutional hubs. Luxembourg's space mining legislation positions it as a global regulatory pioneer for the next frontier of resource law.",
     region: "Europe",
   },
   {
@@ -6015,13 +6014,13 @@ const LEADERS: Leader[] = [
       {
         year: 2022,
         event:
-          "Lithuania blocked Russia&#39;s Kaliningrad transit — major NATO tensions",
+          "Lithuania blocked Russia's Kaliningrad transit — major NATO tensions",
         impact: "positive",
       },
       {
         year: 2024,
         event:
-          "Re-elected; Lithuania&#39;s defence spending raised to 3% of GDP",
+          "Re-elected; Lithuania's defence spending raised to 3% of GDP",
         impact: "positive",
       },
       {
@@ -6032,10 +6031,10 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Lithuania raised defence spending to 3%+ of GDP — NATO&#39;s top tier",
+      "Lithuania raised defence spending to 3%+ of GDP — NATO's top tier",
       "Taiwan de facto diplomatic ties strengthened despite Chinese pressure",
       "Baltic Defence Line fortifications initiated",
-      "NATO&#39;s permanent battalion in Lithuania secured",
+      "NATO's permanent battalion in Lithuania secured",
     ],
     politicalViews:
       "Conservative, Atlanticist, hawkish Russia security stance, pro-Taiwan. Believes Baltic states must prepare for Russian aggression. Strong democratic values — experienced Soviet occupation personally as a child. Champions Eastern European voice in NATO.",
@@ -6075,17 +6074,17 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2023, to: "present" }],
     background:
-      "Latvia&#39;s first female Prime Minister, appointed in September 2023 after Krišjānis Kariņš resigned. Former State Chancellery official and MP for New Unity. Latvia shares a long border with Russia and Belarus, making it one of NATO&#39;s most security-conscious members on the eastern flank.",
+      "Latvia's first female Prime Minister, appointed in September 2023 after Krišjānis Kariņš resigned. Former State Chancellery official and MP for New Unity. Latvia shares a long border with Russia and Belarus, making it one of NATO's most security-conscious members on the eastern flank.",
     significantEvents: [
       {
         year: 2023,
-        event: "Became Latvia&#39;s first female PM after Kariņš resignation",
+        event: "Became Latvia's first female PM after Kariņš resignation",
         impact: "positive",
       },
       {
         year: 2024,
         event:
-          "Latvia raised defence budget to 3% of GDP — among NATO&#39;s highest",
+          "Latvia raised defence budget to 3% of GDP — among NATO's highest",
         impact: "positive",
       },
       {
@@ -6102,10 +6101,10 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Led Latvia&#39;s desynchronisation from Russian BRELL power grid",
-      "Raised defence spending to NATO&#39;s top tier — 3%+ of GDP",
+      "Led Latvia's desynchronisation from Russian BRELL power grid",
+      "Raised defence spending to NATO's top tier — 3%+ of GDP",
       "Baltic Defence Line infrastructure initiated",
-      "Latvia&#39;s first female Prime Minister",
+      "Latvia's first female Prime Minister",
     ],
     politicalViews:
       "Conservative Atlanticist, hawkish Russia security stance, pro-EU. Defence investment and NATO eastern flank reinforcement as absolute priorities. Strong Ukraine support. Pro-Baltic solidarity with Estonia and Lithuania.",
@@ -6113,7 +6112,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Leads Latvia through the most consequential security transition since independence — cutting electricity dependency on Russia while building NATO&#39;s eastern fortifications. Latvia&#39;s 27% Russian-speaking minority adds domestic security complexity.",
+      "Leads Latvia through the most consequential security transition since independence — cutting electricity dependency on Russia while building NATO's eastern fortifications. Latvia's 27% Russian-speaking minority adds domestic security complexity.",
     region: "Europe",
   },
   {
@@ -6144,7 +6143,7 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2021, to: "present" }],
     background:
-      "Geneticist and former head of the National Audit Office who became Estonia&#39;s President in 2021. A constitutional figurehead, but Estonia&#39;s presidency carries significant moral authority on democracy and Russia policy. His childhood under Soviet occupation informs his hawkish positions on Russia.",
+      "Geneticist and former head of the National Audit Office who became Estonia's President in 2021. A constitutional figurehead, but Estonia's presidency carries significant moral authority on democracy and Russia policy. His childhood under Soviet occupation informs his hawkish positions on Russia.",
     significantEvents: [
       {
         year: 2021,
@@ -6160,7 +6159,7 @@ const LEADERS: Leader[] = [
       {
         year: 2022,
         event:
-          "Called Russia&#39;s actions genocide — among first leaders to do so",
+          "Called Russia's actions genocide — among first leaders to do so",
         impact: "neutral",
       },
       {
@@ -6170,9 +6169,9 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Estonia&#39;s highest per-capita military aid contribution to Ukraine",
-      "World&#39;s most digital government maintained under his presidency",
-      "Estonia&#39;s NATO eastern flank role elevated",
+      "Estonia's highest per-capita military aid contribution to Ukraine",
+      "World's most digital government maintained under his presidency",
+      "Estonia's NATO eastern flank role elevated",
       "Baltic solidarity framework reinforced with Latvia and Lithuania",
     ],
     politicalViews:
@@ -6181,7 +6180,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Estonia under Karis has become the EU&#39;s most per-capita committed Ukraine supporter and the global showcase for what a digital-first governance model can achieve. His moral authority on Russian aggression shapes Baltic diplomatic discourse.",
+      "Estonia under Karis has become the EU's most per-capita committed Ukraine supporter and the global showcase for what a digital-first governance model can achieve. His moral authority on Russian aggression shapes Baltic diplomatic discourse.",
     region: "Europe",
   },
   {
@@ -6217,7 +6216,7 @@ const LEADERS: Leader[] = [
     ideology: "Liberal",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "Former CEO of renewable energy company GEN-I who entered politics in 2022, founding the Freedom Movement six weeks before the election and winning a landslide victory against incumbent PM Janez Janša — the Slovenian ally of Orbán. Ended Slovenia&#39;s drift toward illiberal Eurosceptic governance.",
+      "Former CEO of renewable energy company GEN-I who entered politics in 2022, founding the Freedom Movement six weeks before the election and winning a landslide victory against incumbent PM Janez Janša — the Slovenian ally of Orbán. Ended Slovenia's drift toward illiberal Eurosceptic governance.",
     significantEvents: [
       {
         year: 2022,
@@ -6228,7 +6227,7 @@ const LEADERS: Leader[] = [
       {
         year: 2022,
         event:
-          "Restored Slovenia&#39;s public media independence after Janša&#39;s controls",
+          "Restored Slovenia's public media independence after Janša's controls",
         impact: "positive",
       },
       {
@@ -6244,8 +6243,8 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Ended Janša&#39;s Orbán-aligned governance — restored EU institutional norms",
-      "Slovenia&#39;s renewable energy transition accelerated",
+      "Ended Janša's Orbán-aligned governance — restored EU institutional norms",
+      "Slovenia's renewable energy transition accelerated",
       "Eurovision 2023 — Slovenia hosted international broadcasting moment",
       "EU flood recovery funds secured after historic 2023 floods",
     ],
@@ -6291,7 +6290,7 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "Born in Srebrenica — site of the worst genocide in Europe since WWII — Bećirović is a Bosniak member of Bosnia&#39;s three-person rotating presidency. Historian by training, his life story embodies the tragedy and resilience of post-war Bosnia. Won the 2022 Bosniak member election against the SDA incumbent.",
+      "Born in Srebrenica — site of the worst genocide in Europe since WWII — Bećirović is a Bosniak member of Bosnia's three-person rotating presidency. Historian by training, his life story embodies the tragedy and resilience of post-war Bosnia. Won the 2022 Bosniak member election against the SDA incumbent.",
     significantEvents: [
       {
         year: 1995,
@@ -6316,7 +6315,7 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "EU candidacy and negotiations opened during his presidency term",
-      "Bosnia&#39;s first steps toward NATO Membership Action Plan",
+      "Bosnia's first steps toward NATO Membership Action Plan",
       "Srebrenica genocide commemoration elevated internationally",
       "Reform agenda against ethnic nationalist parties advanced",
     ],
@@ -6326,7 +6325,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Bosnia&#39;s EU candidacy under his term is the most hopeful diplomatic development in the country&#39;s post-war history. His Srebrenica origins give him moral authority in the ongoing contest over historical memory and ethnic nationalism in the Balkans.",
+      "Bosnia's EU candidacy under his term is the most hopeful diplomatic development in the country's post-war history. His Srebrenica origins give him moral authority in the ongoing contest over historical memory and ethnic nationalism in the Balkans.",
     region: "Europe",
   },
   {
@@ -6357,11 +6356,11 @@ const LEADERS: Leader[] = [
     ideology: "Liberal",
     termsInOffice: [{ from: 2023, to: "present" }],
     background:
-      "Harvard-educated economist and one of the youngest PMs in Europe. Founded the Europe Now! movement on a technocratic, EU-integration platform. Montenegro has been an EU candidate since 2010 — the longest-standing candidate — and a NATO member since 2017. Spajić&#39;s government aims to close EU accession chapters.",
+      "Harvard-educated economist and one of the youngest PMs in Europe. Founded the Europe Now! movement on a technocratic, EU-integration platform. Montenegro has been an EU candidate since 2010 — the longest-standing candidate — and a NATO member since 2017. Spajić's government aims to close EU accession chapters.",
     significantEvents: [
       {
         year: 2023,
-        event: "Won election; became one of Europe&#39;s youngest PMs at 36",
+        event: "Won election; became one of Europe's youngest PMs at 36",
         impact: "positive",
       },
       {
@@ -6382,10 +6381,10 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Most EU accession chapters closed in Montenegro&#39;s history under his government",
+      "Most EU accession chapters closed in Montenegro's history under his government",
       "Judiciary independence reforms advanced",
-      "Montenegro&#39;s NATO membership cemented as NATO headquarters presence grows",
-      "One of Europe&#39;s youngest heads of government",
+      "Montenegro's NATO membership cemented as NATO headquarters presence grows",
+      "One of Europe's youngest heads of government",
     ],
     politicalViews:
       "Pro-European liberal technocrat. EU membership as defining national project. Rule of law, anti-corruption, judicial independence. Pro-NATO. Balances pro-Serbian constituency with EU-Western alignment.",
@@ -6393,7 +6392,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Montenegro&#39;s EU accession under Spajić would be the first Western Balkans EU enlargement since Croatia in 2013 — making it the most consequential potential achievement for the region&#39;s European future if completed on his timeline.",
+      "Montenegro's EU accession under Spajić would be the first Western Balkans EU enlargement since Croatia in 2013 — making it the most consequential potential achievement for the region's European future if completed on his timeline.",
     region: "Europe",
   },
   {
@@ -6424,7 +6423,7 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Leader of the conservative VMRO-DPMNE who won the May 2024 elections, ending the SDSM-led governments that navigated North Macedonia&#39;s EU and NATO accession path including the painful Prespa Agreement renaming the country from Macedonia to North Macedonia. Mickoski is sceptical of the Prespa Agreement&#39;s concessions to Greece.",
+      "Leader of the conservative VMRO-DPMNE who won the May 2024 elections, ending the SDSM-led governments that navigated North Macedonia's EU and NATO accession path including the painful Prespa Agreement renaming the country from Macedonia to North Macedonia. Mickoski is sceptical of the Prespa Agreement's concessions to Greece.",
     significantEvents: [
       {
         year: 2019,
@@ -6449,18 +6448,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "North Macedonia&#39;s NATO membership maintained and deepened",
+      "North Macedonia's NATO membership maintained and deepened",
       "Won election returning VMRO-DPMNE to power",
       "Economic ties with EU partners maintained",
-      "Manages Bulgaria&#39;s EU accession veto through diplomatic channels",
+      "Manages Bulgaria's EU accession veto through diplomatic channels",
     ],
     politicalViews:
-      "Conservative nationalist, more sceptical of Prespa Agreement concessions. Pro-NATO but slower on EU reforms. Traditional values, Macedonian national identity protection. Critical of previous government&#39;s identity concessions to neighbours.",
+      "Conservative nationalist, more sceptical of Prespa Agreement concessions. Pro-NATO but slower on EU reforms. Traditional values, Macedonian national identity protection. Critical of previous government's identity concessions to neighbours.",
     approvalRating: 40,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Governs a small Balkan state at the intersection of multiple great power tensions — Bulgaria&#39;s EU veto, Greek identity politics, Serbia&#39;s influence, and NATO obligations. North Macedonia&#39;s EU path depends on resolving a dispute about medieval history.",
+      "Governs a small Balkan state at the intersection of multiple great power tensions — Bulgaria's EU veto, Greek identity politics, Serbia's influence, and NATO obligations. North Macedonia's EU path depends on resolving a dispute about medieval history.",
     region: "Europe",
   },
   {
@@ -6486,7 +6485,7 @@ const LEADERS: Leader[] = [
     ideology: "Progressive",
     termsInOffice: [{ from: 2021, to: "present" }],
     background:
-      "Former political prisoner who spent years jailed by Milošević&#39;s Serbia for his activism. Founded the Vetevendosje movement as a non-violent resistance organisation. Won Kosovo&#39;s 2021 elections with a historic 59% majority. Governs one of Europe&#39;s youngest states — Kosovo declared independence from Serbia in 2008, recognised by over 100 countries but not by Russia, China, Serbia, or 5 EU members.",
+      "Former political prisoner who spent years jailed by Milošević's Serbia for his activism. Founded the Vetevendosje movement as a non-violent resistance organisation. Won Kosovo's 2021 elections with a historic 59% majority. Governs one of Europe's youngest states — Kosovo declared independence from Serbia in 2008, recognised by over 100 countries but not by Russia, China, Serbia, or 5 EU members.",
     significantEvents: [
       {
         year: 2000,
@@ -6495,7 +6494,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2021,
-        event: "Won 59% majority — Kosovo&#39;s largest in democratic history",
+        event: "Won 59% majority — Kosovo's largest in democratic history",
         impact: "positive",
       },
       {
@@ -6517,7 +6516,7 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Kosovo joined Council of Europe — the broadest European recognition yet",
-      "Kosovo&#39;s largest-ever democratic mandate (59%)",
+      "Kosovo's largest-ever democratic mandate (59%)",
       "EU visa liberalisation for Kosovo citizens achieved",
       "Anti-corruption prosecutions of wartime KLA figures pursued",
     ],
@@ -6527,7 +6526,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Governs Europe&#39;s youngest democracy — a state still fighting for full international recognition while navigating the world&#39;s most intractable post-war sovereignty dispute. His anti-corruption mandate is at odds with Kosovo&#39;s wartime political establishment, making every day in office a high-stakes confrontation.",
+      "Governs Europe's youngest democracy — a state still fighting for full international recognition while navigating the world's most intractable post-war sovereignty dispute. His anti-corruption mandate is at odds with Kosovo's wartime political establishment, making every day in office a high-stakes confrontation.",
     region: "Europe",
   },
   // ── BATCH 16: Moldova, Zambia, Ecuador extra, Tanzania, UAE PM, Kosovo President, Georgia ──
@@ -6559,7 +6558,7 @@ const LEADERS: Leader[] = [
     ideology: "Liberal",
     termsInOffice: [{ from: 2020, to: "present" }],
     background:
-      "Harvard-educated economist and former World Bank official who became President of Moldova — one of Europe&#39;s poorest countries — in December 2020. Leads the most pro-European administration in Moldovan history. Survived multiple attempted coups and Russian interference campaigns. Won re-election in 2024 alongside a referendum that enshrined EU membership as a constitutional goal.",
+      "Harvard-educated economist and former World Bank official who became President of Moldova — one of Europe's poorest countries — in December 2020. Leads the most pro-European administration in Moldovan history. Survived multiple attempted coups and Russian interference campaigns. Won re-election in 2024 alongside a referendum that enshrined EU membership as a constitutional goal.",
     significantEvents: [
       {
         year: 2020,
@@ -6628,7 +6627,7 @@ const LEADERS: Leader[] = [
     ideology: "Liberal",
     termsInOffice: [{ from: 2021, to: "present" }],
     background:
-      "Self-made businessman and cattle farmer who ran for president six times before winning in 2021 — one of Africa&#39;s most persistent democratic comebacks. Was jailed on treason charges widely seen as political persecution by Lungu&#39;s government. Zambia was the first African country to default on its debt during COVID — restructuring it was his defining early challenge.",
+      "Self-made businessman and cattle farmer who ran for president six times before winning in 2021 — one of Africa's most persistent democratic comebacks. Was jailed on treason charges widely seen as political persecution by Lungu's government. Zambia was the first African country to default on its debt during COVID — restructuring it was his defining early challenge.",
     significantEvents: [
       {
         year: 2017,
@@ -6645,13 +6644,13 @@ const LEADERS: Leader[] = [
       {
         year: 2023,
         event:
-          "Zambia completed Africa&#39;s first post-COVID debt restructuring",
+          "Zambia completed Africa's first post-COVID debt restructuring",
         impact: "positive",
       },
       {
         year: 2024,
         event:
-          "Zambia&#39;s copper mining expansion — critical minerals for EV revolution",
+          "Zambia's copper mining expansion — critical minerals for EV revolution",
         impact: "positive",
       },
       {
@@ -6662,18 +6661,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Won presidency on sixth attempt — Africa&#39;s most persistent democratic journey",
-      "Completed Zambia&#39;s landmark sovereign debt restructuring",
+      "Won presidency on sixth attempt — Africa's most persistent democratic journey",
+      "Completed Zambia's landmark sovereign debt restructuring",
       "Zambia positioned as key EV copper supplier for global green transition",
       "Anti-corruption prosecutions of previous government officials advanced",
     ],
     politicalViews:
-      "Liberal market economics, anti-corruption, pro-Western investment. Positions Zambia as critical minerals partner for the West against China&#39;s dominance. IMF programme compliance. Democratic governance restoration after Lungu-era erosion.",
+      "Liberal market economics, anti-corruption, pro-Western investment. Positions Zambia as critical minerals partner for the West against China's dominance. IMF programme compliance. Democratic governance restoration after Lungu-era erosion.",
     approvalRating: 46,
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Leads one of Africa&#39;s most mineral-critical nations at the inflection point of the global EV revolution. Zambia&#39;s copper deposits make it a key player in decarbonisation supply chains — if Hichilema can translate natural wealth into development.",
+      "Leads one of Africa's most mineral-critical nations at the inflection point of the global EV revolution. Zambia's copper deposits make it a key player in decarbonisation supply chains — if Hichilema can translate natural wealth into development.",
     region: "Africa",
   },
   {
@@ -6705,12 +6704,12 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2021, to: "present" }],
     background:
-      "Africa&#39;s first female president, assuming office in March 2021 after President John Magufuli died of COVID-19 — which he had publicly denied was a real disease. The contrast between Magufuli&#39;s COVID denialism and Hassan&#39;s immediate pivot to vaccination and scientific governance defined her early tenure. First woman to lead Tanzania and East Africa in a major state.",
+      "Africa's first female president, assuming office in March 2021 after President John Magufuli died of COVID-19 — which he had publicly denied was a real disease. The contrast between Magufuli's COVID denialism and Hassan's immediate pivot to vaccination and scientific governance defined her early tenure. First woman to lead Tanzania and East Africa in a major state.",
     significantEvents: [
       {
         year: 2021,
         event:
-          "Became Africa&#39;s first female president after Magufuli&#39;s death",
+          "Became Africa's first female president after Magufuli's death",
         impact: "positive",
       },
       {
@@ -6721,7 +6720,7 @@ const LEADERS: Leader[] = [
       {
         year: 2022,
         event:
-          "Restored diplomatic relations frayed by Magufuli&#39;s isolation",
+          "Restored diplomatic relations frayed by Magufuli's isolation",
         impact: "positive",
       },
       {
@@ -6740,7 +6739,7 @@ const LEADERS: Leader[] = [
       "First female president of Tanzania and East Africa",
       "Reversed COVID denialism — launched mass vaccination programme",
       "Re-engaged Tanzania with international financial institutions",
-      "Restored investor confidence after Magufuli&#39;s nationalist isolation",
+      "Restored investor confidence after Magufuli's nationalist isolation",
     ],
     politicalViews:
       "Moderate social democrat within CCM tradition. Pragmatic — balances state ownership with foreign investment attraction. Non-aligned between China (major investor) and West. Pro-East African Community integration. More open than predecessor on civil society.",
@@ -6748,7 +6747,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Her ascension transformed Tanzania from a COVID-denying pariah to a re-engaged African development story. As East Africa&#39;s largest economy by landmass, Tanzania&#39;s direction under Hassan matters enormously for regional stability.",
+      "Her ascension transformed Tanzania from a COVID-denying pariah to a re-engaged African development story. As East Africa's largest economy by landmass, Tanzania's direction under Hassan matters enormously for regional stability.",
     region: "Africa",
   },
   {
@@ -6779,7 +6778,7 @@ const LEADERS: Leader[] = [
     ideology: "Liberal",
     termsInOffice: [{ from: 2018, to: "present" }],
     background:
-      "French-born Georgian diplomat who served as France&#39;s ambassador to Tbilisi before becoming Georgia&#39;s Foreign Minister and subsequently President. Elected with Georgian Dream backing in 2018 but broke with the ruling party. Fought a dramatic constitutional battle to stay in office after disputed 2024 parliamentary elections spawned massive pro-EU protests.",
+      "French-born Georgian diplomat who served as France's ambassador to Tbilisi before becoming Georgia's Foreign Minister and subsequently President. Elected with Georgian Dream backing in 2018 but broke with the ruling party. Fought a dramatic constitutional battle to stay in office after disputed 2024 parliamentary elections spawned massive pro-EU protests.",
     significantEvents: [
       {
         year: 2018,
@@ -6810,18 +6809,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Georgia&#39;s EU membership application — first step toward candidacy",
-      "Became symbol of pro-EU resistance to Georgian Dream&#39;s Russia drift",
+      "Georgia's EU membership application — first step toward candidacy",
+      "Became symbol of pro-EU resistance to Georgian Dream's Russia drift",
       "Maintained presidential office as democratic anchor during political crisis",
       "International legitimacy secured as Western-recognised voice of Georgian democracy",
     ],
     politicalViews:
-      "Pro-European liberal, Atlantic-oriented foreign policy. Georgian sovereignty — against Russian influence and Georgian Dream&#39;s drift toward Moscow. Democratic institution defender. Advocates EU and NATO membership as Georgia&#39;s only security guarantee.",
+      "Pro-European liberal, Atlantic-oriented foreign policy. Georgian sovereignty — against Russian influence and Georgian Dream's drift toward Moscow. Democratic institution defender. Advocates EU and NATO membership as Georgia's only security guarantee.",
     approvalRating: 51,
     approvalTrend: "up",
     status: "In Office",
     impact:
-      "Became the symbol of Georgia&#39;s democratic choice at a critical crossroads — EU integration versus Russian orbit. Her resistance to Georgian Dream&#39;s contested elections has given the pro-EU protest movement a constitutional anchor figure.",
+      "Became the symbol of Georgia's democratic choice at a critical crossroads — EU integration versus Russian orbit. Her resistance to Georgian Dream's contested elections has given the pro-EU protest movement a constitutional anchor figure.",
     region: "Europe",
   },
   {
@@ -6848,29 +6847,29 @@ const LEADERS: Leader[] = [
     ideology: "Liberal",
     termsInOffice: [{ from: 2023, to: "present" }],
     background:
-      "Latvia&#39;s longest-serving Foreign Minister (2011–2023) who became President in July 2023 — the first openly gay head of state in the post-Soviet space. A fluent English speaker and Atlantic-oriented diplomat who shaped Latvia&#39;s foreign policy through Crimea, MH17, and Ukraine&#39;s full-scale invasion. Among the most knowledgeable European leaders on Russian foreign policy.",
+      "Latvia's longest-serving Foreign Minister (2011–2023) who became President in July 2023 — the first openly gay head of state in the post-Soviet space. A fluent English speaker and Atlantic-oriented diplomat who shaped Latvia's foreign policy through Crimea, MH17, and Ukraine's full-scale invasion. Among the most knowledgeable European leaders on Russian foreign policy.",
     significantEvents: [
       {
         year: 2014,
         event:
-          "Led Latvia&#39;s response to Crimea annexation — championed EU sanctions",
+          "Led Latvia's response to Crimea annexation — championed EU sanctions",
         impact: "positive",
       },
       {
         year: 2022,
         event:
-          "Latvia&#39;s most vocal FM on Ukraine — pushed for maximum sanctions and arms",
+          "Latvia's most vocal FM on Ukraine — pushed for maximum sanctions and arms",
         impact: "positive",
       },
       {
         year: 2023,
-        event: "Became Latvia&#39;s first openly gay head of state",
+        event: "Became Latvia's first openly gay head of state",
         impact: "positive",
       },
       {
         year: 2024,
         event:
-          "Latvia&#39;s electricity desynchronisation from Russia BRELL grid championed",
+          "Latvia's electricity desynchronisation from Russia BRELL grid championed",
         impact: "positive",
       },
       {
@@ -6882,8 +6881,8 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "First openly gay head of state in post-Soviet space",
-      "12 years as Latvia&#39;s Foreign Minister — record tenure",
-      "Latvia&#39;s BRELL electricity desynchronisation from Russia advanced",
+      "12 years as Latvia's Foreign Minister — record tenure",
+      "Latvia's BRELL electricity desynchronisation from Russia advanced",
       "Baltic Defence Line cooperation framework championed at presidential level",
     ],
     politicalViews:
@@ -6892,7 +6891,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "One of Europe&#39;s most Russia-literate leaders — shaped by 12 years watching Kremlin foreign policy. His election as an openly gay president in the post-Soviet space is a significant symbolic milestone for Eastern European democratic norms.",
+      "One of Europe's most Russia-literate leaders — shaped by 12 years watching Kremlin foreign policy. His election as an openly gay president in the post-Soviet space is a significant symbolic milestone for Eastern European democratic norms.",
     region: "Europe",
   },
   {
@@ -6928,7 +6927,7 @@ const LEADERS: Leader[] = [
     ideology: "Centrist",
     termsInOffice: [{ from: 2020, to: "present" }],
     background:
-      "Former pastor and Assemblies of God church president who became Malawi&#39;s President in June 2020 after the Constitutional Court annulled the 2019 election results — in what became Africa&#39;s most celebrated democratic court ruling. Leads one of Africa&#39;s poorest nations but the verdict that brought him to power is celebrated globally as a democratic milestone.",
+      "Former pastor and Assemblies of God church president who became Malawi's President in June 2020 after the Constitutional Court annulled the 2019 election results — in what became Africa's most celebrated democratic court ruling. Leads one of Africa's poorest nations but the verdict that brought him to power is celebrated globally as a democratic milestone.",
     significantEvents: [
       {
         year: 2020,
@@ -6955,15 +6954,15 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "Presidential election — faces strong opposition from Chilima&#39;s successor",
+          "Presidential election — faces strong opposition from Chilima's successor",
         impact: "neutral",
       },
     ],
     achievements: [
-      "Beneficiary of Africa&#39;s most celebrated democratic court ruling",
+      "Beneficiary of Africa's most celebrated democratic court ruling",
       "Maintained democratic norms and rule of law",
       "International climate finance claims for Cyclone Freddy secured",
-      "Malawi&#39;s judicial independence internationally recognised",
+      "Malawi's judicial independence internationally recognised",
     ],
     politicalViews:
       "Christian democratic centrist. Anti-corruption, good governance, rule of law. Pro-Western development partnerships. Climate vulnerable — advocates Loss and Damage compensation for devastating climate events.",
@@ -6971,7 +6970,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "The democratic court ruling that brought him to power is Malawi&#39;s most significant contribution to African democratic jurisprudence. Governing one of the world&#39;s most climate-vulnerable nations during increasingly catastrophic weather events.",
+      "The democratic court ruling that brought him to power is Malawi's most significant contribution to African democratic jurisprudence. Governing one of the world's most climate-vulnerable nations during increasingly catastrophic weather events.",
     region: "Africa",
   },
   {
@@ -7002,12 +7001,12 @@ const LEADERS: Leader[] = [
     ideology: "Liberal",
     termsInOffice: [{ from: 2017, to: 2025 }],
     background:
-      "Human rights lawyer and veteran politician who served two terms as Ghana&#39;s president (2017–2025). His tenure ended with Ghana&#39;s worst economic crisis since independence — the country defaulted on external debt in 2022. But he also championed Africa&#39;s development narrative and launched the &#39;Year of Return&#39; diaspora initiative. Lost the 2024 election to John Mahama.",
+      "Human rights lawyer and veteran politician who served two terms as Ghana's president (2017–2025). His tenure ended with Ghana's worst economic crisis since independence — the country defaulted on external debt in 2022. But he also championed Africa's development narrative and launched the 'Year of Return' diaspora initiative. Lost the 2024 election to John Mahama.",
     significantEvents: [
       {
         year: 2017,
         event:
-          "Won election after three attempts — finally defeated NDC&#39;s Mahama",
+          "Won election after three attempts — finally defeated NDC's Mahama",
         impact: "positive",
       },
       {
@@ -7033,18 +7032,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Year of Return — one of Africa&#39;s most successful diaspora tourism campaigns",
+      "Year of Return — one of Africa's most successful diaspora tourism campaigns",
       "Free Senior High School programme — universal secondary education",
       '"Ghana Beyond Aid" development philosophy championed',
       "Peaceful democratic handover after election loss — democracy maintained",
     ],
     politicalViews:
-      "Liberal, pro-West economic development, African self-reliance (&#39;Ghana Beyond Aid&#39;), anti-poverty through education. Mature democratic practitioner. Pan-Africanist with market economics. Vocal on African development financing.",
+      "Liberal, pro-West economic development, African self-reliance ('Ghana Beyond Aid'), anti-poverty through education. Mature democratic practitioner. Pan-Africanist with market economics. Vocal on African development financing.",
     approvalRating: 32,
     approvalTrend: "down",
     status: "Former",
     impact:
-      "Presided over Ghana&#39;s debt default — the country&#39;s most significant economic failure in decades — but also launched pan-African cultural diplomacy through the Year of Return. Demonstrated democratic maturity in defeat.",
+      "Presided over Ghana's debt default — the country's most significant economic failure in decades — but also launched pan-African cultural diplomacy through the Year of Return. Demonstrated democratic maturity in defeat.",
     region: "Africa",
   },
   // ── BATCH 14: Western & Northern Europe ───────────────────────────────────
@@ -7083,7 +7082,7 @@ const LEADERS: Leader[] = [
     ideology: "Authoritarian",
     termsInOffice: [{ from: 2019, to: "present" }],
     background:
-      "Career diplomat and former UN Under-Secretary-General who succeeded Nursultan Nazarbayev as Kazakhstan&#39;s president in 2019 — initially seen as a placeholder but has since asserted surprising independence. Crushed an extraordinary January 2022 uprising with Russian CSTO troops, then pivoted away from full Russia alignment after Ukraine invasion.",
+      "Career diplomat and former UN Under-Secretary-General who succeeded Nursultan Nazarbayev as Kazakhstan's president in 2019 — initially seen as a placeholder but has since asserted surprising independence. Crushed an extraordinary January 2022 uprising with Russian CSTO troops, then pivoted away from full Russia alignment after Ukraine invasion.",
     significantEvents: [
       {
         year: 2019,
@@ -7122,12 +7121,12 @@ const LEADERS: Leader[] = [
       "Maintained multi-vector foreign policy between Russia, China, and West",
     ],
     politicalViews:
-      "Multi-vector pragmatism — cultivates US, EU, China, and Russia ties simultaneously. Modernisation-with-stability model. Limited political pluralism. Seeks Western investment while maintaining CIS ties. Refuses full alignment with Russia&#39;s Ukraine narrative.",
+      "Multi-vector pragmatism — cultivates US, EU, China, and Russia ties simultaneously. Modernisation-with-stability model. Limited political pluralism. Seeks Western investment while maintaining CIS ties. Refuses full alignment with Russia's Ukraine narrative.",
     approvalRating: 58,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Kazakhstan&#39;s surprising pivot away from full Russia alignment after 2022 is one of Central Asia&#39;s most consequential geopolitical shifts. Its vast energy and mineral resources make it indispensable for East-West supply chains.",
+      "Kazakhstan's surprising pivot away from full Russia alignment after 2022 is one of Central Asia's most consequential geopolitical shifts. Its vast energy and mineral resources make it indispensable for East-West supply chains.",
     region: "Asia-Pacific",
   },
   {
@@ -7159,7 +7158,7 @@ const LEADERS: Leader[] = [
     ideology: "Authoritarian",
     termsInOffice: [{ from: 2003, to: "present" }],
     background:
-      "Son of former Soviet official and strongman Heydar Aliyev who inherited power in 2003. Oversaw Azerbaijan&#39;s transformation from a post-Soviet basket case into an energy-exporting state with a professional military that retook Nagorno-Karabakh from Armenia in 44 days in 2020, and again in a 24-hour operation in 2023 — ending a 30-year frozen conflict in modern history&#39;s most rapid territorial recapture.",
+      "Son of former Soviet official and strongman Heydar Aliyev who inherited power in 2003. Oversaw Azerbaijan's transformation from a post-Soviet basket case into an energy-exporting state with a professional military that retook Nagorno-Karabakh from Armenia in 44 days in 2020, and again in a 24-hour operation in 2023 — ending a 30-year frozen conflict in modern history's most rapid territorial recapture.",
     significantEvents: [
       {
         year: 2020,
@@ -7194,7 +7193,7 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Retook Nagorno-Karabakh after 30-year Armenian occupation",
-      "Azerbaijan became Europe&#39;s critical alternative gas supplier to Russia",
+      "Azerbaijan became Europe's critical alternative gas supplier to Russia",
       "Baku hosted COP29 — global climate diplomacy",
       "Military modernisation transformed Azerbaijan into regional military power",
     ],
@@ -7204,7 +7203,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Rewrote South Caucasus geopolitics by ending one of the world&#39;s most entrenched frozen conflicts through military force. Azerbaijan&#39;s energy role makes it simultaneously criticised for authoritarianism and courted for gas supply.",
+      "Rewrote South Caucasus geopolitics by ending one of the world's most entrenched frozen conflicts through military force. Azerbaijan's energy role makes it simultaneously criticised for authoritarianism and courted for gas supply.",
     region: "Asia-Pacific",
   },
   {
@@ -7235,11 +7234,11 @@ const LEADERS: Leader[] = [
     ideology: "Authoritarian",
     termsInOffice: [{ from: 1994, to: "present" }],
     background:
-      "Europe&#39;s longest-serving and last remaining dictator — often called 'Europe&#39;s last dictator&#39; since 1994. Collective farm director turned president who has ruled for over 30 years. Survived the most serious challenge to his power in 2020 when mass protests erupted after a clearly fraudulent election — survived only with Putin&#39;s direct backing.",
+      "Europe's longest-serving and last remaining dictator — often called 'Europe's last dictator' since 1994. Collective farm director turned president who has ruled for over 30 years. Survived the most serious challenge to his power in 2020 when mass protests erupted after a clearly fraudulent election — survived only with Putin's direct backing.",
     significantEvents: [
       {
         year: 1994,
-        event: "Won Belarus&#39;s first and only free presidential election",
+        event: "Won Belarus's first and only free presidential election",
         impact: "positive",
       },
       {
@@ -7257,7 +7256,7 @@ const LEADERS: Leader[] = [
       {
         year: 2023,
         event:
-          "Hosted Wagner Group after Prigozhin&#39;s mutiny — Prigozhin died in crash weeks later",
+          "Hosted Wagner Group after Prigozhin's mutiny — Prigozhin died in crash weeks later",
         impact: "negative",
       },
       {
@@ -7279,7 +7278,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
-      "Transformed Belarus into Europe&#39;s most repressive state and Russia&#39;s closest satellite. His post-2020 survival through Russian support makes him the clearest example of Moscow backing authoritarians across the former Soviet space.",
+      "Transformed Belarus into Europe's most repressive state and Russia's closest satellite. His post-2020 survival through Russian support makes him the clearest example of Moscow backing authoritarians across the former Soviet space.",
     region: "Europe",
   },
   {
@@ -7305,7 +7304,7 @@ const LEADERS: Leader[] = [
     ideology: "Nationalist",
     termsInOffice: [{ from: 1986, to: "present" }],
     background:
-      "Guerrilla leader who seized power in 1986 after a bush war — originally hailed as a new generation of African leader who ended Idi Amin and Obote-era terror. Governed Uganda for nearly 40 years, methodically dismantling term limits and opposition. Signed one of Africa&#39;s harshest anti-homosexuality laws in 2023 despite international condemnation.",
+      "Guerrilla leader who seized power in 1986 after a bush war — originally hailed as a new generation of African leader who ended Idi Amin and Obote-era terror. Governed Uganda for nearly 40 years, methodically dismantling term limits and opposition. Signed one of Africa's harshest anti-homosexuality laws in 2023 despite international condemnation.",
     significantEvents: [
       {
         year: 1986,
@@ -7333,15 +7332,15 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "Uganda&#39;s oil production begins from Lake Albert fields — transformative revenue",
+          "Uganda's oil production begins from Lake Albert fields — transformative revenue",
         impact: "positive",
       },
     ],
     achievements: [
       "Ended Idi Amin and Obote-era mass killings",
-      "Uganda&#39;s GDP grew 6%+ annually for two decades",
-      "East Africa&#39;s largest military contributor to AMISOM Somalia peacekeeping",
-      "Oil production era begins — could transform Uganda&#39;s economy",
+      "Uganda's GDP grew 6%+ annually for two decades",
+      "East Africa's largest military contributor to AMISOM Somalia peacekeeping",
+      "Oil production era begins — could transform Uganda's economy",
     ],
     politicalViews:
       "Pan-African nationalist, development-first authoritarian. Anti-Western criticism of gay rights enforcement. Pro-China investment, pro-East African Community. Economic nationalism in oil sector. Long-term stability through controlled political environment.",
@@ -7349,7 +7348,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "The paradox of Museveni: genuine liberator turned longest-serving East African dictator. His anti-LGBTQ laws triggered World Bank withdrawal of $300M+ in loans. Uganda&#39;s oil era beginning under his watch is his final legacy bid.",
+      "The paradox of Museveni: genuine liberator turned longest-serving East African dictator. His anti-LGBTQ laws triggered World Bank withdrawal of $300M+ in loans. Uganda's oil era beginning under his watch is his final legacy bid.",
     region: "Africa",
   },
   {
@@ -7383,7 +7382,7 @@ const LEADERS: Leader[] = [
       { from: 2025, to: "present" },
     ],
     background:
-      "Veteran politician who served as Ghana&#39;s VP and then President (2012–2017) before losing to Akufo-Addo. Won the December 2024 election in a dramatic comeback with 56.5% — defeating the NPP amid Ghana&#39;s worst economic crisis since independence including a 2022 debt default. Represents the second Ghanaian peaceful democratic transfer in three years.",
+      "Veteran politician who served as Ghana's VP and then President (2012–2017) before losing to Akufo-Addo. Won the December 2024 election in a dramatic comeback with 56.5% — defeating the NPP amid Ghana's worst economic crisis since independence including a 2022 debt default. Represents the second Ghanaian peaceful democratic transfer in three years.",
     significantEvents: [
       {
         year: 2012,
@@ -7398,13 +7397,13 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2024,
-        event: "Won comeback election with 56.5% amid Ghana&#39;s debt crisis",
+        event: "Won comeback election with 56.5% amid Ghana's debt crisis",
         impact: "positive",
       },
       {
         year: 2025,
         event:
-          "Inherited IMF programme — managing Ghana&#39;s debt restructuring completion",
+          "Inherited IMF programme — managing Ghana's debt restructuring completion",
         impact: "neutral",
       },
     ],
@@ -7412,15 +7411,15 @@ const LEADERS: Leader[] = [
       "Won historic comeback election after 8 years in opposition",
       "First GH president formally elected after Supreme Court ruling validated democracy",
       "Infrastructure legacy — roads, dams, hospitals from first term",
-      "Peaceful democratic handover models Africa&#39;s democratic standards",
+      "Peaceful democratic handover models Africa's democratic standards",
     ],
     politicalViews:
-      "Centre-left social democratic, pro-development investment, Greater Accra infrastructure focus. African continental free trade champion. More state-interventionist than Akufo-Addo. Managed Ghana&#39;s relations with China and Western donors pragmatically.",
+      "Centre-left social democratic, pro-development investment, Greater Accra infrastructure focus. African continental free trade champion. More state-interventionist than Akufo-Addo. Managed Ghana's relations with China and Western donors pragmatically.",
     approvalRating: 54,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "His return caps one of West Africa&#39;s most important democratic consolidation stories — Ghana has now peacefully transferred power four times. Managing the post-default debt restructuring while restoring growth is his defining challenge.",
+      "His return caps one of West Africa's most important democratic consolidation stories — Ghana has now peacefully transferred power four times. Managing the post-default debt restructuring while restoring growth is his defining challenge.",
     region: "Africa",
   },
   {
@@ -7446,7 +7445,7 @@ const LEADERS: Leader[] = [
     ideology: "Nationalist",
     termsInOffice: [{ from: 2019, to: "present" }],
     background:
-      "Career bureaucrat and former PM who was elected in December 2019 — a deeply disputed election that came as the Hirak protest movement demanded system change after Bouteflika&#39;s resignation. Algeria is Africa&#39;s largest country by area and a key European gas supplier, wielding outsized influence in the Sahel and sub-Saharan Africa.",
+      "Career bureaucrat and former PM who was elected in December 2019 — a deeply disputed election that came as the Hirak protest movement demanded system change after Bouteflika's resignation. Algeria is Africa's largest country by area and a key European gas supplier, wielding outsized influence in the Sahel and sub-Saharan Africa.",
     significantEvents: [
       {
         year: 2019,
@@ -7457,7 +7456,7 @@ const LEADERS: Leader[] = [
       {
         year: 2022,
         event:
-          "Algeria became Europe&#39;s second-largest gas supplier as Russia crisis deepened",
+          "Algeria became Europe's second-largest gas supplier as Russia crisis deepened",
         impact: "positive",
       },
       {
@@ -7479,7 +7478,7 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Algeria&#39;s gas exports to Europe tripled during energy crisis",
+      "Algeria's gas exports to Europe tripled during energy crisis",
       "Budget surpluses from energy windfall reinvested in social housing",
       "Military modernisation — Algeria largest African defence spender",
       "African Union mediation role in Sahel conflicts",
@@ -7490,13 +7489,13 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Governs Africa&#39;s most militarily powerful and energy-wealthy Maghreb state. Algeria&#39;s gas role in Europe&#39;s post-Russia energy transition gives Tebboune leverage that far exceeds his domestic democratic legitimacy.",
+      "Governs Africa's most militarily powerful and energy-wealthy Maghreb state. Algeria's gas role in Europe's post-Russia energy transition gives Tebboune leverage that far exceeds his domestic democratic legitimacy.",
     region: "Africa",
   },
   {
     id: "ouattara",
     name: "Alassane Ouattara",
-    country: "Côte d&#39;Ivoire",
+    country: "Côte d'Ivoire",
     countryCode: "CI",
     flag: "🇨🇮",
     title: "President",
@@ -7504,7 +7503,7 @@ const LEADERS: Leader[] = [
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Alassane_Ouattara_2012_%28cropped%29.jpg/440px-Alassane_Ouattara_2012_%28cropped%29.jpg",
     age: 83,
     birthYear: 1942,
-    birthPlace: "Dimbokro, Côte d&#39;Ivoire",
+    birthPlace: "Dimbokro, Côte d'Ivoire",
     education: [
       {
         institution: "University of Pennsylvania",
@@ -7521,7 +7520,7 @@ const LEADERS: Leader[] = [
     ideology: "Liberal",
     termsInOffice: [{ from: 2011, to: "present" }],
     background:
-      "Former IMF Deputy Managing Director and BCEAO Governor who became Côte d&#39;Ivoire&#39;s president in 2011 after a brutal post-election civil war against incumbent Laurent Gbagbo. Known as &#39;ADO&#39;, he transformed the world&#39;s largest cocoa producer into one of Africa&#39;s fastest-growing economies before a controversial third-term bid in 2020.",
+      "Former IMF Deputy Managing Director and BCEAO Governor who became Côte d'Ivoire's president in 2011 after a brutal post-election civil war against incumbent Laurent Gbagbo. Known as 'ADO', he transformed the world's largest cocoa producer into one of Africa's fastest-growing economies before a controversial third-term bid in 2020.",
     significantEvents: [
       {
         year: 2011,
@@ -7532,7 +7531,7 @@ const LEADERS: Leader[] = [
       {
         year: 2015,
         event:
-          "Côte d&#39;Ivoire grows at 8–10% annually — fastest in West Africa",
+          "Côte d'Ivoire grows at 8–10% annually — fastest in West Africa",
         impact: "positive",
       },
       {
@@ -7554,10 +7553,10 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Côte d&#39;Ivoire&#39;s economy grew 8–10% annually for a decade",
-      "Abidjan transformed into West Africa&#39;s premier business hub",
+      "Côte d'Ivoire's economy grew 8–10% annually for a decade",
+      "Abidjan transformed into West Africa's premier business hub",
       "Reconciliation with Gbagbo — ended post-war political divisions",
-      "Côte d&#39;Ivoire became West Africa&#39;s largest economy under his watch",
+      "Côte d'Ivoire became West Africa's largest economy under his watch",
     ],
     politicalViews:
       "IMF/World Bank-trained liberal economist, market-friendly, West-aligned. CFA franc defender — unlike new Sahel leaders. Pro-French security presence (ECOWAS). Anti-coup, pro-democratic institutions. ECOWAS leadership on democratic governance.",
@@ -7565,7 +7564,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Transformed Côte d&#39;Ivoire from West Africa&#39;s most conflict-prone economy into its growth engine. His technocratic IMF background delivered genuine development results — though at the cost of controversial constitutional term-limit manipulation.",
+      "Transformed Côte d'Ivoire from West Africa's most conflict-prone economy into its growth engine. His technocratic IMF background delivered genuine development results — though at the cost of controversial constitutional term-limit manipulation.",
     region: "Africa",
   },
   {
@@ -7596,7 +7595,7 @@ const LEADERS: Leader[] = [
     ideology: "Liberal",
     termsInOffice: [{ from: 2020, to: 2024 }],
     background:
-      "Belgian tech entrepreneur turned politician who led the Vivaldi coalition — one of the largest coalitions in Belgian history spanning left to right across the linguistic divide. Resigned after his party&#39;s crushing defeat in the June 2024 elections.",
+      "Belgian tech entrepreneur turned politician who led the Vivaldi coalition — one of the largest coalitions in Belgian history spanning left to right across the linguistic divide. Resigned after his party's crushing defeat in the June 2024 elections.",
     significantEvents: [
       {
         year: 2020,
@@ -7606,7 +7605,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2021,
-        event: "Coordinated Belgium&#39;s EU Council presidency preparation",
+        event: "Coordinated Belgium's EU Council presidency preparation",
         impact: "positive",
       },
       {
@@ -7624,7 +7623,7 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Led Belgium through COVID-19 and energy crisis simultaneously",
-      "Belgium&#39;s EU Council presidency navigated multiple geopolitical crises",
+      "Belgium's EU Council presidency navigated multiple geopolitical crises",
       "Nuclear energy phase-out reversed — two reactors extended by 10 years",
       "Belgian defence spending trajectory increased toward NATO target",
     ],
@@ -7634,7 +7633,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Led Belgium through one of its most difficult governing periods but paid the electoral price. Belgium&#39;s linguistic and political complexity makes coalition governance an art form, which De Croo practiced with rare success.",
+      "Led Belgium through one of its most difficult governing periods but paid the electoral price. Belgium's linguistic and political complexity makes coalition governance an art form, which De Croo practiced with rare success.",
     region: "Europe",
   },
   {
@@ -7660,7 +7659,7 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2021, to: "present" }],
     background:
-      "Former Foreign Minister (2005–2012) and WHO Chief of Staff under Gro Harlem Brundtland. Became PM in 2021 after Erna Solberg&#39;s Conservative government. Manages Norway&#39;s extraordinary oil wealth through the $1.7 trillion Government Pension Fund Global while navigating NATO obligations and Arctic security.",
+      "Former Foreign Minister (2005–2012) and WHO Chief of Staff under Gro Harlem Brundtland. Became PM in 2021 after Erna Solberg's Conservative government. Manages Norway's extraordinary oil wealth through the $1.7 trillion Government Pension Fund Global while navigating NATO obligations and Arctic security.",
     significantEvents: [
       {
         year: 2021,
@@ -7670,13 +7669,13 @@ const LEADERS: Leader[] = [
       {
         year: 2022,
         event:
-          "Norway&#39;s gas exports to Europe surged — biggest beneficiary of Russia crisis",
+          "Norway's gas exports to Europe surged — biggest beneficiary of Russia crisis",
         impact: "positive",
       },
       {
         year: 2023,
         event:
-          "Norwegian Government Pension Fund hits $1.7T — world&#39;s largest sovereign wealth fund",
+          "Norwegian Government Pension Fund hits $1.7T — world's largest sovereign wealth fund",
         impact: "positive",
       },
       {
@@ -7692,7 +7691,7 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Norway&#39;s sovereign wealth fund surpassed $1.7 trillion",
+      "Norway's sovereign wealth fund surpassed $1.7 trillion",
       "Largest energy exporter to Europe after Russia pipeline cuts",
       "Arctic strategic partnership with NATO strengthened",
       "EV adoption — Norway reached 90%+ electric car sales share",
@@ -7703,7 +7702,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Governs the world&#39;s most affluent per-capita democracy at a time when Norway&#39;s gas exports define European energy security. The paradox of climate-conscious Norway profiting from Europe&#39;s gas emergency is the defining tension of his tenure.",
+      "Governs the world's most affluent per-capita democracy at a time when Norway's gas exports define European energy security. The paradox of climate-conscious Norway profiting from Europe's gas emergency is the defining tension of his tenure.",
     region: "Europe",
   },
   {
@@ -7734,11 +7733,11 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Economist and professor who became Iceland&#39;s youngest PM and one of the youngest heads of government in the world. Won the November 2024 election, succeeding Katrín Jakobsdóttir&#39;s Left-Green coalition after it lost support. Iceland is one of the world&#39;s most gender-equal and sustainable economies.",
+      "Economist and professor who became Iceland's youngest PM and one of the youngest heads of government in the world. Won the November 2024 election, succeeding Katrín Jakobsdóttir's Left-Green coalition after it lost support. Iceland is one of the world's most gender-equal and sustainable economies.",
     significantEvents: [
       {
         year: 2024,
-        event: "Won election at age 37 — became Iceland&#39;s youngest PM",
+        event: "Won election at age 37 — became Iceland's youngest PM",
         impact: "positive",
       },
       {
@@ -7749,19 +7748,19 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "Navigates Iceland&#39;s volcanic activity crisis — Reykjanes eruptions",
+          "Navigates Iceland's volcanic activity crisis — Reykjanes eruptions",
         impact: "negative",
       },
       {
         year: 2025,
         event:
-          "Arctic Council chairmanship — Iceland&#39;s climate and fishing diplomacy",
+          "Arctic Council chairmanship — Iceland's climate and fishing diplomacy",
         impact: "positive",
       },
     ],
     achievements: [
-      "Iceland&#39;s youngest prime minister at 37",
-      "Gender pay gap legislation — Iceland&#39;s equal pay certification world-leading",
+      "Iceland's youngest prime minister at 37",
+      "Gender pay gap legislation — Iceland's equal pay certification world-leading",
       "100% renewable energy electricity maintained",
       "Arctic Council engagement on climate and fishing rights",
     ],
@@ -7771,7 +7770,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Leads the world&#39;s oldest parliament (Althing, 930 AD) at a critical moment of volcanic activity, housing stress, and Arctic great power competition. Iceland&#39;s outsized influence on NATO&#39;s northern flank belies its tiny population of 370,000.",
+      "Leads the world's oldest parliament (Althing, 930 AD) at a critical moment of volcanic activity, housing stress, and Arctic great power competition. Iceland's outsized influence on NATO's northern flank belies its tiny population of 370,000.",
     region: "Europe",
   },
   {
@@ -7810,7 +7809,7 @@ const LEADERS: Leader[] = [
       { from: 2024, to: "present" },
     ],
     background:
-      "Veteran politician who first served as Taoiseach 2020–22 in Ireland&#39;s first-ever coalition between Fianna Fáil and Fine Gael alongside Sinn Féin. After the November 2024 election, led his party to a renewed coalition, replacing Simon Harris as Taoiseach under a rotation agreement.",
+      "Veteran politician who first served as Taoiseach 2020–22 in Ireland's first-ever coalition between Fianna Fáil and Fine Gael alongside Sinn Féin. After the November 2024 election, led his party to a renewed coalition, replacing Simon Harris as Taoiseach under a rotation agreement.",
     significantEvents: [
       {
         year: 2020,
@@ -7820,7 +7819,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2022,
-        event: "Ireland&#39;s corporation tax — agreed to 15% global minimum",
+        event: "Ireland's corporation tax — agreed to 15% global minimum",
         impact: "neutral",
       },
       {
@@ -7831,14 +7830,14 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "Ireland&#39;s housing crisis remains defining political challenge",
+          "Ireland's housing crisis remains defining political challenge",
         impact: "negative",
       },
     ],
     achievements: [
       "Formed historic Fianna Fáil-Fine Gael coalition — ended a century of rivalry",
-      "Ireland became world&#39;s largest per-capita recipient of US FDI",
-      "Celtic Tiger II — Ireland&#39;s GDP grew faster than any EU economy 2021–24",
+      "Ireland became world's largest per-capita recipient of US FDI",
+      "Celtic Tiger II — Ireland's GDP grew faster than any EU economy 2021–24",
       "Corporate tax windfall invested in National Reserve Fund",
     ],
     politicalViews:
@@ -7847,7 +7846,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Presides over Ireland&#39;s most economically consequential period — tech and pharma FDI has made Ireland punching above its weight globally. Housing shortfall is the risk that could unravel the Celtic Tiger II story.",
+      "Presides over Ireland's most economically consequential period — tech and pharma FDI has made Ireland punching above its weight globally. Housing shortfall is the risk that could unravel the Celtic Tiger II story.",
     region: "Europe",
   },
   {
@@ -7878,7 +7877,7 @@ const LEADERS: Leader[] = [
       { from: 2023, to: "present" },
     ],
     background:
-      "Slovakia&#39;s most dominant political figure — served three terms as PM with interruptions. Won his fourth election in October 2023 on a pro-Russia, anti-Ukraine-aid platform. Shot and critically wounded in an assassination attempt in May 2024 — survived and returned to office within weeks, using the attack to reinforce his populist narrative.",
+      "Slovakia's most dominant political figure — served three terms as PM with interruptions. Won his fourth election in October 2023 on a pro-Russia, anti-Ukraine-aid platform. Shot and critically wounded in an assassination attempt in May 2024 — survived and returned to office within weeks, using the attack to reinforce his populist narrative.",
     significantEvents: [
       {
         year: 2018,
@@ -7904,12 +7903,12 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "Cut Slovakia&#39;s Ukraine military aid; blocked EU consensus repeatedly",
+          "Cut Slovakia's Ukraine military aid; blocked EU consensus repeatedly",
         impact: "negative",
       },
     ],
     achievements: [
-      "Slovakia&#39;s longest-serving PM — led country through EU integration era",
+      "Slovakia's longest-serving PM — led country through EU integration era",
       "Survived assassination — returned to office within weeks",
       "Navigated Slovakia through EU financial crisis years",
       "Maintained Slovak industrial base including Volkswagen presence",
@@ -7920,7 +7919,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "One of the most disruptive voices in EU–Ukraine consensus. After surviving assassination, re-emerged more radicalized in his Russia-friendly politics. Slovakia under Fico mirrors Hungary&#39;s EU vetoes but with more extreme rhetoric.",
+      "One of the most disruptive voices in EU–Ukraine consensus. After surviving assassination, re-emerged more radicalized in his Russia-friendly politics. Slovakia under Fico mirrors Hungary's EU vetoes but with more extreme rhetoric.",
     region: "Europe",
   },
   {
@@ -7946,11 +7945,11 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2023, to: "present" }],
     background:
-      "President of the PSD and Speaker of the Romanian Parliament who became Prime Minister in June 2023. Romania is a NATO and EU member on the Black Sea — one of NATO&#39;s most strategically important eastern flank countries since the Ukraine war. Navigated Romania&#39;s dramatic 2024 constitutional crisis when a presidential election result was annulled.",
+      "President of the PSD and Speaker of the Romanian Parliament who became Prime Minister in June 2023. Romania is a NATO and EU member on the Black Sea — one of NATO's most strategically important eastern flank countries since the Ukraine war. Navigated Romania's dramatic 2024 constitutional crisis when a presidential election result was annulled.",
     significantEvents: [
       {
         year: 2023,
-        event: "Became PM — leading Romania&#39;s enlarged coalition",
+        event: "Became PM — leading Romania's enlarged coalition",
         impact: "neutral",
       },
       {
@@ -7975,8 +7974,8 @@ const LEADERS: Leader[] = [
     achievements: [
       "Romania joined Schengen Area — historic achievement after years of delays",
       "GDP growth among the fastest in Eastern Europe",
-      "NATO&#39;s Black Sea presence reinforced under Romanian government",
-      "Energy independence — Romania&#39;s Black Sea gas fields development",
+      "NATO's Black Sea presence reinforced under Romanian government",
+      "Energy independence — Romania's Black Sea gas fields development",
     ],
     politicalViews:
       "Centre-left social democratic, pro-EU, strong NATO advocate given proximity to Ukraine war. Romanian sovereignty, Black Sea energy development, EU structural funds maximisation. Pro-US security guarantees.",
@@ -7984,7 +7983,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Romania&#39;s democratic crisis — when TikTok-amplified populist candidate Călin Georgescu won, then was annulled — became the EU&#39;s most alarming case of social media manipulation of elections. Ciolacu navigated the crisis but Romania&#39;s democratic stability remains under watch.",
+      "Romania's democratic crisis — when TikTok-amplified populist candidate Călin Georgescu won, then was annulled — became the EU's most alarming case of social media manipulation of elections. Ciolacu navigated the crisis but Romania's democratic stability remains under watch.",
     region: "Europe",
   },
   {
@@ -8011,7 +8010,7 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2016, to: "present" }],
     background:
-      "Former diplomat and MEP who served as Croatia&#39;s longest-serving PM since independence. Won a third consecutive term in April 2024 — remarkable stability in a region known for political turbulence. Croatia joined the Euro and Schengen during his tenure — completing its EU integration.",
+      "Former diplomat and MEP who served as Croatia's longest-serving PM since independence. Won a third consecutive term in April 2024 — remarkable stability in a region known for political turbulence. Croatia joined the Euro and Schengen during his tenure — completing its EU integration.",
     significantEvents: [
       {
         year: 2020,
@@ -8037,7 +8036,7 @@ const LEADERS: Leader[] = [
     achievements: [
       "Croatia adopted the euro — Eurozone accession completed",
       "Schengen Area membership achieved",
-      "Croatia&#39;s tourism record — highest visitor numbers in history",
+      "Croatia's tourism record — highest visitor numbers in history",
       "NATO eastern flank contribution — Adriatic Sea security",
     ],
     politicalViews:
@@ -8046,7 +8045,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Completed Croatia&#39;s full EU integration by securing both Eurozone and Schengen membership — the most consequential achievement for any Croatian PM since independence. Provides a rare example of stable long-term EU conservative governance.",
+      "Completed Croatia's full EU integration by securing both Eurozone and Schengen membership — the most consequential achievement for any Croatian PM since independence. Provides a rare example of stable long-term EU conservative governance.",
     region: "Europe",
   },
   // ── BATCH 18: Taiwan, Central Asia, LatAm + UN ────────────────────────────
@@ -8083,7 +8082,7 @@ const LEADERS: Leader[] = [
     ideology: "Progressive",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Physician turned politician who served as Mayor of Tainan and Vice President under Tsai Ing-wen before winning the January 2024 presidential election. Known as 'Pragmatic Worker' domestically, Lai is seen by Beijing as a dangerous separatist — he has explicitly called Taiwan a sovereign independent country, making him the most provocative Taiwan president from China&#39;s perspective in decades.",
+      "Physician turned politician who served as Mayor of Tainan and Vice President under Tsai Ing-wen before winning the January 2024 presidential election. Known as 'Pragmatic Worker' domestically, Lai is seen by Beijing as a dangerous separatist — he has explicitly called Taiwan a sovereign independent country, making him the most provocative Taiwan president from China's perspective in decades.",
     significantEvents: [
       {
         year: 2024,
@@ -8117,17 +8116,17 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Led DPP to unprecedented third consecutive presidential win",
-      "Taiwan&#39;s semiconductor industry — TSMC global dominance maintained",
+      "Taiwan's semiconductor industry — TSMC global dominance maintained",
       "Defence spending raised to 2.5% of GDP — largest increase in decades",
-      "Taiwan&#39;s international recognition campaign — 13 formal allies maintained",
+      "Taiwan's international recognition campaign — 13 formal allies maintained",
     ],
     politicalViews:
-      "Pro-Taiwan independence within current parameters. Rejects &#39;one country, two systems&#39; absolutely. Strong US alliance, democratic identity diplomacy. Pragmatic on cross-strait trade while hardening defence posture. Semiconductor sovereignty — keeps TSMC under Taiwan&#39;s control.",
+      "Pro-Taiwan independence within current parameters. Rejects 'one country, two systems' absolutely. Strong US alliance, democratic identity diplomacy. Pragmatic on cross-strait trade while hardening defence posture. Semiconductor sovereignty — keeps TSMC under Taiwan's control.",
     approvalRating: 52,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Governs the world&#39;s most geopolitically explosive flashpoint — a democratic de facto state of 23 million that produces 90%+ of the world&#39;s most advanced chips. His presidency defines the most dangerous potential military confrontation of our era.",
+      "Governs the world's most geopolitically explosive flashpoint — a democratic de facto state of 23 million that produces 90%+ of the world's most advanced chips. His presidency defines the most dangerous potential military confrontation of our era.",
     region: "Asia-Pacific",
   },
   {
@@ -8153,7 +8152,7 @@ const LEADERS: Leader[] = [
     ideology: "Authoritarian",
     termsInOffice: [{ from: 2016, to: "present" }],
     background:
-      "Former Prime Minister who succeeded Islam Karimov — one of the most brutal Soviet-era strongmen — after Karimov&#39;s death in 2016. Promised and partially delivered a dramatic liberalisation compared to his predecessor: releasing thousands of political prisoners, ending forced labour in cotton harvests, opening borders with neighbours and pursuing foreign investment. Central Asia&#39;s most prominent reformist authoritarian.",
+      "Former Prime Minister who succeeded Islam Karimov — one of the most brutal Soviet-era strongmen — after Karimov's death in 2016. Promised and partially delivered a dramatic liberalisation compared to his predecessor: releasing thousands of political prisoners, ending forced labour in cotton harvests, opening borders with neighbours and pursuing foreign investment. Central Asia's most prominent reformist authoritarian.",
     significantEvents: [
       {
         year: 2016,
@@ -8176,7 +8175,7 @@ const LEADERS: Leader[] = [
       {
         year: 2023,
         event:
-          "Uzbekistan&#39;s GDP growth among fastest in former Soviet space at 6%+",
+          "Uzbekistan's GDP growth among fastest in former Soviet space at 6%+",
         impact: "positive",
       },
       {
@@ -8190,15 +8189,15 @@ const LEADERS: Leader[] = [
       "Released thousands of Karimov-era political prisoners",
       "Ended forced child labour in cotton industry — internationally certified",
       "Five Central Asian summits revived — Uzbekistan as regional hub",
-      "EU Comprehensive Partnership — Central Asia&#39;s most ambitious Western deal",
+      "EU Comprehensive Partnership — Central Asia's most ambitious Western deal",
     ],
     politicalViews:
-      "Reformist authoritarian — liberalises economically and socially while maintaining one-party state. Non-aligned multi-vector: cultivates Russia, China, EU, and US simultaneously. Anti-extremism focus domestically. Uzbekistan as Central Asia&#39;s hub for trade and connectivity.",
+      "Reformist authoritarian — liberalises economically and socially while maintaining one-party state. Non-aligned multi-vector: cultivates Russia, China, EU, and US simultaneously. Anti-extremism focus domestically. Uzbekistan as Central Asia's hub for trade and connectivity.",
     approvalRating: 71,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "The most consequential Central Asian leader since independence — turned Uzbekistan from a hermetically sealed police state into a viable emerging market and regional diplomatic hub. His liberalisation without democratisation is Central Asia&#39;s defining governance experiment.",
+      "The most consequential Central Asian leader since independence — turned Uzbekistan from a hermetically sealed police state into a viable emerging market and regional diplomatic hub. His liberalisation without democratisation is Central Asia's defining governance experiment.",
     region: "Asia-Pacific",
   },
   {
@@ -8225,11 +8224,11 @@ const LEADERS: Leader[] = [
         year: 1997,
       },
     ],
-    party: "People&#39;s Democratic Party of Tajikistan (PDPT)",
+    party: "People's Democratic Party of Tajikistan (PDPT)",
     ideology: "Authoritarian",
     termsInOffice: [{ from: 1992, to: "present" }],
     background:
-      "Kolkhoz chairman who rose to power during the Tajik Civil War (1992–1997) and has ruled ever since — making him Central Asia&#39;s longest-serving president and one of the world&#39;s longest-serving authoritarian leaders. His son Rustam Rahmon was appointed First Deputy PM in 2020 — a clear succession grooming.",
+      "Kolkhoz chairman who rose to power during the Tajik Civil War (1992–1997) and has ruled ever since — making him Central Asia's longest-serving president and one of the world's longest-serving authoritarian leaders. His son Rustam Rahmon was appointed First Deputy PM in 2020 — a clear succession grooming.",
     significantEvents: [
       {
         year: 1997,
@@ -8263,8 +8262,8 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Ended Tajik Civil War through peace agreement",
-      "Rogun Dam — world&#39;s tallest dam under construction; energy independence goal",
-      "Tajikistan&#39;s stability maintained as Afghanistan collapsed next door",
+      "Rogun Dam — world's tallest dam under construction; energy independence goal",
+      "Tajikistan's stability maintained as Afghanistan collapsed next door",
       "Longest-serving Central Asian leader — 30+ years of continuous rule",
     ],
     politicalViews:
@@ -8273,7 +8272,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Rules Central Asia&#39;s poorest nation — 37% of GDP comes from remittances of Tajiks working in Russia. His 30-year reign has maintained stability at the cost of all freedoms, while building a family dynasty that controls the state.",
+      "Rules Central Asia's poorest nation — 37% of GDP comes from remittances of Tajiks working in Russia. His 30-year reign has maintained stability at the cost of all freedoms, while building a family dynasty that controls the state.",
     region: "Asia-Pacific",
   },
   {
@@ -8304,7 +8303,7 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2025, to: "present" }],
     background:
-      "Former Mayor of Canelones department and history teacher who won Uruguay&#39;s November 2024 election, restoring the Frente Amplio coalition to power after five years of Luis Lacalle Pou&#39;s liberal government. Uruguay is Latin America&#39;s most stable democracy — its governance quality, press freedom, and social indicators are the region&#39;s gold standard.",
+      "Former Mayor of Canelones department and history teacher who won Uruguay's November 2024 election, restoring the Frente Amplio coalition to power after five years of Luis Lacalle Pou's liberal government. Uruguay is Latin America's most stable democracy — its governance quality, press freedom, and social indicators are the region's gold standard.",
     significantEvents: [
       {
         year: 2024,
@@ -8330,10 +8329,10 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Won Uruguay&#39;s presidency as former local government leader",
-      "Represents Frente Amplio&#39;s return after five years in opposition",
-      "Uruguay&#39;s democratic continuity — peaceful transfer from right to left",
-      "Latin America&#39;s most stable democratic governance model preserved",
+      "Won Uruguay's presidency as former local government leader",
+      "Represents Frente Amplio's return after five years in opposition",
+      "Uruguay's democratic continuity — peaceful transfer from right to left",
+      "Latin America's most stable democratic governance model preserved",
     ],
     politicalViews:
       "Centre-left social democratic, welfare state investment, Frente Amplio coalition values. Pro-Mercosur trade, regional integration, multilateralism. Human rights tradition — Uruguay processed its dictatorship crimes more thoroughly than most LatAm nations. Cannabis and social liberalisation legacy maintained.",
@@ -8341,7 +8340,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Governs Latin America&#39;s most admired democracy — a small nation that consistently outperforms its neighbours on every human development metric. Uruguay is the proof-of-concept that stable social democracy works in Latin America.",
+      "Governs Latin America's most admired democracy — a small nation that consistently outperforms its neighbours on every human development metric. Uruguay is the proof-of-concept that stable social democracy works in Latin America.",
     region: "Americas",
   },
   {
@@ -8370,7 +8369,7 @@ const LEADERS: Leader[] = [
       { from: 2007, to: "present" },
     ],
     background:
-      "Former Sandinista guerrilla who helped topple the Somoza dictatorship in 1979, led revolutionary Nicaragua, lost the 1990 election, and returned to power democratically in 2007 — before systematically dismantling all democratic institutions. Rules with his wife Rosario Murillo as co-president in what is effectively Central America&#39;s last family dictatorship. Has expelled, jailed, or stripped citizenship from virtually the entire opposition.",
+      "Former Sandinista guerrilla who helped topple the Somoza dictatorship in 1979, led revolutionary Nicaragua, lost the 1990 election, and returned to power democratically in 2007 — before systematically dismantling all democratic institutions. Rules with his wife Rosario Murillo as co-president in what is effectively Central America's last family dictatorship. Has expelled, jailed, or stripped citizenship from virtually the entire opposition.",
     significantEvents: [
       {
         year: 2018,
@@ -8402,8 +8401,8 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Led Sandinista revolution that ended Somoza&#39;s 43-year dynasty in 1979",
-      "Nicaragua&#39;s literacy campaign of 1980 reduced illiteracy from 52% to 12%",
+      "Led Sandinista revolution that ended Somoza's 43-year dynasty in 1979",
+      "Nicaragua's literacy campaign of 1980 reduced illiteracy from 52% to 12%",
       "Survived 1990 electoral defeat and returned through democratic process",
       "Maintained power despite US sanctions and complete regional isolation",
     ],
@@ -8413,7 +8412,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
-      "Transformed from liberation hero into one of the Western Hemisphere&#39;s most brutal authoritarian leaders. Nicaragua&#39;s mass expulsion of political prisoners and expulsion of foreign missionaries marks a regime increasingly disconnected from even cynical international legitimacy.",
+      "Transformed from liberation hero into one of the Western Hemisphere's most brutal authoritarian leaders. Nicaragua's mass expulsion of political prisoners and expulsion of foreign missionaries marks a regime increasingly disconnected from even cynical international legitimacy.",
     region: "Americas",
   },
   {
@@ -8439,7 +8438,7 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2017, to: "present" }],
     background:
-      "Former Prime Minister of Portugal (1995–2002) and UN High Commissioner for Refugees (2005–2015) who became UN Secretary-General in 2017, re-appointed in 2021. Leads the world&#39;s most complex multilateral institution through an era of polycrisis — climate emergency, Ukraine war, Gaza conflict, and the rise of AI — with the structural limitations of Security Council gridlock.",
+      "Former Prime Minister of Portugal (1995–2002) and UN High Commissioner for Refugees (2005–2015) who became UN Secretary-General in 2017, re-appointed in 2021. Leads the world's most complex multilateral institution through an era of polycrisis — climate emergency, Ukraine war, Gaza conflict, and the rise of AI — with the structural limitations of Security Council gridlock.",
     significantEvents: [
       {
         year: 2017,
@@ -8484,7 +8483,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Leads humanity&#39;s most important multilateral institution at its most challenged moment since founding. Security Council paralysis limits his power, but his moral voice on climate, Gaza, and AI governance carries weight no individual state can replicate.",
+      "Leads humanity's most important multilateral institution at its most challenged moment since founding. Security Council paralysis limits his power, but his moral voice on climate, Gaza, and AI governance carries weight no individual state can replicate.",
     region: "Europe",
   },
   {
@@ -8498,7 +8497,7 @@ const LEADERS: Leader[] = [
       "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Paul_Biya_2016_%28cropped%29.jpg/440px-Paul_Biya_2016_%28cropped%29.jpg",
     age: 91,
     birthYear: 1933,
-    birthPlace: "Mvomeka&#39;a, Cameroon",
+    birthPlace: "Mvomeka'a, Cameroon",
     education: [
       {
         institution: "Louis-le-Grand, Paris",
@@ -8511,16 +8510,16 @@ const LEADERS: Leader[] = [
         year: 1961,
       },
       {
-        institution: "Institut des Hautes Etudes d&#39;Outre-Mer",
+        institution: "Institut des Hautes Etudes d'Outre-Mer",
         degree: "Post-graduate Administration",
         year: 1962,
       },
     ],
-    party: "Cameroon People&#39;s Democratic Movement (RDPC)",
+    party: "Cameroon People's Democratic Movement (RDPC)",
     ideology: "Authoritarian",
     termsInOffice: [{ from: 1982, to: "present" }],
     background:
-      "Africa&#39;s longest-serving non-royal head of state and one of the world&#39;s oldest sitting leaders at 91. Has ruled Cameroon since 1982 — over 42 years. Spends months each year at the Hotel Intercontinental in Geneva while his country faces multiple active insurgencies. The Anglophone Crisis — a separatist conflict in Cameroon&#39;s English-speaking regions — has killed 6,000+ since 2017.",
+      "Africa's longest-serving non-royal head of state and one of the world's oldest sitting leaders at 91. Has ruled Cameroon since 1982 — over 42 years. Spends months each year at the Hotel Intercontinental in Geneva while his country faces multiple active insurgencies. The Anglophone Crisis — a separatist conflict in Cameroon's English-speaking regions — has killed 6,000+ since 2017.",
     significantEvents: [
       {
         year: 1982,
@@ -8552,18 +8551,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Cameroon&#39;s stability relative to Central African neighbours maintained for decades",
-      "Oil revenues managed through Cameroon&#39;s SONARA refinery",
+      "Cameroon's stability relative to Central African neighbours maintained for decades",
+      "Oil revenues managed through Cameroon's SONARA refinery",
       "Longest-serving non-royal African president — 42+ years",
       "Kept Cameroon out of the worst Sahel-style coups despite regional trend",
     ],
     politicalViews:
-      "At 91 and 42+ years in power, Biya is a case study in gerontocratic African authoritarianism sustained by French patronage. The Anglophone Crisis he created — through neglect and suppression — is Cameroon&#39;s defining tragedy, with 700,000+ displaced.",
+      "At 91 and 42+ years in power, Biya is a case study in gerontocratic African authoritarianism sustained by French patronage. The Anglophone Crisis he created — through neglect and suppression — is Cameroon's defining tragedy, with 700,000+ displaced.",
     approvalRating: null,
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "At 91 and 42+ years in power, Biya is a case study in gerontocratic African authoritarianism sustained by French patronage. The Anglophone Crisis he created — through neglect and suppression — is Cameroon&#39;s defining tragedy, with 700,000+ displaced.",
+      "At 91 and 42+ years in power, Biya is a case study in gerontocratic African authoritarianism sustained by French patronage. The Anglophone Crisis he created — through neglect and suppression — is Cameroon's defining tragedy, with 700,000+ displaced.",
     region: "Africa",
   },
   // ── BATCH 20: Georgia PM, S.Korea, Costa Rica, CAR, Eritrea, Comoros, Chad ──
@@ -8595,7 +8594,7 @@ const LEADERS: Leader[] = [
     ideology: "Nationalist",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Constitutional law scholar who became Georgian Dream party chairman in 2023 and Prime Minister in February 2024. Led Georgian Dream to a contested parliamentary election victory in October 2024 — triggering the largest protests in Georgian history as the opposition and President Zourabichvili declared the vote fraudulent. His government&#39;s suspension of EU accession talks in November 2024 was the spark for months of pro-EU street demonstrations.",
+      "Constitutional law scholar who became Georgian Dream party chairman in 2023 and Prime Minister in February 2024. Led Georgian Dream to a contested parliamentary election victory in October 2024 — triggering the largest protests in Georgian history as the opposition and President Zourabichvili declared the vote fraudulent. His government's suspension of EU accession talks in November 2024 was the spark for months of pro-EU street demonstrations.",
     significantEvents: [
       {
         year: 2024,
@@ -8627,18 +8626,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Held Georgian Dream&#39;s parliamentary majority through contested election",
+      "Held Georgian Dream's parliamentary majority through contested election",
       "Constitutional law expertise applied to governance framework",
-      "Maintained Georgia&#39;s economic growth trajectory",
+      "Maintained Georgia's economic growth trajectory",
       "Avoided direct military confrontation with Russia despite tensions",
     ],
     politicalViews:
-      "Officially pro-EU but de facto pivoting toward Russia-aligned authoritarian model. Frames EU demands as interference in Georgian sovereignty. Anti-NGO law modelled on Russian foreign agents legislation. Positions Georgia as &#39;neutral&#39; between Russia and West.",
+      "Officially pro-EU but de facto pivoting toward Russia-aligned authoritarian model. Frames EU demands as interference in Georgian sovereignty. Anti-NGO law modelled on Russian foreign agents legislation. Positions Georgia as 'neutral' between Russia and West.",
     approvalRating: 34,
     approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
-      "His suspension of EU accession negotiations triggered Georgia&#39;s worst political crisis since the 2008 Russian war — with hundreds of thousands in the streets demanding a pro-EU future. He represents Georgian Dream&#39;s decisive turn away from European integration.",
+      "His suspension of EU accession negotiations triggered Georgia's worst political crisis since the 2008 Russian war — with hundreds of thousands in the streets demanding a pro-EU future. He represents Georgian Dream's decisive turn away from European integration.",
     region: "Europe",
   },
   {
@@ -8684,7 +8683,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Declared martial law citing &#39;anti-state forces&#39; — lasted 6 hours",
+          "Declared martial law citing 'anti-state forces' — lasted 6 hours",
         impact: "negative",
       },
       {
@@ -8700,9 +8699,9 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Strengthened South Korea&#39;s US alliance — Camp David trilateral with US-Japan",
+      "Strengthened South Korea's US alliance — Camp David trilateral with US-Japan",
       "Moved presidential office to improve democratic accessibility symbolically",
-      "NATO outreach — South Korea&#39;s deepest NATO engagement ever",
+      "NATO outreach — South Korea's deepest NATO engagement ever",
       "Completed Camp David Accords — first US-Japan-South Korea summit framework",
     ],
     politicalViews:
@@ -8711,7 +8710,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "Former",
     impact:
-      "His martial law declaration was the most serious assault on South Korean democracy since the 1980 coup — and democracy&#39;s survival proved the strength of Korean institutions. He will be remembered primarily for the crisis that ended his presidency.",
+      "His martial law declaration was the most serious assault on South Korean democracy since the 1980 coup — and democracy's survival proved the strength of Korean institutions. He will be remembered primarily for the crisis that ended his presidency.",
     region: "Asia-Pacific",
   },
   {
@@ -8747,7 +8746,7 @@ const LEADERS: Leader[] = [
     ideology: "Populist",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "Former World Bank senior economist who spent 26 years at the institution before returning to Costa Rica and winning the 2022 presidential election as a populist outsider — despite being investigated for sexual harassment at the World Bank. Founded his own party and won with 53% in the runoff, upending Costa Rica&#39;s traditional two-party system.",
+      "Former World Bank senior economist who spent 26 years at the institution before returning to Costa Rica and winning the 2022 presidential election as a populist outsider — despite being investigated for sexual harassment at the World Bank. Founded his own party and won with 53% in the runoff, upending Costa Rica's traditional two-party system.",
     significantEvents: [
       {
         year: 2022,
@@ -8779,7 +8778,7 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Disrupted Costa Rica&#39;s two-party duopoly",
+      "Disrupted Costa Rica's two-party duopoly",
       "Intel and semiconductor investment expanded under his tech-friendly governance",
       "Costa Rica maintained 100% renewable electricity during his tenure",
       "Anti-corruption populist messaging resonated with disillusioned voters",
@@ -8790,7 +8789,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Broke Costa Rica&#39;s traditional centrist political model — his populist governing style is eroding the institutional norms that have made Costa Rica Central America&#39;s most stable democracy for 75 years.",
+      "Broke Costa Rica's traditional centrist political model — his populist governing style is eroding the institutional norms that have made Costa Rica Central America's most stable democracy for 75 years.",
     region: "Americas",
   },
   {
@@ -8821,7 +8820,7 @@ const LEADERS: Leader[] = [
     ideology: "Centrist",
     termsInOffice: [{ from: 2016, to: "present" }],
     background:
-      "Mathematics professor and former Prime Minister who became CAR&#39;s President in 2016 and was re-elected in 2021 in a disputed vote. His presidency is defined by one fact above all others: the invitation of Russia&#39;s Wagner Group (now Africa Corps) to provide security after France&#39;s partial withdrawal. CAR is one of the world&#39;s most resource-rich yet conflict-devastated countries — diamonds, gold, uranium, and timber, yet ranked the world&#39;s least developed nation.",
+      "Mathematics professor and former Prime Minister who became CAR's President in 2016 and was re-elected in 2021 in a disputed vote. His presidency is defined by one fact above all others: the invitation of Russia's Wagner Group (now Africa Corps) to provide security after France's partial withdrawal. CAR is one of the world's most resource-rich yet conflict-devastated countries — diamonds, gold, uranium, and timber, yet ranked the world's least developed nation.",
     significantEvents: [
       {
         year: 2016,
@@ -8836,7 +8835,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2021,
-        event: "Re-elected in disputed vote with Wagner&#39;s backing",
+        event: "Re-elected in disputed vote with Wagner's backing",
         impact: "negative",
       },
       {
@@ -8853,16 +8852,16 @@ const LEADERS: Leader[] = [
     achievements: [
       "Khartoum Process — peace agreement signed with 14 armed groups in 2019",
       "Partial security stabilisation of Bangui through Russian security presence",
-      "CAR&#39;s gold and diamond sector foreign investment maintained",
-      "Maintained formal statehood of one of the world&#39;s most fragile nations",
+      "CAR's gold and diamond sector foreign investment maintained",
+      "Maintained formal statehood of one of the world's most fragile nations",
     ],
     politicalViews:
-      "Pragmatic survivalist. Initially balanced French and Russian security ties, now almost entirely dependent on Russia&#39;s Africa Corps. Resource sovereignty rhetoric. Governing a rump state — 80% of CAR&#39;s territory outside government control.",
+      "Pragmatic survivalist. Initially balanced French and Russian security ties, now almost entirely dependent on Russia's Africa Corps. Resource sovereignty rhetoric. Governing a rump state — 80% of CAR's territory outside government control.",
     approvalRating: null,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "His invite of Wagner Group is the defining case of Russia&#39;s Africa Corps model — security for resource concessions and political loyalty. CAR became the template that spread to Mali, Burkina, Niger, Libya, and Sudan.",
+      "His invite of Wagner Group is the defining case of Russia's Africa Corps model — security for resource concessions and political loyalty. CAR became the template that spread to Mali, Burkina, Niger, Libya, and Sudan.",
     region: "Africa",
   },
   {
@@ -8889,11 +8888,11 @@ const LEADERS: Leader[] = [
         year: 1968,
       },
     ],
-    party: "People&#39;s Front for Democracy and Justice (PFDJ)",
+    party: "People's Front for Democracy and Justice (PFDJ)",
     ideology: "Authoritarian",
     termsInOffice: [{ from: 1993, to: "present" }],
     background:
-      "Led the Eritrean People&#39;s Liberation Front to independence from Ethiopia in 1993 after a 30-year war — initially hailed as an African liberation hero. Never held an election. Rules one of the world&#39;s most isolated and militarised states — sometimes called &#39;Africa&#39;s North Korea.&#39; Operates an indefinite national military service that human rights organisations call forced labour. Hundreds of thousands of Eritreans have fled, making Eritrea one of the world&#39;s top per-capita sources of refugees.",
+      "Led the Eritrean People's Liberation Front to independence from Ethiopia in 1993 after a 30-year war — initially hailed as an African liberation hero. Never held an election. Rules one of the world's most isolated and militarised states — sometimes called 'Africa's North Korea.' Operates an indefinite national military service that human rights organisations call forced labour. Hundreds of thousands of Eritreans have fled, making Eritrea one of the world's top per-capita sources of refugees.",
     significantEvents: [
       {
         year: 1993,
@@ -8930,12 +8929,12 @@ const LEADERS: Leader[] = [
       "Eritrea remained outside IMF-World Bank dependency despite poverty",
     ],
     politicalViews:
-      "Revolutionary socialist turned pure autocrat. Anti-Western, anti-IMF, state control of all economic activity. &#39;Self-reliance&#39; ideology — refuses all foreign aid. Military-first absolute state. No political parties, no elections, no civil society.",
+      "Revolutionary socialist turned pure autocrat. Anti-Western, anti-IMF, state control of all economic activity. 'Self-reliance' ideology — refuses all foreign aid. Military-first absolute state. No political parties, no elections, no civil society.",
     approvalRating: null,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Runs what the UN Human Rights Council called a state with &#39;crimes against humanity&#39; — indefinite conscription, secret detention, extrajudicial killings. 500,000+ Eritreans have fled, making it a top source of Mediterranean migrants. One of the world&#39;s most complete authoritarian models.",
+      "Runs what the UN Human Rights Council called a state with 'crimes against humanity' — indefinite conscription, secret detention, extrajudicial killings. 500,000+ Eritreans have fled, making it a top source of Mediterranean migrants. One of the world's most complete authoritarian models.",
     region: "Africa",
   },
   {
@@ -8969,7 +8968,7 @@ const LEADERS: Leader[] = [
       { from: 2016, to: "present" },
     ],
     background:
-      "Military officer who staged a coup in 1999, then handed power over after elections, then won back the presidency in 2016. Manipulated a 2018 constitutional referendum to extend his powers and enable a third term — triggering opposition protests and international condemnation. Served as African Union Chairperson in 2023 — his most prominent international role. The Comoros has experienced over 20 coups since independence — the world&#39;s highest rate per capita.",
+      "Military officer who staged a coup in 1999, then handed power over after elections, then won back the presidency in 2016. Manipulated a 2018 constitutional referendum to extend his powers and enable a third term — triggering opposition protests and international condemnation. Served as African Union Chairperson in 2023 — his most prominent international role. The Comoros has experienced over 20 coups since independence — the world's highest rate per capita.",
     significantEvents: [
       {
         year: 1999,
@@ -9011,7 +9010,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "Incumbent (Disputed)",
     impact:
-      "In a country with the world&#39;s highest per-capita coup record, Assoumani&#39;s ability to survive two power returns is remarkable. His AU chairmanship gave the Comoros more international visibility than any prior moment in its post-independence history.",
+      "In a country with the world's highest per-capita coup record, Assoumani's ability to survive two power returns is remarkable. His AU chairmanship gave the Comoros more international visibility than any prior moment in its post-independence history.",
     region: "Africa",
   },
   {
@@ -9025,7 +9024,7 @@ const LEADERS: Leader[] = [
       "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Mahamat_Idriss_D%C3%A9by_2021_%28cropped%29.jpg/440px-Mahamat_Idriss_D%C3%A9by_2021_%28cropped%29.jpg",
     age: 41,
     birthYear: 1984,
-    birthPlace: "N&#39;Djamena, Chad",
+    birthPlace: "N'Djamena, Chad",
     education: [
       {
         institution: "Military Academy of Saint-Cyr, France",
@@ -9042,7 +9041,7 @@ const LEADERS: Leader[] = [
     ideology: "Military Junta",
     termsInOffice: [{ from: 2021, to: "present" }],
     background:
-      "Son of Idriss Déby Itno who ruled Chad for 30 years until he was killed on the front lines the day after winning his sixth presidential term in April 2021. The military immediately installed his 37-year-old son as head of a Transitional Military Council — a direct dynastic succession that Chad&#39;s constitution did not allow. Won a controversial presidential election in May 2024 that international observers criticised. Chad is one of France&#39;s closest African security partners — home to France&#39;s largest African military base.",
+      "Son of Idriss Déby Itno who ruled Chad for 30 years until he was killed on the front lines the day after winning his sixth presidential term in April 2021. The military immediately installed his 37-year-old son as head of a Transitional Military Council — a direct dynastic succession that Chad's constitution did not allow. Won a controversial presidential election in May 2024 that international observers criticised. Chad is one of France's closest African security partners — home to France's largest African military base.",
     significantEvents: [
       {
         year: 2021,
@@ -9082,12 +9081,12 @@ const LEADERS: Leader[] = [
       "Chad maintained relative stability as neighbours fell to coups",
     ],
     politicalViews:
-      "Military nationalist, dynastic continuity. Initially France-aligned (father&#39;s model) then expelled French forces in 2024 — hedging toward Russia-Gulf axis like Sahel neighbours. Lake Chad basin security leadership. Resource sovereigntist — oil managed through politically connected SHT company.",
+      "Military nationalist, dynastic continuity. Initially France-aligned (father's model) then expelled French forces in 2024 — hedging toward Russia-Gulf axis like Sahel neighbours. Lake Chad basin security leadership. Resource sovereigntist — oil managed through politically connected SHT company.",
     approvalRating: null,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "His expulsion of French forces in 2024 marked the end of France&#39;s most strategically important African military relationship — completing the collapse of Paris&#39;s Sahel security architecture. At 41, he&#39;s the youngest major African leader and represents the new generation of post-French African military rulers.",
+      "His expulsion of French forces in 2024 marked the end of France's most strategically important African military relationship — completing the collapse of Paris's Sahel security architecture. At 41, he's the youngest major African leader and represents the new generation of post-French African military rulers.",
     region: "Africa",
   },
   // ── BATCH 19: North/West Africa, Central Africa, Botswana, C. America, Guyana ──
@@ -9119,7 +9118,7 @@ const LEADERS: Leader[] = [
     ideology: "Liberal",
     termsInOffice: [{ from: 2021, to: "present" }],
     background:
-      "Billionaire agribusiness magnate who inherited and expanded Akwa Group — Morocco&#39;s largest private company covering petroleum distribution, real estate, and agriculture. Entered politics from business, long served as Agriculture Minister. Won the 2021 elections decisively, ending the Islamist PJD&#39;s decade in government. Known as one of Africa&#39;s wealthiest heads of government.",
+      "Billionaire agribusiness magnate who inherited and expanded Akwa Group — Morocco's largest private company covering petroleum distribution, real estate, and agriculture. Entered politics from business, long served as Agriculture Minister. Won the 2021 elections decisively, ending the Islamist PJD's decade in government. Known as one of Africa's wealthiest heads of government.",
     significantEvents: [
       {
         year: 2021,
@@ -9190,11 +9189,11 @@ const LEADERS: Leader[] = [
         year: 2006,
       },
     ],
-    party: "National People&#39;s Party (NPP)",
+    party: "National People's Party (NPP)",
     ideology: "Centrist",
     termsInOffice: [{ from: 2017, to: "present" }],
     background:
-      "Former estate agent and supermarket security guard who united the Gambian opposition and stood as their consensus candidate against Yahya Jammeh — Africa&#39;s most erratic dictator who ruled for 22 years. Won the December 2016 election against all odds, forcing Jammeh into exile with ECOWAS military intervention when he refused to hand over power. One of Africa&#39;s most remarkable democratic transition stories.",
+      "Former estate agent and supermarket security guard who united the Gambian opposition and stood as their consensus candidate against Yahya Jammeh — Africa's most erratic dictator who ruled for 22 years. Won the December 2016 election against all odds, forcing Jammeh into exile with ECOWAS military intervention when he refused to hand over power. One of Africa's most remarkable democratic transition stories.",
     significantEvents: [
       {
         year: 2016,
@@ -9221,23 +9220,23 @@ const LEADERS: Leader[] = [
       {
         year: 2023,
         event:
-          "Gambia&#39;s Truth, Reconciliation and Reparations Commission concluded",
+          "Gambia's Truth, Reconciliation and Reparations Commission concluded",
         impact: "positive",
       },
     ],
     achievements: [
-      "Ended Jammeh&#39;s 22-year dictatorship through democratic election",
+      "Ended Jammeh's 22-year dictatorship through democratic election",
       "Truth and Reconciliation Commission completed",
       "Gambia rejoined Commonwealth and ICC after Jammeh-era withdrawals",
       "ECOWAS military intervention model — peaceful transition via regional force",
     ],
     politicalViews:
-      "Pragmatic centrist, democratic consolidation, rule of law restoration. Pro-Commonwealth, pro-ECOWAS, Western-aligned development partnerships. Gambia&#39;s tiny economy ($2B GDP) makes foreign aid and tourism dependency defining political constraints.",
+      "Pragmatic centrist, democratic consolidation, rule of law restoration. Pro-Commonwealth, pro-ECOWAS, Western-aligned development partnerships. Gambia's tiny economy ($2B GDP) makes foreign aid and tourism dependency defining political constraints.",
     approvalRating: 52,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "His 2016 victory is one of Africa&#39;s most celebrated democratic moments — an ordinary man who united a divided opposition and defeated a brutal dictator. Gambia&#39;s transition demonstrates that ECOWAS-backed democratic restoration is possible in West Africa.",
+      "His 2016 victory is one of Africa's most celebrated democratic moments — an ordinary man who united a divided opposition and defeated a brutal dictator. Gambia's transition demonstrates that ECOWAS-backed democratic restoration is possible in West Africa.",
     region: "Africa",
   },
   {
@@ -9266,7 +9265,7 @@ const LEADERS: Leader[] = [
       { from: 1997, to: "present" },
     ],
     background:
-      "Military officer who has ruled the Republic of Congo (Congo-Brazzaville) for a total of 45+ years across two stints — making him Africa&#39;s second-longest serving non-royal president after Biya. Won a civil war in 1997 to reclaim power. His family controls vast oil revenues from the country&#39;s substantial oilfields. Son Denis Christel Sassou Nguesso serves as Junior Finance Minister — classic dynasty preparation.",
+      "Military officer who has ruled the Republic of Congo (Congo-Brazzaville) for a total of 45+ years across two stints — making him Africa's second-longest serving non-royal president after Biya. Won a civil war in 1997 to reclaim power. His family controls vast oil revenues from the country's substantial oilfields. Son Denis Christel Sassou Nguesso serves as Junior Finance Minister — classic dynasty preparation.",
     significantEvents: [
       {
         year: 1979,
@@ -9294,15 +9293,15 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Congo&#39;s oil revenues managed through opaque state system benefitting elite",
+          "Congo's oil revenues managed through opaque state system benefitting elite",
         impact: "negative",
       },
     ],
     achievements: [
-      "Maintained Congo-Brazzaville&#39;s stability relative to DRC neighbour",
-      "Oil revenues built Brazzaville&#39;s infrastructure",
+      "Maintained Congo-Brazzaville's stability relative to DRC neighbour",
+      "Oil revenues built Brazzaville's infrastructure",
       "Managed complex ethnic and regional factions for decades",
-      "Congo-Brazzaville avoided the DRC&#39;s spiralling conflict",
+      "Congo-Brazzaville avoided the DRC's spiralling conflict",
     ],
     politicalViews:
       "Originally Marxist-Leninist, now pragmatic resource-nationalist authoritarian. Pro-France (Françafrique), pro-China investment, family capitalism through oil sector. Absolute political control. No opposition tolerated.",
@@ -9310,7 +9309,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Represents the Françafrique system at its most persistent — a French-backed African autocrat whose oil wealth sustains regime survival while his population remains among sub-Saharan Africa&#39;s poorest despite resource wealth.",
+      "Represents the Françafrique system at its most persistent — a French-backed African autocrat whose oil wealth sustains regime survival while his population remains among sub-Saharan Africa's poorest despite resource wealth.",
     region: "Africa",
   },
   {
@@ -9341,12 +9340,12 @@ const LEADERS: Leader[] = [
     ideology: "Authoritarian",
     termsInOffice: [{ from: 2005, to: "present" }],
     background:
-      "Son of Gnassingbé Eyadéma — who ruled Togo for 38 years until his death in 2005. The military installed Faure in his father&#39;s place within hours of the elder Gnassingbé&#39;s death, in clear violation of the constitution. Won subsequent elections in votes widely criticised as fraudulent. Has ruled for 20 years, continuing the Gnassingbé family&#39;s total grip on Togo.",
+      "Son of Gnassingbé Eyadéma — who ruled Togo for 38 years until his death in 2005. The military installed Faure in his father's place within hours of the elder Gnassingbé's death, in clear violation of the constitution. Won subsequent elections in votes widely criticised as fraudulent. Has ruled for 20 years, continuing the Gnassingbé family's total grip on Togo.",
     significantEvents: [
       {
         year: 2005,
         event:
-          "Military installed him hours after father&#39;s death — constitutional coup",
+          "Military installed him hours after father's death — constitutional coup",
         impact: "negative",
       },
       {
@@ -9375,7 +9374,7 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Regional Mediator — Gnassingbé has brokered multiple Mali and Burkina crises",
-      "Lomé Port expansion — West Africa&#39;s deepest port modernised",
+      "Lomé Port expansion — West Africa's deepest port modernised",
       "Togo graduated to lower-middle-income status during his tenure",
       "Maintained Togo outside coup wave that swept Sahel neighbours",
     ],
@@ -9385,7 +9384,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "One of Africa&#39;s clearest examples of dynastic succession — son inheriting a dictatorship built by his father. His constitutional manoeuvres to retain power despite term limits demonstrate the Gnassingbé family&#39;s total institutional control after 57 years combined.",
+      "One of Africa's clearest examples of dynastic succession — son inheriting a dictatorship built by his father. His constitutional manoeuvres to retain power despite term limits demonstrate the Gnassingbé family's total institutional control after 57 years combined.",
     region: "Africa",
   },
   {
@@ -9416,7 +9415,7 @@ const LEADERS: Leader[] = [
     ideology: "Liberal",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Harvard-educated lawyer and longtime opposition leader who achieved one of Africa&#39;s most dramatic democratic upsets in October 2024 — ending the Botswana Democratic Party&#39;s unbroken 58-year hold on power since independence. Botswana is held up as Africa&#39;s model democracy and diamond-funded development success story. His victory is a democratic milestone confirming Botswana&#39;s institutions are strong enough to peacefully transfer power.",
+      "Harvard-educated lawyer and longtime opposition leader who achieved one of Africa's most dramatic democratic upsets in October 2024 — ending the Botswana Democratic Party's unbroken 58-year hold on power since independence. Botswana is held up as Africa's model democracy and diamond-funded development success story. His victory is a democratic milestone confirming Botswana's institutions are strong enough to peacefully transfer power.",
     significantEvents: [
       {
         year: 2019,
@@ -9444,17 +9443,17 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Ended 58-year single-party rule through democratic election",
-      "Botswana&#39;s first peaceful inter-party power transfer since independence",
+      "Botswana's first peaceful inter-party power transfer since independence",
       "Harvard Law credentials bring technocratic credibility to governance",
       "Diamond revenue renegotiation with De Beers prioritised",
     ],
     politicalViews:
-      "Liberal democratic, anti-corruption, equity-focused distribution of diamond wealth. Pro-investment climate, rule of law, independent judiciary. Supports diversifying Botswana&#39;s diamond-dependent economy into tech and services.",
+      "Liberal democratic, anti-corruption, equity-focused distribution of diamond wealth. Pro-investment climate, rule of law, independent judiciary. Supports diversifying Botswana's diamond-dependent economy into tech and services.",
     approvalRating: 62,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "His election is Africa&#39;s most significant democratic transfer of 2024 — confirming that Botswana&#39;s 58-year-old democratic model can peacefully change governments. A moment of democratic proof in a continent where power transfers are often violent.",
+      "His election is Africa's most significant democratic transfer of 2024 — confirming that Botswana's 58-year-old democratic model can peacefully change governments. A moment of democratic proof in a continent where power transfers are often violent.",
     region: "Africa",
   },
   {
@@ -9521,15 +9520,15 @@ const LEADERS: Leader[] = [
       "Survived the most sustained attempt to block a democratic inauguration in recent history",
       "Guatemala removed from FATF grey list under his government",
       "Anti-corruption reform commissions established",
-      "Son of Guatemala&#39;s most beloved democratic president — democratic legacy restored",
+      "Son of Guatemala's most beloved democratic president — democratic legacy restored",
     ],
     politicalViews:
-      "Progressive anti-corruption reformist, rule of law, independent judiciary. Pro-social investment, women&#39;s rights, indigenous communities. Western-aligned, pro-US relationship, anti-organised crime in all forms including state corruption.",
+      "Progressive anti-corruption reformist, rule of law, independent judiciary. Pro-social investment, women's rights, indigenous communities. Western-aligned, pro-US relationship, anti-organised crime in all forms including state corruption.",
     approvalRating: 55,
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "His inauguration against all odds is one of the most remarkable democratic moments in 21st century Latin America. Governs a deeply captured state — a congress, judiciary, and prosecutor&#39;s office controlled by corrupt networks — with limited tools but enormous moral authority.",
+      "His inauguration against all odds is one of the most remarkable democratic moments in 21st century Latin America. Governs a deeply captured state — a congress, judiciary, and prosecutor's office controlled by corrupt networks — with limited tools but enormous moral authority.",
     region: "Americas",
   },
   {
@@ -9561,11 +9560,11 @@ const LEADERS: Leader[] = [
         year: 2014,
       },
     ],
-    party: "People&#39;s Progressive Party / Civic (PPP/C)",
+    party: "People's Progressive Party / Civic (PPP/C)",
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2020, to: "present" }],
     background:
-      "Former Housing Minister who won the 2020 election after a deeply disputed five-month recount standoff — Granger&#39;s APNU-AFC refused to concede despite clear PPP/C victory in international observers&#39; assessment. Took office in August 2020 just as Guyana was beginning to realise its offshore oil potential — Exxon&#39;s Stabroek Block discovery made Guyana the world&#39;s most oil-rich country per capita almost overnight.",
+      "Former Housing Minister who won the 2020 election after a deeply disputed five-month recount standoff — Granger's APNU-AFC refused to concede despite clear PPP/C victory in international observers' assessment. Took office in August 2020 just as Guyana was beginning to realise its offshore oil potential — Exxon's Stabroek Block discovery made Guyana the world's most oil-rich country per capita almost overnight.",
     significantEvents: [
       {
         year: 2020,
@@ -9576,13 +9575,13 @@ const LEADERS: Leader[] = [
       {
         year: 2021,
         event:
-          "Guyana&#39;s oil production began — Exxon Stabroek Block first barrels",
+          "Guyana's oil production began — Exxon Stabroek Block first barrels",
         impact: "positive",
       },
       {
         year: 2023,
         event:
-          "Guyana overtook Libya as world&#39;s fastest-growing economy — 62% GDP growth",
+          "Guyana overtook Libya as world's fastest-growing economy — 62% GDP growth",
         impact: "positive",
       },
       {
@@ -9594,14 +9593,14 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "Guyana&#39;s oil production reaches 700,000+ barrels/day — transformative revenues",
+          "Guyana's oil production reaches 700,000+ barrels/day — transformative revenues",
         impact: "positive",
       },
     ],
     achievements: [
-      "Managed world&#39;s fastest GDP growth — 62% in 2022",
-      "Guyana positioned as one of world&#39;s largest oil producers per capita",
-      "Secured ICJ protection against Venezuela&#39;s Essequibo annexation claim",
+      "Managed world's fastest GDP growth — 62% in 2022",
+      "Guyana positioned as one of world's largest oil producers per capita",
+      "Secured ICJ protection against Venezuela's Essequibo annexation claim",
       "National Development Strategy to diversify oil wealth into education and infrastructure",
     ],
     politicalViews:
@@ -9610,7 +9609,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Governs the world&#39;s single most dramatic economic transformation story of the 2020s. Guyana&#39;s oil windfall — managed wisely — could make this small Caribbean nation a model of resource-to-development success. Mismanaged, it risks the resource curse that devastated Venezuela next door.",
+      "Governs the world's single most dramatic economic transformation story of the 2020s. Guyana's oil windfall — managed wisely — could make this small Caribbean nation a model of resource-to-development success. Mismanaged, it risks the resource curse that devastated Venezuela next door.",
     region: "Americas",
   },
   // ── BATCH 22: Angola, Mozambique, Pacific, Central Asia + others ──────────
@@ -9638,11 +9637,11 @@ const LEADERS: Leader[] = [
         year: 1991,
       },
     ],
-    party: "People&#39;s Movement for the Liberation of Angola (MPLA)",
+    party: "People's Movement for the Liberation of Angola (MPLA)",
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2017, to: "present" }],
     background:
-      "Former Defence Minister who succeeded the 38-year reign of José Eduardo dos Santos in 2017 — and immediately shocked observers by launching a genuine anti-corruption drive against the dos Santos family, including the indictment of Isabel dos Santos (Africa&#39;s former richest woman). Angola is sub-Saharan Africa&#39;s second-largest oil producer with 1.2M+ barrels/day, making Lourenço a pivot figure in Africa&#39;s energy geopolitics.",
+      "Former Defence Minister who succeeded the 38-year reign of José Eduardo dos Santos in 2017 — and immediately shocked observers by launching a genuine anti-corruption drive against the dos Santos family, including the indictment of Isabel dos Santos (Africa's former richest woman). Angola is sub-Saharan Africa's second-largest oil producer with 1.2M+ barrels/day, making Lourenço a pivot figure in Africa's energy geopolitics.",
     significantEvents: [
       {
         year: 2017,
@@ -9673,7 +9672,7 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Launched anti-corruption campaign against the dos Santos dynasty",
-      "IMF programme secured — Angola&#39;s economic stabilisation",
+      "IMF programme secured — Angola's economic stabilisation",
       "Lobito Corridor railway deal with EU and US — major infrastructure investment",
       "Angola positioned as key critical minerals (cobalt, lithium) partner for West",
     ],
@@ -9683,7 +9682,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Transformed Angola&#39;s international image from a kleptocratic petro-state into a reforming emerging market. The Lobito Corridor deal with the EU and US marks the most significant Western infrastructure commitment in sub-Saharan Africa in decades — directly competing with China&#39;s BRI.",
+      "Transformed Angola's international image from a kleptocratic petro-state into a reforming emerging market. The Lobito Corridor deal with the EU and US marks the most significant Western infrastructure commitment in sub-Saharan Africa in decades — directly competing with China's BRI.",
     region: "Africa",
   },
   {
@@ -9714,7 +9713,7 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2025, to: "present" }],
     background:
-      "Former Governor of Inhambane Province who was elected in the controversial October 2024 presidential election with 70% — results that sparked months of deadly post-election protests that killed 300+ people, led by opposition candidate Venâncio Mondlane&#39;s social media campaign from exile. Was inaugurated in January 2025 amid a country deeply polarised and physically devastated by the unrest. Mozambique holds the world&#39;s largest undeveloped natural gas reserves (offshore Rovuma Basin) — a potential $100B+ investment by TotalEnergies and ExxonMobil.",
+      "Former Governor of Inhambane Province who was elected in the controversial October 2024 presidential election with 70% — results that sparked months of deadly post-election protests that killed 300+ people, led by opposition candidate Venâncio Mondlane's social media campaign from exile. Was inaugurated in January 2025 amid a country deeply polarised and physically devastated by the unrest. Mozambique holds the world's largest undeveloped natural gas reserves (offshore Rovuma Basin) — a potential $100B+ investment by TotalEnergies and ExxonMobil.",
     significantEvents: [
       {
         year: 2024,
@@ -9724,7 +9723,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Post-election protests killed 300+; Mondlane&#39;s social media movement from exile",
+          "Post-election protests killed 300+; Mondlane's social media movement from exile",
         impact: "negative",
       },
       {
@@ -9752,7 +9751,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
-      "Leads Africa&#39;s most consequential new energy frontier — Mozambique&#39;s gas deposits could make it a major LNG exporter within a decade, completely transforming one of the world&#39;s poorest economies. Whether the post-election crisis stabilises will determine if foreign investors return.",
+      "Leads Africa's most consequential new energy frontier — Mozambique's gas deposits could make it a major LNG exporter within a decade, completely transforming one of the world's poorest economies. Whether the post-election crisis stabilises will determine if foreign investors return.",
     region: "Africa",
   },
   {
@@ -9778,11 +9777,11 @@ const LEADERS: Leader[] = [
     ideology: "Centrist",
     termsInOffice: [{ from: 2023, to: "present" }],
     background:
-      "Former Speaker of the FSM National Congress who was elected President in May 2023, succeeding David Panuelo. Became president at a moment of heightened geopolitical competition for Pacific island influence — immediately after Panuelo&#39;s explosive China letter. Inherited the $7.1B Compact of Free Association with the US and must navigate the China-US rivalry over the 607 islands that make up the FSM.",
+      "Former Speaker of the FSM National Congress who was elected President in May 2023, succeeding David Panuelo. Became president at a moment of heightened geopolitical competition for Pacific island influence — immediately after Panuelo's explosive China letter. Inherited the $7.1B Compact of Free Association with the US and must navigate the China-US rivalry over the 607 islands that make up the FSM.",
     significantEvents: [
       {
         year: 2023,
-        event: "Elected President — inherited Panuelo&#39;s anti-China legacy",
+        event: "Elected President — inherited Panuelo's anti-China legacy",
         impact: "neutral",
       },
       {
@@ -9813,7 +9812,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Governs one of the Pacific&#39;s most strategically contested nations — the FSM&#39;s location across critical sea lanes makes it a key piece of the US Indo-Pacific defence framework, directly contested by China&#39;s growing Pacific influence campaign.",
+      "Governs one of the Pacific's most strategically contested nations — the FSM's location across critical sea lanes makes it a key piece of the US Indo-Pacific defence framework, directly contested by China's growing Pacific influence campaign.",
     region: "Asia-Pacific",
   },
   {
@@ -9849,7 +9848,7 @@ const LEADERS: Leader[] = [
     ideology: "Authoritarian",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "Son of longtime strongman Gurbanguly Berdimuhamedov — who ruled Turkmenistan from 2006 to 2022 in one of Central Asia&#39;s most eccentric personalised cults — and then engineered an election delivering the presidency to his son while retaining the title of National Leader and chairman of the upper house. The younger Berdimuhamedov is a dynastic transition in perhaps the world&#39;s most hermetically sealed state outside North Korea. Turkmenistan holds the world&#39;s fourth-largest natural gas reserves.",
+      "Son of longtime strongman Gurbanguly Berdimuhamedov — who ruled Turkmenistan from 2006 to 2022 in one of Central Asia's most eccentric personalised cults — and then engineered an election delivering the presidency to his son while retaining the title of National Leader and chairman of the upper house. The younger Berdimuhamedov is a dynastic transition in perhaps the world's most hermetically sealed state outside North Korea. Turkmenistan holds the world's fourth-largest natural gas reserves.",
     significantEvents: [
       {
         year: 2022,
@@ -9859,7 +9858,7 @@ const LEADERS: Leader[] = [
       {
         year: 2022,
         event:
-          "Father retained &#39;National Leader&#39; title and upper house chairmanship",
+          "Father retained 'National Leader' title and upper house chairmanship",
         impact: "negative",
       },
       {
@@ -9877,15 +9876,15 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "Turkmenistan officially the world&#39;s largest source of uncontrolled methane emissions",
+          "Turkmenistan officially the world's largest source of uncontrolled methane emissions",
         impact: "negative",
       },
     ],
     achievements: [
-      "Managed Turkmenistan&#39;s gas exports continuity",
+      "Managed Turkmenistan's gas exports continuity",
       "Trans-Caspian pipeline feasibility discussions with EU opened",
-      "Symbolic foreign visits beyond father&#39;s more reclusive style",
-      "Maintained Central Asia&#39;s most internally stable (repressed) political environment",
+      "Symbolic foreign visits beyond father's more reclusive style",
+      "Maintained Central Asia's most internally stable (repressed) political environment",
     ],
     politicalViews:
       "Continuation of Berdimuhamedov dynasty authoritarianism. Permanent neutrality status (UN-recognised). Gas resource sovereigntism — almost entirely dependent on China as buyer. No civil society, no free press, no opposition of any kind.",
@@ -9893,7 +9892,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Presides over one of the world&#39;s most complete authoritarian information voids alongside the fourth-largest gas reserves on the planet. Turkmenistan&#39;s methane leaks from its infrastructure have made it one of the largest contributors to global warming per GDP — a crisis acknowledged by no one inside the country.",
+      "Presides over one of the world's most complete authoritarian information voids alongside the fourth-largest gas reserves on the planet. Turkmenistan's methane leaks from its infrastructure have made it one of the largest contributors to global warming per GDP — a crisis acknowledged by no one inside the country.",
     region: "Asia-Pacific",
   },
   {
@@ -9919,7 +9918,7 @@ const LEADERS: Leader[] = [
     ideology: "Liberal",
     termsInOffice: [{ from: 2018, to: "present" }],
     background:
-      "Journalist turned opposition activist who led the Velvet Revolution in April 2018 — Armenia&#39;s most remarkable peaceful uprising, which removed Serzh Sargsyan after mass street protests in just 11 days without a single death. Became PM on a wave of democratic hope. His tenure was then shattered by the 2020 Nagorno-Karabakh war against Azerbaijan — a humiliating military defeat he survived politically but which fundamentally reshaped his foreign policy away from Russia.",
+      "Journalist turned opposition activist who led the Velvet Revolution in April 2018 — Armenia's most remarkable peaceful uprising, which removed Serzh Sargsyan after mass street protests in just 11 days without a single death. Became PM on a wave of democratic hope. His tenure was then shattered by the 2020 Nagorno-Karabakh war against Azerbaijan — a humiliating military defeat he survived politically but which fundamentally reshaped his foreign policy away from Russia.",
     significantEvents: [
       {
         year: 2018,
@@ -9942,7 +9941,7 @@ const LEADERS: Leader[] = [
       {
         year: 2023,
         event:
-          "Azerbaijan&#39;s 24-hour op expelled all Armenians from Karabakh",
+          "Azerbaijan's 24-hour op expelled all Armenians from Karabakh",
         impact: "negative",
       },
       {
@@ -9963,7 +9962,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "His pivot away from Russia is the most significant small-state geopolitical reorientation in the post-Soviet space since the Baltic states joined NATO. Armenia&#39;s EU application and CSTO suspension represent a tectonic shift — driven by Russia&#39;s failure to defend its ally.",
+      "His pivot away from Russia is the most significant small-state geopolitical reorientation in the post-Soviet space since the Baltic states joined NATO. Armenia's EU application and CSTO suspension represent a tectonic shift — driven by Russia's failure to defend its ally.",
     region: "Asia-Pacific",
   },
   {
@@ -10051,11 +10050,11 @@ const LEADERS: Leader[] = [
         year: 1981,
       },
     ],
-    party: "Fa&#39;atuatua i le Atua Samoa ua Tasi (FAST)",
+    party: "Fa'atuatua i le Atua Samoa ua Tasi (FAST)",
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2021, to: "present" }],
     background:
-      "Samoa&#39;s first female Prime Minister and daughter of independence leader Fiamē Faumuinā Mulinu&#39;u II. Resigned as deputy PM in 2020 to lead the opposition FAST party, then won the April 2021 election by a single seat in one of the Pacific&#39;s most dramatic constitutional crises — the Supreme Court had to intervene to allow her swearing-in after outgoing PM Tuilagi Sailele Malielegaoi refused to concede for months. A historic Pacific democratic milestone.",
+      "Samoa's first female Prime Minister and daughter of independence leader Fiamē Faumuinā Mulinu'u II. Resigned as deputy PM in 2020 to lead the opposition FAST party, then won the April 2021 election by a single seat in one of the Pacific's most dramatic constitutional crises — the Supreme Court had to intervene to allow her swearing-in after outgoing PM Tuilagi Sailele Malielegaoi refused to concede for months. A historic Pacific democratic milestone.",
     significantEvents: [
       {
         year: 2021,
@@ -10065,19 +10064,19 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2021,
-        event: "Became Samoa&#39;s first female Prime Minister",
+        event: "Became Samoa's first female Prime Minister",
         impact: "positive",
       },
       {
         year: 2022,
         event:
-          "Raised Samoa&#39;s China debt concerns; reviewed development agreements",
+          "Raised Samoa's China debt concerns; reviewed development agreements",
         impact: "positive",
       },
       {
         year: 2024,
         event:
-          "Lost re-election — HRPP returned to power under outgoing PM&#39;s party",
+          "Lost re-election — HRPP returned to power under outgoing PM's party",
         impact: "negative",
       },
     ],
@@ -10119,12 +10118,12 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2019, to: "present" }],
     background:
-      "Former Finance Minister who became PM in May 2019 after Peter O&#39;Neill resigned amid corruption protests. His signature slogan — &#39;Take Back PNG&#39; — promised resource nationalism and local ownership of PNG&#39;s vast natural gas and mining wealth. PNG is the Pacific&#39;s largest economy and hosts one of the world&#39;s most significant LNG projects (ExxonMobil&#39;s PNG LNG). The country has become a significant US and Australian partners in the Indo-Pacific competition with China.",
+      "Former Finance Minister who became PM in May 2019 after Peter O'Neill resigned amid corruption protests. His signature slogan — 'Take Back PNG' — promised resource nationalism and local ownership of PNG's vast natural gas and mining wealth. PNG is the Pacific's largest economy and hosts one of the world's most significant LNG projects (ExxonMobil's PNG LNG). The country has become a significant US and Australian partners in the Indo-Pacific competition with China.",
     significantEvents: [
       {
         year: 2019,
         event:
-          "Became PM after O&#39;Neill resignation over corruption protests",
+          "Became PM after O'Neill resignation over corruption protests",
         impact: "positive",
       },
       {
@@ -10141,7 +10140,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Enga Province tribal violence killed 50+ — PNG&#39;s worst tribal massacre in decades",
+          "Enga Province tribal violence killed 50+ — PNG's worst tribal massacre in decades",
         impact: "negative",
       },
       {
@@ -10153,12 +10152,12 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Signed US Defence Cooperation Agreement — historic security partnership",
-      "&#39;Take Back PNG&#39; resource nationalism policies advancing",
+      "'Take Back PNG' resource nationalism policies advancing",
       "PNG LNG expansion negotiations — could double production",
-      "Maintained PNG&#39;s stability despite tribal conflict outbreaks",
+      "Maintained PNG's stability despite tribal conflict outbreaks",
     ],
     politicalViews:
-      "Conservative resource nationalist. Pro-Western security alliance amid China&#39;s Pacific push. &#39;Take Back PNG&#39; — greater local ownership of LNG and mining royalties. Balances US/Australian defence ties with Chinese investment in infrastructure.",
+      "Conservative resource nationalist. Pro-Western security alliance amid China's Pacific push. 'Take Back PNG' — greater local ownership of LNG and mining royalties. Balances US/Australian defence ties with Chinese investment in infrastructure.",
     approvalRating: 38,
     approvalTrend: "down",
     status: "In Office",
@@ -10189,7 +10188,7 @@ const LEADERS: Leader[] = [
     ideology: "Centrist",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Businessman and former trade minister who was appointed PM under Haiti&#39;s Presidential Transitional Council in June 2024, following the resignation of Ariel Henry who had been unable to return to Haiti after gang leader Jimmy Chérizier (&#39;Barbecue&#39;) and the G9 gang coalition seized control of Port-au-Prince airports and key government buildings. Haiti has had no elected president since Jovenel Moïse&#39;s assassination in 2021.",
+      "Businessman and former trade minister who was appointed PM under Haiti's Presidential Transitional Council in June 2024, following the resignation of Ariel Henry who had been unable to return to Haiti after gang leader Jimmy Chérizier ('Barbecue') and the G9 gang coalition seized control of Port-au-Prince airports and key government buildings. Haiti has had no elected president since Jovenel Moïse's assassination in 2021.",
     significantEvents: [
       {
         year: 2021,
@@ -10233,7 +10232,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "Transitional",
     impact:
-      "Governs what the UN describes as the Western Hemisphere&#39;s worst humanitarian crisis — a country where gangs control the capital, 5M+ face acute food insecurity, and there has been no elected president for four years. Haiti&#39;s collapse is a catastrophic failure of international engagement.",
+      "Governs what the UN describes as the Western Hemisphere's worst humanitarian crisis — a country where gangs control the capital, 5M+ face acute food insecurity, and there has been no elected president for four years. Haiti's collapse is a catastrophic failure of international engagement.",
     region: "Americas",
   },
   {
@@ -10260,16 +10259,16 @@ const LEADERS: Leader[] = [
         year: 1983,
       },
     ],
-    party: "People&#39;s National Movement (PNM)",
+    party: "People's National Movement (PNM)",
     ideology: "Conservative",
     termsInOffice: [{ from: 2015, to: "present" }],
     background:
-      "Geologist and longtime PNM politician who has led Trinidad and Tobago since 2015. T&T is the Caribbean&#39;s largest energy producer — its LNG exports make it one of the Western Hemisphere&#39;s most important gas suppliers. Rowley navigated a controversial waiver from US sanctions to develop the Venezuela-Trinidad Dragon Gas Field — a deal that highlighted the complex energy geopolitics of the Caribbean basin.",
+      "Geologist and longtime PNM politician who has led Trinidad and Tobago since 2015. T&T is the Caribbean's largest energy producer — its LNG exports make it one of the Western Hemisphere's most important gas suppliers. Rowley navigated a controversial waiver from US sanctions to develop the Venezuela-Trinidad Dragon Gas Field — a deal that highlighted the complex energy geopolitics of the Caribbean basin.",
     significantEvents: [
       {
         year: 2015,
         event:
-          "Won election — PNM returned to power after PP government&#39;s economic mismanagement",
+          "Won election — PNM returned to power after PP government's economic mismanagement",
         impact: "positive",
       },
       {
@@ -10281,7 +10280,7 @@ const LEADERS: Leader[] = [
       {
         year: 2022,
         event:
-          "Secured US sanctions waiver to develop Venezuela&#39;s Dragon gas field",
+          "Secured US sanctions waiver to develop Venezuela's Dragon gas field",
         impact: "positive",
       },
       {
@@ -10293,7 +10292,7 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "Crime crisis — T&T has one of world&#39;s highest murder rates per capita",
+          "Crime crisis — T&T has one of world's highest murder rates per capita",
         impact: "negative",
       },
     ],
@@ -10309,7 +10308,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Leads the Caribbean&#39;s most energy-significant nation at a pivotal moment — the Dragon Gas Field deal with Venezuelan gas through a US sanctions waiver is one of the most complex energy diplomacy achievements of any Caribbean leader.",
+      "Leads the Caribbean's most energy-significant nation at a pivotal moment — the Dragon Gas Field deal with Venezuelan gas through a US sanctions waiver is one of the most complex energy diplomacy achievements of any Caribbean leader.",
     region: "Americas",
   },
   {
@@ -10340,7 +10339,7 @@ const LEADERS: Leader[] = [
     ideology: "Authoritarian",
     termsInOffice: [{ from: 2017, to: "present" }],
     background:
-      "Technocrat and economist who has served as Rwanda&#39;s Prime Minister since 2017 under President Kagame. The PM role in Rwanda is largely administrative — Kagame holds absolute executive authority — but Ngirente manages day-to-day government operations, IMF programme compliance, and coordinates Rwanda&#39;s remarkable economic development ministries. Rwanda&#39;s GDP per capita has grown from $285 in 2000 to over $1,000 in 2024 under RPF governance.",
+      "Technocrat and economist who has served as Rwanda's Prime Minister since 2017 under President Kagame. The PM role in Rwanda is largely administrative — Kagame holds absolute executive authority — but Ngirente manages day-to-day government operations, IMF programme compliance, and coordinates Rwanda's remarkable economic development ministries. Rwanda's GDP per capita has grown from $285 in 2000 to over $1,000 in 2024 under RPF governance.",
     significantEvents: [
       {
         year: 2017,
@@ -10350,12 +10349,12 @@ const LEADERS: Leader[] = [
       {
         year: 2020,
         event:
-          "Managed Rwanda&#39;s COVID-19 response — Africa&#39;s most strict and effective",
+          "Managed Rwanda's COVID-19 response — Africa's most strict and effective",
         impact: "positive",
       },
       {
         year: 2022,
-        event: "Rwanda&#39;s UK asylum deal — outsourced UK migrants to Kigali",
+        event: "Rwanda's UK asylum deal — outsourced UK migrants to Kigali",
         impact: "neutral",
       },
       {
@@ -10371,18 +10370,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Rwanda&#39;s Vision 2050 implementation — economic development roadmap management",
-      "COVID-19 response coordination — Africa&#39;s most technologically advanced response",
-      "IMF programme compliance for Rwanda&#39;s decade of 7%+ growth",
-      "Rwanda&#39;s digital governance — becoming Africa&#39;s tech hub",
+      "Rwanda's Vision 2050 implementation — economic development roadmap management",
+      "COVID-19 response coordination — Africa's most technologically advanced response",
+      "IMF programme compliance for Rwanda's decade of 7%+ growth",
+      "Rwanda's digital governance — becoming Africa's tech hub",
     ],
     politicalViews:
-      "RPF technocrat — development economics focus within Kagame&#39;s Rwanda Inc framework. Pro-foreign investment, anti-corruption (within RPF system), digital transformation advocate. Represents economic competence layer of Rwanda&#39;s authoritarian-developmental model.",
+      "RPF technocrat — development economics focus within Kagame's Rwanda Inc framework. Pro-foreign investment, anti-corruption (within RPF system), digital transformation advocate. Represents economic competence layer of Rwanda's authoritarian-developmental model.",
     approvalRating: null,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "As the operational manager of Africa&#39;s most cited development success story, Ngirente&#39;s technocratic governance has translated Kagame&#39;s vision into documented economic results — while the DRC conflict casts a long shadow over Rwanda&#39;s international reputation.",
+      "As the operational manager of Africa's most cited development success story, Ngirente's technocratic governance has translated Kagame's vision into documented economic results — while the DRC conflict casts a long shadow over Rwanda's international reputation.",
     region: "Africa",
   },
   {
@@ -10404,11 +10403,11 @@ const LEADERS: Leader[] = [
         year: 1970,
       },
     ],
-    party: "People&#39;s Rally for Progress (RPP)",
+    party: "People's Rally for Progress (RPP)",
     ideology: "Authoritarian",
     termsInOffice: [{ from: 1999, to: "present" }],
     background:
-      "Nephew of independent Djibouti&#39;s founding leader Hassan Gouled Aptidon who became president in 1999. Has ruled for 25+ years in one of the world&#39;s most geopolitically critical small states — Djibouti hosts the only permanent US military base in Africa (Camp Lemonnier), China&#39;s first and only overseas military base, French forces, Japanese forces, and Italian forces. This extraordinary concentration of great power military presence makes Djibouti the Horn of Africa&#39;s indispensable strategic real estate, generating extraordinary rental revenue and diplomatic leverage for a nation of only 1 million people.",
+      "Nephew of independent Djibouti's founding leader Hassan Gouled Aptidon who became president in 1999. Has ruled for 25+ years in one of the world's most geopolitically critical small states — Djibouti hosts the only permanent US military base in Africa (Camp Lemonnier), China's first and only overseas military base, French forces, Japanese forces, and Italian forces. This extraordinary concentration of great power military presence makes Djibouti the Horn of Africa's indispensable strategic real estate, generating extraordinary rental revenue and diplomatic leverage for a nation of only 1 million people.",
     significantEvents: [
       {
         year: 1999,
@@ -10430,29 +10429,29 @@ const LEADERS: Leader[] = [
       {
         year: 2023,
         event:
-          "Djibouti&#39;s port revenues surge — Red Sea conflict drives rerouting",
+          "Djibouti's port revenues surge — Red Sea conflict drives rerouting",
         impact: "positive",
       },
       {
         year: 2025,
         event:
-          "Ethiopia&#39;s Red Sea access dispute — Djibouti positioned as critical logistics hub",
+          "Ethiopia's Red Sea access dispute — Djibouti positioned as critical logistics hub",
         impact: "positive",
       },
     ],
     achievements: [
       "Secured Camp Lemonnier — US base lease generating $70M+ annually",
-      "China&#39;s first overseas base hosted — maximum geopolitical leverage",
-      "Djibouti Port expansion — one of Africa&#39;s most modern logistics hubs",
-      "Red Sea conflict 2024–25 made Djibouti the Horn&#39;s busiest alternative port",
+      "China's first overseas base hosted — maximum geopolitical leverage",
+      "Djibouti Port expansion — one of Africa's most modern logistics hubs",
+      "Red Sea conflict 2024–25 made Djibouti the Horn's busiest alternative port",
     ],
     politicalViews:
-      "Authoritarian pragmatist who rents Djibouti&#39;s strategic geography to all comers simultaneously. Pro-revenue maximisation through military base hosting. Non-aligned between great powers by design. Gulf states partnership — Qatar and UAE strategic investment.",
+      "Authoritarian pragmatist who rents Djibouti's strategic geography to all comers simultaneously. Pro-revenue maximisation through military base hosting. Non-aligned between great powers by design. Gulf states partnership — Qatar and UAE strategic investment.",
     approvalRating: null,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Transformed a tiny French colonial outpost into the Horn of Africa&#39;s most strategically indispensable state. The simultaneous presence of US, Chinese, French, and Japanese military bases is unique in modern history — and entirely Guelleh&#39;s achievement in selling Djibouti&#39;s geography to everyone.",
+      "Transformed a tiny French colonial outpost into the Horn of Africa's most strategically indispensable state. The simultaneous presence of US, Chinese, French, and Japanese military bases is unique in modern history — and entirely Guelleh's achievement in selling Djibouti's geography to everyone.",
     region: "Africa",
   },
   {
@@ -10478,7 +10477,7 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "Wife of former President Manuel Zelaya who was himself ousted in a 2009 military coup. Won the November 2021 election with 51.1% — the largest margin in Honduran history — becoming the country&#39;s first female president. Her election ended 12 years of the conservative National Party&#39;s rule. Honduras is one of Central America&#39;s most violent and impoverished nations, with one of the world&#39;s highest homicide rates and millions of citizens who have emigrated to the US.",
+      "Wife of former President Manuel Zelaya who was himself ousted in a 2009 military coup. Won the November 2021 election with 51.1% — the largest margin in Honduran history — becoming the country's first female president. Her election ended 12 years of the conservative National Party's rule. Honduras is one of Central America's most violent and impoverished nations, with one of the world's highest homicide rates and millions of citizens who have emigrated to the US.",
     significantEvents: [
       {
         year: 2021,
@@ -10487,7 +10486,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2022,
-        event: "Honduras&#39; first female president inaugurated",
+        event: "Honduras' first female president inaugurated",
         impact: "positive",
       },
       {
@@ -10504,7 +10503,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "State of exception anti-gang crackdown — modelled on El Salvador&#39;s Bukele approach",
+          "State of exception anti-gang crackdown — modelled on El Salvador's Bukele approach",
         impact: "neutral",
       },
     ],
@@ -10520,7 +10519,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Historic as Central America&#39;s first left-wing female president, but governing one of the hemisphere&#39;s hardest-to-govern states — where gang violence, corruption networks, and emigration pressure define every policy choice.",
+      "Historic as Central America's first left-wing female president, but governing one of the hemisphere's hardest-to-govern states — where gang violence, corruption networks, and emigration pressure define every policy choice.",
     region: "Americas",
   },
   // ── BATCH 24: Libya, South Sudan, Namibia, Eswatini, W.Sahara, Kyrgyzstan, Solomons ──
@@ -10547,7 +10546,7 @@ const LEADERS: Leader[] = [
     ideology: "Centrist",
     termsInOffice: [{ from: 2021, to: "present" }],
     background:
-      "Construction magnate and former director of a Gaddafi-era infrastructure company who was selected Prime Minister by a UN-backed process in February 2021. Libya has been divided since 2014 — his Government of National Unity controls Tripoli and the west, while a rival government backed by Khalifa Haftar&#39;s LNA controls the east and oil fields. The country remains effectively split, with oil revenues gated by whoever controls the central bank and field pumps.",
+      "Construction magnate and former director of a Gaddafi-era infrastructure company who was selected Prime Minister by a UN-backed process in February 2021. Libya has been divided since 2014 — his Government of National Unity controls Tripoli and the west, while a rival government backed by Khalifa Haftar's LNA controls the east and oil fields. The country remains effectively split, with oil revenues gated by whoever controls the central bank and field pumps.",
     significantEvents: [
       {
         year: 2021,
@@ -10581,7 +10580,7 @@ const LEADERS: Leader[] = [
       "Maintained functioning Western Libya government against rival administration",
       "Distributed $175 cash payment to every Libyan household",
       "Partial infrastructure investment in Tripoli and Misrata",
-      "Kept GNU internationally recognised as Libya&#39;s legitimate government",
+      "Kept GNU internationally recognised as Libya's legitimate government",
     ],
     politicalViews:
       "Pragmatic centrist — no strong ideology; transactional politics. Militia patronage model to maintain power in Tripoli. Western-aligned formally but relies on Turkish military backing. Oil revenue distribution as primary governance lever.",
@@ -10589,7 +10588,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
-      "Governs half a country — Libya&#39;s persistent split between his Tripoli-based GNU and Haftar&#39;s eastern authority is the defining failure of post-Gaddafi international engagement. Libya&#39;s 48Bbl oil reserves make this dysfunction globally consequential.",
+      "Governs half a country — Libya's persistent split between his Tripoli-based GNU and Haftar's eastern authority is the defining failure of post-Gaddafi international engagement. Libya's 48Bbl oil reserves make this dysfunction globally consequential.",
     region: "Africa",
   },
   {
@@ -10611,22 +10610,22 @@ const LEADERS: Leader[] = [
         year: 1969,
       },
     ],
-    party: "Sudan People&#39;s Liberation Movement (SPLM)",
+    party: "Sudan People's Liberation Movement (SPLM)",
     ideology: "Nationalist",
     termsInOffice: [{ from: 2011, to: "present" }],
     background:
-      "Commander in the Second Sudanese Civil War who led South Sudan to independence from Sudan in July 2011 — the world&#39;s newest nation, born to jubilation. Three years later plunged that same nation into a catastrophic civil war against his former VP Riek Machar that killed 400,000 people and displaced 4 million. Presides over one of the most oil-rich yet comprehensively failed states on earth — South Sudan&#39;s oil production has collapsed from 350,000 barrels/day to under 130,000.",
+      "Commander in the Second Sudanese Civil War who led South Sudan to independence from Sudan in July 2011 — the world's newest nation, born to jubilation. Three years later plunged that same nation into a catastrophic civil war against his former VP Riek Machar that killed 400,000 people and displaced 4 million. Presides over one of the most oil-rich yet comprehensively failed states on earth — South Sudan's oil production has collapsed from 350,000 barrels/day to under 130,000.",
     significantEvents: [
       {
         year: 2011,
         event:
-          "South Sudan becomes world&#39;s newest independent nation after referendum",
+          "South Sudan becomes world's newest independent nation after referendum",
         impact: "positive",
       },
       {
         year: 2013,
         event:
-          "Ethnic civil war erupts against Riek Machar&#39;s forces — 400,000 killed",
+          "Ethnic civil war erupts against Riek Machar's forces — 400,000 killed",
         impact: "negative",
       },
       {
@@ -10659,7 +10658,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Transformed South Sudan from the world&#39;s most hopeful new democracy to one of its most complete state failures in just three years. The civil war he triggered resulted in the largest African refugee crisis since the Rwandan genocide.",
+      "Transformed South Sudan from the world's most hopeful new democracy to one of its most complete state failures in just three years. The civil war he triggered resulted in the largest African refugee crisis since the Rwandan genocide.",
     region: "Africa",
   },
   {
@@ -10686,11 +10685,11 @@ const LEADERS: Leader[] = [
         year: 1981,
       },
     ],
-    party: "South West Africa People&#39;s Organisation (SWAPO)",
+    party: "South West Africa People's Organisation (SWAPO)",
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2025, to: "present" }],
     background:
-      "Liberation movement veteran and former guerrilla fighter who joined SWAPO in exile in the 1970s. Served continuously in government since Namibian independence in 1990 — as minister of information, foreign affairs, environment, and as deputy PM under Hage Geingob. Won the November 2024 presidential election, becoming Africa&#39;s first female head of state elected by popular vote among major democracies — a historic milestone across the continent.",
+      "Liberation movement veteran and former guerrilla fighter who joined SWAPO in exile in the 1970s. Served continuously in government since Namibian independence in 1990 — as minister of information, foreign affairs, environment, and as deputy PM under Hage Geingob. Won the November 2024 presidential election, becoming Africa's first female head of state elected by popular vote among major democracies — a historic milestone across the continent.",
     significantEvents: [
       {
         year: 1990,
@@ -10717,18 +10716,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "First woman elected president in Namibia and among Africa&#39;s largest democracies",
+      "First woman elected president in Namibia and among Africa's largest democracies",
       "35+ years of continuous government service from independence",
-      "Key architect of Namibia&#39;s foreign policy during Geingob era",
-      "Namibia&#39;s green hydrogen strategy championed for EU export",
+      "Key architect of Namibia's foreign policy during Geingob era",
+      "Namibia's green hydrogen strategy championed for EU export",
     ],
     politicalViews:
-      "Social democratic, pan-African liberation movement tradition. SWAPO party continuity. Resource sovereignty — Namibia&#39;s offshore oil (estimated 11Bbl) and green hydrogen potential. Non-aligned between China investment and Western trade partnerships. Land reform within legal framework.",
+      "Social democratic, pan-African liberation movement tradition. SWAPO party continuity. Resource sovereignty — Namibia's offshore oil (estimated 11Bbl) and green hydrogen potential. Non-aligned between China investment and Western trade partnerships. Land reform within legal framework.",
     approvalRating: 58,
     approvalTrend: "up",
     status: "In Office",
     impact:
-      "Her election is Africa&#39;s most significant democratic female leadership milestone of 2024. Namibia&#39;s vast offshore oil discoveries and green hydrogen potential make her the steward of one of Africa&#39;s most promising emerging energy economies.",
+      "Her election is Africa's most significant democratic female leadership milestone of 2024. Namibia's vast offshore oil discoveries and green hydrogen potential make her the steward of one of Africa's most promising emerging energy economies.",
     region: "Africa",
   },
   {
@@ -10754,16 +10753,16 @@ const LEADERS: Leader[] = [
     ideology: "Monarchy",
     termsInOffice: [{ from: 1986, to: "present" }],
     background:
-      "Became king at age 18 in 1986 — Africa&#39;s last absolute monarch and the world&#39;s last hereditary kingdom without a constitutional parliament. Rules Eswatini (renamed from Swaziland in 2018) with absolute royal decree — political parties are banned, all legislative and executive power vests in the crown. Known for a lavish personal lifestyle with 15 wives and a reported $200M personal fortune while 63% of Eswatinis live on under $2/day.",
+      "Became king at age 18 in 1986 — Africa's last absolute monarch and the world's last hereditary kingdom without a constitutional parliament. Rules Eswatini (renamed from Swaziland in 2018) with absolute royal decree — political parties are banned, all legislative and executive power vests in the crown. Known for a lavish personal lifestyle with 15 wives and a reported $200M personal fortune while 63% of Eswatinis live on under $2/day.",
     significantEvents: [
       {
         year: 1986,
-        event: "Crowned king at 18 after father Sobhuza II&#39;s death",
+        event: "Crowned king at 18 after father Sobhuza II's death",
         impact: "neutral",
       },
       {
         year: 2018,
-        event: "Renamed Swaziland to Eswatini — &#39;Land of the Swazis&#39;",
+        event: "Renamed Swaziland to Eswatini — 'Land of the Swazis'",
         impact: "neutral",
       },
       {
@@ -10783,9 +10782,9 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Maintained Eswatini&#39;s sovereignty as Africa&#39;s last absolute monarchy",
+      "Maintained Eswatini's sovereignty as Africa's last absolute monarchy",
       "Limited economic modernisation in urban Mbabane and Manzini",
-      "Eswatini retains Taiwan diplomatic recognition — one of Africa&#39;s last",
+      "Eswatini retains Taiwan diplomatic recognition — one of Africa's last",
       "Stability relative to conflict-affected neighbours maintained",
     ],
     politicalViews:
@@ -10794,7 +10793,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Africa&#39;s most complete anachronism — a 21st-century absolute monarch in a country where 63% live in poverty while the royal family&#39;s wealth is conspicuously displayed. His pro-democracy protesters&#39; suppression in 2021 sparked an ongoing low-level resistance movement.",
+      "Africa's most complete anachronism — a 21st-century absolute monarch in a country where 63% live in poverty while the royal family's wealth is conspicuously displayed. His pro-democracy protesters' suppression in 2021 sparked an ongoing low-level resistance movement.",
     region: "Africa",
   },
   {
@@ -10825,7 +10824,7 @@ const LEADERS: Leader[] = [
     ideology: "Nationalist",
     termsInOffice: [{ from: 2021, to: "present" }],
     background:
-      "Nationalist politician who was in prison serving an 11.5-year sentence for hostage-taking when supporters freed him during the October 2020 political uprising that ousted President Sooronbay Jeenbekov. Became acting president within days, then won the January 2021 election with 79% — one of Central Asia&#39;s most improbable political comebacks. Kyrgyzstan is the former Soviet republic that has experienced the most genuine mass democratic uprisings — three revolutions in 15 years.",
+      "Nationalist politician who was in prison serving an 11.5-year sentence for hostage-taking when supporters freed him during the October 2020 political uprising that ousted President Sooronbay Jeenbekov. Became acting president within days, then won the January 2021 election with 79% — one of Central Asia's most improbable political comebacks. Kyrgyzstan is the former Soviet republic that has experienced the most genuine mass democratic uprisings — three revolutions in 15 years.",
     significantEvents: [
       {
         year: 2017,
@@ -10856,7 +10855,7 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Unprecedented political comeback from prison to presidency",
-      "Gold mining nationalisation — Kumtor gold mine taken back from Canada&#39;s Centerra",
+      "Gold mining nationalisation — Kumtor gold mine taken back from Canada's Centerra",
       "New constitution providing strong presidential governance",
       "Kyrgyzstan repositioned as transit corridor for Russia-sanctions-era trade",
     ],
@@ -10866,7 +10865,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "His Kumtor mine nationalisation is Central Asia&#39;s most significant resource sovereignty assertion against Western mining capital in decades. Kyrgyzstan&#39;s role as a Russia-sanctions-era re-export corridor has given him unexpected economic leverage.",
+      "His Kumtor mine nationalisation is Central Asia's most significant resource sovereignty assertion against Western mining capital in decades. Kyrgyzstan's role as a Russia-sanctions-era re-export corridor has given him unexpected economic leverage.",
     region: "Asia-Pacific",
   },
   {
@@ -10892,7 +10891,7 @@ const LEADERS: Leader[] = [
     ideology: "Centrist",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Former Foreign Minister who replaced Manasseh Sogavare as Prime Minister after the April 2024 elections — though his government represents continuity with Sogavare&#39;s controversial China alignment. Solomon Islands became the center of Pacific geopolitics in 2022 when Sogavare signed a security agreement with China — triggering alarm in Australia, the US, and New Zealand. Manele&#39;s task is to manage those relationships while leveraging Solomon Islands&#39; strategic geography for maximum development return.",
+      "Former Foreign Minister who replaced Manasseh Sogavare as Prime Minister after the April 2024 elections — though his government represents continuity with Sogavare's controversial China alignment. Solomon Islands became the center of Pacific geopolitics in 2022 when Sogavare signed a security agreement with China — triggering alarm in Australia, the US, and New Zealand. Manele's task is to manage those relationships while leveraging Solomon Islands' strategic geography for maximum development return.",
     significantEvents: [
       {
         year: 2019,
@@ -10937,7 +10936,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Leads one of the Pacific&#39;s most geopolitically significant micro-states — Solomon Islands&#39; China security deal triggered the most serious Pacific security alarm in Washington since the Cold War, directly causing the US to reopen its Honiara embassy and accelerate Pacific engagement.",
+      "Leads one of the Pacific's most geopolitically significant micro-states — Solomon Islands' China security deal triggered the most serious Pacific security alarm in Washington since the Cold War, directly causing the US to reopen its Honiara embassy and accelerate Pacific engagement.",
     region: "Asia-Pacific",
   },
   // ── BATCH 25: Iraq, Balkans Presidents, West/Central Africa gaps ──────────
@@ -10964,7 +10963,7 @@ const LEADERS: Leader[] = [
     ideology: "Nationalist",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "Technocrat and former governor of Maysān Province who became PM in October 2022 after a year-long political deadlock following Iraq&#39;s 2021 elections. His government represents the Iran-aligned Coordination Framework bloc. Navigates the impossible triangle of maintaining cordial US security ties (4,000+ US troops remain in Iraq), satisfying Iran-aligned Popular Mobilisation Units (PMF), and managing Iraq&#39;s enormous oil wealth reconstruction agenda.",
+      "Technocrat and former governor of Maysān Province who became PM in October 2022 after a year-long political deadlock following Iraq's 2021 elections. His government represents the Iran-aligned Coordination Framework bloc. Navigates the impossible triangle of maintaining cordial US security ties (4,000+ US troops remain in Iraq), satisfying Iran-aligned Popular Mobilisation Units (PMF), and managing Iraq's enormous oil wealth reconstruction agenda.",
     significantEvents: [
       {
         year: 2022,
@@ -11000,16 +10999,16 @@ const LEADERS: Leader[] = [
     achievements: [
       "Iraq-Saudi normalisation — 30-year diplomatic estrangement partially healed",
       "Development Road mega-project — regional connectivity initiative",
-      "Iraq&#39;s oil revenues at highest since 2014 — reconstruction investment",
+      "Iraq's oil revenues at highest since 2014 — reconstruction investment",
       "Maintained fragile balance between US forces and PMF presence",
     ],
     politicalViews:
-      "Pragmatic Iraqi nationalist — neither fully pro-Iran nor pro-US. Seeks Iraq&#39;s strategic autonomy as mediator between Arab states and Iran. Development economics first. Committed to a sovereign Iraqi state that isn&#39;t a battlefield for proxy conflicts.",
+      "Pragmatic Iraqi nationalist — neither fully pro-Iran nor pro-US. Seeks Iraq's strategic autonomy as mediator between Arab states and Iran. Development economics first. Committed to a sovereign Iraqi state that isn't a battlefield for proxy conflicts.",
     approvalRating: 42,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Governs the Middle East&#39;s most geopolitically complex major state — an OPEC member with 145Bbl in reserves whose territory hosts simultaneously US forces and Iran-backed militias. His Development Road vision could make Iraq a regional logistics hub if political stability holds.",
+      "Governs the Middle East's most geopolitically complex major state — an OPEC member with 145Bbl in reserves whose territory hosts simultaneously US forces and Iran-backed militias. His Development Road vision could make Iraq a regional logistics hub if political stability holds.",
     region: "Middle East",
   },
   {
@@ -11040,7 +11039,7 @@ const LEADERS: Leader[] = [
     ideology: "Nationalist",
     termsInOffice: [{ from: 2017, to: "present" }],
     background:
-      "Former Commander of the Bulgarian Air Force who won the 2016 presidential election as an independent backed by the Bulgarian Socialist Party — a party with roots in the former communist regime. Bulgaria&#39;s president has limited executive powers but significant veto ability and moral authority. Radev has been a persistent critic of Bulgaria&#39;s GERB-led governments and draws controversy for his sceptical positions on Ukraine sanctions and his relatively Russia-friendly stance — unusual for a NATO member on Russia&#39;s flank.",
+      "Former Commander of the Bulgarian Air Force who won the 2016 presidential election as an independent backed by the Bulgarian Socialist Party — a party with roots in the former communist regime. Bulgaria's president has limited executive powers but significant veto ability and moral authority. Radev has been a persistent critic of Bulgaria's GERB-led governments and draws controversy for his sceptical positions on Ukraine sanctions and his relatively Russia-friendly stance — unusual for a NATO member on Russia's flank.",
     significantEvents: [
       {
         year: 2017,
@@ -11050,7 +11049,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2021,
-        event: "Re-elected; Bulgaria&#39;s political instability deepened",
+        event: "Re-elected; Bulgaria's political instability deepened",
         impact: "neutral",
       },
       {
@@ -11062,7 +11061,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Bulgaria&#39;s Schengen land border accession — Radev opposed government pace",
+          "Bulgaria's Schengen land border accession — Radev opposed government pace",
         impact: "neutral",
       },
       {
@@ -11075,16 +11074,16 @@ const LEADERS: Leader[] = [
     achievements: [
       "Longest-serving Bulgarian president since post-communist democracy",
       "Consistent advocate for anti-corruption governance",
-      "Maintained presidential stability through Bulgaria&#39;s 3-year political deadlock",
+      "Maintained presidential stability through Bulgaria's 3-year political deadlock",
       "NATO air force credentials gave him credibility on defence issues",
     ],
     politicalViews:
-      "Centre-left nationalist, BSP-associated politically. Pro-NATO in alliance obligations but sceptical of escalatory posture toward Russia. Rule of law, anti-corruption. Represents Bulgarian public&#39;s more ambivalent view of Russia compared to Baltic NATO allies.",
+      "Centre-left nationalist, BSP-associated politically. Pro-NATO in alliance obligations but sceptical of escalatory posture toward Russia. Rule of law, anti-corruption. Represents Bulgarian public's more ambivalent view of Russia compared to Baltic NATO allies.",
     approvalRating: 45,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Bulgaria&#39;s most visible political figure in a period of extraordinary governmental instability. His Russia-scepticism on Ukraine policy makes him an outlier within NATO&#39;s eastern flank presidents — creating tension with PM Zhelyazkov&#39;s more Western-aligned government.",
+      "Bulgaria's most visible political figure in a period of extraordinary governmental instability. His Russia-scepticism on Ukraine policy makes him an outlier within NATO's eastern flank presidents — creating tension with PM Zhelyazkov's more Western-aligned government.",
     region: "Europe",
   },
   {
@@ -11115,7 +11114,7 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Former Speaker of the Slovak Parliament and PM (2018–2020) who broke away from Robert Fico&#39;s SMER party to found the centrist Hlas-SD. Won Slovakia&#39;s April 2024 presidential election with 53% — defeating the pro-Fico candidate. The presidency gives him symbolic authority and a potential constitutional check on PM Fico&#39;s controversial pro-Russia governance. His and Fico&#39;s co-existence in the highest two offices creates a complex semi-cohabitational dynamic.",
+      "Former Speaker of the Slovak Parliament and PM (2018–2020) who broke away from Robert Fico's SMER party to found the centrist Hlas-SD. Won Slovakia's April 2024 presidential election with 53% — defeating the pro-Fico candidate. The presidency gives him symbolic authority and a potential constitutional check on PM Fico's controversial pro-Russia governance. His and Fico's co-existence in the highest two offices creates a complex semi-cohabitational dynamic.",
     significantEvents: [
       {
         year: 2018,
@@ -11143,8 +11142,8 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Managed Slovakia as PM during COVID-19 early response",
-      "Founded centrist alternative to Fico&#39;s SMER within Slovak left",
-      "Won presidential election despite Fico government&#39;s opposition",
+      "Founded centrist alternative to Fico's SMER within Slovak left",
+      "Won presidential election despite Fico government's opposition",
       "Maintained institutional stability after assassination attempt crisis",
     ],
     politicalViews:
@@ -11153,7 +11152,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Provides Slovakia&#39;s democratic check on PM Fico&#39;s increasingly Russia-aligned governance. His presidential mandate from a clear majority gives him legitimacy to resist the most extreme aspects of Fico&#39;s foreign policy drift — making the Fico-Pellegrini cohabitation one of Europe&#39;s most watched political relationships.",
+      "Provides Slovakia's democratic check on PM Fico's increasingly Russia-aligned governance. His presidential mandate from a clear majority gives him legitimacy to resist the most extreme aspects of Fico's foreign policy drift — making the Fico-Pellegrini cohabitation one of Europe's most watched political relationships.",
     region: "Europe",
   },
   {
@@ -11179,7 +11178,7 @@ const LEADERS: Leader[] = [
     ideology: "Liberal",
     termsInOffice: [{ from: 2016, to: "present" }],
     background:
-      "Cotton magnate who became Africa&#39;s most successful private cotton trader before entering politics and winning the 2016 presidential election promising to limit himself to two terms. Governed Benin through a controversial political trajectory — restricting opposition parties through a new electoral code, then winning the 2021 election after key opponents were barred — while achieving genuine economic modernisation and infrastructure development. Benin borders Nigeria and sits at the edge of the Sahel coup wave that has swept its northwestern neighbours.",
+      "Cotton magnate who became Africa's most successful private cotton trader before entering politics and winning the 2016 presidential election promising to limit himself to two terms. Governed Benin through a controversial political trajectory — restricting opposition parties through a new electoral code, then winning the 2021 election after key opponents were barred — while achieving genuine economic modernisation and infrastructure development. Benin borders Nigeria and sits at the edge of the Sahel coup wave that has swept its northwestern neighbours.",
     significantEvents: [
       {
         year: 2016,
@@ -11201,18 +11200,18 @@ const LEADERS: Leader[] = [
       {
         year: 2022,
         event:
-          "Jihadist attacks reached Benin&#39;s north — Sahel insurgency spread",
+          "Jihadist attacks reached Benin's north — Sahel insurgency spread",
         impact: "negative",
       },
       {
         year: 2023,
         event:
-          "Cotonou Port expansion completed — West Africa&#39;s most modern container terminal",
+          "Cotonou Port expansion completed — West Africa's most modern container terminal",
         impact: "positive",
       },
     ],
     achievements: [
-      "Cotonou Port became West Africa&#39;s leading logistics hub",
+      "Cotonou Port became West Africa's leading logistics hub",
       "Benin digital economy — free wifi, digital government, tech investment",
       "GDP growth averaged 6%+ — fastest in West African non-oil economies",
       "Ouidah UNESCO heritage — Voodoo and slave trade history tourism developed",
@@ -11223,7 +11222,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Governs West Africa&#39;s most interesting economic success story — Benin&#39;s logistics and digital economy growth while most neighbours face coups or stagnation. But democratic backsliding has made him a cautionary tale about modernising autocrats.",
+      "Governs West Africa's most interesting economic success story — Benin's logistics and digital economy growth while most neighbours face coups or stagnation. But democratic backsliding has made him a cautionary tale about modernising autocrats.",
     region: "Africa",
   },
   {
@@ -11255,7 +11254,7 @@ const LEADERS: Leader[] = [
     ideology: "Military Junta",
     termsInOffice: [{ from: 2023, to: "present" }],
     background:
-      "Republican Guard commander and cousin of deposed President Ali Bongo Ondimba who led the August 2023 coup that overthrew the Bongo family&#39;s 56-year dynastic rule — just hours after Ali Bongo was announced as winner of a disputed presidential election. Unlike the Sahel juntas who pivoted to Russia, Oligui Nguema positioned Gabon&#39;s coup as a pro-French, pro-Western correction of a corrupt dynasty rather than an anti-colonialist break. Won a transitional presidential election in April 2025.",
+      "Republican Guard commander and cousin of deposed President Ali Bongo Ondimba who led the August 2023 coup that overthrew the Bongo family's 56-year dynastic rule — just hours after Ali Bongo was announced as winner of a disputed presidential election. Unlike the Sahel juntas who pivoted to Russia, Oligui Nguema positioned Gabon's coup as a pro-French, pro-Western correction of a corrupt dynasty rather than an anti-colonialist break. Won a transitional presidential election in April 2025.",
     significantEvents: [
       {
         year: 2023,
@@ -11266,7 +11265,7 @@ const LEADERS: Leader[] = [
       {
         year: 2023,
         event:
-          "Ali Bongo placed under house arrest — family&#39;s corrupt wealth investigated",
+          "Ali Bongo placed under house arrest — family's corrupt wealth investigated",
         impact: "positive",
       },
       {
@@ -11285,7 +11284,7 @@ const LEADERS: Leader[] = [
     achievements: [
       "Ended 56-year Bongo family dynastic rule non-violently",
       "Maintained French economic and military relationships — unlike Sahel juntas",
-      "Gabon&#39;s oil revenues investigation — recovering funds from Bongo family",
+      "Gabon's oil revenues investigation — recovering funds from Bongo family",
       "Constitutional transition roadmap established with election timeline",
     ],
     politicalViews:
@@ -11294,7 +11293,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "Transitional",
     impact:
-      "Gabon&#39;s coup represents a different model from the Sahel wave — a correction of a specific dynastic corruption rather than an anti-Western realignment. His maintenance of French ties and Western investment distinguishes Gabon from Mali, Burkina, and Niger&#39;s trajectory.",
+      "Gabon's coup represents a different model from the Sahel wave — a correction of a specific dynastic corruption rather than an anti-Western realignment. His maintenance of French ties and Western investment distinguishes Gabon from Mali, Burkina, and Niger's trajectory.",
     region: "Africa",
   },
   {
@@ -11325,7 +11324,7 @@ const LEADERS: Leader[] = [
     ideology: "Military Junta",
     termsInOffice: [{ from: 2021, to: "present" }],
     background:
-      "Former French Foreign Legion officer who returned to Guinea to command the Groupement des Forces Spéciales — Guinea&#39;s special forces. Led the September 2021 coup that overthrew Alpha Condé, who had controversial third-term constitutional changes and been in power for 11 years. At 37, became one of Africa&#39;s youngest leaders. Guinea holds the world&#39;s largest bauxite reserves (65% of global bauxite deposits) and significant gold and iron ore — making it one of Africa&#39;s most resource-consequential transitional states.",
+      "Former French Foreign Legion officer who returned to Guinea to command the Groupement des Forces Spéciales — Guinea's special forces. Led the September 2021 coup that overthrew Alpha Condé, who had controversial third-term constitutional changes and been in power for 11 years. At 37, became one of Africa's youngest leaders. Guinea holds the world's largest bauxite reserves (65% of global bauxite deposits) and significant gold and iron ore — making it one of Africa's most resource-consequential transitional states.",
     significantEvents: [
       {
         year: 2021,
@@ -11346,20 +11345,20 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Bauxite exports at record — China remains Guinea&#39;s largest buyer",
+          "Bauxite exports at record — China remains Guinea's largest buyer",
         impact: "positive",
       },
       {
         year: 2025,
         event:
-          "Simandou iron ore mine — first production from world&#39;s largest iron ore deposit",
+          "Simandou iron ore mine — first production from world's largest iron ore deposit",
         impact: "positive",
       },
     ],
     achievements: [
-      "First production from Simandou — world&#39;s largest undeveloped iron ore deposit",
+      "First production from Simandou — world's largest undeveloped iron ore deposit",
       "Bauxite production maintained — Guinea supplies 65% of global aluminium raw material",
-      "Ended Alpha Condé&#39;s 11-year increasingly authoritarian rule",
+      "Ended Alpha Condé's 11-year increasingly authoritarian rule",
       "Youth appeal — youngest major African leader championing anti-elite rhetoric",
     ],
     politicalViews:
@@ -11404,18 +11403,18 @@ const LEADERS: Leader[] = [
     ideology: "Liberal",
     termsInOffice: [{ from: 2020, to: "present" }],
     background:
-      "Distinguished jurist who served as President of the Greek Council of State — the supreme administrative court — for seven years before being elected President of Greece in January 2020 by a cross-party parliamentary majority including PM Mitsotakis&#39;s New Democracy. Greece&#39;s first female president — elected unanimously in a country still emerging from a decade of austerity. The presidential role is largely ceremonial but carries significant institutional authority.",
+      "Distinguished jurist who served as President of the Greek Council of State — the supreme administrative court — for seven years before being elected President of Greece in January 2020 by a cross-party parliamentary majority including PM Mitsotakis's New Democracy. Greece's first female president — elected unanimously in a country still emerging from a decade of austerity. The presidential role is largely ceremonial but carries significant institutional authority.",
     significantEvents: [
       {
         year: 2020,
         event:
-          "Became Greece&#39;s first female president — elected with cross-party support",
+          "Became Greece's first female president — elected with cross-party support",
         impact: "positive",
       },
       {
         year: 2021,
         event:
-          "Presided over Greece&#39;s COVID recovery and forest fire crisis response",
+          "Presided over Greece's COVID recovery and forest fire crisis response",
         impact: "neutral",
       },
       {
@@ -11430,18 +11429,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Greece&#39;s first female president — historic constitutional milestone",
+      "Greece's first female president — historic constitutional milestone",
       "Unanimous cross-party election — rare in polarised Greek politics",
       "Leading advocate for rule of law and judicial independence in EU",
       "Greek presidential diplomacy in Eastern Mediterranean elevated",
     ],
     politicalViews:
-      "Non-partisan jurist. Rule of law absolutist, EU institutional defender, human rights champion. Greece&#39;s constitutional guardian — her legal expertise defining the presidential role. Pro-EU, pro-democratic norms, climate-conscious. Avoids partisan politics by design.",
+      "Non-partisan jurist. Rule of law absolutist, EU institutional defender, human rights champion. Greece's constitutional guardian — her legal expertise defining the presidential role. Pro-EU, pro-democratic norms, climate-conscious. Avoids partisan politics by design.",
     approvalRating: 71,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Greece&#39;s highest-approval political figure— a non-partisan jurist whose legal gravitas provides institutional ballast during Greece&#39;s continued post-crisis political turbulence. Her historic first presidency represents a genuine social milestone for a country where political life has been male-dominated.",
+      "Greece's highest-approval political figure— a non-partisan jurist whose legal gravitas provides institutional ballast during Greece's continued post-crisis political turbulence. Her historic first presidency represents a genuine social milestone for a country where political life has been male-dominated.",
     region: "Europe",
   },
   // ── BATCH 26: Palestine, Vatican, Brunei, Imprisoned/Former Leaders ───────
@@ -11473,7 +11472,7 @@ const LEADERS: Leader[] = [
     ideology: "Nationalist",
     termsInOffice: [{ from: 2005, to: "present" }],
     background:
-      "One of the founding members of Fatah alongside Yasser Arafat, Abbas (also known as Abu Mazen) served as chief negotiator in the Oslo Accords. Became Palestinian Authority President in 2005 after Arafat&#39;s death. His term officially expired in 2009 — he has since governed without a new mandate. The October 7 Hamas attack and subsequent Gaza war forced him into an impossible position as leader of the rival Fatah movement.",
+      "One of the founding members of Fatah alongside Yasser Arafat, Abbas (also known as Abu Mazen) served as chief negotiator in the Oslo Accords. Became Palestinian Authority President in 2005 after Arafat's death. His term officially expired in 2009 — he has since governed without a new mandate. The October 7 Hamas attack and subsequent Gaza war forced him into an impossible position as leader of the rival Fatah movement.",
     significantEvents: [
       {
         year: 1993,
@@ -11517,7 +11516,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
-      "At 89 and governing with an expired mandate since 2009, Abbas represents the Palestinian leadership vacuum. The Gaza war has made the question of Palestinian governance post-conflict the most important unresolved political question in the Middle East — and Abbas&#39;s PA is the only internationally recognised answer, however contested.",
+      "At 89 and governing with an expired mandate since 2009, Abbas represents the Palestinian leadership vacuum. The Gaza war has made the question of Palestinian governance post-conflict the most important unresolved political question in the Middle East — and Abbas's PA is the only internationally recognised answer, however contested.",
     region: "Middle East",
   },
   {
@@ -11548,7 +11547,7 @@ const LEADERS: Leader[] = [
     ideology: "Theocrat",
     termsInOffice: [{ from: 2013, to: "present" }],
     background:
-      "Born Jorge Mario Bergoglio in Buenos Aires to Italian immigrant parents. Former Archbishop of Buenos Aires and first Latin American — and first Jesuit — to become Pope. Elected in March 2013 after Benedict XVI&#39;s historic resignation. Known for humility (chose the name Francis after St. Francis of Assisi), reform advocacy within the Church, and a highly political papacy on climate, migration, inequality, and peace.",
+      "Born Jorge Mario Bergoglio in Buenos Aires to Italian immigrant parents. Former Archbishop of Buenos Aires and first Latin American — and first Jesuit — to become Pope. Elected in March 2013 after Benedict XVI's historic resignation. Known for humility (chose the name Francis after St. Francis of Assisi), reform advocacy within the Church, and a highly political papacy on climate, migration, inequality, and peace.",
     significantEvents: [
       {
         year: 2013,
@@ -11558,7 +11557,7 @@ const LEADERS: Leader[] = [
       {
         year: 2015,
         event:
-          "Laudato Si&#39; encyclical — most influential climate document by any religious leader",
+          "Laudato Si' encyclical — most influential climate document by any religious leader",
         impact: "positive",
       },
       {
@@ -11581,18 +11580,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Laudato Si&#39; — defined climate change as moral issue for 1.4B Catholics",
+      "Laudato Si' — defined climate change as moral issue for 1.4B Catholics",
       "Cuba diplomacy — facilitated US-Cuba normalisation under Obama",
       "Sexual abuse reform — Vos Estis Lux Mundi accountability framework",
-      "First Latin American pope — shifted Church&#39;s global centre of gravity",
+      "First Latin American pope — shifted Church's global centre of gravity",
     ],
     politicalViews:
-      "Progressive Catholic social teaching. Climate urgency, migrants&#39; rights, economic inequality as moral crises. Pastoral rather than condemnatory in style. Anti-war — consistently called for Ukraine-Russia peace.",
+      "Progressive Catholic social teaching. Climate urgency, migrants' rights, economic inequality as moral crises. Pastoral rather than condemnatory in style. Anti-war — consistently called for Ukraine-Russia peace.",
     approvalRating: 64,
     approvalTrend: "stable",
     status: "Former",
     impact:
-      "Transformed the papacy&#39;s global political relevance — his encyclicals on climate and inequality became reference documents in international diplomacy. Led the world&#39;s largest religious institution through its most significant reform attempt in a generation.",
+      "Transformed the papacy's global political relevance — his encyclicals on climate and inequality became reference documents in international diplomacy. Led the world's largest religious institution through its most significant reform attempt in a generation.",
     region: "Europe",
   },
   {
@@ -11618,7 +11617,7 @@ const LEADERS: Leader[] = [
     ideology: "Monarchy",
     termsInOffice: [{ from: 1967, to: "present" }],
     background:
-      "One of the world&#39;s longest-reigning monarchs and for many years its wealthiest individual. Has ruled Brunei since 1967 — first under British protection, then as fully independent sultan since 1984. Also serves as his own Prime Minister, Finance Minister, and Defence Minister. His personal fortune — estimated at $20B+ — was built on Brunei&#39;s vast offshore oil and gas reserves (production ~100,000 barrels/day). In 2019 implemented sharia criminal law including death by stoning for adultery and same-sex relations — triggering international boycotts.",
+      "One of the world's longest-reigning monarchs and for many years its wealthiest individual. Has ruled Brunei since 1967 — first under British protection, then as fully independent sultan since 1984. Also serves as his own Prime Minister, Finance Minister, and Defence Minister. His personal fortune — estimated at $20B+ — was built on Brunei's vast offshore oil and gas reserves (production ~100,000 barrels/day). In 2019 implemented sharia criminal law including death by stoning for adultery and same-sex relations — triggering international boycotts.",
     significantEvents: [
       {
         year: 1984,
@@ -11629,7 +11628,7 @@ const LEADERS: Leader[] = [
       {
         year: 1997,
         event:
-          "Asian financial crisis — Bolkiah&#39;s brother Jefri&#39;s financial scandal",
+          "Asian financial crisis — Bolkiah's brother Jefri's financial scandal",
         impact: "negative",
       },
       {
@@ -11652,10 +11651,10 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "58+ year reign — Asia&#39;s longest-serving monarchic ruler",
+      "58+ year reign — Asia's longest-serving monarchic ruler",
       "Brunei citizens pay no income tax — oil wealth distributed as welfare",
       "Universal subsidised healthcare and education from oil revenues",
-      "Brunei Darussalam among Asia&#39;s highest per-capita income nations",
+      "Brunei Darussalam among Asia's highest per-capita income nations",
     ],
     politicalViews:
       "Malay Islamic Monarchy (MIB) — official state ideology combining Malay cultural identity, Islamic faith, and royal governance. Absolute rule, no political parties permitted. ASEAN diplomatic engagement. Oil dependency creating urgency for economic diversification.",
@@ -11663,7 +11662,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Governs one of the world&#39;s last genuine absolute monarchies with oil wealth that has cushioned citizens from governance concerns. His 2019 sharia law implementation isolated Brunei internationally — but oil money and ASEAN membership insulate him from serious consequences.",
+      "Governs one of the world's last genuine absolute monarchies with oil wealth that has cushioned citizens from governance concerns. His 2019 sharia law implementation isolated Brunei internationally — but oil money and ASEAN membership insulate him from serious consequences.",
     region: "Asia-Pacific",
   },
   {
@@ -11694,7 +11693,7 @@ const LEADERS: Leader[] = [
     ideology: "Populist",
     termsInOffice: [{ from: 2018, to: 2022 }],
     background:
-      "World cricket legend who captained Pakistan to the 1992 World Cup before entering politics. Founded PTI in 1996 and spent 22 years in opposition before winning the 2018 election. Became Pakistan&#39;s 22nd PM, but was ousted via a no-confidence vote in April 2022 in what he calls a US-backed military conspiracy. Since his ouster he has been arrested multiple times, convicted on multiple charges, and imprisoned — while his party continues to be the most popular political movement in Pakistan by polling.",
+      "World cricket legend who captained Pakistan to the 1992 World Cup before entering politics. Founded PTI in 1996 and spent 22 years in opposition before winning the 2018 election. Became Pakistan's 22nd PM, but was ousted via a no-confidence vote in April 2022 in what he calls a US-backed military conspiracy. Since his ouster he has been arrested multiple times, convicted on multiple charges, and imprisoned — while his party continues to be the most popular political movement in Pakistan by polling.",
     significantEvents: [
       {
         year: 1992,
@@ -11725,13 +11724,13 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "1992 Cricket World Cup — Pakistan&#39;s only ODI World Cup victory",
+      "1992 Cricket World Cup — Pakistan's only ODI World Cup victory",
       "Shaukat Khanum Cancer Hospital — world-class facility built through personal fundraising",
       "CPEC leveraged during PM tenure for development gains",
-      "PTI remains Pakistan&#39;s most popular party despite full state suppression",
+      "PTI remains Pakistan's most popular party despite full state suppression",
     ],
     politicalViews:
-      "Islamic democratic populism, anti-corruption, anti-IMF austerity, independent foreign policy (neither pro-US nor pro-China). Populist welfare state. Opposes Pakistan&#39;s military interference in civilian government. Blames Biden administration and military for his removal.",
+      "Islamic democratic populism, anti-corruption, anti-IMF austerity, independent foreign policy (neither pro-US nor pro-China). Populist welfare state. Opposes Pakistan's military interference in civilian government. Blames Biden administration and military for his removal.",
     approvalRating: null,
     approvalTrend: "stable",
     status: "In Office",
@@ -11758,7 +11757,7 @@ const LEADERS: Leader[] = [
         year: 1964,
       },
       {
-        institution: "St Hugh&#39;s College, Oxford",
+        institution: "St Hugh's College, Oxford",
         degree: "B.A. Philosophy, Politics & Economics",
         year: 1967,
       },
@@ -11767,7 +11766,7 @@ const LEADERS: Leader[] = [
     ideology: "Liberal",
     termsInOffice: [{ from: 2016, to: 2021 }],
     background:
-      "Daughter of Myanmar&#39;s independence hero General Aung San, she spent 15 of 21 years under house arrest by the military junta for leading the democracy movement. Won the Nobel Peace Prize in 1991. Led the NLD to a landslide election victory in 2015, becoming State Counsellor (de facto prime minister) in 2016 — Myanmar&#39;s first civilian-led government in 50 years. Her international standing was severely damaged by her defence of the military&#39;s Rohingya operations at the ICJ in 2019. Arrested in the February 2021 coup and sentenced to 27 years in prison.",
+      "Daughter of Myanmar's independence hero General Aung San, she spent 15 of 21 years under house arrest by the military junta for leading the democracy movement. Won the Nobel Peace Prize in 1991. Led the NLD to a landslide election victory in 2015, becoming State Counsellor (de facto prime minister) in 2016 — Myanmar's first civilian-led government in 50 years. Her international standing was severely damaged by her defence of the military's Rohingya operations at the ICJ in 2019. Arrested in the February 2021 coup and sentenced to 27 years in prison.",
     significantEvents: [
       {
         year: 1991,
@@ -11799,16 +11798,16 @@ const LEADERS: Leader[] = [
     achievements: [
       "Nobel Peace Prize 1991 — most recognised democracy symbol of her era",
       "Led NLD to 2015 landslide — ended 50 years of military governance",
-      "Myanmar&#39;s democratic transition 2016–2021 — however brief",
+      "Myanmar's democratic transition 2016–2021 — however brief",
       "National Reconciliation mandate — worked across ethnic lines",
     ],
     politicalViews:
-      "Liberal democratic, Buddhism-influenced. Non-violent resistance as political philosophy. Federal democratic union for Myanmar&#39;s ethnic minorities. Pro-Western partnerships. Her legacy is haunted by Rohingya genocide defence — stripping her of many human rights credentials.",
+      "Liberal democratic, Buddhism-influenced. Non-violent resistance as political philosophy. Federal democratic union for Myanmar's ethnic minorities. Pro-Western partnerships. Her legacy is haunted by Rohingya genocide defence — stripping her of many human rights credentials.",
     approvalRating: null,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "One of the 20th century&#39;s greatest symbols of peaceful resistance to military tyranny — whose legacy was permanently complicated by the Rohingya genocide and whose imprisonment by the same military she had once worked with shows the tragic limits of democratic-military coexistence.",
+      "One of the 20th century's greatest symbols of peaceful resistance to military tyranny — whose legacy was permanently complicated by the Rohingya genocide and whose imprisonment by the same military she had once worked with shows the tragic limits of democratic-military coexistence.",
     region: "Asia-Pacific",
   },
   {
@@ -11839,7 +11838,7 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2001, to: 2014 }],
     background:
-      "Pashtun tribal leader and former mujahideen figure who became Afghanistan&#39;s first post-Taliban president after the US invasion in 2001. Led Afghanistan for 13 years — NATO&#39;s longest nation-building project. Remained in Kabul after the Taliban&#39;s 2021 return — one of the few senior Afghan officials to do so. Has since become a controversial figure meeting Taliban officials and calling for their international engagement, while the Taliban governs Afghanistan as an all-male Islamic emirate.",
+      "Pashtun tribal leader and former mujahideen figure who became Afghanistan's first post-Taliban president after the US invasion in 2001. Led Afghanistan for 13 years — NATO's longest nation-building project. Remained in Kabul after the Taliban's 2021 return — one of the few senior Afghan officials to do so. Has since become a controversial figure meeting Taliban officials and calling for their international engagement, while the Taliban governs Afghanistan as an all-male Islamic emirate.",
     significantEvents: [
       {
         year: 2001,
@@ -11849,7 +11848,7 @@ const LEADERS: Leader[] = [
       {
         year: 2004,
         event:
-          "Elected Afghanistan&#39;s first president in democratic election",
+          "Elected Afghanistan's first president in democratic election",
         impact: "positive",
       },
       {
@@ -11871,18 +11870,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Led Afghanistan&#39;s post-Taliban reconstruction for 13 years",
+      "Led Afghanistan's post-Taliban reconstruction for 13 years",
       "3M refugees returned during his tenure",
-      "Girls&#39; education expanded from near-zero to 3M enrolled",
+      "Girls' education expanded from near-zero to 3M enrolled",
       "Remained in Kabul under Taliban — only major former official to do so",
     ],
     politicalViews:
-      "Afghan nationalist, Pashtun tribal conservative. Now advocates pragmatic engagement with Taliban for stability. Blames US withdrawal strategy rather than Taliban for collapse. Believes international isolation of Taliban worsens Afghans&#39; suffering. Seeks neutral status between Taliban and exiled republic.",
+      "Afghan nationalist, Pashtun tribal conservative. Now advocates pragmatic engagement with Taliban for stability. Blames US withdrawal strategy rather than Taliban for collapse. Believes international isolation of Taliban worsens Afghans' suffering. Seeks neutral status between Taliban and exiled republic.",
     approvalRating: null,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "The human embodiment of NATO&#39;s $2 trillion, 20-year Afghanistan investment — which collapsed in 11 days in August 2021. His decision to stay in Kabul gives him unique if constrained moral standing in a country now running the world&#39;s most severe anti-female governance experiment.",
+      "The human embodiment of NATO's $2 trillion, 20-year Afghanistan investment — which collapsed in 11 days in August 2021. His decision to stay in Kabul gives him unique if constrained moral standing in a country now running the world's most severe anti-female governance experiment.",
     region: "Asia-Pacific",
   },
   {
@@ -11904,11 +11903,11 @@ const LEADERS: Leader[] = [
         year: 1979,
       },
     ],
-    party: "Cambodian People&#39;s Party (CPP)",
+    party: "Cambodian People's Party (CPP)",
     ideology: "Authoritarian",
     termsInOffice: [{ from: 1985, to: 2023 }],
     background:
-      "Former Khmer Rouge military commander who defected to Vietnam and returned to overthrow Pol Pot before becoming the world&#39;s longest-serving prime minister — 38 years. Handed the PM role to his son Hun Manet in 2023 while becoming Senate President — retaining CPP control and the ability to influence governance from a position few dare challenge. One of Southeast Asia&#39;s most consequential authoritarian architects.",
+      "Former Khmer Rouge military commander who defected to Vietnam and returned to overthrow Pol Pot before becoming the world's longest-serving prime minister — 38 years. Handed the PM role to his son Hun Manet in 2023 while becoming Senate President — retaining CPP control and the ability to influence governance from a position few dare challenge. One of Southeast Asia's most consequential authoritarian architects.",
     significantEvents: [
       {
         year: 1979,
@@ -11936,23 +11935,23 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Remains Senate President — de facto power behind son&#39;s government",
+          "Remains Senate President — de facto power behind son's government",
         impact: "neutral",
       },
     ],
     achievements: [
-      "Ended Khmer Rouge — Cambodia&#39;s most important historical act",
+      "Ended Khmer Rouge — Cambodia's most important historical act",
       "Built Cambodia from post-genocide ruins into lower-middle-income nation",
       "38-year PM tenure — world record for non-royal head of government",
-      "Cambodia&#39;s infrastructure development — roads, ports, special economic zones",
+      "Cambodia's infrastructure development — roads, ports, special economic zones",
     ],
     politicalViews:
-      "Authoritarian developmentalism, CPP one-party state, deep China alignment. Family capitalism — CPP-linked business empire controls major sectors. No opposition tolerated. Uses &#39;stability&#39; and anti-Khmer Rouge credentials as perpetual legitimacy claims.",
+      "Authoritarian developmentalism, CPP one-party state, deep China alignment. Family capitalism — CPP-linked business empire controls major sectors. No opposition tolerated. Uses 'stability' and anti-Khmer Rouge credentials as perpetual legitimacy claims.",
     approvalRating: null,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Built Cambodia from one of history&#39;s most devastating genocidal destructions into a functioning if authoritarian state. His dynastic transition to Hun Manet is Southeast Asia&#39;s most explicit successor experiment — and the fact that he retains Senate power means Cambodia&#39;s political story is still fundamentally his.",
+      "Built Cambodia from one of history's most devastating genocidal destructions into a functioning if authoritarian state. His dynastic transition to Hun Manet is Southeast Asia's most explicit successor experiment — and the fact that he retains Senate power means Cambodia's political story is still fundamentally his.",
     region: "Asia-Pacific",
   },
   // ── BATCH 27: Cuba, Oman, Finland former, Vietnam GS, Taiwan former, RSA former, Mexico former ──
@@ -12000,7 +11999,7 @@ const LEADERS: Leader[] = [
       {
         year: 2023,
         event:
-          "Cuba&#39;s electricity grid collapsed — most severe energy crisis since 1990s",
+          "Cuba's electricity grid collapsed — most severe energy crisis since 1990s",
         impact: "negative",
       },
       {
@@ -12012,7 +12011,7 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Cuba maintained universal healthcare and education through extreme austerity",
-      "Same-sex marriage legalisation — Cuba&#39;s most progressive social reform",
+      "Same-sex marriage legalisation — Cuba's most progressive social reform",
       "Maintained Cuban sovereignty despite tightened US embargo",
       "COVID-19 — Cuba developed its own vaccines (Abdala, Soberana)",
     ],
@@ -12022,7 +12021,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Governs the Western Hemisphere&#39;s last communist state through a structural crisis that may be more severe than what ended communism in Eastern Europe. Cuba&#39;s mass emigration and blackout crisis under his watch is testing the revolutionary model&#39;s final limits.",
+      "Governs the Western Hemisphere's last communist state through a structural crisis that may be more severe than what ended communism in Eastern Europe. Cuba's mass emigration and blackout crisis under his watch is testing the revolutionary model's final limits.",
     region: "Americas",
   },
   {
@@ -12053,7 +12052,7 @@ const LEADERS: Leader[] = [
       {
         year: 2020,
         event:
-          "Became Sultan after Qaboos&#39; death — smooth succession managed",
+          "Became Sultan after Qaboos' death — smooth succession managed",
         impact: "positive",
       },
       {
@@ -12078,18 +12077,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Maintained Oman&#39;s unique diplomatic neutrality between Iran, Arab states, and West",
+      "Maintained Oman's unique diplomatic neutrality between Iran, Arab states, and West",
       "Mediated multiple US–Iran prisoner swaps — secret diplomacy role",
       "Oman Vision 2040 economic transformation programme launched",
-      "Green hydrogen project — world&#39;s largest planned at HYNO partnership",
+      "Green hydrogen project — world's largest planned at HYNO partnership",
     ],
     politicalViews:
-      "Absolute monarchist, pragmatic diplomatic neutralist. Oman talks to everyone — US, Iran, Israel, Houthis, Taliban. Believes dialogue over confrontation. Economic liberalisation through Oman Vision 2040. Maintains Qaboos&#39; foreign policy tradition of being the Gulf&#39;s indispensable back channel.",
+      "Absolute monarchist, pragmatic diplomatic neutralist. Oman talks to everyone — US, Iran, Israel, Houthis, Taliban. Believes dialogue over confrontation. Economic liberalisation through Oman Vision 2040. Maintains Qaboos' foreign policy tradition of being the Gulf's indispensable back channel.",
     approvalRating: null,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Oman under Haitham continues to punch enormously above its weight in diplomacy — facilitating talks that no other Middle Eastern state can. His country&#39;s simultaneous relationships with Iran and the US make Muscat essential infrastructure for preventing escalation in the world&#39;s most volatile region.",
+      "Oman under Haitham continues to punch enormously above its weight in diplomacy — facilitating talks that no other Middle Eastern state can. His country's simultaneous relationships with Iran and the US make Muscat essential infrastructure for preventing escalation in the world's most volatile region.",
     region: "Middle East",
   },
   {
@@ -12115,23 +12114,23 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2019, to: 2023 }],
     background:
-      "Became the world&#39;s youngest sitting head of government when appointed PM at 34 in December 2019. Grew up in a single-parent family in a rented council flat — her personal story of social mobility defined her politics. Led Finland through COVID-19 and the historic decision to abandon 200 years of military neutrality and apply for NATO — Finland&#39;s accession to NATO in April 2023 was the most consequential geopolitical decision in Finnish history. Lost the May 2023 election to Orpo&#39;s centre-right coalition.",
+      "Became the world's youngest sitting head of government when appointed PM at 34 in December 2019. Grew up in a single-parent family in a rented council flat — her personal story of social mobility defined her politics. Led Finland through COVID-19 and the historic decision to abandon 200 years of military neutrality and apply for NATO — Finland's accession to NATO in April 2023 was the most consequential geopolitical decision in Finnish history. Lost the May 2023 election to Orpo's centre-right coalition.",
     significantEvents: [
       {
         year: 2019,
-        event: "Became world&#39;s youngest head of government at 34",
+        event: "Became world's youngest head of government at 34",
         impact: "positive",
       },
       {
         year: 2020,
         event:
-          "Led Finland&#39;s COVID response — among Europe&#39;s most effective",
+          "Led Finland's COVID response — among Europe's most effective",
         impact: "positive",
       },
       {
         year: 2022,
         event:
-          "Initiated Finland&#39;s NATO membership application after Russia&#39;s Ukraine invasion",
+          "Initiated Finland's NATO membership application after Russia's Ukraine invasion",
         impact: "positive",
       },
       {
@@ -12142,23 +12141,23 @@ const LEADERS: Leader[] = [
       {
         year: 2023,
         event:
-          "Lost election to Orpo — left office after leading Finland&#39;s most consequential foreign policy decision",
+          "Lost election to Orpo — left office after leading Finland's most consequential foreign policy decision",
         impact: "neutral",
       },
     ],
     achievements: [
-      "Initiated Finland&#39;s NATO accession — most consequential Finnish foreign policy act since WWII",
-      "World&#39;s youngest head of government when appointed",
-      "Finland ranked world&#39;s happiest country every year under her tenure",
-      "COVID-19 response — Finland had among Europe&#39;s lowest per-capita death tolls",
+      "Initiated Finland's NATO accession — most consequential Finnish foreign policy act since WWII",
+      "World's youngest head of government when appointed",
+      "Finland ranked world's happiest country every year under her tenure",
+      "COVID-19 response — Finland had among Europe's lowest per-capita death tolls",
     ],
     politicalViews:
-      "Social democratic, feminist, environmental. Nordic welfare state defender. The Ukraine invasion converted her to a security hawk — she became one of Europe&#39;s most consistent advocates for maximum Ukraine support. Post-PM she has become a global voice for democracy and social democratic values.",
+      "Social democratic, feminist, environmental. Nordic welfare state defender. The Ukraine invasion converted her to a security hawk — she became one of Europe's most consistent advocates for maximum Ukraine support. Post-PM she has become a global voice for democracy and social democratic values.",
     approvalRating: 58,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Her decision to apply for NATO will be Finland&#39;s most consequential foreign policy act in living memory — permanently transforming the Nordic security architecture. At 38, she remains one of the most globally recognised progressive political figures and a likely future European leader.",
+      "Her decision to apply for NATO will be Finland's most consequential foreign policy act in living memory — permanently transforming the Nordic security architecture. At 38, she remains one of the most globally recognised progressive political figures and a likely future European leader.",
     region: "Europe",
   },
   {
@@ -12175,12 +12174,12 @@ const LEADERS: Leader[] = [
     birthPlace: "Hưng Yên Province, Vietnam",
     education: [
       {
-        institution: "People&#39;s Security Academy, Vietnam",
+        institution: "People's Security Academy, Vietnam",
         degree: "Police/Security Studies",
         year: 1982,
       },
       {
-        institution: "Academy of People&#39;s Security, Hanoi",
+        institution: "Academy of People's Security, Hanoi",
         degree: "Ph.D. Law",
         year: 2006,
       },
@@ -12189,7 +12188,7 @@ const LEADERS: Leader[] = [
     ideology: "Communist",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Career security and intelligence official who served as Minister of Public Security (2016–2024) — Vietnam&#39;s domestic intelligence and police apparatus — before rising to become General Secretary of the Communist Party, the most powerful position in Vietnam, in August 2024 following Nguyen Phu Trong&#39;s death. Also briefly served as President. Built his career through Vietnam&#39;s Dot Dieu (Blazing Furnace) anti-corruption campaign which jailed a sitting president, a deputy prime minister, and hundreds of officials.",
+      "Career security and intelligence official who served as Minister of Public Security (2016–2024) — Vietnam's domestic intelligence and police apparatus — before rising to become General Secretary of the Communist Party, the most powerful position in Vietnam, in August 2024 following Nguyen Phu Trong's death. Also briefly served as President. Built his career through Vietnam's Dot Dieu (Blazing Furnace) anti-corruption campaign which jailed a sitting president, a deputy prime minister, and hundreds of officials.",
     significantEvents: [
       {
         year: 2016,
@@ -12205,7 +12204,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2024,
-        event: "Became General Secretary after Nguyen Phu Trong&#39;s death",
+        event: "Became General Secretary after Nguyen Phu Trong's death",
         impact: "positive",
       },
       {
@@ -12217,23 +12216,23 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "Vietnam&#39;s semiconductor and AI investment attraction continues",
+          "Vietnam's semiconductor and AI investment attraction continues",
         impact: "positive",
       },
     ],
     achievements: [
-      "Led Vietnam&#39;s most sweeping anti-corruption campaign in party history",
-      "Maintained Vietnam&#39;s bamboo diplomacy between US and China",
-      "Vietnam&#39;s top security apparatus modernisation during his Ministry tenure",
-      "Smooth leadership transition after Trong&#39;s death — party cohesion maintained",
+      "Led Vietnam's most sweeping anti-corruption campaign in party history",
+      "Maintained Vietnam's bamboo diplomacy between US and China",
+      "Vietnam's top security apparatus modernisation during his Ministry tenure",
+      "Smooth leadership transition after Trong's death — party cohesion maintained",
     ],
     politicalViews:
-      "Security-state Marxist-Leninist. Continuity of bamboo multi-directional diplomacy. Anti-corruption as regime legitimacy tool. China relations managed carefully — close but sovereignty-assertive. US comprehensive strategic partnership maintained. Vietnam&#39;s economic opening continues.",
+      "Security-state Marxist-Leninist. Continuity of bamboo multi-directional diplomacy. Anti-corruption as regime legitimacy tool. China relations managed carefully — close but sovereignty-assertive. US comprehensive strategic partnership maintained. Vietnam's economic opening continues.",
     approvalRating: null,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Vietnam&#39;s most powerful figure arrived via the security apparatus — a different model than economist Trong&#39;s leadership. His anti-corruption campaign eliminated multiple senior officials and signals a harder-edged governance style. How he manages Vietnam&#39;s US–China balance will define Southeast Asian geopolitics for the coming decade.",
+      "Vietnam's most powerful figure arrived via the security apparatus — a different model than economist Trong's leadership. His anti-corruption campaign eliminated multiple senior officials and signals a harder-edged governance style. How he manages Vietnam's US–China balance will define Southeast Asian geopolitics for the coming decade.",
     region: "Asia-Pacific",
   },
   {
@@ -12269,30 +12268,30 @@ const LEADERS: Leader[] = [
     ideology: "Progressive",
     termsInOffice: [{ from: 2016, to: 2024 }],
     background:
-      "LSE-trained trade law academic and former negotiator who became Taiwan&#39;s first female president in 2016 and served two full terms until January 2024. Governed Taiwan through the most dangerous period of cross-strait tensions since the 1996 missile crisis — strengthening Taiwan&#39;s defence, diversifying supply chains, and advancing Taiwan&#39;s international profile while managing Beijing&#39;s military pressure. Never married — first unmarried leader of a major democracy.",
+      "LSE-trained trade law academic and former negotiator who became Taiwan's first female president in 2016 and served two full terms until January 2024. Governed Taiwan through the most dangerous period of cross-strait tensions since the 1996 missile crisis — strengthening Taiwan's defence, diversifying supply chains, and advancing Taiwan's international profile while managing Beijing's military pressure. Never married — first unmarried leader of a major democracy.",
     significantEvents: [
       {
         year: 2016,
         event:
-          "Became Taiwan&#39;s first female president — DPP wins historic majority",
+          "Became Taiwan's first female president — DPP wins historic majority",
         impact: "positive",
       },
       {
         year: 2019,
         event:
-          "Rejected &#39;one country two systems&#39; absolutely after Hong Kong crackdown",
+          "Rejected 'one country two systems' absolutely after Hong Kong crackdown",
         impact: "positive",
       },
       {
         year: 2020,
         event:
-          "Won re-election with record 8.17M votes — Taiwan&#39;s largest ever mandate",
+          "Won re-election with record 8.17M votes — Taiwan's largest ever mandate",
         impact: "positive",
       },
       {
         year: 2022,
         event:
-          "China&#39;s largest military exercises around Taiwan after Pelosi visit",
+          "China's largest military exercises around Taiwan after Pelosi visit",
         impact: "negative",
       },
       {
@@ -12303,18 +12302,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Taiwan&#39;s COVID-19 response cited globally as model — near-zero early deaths despite proximity to China",
-      "Taiwan&#39;s defence spending raised — extended military service mandatory",
-      "TSMC global expansion — Taiwan cemented as world&#39;s chip manufacturing hub",
-      "Taiwan&#39;s first female president — two full terms of democratic governance",
+      "Taiwan's COVID-19 response cited globally as model — near-zero early deaths despite proximity to China",
+      "Taiwan's defence spending raised — extended military service mandatory",
+      "TSMC global expansion — Taiwan cemented as world's chip manufacturing hub",
+      "Taiwan's first female president — two full terms of democratic governance",
     ],
     politicalViews:
-      "Progressive democratic, pro-Taiwan identity, opposed to &#39;one country two systems&#39;. Security hawk who dramatically raised defence capabilities. Pro-US alliance, pro-Japan partnership. Semiconductor sovereignty — positioned TSMC as Taiwan&#39;s &#39;silicon shield&#39;. Pragmatic on cross-strait trade while hardening military deterrence.",
+      "Progressive democratic, pro-Taiwan identity, opposed to 'one country two systems'. Security hawk who dramatically raised defence capabilities. Pro-US alliance, pro-Japan partnership. Semiconductor sovereignty — positioned TSMC as Taiwan's 'silicon shield'. Pragmatic on cross-strait trade while hardening military deterrence.",
     approvalRating: 64,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Led Taiwan through its most dangerous eight years since 1996 while building the democratic identity and defence posture that has made Taiwan a credible self-defending democracy. Her semiconductor strategy transformed Taiwan&#39;s geopolitical leverage from vulnerability to indispensability.",
+      "Led Taiwan through its most dangerous eight years since 1996 while building the democratic identity and defence posture that has made Taiwan a credible self-defending democracy. Her semiconductor strategy transformed Taiwan's geopolitical leverage from vulnerability to indispensability.",
     region: "Asia-Pacific",
   },
   {
@@ -12340,7 +12339,7 @@ const LEADERS: Leader[] = [
     ideology: "Populist",
     termsInOffice: [{ from: 2009, to: 2018 }],
     background:
-      "ANC intelligence chief, Robben Island prisoner, and liberation movement veteran who became South Africa&#39;s most controversial president. His nine years (2009–2018) are defined by &#39;state capture&#39; — the systematic hollowing out of state institutions in partnership with the Gupta family, at an estimated cost of $34B to the South African economy. Removed by the ANC in 2018, jailed briefly in 2021 on contempt charges triggering the KZN riots, he then formed a new party (MK) and in 2024 won 14.6% in national elections — threatening ANC dominance in KwaZulu-Natal.",
+      "ANC intelligence chief, Robben Island prisoner, and liberation movement veteran who became South Africa's most controversial president. His nine years (2009–2018) are defined by 'state capture' — the systematic hollowing out of state institutions in partnership with the Gupta family, at an estimated cost of $34B to the South African economy. Removed by the ANC in 2018, jailed briefly in 2021 on contempt charges triggering the KZN riots, he then formed a new party (MK) and in 2024 won 14.6% in national elections — threatening ANC dominance in KwaZulu-Natal.",
     significantEvents: [
       {
         year: 2009,
@@ -12357,7 +12356,7 @@ const LEADERS: Leader[] = [
       {
         year: 2018,
         event:
-          "Forced to resign by ANC after Ramaphosa&#39;s election as party leader",
+          "Forced to resign by ANC after Ramaphosa's election as party leader",
         impact: "neutral",
       },
       {
@@ -12368,7 +12367,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "MK party wins 14.6% — disrupts ANC&#39;s KwaZulu-Natal dominance",
+          "MK party wins 14.6% — disrupts ANC's KwaZulu-Natal dominance",
         impact: "negative",
       },
     ],
@@ -12376,15 +12375,15 @@ const LEADERS: Leader[] = [
       "South Africa expanded social grants under his tenure — 17M+ recipients",
       "National Health Insurance concept initiated",
       "BRICS membership consolidated under his government",
-      "Led ANC&#39;s electoral victories in 2009 and 2014",
+      "Led ANC's electoral victories in 2009 and 2014",
     ],
     politicalViews:
-      "Zulu ethnic populism, ANC liberation movement traditionalism. Used state resources for personal and factional enrichment. Anti-establishment rhetoric despite being establishment. MK party frames ANC leadership as &#39;betrayers&#39; of liberation legacy. Populist redistribution rhetoric with kleptocratic practice.",
+      "Zulu ethnic populism, ANC liberation movement traditionalism. Used state resources for personal and factional enrichment. Anti-establishment rhetoric despite being establishment. MK party frames ANC leadership as 'betrayers' of liberation legacy. Populist redistribution rhetoric with kleptocratic practice.",
     approvalRating: 22,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "State capture under Zuma represents the largest self-inflicted economic damage by any African democracy — $34B stolen or wasted, Eskom collapsed, and institutions gutted. His MK party&#39;s 2024 resurgence shows the durability of ethnic-populist politics even after comprehensive governance failure.",
+      "State capture under Zuma represents the largest self-inflicted economic damage by any African democracy — $34B stolen or wasted, Eskom collapsed, and institutions gutted. His MK party's 2024 resurgence shows the durability of ethnic-populist politics even after comprehensive governance failure.",
     region: "Africa",
   },
   {
@@ -12410,12 +12409,12 @@ const LEADERS: Leader[] = [
     ideology: "Populist",
     termsInOffice: [{ from: 2018, to: 2024 }],
     background:
-      "Known as AMLO, he ran for president three times before finally winning in 2018 with a historic 53% majority — Mexico&#39;s largest ever at that time. Founded MORENA as a new political movement after leaving the PRD, reshaping Mexican politics from a triparty system to MORENA dominance. His &#39;Fourth Transformation&#39; (4T) promised to end corruption and restore Mexican sovereignty. Handed power to his chosen successor Claudia Sheinbaum in October 2024.",
+      "Known as AMLO, he ran for president three times before finally winning in 2018 with a historic 53% majority — Mexico's largest ever at that time. Founded MORENA as a new political movement after leaving the PRD, reshaping Mexican politics from a triparty system to MORENA dominance. His 'Fourth Transformation' (4T) promised to end corruption and restore Mexican sovereignty. Handed power to his chosen successor Claudia Sheinbaum in October 2024.",
     significantEvents: [
       {
         year: 2018,
         event:
-          "Won election with 53% — Mexico&#39;s most decisive presidential victory",
+          "Won election with 53% — Mexico's most decisive presidential victory",
         impact: "positive",
       },
       {
@@ -12449,12 +12448,12 @@ const LEADERS: Leader[] = [
       "Cancelled NAICM airport — $13B project stopped to challenge corrupt establishment",
     ],
     politicalViews:
-      "Mexican nationalist populism, anti-neoliberalism, fourth transformation ideology. Energy sovereigntist — state oil and electricity companies non-negotiable. Non-interventionist foreign policy (&#39;best foreign policy is good domestic policy&#39;). Deep distrust of US supervision of Mexico&#39;s internal affairs. Evangelical Christian values despite leftist economics.",
+      "Mexican nationalist populism, anti-neoliberalism, fourth transformation ideology. Energy sovereigntist — state oil and electricity companies non-negotiable. Non-interventionist foreign policy ('best foreign policy is good domestic policy'). Deep distrust of US supervision of Mexico's internal affairs. Evangelical Christian values despite leftist economics.",
     approvalRating: 62,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Reshaped Mexican politics permanently — MORENA now dominates all three branches of government under Sheinbaum. His judicial reform may prove his most consequential and most contested legacy, potentially undermining independent courts for decades. The progressive versus authoritarian debate about his six years remains Mexico&#39;s defining political argument.",
+      "Reshaped Mexican politics permanently — MORENA now dominates all three branches of government under Sheinbaum. His judicial reform may prove his most consequential and most contested legacy, potentially undermining independent courts for decades. The progressive versus authoritarian debate about his six years remains Mexico's defining political argument.",
     region: "Americas",
   },
   // ── BATCH 28: UK Monarchy, Iconic Formers, International Institutions ────
@@ -12526,12 +12525,12 @@ const LEADERS: Leader[] = [
       "Climate advocacy — championed net zero decades before mainstream political consensus",
     ],
     politicalViews:
-      "Constitutional monarch — non-political by constitutional requirement. Personally deeply committed to environmental conservation, organic farming, interfaith dialogue, and youth opportunity. Climate change activist before becoming King — the UK and global Commonwealth&#39;s ceremonial head.",
+      "Constitutional monarch — non-political by constitutional requirement. Personally deeply committed to environmental conservation, organic farming, interfaith dialogue, and youth opportunity. Climate change activist before becoming King — the UK and global Commonwealth's ceremonial head.",
     approvalRating: 42,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Inherited the most globally recognised monarchy at its most tested moment — navigating cancer, Prince Harry&#39;s departure, and Commonwealth questioning of the Crown&#39;s relevance while bringing genuine personal passion for climate and youth development to the role.",
+      "Inherited the most globally recognised monarchy at its most tested moment — navigating cancer, Prince Harry's departure, and Commonwealth questioning of the Crown's relevance while bringing genuine personal passion for climate and youth development to the role.",
     region: "Europe",
   },
   {
@@ -12557,7 +12556,7 @@ const LEADERS: Leader[] = [
     ideology: "Progressive",
     termsInOffice: [{ from: 2017, to: 2023 }],
     background:
-      "Became New Zealand&#39;s youngest-ever PM at 37 and the world&#39;s second elected leader to give birth while in office. Transformed the international image of political leadership through her responses to the 2019 Christchurch mosque shootings (banned assault weapons within days) and COVID-19 (elimination strategy). Resigned in January 2023, stating she no longer had &#39;enough in the tank&#39; — a globally discussed act of political self-awareness.",
+      "Became New Zealand's youngest-ever PM at 37 and the world's second elected leader to give birth while in office. Transformed the international image of political leadership through her responses to the 2019 Christchurch mosque shootings (banned assault weapons within days) and COVID-19 (elimination strategy). Resigned in January 2023, stating she no longer had 'enough in the tank' — a globally discussed act of political self-awareness.",
     significantEvents: [
       {
         year: 2017,
@@ -12579,7 +12578,7 @@ const LEADERS: Leader[] = [
       {
         year: 2020,
         event:
-          "COVID-19 elimination strategy — NZ among world&#39;s most successful responses initially",
+          "COVID-19 elimination strategy — NZ among world's most successful responses initially",
         impact: "positive",
       },
       {
@@ -12592,7 +12591,7 @@ const LEADERS: Leader[] = [
     achievements: [
       "Fastest-ever gun reform legislation in a democracy — assault weapons banned in days",
       "Christchurch Call — global social media extremism agreement with France",
-      "NZ&#39;s COVID-19 elimination strategy — 100 days with no community transmission",
+      "NZ's COVID-19 elimination strategy — 100 days with no community transmission",
       "Wellbeing Budget — first national budget prioritising mental health and child poverty",
     ],
     politicalViews:
@@ -12655,7 +12654,7 @@ const LEADERS: Leader[] = [
       {
         year: 2020,
         event:
-          "COVID-19 — MHRA approved world&#39;s first COVID vaccine (Oxford/AstraZeneca) in UK",
+          "COVID-19 — MHRA approved world's first COVID vaccine (Oxford/AstraZeneca) in UK",
         impact: "positive",
       },
       {
@@ -12667,17 +12666,17 @@ const LEADERS: Leader[] = [
     ],
     achievements: [
       "Delivered Brexit — UK left EU single market and customs union after 47 years",
-      "Operation Moonshot/Vaccine programme — UK among world&#39;s fastest vaccine rollouts",
+      "Operation Moonshot/Vaccine programme — UK among world's fastest vaccine rollouts",
       "Australia and New Zealand FTAs — first post-Brexit independent trade deals",
       "£37B 'levelling up' agenda for left-behind UK communities",
     ],
     politicalViews:
-      "One-nation Conservative, Eurosceptic, pro-free trade globally. Socially liberal by Conservative standards. Big state spender despite fiscal rhetoric. Popularist — pivoted Conservatives toward working-class northern England seats. Pro-Ukraine: one of Zelensky&#39;s earliest and most vocal Western supporters.",
+      "One-nation Conservative, Eurosceptic, pro-free trade globally. Socially liberal by Conservative standards. Big state spender despite fiscal rhetoric. Popularist — pivoted Conservatives toward working-class northern England seats. Pro-Ukraine: one of Zelensky's earliest and most vocal Western supporters.",
     approvalRating: 23,
     approvalTrend: "down",
     status: "In Office",
     impact:
-      "Delivered the most consequential policy change in British post-war history (Brexit) while proving the sustainability of populist politics within a Conservative framework. Partygate confirmed that even landslide mandates can&#39;t survive systematic hypocrisy on the rules leaders themselves set.",
+      "Delivered the most consequential policy change in British post-war history (Brexit) while proving the sustainability of populist politics within a Conservative framework. Partygate confirmed that even landslide mandates can't survive systematic hypocrisy on the rules leaders themselves set.",
     region: "Europe",
   },
   {
@@ -12703,7 +12702,7 @@ const LEADERS: Leader[] = [
     ideology: "Nationalist",
     termsInOffice: [{ from: 2014, to: 2024 }],
     background:
-      "Furniture maker and businessman who became Mayor of Solo, then Governor of Jakarta, before winning the 2014 presidential election — the first Indonesian president without a military or political elite background. Known universally as &#39;Jokowi&#39;, he served two terms transforming Indonesia&#39;s infrastructure, moving the capital from Jakarta to the new city of Nusantara in Borneo (the world&#39;s only planned capital relocation still in progress), and overseeing Indonesia&#39;s emergence as a G20 major player. Chose Prabowo as his successor.",
+      "Furniture maker and businessman who became Mayor of Solo, then Governor of Jakarta, before winning the 2014 presidential election — the first Indonesian president without a military or political elite background. Known universally as 'Jokowi', he served two terms transforming Indonesia's infrastructure, moving the capital from Jakarta to the new city of Nusantara in Borneo (the world's only planned capital relocation still in progress), and overseeing Indonesia's emergence as a G20 major player. Chose Prabowo as his successor.",
     significantEvents: [
       {
         year: 2014,
@@ -12739,8 +12738,8 @@ const LEADERS: Leader[] = [
     achievements: [
       "18,000km of roads, 1,900 bridges, 10 airports, 5 ports built during his decade",
       "Universal healthcare (JKN) expanded to 250M+ Indonesians",
-      "Nusantara — world&#39;s largest planned capital city relocation initiated",
-      "Indonesia&#39;s nickel and EV battery industrialisation strategy — raw materials ban drove processing investment",
+      "Nusantara — world's largest planned capital city relocation initiated",
+      "Indonesia's nickel and EV battery industrialisation strategy — raw materials ban drove processing investment",
     ],
     politicalViews:
       "Pragmatic nationalist, development economics first. Infrastructure over bureaucracy. Non-aligned between US and China — both get investment. Anti-corruption rhetoric with selective enforcement. Nickel sovereigntism — banned raw ore exports to force downstream industrialisation.",
@@ -12748,7 +12747,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Transformed Indonesian governance from a revolving door of Jakarta elites to a genuine outsider presidency focused on infrastructure and development. His nickel export ban triggered the world&#39;s most consequential commodity sovereignty move by any developing country — forcing EV supply chain investment into Indonesia.",
+      "Transformed Indonesian governance from a revolving door of Jakarta elites to a genuine outsider presidency focused on infrastructure and development. His nickel export ban triggered the world's most consequential commodity sovereignty move by any developing country — forcing EV supply chain investment into Indonesia.",
     region: "Asia-Pacific",
   },
   {
@@ -12774,7 +12773,7 @@ const LEADERS: Leader[] = [
     ideology: "Authoritarian",
     termsInOffice: [{ from: 1979, to: "present" }],
     background:
-      "Has ruled Equatorial Guinea since August 1979 — when he overthrew and executed his own uncle Francisco Macías Nguema — making him the world&#39;s longest-serving non-royal president at 46 years. Presides over one of Africa&#39;s most grotesque resource curse stories: Equatorial Guinea has the highest GDP per capita in sub-Saharan Africa ($7,000+) from its offshore oil, yet most of its 1.5M citizens live in poverty while the Obiang/Nguema family controls the nation&#39;s wealth. His son Teodorin serves as Vice President and is facing corruption investigations in Spain and France.",
+      "Has ruled Equatorial Guinea since August 1979 — when he overthrew and executed his own uncle Francisco Macías Nguema — making him the world's longest-serving non-royal president at 46 years. Presides over one of Africa's most grotesque resource curse stories: Equatorial Guinea has the highest GDP per capita in sub-Saharan Africa ($7,000+) from its offshore oil, yet most of its 1.5M citizens live in poverty while the Obiang/Nguema family controls the nation's wealth. His son Teodorin serves as Vice President and is facing corruption investigations in Spain and France.",
     significantEvents: [
       {
         year: 1979,
@@ -12784,7 +12783,7 @@ const LEADERS: Leader[] = [
       {
         year: 1995,
         event:
-          "Offshore oil discovery — EG transforms into sub-Saharan Africa&#39;s highest GDP per capita",
+          "Offshore oil discovery — EG transforms into sub-Saharan Africa's highest GDP per capita",
         impact: "positive",
       },
       {
@@ -12800,23 +12799,23 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "46th year in power — world&#39;s longest-serving non-royal leader",
+          "46th year in power — world's longest-serving non-royal leader",
         impact: "negative",
       },
     ],
     achievements: [
       "46 years in power — world record for non-royal heads of state",
-      "Maintained country&#39;s formal statehood and sovereignty",
-      "Equatorial Guinea&#39;s oil revenues built Malabo and Bata infrastructure",
+      "Maintained country's formal statehood and sovereignty",
+      "Equatorial Guinea's oil revenues built Malabo and Bata infrastructure",
       "African Union and ECCAS membership maintained",
     ],
     politicalViews:
-      "Personal authoritarian dynasty. No political opposition tolerated. Oil revenues controlled by ruling family. Son Teodorin&#39;s corruption cases in Western courts represent the global rule-of-law challenge the regime embodies. Anti-Western democratic pressure.",
+      "Personal authoritarian dynasty. No political opposition tolerated. Oil revenues controlled by ruling family. Son Teodorin's corruption cases in Western courts represent the global rule-of-law challenge the regime embodies. Anti-Western democratic pressure.",
     approvalRating: null,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "The world&#39;s most extreme case of oil-funded personal autocracy — higher GDP per capita than most African nations, yet one of the world&#39;s highest infant mortality rates. His 46-year rule is the definitive case study in resource curse governance failure.",
+      "The world's most extreme case of oil-funded personal autocracy — higher GDP per capita than most African nations, yet one of the world's highest infant mortality rates. His 46-year rule is the definitive case study in resource curse governance failure.",
     region: "Africa",
   },
   // ── BATCH 29 — FINAL: Tunisia, Poland Pres, Niger, UAE-Dubai, Liberia, Bolivia, Vatican ──
@@ -12844,7 +12843,7 @@ const LEADERS: Leader[] = [
     ideology: "Authoritarian",
     termsInOffice: [{ from: 2019, to: "present" }],
     background:
-      "Constitutional law professor who won Tunisia&#39;s 2019 presidential election with 73% — hailed as the Arab world&#39;s democratic breakthrough. In July 2021, suspended parliament, dismissed the government, and assumed emergency rule by decree — a self-coup widely condemned as the reversal of Tunisia&#39;s Arab Spring democracy. Pushed through a new constitution in 2022 concentrating all power in the presidency. The IMF and Western donors suspended support over governance concerns.",
+      "Constitutional law professor who won Tunisia's 2019 presidential election with 73% — hailed as the Arab world's democratic breakthrough. In July 2021, suspended parliament, dismissed the government, and assumed emergency rule by decree — a self-coup widely condemned as the reversal of Tunisia's Arab Spring democracy. Pushed through a new constitution in 2022 concentrating all power in the presidency. The IMF and Western donors suspended support over governance concerns.",
     significantEvents: [
       {
         year: 2019,
@@ -12877,18 +12876,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Won Tunisia&#39;s freest presidential election in 2019 — genuine democratic mandate",
+      "Won Tunisia's freest presidential election in 2019 — genuine democratic mandate",
       "Arrested prominent businessmen linked to Ben Ali and Ennahda corruption",
-      "Tunisia&#39;s migration agreement with EU — €105M suppression-of-crossings deal",
+      "Tunisia's migration agreement with EU — €105M suppression-of-crossings deal",
       "Maintained Tunisian stability vs Libya-style collapse alternative",
     ],
     politicalViews:
-      "Populist authoritarian constitutionalist. Frames democracy as &#39;popular legitimacy&#39; not institutionalism. Anti-Islamist, anti-liberal-democratic party system. Resource nationalist. Suspicious of Western NGOs and international financial conditions.",
+      "Populist authoritarian constitutionalist. Frames democracy as 'popular legitimacy' not institutionalism. Anti-Islamist, anti-liberal-democratic party system. Resource nationalist. Suspicious of Western NGOs and international financial conditions.",
     approvalRating: 35,
     approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
-      "Reversed the Arab Spring&#39;s most consequential democratic experiment — Tunisia was the only country where the 2011 uprising produced durable democracy that actually functioned. His 2021 coup ended one of the most hopeful democratic chapters in Arab world history.",
+      "Reversed the Arab Spring's most consequential democratic experiment — Tunisia was the only country where the 2011 uprising produced durable democracy that actually functioned. His 2021 coup ended one of the most hopeful democratic chapters in Arab world history.",
     region: "Africa",
   },
   {
@@ -12919,12 +12918,12 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2015, to: "present" }],
     background:
-      "Law professor and former MEP who won the 2015 presidential election for PiS and was re-elected in 2020. His presidency has been defined by a constitutional cohabitation clash with PM Donald Tusk since 2023 — Duda repeatedly uses his presidential veto to block Tusk&#39;s coalition reforms of PiS-era judicial appointments and laws, creating Poland&#39;s most acute separation-of-powers crisis since communism.",
+      "Law professor and former MEP who won the 2015 presidential election for PiS and was re-elected in 2020. His presidency has been defined by a constitutional cohabitation clash with PM Donald Tusk since 2023 — Duda repeatedly uses his presidential veto to block Tusk's coalition reforms of PiS-era judicial appointments and laws, creating Poland's most acute separation-of-powers crisis since communism.",
     significantEvents: [
       {
         year: 2015,
         event:
-          "Won presidential election alongside PiS&#39;s parliamentary majority",
+          "Won presidential election alongside PiS's parliamentary majority",
         impact: "positive",
       },
       {
@@ -12941,7 +12940,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2024,
-        event: "Vetoed Tusk&#39;s judicial and media reforms repeatedly",
+        event: "Vetoed Tusk's judicial and media reforms repeatedly",
         impact: "negative",
       },
       {
@@ -12952,18 +12951,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Poland&#39;s NATO defence spending raised to 4% of GDP during his presidency",
+      "Poland's NATO defence spending raised to 4% of GDP during his presidency",
       "Fort Trump — permanent US military base in Poland secured",
       "Strong Ukraine military support from day one of Russian invasion",
       "CPK central communication hub megaproject advanced",
     ],
     politicalViews:
-      "National conservative, Catholic social values, sovereign democracy (PiS model). Hawkish Russia security stance — Polish-American alliance as existential. Has blocked Tusk&#39;s judicial reforms as presidential check. Strongly pro-Ukraine.",
+      "National conservative, Catholic social values, sovereign democracy (PiS model). Hawkish Russia security stance — Polish-American alliance as existential. Has blocked Tusk's judicial reforms as presidential check. Strongly pro-Ukraine.",
     approvalRating: 46,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Poland&#39;s constitutional drama — a PiS-aligned President vetoing a pro-EU PM&#39;s reforms — is Europe&#39;s most complex cohabitation battle. His term ends in 2025; Poland&#39;s presidential election will resolve whether the PiS-era judicial appointments can be unwound.",
+      "Poland's constitutional drama — a PiS-aligned President vetoing a pro-EU PM's reforms — is Europe's most complex cohabitation battle. His term ends in 2025; Poland's presidential election will resolve whether the PiS-era judicial appointments can be unwound.",
     region: "Europe",
   },
   {
@@ -12994,7 +12993,7 @@ const LEADERS: Leader[] = [
     ideology: "Military Junta",
     termsInOffice: [{ from: 2023, to: "present" }],
     background:
-      "Commander of the Presidential Guard who led the July 2023 coup ousting elected President Mohamed Bazoum — the coup that completed the so-called &#39;coup belt&#39; across the Sahel (after Mali 2020–21, Burkina 2022, Guinea 2021). Bazoum remains held under house arrest. The coup triggered ECOWAS military intervention threats that ultimately were not carried out. Niger then expelled French, American, and EU forces, and joined the Alliance of Sahel States with Mali and Burkina Faso.",
+      "Commander of the Presidential Guard who led the July 2023 coup ousting elected President Mohamed Bazoum — the coup that completed the so-called 'coup belt' across the Sahel (after Mali 2020–21, Burkina 2022, Guinea 2021). Bazoum remains held under house arrest. The coup triggered ECOWAS military intervention threats that ultimately were not carried out. Niger then expelled French, American, and EU forces, and joined the Alliance of Sahel States with Mali and Burkina Faso.",
     significantEvents: [
       {
         year: 2023,
@@ -13021,14 +13020,14 @@ const LEADERS: Leader[] = [
       {
         year: 2025,
         event:
-          "Russia&#39;s Africa Corps deployed; US forces partially withdrawn from Agadez base",
+          "Russia's Africa Corps deployed; US forces partially withdrawn from Agadez base",
         impact: "negative",
       },
     ],
     achievements: [
       "Completed Alliance of Sahel States bloc — AES now a functioning regional entity",
       "Expelled Western forces — delivered on domestic anti-France/US sentiment",
-      "Maintained Niger&#39;s state cohesion during ECOWAS economic blockade",
+      "Maintained Niger's state cohesion during ECOWAS economic blockade",
       "Uranium and oil export revenues maintained through China and Russia partnerships",
     ],
     politicalViews:
@@ -13037,7 +13036,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "Transitional",
     impact:
-      "Niger&#39;s coup completed the collapse of France&#39;s entire Sahel security architecture — the US&#39;s critical Agadez drone base, the largest US African intelligence hub, was also lost. His coup&#39;s consequence for counter-terrorism in the world&#39;s most jihadist-contested region will be felt for decades.",
+      "Niger's coup completed the collapse of France's entire Sahel security architecture — the US's critical Agadez drone base, the largest US African intelligence hub, was also lost. His coup's consequence for counter-terrorism in the world's most jihadist-contested region will be felt for decades.",
     region: "Africa",
   },
   {
@@ -13059,7 +13058,7 @@ const LEADERS: Leader[] = [
         year: 1967,
       },
       {
-        institution: "Bell&#39;s School of Languages, UK",
+        institution: "Bell's School of Languages, UK",
         degree: "English Language",
         year: 1966,
       },
@@ -13068,23 +13067,23 @@ const LEADERS: Leader[] = [
     ideology: "Authoritarian",
     termsInOffice: [{ from: 2006, to: "present" }],
     background:
-      "The architect of modern Dubai — the visionary ruler who transformed a small fishing port into one of the world&#39;s top tourism, aviation, logistics, and financial hubs. Serves simultaneously as Dubai&#39;s ruler, UAE&#39;s Vice President, and UAE Prime Minister — the second most powerful figure in the UAE after President MBZ. Creator of Emirates Airline, Jebel Ali Free Zone, and the Dubai World-class infrastructure that made the emirate a global brand.",
+      "The architect of modern Dubai — the visionary ruler who transformed a small fishing port into one of the world's top tourism, aviation, logistics, and financial hubs. Serves simultaneously as Dubai's ruler, UAE's Vice President, and UAE Prime Minister — the second most powerful figure in the UAE after President MBZ. Creator of Emirates Airline, Jebel Ali Free Zone, and the Dubai World-class infrastructure that made the emirate a global brand.",
     significantEvents: [
       {
         year: 1985,
         event:
-          "Founded Emirates Airline — now world&#39;s largest long-haul carrier",
+          "Founded Emirates Airline — now world's largest long-haul carrier",
         impact: "positive",
       },
       {
         year: 2006,
         event:
-          "Became Dubai Ruler and UAE PM after brother Sheikh Maktoum&#39;s death",
+          "Became Dubai Ruler and UAE PM after brother Sheikh Maktoum's death",
         impact: "neutral",
       },
       {
         year: 2010,
-        event: "Burj Khalifa opened — world&#39;s tallest building (828m)",
+        event: "Burj Khalifa opened — world's tallest building (828m)",
         impact: "positive",
       },
       {
@@ -13095,23 +13094,23 @@ const LEADERS: Leader[] = [
       {
         year: 2023,
         event:
-          "Dubai became world&#39;s most visited city — surpassing Paris and London",
+          "Dubai became world's most visited city — surpassing Paris and London",
         impact: "positive",
       },
     ],
     achievements: [
-      "Emirates Airline — built from 2 planes to world&#39;s largest long-haul carrier",
-      "Burj Khalifa — world&#39;s tallest building conceived and delivered under his vision",
-      "Dubai ranked world&#39;s most visited city (2023) with 17M tourists",
+      "Emirates Airline — built from 2 planes to world's largest long-haul carrier",
+      "Burj Khalifa — world's tallest building conceived and delivered under his vision",
+      "Dubai ranked world's most visited city (2023) with 17M tourists",
       "DIFC (Dubai International Financial Centre) — leading global financial hub",
     ],
     politicalViews:
-      "Pragmatic modernising absolute monarchist. Pro-business liberalisation without political pluralism. Dubai as global neutral hub — open to all nations. Vision-driven governance. Published poetry and books on leadership. Strategic hedging between East and West as Dubai&#39;s business model.",
+      "Pragmatic modernising absolute monarchist. Pro-business liberalisation without political pluralism. Dubai as global neutral hub — open to all nations. Vision-driven governance. Published poetry and books on leadership. Strategic hedging between East and West as Dubai's business model.",
     approvalRating: null,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Transformed Dubai from a regional backwater into a global city synonymous with ambition, luxury, and modernity — a feat of governance-as-placemaking unmatched in the modern era. His creation of Emirates Airline alone reshaped global aviation and made Dubai the world&#39;s international transit hub.",
+      "Transformed Dubai from a regional backwater into a global city synonymous with ambition, luxury, and modernity — a feat of governance-as-placemaking unmatched in the modern era. His creation of Emirates Airline alone reshaped global aviation and made Dubai the world's international transit hub.",
     region: "Middle East",
   },
   {
@@ -13142,7 +13141,7 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2024, to: "present" }],
     background:
-      "Former Vice President under Ellen Johnson Sirleaf (2006–2018) who ran for president twice before finally defeating incumbent George Weah in the November 2023 runoff election — inaugurated in January 2024 at age 79, making him one of Africa&#39;s oldest incoming heads of state. Liberia is West Africa&#39;s most historically significant democracy — the continent&#39;s first republic, founded by freed American slaves in 1847, and Africa&#39;s first female president (Sirleaf) preceded him.",
+      "Former Vice President under Ellen Johnson Sirleaf (2006–2018) who ran for president twice before finally defeating incumbent George Weah in the November 2023 runoff election — inaugurated in January 2024 at age 79, making him one of Africa's oldest incoming heads of state. Liberia is West Africa's most historically significant democracy — the continent's first republic, founded by freed American slaves in 1847, and Africa's first female president (Sirleaf) preceded him.",
     significantEvents: [
       {
         year: 2017,
@@ -13177,7 +13176,7 @@ const LEADERS: Leader[] = [
       "Won presidency on second attempt at age 79 — remarkable democratic persistence",
       "Anti-corruption investigations of Weah-era officials launched",
       "US military cooperation framework expanded",
-      "Liberia&#39;s agricultural investment strategy with World Bank advanced",
+      "Liberia's agricultural investment strategy with World Bank advanced",
     ],
     politicalViews:
       "Social democratic, anti-corruption, pro-development investment. Close US relationship — Liberia has unique historical ties to America. Pro-ECOWAS regional integration. Rule of law restoration as defining mandate. Agricultural and resource sector diversification.",
@@ -13185,7 +13184,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "His election maintains Liberia&#39;s remarkable democratic consolidation — a country that survived two brutal civil wars to produce peaceful electoral transfers. At 79, he represents the democratic persistence of a generation that rebuilt Liberia from total devastation.",
+      "His election maintains Liberia's remarkable democratic consolidation — a country that survived two brutal civil wars to produce peaceful electoral transfers. At 79, he represents the democratic persistence of a generation that rebuilt Liberia from total devastation.",
     region: "Africa",
   },
   {
@@ -13216,7 +13215,7 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2020, to: 2025 }],
     background:
-      "Technocratic economist and Evo Morales&#39;s longtime Finance Minister who overseen Bolivia&#39;s commodity boom. Won the October 2020 election following Jeanine Áñez&#39;s interim government — which had replaced Morales after the disputed 2019 election and OAS fraud allegations. His tenure was consumed by a bitter split with Morales, who launched a coup attempt against him in June 2024, and a severe economic crisis as Bolivia&#39;s natural gas reserves depleted. Lost the 2025 election.",
+      "Technocratic economist and Evo Morales's longtime Finance Minister who overseen Bolivia's commodity boom. Won the October 2020 election following Jeanine Áñez's interim government — which had replaced Morales after the disputed 2019 election and OAS fraud allegations. His tenure was consumed by a bitter split with Morales, who launched a coup attempt against him in June 2024, and a severe economic crisis as Bolivia's natural gas reserves depleted. Lost the 2025 election.",
     significantEvents: [
       {
         year: 2020,
@@ -13238,7 +13237,7 @@ const LEADERS: Leader[] = [
       {
         year: 2024,
         event:
-          "Bolivia&#39;s foreign exchange crisis — gas revenues collapsed; chronic fuel shortage",
+          "Bolivia's foreign exchange crisis — gas revenues collapsed; chronic fuel shortage",
         impact: "negative",
       },
       {
@@ -13248,10 +13247,10 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Bolivia&#39;s electric vehicle battery supply strategy — lithium industrialisation policy",
+      "Bolivia's electric vehicle battery supply strategy — lithium industrialisation policy",
       "Survived first military coup attempt in Bolivia in decades",
       "Social programmes maintained during economic downturn",
-      "Established Bolivia&#39;s lithium state enterprise (YLB) expansion",
+      "Established Bolivia's lithium state enterprise (YLB) expansion",
     ],
     politicalViews:
       "Democratic socialist, MAS ideology, indigenous rights integration, resource nationalism (lithium and gas state ownership). Economic heterodox — state intervention, currency controls. Anti-imperialist rhetoric. Bitter split with Morales dominates final years.",
@@ -13259,7 +13258,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "down",
     status: "Former",
     impact:
-      "His term ended the MAS decade by exposing its contradictions — internal factional war destroying the movement, depletion of the gas wealth that funded its social programs, and a coup attempt underlining Bolivia&#39;s perennial institutional fragility. Bolivia&#39;s lithium dream remains unrealised.",
+      "His term ended the MAS decade by exposing its contradictions — internal factional war destroying the movement, depletion of the gas wealth that funded its social programs, and a coup attempt underlining Bolivia's perennial institutional fragility. Bolivia's lithium dream remains unrealised.",
     region: "Americas",
   },
   {
@@ -13295,7 +13294,7 @@ const LEADERS: Leader[] = [
     ideology: "Theocrat",
     termsInOffice: [{ from: 2025, to: "present" }],
     background:
-      "Born Robert Francis Prevost in Chicago, the first American pope in the Catholic Church&#39;s 2,000-year history. An Augustinian friar who spent decades as a missionary in Peru — becoming a naturalised Peruvian citizen — before serving as Bishop of Chiclayo and then Prefect of the Dicastery for Bishops at the Vatican under Francis. Elected on May 8, 2025, the day following Francis&#39;s funeral, taking the name Leo XIV after Pope Leo XIII — the social justice pope of the industrial age. His name choice signals continuity with Catholic social teaching.",
+      "Born Robert Francis Prevost in Chicago, the first American pope in the Catholic Church's 2,000-year history. An Augustinian friar who spent decades as a missionary in Peru — becoming a naturalised Peruvian citizen — before serving as Bishop of Chiclayo and then Prefect of the Dicastery for Bishops at the Vatican under Francis. Elected on May 8, 2025, the day following Francis's funeral, taking the name Leo XIV after Pope Leo XIII — the social justice pope of the industrial age. His name choice signals continuity with Catholic social teaching.",
     significantEvents: [
       {
         year: 1985,
@@ -13329,12 +13328,12 @@ const LEADERS: Leader[] = [
       "Deep missionary formation — grassroots Church rather than Vatican careerist",
     ],
     politicalViews:
-      "Progressive Catholic social teaching, continuity with Francis&#39;s approach on climate, migration, and poverty. His American origin gives him unique credibility for engaging US political Catholicism and Vatican-Washington relations. Canon law expertise shapes institutional reform agenda.",
+      "Progressive Catholic social teaching, continuity with Francis's approach on climate, migration, and poverty. His American origin gives him unique credibility for engaging US political Catholicism and Vatican-Washington relations. Canon law expertise shapes institutional reform agenda.",
     approvalRating: null,
     approvalTrend: "up",
     status: "In Office",
     impact:
-      "An American pope fundamentally reshapes the Vatican&#39;s geopolitical optics — at a moment when the US political relationship with global Catholicism is highly contested. His dual American-Peruvian identity bridges North and South global Catholicism in a historically unprecedented way.",
+      "An American pope fundamentally reshapes the Vatican's geopolitical optics — at a moment when the US political relationship with global Catholicism is highly contested. His dual American-Peruvian identity bridges North and South global Catholicism in a historically unprecedented way.",
     region: "Europe",
   },
   // ── BATCH 21: Horn of Africa, Great Lakes, West Africa, Balkans ───────────
@@ -13369,12 +13368,12 @@ const LEADERS: Leader[] = [
       { from: 2022, to: "present" },
     ],
     background:
-      "Academic and civil society leader who served as Somalia&#39;s first post-transitional president (2012–2017), then returned for a second term in May 2022 after a fractious delayed election. Nicknamed &#39;HSM&#39;, he governs one of the world&#39;s most fragile states — simultaneously waging an offensive against al-Shabaab militants, managing clan politics, fending off Ethiopia&#39;s controversial Red Sea deal with Somaliland, and pursuing UAE and Turkish infrastructure investments.",
+      "Academic and civil society leader who served as Somalia's first post-transitional president (2012–2017), then returned for a second term in May 2022 after a fractious delayed election. Nicknamed 'HSM', he governs one of the world's most fragile states — simultaneously waging an offensive against al-Shabaab militants, managing clan politics, fending off Ethiopia's controversial Red Sea deal with Somaliland, and pursuing UAE and Turkish infrastructure investments.",
     significantEvents: [
       {
         year: 2012,
         event:
-          "Elected Somalia&#39;s first post-transition president — milestone in state-building",
+          "Elected Somalia's first post-transition president — milestone in state-building",
         impact: "positive",
       },
       {
@@ -13403,8 +13402,8 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Led Somalia&#39;s largest military offensive against al-Shabaab in a decade",
-      "Restored Mogadishu&#39;s port and airport infrastructure",
+      "Led Somalia's largest military offensive against al-Shabaab in a decade",
+      "Restored Mogadishu's port and airport infrastructure",
       "Somalia granted IMF/World Bank debt relief after years of negotiation",
       "International recognition restored — Somalia back in multilateral diplomacy",
     ],
@@ -13414,7 +13413,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Leads one of the world&#39;s most complex governance challenges — a fractious clan state rebuilding from complete collapse against an active jihadist insurgency, with regional powers (Ethiopia, UAE, Turkey) all competing for influence over its territory.",
+      "Leads one of the world's most complex governance challenges — a fractious clan state rebuilding from complete collapse against an active jihadist insurgency, with regional powers (Ethiopia, UAE, Turkey) all competing for influence over its territory.",
     region: "Africa",
   },
   {
@@ -13445,12 +13444,12 @@ const LEADERS: Leader[] = [
     ideology: "Military Junta",
     termsInOffice: [{ from: 2019, to: "present" }],
     background:
-      "Senior infantry general who became head of the Sovereignty Council (transitional head of state) in 2019 after al-Bashir&#39;s ouster. Led the October 2021 coup that dissolved the civilian transitional government. In April 2023, the long-simmering power struggle with the Rapid Support Forces (RSF) under Mohamed Hamdan Dagalo (&#39;Hemeti&#39;) exploded into full-scale civil war — now one of the world&#39;s worst humanitarian disasters, with 8M+ displaced and mass atrocities documented.",
+      "Senior infantry general who became head of the Sovereignty Council (transitional head of state) in 2019 after al-Bashir's ouster. Led the October 2021 coup that dissolved the civilian transitional government. In April 2023, the long-simmering power struggle with the Rapid Support Forces (RSF) under Mohamed Hamdan Dagalo ('Hemeti') exploded into full-scale civil war — now one of the world's worst humanitarian disasters, with 8M+ displaced and mass atrocities documented.",
     significantEvents: [
       {
         year: 2019,
         event:
-          "Became SAC (Sovereignty Council) chairman after al-Bashir&#39;s removal",
+          "Became SAC (Sovereignty Council) chairman after al-Bashir's removal",
         impact: "neutral",
       },
       {
@@ -13480,16 +13479,16 @@ const LEADERS: Leader[] = [
     achievements: [
       "Maintained SAF cohesion as a fighting force through unprecedented civil war",
       "Secured UAE and Egypt military support for SAF",
-      "Retained Sudan&#39;s UN seat and international recognition vs RSF",
+      "Retained Sudan's UN seat and international recognition vs RSF",
       "SAF recapture of parts of Khartoum in 2025 — partial military reversal",
     ],
     politicalViews:
-      "Military nationalist, Islamist-adjacent (unlike RSF&#39;s secular-criminal model). Anti-civilian-rule in practice despite rhetoric. UAE and Egypt-backed. Anti-Ethiopian influence in Sudan. Refuses ICC jurisdiction over atrocity allegations.",
+      "Military nationalist, Islamist-adjacent (unlike RSF's secular-criminal model). Anti-civilian-rule in practice despite rhetoric. UAE and Egypt-backed. Anti-Ethiopian influence in Sudan. Refuses ICC jurisdiction over atrocity allegations.",
     approvalRating: null,
     approvalTrend: "down",
     status: "Transitional",
     impact:
-      "Presides over what the UN calls the world&#39;s worst humanitarian crisis — Sudan&#39;s civil war has killed tens of thousands and displaced 10M+ in under two years. The conflict is reshaping the Horn of Africa&#39;s geopolitics as Gulf states, Egypt, and Wagner-linked forces back rival factions.",
+      "Presides over what the UN calls the world's worst humanitarian crisis — Sudan's civil war has killed tens of thousands and displaced 10M+ in under two years. The conflict is reshaping the Horn of Africa's geopolitics as Gulf states, Egypt, and Wagner-linked forces back rival factions.",
     region: "Africa",
   },
   {
@@ -13520,11 +13519,11 @@ const LEADERS: Leader[] = [
     ideology: "Social Democrat",
     termsInOffice: [{ from: 2020, to: "present" }],
     background:
-      "Anglican priest turned politician who fought in opposition for 25 years — losing four consecutive presidential elections to the ruling SPPF/PL party — before finally winning the 2020 election with 54.9%, ending 43 years of one-party dominance. One of Africa&#39;s most significant democratic transitions. Governs the Indian Ocean&#39;s wealthiest nation per capita — with the world&#39;s highest tourism-to-population ratio and significant Chinese and UAE investment.",
+      "Anglican priest turned politician who fought in opposition for 25 years — losing four consecutive presidential elections to the ruling SPPF/PL party — before finally winning the 2020 election with 54.9%, ending 43 years of one-party dominance. One of Africa's most significant democratic transitions. Governs the Indian Ocean's wealthiest nation per capita — with the world's highest tourism-to-population ratio and significant Chinese and UAE investment.",
     significantEvents: [
       {
         year: 1998,
-        event: "First presidential run — lost to France-Albert René&#39;s SPPF",
+        event: "First presidential run — lost to France-Albert René's SPPF",
         impact: "neutral",
       },
       {
@@ -13536,7 +13535,7 @@ const LEADERS: Leader[] = [
       {
         year: 2021,
         event:
-          "Seychelles became world&#39;s first country to fully vaccinate population against COVID",
+          "Seychelles became world's first country to fully vaccinate population against COVID",
         impact: "positive",
       },
       {
@@ -13556,7 +13555,7 @@ const LEADERS: Leader[] = [
       "Ended 43-year one-party rule through democratic election after 5 attempts",
       "Seychelles first in world to fully vaccinate entire population vs COVID",
       "Blue Economy framework developed for 1.3M km² maritime zone",
-      "Seychelles ranked Africa&#39;s highest Human Development Index nation under his watch",
+      "Seychelles ranked Africa's highest Human Development Index nation under his watch",
     ],
     politicalViews:
       "Social democratic, pro-good governance, anti-corruption. Blue Economy — ocean conservation and sustainable fishing as economic model. Non-aligned between competing great powers in Indian Ocean. Commonwealth and African Union multilateralism.",
@@ -13564,7 +13563,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "His 2020 victory is one of Africa&#39;s most celebrated democratic moments — a priest who never stopped running eventually broke a 43-year political monopoly. Seychelles under Ramkalawan is the Indian Ocean&#39;s leading example of small-state democratic governance.",
+      "His 2020 victory is one of Africa's most celebrated democratic moments — a priest who never stopped running eventually broke a 43-year political monopoly. Seychelles under Ramkalawan is the Indian Ocean's leading example of small-state democratic governance.",
     region: "Africa",
   },
   {
@@ -13595,7 +13594,7 @@ const LEADERS: Leader[] = [
     ideology: "Nationalist",
     termsInOffice: [{ from: 2020, to: "present" }],
     background:
-      "Military general and Secretary-General of the ruling CNDD-FDD who was handpicked by outgoing de facto ruler Pierre Nkurunziza — who died suddenly of COVID in June 2020 before Ndayishimiye was inaugurated. Surprisingly broke from Nkurunziza&#39;s most repressive policies, acknowledging COVID (which Nkurunziza had called divine protection), releasing some political prisoners, and pursuing re-engagement with the EU and IMF after years of isolation following the 2015 crisis.",
+      "Military general and Secretary-General of the ruling CNDD-FDD who was handpicked by outgoing de facto ruler Pierre Nkurunziza — who died suddenly of COVID in June 2020 before Ndayishimiye was inaugurated. Surprisingly broke from Nkurunziza's most repressive policies, acknowledging COVID (which Nkurunziza had called divine protection), releasing some political prisoners, and pursuing re-engagement with the EU and IMF after years of isolation following the 2015 crisis.",
     significantEvents: [
       {
         year: 2020,
@@ -13605,7 +13604,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2020,
-        event: "Acknowledged COVID reality — reversed Nkurunziza&#39;s denial",
+        event: "Acknowledged COVID reality — reversed Nkurunziza's denial",
         impact: "positive",
       },
       {
@@ -13627,18 +13626,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Broke from Nkurunziza&#39;s COVID denialism — accepted vaccines and masks",
+      "Broke from Nkurunziza's COVID denialism — accepted vaccines and masks",
       "EU aid restoration after 5-year isolation following 2015 political crisis",
-      "IMF programme re-engagement — first since Nkurunziza&#39;s break",
+      "IMF programme re-engagement — first since Nkurunziza's break",
       "Some political prisoners released — partial opening from total repression",
     ],
     politicalViews:
-      "CNDD-FDD nationalist with pragmatic reform elements. Anti-Western human rights criticism domestically, but willing to engage multilaterals for development funding. Burundian sovereignty framing. Suspicious of Rwanda&#39;s regional ambitions.",
+      "CNDD-FDD nationalist with pragmatic reform elements. Anti-Western human rights criticism domestically, but willing to engage multilaterals for development funding. Burundian sovereignty framing. Suspicious of Rwanda's regional ambitions.",
     approvalRating: 41,
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Represents a cautious opening from one of Africa&#39;s most isolated post-2015 states. Burundi remains deeply poor and authoritarian, but Ndayishimiye&#39;s partial pragmatism distinguishes him from his predecessor&#39;s complete international isolation.",
+      "Represents a cautious opening from one of Africa's most isolated post-2015 states. Burundi remains deeply poor and authoritarian, but Ndayishimiye's partial pragmatism distinguishes him from his predecessor's complete international isolation.",
     region: "Africa",
   },
   {
@@ -13660,7 +13659,7 @@ const LEADERS: Leader[] = [
         year: 1994,
       },
       {
-        institution: "King&#39;s College London",
+        institution: "King's College London",
         degree: "M.A. Security Studies",
         year: 2004,
       },
@@ -13714,7 +13713,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "stable",
     status: "In Office",
     impact:
-      "Provides the closest thing to political stability Guinea-Bissau has seen in decades — though his repeated parliament dissolutions show the limits of that stability. His ECOWAS chairmanship during the Sahel coup wave made him one of West Africa&#39;s most prominent faces in 2023.",
+      "Provides the closest thing to political stability Guinea-Bissau has seen in decades — though his repeated parliament dissolutions show the limits of that stability. His ECOWAS chairmanship during the Sahel coup wave made him one of West Africa's most prominent faces in 2023.",
     region: "Africa",
   },
   {
@@ -13745,24 +13744,24 @@ const LEADERS: Leader[] = [
     ideology: "Conservative",
     termsInOffice: [{ from: 2019, to: "present" }],
     background:
-      "Former army chief and Defence Minister who won the 2019 presidential election — the first peaceful democratic transfer of power in Mauritania&#39;s history — after outgoing President Mohamed Ould Abdel Aziz stepped down constitutionally. Won re-election in 2024 with 56%. Mauritania is the Sahel&#39;s striking outlier: it borders Mali and has faced jihadist threats since 2008, but has not experienced a coup since 2008 and has contained al-Qaeda via a combination of military pressure and negotiated tribal agreements.",
+      "Former army chief and Defence Minister who won the 2019 presidential election — the first peaceful democratic transfer of power in Mauritania's history — after outgoing President Mohamed Ould Abdel Aziz stepped down constitutionally. Won re-election in 2024 with 56%. Mauritania is the Sahel's striking outlier: it borders Mali and has faced jihadist threats since 2008, but has not experienced a coup since 2008 and has contained al-Qaeda via a combination of military pressure and negotiated tribal agreements.",
     significantEvents: [
       {
         year: 2019,
         event:
-          "Won election in Mauritania&#39;s first peaceful transfer of power",
+          "Won election in Mauritania's first peaceful transfer of power",
         impact: "positive",
       },
       {
         year: 2021,
         event:
-          "Mauritania ranked Africa&#39;s most improved governance — Mo Ibrahim Foundation",
+          "Mauritania ranked Africa's most improved governance — Mo Ibrahim Foundation",
         impact: "positive",
       },
       {
         year: 2023,
         event:
-          "Maintained Mauritania&#39;s counter-terrorism success as neighbours fell to coups",
+          "Maintained Mauritania's counter-terrorism success as neighbours fell to coups",
         impact: "positive",
       },
       {
@@ -13778,9 +13777,9 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Mauritania&#39;s first-ever peaceful democratic handover of power",
-      "Mo Ibrahim Prize governance recognition — among Africa&#39;s most improved",
-      "Counter-terrorism model — Sahel&#39;s only country not experiencing coup or collapse",
+      "Mauritania's first-ever peaceful democratic handover of power",
+      "Mo Ibrahim Prize governance recognition — among Africa's most improved",
+      "Counter-terrorism model — Sahel's only country not experiencing coup or collapse",
       "EU gas pipeline partnership for offshore Mauritanian reserves",
     ],
     politicalViews:
@@ -13789,7 +13788,7 @@ const LEADERS: Leader[] = [
     approvalTrend: "up",
     status: "In Office",
     impact:
-      "Mauritania under Ghazouani is the Sahel&#39;s most important success story — a counter-example to Mali, Burkina, and Niger&#39;s coups and jihadist expansion. Understanding why Mauritania succeeded while neighbours collapsed is one of Africa&#39;s most consequential policy questions.",
+      "Mauritania under Ghazouani is the Sahel's most important success story — a counter-example to Mali, Burkina, and Niger's coups and jihadist expansion. Understanding why Mauritania succeeded while neighbours collapsed is one of Africa's most consequential policy questions.",
     region: "Africa",
   },
   {
@@ -13820,7 +13819,7 @@ const LEADERS: Leader[] = [
     ideology: "Nationalist",
     termsInOffice: [{ from: 2022, to: "present" }],
     background:
-      "The most provocative Bosnian Serb politician since Radovan Karadžić — Dodik has spent 15 years threatening Bosnian Serb secession, denying the Srebrenica genocide, blocking Bosnian state institutions, and aligning with Serbia&#39;s Vučić, Hungary&#39;s Orbán, and Russia&#39;s Putin. In 2023 he was sanctioned by the US and UK. In 2025 he was convicted and sentenced to a prison term that he refuses to recognise, triggering Bosnia&#39;s worst constitutional crisis since the war.",
+      "The most provocative Bosnian Serb politician since Radovan Karadžić — Dodik has spent 15 years threatening Bosnian Serb secession, denying the Srebrenica genocide, blocking Bosnian state institutions, and aligning with Serbia's Vučić, Hungary's Orbán, and Russia's Putin. In 2023 he was sanctioned by the US and UK. In 2025 he was convicted and sentenced to a prison term that he refuses to recognise, triggering Bosnia's worst constitutional crisis since the war.",
     significantEvents: [
       {
         year: 2006,
@@ -13831,7 +13830,7 @@ const LEADERS: Leader[] = [
       {
         year: 2021,
         event:
-          "Republika Srpska&#39;s military celebration — violation of Dayton Agreement",
+          "Republika Srpska's military celebration — violation of Dayton Agreement",
         impact: "negative",
       },
       {
@@ -13853,18 +13852,18 @@ const LEADERS: Leader[] = [
       },
     ],
     achievements: [
-      "Republika Srpska maintained within Bosnia&#39;s federal structure",
+      "Republika Srpska maintained within Bosnia's federal structure",
       "RS economic ties with Serbia and Russia maintained",
-      "Gas supply through Republika Srpska&#39;s SRBIJAGAS connections preserved",
+      "Gas supply through Republika Srpska's SRBIJAGAS connections preserved",
       "Demonstrated limits of Dayton enforcement mechanisms",
     ],
     politicalViews:
-      "Greater Serbia nationalism, Republika Srpska independence goal. Genocide denial on Srebrenica. Pro-Russia, anti-NATO expansion, anti-EU integration path. Aligns with Vučić, Orbán, and Putin. Views Bosnia&#39;s state institutions as illegitimate impositions.",
+      "Greater Serbia nationalism, Republika Srpska independence goal. Genocide denial on Srebrenica. Pro-Russia, anti-NATO expansion, anti-EU integration path. Aligns with Vučić, Orbán, and Putin. Views Bosnia's state institutions as illegitimate impositions.",
     approvalRating: 43,
     approvalTrend: "stable",
     status: "Incumbent (Disputed)",
     impact:
-      "Europe&#39;s most dangerous destabiliser east of the Kremlin. His 2025 conviction and refusal to comply triggered Bosnia&#39;s worst post-war crisis — testing whether the EU and NATO have the will to enforce Dayton when its most provocative violator simply ignores court orders.",
+      "Europe's most dangerous destabiliser east of the Kremlin. His 2025 conviction and refusal to comply triggered Bosnia's worst post-war crisis — testing whether the EU and NATO have the will to enforce Dayton when its most provocative violator simply ignores court orders.",
     region: "Europe",
   },
 ];
@@ -14852,7 +14851,7 @@ function PoliticalCompass({
             return (
               <g
                 key={l.id}
-                onMouseEnter={(e) => {
+                onMouseEnter={(_e) => {
                   const rect = svgRef.current?.getBoundingClientRect();
                   if (rect) setTooltip({ leader: l, x: cx, y: cy });
                 }}
@@ -15391,7 +15390,7 @@ const RICHEST_FAMILIES: RichFamily[] = [
     sector: "Retail",
     founded: 1945,
     description:
-      "The world&#39;s wealthiest family by combined net worth, the Waltons control roughly 45% of Walmart — the planet&#39;s largest retailer with $650B+ in annual revenues and 2.1 million employees. Their philanthropy spans education reform, conservation, and arts.",
+      "The world's wealthiest family by combined net worth, the Waltons control roughly 45% of Walmart — the planet's largest retailer with $650B+ in annual revenues and 2.1 million employees. Their philanthropy spans education reform, conservation, and arts.",
     keyAssets: [
       "Walmart (45% stake, ~$300B market value)",
       "Arvest Bank (private)",
@@ -15422,7 +15421,7 @@ const RICHEST_FAMILIES: RichFamily[] = [
     sector: "Retail",
     founded: 1911,
     description:
-      "One of the world&#39;s largest private companies, Mars Inc. produces M&amp;M&#39;s, Snickers, Twix, Bounty, and owns the world&#39;s largest petcare business (Royal Canin, Pedigree, Whiskas). Annual revenues exceed $47B. The family is famously private — three siblings avoid public life entirely.",
+      "One of the world's largest private companies, Mars Inc. produces M&M's, Snickers, Twix, Bounty, and owns the world's largest petcare business (Royal Canin, Pedigree, Whiskas). Annual revenues exceed $47B. The family is famously private — three siblings avoid public life entirely.",
     keyAssets: [
       "Mars Inc. (100% private, ~$47B revenue)",
       "Wrigley Company (gum brands)",
@@ -15452,7 +15451,7 @@ const RICHEST_FAMILIES: RichFamily[] = [
     sector: "Energy",
     founded: 1940,
     description:
-      "Charles Koch&#39;s Koch Industries is the second-largest private company in the US with $125B+ in annual revenues. The family is enormously influential in US libertarian-conservative politics through their network of think tanks, universities, and political action. Charles is one of the most consequential political donors in American history.",
+      "Charles Koch's Koch Industries is the second-largest private company in the US with $125B+ in annual revenues. The family is enormously influential in US libertarian-conservative politics through their network of think tanks, universities, and political action. Charles is one of the most consequential political donors in American history.",
     keyAssets: [
       "Koch Industries (refining, chemicals, forest products)",
       "Georgia-Pacific (paper/lumber)",
@@ -15471,7 +15470,7 @@ const RICHEST_FAMILIES: RichFamily[] = [
   {
     id: "ambani",
     family: "Ambani Family",
-    patriarch: "Dhirubhai Ambani (founder, d.2002) · Mukesh &amp; Anil Ambani",
+    patriarch: "Dhirubhai Ambani (founder, d.2002) · Mukesh & Anil Ambani",
     country: "India",
     countryCode: "IN",
     flag: "🇮🇳",
@@ -15482,11 +15481,11 @@ const RICHEST_FAMILIES: RichFamily[] = [
     sector: "Diversified",
     founded: 1966,
     description:
-      "Mukesh Ambani&#39;s Reliance Industries is India&#39;s most valuable company and the largest employer in the private sector. The group spans petrochemicals, refining, telecom (Jio), retail (JioMart, Reliance Retail), and media (Network18). Mukesh is Asia&#39;s richest person; his son Anant&#39;s 2024 wedding was the most expensive in modern history at ~$600M.",
+      "Mukesh Ambani's Reliance Industries is India's most valuable company and the largest employer in the private sector. The group spans petrochemicals, refining, telecom (Jio), retail (JioMart, Reliance Retail), and media (Network18). Mukesh is Asia's richest person; his son Anant's 2024 wedding was the most expensive in modern history at ~$600M.",
     keyAssets: [
       "Reliance Industries (RIL, ~$230B market cap)",
-      "Jio Platforms (India&#39;s largest telecom)",
-      "Reliance Retail (India&#39;s largest retailer)",
+      "Jio Platforms (India's largest telecom)",
+      "Reliance Retail (India's largest retailer)",
       "Network18 Media",
       "Jio Financial Services",
     ],
@@ -15513,7 +15512,7 @@ const RICHEST_FAMILIES: RichFamily[] = [
     sector: "Energy",
     founded: 1744,
     description:
-      "The ruling family of Saudi Arabia — with thousands of princes — controls the world&#39;s largest oil company (Saudi Aramco, 98.5% state-owned), vast real estate, and state investments through the $900B+ Public Investment Fund (PIF). Individual members vary enormously in wealth from billionaires to modestly affluent princes.",
+      "The ruling family of Saudi Arabia — with thousands of princes — controls the world's largest oil company (Saudi Aramco, 98.5% state-owned), vast real estate, and state investments through the $900B+ Public Investment Fund (PIF). Individual members vary enormously in wealth from billionaires to modestly affluent princes.",
     keyAssets: [
       "Saudi Aramco (state, ~$1.7T valuation)",
       "Public Investment Fund ($900B AUM)",
@@ -15533,7 +15532,7 @@ const RICHEST_FAMILIES: RichFamily[] = [
     id: "wertheimer",
     family: "Wertheimer Family",
     patriarch:
-      "Théophile Wertheimer (co-founder) · Alain &amp; Gérard Wertheimer",
+      "Théophile Wertheimer (co-founder) · Alain & Gérard Wertheimer",
     country: "France",
     countryCode: "FR",
     flag: "🇫🇷",
@@ -15544,12 +15543,12 @@ const RICHEST_FAMILIES: RichFamily[] = [
     sector: "Retail",
     founded: 1910,
     description:
-      "The Wertheimer brothers own 100% of Chanel S.A. — the world&#39;s most profitable private luxury brand with revenues of $20B+ and operating margins above 30%. Coco Chanel sold the company to their grandfather in 1924. The family is extremely private and operates from Geneva.",
+      "The Wertheimer brothers own 100% of Chanel S.A. — the world's most profitable private luxury brand with revenues of $20B+ and operating margins above 30%. Coco Chanel sold the company to their grandfather in 1924. The family is extremely private and operates from Geneva.",
     keyAssets: [
       "Chanel S.A. (100%, ~$70B+ estimated value)",
       "Château Rauzan-Ségla (Bordeaux wines)",
       "Cheval Blanc racehorses",
-      "Rothschild &amp; Co stake",
+      "Rothschild & Co stake",
     ],
     members: [
       "Alain Wertheimer (~$45B, co-CEO)",
@@ -15601,7 +15600,7 @@ const RICHEST_FAMILIES: RichFamily[] = [
     sector: "Media",
     founded: 1934,
     description:
-      "David Thomson controls The Woodbridge Company, which holds 65%+ of Thomson Reuters — the world&#39;s leading provider of business information and legal/tax data services. The Thomson family built their wealth through newspapers, then television, then financial information — a three-generation evolution from small-town Canadian media to global data empire.",
+      "David Thomson controls The Woodbridge Company, which holds 65%+ of Thomson Reuters — the world's leading provider of business information and legal/tax data services. The Thomson family built their wealth through newspapers, then television, then financial information — a three-generation evolution from small-town Canadian media to global data empire.",
     keyAssets: [
       "Thomson Reuters (65% via Woodbridge, ~$65B market cap)",
       "Globe and Mail (100%)",
@@ -15629,7 +15628,7 @@ const RICHEST_FAMILIES: RichFamily[] = [
     sector: "Retail",
     founded: 1837,
     description:
-      "Six generations of the Hermès family still control ~67% of Hermès International — maker of the Birkin and Kelly bags, Silk scarves, and exclusive leather goods. The company&#39;s exceptional pricing power (Birkin bags start at $10,000+) has made it one of Europe&#39;s most valuable companies. LVMH&#39;s Arnault unsuccessfully attempted a hostile takeover in 2010-2013.",
+      "Six generations of the Hermès family still control ~67% of Hermès International — maker of the Birkin and Kelly bags, Silk scarves, and exclusive leather goods. The company's exceptional pricing power (Birkin bags start at $10,000+) has made it one of Europe's most valuable companies. LVMH's Arnault unsuccessfully attempted a hostile takeover in 2010-2013.",
     keyAssets: [
       "Hermès International (67% family stake, €250B+ market cap)",
       "Hermès manufacturing ateliers (300+ artisans per bag)",
@@ -15640,7 +15639,7 @@ const RICHEST_FAMILIES: RichFamily[] = [
     members: [
       "Axel Dumas (CEO, 6th generation)",
       "Pierre-Alexis Dumas",
-      "Multiple Guerrand &amp; Puech family branches",
+      "Multiple Guerrand & Puech family branches",
       "~65 family shareholders",
     ],
     trend: "up",
@@ -15659,12 +15658,12 @@ const RICHEST_FAMILIES: RichFamily[] = [
     sector: "Retail",
     founded: 1987,
     description:
-      "Bernard Arnault is the world&#39;s second or third richest person and controls ~47% of LVMH — the world&#39;s largest luxury conglomerate with 75 Maisons including Louis Vuitton, Dior, Givenchy, Tiffany &amp; Co, Moët &amp; Chandon, Hennessy, Sephora, and Le Bon Marché. He has groomed all five children for potential succession.",
+      "Bernard Arnault is the world's second or third richest person and controls ~47% of LVMH — the world's largest luxury conglomerate with 75 Maisons including Louis Vuitton, Dior, Givenchy, Tiffany & Co, Moët & Chandon, Hennessy, Sephora, and Le Bon Marché. He has groomed all five children for potential succession.",
     keyAssets: [
       "LVMH (47% family stake, €330B+ market cap)",
       "Louis Vuitton (largest brand, ~30% of LVMH profit)",
       "Christian Dior SE (97%)",
-      "Tiffany &amp; Co ($15.8B acquisition 2021)",
+      "Tiffany & Co ($15.8B acquisition 2021)",
       "Groupe Arnault (holding)",
     ],
     members: [
@@ -15691,7 +15690,7 @@ const RICHEST_FAMILIES: RichFamily[] = [
     sector: "Energy",
     founded: 1825,
     description:
-      "The ruling family of Qatar oversees the $475B+ Qatar Investment Authority — sovereign wealth fund generated from the world&#39;s largest LNG exporter per capita. QIA owns stakes in Volkswagen, Barclays, Harrods, The Shard, Heathrow Airport, Paris Saint-Germain FC, and much of London&#39;s Mayfair.",
+      "The ruling family of Qatar oversees the $475B+ Qatar Investment Authority — sovereign wealth fund generated from the world's largest LNG exporter per capita. QIA owns stakes in Volkswagen, Barclays, Harrods, The Shard, Heathrow Airport, Paris Saint-Germain FC, and much of London's Mayfair.",
     keyAssets: [
       "Qatar Investment Authority ($475B AUM)",
       "Qatar Petroleum (state LNG)",
@@ -15754,10 +15753,10 @@ const RICHEST_FAMILIES: RichFamily[] = [
     sector: "Retail",
     founded: 1961,
     description:
-      "The Mulliez family controls the Association Familiale Mulliez (AFM) — a family holding shared by 700+ family members across 700 companies. Their portfolio includes Auchan (hypermarkets), Decathlon (sporting goods, world&#39;s largest), Leroy Merlin (home improvement), and Kiabi (fashion). Europe&#39;s largest family business consortium.",
+      "The Mulliez family controls the Association Familiale Mulliez (AFM) — a family holding shared by 700+ family members across 700 companies. Their portfolio includes Auchan (hypermarkets), Decathlon (sporting goods, world's largest), Leroy Merlin (home improvement), and Kiabi (fashion). Europe's largest family business consortium.",
     keyAssets: [
       "Auchan Retail (private, 350+ hypermarkets)",
-      "Decathlon (private, world&#39;s largest sporting goods)",
+      "Decathlon (private, world's largest sporting goods)",
       "Leroy Merlin (home improvement)",
       "Kiabi (fashion)",
       "Norauto (auto services)",
@@ -15784,7 +15783,7 @@ const RICHEST_FAMILIES: RichFamily[] = [
     sector: "Real Estate",
     founded: 1963,
     description:
-      "The Kwok family controls Sun Hung Kai Properties — Hong Kong&#39;s largest property developer by market cap, building some of the city&#39;s most iconic skyscrapers including Two International Finance Centre and the International Commerce Centre. The family has been embroiled in high-profile legal battles including a corruption case involving former patriarch Walter Kwok.",
+      "The Kwok family controls Sun Hung Kai Properties — Hong Kong's largest property developer by market cap, building some of the city's most iconic skyscrapers including Two International Finance Centre and the International Commerce Centre. The family has been embroiled in high-profile legal battles including a corruption case involving former patriarch Walter Kwok.",
     keyAssets: [
       "Sun Hung Kai Properties (~HK$300B market cap)",
       "Kowloon Motor Bus",
@@ -15813,10 +15812,10 @@ const RICHEST_FAMILIES: RichFamily[] = [
     sector: "Tech",
     founded: 1945,
     description:
-      "Azim Premji transformed his father&#39;s cooking oil company Wipro into one of India&#39;s largest IT services and consulting firms, generating $11B+ in annual revenue. He has given away over $22B to his philanthropic foundation — one of the largest charitable commitments by any individual in history outside the US.",
+      "Azim Premji transformed his father's cooking oil company Wipro into one of India's largest IT services and consulting firms, generating $11B+ in annual revenue. He has given away over $22B to his philanthropic foundation — one of the largest charitable commitments by any individual in history outside the US.",
     keyAssets: [
       "Wipro Ltd (72% stake, ~$28B market cap)",
-      "Wipro Enterprises (private FMCG &amp; infrastructure)",
+      "Wipro Enterprises (private FMCG & infrastructure)",
       "Azim Premji Foundation ($22B+ pledged)",
       "Azim Premji University",
     ],
@@ -15841,7 +15840,7 @@ const RICHEST_FAMILIES: RichFamily[] = [
     sector: "Energy",
     founded: 1761,
     description:
-      "The ruling family of Abu Dhabi oversees the Abu Dhabi Investment Authority (ADIA) — one of the world&#39;s largest sovereign wealth funds at ~$993B — plus Mubadala ($285B) and Abu Dhabi National Oil Company (ADNOC). Sheikh MBZ personally has a net worth estimated at $25-30B separate from state assets.",
+      "The ruling family of Abu Dhabi oversees the Abu Dhabi Investment Authority (ADIA) — one of the world's largest sovereign wealth funds at ~$993B — plus Mubadala ($285B) and Abu Dhabi National Oil Company (ADNOC). Sheikh MBZ personally has a net worth estimated at $25-30B separate from state assets.",
     keyAssets: [
       "ADIA (~$993B sovereign wealth fund)",
       "Mubadala Investment Company ($285B)",
@@ -15892,7 +15891,7 @@ const CEO_DATA: CEOProfile[] = [
     country: "United States",
     countryCode: "US",
     flag: "🇺🇸",
-    title: "CEO, Tesla &amp; SpaceX &amp; xAI; Owner, X",
+    title: "CEO, Tesla & SpaceX & xAI; Owner, X",
     netWorth: "$315B",
     netWorthNum: 315,
     marketCap: "$1.3T (Tesla)",
@@ -15901,15 +15900,15 @@ const CEO_DATA: CEOProfile[] = [
     sector: "Tech",
     tenureSince: 2008,
     age: 53,
-    education: "B.A. Physics &amp; Economics, UPenn; Ph.D. (dropped) Stanford",
+    education: "B.A. Physics & Economics, UPenn; Ph.D. (dropped) Stanford",
     background:
       "Born in Pretoria, South Africa. Co-founded Zip2, sold for $307M. Founded X.com (became PayPal, sold to eBay for $1.5B in 2002). Founded SpaceX (2002), joined Tesla as chairman (2004), became CEO (2008). Acquired Twitter for $44B (2022) and rebranded as X. Founded xAI (2023) and Grok AI. In 2025 appointed to lead US DOGE advisory body under Trump.",
     achievements: [
-      "World&#39;s richest person (multiple times)",
-      "Tesla became world&#39;s most valuable automaker",
-      "SpaceX first private company to reach orbit &amp; ISS",
+      "World's richest person (multiple times)",
+      "Tesla became world's most valuable automaker",
+      "SpaceX first private company to reach orbit & ISS",
       "Reusable rocket technology (Falcon 9, Starship)",
-      "Starlink — world&#39;s largest satellite internet constellation (7,000+ satellites)",
+      "Starlink — world's largest satellite internet constellation (7,000+ satellites)",
       "Grok AI challenger to ChatGPT launched",
     ],
     compensation:
@@ -15932,16 +15931,16 @@ const CEO_DATA: CEOProfile[] = [
     sector: "Tech",
     tenureSince: 1994,
     age: 61,
-    education: "B.S. Electrical Engineering &amp; Computer Science, Princeton",
+    education: "B.S. Electrical Engineering & Computer Science, Princeton",
     background:
       "Founded Amazon in a garage in 1994 as an online bookstore. Expanded relentlessly into every retail category, then cloud computing (AWS — now 16% of revenues but 67% of operating profit), streaming (Prime Video), smart home (Alexa), and grocery (Whole Foods). Stepped down as CEO in 2021, handing the role to Andy Jassy. Now focuses on Blue Origin space company and $100M philanthropic initiatives.",
     achievements: [
-      "Built world&#39;s most valuable company (briefly $1.8T)",
+      "Built world's most valuable company (briefly $1.8T)",
       "AWS — created the cloud computing industry standard",
       "Amazon Prime — 200M+ subscribers globally",
       "The Washington Post (purchased 2013 for $250M)",
       "Blue Origin New Shepard commercial space flights",
-      "World&#39;s largest e-commerce platform by GMV",
+      "World's largest e-commerce platform by GMV",
     ],
     compensation:
       "$81,840 base salary (token amount); wealth is via stock holdings",
@@ -15957,7 +15956,7 @@ const CEO_DATA: CEOProfile[] = [
     title: "Chief Executive Officer, Apple Inc.",
     netWorth: "$2.2B",
     netWorthNum: 2.2,
-    marketCap: "$3.4T (world&#39;s largest company)",
+    marketCap: "$3.4T (world's largest company)",
     revenue: "$391B (FY2024)",
     employees: "161,000+",
     sector: "Tech",
@@ -15965,9 +15964,9 @@ const CEO_DATA: CEOProfile[] = [
     age: 64,
     education: "B.S. Industrial Engineering, Auburn; MBA, Duke (Fuqua)",
     background:
-      "Former COO of Apple who succeeded Steve Jobs after his death in October 2011. Supply chain genius who transformed Apple&#39;s manufacturing capabilities at Compaq and IBM before joining Apple in 1998. Under Cook, Apple&#39;s market cap grew from $350B to $3.4T — adding more value than any company in history. Cook is the first Fortune 500 CEO to come out as gay.",
+      "Former COO of Apple who succeeded Steve Jobs after his death in October 2011. Supply chain genius who transformed Apple's manufacturing capabilities at Compaq and IBM before joining Apple in 1998. Under Cook, Apple's market cap grew from $350B to $3.4T — adding more value than any company in history. Cook is the first Fortune 500 CEO to come out as gay.",
     achievements: [
-      "Apple became world&#39;s first $1T, $2T, and $3T company",
+      "Apple became world's first $1T, $2T, and $3T company",
       "iPhone sales generated over $2T cumulative revenue under his tenure",
       "Services business grew from $8B to $100B annually",
       "M1 chip transition — Apple Silicon surpasses Intel",
@@ -15984,7 +15983,7 @@ const CEO_DATA: CEOProfile[] = [
     country: "United States",
     countryCode: "US",
     flag: "🇺🇸",
-    title: "Founder &amp; Chief Executive Officer, NVIDIA",
+    title: "Founder & Chief Executive Officer, NVIDIA",
     netWorth: "$120B",
     netWorthNum: 120,
     marketCap: "$3.3T",
@@ -15995,11 +15994,11 @@ const CEO_DATA: CEOProfile[] = [
     age: 62,
     education: "B.S. Electrical Engineering, Oregon State; M.S. EE, Stanford",
     background:
-      "Born in Tainan, Taiwan. Co-founded NVIDIA in 1993 after working at AMD and LSI Logic. Transformed NVIDIA from a graphics chip maker for gaming into the backbone of the AI revolution. NVIDIA&#39;s H100 and B200 GPUs are now the most critical hardware in existence — every major AI model is trained on NVIDIA chips. NVIDIA became the world&#39;s most valuable company briefly in 2024.",
+      "Born in Tainan, Taiwan. Co-founded NVIDIA in 1993 after working at AMD and LSI Logic. Transformed NVIDIA from a graphics chip maker for gaming into the backbone of the AI revolution. NVIDIA's H100 and B200 GPUs are now the most critical hardware in existence — every major AI model is trained on NVIDIA chips. NVIDIA became the world's most valuable company briefly in 2024.",
     achievements: [
       "NVIDIA H100 GPU — most sought-after chip in history",
       "CUDA platform — created the standard AI computing framework",
-      "NVIDIA surpassed Microsoft and Apple as world&#39;s most valuable company (Jun 2024)",
+      "NVIDIA surpassed Microsoft and Apple as world's most valuable company (Jun 2024)",
       "Stock rose 240% in 2023 alone (AI boom)",
       "DGX Supercomputer — AI data center solutions",
       "GeForce RTX — dominant gaming GPU market",
@@ -16014,7 +16013,7 @@ const CEO_DATA: CEOProfile[] = [
     country: "United States",
     countryCode: "US",
     flag: "🇺🇸",
-    title: "Chairman &amp; Chief Executive Officer, Microsoft",
+    title: "Chairman & Chief Executive Officer, Microsoft",
     netWorth: "$1.5B",
     netWorthNum: 1.5,
     marketCap: "$3.1T",
@@ -16026,7 +16025,7 @@ const CEO_DATA: CEOProfile[] = [
     education:
       "B.S. Electrical Engineering, Manipal; M.S. Computer Science, Univ. of Wisconsin-Milwaukee; MBA, University of Chicago",
     background:
-      "Born in Hyderabad, India. Joined Microsoft in 1992. Took over from Steve Ballmer in 2014 when Microsoft was seen as a fading tech giant. His &#39;cloud-first, mobile-first&#39; strategy transformed Microsoft around Azure — now the world&#39;s second-largest cloud platform. His $69B acquisition of Activision Blizzard (2023) and $13B investment in OpenAI have positioned Microsoft as the leading AI corporate partner.",
+      "Born in Hyderabad, India. Joined Microsoft in 1992. Took over from Steve Ballmer in 2014 when Microsoft was seen as a fading tech giant. His 'cloud-first, mobile-first' strategy transformed Microsoft around Azure — now the world's second-largest cloud platform. His $69B acquisition of Activision Blizzard (2023) and $13B investment in OpenAI have positioned Microsoft as the leading AI corporate partner.",
     achievements: [
       "Microsoft tripled in value from $300B to $3.1T under his leadership",
       "Azure — grew from $3B to $100B+ in annual revenues",
@@ -16045,7 +16044,7 @@ const CEO_DATA: CEOProfile[] = [
     country: "United States",
     countryCode: "US",
     flag: "🇺🇸",
-    title: "Chairman &amp; CTO, Oracle (co-founder)",
+    title: "Chairman & CTO, Oracle (co-founder)",
     netWorth: "$190B",
     netWorthNum: 190,
     marketCap: "$500B",
@@ -16057,14 +16056,14 @@ const CEO_DATA: CEOProfile[] = [
     education:
       "University of Illinois (dropped out); University of Chicago (dropped out)",
     background:
-      "College dropout who founded Oracle in 1977, building it into the world&#39;s second-largest software company. Known for his combative personality, America&#39;s Cup sailing victories, and massive personal spending (buying 98% of Lana&#39;i island in Hawaii). Stepped down as CEO in 2014 but remains Chairman and CTO. Oracle&#39;s pivot to cloud computing under his direction has reinvigorated the company in the AI era.",
+      "College dropout who founded Oracle in 1977, building it into the world's second-largest software company. Known for his combative personality, America's Cup sailing victories, and massive personal spending (buying 98% of Lana'i island in Hawaii). Stepped down as CEO in 2014 but remains Chairman and CTO. Oracle's pivot to cloud computing under his direction has reinvigorated the company in the AI era.",
     achievements: [
-      "Oracle Database — world&#39;s most used enterprise database",
+      "Oracle Database — world's most used enterprise database",
       "PeopleSoft ($10.3B hostile takeover, 2005)",
       "Sun Microsystems ($7.4B acquisition, 2010 — brought Java)",
       "Oracle Cloud Infrastructure — $8B/year and growing 50%+ annually",
-      "America&#39;s Cup yacht racing — multiple victories",
-      "Owns 98% of Lana&#39;i, Hawaii",
+      "America's Cup yacht racing — multiple victories",
+      "Owns 98% of Lana'i, Hawaii",
     ],
     compensation:
       "~$1 salary; $60B+ net worth increase via equity in last 3 years",
@@ -16077,7 +16076,7 @@ const CEO_DATA: CEOProfile[] = [
     country: "United States",
     countryCode: "US",
     flag: "🇺🇸",
-    title: "Founder, Chairman &amp; CEO, Meta Platforms",
+    title: "Founder, Chairman & CEO, Meta Platforms",
     netWorth: "$210B",
     netWorthNum: 210,
     marketCap: "$1.7T",
@@ -16087,9 +16086,9 @@ const CEO_DATA: CEOProfile[] = [
     tenureSince: 2004,
     age: 40,
     education:
-      "B.A. Computer Science &amp; Psychology, Harvard (dropped out 2004)",
+      "B.A. Computer Science & Psychology, Harvard (dropped out 2004)",
     background:
-      "Founded Facebook from his Harvard dorm room at 19. Took company public in 2012 at $104B valuation. Made audacious $1B Instagram acquisition (2012) and $19B WhatsApp acquisition (2014). Renamed company Meta in 2021 to pursue the metaverse — a costly pivot that destroyed $700B in market cap before pivoting to AI in 2023. Meta&#39;s Llama AI models became the most widely-used open-source AI systems in the world.",
+      "Founded Facebook from his Harvard dorm room at 19. Took company public in 2012 at $104B valuation. Made audacious $1B Instagram acquisition (2012) and $19B WhatsApp acquisition (2014). Renamed company Meta in 2021 to pursue the metaverse — a costly pivot that destroyed $700B in market cap before pivoting to AI in 2023. Meta's Llama AI models became the most widely-used open-source AI systems in the world.",
     achievements: [
       "Facebook — 3.3B daily active users across Meta family of apps",
       "Instagram — $1B acquisition grew to ~$40B in value",
@@ -16108,7 +16107,7 @@ const CEO_DATA: CEOProfile[] = [
     country: "United States",
     countryCode: "US",
     flag: "🇺🇸",
-    title: "Chairman &amp; CEO, Berkshire Hathaway",
+    title: "Chairman & CEO, Berkshire Hathaway",
     netWorth: "$145B",
     netWorthNum: 145,
     marketCap: "$1.0T",
@@ -16120,9 +16119,9 @@ const CEO_DATA: CEOProfile[] = [
     education:
       "B.S. Business, University of Nebraska; M.S. Economics, Columbia (studied under Benjamin Graham)",
     background:
-      "The Oracle of Omaha. Bought a controlling stake in the struggling Berkshire Hathaway textile company in 1965 and transformed it into the world&#39;s most successful investment conglomerate. His 20%+ compound annual returns over 60 years are unmatched in financial history. Has pledged to give away 99%+ of his wealth — the largest single charitable commitment in history.",
+      "The Oracle of Omaha. Bought a controlling stake in the struggling Berkshire Hathaway textile company in 1965 and transformed it into the world's most successful investment conglomerate. His 20%+ compound annual returns over 60 years are unmatched in financial history. Has pledged to give away 99%+ of his wealth — the largest single charitable commitment in history.",
     achievements: [
-      "Berkshire&#39;s stock price grew from $19 (1965) to $700,000+ (2024)",
+      "Berkshire's stock price grew from $19 (1965) to $700,000+ (2024)",
       "Best long-term stock market track record in history",
       "Apple stake worth $90B+ (bought 2016-2018 at ~$35B)",
       "Pledged $100B+ to Gates Foundation and family foundations",
@@ -16150,7 +16149,7 @@ const CEO_DATA: CEOProfile[] = [
     age: 39,
     education: "Computer Science, Stanford (dropped out after 2 years)",
     background:
-      "Former President of Y Combinator who took over OpenAI in 2019. Oversaw the release of GPT-3, DALL-E, and ChatGPT — the fastest-growing consumer product in history (100M users in 2 months). Was briefly fired by OpenAI&#39;s board in November 2023 in a dramatic 5-day crisis that ended with his reinstatement after Microsoft threatened to hire him and 700 of 770 OpenAI employees signed a letter demanding his return.",
+      "Former President of Y Combinator who took over OpenAI in 2019. Oversaw the release of GPT-3, DALL-E, and ChatGPT — the fastest-growing consumer product in history (100M users in 2 months). Was briefly fired by OpenAI's board in November 2023 in a dramatic 5-day crisis that ended with his reinstatement after Microsoft threatened to hire him and 700 of 770 OpenAI employees signed a letter demanding his return.",
     achievements: [
       "ChatGPT — 200M+ weekly active users (fastest product to 100M ever)",
       "GPT-4 — most capable AI model of its era",
@@ -16170,7 +16169,7 @@ const CEO_DATA: CEOProfile[] = [
     country: "United States",
     countryCode: "US",
     flag: "🇺🇸",
-    title: "CEO, Alphabet Inc. &amp; Google",
+    title: "CEO, Alphabet Inc. & Google",
     netWorth: "$1.4B",
     netWorthNum: 1.4,
     marketCap: "$2.3T",
@@ -16182,7 +16181,7 @@ const CEO_DATA: CEOProfile[] = [
     education:
       "B.Tech Metallurgical Engineering, IIT Kharagpur; M.S. Material Sciences, Stanford; MBA, Wharton",
     background:
-      "Born in Chennai, India. Joined Google in 2004, rose to lead Chrome (world&#39;s most used browser) and Android (world&#39;s most used OS). Became CEO of Google in 2015 and Alphabet in 2019. Led Google&#39;s response to the AI challenge — deploying Gemini AI across Google products after ChatGPT&#39;s emergence, though Google&#39;s initial AI launches faced criticism.",
+      "Born in Chennai, India. Joined Google in 2004, rose to lead Chrome (world's most used browser) and Android (world's most used OS). Became CEO of Google in 2015 and Alphabet in 2019. Led Google's response to the AI challenge — deploying Gemini AI across Google products after ChatGPT's emergence, though Google's initial AI launches faced criticism.",
     achievements: [
       "Chrome Browser — 4B+ users, 65% market share",
       "Android OS — 3B+ active devices",
@@ -16201,7 +16200,7 @@ const CEO_DATA: CEOProfile[] = [
     country: "United States",
     countryCode: "US",
     flag: "🇺🇸",
-    title: "President &amp; CEO, Amazon",
+    title: "President & CEO, Amazon",
     netWorth: "$700M",
     netWorthNum: 0.7,
     marketCap: "$2.4T",
@@ -16212,10 +16211,10 @@ const CEO_DATA: CEOProfile[] = [
     age: 57,
     education: "B.A. Government, Harvard; MBA, Harvard Business School",
     background:
-      "Joined Amazon in 1997, built Amazon Web Services (AWS) from scratch — the world&#39;s largest cloud platform generating $100B/year. Succeeded Jeff Bezos as CEO in July 2021. Has led significant workforce restructuring (27,000 layoffs in 2023) while accelerating AI investment and Amazon&#39;s healthcare ambitions.",
+      "Joined Amazon in 1997, built Amazon Web Services (AWS) from scratch — the world's largest cloud platform generating $100B/year. Succeeded Jeff Bezos as CEO in July 2021. Has led significant workforce restructuring (27,000 layoffs in 2023) while accelerating AI investment and Amazon's healthcare ambitions.",
     achievements: [
       "Built AWS from zero to $100B annual revenue",
-      "Amazon&#39;s profitability turnaround — $59B net income in 2024",
+      "Amazon's profitability turnaround — $59B net income in 2024",
       "Amazon Bedrock AI platform for enterprise",
       "Anthropic investment ($4B+)",
       "Amazon Nova AI models",
@@ -16227,25 +16226,25 @@ const CEO_DATA: CEOProfile[] = [
   {
     id: "dimon",
     name: "Jamie Dimon",
-    company: "JPMorgan Chase &amp; Co.",
+    company: "JPMorgan Chase & Co.",
     country: "United States",
     countryCode: "US",
     flag: "🇺🇸",
-    title: "Chairman &amp; Chief Executive Officer",
+    title: "Chairman & Chief Executive Officer",
     netWorth: "$2.5B",
     netWorthNum: 2.5,
-    marketCap: "$750B (world&#39;s most valuable bank)",
+    marketCap: "$750B (world's most valuable bank)",
     revenue: "$178B (2024 net revenue)",
     employees: "316,000+",
     sector: "Finance",
     tenureSince: 2005,
     age: 68,
     education:
-      "B.A. Psychology &amp; Economics, Tufts; MBA, Harvard Business School",
+      "B.A. Psychology & Economics, Tufts; MBA, Harvard Business School",
     background:
-      "The most powerful banker in the world, having led JPMorgan through the 2008 financial crisis, acquiring Washington Mutual and Bear Stearns at fire-sale prices. Under his leadership JPMorgan became the world&#39;s most profitable and valuable bank. Known for his frank annual shareholder letters, his 2023 letter warned of &#39;storm clouds&#39; facing the economy. Repeatedly mentioned as potential Treasury Secretary or presidential candidate.",
+      "The most powerful banker in the world, having led JPMorgan through the 2008 financial crisis, acquiring Washington Mutual and Bear Stearns at fire-sale prices. Under his leadership JPMorgan became the world's most profitable and valuable bank. Known for his frank annual shareholder letters, his 2023 letter warned of 'storm clouds' facing the economy. Repeatedly mentioned as potential Treasury Secretary or presidential candidate.",
     achievements: [
-      "JPMorgan Chase became world&#39;s most valuable bank by market cap",
+      "JPMorgan Chase became world's most valuable bank by market cap",
       "Navigated 2008 financial crisis — acquired Bear Stearns ($2/share) and WaMu",
       "First Horizon acquisition attempt (2023, abandoned)",
       "JPMorgan AI — 200+ AI use cases deployed",
@@ -16262,7 +16261,7 @@ const CEO_DATA: CEOProfile[] = [
     country: "France",
     countryCode: "FR",
     flag: "🇫🇷",
-    title: "Chairman &amp; CEO, LVMH",
+    title: "Chairman & CEO, LVMH",
     netWorth: "$175B",
     netWorthNum: 175,
     marketCap: "€340B",
@@ -16273,11 +16272,11 @@ const CEO_DATA: CEOProfile[] = [
     age: 76,
     education: "Polytechnique (Grande École), Paris (B.S. Engineering)",
     background:
-      "The &#39;Wolf in Cashmere&#39; — Arnault gained control of LVMH in a famous hostile takeover in 1987-1989. He has since acquired over 75 luxury brands through aggressive corporate expansion while retaining each brand&#39;s unique identity. Was the world&#39;s richest person for much of 2022-2023. His five children are all being groomed for succession across LVMH&#39;s key divisions.",
+      "The 'Wolf in Cashmere' — Arnault gained control of LVMH in a famous hostile takeover in 1987-1989. He has since acquired over 75 luxury brands through aggressive corporate expansion while retaining each brand's unique identity. Was the world's richest person for much of 2022-2023. His five children are all being groomed for succession across LVMH's key divisions.",
     achievements: [
-      "Built world&#39;s largest luxury conglomerate (75 Maisons)",
-      "Tiffany &amp; Co acquisition — $15.8B (2021)",
-      "Louis Vuitton — world&#39;s most profitable luxury brand",
+      "Built world's largest luxury conglomerate (75 Maisons)",
+      "Tiffany & Co acquisition — $15.8B (2021)",
+      "Louis Vuitton — world's most profitable luxury brand",
       "LVMH revenues grew from €3B to €84B under his leadership",
       "Only luxury CEO to compete with tech giants by market cap",
       "2024 Paris Olympics — LVMH Title Sponsor",
@@ -16292,7 +16291,7 @@ const CEO_DATA: CEOProfile[] = [
     country: "India",
     countryCode: "IN",
     flag: "🇮🇳",
-    title: "Chairman &amp; Managing Director, Reliance Industries",
+    title: "Chairman & Managing Director, Reliance Industries",
     netWorth: "$114B",
     netWorthNum: 114,
     marketCap: "₹18T (~$220B)",
@@ -16303,11 +16302,11 @@ const CEO_DATA: CEOProfile[] = [
     age: 67,
     education: "B.Com, University of Mumbai; M.B.A., Stanford (incomplete)",
     background:
-      "Asia&#39;s richest person. Took over Reliance Industries after father Dhirubhai Ambani&#39;s death in 2002, then navigated a bitter split with brother Anil. Under his leadership, Reliance became India&#39;s most valuable company. His ₹1.5 lakh crore investment in Jio (2016-2019) — offering free data and calls — destroyed India&#39;s incumbents and added 450M subscribers in 3 years.",
+      "Asia's richest person. Took over Reliance Industries after father Dhirubhai Ambani's death in 2002, then navigated a bitter split with brother Anil. Under his leadership, Reliance became India's most valuable company. His ₹1.5 lakh crore investment in Jio (2016-2019) — offering free data and calls — destroyed India's incumbents and added 450M subscribers in 3 years.",
     achievements: [
-      "Jio — 450M subscribers added in 3 years, disrupted India&#39;s telecom",
-      "Reliance Retail — India&#39;s largest retailer ($35B valuation)",
-      "KG-D6 gas discovery — India&#39;s largest domestic gas find",
+      "Jio — 450M subscribers added in 3 years, disrupted India's telecom",
+      "Reliance Retail — India's largest retailer ($35B valuation)",
+      "KG-D6 gas discovery — India's largest domestic gas find",
       "Reliance Jio Financial Services IPO 2023",
       "IPL team Mumbai Indians — most valuable cricket franchise",
       "Net debt-free Reliance achieved in 2020",
@@ -16333,14 +16332,14 @@ const CEO_DATA: CEOProfile[] = [
     age: 71,
     education: "No formal university degree (left before completing)",
     background:
-      "Australia&#39;s richest person and the world&#39;s richest woman for several years. Inherited Lang Hancock&#39;s iron ore and coal empire and expanded it dramatically. Hancock Prospecting produces 70+ million tonnes of iron ore per year. She is politically outspoken — advocating for lower taxes, immigration of skilled workers, and against climate change regulation. Has a complicated public family life — her children have sued her over a trust dispute.",
+      "Australia's richest person and the world's richest woman for several years. Inherited Lang Hancock's iron ore and coal empire and expanded it dramatically. Hancock Prospecting produces 70+ million tonnes of iron ore per year. She is politically outspoken — advocating for lower taxes, immigration of skilled workers, and against climate change regulation. Has a complicated public family life — her children have sued her over a trust dispute.",
     achievements: [
-      "Australia&#39;s richest person for over a decade",
+      "Australia's richest person for over a decade",
       "Roy Hill iron ore mine — $10B project built and operational",
       "Hancock Prospecting — 70M tonnes iron ore per year",
       "Fairfax Media stake (controversial media investment)",
       "Carrington Farms (agricultural diversification)",
-      "Agriculture &amp; energy diversification strategy",
+      "Agriculture & energy diversification strategy",
     ],
     compensation: "Owner-operator; compensated through dividends",
     trend: "stable",

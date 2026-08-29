@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 interface GlobeWidgetProps {
   isLight: boolean;
@@ -86,7 +86,7 @@ export function GlobeWidget({ isLight }: GlobeWidgetProps) {
     const project = (
       x3: number,
       y3: number,
-      z3: number,
+      _z3: number,
       cx: number,
       cy: number,
       R: number,

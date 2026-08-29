@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Globe,
   Lightning,
@@ -35,7 +34,7 @@ const VALUES = [
   {
     icon: <Globe size={24} weight="fill" />,
     title: "Global Coverage",
-    desc: "We track every sovereign nation, major territory, all 50 US states, hundreds of global cities, and major economies — giving you one unified view of the world&#39;s political landscape.",
+    desc: "We track every sovereign nation, major territory, all 50 US states, hundreds of global cities, and major economies — giving you one unified view of the world's political landscape.",
     color: "text-emerald-400",
     bg: "bg-emerald-500/10",
   },

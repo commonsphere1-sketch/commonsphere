@@ -6,7 +6,6 @@ import {
   Sun,
   List,
   X,
-  Globe,
   MapPin,
   Flag,
   Buildings,

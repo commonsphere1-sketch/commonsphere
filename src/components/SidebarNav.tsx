@@ -11,12 +11,10 @@ import {
   City,
   CurrencyDollar,
   NotePencil,
-  Warning,
   Lectern,
   HandHeart,
   Crown,
   Scales,
-  Users,
   ChartLine,
   Info,
   X,
@@ -30,7 +28,6 @@ import {
   ArrowSquareOut,
   Leaf,
   Trophy,
-  BookOpen,
 } from "@phosphor-icons/react";
 
 interface SidebarNavProps {
@@ -173,7 +170,7 @@ const DATA_SOURCES = [
   },
   {
     icon: Lightning,
-    name: "Int&#39;l Energy Agency",
+    name: "Int'l Energy Agency",
     category: "Energy",
     desc: "Global energy production, consumption, renewable share, and CO₂ emissions.",
     color: "text-yellow-400",

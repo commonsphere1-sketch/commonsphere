@@ -1,4 +1,3 @@
-import React from "react";
 import { ArrowsLeftRight } from "@phosphor-icons/react";
 import { ComparisonModule } from "../components/ComparisonModule";
 

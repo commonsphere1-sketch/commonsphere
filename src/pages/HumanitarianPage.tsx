@@ -12,26 +12,19 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
-  PieChart,
-  Pie,
-  Legend,
 } from "recharts";
 import {
   HandHeart,
   Warning,
   Drop,
   Baby,
-  Heartbeat,
   HouseSimple,
   ForkKnife,
   Virus,
   ArrowUp,
   ArrowDown,
   Users,
-  Globe,
   Info,
-  TrendUp,
-  TrendDown,
 } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
@@ -306,7 +299,7 @@ const LEADER_STATEMENTS = [
     color: "#3b82f6",
     initials: "AG",
     statement:
-      "The world is failing humanity&#39;s most vulnerable. With 117 million people forcibly displaced and 733 million going hungry, we face a humanitarian crisis of unprecedented scale. Global solidarity — not nationalism — is the only answer.",
+      "The world is failing humanity's most vulnerable. With 117 million people forcibly displaced and 733 million going hungry, we face a humanitarian crisis of unprecedented scale. Global solidarity — not nationalism — is the only answer.",
     date: "Feb 2024",
     topic: "Global Displacement & Hunger",
   },
@@ -350,7 +343,7 @@ const LEADER_STATEMENTS = [
     color: "#6366f1",
     initials: "SP",
     statement:
-      "The Sudan crisis is the world&#39;s largest displacement emergency and yet it remains chronically underfunded. The international community must stop treating African crises as second-tier. A child in Darfur has the same rights as a child in Warsaw.",
+      "The Sudan crisis is the world's largest displacement emergency and yet it remains chronically underfunded. The international community must stop treating African crises as second-tier. A child in Darfur has the same rights as a child in Warsaw.",
     date: "Apr 2024",
     topic: "Sudan & Africa Funding Gap",
   },
@@ -384,7 +377,7 @@ const ANALYST_COMMENTS = [
     initials: "MW",
     color: "#10b981",
     comment:
-      "The DRC situation is structurally under-reported. 23 million people face acute food insecurity, M23 control of Goma is reshaping regional power dynamics, and Rwanda&#39;s support for rebel factions creates a proxy war dynamic reminiscent of the 1998–2003 Congo War. Humanitarian access is the first casualty.",
+      "The DRC situation is structurally under-reported. 23 million people face acute food insecurity, M23 control of Goma is reshaping regional power dynamics, and Rwanda's support for rebel factions creates a proxy war dynamic reminiscent of the 1998–2003 Congo War. Humanitarian access is the first casualty.",
     tags: ["DRC", "Conflict", "Access"],
   },
   {
@@ -393,7 +386,7 @@ const ANALYST_COMMENTS = [
     initials: "PN",
     color: "#f97316",
     comment:
-      "Afghanistan&#39;s humanitarian model has no precedent: a de-facto government internationally unrecognized, operating with $4.4bn in annual aid dependence while systematically excluding half the population from education and employment. Aid architecture built for emergency is now load-bearing infrastructure.",
+      "Afghanistan's humanitarian model has no precedent: a de-facto government internationally unrecognized, operating with $4.4bn in annual aid dependence while systematically excluding half the population from education and employment. Aid architecture built for emergency is now load-bearing infrastructure.",
     tags: ["Afghanistan", "Policy", "Gender"],
   },
   {
@@ -402,7 +395,7 @@ const ANALYST_COMMENTS = [
     initials: "JO",
     color: "#ec4899",
     comment:
-      "Sudan&#39;s RSF and SAF are both using starvation as a weapon of war — this is a documented violation of IHL Article 54. The Security Council&#39;s paralysis (Russia/China blocking resolutions) means accountability mechanisms are inoperative. Famine in North Darfur is not a natural disaster; it&#39;s engineered.",
+      "Sudan's RSF and SAF are both using starvation as a weapon of war — this is a documented violation of IHL Article 54. The Security Council's paralysis (Russia/China blocking resolutions) means accountability mechanisms are inoperative. Famine in North Darfur is not a natural disaster; it's engineered.",
     tags: ["Sudan", "IHL", "Accountability"],
   },
 ];

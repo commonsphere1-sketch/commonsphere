@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { Outlet,} from "react-router-dom";
 import { HeaderNav } from "./HeaderNav";
 import { SidebarNav } from "./SidebarNav";
 import { NotesPopup } from "./NotesPopup";
