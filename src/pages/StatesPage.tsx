@@ -13133,81 +13133,9 @@ export function StatesPage() {
           ))}
         </div>
 
-        {/* ── Trending & Frequently Looked-Up Stats ── */}
+        {/* ── Upcoming to Watch ── */}
         <div className="mb-6 bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-            <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-              Trending &amp; Frequently Looked-Up
-            </p>
-            <span className="ml-auto text-[10px] text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-full">
-              2026 data
-            </span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {[
-              {
-                label: "🏆 Highest GDP State",
-                value: "California",
-                sub: "$4.1T",
-                color: "text-yellow-400",
-                bg: "bg-yellow-500/10 border-yellow-500/20",
-              },
-              {
-                label: "📈 Fastest Growing",
-                value: "Florida",
-                sub: "+4.2% GDP",
-                color: "text-green-400",
-                bg: "bg-green-500/10 border-green-500/20",
-              },
-              {
-                label: "💼 Lowest Unemployment",
-                value: "North Dakota",
-                sub: "2.2%",
-                color: "text-secondary",
-                bg: "bg-secondary/10 border-secondary/20",
-              },
-              {
-                label: "💰 Highest Median Income",
-                value: "New Jersey",
-                sub: "$100K HH",
-                color: "text-purple-400",
-                bg: "bg-purple-500/10 border-purple-500/20",
-              },
-              {
-                label: "🏙️ Most Populous",
-                value: "California",
-                sub: "39.5M residents",
-                color: "text-orange-400",
-                bg: "bg-orange-500/10 border-orange-500/20",
-              },
-              {
-                label: "0️⃣ No Income Tax States",
-                value: "9 States",
-                sub: "FL, TX, WA…",
-                color: "text-red-400",
-                bg: "bg-red-500/10 border-red-500/20",
-              },
-            ].map((s) => (
-              <div
-                key={s.label}
-                className={`rounded-xl p-3 border ${s.bg} flex flex-col gap-1`}
-              >
-                <p className="text-[10px] font-sans text-muted-foreground leading-snug">
-                  {s.label}
-                </p>
-                <p
-                  className={`text-sm font-bold font-mono ${s.color} leading-tight`}
-                >
-                  {s.value}
-                </p>
-                <p className={`text-[10px] font-sans ${s.color} opacity-80`}>
-                  {s.sub}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 pt-3 border-t border-border/40">
+          <div>
             <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
               🔥 Upcoming to Watch
             </p>

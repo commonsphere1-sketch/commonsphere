@@ -3393,79 +3393,9 @@ export function EconomiesPage() {
           ))}
         </div>
 
-        {/* ── Trending & Frequently Looked-Up Stats ── */}
+        {/* ── Upcoming to Watch ── */}
         <div className="mb-6 bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-            <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-              Trending &amp; Frequently Looked-Up
-            </p>
-            <span className="ml-auto text-[10px] text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-full">
-              2026 data
-            </span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {[
-              {
-                label: "📊 Global GDP",
-                value: "$105.4T",
-                sub: "+2.7% YoY",
-                color: "text-secondary",
-                bg: "bg-secondary/10 border-secondary/20",
-              },
-              {
-                label: "💱 USD/EUR Rate",
-                value: "0.921",
-                sub: "Mid-market Aug 2026",
-                color: "text-yellow-400",
-                bg: "bg-yellow-500/10 border-yellow-500/20",
-              },
-              {
-                label: "📈 Fastest Growing",
-                value: "India +6.3%",
-                sub: "Largest major economy",
-                color: "text-orange-400",
-                bg: "bg-orange-500/10 border-orange-500/20",
-              },
-              {
-                label: "🏦 US Fed Rate",
-                value: "5.25%",
-                sub: "Hold — Jun 2026",
-                color: "text-purple-400",
-                bg: "bg-purple-500/10 border-purple-500/20",
-              },
-              {
-                label: "⚡ Brent Crude",
-                value: "$83/bbl",
-                sub: "+1.8% last week",
-                color: "text-red-400",
-                bg: "bg-red-500/10 border-red-500/20",
-              },
-              {
-                label: "🥇 Gold (XAU)",
-                value: "$2,341",
-                sub: "Near all-time high",
-                color: "text-amber-400",
-                bg: "bg-amber-500/10 border-amber-500/20",
-              },
-            ].map((s) => (
-              <div
-                key={s.label}
-                className={`rounded-xl p-3 border ${s.bg} flex flex-col gap-1`}
-              >
-                <p className="text-[10px] font-sans text-muted-foreground leading-snug">
-                  {s.label}
-                </p>
-                <p className={`text-lg font-bold font-mono ${s.color}`}>
-                  {s.value}
-                </p>
-                <p className={`text-[10px] font-sans ${s.color} opacity-80`}>
-                  {s.sub}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 pt-3 border-t border-border/40">
+          <div>
             <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
               🔥 Upcoming to Watch
             </p>

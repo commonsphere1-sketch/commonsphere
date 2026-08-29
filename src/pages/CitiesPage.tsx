@@ -3489,81 +3489,9 @@ export function CitiesPage() {
           ))}
         </div>
 
-        {/* ── Trending & Frequently Looked-Up Stats ── */}
+        {/* ── Upcoming to Watch ── */}
         <div className="mb-6 bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-            <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-              Trending &amp; Frequently Looked-Up
-            </p>
-            <span className="ml-auto text-[10px] text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-full">
-              2026 data
-            </span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {[
-              {
-                label: "🏠 Most Expensive Rent",
-                value: "Monaco",
-                sub: "$6,500/mo 1BR",
-                color: "text-red-400",
-                bg: "bg-red-500/10 border-red-500/20",
-              },
-              {
-                label: "🚇 Best Transit",
-                value: "Tokyo",
-                sub: "Score 97/100",
-                color: "text-purple-400",
-                bg: "bg-purple-500/10 border-purple-500/20",
-              },
-              {
-                label: "🚴 Best Cycling City",
-                value: "Amsterdam",
-                sub: "Score 97/100",
-                color: "text-green-400",
-                bg: "bg-green-500/10 border-green-500/20",
-              },
-              {
-                label: "🏥 Best Healthcare",
-                value: "Singapore",
-                sub: "Score 90/100",
-                color: "text-secondary",
-                bg: "bg-secondary/10 border-secondary/20",
-              },
-              {
-                label: "💻 Fastest Internet",
-                value: "Singapore",
-                sub: "310 Mbps avg",
-                color: "text-cyan-400",
-                bg: "bg-cyan-500/10 border-cyan-500/20",
-              },
-              {
-                label: "🦄 Most Unicorns",
-                value: "San Francisco",
-                sub: "287 unicorns",
-                color: "text-pink-400",
-                bg: "bg-pink-500/10 border-pink-500/20",
-              },
-            ].map((s) => (
-              <div
-                key={s.label}
-                className={`rounded-xl p-3 border ${s.bg} flex flex-col gap-1`}
-              >
-                <p className="text-[10px] font-sans text-muted-foreground leading-snug">
-                  {s.label}
-                </p>
-                <p
-                  className={`text-sm font-bold font-mono ${s.color} leading-tight`}
-                >
-                  {s.value}
-                </p>
-                <p className={`text-[10px] font-sans ${s.color} opacity-80`}>
-                  {s.sub}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 pt-3 border-t border-border/40">
+          <div>
             <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
               🔥 Upcoming to Watch
             </p>
