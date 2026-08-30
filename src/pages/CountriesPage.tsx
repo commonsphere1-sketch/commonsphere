@@ -15222,6 +15222,246 @@ const COUNTRY_LEGAL_STATUS: Record<string, CountryLegalStatus> = {
       { label: "Sex work", status: "illegal", note: "Criminalized" },
     ],
   },
+  ec: {
+    items: [
+      { label: "Same-sex marriage", status: "legal", note: "Constitutional Court ruling, June 2019" },
+      { label: "Abortion", status: "restricted", note: "Permitted for rape and risk to health following 2021-22 court rulings and law" },
+      { label: "Cannabis", status: "decriminalized", note: "Personal possession below threshold quantities not penalized; medical use permitted" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1906; barred by the constitution" },
+      { label: "Sex work", status: "legal", note: "Not criminalized; regulated through health registration" },
+      { label: "Gambling", status: "illegal", note: "Casinos banned by 2011 referendum" },
+    ],
+  },
+  nl: {
+    items: [
+      { label: "Same-sex marriage", status: "legal", note: "Legalized April 2001, the first country in the world" },
+      { label: "Abortion", status: "legal", note: "On request to viability (about 24 weeks); the mandatory five-day wait was removed in 2023" },
+      { label: "Cannabis", status: "decriminalized", note: "Sale tolerated in licensed coffeeshops; a regulated supply-chain trial began in 2023" },
+      { label: "Death penalty", status: "illegal", note: "Abolished for ordinary crimes 1870, for all crimes 1982" },
+      { label: "Euthanasia", status: "legal", note: "Legalized 2002 under strict due-care criteria" },
+      { label: "Sex work", status: "legal", note: "Legal and licensed since 2000" },
+    ],
+  },
+  gt: {
+    items: [
+      { label: "Same-sex marriage", status: "illegal", note: "Constitutionally barred; civil code defines marriage as between a man and a woman" },
+      { label: "Abortion", status: "illegal", note: "Permitted only to save the life of the pregnant woman" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "restricted", note: "Retained in law; no executions since 2000" },
+      { label: "Sex work", status: "legal", note: "Not criminalized; procuring is" },
+      { label: "Gambling", status: "restricted", note: "Operates in a limited legal framework" },
+    ],
+  },
+  sn: {
+    items: [
+      { label: "Same-sex relationships", status: "illegal", note: "Article 319 criminalizes same-sex acts; bills to widen penalties have been rejected" },
+      { label: "Abortion", status: "illegal", note: "Permitted only to save the life of the pregnant woman" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2004" },
+      { label: "Sex work", status: "legal", note: "Legal for registered workers over 21; unregistered work is penalized" },
+      { label: "Gambling", status: "legal", note: "State lottery and licensed casinos operate" },
+    ],
+  },
+  td: {
+    items: [
+      { label: "Same-sex relationships", status: "illegal", note: "Criminalized by the 2017 penal code" },
+      { label: "Abortion", status: "restricted", note: "Permitted for rape, incest, fetal impairment, or risk to life" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished for ordinary crimes in 2020" },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      { label: "Gambling", status: "restricted", note: "Limited licensed operation" },
+    ],
+  },
+  kh: {
+    items: [
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized; same-sex relations are not criminalized" },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited, though historically tolerated in some cooking" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1989; barred by the constitution" },
+      { label: "Sex work", status: "illegal", note: "Criminalized under the 2008 anti-trafficking law" },
+      { label: "Gambling", status: "restricted", note: "Casinos licensed for foreigners; citizens barred from most gaming" },
+    ],
+  },
+  zw: {
+    items: [
+      { label: "Same-sex relationships", status: "illegal", note: "Male same-sex acts criminalized; constitution bars same-sex marriage" },
+      { label: "Abortion", status: "restricted", note: "Permitted for rape, incest, fetal impairment, or risk to life" },
+      { label: "Cannabis", status: "restricted", note: "Licensed medical and industrial cultivation permitted from 2018" },
+      { label: "Death penalty", status: "illegal", note: "Abolished for ordinary crimes in December 2024" },
+      { label: "Sex work", status: "restricted", note: "Soliciting and public offences enforced" },
+      { label: "Gambling", status: "legal", note: "Licensed casinos and sports betting operate" },
+    ],
+  },
+  rw: {
+    items: [
+      { label: "Same-sex relationships", status: "legal", note: "Not criminalized; no anti-discrimination protection" },
+      { label: "Same-sex marriage", status: "illegal", note: "Constitutionally barred" },
+      { label: "Abortion", status: "restricted", note: "Permitted for rape, incest, forced marriage, or risk to health" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited; strict penalties" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2007" },
+      { label: "Gambling", status: "legal", note: "Licensed and regulated" },
+    ],
+  },
+  gn: {
+    items: [
+      { label: "Same-sex relationships", status: "illegal", note: "Criminalized under the penal code" },
+      { label: "Abortion", status: "restricted", note: "Permitted for rape, incest, fetal impairment, or risk to life" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished for ordinary crimes in 2016" },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      { label: "Gambling", status: "restricted", note: "Limited licensed operation" },
+    ],
+  },
+  bj: {
+    items: [
+      { label: "Same-sex relationships", status: "legal", note: "Not criminalized; public-decency provisions may still apply" },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      { label: "Abortion", status: "legal", note: "Broadly legalized in 2021 up to 12 weeks, among the most permissive in the region" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2016" },
+      { label: "Sex work", status: "restricted", note: "Not itself criminalized; procuring is" },
+    ],
+  },
+  bi: {
+    items: [
+      { label: "Same-sex relationships", status: "illegal", note: "Criminalized since 2009; penalties of up to two years" },
+      { label: "Abortion", status: "restricted", note: "Permitted to save life or protect health" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2009" },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      { label: "Gambling", status: "restricted", note: "Limited licensed operation" },
+    ],
+  },
+  bo: {
+    items: [
+      { label: "Same-sex marriage", status: "restricted", note: "Marriage constitutionally barred; free unions registrable since a 2020 ruling" },
+      { label: "Abortion", status: "restricted", note: "Permitted for rape, incest, or risk to health" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited; coca cultivation is separately legal and regulated" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1997" },
+      { label: "Sex work", status: "legal", note: "Legal and regulated through health registration" },
+      { label: "Gambling", status: "restricted", note: "Licensed under the national gaming authority" },
+    ],
+  },
+  tn: {
+    items: [
+      { label: "Same-sex relationships", status: "illegal", note: "Article 230 criminalizes sodomy; up to three years" },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks since 1973, among the earliest in the region" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited; Law 52 penalties eased by 2017 reform" },
+      { label: "Death penalty", status: "restricted", note: "Retained in law; no executions since 1991" },
+      { label: "Sex work", status: "restricted", note: "Legal only in a small number of licensed establishments" },
+      { label: "Gambling", status: "restricted", note: "Casinos licensed for foreign visitors" },
+    ],
+  },
+  be: {
+    items: [
+      { label: "Same-sex marriage", status: "legal", note: "Legalized June 2003, the second country worldwide" },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks; extension to 18 weeks has been debated" },
+      { label: "Cannabis", status: "decriminalized", note: "Possession of up to 3g by adults not prosecuted as a priority" },
+      { label: "Death penalty", status: "illegal", note: "Abolished for all crimes in 1996; barred by the constitution" },
+      { label: "Euthanasia", status: "legal", note: "Legalized 2002; extended to minors in 2014" },
+      { label: "Sex work", status: "legal", note: "Decriminalized in 2022 with employment rights added in 2024" },
+    ],
+  },
+  ht: {
+    items: [
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized; same-sex relations are not criminalized" },
+      { label: "Abortion", status: "illegal", note: "Criminalized; a 2020 draft penal code liberalizing it was not brought into force" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1987; barred by the constitution" },
+      { label: "Sex work", status: "restricted", note: "Not clearly criminalized; procuring is" },
+      { label: "Gambling", status: "legal", note: "Lottery and casinos operate" },
+    ],
+  },
+  ss: {
+    items: [
+      { label: "Same-sex relationships", status: "illegal", note: "Criminalized under the 2008 penal code" },
+      { label: "Abortion", status: "illegal", note: "Permitted only to save the life of the pregnant woman" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "legal", note: "Retained and applied" },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      { label: "Gambling", status: "restricted", note: "Limited regulated operation" },
+    ],
+  },
+  do: {
+    items: [
+      { label: "Same-sex marriage", status: "illegal", note: "Constitutionally barred" },
+      { label: "Abortion", status: "illegal", note: "Total ban; the three-grounds exception has been repeatedly rejected" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1966; barred by the constitution" },
+      { label: "Sex work", status: "legal", note: "Not criminalized; procuring is" },
+      { label: "Gambling", status: "legal", note: "Casinos and sports betting licensed" },
+    ],
+  },
+  cu: {
+    items: [
+      { label: "Same-sex marriage", status: "legal", note: "Approved by referendum in the 2022 Families Code" },
+      { label: "Abortion", status: "legal", note: "Legal and free on request up to 10 weeks since 1965" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited; severe penalties" },
+      { label: "Death penalty", status: "restricted", note: "Retained in law; no executions since 2003" },
+      { label: "Sex work", status: "restricted", note: "Not itself criminalized; pimping and harassment offences enforced" },
+      { label: "Gambling", status: "illegal", note: "Casinos banned since 1959" },
+    ],
+  },
+  cz: {
+    items: [
+      { label: "Same-sex marriage", status: "restricted", note: "Partnership upgraded in 2024 to give near-marriage rights, without the name" },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      { label: "Cannabis", status: "decriminalized", note: "Possession of small amounts is an administrative offence; medical use legal" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1990; barred by the charter of rights" },
+      { label: "Sex work", status: "restricted", note: "Not criminalized but unregulated; brothels formally prohibited" },
+      { label: "Gambling", status: "legal", note: "Licensed and regulated, including online" },
+    ],
+  },
+  gr: {
+    items: [
+      { label: "Same-sex marriage", status: "legal", note: "Legalized February 2024, the first Orthodox-majority country to do so" },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      { label: "Cannabis", status: "restricted", note: "Medical cannabis legalized 2017; recreational use prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished for all crimes in 2004" },
+      { label: "Sex work", status: "legal", note: "Legal and licensed, though licences are hard to obtain in practice" },
+      { label: "Gambling", status: "legal", note: "Licensed and regulated by the national gaming commission" },
+    ],
+  },
+  hn: {
+    items: [
+      { label: "Same-sex marriage", status: "illegal", note: "Constitutionally barred; an Inter-American Court ruling in 2025 found this in breach" },
+      { label: "Abortion", status: "illegal", note: "Total ban; emergency contraception was legalized in 2023" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1956; barred by the constitution" },
+      { label: "Sex work", status: "legal", note: "Not criminalized; procuring is" },
+      { label: "Gambling", status: "legal", note: "Casinos and lottery licensed" },
+    ],
+  },
+  pt: {
+    items: [
+      { label: "Same-sex marriage", status: "legal", note: "Legalized June 2010; adoption rights added 2016" },
+      { label: "Abortion", status: "legal", note: "On request up to 10 weeks following the 2007 referendum" },
+      { label: "Cannabis", status: "decriminalized", note: "All personal drug possession decriminalized in 2001, treated as a health matter" },
+      { label: "Death penalty", status: "illegal", note: "Abolished for civil crimes in 1867, among the earliest in Europe" },
+      { label: "Euthanasia", status: "legal", note: "Passed in 2023 after repeated vetoes; implementation has been slow" },
+      { label: "Sex work", status: "restricted", note: "Not criminalized; procuring and brothel-keeping are" },
+    ],
+  },
+  jo: {
+    items: [
+      { label: "Same-sex relationships", status: "legal", note: "Not criminalized since 1951, though public-morality provisions are used" },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      { label: "Abortion", status: "restricted", note: "Permitted to protect the life or health of the pregnant woman" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited; strict penalties" },
+      { label: "Death penalty", status: "legal", note: "Retained; executions resumed in 2014 after an eight-year pause" },
+      { label: "Gambling", status: "illegal", note: "Prohibited" },
+    ],
+  },
+  az_as: {
+    items: [
+      { label: "Same-sex relationships", status: "legal", note: "Decriminalized 2000; no anti-discrimination protection" },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks; sex-selective abortion separately restricted" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1998, the first in the South Caucasus" },
+      { label: "Gambling", status: "illegal", note: "Banned since 1998; state lottery permitted" },
+    ],
+  },
 };
 
 const STATUS_CONFIG: Record<
