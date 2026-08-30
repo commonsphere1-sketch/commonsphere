@@ -22,6 +22,7 @@ import { sanitizeText, validateEmail, LIMITS } from "@/lib/security";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfilePhoto } from "@/contexts/ProfilePhotoContext";
 import { useProfile } from "@/contexts/ProfileContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // ─── Topic config ────────────────────────────────────────────────────────────
 const ALERT_TOPICS = [
@@ -235,7 +236,11 @@ export function SettingsPage() {
   } = useProfilePhoto();
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [photoError, setPhotoError] = useState("");
-  const [darkMode, setDarkMode] = useState(true);
+  // Read the real theme rather than a local copy. This button used to drive
+  // its own useState seeded to true, so it flipped its own icon while the page
+  // stayed put — and it claimed "Dark" even when the app was in light mode.
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === "dark";
   const [notifications, setNotifications] = useState(true);
   const [emailAlerts, setEmailAlerts] = useState(true);
   const {
@@ -567,13 +572,13 @@ export function SettingsPage() {
               </p>
             </div>
             <button
-              onClick={() => setDarkMode((v) => !v)}
+              onClick={toggleTheme}
               className="flex items-center gap-2 px-4 py-2 rounded-md bg-muted text-muted-foreground hover:bg-border hover:text-foreground transition-colors duration-150 cursor-pointer text-sm font-normal font-sans"
               aria-label={
-                darkMode ? "Switch to light mode" : "Switch to dark mode"
+                isDark ? "Switch to light mode" : "Switch to dark mode"
               }
             >
-              {darkMode ? (
+              {isDark ? (
                 <>
                   <Moon size={18} weight="fill" className="text-secondary" />
                   <span className="text-foreground">Dark</span>
