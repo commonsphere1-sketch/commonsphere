@@ -42,7 +42,7 @@ type RareEarthMineral = {
 };
 
 const RARE_EARTH_MINERALS: Record<string, RareEarthMineral[]> = {
-  usa: [
+  "usa-eco": [
     {
       name: "Neodymium",
       symbol: "Nd",
@@ -124,7 +124,7 @@ const RARE_EARTH_MINERALS: Record<string, RareEarthMineral[]> = {
       color: "#a5b4fc",
     },
   ],
-  china: [
+  "china-eco": [
     {
       name: "Neodymium",
       symbol: "Nd",
@@ -206,7 +206,7 @@ const RARE_EARTH_MINERALS: Record<string, RareEarthMineral[]> = {
       color: "#38bdf8",
     },
   ],
-  eu: [
+  "eu-eco": [
     {
       name: "Neodymium",
       symbol: "Nd",
@@ -288,7 +288,7 @@ const RARE_EARTH_MINERALS: Record<string, RareEarthMineral[]> = {
       color: "#6ee7b7",
     },
   ],
-  germany: [
+  "germany-eco": [
     {
       name: "Lithium",
       symbol: "Li",
@@ -370,7 +370,7 @@ const RARE_EARTH_MINERALS: Record<string, RareEarthMineral[]> = {
       color: "#8b5cf6",
     },
   ],
-  india: [
+  "india-eco": [
     {
       name: "Lanthanum",
       symbol: "La",
@@ -452,7 +452,7 @@ const RARE_EARTH_MINERALS: Record<string, RareEarthMineral[]> = {
       color: "#7c3aed",
     },
   ],
-  japan: [
+  "japan-eco": [
     {
       name: "Neodymium",
       symbol: "Nd",
@@ -534,7 +534,7 @@ const RARE_EARTH_MINERALS: Record<string, RareEarthMineral[]> = {
       color: "#6ee7b7",
     },
   ],
-  brazil: [
+  "brazil-eco": [
     {
       name: "Niobium",
       symbol: "Nb",
