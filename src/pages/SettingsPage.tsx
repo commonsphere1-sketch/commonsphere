@@ -257,10 +257,6 @@ export function SettingsPage() {
   }, [savedEmail]);
   const [profileError, setProfileError] = useState("");
   const [profileSaved, setProfileSaved] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [passwordSaved, setPasswordSaved] = useState(false);
   const [watched, setWatched] = useState<WatchedEntity[]>([
     {
       id: "country-us",
@@ -310,25 +306,6 @@ export function SettingsPage() {
     setTimeout(() => setProfileSaved(false), 2000);
   }
 
-  function handlePasswordUpdate() {
-    if (!currentPassword.trim()) {
-      setPasswordError("Current password is required.");
-      return;
-    }
-    if (newPassword.length < 8) {
-      setPasswordError("New password must be at least 8 characters.");
-      return;
-    }
-    if (newPassword === currentPassword) {
-      setPasswordError("New password must differ from current password.");
-      return;
-    }
-    setPasswordError("");
-    setPasswordSaved(true);
-    setCurrentPassword("");
-    setNewPassword("");
-    setTimeout(() => setPasswordSaved(false), 2000);
-  }
 
   function addEntity(e: WatchedEntity) {
     setWatched((prev) => [...prev, e]);
@@ -625,61 +602,23 @@ export function SettingsPage() {
               Security
             </h2>
           </div>
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="current-password"
-                className="block text-xs text-muted-foreground font-sans mb-1"
-              >
-                Current Password
-              </label>
-              <Input
-                id="current-password"
-                type="password"
-                placeholder="••••••••"
-                value={currentPassword}
-                onChange={(e) => {
-                  setCurrentPassword(e.target.value);
-                  setPasswordError("");
-                }}
-                className="bg-muted border-border text-foreground placeholder:text-muted-foreground h-9 text-sm"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="new-password"
-                className="block text-xs text-muted-foreground font-sans mb-1"
-              >
-                New Password{" "}
-                <span className="text-muted-foreground font-normal">
-                  (min. 8 characters)
-                </span>
-              </label>
-              <Input
-                id="new-password"
-                type="password"
-                placeholder="••••••••"
-                value={newPassword}
-                onChange={(e) => {
-                  setNewPassword(e.target.value);
-                  setPasswordError("");
-                }}
-                minLength={8}
-                className="bg-muted border-border text-foreground placeholder:text-muted-foreground h-9 text-sm"
-              />
-            </div>
-            {passwordError && (
-              <p className="text-xs text-destructive">{passwordError}</p>
-            )}
-            {passwordSaved && (
-              <p className="text-xs text-success">Password updated.</p>
-            )}
-            <Button
-              onClick={handlePasswordUpdate}
-              className="bg-primary text-primary-foreground hover:bg-muted text-sm font-normal h-9 px-4 border border-border"
-            >
-              Update Password
-            </Button>
+          {/*
+            No password form here on purpose. CommonSphere has no backend and
+            the SDK exposes only login/logout — there is nothing to change a
+            password against. The form that used to sit here validated input,
+            cleared the fields and reported "Password updated." while changing
+            nothing, which on a security panel could convince someone they had
+            rotated a compromised password when they had not.
+          */}
+          <div className="space-y-3">
+            <p className="text-sm font-sans text-foreground">
+              Your password is managed by your sign-in provider
+            </p>
+            <p className="text-xs text-muted-foreground font-sans leading-snug">
+              CommonSphere never receives or stores your password. Signing in
+              is handled by the account you authenticate with, so password
+              changes happen there rather than here.
+            </p>
           </div>
         </section>
       </div>
