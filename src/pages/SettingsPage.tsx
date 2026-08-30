@@ -13,12 +13,16 @@ import {
   X,
   Check,
   Trash,
+  Translate,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { countriesData } from "@/data/countriesData";
 import { usStatesData } from "@/data/statesData";
 import { sanitizeText, validateEmail, LIMITS } from "@/lib/security";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useProfilePhoto } from "@/contexts/ProfilePhotoContext";
+import { useLocale, LOCALES } from "@/contexts/LocaleContext";
 
 // ─── Topic config ────────────────────────────────────────────────────────────
 const ALERT_TOPICS = [
@@ -224,6 +228,15 @@ function WatchedRow({
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export function SettingsPage() {
+  const {
+    photo,
+    setPhotoFromFile,
+    removePhoto,
+    isSaving: isSavingPhoto,
+  } = useProfilePhoto();
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [photoError, setPhotoError] = useState("");
+  const { locale, setLocale, regionName, formatNumber } = useLocale();
   const [darkMode, setDarkMode] = useState(true);
   const [notifications, setNotifications] = useState(true);
   const [emailAlerts, setEmailAlerts] = useState(true);
@@ -346,6 +359,77 @@ export function SettingsPage() {
             </h2>
           </div>
           <div className="space-y-4">
+            {/* Profile photo */}
+            <div>
+              <span className="block text-xs text-muted-foreground font-sans mb-2">
+                Profile Photo
+              </span>
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16 shrink-0">
+                  {photo && <AvatarImage src={photo} alt="Your profile photo" />}
+                  <AvatarFallback className="text-sm font-bold bg-muted text-muted-foreground">
+                    {displayName
+                      ? displayName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase()
+                      : "?"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col gap-2 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <input
+                      ref={photoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        // reset so re-picking the same file still fires onChange
+                        e.target.value = "";
+                        if (!file) return;
+                        setPhotoError("");
+                        const err = await setPhotoFromFile(file);
+                        if (err) setPhotoError(err);
+                      }}
+                    />
+                    <Button
+                      onClick={() => photoInputRef.current?.click()}
+                      disabled={isSavingPhoto}
+                      className="bg-muted text-foreground hover:bg-secondary/20 text-xs font-sans h-8"
+                    >
+                      {isSavingPhoto
+                        ? "Saving…"
+                        : photo
+                          ? "Change photo"
+                          : "Upload photo"}
+                    </Button>
+                    {photo && (
+                      <Button
+                        onClick={() => {
+                          removePhoto();
+                          setPhotoError("");
+                        }}
+                        className="bg-transparent border border-border text-muted-foreground hover:text-foreground text-xs font-sans h-8"
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground font-sans leading-snug">
+                    Stored on this device only — it is resized to 256px and
+                    never uploaded, so it will not follow you to another
+                    browser.
+                  </p>
+                  {photoError && (
+                    <p className="text-xs text-destructive">{photoError}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div>
               <label
                 htmlFor="display-name"
@@ -461,6 +545,67 @@ export function SettingsPage() {
             Toggle individual topics on each location to control what alerts you
             receive.
           </p>
+        </section>
+
+        {/* Data Language */}
+        <section
+          aria-labelledby="language-settings"
+          className="bg-card border border-border rounded-lg p-6 mb-6"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Translate size={20} weight="fill" className="text-secondary" />
+            <h2
+              id="language-settings"
+              className="text-base font-semibold font-sans text-foreground"
+            >
+              Data Language
+            </h2>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="min-w-0">
+                <p className="text-sm font-sans text-foreground">Language</p>
+                <p className="text-xs text-muted-foreground font-sans">
+                  Country names and number formatting follow this setting
+                </p>
+              </div>
+              <select
+                value={locale}
+                onChange={(e) => setLocale(e.target.value)}
+                aria-label="Data language"
+                className="bg-muted border border-border rounded-md px-3 py-1.5 text-sm font-sans text-foreground cursor-pointer shrink-0"
+              >
+                {LOCALES.map((l) => (
+                  <option key={l.code} value={l.code}>
+                    {l.endonym} · {l.english}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="rounded-md border border-border bg-background/40 p-3">
+              <p className="text-[11px] text-muted-foreground font-sans mb-2">
+                Preview
+              </p>
+              <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs font-sans">
+                <span className="text-foreground">
+                  {regionName("DE", "Germany")} ·{" "}
+                  {regionName("JP", "Japan")} ·{" "}
+                  {regionName("BR", "Brazil")}
+                </span>
+                <span className="font-mono text-muted-foreground">
+                  {formatNumber(1234567.89)}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-muted-foreground font-sans leading-snug">
+              Country names and numbers are localized using your browser&#39;s
+              own locale data. Written content — policy notes, legal-status
+              explanations and descriptions — stays in English; it is source
+              text, not machine-translated.
+            </p>
+          </div>
         </section>
 
         {/* Appearance */}

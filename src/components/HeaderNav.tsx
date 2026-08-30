@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useProfilePhoto } from "@/contexts/ProfilePhotoContext";
 import { usStatesData } from "@/data/statesData";
 import { countriesData } from "@/data/countriesData";
 import { citiesData } from "@/data/citiesData";
@@ -105,6 +106,7 @@ const SEARCH_INDEX = buildSearchIndex();
 export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
+  const { photo } = useProfilePhoto();
   const [searchValue, setSearchValue] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
@@ -300,7 +302,7 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
               </span>
               <Avatar className="h-8 w-8">
                 <AvatarImage
-                  src={(user as any)?.profilePictureUrl || ""}
+                  src={photo || (user as any)?.profilePictureUrl || ""}
                   alt="User avatar"
                 />
                 <AvatarFallback
