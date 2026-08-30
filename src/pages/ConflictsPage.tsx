@@ -200,34 +200,16 @@ function ConflictModal({
               }
               title={isExpanded ? "Collapse" : "Expand to full screen"}
             >
-              {isExpanded ? (
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M5 1H1v4M11 1h4v4M5 15H1v-4M11 15h4v-4"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
+              <span className="text-xs font-sans font-medium">
+                  {isExpanded ? "Collapse" : "Expand"}
+                </span>
             </button>
             <button
               onClick={onClose}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer shrink-0"
               aria-label="Close"
             >
-              <XCircle size={20} weight="fill" />
+              <span className="text-xs font-sans font-medium">Close</span>
             </button>
           </div>
 

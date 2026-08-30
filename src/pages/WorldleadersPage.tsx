@@ -14191,7 +14191,7 @@ function LeaderDetail({
         className="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors"
         aria-label="Close"
       >
-        <XCircle size={18} weight="fill" />
+        <span className="text-xs font-sans font-medium">Close</span>
       </button>
 
       {/* Key stats strip */}
