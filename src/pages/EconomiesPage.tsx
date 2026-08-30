@@ -3120,36 +3120,6 @@ export function EconomiesPage() {
         </div>
 
         {/* View Mode Tabs */}
-        <div className="flex flex-wrap items-center gap-2 mb-6">
-          {(
-            [
-              {
-                id: "economies",
-                label: "Economies",
-                icon: <CurrencyDollar size={13} weight="fill" />,
-              },
-              {
-                id: "resources",
-                label: "Resources",
-                icon: <Tree size={13} weight="fill" />,
-              },
-            ] as const
-          ).map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setViewMode(tab.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
-                viewMode === tab.id
-                  ? "bg-secondary/20 border-secondary/40 text-secondary"
-                  : "bg-card border-border text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
         {/* Summary Strip */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
@@ -3200,7 +3170,7 @@ export function EconomiesPage() {
         <SourceLink sources={SRC_IMF} className="mb-4 -mt-2" />
 
         {/* Unified Search + Filter Bar */}
-        <div className="flex flex-col bg-card border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
+        <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
           {/* Row 1: Search */}
           <div className="flex items-center gap-2">
             <MagnifyingGlass
@@ -3215,8 +3185,36 @@ export function EconomiesPage() {
               className="flex-1 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
             />
           </div>
-          {/* Row 2: Filters */}
+          {/* Row 2: View tabs + filters + sort */}
           <div className="flex flex-wrap items-center gap-2 pt-2 mt-1 border-t border-border/60">
+            {(
+              [
+                {
+                  id: "economies",
+                  label: "Economies",
+                  icon: <CurrencyDollar size={13} weight="fill" />,
+                },
+                {
+                  id: "resources",
+                  label: "Resources",
+                  icon: <Tree size={13} weight="fill" />,
+                },
+              ] as const
+            ).map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setViewMode(tab.id)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
+                  viewMode === tab.id
+                    ? "bg-secondary/20 border-secondary/40 text-secondary"
+                    : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+            <div className="w-px h-4 bg-border shrink-0" />
             {(["All", "Country", "Bloc"] as const).map((t) => (
               <button
                 key={t}

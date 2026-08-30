@@ -536,3 +536,36 @@ select:focus-visible {
   outline: 1px solid var(--color-secondary);
   outline-offset: 2px;
 }
+
+/* ── Sticky search bar ───────────────────────────────────
+   The bar previously used bg-card, which is rgba(255,255,255,0.032) in
+   dark mode — fine sitting in the page flow, but as a sticky element the
+   list would scroll straight through it. It needs a backdrop of its own.
+
+   Kept translucent to match the glass treatment elsewhere; the blur and
+   the brightness shift are what make the text on top of it readable,
+   rather than an opaque fill. */
+.search-sticky {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(28px) saturate(180%) brightness(0.45);
+  -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(0.45);
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+html.light .search-sticky {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(28px) saturate(170%) brightness(1.12);
+  -webkit-backdrop-filter: blur(28px) saturate(170%) brightness(1.12);
+  box-shadow:
+    0 6px 24px rgba(120, 100, 60, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .search-sticky {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: var(--color-background);
+  }
+}
