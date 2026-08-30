@@ -2,7 +2,6 @@ import ReactDOM from "react-dom/client";
 import { AnimaProvider } from "@animaapp/playground-react-sdk";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { LocaleProvider } from "@/contexts/LocaleContext";
 import { ProfilePhotoProvider } from "@/contexts/ProfilePhotoContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import App from "./App";
@@ -15,13 +14,11 @@ ReactDOM.createRoot(document.getElementById("app")!).render(
   <ErrorBoundary>
     <AnimaProvider>
       <AuthProvider>
-        <LocaleProvider>
-          <ProfilePhotoProvider>
-            <ThemeProvider>
-              <App />
-            </ThemeProvider>
-          </ProfilePhotoProvider>
-        </LocaleProvider>
+        <ProfilePhotoProvider>
+          <ThemeProvider>
+            <App />
+          </ThemeProvider>
+        </ProfilePhotoProvider>
       </AuthProvider>
     </AnimaProvider>
   </ErrorBoundary>,

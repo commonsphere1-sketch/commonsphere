@@ -13,7 +13,6 @@ import {
   X,
   Check,
   Trash,
-  Translate,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +21,6 @@ import { usStatesData } from "@/data/statesData";
 import { sanitizeText, validateEmail, LIMITS } from "@/lib/security";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfilePhoto } from "@/contexts/ProfilePhotoContext";
-import { useLocale, LOCALES } from "@/contexts/LocaleContext";
 
 // ─── Topic config ────────────────────────────────────────────────────────────
 const ALERT_TOPICS = [
@@ -236,7 +234,6 @@ export function SettingsPage() {
   } = useProfilePhoto();
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [photoError, setPhotoError] = useState("");
-  const { locale, setLocale, regionName, formatNumber } = useLocale();
   const [darkMode, setDarkMode] = useState(true);
   const [notifications, setNotifications] = useState(true);
   const [emailAlerts, setEmailAlerts] = useState(true);
@@ -545,67 +542,6 @@ export function SettingsPage() {
             Toggle individual topics on each location to control what alerts you
             receive.
           </p>
-        </section>
-
-        {/* Data Language */}
-        <section
-          aria-labelledby="language-settings"
-          className="bg-card border border-border rounded-lg p-6 mb-6"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <Translate size={20} weight="fill" className="text-secondary" />
-            <h2
-              id="language-settings"
-              className="text-base font-semibold font-sans text-foreground"
-            >
-              Data Language
-            </h2>
-          </div>
-          <div className="space-y-3">
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div className="min-w-0">
-                <p className="text-sm font-sans text-foreground">Language</p>
-                <p className="text-xs text-muted-foreground font-sans">
-                  Country names and number formatting follow this setting
-                </p>
-              </div>
-              <select
-                value={locale}
-                onChange={(e) => setLocale(e.target.value)}
-                aria-label="Data language"
-                className="bg-muted border border-border rounded-md px-3 py-1.5 text-sm font-sans text-foreground cursor-pointer shrink-0"
-              >
-                {LOCALES.map((l) => (
-                  <option key={l.code} value={l.code}>
-                    {l.endonym} · {l.english}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="rounded-md border border-border bg-background/40 p-3">
-              <p className="text-[11px] text-muted-foreground font-sans mb-2">
-                Preview
-              </p>
-              <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs font-sans">
-                <span className="text-foreground">
-                  {regionName("DE", "Germany")} ·{" "}
-                  {regionName("JP", "Japan")} ·{" "}
-                  {regionName("BR", "Brazil")}
-                </span>
-                <span className="font-mono text-muted-foreground">
-                  {formatNumber(1234567.89)}
-                </span>
-              </div>
-            </div>
-
-            <p className="text-[11px] text-muted-foreground font-sans leading-snug">
-              Country names and numbers are localized using your browser&#39;s
-              own locale data. Written content — policy notes, legal-status
-              explanations and descriptions — stays in English; it is source
-              text, not machine-translated.
-            </p>
-          </div>
         </section>
 
         {/* Appearance */}
