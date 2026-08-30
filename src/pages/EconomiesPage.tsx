@@ -2488,9 +2488,12 @@ function EconomyModal({
                         </span>
                       </div>
 
-                      {/* Donut + legend */}
+                      {/* Donut + resource rows in a single tile. The separate
+                          "Production & Output" bar chart listed the same five
+                          resources a second time, so its data is shown here as
+                          inline bars instead. */}
                       <div className="modal-tile rounded-xl p-4 mb-3">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 mb-4">
                           <div
                             className="shrink-0"
                             style={{ width: 120, height: 120 }}
@@ -2527,118 +2530,60 @@ function EconomyModal({
                               </PieChart>
                             </ResponsiveContainer>
                           </div>
-                          <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                            <div className="flex items-baseline gap-1.5 mb-0.5">
-                              <span
-                                className="text-sm font-bold font-mono"
-                                style={{ color: resources[0]?.color }}
-                              >
-                               {resources[0]?.name}
-                              </span>
-                              <span className="text-[10px] text-muted-foreground font-sans">
-                                {resources[0]?.share}
-                              </span>
-                            </div>
-                            {resources.slice(0, 5).map((r) => (
-                              <div
-                                key={r.name}
-                                className="flex items-center gap-2 min-w-0"
-                              >
-                                <div
-                                  className="w-2 h-2 rounded-sm shrink-0"
-                                  style={{ background: r.color }}
-                                />
-                                <span className="text-[11px] font-sans text-foreground truncate flex-1">
-                                  {r.name}
-                                </span>
-                                <span className="text-[10px] font-mono shrink-0 text-muted-foreground">
-                                  {r.unit}
-                                </span>
-                                <span
-                                  className="text-[10px] font-mono shrink-0"
-                                  style={{ color: r.color }}
-                                >
-                                  {r.share}
-                                </span>
-                              </div>
-                            ))}
+                          <div className="min-w-0">
+                            <p
+                              className="text-sm font-bold font-mono truncate"
+                              style={{ color: resources[0]?.color }}
+                            >
+                              {resources[0]?.name}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground font-sans">
+                              {resources[0]?.share}
+                            </p>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Horizontal bar chart */}
-                      <div className="modal-tile rounded-xl p-4 mb-3">
-                        <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-3">
-                          Production &amp; Output
-                        </p>
-                        <div className="h-44">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                              data={resources}
-                              layout="vertical"
-                              margin={{ top: 0, right: 50, left: 0, bottom: 0 }}
-                            >
-                              <CartesianGrid
-                                strokeDasharray="3 3"
-                                stroke="rgba(255,255,255,0.05)"
-                                horizontal={false}
-                              />
-                              <XAxis
-                                type="number"
-                                tick={{
-                                  fill: "hsl(0,0%,50%)",
-                                  fontSize: 9,
-                                  fontFamily: "IBM Plex Mono",
-                                }}
-                                axisLine={false}
-                                tickLine={false}
-                              />
-                              <YAxis
-                                type="category"
-                                dataKey="name"
-                                tick={{
-                                  fill: "hsl(0,0%,65%)",
-                                  fontSize: 9,
-                                  fontFamily: "DM Sans",
-                                }}
-                                axisLine={false}
-                                tickLine={false}
-                                width={80}
-                              />
-                              <Tooltip
-                                contentStyle={{
-                                  background: "hsl(222,30%,14%)",
-                                  border: "1px solid rgba(255,255,255,0.1)",
-                                  borderRadius: 10,
-                                  fontSize: 11,
-                                  fontFamily: "IBM Plex Mono",
-                                }}
-                                formatter={(
-                                  v: number,
-                                  _: string,
-                                  props: any,
-                                ) => {
-                                  const res = resources.find(
-                                    (r) => r.name === props.payload.name,
-                                  );
-                                  return [
-                                    `${v} ${res?.unit ?? ""}`,
-                                    props.payload.name,
-                                  ];
-                                }}
-                                labelFormatter={() => ""}
-                              />
-                              <Bar
-                                dataKey="value"
-                                radius={[0, 4, 4, 0]}
-                                maxBarSize={14}
-                              >
-                                {resources.map((r) => (
-                                  <Cell key={r.name} fill={r.color} />
-                                ))}
-                              </Bar>
-                            </BarChart>
-                          </ResponsiveContainer>
+                        <div className="space-y-2.5">
+                          {resources.slice(0, 5).map((r) => {
+                            // Units differ between rows, so the bar shows each
+                            // resource against the largest value in this set
+                            // rather than implying a like-for-like comparison.
+                            const peak = Math.max(
+                              ...resources.slice(0, 5).map((x) => x.value),
+                              1,
+                            );
+                            return (
+                              <div key={r.name}>
+                                <div className="flex justify-between text-xs mb-1 gap-3">
+                                  <span className="text-muted-foreground font-sans truncate">
+                                    {r.name}
+                                    {r.share && (
+                                      <span className="text-muted-foreground/60">
+                                        {" · "}
+                                        {r.share}
+                                      </span>
+                                    )}
+                                  </span>
+                                  <span className="font-mono text-foreground shrink-0">
+                                    {r.value}
+                                    <span className="text-muted-foreground">
+                                      {" "}
+                                      {r.unit}
+                                    </span>
+                                  </span>
+                                </div>
+                                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full transition-all duration-500"
+                                    style={{
+                                      width: `${(r.value / peak) * 100}%`,
+                                      background: r.color,
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
 
