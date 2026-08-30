@@ -1188,9 +1188,6 @@ export function PlanetaryBoundariesPage() {
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
         {/* ── HERO HEADER ───────────────────────────────────────────────── */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 bg-green-500/15 rounded-lg">
-            <Leaf size={26} weight="fill" className="text-green-500" />
-          </div>
           <div>
             <h1 className="text-2xl font-bold font-sans text-foreground">
               Planetary Boundaries

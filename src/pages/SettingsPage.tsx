@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
-  GearSix,
   User,
   Bell,
   Lock,
@@ -336,7 +335,6 @@ export function SettingsPage() {
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
       <div className="px-6 py-8 max-w-2xl mx-auto">
         <div className="flex items-center gap-3 mb-8">
-          <GearSix size={28} weight="fill" className="text-secondary" />
           <div>
             <h1 className="text-2xl font-bold font-sans text-foreground">
               Settings

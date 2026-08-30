@@ -761,9 +761,6 @@ export function ConflictsPage() {
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 bg-red-500/20 rounded-lg">
-            <Warning size={26} weight="fill" className="text-red-400" />
-          </div>
           <div>
             <h1 className="text-2xl font-bold font-sans text-foreground">
               Global Conflicts &amp; Crises

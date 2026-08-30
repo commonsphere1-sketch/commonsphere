@@ -11008,14 +11008,12 @@ export function PolicyPage() {
       {/* Page header */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-blue-500/15">
-            <Buildings size={16} weight="fill" className="text-blue-400" />
-          </div>
           <h1 className="text-lg font-semibold text-foreground">
             Public Policy
           </h1>
         </div>
-        <p className="text-xs text-muted-foreground pl-8">
+        {/* pl-8 dropped with the icon — it existed to clear the badge. */}
+        <p className="text-xs text-muted-foreground">
           Policy ratings, allocations, and spending priorities across US States
           and Countries
         </p>

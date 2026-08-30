@@ -66,7 +66,6 @@ export function NotesPage() {
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <NotePencil size={28} weight="fill" className="text-secondary" />
           <div>
             <h1 className="text-2xl font-bold font-sans text-foreground">My Notes</h1>
             <p className="text-muted-foreground text-sm font-sans">Notes taken while examining data</p>

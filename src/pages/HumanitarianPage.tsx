@@ -516,16 +516,6 @@ export function HumanitarianPage() {
               : "1px solid rgba(16,185,129,0.2)",
           }}
         >
-          <div
-            className="p-3 rounded-2xl shrink-0"
-            style={{
-              background: isLight
-                ? "rgba(16,185,129,0.12)"
-                : "rgba(16,185,129,0.18)",
-            }}
-          >
-            <HandHeart size={22} weight="fill" style={{ color: "#10b981" }} />
-          </div>
           <div className="flex-1">
             <p
               className="text-[10px] font-mono uppercase tracking-widest mb-0.5"

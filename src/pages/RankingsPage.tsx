@@ -1156,9 +1156,6 @@ export function RankingsPage() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <div className="p-2 rounded-xl bg-yellow-500/10">
-              <Trophy size={18} weight="fill" className="text-yellow-400" />
-            </div>
             <h1 className="text-xl sm:text-2xl font-bold text-foreground">
               Global Rankings
             </h1>

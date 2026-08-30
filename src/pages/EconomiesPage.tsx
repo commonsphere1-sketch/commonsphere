@@ -3523,13 +3523,6 @@ export function EconomiesPage() {
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2.5 bg-secondary/20 rounded-lg">
-            <CurrencyDollar
-              size={26}
-              weight="fill"
-              className="text-secondary"
-            />
-          </div>
           <div>
             <h1 className="text-2xl font-bold font-sans text-foreground">
               Global Economies

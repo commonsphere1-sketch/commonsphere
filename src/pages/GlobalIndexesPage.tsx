@@ -27,7 +27,6 @@ import {
   CaretDown,
   CaretUp,
   X,
-  BookOpen,
   Funnel,
   SlidersHorizontal,
 } from "@phosphor-icons/react";
@@ -452,9 +451,6 @@ export function GlobalIndexesPage() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <div className="p-2 rounded-xl bg-secondary/10">
-              <BookOpen size={20} weight="fill" className="text-secondary" />
-            </div>
             <h1 className="text-2xl font-bold text-foreground">
               Global Indexes & Indicators
             </h1>
