@@ -3695,7 +3695,6 @@ export function EconomiesPage() {
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">{r.icon}</span>
                       <div>
                         <p className="text-sm font-bold font-sans text-foreground">
                           {r.name}
@@ -3753,7 +3752,7 @@ export function EconomiesPage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-base font-bold font-sans text-foreground">
-                    🧲 Rare Earth &amp; Critical Minerals — Global Overview
+                    Rare Earth &amp; Critical Minerals — Global Overview
                   </h2>
                   <p className="text-xs text-muted-foreground font-sans">
                     Which economies have reserves vs. surplus · USGS / BGS 2025
