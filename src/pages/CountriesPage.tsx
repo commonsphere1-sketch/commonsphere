@@ -36933,41 +36933,30 @@ export function CountriesPage() {
             {
               label: "Countries Tracked",
               value: `${liveCountries.length}+`,
-              icon: <Globe size={18} weight="fill" />,
-              color: "text-secondary",
             },
             {
               label: "Combined GDP",
               value: fmtGDP(totalGDP),
-              icon: <CurrencyDollar size={18} weight="fill" />,
-              color: "text-success",
             },
             {
               label: "World Population",
               value: fmtPop(totalPop),
-              icon: <Users size={18} weight="fill" />,
-              color: "text-warning",
             },
             {
               label: "High HDI (≥0.8)",
               value: `${highHDI} nations`,
-              icon: <Star size={18} weight="fill" />,
-              color: "text-secondary",
             },
           ].map((s) => (
             <div
               key={s.label}
-              className="bg-card border border-border rounded-lg p-4 flex items-center gap-3"
+              className="bg-card border border-border rounded-lg p-4"
             >
-              <span className={s.color}>{s.icon}</span>
-              <div>
-                <p className="text-xs text-muted-foreground font-sans">
-                  {s.label}
-                </p>
-                <p className="text-base font-bold font-mono text-foreground">
-                  {s.value}
-                </p>
-              </div>
+              <p className="text-xs text-muted-foreground font-sans">
+                {s.label}
+              </p>
+              <p className="text-base font-bold font-mono text-foreground">
+                {s.value}
+              </p>
             </div>
           ))}
         </div>
