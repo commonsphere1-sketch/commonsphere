@@ -2202,7 +2202,6 @@ function CityLegalStatusGrid({ city }: { city: City }) {
   return (
     <div className="modal-tile rounded-xl border border-border/60 p-4 mb-4">
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-base">⚖️</span>
         <h3 className="text-sm font-bold font-sans text-foreground">
           What&#39;s Legal &amp; Illegal in {city.name}
         </h3>
@@ -2213,7 +2212,6 @@ function CityLegalStatusGrid({ city }: { city: City }) {
             key={t.topic}
             className="flex items-start gap-2.5 p-2.5 rounded-lg bg-background/40 border border-border/40 hover:border-border/70 transition-colors"
           >
-            <span className="text-base shrink-0 mt-0.5">{t.icon}</span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
                 <span className="text-xs font-semibold font-sans text-foreground leading-tight">

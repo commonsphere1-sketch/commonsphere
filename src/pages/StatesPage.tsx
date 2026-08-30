@@ -11525,7 +11525,6 @@ function LegalStatusGrid({ state }: { state: USState }) {
       {/* Section header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-base">⚖️</span>
           <p className="text-sm font-bold font-sans text-foreground">
             What&#39;s Legal in {state.name}?
           </p>
@@ -11552,9 +11551,6 @@ function LegalStatusGrid({ state }: { state: USState }) {
             key={i}
             className="flex items-start gap-2.5 p-2.5 rounded-lg bg-background/40 border border-border/30"
           >
-            <span className="text-lg leading-none shrink-0 mt-0.5">
-              {item.icon}
-            </span>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold font-sans text-foreground leading-tight">
                 {item.topic}
