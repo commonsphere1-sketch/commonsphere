@@ -1593,42 +1593,28 @@ function getSectorColor(name: string): string {
   return SECTOR_COLORS[name] ?? "#94a3b8";
 }
 
+/**
+ * One sector row inside the GDP-composition tile.
+ *
+ * Previously each sector rendered its own bordered card, which put four cards
+ * inside the modal-tile they already sat in, repeated "Share of GDP" four
+ * times, and used a five-dot meter that appears nowhere else in the app.
+ * This is the label / mono-value / h-1.5 bar pattern used for every other
+ * measured value in the codebase.
+ */
 function SectorBar({ name, share }: { name: string; share: number }) {
   const color = getSectorColor(name);
   return (
-    <div className="p-2.5 rounded-lg bg-background/50 border border-border/40 hover:border-border/70 transition-colors">
-      <div className="flex items-center justify-between mb-1.5">
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs font-semibold font-sans text-foreground">
-            {name}
-          </span>
-        </div>
-        <span className="text-sm font-bold font-mono" style={{ color }}>
-          {share}%
-        </span>
+    <div>
+      <div className="flex justify-between text-xs mb-1 gap-3">
+        <span className="text-muted-foreground font-sans truncate">{name}</span>
+        <span className="font-mono text-foreground shrink-0">{share}%</span>
       </div>
-      <div className="h-2 bg-muted rounded-full overflow-hidden">
+      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
         <div
-          className="h-full rounded-full transition-all duration-700"
+          className="h-full rounded-full transition-all duration-500"
           style={{ width: `${share}%`, background: color }}
         />
-      </div>
-      <div className="flex justify-between mt-1">
-        <span className="text-[10px] text-muted-foreground font-sans">
-          Share of GDP
-        </span>
-        <div className="flex gap-0.5">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div
-              key={i}
-              className="w-1 h-1 rounded-full"
-              style={{
-                background:
-                  i < Math.round(share / 20) ? color : "hsl(222,30%,25%)",
-              }}
-            />
-          ))}
-        </div>
       </div>
     </div>
   );
@@ -2087,7 +2073,7 @@ function EconomyModal({
                       economyId={economy.id}
                     />
                   </div>
-                  <div className="space-y-2 mb-3">
+                  <div className="space-y-2.5 mb-3">
                     {economy.topSectors.map((s) => (
                       <SectorBar
                         key={s.name}
