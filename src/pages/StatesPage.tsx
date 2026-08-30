@@ -14,7 +14,6 @@ import {
   ListBullets,
   Scales,
   NotePencil,
-  DownloadSimple,
 } from "@phosphor-icons/react";
 // Bookmark feature removed
 import { useNotes } from "../contexts/NotesContext";
@@ -12875,53 +12874,6 @@ function USNationalBanner() {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-function exportStatesToCSV(states: USState[]) {
-  const headers = [
-    "Name",
-    "Abbreviation",
-    "Region",
-    "Party",
-    "Governor",
-    "Capital",
-    "Population",
-    "GDP (B USD)",
-    "Median Income",
-    "Unemployment %",
-    "Quality of Living",
-    "Crime Index",
-    "Education Rank",
-    "Healthcare Rank",
-    "Statehood",
-  ];
-  const rows = states.map((s) => [
-    s.name,
-    s.abbreviation,
-    s.region,
-    s.party,
-    s.governor,
-    s.capital,
-    s.population,
-    s.gdp,
-    s.medianIncome,
-    s.unemploymentRate,
-    s.qualityOfLiving,
-    s.crimeIndex,
-    s.educationRank,
-    s.healthcareRank,
-    s.statehood,
-  ]);
-  const csv = [headers, ...rows]
-    .map((r) => r.map((v) => `"${v}"`).join(","))
-    .join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "us_states_data.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 export function StatesPage() {
   const [search, setSearch] = useState("");
   const [regionFilter, setRegionFilter] = useState("All");
@@ -12933,10 +12885,6 @@ export function StatesPage() {
 
   const {
     states: liveStates,
-    isRefreshing,
-    lastUpdated,
-    patchedCount,
-    source,
   } = useLiveData();
 
   // Deep-link: open entity from search bar via ?open=<id>
@@ -12972,43 +12920,6 @@ export function StatesPage() {
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
         {/* US National Banner */}
         <USNationalBanner />
-
-        {/* Page Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 bg-secondary/20 rounded-lg">
-            <Buildings size={26} weight="fill" className="text-secondary" />
-          </div>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold font-sans text-foreground">
-              US States
-            </h1>
-            <p className="text-muted-foreground text-sm font-sans">
-              Demographics, economics, and governance data for all 50 states
-            </p>
-          </div>
-          {/* CSV Export */}
-          <button
-            onClick={() => exportStatesToCSV(filtered)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-[11px] font-sans cursor-pointer"
-            title="Export visible states to CSV"
-          >
-            <DownloadSimple size={13} weight="bold" />
-            Export CSV
-          </button>
-          {/* Live data status badge */}
-          <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-mono transition-all ${isRefreshing ? "bg-warning/10 border-warning/30 text-warning" : lastUpdated ? "bg-success/10 border-success/30 text-success" : "bg-muted/50 border-border text-muted-foreground"}`}
-          >
-            <span
-              className={`w-1.5 h-1.5 rounded-full shrink-0 ${isRefreshing ? "bg-warning animate-pulse" : lastUpdated ? "bg-success animate-pulse" : "bg-muted-foreground"}`}
-            />
-            {isRefreshing
-              ? "Fetching live data…"
-              : lastUpdated
-                ? `Live · ${patchedCount} updated · ${source}`
-                : "Static data"}
-          </div>
-        </div>
 
         {/* Summary Metrics */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
