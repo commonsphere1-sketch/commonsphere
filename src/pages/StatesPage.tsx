@@ -11993,9 +11993,14 @@ function StateModal({
                   </div>
                 </div>
 
-                {/* Quality of Living tile */}
-                <div className="grid grid-cols-2 gap-3 mb-0 items-stretch">
-                  <div className="modal-tile rounded-lg p-4 flex flex-col gap-1 col-span-2 h-full">
+                {/* Quality of Living tile.
+                    The wrapper tracks TaxCard's own col-span-2 sm:col-span-4.
+                    It used to be a fixed grid-cols-2, so TaxCard's span of 4
+                    created two implicit 0px columns; spanning those picked up
+                    two extra gaps and left TaxCard 24px wider than this tile
+                    and than every other section in the modal. */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-0 items-stretch">
+                  <div className="modal-tile rounded-lg p-4 flex flex-col gap-1 col-span-2 sm:col-span-4 h-full">
                     <p className="text-xs text-muted-foreground font-sans">
                       Quality of Living Score
                     </p>
