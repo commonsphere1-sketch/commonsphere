@@ -105,7 +105,7 @@ const SEARCH_INDEX = buildSearchIndex();
 
 export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
   const { theme, toggleTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { photo } = useProfilePhoto();
   const [searchValue, setSearchValue] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -335,7 +335,20 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
               Profile Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-border" />
-            <DropdownMenuItem className="cursor-pointer hover:bg-muted text-destructive">
+            <DropdownMenuItem
+              className="cursor-pointer hover:bg-muted text-destructive"
+              onClick={() => {
+                // Deliberately not awaited. The SDK's logout first waits for
+                // its playground bridge (window.anima), polling for a full 5s
+                // before rejecting when the app runs outside the playground —
+                // so awaiting it leaves this item looking dead for five
+                // seconds. Logout invalidates the user query on success, and
+                // the header reads that reactively, so navigating first costs
+                // nothing and keeps the click responsive either way.
+                void logout().catch(() => {});
+                navigate("/dashboard");
+              }}
+            >
               Sign Out
             </DropdownMenuItem>
           </DropdownMenuContent>
