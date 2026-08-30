@@ -249,6 +249,49 @@ html.light .modal-tile {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
 }
 
+/* ── Notes launcher: frosted glass ───────────────────────
+   The button it replaces was a flat grey disc, which read as a leftover
+   next to the frosted panel it opens. Matching .modal-glass means the
+   trigger and the popup are visibly the same material.
+
+   The blur is lighter than the popup's: at 36px across, a heavy blur has
+   too little area to resolve into anything and just muddies. The border
+   and the inset top highlight are what actually describe the edge at this
+   size, so they carry more of the effect than the blur does. */
+.notes-fab {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease !important;
+}
+.notes-fab:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+html.light .notes-fab {
+  background: rgba(255, 255, 255, 0.55) !important;
+  border: 1px solid rgba(120, 100, 70, 0.18) !important;
+  /* Near-black rather than the token foreground: this disc floats over
+     whatever the page is showing, so the icon cannot rely on a known
+     backdrop for contrast. */
+  color: hsl(38, 18%, 12%) !important;
+  box-shadow:
+    0 4px 16px rgba(90, 75, 45, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75) !important;
+}
+html.light .notes-fab:hover {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-color: rgba(120, 100, 70, 0.28) !important;
+}
+
 /* ── Modal content containers: frosted glass ─────────────
    Every modal shell in the app carries .modal-glass, so scoping to its
    descendants covers all 20 modals without touching their JSX.
