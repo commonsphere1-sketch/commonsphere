@@ -21,6 +21,7 @@ import { usStatesData } from "@/data/statesData";
 import { sanitizeText, validateEmail, LIMITS } from "@/lib/security";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfilePhoto } from "@/contexts/ProfilePhotoContext";
+import { useProfile } from "@/contexts/ProfileContext";
 
 // ─── Topic config ────────────────────────────────────────────────────────────
 const ALERT_TOPICS = [
@@ -237,8 +238,23 @@ export function SettingsPage() {
   const [darkMode, setDarkMode] = useState(true);
   const [notifications, setNotifications] = useState(true);
   const [emailAlerts, setEmailAlerts] = useState(true);
+  const {
+    displayName: savedName,
+    email: savedEmail,
+    save: saveProfile,
+  } = useProfile();
   const [displayName, setDisplayName] = useState("Jane Doe");
   const [email, setEmail] = useState("jane.doe@commonsphere.io");
+
+  // The context reads localStorage in an effect, so the saved values arrive on
+  // the render after mount. Adopt them once they land, rather than seeding
+  // useState, which would keep showing the placeholder.
+  useEffect(() => {
+    if (savedName) setDisplayName(savedName);
+  }, [savedName]);
+  useEffect(() => {
+    if (savedEmail) setEmail(savedEmail);
+  }, [savedEmail]);
   const [profileError, setProfileError] = useState("");
   const [profileSaved, setProfileSaved] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -281,6 +297,14 @@ export function SettingsPage() {
       setProfileError(ev.message);
       return;
     }
+    if (!saveProfile(cleanName, cleanEmail)) {
+      setProfileError("Could not save — this browser's storage is full.");
+      return;
+    }
+    // Show what was actually stored. Sanitizing can strip characters, and
+    // leaving the raw text in the field would misreport what was saved.
+    setDisplayName(cleanName);
+    setEmail(cleanEmail);
     setProfileError("");
     setProfileSaved(true);
     setTimeout(() => setProfileSaved(false), 2000);

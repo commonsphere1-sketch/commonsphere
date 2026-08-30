@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfilePhoto } from "@/contexts/ProfilePhotoContext";
+import { useProfile } from "@/contexts/ProfileContext";
 import { usStatesData } from "@/data/statesData";
 import { countriesData } from "@/data/countriesData";
 import { citiesData } from "@/data/citiesData";
@@ -107,6 +108,7 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const { photo } = useProfilePhoto();
+  const { displayName: savedName } = useProfile();
   const [searchValue, setSearchValue] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
@@ -298,7 +300,7 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
               aria-label="User profile menu"
             >
               <span className="header-username text-primary-foreground text-sm font-normal hidden md:block">
-                {user?.name || user?.email || "Account"}
+                {savedName || user?.name || user?.email || "Account"}
               </span>
               <Avatar className="h-8 w-8">
                 <AvatarImage
@@ -312,14 +314,21 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
                     color: "hsl(0,0%,10%)",
                   }}
                 >
-                  {user?.name
-                    ? user.name
+                  {(() => {
+                    // Same precedence as the label above, so the initials never
+                    // disagree with the name shown next to them.
+                    const name = savedName || user?.name;
+                    if (name) {
+                      return name
                         .split(" ")
+                        .filter(Boolean)
                         .map((n: string) => n[0])
                         .join("")
                         .slice(0, 2)
-                        .toUpperCase()
-                    : (user?.email?.[0]?.toUpperCase() ?? "?")}
+                        .toUpperCase();
+                    }
+                    return user?.email?.[0]?.toUpperCase() ?? "?";
+                  })()}
                 </AvatarFallback>
               </Avatar>
             </button>
