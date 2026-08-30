@@ -255,10 +255,15 @@ html.light .modal-tile {
    returns the same flat colour. The blur earns its keep on the mobile
    drawer, which is laid over page content.
 
+   There is no fill: background stays transparent and the states are drawn
+   entirely by backdrop-filter brightness(), the same technique .modal-glass
+   uses. Nothing is painted behind the item — the brightness shifts whatever
+   is already there, so the sidebar shows through rather than being covered.
+
    Colour lives here rather than in utility classes so the icon can inherit
    it through currentColor. The active item previously set white on
    hsl(0,0%,68%), about 2.3:1; both themes now take the high-contrast
-   foreground against a light frosted fill instead. */
+   foreground instead. */
 .nav-item-idle,
 .nav-item-active {
   border: 1px solid transparent;
@@ -269,20 +274,21 @@ html.light .modal-tile {
 }
 
 .nav-item-idle {
+  background: transparent;
   color: var(--color-muted-foreground);
 }
 .nav-item-idle:hover {
-  background: rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  background: transparent;
+  backdrop-filter: blur(10px) saturate(140%) brightness(1.5);
+  -webkit-backdrop-filter: blur(10px) saturate(140%) brightness(1.5);
   border-color: rgba(255, 255, 255, 0.13);
   color: hsl(0, 0%, 96%);
 }
 
 .nav-item-active {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(14px) saturate(170%);
-  -webkit-backdrop-filter: blur(14px) saturate(170%);
+  background: transparent;
+  backdrop-filter: blur(14px) saturate(170%) brightness(1.9);
+  -webkit-backdrop-filter: blur(14px) saturate(170%) brightness(1.9);
   border-color: rgba(255, 255, 255, 0.26);
   color: hsl(0, 0%, 100%);
   box-shadow:
@@ -291,15 +297,20 @@ html.light .modal-tile {
 }
 
 html.light .nav-item-idle {
+  background: transparent;
   color: var(--color-muted-foreground);
 }
 html.light .nav-item-idle:hover {
-  background: rgba(120, 100, 70, 0.07);
+  background: transparent;
+  backdrop-filter: blur(10px) saturate(140%) brightness(0.965);
+  -webkit-backdrop-filter: blur(10px) saturate(140%) brightness(0.965);
   border-color: rgba(120, 100, 70, 0.15);
   color: var(--color-foreground);
 }
 html.light .nav-item-active {
-  background: rgba(120, 100, 70, 0.13);
+  background: transparent;
+  backdrop-filter: blur(14px) saturate(170%) brightness(0.925);
+  -webkit-backdrop-filter: blur(14px) saturate(170%) brightness(0.925);
   border-color: rgba(120, 100, 70, 0.26);
   color: var(--color-foreground);
   box-shadow:
