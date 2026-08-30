@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  Buildings,
-  Users,
-  CurrencyDollar,
-  TrendDown,
   MagnifyingGlass,
   MapPin,
   Timer,
@@ -12898,41 +12894,30 @@ export function StatesPage() {
             {
               label: "States Tracked",
               value: "50",
-              icon: <Buildings size={18} weight="fill" />,
-              color: "text-secondary",
             },
             {
               label: "Total Population",
               value: "335M+",
-              icon: <Users size={18} weight="fill" />,
-              color: "text-success",
             },
             {
               label: "Largest Economy",
               value: "CA · $4.1T",
-              icon: <CurrencyDollar size={18} weight="fill" />,
-              color: "text-warning",
             },
             {
               label: "Avg Unemployment",
               value: "3.8%",
-              icon: <TrendDown size={18} weight="fill" />,
-              color: "text-secondary",
             },
           ].map((s) => (
             <div
               key={s.label}
-              className="bg-card border border-border rounded-lg p-4 flex items-center gap-3"
+              className="bg-card border border-border rounded-lg p-4"
             >
-              <span className={s.color}>{s.icon}</span>
-              <div>
-                <p className="text-xs text-muted-foreground font-sans">
-                  {s.label}
-                </p>
-                <p className="text-base font-bold font-mono text-foreground">
-                  {s.value}
-                </p>
-              </div>
+              <p className="text-xs text-muted-foreground font-sans">
+                {s.label}
+              </p>
+              <p className="text-base font-bold font-mono text-foreground">
+                {s.value}
+              </p>
             </div>
           ))}
         </div>
