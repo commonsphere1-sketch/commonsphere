@@ -7,7 +7,6 @@ import {
   MapTrifold,
   Scales,
   ArrowLeft,
-  NotePencil,
   DownloadSimple,
   House,
   Train,
@@ -17,7 +16,6 @@ import {
   ChartBar,
   Rocket,
 } from "@phosphor-icons/react";
-import { useNotes } from "../contexts/NotesContext";
 import {
   AreaChart,
   Area,
@@ -2878,7 +2876,6 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
     "overview",
   );
   const [isExpanded, setIsExpanded] = useState(false);
-  const { openNote } = useNotes();
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -2951,16 +2948,6 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                onClick={() =>
-                  openNote({ entityName: city.name, entityType: "City" })
-                }
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-sans font-medium bg-secondary/15 text-secondary border border-secondary/30 hover:bg-secondary/25 transition-colors cursor-pointer"
-                aria-label="Take note about this city"
-              >
-                <NotePencil size={13} weight="fill" />
-                Take Note
-              </button>
               <button
                 onClick={() => setIsExpanded((v) => !v)}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"

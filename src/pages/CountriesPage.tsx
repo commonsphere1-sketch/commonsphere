@@ -3285,7 +3285,6 @@ function CountryModal({
     "overview" | "map" | "constitution"
   >("overview");
   const [isExpanded, setIsExpanded] = React.useState(false);
-  const { openNote } = useNotes();
 
   React.useEffect(() => {
     setActiveTab("overview");
@@ -3373,16 +3372,6 @@ function CountryModal({
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                onClick={() =>
-                  openNote({ entityName: country.name, entityType: "Country" })
-                }
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-sans font-medium bg-secondary/15 text-secondary border border-secondary/30 hover:bg-secondary/25 transition-colors cursor-pointer"
-                aria-label="Take note about this country"
-              >
-                <NotePencil size={13} weight="fill" />
-                Take Note
-              </button>
               <button
                 onClick={() => setIsExpanded((v) => !v)}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"

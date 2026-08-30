@@ -9,10 +9,8 @@ import {
   MapTrifold,
   ListBullets,
   Scales,
-  NotePencil,
 } from "@phosphor-icons/react";
 // Bookmark feature removed
-import { useNotes } from "../contexts/NotesContext";
 import {
   BarChart,
   Bar,
@@ -11723,7 +11721,6 @@ function StateModal({
 }) {
   const [activeTab, setActiveTab] = useState<ModalTab>("overview");
   const [isExpanded, setIsExpanded] = useState(false);
-  const { openNote } = useNotes();
 
   React.useEffect(() => {
     setActiveTab("overview");
@@ -11805,16 +11802,6 @@ function StateModal({
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                onClick={() =>
-                  openNote({ entityName: state.name, entityType: "State" })
-                }
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-sans font-medium bg-secondary/15 text-secondary border border-secondary/30 hover:bg-secondary/25 transition-colors cursor-pointer"
-                aria-label="Take note about this state"
-              >
-                <NotePencil size={13} weight="fill" />
-                Take Note
-              </button>
               <button
                 onClick={() => setIsExpanded((v) => !v)}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
