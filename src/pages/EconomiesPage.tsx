@@ -26,6 +26,8 @@ import {
 } from "recharts";
 import { economiesData, type Economy } from "../data/economiesData";
 import { getUpcoming } from "../data/upcomingToWatch";
+import { type EconomyRents } from "../data/resourceRents";
+import { useResourceRents } from "../hooks/useResourceRents";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
 
@@ -1356,7 +1358,7 @@ const ECONOMY_RESOURCES: Record<
     share: string;
   }[]
 > = {
-  usa: [
+  "usa-eco": [
     {
       name: "Natural Gas",
       value: 12.6,
@@ -1398,7 +1400,7 @@ const ECONOMY_RESOURCES: Record<
       share: "4th global",
     },
   ],
-  china: [
+  "china-eco": [
     {
       name: "Coal",
       value: 4560,
@@ -1440,7 +1442,7 @@ const ECONOMY_RESOURCES: Record<
       share: "1st global",
     },
   ],
-  eu: [
+  "eu-eco": [
     {
       name: "Natural Gas",
       value: 47,
@@ -1482,7 +1484,7 @@ const ECONOMY_RESOURCES: Record<
       share: "Czech/France",
     },
   ],
-  germany: [
+  "germany-eco": [
     {
       name: "Coal",
       value: 131,
@@ -1524,7 +1526,7 @@ const ECONOMY_RESOURCES: Record<
       share: "Imports 90%",
     },
   ],
-  india: [
+  "india-eco": [
     {
       name: "Coal",
       value: 898,
@@ -1566,7 +1568,7 @@ const ECONOMY_RESOURCES: Record<
       share: "2nd global",
     },
   ],
-  japan: [
+  "japan-eco": [
     {
       name: "Iodine",
       value: 9.5,
@@ -1608,7 +1610,7 @@ const ECONOMY_RESOURCES: Record<
       share: "6th global",
     },
   ],
-  brazil: [
+  "brazil-eco": [
     {
       name: "Iron Ore",
       value: 411,
@@ -1650,7 +1652,7 @@ const ECONOMY_RESOURCES: Record<
       share: "Growing",
     },
   ],
-  "saudi-arabia": [
+  "saudiarabia-eco": [
     {
       name: "Crude Oil",
       value: 10.5,
@@ -2306,9 +2308,12 @@ function AccordionSection({
 function EconomyModal({
   economy,
   onClose,
+  rents,
 }: {
   economy: Economy;
   onClose: () => void;
+  /** World Bank resource rents for this economy, when the fetch succeeded. */
+  rents?: EconomyRents;
 }) {
   const [activeChart, setActiveChart] = useState<
     "gdp" | "growth" | "inflation"
@@ -2362,7 +2367,20 @@ function EconomyModal({
         ? "hsl(150,55%,45%)"
         : "hsl(35,100%,50%)";
 
-  const resources = ECONOMY_RESOURCES[economy.id] ?? FALLBACK_RESOURCES;
+  // Prefer World Bank resource rents over the curated list: they are
+  // sourced, dated and cover ~250 economies. Curated data is the fallback
+  // for economies the World Bank does not report (Taiwan) and for when
+  // the request fails.
+  const resources = rents?.items.length
+    ? rents.items.map((r) => ({
+        name: r.name,
+        value: r.pctOfGdp,
+        unit: "% of GDP",
+        color: r.color,
+        icon: "",
+        share: `World Bank ${r.year}`,
+      }))
+    : (ECONOMY_RESOURCES[economy.id] ?? FALLBACK_RESOURCES);
 
   return (
     <div
@@ -3470,6 +3488,7 @@ export function EconomiesPage() {
   >("gdpTrillions");
   const [selectedEconomy, setSelectedEconomy] = useState<Economy | null>(null);
   const [modalEconomy, setModalEconomy] = useState<Economy | null>(null);
+  const { rents: resourceRents } = useResourceRents();
   const [viewMode, setViewMode] = useState<ViewMode>("economies");
 
   // Deep-link: open entity from search bar via ?open=<id>
@@ -3667,6 +3686,7 @@ export function EconomiesPage() {
         {modalEconomy && (
           <EconomyModal
             economy={modalEconomy}
+            rents={resourceRents[modalEconomy.id]}
             onClose={() => setModalEconomy(null)}
           />
         )}
