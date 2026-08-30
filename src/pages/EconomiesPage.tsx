@@ -3770,14 +3770,14 @@ export function EconomiesPage() {
                           Mineral
                         </th>
                         {[
-                          "USA",
                           "China",
-                          "EU",
-                          "Germany",
-                          "India",
-                          "Japan",
+                          "USA",
+                          "Australia",
                           "Brazil",
-                          "Saudi Arabia",
+                          "Chile",
+                          "Russia",
+                          "India",
+                          "Indonesia",
                         ].map((eco) => (
                           <th
                             key={eco}
@@ -3796,20 +3796,16 @@ export function EconomiesPage() {
                         "Dysprosium",
                         "Lanthanum",
                         "Cerium",
-                        "Niobium",
-                        "Terbium",
-                        "Scandium",
-                        "Yttrium",
                       ].map((mineralName, idx) => {
                         const econKeys = [
-                          "usa",
-                          "china",
-                          "eu",
-                          "germany",
-                          "india",
-                          "japan",
-                          "brazil",
-                          "saudi-arabia",
+                          "china-eco",
+                          "usa-eco",
+                          "australia-eco",
+                          "brazil-eco",
+                          "chile-eco",
+                          "russia-eco",
+                          "india-eco",
+                          "indonesia-eco",
                         ];
                         return (
                           <tr
@@ -3831,16 +3827,23 @@ export function EconomiesPage() {
                                   key={ecoId}
                                   className="px-3 py-2.5 text-center"
                                 >
-                                  {m?.surplus ? (
-                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/25 text-[9px] font-mono">
+                                  {m === undefined ? (
+                                    <span
+                                      className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-muted-foreground/50"
+                                      title={`${mineralName} is not among the minerals tracked for this economy`}
+                                    >
+                                      ·
+                                    </span>
+                                  ) : m.surplus ? (
+                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-warning/15 mineral-pill-surplus border border-warning/25">
                                       ↑ surplus
                                     </span>
-                                  ) : m?.has ? (
-                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 text-[9px] font-mono">
+                                  ) : m.has ? (
+                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-success/15 mineral-pill-has border border-success/25">
                                       ✓ has
                                     </span>
                                   ) : (
-                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground border border-border text-[9px] font-mono">
+                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
                                       — none
                                     </span>
                                   )}
@@ -3855,7 +3858,7 @@ export function EconomiesPage() {
                 </div>
                 <div className="px-4 py-3 border-t border-border bg-muted/10 flex items-center gap-4 flex-wrap">
                   <div className="flex items-center gap-1.5">
-                    <span className="inline-block px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/25 text-[9px] font-mono">
+                    <span className="inline-block px-2 py-0.5 rounded-full bg-warning/15 mineral-pill-surplus border border-warning/25 text-[9px] font-mono">
                       ↑ surplus
                     </span>
                     <span className="text-[10px] text-muted-foreground font-sans">
@@ -3863,7 +3866,7 @@ export function EconomiesPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 text-[9px] font-mono">
+                    <span className="inline-block px-2 py-0.5 rounded-full bg-success/15 mineral-pill-has border border-success/25 text-[9px] font-mono">
                       ✓ has
                     </span>
                     <span className="text-[10px] text-muted-foreground font-sans">
@@ -3876,6 +3879,14 @@ export function EconomiesPage() {
                     </span>
                     <span className="text-[10px] text-muted-foreground font-sans">
                       Scarce / must import
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block px-2 py-0.5 rounded-full text-muted-foreground/50 text-[9px] font-mono">
+                      ·
+                    </span>
+                    <span className="text-[10px] text-muted-foreground font-sans">
+                      Not tracked for that economy
                     </span>
                   </div>
                 </div>
