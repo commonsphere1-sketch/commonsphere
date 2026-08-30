@@ -6,10 +6,7 @@ import {
   TrendDown,
   MagnifyingGlass,
   MapPin,
-  Flag,
   Timer,
-  Factory,
-  ChartBar,
   UserCircle,
   Gavel,
   UsersThree,
@@ -34,7 +31,7 @@ import {
   Pie,
   Legend,
 } from "recharts";
-import { usStatesData, type USState } from "../data/statesData";
+import { type USState } from "../data/statesData";
 import { getStateSocialStats } from "../data/socialStatsData";
 import { getUpcoming } from "../data/upcomingToWatch";
 import { useLiveData } from "../hooks/useLiveData";
@@ -12740,19 +12737,6 @@ function useElectionCountdown() {
 function USNationalBanner() {
   const { days, hours, mins, secs } = useElectionCountdown();
 
-  const totalGDP = usStatesData.reduce((sum, s) => sum + s.gdp, 0);
-  const totalPop = usStatesData.reduce((sum, s) => sum + s.population, 0);
-  const avgUnemployment = (
-    usStatesData.reduce((sum, s) => sum + s.unemploymentRate, 0) /
-    usStatesData.length
-  ).toFixed(1);
-  const avgMedianIncome = Math.round(
-    usStatesData.reduce((sum, s) => sum + s.medianIncome, 0) /
-      usStatesData.length,
-  );
-  const demStates = usStatesData.filter((s) => s.party === "Democrat").length;
-  const repStates = usStatesData.filter((s) => s.party === "Republican").length;
-
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden mb-8 shadow-lg">
       {/* Header */}
@@ -12830,69 +12814,6 @@ function USNationalBanner() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Key national stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-0 divide-x divide-border border-b border-border">
-        {[
-          {
-            label: "Total GDP",
-            value: `$${(totalGDP / 1000).toFixed(1)}T`,
-            sub: "2026 estimate",
-            icon: <CurrencyDollar size={14} weight="fill" />,
-            color: "text-green-400",
-          },
-          {
-            label: "Population",
-            value: `${(totalPop / 1e6).toFixed(0)}M`,
-            sub: "2026 estimate",
-            icon: <Users size={14} weight="fill" />,
-            color: "text-blue-400",
-          },
-          {
-            label: "Unemployment",
-            value: `${avgUnemployment}%`,
-            sub: "Mar 2026 avg",
-            icon: <ChartBar size={14} weight="fill" />,
-            color: "text-orange-400",
-          },
-          {
-            label: "Median Income",
-            value: `$${(avgMedianIncome / 1000).toFixed(0)}K`,
-            sub: "2026 avg",
-            icon: <Factory size={14} weight="fill" />,
-            color: "text-purple-400",
-          },
-          {
-            label: "Democrat States",
-            value: `${demStates}`,
-            sub: "blue states (2026)",
-            icon: <Flag size={14} weight="fill" />,
-            color: "text-secondary",
-          },
-          {
-            label: "Republican States",
-            value: `${repStates}`,
-            sub: "red states (2026)",
-            icon: <Flag size={14} weight="fill" />,
-            color: "text-red-400",
-          },
-        ].map((stat) => (
-          <div key={stat.label} className="flex flex-col gap-0.5 px-3 py-2.5">
-            <div className={`flex items-center gap-1 ${stat.color}`}>
-              {stat.icon}
-              <span className="text-[9px] font-sans text-muted-foreground uppercase tracking-wider">
-                {stat.label}
-              </span>
-            </div>
-            <p className="text-base font-bold font-mono text-foreground leading-tight">
-              {stat.value}
-            </p>
-            <p className="text-[9px] text-muted-foreground font-sans">
-              {stat.sub}
-            </p>
-          </div>
-        ))}
       </div>
 
       {/* Bottom: snapshot */}
