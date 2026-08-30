@@ -3282,7 +3282,7 @@ function CountryModal({
   onClose: () => void;
 }) {
   const [activeTab, setActiveTab] = React.useState<
-    "overview" | "map" | "constitution" | "metrics"
+    "overview" | "map" | "constitution"
   >("overview");
   const [isExpanded, setIsExpanded] = React.useState(false);
   const { openNote } = useNotes();
@@ -3449,11 +3449,6 @@ function CountryModal({
                   label: "Governance",
                   icon: <Scales size={13} weight="fill" />,
                 },
-                {
-                  id: "metrics" as const,
-                  label: "Metrics",
-                  icon: <ChartBar size={13} weight="fill" />,
-                },
               ] as const
             ).map((tab) => (
               <button
@@ -3570,11 +3565,6 @@ function CountryModal({
                 </div>
               </div>
             </div>
-          )}
-
-          {/* ── METRICS TAB ── */}
-          {activeTab === "metrics" && (
-            <MetricsPanel entityId={country.id} entityType="country" />
           )}
 
           {/* ── CONSTITUTION TAB ── */}
