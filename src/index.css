@@ -481,11 +481,16 @@ html.light {
   --sb-border-hover: rgba(120, 120, 120, 0.2);
 }
 
-/* ── Smooth focus ring ───────────────────────────────── */
+/* ── Smooth focus ring ─────────────────────────────────
+   Deliberately no border-radius here. This is a universal selector, so
+   setting one reshapes every focusable element the moment it is focused —
+   the pill-shaped header search snapped to a 4px rounded rectangle, and
+   round avatars and rounded-full buttons did the same. Outlines already
+   follow the element's own border-radius, so the ring stays smooth on
+   round and square elements alike without being told a radius. */
 *:focus-visible {
   outline: 2px solid rgba(240, 240, 240, 0.75);
   outline-offset: 2px;
-  border-radius: 4px;
 }
 
 ::-webkit-scrollbar {
