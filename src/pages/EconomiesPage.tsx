@@ -2819,10 +2819,10 @@ function EconomyModal({
                               </span>
                               <div className="flex-1 h-px bg-border/60" />
                               <div className="flex items-center gap-2 shrink-0">
-                                <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-success/10 mineral-pill-has border border-success/25">
                                   {hasCount} has
                                 </span>
-                                <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-warning/10 mineral-pill-surplus border border-warning/25">
                                   {surplusCount} surplus
                                 </span>
                               </div>
@@ -2830,8 +2830,8 @@ function EconomyModal({
                             {/* Legend */}
                             <div className="flex items-center gap-3 mb-3">
                               <div className="flex items-center gap-1.5">
-                                <div className="w-3 h-3 rounded-sm bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
-                                  <span className="text-[8px] text-emerald-400">
+                                <div className="w-3 h-3 rounded-sm bg-success/20 border border-success/40 flex items-center justify-center">
+                                  <span className="text-[8px] text-success">
                                     ✓
                                   </span>
                                 </div>
@@ -2840,8 +2840,8 @@ function EconomyModal({
                                 </span>
                               </div>
                               <div className="flex items-center gap-1.5">
-                                <div className="w-3 h-3 rounded-sm bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
-                                  <span className="text-[8px] text-amber-400">
+                                <div className="w-3 h-3 rounded-sm bg-warning/20 border border-warning/40 flex items-center justify-center">
+                                  <span className="text-[8px] text-warning">
                                     ↑
                                   </span>
                                 </div>
@@ -2860,73 +2860,63 @@ function EconomyModal({
                                 </span>
                               </div>
                             </div>
-                            {/* Minerals grid */}
-                            <div className="grid grid-cols-2 gap-2">
+                            {/* One row per mineral, matching the row lists used
+                                elsewhere in this modal rather than a grid of
+                                tinted cards nested inside this tile. Status
+                                colours use the success/warning tokens, which
+                                are defined for both themes — the previous
+                                emerald-400/amber-400 literals were fixed values
+                                that washed out on the light background. */}
+                            <div className="divide-y divide-border/40">
                               {rareEarths.map((m) => (
                                 <div
                                   key={m.name}
-                                  className={`rounded-xl border p-2.5 transition-colors ${
-                                    m.surplus
-                                      ? "bg-amber-500/8 border-amber-500/25"
-                                      : m.has
-                                        ? "bg-emerald-500/8 border-emerald-500/20"
-                                        : "bg-muted/30 border-border/40"
-                                  }`}
+                                  className="flex items-center gap-2 py-2"
                                 >
-                                  <div className="flex items-start justify-between gap-1 mb-1">
-                                    <div className="flex items-center gap-1.5 min-w-0">
-                                      <span
-                                        className="text-[10px] font-bold font-mono px-1 py-0.5 rounded"
-                                        style={{
-                                          color: m.color,
-                                          background: `${m.color}18`,
-                                        }}
-                                      >
-                                        {m.symbol}
-                                      </span>
-                                      <span className="text-[11px] font-semibold font-sans text-foreground truncate">
-                                        {m.name}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-1 shrink-0">
-                                      {m.surplus && (
-                                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/25 leading-none">
-                                          surplus
-                                        </span>
-                                      )}
-                                      <span
-                                        className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full leading-none border ${
-                                          m.has
-                                            ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/25"
-                                            : "bg-muted text-muted-foreground border-border"
-                                        }`}
-                                      >
-                                        {m.has ? "has" : "none"}
-                                      </span>
-                                    </div>
+                                  <span
+                                    className="text-[10px] font-bold font-mono px-1 py-0.5 rounded shrink-0"
+                                    style={{
+                                      color: m.color,
+                                      background: `${m.color}1f`,
+                                    }}
+                                  >
+                                    {m.symbol}
+                                  </span>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-[11px] font-semibold font-sans text-foreground truncate">
+                                      {m.name}
+                                    </p>
+                                    <p className="text-[9px] text-muted-foreground font-sans truncate">
+                                      {m.use}
+                                    </p>
                                   </div>
-                                  <p className="text-[9px] text-muted-foreground font-sans leading-snug mb-1 truncate">
-                                    {m.use}
-                                  </p>
-                                  <div className="flex items-center justify-between gap-1">
-                                    <span className="text-[9px] font-mono text-muted-foreground">
+                                  <div className="text-right shrink-0">
+                                    <p className="text-[9px] font-mono text-foreground">
                                       {m.reserveKt != null
                                         ? m.reserveKt >= 1000
-                                          ? `${(m.reserveKt / 1000).toFixed(0)}Mt reserves`
-                                          : `${m.reserveKt}kt reserves`
-                                        : "reserves N/A"}
-                                    </span>
-                                    <span
-                                      className="text-[9px] font-mono shrink-0"
-                                      style={{
-                                        color: m.has
-                                          ? m.color
-                                          : "hsl(0,0%,45%)",
-                                      }}
-                                    >
+                                          ? `${(m.reserveKt / 1000).toFixed(0)}Mt`
+                                          : `${m.reserveKt}kt`
+                                        : "—"}
+                                    </p>
+                                    <p className="text-[9px] font-mono text-muted-foreground">
                                       {m.globalShare}
-                                    </span>
+                                    </p>
                                   </div>
+                                  <span
+                                    className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full border shrink-0 ${
+                                      m.surplus
+                                        ? "bg-warning/15 mineral-pill-surplus border-warning/35"
+                                        : m.has
+                                          ? "bg-success/15 mineral-pill-has border-success/35"
+                                          : "bg-muted text-muted-foreground border-border"
+                                    }`}
+                                  >
+                                    {m.surplus
+                                      ? "surplus"
+                                      : m.has
+                                        ? "has"
+                                        : "none"}
+                                  </span>
                                 </div>
                               ))}
                             </div>

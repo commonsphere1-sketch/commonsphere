@@ -569,3 +569,22 @@ html.light .search-sticky {
     background: var(--color-background);
   }
 }
+
+/* ── Mineral status pills ────────────────────────────────
+   The shared --color-success / --color-warning tokens read well on the
+   dark surface, but at 32% and 42% lightness the warning tone only
+   reaches ~2.4:1 against the light glass panel behind these pills.
+   Rather than retune tokens that the whole app uses, light mode gets a
+   darker tone for this small pill text specifically. */
+.mineral-pill-has {
+  color: var(--color-success);
+}
+.mineral-pill-surplus {
+  color: var(--color-warning);
+}
+html.light .mineral-pill-has {
+  color: hsl(152, 62%, 22%);
+}
+html.light .mineral-pill-surplus {
+  color: hsl(28, 95%, 28%);
+}
