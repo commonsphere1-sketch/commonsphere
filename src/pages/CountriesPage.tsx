@@ -12809,6 +12809,50 @@ interface CountryLegalStatus {
   items: LegalItem[];
 }
 
+/**
+ * Shown when COUNTRY_LEGAL_STATUS has no entry for a country — 162 of the 204
+ * currently have none, and the section used to render nothing at all for them.
+ *
+ * The wording is deliberately non-committal. Researched, country-specific
+ * entries belong in COUNTRY_LEGAL_STATUS above; this fallback must not assert
+ * facts about a country it has no data for, so every item is "restricted" with
+ * a note pointing at national law rather than a claimed position.
+ */
+const DEFAULT_COUNTRY_LEGAL: CountryLegalStatus = {
+  items: [
+    {
+      label: "Same-sex marriage",
+      status: "restricted",
+      note: "Varies by national law — no verified entry for this country yet.",
+    },
+    {
+      label: "Abortion",
+      status: "restricted",
+      note: "Governed by national legislation; conditions and limits vary.",
+    },
+    {
+      label: "Cannabis (recreational)",
+      status: "restricted",
+      note: "Subject to national drug laws; medical use may differ.",
+    },
+    {
+      label: "Death penalty",
+      status: "restricted",
+      note: "Retention, moratorium or abolition varies by jurisdiction.",
+    },
+    {
+      label: "Gambling",
+      status: "restricted",
+      note: "Regulated by the national gaming authority where permitted.",
+    },
+    {
+      label: "Firearm ownership",
+      status: "restricted",
+      note: "Licensing requirements set by national firearms law.",
+    },
+  ],
+};
+
 const COUNTRY_LEGAL_STATUS: Record<string, CountryLegalStatus> = {
   us: {
     items: [
@@ -14884,11 +14928,10 @@ const SRC_LEGAL = [
 ];
 
 function CountryLegalStatusSection({ country }: { country: Country }) {
-  const data = COUNTRY_LEGAL_STATUS[country.id];
+  const data = COUNTRY_LEGAL_STATUS[country.id] ?? DEFAULT_COUNTRY_LEGAL;
   const [filter, setFilter] = React.useState<LegalItem["status"] | "all">(
     "all",
   );
-  if (!data) return null;
 
   const filtered =
     filter === "all"
