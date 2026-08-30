@@ -1408,7 +1408,7 @@ export function RankingsPage() {
       </div>
 
       {/* ── Filters ─────────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="search-sticky sticky top-16 z-30 flex flex-wrap items-center gap-2 rounded-2xl px-4 py-2.5">
         {/* Entity type */}
         <div className="flex bg-muted/50 border border-border rounded-xl p-0.5 gap-0.5">
           {(["all", "country", "state"] as EntityFilter[]).map((f) => (

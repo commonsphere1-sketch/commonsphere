@@ -557,7 +557,7 @@ export function GlobalIndexesPage() {
       </div>
 
       {/* Filters bar */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="search-sticky sticky top-16 z-30 flex items-center gap-3 flex-wrap rounded-2xl px-4 py-2.5">
         {/* Search */}
         <div className="flex items-center gap-2 bg-muted/50 border border-border rounded-xl px-3 py-1.5 flex-1 min-w-[200px] max-w-sm">
           <MagnifyingGlass
