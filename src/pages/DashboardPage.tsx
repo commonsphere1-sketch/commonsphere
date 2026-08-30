@@ -257,7 +257,7 @@ function CountryCarousel({
                 <div
                   key={`${country.id}-${idx}`}
                   data-carousel-card
-                  onClick={() => onNav("/dashboard/countries")}
+                  onClick={() => onNav(`/dashboard/countries?open=${country.id}`)}
                   className="rounded-xl overflow-hidden cursor-pointer transition-opacity duration-200 hover:opacity-90 shrink-0"
                   style={{
                     width: "calc((100vw - 260px - 56px) / 5)",
@@ -536,7 +536,7 @@ function StatesCarousel({
                 <div
                   key={`${state.id}-${idx}`}
                   data-state-card
-                  onClick={() => onNav("/dashboard/states")}
+                  onClick={() => onNav(`/dashboard/states?open=${state.id}`)}
                   className="rounded-xl overflow-hidden cursor-pointer transition-opacity duration-200 hover:opacity-90 shrink-0"
                   style={{
                     width: "calc((100vw - 260px - 56px) / 5)",
