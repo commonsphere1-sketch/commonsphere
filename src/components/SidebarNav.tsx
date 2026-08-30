@@ -571,9 +571,7 @@ function NavItem({
         end={end}
         className={({ isActive }) =>
           `flex items-center py-2 rounded-lg transition-all duration-250 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer group w-full ${
-            isActive
-              ? "bg-secondary text-secondary-foreground border border-secondary/60 shadow-[0_1px_4px_rgba(160,160,160,0.2)]"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border"
+            isActive ? "nav-item-active" : "nav-item-idle"
           } ${collapsed && !mobile ? "justify-center px-0" : "gap-3 px-3"}`
         }
         title={collapsed && !mobile ? label : undefined}
@@ -584,7 +582,9 @@ function NavItem({
             <Icon
               size={18}
               weight={isActive ? "fill" : "regular"}
-              className={`shrink-0 transition-colors duration-200 ${isActive ? "text-secondary-foreground" : ""}`}
+              // No colour class: the icon inherits the item's colour through
+              // currentColor, so it can never disagree with the label.
+              className="shrink-0 transition-colors duration-200"
             />
             {(!collapsed || mobile) && (
               <span className="text-[12px] leading-none font-medium font-sans truncate tracking-wide">

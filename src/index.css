@@ -249,6 +249,64 @@ html.light .modal-tile {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
 }
 
+/* ── Sidebar nav items: frosted glass ────────────────────
+   The desktop sidebar is opaque, so there the frosting comes from the
+   translucent fill and the edge treatment — blurring a flat colour just
+   returns the same flat colour. The blur earns its keep on the mobile
+   drawer, which is laid over page content.
+
+   Colour lives here rather than in utility classes so the icon can inherit
+   it through currentColor. The active item previously set white on
+   hsl(0,0%,68%), about 2.3:1; both themes now take the high-contrast
+   foreground against a light frosted fill instead. */
+.nav-item-idle,
+.nav-item-active {
+  border: 1px solid transparent;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease !important;
+}
+
+.nav-item-idle {
+  color: var(--color-muted-foreground);
+}
+.nav-item-idle:hover {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  border-color: rgba(255, 255, 255, 0.13);
+  color: hsl(0, 0%, 96%);
+}
+
+.nav-item-active {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(14px) saturate(170%);
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+  border-color: rgba(255, 255, 255, 0.26);
+  color: hsl(0, 0%, 100%);
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+html.light .nav-item-idle {
+  color: var(--color-muted-foreground);
+}
+html.light .nav-item-idle:hover {
+  background: rgba(120, 100, 70, 0.07);
+  border-color: rgba(120, 100, 70, 0.15);
+  color: var(--color-foreground);
+}
+html.light .nav-item-active {
+  background: rgba(120, 100, 70, 0.13);
+  border-color: rgba(120, 100, 70, 0.26);
+  color: var(--color-foreground);
+  box-shadow:
+    0 2px 10px rgba(90, 75, 45, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
 /* ── Notes launcher: frosted glass ───────────────────────
    The button it replaces was a flat grey disc, which read as a leftover
    next to the frosted panel it opens. Matching .modal-glass means the
