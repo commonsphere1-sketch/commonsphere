@@ -552,8 +552,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2019,
-        event:
-          "Revocation of Article 370 — Kashmir's special status removed",
+        event: "Revocation of Article 370 — Kashmir's special status removed",
         impact: "neutral",
       },
       {
@@ -1658,8 +1657,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2024,
-        event:
-          "IMF praised Argentina's fiscal consolidation — new $20B deal",
+        event: "IMF praised Argentina's fiscal consolidation — new $20B deal",
         impact: "positive",
       },
       {
@@ -1787,14 +1785,12 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2025,
-        event:
-          "Japan's defence budget raised to 2% of GDP — historic shift",
+        event: "Japan's defence budget raised to 2% of GDP — historic shift",
         impact: "positive",
       },
       {
         year: 2025,
-        event:
-          "US–Japan tariff negotiations under Trump's 24% tariff threat",
+        event: "US–Japan tariff negotiations under Trump's 24% tariff threat",
         impact: "negative",
       },
     ],
@@ -2145,8 +2141,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2024,
-        event:
-          "Became Acting President after Yoon's impeachment by parliament",
+        event: "Became Acting President after Yoon's impeachment by parliament",
         impact: "neutral",
       },
       {
@@ -2227,8 +2222,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2024,
-        event:
-          "Poland's defence budget raised to 4% of GDP — highest in NATO",
+        event: "Poland's defence budget raised to 4% of GDP — highest in NATO",
         impact: "positive",
       },
     ],
@@ -2894,8 +2888,7 @@ const LEADERS: Leader[] = [
     significantEvents: [
       {
         year: 2022,
-        event:
-          "Won election with 59% — despite father's martial law legacy",
+        event: "Won election with 59% — despite father's martial law legacy",
         impact: "neutral",
       },
       {
@@ -5075,8 +5068,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2024,
-        event:
-          "Appointed PM after Barnier's government fell on no-confidence",
+        event: "Appointed PM after Barnier's government fell on no-confidence",
         impact: "neutral",
       },
       {
@@ -5212,8 +5204,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2025,
-        event:
-          "Navigates EU AI Act and Portugal's digital economy positioning",
+        event: "Navigates EU AI Act and Portugal's digital economy positioning",
         impact: "neutral",
       },
     ],
@@ -5402,8 +5393,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2022,
-        event:
-          "Chaired EU Council presidency during Ukraine war's first year",
+        event: "Chaired EU Council presidency during Ukraine war's first year",
         impact: "positive",
       },
       {
@@ -5471,8 +5461,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2020,
-        event:
-          "Greece's COVID response rated among Europe's best initially",
+        event: "Greece's COVID response rated among Europe's best initially",
         impact: "positive",
       },
       {
@@ -6018,8 +6007,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2024,
-        event:
-          "Re-elected; Lithuania's defence spending raised to 3% of GDP",
+        event: "Re-elected; Lithuania's defence spending raised to 3% of GDP",
         impact: "positive",
       },
       {
@@ -6642,8 +6630,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2023,
-        event:
-          "Zambia completed Africa's first post-COVID debt restructuring",
+        event: "Zambia completed Africa's first post-COVID debt restructuring",
         impact: "positive",
       },
       {
@@ -6707,8 +6694,7 @@ const LEADERS: Leader[] = [
     significantEvents: [
       {
         year: 2021,
-        event:
-          "Became Africa's first female president after Magufuli's death",
+        event: "Became Africa's first female president after Magufuli's death",
         impact: "positive",
       },
       {
@@ -6718,8 +6704,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2022,
-        event:
-          "Restored diplomatic relations frayed by Magufuli's isolation",
+        event: "Restored diplomatic relations frayed by Magufuli's isolation",
         impact: "positive",
       },
       {
@@ -7529,8 +7514,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2015,
-        event:
-          "Côte d'Ivoire grows at 8–10% annually — fastest in West Africa",
+        event: "Côte d'Ivoire grows at 8–10% annually — fastest in West Africa",
         impact: "positive",
       },
       {
@@ -7828,8 +7812,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2025,
-        event:
-          "Ireland's housing crisis remains defining political challenge",
+        event: "Ireland's housing crisis remains defining political challenge",
         impact: "negative",
       },
     ],
@@ -9939,8 +9922,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2023,
-        event:
-          "Azerbaijan's 24-hour op expelled all Armenians from Karabakh",
+        event: "Azerbaijan's 24-hour op expelled all Armenians from Karabakh",
         impact: "negative",
       },
       {
@@ -10121,8 +10103,7 @@ const LEADERS: Leader[] = [
     significantEvents: [
       {
         year: 2019,
-        event:
-          "Became PM after O'Neill resignation over corruption protests",
+        event: "Became PM after O'Neill resignation over corruption protests",
         impact: "positive",
       },
       {
@@ -11846,8 +11827,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2004,
-        event:
-          "Elected Afghanistan's first president in democratic election",
+        event: "Elected Afghanistan's first president in democratic election",
         impact: "positive",
       },
       {
@@ -12050,8 +12030,7 @@ const LEADERS: Leader[] = [
     significantEvents: [
       {
         year: 2020,
-        event:
-          "Became Sultan after Qaboos' death — smooth succession managed",
+        event: "Became Sultan after Qaboos' death — smooth succession managed",
         impact: "positive",
       },
       {
@@ -12122,8 +12101,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2020,
-        event:
-          "Led Finland's COVID response — among Europe's most effective",
+        event: "Led Finland's COVID response — among Europe's most effective",
         impact: "positive",
       },
       {
@@ -12214,8 +12192,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2025,
-        event:
-          "Vietnam's semiconductor and AI investment attraction continues",
+        event: "Vietnam's semiconductor and AI investment attraction continues",
         impact: "positive",
       },
     ],
@@ -12365,8 +12342,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2024,
-        event:
-          "MK party wins 14.6% — disrupts ANC's KwaZulu-Natal dominance",
+        event: "MK party wins 14.6% — disrupts ANC's KwaZulu-Natal dominance",
         impact: "negative",
       },
     ],
@@ -12797,8 +12773,7 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2025,
-        event:
-          "46th year in power — world's longest-serving non-royal leader",
+        event: "46th year in power — world's longest-serving non-royal leader",
         impact: "negative",
       },
     ],
@@ -13747,8 +13722,7 @@ const LEADERS: Leader[] = [
     significantEvents: [
       {
         year: 2019,
-        event:
-          "Won election in Mauritania's first peaceful transfer of power",
+        event: "Won election in Mauritania's first peaceful transfer of power",
         impact: "positive",
       },
       {
@@ -14160,443 +14134,490 @@ function LeaderDetail({
     return acc + (end - t.from);
   }, 0);
 
+  const [isExpanded, setIsExpanded] = useState(false);
+
   return (
-    <div className="modal-glass border rounded-xl overflow-hidden animate-fade-in max-h-[90vh] overflow-y-auto">
-      {/* Hero banner */}
-      <div className="relative h-32 overflow-hidden shrink-0">
-        <div className="absolute bottom-0 left-0 right-0 p-5 flex items-end gap-4">
-          <div className="pb-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-bold text-foreground">
-                {leader.name}
-              </h2>
-              <span className="text-lg">{leader.flag}</span>
-              <span
-                className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${IDEOLOGY_COLORS[leader.ideology]}`}
-              >
-                {leader.ideology}
-              </span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {leader.title} · {leader.country}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Close button */}
-      <button
-        onClick={onClose}
-        className="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors"
-        aria-label="Close"
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
       >
-        <span className="text-xs font-sans font-medium">Close</span>
-      </button>
-
-      {/* Key stats strip */}
-      <div className="grid grid-cols-4 divide-x divide-border/40 border-b border-border/40">
-        {[
-          {
-            label: "Age",
-            value: `${leader.age}`,
-            sub: `b. ${leader.birthYear}`,
-          },
-          {
-            label: "Party",
-            value: leader.party.split(" ")[0],
-            sub: leader.party,
-          },
-          {
-            label: "Yrs in Power",
-            value: `${totalYears}y`,
-            sub: `${leader.termsInOffice.length} term${leader.termsInOffice.length > 1 ? "s" : ""}`,
-          },
-          {
-            label: "Approval",
-            value:
-              leader.approvalRating !== null
-                ? `${leader.approvalRating}%`
-                : "N/A",
-            sub:
-              leader.approvalRating !== null
-                ? leader.approvalTrend === "up"
-                  ? "↑ Rising"
-                  : leader.approvalTrend === "down"
-                    ? "↓ Falling"
-                    : "→ Stable"
-                : "No public data",
-          },
-        ].map((s) => (
-          <div key={s.label} className="px-4 py-3 text-center modal-tile">
-            <p className="text-xs text-muted-foreground">{s.label}</p>
-            <p className="text-base font-bold font-mono text-foreground">
-              {s.value}
-            </p>
-            <p
-              className="text-[10px] text-muted-foreground truncate"
-              title={s.sub}
-            >
-              {s.sub}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* Tabs */}
-      <div className="flex border-b border-border/40 overflow-x-auto">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`flex items-center gap-1.5 px-4 py-3 text-xs font-medium font-sans whitespace-nowrap transition-colors border-b-2 ${
-              tab === t.id
-                ? "border-secondary text-secondary leader-tab-active"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t.icon}
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab content */}
-      <div className="p-5 space-y-5">
-        {tab === "overview" && (
-          <>
-            <div className="modal-tile rounded-xl p-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                <BookOpen size={12} /> Background
-              </h4>
-              <p className="text-sm text-foreground leading-relaxed">
-                {leader.background}
-              </p>
-            </div>
-            <div className="modal-tile rounded-xl p-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                <Trophy size={12} /> Key Achievements
-              </h4>
-              <ul className="space-y-1.5">
-                {leader.achievements.map((a, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-2 text-sm text-foreground"
+        <div className="p-6">
+          {/* Header — same shape as the country and state modals. */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-14 rounded-xl overflow-hidden shrink-0 border border-border shadow-md bg-muted">
+                <img
+                  src={`https://flagcdn.com/w160/${leader.countryCode.toLowerCase()}.png`}
+                  alt={`${leader.country} flag`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold font-sans text-foreground">
+                  {leader.name}
+                </h2>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <span className="text-xs text-muted-foreground font-sans">
+                    {leader.title}
+                  </span>
+                  <span className="text-muted-foreground">·</span>
+                  <span className="text-xs text-muted-foreground font-sans">
+                    {leader.country}
+                  </span>
+                  <span
+                    className={`text-xs border px-2 py-0.5 rounded-full font-sans ${IDEOLOGY_COLORS[leader.ideology]}`}
                   >
-                    <CheckCircle
-                      size={14}
-                      weight="fill"
-                      className="text-green-400 mt-0.5 shrink-0"
-                    />
-                    <span>{a}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="modal-tile rounded-xl p-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                <ChartLineUp size={12} /> Impact Assessment
-              </h4>
-              <p className="text-sm text-foreground leading-relaxed">
-                {leader.impact}
-              </p>
-            </div>
-            <div className="modal-tile rounded-xl p-4">
-              <ApprovalBar
-                value={leader.approvalRating}
-                trend={leader.approvalTrend}
-              />
-            </div>
-            {(() => {
-              const info = getElectionInfo(leader.id);
-              if (!info) return null;
-              const days = getCountdownDays(info.nextElection);
-              const isPast = days === 0;
-              const isUrgent = days !== null && days > 0 && days <= 90;
-              const isSoon = days !== null && days > 90 && days <= 365;
-              const color = !info.isScheduled
-                ? "text-muted-foreground"
-                : isPast
-                  ? "text-muted-foreground"
-                  : isUrgent
-                    ? "text-red-400"
-                    : isSoon
-                      ? "text-amber-400"
-                      : "text-sky-400";
-              const bg = !info.isScheduled
-                ? "bg-muted/20 border-border"
-                : isPast
-                  ? "bg-muted/20 border-border"
-                  : isUrgent
-                    ? "bg-red-500/10 border-red-500/30"
-                    : isSoon
-                      ? "bg-amber-500/10 border-amber-500/30"
-                      : "bg-sky-500/10 border-sky-500/30";
-              return (
-                <div className={`modal-tile rounded-xl p-4 border ${bg}`}>
-                  <h4
-                    className={`text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5 ${color}`}
-                  >
-                    <Clock size={12} /> Next Election / Mandate
-                  </h4>
-                  <p className={`text-sm font-semibold ${color}`}>
-                    {info.electionType}
-                  </p>
-                  {info.isScheduled && info.nextElection && (
-                    <div className="flex flex-col gap-1 mt-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground font-mono">
-                          {new Date(info.nextElection).toLocaleDateString(
-                            "en-GB",
-                            { day: "numeric", month: "long", year: "numeric" },
-                          )}
-                        </span>
-                        {days !== null && days > 0 && (
-                          <span
-                            className={`text-xs font-bold font-mono ${color}`}
-                          >
-                            — {formatCountdown(days)} away
-                          </span>
-                        )}
-                      </div>
-                      {days !== null &&
-                        days > 0 &&
-                        (() => {
-                          const bd = getCountdownBreakdown(info.nextElection!);
-                          if (!bd) return null;
-                          const parts: string[] = [];
-                          if (bd.years > 0)
-                            parts.push(
-                              `${bd.years} year${bd.years !== 1 ? "s" : ""}`,
-                            );
-                          if (bd.months > 0)
-                            parts.push(
-                              `${bd.months} month${bd.months !== 1 ? "s" : ""}`,
-                            );
-                          if (bd.weeks > 0)
-                            parts.push(
-                              `${bd.weeks} week${bd.weeks !== 1 ? "s" : ""}`,
-                            );
-                          if (bd.days > 0)
-                            parts.push(
-                              `${bd.days} day${bd.days !== 1 ? "s" : ""}`,
-                            );
-                          return (
-                            <p
-                              className={`text-xs font-mono font-semibold ${color}`}
-                            >
-                              {parts.join(", ")}
-                            </p>
-                          );
-                        })()}
-                    </div>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1.5">
-                    {info.notes}
-                  </p>
+                    {leader.ideology}
+                  </span>
                 </div>
-              );
-            })()}
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                <Flag size={12} /> Status
-              </h4>
-              <span
-                className={`text-xs font-medium px-2 py-1 rounded-full border ${
-                  leader.status === "In Office"
-                    ? "bg-green-500/10 text-green-400 border-green-500/30"
-                    : leader.status === "Incumbent (Disputed)"
-                      ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
-                      : "bg-zinc-500/10 text-zinc-400 border-zinc-500/30"
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => setIsExpanded((v) => !v)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                aria-label={
+                  isExpanded ? "Collapse modal" : "Expand modal to full screen"
+                }
+                title={isExpanded ? "Collapse" : "Expand to full screen"}
+              >
+                <span className="text-xs font-sans font-medium">
+                  {isExpanded ? "Collapse" : "Expand"}
+                </span>
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-sans cursor-pointer"
+                aria-label="Close"
+              >
+                <span className="text-xs font-sans font-medium">Close</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Key stats as tiles, matching the country and state modals. */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            {[
+              {
+                label: "Age",
+                value: `${leader.age}`,
+                sub: `b. ${leader.birthYear}`,
+              },
+              {
+                label: "Party",
+                value: leader.party.split(" ")[0],
+                sub: leader.party,
+              },
+              {
+                label: "Yrs in Power",
+                value: `${totalYears}y`,
+                sub: `${leader.termsInOffice.length} term${leader.termsInOffice.length > 1 ? "s" : ""}`,
+              },
+              {
+                label: "Approval",
+                value:
+                  leader.approvalRating !== null
+                    ? `${leader.approvalRating}%`
+                    : "N/A",
+                sub:
+                  leader.approvalRating !== null
+                    ? leader.approvalTrend === "up"
+                      ? "↑ Rising"
+                      : leader.approvalTrend === "down"
+                        ? "↓ Falling"
+                        : "→ Stable"
+                    : "No public data",
+              },
+            ].map((s) => (
+              <div key={s.label} className="modal-tile rounded-lg p-4">
+                <p className="text-xs text-muted-foreground font-sans">
+                  {s.label}
+                </p>
+                <p className="text-base font-bold font-mono text-foreground">
+                  {s.value}
+                </p>
+                <p
+                  className="text-[10px] text-muted-foreground font-sans truncate"
+                  title={s.sub}
+                >
+                  {s.sub}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Tab bar — the pill row the country and state modals use, rather
+              than the underline row this modal had. */}
+          <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`flex items-center justify-center gap-1.5 flex-1 px-3 py-2 rounded-lg text-xs font-medium font-sans whitespace-nowrap transition-colors cursor-pointer ${
+                  tab === t.id
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {leader.status}
-              </span>
-            </div>
-          </>
-        )}
+                {t.icon}
+                {t.label}
+              </button>
+            ))}
+          </div>
 
-        {tab === "career" && (
-          <>
-            <div className="modal-tile rounded-xl p-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
-                <GraduationCap size={12} /> Education
-              </h4>
-              <div className="space-y-3">
-                {leader.education.map((e, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-secondary/10 border border-secondary/20 flex items-center justify-center shrink-0">
-                      <GraduationCap size={14} className="text-secondary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        {e.degree}
+          {/* Tab content */}
+          <div className="p-5 space-y-5">
+            {tab === "overview" && (
+              <>
+                <div className="modal-tile rounded-xl p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <BookOpen size={12} /> Background
+                  </h4>
+                  <p className="text-sm text-foreground leading-relaxed">
+                    {leader.background}
+                  </p>
+                </div>
+                <div className="modal-tile rounded-xl p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <Trophy size={12} /> Key Achievements
+                  </h4>
+                  <ul className="space-y-1.5">
+                    {leader.achievements.map((a, i) => (
+                      <li
+                        key={i}
+                        className="flex items-start gap-2 text-sm text-foreground"
+                      >
+                        <CheckCircle
+                          size={14}
+                          weight="fill"
+                          className="text-green-400 mt-0.5 shrink-0"
+                        />
+                        <span>{a}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="modal-tile rounded-xl p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <ChartLineUp size={12} /> Impact Assessment
+                  </h4>
+                  <p className="text-sm text-foreground leading-relaxed">
+                    {leader.impact}
+                  </p>
+                </div>
+                <div className="modal-tile rounded-xl p-4">
+                  <ApprovalBar
+                    value={leader.approvalRating}
+                    trend={leader.approvalTrend}
+                  />
+                </div>
+                {(() => {
+                  const info = getElectionInfo(leader.id);
+                  if (!info) return null;
+                  const days = getCountdownDays(info.nextElection);
+                  const isPast = days === 0;
+                  const isUrgent = days !== null && days > 0 && days <= 90;
+                  const isSoon = days !== null && days > 90 && days <= 365;
+                  const color = !info.isScheduled
+                    ? "text-muted-foreground"
+                    : isPast
+                      ? "text-muted-foreground"
+                      : isUrgent
+                        ? "text-red-400"
+                        : isSoon
+                          ? "text-amber-400"
+                          : "text-sky-400";
+                  const bg = !info.isScheduled
+                    ? "bg-muted/20 border-border"
+                    : isPast
+                      ? "bg-muted/20 border-border"
+                      : isUrgent
+                        ? "bg-red-500/10 border-red-500/30"
+                        : isSoon
+                          ? "bg-amber-500/10 border-amber-500/30"
+                          : "bg-sky-500/10 border-sky-500/30";
+                  return (
+                    <div className={`modal-tile rounded-xl p-4 border ${bg}`}>
+                      <h4
+                        className={`text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5 ${color}`}
+                      >
+                        <Clock size={12} /> Next Election / Mandate
+                      </h4>
+                      <p className={`text-sm font-semibold ${color}`}>
+                        {info.electionType}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        {e.institution}
-                        {e.year ? ` · ${e.year}` : ""}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="modal-tile rounded-xl p-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
-                <Buildings size={12} /> Terms in Office
-              </h4>
-              <div className="space-y-2">
-                {leader.termsInOffice.map((t, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-secondary shrink-0" />
-                    <span className="text-sm font-mono text-foreground">
-                      {t.from} –{" "}
-                      {t.to === "present" ? (
-                        <span className="text-secondary font-semibold">
-                          Present
-                        </span>
-                      ) : (
-                        t.to
+                      {info.isScheduled && info.nextElection && (
+                        <div className="flex flex-col gap-1 mt-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground font-mono">
+                              {new Date(info.nextElection).toLocaleDateString(
+                                "en-GB",
+                                {
+                                  day: "numeric",
+                                  month: "long",
+                                  year: "numeric",
+                                },
+                              )}
+                            </span>
+                            {days !== null && days > 0 && (
+                              <span
+                                className={`text-xs font-bold font-mono ${color}`}
+                              >
+                                — {formatCountdown(days)} away
+                              </span>
+                            )}
+                          </div>
+                          {days !== null &&
+                            days > 0 &&
+                            (() => {
+                              const bd = getCountdownBreakdown(
+                                info.nextElection!,
+                              );
+                              if (!bd) return null;
+                              const parts: string[] = [];
+                              if (bd.years > 0)
+                                parts.push(
+                                  `${bd.years} year${bd.years !== 1 ? "s" : ""}`,
+                                );
+                              if (bd.months > 0)
+                                parts.push(
+                                  `${bd.months} month${bd.months !== 1 ? "s" : ""}`,
+                                );
+                              if (bd.weeks > 0)
+                                parts.push(
+                                  `${bd.weeks} week${bd.weeks !== 1 ? "s" : ""}`,
+                                );
+                              if (bd.days > 0)
+                                parts.push(
+                                  `${bd.days} day${bd.days !== 1 ? "s" : ""}`,
+                                );
+                              return (
+                                <p
+                                  className={`text-xs font-mono font-semibold ${color}`}
+                                >
+                                  {parts.join(", ")}
+                                </p>
+                              );
+                            })()}
+                        </div>
                       )}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      (
-                      {(t.to === "present" ? new Date().getFullYear() : t.to) -
-                        t.from}{" "}
-                      years)
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="modal-tile rounded-xl p-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                <Handshake size={12} /> Party & Affiliation
-              </h4>
-              <div className="flex items-center gap-2">
-                <span
-                  className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${IDEOLOGY_COLORS[leader.ideology]}`}
-                >
-                  {leader.ideology}
-                </span>
-                <span className="text-sm text-foreground">{leader.party}</span>
-              </div>
-            </div>
-            <div className="modal-tile rounded-xl p-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                <Users size={12} /> Personal
-              </h4>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="modal-tile rounded-lg p-3">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                    Born
-                  </p>
-                  <p className="text-sm font-mono text-foreground">
-                    {leader.birthYear}
-                  </p>
+                      <p className="text-xs text-muted-foreground mt-1.5">
+                        {info.notes}
+                      </p>
+                    </div>
+                  );
+                })()}
+                <div>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <Flag size={12} /> Status
+                  </h4>
+                  <span
+                    className={`text-xs font-medium px-2 py-1 rounded-full border ${
+                      leader.status === "In Office"
+                        ? "bg-green-500/10 text-green-400 border-green-500/30"
+                        : leader.status === "Incumbent (Disputed)"
+                          ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
+                          : "bg-zinc-500/10 text-zinc-400 border-zinc-500/30"
+                    }`}
+                  >
+                    {leader.status}
+                  </span>
                 </div>
-                <div className="modal-tile rounded-lg p-3">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                    Birthplace
-                  </p>
-                  <p className="text-xs text-foreground leading-snug">
-                    {leader.birthPlace}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
+              </>
+            )}
 
-        {tab === "events" && (
-          <div className="modal-tile rounded-xl p-4">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-1.5">
-              <CalendarBlank size={12} /> Timeline of Significant Events
-            </h4>
-            <div className="relative pl-5">
-              <div className="absolute left-1.5 top-0 bottom-0 w-px bg-border" />
-              <div className="space-y-5">
-                {leader.significantEvents.map((e, i) => (
-                  <div key={i} className="relative">
-                    <div
-                      className={`absolute -left-[21px] w-3 h-3 rounded-full border-2 border-background ${
-                        e.impact === "positive"
-                          ? "bg-green-400"
-                          : e.impact === "negative"
-                            ? "bg-red-400"
-                            : "bg-muted-foreground"
-                      }`}
-                    />
-                    <div className="flex items-start gap-2">
-                      <span className="text-xs font-bold font-mono text-secondary shrink-0 w-10">
-                        {e.year}
-                      </span>
-                      <div className="flex-1">
-                        <div className="flex items-start gap-1.5">
-                          {IMPACT_ICONS[e.impact]}
-                          <p
-                            className="text-sm text-foreground leading-relaxed"
-                            dangerouslySetInnerHTML={{ __html: e.event }}
-                          />
+            {tab === "career" && (
+              <>
+                <div className="modal-tile rounded-xl p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
+                    <GraduationCap size={12} /> Education
+                  </h4>
+                  <div className="space-y-3">
+                    {leader.education.map((e, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-secondary/10 border border-secondary/20 flex items-center justify-center shrink-0">
+                          <GraduationCap size={14} className="text-secondary" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            {e.degree}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {e.institution}
+                            {e.year ? ` · ${e.year}` : ""}
+                          </p>
                         </div>
                       </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="modal-tile rounded-xl p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
+                    <Buildings size={12} /> Terms in Office
+                  </h4>
+                  <div className="space-y-2">
+                    {leader.termsInOffice.map((t, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-secondary shrink-0" />
+                        <span className="text-sm font-mono text-foreground">
+                          {t.from} –{" "}
+                          {t.to === "present" ? (
+                            <span className="text-secondary font-semibold">
+                              Present
+                            </span>
+                          ) : (
+                            t.to
+                          )}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          (
+                          {(t.to === "present"
+                            ? new Date().getFullYear()
+                            : t.to) - t.from}{" "}
+                          years)
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="modal-tile rounded-xl p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <Handshake size={12} /> Party & Affiliation
+                  </h4>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${IDEOLOGY_COLORS[leader.ideology]}`}
+                    >
+                      {leader.ideology}
+                    </span>
+                    <span className="text-sm text-foreground">
+                      {leader.party}
+                    </span>
+                  </div>
+                </div>
+                <div className="modal-tile rounded-xl p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <Users size={12} /> Personal
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="modal-tile rounded-lg p-3">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                        Born
+                      </p>
+                      <p className="text-sm font-mono text-foreground">
+                        {leader.birthYear}
+                      </p>
+                    </div>
+                    <div className="modal-tile rounded-lg p-3">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                        Birthplace
+                      </p>
+                      <p className="text-xs text-foreground leading-snug">
+                        {leader.birthPlace}
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+                </div>
+              </>
+            )}
 
-        {tab === "views" && (
-          <>
-            <div className="modal-tile rounded-xl p-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                <Strategy size={12} /> Political Ideology
-              </h4>
-              <div className="flex items-center gap-2 mb-3">
-                <span
-                  className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${IDEOLOGY_COLORS[leader.ideology]}`}
-                >
-                  {leader.ideology}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  {leader.party}
-                </span>
+            {tab === "events" && (
+              <div className="modal-tile rounded-xl p-4">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-1.5">
+                  <CalendarBlank size={12} /> Timeline of Significant Events
+                </h4>
+                <div className="relative pl-5">
+                  <div className="absolute left-1.5 top-0 bottom-0 w-px bg-border" />
+                  <div className="space-y-5">
+                    {leader.significantEvents.map((e, i) => (
+                      <div key={i} className="relative">
+                        <div
+                          className={`absolute -left-[21px] w-3 h-3 rounded-full border-2 border-background ${
+                            e.impact === "positive"
+                              ? "bg-green-400"
+                              : e.impact === "negative"
+                                ? "bg-red-400"
+                                : "bg-muted-foreground"
+                          }`}
+                        />
+                        <div className="flex items-start gap-2">
+                          <span className="text-xs font-bold font-mono text-secondary shrink-0 w-10">
+                            {e.year}
+                          </span>
+                          <div className="flex-1">
+                            <div className="flex items-start gap-1.5">
+                              {IMPACT_ICONS[e.impact]}
+                              <p
+                                className="text-sm text-foreground leading-relaxed"
+                                dangerouslySetInnerHTML={{ __html: e.event }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-foreground leading-relaxed">
-                {leader.politicalViews}
-              </p>
-            </div>
-            <div className="modal-tile rounded-xl p-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                <ChartLineUp size={12} /> Overall Impact
-              </h4>
-              <p className="text-sm text-foreground leading-relaxed">
-                {leader.impact}
-              </p>
-            </div>
-            <div className="modal-tile rounded-xl p-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                <Star size={12} /> Achievements
-              </h4>
-              <ul className="space-y-1.5">
-                {leader.achievements.map((a, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-2 text-sm text-foreground"
-                  >
-                    <CheckCircle
-                      size={14}
-                      weight="fill"
-                      className="text-secondary mt-0.5 shrink-0"
-                    />
-                    <span>{a}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </>
-        )}
+            )}
+
+            {tab === "views" && (
+              <>
+                <div className="modal-tile rounded-xl p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <Strategy size={12} /> Political Ideology
+                  </h4>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${IDEOLOGY_COLORS[leader.ideology]}`}
+                    >
+                      {leader.ideology}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {leader.party}
+                    </span>
+                  </div>
+                  <p className="text-sm text-foreground leading-relaxed">
+                    {leader.politicalViews}
+                  </p>
+                </div>
+                <div className="modal-tile rounded-xl p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <ChartLineUp size={12} /> Overall Impact
+                  </h4>
+                  <p className="text-sm text-foreground leading-relaxed">
+                    {leader.impact}
+                  </p>
+                </div>
+                <div className="modal-tile rounded-xl p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <Star size={12} /> Achievements
+                  </h4>
+                  <ul className="space-y-1.5">
+                    {leader.achievements.map((a, i) => (
+                      <li
+                        key={i}
+                        className="flex items-start gap-2 text-sm text-foreground"
+                      >
+                        <CheckCircle
+                          size={14}
+                          weight="fill"
+                          className="text-secondary mt-0.5 shrink-0"
+                        />
+                        <span>{a}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -15055,270 +15076,327 @@ function MonarchDetail({
   onClose: () => void;
 }) {
   const yearsReigning = new Date().getFullYear() - monarch.reignSince;
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="modal-glass border rounded-xl overflow-hidden animate-fade-in max-h-[90vh] overflow-y-auto">
-      {/* Hero */}
-      <div className="relative h-28 overflow-hidden shrink-0 bg-gradient-to-br from-yellow-900/30 to-amber-900/20">
-        <div className="absolute inset-0 flex items-center justify-center opacity-10">
-          <Crown size={120} weight="fill" className="text-yellow-400" />
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 p-5 flex items-end gap-4">
-          <div className="pb-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-bold text-foreground">
-                {monarch.name}
-              </h2>
-              <span className="text-lg">{monarch.flag}</span>
-              <span
-                className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${SYSTEM_COLORS[monarch.systemType]}`}
-              >
-                {monarch.systemType}
-              </span>
-            </div>
-            <p className="text-sm text-muted-foreground">{monarch.title}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Close */}
-      <button
-        onClick={onClose}
-        className="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors"
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
       >
-        <XCircle size={18} weight="fill" />
-      </button>
-
-      {/* Stats strip */}
-      <div className="grid grid-cols-4 divide-x divide-border/40 border-b border-border/40">
-        {[
-          {
-            label: "Reigning Since",
-            value: String(monarch.reignSince),
-            sub: `${yearsReigning} years`,
-          },
-          {
-            label: "Age",
-            value: String(monarch.age),
-            sub: `b. ${monarch.born}`,
-          },
-          {
-            label: "System",
-            value:
-              monarch.systemType === "Semi-Constitutional"
-                ? "Semi-Const."
-                : monarch.systemType,
-            sub: "Monarchy type",
-          },
-          {
-            label: "Dynasty",
-            value: monarch.houseName.split(" ").slice(0, 2).join(" "),
-            sub: monarch.dynasty,
-          },
-        ].map((s) => (
-          <div key={s.label} className="px-4 py-3 text-center modal-tile">
-            <p className="text-xs text-muted-foreground">{s.label}</p>
-            <p
-              className="text-sm font-bold font-mono text-foreground truncate"
-              title={s.value}
-            >
-              {s.value}
-            </p>
-            <p
-              className="text-[10px] text-muted-foreground truncate"
-              title={s.sub}
-            >
-              {s.sub}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* All content displayed at once — no tabs */}
-      <div className="p-5 space-y-4">
-        {/* ── OVERVIEW ── */}
-        <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400 flex items-center gap-1.5">
-          <Globe size={13} /> Overview
-        </h3>
-
-        <div className="modal-tile rounded-xl p-4">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-            <BookOpen size={12} /> Background
-          </h4>
-          <p className="text-sm text-foreground leading-relaxed">
-            {monarch.background}
-          </p>
-        </div>
-
-        <div className="modal-tile rounded-xl p-4">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-            <Star size={12} /> Key Facts
-          </h4>
-          <ul className="space-y-1.5">
-            {monarch.keyFacts.map((f, i) => (
-              <li
-                key={i}
-                className="flex items-start gap-2 text-sm text-foreground"
+        <div className="p-6">
+          {/* Header — same shape as the country and state modals: flag, title,
+              meta chips, then Expand and Close as text buttons. */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-14 rounded-xl overflow-hidden shrink-0 border border-border shadow-md bg-muted">
+                <img
+                  src={`https://flagcdn.com/w160/${monarch.countryCode.toLowerCase()}.png`}
+                  alt={`${monarch.country} flag`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold font-sans text-foreground">
+                  {monarch.name}
+                </h2>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <span className="text-xs text-muted-foreground font-sans">
+                    {monarch.title}
+                  </span>
+                  <span className="text-muted-foreground">·</span>
+                  <span className="text-xs text-muted-foreground font-sans">
+                    {monarch.country}
+                  </span>
+                  <span
+                    className={`text-xs border px-2 py-0.5 rounded-full font-sans ${SYSTEM_COLORS[monarch.systemType]}`}
+                  >
+                    {monarch.systemType}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => setIsExpanded((v) => !v)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                aria-label={
+                  isExpanded ? "Collapse modal" : "Expand modal to full screen"
+                }
+                title={isExpanded ? "Collapse" : "Expand to full screen"}
               >
-                <Crown
-                  size={12}
+                <span className="text-xs font-sans font-medium">
+                  {isExpanded ? "Collapse" : "Expand"}
+                </span>
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-sans cursor-pointer"
+                aria-label="Close"
+              >
+                <span className="text-xs font-sans font-medium">Close</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Stats — tiles on a grid rather than a divided strip, matching the
+              stat cards in the country and state modals. */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            {[
+              {
+                label: "Reigning Since",
+                value: String(monarch.reignSince),
+                sub: `${yearsReigning} years`,
+              },
+              {
+                label: "Age",
+                value: String(monarch.age),
+                sub: `b. ${monarch.born}`,
+              },
+              {
+                label: "System",
+                value:
+                  monarch.systemType === "Semi-Constitutional"
+                    ? "Semi-Const."
+                    : monarch.systemType,
+                sub: "Monarchy type",
+              },
+              {
+                label: "Dynasty",
+                // Was houseName.split(" ").slice(0, 2), which on every entry in
+                // the data renders the literal words "House of" — the house is
+                // always named "House of X". Drop that prefix to leave the part
+                // that actually identifies the dynasty.
+                value: monarch.houseName.replace(/^House of\s+/i, ""),
+                sub: monarch.houseName,
+              },
+            ].map((s) => (
+              <div key={s.label} className="modal-tile rounded-lg p-4">
+                <p className="text-xs text-muted-foreground font-sans">
+                  {s.label}
+                </p>
+                {/* These values are words, not the short numerics the country
+                    and state tiles hold, so they wrap instead of truncating —
+                    "Constitutional" was rendering as "Constitut…". */}
+                <p
+                  className="text-sm font-bold font-mono text-foreground leading-tight break-words"
+                  title={s.value}
+                >
+                  {s.value}
+                </p>
+                <p
+                  className="text-[10px] text-muted-foreground font-sans truncate"
+                  title={s.sub}
+                >
+                  {s.sub}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* All content displayed at once — no tabs */}
+          <div className="space-y-4">
+            {/* ── OVERVIEW ── */}
+            <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400 flex items-center gap-1.5">
+              <Globe size={13} /> Overview
+            </h3>
+
+            <div className="modal-tile rounded-xl p-4">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                <BookOpen size={12} /> Background
+              </h4>
+              <p className="text-sm text-foreground leading-relaxed">
+                {monarch.background}
+              </p>
+            </div>
+
+            <div className="modal-tile rounded-xl p-4">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                <Star size={12} /> Key Facts
+              </h4>
+              <ul className="space-y-1.5">
+                {monarch.keyFacts.map((f, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-2 text-sm text-foreground"
+                  >
+                    <Crown
+                      size={12}
+                      weight="fill"
+                      className="text-yellow-400 mt-0.5 shrink-0"
+                    />
+                    <span dangerouslySetInnerHTML={{ __html: f }} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {monarch.religionRole && (
+              <div className="modal-tile rounded-xl p-4">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <Flag size={12} /> Religious Role
+                </h4>
+                <p className="text-sm text-foreground">
+                  {monarch.religionRole}
+                </p>
+              </div>
+            )}
+
+            {monarch.netWorthNote && (
+              <div className="modal-tile rounded-xl p-4">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <ChartLineUp size={12} /> Wealth Note
+                </h4>
+                <p className="text-sm text-foreground">
+                  {monarch.netWorthNote}
+                </p>
+              </div>
+            )}
+
+            {/* ── DYNASTY & HOUSE ── */}
+            <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400 flex items-center gap-1.5 pt-2">
+              <Crown size={13} /> Dynasty &amp; House
+            </h3>
+
+            <div className="modal-tile rounded-xl p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0">
+                  <CrownSimple
+                    size={18}
+                    weight="fill"
+                    className="text-yellow-400"
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {monarch.houseName}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {monarch.dynasty}
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="modal-tile rounded-lg p-3">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                    Reigning Since
+                  </p>
+                  <p className="text-sm font-mono font-bold text-yellow-400">
+                    {monarch.reignSince}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {yearsReigning} years on throne
+                  </p>
+                </div>
+                <div className="modal-tile rounded-lg p-3">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                    System
+                  </p>
+                  <p
+                    className={`text-sm font-medium ${monarch.systemType === "Absolute" ? "text-red-400" : monarch.systemType === "Constitutional" ? "text-green-400" : "text-amber-400"}`}
+                  >
+                    {monarch.systemType}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    Monarchy type
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-tile rounded-xl p-4">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                <Flag size={12} /> Country &amp; Region
+              </h4>
+              <div className="flex items-center gap-3">
+                <img
+                  src={`https://flagcdn.com/w80/${monarch.countryCode.toLowerCase()}.png`}
+                  alt={monarch.country}
+                  className="w-12 h-8 object-cover rounded border border-border"
+                />
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    {monarch.country}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {monarch.region}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* ── SUCCESSION & FAMILY ── */}
+            <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400 flex items-center gap-1.5 pt-2">
+              <Users size={13} /> Succession &amp; Family
+            </h3>
+
+            <div className="modal-tile rounded-xl p-4">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                <CrownSimple size={12} weight="fill" /> Succession Order
+              </h4>
+              <div className="flex items-start gap-2">
+                <CrownSimple
+                  size={14}
                   weight="fill"
                   className="text-yellow-400 mt-0.5 shrink-0"
                 />
-                <span dangerouslySetInnerHTML={{ __html: f }} />
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {monarch.religionRole && (
-          <div className="modal-tile rounded-xl p-4">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-              <Flag size={12} /> Religious Role
-            </h4>
-            <p className="text-sm text-foreground">{monarch.religionRole}</p>
-          </div>
-        )}
-
-        {monarch.netWorthNote && (
-          <div className="modal-tile rounded-xl p-4">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-              <ChartLineUp size={12} /> Wealth Note
-            </h4>
-            <p className="text-sm text-foreground">{monarch.netWorthNote}</p>
-          </div>
-        )}
-
-        {/* ── DYNASTY & HOUSE ── */}
-        <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400 flex items-center gap-1.5 pt-2">
-          <Crown size={13} /> Dynasty &amp; House
-        </h3>
-
-        <div className="modal-tile rounded-xl p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0">
-              <CrownSimple
-                size={18}
-                weight="fill"
-                className="text-yellow-400"
-              />
+                <p className="text-sm text-foreground">
+                  {monarch.successionOrder}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold text-foreground">
-                {monarch.houseName}
-              </p>
-              <p className="text-xs text-muted-foreground">{monarch.dynasty}</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="modal-tile rounded-lg p-3">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                Reigning Since
-              </p>
-              <p className="text-sm font-mono font-bold text-yellow-400">
-                {monarch.reignSince}
-              </p>
-              <p className="text-[10px] text-muted-foreground">
-                {yearsReigning} years on throne
-              </p>
-            </div>
-            <div className="modal-tile rounded-lg p-3">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                System
-              </p>
-              <p
-                className={`text-sm font-medium ${monarch.systemType === "Absolute" ? "text-red-400" : monarch.systemType === "Constitutional" ? "text-green-400" : "text-amber-400"}`}
-              >
-                {monarch.systemType}
-              </p>
-              <p className="text-[10px] text-muted-foreground">Monarchy type</p>
-            </div>
+
+            {monarch.spouses && monarch.spouses.length > 0 && (
+              <div className="modal-tile rounded-xl p-4">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <Handshake size={12} /> Spouse(s)
+                </h4>
+                <ul className="space-y-1">
+                  {monarch.spouses.map((s, i) => (
+                    <li
+                      key={i}
+                      className="text-sm text-foreground flex items-start gap-2"
+                    >
+                      <CheckCircle
+                        size={13}
+                        weight="fill"
+                        className="text-secondary mt-0.5 shrink-0"
+                      />
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {monarch.children && monarch.children.length > 0 && (
+              <div className="modal-tile rounded-xl p-4">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <Users size={12} /> Children
+                </h4>
+                <ul className="space-y-1">
+                  {monarch.children.map((c, i) => (
+                    <li
+                      key={i}
+                      className="text-sm text-foreground flex items-start gap-2"
+                    >
+                      <Star
+                        size={12}
+                        weight="fill"
+                        className="text-yellow-400 mt-0.5 shrink-0"
+                      />
+                      <span dangerouslySetInnerHTML={{ __html: c }} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
-
-        <div className="modal-tile rounded-xl p-4">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-            <Flag size={12} /> Country &amp; Region
-          </h4>
-          <div className="flex items-center gap-3">
-            <img
-              src={`https://flagcdn.com/w80/${monarch.countryCode.toLowerCase()}.png`}
-              alt={monarch.country}
-              className="w-12 h-8 object-cover rounded border border-border"
-            />
-            <div>
-              <p className="text-sm font-medium text-foreground">
-                {monarch.country}
-              </p>
-              <p className="text-xs text-muted-foreground">{monarch.region}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* ── SUCCESSION & FAMILY ── */}
-        <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400 flex items-center gap-1.5 pt-2">
-          <Users size={13} /> Succession &amp; Family
-        </h3>
-
-        <div className="modal-tile rounded-xl p-4">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-            <CrownSimple size={12} weight="fill" /> Succession Order
-          </h4>
-          <div className="flex items-start gap-2">
-            <CrownSimple
-              size={14}
-              weight="fill"
-              className="text-yellow-400 mt-0.5 shrink-0"
-            />
-            <p className="text-sm text-foreground">{monarch.successionOrder}</p>
-          </div>
-        </div>
-
-        {monarch.spouses && monarch.spouses.length > 0 && (
-          <div className="modal-tile rounded-xl p-4">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-              <Handshake size={12} /> Spouse(s)
-            </h4>
-            <ul className="space-y-1">
-              {monarch.spouses.map((s, i) => (
-                <li
-                  key={i}
-                  className="text-sm text-foreground flex items-start gap-2"
-                >
-                  <CheckCircle
-                    size={13}
-                    weight="fill"
-                    className="text-secondary mt-0.5 shrink-0"
-                  />
-                  {s}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {monarch.children && monarch.children.length > 0 && (
-          <div className="modal-tile rounded-xl p-4">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-              <Users size={12} /> Children
-            </h4>
-            <ul className="space-y-1">
-              {monarch.children.map((c, i) => (
-                <li
-                  key={i}
-                  className="text-sm text-foreground flex items-start gap-2"
-                >
-                  <Star
-                    size={12}
-                    weight="fill"
-                    className="text-yellow-400 mt-0.5 shrink-0"
-                  />
-                  <span dangerouslySetInnerHTML={{ __html: c }} />
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -15530,8 +15608,7 @@ const RICHEST_FAMILIES: RichFamily[] = [
   {
     id: "wertheimer",
     family: "Wertheimer Family",
-    patriarch:
-      "Théophile Wertheimer (co-founder) · Alain & Gérard Wertheimer",
+    patriarch: "Théophile Wertheimer (co-founder) · Alain & Gérard Wertheimer",
     country: "France",
     countryCode: "FR",
     flag: "🇫🇷",
@@ -16084,8 +16161,7 @@ const CEO_DATA: CEOProfile[] = [
     sector: "Tech",
     tenureSince: 2004,
     age: 40,
-    education:
-      "B.A. Computer Science & Psychology, Harvard (dropped out 2004)",
+    education: "B.A. Computer Science & Psychology, Harvard (dropped out 2004)",
     background:
       "Founded Facebook from his Harvard dorm room at 19. Took company public in 2012 at $104B valuation. Made audacious $1B Instagram acquisition (2012) and $19B WhatsApp acquisition (2014). Renamed company Meta in 2021 to pursue the metaverse — a costly pivot that destroyed $700B in market cap before pivoting to AI in 2023. Meta's Llama AI models became the most widely-used open-source AI systems in the world.",
     achievements: [
@@ -16348,6 +16424,13 @@ const CEO_DATA: CEOProfile[] = [
 // ── RichestFamiliesView ───────────────────────────────────────────────────────
 function RichestFamiliesView() {
   const [selectedFamily, setSelectedFamily] = useState<RichFamily | null>(null);
+  const [familyExpanded, setFamilyExpanded] = useState(false);
+  // Reset the expanded state on close, otherwise the next family opened
+  // inherits full-screen from the previous one.
+  const closeFamily = () => {
+    setSelectedFamily(null);
+    setFamilyExpanded(false);
+  };
   const [sectorFilter, setSectorFilter] = useState<
     "All" | RichFamily["sector"]
   >("All");
@@ -16491,39 +16574,68 @@ function RichestFamiliesView() {
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
           onClick={(e) => {
-            if (e.target === e.currentTarget) setSelectedFamily(null);
+            if (e.target === e.currentTarget) closeFamily();
           }}
         >
-          <div className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl modal-glass border animate-fade-in">
-            <button
-              onClick={() => setSelectedFamily(null)}
-              className="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors"
-            >
-              <XCircle size={18} weight="fill" />
-            </button>
+          <div
+            className={`relative z-10 w-full overflow-y-auto rounded-2xl modal-glass border shadow-2xl animate-fade-in transition-all duration-300 ${familyExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
+          >
             <div className="p-6 space-y-5">
-              <div className="flex items-start gap-4">
-                <div className="w-14 h-10 rounded-lg overflow-hidden border border-border flex items-center justify-center bg-muted/30 shrink-0">
-                  <img
-                    src={`https://flagcdn.com/w80/${selectedFamily.countryCode.toLowerCase()}.png`}
-                    alt={selectedFamily.country}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-xl font-bold text-foreground">
+              {/* Header — the default shape used across the modals: flag,
+                  title, meta chips, then Expand and Close as text buttons. */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-14 rounded-xl overflow-hidden border border-border shadow-md flex items-center justify-center bg-muted shrink-0">
+                    <img
+                      src={`https://flagcdn.com/w160/${selectedFamily.countryCode.toLowerCase()}.png`}
+                      alt={`${selectedFamily.country} flag`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold font-sans text-foreground">
                       {selectedFamily.family}
                     </h2>
-                    <span
-                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${SECTOR_COLOR[selectedFamily.sector]}`}
-                    >
-                      {selectedFamily.sector}
-                    </span>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <span className="text-xs text-muted-foreground font-sans">
+                        {selectedFamily.source}
+                      </span>
+                      <span className="text-muted-foreground">·</span>
+                      <span className="text-xs text-muted-foreground font-sans">
+                        Est. {selectedFamily.founded}
+                      </span>
+                      <span
+                        className={`text-xs border px-2 py-0.5 rounded-full font-sans ${SECTOR_COLOR[selectedFamily.sector]}`}
+                      >
+                        {selectedFamily.sector}
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedFamily.source} · Est. {selectedFamily.founded}
-                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={() => setFamilyExpanded((v) => !v)}
+                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                    aria-label={
+                      familyExpanded
+                        ? "Collapse modal"
+                        : "Expand modal to full screen"
+                    }
+                    title={
+                      familyExpanded ? "Collapse" : "Expand to full screen"
+                    }
+                  >
+                    <span className="text-xs font-sans font-medium">
+                      {familyExpanded ? "Collapse" : "Expand"}
+                    </span>
+                  </button>
+                  <button
+                    onClick={closeFamily}
+                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-sans cursor-pointer"
+                    aria-label="Close"
+                  >
+                    <span className="text-xs font-sans font-medium">Close</span>
+                  </button>
                 </div>
               </div>
 
@@ -16964,7 +17076,7 @@ function CEOsView() {
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
-export function WorldMapPage() {
+export function WorldLeadersPage() {
   const [region, setRegion] = useState("All Regions");
   const [ideology, setIdeology] = useState("All");
   const [search, setSearch] = useState("");
@@ -17290,38 +17402,19 @@ export function WorldMapPage() {
           </div>
         )}
 
-        {/* Monarch modal */}
+        {/* Monarch modal. The overlay and width now live inside the component,
+            as they do for the country and state modals, so Expand can widen the
+            shell instead of being capped by a wrapper out here. */}
         {selectedMonarch && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setSelectedMonarch(null);
-            }}
-          >
-            <div className="relative w-full max-w-2xl">
-              <MonarchDetail
-                monarch={selectedMonarch}
-                onClose={() => setSelectedMonarch(null)}
-              />
-            </div>
-          </div>
+          <MonarchDetail
+            monarch={selectedMonarch}
+            onClose={() => setSelectedMonarch(null)}
+          />
         )}
 
-        {/* Modal overlay */}
+        {/* Leader modal — overlay and width now owned by the component. */}
         {selected && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setSelected(null);
-            }}
-          >
-            <div className="relative w-full max-w-2xl">
-              <LeaderDetail
-                leader={selected}
-                onClose={() => setSelected(null)}
-              />
-            </div>
-          </div>
+          <LeaderDetail leader={selected} onClose={() => setSelected(null)} />
         )}
 
         <div className="mt-8 flex flex-col items-center gap-1">

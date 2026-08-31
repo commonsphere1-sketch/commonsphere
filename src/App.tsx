@@ -37,7 +37,9 @@ const EduSignInPage = lazy(() =>
   import("./pages/EduSignInPage").then((m) => ({ default: m.EduSignInPage })),
 );
 const PolicyPage = lazy(() =>
-  import("./pages/countiresPolicyPage").then((m) => ({ default: m.PolicyPage })),
+  import("./pages/countiresPolicyPage").then((m) => ({
+    default: m.PolicyPage,
+  })),
 );
 const AboutPage = lazy(() =>
   import("./pages/AboutPage").then((m) => ({ default: m.AboutPage })),
@@ -63,9 +65,11 @@ const GlobalIndexesPage = lazy(() =>
     default: m.GlobalIndexesPage,
   })),
 );
-// WorldMapPage fetches a 3MB TopoJSON file — keep lazy to avoid stalling the bundler
-const WorldMapPage = lazy(() =>
-  import("./pages/WorldleadersPage").then((m) => ({ default: m.WorldMapPage })),
+// WorldLeadersPage fetches a 3MB TopoJSON file — keep lazy to avoid stalling the bundler
+const WorldLeadersPage = lazy(() =>
+  import("./pages/WorldleadersPage").then((m) => ({
+    default: m.WorldLeadersPage,
+  })),
 );
 
 function PageFallback() {
@@ -94,7 +98,14 @@ export default function App() {
               <Route path="cities" element={<CitiesPage />} />
               <Route path="economies" element={<EconomiesPage />} />
               <Route path="policy" element={<PolicyPage />} />
-              <Route path="worldmap" element={<WorldMapPage />} />
+              <Route path="world-leaders" element={<WorldLeadersPage />} />
+              {/* The page was reachable at /worldmap before it was renamed;
+                  redirect so existing links and bookmarks still land on it
+                  rather than being swallowed by the catch-all below. */}
+              <Route
+                path="worldmap"
+                element={<Navigate to="/dashboard/world-leaders" replace />}
+              />
               <Route path="comparisons" element={<ComparisonsPage />} />
               <Route path="about" element={<AboutPage />} />
               <Route

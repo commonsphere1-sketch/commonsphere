@@ -53,7 +53,7 @@ const analysisNav = [
   { to: "/dashboard/rankings", label: "Rankings", icon: Trophy, end: false },
   { to: "/dashboard/policy", label: "Policy", icon: Scales, end: false },
   {
-    to: "/dashboard/worldmap",
+    to: "/dashboard/world-leaders",
     label: "World Leaders",
     icon: Lectern,
     end: false,
