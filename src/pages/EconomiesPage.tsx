@@ -4053,7 +4053,7 @@ export function EconomiesPage() {
                       </div>
                       <div className="h-1 bg-muted rounded-full overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-secondary transition-all duration-500"
+                          className="h-full rounded-full bg-sky-500 transition-all duration-500"
                           style={{
                             width: `${Math.min(100, (economy.gdpTrillions / 104.5) * 100 * 4)}%`,
                           }}
