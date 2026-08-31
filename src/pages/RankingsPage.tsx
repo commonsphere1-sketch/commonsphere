@@ -1,4 +1,4 @@
-import React, { useState, useMemo,} from "react";
+import React, { useState, useMemo } from "react";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
 import {
@@ -20,7 +20,7 @@ import {
   CaretDown,
   CaretUp,
   X,
-MagnifyingGlass,
+  MagnifyingGlass,
 } from "@phosphor-icons/react";
 
 // ─── Metric definitions ──────────────────────────────────────────────────────
@@ -639,10 +639,14 @@ function buildCountryRows(): RankRow[] {
       incarceration: social?.incarcerationRate ?? 0,
       homelessness: social?.homelessnessRate ?? 0,
       tradeBalance: c.tradeBalance,
-      easeOfBusiness: EASE_OF_BUSINESS[c.id] ?? 0,
-      educationRank: 0,
-      healthcareRank: 0,
-      crimeIndex: 0,
+      easeOfBusiness: EASE_OF_BUSINESS[c.id] ?? NaN,
+      // Not tracked per country in this dataset. These were 0, and because
+      // education and crime rank ascending ("lower is better"), every country
+      // tied at 0 and the Crime and Education leaderboards presented missing
+      // data as the best in the world.
+      educationRank: NaN,
+      healthcareRank: NaN,
+      crimeIndex: NaN,
     } as Omit<RankRow, "composite"> & { composite: 0 };
   }) as RankRow[];
 }
@@ -659,22 +663,45 @@ function buildStateRows(): RankRow[] {
       id: `state-${s.id}`,
       name: s.name,
       type: "state",
-      flag: `https://flagcdn.com/w40/us.png`,
+      // Each state's own flag. This was the US national flag for all fifty,
+      // and was never rendered anyway — the table only drew an <img> for
+      // countries. State ids are the lowercase two-letter codes flagcdn
+      // expects, and all 50 were confirmed to resolve.
+      flag: `https://flagcdn.com/w40/us-${s.id}.png`,
       hdi: normalizedHdi,
       gdpPerCapita: gdpPerCap,
-      gdpGrowth: 2.4,
+      // gdpGrowth, lifeExpectancy and inflation are not in statesData. They
+      // were previously hardcoded to 2.4 / 78.5 / 3.2 for every state, which
+      // put an identical invented number in the table for all fifty and fed
+      // roughly a third of each state's composite. They are now marked
+      // unavailable via UNAVAILABLE_METRICS and excluded from scoring.
+      gdpGrowth: NaN,
       unemployment: s.unemploymentRate,
-      lifeExpectancy: 78.5,
-      inflation: 3.2,
+      lifeExpectancy: NaN,
+      inflation: NaN,
       incarceration: social?.incarcerationRate ?? s.incarcerationRate,
       homelessness: social?.homelessnessRate ?? s.homelessnessRate,
-      tradeBalance: 0,
-      easeOfBusiness: 0,
+      tradeBalance: NaN,
+      easeOfBusiness: NaN,
       educationRank: s.educationRank ?? 0,
       healthcareRank: s.healthcareRank ?? 0,
       crimeIndex: s.crimeIndex ?? 0,
     } as Omit<RankRow, "composite"> & { composite: 0 };
   }) as RankRow[];
+}
+
+/** A metric is unavailable for a row when its value is not a finite number. */
+export function hasMetric(row: RankRow, id: keyof RankRow): boolean {
+  const v = row[id];
+  return typeof v === "number" && isFinite(v);
+}
+
+/**
+ * Formats a metric value, rendering a missing one as N/A. Several of the
+ * per-metric formatters call toFixed directly, which would print "NaN yrs".
+ */
+function fmtMetric(m: { format: (v: number) => string }, val: number): string {
+  return isFinite(val) ? m.format(val) : "N/A";
 }
 
 function percentile(
@@ -683,7 +710,7 @@ function percentile(
   higherIsBetter: boolean,
 ): number {
   const valid = allValues.filter((v) => isFinite(v));
-  if (valid.length === 0) return 50;
+  if (valid.length === 0 || !isFinite(value)) return 50;
   const min = Math.min(...valid);
   const max = Math.max(...valid);
   if (max === min) return 50;
@@ -691,11 +718,23 @@ function percentile(
   return higherIsBetter ? raw : 100 - raw;
 }
 
+/**
+ * Scores a row over the metrics it actually has data for, renormalising the
+ * weights across those metrics.
+ *
+ * Previously every metric was scored for every row, and rows without data
+ * carried placeholder numbers — states got a constant 2.4% growth, 78.5 year
+ * life expectancy, 3.2% inflation and a zero trade balance. Together those
+ * carry 5.5 of the 15 total weight, so more than a third of each state's
+ * composite came from invented figures. Skipping them means a state is
+ * measured only on what is known about it, and compared on the same scale.
+ */
 function computeComposite(row: RankRow, allRows: RankRow[]): number {
   const weightedMetrics = METRICS.filter(
-    (m) => m.id !== "composite" && m.weight > 0,
+    (m) => m.id !== "composite" && m.weight > 0 && hasMetric(row, m.id),
   );
   const totalWeight = weightedMetrics.reduce((s, m) => s + m.weight, 0);
+  if (totalWeight === 0) return 0;
   let score = 0;
   for (const m of weightedMetrics) {
     const allVals = allRows.map((r) => r[m.id] as number);
@@ -728,6 +767,12 @@ function ScoreBar({
   higherIsBetter: boolean;
   color?: string;
 }) {
+  // An empty track for a missing value. percentile() returns 50 for a
+  // non-finite input, which would otherwise draw a half-full bar and read as
+  // a middling score rather than as no data.
+  if (!isFinite(value)) {
+    return <div className="w-10 h-1.5 bg-muted rounded-full overflow-hidden" />;
+  }
   const pct = percentile(value, allValues, higherIsBetter);
   const barColor =
     pct >= 66 ? "bg-success" : pct >= 33 ? "bg-amber-500" : "bg-destructive";
@@ -738,6 +783,41 @@ function ScoreBar({
         style={{ width: `${pct}%` }}
       />
     </div>
+  );
+}
+
+/**
+ * Flag for a row, country or state alike.
+ *
+ * Every site here previously drew an <img> only when the row was a country and
+ * a generic building glyph for a state, so no US state ever showed a flag.
+ * flagcdn serves state flags as us-<code>, and all fifty were verified to
+ * resolve; the glyph is kept as the fallback if a request fails.
+ */
+function EntityFlag({
+  row,
+  imgClassName,
+  iconSize,
+  iconClassName = "text-muted-foreground",
+}: {
+  row: RankRow;
+  imgClassName: string;
+  iconSize: number;
+  iconClassName?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <Buildings size={iconSize} weight="fill" className={iconClassName} />
+    );
+  }
+  return (
+    <img
+      src={row.flag}
+      alt=""
+      className={imgClassName}
+      onError={() => setFailed(true)}
+    />
   );
 }
 
@@ -762,24 +842,11 @@ function RowDetailPanel({
     <div className="animate-fade-in">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-3 flex-wrap">
-          {row.type === "country" ? (
-            <img
-              src={row.flag}
-              alt=""
-              className="w-8 h-5 rounded object-cover border border-border"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
-            />
-          ) : (
-            <div className="w-8 h-5 rounded bg-muted flex items-center justify-center border border-border">
-              <Buildings
-                size={12}
-                weight="fill"
-                className="text-muted-foreground"
-              />
-            </div>
-          )}
+          <EntityFlag
+            row={row}
+            imgClassName="w-8 h-5 rounded object-cover border border-border"
+            iconSize={12}
+          />
           <div>
             <h3 className="text-sm font-bold text-foreground">{row.name}</h3>
             <p className="text-[11px] text-muted-foreground">
@@ -834,7 +901,7 @@ function RowDetailPanel({
                 <span
                   className={`text-xs font-mono font-bold ${textColor} shrink-0`}
                 >
-                  {m.format(val)}
+                  {fmtMetric(m, val)}
                 </span>
               </div>
               <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden mb-1">
@@ -896,22 +963,11 @@ function MobileCard({
         </div>
         {/* Flag */}
         <div className="w-6 h-4 rounded-sm overflow-hidden bg-muted shrink-0 flex items-center justify-center">
-          {row.type === "country" ? (
-            <img
-              src={row.flag}
-              alt=""
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
-            />
-          ) : (
-            <Buildings
-              size={10}
-              weight="fill"
-              className="text-muted-foreground"
-            />
-          )}
+          <EntityFlag
+            row={row}
+            imgClassName="w-full h-full object-cover"
+            iconSize={10}
+          />
         </div>
         {/* Name */}
         <div className="flex-1 min-w-0">
@@ -927,7 +983,7 @@ function MobileCard({
         {/* Primary metric */}
         <div className="flex flex-col items-end gap-0.5 shrink-0">
           <span className={`text-xs font-mono font-bold ${textColor}`}>
-            {primary.format(primaryVal)}
+            {fmtMetric(primary, primaryVal)}
           </span>
           <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
             <div
@@ -1101,9 +1157,17 @@ export function RankingsPage() {
     );
     if (nonComposite.length === 0) return filteredRows;
     const primary = nonComposite[0];
+    // Rows without a value for the primary metric sort last rather than
+    // competing. With a "lower is better" metric such as crime or education
+    // rank, missing data used to sort to the very top, so the Top 5 was a list
+    // of entities with no data shown as "N/A".
     return [...filteredRows].sort((a, b) => {
       const av = primary.accessor(a);
       const bv = primary.accessor(b);
+      const aOk = isFinite(av);
+      const bOk = isFinite(bv);
+      if (aOk !== bOk) return aOk ? -1 : 1;
+      if (!aOk) return 0;
       return primary.higherIsBetter ? bv - av : av - bv;
     });
   }, [filteredRows, activeCategoryMetrics]);
@@ -1161,8 +1225,11 @@ export function RankingsPage() {
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground max-w-xl">
-            Composite index ranking of all countries and US states across 9
-            societal and economic indicators.
+            Composite index ranking of all countries and US states. Each entity
+            is scored on the indicators available for it — up to 9 for
+            countries, 5 for US states — with the weights renormalised across
+            those, so a missing indicator neither helps nor hurts. Cells reading
+            N/A are not tracked for that entity.
           </p>
         </div>
         <span className="text-xs text-muted-foreground font-mono bg-muted/50 border border-border rounded-lg px-2.5 py-1 shrink-0 self-start">
@@ -1263,23 +1330,11 @@ export function RankingsPage() {
                       {podiumRank === 1 ? "🥇" : podiumRank === 2 ? "🥈" : "🥉"}
                     </span>
                     <div className="w-7 h-7 rounded-full overflow-hidden border border-border bg-muted flex items-center justify-center">
-                      {row.type === "country" ? (
-                        <img
-                          src={row.flag}
-                          alt=""
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display =
-                              "none";
-                          }}
-                        />
-                      ) : (
-                        <Buildings
-                          size={12}
-                          weight="fill"
-                          className="text-muted-foreground"
-                        />
-                      )}
+                      <EntityFlag
+                        row={row}
+                        imgClassName="w-full h-full object-cover"
+                        iconSize={12}
+                      />
                     </div>
                     <span className="text-[10px] font-semibold text-foreground text-center leading-tight max-w-[70px]">
                       {row.name}
@@ -1366,22 +1421,12 @@ export function RankingsPage() {
                     )}
                   </span>
                   <div className="w-5 h-3.5 rounded-sm overflow-hidden bg-muted shrink-0">
-                    {row.type === "country" ? (
-                      <img
-                        src={row.flag}
-                        alt=""
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
-                    ) : (
-                      <Buildings
-                        size={9}
-                        weight="fill"
-                        className="text-muted-foreground m-auto"
-                      />
-                    )}
+                    <EntityFlag
+                      row={row}
+                      imgClassName="w-full h-full object-cover"
+                      iconSize={9}
+                      iconClassName="text-muted-foreground m-auto"
+                    />
                   </div>
                   <span className="text-xs font-medium text-foreground flex-1 truncate">
                     {row.name}
@@ -1389,7 +1434,7 @@ export function RankingsPage() {
                   <span
                     className={`text-xs font-mono font-bold ${primary.color} shrink-0`}
                   >
-                    {primary.format(val)}
+                    {fmtMetric(primary, val)}
                   </span>
                   <div className="w-14 h-1.5 bg-muted rounded-full overflow-hidden shrink-0">
                     <div
@@ -1596,23 +1641,11 @@ export function RankingsPage() {
                       <td className="pr-3 py-2.5">
                         <div className="flex items-center gap-2">
                           <div className="w-5 h-3.5 rounded-sm overflow-hidden bg-muted shrink-0 flex items-center justify-center">
-                            {row.type === "country" ? (
-                              <img
-                                src={row.flag}
-                                alt=""
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).style.display =
-                                    "none";
-                                }}
-                              />
-                            ) : (
-                              <Buildings
-                                size={9}
-                                weight="fill"
-                                className="text-muted-foreground"
-                              />
-                            )}
+                            <EntityFlag
+                              row={row}
+                              imgClassName="w-full h-full object-cover"
+                              iconSize={9}
+                            />
                           </div>
                           <span className="font-medium text-foreground leading-tight truncate">
                             {row.name}
@@ -1658,7 +1691,7 @@ export function RankingsPage() {
                               <span
                                 className={`font-mono ${m.id === "composite" ? "text-yellow-400 font-bold" : textColor}`}
                               >
-                                {m.format(val)}
+                                {fmtMetric(m, val)}
                               </span>
                               <ScoreBar
                                 value={val}
