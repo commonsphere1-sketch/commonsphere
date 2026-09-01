@@ -568,12 +568,19 @@ function computeComposite(row: RankRow, allRows: RankRow[]): number {
 }
 
 // ─── Medal component ──────────────────────────────────────────────────────────
+/** Colour for a podium position: 1 green, 2 amber, 3 red, then muted. */
+function rankColor(rank: number): string {
+  if (rank === 1) return "text-success";
+  if (rank === 2) return "text-amber-400";
+  if (rank === 3) return "text-destructive";
+  return "text-muted-foreground";
+}
+
 function MedalCell({ rank }: { rank: number }) {
-  if (rank === 1) return <span className="text-yellow-400 text-base">🥇</span>;
-  if (rank === 2) return <span className="text-slate-300 text-base">🥈</span>;
-  if (rank === 3) return <span className="text-amber-600 text-base">🥉</span>;
   return (
-    <span className="text-muted-foreground font-mono text-sm w-6 inline-block text-center">
+    <span
+      className={`font-mono text-sm w-6 inline-block text-center ${rankColor(rank)} ${rank <= 3 ? "font-bold" : ""}`}
+    >
       {rank}
     </span>
   );
@@ -787,7 +794,7 @@ function MobileCard({
           <MedalCell rank={rank} />
         </div>
         {/* Flag */}
-        <div className="w-9 h-6 rounded overflow-hidden bg-muted border border-border shrink-0 flex items-center justify-center">
+        <div className="w-12 h-8 rounded overflow-hidden bg-muted border border-border shrink-0 flex items-center justify-center">
           <EntityFlag
             row={row}
             imgClassName="w-full h-full object-cover"
@@ -1219,9 +1226,9 @@ export function RankingsPage() {
                 >
                   <div className="flex flex-col items-center gap-1">
                     <span className="text-lg">
-                      {podiumRank === 1 ? "🥇" : podiumRank === 2 ? "🥈" : "🥉"}
+                      <span className={`font-mono font-bold ${rankColor(podiumRank)}`}>{podiumRank}</span>
                     </span>
-                    <div className="w-11 h-11 rounded-full overflow-hidden border border-border shadow-sm bg-muted flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-full overflow-hidden border border-border shadow-sm bg-muted flex items-center justify-center">
                       <EntityFlag
                         row={row}
                         imgClassName="w-full h-full object-cover"
@@ -1286,19 +1293,13 @@ export function RankingsPage() {
                   className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
                 >
                   <span className="text-sm w-5 text-center shrink-0">
-                    {rank === 1 ? (
-                      "🥇"
-                    ) : rank === 2 ? (
-                      "🥈"
-                    ) : rank === 3 ? (
-                      "🥉"
-                    ) : (
-                      <span className="text-muted-foreground font-mono text-xs">
-                        {rank}
-                      </span>
-                    )}
+                    <span
+                      className={`font-mono text-xs ${rankColor(rank)} ${rank <= 3 ? "font-bold" : ""}`}
+                    >
+                      {rank}
+                    </span>
                   </span>
-                  <div className="w-8 h-5 rounded overflow-hidden bg-muted border border-border shrink-0">
+                  <div className="w-11 h-7 rounded overflow-hidden bg-muted border border-border shrink-0">
                     <EntityFlag
                       row={row}
                       imgClassName="w-full h-full object-cover"
@@ -1563,7 +1564,7 @@ export function RankingsPage() {
                       {/* Name */}
                       <td className="pr-3 py-2.5">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-5 rounded overflow-hidden bg-muted border border-border shrink-0 flex items-center justify-center">
+                          <div className="w-11 h-7 rounded overflow-hidden bg-muted border border-border shrink-0 flex items-center justify-center">
                             <EntityFlag
                               row={row}
                               imgClassName="w-full h-full object-cover"
