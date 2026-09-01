@@ -701,6 +701,46 @@ const INFLATION_DATA = [
   { year: "2026", g20: 3.2, adv: 2.2 },
 ];
 
+/**
+ * Newest "Mon YYYY" date in a curated feed.
+ *
+ * These feeds are hand-authored and cannot refresh themselves — GDELT and
+ * NewsAPI both block browser requests, so there is no client-side source to
+ * wire them to. Deriving the label from the entries means the UI states the
+ * period it is actually showing instead of asserting it is live, and it stays
+ * correct whenever the entries are next edited.
+ */
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+function feedLatestLabel(items: { date: string }[]): string {
+  let best = -Infinity;
+  let label = "";
+  for (const it of items) {
+    const m = /^([A-Za-z]{3})\s+(\d{4})$/.exec(it.date.trim());
+    if (!m) continue;
+    const mi = MONTHS.indexOf(m[1]);
+    if (mi < 0) continue;
+    const key = Number(m[2]) * 12 + mi;
+    if (key > best) {
+      best = key;
+      label = it.date.trim();
+    }
+  }
+  return label;
+}
+
 const RECENT_EVENTS = [
   {
     tag: "Conflict",
@@ -6464,8 +6504,11 @@ export function DashboardPage() {
               className="text-sm font-sans mt-1 max-w-md"
               style={{ color: mutedText }}
             >
-              Real-time data on countries, economies, conflicts, and policies
-              across the world.
+              {/* "Real-time" overstated it: country and state figures do
+                  refresh from the World Bank, but the event and policy feeds
+                  are curated and carry their own dates. */}
+              Country and state figures refresh from the World Bank; event and
+              policy entries are curated and dated individually.
             </p>
           </div>
         </div>
@@ -7331,15 +7374,18 @@ export function DashboardPage() {
                     className="text-base font-bold font-sans"
                     style={{ color: headText }}
                   >
-                    Live Feed
+                    Event Log
                   </h2>
                 </div>
+                {/* Was "Live Feed" with a pulsing Live badge over entries dated
+                    Jul 2025. The badge now reports the newest entry, so the
+                    section cannot claim to be live when it is not. */}
                 <span
-                  className="text-[9px] font-mono px-2 py-1 rounded-full flex items-center gap-1"
-                  style={{ background: "#ef444415", color: "#ef4444" }}
+                  className="text-[9px] font-mono px-2 py-1 rounded-full"
+                  style={{ background: "#94a3b815", color: "#94a3b8" }}
+                  title="These entries are curated, not fetched live"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse inline-block" />{" "}
-                  Live
+                  To {feedLatestLabel(RECENT_EVENTS)}
                 </span>
               </div>
               <div className="flex flex-col gap-0">
@@ -7591,7 +7637,7 @@ export function DashboardPage() {
                 className="text-[10px] font-mono uppercase tracking-widest mb-3"
                 style={{ color: mutedText }}
               >
-                Domestic Highlights
+                Domestic Highlights · to {feedLatestLabel(NATIONAL_HIGHLIGHTS)}
               </p>
               <div className="flex flex-col gap-0">
                 {NATIONAL_HIGHLIGHTS.map((e, i) => (
