@@ -696,49 +696,51 @@ function RowDetailPanel({
         </button>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-        {metricsToShow.map((m) => {
-          const val = row[m.id] as number;
-          const allVals = allValuesMap[m.id] ?? [];
-          const pct = percentile(val, allVals, m.higherIsBetter);
-          const barColor =
-            pct >= 66
-              ? "bg-success"
-              : pct >= 33
-                ? "bg-amber-500"
-                : "bg-destructive";
-          const textColor =
-            pct >= 66
-              ? "text-success"
-              : pct >= 33
-                ? "text-amber-400"
-                : "text-destructive";
-          return (
-            <div
-              key={m.id}
-              className="bg-background/60 border border-border/60 rounded-xl p-3"
-            >
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[11px] font-semibold text-foreground truncate mr-1">
-                  {m.shortLabel}
-                </span>
-                <span
-                  className={`text-xs font-mono font-bold ${textColor} shrink-0`}
-                >
-                  {fmtMetric(m, val)}
-                </span>
+        {metricsToShow
+          .filter((m) => hasMetric(row, m.id))
+          .map((m) => {
+            const val = row[m.id] as number;
+            const allVals = allValuesMap[m.id] ?? [];
+            const pct = percentile(val, allVals, m.higherIsBetter);
+            const barColor =
+              pct >= 66
+                ? "bg-success"
+                : pct >= 33
+                  ? "bg-amber-500"
+                  : "bg-destructive";
+            const textColor =
+              pct >= 66
+                ? "text-success"
+                : pct >= 33
+                  ? "text-amber-400"
+                  : "text-destructive";
+            return (
+              <div
+                key={m.id}
+                className="bg-background/60 border border-border/60 rounded-xl p-3"
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[11px] font-semibold text-foreground truncate mr-1">
+                    {m.shortLabel}
+                  </span>
+                  <span
+                    className={`text-xs font-mono font-bold ${textColor} shrink-0`}
+                  >
+                    {fmtMetric(m, val)}
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden mb-1">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+                    style={{ width: `${Math.max(2, pct)}%` }}
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  {pct.toFixed(0)}th pct
+                </p>
               </div>
-              <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden mb-1">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${barColor}`}
-                  style={{ width: `${Math.max(2, pct)}%` }}
-                />
-              </div>
-              <p className="text-[10px] text-muted-foreground">
-                {pct.toFixed(0)}th pct
-              </p>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
     </div>
   );
