@@ -13,7 +13,6 @@ import {
   Minus,
   Trophy,
   ChartBar,
-  Funnel,
   SortAscending,
   SortDescending,
   Star,
@@ -54,7 +53,25 @@ type MetricId =
  * is how their leaderboards came to list countries showing "N/A" as the best
  * in the world.
  */
-type CategoryTab = "economy" | "hdi" | "housing" | "justice";
+type CategoryTab =
+  | "economy"
+  | "hdi"
+  | "housing"
+  | "justice"
+  | "health"
+  | "education"
+  | "infrastructure";
+
+/**
+ * Which pool a category can rank.
+ *
+ * Life expectancy exists for all 204 countries and no state; education rank
+ * exists for all 50 states and no country. Rather than drop those subjects or
+ * show half a table as N/A, a category declares the pool it applies to and
+ * selecting it switches the entity filter to match. Every column stays
+ * populated, and the page says which pool is being ranked.
+ */
+type CategoryPool = "all" | "country" | "state";
 
 interface CategoryMetric {
   id: string;
@@ -78,11 +95,24 @@ interface MetricDef {
   weight: number;
 }
 
-const CATEGORY_TABS: { id: CategoryTab; label: string; icon: string }[] = [
-  { id: "economy", label: "Economy", icon: "💹" },
-  { id: "hdi", label: "Development", icon: "🌐" },
-  { id: "housing", label: "Housing", icon: "🏠" },
-  { id: "justice", label: "Justice", icon: "⚖️" },
+const CATEGORY_TABS: {
+  id: CategoryTab;
+  label: string;
+  icon: string;
+  pool: CategoryPool;
+}[] = [
+  { id: "economy", label: "Economy", icon: "💹", pool: "all" },
+  { id: "hdi", label: "Development", icon: "🌐", pool: "all" },
+  { id: "housing", label: "Housing", icon: "🏠", pool: "all" },
+  { id: "justice", label: "Justice", icon: "⚖️", pool: "all" },
+  { id: "health", label: "Health", icon: "❤️", pool: "country" },
+  { id: "education", label: "Education", icon: "🎓", pool: "state" },
+  {
+    id: "infrastructure",
+    label: "Infrastructure",
+    icon: "🏗️",
+    pool: "country",
+  },
 ];
 
 const M_GDP_PER_CAPITA: CategoryMetric = {
@@ -152,11 +182,85 @@ const M_SCORE: CategoryMetric = {
   accessor: (r) => r.composite,
 };
 
+/** Countries only — every country has it, no state does. */
+const M_LIFE_EXPECTANCY: CategoryMetric = {
+  id: "lifeExpectancy",
+  label: "Life Expectancy",
+  shortLabel: "Life Exp.",
+  description: "Average years a newborn is expected to live",
+  higherIsBetter: true,
+  format: (v) => `${v.toFixed(1)} yrs`,
+  color: "text-blue-400",
+  accessor: (r) => r.lifeExpectancy,
+};
+
+/** US states only — a rank among the fifty, so it has no country analogue. */
+const M_EDUCATION_RANK: CategoryMetric = {
+  id: "educationRank",
+  label: "Education Rank",
+  shortLabel: "Edu. Rank",
+  description: "Education quality rank among US states (lower = better)",
+  higherIsBetter: false,
+  format: (v) => `#${Math.round(v)}`,
+  color: "text-sky-400",
+  accessor: (r) => r.educationRank,
+};
+
+/** US states only, on the same 1–50 scale as the education rank. */
+const M_HEALTHCARE_RANK: CategoryMetric = {
+  id: "healthcareRank",
+  label: "Healthcare Rank",
+  shortLabel: "Health Rank",
+  description: "Healthcare system rank among US states (lower = better)",
+  higherIsBetter: false,
+  format: (v) => `#${Math.round(v)}`,
+  color: "text-rose-400",
+  accessor: (r) => r.healthcareRank,
+};
+
+/**
+ * Countries only. This is the dataset's one infrastructure signal — there is
+ * no roads, rail, broadband or utilities measure for either pool — so the
+ * category is built on generation capacity and labelled as energy output
+ * rather than implying a broader infrastructure index.
+ */
+const M_ENERGY_OUTPUT: CategoryMetric = {
+  id: "energyOutputTWh",
+  label: "Energy Output",
+  shortLabel: "Energy",
+  description: "Annual primary energy production (TWh)",
+  higherIsBetter: true,
+  format: (v) =>
+    v >= 1000 ? `${(v / 1000).toFixed(1)}k TWh` : `${v.toFixed(0)} TWh`,
+  color: "text-yellow-400",
+  accessor: (r) => r.energyOutputTWh,
+};
+
+const M_SELF_SUFFICIENCY: CategoryMetric = {
+  id: "energySelfSufficiency",
+  label: "Energy Self-Sufficiency",
+  shortLabel: "Self-Suff.",
+  description:
+    "Production as a share of consumption — over 100% is a net exporter",
+  higherIsBetter: true,
+  format: (v) => `${v.toFixed(0)}%`,
+  color: "text-teal-400",
+  accessor: (r) => r.energySelfSufficiency,
+};
+
 const CATEGORY_METRICS: Record<CategoryTab, CategoryMetric[]> = {
   economy: [M_GDP_PER_CAPITA, M_UNEMPLOYMENT, M_SCORE],
   hdi: [M_HDI, M_GDP_PER_CAPITA, M_SCORE],
   housing: [M_HOMELESSNESS, M_UNEMPLOYMENT, M_GDP_PER_CAPITA, M_SCORE],
   justice: [M_INCARCERATION, M_HOMELESSNESS, M_SCORE],
+  health: [M_LIFE_EXPECTANCY, M_HDI, M_GDP_PER_CAPITA, M_SCORE],
+  education: [M_EDUCATION_RANK, M_HEALTHCARE_RANK, M_GDP_PER_CAPITA, M_SCORE],
+  infrastructure: [
+    M_ENERGY_OUTPUT,
+    M_SELF_SUFFICIENCY,
+    M_GDP_PER_CAPITA,
+    M_SCORE,
+  ],
 };
 
 const METRICS: MetricDef[] = [
@@ -326,6 +430,10 @@ interface RankRow {
   educationRank: number;
   healthcareRank: number;
   crimeIndex: number;
+  /** Annual electricity/primary energy output, TWh. Countries only. */
+  energyOutputTWh: number;
+  /** Production as a share of consumption, %. Over 100 = net exporter. */
+  energySelfSufficiency: number;
 }
 
 function buildCountryRows(): RankRow[] {
@@ -353,6 +461,11 @@ function buildCountryRows(): RankRow[] {
       educationRank: NaN,
       healthcareRank: NaN,
       crimeIndex: NaN,
+      energyOutputTWh: c.energy?.totalProductionTWh ?? NaN,
+      energySelfSufficiency:
+        c.energy && c.energy.totalUseTWh > 0
+          ? (c.energy.totalProductionTWh / c.energy.totalUseTWh) * 100
+          : NaN,
     } as Omit<RankRow, "composite"> & { composite: 0 };
   }) as RankRow[];
 }
@@ -389,9 +502,13 @@ function buildStateRows(): RankRow[] {
       homelessness: social?.homelessnessRate ?? s.homelessnessRate,
       tradeBalance: NaN,
       easeOfBusiness: NaN,
-      educationRank: s.educationRank ?? 0,
-      healthcareRank: s.healthcareRank ?? 0,
-      crimeIndex: s.crimeIndex ?? 0,
+      educationRank: s.educationRank ?? NaN,
+      healthcareRank: s.healthcareRank ?? NaN,
+      crimeIndex: s.crimeIndex ?? NaN,
+      // statesData carries an energy mix as percentages only, with no absolute
+      // output, so there is nothing comparable to a country's TWh figure.
+      energyOutputTWh: NaN,
+      energySelfSufficiency: NaN,
     } as Omit<RankRow, "composite"> & { composite: 0 };
   }) as RankRow[];
 }
@@ -801,6 +918,9 @@ export function RankingsPage() {
     hdi: { metric: "hdi", dir: "desc" },
     housing: { metric: "homelessness", dir: "asc" },
     justice: { metric: "incarceration", dir: "asc" },
+    health: { metric: "lifeExpectancy", dir: "desc" },
+    education: { metric: "educationRank", dir: "asc" },
+    infrastructure: { metric: "energyOutputTWh", dir: "desc" },
   };
 
   /**
@@ -940,6 +1060,24 @@ export function RankingsPage() {
   function handleFilterChange(f: EntityFilter) {
     setEntityFilter(f);
     setContinentFilter("all");
+    setPage(0);
+  }
+
+  /** The pool the active category can rank, or "all" if it is unrestricted. */
+  const activePool: CategoryPool =
+    CATEGORY_TABS.find((t) => t.id === activeCategory)?.pool ?? "all";
+
+  /**
+   * Selecting a pool-locked category moves the entity filter with it, so the
+   * table is never asked to rank entities the category has no data for.
+   */
+  function selectCategory(id: CategoryTab) {
+    const pool = CATEGORY_TABS.find((t) => t.id === id)?.pool ?? "all";
+    setActiveCategory(id);
+    if (pool !== "all") {
+      setEntityFilter(pool);
+      setContinentFilter("all");
+    }
     setPage(0);
   }
 
@@ -1189,61 +1327,111 @@ export function RankingsPage() {
       </div>
 
       {/* ── Filters ─────────────────────────────────────────────────────── */}
-      <div className="search-sticky sticky top-16 z-30 flex flex-wrap items-center gap-2 rounded-2xl px-4 py-2.5">
-        {/* Category */}
-        <div className="flex flex-wrap items-center gap-1 bg-muted/50 border border-border rounded-xl p-0.5">
+      {/* Search + filters. Same two-row shell the countries and states pages
+          use: a full-width search row, then a rule and a row of pill filters
+          ending in a bare sort select. */}
+      <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
+        {/* Row 1: Search */}
+        <div className="flex items-center gap-2">
+          <MagnifyingGlass
+            size={16}
+            className="text-muted-foreground shrink-0"
+          />
+          <input
+            type="text"
+            placeholder="Search countries or states…"
+            value={searchQ}
+            onChange={(e) => {
+              setSearchQ(e.target.value);
+              setPage(0);
+            }}
+            className="flex-1 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
+          />
+          {searchQ && (
+            <button
+              onClick={() => {
+                setSearchQ("");
+                setPage(0);
+              }}
+              className="text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
+              aria-label="Clear search"
+            >
+              <X size={13} />
+            </button>
+          )}
+        </div>
+
+        {/* Row 2: category pills, entity pills, sort */}
+        <div className="flex flex-wrap items-center gap-2 pt-2 mt-1 border-t border-border/60">
           {CATEGORY_TABS.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => {
-                setActiveCategory(tab.id);
-                setPage(0);
-              }}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+              onClick={() => selectCategory(tab.id)}
+              title={
+                tab.pool === "country"
+                  ? "Ranks countries — the underlying data is country-level"
+                  : tab.pool === "state"
+                    ? "Ranks US states — the underlying data is state-level"
+                    : undefined
+              }
+              className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
                 activeCategory === tab.id
-                  ? "bg-secondary text-secondary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-secondary/20 text-secondary border-secondary/40"
+                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
             >
-              <span className="text-[11px]">{tab.icon}</span>
+              <span>{tab.icon}</span>
               {tab.label}
             </button>
           ))}
-        </div>
 
-        <span className="w-px h-5 bg-border shrink-0" aria-hidden="true" />
+          <div className="w-px h-5 bg-border shrink-0" />
 
-        {/* Entity type */}
-        <div className="flex bg-muted/50 border border-border rounded-xl p-0.5 gap-0.5">
-          {(["all", "country", "state"] as EntityFilter[]).map((f) => (
-            <button
-              key={f}
-              onClick={() => handleFilterChange(f)}
-              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                entityFilter === f
-                  ? "bg-secondary text-secondary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {f === "all"
-                ? "All"
-                : f === "country"
-                  ? "Countries"
-                  : "US States"}
-            </button>
-          ))}
-        </div>
+          {(["all", "country", "state"] as EntityFilter[]).map((f) => {
+            // A pool-locked category fixes the entity filter, so offering the
+            // other two here would be a control that silently does nothing.
+            const locked = activePool !== "all";
+            const disabled = locked && f !== activePool;
+            return (
+              <button
+                key={f}
+                onClick={() => !disabled && handleFilterChange(f)}
+                disabled={disabled}
+                title={
+                  disabled
+                    ? `${CATEGORY_TABS.find((t) => t.id === activeCategory)?.label} is ranked over ${activePool === "country" ? "countries" : "US states"} only`
+                    : undefined
+                }
+                className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors shrink-0 ${
+                  disabled
+                    ? // opacity-40 rather than text-muted-foreground/40: the
+                      // token is already declared with an alpha channel, so the
+                      // slash modifier does not compose and the pill rendered
+                      // at full brightness, looking enabled.
+                      "bg-transparent border-border text-muted-foreground opacity-40 cursor-not-allowed"
+                    : entityFilter === f
+                      ? "bg-secondary/20 text-secondary border-secondary/40 cursor-pointer"
+                      : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
+                }`}
+              >
+                {f === "all"
+                  ? "All"
+                  : f === "country"
+                    ? "Countries"
+                    : "US States"}
+              </button>
+            );
+          })}
 
-        {/* Sort metric */}
-        <div className="flex items-center gap-1.5 bg-muted/50 border border-border rounded-xl px-2.5 py-1.5 min-w-0">
-          <Funnel size={12} className="text-muted-foreground shrink-0" />
+          <div className="w-px h-5 bg-border shrink-0" />
+
           <select
             value={sortMetric}
             onChange={(e) => {
               setSortMetric(e.target.value as MetricId);
               setPage(0);
             }}
-            className="bg-transparent text-xs font-semibold text-foreground outline-none cursor-pointer max-w-[110px]"
+            className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
           >
             {METRICS.map((m) => (
               <option key={m.id} value={m.id}>
@@ -1253,7 +1441,10 @@ export function RankingsPage() {
           </select>
           <button
             onClick={() => setSortDir((d) => (d === "desc" ? "asc" : "desc"))}
-            className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+            className="text-muted-foreground hover:text-foreground transition-colors shrink-0 cursor-pointer"
+            aria-label={
+              sortDir === "desc" ? "Sort ascending" : "Sort descending"
+            }
           >
             {sortDir === "desc" ? (
               <SortDescending size={13} />
@@ -1261,35 +1452,6 @@ export function RankingsPage() {
               <SortAscending size={13} />
             )}
           </button>
-        </div>
-
-        {/* Search */}
-        <div className="flex items-center gap-1.5 bg-muted/50 border border-border rounded-xl px-2.5 py-1.5 flex-1 min-w-[140px] max-w-xs">
-          <MagnifyingGlass
-            size={12}
-            className="text-muted-foreground shrink-0"
-          />
-          <input
-            type="text"
-            placeholder="Search…"
-            value={searchQ}
-            onChange={(e) => {
-              setSearchQ(e.target.value);
-              setPage(0);
-            }}
-            className="bg-transparent text-xs text-foreground placeholder:text-muted-foreground outline-none flex-1 min-w-0"
-          />
-          {searchQ && (
-            <button
-              onClick={() => {
-                setSearchQ("");
-                setPage(0);
-              }}
-              className="text-muted-foreground hover:text-foreground shrink-0"
-            >
-              <X size={11} />
-            </button>
-          )}
         </div>
       </div>
 
