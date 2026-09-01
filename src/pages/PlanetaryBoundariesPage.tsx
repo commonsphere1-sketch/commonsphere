@@ -52,7 +52,10 @@ const BOUNDARIES: Boundary[] = [
     variables: [
       {
         name: "CO₂ Concentration",
-        value: "424 ppm",
+        // Was 424 ppm here while the summary card said 428 — the same page
+        // carried two different figures. Both now use the NOAA Mauna Loa
+        // monthly mean for July 2026.
+        value: "429 ppm",
         safe: "350 ppm",
         unit: "ppm",
       },
@@ -1210,9 +1213,13 @@ export function PlanetaryBoundariesPage() {
             },
             {
               label: "CO₂ Concentration",
-              value: "428 ppm",
+              // NOAA Mauna Loa monthly mean, July 2026 (429.12 ppm), from
+              // gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.txt. Was 428
+              // with no date. The series is not fetchable from the browser —
+              // NOAA sends no CORS header — so it is cited rather than live.
+              value: "429 ppm",
               color: "text-orange-500",
-              sub: "Safe: 350 ppm",
+              sub: "Safe: 350 ppm · Jul 2026",
             },
             {
               label: "Species Loss Rate",
