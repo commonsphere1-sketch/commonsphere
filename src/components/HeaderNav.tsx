@@ -176,21 +176,23 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
             The box is already 32px, the same as the avatar on the right, but
             the source JPEGs carry their own padding: the globe measures
             450x451 inside a 614x610 frame, so it filled only 73.5% of the box
-            and read as the smaller of the two. Scaling by the reciprocal
-            (1.36) crops that padding so the globe itself matches the avatar's
-            footprint. overflow-hidden keeps the enlarged edges inside. */}
+            and read as the smaller of the two.
+
+            The artwork is also off-centre, so the largest scale that clips
+            nothing is set by the tightest margin: 1.332 for the light file and
+            1.304 for the dark one. 1.28 sits just under both. */}
         <div className="w-8 h-8 shrink-0 relative overflow-hidden">
           {/* Light mode: black-on-white globe */}
           <img
             src="https://c.animaapp.com/mnv7exnwOzX3vX/img/uploaded-asset-1776467236633-0.jpeg"
             alt="CommonSphere logo"
-            className="logo-light absolute inset-0 w-full h-full object-contain scale-[1.36]"
+            className="logo-light absolute inset-0 w-full h-full object-contain scale-[1.28]"
           />
           {/* Dark mode: white-on-black globe */}
           <img
             src="https://c.animaapp.com/mnv7exnwOzX3vX/img/uploaded-asset-1776467236635-1.jpeg"
             alt="CommonSphere logo"
-            className="logo-dark absolute inset-0 w-full h-full object-contain scale-[1.36]"
+            className="logo-dark absolute inset-0 w-full h-full object-contain scale-[1.28]"
           />
         </div>
         {/* Wordmark */}
