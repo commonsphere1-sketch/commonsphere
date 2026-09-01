@@ -165,6 +165,14 @@ html.light .header-action-icon:hover {
 html.light .header-logo-text {
   color: hsl(38, 18%, 12%) !important;
 }
+/* Dark mode had no rule here, so the name fell back to the Tailwind
+   text-primary-foreground token — a dark colour, on the dark header. It
+   measured 1.13:1 against the header's darkest stop, i.e. invisible. The
+   base rule now carries the dark-mode colour and light overrides it, the
+   same shape .header-logo-text above already uses. */
+.header-username {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
 html.light .header-username {
   color: hsl(38, 18%, 18%) !important;
 }
