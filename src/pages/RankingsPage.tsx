@@ -201,7 +201,7 @@ const M_EDUCATION_RANK: CategoryMetric = {
   shortLabel: "Edu. Rank",
   description: "Education quality rank among US states (lower = better)",
   higherIsBetter: false,
-  format: (v) => `#${Math.round(v)}`,
+  format: (v) => `${Math.round(v)}`,
   color: "text-sky-400",
   accessor: (r) => r.educationRank,
 };
@@ -213,7 +213,7 @@ const M_HEALTHCARE_RANK: CategoryMetric = {
   shortLabel: "Health Rank",
   description: "Healthcare system rank among US states (lower = better)",
   higherIsBetter: false,
-  format: (v) => `#${Math.round(v)}`,
+  format: (v) => `${Math.round(v)}`,
   color: "text-rose-400",
   accessor: (r) => r.healthcareRank,
 };
@@ -372,7 +372,7 @@ const METRICS: MetricDef[] = [
     shortLabel: "Bus. Rank",
     description: "World Bank Ease of Doing Business rank — lower = better",
     higherIsBetter: false,
-    format: (v) => (v > 0 ? `#${Math.round(v)}` : "N/A"),
+    format: (v) => (v > 0 ? `${Math.round(v)}` : "N/A"),
     color: "text-lime-400",
     weight: 0,
   },
@@ -1255,7 +1255,6 @@ export function RankingsPage() {
 
           {/* Top 5 leaderboard */}
           <p className="text-[10px] font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-            {CATEGORY_TABS.find((t) => t.id === activeCategory)?.icon}{" "}
             {/* While searching this is no longer the top of the table, it is
                 the matches with the ranks they actually hold — say so rather
                 than labelling rank #133 as "Top 5". */}
@@ -1309,7 +1308,7 @@ export function RankingsPage() {
                     {row.name}
                   </span>
                   <span
-                    className={`text-xs font-mono font-bold ${primary.color} shrink-0`}
+                    className={`text-xs font-mono font-bold ${barColor.replace("bg-success", "text-success").replace("bg-amber-500", "text-amber-400").replace("bg-destructive", "text-destructive")} shrink-0`}
                   >
                     {fmtMetric(primary, val)}
                   </span>
@@ -1376,11 +1375,10 @@ export function RankingsPage() {
               }
               className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
                 activeCategory === tab.id
-                  ? "bg-secondary/20 text-secondary border-secondary/40"
+                  ? "bg-secondary/20 text-foreground border-secondary/40"
                   : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
             >
-              <span>{tab.icon}</span>
               {tab.label}
             </button>
           ))}
@@ -1410,7 +1408,7 @@ export function RankingsPage() {
                       // at full brightness, looking enabled.
                       "bg-transparent border-border text-muted-foreground opacity-40 cursor-not-allowed"
                     : entityFilter === f
-                      ? "bg-secondary/20 text-secondary border-secondary/40 cursor-pointer"
+                      ? "bg-secondary/20 text-foreground border-secondary/40 cursor-pointer"
                       : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
                 }`}
               >
@@ -1487,7 +1485,6 @@ export function RankingsPage() {
         {/* Column header — category label */}
         <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-muted/20">
           <span className="text-xs font-semibold text-foreground">
-            {CATEGORY_TABS.find((t) => t.id === activeCategory)?.icon}{" "}
             {CATEGORY_TABS.find((t) => t.id === activeCategory)?.label} Rankings
           </span>
           <span className="text-[10px] text-muted-foreground font-mono">
