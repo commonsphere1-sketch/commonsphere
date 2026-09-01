@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProfilePhotoProvider } from "@/contexts/ProfilePhotoContext";
 import { ProfileProvider } from "@/contexts/ProfileContext";
+import { LiveDataProvider } from "@/contexts/LiveDataContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import App from "./App";
 import "./index.css";
@@ -17,9 +18,11 @@ ReactDOM.createRoot(document.getElementById("app")!).render(
       <AuthProvider>
         <ProfileProvider>
           <ProfilePhotoProvider>
-            <ThemeProvider>
-              <App />
-            </ThemeProvider>
+            <LiveDataProvider>
+              <ThemeProvider>
+                <App />
+              </ThemeProvider>
+            </LiveDataProvider>
           </ProfilePhotoProvider>
         </ProfileProvider>
       </AuthProvider>

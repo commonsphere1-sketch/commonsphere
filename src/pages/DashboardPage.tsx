@@ -19,16 +19,22 @@ import {
   Atom,
   Flag,
   ShareNetwork,
-  Users,  Newspaper,
+  Users,
+  Newspaper,
   Bank,
   Handshake,
   Sparkle,
   Info,
-  Target,ChartLineUp,
-  MapPin,MagnifyingGlass,
-  X,  CheckCircle,
-  Heart,Planet,
-  ChartDonut,} from "@phosphor-icons/react";
+  Target,
+  ChartLineUp,
+  MapPin,
+  MagnifyingGlass,
+  X,
+  CheckCircle,
+  Heart,
+  Planet,
+  ChartDonut,
+} from "@phosphor-icons/react";
 import {
   AreaChart,
   Area,
@@ -44,6 +50,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { countriesData } from "../data/countriesData";
+import { useLiveCountries } from "../contexts/LiveDataContext";
 import { usStatesData } from "../data/statesData";
 import { economiesData } from "../data/economiesData";
 import { SourceLink } from "../components/SourceLink";
@@ -94,9 +101,10 @@ function CountryCarousel({
   gridLine: string;
   onNav: (path: string) => void;
 }) {
+  const liveCountries = useLiveCountries();
   const sorted = React.useMemo(
-    () => [...countriesData].sort((a, b) => b.gdp - a.gdp),
-    [],
+    () => [...liveCountries].sort((a, b) => b.gdp - a.gdp),
+    [liveCountries],
   );
 
   // Duplicate list so the loop is seamless
@@ -257,7 +265,9 @@ function CountryCarousel({
                 <div
                   key={`${country.id}-${idx}`}
                   data-carousel-card
-                  onClick={() => onNav(`/dashboard/countries?open=${country.id}`)}
+                  onClick={() =>
+                    onNav(`/dashboard/countries?open=${country.id}`)
+                  }
                   className="rounded-xl overflow-hidden cursor-pointer transition-opacity duration-200 hover:opacity-90 shrink-0"
                   style={{
                     width: "calc((100vw - 260px - 56px) / 5)",
@@ -2572,9 +2582,10 @@ function CompareCountriesTool({
     [stateSearch],
   );
 
+  const liveCountries = useLiveCountries();
   const selectedCountries = useMemo(
-    () => countriesData.filter((c) => selectedCountryIds.includes(c.id)),
-    [selectedCountryIds],
+    () => liveCountries.filter((c) => selectedCountryIds.includes(c.id)),
+    [liveCountries, selectedCountryIds],
   );
 
   const selectedStates = useMemo(
@@ -3617,9 +3628,10 @@ function InteractiveDataPanel({
   const [search, setSearch] = useState("");
 
   // sorted all countries by GDP desc
+  const liveCountries = useLiveCountries();
   const allByGDP = useMemo(
-    () => [...countriesData].sort((a, b) => b.gdp - a.gdp),
-    [],
+    () => [...liveCountries].sort((a, b) => b.gdp - a.gdp),
+    [liveCountries],
   );
 
   const [selectedCountry, setSelectedCountry] = useState<
@@ -3709,7 +3721,7 @@ function InteractiveDataPanel({
               setSearch("");
               setSelectedCountry(
                 tab.id === "countries"
-                  ? ([...countriesData].sort((a, b) => b.gdp - a.gdp)[0] ??
+                  ? ([...liveCountries].sort((a, b) => b.gdp - a.gdp)[0] ??
                       null)
                   : null,
               );
@@ -6397,9 +6409,10 @@ export function DashboardPage() {
   const headText = isLight ? "#0f172a" : "#f1f0ff";
   const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
 
+  const liveCountries = useLiveCountries();
   const topCountries = useMemo(
-    () => [...countriesData].sort((a, b) => b.gdp - a.gdp).slice(0, 6),
-    [],
+    () => [...liveCountries].sort((a, b) => b.gdp - a.gdp).slice(0, 6),
+    [liveCountries],
   );
   const topStates = useMemo(
     () => [...usStatesData].sort((a, b) => b.gdp - a.gdp).slice(0, 6),
@@ -7931,8 +7944,8 @@ export function DashboardPage() {
         {/* ── FOOTER ────────────────────────────────────────────────────── */}
         <div className="text-center py-3 flex flex-col items-center gap-1">
           <p className="text-[11px] font-sans" style={{ color: mutedText }}>
-            © {new Date().getFullYear()} CommonSphere · Dashboard · Data
-            updated Q2 2025
+            © {new Date().getFullYear()} CommonSphere · Dashboard · Data updated
+            Q2 2025
           </p>
           <SourceLink
             sources={[

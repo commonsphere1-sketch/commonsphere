@@ -60,21 +60,25 @@ function MetricCard({
   );
 }
 
+// World Bank world aggregates, 2025 — the most recent completed year the
+// source publishes. These read $104.5T and 8.12B labelled "estimated 2024",
+// which did not match the World Bank's own 2024 figures either ($111.67T and
+// 8.141B). Deltas are 2024 to 2025 from the same series.
 const metricsData = [
   {
     title: "Global GDP",
-    value: "$104.5T",
-    delta: "+3.2%",
+    value: "$118.4T",
+    delta: "+6.0%",
     deltaPositive: true,
-    subtitle: "vs. previous year",
+    subtitle: "World Bank · 2025",
     icon: <CurrencyDollar size={22} weight="fill" />,
   },
   {
     title: "World Population",
-    value: "8.12B",
+    value: "8.22B",
     delta: "+0.9%",
     deltaPositive: true,
-    subtitle: "estimated 2024",
+    subtitle: "World Bank · 2025",
     icon: <Users size={22} weight="fill" />,
   },
   {
