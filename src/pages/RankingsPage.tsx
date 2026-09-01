@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
 import {
@@ -803,7 +803,16 @@ export function RankingsPage() {
     justice: { metric: "incarceration", dir: "asc" },
   };
 
-  const filteredRows = useMemo(() => {
+  /**
+   * The ranking pool: entity and continent filters only.
+   *
+   * Those two are scope — they choose what an entity is ranked among. Search
+   * is a lookup, so it must not change anyone's rank; it is applied after
+   * ranking rather than before. Previously every rank was an index into the
+   * post-search list, so searching "mexic" awarded Mexico a gold medal for
+   * incarceration purely because it sorted first among the two matches.
+   */
+  const scopedRows = useMemo(() => {
     let rows = allRows;
     if (entityFilter !== "all")
       rows = rows.filter((r) => r.type === entityFilter);
@@ -816,10 +825,17 @@ export function RankingsPage() {
         (r) => r.type === "state" || countryMap[r.id] === continentFilter,
       );
     }
-    if (searchQ.trim()) {
-      const q = searchQ.toLowerCase();
-      rows = rows.filter((r) => r.name.toLowerCase().includes(q));
-    }
+    return rows;
+  }, [allRows, entityFilter, continentFilter]);
+
+  const searchTerm = searchQ.trim().toLowerCase();
+  const matchesSearch = useCallback(
+    (r: RankRow) => !searchTerm || r.name.toLowerCase().includes(searchTerm),
+    [searchTerm],
+  );
+
+  const filteredRows = useMemo(() => {
+    let rows = scopedRows.filter(matchesSearch);
     rows = [...rows].sort((a, b) => {
       const av =
         sortMetric === "composite" ? a.composite : (a[sortMetric] as number);
@@ -835,24 +851,38 @@ export function RankingsPage() {
       return sortDir === "desc" ? bv - av : av - bv;
     });
     return rows;
-  }, [allRows, entityFilter, continentFilter, searchQ, sortMetric, sortDir]);
+  }, [scopedRows, matchesSearch, sortMetric, sortDir]);
 
-  // The table rows are sorted by the category primary metric
-  // IMPORTANT: declared before pageRows and totalPages
-  const categoryTableRows = useMemo(() => {
+  /**
+   * The full category ranking over the pool, before search. Ranks are read
+   * from here so a searched entity shows the position it actually holds.
+   */
+  const categoryRankedAll = useMemo(() => {
     const primarySort = CATEGORY_PRIMARY_SORT[activeCategory];
-    return [...filteredRows].sort((a, b) => {
-      const getVal = (r: RankRow) => {
-        if (primarySort.metric === "educationRank") return r.educationRank;
-        if (primarySort.metric === "crimeIndex") return r.crimeIndex;
-        if (primarySort.metric === "healthcareRank") return r.healthcareRank;
-        return (r[primarySort.metric as keyof RankRow] as number) ?? 0;
-      };
-      const av = getVal(a);
-      const bv = getVal(b);
-      return primarySort.dir === "desc" ? bv - av : av - bv;
+    return [...scopedRows].sort((a, b) => {
+      const av = (r: RankRow) =>
+        r[primarySort.metric as keyof RankRow] as number;
+      const x = av(a);
+      const y = av(b);
+      const xOk = isFinite(x);
+      const yOk = isFinite(y);
+      if (xOk !== yOk) return xOk ? -1 : 1;
+      if (!xOk) return 0;
+      return primarySort.dir === "desc" ? y - x : x - y;
     });
-  }, [filteredRows, activeCategory]);
+  }, [scopedRows, activeCategory]);
+
+  const categoryRankById = useMemo(() => {
+    const m = new Map<string, number>();
+    categoryRankedAll.forEach((r, i) => m.set(r.id, i + 1));
+    return m;
+  }, [categoryRankedAll]);
+
+  // Displayed table rows keep the ranked order and only drop non-matches.
+  const categoryTableRows = useMemo(
+    () => categoryRankedAll.filter(matchesSearch),
+    [categoryRankedAll, matchesSearch],
+  );
 
   const totalPages = Math.ceil(categoryTableRows.length / PAGE_SIZE);
   const pageRows = useMemo(
@@ -860,18 +890,18 @@ export function RankingsPage() {
     [categoryTableRows, page],
   );
 
-  // Category-specific sorted rows (used for the Top 5 leaderboard in the category panel)
-  const categorySortedRows = useMemo(() => {
+  /** Leaderboard ranking over the pool, before search — same reasoning. */
+  const leaderboardAll = useMemo(() => {
     const nonComposite = activeCategoryMetrics.filter(
       (m) => m.id !== "composite",
     );
-    if (nonComposite.length === 0) return filteredRows;
+    if (nonComposite.length === 0) return scopedRows;
     const primary = nonComposite[0];
     // Rows without a value for the primary metric sort last rather than
     // competing. With a "lower is better" metric such as crime or education
     // rank, missing data used to sort to the very top, so the Top 5 was a list
     // of entities with no data shown as "N/A".
-    return [...filteredRows].sort((a, b) => {
+    return [...scopedRows].sort((a, b) => {
       const av = primary.accessor(a);
       const bv = primary.accessor(b);
       const aOk = isFinite(av);
@@ -880,7 +910,18 @@ export function RankingsPage() {
       if (!aOk) return 0;
       return primary.higherIsBetter ? bv - av : av - bv;
     });
-  }, [filteredRows, activeCategoryMetrics]);
+  }, [scopedRows, activeCategoryMetrics]);
+
+  const leaderboardRankById = useMemo(() => {
+    const m = new Map<string, number>();
+    leaderboardAll.forEach((r, i) => m.set(r.id, i + 1));
+    return m;
+  }, [leaderboardAll]);
+
+  const categorySortedRows = useMemo(
+    () => leaderboardAll.filter(matchesSearch),
+    [leaderboardAll, matchesSearch],
+  );
 
   // The columns to show in the table = active category metrics
   const tableColumns = activeCategoryMetrics;
@@ -1076,18 +1117,23 @@ export function RankingsPage() {
 
           {/* Top 5 leaderboard */}
           <p className="text-[10px] font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-            {CATEGORY_TABS.find((t) => t.id === activeCategory)?.icon} Top 5 —{" "}
+            {CATEGORY_TABS.find((t) => t.id === activeCategory)?.icon}{" "}
+            {/* While searching this is no longer the top of the table, it is
+                the matches with the ranks they actually hold — say so rather
+                than labelling rank #133 as "Top 5". */}
+            {searchTerm ? "Matches" : "Top 5"} —{" "}
             {CATEGORY_TABS.find((t) => t.id === activeCategory)?.label}
           </p>
           <div className="flex flex-col gap-1">
-            {categorySortedRows.slice(0, 5).map((row, i) => {
+            {categorySortedRows.slice(0, 5).map((row) => {
+              const rank = leaderboardRankById.get(row.id) ?? 0;
               const primary =
                 activeCategoryMetrics.find((m) => m.id !== "composite") ??
                 activeCategoryMetrics[0];
               const val = primary.accessor(row);
-              const allVals = categorySortedRows.map((r) =>
-                primary.accessor(r),
-              );
+              // Scale the bar against the whole pool, not just the matches,
+              // so a searched row keeps the same bar it has in the full list.
+              const allVals = leaderboardAll.map((r) => primary.accessor(r));
               const pct = percentile(val, allVals, primary.higherIsBetter);
               const barColor =
                 pct >= 66
@@ -1101,15 +1147,15 @@ export function RankingsPage() {
                   className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
                 >
                   <span className="text-sm w-5 text-center shrink-0">
-                    {i === 0 ? (
+                    {rank === 1 ? (
                       "🥇"
-                    ) : i === 1 ? (
+                    ) : rank === 2 ? (
                       "🥈"
-                    ) : i === 2 ? (
+                    ) : rank === 3 ? (
                       "🥉"
                     ) : (
                       <span className="text-muted-foreground font-mono text-xs">
-                        {i + 1}
+                        {rank}
                       </span>
                     )}
                   </span>
@@ -1337,7 +1383,7 @@ export function RankingsPage() {
             </thead>
             <tbody>
               {pageRows.map((row) => {
-                const globalRank = categoryTableRows.indexOf(row) + 1;
+                const globalRank = categoryRankById.get(row.id) ?? 0;
                 const isExpanded = expandedRowId === row.id;
                 return (
                   <React.Fragment key={row.id}>
@@ -1430,7 +1476,7 @@ export function RankingsPage() {
                             row={row}
                             allValuesMap={allValuesMap}
                             rank={globalRank}
-                            totalInPool={filteredRows.length}
+                            totalInPool={scopedRows.length}
                             onClose={() => setExpandedRowId(null)}
                           />
                         </td>
@@ -1446,7 +1492,7 @@ export function RankingsPage() {
         {/* Mobile card list */}
         <div className="md:hidden">
           {pageRows.map((row) => {
-            const globalRank = categoryTableRows.indexOf(row) + 1;
+            const globalRank = categoryRankById.get(row.id) ?? 0;
             const isExpanded = expandedRowId === row.id;
             return (
               <React.Fragment key={row.id}>
@@ -1468,7 +1514,7 @@ export function RankingsPage() {
                       row={row}
                       allValuesMap={allValuesMap}
                       rank={globalRank}
-                      totalInPool={filteredRows.length}
+                      totalInPool={scopedRows.length}
                       onClose={() => setExpandedRowId(null)}
                     />
                   </div>
