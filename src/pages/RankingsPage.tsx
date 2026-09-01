@@ -38,14 +38,23 @@ type MetricId =
   | "tradeBalance"
   | "easeOfBusiness";
 
-type CategoryTab =
-  | "housing"
-  | "transportation"
-  | "lifeExpectancy"
-  | "economy"
-  | "hdi"
-  | "education"
-  | "crime";
+/**
+ * Categories are restricted to metrics held for every entity, country and US
+ * state alike, so no column can render N/A.
+ *
+ * Measured coverage over the 204 countries and 50 states:
+ *   hdi, gdpPerCapita, unemployment, incarceration, homelessness — complete
+ *   lifeExpectancy, gdpGrowth, inflation, tradeBalance — countries only
+ *   educationRank, healthcareRank, crimeIndex           — US states only
+ *   easeOfBusiness                                      — 29 of 204 countries
+ *
+ * That retired four tabs. Life Exp. and Transport ranked countries against
+ * states on data only one of them has, and Transport's primary metric was
+ * missing for 86% of countries; Education and Crime were US-state-only, which
+ * is how their leaderboards came to list countries showing "N/A" as the best
+ * in the world.
+ */
+type CategoryTab = "economy" | "hdi" | "housing" | "justice";
 
 interface CategoryMetric {
   id: string;
@@ -70,387 +79,84 @@ interface MetricDef {
 }
 
 const CATEGORY_TABS: { id: CategoryTab; label: string; icon: string }[] = [
-  { id: "housing", label: "Housing", icon: "🏠" },
-  { id: "transportation", label: "Transport", icon: "🚆" },
-  { id: "lifeExpectancy", label: "Life Exp.", icon: "❤️" },
   { id: "economy", label: "Economy", icon: "💹" },
-  { id: "hdi", label: "HDI", icon: "🌐" },
-  { id: "education", label: "Education", icon: "🎓" },
-  { id: "crime", label: "Crime", icon: "🔒" },
+  { id: "hdi", label: "Development", icon: "🌐" },
+  { id: "housing", label: "Housing", icon: "🏠" },
+  { id: "justice", label: "Justice", icon: "⚖️" },
 ];
 
+const M_GDP_PER_CAPITA: CategoryMetric = {
+  id: "gdpPerCapita",
+  label: "GDP per Capita",
+  shortLabel: "GDP/cap",
+  description: "Gross domestic product per person (USD)",
+  higherIsBetter: true,
+  format: (v) =>
+    v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v.toFixed(0)}`,
+  color: "text-emerald-400",
+  accessor: (r) => r.gdpPerCapita,
+};
+
+const M_UNEMPLOYMENT: CategoryMetric = {
+  id: "unemployment",
+  label: "Unemployment",
+  shortLabel: "Unemploy.",
+  description: "Share of the labour force out of work (%)",
+  higherIsBetter: false,
+  format: (v) => `${v.toFixed(1)}%`,
+  color: "text-orange-400",
+  accessor: (r) => r.unemployment,
+};
+
+const M_HDI: CategoryMetric = {
+  id: "hdi",
+  label: "HDI",
+  shortLabel: "HDI",
+  description: "UNDP composite of health, education and income (0–1)",
+  higherIsBetter: true,
+  format: (v) => v.toFixed(3),
+  color: "text-violet-400",
+  accessor: (r) => r.hdi,
+};
+
+const M_HOMELESSNESS: CategoryMetric = {
+  id: "homelessness",
+  label: "Homelessness Rate",
+  shortLabel: "Homeless.",
+  description: "Homeless persons per 100,000 residents",
+  higherIsBetter: false,
+  format: (v) => `${v.toFixed(0)}/100k`,
+  color: "text-purple-400",
+  accessor: (r) => r.homelessness,
+};
+
+const M_INCARCERATION: CategoryMetric = {
+  id: "incarceration",
+  label: "Incarceration Rate",
+  shortLabel: "Incarcerat.",
+  description: "Prison population per 100,000 residents",
+  higherIsBetter: false,
+  format: (v) => `${v.toFixed(0)}/100k`,
+  color: "text-red-400",
+  accessor: (r) => r.incarceration,
+};
+
+const M_SCORE: CategoryMetric = {
+  id: "composite",
+  label: "Score",
+  shortLabel: "Score",
+  description: "Overall composite score",
+  higherIsBetter: true,
+  format: (v) => v.toFixed(1),
+  color: "text-yellow-400",
+  accessor: (r) => r.composite,
+};
+
 const CATEGORY_METRICS: Record<CategoryTab, CategoryMetric[]> = {
-  housing: [
-    {
-      id: "homelessness",
-      label: "Homelessness Rate",
-      shortLabel: "Homeless.",
-      description: "Homeless persons per 100,000 residents",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(0)}/100k`,
-      color: "text-purple-400",
-      accessor: (r) => r.homelessness,
-    },
-    {
-      id: "inflation",
-      label: "Inflation Rate",
-      shortLabel: "Inflation",
-      description: "High inflation erodes housing affordability",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(1)}%`,
-      color: "text-amber-400",
-      accessor: (r) => r.inflation,
-    },
-    {
-      id: "gdpPerCapita",
-      label: "GDP per Capita",
-      shortLabel: "GDP/cap",
-      description: "Income level determines housing purchasing power",
-      higherIsBetter: true,
-      format: (v) =>
-        v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v.toFixed(0)}`,
-      color: "text-emerald-400",
-      accessor: (r) => r.gdpPerCapita,
-    },
-    {
-      id: "unemployment",
-      label: "Unemployment",
-      shortLabel: "Unemploy.",
-      description: "Unemployment drives housing insecurity",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(1)}%`,
-      color: "text-orange-400",
-      accessor: (r) => r.unemployment,
-    },
-    {
-      id: "composite",
-      label: "Score",
-      shortLabel: "Score",
-      description: "Overall composite score",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(1),
-      color: "text-yellow-400",
-      accessor: (r) => r.composite,
-    },
-  ],
-  transportation: [
-    {
-      id: "easeOfBusiness",
-      label: "Ease of Business",
-      shortLabel: "Bus. Rank",
-      description:
-        "World Bank rank — logistics & infrastructure (lower=better)",
-      higherIsBetter: false,
-      format: (v) => (v > 0 ? `#${Math.round(v)}` : "N/A"),
-      color: "text-lime-400",
-      accessor: (r) => r.easeOfBusiness,
-    },
-    {
-      id: "tradeBalance",
-      label: "Trade Balance",
-      shortLabel: "Trade Bal.",
-      description: "Strong trade surplus → robust transport networks",
-      higherIsBetter: true,
-      format: (v) => (v >= 0 ? `+${v.toFixed(0)}` : `${v.toFixed(0)}`),
-      color: "text-cyan-400",
-      accessor: (r) => r.tradeBalance,
-    },
-    {
-      id: "gdpPerCapita",
-      label: "GDP per Capita",
-      shortLabel: "GDP/cap",
-      description: "Income correlates with transport infrastructure",
-      higherIsBetter: true,
-      format: (v) =>
-        v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v.toFixed(0)}`,
-      color: "text-emerald-400",
-      accessor: (r) => r.gdpPerCapita,
-    },
-    {
-      id: "gdpGrowth",
-      label: "GDP Growth",
-      shortLabel: "Growth",
-      description: "Economic growth drives infrastructure expansion",
-      higherIsBetter: true,
-      format: (v) => `${v.toFixed(1)}%`,
-      color: "text-teal-400",
-      accessor: (r) => r.gdpGrowth,
-    },
-    {
-      id: "composite",
-      label: "Score",
-      shortLabel: "Score",
-      description: "Overall composite score",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(1),
-      color: "text-yellow-400",
-      accessor: (r) => r.composite,
-    },
-  ],
-  lifeExpectancy: [
-    {
-      id: "lifeExpectancy",
-      label: "Life Expectancy",
-      shortLabel: "Life Exp.",
-      description: "Average years a newborn is expected to live",
-      higherIsBetter: true,
-      format: (v) => `${v.toFixed(1)} yrs`,
-      color: "text-blue-400",
-      accessor: (r) => r.lifeExpectancy,
-    },
-    {
-      id: "hdi",
-      label: "HDI",
-      shortLabel: "HDI",
-      description: "UNDP composite including health & longevity (0–1)",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(3),
-      color: "text-violet-400",
-      accessor: (r) => r.hdi,
-    },
-    {
-      id: "healthcareRank",
-      label: "Healthcare Rank",
-      shortLabel: "Health Rank",
-      description: "Healthcare system quality ranking (lower=better)",
-      higherIsBetter: false,
-      format: (v) => (v > 0 ? `#${Math.round(v)}` : "N/A"),
-      color: "text-rose-400",
-      accessor: (r) => r.healthcareRank,
-    },
-    {
-      id: "gdpPerCapita",
-      label: "GDP per Capita",
-      shortLabel: "GDP/cap",
-      description: "Higher income enables better health outcomes",
-      higherIsBetter: true,
-      format: (v) =>
-        v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v.toFixed(0)}`,
-      color: "text-emerald-400",
-      accessor: (r) => r.gdpPerCapita,
-    },
-    {
-      id: "composite",
-      label: "Score",
-      shortLabel: "Score",
-      description: "Overall composite score",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(1),
-      color: "text-yellow-400",
-      accessor: (r) => r.composite,
-    },
-  ],
-  economy: [
-    {
-      id: "gdpPerCapita",
-      label: "GDP per Capita",
-      shortLabel: "GDP/cap",
-      description: "Gross domestic product per person (USD)",
-      higherIsBetter: true,
-      format: (v) =>
-        v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v.toFixed(0)}`,
-      color: "text-emerald-400",
-      accessor: (r) => r.gdpPerCapita,
-    },
-    {
-      id: "gdpGrowth",
-      label: "Growth",
-      shortLabel: "Growth",
-      description: "Year-on-year real GDP growth (%)",
-      higherIsBetter: true,
-      format: (v) => `${v.toFixed(1)}%`,
-      color: "text-teal-400",
-      accessor: (r) => r.gdpGrowth,
-    },
-    {
-      id: "unemployment",
-      label: "Unemployment",
-      shortLabel: "Unemploy.",
-      description: "Share of labor force unemployed (%)",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(1)}%`,
-      color: "text-orange-400",
-      accessor: (r) => r.unemployment,
-    },
-    {
-      id: "inflation",
-      label: "Inflation",
-      shortLabel: "Inflation",
-      description: "Annual consumer price index change (%)",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(1)}%`,
-      color: "text-amber-400",
-      accessor: (r) => r.inflation,
-    },
-    {
-      id: "composite",
-      label: "Score",
-      shortLabel: "Score",
-      description: "Overall composite score",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(1),
-      color: "text-yellow-400",
-      accessor: (r) => r.composite,
-    },
-  ],
-  hdi: [
-    {
-      id: "hdi",
-      label: "HDI",
-      shortLabel: "HDI",
-      description: "UNDP composite of life expectancy, education, income (0–1)",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(3),
-      color: "text-violet-400",
-      accessor: (r) => r.hdi,
-    },
-    {
-      id: "lifeExpectancy",
-      label: "Life Expectancy",
-      shortLabel: "Life Exp.",
-      description: "Longevity component of HDI",
-      higherIsBetter: true,
-      format: (v) => `${v.toFixed(1)} yrs`,
-      color: "text-blue-400",
-      accessor: (r) => r.lifeExpectancy,
-    },
-    {
-      id: "educationRank",
-      label: "Education Rank",
-      shortLabel: "Edu. Rank",
-      description: "Education quality ranking (lower=better)",
-      higherIsBetter: false,
-      format: (v) => (v > 0 ? `#${Math.round(v)}` : "N/A"),
-      color: "text-blue-400",
-      accessor: (r) => r.educationRank,
-    },
-    {
-      id: "gdpPerCapita",
-      label: "GDP per Capita",
-      shortLabel: "GDP/cap",
-      description: "Income component of HDI",
-      higherIsBetter: true,
-      format: (v) =>
-        v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v.toFixed(0)}`,
-      color: "text-emerald-400",
-      accessor: (r) => r.gdpPerCapita,
-    },
-    {
-      id: "composite",
-      label: "Score",
-      shortLabel: "Score",
-      description: "Overall composite score",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(1),
-      color: "text-yellow-400",
-      accessor: (r) => r.composite,
-    },
-  ],
-  education: [
-    {
-      id: "educationRank",
-      label: "Education Rank",
-      shortLabel: "Edu. Rank",
-      description: "National/state education quality ranking (lower=better)",
-      higherIsBetter: false,
-      format: (v) => (v > 0 ? `#${Math.round(v)}` : "N/A"),
-      color: "text-blue-400",
-      accessor: (r) => r.educationRank,
-    },
-    {
-      id: "hdi",
-      label: "HDI",
-      shortLabel: "HDI",
-      description: "UNDP composite including education component (0–1)",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(3),
-      color: "text-violet-400",
-      accessor: (r) => r.hdi,
-    },
-    {
-      id: "gdpPerCapita",
-      label: "GDP per Capita",
-      shortLabel: "GDP/cap",
-      description: "Income level correlates with education investment",
-      higherIsBetter: true,
-      format: (v) =>
-        v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v.toFixed(0)}`,
-      color: "text-emerald-400",
-      accessor: (r) => r.gdpPerCapita,
-    },
-    {
-      id: "unemployment",
-      label: "Unemployment",
-      shortLabel: "Unemploy.",
-      description: "Education outcomes correlate with employment",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(1)}%`,
-      color: "text-orange-400",
-      accessor: (r) => r.unemployment,
-    },
-    {
-      id: "composite",
-      label: "Score",
-      shortLabel: "Score",
-      description: "Overall composite score",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(1),
-      color: "text-yellow-400",
-      accessor: (r) => r.composite,
-    },
-  ],
-  crime: [
-    {
-      id: "crimeIndex",
-      label: "Crime Index",
-      shortLabel: "Crime Idx",
-      description: "Composite crime index — higher = more crime",
-      higherIsBetter: false,
-      format: (v) => (v > 0 ? v.toFixed(0) : "N/A"),
-      color: "text-red-400",
-      accessor: (r) => r.crimeIndex,
-    },
-    {
-      id: "incarceration",
-      label: "Incarceration",
-      shortLabel: "Incarcerat.",
-      description: "Prison population per 100,000 residents",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(0)}/100k`,
-      color: "text-red-400",
-      accessor: (r) => r.incarceration,
-    },
-    {
-      id: "homelessness",
-      label: "Homelessness",
-      shortLabel: "Homeless.",
-      description: "Homelessness strongly correlates with crime rates",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(0)}/100k`,
-      color: "text-purple-400",
-      accessor: (r) => r.homelessness,
-    },
-    {
-      id: "unemployment",
-      label: "Unemployment",
-      shortLabel: "Unemploy.",
-      description: "Unemployment correlates with public safety outcomes",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(1)}%`,
-      color: "text-orange-400",
-      accessor: (r) => r.unemployment,
-    },
-    {
-      id: "composite",
-      label: "Score",
-      shortLabel: "Score",
-      description: "Overall composite score",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(1),
-      color: "text-yellow-400",
-      accessor: (r) => r.composite,
-    },
-  ],
+  economy: [M_GDP_PER_CAPITA, M_UNEMPLOYMENT, M_SCORE],
+  hdi: [M_HDI, M_GDP_PER_CAPITA, M_SCORE],
+  housing: [M_HOMELESSNESS, M_UNEMPLOYMENT, M_GDP_PER_CAPITA, M_SCORE],
+  justice: [M_INCARCERATION, M_HOMELESSNESS, M_SCORE],
 };
 
 const METRICS: MetricDef[] = [
@@ -844,7 +550,7 @@ function RowDetailPanel({
         <div className="flex items-center gap-3 flex-wrap">
           <EntityFlag
             row={row}
-            imgClassName="w-8 h-5 rounded object-cover border border-border"
+            imgClassName="w-12 h-8 rounded-md object-cover border border-border shadow-sm"
             iconSize={12}
           />
           <div>
@@ -962,7 +668,7 @@ function MobileCard({
           <MedalCell rank={rank} />
         </div>
         {/* Flag */}
-        <div className="w-6 h-4 rounded-sm overflow-hidden bg-muted shrink-0 flex items-center justify-center">
+        <div className="w-9 h-6 rounded overflow-hidden bg-muted border border-border shrink-0 flex items-center justify-center">
           <EntityFlag
             row={row}
             imgClassName="w-full h-full object-cover"
@@ -1091,13 +797,10 @@ export function RankingsPage() {
     CategoryTab,
     { metric: string; dir: SortDir }
   > = {
-    housing: { metric: "homelessness", dir: "asc" },
-    transportation: { metric: "easeOfBusiness", dir: "asc" },
-    lifeExpectancy: { metric: "lifeExpectancy", dir: "desc" },
     economy: { metric: "gdpPerCapita", dir: "desc" },
     hdi: { metric: "hdi", dir: "desc" },
-    education: { metric: "educationRank", dir: "asc" },
-    crime: { metric: "crimeIndex", dir: "asc" },
+    housing: { metric: "homelessness", dir: "asc" },
+    justice: { metric: "incarceration", dir: "asc" },
   };
 
   const filteredRows = useMemo(() => {
@@ -1122,6 +825,13 @@ export function RankingsPage() {
         sortMetric === "composite" ? a.composite : (a[sortMetric] as number);
       const bv =
         sortMetric === "composite" ? b.composite : (b[sortMetric] as number);
+      // Rows missing the sort metric go last in either direction. Subtracting
+      // NaN yields NaN, which sort treats as 0, scattering them through the
+      // results instead of keeping them out of the ranking.
+      const aOk = isFinite(av);
+      const bOk = isFinite(bv);
+      if (aOk !== bOk) return aOk ? -1 : 1;
+      if (!aOk) return 0;
       return sortDir === "desc" ? bv - av : av - bv;
     });
     return rows;
@@ -1225,11 +935,12 @@ export function RankingsPage() {
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground max-w-xl">
-            Composite index ranking of all countries and US states. Each entity
-            is scored on the indicators available for it — up to 9 for
-            countries, 5 for US states — with the weights renormalised across
-            those, so a missing indicator neither helps nor hurts. Cells reading
-            N/A are not tracked for that entity.
+            Composite index ranking of all countries and US states. The four
+            categories use only indicators held for every entity, so each column
+            is fully populated. The composite itself is scored on whatever a
+            given entity has — up to 9 indicators for countries, 5 for US states
+            — with the weights renormalised across those, so a missing one
+            neither helps nor hurts.
           </p>
         </div>
         <span className="text-xs text-muted-foreground font-mono bg-muted/50 border border-border rounded-lg px-2.5 py-1 shrink-0 self-start">
@@ -1329,7 +1040,7 @@ export function RankingsPage() {
                     <span className="text-lg">
                       {podiumRank === 1 ? "🥇" : podiumRank === 2 ? "🥈" : "🥉"}
                     </span>
-                    <div className="w-7 h-7 rounded-full overflow-hidden border border-border bg-muted flex items-center justify-center">
+                    <div className="w-11 h-11 rounded-full overflow-hidden border border-border shadow-sm bg-muted flex items-center justify-center">
                       <EntityFlag
                         row={row}
                         imgClassName="w-full h-full object-cover"
@@ -1360,26 +1071,8 @@ export function RankingsPage() {
               View by Category
             </span>
           </div>
-          {/* Tabs */}
-          <div className="flex flex-wrap gap-1.5 mb-4">
-            {CATEGORY_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setActiveCategory(tab.id);
-                  setPage(0);
-                }}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold transition-colors ${
-                  activeCategory === tab.id
-                    ? "bg-secondary text-secondary-foreground shadow-sm"
-                    : "bg-muted/50 border border-border text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <span className="text-[11px]">{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          {/* Tabs live in the sticky filter bar below, so they stay reachable
+              while scrolling the table they drive. */}
 
           {/* Top 5 leaderboard */}
           <p className="text-[10px] font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
@@ -1420,7 +1113,7 @@ export function RankingsPage() {
                       </span>
                     )}
                   </span>
-                  <div className="w-5 h-3.5 rounded-sm overflow-hidden bg-muted shrink-0">
+                  <div className="w-8 h-5 rounded overflow-hidden bg-muted border border-border shrink-0">
                     <EntityFlag
                       row={row}
                       imgClassName="w-full h-full object-cover"
@@ -1451,6 +1144,29 @@ export function RankingsPage() {
 
       {/* ── Filters ─────────────────────────────────────────────────────── */}
       <div className="search-sticky sticky top-16 z-30 flex flex-wrap items-center gap-2 rounded-2xl px-4 py-2.5">
+        {/* Category */}
+        <div className="flex flex-wrap items-center gap-1 bg-muted/50 border border-border rounded-xl p-0.5">
+          {CATEGORY_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setActiveCategory(tab.id);
+                setPage(0);
+              }}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                activeCategory === tab.id
+                  ? "bg-secondary text-secondary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span className="text-[11px]">{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <span className="w-px h-5 bg-border shrink-0" aria-hidden="true" />
+
         {/* Entity type */}
         <div className="flex bg-muted/50 border border-border rounded-xl p-0.5 gap-0.5">
           {(["all", "country", "state"] as EntityFilter[]).map((f) => (
@@ -1640,7 +1356,7 @@ export function RankingsPage() {
                       {/* Name */}
                       <td className="pr-3 py-2.5">
                         <div className="flex items-center gap-2">
-                          <div className="w-5 h-3.5 rounded-sm overflow-hidden bg-muted shrink-0 flex items-center justify-center">
+                          <div className="w-8 h-5 rounded overflow-hidden bg-muted border border-border shrink-0 flex items-center justify-center">
                             <EntityFlag
                               row={row}
                               imgClassName="w-full h-full object-cover"
