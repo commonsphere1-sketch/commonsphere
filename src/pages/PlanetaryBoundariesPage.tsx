@@ -1,10 +1,10 @@
-import React, { useState,} from "react";
+import React, { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import {
   Leaf,
   Info,
   ArrowRight,
-Globe,
+  Globe,
   Drop,
   Wind,
   Atom,
@@ -673,7 +673,7 @@ function PlanetaryBoundariesRadialChart({
       <svg
         viewBox="0 0 520 520"
         width="100%"
-        style={{ maxWidth: 520, overflow: "visible" }}
+        style={{ maxWidth: 680, overflow: "visible" }}
         aria-label="Planetary Boundaries radial chart"
       >
         <defs>
@@ -1254,55 +1254,9 @@ export function PlanetaryBoundariesPage() {
         {/* ── MAIN CONTENT GRID ─────────────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
           {/* LEFT: Boundary list */}
-          <div className="lg:col-span-3 flex flex-col gap-4">
-            <div className="bg-card border border-border rounded-2xl p-4 flex-1">
-              <p className="text-[10px] font-mono uppercase tracking-widest mb-3 text-muted-foreground">
-                All Nine Boundaries
-              </p>
-              <div className="flex flex-col gap-1.5">
-                {BOUNDARIES.map((b) => (
-                  <BoundarySummaryCard
-                    key={b.id}
-                    boundary={b}
-                    selected={selectedId === b.id}
-                    onSelect={() => setSelectedId(b.id)}
-                    isLight={isLight}
-                    headText={headText}
-                    mutedText={mutedText}
-                    gridLine={gridLine}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Legend */}
-            <div className="bg-card border border-border rounded-2xl p-4">
-              <p className="text-[10px] font-mono uppercase tracking-widest mb-3 text-muted-foreground">
-                Legend
-              </p>
-              <div className="flex flex-col gap-2">
-                {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                  <div key={key} className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full shrink-0"
-                      style={{ background: cfg.color }}
-                    />
-                    <span className="text-[10px] font-sans text-foreground">
-                      {cfg.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-3 pt-3 text-[10px] font-sans leading-relaxed text-muted-foreground border-t border-border">
-                The inner green circle represents the Safe Operating Space.
-                Segments extending beyond the dashed boundary line indicate
-                transgression.
-              </div>
-            </div>
-          </div>
 
           {/* CENTER: Radial Chart */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
+          <div className="lg:col-span-7 flex flex-col gap-4">
             <div className="bg-card border border-border rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
@@ -1441,7 +1395,7 @@ export function PlanetaryBoundariesPage() {
           </div>
 
           {/* RIGHT: Detail panel */}
-          <div className="lg:col-span-4 flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:col-span-5 flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
             <div className="bg-card border border-border rounded-2xl p-5">
               <BoundaryDetailPanel
                 boundary={selected}
@@ -1473,6 +1427,55 @@ export function PlanetaryBoundariesPage() {
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Nine-boundary selector — full width beneath the chart, where
+            nine items fit as a grid instead of a tall thin column. */}
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 mb-6">
+          <div className="bg-card border border-border rounded-2xl p-4 xl:col-span-3">
+            <p className="text-[10px] font-mono uppercase tracking-widest mb-3 text-muted-foreground">
+              All Nine Boundaries
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {BOUNDARIES.map((b) => (
+                <BoundarySummaryCard
+                  key={b.id}
+                  boundary={b}
+                  selected={selectedId === b.id}
+                  onSelect={() => setSelectedId(b.id)}
+                  isLight={isLight}
+                  headText={headText}
+                  mutedText={mutedText}
+                  gridLine={gridLine}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="bg-card border border-border rounded-2xl p-4">
+            <p className="text-[10px] font-mono uppercase tracking-widest mb-3 text-muted-foreground">
+              Legend
+            </p>
+            <div className="flex flex-col gap-2">
+              {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                <div key={key} className="flex items-center gap-2">
+                  <div
+                    className="w-3 h-3 rounded-full shrink-0"
+                    style={{ background: cfg.color }}
+                  />
+                  <span className="text-[10px] font-sans text-foreground">
+                    {cfg.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 pt-3 text-[10px] font-sans leading-relaxed text-muted-foreground border-t border-border">
+              The inner green circle represents the Safe Operating Space.
+              Segments extending beyond the dashed boundary line indicate
+              transgression.
             </div>
           </div>
         </div>
