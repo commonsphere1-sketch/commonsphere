@@ -17,6 +17,58 @@ import React, { createContext, useContext, useEffect, useState } from "react";
  */
 
 const STORAGE_KEY = "cs-profile-photo";
+const COLOR_KEY = "cs-avatar-color";
+
+/**
+ * Swatches offered for the avatar when no photo is set.
+ *
+ * Any colour is allowed via the picker; these are just a quick palette. They
+ * are stored as hex so the value survives a theme change — a token would
+ * shift underneath the user.
+ */
+export const AVATAR_COLORS = [
+  "#64748b",
+  "#ef4444",
+  "#f97316",
+  "#eab308",
+  "#22c55e",
+  "#14b8a6",
+  "#0ea5e9",
+  "#6366f1",
+  "#a855f7",
+  "#ec4899",
+];
+
+export const DEFAULT_AVATAR_COLOR = "#999999";
+
+/**
+ * Readable text colour for a given background.
+ *
+ * The initials sit directly on the chosen colour, so the foreground has to
+ * follow it rather than being fixed — near-black on a light pick, white on a
+ * dark one. Uses relative luminance rather than a naive average so that, for
+ * example, yellow counts as light and blue as dark.
+ */
+export function avatarTextColor(hex: string): string {
+  const lum = (h: string): number | null => {
+    const m = /^#?([0-9a-f]{6})$/i.exec(h.trim());
+    if (!m) return null;
+    const n = parseInt(m[1], 16);
+    const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+      const c = v / 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+  };
+  const bg = lum(hex);
+  if (bg === null) return "#000000";
+  const ratio = (a: number, b: number) =>
+    (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+  // Compare against the two colours actually rendered. An earlier version
+  // scored against pure black but painted #1a1a1a, so the real contrast came
+  // out below the figure it had optimised for — indigo landed at 3.9:1.
+  return ratio(bg, 0) >= ratio(bg, 1) ? "#000000" : "#ffffff";
+}
 /** Longest edge, in px, of the stored image. */
 const MAX_EDGE = 256;
 /** Reject anything larger than this before we even try to decode it. */
@@ -29,6 +81,9 @@ interface ProfilePhotoContextValue {
   setPhotoFromFile: (file: File) => Promise<string | null>;
   removePhoto: () => void;
   isSaving: boolean;
+  /** Background for the initials fallback when no photo is set. */
+  avatarColor: string;
+  setAvatarColor: (hex: string) => void;
 }
 
 const ProfilePhotoContext = createContext<ProfilePhotoContextValue>({
@@ -36,6 +91,8 @@ const ProfilePhotoContext = createContext<ProfilePhotoContextValue>({
   setPhotoFromFile: async () => null,
   removePhoto: () => {},
   isSaving: false,
+  avatarColor: DEFAULT_AVATAR_COLOR,
+  setAvatarColor: () => {},
 });
 
 /** Draws the image onto a canvas at most MAX_EDGE on its longest side. */
@@ -74,10 +131,13 @@ export function ProfilePhotoProvider({
 }) {
   const [photo, setPhoto] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [avatarColor, setAvatarColorState] = useState(DEFAULT_AVATAR_COLOR);
 
   useEffect(() => {
     try {
       setPhoto(localStorage.getItem(STORAGE_KEY));
+      const c = localStorage.getItem(COLOR_KEY);
+      if (c) setAvatarColorState(c);
     } catch {
       // private mode or blocked storage — run without a saved photo
     }
@@ -107,6 +167,15 @@ export function ProfilePhotoProvider({
     }
   };
 
+  const setAvatarColor = (hex: string) => {
+    setAvatarColorState(hex);
+    try {
+      localStorage.setItem(COLOR_KEY, hex);
+    } catch {
+      // storage blocked; the choice still applies for this session
+    }
+  };
+
   const removePhoto = () => {
     try {
       localStorage.removeItem(STORAGE_KEY);
@@ -118,7 +187,14 @@ export function ProfilePhotoProvider({
 
   return (
     <ProfilePhotoContext.Provider
-      value={{ photo, setPhotoFromFile, removePhoto, isSaving }}
+      value={{
+        photo,
+        setPhotoFromFile,
+        removePhoto,
+        isSaving,
+        avatarColor,
+        setAvatarColor,
+      }}
     >
       {children}
     </ProfilePhotoContext.Provider>

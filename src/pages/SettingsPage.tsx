@@ -19,7 +19,11 @@ import { countriesData } from "@/data/countriesData";
 import { usStatesData } from "@/data/statesData";
 import { sanitizeText, validateEmail, LIMITS } from "@/lib/security";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useProfilePhoto } from "@/contexts/ProfilePhotoContext";
+import {
+  useProfilePhoto,
+  avatarTextColor,
+  AVATAR_COLORS,
+} from "@/contexts/ProfilePhotoContext";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -232,6 +236,8 @@ export function SettingsPage() {
     setPhotoFromFile,
     removePhoto,
     isSaving: isSavingPhoto,
+    avatarColor,
+    setAvatarColor,
   } = useProfilePhoto();
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [photoError, setPhotoError] = useState("");
@@ -310,7 +316,6 @@ export function SettingsPage() {
     setTimeout(() => setProfileSaved(false), 2000);
   }
 
-
   function addEntity(e: WatchedEntity) {
     setWatched((prev) => [...prev, e]);
   }
@@ -367,8 +372,16 @@ export function SettingsPage() {
               </span>
               <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16 shrink-0">
-                  {photo && <AvatarImage src={photo} alt="Your profile photo" />}
-                  <AvatarFallback className="text-sm font-bold bg-muted text-muted-foreground">
+                  {photo && (
+                    <AvatarImage src={photo} alt="Your profile photo" />
+                  )}
+                  <AvatarFallback
+                    className="text-sm font-bold"
+                    style={{
+                      background: avatarColor,
+                      color: avatarTextColor(avatarColor),
+                    }}
+                  >
                     {displayName
                       ? displayName
                           .split(" ")
@@ -419,10 +432,48 @@ export function SettingsPage() {
                       </Button>
                     )}
                   </div>
+                  {!photo && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[11px] text-muted-foreground font-sans">
+                        Colour
+                      </span>
+                      {AVATAR_COLORS.map((c) => (
+                        <button
+                          key={c}
+                          onClick={() => setAvatarColor(c)}
+                          aria-label={`Use ${c} as the avatar colour`}
+                          aria-pressed={
+                            avatarColor.toLowerCase() === c.toLowerCase()
+                          }
+                          className={`w-5 h-5 rounded-full shrink-0 cursor-pointer transition-transform hover:scale-110 ${
+                            avatarColor.toLowerCase() === c.toLowerCase()
+                              ? "ring-2 ring-offset-2 ring-offset-card ring-foreground"
+                              : "border border-border"
+                          }`}
+                          style={{ background: c }}
+                        />
+                      ))}
+                      {/* Free choice beyond the swatches. The initials colour
+                          follows whatever is picked, so any value stays
+                          readable. */}
+                      <label
+                        className="text-[11px] text-muted-foreground font-sans underline cursor-pointer"
+                        title="Pick any colour"
+                      >
+                        custom
+                        <input
+                          type="color"
+                          value={avatarColor}
+                          onChange={(e) => setAvatarColor(e.target.value)}
+                          className="sr-only"
+                        />
+                      </label>
+                    </div>
+                  )}
                   <p className="text-[11px] text-muted-foreground font-sans leading-snug">
-                    Stored on this device only — it is resized to 256px and
-                    never uploaded, so it will not follow you to another
-                    browser.
+                    Stored on this device only — the photo is resized to 256px
+                    and never uploaded, so neither it nor the colour will follow
+                    you to another browser.
                   </p>
                   {photoError && (
                     <p className="text-xs text-destructive">{photoError}</p>
@@ -618,9 +669,9 @@ export function SettingsPage() {
               Your password is managed by your sign-in provider
             </p>
             <p className="text-xs text-muted-foreground font-sans leading-snug">
-              CommonSphere never receives or stores your password. Signing in
-              is handled by the account you authenticate with, so password
-              changes happen there rather than here.
+              CommonSphere never receives or stores your password. Signing in is
+              handled by the account you authenticate with, so password changes
+              happen there rather than here.
             </p>
           </div>
         </section>

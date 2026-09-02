@@ -21,7 +21,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useProfilePhoto } from "@/contexts/ProfilePhotoContext";
+import {
+  useProfilePhoto,
+  avatarTextColor,
+} from "@/contexts/ProfilePhotoContext";
 import { useProfile } from "@/contexts/ProfileContext";
 import { usStatesData } from "@/data/statesData";
 import { countriesData } from "@/data/countriesData";
@@ -107,7 +110,7 @@ const SEARCH_INDEX = buildSearchIndex();
 export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
-  const { photo } = useProfilePhoto();
+  const { photo, avatarColor } = useProfilePhoto();
   const { displayName: savedName } = useProfile();
   const [searchValue, setSearchValue] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -318,8 +321,8 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
                 <AvatarFallback
                   className="text-xs font-bold"
                   style={{
-                    background: "hsl(0,0%,60%)",
-                    color: "hsl(0,0%,10%)",
+                    background: avatarColor,
+                    color: avatarTextColor(avatarColor),
                   }}
                 >
                   {(() => {
