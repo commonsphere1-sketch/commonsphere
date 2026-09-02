@@ -43,6 +43,7 @@ import { getCountrySocialStats } from "../data/socialStatsData";
 import { MetricsPanel } from "../components/MetricsPanel";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
+import { CollapsibleFilters } from "../components/CollapsibleFilters";
 
 // ── Source citation constants ────────────────────────────────────────────
 // ── Extended per-country data ────────────────────────────────────────────────
@@ -40012,7 +40013,7 @@ export function CountriesPage() {
             />
           </div>
           {/* Row 2: Continent pills + sort */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 mt-1 border-t border-border/60">
+          <CollapsibleFilters>
             {continents.map((c) => (
               <button
                 key={c}
@@ -40037,7 +40038,7 @@ export function CountriesPage() {
               <option value="gdpGrowth">Sort: GDP Growth</option>
               <option value="humanDevelopmentIndex">Sort: HDI</option>
             </select>
-          </div>
+          </CollapsibleFilters>
         </div>
 
         {/* ── MODAL ── */}

@@ -18,6 +18,7 @@ import {
   CaretRight,
 } from "@phosphor-icons/react";
 import { usStatesData } from "../data/statesData";
+import { CollapsibleFilters } from "../components/CollapsibleFilters";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -11040,7 +11041,7 @@ export function PolicyPage() {
           </span>
         </div>
         {/* Row 2: Tab pills + divider + category pills */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 mt-1 border-t border-border/60">
+        <CollapsibleFilters>
           {/* Entity-type tabs */}
           {TABS.map((t) => (
             <button
@@ -11088,7 +11089,7 @@ export function PolicyPage() {
               </button>
             );
           })}
-        </div>
+        </CollapsibleFilters>
       </div>
 
       {/* Entity rows */}

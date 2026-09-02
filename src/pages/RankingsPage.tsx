@@ -21,6 +21,7 @@ import {
   X,
   MagnifyingGlass,
 } from "@phosphor-icons/react";
+import { CollapsibleFilters } from "../components/CollapsibleFilters";
 
 // ─── Metric definitions ──────────────────────────────────────────────────────
 
@@ -1364,7 +1365,7 @@ export function RankingsPage() {
         </div>
 
         {/* Row 2: category pills, entity pills, sort */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 mt-1 border-t border-border/60">
+        <CollapsibleFilters>
           {CATEGORY_TABS.map((tab) => (
             <button
               key={tab.id}
@@ -1453,7 +1454,7 @@ export function RankingsPage() {
               <SortAscending size={13} />
             )}
           </button>
-        </div>
+        </CollapsibleFilters>
       </div>
 
       {/* Continent filter */}

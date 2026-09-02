@@ -39,6 +39,7 @@ import {
 } from "../data/electionCountdowns";
 import { ROYAL_FAMILIES, type RoyalMember } from "../data/royalFamiliesData";
 import { SourceLink } from "../components/SourceLink";
+import { CollapsibleFilters } from "../components/CollapsibleFilters";
 // Globe is used in LeaderDetail tabs — do not remove
 
 // ── Types ──────────────────────────────────────────────────────────────────── v3
@@ -16642,7 +16643,7 @@ export function WorldLeadersPage() {
             />
           </div>
           {/* Row 2: Region pills + divider + ideology select */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 mt-1 border-t border-border/60">
+          <CollapsibleFilters>
             {REGIONS.map((r) => (
               <button
                 key={r}
@@ -16668,7 +16669,7 @@ export function WorldLeadersPage() {
                 </option>
               ))}
             </select>
-          </div>
+          </CollapsibleFilters>
         </div>
 
         {/* View Mode Toggle */}

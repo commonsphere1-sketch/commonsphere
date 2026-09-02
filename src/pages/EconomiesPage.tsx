@@ -27,6 +27,7 @@ import { type EconomyRents } from "../data/resourceRents";
 import { useResourceRents } from "../hooks/useResourceRents";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
+import { CollapsibleFilters } from "../components/CollapsibleFilters";
 
 // ── Rare Earth Minerals data per economy ────────────────────────────────────
 type RareEarthMineral = {
@@ -7379,7 +7380,7 @@ export function EconomiesPage() {
             />
           </div>
           {/* Row 2: View tabs + filters + sort */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 mt-1 border-t border-border/60">
+          <CollapsibleFilters>
             {(
               [
                 {
@@ -7432,7 +7433,7 @@ export function EconomiesPage() {
               <option value="inflationRate">Sort: Inflation</option>
               <option value="stockMarketCap">Sort: Mkt Cap</option>
             </select>
-          </div>
+          </CollapsibleFilters>
         </div>
 
         {/* ── Upcoming to Watch ── */}

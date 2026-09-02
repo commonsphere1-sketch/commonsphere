@@ -28,6 +28,7 @@ import {
 import { citiesData, type City } from "../data/citiesData";
 import { getUpcoming } from "../data/upcomingToWatch";
 import { SourceLink } from "../components/SourceLink";
+import { CollapsibleFilters } from "../components/CollapsibleFilters";
 
 const SRC_CITIES = [
   {
@@ -3470,7 +3471,7 @@ export function CitiesPage() {
             />
           </div>
           {/* Row 2: Filters */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 mt-1 border-t border-border/60">
+          <CollapsibleFilters>
             {allRegions.map((r) => (
               <button
                 key={r}
@@ -3495,7 +3496,7 @@ export function CitiesPage() {
               <option value="safetyIndex">Sort: Safety</option>
               <option value="costOfLivingIndex">Sort: Cost of Living</option>
             </select>
-          </div>
+          </CollapsibleFilters>
         </div>
 
         {/* ── Upcoming to Watch ── */}

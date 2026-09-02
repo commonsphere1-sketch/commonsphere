@@ -29,6 +29,7 @@ import { getStateSocialStats } from "../data/socialStatsData";
 import { getUpcoming } from "../data/upcomingToWatch";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
+import { CollapsibleFilters } from "../components/CollapsibleFilters";
 
 // ─── Transportation Statistics per state ─────────────────────────────────
 interface StateTransportData {
@@ -12931,7 +12932,7 @@ export function StatesPage() {
             />
           </div>
           {/* Row 2: Pills + Sort */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 mt-1 border-t border-border/60">
+          <CollapsibleFilters>
             {regions.map((r) => (
               <button
                 key={r}
@@ -12981,7 +12982,7 @@ export function StatesPage() {
               <option value="medianIncome">Sort: Median Income</option>
               <option value="approvalRating">Sort: Approval</option>
             </select>
-          </div>
+          </CollapsibleFilters>
         </div>
 
         {/* ── Upcoming to Watch ── */}
