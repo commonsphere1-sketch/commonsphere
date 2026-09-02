@@ -1,12 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import {
   Leaf,
-  Warning,
   Info,
   ArrowRight,
-  CaretDown,
-  CaretUp,
   Globe,
   Drop,
   Wind,
@@ -14,7 +11,6 @@ import {
   Fish,
   Tree,
   CloudSlash,
-  Snowflake,
   Flask,
 } from "@phosphor-icons/react";
 
@@ -56,7 +52,10 @@ const BOUNDARIES: Boundary[] = [
     variables: [
       {
         name: "CO₂ Concentration",
-        value: "424 ppm",
+        // Was 424 ppm here while the summary card said 428 — the same page
+        // carried two different figures. Both now use the NOAA Mauna Loa
+        // monthly mean for July 2026.
+        value: "429 ppm",
         safe: "350 ppm",
         unit: "ppm",
       },
@@ -674,7 +673,7 @@ function PlanetaryBoundariesRadialChart({
       <svg
         viewBox="0 0 520 520"
         width="100%"
-        style={{ maxWidth: 520, overflow: "visible" }}
+        style={{ maxWidth: 680, overflow: "visible" }}
         aria-label="Planetary Boundaries radial chart"
       >
         <defs>
@@ -1192,9 +1191,6 @@ export function PlanetaryBoundariesPage() {
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
         {/* ── HERO HEADER ───────────────────────────────────────────────── */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 bg-green-500/15 rounded-lg">
-            <Leaf size={26} weight="fill" className="text-green-500" />
-          </div>
           <div>
             <h1 className="text-2xl font-bold font-sans text-foreground">
               Planetary Boundaries
@@ -1217,9 +1213,13 @@ export function PlanetaryBoundariesPage() {
             },
             {
               label: "CO₂ Concentration",
-              value: "428 ppm",
+              // NOAA Mauna Loa monthly mean, July 2026 (429.12 ppm), from
+              // gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.txt. Was 428
+              // with no date. The series is not fetchable from the browser —
+              // NOAA sends no CORS header — so it is cited rather than live.
+              value: "429 ppm",
               color: "text-orange-500",
-              sub: "Safe: 350 ppm",
+              sub: "Safe: 350 ppm · Jul 2026",
             },
             {
               label: "Species Loss Rate",
@@ -1252,57 +1252,34 @@ export function PlanetaryBoundariesPage() {
         </div>
 
         {/* ── MAIN CONTENT GRID ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
-          {/* LEFT: Boundary list */}
-          <div className="lg:col-span-3 flex flex-col gap-4">
-            <div className="bg-card border border-border rounded-2xl p-4 flex-1">
-              <p className="text-[10px] font-mono uppercase tracking-widest mb-3 text-muted-foreground">
-                All Nine Boundaries
-              </p>
-              <div className="flex flex-col gap-1.5">
-                {BOUNDARIES.map((b) => (
-                  <BoundarySummaryCard
-                    key={b.id}
-                    boundary={b}
-                    selected={selectedId === b.id}
-                    onSelect={() => setSelectedId(b.id)}
-                    isLight={isLight}
-                    headText={headText}
-                    mutedText={mutedText}
-                    gridLine={gridLine}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Legend */}
-            <div className="bg-card border border-border rounded-2xl p-4">
-              <p className="text-[10px] font-mono uppercase tracking-widest mb-3 text-muted-foreground">
-                Legend
-              </p>
-              <div className="flex flex-col gap-2">
-                {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                  <div key={key} className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full shrink-0"
-                      style={{ background: cfg.color }}
-                    />
-                    <span className="text-[10px] font-sans text-foreground">
-                      {cfg.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-3 pt-3 text-[10px] font-sans leading-relaxed text-muted-foreground border-t border-border">
-                The inner green circle represents the Safe Operating Space.
-                Segments extending beyond the dashed boundary line indicate
-                transgression.
-              </div>
+        {/* Nine-boundary selector — full width above the chart. It is the
+            page's primary control, so it leads; the chart below reflects
+            whichever boundary is picked here. */}
+        <div className="mb-6">
+          <div className="bg-card border border-border rounded-2xl p-4">
+            <p className="text-[10px] font-mono uppercase tracking-widest mb-3 text-muted-foreground">
+              All Nine Boundaries
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {BOUNDARIES.map((b) => (
+                <BoundarySummaryCard
+                  key={b.id}
+                  boundary={b}
+                  selected={selectedId === b.id}
+                  onSelect={() => setSelectedId(b.id)}
+                  isLight={isLight}
+                  headText={headText}
+                  mutedText={mutedText}
+                  gridLine={gridLine}
+                />
+              ))}
             </div>
           </div>
+        </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
           {/* CENTER: Radial Chart */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
+          <div className="lg:col-span-7 flex flex-col gap-4">
             <div className="bg-card border border-border rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
@@ -1317,6 +1294,27 @@ export function PlanetaryBoundariesPage() {
                   {highRisk} of 9 exceeded
                 </span>
               </div>
+
+              {/* Legend — a strip under the header rather than a separate
+                  card, so the key sits with the chart it explains. */}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-3 pb-3 border-b border-border">
+                {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                  <div key={key} className="flex items-center gap-1.5">
+                    <div
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ background: cfg.color }}
+                    />
+                    <span className="text-[10px] font-sans text-muted-foreground">
+                      {cfg.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] font-sans leading-relaxed text-muted-foreground mb-3">
+                The inner green circle represents the Safe Operating Space.
+                Segments extending beyond the dashed boundary line indicate
+                transgression.
+              </p>
               <PlanetaryBoundariesRadialChart
                 boundaries={BOUNDARIES}
                 selected={selectedId}
@@ -1441,7 +1439,7 @@ export function PlanetaryBoundariesPage() {
           </div>
 
           {/* RIGHT: Detail panel */}
-          <div className="lg:col-span-4 flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:col-span-5 flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
             <div className="bg-card border border-border rounded-2xl p-5">
               <BoundaryDetailPanel
                 boundary={selected}

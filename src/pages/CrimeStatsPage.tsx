@@ -1,28 +1,18 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import {
   ShieldCheck,
-  Warning,
   TrendUp,
   TrendDown,
   ArrowUp,
   ArrowDown,
   CaretRight,
   Info,
-  Globe,
   MagnifyingGlass,
   Skull,
-  HandFist,
   Lock,
-  Car,
   Flame,
-  Target,
-  MapPin,
-  Coins,
-  Scales,
-  Handshake,
-  Buildings,
   Link,
   Users,
   Briefcase,
@@ -48,28 +38,83 @@ import {
 
 /* ─── Data ────────────────────────────────────────────────────────────── */
 
-// Homicide rate per 100,000 population (UNODC 2022–2023)
+/**
+ * Intentional homicides per 100,000 people.
+ *
+ * Every figure is the latest World Bank value for indicator VC.IHR.PSRC.P5,
+ * which carries the UNODC series; `year` records which year each one is from,
+ * because reporting countries are years apart. The World Bank database was
+ * refreshed 2026-07-13 and its newest homicide year is still 2023 — this
+ * statistic genuinely lags, so 2023 is the current status, not a stale label.
+ *
+ * Two of the previous values were badly wrong rather than merely old: Nigeria
+ * read 34.5 against an actual 15.7, and Venezuela 40.9 against 12.6. Both were
+ * more than double the reported rate and put those countries near the top of
+ * the chart.
+ */
 const HOMICIDE_RATES = [
-  { country: "El Salvador", rate: 7.8, region: "Americas", flag: "🇸🇻" },
-  { country: "Honduras", rate: 35.8, region: "Americas", flag: "🇭🇳" },
-  { country: "Jamaica", rate: 44.3, region: "Americas", flag: "🇯🇲" },
-  { country: "South Africa", rate: 41.1, region: "Africa", flag: "🇿🇦" },
-  { country: "Brazil", rate: 21.3, region: "Americas", flag: "🇧🇷" },
-  { country: "Mexico", rate: 25.7, region: "Americas", flag: "🇲🇽" },
-  { country: "Colombia", rate: 24.9, region: "Americas", flag: "🇨🇴" },
-  { country: "Nigeria", rate: 34.5, region: "Africa", flag: "🇳🇬" },
-  { country: "Venezuela", rate: 40.9, region: "Americas", flag: "🇻🇪" },
-  { country: "Russia", rate: 5.7, region: "Europe", flag: "🇷🇺" },
-  { country: "USA", rate: 6.3, region: "Americas", flag: "🇺🇸" },
-  { country: "India", rate: 2.8, region: "Asia", flag: "🇮🇳" },
-  { country: "China", rate: 0.5, region: "Asia", flag: "🇨🇳" },
-  { country: "Germany", rate: 0.8, region: "Europe", flag: "🇩🇪" },
-  { country: "France", rate: 1.2, region: "Europe", flag: "🇫🇷" },
-  { country: "UK", rate: 1.0, region: "Europe", flag: "🇬🇧" },
-  { country: "Japan", rate: 0.2, region: "Asia", flag: "🇯🇵" },
-  { country: "Australia", rate: 0.9, region: "Oceania", flag: "🇦🇺" },
-  { country: "Canada", rate: 2.1, region: "Americas", flag: "🇨🇦" },
-  { country: "Sweden", rate: 1.1, region: "Europe", flag: "🇸🇪" },
+  {
+    country: "El Salvador",
+    rate: 7.9,
+    year: 2022,
+    region: "Americas",
+    flag: "🇸🇻",
+  },
+  {
+    country: "Honduras",
+    rate: 31.4,
+    year: 2023,
+    region: "Americas",
+    flag: "🇭🇳",
+  },
+  {
+    country: "Jamaica",
+    rate: 49.4,
+    year: 2023,
+    region: "Americas",
+    flag: "🇯🇲",
+  },
+  {
+    country: "South Africa",
+    rate: 43.7,
+    year: 2022,
+    region: "Africa",
+    flag: "🇿🇦",
+  },
+  { country: "Brazil", rate: 19.3, year: 2023, region: "Americas", flag: "🇧🇷" },
+  { country: "Mexico", rate: 24.9, year: 2023, region: "Americas", flag: "🇲🇽" },
+  {
+    country: "Colombia",
+    rate: 24.9,
+    year: 2023,
+    region: "Americas",
+    flag: "🇨🇴",
+  },
+  { country: "Nigeria", rate: 15.7, year: 2023, region: "Africa", flag: "🇳🇬" },
+  {
+    country: "Venezuela",
+    rate: 12.6,
+    year: 2022,
+    region: "Americas",
+    flag: "🇻🇪",
+  },
+  { country: "Russia", rate: 6.8, year: 2021, region: "Europe", flag: "🇷🇺" },
+  { country: "USA", rate: 5.8, year: 2023, region: "Americas", flag: "🇺🇸" },
+  { country: "India", rate: 2.8, year: 2022, region: "Asia", flag: "🇮🇳" },
+  { country: "China", rate: 0.5, year: 2020, region: "Asia", flag: "🇨🇳" },
+  { country: "Germany", rate: 0.9, year: 2023, region: "Europe", flag: "🇩🇪" },
+  { country: "France", rate: 1.3, year: 2023, region: "Europe", flag: "🇫🇷" },
+  { country: "UK", rate: 1.1, year: 2021, region: "Europe", flag: "🇬🇧" },
+  { country: "Japan", rate: 0.2, year: 2023, region: "Asia", flag: "🇯🇵" },
+  {
+    country: "Australia",
+    rate: 0.9,
+    year: 2023,
+    region: "Oceania",
+    flag: "🇦🇺",
+  },
+  { country: "Canada", rate: 2.0, year: 2023, region: "Americas", flag: "🇨🇦" },
+  { country: "Sweden", rate: 1.1, year: 2023, region: "Europe", flag: "🇸🇪" },
 ];
 
 // Sorted top 12 highest + lowest for bar chart
@@ -650,7 +695,8 @@ export function CrimeStatsPage() {
             >
               Homicide rates, safety indices, incarceration, cybercrime, and
               crime category breakdowns across 190+ countries. Data from UNODC,
-              Numbeo, and World Prison Brief 2022–2023.
+              Numbeo, and World Prison Brief. Homicide figures are the latest
+              reported year per country, 2020 to 2023.
             </p>
           </div>
           <div className="relative flex flex-wrap gap-2 shrink-0">
@@ -694,9 +740,12 @@ export function CrimeStatsPage() {
           {[
             {
               label: "Global Homicide Rate",
-              value: "5.8",
+              // World Bank world aggregate, VC.IHR.PSRC.P5: 5.20 in 2023
+              // against 5.90 in 2015, a fall of 12%. Read 5.8 and "–8%",
+              // neither of which matched the series.
+              value: "5.2",
               unit: "/100k",
-              delta: "–8% since 2015",
+              delta: "–12% since 2015",
               positive: true,
               icon: Skull,
               color: "#ef4444",
@@ -2888,15 +2937,15 @@ export function CrimeStatsPage() {
               style={{ color: mutedText }}
             >
               Crime statistics reflect official national records submitted to
-              UNODC (2022–2023). Reporting standards and definitions vary
-              significantly across jurisdictions — homicide data is generally
-              the most reliable, while property and drug offenses are heavily
-              underreported in many nations. Safety index scores are composite
-              metrics from Numbeo surveys and the Global Peace Index (Institute
-              for Economics &amp; Peace). Cybercrime estimates (Cybersecurity
-              Ventures) include direct costs, data breach recovery, and
-              productivity losses. All per-capita figures use UN 2023 population
-              estimates.
+              UNODC (latest reported year per country, 2020–2023). Reporting
+              standards and definitions vary significantly across jurisdictions
+              — homicide data is generally the most reliable, while property and
+              drug offenses are heavily underreported in many nations. Safety
+              index scores are composite metrics from Numbeo surveys and the
+              Global Peace Index (Institute for Economics &amp; Peace).
+              Cybercrime estimates (Cybersecurity Ventures) include direct
+              costs, data breach recovery, and productivity losses. All
+              per-capita figures use UN 2023 population estimates.
             </p>
           </div>
         </div>
@@ -2904,8 +2953,8 @@ export function CrimeStatsPage() {
         {/* Footer */}
         <div className="text-center py-3">
           <p className="text-[11px] font-sans" style={{ color: mutedText }}>
-            © {new Date().getFullYear()} CommonSphere · Crime Statistics ·
-            Data: UNODC 2023, Numbeo, GPI, World Prison Brief
+            © {new Date().getFullYear()} CommonSphere · Crime Statistics · Data:
+            UNODC 2023, Numbeo, GPI, World Prison Brief
           </p>
         </div>
       </div>

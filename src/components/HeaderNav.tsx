@@ -6,7 +6,6 @@ import {
   Sun,
   List,
   X,
-  Globe,
   MapPin,
   Flag,
   Buildings,
@@ -22,6 +21,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  useProfilePhoto,
+  avatarTextColor,
+} from "@/contexts/ProfilePhotoContext";
+import { useProfile } from "@/contexts/ProfileContext";
 import { usStatesData } from "@/data/statesData";
 import { countriesData } from "@/data/countriesData";
 import { citiesData } from "@/data/citiesData";
@@ -105,7 +109,9 @@ const SEARCH_INDEX = buildSearchIndex();
 
 export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
   const { theme, toggleTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const { photo, avatarColor } = useProfilePhoto();
+  const { displayName: savedName } = useProfile();
   const [searchValue, setSearchValue] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
@@ -169,19 +175,27 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
         className="flex items-center gap-2 shrink-0 hover:opacity-90 transition-opacity duration-150"
         aria-label="CommonSphere Home"
       >
-        {/* Logo mark — switches between light/dark globe */}
-        <div className="w-8 h-8 shrink-0 relative">
+        {/* Logo mark — switches between light/dark globe.
+            The box is already 32px, the same as the avatar on the right, but
+            the source JPEGs carry their own padding: the globe measures
+            450x451 inside a 614x610 frame, so it filled only 73.5% of the box
+            and read as the smaller of the two.
+
+            The artwork is also off-centre, so the largest scale that clips
+            nothing is set by the tightest margin: 1.332 for the light file and
+            1.304 for the dark one. 1.28 sits just under both. */}
+        <div className="w-8 h-8 shrink-0 relative overflow-hidden">
           {/* Light mode: black-on-white globe */}
           <img
             src="https://c.animaapp.com/mnv7exnwOzX3vX/img/uploaded-asset-1776467236633-0.jpeg"
             alt="CommonSphere logo"
-            className="logo-light absolute inset-0 w-full h-full object-contain"
+            className="logo-light absolute inset-0 w-full h-full object-contain scale-[1.28]"
           />
           {/* Dark mode: white-on-black globe */}
           <img
             src="https://c.animaapp.com/mnv7exnwOzX3vX/img/uploaded-asset-1776467236635-1.jpeg"
             alt="CommonSphere logo"
-            className="logo-dark absolute inset-0 w-full h-full object-contain"
+            className="logo-dark absolute inset-0 w-full h-full object-contain scale-[1.28]"
           />
         </div>
         {/* Wordmark */}
@@ -297,28 +311,35 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
               aria-label="User profile menu"
             >
               <span className="header-username text-primary-foreground text-sm font-normal hidden md:block">
-                {user?.name || user?.email || "Account"}
+                {savedName || user?.name || user?.email || "Account"}
               </span>
               <Avatar className="h-8 w-8">
                 <AvatarImage
-                  src={(user as any)?.profilePictureUrl || ""}
+                  src={photo || (user as any)?.profilePictureUrl || ""}
                   alt="User avatar"
                 />
                 <AvatarFallback
                   className="text-xs font-bold"
                   style={{
-                    background: "hsl(0,0%,60%)",
-                    color: "hsl(0,0%,10%)",
+                    background: avatarColor,
+                    color: avatarTextColor(avatarColor),
                   }}
                 >
-                  {user?.name
-                    ? user.name
+                  {(() => {
+                    // Same precedence as the label above, so the initials never
+                    // disagree with the name shown next to them.
+                    const name = savedName || user?.name;
+                    if (name) {
+                      return name
                         .split(" ")
+                        .filter(Boolean)
                         .map((n: string) => n[0])
                         .join("")
                         .slice(0, 2)
-                        .toUpperCase()
-                    : (user?.email?.[0]?.toUpperCase() ?? "?")}
+                        .toUpperCase();
+                    }
+                    return user?.email?.[0]?.toUpperCase() ?? "?";
+                  })()}
                 </AvatarFallback>
               </Avatar>
             </button>
@@ -334,7 +355,20 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
               Profile Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-border" />
-            <DropdownMenuItem className="cursor-pointer hover:bg-muted text-destructive">
+            <DropdownMenuItem
+              className="cursor-pointer hover:bg-muted text-destructive"
+              onClick={() => {
+                // Deliberately not awaited. The SDK's logout first waits for
+                // its playground bridge (window.anima), polling for a full 5s
+                // before rejecting when the app runs outside the playground —
+                // so awaiting it leaves this item looking dead for five
+                // seconds. Logout invalidates the user query on success, and
+                // the header reads that reactively, so navigating first costs
+                // nothing and keeps the click responsive either way.
+                void logout().catch(() => {});
+                navigate("/dashboard");
+              }}
+            >
               Sign Out
             </DropdownMenuItem>
           </DropdownMenuContent>

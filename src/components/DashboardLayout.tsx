@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { Outlet,} from "react-router-dom";
 import { HeaderNav } from "./HeaderNav";
 import { SidebarNav } from "./SidebarNav";
 import { NotesPopup } from "./NotesPopup";
@@ -17,7 +17,7 @@ export function DashboardLayout() {
       <div className="flex flex-1 pt-16">
         {/* Desktop Sidebar */}
         <aside
-          className={`sidebar-bar hidden md:flex flex-col fixed left-0 top-16 bottom-0 z-30 border-r border-transparent transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+          className={`sidebar-bar hidden md:flex flex-col fixed left-0 top-16 bottom-0 z-30 border-r border-transparent transition-all duration-300 ease-in-out ${
             sidebarOpen ? "w-44" : "w-14"
           }`}
           style={{
@@ -40,7 +40,7 @@ export function DashboardLayout() {
         )}
         {/* Mobile Sidebar */}
         <aside
-          className={`sidebar-bar fixed left-0 top-0 bottom-0 z-50 w-64 border-r border-border/50 flex flex-col md:hidden transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+          className={`sidebar-bar fixed left-0 top-0 bottom-0 z-50 w-64 border-r border-border/50 flex flex-col md:hidden transition-transform duration-300 ease-in-out ${
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
           style={{
@@ -68,7 +68,7 @@ export function DashboardLayout() {
 
         {/* Main Content */}
         <main
-          className={`flex-1 min-h-0 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+          className={`flex-1 min-h-0 transition-all duration-300 ease-in-out ${
             sidebarOpen ? "md:ml-44" : "md:ml-14"
           }`}
           id="main-content"

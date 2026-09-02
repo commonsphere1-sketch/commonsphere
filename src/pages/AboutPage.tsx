@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Globe,
   Lightning,
@@ -35,14 +34,14 @@ const VALUES = [
   {
     icon: <Globe size={24} weight="fill" />,
     title: "Global Coverage",
-    desc: "We track every sovereign nation, major territory, all 50 US states, hundreds of global cities, and major economies — giving you one unified view of the world&#39;s political landscape.",
+    desc: "We track every sovereign nation, major territory, all 50 US states, hundreds of global cities, and major economies — giving you one unified view of the world's political landscape.",
     color: "text-emerald-400",
     bg: "bg-emerald-500/10",
   },
   {
     icon: <Lightning size={24} weight="fill" />,
-    title: "Real-time Intelligence",
-    desc: "Our data pipeline refreshes continuously, surfacing leadership changes, policy shifts, conflict developments, and economic signals as they happen.",
+    title: "Kept Current",
+    desc: "Country and state indicators are pulled from the World Bank and refreshed while you have the app open. Written entries — policy notes, conflict and leadership records — are curated and carry their own dates.",
     color: "text-secondary",
     bg: "bg-secondary/10",
   },

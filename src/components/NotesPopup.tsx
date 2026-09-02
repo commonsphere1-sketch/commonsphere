@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect,} from "react";
 import { useMutation } from "@animaapp/playground-react-sdk";
 import {
   sanitizeText,
@@ -186,8 +186,7 @@ export function NotesPopup() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-4 right-4 z-50 w-9 h-9 rounded-full shadow-lg flex items-center justify-center hover:scale-105 transition-transform duration-150"
-        style={{ background: "hsl(0,0%,60%)", color: "hsl(0,0%,10%)" }}
+        className="notes-fab fixed bottom-4 right-4 z-50 w-9 h-9 rounded-full flex items-center justify-center hover:scale-105"
         aria-label="Open notes"
       >
         <NotePencil size={16} weight="fill" />

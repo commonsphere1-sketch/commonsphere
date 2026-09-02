@@ -1,26 +1,16 @@
 import React, { useState, useEffect } from "react";
 import {
-  Buildings,
-  Users,
-  CurrencyDollar,
-  TrendDown,
   MagnifyingGlass,
   MapPin,
-  Flag,
   Timer,
-  Factory,
-  ChartBar,
   UserCircle,
   Gavel,
   UsersThree,
   MapTrifold,
   ListBullets,
   Scales,
-  NotePencil,
-  DownloadSimple,
 } from "@phosphor-icons/react";
 // Bookmark feature removed
-import { useNotes } from "../contexts/NotesContext";
 import {
   BarChart,
   Bar,
@@ -34,8 +24,9 @@ import {
   Pie,
   Legend,
 } from "recharts";
-import { usStatesData, type USState } from "../data/statesData";
+import { type USState } from "../data/statesData";
 import { getStateSocialStats } from "../data/socialStatsData";
+import { getUpcoming } from "../data/upcomingToWatch";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
 
@@ -1626,7 +1617,7 @@ function TransportationPanel({ state }: { state: USState }) {
                   isAnimationActive
                   animationDuration={600}
                 >
-                  {commuteModeData.map((d, i) => (
+                  {commuteModeData.map((_d, i) => (
                     <Cell key={i} fill={`url(#transGrad-${state.id}-${i})`} />
                   ))}
                 </Pie>
@@ -11528,7 +11519,6 @@ function LegalStatusGrid({ state }: { state: USState }) {
       {/* Section header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-base">⚖️</span>
           <p className="text-sm font-bold font-sans text-foreground">
             What&#39;s Legal in {state.name}?
           </p>
@@ -11555,9 +11545,6 @@ function LegalStatusGrid({ state }: { state: USState }) {
             key={i}
             className="flex items-start gap-2.5 p-2.5 rounded-lg bg-background/40 border border-border/30"
           >
-            <span className="text-lg leading-none shrink-0 mt-0.5">
-              {item.icon}
-            </span>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold font-sans text-foreground leading-tight">
                 {item.topic}
@@ -11734,7 +11721,6 @@ function StateModal({
 }) {
   const [activeTab, setActiveTab] = useState<ModalTab>("overview");
   const [isExpanded, setIsExpanded] = useState(false);
-  const { openNote } = useNotes();
 
   React.useEffect(() => {
     setActiveTab("overview");
@@ -11817,16 +11803,6 @@ function StateModal({
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               <button
-                onClick={() =>
-                  openNote({ entityName: state.name, entityType: "State" })
-                }
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-sans font-medium bg-secondary/15 text-secondary border border-secondary/30 hover:bg-secondary/25 transition-colors cursor-pointer"
-                aria-label="Take note about this state"
-              >
-                <NotePencil size={13} weight="fill" />
-                Take Note
-              </button>
-              <button
                 onClick={() => setIsExpanded((v) => !v)}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
                 aria-label={
@@ -11834,41 +11810,16 @@ function StateModal({
                 }
                 title={isExpanded ? "Collapse" : "Expand to full screen"}
               >
-                {isExpanded ? (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M5 1H1v4M11 1h4v4M5 15H1v-4M11 15h4v-4"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
+                <span className="text-xs font-sans font-medium">
+                  {isExpanded ? "Collapse" : "Expand"}
+                </span>
               </button>
               <button
                 onClick={onClose}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-sans cursor-pointer"
                 aria-label="Close"
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M12 4L4 12M4 4l8 8"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
+                <span className="text-xs font-sans font-medium">Close</span>
               </button>
             </div>
           </div>
@@ -12029,9 +11980,14 @@ function StateModal({
                   </div>
                 </div>
 
-                {/* Quality of Living tile */}
-                <div className="grid grid-cols-2 gap-3 mb-0 items-stretch">
-                  <div className="modal-tile rounded-lg p-4 flex flex-col gap-1 col-span-2 h-full">
+                {/* Quality of Living tile.
+                    The wrapper tracks TaxCard's own col-span-2 sm:col-span-4.
+                    It used to be a fixed grid-cols-2, so TaxCard's span of 4
+                    created two implicit 0px columns; spanning those picked up
+                    two extra gaps and left TaxCard 24px wider than this tile
+                    and than every other section in the modal. */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-0 items-stretch">
+                  <div className="modal-tile rounded-lg p-4 flex flex-col gap-1 col-span-2 sm:col-span-4 h-full">
                     <p className="text-xs text-muted-foreground font-sans">
                       Quality of Living Score
                     </p>
@@ -12498,7 +12454,7 @@ function StateModal({
                                     isAnimationActive
                                     animationDuration={600}
                                   >
-                                    {crimeData.map((d, i) => (
+                                    {crimeData.map((_d, i) => (
                                       <Cell
                                         key={i}
                                         fill={`url(#crimeGrad-${state.id}-${i})`}
@@ -12739,19 +12695,6 @@ function useElectionCountdown() {
 function USNationalBanner() {
   const { days, hours, mins, secs } = useElectionCountdown();
 
-  const totalGDP = usStatesData.reduce((sum, s) => sum + s.gdp, 0);
-  const totalPop = usStatesData.reduce((sum, s) => sum + s.population, 0);
-  const avgUnemployment = (
-    usStatesData.reduce((sum, s) => sum + s.unemploymentRate, 0) /
-    usStatesData.length
-  ).toFixed(1);
-  const avgMedianIncome = Math.round(
-    usStatesData.reduce((sum, s) => sum + s.medianIncome, 0) /
-      usStatesData.length,
-  );
-  const demStates = usStatesData.filter((s) => s.party === "Democrat").length;
-  const repStates = usStatesData.filter((s) => s.party === "Republican").length;
-
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden mb-8 shadow-lg">
       {/* Header */}
@@ -12831,69 +12774,6 @@ function USNationalBanner() {
         </div>
       </div>
 
-      {/* Key national stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-0 divide-x divide-border border-b border-border">
-        {[
-          {
-            label: "Total GDP",
-            value: `$${(totalGDP / 1000).toFixed(1)}T`,
-            sub: "2026 estimate",
-            icon: <CurrencyDollar size={14} weight="fill" />,
-            color: "text-green-400",
-          },
-          {
-            label: "Population",
-            value: `${(totalPop / 1e6).toFixed(0)}M`,
-            sub: "2026 estimate",
-            icon: <Users size={14} weight="fill" />,
-            color: "text-blue-400",
-          },
-          {
-            label: "Unemployment",
-            value: `${avgUnemployment}%`,
-            sub: "Mar 2026 avg",
-            icon: <ChartBar size={14} weight="fill" />,
-            color: "text-orange-400",
-          },
-          {
-            label: "Median Income",
-            value: `$${(avgMedianIncome / 1000).toFixed(0)}K`,
-            sub: "2026 avg",
-            icon: <Factory size={14} weight="fill" />,
-            color: "text-purple-400",
-          },
-          {
-            label: "Democrat States",
-            value: `${demStates}`,
-            sub: "blue states (2026)",
-            icon: <Flag size={14} weight="fill" />,
-            color: "text-secondary",
-          },
-          {
-            label: "Republican States",
-            value: `${repStates}`,
-            sub: "red states (2026)",
-            icon: <Flag size={14} weight="fill" />,
-            color: "text-red-400",
-          },
-        ].map((stat) => (
-          <div key={stat.label} className="flex flex-col gap-0.5 px-3 py-2.5">
-            <div className={`flex items-center gap-1 ${stat.color}`}>
-              {stat.icon}
-              <span className="text-[9px] font-sans text-muted-foreground uppercase tracking-wider">
-                {stat.label}
-              </span>
-            </div>
-            <p className="text-base font-bold font-mono text-foreground leading-tight">
-              {stat.value}
-            </p>
-            <p className="text-[9px] text-muted-foreground font-sans">
-              {stat.sub}
-            </p>
-          </div>
-        ))}
-      </div>
-
       {/* Bottom: snapshot */}
       <div className="p-5">
         <div className="flex items-center justify-between mb-3">
@@ -12953,53 +12833,6 @@ function USNationalBanner() {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-function exportStatesToCSV(states: USState[]) {
-  const headers = [
-    "Name",
-    "Abbreviation",
-    "Region",
-    "Party",
-    "Governor",
-    "Capital",
-    "Population",
-    "GDP (B USD)",
-    "Median Income",
-    "Unemployment %",
-    "Quality of Living",
-    "Crime Index",
-    "Education Rank",
-    "Healthcare Rank",
-    "Statehood",
-  ];
-  const rows = states.map((s) => [
-    s.name,
-    s.abbreviation,
-    s.region,
-    s.party,
-    s.governor,
-    s.capital,
-    s.population,
-    s.gdp,
-    s.medianIncome,
-    s.unemploymentRate,
-    s.qualityOfLiving,
-    s.crimeIndex,
-    s.educationRank,
-    s.healthcareRank,
-    s.statehood,
-  ]);
-  const csv = [headers, ...rows]
-    .map((r) => r.map((v) => `"${v}"`).join(","))
-    .join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "us_states_data.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 export function StatesPage() {
   const [search, setSearch] = useState("");
   const [regionFilter, setRegionFilter] = useState("All");
@@ -13011,10 +12844,6 @@ export function StatesPage() {
 
   const {
     states: liveStates,
-    isRefreshing,
-    lastUpdated,
-    patchedCount,
-    source,
   } = useLiveData();
 
   // Deep-link: open entity from search bar via ?open=<id>
@@ -13051,205 +12880,42 @@ export function StatesPage() {
         {/* US National Banner */}
         <USNationalBanner />
 
-        {/* Page Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 bg-secondary/20 rounded-lg">
-            <Buildings size={26} weight="fill" className="text-secondary" />
-          </div>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold font-sans text-foreground">
-              US States
-            </h1>
-            <p className="text-muted-foreground text-sm font-sans">
-              Demographics, economics, and governance data for all 50 states
-            </p>
-          </div>
-          {/* CSV Export */}
-          <button
-            onClick={() => exportStatesToCSV(filtered)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-[11px] font-sans cursor-pointer"
-            title="Export visible states to CSV"
-          >
-            <DownloadSimple size={13} weight="bold" />
-            Export CSV
-          </button>
-          {/* Live data status badge */}
-          <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-mono transition-all ${isRefreshing ? "bg-warning/10 border-warning/30 text-warning" : lastUpdated ? "bg-success/10 border-success/30 text-success" : "bg-muted/50 border-border text-muted-foreground"}`}
-          >
-            <span
-              className={`w-1.5 h-1.5 rounded-full shrink-0 ${isRefreshing ? "bg-warning animate-pulse" : lastUpdated ? "bg-success animate-pulse" : "bg-muted-foreground"}`}
-            />
-            {isRefreshing
-              ? "Fetching live data…"
-              : lastUpdated
-                ? `Live · ${patchedCount} updated · ${source}`
-                : "Static data"}
-          </div>
-        </div>
-
         {/* Summary Metrics */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
             {
               label: "States Tracked",
               value: "50",
-              icon: <Buildings size={18} weight="fill" />,
-              color: "text-secondary",
             },
             {
               label: "Total Population",
               value: "335M+",
-              icon: <Users size={18} weight="fill" />,
-              color: "text-success",
             },
             {
               label: "Largest Economy",
               value: "CA · $4.1T",
-              icon: <CurrencyDollar size={18} weight="fill" />,
-              color: "text-warning",
             },
             {
               label: "Avg Unemployment",
               value: "3.8%",
-              icon: <TrendDown size={18} weight="fill" />,
-              color: "text-secondary",
             },
           ].map((s) => (
             <div
               key={s.label}
-              className="bg-card border border-border rounded-lg p-4 flex items-center gap-3"
+              className="bg-card border border-border rounded-lg p-4"
             >
-              <span className={s.color}>{s.icon}</span>
-              <div>
-                <p className="text-xs text-muted-foreground font-sans">
-                  {s.label}
-                </p>
-                <p className="text-base font-bold font-mono text-foreground">
-                  {s.value}
-                </p>
-              </div>
+              <p className="text-xs text-muted-foreground font-sans">
+                {s.label}
+              </p>
+              <p className="text-base font-bold font-mono text-foreground">
+                {s.value}
+              </p>
             </div>
           ))}
         </div>
 
-        {/* ── Trending & Frequently Looked-Up Stats ── */}
-        <div className="mb-6 bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-            <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-              Trending &amp; Frequently Looked-Up
-            </p>
-            <span className="ml-auto text-[10px] text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-full">
-              2026 data
-            </span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {[
-              {
-                label: "🏆 Highest GDP State",
-                value: "California",
-                sub: "$4.1T",
-                color: "text-yellow-400",
-                bg: "bg-yellow-500/10 border-yellow-500/20",
-              },
-              {
-                label: "📈 Fastest Growing",
-                value: "Florida",
-                sub: "+4.2% GDP",
-                color: "text-green-400",
-                bg: "bg-green-500/10 border-green-500/20",
-              },
-              {
-                label: "💼 Lowest Unemployment",
-                value: "North Dakota",
-                sub: "2.2%",
-                color: "text-secondary",
-                bg: "bg-secondary/10 border-secondary/20",
-              },
-              {
-                label: "💰 Highest Median Income",
-                value: "New Jersey",
-                sub: "$100K HH",
-                color: "text-purple-400",
-                bg: "bg-purple-500/10 border-purple-500/20",
-              },
-              {
-                label: "🏙️ Most Populous",
-                value: "California",
-                sub: "39.5M residents",
-                color: "text-orange-400",
-                bg: "bg-orange-500/10 border-orange-500/20",
-              },
-              {
-                label: "0️⃣ No Income Tax States",
-                value: "9 States",
-                sub: "FL, TX, WA…",
-                color: "text-red-400",
-                bg: "bg-red-500/10 border-red-500/20",
-              },
-            ].map((s) => (
-              <div
-                key={s.label}
-                className={`rounded-xl p-3 border ${s.bg} flex flex-col gap-1`}
-              >
-                <p className="text-[10px] font-sans text-muted-foreground leading-snug">
-                  {s.label}
-                </p>
-                <p
-                  className={`text-sm font-bold font-mono ${s.color} leading-tight`}
-                >
-                  {s.value}
-                </p>
-                <p className={`text-[10px] font-sans ${s.color} opacity-80`}>
-                  {s.sub}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 pt-3 border-t border-border/40">
-            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-              🔥 Upcoming to Watch
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {[
-                {
-                  label:
-                    "Texas EV manufacturing boom — 2026 Tesla & Toyota expansions",
-                  color: "text-amber-400 border-amber-500/30 bg-amber-500/10",
-                },
-                {
-                  label: "California budget gap $45B — fiscal reckoning 2026",
-                  color: "text-red-400 border-red-500/30 bg-red-500/10",
-                },
-                {
-                  label: "Florida gambling expansion ballot · Nov 2026",
-                  color:
-                    "text-purple-400 border-purple-500/30 bg-purple-500/10",
-                },
-                {
-                  label: "NY congestion pricing impact data · mid-2026",
-                  color: "text-secondary border-secondary/30 bg-secondary/10",
-                },
-                {
-                  label:
-                    "AI job market shift hitting tech states — 2026 BLS report",
-                  color: "text-green-400 border-green-500/30 bg-green-500/10",
-                },
-              ].map((e) => (
-                <span
-                  key={e.label}
-                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.color}`}
-                >
-                  {e.label}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
         {/* Unified Search + Filter Bar */}
-        <div className="flex flex-col bg-card border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
+        <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
           {/* Row 1: Search */}
           <div className="flex items-center gap-2">
             <MagnifyingGlass
@@ -13315,6 +12981,25 @@ export function StatesPage() {
               <option value="medianIncome">Sort: Median Income</option>
               <option value="approvalRating">Sort: Approval</option>
             </select>
+          </div>
+        </div>
+
+        {/* ── Upcoming to Watch ── */}
+        <div className="mb-6 bg-card border border-border rounded-2xl p-5">
+          <div>
+            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+              🔥 Upcoming to Watch
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {getUpcoming("states").map((e) => (
+                <span
+                  key={e.id}
+                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.className}`}
+                >
+                  {e.label}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef,} from "react";
 import { SourceLink } from "../components/SourceLink";
 import { useTheme } from "../contexts/ThemeContext";
 import {
@@ -164,7 +164,7 @@ const INITIAL_POSTS: Post[] = [
     analystId: 2,
     channel: "policy",
     content:
-      "India&#39;s semiconductor subsidy package outpaces CHIPS Act on a per-capita basis. Supply chain realignment is already underway — three major Taiwan ODMs have announced Gujarat expansions in Q2 alone.",
+      "India's semiconductor subsidy package outpaces CHIPS Act on a per-capita basis. Supply chain realignment is already underway — three major Taiwan ODMs have announced Gujarat expansions in Q2 alone.",
     tags: ["India", "Tech", "Supply Chain"],
     likes: 28,
     shares: 15,
@@ -767,8 +767,9 @@ export function AnalystPage() {
                   <p
                     className="text-sm font-sans leading-relaxed mb-3"
                     style={{ color: bodyText }}
-                    dangerouslySetInnerHTML={{ __html: post.content }}
-                  />
+                  >
+                    {post.content}
+                  </p>
 
                   {/* Tags */}
                   {post.tags.length > 0 && (

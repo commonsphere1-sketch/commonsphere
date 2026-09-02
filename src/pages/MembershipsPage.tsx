@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useProfile } from "@/contexts/ProfileContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { sanitizeText, validateEmail, LIMITS } from "@/lib/security";
 import {
   CheckCircle,
   Star,
@@ -25,7 +28,6 @@ import {
   Flag,
   UserCircle,
   BookOpen,
-  BellSimple,
   Cpu,
   Users,
   FileText,
@@ -36,109 +38,142 @@ import {
   Scales,
   Atom,
   Fingerprint,
-  ExportSimple,
-  Clipboard,
-  NotePencil,
-  MapPin,
 } from "@phosphor-icons/react";
 
 // ─── Entitlement Matrix ───────────────────────────────────────────────────────
 
+/**
+ * Membership tiers.
+ *
+ * Feature lines describe what the site actually ships. Counts come from the
+ * data files — 204 countries, 50 states, 34 cities, 77 economies, 27 royal
+ * profiles — not the round numbers this page used to carry ("195+ countries",
+ * "300+ cities" against an actual 34).
+ *
+ * Anything not built yet sits in `roadmap` and renders as "Planned" rather
+ * than as a sold feature. That covers the public API, team seats and citation
+ * export; CSV, PNG and print-to-PDF export do ship.
+ *
+ * Shape of the offer, and why:
+ *   Free      no card, so the catalogue itself does the selling. Nothing here
+ *             is gated behind a trial clock, which is what a civic-data site
+ *             should feel like, and it is the top of the funnel for the rest.
+ *   Supporter an impulse price for citizens, journalists and teachers. The
+ *             paid line starts at exports and saved work — the things that
+ *             turn browsing into a habit.
+ *   Pro       expensable without sign-off in most organisations, aimed at
+ *             researchers and policy analysts who need to cite and reuse.
+ *   Team      per-seat with a five-seat floor, which is where recurring
+ *             revenue actually comes from: newsrooms, NGOs and departments.
+ * Annual is priced at ten months for twelve, which trades a modest discount
+ * for the retention and cash flow that make the cheaper tiers viable.
+ */
 const PLANS = [
   {
-    id: "student",
-    name: "Student",
+    id: "free",
+    name: "Free",
     price: "$0",
-    period: "while enrolled",
-    borderClass: "border-emerald-500/40",
+    period: "forever",
+    priceAnnual: null,
+    borderClass: "border-border",
     badge: null,
-    btnClass:
-      "bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20",
-    accentClass: "text-emerald-400",
-    checkClass: "text-emerald-400",
-    desc: "Full Research-tier access, free for verified students & educators.",
-    audience: "Students · Faculty · Academic institutions",
-    note: "Requires .edu or institutional email — renewed annually.",
+    btnClass: "bg-muted hover:bg-muted/80 text-foreground",
+    accentClass: "text-muted-foreground",
+    checkClass: "text-muted-foreground",
+    desc: "The full catalogue, open. No card, no trial countdown.",
+    audience: "Anyone · Curious readers · Classroom use",
+    note: "Students and educators: verify with an .edu address for Pro features at no cost.",
     features: [
-      "Everything in the Professional plan — no paywalls",
-      "All 195+ countries, 300+ cities & 50 US states",
-      "Active conflicts, humanitarian & military data",
-      "Crime statistics & planetary boundaries modules",
-      "Congress tracker, policy hub & political library",
-      "Research notes, clipboard & annotation tools",
-      "Historical archives — 60+ years of data",
-      "Export to CSV, PDF, and BibTeX citation format",
-      "API access — unlimited calls during enrollment",
-      "Collaborative research workspaces",
-      "Unlimited bookmarks & collections",
-      "Used by researchers at 200+ universities worldwide",
+      "All 204 countries, 50 US states and 34 city profiles",
+      "77 economies with figures refreshed from the World Bank",
+      "Composite rankings across 254 entities and 7 categories",
+      "World leaders and 27 royal family profiles",
+      "Planetary boundaries, crime and humanitarian modules",
+      "Compare up to 3 entities side by side",
+      "Light and dark themes",
     ],
+    roadmap: [],
   },
   {
-    id: "public",
-    name: "Public",
-    price: "$9",
+    id: "supporter",
+    name: "Supporter",
+    price: "$6",
     period: "per month",
+    priceAnnual: "$60 billed yearly — two months free",
     borderClass: "border-secondary/50 ring-2 ring-secondary/20",
     badge: "Most Popular",
     btnClass:
       "bg-secondary hover:bg-secondary/80 text-secondary-foreground shadow-lg shadow-secondary/20",
     accentClass: "text-secondary",
     checkClass: "text-secondary",
-    desc: "Powerful intelligence for curious citizens, journalists & advocates.",
-    audience: "General public · Journalists · Policy advocates",
+    desc: "For readers who come back — export what you find and keep your work.",
+    audience: "Citizens · Journalists · Teachers · Advocates",
     note: null,
     features: [
-      "All 195+ countries with live global data",
-      "300+ global city profiles",
-      "All 50 US states — demographics, politics & economy",
-      "Economy & GDP comparisons",
-      "Political ideologies & parties explorer",
-      "Polls & public opinion hub",
-      "Global rankings, indexes & quizzes",
-      "Political library & educational content",
-      "Advanced multi-entity comparison tool",
-      "Historical trend data (60+ years)",
-      "Congress & policy positions tracker",
-      "Active conflicts & military data",
-      "Humanitarian crisis dashboard",
-      "Crime statistics module",
-      "Planetary boundaries & biosphere data",
-      "International community profiles",
-      "Export data to CSV, PNG & PDF",
-      "Unlimited bookmarks & collections",
-      "Priority data refresh",
+      "Everything in Free",
+      "Unlimited multi-entity comparisons",
+      "Export any table to CSV",
+      "Export any chart to PNG at 2x resolution",
+      "Print-ready pages — save to PDF from your browser",
+      "Research notes and clippings, kept on your device",
+      "Watchlist alerts for the countries and states you follow",
+      "Supports the running costs of an open civic dataset",
     ],
+    roadmap: ["Notes synced across your devices"],
   },
   {
     id: "professional",
     name: "Professional",
-    price: "$29",
+    price: "$28",
     period: "per month",
+    priceAnnual: "$280 billed yearly — two months free",
     borderClass: "border-violet-500/40",
     badge: null,
     btnClass:
       "bg-violet-500 hover:bg-violet-400 text-white shadow-lg shadow-violet-500/20",
     accentClass: "text-violet-400",
     checkClass: "text-violet-400",
-    desc: "Full-platform power for researchers, analysts & policy teams.",
-    audience: "Researchers · Policy analysts · Data teams",
+    desc: "For work that gets published, cited or presented.",
+    audience: "Researchers · Policy analysts · NGO and consulting staff",
     note: null,
     features: [
-      "Everything in Public",
-      "Research notes & annotations hub",
-      "Clipboard & clipping manager",
-      "World map — choropleth overlays & custom layers",
-      "Policy hub & public policy deep-dives",
-      "Global metrics & society index panels",
-      "Alerts & real-time notifications system",
-      "API access for data integration & exports",
-      "Team collaboration — up to 5 seats",
-      "Advanced exports: CSV, PDF & BibTeX",
-      "Dedicated research & priority support",
-      "Wealth & inequality intelligence module",
-      "Royal families & heads of state profiles",
-      "Election countdown & calendar tracker",
+      "Everything in Supporter",
+      "Bulk CSV export across every module, not one page at a time",
+      "Every figure carries its source and reporting year",
+      "Full historical series behind each indicator",
+      "Priority refresh when upstream sources publish",
+      "Early access to new modules",
+    ],
+    roadmap: [
+      "Citation export (BibTeX, RIS)",
+      "Read-only API for your own tooling",
+    ],
+  },
+  {
+    id: "team",
+    name: "Team",
+    price: "$18",
+    period: "per seat / month",
+    priceAnnual: "Minimum 5 seats · annual invoicing available",
+    borderClass: "border-sky-500/40",
+    badge: null,
+    btnClass:
+      "bg-sky-500 hover:bg-sky-400 text-white shadow-lg shadow-sky-500/20",
+    accentClass: "text-sky-400",
+    checkClass: "text-sky-400",
+    desc: "One account for a newsroom, department or research group.",
+    audience: "Newsrooms · NGOs · University departments · Public sector",
+    note: "Billed per seat with a five-seat minimum. Invoicing and PO accepted.",
+    features: [
+      "Everything in Professional for every seat",
+      "Shared collections and saved comparisons",
+      "Named billing contact and consolidated invoicing",
+      "Onboarding session for the group",
+    ],
+    roadmap: [
+      "Admin console with seat management",
+      "Single sign-on",
+      "Shared workspaces with per-seat permissions",
     ],
   },
 ];
@@ -146,8 +181,12 @@ const PLANS = [
 // ─── Feature grid (shown below plans) ────────────────────────────────────────
 
 const FEATURE_GRID = [
-  { icon: Globe, label: "195+ Countries", desc: "Live verified global data" },
-  { icon: MapTrifold, label: "300+ Cities", desc: "Urban profiles & stats" },
+  {
+    icon: Globe,
+    label: "204 Countries",
+    desc: "Refreshed from the World Bank",
+  },
+  { icon: MapTrifold, label: "34 Cities", desc: "Urban profiles & stats" },
   {
     icon: Buildings,
     label: "All 50 US States",
@@ -155,8 +194,8 @@ const FEATURE_GRID = [
   },
   {
     icon: ChartLineUp,
-    label: "100K+ Data Points",
-    desc: "Continuously updated",
+    label: "254 Ranked Entities",
+    desc: "Countries and US states scored",
   },
   { icon: Flag, label: "Active Conflicts", desc: "Military & conflict data" },
   {
@@ -327,10 +366,10 @@ const COMPARISON_ROWS: FeatureRow[] = [
 
 const EDU_PERKS = [
   "Full Professional plan — completely free for verified students & faculty",
-  "Unlimited API calls during enrollment",
-  "Collaborative research workspaces",
-  "Export to CSV, PDF, and BibTeX citation format",
-  "Priority data refresh & 60+ years of historical archives",
+  "Export tables to CSV and charts to PNG",
+  "Print-ready pages for coursework and handouts",
+  "Priority refresh when upstream sources publish",
+  "Full historical series behind every indicator",
   "Access to conflicts, humanitarian, crime & planetary data",
   "Congress tracker, policy hub & political library",
   "Research notes, clipboard manager & annotation tools",
@@ -433,6 +472,59 @@ export function MembershipsPage() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [eduError, setEduError] = useState("");
+
+  // ── Create-account form ──────────────────────────────────────────────
+  const { displayName, email: savedEmail, username, save } = useProfile();
+  const { login } = useAuth();
+  const [accountName, setAccountName] = useState("");
+  const [accountUsername, setAccountUsername] = useState("");
+  const [accountEmail, setAccountEmail] = useState("");
+  const [accountError, setAccountError] = useState("");
+  const [accountSaved, setAccountSaved] = useState(false);
+
+  // Seed from anything already saved, once it has loaded from storage.
+  React.useEffect(() => {
+    if (displayName) setAccountName((v) => v || displayName);
+    if (savedEmail) setAccountEmail((v) => v || savedEmail);
+    if (username) setAccountUsername((v) => v || username);
+  }, [displayName, savedEmail, username]);
+
+  function handleCreateAccount() {
+    const name = sanitizeText(accountName);
+    // Usernames are the one field with a shape worth enforcing: it is meant to
+    // be a stable handle, so restrict it rather than sanitising silently.
+    const handle = accountUsername.trim().replace(/^@/, "");
+    const mail = sanitizeText(accountEmail).toLowerCase();
+
+    if (!name) {
+      setAccountError("Enter a display name.");
+      return;
+    }
+    if (handle.length < 3) {
+      setAccountError("Usernames need at least 3 characters.");
+      return;
+    }
+    if (!/^[a-zA-Z0-9_.]+$/.test(handle)) {
+      setAccountError(
+        "Usernames can use letters, numbers, underscores and dots only.",
+      );
+      return;
+    }
+    const ev = validateEmail(mail);
+    if (!ev.ok) {
+      setAccountError(ev.message);
+      return;
+    }
+    if (!save(name, mail, handle)) {
+      setAccountError("Could not save — this browser's storage is full.");
+      return;
+    }
+    setAccountName(name);
+    setAccountEmail(mail);
+    setAccountUsername(handle);
+    setAccountError("");
+    setAccountSaved(true);
+  }
 
   const handleEduSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -624,6 +716,14 @@ export function MembershipsPage() {
                       {plan.note}
                     </p>
                   )}
+                  {/* Annual option, where the tier has one. Shown next to the
+                      monthly figure so the yearly saving is visible at the
+                      point of choosing rather than at checkout. */}
+                  {plan.priceAnnual && (
+                    <p className="text-[10px] text-muted-foreground mb-1">
+                      {plan.priceAnnual}
+                    </p>
+                  )}
                   <div className="border-t border-border my-4" />
                   <ul className="space-y-2.5 flex-1 mb-6">
                     {plan.features.map((f) => (
@@ -639,16 +739,175 @@ export function MembershipsPage() {
                         {f}
                       </li>
                     ))}
+                    {/* Planned work is listed but visibly not sold: a hollow
+                        marker and a "Planned" tag, so nobody pays for it
+                        expecting it today. */}
+                    {plan.roadmap.map((f) => (
+                      <li
+                        key={f}
+                        className="flex items-start gap-2 text-sm text-muted-foreground/60"
+                      >
+                        <span className="w-3.5 h-3.5 rounded-full border border-current shrink-0 mt-0.5" />
+                        <span>
+                          {f}{" "}
+                          <span className="text-[9px] uppercase tracking-wide border border-current rounded px-1 py-0.5 ml-0.5 align-middle">
+                            Planned
+                          </span>
+                        </span>
+                      </li>
+                    ))}
                   </ul>
                   <button
                     className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-all ${plan.btnClass}`}
                   >
-                    {plan.id === "student"
-                      ? "Verify Student Status"
-                      : "Get Started"}
+                    {plan.id === "free"
+                      ? "Start browsing"
+                      : plan.id === "team"
+                        ? "Talk to us"
+                        : `Choose ${plan.name}`}
                   </button>
                 </div>
               ))}
+            </div>
+
+            {/* ── Create an account ──────────────────────────────────────
+                Profile details are collected here and stored with the rest of
+                the profile. Credentials deliberately are not: there is no
+                backend to create an account against, and the SDK hands sign-in
+                to its own provider, so a password box here would either go
+                nowhere or keep a password in browser storage. The button hands
+                off to that provider instead. */}
+            <div
+              id="create-account"
+              className="rounded-xl border border-border bg-card p-5 mt-6"
+            >
+              <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+                <UserCircle size={15} className="text-secondary" /> Create your
+                account
+              </h3>
+              <p className="text-xs text-muted-foreground mb-4 max-w-lg">
+                Choose how you appear on CommonSphere. Your password is set with
+                our sign-in provider on the next step — we never ask for it
+                here.
+              </p>
+
+              {accountSaved ? (
+                <div className="rounded-lg border border-success/30 bg-success/5 p-4">
+                  <p className="text-sm font-medium text-success mb-1">
+                    Details saved
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Saved on this device as{" "}
+                    <span className="font-mono text-foreground">
+                      @{accountUsername.trim()}
+                    </span>
+                    . Continue to sign-in to finish creating the account.
+                  </p>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <button
+                      onClick={() => {
+                        void login().catch(() => {});
+                      }}
+                      className="px-3 py-2 rounded-lg text-xs font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                    >
+                      Continue to secure sign-in
+                    </button>
+                    <button
+                      onClick={() => setAccountSaved(false)}
+                      className="px-3 py-2 rounded-lg text-xs font-semibold border border-border text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Edit details
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label
+                        htmlFor="acct-name"
+                        className="block text-[11px] text-muted-foreground mb-1"
+                      >
+                        Display name
+                      </label>
+                      <input
+                        id="acct-name"
+                        value={accountName}
+                        maxLength={LIMITS.NAME}
+                        onChange={(e) => {
+                          setAccountName(e.target.value);
+                          setAccountError("");
+                        }}
+                        placeholder="Ada Lovelace"
+                        className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="acct-username"
+                        className="block text-[11px] text-muted-foreground mb-1"
+                      >
+                        Username
+                      </label>
+                      <div className="flex items-center bg-muted border border-border rounded-lg px-3 focus-within:ring-1 focus-within:ring-ring">
+                        <span className="text-sm text-muted-foreground select-none">
+                          @
+                        </span>
+                        <input
+                          id="acct-username"
+                          value={accountUsername}
+                          maxLength={30}
+                          onChange={(e) => {
+                            setAccountUsername(e.target.value);
+                            setAccountError("");
+                          }}
+                          placeholder="alovelace"
+                          className="w-full bg-transparent py-2 pl-1 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="acct-email"
+                        className="block text-[11px] text-muted-foreground mb-1"
+                      >
+                        Email
+                      </label>
+                      <input
+                        id="acct-email"
+                        type="email"
+                        value={accountEmail}
+                        maxLength={LIMITS.EMAIL}
+                        onChange={(e) => {
+                          setAccountEmail(e.target.value);
+                          setAccountError("");
+                        }}
+                        placeholder="ada@example.org"
+                        className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                      />
+                    </div>
+                  </div>
+
+                  {accountError && (
+                    <p className="text-xs text-destructive mt-2">
+                      {accountError}
+                    </p>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-3 mt-4">
+                    <button
+                      onClick={handleCreateAccount}
+                      className="px-4 py-2 rounded-lg text-xs font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                    >
+                      Save and continue
+                    </button>
+                    <p className="text-[10px] text-muted-foreground">
+                      Details are kept on this device. No password is collected
+                      on this page.
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* What's included grid */}
@@ -946,18 +1205,18 @@ export function MembershipsPage() {
                   },
                   {
                     icon: Cpu,
-                    label: "Full API Access",
-                    desc: "Unlimited calls while enrolled",
+                    label: "Full Modules",
+                    desc: "Every dataset, no paywalls",
                   },
                   {
                     icon: FileText,
-                    label: "BibTeX Export",
-                    desc: "Academic citation formats",
+                    label: "CSV & PNG Export",
+                    desc: "Tables and charts you can reuse",
                   },
                   {
                     icon: Users,
-                    label: "Workspaces",
-                    desc: "Collaborative team research",
+                    label: "Classroom Use",
+                    desc: "Free for students and faculty",
                   },
                 ].map(({ icon: Icon, label, desc }) => (
                   <div

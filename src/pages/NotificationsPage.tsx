@@ -1,16 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Bell,
-  Leaf,
-  Heartbeat,
-  Flask,
-  ShieldCheck,
-  Lightning,
-  Gavel,
-  CurrencyDollar,
-  Globe,
-  Buildings,
-  X,
+X,
   CheckCircle,
   Funnel,
   ArrowClockwise,

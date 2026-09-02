@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { SourceLink } from "../components/SourceLink";
 import { useTheme } from "../contexts/ThemeContext";
 import {
@@ -9,7 +9,6 @@ import {
   TrendDown,
   Warning,
   Info,
-  CaretRight,
   Globe,
   Lightning,
   Target,
@@ -154,7 +153,7 @@ const SCENARIOS = [
     impact: "High",
     impactColor: "#6366f1",
     summary:
-      "Dollar&#39;s share of global reserves drops below 55% as BRICS+ nations build trade alternatives.",
+      "Dollar's share of global reserves drops below 55% as BRICS+ nations build trade alternatives.",
     drivers: ["De-dollarization push", "BRICS expansion", "Sanctions blowback"],
   },
   {

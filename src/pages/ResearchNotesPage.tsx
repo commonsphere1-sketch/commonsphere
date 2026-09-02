@@ -1,4 +1,3 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Globe, Newspaper, ArrowLeft } from "@phosphor-icons/react";
 

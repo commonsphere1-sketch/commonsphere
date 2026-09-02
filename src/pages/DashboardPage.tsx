@@ -20,35 +20,20 @@ import {
   Flag,
   ShareNetwork,
   Users,
-  ChatTeardropDots,
   Newspaper,
   Bank,
   Handshake,
   Sparkle,
   Info,
   Target,
-  BookOpen,
-  FileMagnifyingGlass,
   ChartLineUp,
   MapPin,
-  PushPin,
-  PushPinSlash,
   MagnifyingGlass,
   X,
-  Pencil,
   CheckCircle,
   Heart,
-  Student,
-  Leaf,
-  Wifi,
-  Gavel,
-  ShieldCheck,
-  PersonArmsSpread,
-  Megaphone,
   Planet,
   ChartDonut,
-  Smiley,
-  TreePalm,
 } from "@phosphor-icons/react";
 import {
   AreaChart,
@@ -65,6 +50,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { countriesData } from "../data/countriesData";
+import { useLiveCountries } from "../contexts/LiveDataContext";
 import { usStatesData } from "../data/statesData";
 import { economiesData } from "../data/economiesData";
 import { SourceLink } from "../components/SourceLink";
@@ -115,9 +101,10 @@ function CountryCarousel({
   gridLine: string;
   onNav: (path: string) => void;
 }) {
+  const liveCountries = useLiveCountries();
   const sorted = React.useMemo(
-    () => [...countriesData].sort((a, b) => b.gdp - a.gdp),
-    [],
+    () => [...liveCountries].sort((a, b) => b.gdp - a.gdp),
+    [liveCountries],
   );
 
   // Duplicate list so the loop is seamless
@@ -278,7 +265,9 @@ function CountryCarousel({
                 <div
                   key={`${country.id}-${idx}`}
                   data-carousel-card
-                  onClick={() => onNav("/dashboard/countries")}
+                  onClick={() =>
+                    onNav(`/dashboard/countries?open=${country.id}`)
+                  }
                   className="rounded-xl overflow-hidden cursor-pointer transition-opacity duration-200 hover:opacity-90 shrink-0"
                   style={{
                     width: "calc((100vw - 260px - 56px) / 5)",
@@ -557,7 +546,7 @@ function StatesCarousel({
                 <div
                   key={`${state.id}-${idx}`}
                   data-state-card
-                  onClick={() => onNav("/dashboard/states")}
+                  onClick={() => onNav(`/dashboard/states?open=${state.id}`)}
                   className="rounded-xl overflow-hidden cursor-pointer transition-opacity duration-200 hover:opacity-90 shrink-0"
                   style={{
                     width: "calc((100vw - 260px - 56px) / 5)",
@@ -711,6 +700,46 @@ const INFLATION_DATA = [
   { year: "2025", g20: 3.9, adv: 2.6 },
   { year: "2026", g20: 3.2, adv: 2.2 },
 ];
+
+/**
+ * Newest "Mon YYYY" date in a curated feed.
+ *
+ * These feeds are hand-authored and cannot refresh themselves — GDELT and
+ * NewsAPI both block browser requests, so there is no client-side source to
+ * wire them to. Deriving the label from the entries means the UI states the
+ * period it is actually showing instead of asserting it is live, and it stays
+ * correct whenever the entries are next edited.
+ */
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+function feedLatestLabel(items: { date: string }[]): string {
+  let best = -Infinity;
+  let label = "";
+  for (const it of items) {
+    const m = /^([A-Za-z]{3})\s+(\d{4})$/.exec(it.date.trim());
+    if (!m) continue;
+    const mi = MONTHS.indexOf(m[1]);
+    if (mi < 0) continue;
+    const key = Number(m[2]) * 12 + mi;
+    if (key > best) {
+      best = key;
+      label = it.date.trim();
+    }
+  }
+  return label;
+}
 
 const RECENT_EVENTS = [
   {
@@ -1011,7 +1040,7 @@ const POLICY_FEED = [
     title: "WTO rules in favour of India on steel tariff dispute",
     date: "Jun 2025",
     description:
-      "The WTO Dispute Settlement Body upheld India&#39;s challenge against US Section 232 steel and aluminium tariffs imposed in 2018, ruling them inconsistent with GATT Article XI and the Safeguards Agreement. The panel found the US failed to demonstrate a genuine national security justification under GATT Article XXI. The US has 60 days to appeal to the Appellate Body or negotiate a bilateral solution. India has indicated it may reintroduce retaliatory tariffs on US goods worth $2.4B if no agreement is reached.",
+      "The WTO Dispute Settlement Body upheld India's challenge against US Section 232 steel and aluminium tariffs imposed in 2018, ruling them inconsistent with GATT Article XI and the Safeguards Agreement. The panel found the US failed to demonstrate a genuine national security justification under GATT Article XXI. The US has 60 days to appeal to the Appellate Body or negotiate a bilateral solution. India has indicated it may reintroduce retaliatory tariffs on US goods worth $2.4B if no agreement is reached.",
   },
   {
     tag: "Defense",
@@ -1204,6 +1233,16 @@ const GDP_PROJECTION_COMBINED = [
   { year: "2027", gdp: 113.2, type: "projected" },
   { year: "2028", gdp: 116.9, type: "projected" },
 ];
+
+// Recharts cannot vary stroke style within a single <Area>, so the series is
+// split into two data keys and drawn as two Areas. The projected key also
+// carries the last actual point so the two segments join without a gap.
+const GDP_PROJECTION_CHART = GDP_PROJECTION_COMBINED.map((d, i, arr) => ({
+  ...d,
+  gdpActual: d.type === "actual" ? d.gdp : null,
+  gdpProjected:
+    d.type === "projected" || arr[i + 1]?.type === "projected" ? d.gdp : null,
+}));
 
 const RISK_SCENARIOS = [
   {
@@ -1521,7 +1560,7 @@ function TrendsProjectionsPanel({
               </p>
               <ResponsiveContainer width="100%" height={180}>
                 <AreaChart
-                  data={GDP_PROJECTION_COMBINED}
+                  data={GDP_PROJECTION_CHART}
                   margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
                 >
                   <defs>
@@ -1581,12 +1620,7 @@ function TrendsProjectionsPanel({
                       fontFamily: "monospace",
                       color: headText,
                     }}
-                    formatter={(v: number, _: string, entry: any) => [
-                      `$${v}T`,
-                      entry.payload.type === "projected"
-                        ? "Projected"
-                        : "Actual",
-                    ]}
+                    formatter={(v: number, n: string) => [`$${v}T`, n]}
                     labelStyle={{ color: mutedText }}
                   />
                   <ReferenceLine
@@ -1595,31 +1629,30 @@ function TrendsProjectionsPanel({
                     strokeDasharray="4 4"
                     label={{ value: "Now", fill: mutedText, fontSize: 9 }}
                   />
+                  {/* Actual: solid line, indigo fill */}
                   <Area
                     type="monotone"
-                    dataKey="gdp"
+                    dataKey="gdpActual"
+                    name="Actual"
                     stroke="#6366f1"
                     strokeWidth={2}
                     fill="url(#gdpActualGrad)"
-                    dot={(props: any) => {
-                      const { cx, cy, payload } = props;
-                      if (payload.type !== "actual")
-                        return <g key={`dot-${payload.year}`} />;
-                      return (
-                        <circle
-                          key={`dot-${payload.year}`}
-                          cx={cx}
-                          cy={cy}
-                          r={3}
-                          fill="#6366f1"
-                          stroke="none"
-                        />
-                      );
-                    }}
+                    connectNulls={false}
+                    dot={{ r: 3, fill: "#6366f1", stroke: "none" }}
                     activeDot={{ r: 4, fill: "#6366f1" }}
-                    strokeDasharray={(entry: any) =>
-                      entry?.type === "projected" ? "5 4" : "0"
-                    }
+                  />
+                  {/* Projection: dashed line, purple fill, no dots */}
+                  <Area
+                    type="monotone"
+                    dataKey="gdpProjected"
+                    name="Projected"
+                    stroke="#a855f7"
+                    strokeWidth={2}
+                    strokeDasharray="5 4"
+                    fill="url(#gdpProjGrad)"
+                    connectNulls={false}
+                    dot={false}
+                    activeDot={{ r: 4, fill: "#a855f7" }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -1949,7 +1982,7 @@ function TrendsProjectionsPanel({
         {/* ── SCENARIOS ─────────────────────────────────────────────────── */}
         {activeTab === "scenarios" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {RISK_SCENARIOS.map((s, i) => (
+            {RISK_SCENARIOS.map((s, _i) => (
               <div
                 key={s.title}
                 className="rounded-xl p-4 flex flex-col gap-2"
@@ -2589,9 +2622,10 @@ function CompareCountriesTool({
     [stateSearch],
   );
 
+  const liveCountries = useLiveCountries();
   const selectedCountries = useMemo(
-    () => countriesData.filter((c) => selectedCountryIds.includes(c.id)),
-    [selectedCountryIds],
+    () => liveCountries.filter((c) => selectedCountryIds.includes(c.id)),
+    [liveCountries, selectedCountryIds],
   );
 
   const selectedStates = useMemo(
@@ -3475,29 +3509,8 @@ function PinnedSection({
   bodyText: string;
   onNav: (path: string) => void;
 }) {
-  const [editing, setEditing] = useState(false);
-  const [countrySearch, setCountrySearch] = useState("");
-
-  const { ids: pinnedCountryIds, toggle: toggleCountry } = usePinned(
-    LS_KEY_COUNTRIES,
-    ["us", "cn", "de", "gb", "jp"],
-  );
-
-  const filteredCountries = useMemo(
-    () =>
-      countriesData.filter((c) =>
-        c.name.toLowerCase().includes(countrySearch.toLowerCase()),
-      ),
-    [countrySearch],
-  );
-
-  const accent = "#6366f1";
-  const pillBg = isLight ? "rgba(99,102,241,0.07)" : "rgba(99,102,241,0.12)";
-  const pillBorder = isLight
-    ? "rgba(99,102,241,0.22)"
-    : "rgba(99,102,241,0.28)";
-
-  /* ── Empty state ── */
+  // Body was reduced to a pass-through; the former local state (pin editing,
+  // country search, usePinned) is gone because nothing rendered it.
   return (
     <CompareCountriesTool
       isLight={isLight}
@@ -3655,9 +3668,10 @@ function InteractiveDataPanel({
   const [search, setSearch] = useState("");
 
   // sorted all countries by GDP desc
+  const liveCountries = useLiveCountries();
   const allByGDP = useMemo(
-    () => [...countriesData].sort((a, b) => b.gdp - a.gdp),
-    [],
+    () => [...liveCountries].sort((a, b) => b.gdp - a.gdp),
+    [liveCountries],
   );
 
   const [selectedCountry, setSelectedCountry] = useState<
@@ -3747,7 +3761,7 @@ function InteractiveDataPanel({
               setSearch("");
               setSelectedCountry(
                 tab.id === "countries"
-                  ? ([...countriesData].sort((a, b) => b.gdp - a.gdp)[0] ??
+                  ? ([...liveCountries].sort((a, b) => b.gdp - a.gdp)[0] ??
                       null)
                   : null,
               );
@@ -3909,7 +3923,7 @@ function InteractiveDataPanel({
                     : "Top countries by GDP"}
                 </p>
               </div>
-              {filteredCountries.map((c, i) => {
+              {filteredCountries.map((c, _i) => {
                 const isSelected = selectedCountry?.id === c.id;
                 const gdpUp = c.gdpGrowth >= 0;
                 return (
@@ -4056,7 +4070,7 @@ function InteractiveDataPanel({
                   Regional GDP
                 </p>
               </div>
-              {filteredRegions.map((r, i) => {
+              {filteredRegions.map((r, _i) => {
                 const isSelected = selectedRegion === r.region;
                 return (
                   <button
@@ -5297,6 +5311,23 @@ function ExpandableCard({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  // Hover is tracked in state rather than with a :hover class because the row's
+  // background is an inline style keyed to accentColor, and a Tailwind hover
+  // variant cannot override an inline background.
+  const [hover, setHover] = useState(false);
+
+  // The row previously only had hover:opacity-90, which fades it — reading as
+  // disabled rather than clickable. It now warms toward the card's accent
+  // colour on hover, and a little further again when already open.
+  const headerBg = open
+    ? isLight
+      ? accentColor + (hover ? "0f" : "06")
+      : accentColor + (hover ? "1c" : "10")
+    : hover
+      ? isLight
+        ? accentColor + "0b"
+        : accentColor + "14"
+      : "transparent";
 
   return (
     <div
@@ -5306,22 +5337,23 @@ function ExpandableCard({
       {/* Header / toggle row */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-3 px-5 py-4 text-left transition-all hover:opacity-90"
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        onFocus={() => setHover(true)}
+        onBlur={() => setHover(false)}
+        aria-expanded={open}
+        className="w-full flex items-center gap-3 px-5 py-4 text-left transition-colors duration-150 cursor-pointer"
         style={{
           borderBottom: open ? `1px solid ${gridLine}` : "none",
-          background: open
-            ? isLight
-              ? accentColor + "06"
-              : accentColor + "10"
-            : "transparent",
+          background: headerBg,
         }}
       >
         {/* Icon */}
         <div
-          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-150"
           style={{
-            background: accentColor + "15",
-            border: `1px solid ${accentColor}25`,
+            background: accentColor + (hover ? "26" : "15"),
+            border: `1px solid ${accentColor}${hover ? "45" : "25"}`,
           }}
         >
           {icon}
@@ -5355,10 +5387,10 @@ function ExpandableCard({
 
         {/* Chevron */}
         <div
-          className="shrink-0 transition-transform duration-200"
+          className="shrink-0 transition-all duration-200"
           style={{
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
-            color: mutedText,
+            color: hover ? accentColor : mutedText,
           }}
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -6435,9 +6467,10 @@ export function DashboardPage() {
   const headText = isLight ? "#0f172a" : "#f1f0ff";
   const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
 
+  const liveCountries = useLiveCountries();
   const topCountries = useMemo(
-    () => [...countriesData].sort((a, b) => b.gdp - a.gdp).slice(0, 6),
-    [],
+    () => [...liveCountries].sort((a, b) => b.gdp - a.gdp).slice(0, 6),
+    [liveCountries],
   );
   const topStates = useMemo(
     () => [...usStatesData].sort((a, b) => b.gdp - a.gdp).slice(0, 6),
@@ -6489,8 +6522,11 @@ export function DashboardPage() {
               className="text-sm font-sans mt-1 max-w-md"
               style={{ color: mutedText }}
             >
-              Real-time data on countries, economies, conflicts, and policies
-              across the world.
+              {/* "Real-time" overstated it: country and state figures do
+                  refresh from the World Bank, but the event and policy feeds
+                  are curated and carry their own dates. */}
+              Country and state figures refresh from the World Bank; event and
+              policy entries are curated and dated individually.
             </p>
           </div>
         </div>
@@ -6886,7 +6922,7 @@ export function DashboardPage() {
               mutedText={mutedText}
             >
               <div className="flex flex-col gap-3">
-                {US_ALLIANCES.map((a, i) => (
+                {US_ALLIANCES.map((a, _i) => (
                   <div
                     key={a.name}
                     className="rounded-xl px-3 py-3"
@@ -7010,15 +7046,15 @@ export function DashboardPage() {
                       style={{ color: mutedText }}
                     >
                       {r.agency === "DARPA" &&
-                        "DARPA&#39;s Air Combat Evolution (ACE) program pit an AI-controlled F-16 against a human pilot in a live dogfight. The AI won 5-0 using reinforcement learning trained on millions of simulated engagements. Marks a pivotal shift in autonomous combat doctrine."}
+                        "DARPA's Air Combat Evolution (ACE) program pit an AI-controlled F-16 against a human pilot in a live dogfight. The AI won 5-0 using reinforcement learning trained on millions of simulated engagements. Marks a pivotal shift in autonomous combat doctrine."}
                       {r.agency === "NIH" &&
-                        "FDA approved Casgevy — the world&#39;s first CRISPR-based therapy — for sickle-cell disease. NIH-funded research spanning 15 years enabled the breakthrough. Treatment edits patients&#39; own stem cells to produce functional haemoglobin, potentially offering a functional cure."}
+                        "FDA approved Casgevy — the world's first CRISPR-based therapy — for sickle-cell disease. NIH-funded research spanning 15 years enabled the breakthrough. Treatment edits patients' own stem cells to produce functional haemoglobin, potentially offering a functional cure."}
                       {r.agency === "NIST" &&
                         "NIST finalized three post-quantum cryptographic algorithms (CRYSTALS-Kyber, CRYSTALS-Dilithium, SPHINCS+) as federal standards, hardening US government communications against future quantum decryption attacks. Implementation deadline for federal agencies set for 2030."}
                       {r.agency === "NASA" &&
                         "Artemis II carried four astronauts — including the first woman and first Canadian — on a 10-day lunar flyby at 8,900 km altitude. Validated Orion life-support and deep-space communications systems ahead of the Artemis III crewed lunar landing."}
                       {r.agency === "DOE / NIF" &&
-                        "National Ignition Facility at Lawrence Livermore achieved ignition — releasing more fusion energy than laser energy delivered — for the third consecutive time, demonstrating repeatability. DOE&#39;s milestone roadmap now targets a 10× energy gain pilot plant by 2035."}
+                        "National Ignition Facility at Lawrence Livermore achieved ignition — releasing more fusion energy than laser energy delivered — for the third consecutive time, demonstrating repeatability. DOE's milestone roadmap now targets a 10× energy gain pilot plant by 2035."}
                     </p>
                   </div>
                 ))}
@@ -7356,15 +7392,18 @@ export function DashboardPage() {
                     className="text-base font-bold font-sans"
                     style={{ color: headText }}
                   >
-                    Live Feed
+                    Event Log
                   </h2>
                 </div>
+                {/* Was "Live Feed" with a pulsing Live badge over entries dated
+                    Jul 2025. The badge now reports the newest entry, so the
+                    section cannot claim to be live when it is not. */}
                 <span
-                  className="text-[9px] font-mono px-2 py-1 rounded-full flex items-center gap-1"
-                  style={{ background: "#ef444415", color: "#ef4444" }}
+                  className="text-[9px] font-mono px-2 py-1 rounded-full"
+                  style={{ background: "#94a3b815", color: "#94a3b8" }}
+                  title="These entries are curated, not fetched live"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse inline-block" />{" "}
-                  Live
+                  To {feedLatestLabel(RECENT_EVENTS)}
                 </span>
               </div>
               <div className="flex flex-col gap-0">
@@ -7616,7 +7655,7 @@ export function DashboardPage() {
                 className="text-[10px] font-mono uppercase tracking-widest mb-3"
                 style={{ color: mutedText }}
               >
-                Domestic Highlights
+                Domestic Highlights · to {feedLatestLabel(NATIONAL_HIGHLIGHTS)}
               </p>
               <div className="flex flex-col gap-0">
                 {NATIONAL_HIGHLIGHTS.map((e, i) => (
@@ -7969,8 +8008,8 @@ export function DashboardPage() {
         {/* ── FOOTER ────────────────────────────────────────────────────── */}
         <div className="text-center py-3 flex flex-col items-center gap-1">
           <p className="text-[11px] font-sans" style={{ color: mutedText }}>
-            © {new Date().getFullYear()} CommonSphere · Dashboard · Data
-            updated Q2 2025
+            © {new Date().getFullYear()} CommonSphere · Dashboard · Data updated
+            Q2 2025
           </p>
           <SourceLink
             sources={[

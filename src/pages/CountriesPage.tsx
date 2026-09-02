@@ -38,11 +38,7 @@ import {
   PieChart,
   Pie,
 } from "recharts";
-import {
-  type Country,
-  type Industry,
-  type EnergyStats,
-} from "../data/countriesData";
+import { type Country, type EnergyStats } from "../data/countriesData";
 import { getCountrySocialStats } from "../data/socialStatsData";
 import { MetricsPanel } from "../components/MetricsPanel";
 import { useLiveData } from "../hooks/useLiveData";
@@ -130,7 +126,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 92,
     medianAge: 38.9,
     economicStructure:
-      "The world&#39;s largest economy by nominal GDP runs a consumption-driven mixed market. Private consumption (~70% of GDP) anchors growth. The services sector dominates at ~80% of GDP — led by healthcare, finance, technology, and professional services. Manufacturing (~11%) remains vital in aerospace, defense, and advanced electronics. The US dollar serves as the global reserve currency, giving the federal government unique borrowing capacity. Key tensions: widening fiscal deficit, deindustrialization pressures, and technology platform concentration.",
+      "The world's largest economy by nominal GDP runs a consumption-driven mixed market. Private consumption (~70% of GDP) anchors growth. The services sector dominates at ~80% of GDP — led by healthcare, finance, technology, and professional services. Manufacturing (~11%) remains vital in aerospace, defense, and advanced electronics. The US dollar serves as the global reserve currency, giving the federal government unique borrowing capacity. Key tensions: widening fiscal deficit, deindustrialization pressures, and technology platform concentration.",
     futures: {
       stockIndex: "S&P 500",
       indexValue: "5,320",
@@ -170,7 +166,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 74,
     medianAge: 39.0,
     economicStructure:
-      "China operates a state-directed mixed economy (\'socialism with Chinese characteristics\') where the Party shapes investment allocation, currency management, and strategic sectors. Manufacturing (~27% of GDP) remains the global workshop — electronics, steel, chemicals, textiles. The services sector is growing (~54%) but faces structural limits on financial liberalization. Real estate accounted for ~25% of economic activity before the 2021 property crisis. China is the world&#39;s largest exporter and holds ~$3.1T in foreign exchange reserves. State-owned enterprises control commanding heights while private firms drive innovation.",
+      "China operates a state-directed mixed economy (\'socialism with Chinese characteristics\') where the Party shapes investment allocation, currency management, and strategic sectors. Manufacturing (~27% of GDP) remains the global workshop — electronics, steel, chemicals, textiles. The services sector is growing (~54%) but faces structural limits on financial liberalization. Real estate accounted for ~25% of economic activity before the 2021 property crisis. China is the world's largest exporter and holds ~$3.1T in foreign exchange reserves. State-owned enterprises control commanding heights while private firms drive innovation.",
     futures: {
       stockIndex: "CSI 300",
       indexValue: "3,580",
@@ -209,7 +205,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 94,
     medianAge: 47.9,
     economicStructure:
-      "Germany is Europe&#39;s largest economy and the world leader in export-oriented industrial production — \'Mittelstand\' (medium-sized, family-owned specialists) form the backbone of its engineering, chemical, and automotive sectors. The social market economy (Soziale Marktwirtschaft) balances private enterprise with strong labor co-determination (Mitbestimmung) and a comprehensive welfare state. Key challenges: ageing population, energy transition costs post-Energiewende, automotive sector electrification disruption, and declining competitiveness amid high energy prices.",
+      "Germany is Europe's largest economy and the world leader in export-oriented industrial production — \'Mittelstand\' (medium-sized, family-owned specialists) form the backbone of its engineering, chemical, and automotive sectors. The social market economy (Soziale Marktwirtschaft) balances private enterprise with strong labor co-determination (Mitbestimmung) and a comprehensive welfare state. Key challenges: ageing population, energy transition costs post-Energiewende, automotive sector electrification disruption, and declining competitiveness amid high energy prices.",
     futures: {
       stockIndex: "DAX 40",
       indexValue: "18,420",
@@ -248,7 +244,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 96,
     medianAge: 40.7,
     economicStructure:
-      "The UK has one of the world&#39;s most service-dominant economies — financial services alone contribute ~12% of GDP and London is a global banking hub for forex, derivatives, and asset management. Post-Brexit, the UK has lost passporting rights to EU financial markets, driving some activity to Amsterdam and Dublin. Manufacturing has declined structurally to ~9% of GDP. The NHS (~10% of GDP) is the largest single-employer in Europe. Key tensions: productivity gap vs. Germany/France, housing supply crisis, persistent current account deficit, and post-Brexit trade friction.",
+      "The UK has one of the world's most service-dominant economies — financial services alone contribute ~12% of GDP and London is a global banking hub for forex, derivatives, and asset management. Post-Brexit, the UK has lost passporting rights to EU financial markets, driving some activity to Amsterdam and Dublin. Manufacturing has declined structurally to ~9% of GDP. The NHS (~10% of GDP) is the largest single-employer in Europe. Key tensions: productivity gap vs. Germany/France, housing supply crisis, persistent current account deficit, and post-Brexit trade friction.",
     futures: {
       stockIndex: "FTSE 100",
       indexValue: "8,140",
@@ -287,7 +283,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 93,
     medianAge: 42.3,
     economicStructure:
-      "France blends a large public sector (~57% of GDP in government expenditure) with strong luxury goods, aerospace-defense, and nuclear energy industries. The state retains strategic stakes in EDF, Air France, Renault, and others. Tourism (~8% GDP) is the world&#39;s most visited country. The CAC 40 includes global champions: LVMH, TotalEnergies, Sanofi, Airbus. Key structural challenges: rigid labour market, high structural unemployment, public sector wage bill, and energy transition costs.",
+      "France blends a large public sector (~57% of GDP in government expenditure) with strong luxury goods, aerospace-defense, and nuclear energy industries. The state retains strategic stakes in EDF, Air France, Renault, and others. Tourism (~8% GDP) is the world's most visited country. The CAC 40 includes global champions: LVMH, TotalEnergies, Sanofi, Airbus. Key structural challenges: rigid labour market, high structural unemployment, public sector wage bill, and energy transition costs.",
     futures: {
       stockIndex: "CAC 40",
       indexValue: "7,980",
@@ -326,7 +322,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 93,
     medianAge: 48.7,
     economicStructure:
-      "Japan is a highly developed, capital-intensive export economy anchored by manufacturing keiretsu (cross-shareholding conglomerates): Toyota, Sony, Mitsubishi, and Hitachi. Services (~70% of GDP) are driven by domestic consumption and finance. Despite the world&#39;s highest debt-to-GDP ratio (~250%), Japan finances it domestically — the Bank of Japan holds ~50% of JGBs. Post-Abenomics, the BOJ maintained near-zero rates until 2024 when it began normalizing. Structural challenges: world&#39;s fastest-ageing population, deflationary mindset, and low immigration constraining labour supply.",
+      "Japan is a highly developed, capital-intensive export economy anchored by manufacturing keiretsu (cross-shareholding conglomerates): Toyota, Sony, Mitsubishi, and Hitachi. Services (~70% of GDP) are driven by domestic consumption and finance. Despite the world's highest debt-to-GDP ratio (~250%), Japan finances it domestically — the Bank of Japan holds ~50% of JGBs. Post-Abenomics, the BOJ maintained near-zero rates until 2024 when it began normalizing. Structural challenges: world's fastest-ageing population, deflationary mindset, and low immigration constraining labour supply.",
     futures: {
       stockIndex: "Nikkei 225",
       indexValue: "38,450",
@@ -369,7 +365,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 52,
     medianAge: 28.7,
     economicStructure:
-      "India&#39;s dual economy features a world-class IT services sector alongside hundreds of millions in subsistence agriculture. Services (~55% of GDP) are led by IT/BPO, finance, and telecoms. Agriculture (~17% GDP) employs ~44% of the workforce — a structural distortion. India is the world&#39;s largest democracy and the fastest-growing major economy. The government&#39;s \'Make in India\' and PLI (production-linked incentive) programs are driving manufacturing expansion, particularly in semiconductors, smartphones, and electric vehicles. Remittances (~$120B/year) are the world&#39;s largest.",
+      "India's dual economy features a world-class IT services sector alongside hundreds of millions in subsistence agriculture. Services (~55% of GDP) are led by IT/BPO, finance, and telecoms. Agriculture (~17% GDP) employs ~44% of the workforce — a structural distortion. India is the world's largest democracy and the fastest-growing major economy. The government's \'Make in India\' and PLI (production-linked incentive) programs are driving manufacturing expansion, particularly in semiconductors, smartphones, and electric vehicles. Remittances (~$120B/year) are the world's largest.",
     futures: {
       stockIndex: "SENSEX",
       indexValue: "73,800",
@@ -408,7 +404,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 84,
     medianAge: 33.4,
     economicStructure:
-      "Brazil is Latin America&#39;s largest economy with the world&#39;s most biodiverse agricultural system. Agribusiness (~25% of GDP including supply chains) is a global powerhouse — Brazil is the top exporter of soybeans, beef, coffee, sugar, and orange juice. The services sector (~73% of GDP) is anchored by a sophisticated banking system (Itaú, Bradesco, BTG Pactual), the Bolsa Família social program, and a growing fintech ecosystem. Petrobras&#39; pre-salt oil fields make Brazil a major crude exporter. Key challenges: extreme inequality (Gini ~53), fiscal instability, bureaucratic burden, and infrastructure gaps.",
+      "Brazil is Latin America's largest economy with the world's most biodiverse agricultural system. Agribusiness (~25% of GDP including supply chains) is a global powerhouse — Brazil is the top exporter of soybeans, beef, coffee, sugar, and orange juice. The services sector (~73% of GDP) is anchored by a sophisticated banking system (Itaú, Bradesco, BTG Pactual), the Bolsa Família social program, and a growing fintech ecosystem. Petrobras' pre-salt oil fields make Brazil a major crude exporter. Key challenges: extreme inequality (Gini ~53), fiscal instability, bureaucratic burden, and infrastructure gaps.",
     futures: {
       stockIndex: "Bovespa (B3)",
       indexValue: "127,400",
@@ -447,7 +443,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 85,
     medianAge: 40.6,
     economicStructure:
-      "Russia&#39;s economy is heavily resource-dependent — oil, gas, and mining constitute ~35% of GDP and ~50% of federal revenues. The state controls strategic sectors via Gazprom, Rosneft, Sberbank, and others. Since the 2022 Ukraine invasion and Western sanctions, Russia has pivoted East: China now accounts for ~38% of trade. The war economy stimulus (defense spending ~7% of GDP in 2024) is masking underlying structural weakness: capital flight, technology embargo, and demographic decline. The ruble has depreciated significantly; official GDP figures understate real purchasing power losses.",
+      "Russia's economy is heavily resource-dependent — oil, gas, and mining constitute ~35% of GDP and ~50% of federal revenues. The state controls strategic sectors via Gazprom, Rosneft, Sberbank, and others. Since the 2022 Ukraine invasion and Western sanctions, Russia has pivoted East: China now accounts for ~38% of trade. The war economy stimulus (defense spending ~7% of GDP in 2024) is masking underlying structural weakness: capital flight, technology embargo, and demographic decline. The ruble has depreciated significantly; official GDP figures understate real purchasing power losses.",
     futures: {
       stockIndex: "MOEX Russia",
       indexValue: "3,210",
@@ -486,7 +482,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 91,
     medianAge: 38.7,
     economicStructure:
-      "Australia&#39;s \'lucky country\' economy benefits from vast mineral wealth (iron ore, coal, gold, lithium) and proximity to Asia&#39;s growing middle class. Mining (~10% of GDP, ~60% of exports) is anchored by BHP, Rio Tinto, and Fortescue. The services sector (~70%) is led by finance, healthcare, and education (international students ~$40B/year). The Reserve Bank of Australia maintained unusual monetary stability — Australia went 28 years without recession (1991–2020). Key risks: housing affordability crisis, Chinese economic slowdown cutting commodity demand, and energy transition disrupting coal revenues.",
+      "Australia's \'lucky country\' economy benefits from vast mineral wealth (iron ore, coal, gold, lithium) and proximity to Asia's growing middle class. Mining (~10% of GDP, ~60% of exports) is anchored by BHP, Rio Tinto, and Fortescue. The services sector (~70%) is led by finance, healthcare, and education (international students ~$40B/year). The Reserve Bank of Australia maintained unusual monetary stability — Australia went 28 years without recession (1991–2020). Key risks: housing affordability crisis, Chinese economic slowdown cutting commodity demand, and energy transition disrupting coal revenues.",
     futures: {
       stockIndex: "ASX 200",
       indexValue: "7,780",
@@ -525,7 +521,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 97,
     medianAge: 44.0,
     economicStructure:
-      "South Korea&#39;s economy is defined by \'chaebol\' — large family-controlled conglomerates (Samsung, Hyundai, LG, SK, Lotte) that drive exports of semiconductors, electronics, autos, and shipbuilding. The country transformed from one of the world&#39;s poorest in the 1950s to a high-income OECD economy in 50 years — the \'Miracle on the Han River.\' Semiconductors alone account for ~20% of exports. K-pop, Korean drama, and cultural exports (Hallyu wave) are a growing soft-power economic asset. Key challenges: world&#39;s lowest fertility rate (0.72), demographic cliff, chaebol governance concerns, and North Korea risk premium.",
+      "South Korea's economy is defined by \'chaebol\' — large family-controlled conglomerates (Samsung, Hyundai, LG, SK, Lotte) that drive exports of semiconductors, electronics, autos, and shipbuilding. The country transformed from one of the world's poorest in the 1950s to a high-income OECD economy in 50 years — the \'Miracle on the Han River.\' Semiconductors alone account for ~20% of exports. K-pop, Korean drama, and cultural exports (Hallyu wave) are a growing soft-power economic asset. Key challenges: world's lowest fertility rate (0.72), demographic cliff, chaebol governance concerns, and North Korea risk premium.",
     futures: {
       stockIndex: "KOSPI",
       indexValue: "2,680",
@@ -564,7 +560,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 94,
     medianAge: 41.9,
     economicStructure:
-      "Canada&#39;s economy is tightly integrated with the US (75% of exports go south) but resource-rich: oil sands (~4.2 mbpd), minerals, timber, and potash. The financial sector is dominated by the Big Six banks (RBC, TD, BMO, Scotiabank, CIBC, National) — among the world&#39;s most stable due to strict OSFI regulation. The services sector (~70%) is led by real estate, finance, and healthcare. The housing affordability crisis has become a structural macroeconomic issue — household debt-to-income is among the OECD&#39;s highest. US tariff threats under Trump (2025) have accelerated economic sovereignty diversification efforts.",
+      "Canada's economy is tightly integrated with the US (75% of exports go south) but resource-rich: oil sands (~4.2 mbpd), minerals, timber, and potash. The financial sector is dominated by the Big Six banks (RBC, TD, BMO, Scotiabank, CIBC, National) — among the world's most stable due to strict OSFI regulation. The services sector (~70%) is led by real estate, finance, and healthcare. The housing affordability crisis has become a structural macroeconomic issue — household debt-to-income is among the OECD's highest. US tariff threats under Trump (2025) have accelerated economic sovereignty diversification efforts.",
     futures: {
       stockIndex: "S&P/TSX Composite",
       indexValue: "21,840",
@@ -607,7 +603,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 98,
     medianAge: 29.7,
     economicStructure:
-      "Saudi Arabia&#39;s economy remains petrostate-structured — oil revenues fund ~60% of government expenditures and Aramco is the world&#39;s most profitable company. Vision 2030 is attempting structural diversification: NEOM mega-city ($500B), Red Sea tourism, sports investments (LIV Golf, PIF stakes in global sports), and domestic entertainment liberalization (allowing cinemas, concerts, mixed-gender events). Non-oil sectors are growing (finance, tourism, petrochemicals) but the private sector still employs mostly expatriates (~38% of population). Subsidized fuel and utilities create structural fiscal vulnerabilities when oil prices fall.",
+      "Saudi Arabia's economy remains petrostate-structured — oil revenues fund ~60% of government expenditures and Aramco is the world's most profitable company. Vision 2030 is attempting structural diversification: NEOM mega-city ($500B), Red Sea tourism, sports investments (LIV Golf, PIF stakes in global sports), and domestic entertainment liberalization (allowing cinemas, concerts, mixed-gender events). Non-oil sectors are growing (finance, tourism, petrochemicals) but the private sector still employs mostly expatriates (~38% of population). Subsidized fuel and utilities create structural fiscal vulnerabilities when oil prices fall.",
     futures: {
       stockIndex: "Tadawul (TASI)",
       indexValue: "11,420",
@@ -646,7 +642,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 99,
     medianAge: 33.5,
     economicStructure:
-      "The UAE operates a dual-engine economy: Abu Dhabi&#39;s oil wealth (90% of UAE oil reserves) funds sovereign wealth (ADIA ~$1T, Mubadala ~$300B) while Dubai has deliberately built a near oil-free economy in trade, tourism, finance, and real estate. Dubai is home to the world&#39;s busiest international airport, Jebel Ali Port (9th globally), and DIFC — a major financial center with English common law courts. The UAE has aggressively liberalized with 100% foreign ownership laws, 10-year golden visas, and removal of alcohol restrictions to attract global talent.",
+      "The UAE operates a dual-engine economy: Abu Dhabi's oil wealth (90% of UAE oil reserves) funds sovereign wealth (ADIA ~$1T, Mubadala ~$300B) while Dubai has deliberately built a near oil-free economy in trade, tourism, finance, and real estate. Dubai is home to the world's busiest international airport, Jebel Ali Port (9th globally), and DIFC — a major financial center with English common law courts. The UAE has aggressively liberalized with 100% foreign ownership laws, 10-year golden visas, and removal of alcohol restrictions to attract global talent.",
     futures: {
       stockIndex: "DFM General Index",
       indexValue: "4,180",
@@ -685,7 +681,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 99,
     medianAge: 42.2,
     economicStructure:
-      "Singapore is an open, trade-reliant city-state with no natural resources — its economy is built on world-class port infrastructure, financial services, and semiconductor manufacturing. The Monetary Authority of Singapore (MAS) manages monetary policy through the SGD exchange rate band rather than interest rates. GLCs (Government-Linked Companies) — Temasek, GIC — control key strategic sectors while the government promotes \'productivity-led growth\' to counter labour shortage. Singapore is Asia&#39;s premier wealth management hub (~$5T AUM) and biomedical research cluster. Its effective corporate tax regime and stable governance make it the preferred Asia-Pacific HQ for multinationals.",
+      "Singapore is an open, trade-reliant city-state with no natural resources — its economy is built on world-class port infrastructure, financial services, and semiconductor manufacturing. The Monetary Authority of Singapore (MAS) manages monetary policy through the SGD exchange rate band rather than interest rates. GLCs (Government-Linked Companies) — Temasek, GIC — control key strategic sectors while the government promotes \'productivity-led growth\' to counter labour shortage. Singapore is Asia's premier wealth management hub (~$5T AUM) and biomedical research cluster. Its effective corporate tax regime and stable governance make it the preferred Asia-Pacific HQ for multinationals.",
     futures: {
       stockIndex: "STI (Straits Times Index)",
       indexValue: "3,380",
@@ -724,7 +720,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 76,
     medianAge: 29.3,
     economicStructure:
-      "Mexico is the US&#39;s top trading partner (USMCA framework) and a major nearshoring destination as companies de-risk from China. The maquiladora system (export-processing factories near the US border) generates 80% of manufactured exports. Remittances (~$64B in 2023) surpass oil revenues. PEMEX — once the world&#39;s most profitable company — is deeply indebted (~$100B) and declining in production. The incoming Claudia Sheinbaum administration faces balancing energy nationalism with need for private investment. Cartel violence and judicial independence concerns under AMLO&#39;s 2024 judicial reform are key investor risks.",
+      "Mexico is the US's top trading partner (USMCA framework) and a major nearshoring destination as companies de-risk from China. The maquiladora system (export-processing factories near the US border) generates 80% of manufactured exports. Remittances (~$64B in 2023) surpass oil revenues. PEMEX — once the world's most profitable company — is deeply indebted (~$100B) and declining in production. The incoming Claudia Sheinbaum administration faces balancing energy nationalism with need for private investment. Cartel violence and judicial independence concerns under AMLO's 2024 judicial reform are key investor risks.",
     futures: {
       stockIndex: "BMV IPC",
       indexValue: "54,200",
@@ -763,7 +759,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 72,
     medianAge: 27.6,
     economicStructure:
-      "South Africa is the world&#39;s most unequal major economy (Gini ~63). Its \'minerals-energy complex\' — platinum, gold, coal, and manganese — has historically defined growth but is structurally stagnant. The services sector (~70%) is anchored by financial services (JSE, major African banks), retail, and government. Structural challenges are severe: 31% unemployment (youth unemployment ~60%), rolling electricity blackouts (loadshedding ~200+ days/year), water infrastructure collapse, and port/rail inefficiencies. The 2024 Government of National Unity (ANC+DA) offers hope of pragmatic reform but institutional capacity remains stretched.",
+      "South Africa is the world's most unequal major economy (Gini ~63). Its \'minerals-energy complex\' — platinum, gold, coal, and manganese — has historically defined growth but is structurally stagnant. The services sector (~70%) is anchored by financial services (JSE, major African banks), retail, and government. Structural challenges are severe: 31% unemployment (youth unemployment ~60%), rolling electricity blackouts (loadshedding ~200+ days/year), water infrastructure collapse, and port/rail inefficiencies. The 2024 Government of National Unity (ANC+DA) offers hope of pragmatic reform but institutional capacity remains stretched.",
     futures: {
       stockIndex: "JSE Top 40",
       indexValue: "68,400",
@@ -802,7 +798,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 57,
     medianAge: 18.6,
     economicStructure:
-      "Nigeria is Africa&#39;s largest economy by GDP yet paradoxically one of the world&#39;s highest poverty rates (~40% below $2.15/day). Oil dominates exports (~95%) but contributes only ~6% of GDP — a structural paradox driven by the dominance of services and informal economy. Lagos is sub-Saharan Africa&#39;s largest city and emerging tech hub (\'Silicon Lagoon\': Flutterwave, Paystack, Interswitch). The removal of petrol subsidies in 2023 (under Tinubu) caused immediate inflation spike but was fiscally necessary. The naira has lost ~70% of value (2022–2024), driving dollarization and a large parallel FX market.",
+      "Nigeria is Africa's largest economy by GDP yet paradoxically one of the world's highest poverty rates (~40% below $2.15/day). Oil dominates exports (~95%) but contributes only ~6% of GDP — a structural paradox driven by the dominance of services and informal economy. Lagos is sub-Saharan Africa's largest city and emerging tech hub (\'Silicon Lagoon\': Flutterwave, Paystack, Interswitch). The removal of petrol subsidies in 2023 (under Tinubu) caused immediate inflation spike but was fiscally necessary. The naira has lost ~70% of value (2022–2024), driving dollarization and a large parallel FX market.",
     futures: {
       stockIndex: "NGX All Share Index",
       indexValue: "97,400",
@@ -845,7 +841,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 72,
     medianAge: 24.6,
     economicStructure:
-      "Egypt&#39;s economy is structurally constrained: the Suez Canal (~$9B/year pre-Houthi disruptions), tourism, and remittances from Gulf expatriates are the key hard-currency earners. The military economy (SCAF-linked enterprises) controls an estimated 20–40% of GDP across construction, food, fuel, and hospitality. The pound has lost ~70% of value since 2022 under IMF restructuring requirements. Real estate speculation and construction have crowded out productive investment. Despite a young population (60% under 30) and large labour force, structural unemployment and underemployment are pervasive.",
+      "Egypt's economy is structurally constrained: the Suez Canal (~$9B/year pre-Houthi disruptions), tourism, and remittances from Gulf expatriates are the key hard-currency earners. The military economy (SCAF-linked enterprises) controls an estimated 20–40% of GDP across construction, food, fuel, and hospitality. The pound has lost ~70% of value since 2022 under IMF restructuring requirements. Real estate speculation and construction have crowded out productive investment. Despite a young population (60% under 30) and large labour force, structural unemployment and underemployment are pervasive.",
     futures: {
       stockIndex: "EGX 30",
       indexValue: "29,600",
@@ -923,7 +919,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 88,
     medianAge: 31.9,
     economicStructure:
-      "Argentina is a resource-rich economy that has suffered serial crises — 9 sovereign defaults since 1816, 211% inflation in 2023, and chronic capital controls. The Pampas agricultural heartland (soybeans, wheat, corn, beef) generates the hard currency that services the economy. Lithium deposits (second largest globally) offer a future beyond agriculture. Milei&#39;s shock therapy (2024–) has slashed the fiscal deficit but caused severe social pain — poverty exceeded 40%. The Vaca Muerta shale formation (~2nd largest global shale gas reserves) is a transformative opportunity if investment conditions stabilize. Structural impediments: peso instability, export taxes, and unpredictable policy swings.",
+      "Argentina is a resource-rich economy that has suffered serial crises — 9 sovereign defaults since 1816, 211% inflation in 2023, and chronic capital controls. The Pampas agricultural heartland (soybeans, wheat, corn, beef) generates the hard currency that services the economy. Lithium deposits (second largest globally) offer a future beyond agriculture. Milei's shock therapy (2024–) has slashed the fiscal deficit but caused severe social pain — poverty exceeded 40%. The Vaca Muerta shale formation (~2nd largest global shale gas reserves) is a transformative opportunity if investment conditions stabilize. Structural impediments: peso instability, export taxes, and unpredictable policy swings.",
     futures: {
       stockIndex: "MERVAL (S&P Merval)",
       indexValue: "1,620,000",
@@ -962,7 +958,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 83,
     medianAge: 32.6,
     economicStructure:
-      "Turkey straddles Europe and Asia as a manufacturing hub — automotive (Ford, Fiat, Renault, Toyota), textiles, construction materials, and defense industries drive exports. Tourism (~4% GDP) makes Turkey the world&#39;s 4th most visited country. The lira has lost ~95% of value vs. the dollar since 2018 due to unorthodox monetary policy (President Erdoğan long resisted rate hikes). Post-2023 earthquake and election, Turkey shifted to orthodox economics under new central bank governor Hafize Erkan/Fatih Karahan — rates rose from 8.5% to 50%. Real estate and construction are politically sensitive sectors given 2023 earthquake failures.",
+      "Turkey straddles Europe and Asia as a manufacturing hub — automotive (Ford, Fiat, Renault, Toyota), textiles, construction materials, and defense industries drive exports. Tourism (~4% GDP) makes Turkey the world's 4th most visited country. The lira has lost ~95% of value vs. the dollar since 2018 due to unorthodox monetary policy (President Erdoğan long resisted rate hikes). Post-2023 earthquake and election, Turkey shifted to orthodox economics under new central bank governor Hafize Erkan/Fatih Karahan — rates rose from 8.5% to 50%. Real estate and construction are politically sensitive sectors given 2023 earthquake failures.",
     futures: {
       stockIndex: "BIST 100 (Borsa Istanbul)",
       indexValue: "9,840",
@@ -1001,7 +997,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 77,
     medianAge: 29.7,
     economicStructure:
-      "Indonesia is the world&#39;s 4th most populous nation and Southeast Asia&#39;s largest economy — a commodity powerhouse (nickel, coal, palm oil, rubber) combined with a large domestic consumption market. Nickel is strategically critical: Indonesia holds ~42% of global reserves and has mandated nickel ore export bans since 2020 to drive domestic battery/EV supply chain development. The digital economy (Gojek, Tokopedia, Traveloka) is the fastest-growing in Southeast Asia. Structural constraints: excessive dependence on commodity cycles, infrastructure gaps across 17,000 islands, and bureaucratic fragmentation across regional governments.",
+      "Indonesia is the world's 4th most populous nation and Southeast Asia's largest economy — a commodity powerhouse (nickel, coal, palm oil, rubber) combined with a large domestic consumption market. Nickel is strategically critical: Indonesia holds ~42% of global reserves and has mandated nickel ore export bans since 2020 to drive domestic battery/EV supply chain development. The digital economy (Gojek, Tokopedia, Traveloka) is the fastest-growing in Southeast Asia. Structural constraints: excessive dependence on commodity cycles, infrastructure gaps across 17,000 islands, and bureaucratic fragmentation across regional governments.",
     futures: {
       stockIndex: "IDX Composite (IHSG)",
       indexValue: "7,240",
@@ -1040,7 +1036,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 89,
     medianAge: 29.2,
     economicStructure:
-      "Malaysia has successfully diversified from a commodity economy to a manufacturing powerhouse in electronics and semiconductors (Penang&#39;s \'Silicon Island\' concentration). It is one of the world&#39;s top palm oil producers and a significant LNG exporter. PETRONAS funds ~20% of government revenues. The services sector (~54%) is led by finance (Kuala Lumpur as Islamic finance hub), retail, and tourism. Bumiputera affirmative action policies create structural inefficiencies but are politically non-negotiable. A major nearshoring beneficiary from US-China decoupling — Intel, Micron, Infineon, and NXP have large Malaysian facilities.",
+      "Malaysia has successfully diversified from a commodity economy to a manufacturing powerhouse in electronics and semiconductors (Penang's \'Silicon Island\' concentration). It is one of the world's top palm oil producers and a significant LNG exporter. PETRONAS funds ~20% of government revenues. The services sector (~54%) is led by finance (Kuala Lumpur as Islamic finance hub), retail, and tourism. Bumiputera affirmative action policies create structural inefficiencies but are politically non-negotiable. A major nearshoring beneficiary from US-China decoupling — Intel, Micron, Infineon, and NXP have large Malaysian facilities.",
     futures: {
       stockIndex: "FTSE Bursa Malaysia KLCI",
       indexValue: "1,580",
@@ -1079,7 +1075,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 88,
     medianAge: 40.1,
     economicStructure:
-      "Thailand is a middle-income Southeast Asian economy anchored by automotive manufacturing (Detroit of Asia — 2M vehicles/year), electronics exports, and the world&#39;s largest tourism sector relative to GDP. Agriculture (rice, rubber, cassava) remains significant for rural employment (~30% of workforce). The services sector (~57% of GDP) is dominated by tourism, finance, and government. Thailand faces \'middle income trap\' challenges — declining manufacturing competitiveness vs. Vietnam, limited R&D investment, and an ageing population. The military&#39;s political influence (Constitution 2017, appointed Senate) constrains institutional reform.",
+      "Thailand is a middle-income Southeast Asian economy anchored by automotive manufacturing (Detroit of Asia — 2M vehicles/year), electronics exports, and the world's largest tourism sector relative to GDP. Agriculture (rice, rubber, cassava) remains significant for rural employment (~30% of workforce). The services sector (~57% of GDP) is dominated by tourism, finance, and government. Thailand faces \'middle income trap\' challenges — declining manufacturing competitiveness vs. Vietnam, limited R&D investment, and an ageing population. The military's political influence (Constitution 2017, appointed Senate) constrains institutional reform.",
     futures: {
       stockIndex: "SET Index",
       indexValue: "1,340",
@@ -1122,7 +1118,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 79,
     medianAge: 31.5,
     economicStructure:
-      "Vietnam is one of the world&#39;s premier manufacturing relocation destinations — Samsung alone produces ~50% of its global smartphones in Vietnam, contributing ~25% of Vietnam&#39;s total exports. The economy has grown at ~6% for 20+ years via FDI-led export industrialization (similar to China&#39;s 1990s model). Agriculture (rice, coffee, cashews, shrimp) remains a significant rural employer. The services sector is growing rapidly (fintech, e-commerce, tourism). Key challenges: dependence on FDI for technology transfer, limited domestic R&D, infrastructure bottlenecks (especially power supply), and governance concerns under the \'blazing furnace\' anti-corruption drive.",
+      "Vietnam is one of the world's premier manufacturing relocation destinations — Samsung alone produces ~50% of its global smartphones in Vietnam, contributing ~25% of Vietnam's total exports. The economy has grown at ~6% for 20+ years via FDI-led export industrialization (similar to China's 1990s model). Agriculture (rice, coffee, cashews, shrimp) remains a significant rural employer. The services sector is growing rapidly (fintech, e-commerce, tourism). Key challenges: dependence on FDI for technology transfer, limited domestic R&D, infrastructure bottlenecks (especially power supply), and governance concerns under the \'blazing furnace\' anti-corruption drive.",
     futures: {
       stockIndex: "VN-Index (HOSE)",
       indexValue: "1,240",
@@ -1161,7 +1157,7 @@ const COUNTRY_EXTENDED: Record<string, CountryExtended> = {
     internetPct: 73,
     medianAge: 25.7,
     economicStructure:
-      "The Philippines&#39; economy is uniquely service-driven for a middle-income Asian country. BPO/IT-BPM (call centers, shared services, IT outsourcing) generates ~$35B annually — comparable to remittances (~$38B). OCW remittances are the second-largest economic sector. Manufacturing remains underdeveloped relative to peers (electronics assembly, food processing). The services sector (~62% of GDP) is the dominant growth engine. Structural constraints: geographic fragmentation (7,100 islands), typhoon vulnerability, and inadequate infrastructure.",
+      "The Philippines' economy is uniquely service-driven for a middle-income Asian country. BPO/IT-BPM (call centers, shared services, IT outsourcing) generates ~$35B annually — comparable to remittances (~$38B). OCW remittances are the second-largest economic sector. Manufacturing remains underdeveloped relative to peers (electronics assembly, food processing). The services sector (~62% of GDP) is the dominant growth engine. Structural constraints: geographic fragmentation (7,100 islands), typhoon vulnerability, and inadequate infrastructure.",
     futures: {
       stockIndex: "PSEi (Philippine Stock Exchange)",
       indexValue: "6,640",
@@ -3283,10 +3279,9 @@ function CountryModal({
   onClose: () => void;
 }) {
   const [activeTab, setActiveTab] = React.useState<
-    "overview" | "map" | "constitution" | "metrics"
+    "overview" | "map" | "constitution"
   >("overview");
   const [isExpanded, setIsExpanded] = React.useState(false);
-  const { openNote } = useNotes();
 
   React.useEffect(() => {
     setActiveTab("overview");
@@ -3375,16 +3370,6 @@ function CountryModal({
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               <button
-                onClick={() =>
-                  openNote({ entityName: country.name, entityType: "Country" })
-                }
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-sans font-medium bg-secondary/15 text-secondary border border-secondary/30 hover:bg-secondary/25 transition-colors cursor-pointer"
-                aria-label="Take note about this country"
-              >
-                <NotePencil size={13} weight="fill" />
-                Take Note
-              </button>
-              <button
                 onClick={() => setIsExpanded((v) => !v)}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
                 aria-label={
@@ -3392,41 +3377,16 @@ function CountryModal({
                 }
                 title={isExpanded ? "Collapse" : "Expand to full screen"}
               >
-                {isExpanded ? (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M5 1H1v4M11 1h4v4M5 15H1v-4M11 15h4v-4"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
+                <span className="text-xs font-sans font-medium">
+                  {isExpanded ? "Collapse" : "Expand"}
+                </span>
               </button>
               <button
                 onClick={onClose}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
                 aria-label="Close"
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M12 4L4 12M4 4l8 8"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
+                <span className="text-xs font-sans font-medium">Close</span>
               </button>
             </div>
           </div>
@@ -3449,11 +3409,6 @@ function CountryModal({
                   id: "constitution" as const,
                   label: "Governance",
                   icon: <Scales size={13} weight="fill" />,
-                },
-                {
-                  id: "metrics" as const,
-                  label: "Metrics",
-                  icon: <ChartBar size={13} weight="fill" />,
                 },
               ] as const
             ).map((tab) => (
@@ -3571,11 +3526,6 @@ function CountryModal({
                 </div>
               </div>
             </div>
-          )}
-
-          {/* ── METRICS TAB ── */}
-          {activeTab === "metrics" && (
-            <MetricsPanel entityId={country.id} entityType="country" />
           )}
 
           {/* ── CONSTITUTION TAB ── */}
@@ -4602,17 +4552,6 @@ const COUNTRY_CRIME_STATS: Record<string, CrimeStats> = {
     crimeIndex: 42,
     year: 2023,
   },
-  fr: {
-    homicideRate: 1.2,
-    robberyRate: 105,
-    assaultRate: 241,
-    burglaryRate: 372,
-    vehicleTheftRate: 212,
-    drugOffenseRate: 264,
-    safetyIndex: 53,
-    crimeIndex: 47,
-    year: 2023,
-  },
   pl: {
     homicideRate: 0.7,
     robberyRate: 38,
@@ -4801,17 +4740,6 @@ const COUNTRY_CRIME_STATS: Record<string, CrimeStats> = {
     year: 2023,
   },
   // ── Europe (additional) ──────────────────────────────────────────────────
-  es: {
-    homicideRate: 0.7,
-    robberyRate: 82,
-    assaultRate: 112,
-    burglaryRate: 248,
-    vehicleTheftRate: 188,
-    drugOffenseRate: 214,
-    safetyIndex: 58,
-    crimeIndex: 42,
-    year: 2023,
-  },
   nl: {
     homicideRate: 0.6,
     robberyRate: 52,
@@ -5012,17 +4940,6 @@ const COUNTRY_CRIME_STATS: Record<string, CrimeStats> = {
     year: 2023,
   },
   // ── Americas (additional) ────────────────────────────────────────────────
-  co_co: {
-    homicideRate: 25.4,
-    robberyRate: 444,
-    assaultRate: 244,
-    burglaryRate: 348,
-    vehicleTheftRate: 288,
-    drugOffenseRate: 348,
-    safetyIndex: 28,
-    crimeIndex: 72,
-    year: 2023,
-  },
   pe: {
     homicideRate: 7.8,
     robberyRate: 348,
@@ -5190,83 +5107,6 @@ const COUNTRY_CRIME_STATS: Record<string, CrimeStats> = {
     year: 2023,
   },
   // ── Additional Europe ──────────────────────────────────────────────────
-  be: {
-    homicideRate: 1.1,
-    robberyRate: 68,
-    assaultRate: 118,
-    burglaryRate: 148,
-    vehicleTheftRate: 88,
-    drugOffenseRate: 188,
-    safetyIndex: 60,
-    crimeIndex: 40,
-    year: 2023,
-  },
-  at: {
-    homicideRate: 0.7,
-    robberyRate: 32,
-    assaultRate: 84,
-    burglaryRate: 122,
-    vehicleTheftRate: 52,
-    drugOffenseRate: 144,
-    safetyIndex: 68,
-    crimeIndex: 32,
-    year: 2023,
-  },
-  pt: {
-    homicideRate: 0.7,
-    robberyRate: 58,
-    assaultRate: 78,
-    burglaryRate: 148,
-    vehicleTheftRate: 88,
-    drugOffenseRate: 132,
-    safetyIndex: 64,
-    crimeIndex: 36,
-    year: 2023,
-  },
-  gr: {
-    homicideRate: 0.9,
-    robberyRate: 42,
-    assaultRate: 58,
-    burglaryRate: 148,
-    vehicleTheftRate: 72,
-    drugOffenseRate: 112,
-    safetyIndex: 66,
-    crimeIndex: 34,
-    year: 2023,
-  },
-  cz: {
-    homicideRate: 0.6,
-    robberyRate: 22,
-    assaultRate: 68,
-    burglaryRate: 112,
-    vehicleTheftRate: 62,
-    drugOffenseRate: 132,
-    safetyIndex: 66,
-    crimeIndex: 34,
-    year: 2023,
-  },
-  ro: {
-    homicideRate: 1.4,
-    robberyRate: 38,
-    assaultRate: 62,
-    burglaryRate: 92,
-    vehicleTheftRate: 42,
-    drugOffenseRate: 88,
-    safetyIndex: 60,
-    crimeIndex: 40,
-    year: 2023,
-  },
-  hu: {
-    homicideRate: 1.0,
-    robberyRate: 28,
-    assaultRate: 74,
-    burglaryRate: 102,
-    vehicleTheftRate: 58,
-    drugOffenseRate: 104,
-    safetyIndex: 62,
-    crimeIndex: 38,
-    year: 2023,
-  },
   sk: {
     homicideRate: 1.2,
     robberyRate: 28,
@@ -5532,83 +5372,6 @@ const COUNTRY_CRIME_STATS: Record<string, CrimeStats> = {
     year: 2023,
   },
   // ── Additional Asia ──────────────────────────────────────────────────────
-  tw: {
-    homicideRate: 0.6,
-    robberyRate: 12,
-    assaultRate: 44,
-    burglaryRate: 68,
-    vehicleTheftRate: 88,
-    drugOffenseRate: 88,
-    safetyIndex: 74,
-    crimeIndex: 26,
-    year: 2023,
-  },
-  nz: {
-    homicideRate: 1.0,
-    robberyRate: 38,
-    assaultRate: 148,
-    burglaryRate: 348,
-    vehicleTheftRate: 172,
-    drugOffenseRate: 188,
-    safetyIndex: 54,
-    crimeIndex: 46,
-    year: 2023,
-  },
-  kz: {
-    homicideRate: 5.4,
-    robberyRate: 78,
-    assaultRate: 108,
-    burglaryRate: 152,
-    vehicleTheftRate: 88,
-    drugOffenseRate: 148,
-    safetyIndex: 46,
-    crimeIndex: 54,
-    year: 2023,
-  },
-  iq: {
-    homicideRate: 4.8,
-    robberyRate: 82,
-    assaultRate: 88,
-    burglaryRate: 112,
-    vehicleTheftRate: 52,
-    drugOffenseRate: 88,
-    safetyIndex: 40,
-    crimeIndex: 60,
-    year: 2023,
-  },
-  om: {
-    homicideRate: 0.6,
-    robberyRate: 12,
-    assaultRate: 28,
-    burglaryRate: 32,
-    vehicleTheftRate: 22,
-    drugOffenseRate: 54,
-    safetyIndex: 80,
-    crimeIndex: 20,
-    year: 2023,
-  },
-  qa: {
-    homicideRate: 0.3,
-    robberyRate: 8,
-    assaultRate: 22,
-    burglaryRate: 18,
-    vehicleTheftRate: 12,
-    drugOffenseRate: 38,
-    safetyIndex: 84,
-    crimeIndex: 16,
-    year: 2023,
-  },
-  kw: {
-    homicideRate: 0.8,
-    robberyRate: 14,
-    assaultRate: 32,
-    burglaryRate: 28,
-    vehicleTheftRate: 18,
-    drugOffenseRate: 68,
-    safetyIndex: 76,
-    crimeIndex: 24,
-    year: 2023,
-  },
   uz: {
     homicideRate: 2.8,
     robberyRate: 38,
@@ -6139,17 +5902,6 @@ const COUNTRY_CRIME_STATS: Record<string, CrimeStats> = {
     year: 2023,
   },
   // ── Additional Africa ──────────────────────────────────────────────────
-  tz: {
-    homicideRate: 3.6,
-    robberyRate: 78,
-    assaultRate: 68,
-    burglaryRate: 108,
-    vehicleTheftRate: 48,
-    drugOffenseRate: 72,
-    safetyIndex: 50,
-    crimeIndex: 50,
-    year: 2023,
-  },
   ly: {
     homicideRate: 8.8,
     robberyRate: 98,
@@ -6181,17 +5933,6 @@ const COUNTRY_CRIME_STATS: Record<string, CrimeStats> = {
     drugOffenseRate: 72,
     safetyIndex: 28,
     crimeIndex: 72,
-    year: 2023,
-  },
-  ug: {
-    homicideRate: 6.8,
-    robberyRate: 108,
-    assaultRate: 88,
-    burglaryRate: 128,
-    vehicleTheftRate: 52,
-    drugOffenseRate: 72,
-    safetyIndex: 38,
-    crimeIndex: 62,
     year: 2023,
   },
   cm: {
@@ -7130,19 +6871,6 @@ const COUNTRY_TERRORISM: Record<string, TerrorismStats> = {
     year: 2025,
   },
   // Medium risk
-  iq: {
-    gtiScore: 8.4,
-    gtiRank: 2,
-    attacksPerYear: 580,
-    fatalities5yr: 3800,
-    activistGroups: 6,
-    mostActiveGroup: "Islamic State (IS/ISIS)",
-    primaryThreat: "Jihadist insurgency & militia conflict",
-    riskLevel: "Critical",
-    trend: "improving",
-    note: "Territorial defeat of ISIS (2019) but persistent insurgent activity in Sunni heartlands.",
-    year: 2025,
-  },
   ua: {
     gtiScore: 7.6,
     gtiRank: 6,
@@ -7167,18 +6895,6 @@ const COUNTRY_TERRORISM: Record<string, TerrorismStats> = {
     riskLevel: "High",
     trend: "stable",
     note: "Crocus City Hall attack (March 2024, 145 dead) was Russia's deadliest in decades. IS-K claimed responsibility.",
-    year: 2025,
-  },
-  iq: {
-    gtiScore: 8.4,
-    gtiRank: 2,
-    attacksPerYear: 580,
-    fatalities5yr: 3800,
-    activistGroups: 6,
-    mostActiveGroup: "Islamic State (IS/ISIS)",
-    primaryThreat: "Jihadist insurgency & militia conflict",
-    riskLevel: "Critical",
-    trend: "improving",
     year: 2025,
   },
   tr: {
@@ -7469,18 +7185,6 @@ const COUNTRY_TERRORISM: Record<string, TerrorismStats> = {
     note: "Anders Breivik massacre (2011) shaped Norwegian CT approach. Far-right monitoring intensified.",
     year: 2025,
   },
-  ru: {
-    gtiScore: 5.4,
-    gtiRank: 20,
-    attacksPerYear: 60,
-    fatalities5yr: 380,
-    activistGroups: 4,
-    mostActiveGroup: "ISIS-K (Khorasan Province)",
-    primaryThreat: "Jihadist attacks & Chechen conflict legacy",
-    riskLevel: "High",
-    trend: "stable",
-    year: 2025,
-  },
   // Americas
   mx: {
     gtiScore: 4.8,
@@ -7640,18 +7344,6 @@ const COUNTRY_TERRORISM: Record<string, TerrorismStats> = {
     year: 2025,
   },
   // Pacific / other
-  au_oc: {
-    gtiScore: 2.2,
-    gtiRank: 68,
-    attacksPerYear: 4,
-    fatalities5yr: 8,
-    activistGroups: 3,
-    mostActiveGroup: "IS-inspired lone actors",
-    primaryThreat: "Lone-actor attacks",
-    riskLevel: "Low",
-    trend: "stable",
-    year: 2025,
-  },
   nz: {
     gtiScore: 1.8,
     gtiRank: 90,
@@ -8726,14 +8418,11 @@ const SOCIO_PALETTE = [
 function CountrySociologicalBreakdown({ country }: { country: Country }) {
   const religions = (country as any).religions as string[] | undefined;
   const spokenLanguages = (country as any).spokenLanguages as
-    | string[]
-    | undefined;
+    string[] | undefined;
   const politicalIdeologies = (country as any).politicalIdeologies as
-    | string[]
-    | undefined;
+    string[] | undefined;
   const governanceStyle = (country as any).governanceStyle as
-    | string[]
-    | undefined;
+    string[] | undefined;
 
   const hasSocioData = !!(
     religions?.length ||
@@ -9045,7 +8734,7 @@ function CountrySociologicalBreakdown({ country }: { country: Country }) {
                   Governance Style
                 </p>
                 <div className="flex flex-wrap gap-1">
-                  {governanceStyle.map((gs, i) => (
+                  {governanceStyle.map((gs, _i) => (
                     <span
                       key={gs}
                       className="text-[10px] font-sans px-1.5 py-0.5 rounded border bg-muted/60 text-muted-foreground border-border"
@@ -9138,7 +8827,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       "Rule of Law",
     ],
     summary:
-      "Ratified in 1788 and effective March 4, 1789, the U.S. Constitution is the world&#39;s oldest functioning codified national constitution. It replaced the Articles of Confederation, creating a stronger federal government while balancing state sovereignty. Its 27 amendments — the first ten known as the Bill of Rights (1791) — codify civil liberties that have influenced constitutional design worldwide.",
+      "Ratified in 1788 and effective March 4, 1789, the U.S. Constitution is the world's oldest functioning codified national constitution. It replaced the Articles of Confederation, creating a stronger federal government while balancing state sovereignty. Its 27 amendments — the first ten known as the Bill of Rights (1791) — codify civil liberties that have influenced constitutional design worldwide.",
     articles: [
       {
         title: "Article I — The Legislative Branch",
@@ -9207,7 +8896,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
         type: "principle",
       },
       {
-        title: "19th Amendment — Women&#39;s Suffrage",
+        title: "19th Amendment — Women's Suffrage",
         description:
           "The right of citizens to vote shall not be denied or abridged on account of sex. Ratified August 18, 1920 after a 72-year suffrage movement, enfranchising approximately 26 million women.",
         type: "right",
@@ -9222,7 +8911,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
     ],
   },
   cn: {
-    name: "Constitution of the People&#39;s Republic of China",
+    name: "Constitution of the People's Republic of China",
     adopted: 1982,
     lastAmended: 2018,
     type: "Unitary One-Party Socialist State",
@@ -9232,10 +8921,10 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       "Deng Xiaoping Theory",
       "Socialism with Chinese Characteristics",
       "Xi Jinping Thought on Socialism",
-      "People&#39;s Democratic Centralism",
+      "People's Democratic Centralism",
     ],
     summary:
-      "The PRC&#39;s fourth constitution since 1949 (following versions in 1954, 1975, and 1978), the 1982 constitution has been amended five times, most significantly in 2018, when presidential term limits were abolished and Xi Jinping Thought was added to the Preamble. It combines Soviet-style socialist structure with uniquely Chinese characteristics and CCP supremacy over all state organs.",
+      "The PRC's fourth constitution since 1949 (following versions in 1954, 1975, and 1978), the 1982 constitution has been amended five times, most significantly in 2018, when presidential term limits were abolished and Xi Jinping Thought was added to the Preamble. It combines Soviet-style socialist structure with uniquely Chinese characteristics and CCP supremacy over all state organs.",
     articles: [
       {
         title: "Preamble — CCP Leadership (2018 Amendment)",
@@ -9245,21 +8934,21 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
         year: 2018,
       },
       {
-        title: "Article 1 — People&#39;s Democratic Dictatorship",
+        title: "Article 1 — People's Democratic Dictatorship",
         description:
-          "The People&#39;s Republic of China is a socialist state under the people&#39;s democratic dictatorship led by the working class and based on the alliance of workers and peasants. The socialist system is the basic system of the PRC — no organization or individual may sabotage it.",
+          "The People's Republic of China is a socialist state under the people's democratic dictatorship led by the working class and based on the alliance of workers and peasants. The socialist system is the basic system of the PRC — no organization or individual may sabotage it.",
         type: "principle",
       },
       {
         title: "Article 2 — All Power Belongs to the People",
         description:
-          "All power in the PRC belongs to the people. The National People&#39;s Congress (NPC) and local People&#39;s Congresses are the organs through which the people exercise state power. In practice, the NPC operates under CCP direction and typically ratifies decisions made by the Party&#39;s Politburo Standing Committee.",
+          "All power in the PRC belongs to the people. The National People's Congress (NPC) and local People's Congresses are the organs through which the people exercise state power. In practice, the NPC operates under CCP direction and typically ratifies decisions made by the Party's Politburo Standing Committee.",
         type: "principle",
       },
       {
-        title: "National People&#39;s Congress — Highest State Organ",
+        title: "National People's Congress — Highest State Organ",
         description:
-          "The NPC is China&#39;s national legislature with 2,977 deputies serving 5-year terms. It elects the President, approves the Premier and State Council, ratifies constitutional amendments (by two-thirds majority), and adopts the national budget. Sessions are held annually and last approximately two weeks.",
+          "The NPC is China's national legislature with 2,977 deputies serving 5-year terms. It elects the President, approves the Premier and State Council, ratifies constitutional amendments (by two-thirds majority), and adopts the national budget. Sessions are held annually and last approximately two weeks.",
         type: "structure",
       },
       {
@@ -9271,11 +8960,11 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Article 15 — Socialist Market Economy",
         description:
-          "The state practices a socialist market economy, upholding the basic economic system with public ownership as the dominant form while allowing diverse forms of ownership to develop together. The 1993 amendment replaced \'planned economy\' with \'socialist market economy,\' reflecting Deng&#39;s reforms.",
+          "The state practices a socialist market economy, upholding the basic economic system with public ownership as the dominant form while allowing diverse forms of ownership to develop together. The 1993 amendment replaced \'planned economy\' with \'socialist market economy,\' reflecting Deng's reforms.",
         type: "doctrine",
       },
       {
-        title: "Article 35 — Citizens&#39; Freedoms",
+        title: "Article 35 — Citizens' Freedoms",
         description:
           "Citizens enjoy freedom of speech, the press, assembly, association, procession, and demonstration. These rights are subject to restrictions under national security, social order, and other laws — in practice, the Great Firewall censors internet content and public protests require prior authorization.",
         type: "right",
@@ -9283,7 +8972,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "One Country, Two Systems — Article 31",
         description:
-          "The state may establish Special Administrative Regions when necessary. Hong Kong (1997) and Macau (1999) operate under \'one country, two systems\' frameworks — maintaining separate legal, economic, and political systems until 2047 and 2049 respectively, though the 2020 National Security Law altered Hong Kong&#39;s autonomy significantly.",
+          "The state may establish Special Administrative Regions when necessary. Hong Kong (1997) and Macau (1999) operate under \'one country, two systems\' frameworks — maintaining separate legal, economic, and political systems until 2047 and 2049 respectively, though the 2020 National Security Law altered Hong Kong's autonomy significantly.",
         type: "principle",
       },
       {
@@ -9344,13 +9033,13 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Eternity Clause — Article 79(3)",
         description:
-          "Amendments to the Basic Law shall be inadmissible if they affect the division of the Federation into Länder, the participation of the Länder in legislation, or the principles laid down in Articles 1 and 20. This makes Germany&#39;s core constitutional identity — federal, democratic, respectful of human dignity — literally unconstitutionable to remove.",
+          "Amendments to the Basic Law shall be inadmissible if they affect the division of the Federation into Länder, the participation of the Länder in legislation, or the principles laid down in Articles 1 and 20. This makes Germany's core constitutional identity — federal, democratic, respectful of human dignity — literally unconstitutionable to remove.",
         type: "principle",
       },
       {
         title: "Bundestag — Federal Parliament",
         description:
-          "The Bundestag is Germany&#39;s primary legislative chamber, elected every 4 years by a mixed-member proportional system. The \'5% threshold\' prevents small parties from fragmenting parliament. The Bundestag elects the Federal Chancellor, who leads government — making Germany a parliamentary (not presidential) republic.",
+          "The Bundestag is Germany's primary legislative chamber, elected every 4 years by a mixed-member proportional system. The \'5% threshold\' prevents small parties from fragmenting parliament. The Bundestag elects the Federal Chancellor, who leads government — making Germany a parliamentary (not presidential) republic.",
         type: "structure",
       },
       {
@@ -9368,19 +9057,19 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Federal Constitutional Court (Bundesverfassungsgericht)",
         description:
-          "Germany&#39;s dedicated constitutional court, based in Karlsruhe, can ban political parties threatening the free democratic basic order (used against neo-Nazi and far-left parties), review all legislation for constitutionality, and adjudicate federalism disputes. Its judgments are legally binding on all state organs.",
+          "Germany's dedicated constitutional court, based in Karlsruhe, can ban political parties threatening the free democratic basic order (used against neo-Nazi and far-left parties), review all legislation for constitutionality, and adjudicate federalism disputes. Its judgments are legally binding on all state organs.",
         type: "structure",
       },
       {
         title: "Social State Principle — Article 20",
         description:
-          "Germany is constitutionally a \'social state\' (Sozialstaat), obligating the government to provide social security, equalize living conditions across regions (Länderfinanzausgleich), and ensure citizens&#39; basic needs are met. The Federal Constitutional Court derives a constitutional right to a subsistence minimum from Articles 1 and 20.",
+          "Germany is constitutionally a \'social state\' (Sozialstaat), obligating the government to provide social security, equalize living conditions across regions (Länderfinanzausgleich), and ensure citizens' basic needs are met. The Federal Constitutional Court derives a constitutional right to a subsistence minimum from Articles 1 and 20.",
         type: "doctrine",
       },
       {
         title: "Article 16a — Right of Asylum",
         description:
-          "Persons persecuted on political grounds shall have the right of asylum. Germany&#39;s asylum protections are constitutionally enshrined, though the 1993 amendment introduced the \'safe country of origin\' rule limiting claims. Germany has historically accepted the most asylum seekers of any EU member state.",
+          "Persons persecuted on political grounds shall have the right of asylum. Germany's asylum protections are constitutionally enshrined, though the 1993 amendment introduced the \'safe country of origin\' rule limiting claims. Germany has historically accepted the most asylum seekers of any EU member state.",
         type: "right",
       },
       {
@@ -9443,14 +9132,14 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Act of Union (1707) — Parliament of Great Britain",
         description:
-          "United the Scottish and English parliaments into a single Parliament of Great Britain, creating the Kingdom of Great Britain. Scotland retained its separate legal system (Scots law, Presbyterian Church), and 45 Scottish MPs joined the Commons. Foundational to the UK&#39;s constitutional identity and the basis for ongoing Scottish independence debate.",
+          "United the Scottish and English parliaments into a single Parliament of Great Britain, creating the Kingdom of Great Britain. Scotland retained its separate legal system (Scots law, Presbyterian Church), and 45 Scottish MPs joined the Commons. Foundational to the UK's constitutional identity and the basis for ongoing Scottish independence debate.",
         type: "structure",
         year: 1707,
       },
       {
-        title: "Parliamentary Sovereignty — Dicey&#39;s Doctrine",
+        title: "Parliamentary Sovereignty — Dicey's Doctrine",
         description:
-          "Constitutionalist A.V. Dicey (1885) described parliamentary sovereignty as Parliament&#39;s right to make or unmake any law, with no body able to override or disregard its acts. While formally absolute, this doctrine is qualified in practice by EU retained law (post-Brexit), the Human Rights Act, and devolution settlements.",
+          "Constitutionalist A.V. Dicey (1885) described parliamentary sovereignty as Parliament's right to make or unmake any law, with no body able to override or disregard its acts. While formally absolute, this doctrine is qualified in practice by EU retained law (post-Brexit), the Human Rights Act, and devolution settlements.",
         type: "doctrine",
       },
       {
@@ -9469,21 +9158,21 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Scotland Act 1998 — Devolution",
         description:
-          "Created the Scottish Parliament with primary legislative powers over devolved matters (health, education, justice, housing) and, since 2016, some tax-varying powers. The fundamental principle of the devolution settlements is that Westminster retains sovereignty but has permanently altered the UK&#39;s constitutional landscape.",
+          "Created the Scottish Parliament with primary legislative powers over devolved matters (health, education, justice, housing) and, since 2016, some tax-varying powers. The fundamental principle of the devolution settlements is that Westminster retains sovereignty but has permanently altered the UK's constitutional landscape.",
         type: "structure",
         year: 1998,
       },
       {
         title: "Fixed-term Parliaments Act 2011 (Repealed 2022)",
         description:
-          "Attempted to codify 5-year fixed parliamentary terms, removing the Prime Minister&#39;s prerogative to call early elections. Repealed by the Dissolution and Calling of Parliament Act 2022, which restored royal prerogative to dissolve Parliament on Prime Ministerial advice — illustrating how UK constitutional arrangements can be rapidly altered by simple statute.",
+          "Attempted to codify 5-year fixed parliamentary terms, removing the Prime Minister's prerogative to call early elections. Repealed by the Dissolution and Calling of Parliament Act 2022, which restored royal prerogative to dissolve Parliament on Prime Ministerial advice — illustrating how UK constitutional arrangements can be rapidly altered by simple statute.",
         type: "structure",
         year: 2011,
       },
       {
         title: "Rule of Law — Separation of Powers",
         description:
-          "The Constitutional Reform Act 2005 created a Supreme Court (replacing the Law Lords in the House of Lords), reinforcing judicial independence. The Lord Chancellor&#39;s judicial functions were transferred to the Lord Chief Justice. UK&#39;s separation of powers is less strict than U.S. — Cabinet Ministers sit in Parliament, for example.",
+          "The Constitutional Reform Act 2005 created a Supreme Court (replacing the Law Lords in the House of Lords), reinforcing judicial independence. The Lord Chancellor's judicial functions were transferred to the Lord Chief Justice. UK's separation of powers is less strict than U.S. — Cabinet Ministers sit in Parliament, for example.",
         type: "principle",
         year: 2005,
       },
@@ -9510,18 +9199,18 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       "Popular Sovereignty",
     ],
     summary:
-      "France&#39;s current constitution — its fifth since the Revolution — was drafted under Charles de Gaulle and approved by referendum (79.25%) on September 28, 1958. It created a strong presidency to end the chronic governmental instability of the Fourth Republic (25 governments in 12 years). The constitutional bloc also includes the 1789 Declaration of Rights, the 1946 Preamble, and the Charter for the Environment (2004).",
+      "France's current constitution — its fifth since the Revolution — was drafted under Charles de Gaulle and approved by referendum (79.25%) on September 28, 1958. It created a strong presidency to end the chronic governmental instability of the Fourth Republic (25 governments in 12 years). The constitutional bloc also includes the 1789 Declaration of Rights, the 1946 Preamble, and the Charter for the Environment (2004).",
     articles: [
       {
         title: "Article 1 — Republican Principles",
         description:
-          "France is an indivisible, secular, democratic and social Republic. It shall ensure the equality of all citizens before the law, without distinction of origin, race or religion. The Republic&#39;s motto is Liberté, Égalité, Fraternité. Its principle is government of the people, by the people, and for the people.",
+          "France is an indivisible, secular, democratic and social Republic. It shall ensure the equality of all citizens before the law, without distinction of origin, race or religion. The Republic's motto is Liberté, Égalité, Fraternité. Its principle is government of the people, by the people, and for the people.",
         type: "principle",
       },
       {
         title: "Laïcité — Constitutional Secularism",
         description:
-          "France&#39;s strict separation of church and state — encoded in the 1905 Law on Separation of Churches and State and incorporated into constitutional identity. The state neither recognizes nor funds religious organizations (with Alsace-Moselle exceptions). Laïcité prohibits religious symbols in public schools (2004 law) and face coverings in public spaces (2010 law).",
+          "France's strict separation of church and state — encoded in the 1905 Law on Separation of Churches and State and incorporated into constitutional identity. The state neither recognizes nor funds religious organizations (with Alsace-Moselle exceptions). Laïcité prohibits religious symbols in public schools (2004 law) and face coverings in public spaces (2010 law).",
         type: "doctrine",
       },
       {
@@ -9539,7 +9228,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Prime Minister and the Government",
         description:
-          "The Prime Minister directs the Government&#39;s actions and is responsible to the National Assembly. In \'cohabitation\' periods (1986-88, 1993-95, 1997-2002), a President and Prime Minister of opposing parties must govern together — a uniquely French constitutional dynamic. The PM can be ousted by a motion of censure but not directly by the President.",
+          "The Prime Minister directs the Government's actions and is responsible to the National Assembly. In \'cohabitation\' periods (1986-88, 1993-95, 1997-2002), a President and Prime Minister of opposing parties must govern together — a uniquely French constitutional dynamic. The PM can be ousted by a motion of censure but not directly by the President.",
         type: "structure",
       },
       {
@@ -9596,7 +9285,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       "International Cooperation",
     ],
     summary:
-      "Drafted primarily by American lawyers in MacArthur&#39;s GHQ during the U.S. occupation and promulgated on November 3, 1946, Japan&#39;s constitution came into effect May 3, 1947. In 78 years it has never once been amended — the only major democratic constitution to hold this distinction. Its Article 9 pacifist clause creates an ongoing constitutional debate as Japan&#39;s Self-Defense Forces have grown into a substantial military force.",
+      "Drafted primarily by American lawyers in MacArthur's GHQ during the U.S. occupation and promulgated on November 3, 1946, Japan's constitution came into effect May 3, 1947. In 78 years it has never once been amended — the only major democratic constitution to hold this distinction. Its Article 9 pacifist clause creates an ongoing constitutional debate as Japan's Self-Defense Forces have grown into a substantial military force.",
     articles: [
       {
         title: "Article 1 — The Emperor as Symbol",
@@ -9607,7 +9296,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Article 9 — Renunciation of War",
         description:
-          "Aspiring sincerely to an international peace based on justice and order, the Japanese people forever renounce war as a sovereign right of the nation and the threat or use of force as means of settling international disputes. Paragraph 2: war potential shall never be maintained. The right of belligerency of the state will not be recognized. Japan&#39;s Self-Defense Forces (300,000+ personnel, ¥6.8T defense budget) exist in legal tension with this article.",
+          "Aspiring sincerely to an international peace based on justice and order, the Japanese people forever renounce war as a sovereign right of the nation and the threat or use of force as means of settling international disputes. Paragraph 2: war potential shall never be maintained. The right of belligerency of the state will not be recognized. Japan's Self-Defense Forces (300,000+ personnel, ¥6.8T defense budget) exist in legal tension with this article.",
         type: "doctrine",
       },
       {
@@ -9643,7 +9332,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Article 25 — Right to Minimum Standards of Living",
         description:
-          "All people shall have the right to maintain the minimum standards of wholesome and cultured living. In all spheres of life, the State shall use its endeavors for the promotion and extension of social welfare and security, and of public health. Foundation for Japan&#39;s universal healthcare system and comprehensive social security programs.",
+          "All people shall have the right to maintain the minimum standards of wholesome and cultured living. In all spheres of life, the State shall use its endeavors for the promotion and extension of social welfare and security, and of public health. Foundation for Japan's universal healthcare system and comprehensive social security programs.",
         type: "right",
       },
       {
@@ -9680,7 +9369,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       "Non-Alignment",
     ],
     summary:
-      "The world&#39;s longest written national constitution, with 448 articles, 12 schedules, 5 appendices, and 105 amendments. Drafted in 2 years, 11 months and 17 days by a Constituent Assembly chaired by B.R. Ambedkar, it came into force January 26, 1950 (Republic Day). Drawing from the Government of India Act 1935, the U.S., Irish, Canadian, and Australian constitutions, it was designed to hold a vast, diverse nation together through constitutional democracy and social transformation.",
+      "The world's longest written national constitution, with 448 articles, 12 schedules, 5 appendices, and 105 amendments. Drafted in 2 years, 11 months and 17 days by a Constituent Assembly chaired by B.R. Ambedkar, it came into force January 26, 1950 (Republic Day). Drawing from the Government of India Act 1935, the U.S., Irish, Canadian, and Australian constitutions, it was designed to hold a vast, diverse nation together through constitutional democracy and social transformation.",
     articles: [
       {
         title: "Preamble — The Constitutional Vision",
@@ -9711,19 +9400,19 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Union and State Legislature — Parliament",
         description:
-          "India&#39;s Parliament comprises: Rajya Sabha (Council of States, 245 members, 6-year terms, elected by state legislatures plus 12 Presidential nominees) and Lok Sabha (House of the People, 543 elected members, 5-year terms). The Prime Minister, who commands Lok Sabha majority, heads the Cabinet. A money bill (Article 110) can only originate in the Lok Sabha.",
+          "India's Parliament comprises: Rajya Sabha (Council of States, 245 members, 6-year terms, elected by state legislatures plus 12 Presidential nominees) and Lok Sabha (House of the People, 543 elected members, 5-year terms). The Prime Minister, who commands Lok Sabha majority, heads the Cabinet. A money bill (Article 110) can only originate in the Lok Sabha.",
         type: "structure",
       },
       {
         title: "Quasi-Federal Structure with Strong Centre",
         description:
-          "India&#39;s federalism is asymmetric: the Union List (97 subjects — defence, foreign affairs, banking), State List (66 subjects — police, agriculture, public health), and Concurrent List (47 subjects — education, forests, electricity). In case of conflict, Union law prevails. The Centre can assume state subjects in national emergency or if directed by Rajya Sabha resolution.",
+          "India's federalism is asymmetric: the Union List (97 subjects — defence, foreign affairs, banking), State List (66 subjects — police, agriculture, public health), and Concurrent List (47 subjects — education, forests, electricity). In case of conflict, Union law prevails. The Centre can assume state subjects in national emergency or if directed by Rajya Sabha resolution.",
         type: "structure",
       },
       {
-        title: "Article 356 — President&#39;s Rule",
+        title: "Article 356 — President's Rule",
         description:
-          "If the President is satisfied that the government of a state cannot be carried on in accordance with the provisions of the Constitution, s/he may impose President&#39;s Rule, dismissing the state government and dissolving the Assembly. Has been invoked 100+ times since 1950 — frequently misused for political purposes until S.R. Bommai case (1994) established judicial review of proclamations.",
+          "If the President is satisfied that the government of a state cannot be carried on in accordance with the provisions of the Constitution, s/he may impose President's Rule, dismissing the state government and dissolving the Assembly. Has been invoked 100+ times since 1950 — frequently misused for political purposes until S.R. Bommai case (1994) established judicial review of proclamations.",
         type: "doctrine",
       },
       {
@@ -9749,7 +9438,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Article 370 — J&K Special Status (Abrogated 2019)",
         description:
-          "Granted Jammu and Kashmir special autonomous status, applying only specific provisions of the Indian Constitution unless J&K&#39;s own Constituent Assembly concurred. Abrogated by Presidential Order on August 5, 2019, reorganizing J&K into two Union Territories: J&K (with legislature) and Ladakh (without legislature). Upheld by Supreme Court December 2023 as constitutional.",
+          "Granted Jammu and Kashmir special autonomous status, applying only specific provisions of the Indian Constitution unless J&K's own Constituent Assembly concurred. Abrogated by Presidential Order on August 5, 2019, reorganizing J&K into two Union Territories: J&K (with legislature) and Ladakh (without legislature). Upheld by Supreme Court December 2023 as constitutional.",
         type: "principle",
         year: 2019,
       },
@@ -11019,7 +10708,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
     ],
   },
   kp: {
-    name: "Socialist Constitution of the Democratic People&#39;s Republic of Korea",
+    name: "Socialist Constitution of the Democratic People's Republic of Korea",
     adopted: 1972,
     lastAmended: 2023,
     type: "Unitary One-Party Juche State (Hereditary Dictatorship)",
@@ -11032,40 +10721,40 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       "Totalitarianism",
     ],
     summary:
-      "North Korea is not a democracy. The DPRK&#39;s constitution, adopted in 1972 under Kim Il-sung and heavily amended in 1992, 1998, 2009, 2012, 2016, 2019, and 2023, is the legal facade of a totalitarian hereditary dynasty. Real power resides in the Korean Workers&#39; Party (KWP) and its supreme leader Kim Jong-un, who holds the titles of General Secretary of the KWP, Chairman of the State Affairs Commission, and Supreme Commander of the armed forces. The constitution declares the DPRK a \'Juche-oriented socialist state\' — but all state institutions operate as instruments of KWP and supreme leader authority.",
+      "North Korea is not a democracy. The DPRK's constitution, adopted in 1972 under Kim Il-sung and heavily amended in 1992, 1998, 2009, 2012, 2016, 2019, and 2023, is the legal facade of a totalitarian hereditary dynasty. Real power resides in the Korean Workers' Party (KWP) and its supreme leader Kim Jong-un, who holds the titles of General Secretary of the KWP, Chairman of the State Affairs Commission, and Supreme Commander of the armed forces. The constitution declares the DPRK a \'Juche-oriented socialist state\' — but all state institutions operate as instruments of KWP and supreme leader authority.",
     articles: [
       {
         title: "Article 1 — DPRK as Juche-Oriented Socialist State",
         description:
-          "The Democratic People&#39;s Republic of Korea is an independent socialist state representing the interests of all the Korean people. In practice, it is a one-party state ruled by the Korean Workers&#39; Party with no multi-party elections, no independent courts, and no free press. The word \'democratic\' in the name reflects Soviet-era naming conventions, not electoral democracy.",
+          "The Democratic People's Republic of Korea is an independent socialist state representing the interests of all the Korean people. In practice, it is a one-party state ruled by the Korean Workers' Party with no multi-party elections, no independent courts, and no free press. The word \'democratic\' in the name reflects Soviet-era naming conventions, not electoral democracy.",
         type: "doctrine",
       },
       {
         title: "Juche Ideology — State Philosophy",
         description:
-          "Juche (self-reliance) was developed by Kim Il-sung as the DPRK&#39;s official state ideology, placing it above Marxism-Leninism. It holds that the masses are the master of their destiny only when guided by the supreme leader. The 1992 amendment removed references to Marxism-Leninism and replaced them with Juche. Kimilsungism-Kimjongilism was added in the 2012 amendment following Kim Jong-il&#39;s death.",
+          "Juche (self-reliance) was developed by Kim Il-sung as the DPRK's official state ideology, placing it above Marxism-Leninism. It holds that the masses are the master of their destiny only when guided by the supreme leader. The 1992 amendment removed references to Marxism-Leninism and replaced them with Juche. Kimilsungism-Kimjongilism was added in the 2012 amendment following Kim Jong-il's death.",
         type: "doctrine",
       },
       {
         title: "Songun — Military-First Policy",
         description:
-          "Songun (military-first) was adopted as state policy under Kim Jong-il and codified constitutionally in 1998. It prioritizes the Korean People&#39;s Army in all political, economic, and social affairs. Defense spending consumes an estimated 15–25% of GDP. North Korea maintains 1.28 million active troops — the world&#39;s fourth largest military.",
+          "Songun (military-first) was adopted as state policy under Kim Jong-il and codified constitutionally in 1998. It prioritizes the Korean People's Army in all political, economic, and social affairs. Defense spending consumes an estimated 15–25% of GDP. North Korea maintains 1.28 million active troops — the world's fourth largest military.",
         type: "doctrine",
       },
       {
         title: "Supreme Leader — Kim Jong-un",
         description:
-          "Kim Jong-un assumed power in 2011 upon his father&#39;s death and holds three supreme positions: General Secretary of the Korean Workers&#39; Party (established 1949), Chairman of the State Affairs Commission, and Supreme Commander of the KPA. The 2012 constitution explicitly designated the Kim family&#39;s political lineage as the foundation of DPRK statehood. There is no constitutional term limit or electoral mechanism to remove him.",
+          "Kim Jong-un assumed power in 2011 upon his father's death and holds three supreme positions: General Secretary of the Korean Workers' Party (established 1949), Chairman of the State Affairs Commission, and Supreme Commander of the KPA. The 2012 constitution explicitly designated the Kim family's political lineage as the foundation of DPRK statehood. There is no constitutional term limit or electoral mechanism to remove him.",
         type: "structure",
       },
       {
-        title: "Korean Workers&#39; Party (KWP) Supremacy",
+        title: "Korean Workers' Party (KWP) Supremacy",
         description:
-          "The KWP is constitutionally the \'guiding force of the state and society.\' The Party&#39;s Political Bureau Presidium, currently led by Kim Jong-un, makes all significant policy decisions. The Supreme People&#39;s Assembly (SPA) — the nominal legislature — meets only 1–2 days per year and unanimously rubber-stamps KWP decisions. All candidates for the SPA run unopposed.",
+          "The KWP is constitutionally the \'guiding force of the state and society.\' The Party's Political Bureau Presidium, currently led by Kim Jong-un, makes all significant policy decisions. The Supreme People's Assembly (SPA) — the nominal legislature — meets only 1–2 days per year and unanimously rubber-stamps KWP decisions. All candidates for the SPA run unopposed.",
         type: "structure",
       },
       {
-        title: "Supreme People&#39;s Assembly — Nominal Legislature",
+        title: "Supreme People's Assembly — Nominal Legislature",
         description:
           "The SPA has 687 deputies elected every 5 years in elections where a single KWP-approved candidate appears on each ballot. Voter turnout is reported at 99.99%. The SPA formally appoints the Cabinet (Naegak) and ratifies constitutional amendments. Real legislative authority rests with the KWP Secretariat and the State Affairs Commission.",
         type: "structure",
@@ -11079,7 +10768,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Songbun — Hereditary Social Classification",
         description:
-          "Not in the constitution but codified in practice: Songbun is a three-tier hereditary loyalty classification (core/wavering/hostile) assigned based on a family&#39;s perceived loyalty to the Kim regime dating from the Korean War era. Songbun determines access to food, education, residence, employment, and Party membership — affecting all 26 million citizens across generations.",
+          "Not in the constitution but codified in practice: Songbun is a three-tier hereditary loyalty classification (core/wavering/hostile) assigned based on a family's perceived loyalty to the Kim regime dating from the Korean War era. Songbun determines access to food, education, residence, employment, and Party membership — affecting all 26 million citizens across generations.",
         type: "doctrine",
       },
       {
@@ -11096,9 +10785,9 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
         type: "principle",
       },
       {
-        title: "Korean People&#39;s Army — Constitutional Role",
+        title: "Korean People's Army — Constitutional Role",
         description:
-          "The KPA is constitutionally the defender of the revolution and the state, under the direct command of the Supreme Commander (Kim Jong-un). Mandatory military service applies to men (10 years) and women (7 years). The DPRK&#39;s military expenditure relative to GDP is among the highest globally, sustaining a nuclear weapons program, ballistic missile forces, and asymmetric cyber capabilities (Lazarus Group).",
+          "The KPA is constitutionally the defender of the revolution and the state, under the direct command of the Supreme Commander (Kim Jong-un). Mandatory military service applies to men (10 years) and women (7 years). The DPRK's military expenditure relative to GDP is among the highest globally, sustaining a nuclear weapons program, ballistic missile forces, and asymmetric cyber capabilities (Lazarus Group).",
         type: "structure",
       },
       {
@@ -11122,7 +10811,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       "Social Pluralism",
     ],
     summary:
-      "Brazil&#39;s seventh constitution was promulgated October 5, 1988 following 21 years (1964–1985) of military dictatorship. Nicknamed the \'Citizen Constitution\' by Assembly President Ulysses Guimarães, it is one of the world&#39;s most detailed constitutions (250 articles + 97 transitional provisions), enshrining an unusually extensive bill of social rights. It has been amended 109 times (as of 2023) — a reflection of Brazil&#39;s dynamic political environment.",
+      "Brazil's seventh constitution was promulgated October 5, 1988 following 21 years (1964–1985) of military dictatorship. Nicknamed the \'Citizen Constitution\' by Assembly President Ulysses Guimarães, it is one of the world's most detailed constitutions (250 articles + 97 transitional provisions), enshrining an unusually extensive bill of social rights. It has been amended 109 times (as of 2023) — a reflection of Brazil's dynamic political environment.",
     articles: [
       {
         title: "Article 1 — Founding Principles",
@@ -11133,19 +10822,19 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Article 3 — Fundamental Objectives",
         description:
-          "The Republic&#39;s objectives are: (I) build a free, just, and united society; (II) guarantee national development; (III) eradicate poverty and marginalization and reduce social and regional inequalities; (IV) promote the well-being of all, without prejudice based on origin, race, sex, color, age, or any other form of discrimination. Unique for inscribing social transformation goals directly into constitutional text.",
+          "The Republic's objectives are: (I) build a free, just, and united society; (II) guarantee national development; (III) eradicate poverty and marginalization and reduce social and regional inequalities; (IV) promote the well-being of all, without prejudice based on origin, race, sex, color, age, or any other form of discrimination. Unique for inscribing social transformation goals directly into constitutional text.",
         type: "principle",
       },
       {
         title: "Article 5 — Fundamental Rights (78 clauses)",
         description:
-          "The most expansive constitutional rights article in the world. All persons are equal before the law. Specific rights include: inviolability of home; privacy and honor; freedom of conscience and religion; free manifestation of thought; right of reply; right of assembly; right of association; opposition to torture; habeas corpus; habeas data (unique: right to access one&#39;s own government file); mandado de injunção (compels legislation to give effect to constitutional rights).",
+          "The most expansive constitutional rights article in the world. All persons are equal before the law. Specific rights include: inviolability of home; privacy and honor; freedom of conscience and religion; free manifestation of thought; right of reply; right of assembly; right of association; opposition to torture; habeas corpus; habeas data (unique: right to access one's own government file); mandado de injunção (compels legislation to give effect to constitutional rights).",
         type: "right",
       },
       {
         title: "Article 6 — Social Rights",
         description:
-          "Social rights are: education, health, food, work, housing, transport, leisure, security, social security (previdência social), protection of motherhood and childhood, and assistance to the destitute. \'Food\' and \'transport\' were added by amendments (2010 and 2015 respectively), reflecting constitutional amendment as a social policy tool. Brazil&#39;s Bolsa Família program operates under this mandate.",
+          "Social rights are: education, health, food, work, housing, transport, leisure, security, social security (previdência social), protection of motherhood and childhood, and assistance to the destitute. \'Food\' and \'transport\' were added by amendments (2010 and 2015 respectively), reflecting constitutional amendment as a social policy tool. Brazil's Bolsa Família program operates under this mandate.",
         type: "right",
       },
       {
@@ -11157,7 +10846,7 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Federal Structure — Articles 18-36",
         description:
-          "Brazil&#39;s federation comprises: 26 states + Federal District + 5,570 municipalities, all constitutionally recognized as autonomous federative entities with self-governance, self-taxation, and self-legislation. Municipalities are uniquely granted federated status — rare globally. Powers are divided among Union (exclusive), states (residual), and concurrent (Union + states), and municipalities (local interest).",
+          "Brazil's federation comprises: 26 states + Federal District + 5,570 municipalities, all constitutionally recognized as autonomous federative entities with self-governance, self-taxation, and self-legislation. Municipalities are uniquely granted federated status — rare globally. Powers are divided among Union (exclusive), states (residual), and concurrent (Union + states), and municipalities (local interest).",
         type: "structure",
       },
       {
@@ -11169,17 +10858,17 @@ const COUNTRY_CONSTITUTIONS: Record<string, ConstitutionData> = {
       {
         title: "Article 225 — Environmental Rights",
         description:
-          "Everyone has the right to an ecologically balanced environment, which is a public good for the people&#39;s use and essential to a healthy quality of life. Both the Government and the community have a duty to defend and preserve it for present and future generations. Additionally: the Amazon Forest, Atlantic Forest, Serra do Mar, Pantanal, and coastal zone are \'national heritage\' requiring special protection.",
+          "Everyone has the right to an ecologically balanced environment, which is a public good for the people's use and essential to a healthy quality of life. Both the Government and the community have a duty to defend and preserve it for present and future generations. Additionally: the Amazon Forest, Atlantic Forest, Serra do Mar, Pantanal, and coastal zone are \'national heritage\' requiring special protection.",
         type: "doctrine",
       },
       {
         title: "Articles 196-200 — Right to Health",
         description:
-          "Health is the right of all and the duty of the State, guaranteed through social and economic policies aimed at reducing illness risk. Created the Sistema Único de Saúde (SUS), Brazil&#39;s universal public health system — one of the world&#39;s largest. 2023: SUS serves 150+ million people. Courts frequently compel the state to provide specific medications or procedures under this constitutional right.",
+          "Health is the right of all and the duty of the State, guaranteed through social and economic policies aimed at reducing illness risk. Created the Sistema Único de Saúde (SUS), Brazil's universal public health system — one of the world's largest. 2023: SUS serves 150+ million people. Courts frequently compel the state to provide specific medications or procedures under this constitutional right.",
         type: "right",
       },
       {
-        title: "Articles 231-232 — Indigenous Peoples&#39; Rights",
+        title: "Articles 231-232 — Indigenous Peoples' Rights",
         description:
           "The Indians are recognized their social organization, customs, languages, creeds and traditions, and the original rights over the lands they traditionally occupy, which the Union is obliged to demarcate and protect. The concept of \'marco temporal\' (temporal milestone) — debated in the STF — would have limited indigenous land claims to areas occupied in 1988; the STF rejected this in 2023, restoring broader protections.",
         type: "right",
@@ -13078,6 +12767,50 @@ interface CountryLegalStatus {
   items: LegalItem[];
 }
 
+/**
+ * Shown when COUNTRY_LEGAL_STATUS has no entry for a country — 162 of the 204
+ * currently have none, and the section used to render nothing at all for them.
+ *
+ * The wording is deliberately non-committal. Researched, country-specific
+ * entries belong in COUNTRY_LEGAL_STATUS above; this fallback must not assert
+ * facts about a country it has no data for, so every item is "restricted" with
+ * a note pointing at national law rather than a claimed position.
+ */
+const DEFAULT_COUNTRY_LEGAL: CountryLegalStatus = {
+  items: [
+    {
+      label: "Same-sex marriage",
+      status: "restricted",
+      note: "Varies by national law — no verified entry for this country yet.",
+    },
+    {
+      label: "Abortion",
+      status: "restricted",
+      note: "Governed by national legislation; conditions and limits vary.",
+    },
+    {
+      label: "Cannabis (recreational)",
+      status: "restricted",
+      note: "Subject to national drug laws; medical use may differ.",
+    },
+    {
+      label: "Death penalty",
+      status: "restricted",
+      note: "Retention, moratorium or abolition varies by jurisdiction.",
+    },
+    {
+      label: "Gambling",
+      status: "restricted",
+      note: "Regulated by the national gaming authority where permitted.",
+    },
+    {
+      label: "Firearm ownership",
+      status: "restricted",
+      note: "Licensing requirements set by national firearms law.",
+    },
+  ],
+};
+
 const COUNTRY_LEGAL_STATUS: Record<string, CountryLegalStatus> = {
   us: {
     items: [
@@ -13508,60 +13241,6 @@ const COUNTRY_LEGAL_STATUS: Record<string, CountryLegalStatus> = {
         label: "Polygamy",
         status: "illegal",
         note: "Criminal offense under Penal Code",
-      },
-    ],
-  },
-  ru: {
-    items: [
-      {
-        label: "Same-sex marriage/relationships",
-        status: "illegal",
-        note: "'LGBT movement' designated extremist organization Nov 2023",
-      },
-      {
-        label: "Abortion",
-        status: "legal",
-        note: "Up to 12 weeks; government restricting access in some regions",
-      },
-      {
-        label: "Cannabis",
-        status: "illegal",
-        note: "Strictly prohibited; criminal penalties",
-      },
-      {
-        label: "Death penalty",
-        status: "restricted",
-        note: "Moratorium since 1996; Chechen republic reportedly uses it",
-      },
-      {
-        label: "Gun ownership",
-        status: "restricted",
-        note: "Permitted with license; handguns for self-defense limited",
-      },
-      {
-        label: "Criticizing the war in Ukraine",
-        status: "illegal",
-        note: "'Discrediting the army' law 2022; up to 15 years imprisonment",
-      },
-      {
-        label: "'Gay propaganda' promotion",
-        status: "illegal",
-        note: "Extended to all ages in 2023",
-      },
-      {
-        label: "VPN usage",
-        status: "restricted",
-        note: "Unauthorized VPNs blocked; use is technically restricted",
-      },
-      {
-        label: "Gambling",
-        status: "restricted",
-        note: "Legal in 4 special zones only; online gambling banned",
-      },
-      {
-        label: "Sex work",
-        status: "illegal",
-        note: "Criminalized under Administrative Code",
       },
     ],
   },
@@ -15161,6 +14840,4714 @@ const COUNTRY_LEGAL_STATUS: Record<string, CountryLegalStatus> = {
       },
     ],
   },
+  ph: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; SOGIE equality bill stalled in Congress for years",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Criminalized under the Revised Penal Code; no explicit rape or incest exception",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Medical access only via compassionate special permits",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 2006; restoration bills filed repeatedly since",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Prostitution criminalized; anti-trafficking law used for enforcement",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Licensed by PAGCOR; offshore POGO licences banned from 2024",
+      },
+    ],
+  },
+  cd: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; same-sex acts not explicitly criminalized in the penal code",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Maputo Protocol applied since 2018 for rape, incest and health grounds",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; widely cultivated informally in the east",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Retained; the long-standing moratorium was lifted in March 2024",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Solicitation and procuring criminalized rather than the act itself",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Licensed casinos and a national lottery operate under state regulation",
+      },
+    ],
+  },
+  tz: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized; penalties up to life imprisonment",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited under the Drugs Control and Enforcement Act",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions carried out since 1994",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized under the Penal Code",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed and regulated by the Gaming Board of Tanzania",
+      },
+    ],
+  },
+  mm: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Section 377 of the colonial-era penal code retained",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; severe narcotics penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Executions resumed in 2022 after a decades-long pause",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized under the Suppression of Prostitution Act",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "2019 law permits licensed casinos for foreign visitors only",
+      },
+    ],
+  },
+  co_co: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Constitutional Court ruling, April 2016",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Decriminalized up to 24 weeks, Constitutional Court, February 2022",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Personal possession decriminalized and medical use legal; recreational sale bills have failed",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1910; prohibited by the constitution",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Recognized as work by the Constitutional Court; exploitation remains criminal",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Regulated by Coljuegos; first country in Latin America to licence online gambling, 2016",
+      },
+    ],
+  },
+  es: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized July 2005, the third country worldwide to do so",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request to 14 weeks; 2023 reform removed parental consent for 16-17 year olds",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Private consumption and cultivation tolerated; public use draws administrative fines",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for all crimes in 1995; barred by the constitution",
+      },
+      {
+        label: "Euthanasia",
+        status: "legal",
+        note: "Legalized March 2021 under strict eligibility conditions",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not itself criminalized, but procuring and third-party profit are",
+      },
+    ],
+  },
+  sd: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized; the death penalty for the offence was removed in 2020",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, fetal death, or to save the life of the pregnant woman",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited under narcotics law",
+      },
+      { label: "Death penalty", status: "legal", note: "Retained and applied" },
+      {
+        label: "Alcohol",
+        status: "restricted",
+        note: "Ban lifted for non-Muslims in 2020",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+    ],
+  },
+  ug: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Anti-Homosexuality Act 2023; aggravated offences carry the death penalty",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; limited licensed medical export cultivation",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained; no civilian executions since 2005",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized under the Penal Code Act",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Regulated by the national gaming board; new licences suspended at times",
+      },
+    ],
+  },
+  dz: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized under Article 338 of the penal code",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted where the life or health of the pregnant woman is at risk",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; a significant transit route",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1993",
+      },
+      {
+        label: "Alcohol",
+        status: "restricted",
+        note: "Production legal; sale and public consumption heavily restricted",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+    ],
+  },
+  iq: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "2024 amendment criminalizes same-sex relations, up to 15 years",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Criminalized with a narrow exception to save the life of the pregnant woman",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; severe narcotics penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Retained and applied, including for terrorism offences",
+      },
+      {
+        label: "Alcohol",
+        status: "illegal",
+        note: "Import and sale banned by a 2016 law, enforced from 2023",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+    ],
+  },
+  af: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized; severe corporal penalties under Taliban rule",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Effectively prohibited in practice",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Cultivation banned by decree in 2022",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Retained; public executions have resumed",
+      },
+      { label: "Gambling", status: "illegal", note: "Prohibited" },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+    ],
+  },
+  ma: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized under Article 489 of the penal code",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted to save the life of the pregnant woman; 2015 reform widened grounds to rape and incest",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical and industrial cultivation legalized in 2021; recreational use remains illegal",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1993",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized under the penal code",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Licensed casinos and a state lottery operate",
+      },
+    ],
+  },
+  uz: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Article 120 criminalizes male same-sex relations; retained in the 2021 penal code revision",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request in the first trimester",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; strict narcotics penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for all crimes in 2008",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Administrative and criminal penalties apply",
+      },
+      {
+        label: "Gambling",
+        status: "illegal",
+        note: "Banned since 2007; limited state lottery",
+      },
+    ],
+  },
+  ao: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized by the 2019 penal code, effective 2021; discrimination also banned",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, fetal impairment, or risk to health",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1992; barred by the constitution",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Licensed casinos operate under state regulation",
+      },
+    ],
+  },
+  pe: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; foreign marriages have been registered following court rulings",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted only on therapeutic grounds to protect life or health",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical use legalized 2017; small-quantity possession not penalized",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained only for treason in wartime; no executions since 1979",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Legal and registered in designated areas; procuring is criminal",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Casinos and sports betting licensed; online betting regulated from 2023",
+      },
+    ],
+  },
+  ye: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized; capital punishment provided for in law",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "legal", note: "Retained and applied" },
+      {
+        label: "Alcohol",
+        status: "illegal",
+        note: "Prohibited for Muslims; very limited exceptions",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+    ],
+  },
+  gh: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized as unnatural carnal knowledge; a bill to widen penalties passed parliament in 2024",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, fetal impairment, or risk to health",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "2020 act permits licensed low-THC industrial cultivation; recreational use illegal",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Removed for ordinary crimes in 2023; retained for high treason",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized under the Criminal Offences Act",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed by the Gaming Commission of Ghana",
+      },
+    ],
+  },
+  mz: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized by the 2015 penal code",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks since the 2014 penal code reform",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1990; barred by the constitution",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Licensed casinos operate in tourist areas",
+      },
+    ],
+  },
+  np: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "restricted",
+        note: "Interim Supreme Court order allowed registration from 2023; full legislation pending",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks; later on specified grounds",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Banned since 1976; decriminalization bills debated",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1997; barred by the constitution",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized under anti-trafficking legislation",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Casinos licensed for foreign nationals; citizens largely barred",
+      },
+    ],
+  },
+  ve: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; constitution defines marriage as between a man and a woman",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; small-quantity possession may be treated as personal use",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1863, the first country to do so for all crimes",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Not criminalized; regulated in practice through health registration",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Casinos restricted; state lottery operates",
+      },
+    ],
+  },
+  mg: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "restricted",
+        note: "Legal between adults; an age-of-consent provision applies only to same-sex acts",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Long prohibited outright; a 2017 law permits therapeutic abortion",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2015" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Licensed casinos operate in tourist centres",
+      },
+    ],
+  },
+  cm: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Section 347-1 criminalizes same-sex relations; up to five years",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape or to protect health",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1997",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Licensed casinos and betting shops operate",
+      },
+    ],
+  },
+  ci: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Not criminalized, though public-decency provisions have been used against couples",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, fetal impairment, or risk to life",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 2000; barred by the constitution",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed lottery and betting under state regulation",
+      },
+    ],
+  },
+  ne: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Not criminalized; no anti-discrimination protection",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted to save life or on serious health grounds",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1976",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not itself criminalized; procuring is",
+      },
+    ],
+  },
+  tw: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized May 2019, the first in Asia",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Permitted up to 24 weeks on broad grounds; spousal consent requirement debated",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Category 2 narcotic; strict penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Retained; a 2024 constitutional ruling sharply narrowed its application",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Legal only inside designated zones, which local governments have not established",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Sports lottery legal; casinos not permitted on the main island",
+      },
+    ],
+  },
+  bf: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Not criminalized historically; a 2024 draft penal code proposed criminalization",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, fetal impairment, or risk to life",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for ordinary crimes in the 2018 penal code",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not itself criminalized; procuring is",
+      },
+    ],
+  },
+  ml: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized by the 2024 penal code, which reversed prior non-criminalization",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, or to save life",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1980",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not itself criminalized; procuring is",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "State lottery and licensed betting operate",
+      },
+    ],
+  },
+  lk: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Sections 365 and 365A retained; a decriminalization bill has progressed since 2023",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Prohibited generally; permitted in licensed ayurvedic medicine",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1976",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized under the Vagrants Ordinance",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Licensed casinos operate; a regulatory authority was created in 2025",
+      },
+    ],
+  },
+  sy: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Article 520 criminalizes same-sex relations",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "legal", note: "Retained" },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      { label: "Gambling", status: "restricted", note: "Tightly restricted" },
+    ],
+  },
+  mw: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized; a constitutional challenge was rejected in 2024",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman; reform bill stalled",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Industrial and medical cultivation legalized 2020; recreational use illegal",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Mandatory death sentences struck down; no executions since 1992",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not itself criminalized; related offences are enforced",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed by the Malawi Gaming Board",
+      },
+    ],
+  },
+  ro: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; ECHR ruled in 2023 that the lack of civil partnership breaches the Convention",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 14 weeks" },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Recreational use prohibited; medical framework very limited",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1990; barred by the constitution",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Subject to administrative penalties",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed and regulated by the national gambling office",
+      },
+    ],
+  },
+  zm: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized; penalties up to life imprisonment",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted on broad health and socio-economic grounds, but requires three doctors",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Licensed medical and export cultivation permitted from 2019; recreational use illegal",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for murder and treason in 2022",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos and betting operate",
+      },
+    ],
+  },
+  kz: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized 1998; no anti-discrimination protection",
+      },
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; constitution defines marriage as between a man and a woman",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited despite widespread wild growth",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for all crimes in 2021",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Casinos permitted only in two designated zones",
+      },
+    ],
+  },
+  so: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized; sharia penalties applied in some regions",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; khat is legal and widely used",
+      },
+      { label: "Death penalty", status: "legal", note: "Retained and applied" },
+      { label: "Alcohol", status: "illegal", note: "Prohibited" },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+    ],
+  },
+  ec: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Constitutional Court ruling, June 2019",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape and risk to health following 2021-22 court rulings and law",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Personal possession below threshold quantities not penalized; medical use permitted",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1906; barred by the constitution",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Not criminalized; regulated through health registration",
+      },
+      {
+        label: "Gambling",
+        status: "illegal",
+        note: "Casinos banned by 2011 referendum",
+      },
+    ],
+  },
+  nl: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized April 2001, the first country in the world",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request to viability (about 24 weeks); the mandatory five-day wait was removed in 2023",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Sale tolerated in licensed coffeeshops; a regulated supply-chain trial began in 2023",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for ordinary crimes 1870, for all crimes 1982",
+      },
+      {
+        label: "Euthanasia",
+        status: "legal",
+        note: "Legalized 2002 under strict due-care criteria",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Legal and licensed since 2000",
+      },
+    ],
+  },
+  gt: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred; civil code defines marriage as between a man and a woman",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 2000",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Not criminalized; procuring is",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Operates in a limited legal framework",
+      },
+    ],
+  },
+  sn: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Article 319 criminalizes same-sex acts; bills to widen penalties have been rejected",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2004" },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Legal for registered workers over 21; unregistered work is penalized",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "State lottery and licensed casinos operate",
+      },
+    ],
+  },
+  td: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized by the 2017 penal code",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, fetal impairment, or risk to life",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for ordinary crimes in 2020",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Limited licensed operation",
+      },
+    ],
+  },
+  kh: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; same-sex relations are not criminalized",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited, though historically tolerated in some cooking",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1989; barred by the constitution",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "Criminalized under the 2008 anti-trafficking law",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Casinos licensed for foreigners; citizens barred from most gaming",
+      },
+    ],
+  },
+  zw: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Male same-sex acts criminalized; constitution bars same-sex marriage",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, fetal impairment, or risk to life",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Licensed medical and industrial cultivation permitted from 2018",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for ordinary crimes in December 2024",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Soliciting and public offences enforced",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos and sports betting operate",
+      },
+    ],
+  },
+  rw: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Not criminalized; no anti-discrimination protection",
+      },
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, forced marriage, or risk to health",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; strict penalties",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2007" },
+      { label: "Gambling", status: "legal", note: "Licensed and regulated" },
+    ],
+  },
+  gn: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized under the penal code",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, fetal impairment, or risk to life",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for ordinary crimes in 2016",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Limited licensed operation",
+      },
+    ],
+  },
+  bj: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Not criminalized; public-decency provisions may still apply",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Broadly legalized in 2021 up to 12 weeks, among the most permissive in the region",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2016" },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not itself criminalized; procuring is",
+      },
+    ],
+  },
+  bi: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized since 2009; penalties of up to two years",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted to save life or protect health",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2009" },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Limited licensed operation",
+      },
+    ],
+  },
+  bo: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "restricted",
+        note: "Marriage constitutionally barred; free unions registrable since a 2020 ruling",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, or risk to health",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; coca cultivation is separately legal and regulated",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1997" },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Legal and regulated through health registration",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Licensed under the national gaming authority",
+      },
+    ],
+  },
+  tn: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Article 230 criminalizes sodomy; up to three years",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks since 1973, among the earliest in the region",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; Law 52 penalties eased by 2017 reform",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1991",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Legal only in a small number of licensed establishments",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Casinos licensed for foreign visitors",
+      },
+    ],
+  },
+  be: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized June 2003, the second country worldwide",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks; extension to 18 weeks has been debated",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Possession of up to 3g by adults not prosecuted as a priority",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for all crimes in 1996; barred by the constitution",
+      },
+      {
+        label: "Euthanasia",
+        status: "legal",
+        note: "Legalized 2002; extended to minors in 2014",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Decriminalized in 2022 with employment rights added in 2024",
+      },
+    ],
+  },
+  ht: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; same-sex relations are not criminalized",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Criminalized; a 2020 draft penal code liberalizing it was not brought into force",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1987; barred by the constitution",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not clearly criminalized; procuring is",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Lottery and casinos operate",
+      },
+    ],
+  },
+  ss: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized under the 2008 penal code",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "legal", note: "Retained and applied" },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Limited regulated operation",
+      },
+    ],
+  },
+  do: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Total ban; the three-grounds exception has been repeatedly rejected",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1966; barred by the constitution",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Not criminalized; procuring is",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Casinos and sports betting licensed",
+      },
+    ],
+  },
+  cu: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Approved by referendum in the 2022 Families Code",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Legal and free on request up to 10 weeks since 1965",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; severe penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 2003",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not itself criminalized; pimping and harassment offences enforced",
+      },
+      {
+        label: "Gambling",
+        status: "illegal",
+        note: "Casinos banned since 1959",
+      },
+    ],
+  },
+  cz: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "restricted",
+        note: "Partnership upgraded in 2024 to give near-marriage rights, without the name",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Possession of small amounts is an administrative offence; medical use legal",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1990; barred by the charter of rights",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not criminalized but unregulated; brothels formally prohibited",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed and regulated, including online",
+      },
+    ],
+  },
+  gr: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized February 2024, the first Orthodox-majority country to do so",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical cannabis legalized 2017; recreational use prohibited",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for all crimes in 2004",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Legal and licensed, though licences are hard to obtain in practice",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed and regulated by the national gaming commission",
+      },
+    ],
+  },
+  hn: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred; an Inter-American Court ruling in 2025 found this in breach",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Total ban; emergency contraception was legalized in 2023",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1956; barred by the constitution",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Not criminalized; procuring is",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Casinos and lottery licensed",
+      },
+    ],
+  },
+  pt: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized June 2010; adoption rights added 2016",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 10 weeks following the 2007 referendum",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "All personal drug possession decriminalized in 2001, treated as a health matter",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for civil crimes in 1867, among the earliest in Europe",
+      },
+      {
+        label: "Euthanasia",
+        status: "legal",
+        note: "Passed in 2023 after repeated vetoes; implementation has been slow",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not criminalized; procuring and brothel-keeping are",
+      },
+    ],
+  },
+  jo: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Not criminalized since 1951, though public-morality provisions are used",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted to protect the life or health of the pregnant woman",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; strict penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Retained; executions resumed in 2014 after an eight-year pause",
+      },
+      { label: "Gambling", status: "illegal", note: "Prohibited" },
+    ],
+  },
+  az_as: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized 2000; no anti-discrimination protection",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks; sex-selective abortion separately restricted",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1998, the first in the South Caucasus",
+      },
+      {
+        label: "Gambling",
+        status: "illegal",
+        note: "Banned since 1998; state lottery permitted",
+      },
+    ],
+  },
+  pg: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized under the criminal code; up to 14 years",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to preserve the life or health of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished January 2022",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed under the national gaming board",
+      },
+    ],
+  },
+  tj: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized 1998; severe social and police pressure persists",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Moratorium in force since 2004; not formally abolished",
+      },
+      { label: "Gambling", status: "illegal", note: "Banned since 2007" },
+    ],
+  },
+  hu: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred since 2012; registered partnership available",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks; a 2022 decree added a fetal heartbeat requirement",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; no medical programme",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1990 by constitutional court ruling",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Legal for registered workers in designated zones",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "State-concession model; online licensing opened in 2023",
+      },
+    ],
+  },
+  by: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized 1994; no anti-discrimination protection",
+      },
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; severe penalties under Decree No. 6",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "The only country in Europe still carrying out executions",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos operate; online gambling regulated since 2019",
+      },
+    ],
+  },
+  at: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized January 2019 by constitutional court ruling",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks; not covered by public insurance",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical use permitted; possession is an offence though often not prosecuted",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for all crimes in 1968",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Legal and regulated, with registration and health checks required",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Operated under a limited state concession model",
+      },
+    ],
+  },
+  tg: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized under the penal code",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, fetal impairment, or risk to life",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2009" },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not itself criminalized; procuring is",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "State lottery and licensed betting operate",
+      },
+    ],
+  },
+  ch: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Approved by referendum in September 2021, effective July 2022",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks since a 2002 referendum",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Possession under 10g fined; regulated adult-use pilot trials running since 2022",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for all crimes in 1992",
+      },
+      {
+        label: "Assisted suicide",
+        status: "legal",
+        note: "Permitted where no selfish motive is involved, uniquely open to non-residents",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Legal and regulated at cantonal level",
+      },
+    ],
+  },
+  sl: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Male same-sex acts criminalized under colonial-era law",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted to save life; the 2022 Safe Motherhood Bill has not been enacted",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2021" },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not itself criminalized; related offences enforced",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed betting and lottery operate",
+      },
+    ],
+  },
+  py: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; constitution defines marriage as between a man and a woman",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical and industrial cultivation licensed; recreational use illegal",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1992; barred by the constitution",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Legal from age 18; procuring is criminal",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed by the national gaming commission",
+      },
+    ],
+  },
+  la: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; same-sex relations are not criminalized",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only on narrow medical grounds",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; strict penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no confirmed executions in decades",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Casinos licensed in special economic zones for foreigners",
+      },
+    ],
+  },
+  ni: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; same-sex relations decriminalized in 2008",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Total ban since 2006, with no exception to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1979" },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Not criminalized; procuring is",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Casinos and lottery licensed",
+      },
+    ],
+  },
+  kg: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized 1998; a 2023 law restricts related public expression",
+      },
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited despite extensive wild growth",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2007" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Banned in 2012; casinos for foreign visitors permitted again from 2021",
+      },
+    ],
+  },
+  rs: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred; a same-sex union bill was shelved in 2021",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 10 weeks" },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; medical framework very limited",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2002" },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "An administrative offence under the public order act",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed and regulated, including online",
+      },
+    ],
+  },
+  ly: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized; penalties of up to five years",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Retained; applied by competing authorities",
+      },
+      { label: "Alcohol", status: "illegal", note: "Prohibited since 1969" },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+    ],
+  },
+  bg: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred; no civil partnership, though ECHR rulings have found a violation",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; among the stricter regimes in the EU",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1998" },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not criminalized but unregulated; procuring is criminal",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed and regulated; state monopoly on lottery since 2020",
+      },
+    ],
+  },
+  sv: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred since 2015",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Total ban since 1998, including where the life of the pregnant woman is at risk",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Abolished for ordinary crimes; retained in military law for wartime",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Not criminalized; procuring is",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Casinos and lottery licensed",
+      },
+    ],
+  },
+  tm: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Male same-sex acts criminalized; up to two years",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; severe penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1999, the first in Central Asia",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      { label: "Gambling", status: "illegal", note: "Prohibited" },
+    ],
+  },
+  dk: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized June 2012; the first country to recognize registered partnership, in 1989",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request; the limit was extended from 12 to 18 weeks in 2025",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; a medical pilot programme runs alongside",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for ordinary crimes 1933, for all crimes 1994",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Decriminalized 1999; procuring remains illegal",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed and regulated since the 2012 liberalization",
+      },
+    ],
+  },
+  cg: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Not criminalized between adults; a higher age of consent applies",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, or risk to life",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2015" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Licensed casinos operate",
+      },
+    ],
+  },
+  cf: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "restricted",
+        note: "Not criminalized as such; public displays are penalized under the penal code",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape or risk to life",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2022" },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+    ],
+  },
+  fi: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized March 2017 following a citizens initiative",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks since the 2023 reform removed the two-doctor requirement",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; possession usually results in a fine",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for ordinary crimes 1949, for all crimes 1972",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Selling is legal; purchasing from a trafficked person is criminal",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "State monopoly under Veikkaus; a licensing system is being introduced",
+      },
+    ],
+  },
+  ps: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "restricted",
+        note: "Not criminalized in the West Bank; criminalized in Gaza under the 1936 code",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Retained; executions have been carried out in Gaza",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      { label: "Gambling", status: "illegal", note: "Prohibited" },
+    ],
+  },
+  sk: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred since 2014; no civil partnership",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks; repeated restriction bills have narrowly failed",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; among the stricter regimes in the EU",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1990" },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not criminalized but unregulated; procuring is criminal",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed and regulated, including online since 2019",
+      },
+    ],
+  },
+  lr: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Voluntary sodomy is a misdemeanour under the penal code",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, fetal impairment, or risk to health",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law despite ratifying an abolition protocol; no recent executions",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed by the national lottery authority",
+      },
+    ],
+  },
+  lb: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "restricted",
+        note: "Article 534 still used, though several courts have declined to apply it",
+      },
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; personal status is governed by religious courts",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Criminalized with a narrow exception to save life",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical and industrial cultivation legalized in 2020; recreational use illegal",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 2004",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Casino du Liban holds an exclusive concession",
+      },
+    ],
+  },
+  cr: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized May 2020, the first in Central America",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted to protect the life or health of the pregnant woman",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical and hemp cultivation legalized 2022; recreational use illegal",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1877, among the earliest worldwide",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Not criminalized; procuring is",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Casinos licensed; a long-standing online licensing hub",
+      },
+    ],
+  },
+  nz: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized August 2013, the first in the Asia-Pacific region",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Removed from the Crimes Act in 2020; on request up to 20 weeks",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical use legal since 2018; a 2020 legalization referendum narrowly failed",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for murder 1961, for all crimes 1989",
+      },
+      {
+        label: "Euthanasia",
+        status: "legal",
+        note: "Assisted dying approved by referendum, in force from November 2021",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Fully decriminalized by the Prostitution Reform Act 2003",
+      },
+    ],
+  },
+  ie: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Approved by referendum in May 2015, the first country to do so by popular vote",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Legalized after the 2018 referendum repealed the Eighth Amendment; on request to 12 weeks",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; a medical access programme operates",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1990; constitutionally barred by referendum in 2001",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Selling legal; purchasing criminalized under the 2017 Nordic-model law",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed under a regulatory authority established in 2024",
+      },
+    ],
+  },
+  mr: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized; capital punishment provided for in law for Muslim men",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1987",
+      },
+      { label: "Alcohol", status: "illegal", note: "Prohibited for Muslims" },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+    ],
+  },
+  om: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized under the 2018 penal code",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only on narrow medical grounds",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; severe penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Retained; rarely applied",
+      },
+      {
+        label: "Alcohol",
+        status: "restricted",
+        note: "Licensed sale to non-Muslims; personal licences required",
+      },
+      { label: "Gambling", status: "illegal", note: "Prohibited" },
+    ],
+  },
+  pa: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Supreme Court upheld the ban in 2023",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, fetal impairment, or risk to life, subject to a review board",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical use legalized 2021; recreational use illegal",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1922; barred by the constitution",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Legal and registered; procuring is criminal",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed and regulated; online gaming permitted",
+      },
+    ],
+  },
+  kw: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized; the transgender impersonation offence was struck down in 2022",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted on medical grounds with spousal consent",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; severe penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Retained; executions resumed in 2022",
+      },
+      { label: "Alcohol", status: "illegal", note: "Prohibited since 1964" },
+      { label: "Gambling", status: "illegal", note: "Prohibited" },
+    ],
+  },
+  hr: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "restricted",
+        note: "Constitutionally barred; life partnership grants most rights, and adoption was allowed by a 2022 ruling",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 10 weeks; conscientious objection is widespread",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical use legal since 2015; possession is a misdemeanour",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1990" },
+      { label: "Sex work", status: "illegal", note: "A misdemeanour offence" },
+      { label: "Gambling", status: "legal", note: "Licensed and regulated" },
+    ],
+  },
+  ge_as: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized 2000; a 2024 law restricts related public expression",
+      },
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred since 2018",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks, with a mandatory waiting period",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Constitutional Court removed penalties for personal consumption in 2018; sale remains illegal",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1997; barred by the constitution",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed and a significant sector; advertising restricted from 2022",
+      },
+    ],
+  },
+  er: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized under the penal code",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted to save life or on grave health grounds",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no confirmed judicial executions in recent years",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      { label: "Gambling", status: "illegal", note: "Prohibited" },
+    ],
+  },
+  uy: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized August 2013",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks since 2012, the first in South America",
+      },
+      {
+        label: "Cannabis",
+        status: "legal",
+        note: "Fully legalized in 2013, the first country in the world to do so",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1907, among the earliest worldwide",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Legal and regulated with registration",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "State casinos and licensed private operators",
+      },
+    ],
+  },
+  mn_as: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized 2002; hate-crime protection added in the 2017 criminal code",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2017" },
+      {
+        label: "Gambling",
+        status: "illegal",
+        note: "Casinos prohibited; state lottery permitted",
+      },
+    ],
+  },
+  ba: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; a same-sex partnership law has been drafted in one entity",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 10 weeks" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2001" },
+      { label: "Sex work", status: "illegal", note: "A misdemeanour offence" },
+      { label: "Gambling", status: "legal", note: "Licensed at entity level" },
+    ],
+  },
+  pr: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legal since Obergefell v. Hodges, 2015, as a US territory",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Legal; restriction bills have been repeatedly rejected",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical cannabis legal since 2017; recreational use illegal",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Barred by the territorial constitution since 1952",
+      },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "Licensing liberalized by the 2020 weapons act",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Casinos and sports betting licensed",
+      },
+    ],
+  },
+  am: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized 2003; no anti-discrimination protection",
+      },
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred; foreign marriages are recognized on paper",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks; sex-selective abortion separately restricted",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2003" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Casinos confined to designated zones; online gambling restricted from 2024",
+      },
+    ],
+  },
+  jm: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "The buggery law is retained; a constitutional challenge was dismissed in 2023",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Criminalized under the Offences Against the Person Act; reform repeatedly stalled",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Possession of up to 2oz decriminalized in 2015; medical industry licensed",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1988",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed by the Betting, Gaming and Lotteries Commission",
+      },
+    ],
+  },
+  lt: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred; a civil union bill has repeatedly failed",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical use permitted since 2019; possession is an administrative offence",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1998 by constitutional court ruling",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "An administrative offence for both parties",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed and regulated; advertising banned from 2021",
+      },
+    ],
+  },
+  al_al: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized 1995; anti-discrimination law in force since 2010",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical and industrial cultivation legalized in 2023; recreational use illegal",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for all crimes in 2007",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Most betting banned in 2019; casinos permitted in limited locations",
+      },
+    ],
+  },
+  qa: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized under the penal code and sharia provisions",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted on narrow medical grounds with committee approval",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; severe penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Retained; rarely applied",
+      },
+      {
+        label: "Alcohol",
+        status: "restricted",
+        note: "Licensed sale to non-Muslims in designated venues",
+      },
+      { label: "Gambling", status: "illegal", note: "Prohibited" },
+    ],
+  },
+  gm: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized; aggravated homosexuality penalties introduced in 2014 remain",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Moratorium since 2018; abolition proposed in the draft constitution",
+      },
+      {
+        label: "Female genital mutilation (FGM)",
+        status: "illegal",
+        note: "Banned in 2015; a 2024 repeal attempt was defeated",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Licensed lottery and betting operate",
+      },
+    ],
+  },
+  bw: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized by the High Court in 2019, upheld on appeal in 2021",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, fetal impairment, or risk to health",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Retained and still carried out",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed by the national gambling authority",
+      },
+    ],
+  },
+  na: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Sodomy law struck down by the High Court in 2024",
+      },
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Foreign marriages recognized by a 2023 Supreme Court ruling; parliament moved to bar them",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, fetal impairment, or risk to health",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1990; barred by the constitution",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos and betting operate",
+      },
+    ],
+  },
+  md: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred; no civil partnership",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; possession is an administrative offence",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1995; barred by the constitution since 2006",
+      },
+      {
+        label: "Sex work",
+        status: "illegal",
+        note: "An administrative offence",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "State monopoly on lottery and betting since 2016",
+      },
+    ],
+  },
+  ls: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Male same-sex acts decriminalized by the 2012 penal code",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, or risk to health",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Licensed medical cultivation since 2017, the first in Africa",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1995",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos and lottery operate",
+      },
+    ],
+  },
+  ga_af: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Criminalized in 2019 and decriminalized again in 2020",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, or risk to health",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2010" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Licensed casinos operate",
+      },
+    ],
+  },
+  si: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized by constitutional court ruling in 2022, the first post-communist EU state",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 10 weeks; constitutionally protected",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Possession of small amounts is an administrative offence; medical use permitted",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1989; barred by the constitution",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Decriminalized 2003; procuring remains illegal",
+      },
+      { label: "Gambling", status: "legal", note: "Licensed and regulated" },
+    ],
+  },
+  mk: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; no civil partnership",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks; 2019 law removed earlier procedural barriers",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical cannabis legalized 2016 with an export industry; recreational use illegal",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1991" },
+      { label: "Sex work", status: "illegal", note: "A misdemeanour offence" },
+      { label: "Gambling", status: "legal", note: "Licensed and regulated" },
+    ],
+  },
+  gw: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Not criminalized; no anti-discrimination protection",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted on health grounds and in cases of rape",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; a known trafficking transit point",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1993; barred by the constitution",
+      },
+      {
+        label: "Female genital mutilation (FGM)",
+        status: "illegal",
+        note: "Banned since 2011",
+      },
+    ],
+  },
+  lv: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "restricted",
+        note: "Constitutionally barred; civil partnership available since July 2024",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 12 weeks" },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; possession is an administrative offence at first instance",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for all crimes in 2012, the last EU state to do so",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Legal and regulated with health requirements; brothels prohibited",
+      },
+      { label: "Gambling", status: "legal", note: "Licensed and regulated" },
+    ],
+  },
+  xk: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitution is read as permitting it, but the civil code recognizing unions failed in 2022",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 10 weeks" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Barred by the constitution",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "illegal",
+        note: "Banned in 2019 following violent incidents",
+      },
+    ],
+  },
+  bh: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized 1976; public-morality provisions still used",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted on medical grounds",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; severe penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "legal",
+        note: "Retained; executions resumed in 2017",
+      },
+      {
+        label: "Alcohol",
+        status: "restricted",
+        note: "Licensed sale to non-Muslims",
+      },
+    ],
+  },
+  gq: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Not criminalized; no anti-discrimination protection",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted on narrow medical grounds",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished September 2022",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Limited licensed operation",
+      },
+    ],
+  },
+  tt: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Decriminalized by the High Court in 2018, but that ruling was overturned on appeal in 2025",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Criminalized with a narrow health exception under case law",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Possession of up to 30g decriminalized in 2019; home cultivation permitted",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Mandatory for murder in law; no executions since 1999",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed under the 2021 gambling control act",
+      },
+    ],
+  },
+  ee: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized January 2024, the first Baltic and post-Soviet state to do so",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 11 weeks" },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; small-quantity possession is a misdemeanour",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1998" },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Not criminalized; procuring is",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed and regulated, including online",
+      },
+    ],
+  },
+  tl: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Not criminalized; no anti-discrimination protection",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Barred by the constitution since independence",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Limited licensed operation",
+      },
+    ],
+  },
+  mu: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Sodomy law struck down by the Supreme Court in October 2023",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, fetal impairment, or risk to health since 2012",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1995" },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos, lottery and betting operate",
+      },
+    ],
+  },
+  cy: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "restricted",
+        note: "Civil partnership since 2015; marriage not available",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks since the 2018 reform",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical cannabis legalized 2019; recreational use illegal",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for all crimes in 2002",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not criminalized; brothels and procuring are",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "One integrated casino resort licensed; online casino games banned",
+      },
+    ],
+  },
+  sz: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Common-law sodomy offence retained; registration of an LGBTQ group was refused in 2022",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, or risk to health",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; medical framework debated",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1983",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      { label: "Gambling", status: "legal", note: "Licensed casinos operate" },
+    ],
+  },
+  dj: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Not criminalized; strong social stigma persists",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; khat is legal and widely used",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1995; barred by the constitution",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "One licensed casino operates",
+      },
+    ],
+  },
+  fj: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized 2010; the constitution bars discrimination on sexual orientation",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, fetal impairment, or risk to health",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for all crimes in 2015",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Licensed lottery and limited gaming",
+      },
+    ],
+  },
+  km: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized under Article 318 of the penal code",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1997",
+      },
+      {
+        label: "Alcohol",
+        status: "restricted",
+        note: "Restricted for Muslims; available to visitors",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+    ],
+  },
+  gy: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Buggery law retained, though cross-dressing laws were struck down in 2018",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 8 weeks since 1995, unusually permissive for the region",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; sentencing reform has been debated",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1997",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos and lottery operate",
+      },
+    ],
+  },
+  bt: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized by parliament in 2020, effective 2021",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, or risk to health",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited despite growing wild",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2004" },
+      {
+        label: "Tobacco",
+        status: "restricted",
+        note: "A total sales ban applied from 2010 until it was lifted in 2021",
+      },
+    ],
+  },
+  sb: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized under the penal code",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1966; barred by the constitution",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Limited licensed operation",
+      },
+    ],
+  },
+  lu: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized January 2015",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks; decriminalized fully in 2014",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Home cultivation of up to four plants and private use permitted from 2023",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1979" },
+      { label: "Euthanasia", status: "legal", note: "Legalized 2009" },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Not criminalized; procuring is",
+      },
+    ],
+  },
+  sr: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized; equal age of consent since 2015",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Criminalized in law but widely available in practice",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2015" },
+      { label: "Gambling", status: "legal", note: "Licensed casinos operate" },
+    ],
+  },
+  me_eu: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "restricted",
+        note: "Life partnership recognized since 2021; marriage not available",
+      },
+      { label: "Abortion", status: "legal", note: "On request up to 10 weeks" },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2002" },
+      { label: "Sex work", status: "illegal", note: "A misdemeanour offence" },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos and betting operate",
+      },
+    ],
+  },
+  eh: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Moroccan penal code applied in the areas under Moroccan administration",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Follows Moroccan law where that applies",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Moroccan law applies; a long-standing execution moratorium is in force",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Governed by the administering authority",
+      },
+    ],
+  },
+  cv: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized 2004; anti-discrimination protection in the penal code",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks since 1986",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1981; barred by the constitution",
+      },
+      { label: "Gambling", status: "legal", note: "Licensed casinos operate" },
+    ],
+  },
+  mv: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized; penalties include imprisonment and flogging",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only on narrow medical or religious grounds",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; severe penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1954",
+      },
+      {
+        label: "Alcohol",
+        status: "restricted",
+        note: "Prohibited for citizens; served in resorts to visitors",
+      },
+      { label: "Gambling", status: "illegal", note: "Prohibited" },
+    ],
+  },
+  mt_eu: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized July 2017",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Near-total ban until a narrow life-and-health exception was added in 2023",
+      },
+      {
+        label: "Cannabis",
+        status: "legal",
+        note: "Personal use and home cultivation legalized in December 2021, the first in the EU",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished for all crimes in 2000",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not criminalized; soliciting and procuring are",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "A major licensing jurisdiction under the Malta Gaming Authority",
+      },
+    ],
+  },
+  bn: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Criminalized; the 2019 sharia code provides for stoning, under an execution moratorium",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Criminalized with a narrow exception to save life",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; severe penalties",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1957",
+      },
+      {
+        label: "Alcohol",
+        status: "illegal",
+        note: "Sale banned since 1991; limited personal import for non-Muslims",
+      },
+      { label: "Gambling", status: "illegal", note: "Prohibited" },
+    ],
+  },
+  bz: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized by the Supreme Court in 2016",
+      },
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted on health and socio-economic grounds",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Possession of up to 10g decriminalized in 2017",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1985",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos and lottery operate",
+      },
+    ],
+  },
+  bs: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized 1991; unequal age of consent removed later",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Criminalized with a narrow exception to save life",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; a medical and decriminalization bill has been proposed",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 2000",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Casinos licensed; residents were long barred, with rules eased from 2014",
+      },
+    ],
+  },
+  is: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized June 2010 by unanimous parliamentary vote",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 22 weeks since 2019, among the most permissive limits",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; possession usually results in a fine",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1928" },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Selling legal; purchasing criminalized under the 2009 Nordic-model law",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Only licensed charitable lotteries permitted; no commercial casinos",
+      },
+    ],
+  },
+  vu: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Not criminalized; no anti-discrimination protection",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted on health grounds",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Licensed medical and industrial cultivation permitted from 2018",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished at independence in 1980",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos and an online licensing regime operate",
+      },
+    ],
+  },
+  bb: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Buggery and indecency laws struck down by the High Court in December 2022",
+      },
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized; civil union has been proposed",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Permitted on broad grounds up to 12 weeks since 1983",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Sacramental use permitted and small-quantity possession decriminalized in 2019",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Mandatory sentence removed in 2018; no executions since 1984",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Lottery and betting licensed; casinos not permitted",
+      },
+    ],
+  },
+  st: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized 2012",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted on health grounds and in cases of rape",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1990; barred by the constitution",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Limited licensed operation",
+      },
+    ],
+  },
+  ws: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Male same-sex acts criminalized; the impersonation offence was repealed in 2013",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted to protect life or mental health",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2004" },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Licensed lottery and limited gaming",
+      },
+    ],
+  },
+  lc: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Buggery law retained though not actively enforced",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, fetal impairment, or risk to health",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; decriminalization has been debated regionally",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1995",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos and lottery operate",
+      },
+    ],
+  },
+  gu: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legal since 2015, ahead of and then confirmed by Obergefell, as a US territory",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Legal but no provider practised on-island for years; a 2021 telemedicine law was contested",
+      },
+      {
+        label: "Cannabis",
+        status: "legal",
+        note: "Recreational use legalized in 2019",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1952" },
+      {
+        label: "Gun ownership",
+        status: "restricted",
+        note: "Licensing required under territorial law",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Limited licensed gaming; casino proposals repeatedly rejected",
+      },
+    ],
+  },
+  ki: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Male same-sex acts criminalized under the penal code",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished at independence in 1979",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Limited licensed operation",
+      },
+    ],
+  },
+  fm: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Not criminalized at national level",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished; barred by the constitution",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Regulated at state level",
+      },
+    ],
+  },
+  gd: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Buggery law retained though not actively enforced",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted on health grounds",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; Rastafarian sacramental use has been debated",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1978",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos and lottery operate",
+      },
+    ],
+  },
+  vc: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Buggery law retained; a constitutional challenge was dismissed in 2024",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted on health grounds",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical and sacramental cannabis licensed since 2018",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1995",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos and lottery operate",
+      },
+    ],
+  },
+  to: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Male same-sex acts criminalized under the criminal offences act",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1982",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Limited licensed operation",
+      },
+    ],
+  },
+  sc: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized 2016",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted for rape, incest, fetal impairment, or risk to health",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1993; barred by the constitution",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos and betting operate",
+      },
+    ],
+  },
+  ag: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Buggery law struck down by the High Court in July 2022",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted to save the life of the pregnant woman",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Possession of up to 15g and home cultivation decriminalized in 2018",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1991",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos and online gaming operate",
+      },
+    ],
+  },
+  ad: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Civil union upgraded to full marriage equality in February 2023",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Historically a total ban; a narrow exception framework was agreed in 2024",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1990, the first in Western Europe to do so constitutionally",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "A single casino concession was awarded in 2019",
+      },
+    ],
+  },
+  dm: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Buggery and indecency laws struck down by the High Court in April 2024",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted on health grounds",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Possession of small quantities decriminalized in 2020",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; no executions since 1986",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos and online gaming operate",
+      },
+    ],
+  },
+  bm: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Legalized in 2017, then reversed; the Privy Council upheld the reversal in 2022",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Permitted on broad grounds since the 2016 reform",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Possession of up to 7g decriminalized; a legalization bill was blocked by the governor",
+      },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1999" },
+      {
+        label: "Gun ownership",
+        status: "illegal",
+        note: "Private firearm ownership effectively prohibited",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "A casino framework was legislated but not brought into operation",
+      },
+    ],
+  },
+  gl: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Danish marriage law extended to Greenland in 2016",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "On request up to 12 weeks under Danish-derived law",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished; Danish law applies",
+      },
+      {
+        label: "Sex work",
+        status: "legal",
+        note: "Not criminalized; procuring is",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Regulated under Danish licensing",
+      },
+    ],
+  },
+  fo: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized July 2017 after a narrow parliamentary vote",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "More restrictive than Denmark; permitted on specified grounds rather than on request",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished; Danish law applies",
+      },
+      {
+        label: "Alcohol",
+        status: "restricted",
+        note: "Sold through a state monopoly after a long prohibition era",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Limited licensed operation",
+      },
+    ],
+  },
+  kn: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Buggery and indecency laws struck down by the High Court in August 2022",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted on health grounds",
+      },
+      {
+        label: "Cannabis",
+        status: "decriminalized",
+        note: "Possession of small quantities and sacramental use decriminalized in 2020",
+      },
+      {
+        label: "Death penalty",
+        status: "restricted",
+        note: "Retained in law; last execution in 2008",
+      },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Licensed casinos and online gaming operate",
+      },
+    ],
+  },
+  mh: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Not criminalized",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished; barred by the constitution",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Limited licensed operation",
+      },
+    ],
+  },
+  li: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "legal",
+        note: "Legalized by parliament in 2024, in force from January 2025",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Criminalized; a 2011 liberalization referendum was rejected",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 1987" },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "legal",
+        note: "Casinos licensed since 2017; a phase-out was approved by referendum in 2025",
+      },
+    ],
+  },
+  mc: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "restricted",
+        note: "Cohabitation contract available since 2020; marriage not recognized",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Decriminalized for the woman in 2019; still not generally available",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1962; barred by the constitution",
+      },
+      {
+        label: "Sex work",
+        status: "restricted",
+        note: "Not criminalized; procuring is",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Casinos licensed, but Monegasque citizens are barred from gaming rooms",
+      },
+    ],
+  },
+  sm: {
+    items: [
+      {
+        label: "Same-sex marriage",
+        status: "restricted",
+        note: "Civil union with near-marriage rights since 2018; marriage not available",
+      },
+      {
+        label: "Abortion",
+        status: "legal",
+        note: "Legalized by referendum in 2021, ending a ban dating to 1865",
+      },
+      {
+        label: "Cannabis",
+        status: "restricted",
+        note: "Medical cannabis permitted; recreational use illegal",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1865, among the first in the world",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Limited licensed operation",
+      },
+    ],
+  },
+  pw: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized in the 2014 penal code",
+      },
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Constitutionally barred since 2008",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Criminalized with a narrow exception to save life",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished; barred by the constitution",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Casino proposals have been repeatedly rejected",
+      },
+    ],
+  },
+  ck: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized by the 2023 crimes act",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted on health grounds",
+      },
+      {
+        label: "Cannabis",
+        status: "illegal",
+        note: "Prohibited; a medical framework has been debated",
+      },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished; not provided for in law",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Licensed lottery and limited gaming",
+      },
+    ],
+  },
+  tv: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "illegal",
+        note: "Male same-sex acts criminalized under the penal code",
+      },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Permitted only to save the life of the pregnant woman",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished 1978 at independence",
+      },
+      { label: "Sex work", status: "illegal", note: "Criminalized" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Very limited regulated activity",
+      },
+    ],
+  },
+  nr: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Decriminalized in the 2016 crimes act",
+      },
+      { label: "Same-sex marriage", status: "illegal", note: "Not recognized" },
+      {
+        label: "Abortion",
+        status: "illegal",
+        note: "Criminalized with a narrow exception to save life",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      { label: "Death penalty", status: "illegal", note: "Abolished 2016" },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Very limited regulated activity",
+      },
+    ],
+  },
+  nu: {
+    items: [
+      {
+        label: "Same-sex relationships",
+        status: "legal",
+        note: "Not criminalized; New Zealand-derived law applies",
+      },
+      {
+        label: "Same-sex marriage",
+        status: "illegal",
+        note: "Not recognized locally",
+      },
+      {
+        label: "Abortion",
+        status: "restricted",
+        note: "Permitted on health grounds",
+      },
+      { label: "Cannabis", status: "illegal", note: "Prohibited" },
+      {
+        label: "Death penalty",
+        status: "illegal",
+        note: "Abolished; not provided for in law",
+      },
+      {
+        label: "Gambling",
+        status: "restricted",
+        note: "Very limited regulated activity",
+      },
+    ],
+  },
 };
 
 const STATUS_CONFIG: Record<
@@ -15207,11 +19594,10 @@ const SRC_LEGAL = [
 ];
 
 function CountryLegalStatusSection({ country }: { country: Country }) {
-  const data = COUNTRY_LEGAL_STATUS[country.id];
+  const data = COUNTRY_LEGAL_STATUS[country.id] ?? DEFAULT_COUNTRY_LEGAL;
   const [filter, setFilter] = React.useState<LegalItem["status"] | "all">(
     "all",
   );
-  if (!data) return null;
 
   const filtered =
     filter === "all"
@@ -15483,7 +19869,10 @@ function ConstitutionTab({ country }: { country: Country }) {
               Current Political Status
             </p>
             <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-              Live political landscape as of 2025
+              {/* Said "Live political landscape as of 2025" — it cannot be
+                  both live and fixed to a past year. It is curated, so it
+                  says so. */}
+              Curated political landscape · 2025
             </p>
           </div>
         </div>
@@ -15839,7 +20228,7 @@ const COUNTRY_PHOTOS: Record<string, { url: string; caption: string }[]> = {
     },
     {
       url: "https://images.unsplash.com/photo-1513415277900-a62401e19be4?w=800&q=80",
-      caption: "Terracotta Army, Xi&#39;an",
+      caption: "Terracotta Army, Xi'an",
     },
     {
       url: "https://images.unsplash.com/photo-1568275279434-ee8948fe7d63?w=800&q=80",
@@ -15983,7 +20372,7 @@ const COUNTRY_PHOTOS: Record<string, { url: string; caption: string }[]> = {
     },
     {
       url: "https://images.unsplash.com/photo-1556983703-27576e5afa24?w=800&q=80",
-      caption: "St. Basil&#39;s Cathedral, Moscow",
+      caption: "St. Basil's Cathedral, Moscow",
     },
     {
       url: "https://images.unsplash.com/photo-1529988885170-24e5c8571f91?w=800&q=80",
@@ -16017,7 +20406,7 @@ const COUNTRY_PHOTOS: Record<string, { url: string; caption: string }[]> = {
     },
     {
       url: "https://images.unsplash.com/photo-1590001155093-a3c66ab0c3ff?w=800&q=80",
-      caption: "Hegra (Mada&#39;in Saleh)",
+      caption: "Hegra (Mada'in Saleh)",
     },
     {
       url: "https://images.unsplash.com/photo-1620459482813-91de1d2f9892?w=800&q=80",
@@ -17246,37 +21635,6 @@ const COUNTRY_EDUCATION: Record<string, CountryEducationData> = {
     ],
     eduNotes:
       "Oxford and Cambridge ('Oxbridge') are the world's most prestigious universities by most rankings. The Russell Group (24 research-intensive universities) drives UK research output.",
-  },
-  fr: {
-    globalEduRank: 5,
-    literacyRate: 99,
-    avgSchoolingYears: 12.2,
-    pisaScore: 474,
-    topUniversities: [
-      {
-        name: "Université PSL (Paris Sciences & Lettres)",
-        rankTag: "#24 World (QS)",
-        type: "Research",
-      },
-      {
-        name: "École Polytechnique (X)",
-        rankTag: "#59 World",
-        type: "Technical",
-      },
-      {
-        name: "École Normale Supérieure (ENS Paris)",
-        rankTag: "Top 60 ARWU",
-        type: "Research",
-      },
-      { name: "Sorbonne Université", rankTag: "Top 80 ARWU", type: "Research" },
-      {
-        name: "Sciences Po Paris",
-        rankTag: "#1 Social Sciences FR",
-        type: "Research",
-      },
-    ],
-    eduNotes:
-      "Grandes Écoles (Polytechnique, HEC, ENA/INSP, ENS) are more prestigious than universities in France. Most public universities free. ~70% of Nobel prizes in science from Grandes Écoles alumni.",
   },
   jp: {
     globalEduRank: 6,
@@ -20635,30 +24993,6 @@ const COUNTRY_HOUSING_TRANSPORT: Record<string, CountryHousingTransport> = {
     },
   },
   // ── Europe (additional) ──────────────────────────────────────────────────
-  es: {
-    housing: {
-      medianHomePriceUSD: 260000,
-      medianRentMonthlyUSD: 980,
-      homeOwnershipPct: 76.0,
-      priceToIncomeRatio: 10.4,
-      yoyPriceChangePct: 7.2,
-      affordabilityIndex: 38,
-      vacancyRatePct: 14.4,
-      socialHousingPct: 2.5,
-      mortgageRateAvgPct: 4.8,
-    },
-    transport: {
-      publicTransitUsagePct: 32,
-      roadDensityKmPer100km2: 120,
-      railNetworkKm: 15000,
-      airports: 47,
-      seaports: 46,
-      evAdoptionPct: 5.8,
-      avgCommuteMinutes: 36,
-      highSpeedRailKm: 3900,
-      metroSystems: 4,
-    },
-  },
   nl: {
     housing: {
       medianHomePriceUSD: 430000,
@@ -25591,23 +29925,6 @@ const COUNTRY_INFRA_STATS: Record<string, InfraStats> = {
     overallInfraScore: 22,
     year: 2023,
   },
-  cl: {
-    electricityAccessPct: 100,
-    installedCapacityGW: 32,
-    powerOutagesPerYearBusiness: 8.6,
-    safeWaterAccessPct: 99,
-    sanitationAccessPct: 97,
-    mobileSubscriptionsPer100: 138,
-    broadbandPer100: 24,
-    dataSpeedMbps: 78,
-    pavedRoadsPct: 25,
-    logisticsIndex: 3.26,
-    hospitalBedsPerThousand: 2.2,
-    physiciansPerThousand: 2.6,
-    infraInvestmentGdpPct: 4.0,
-    overallInfraScore: 66,
-    year: 2023,
-  },
   ec: {
     electricityAccessPct: 97,
     installedCapacityGW: 8,
@@ -28569,22 +32886,6 @@ const COUNTRY_GENDER_STATS: Record<string, GenderStats> = {
     year: 2023,
   },
   // ── Europe (additional) ──────────────────────────────────────────────────
-  es: {
-    malePct: 49.3,
-    femalePct: 50.7,
-    sexRatioAtBirth: 106,
-    lifeExpectancyMale: 80.9,
-    lifeExpectancyFemale: 86.2,
-    literacyMalePct: 98.8,
-    literacyFemalePct: 98.3,
-    laborForceMalePct: 74,
-    laborForceFemale: 65,
-    parliamentFemale: 44.3,
-    wageGapPct: 11.5,
-    maternalMortality: 5,
-    femaleUniGradPct: 59,
-    year: 2023,
-  },
   nl: {
     malePct: 49.5,
     femalePct: 50.5,
@@ -30896,22 +35197,6 @@ const COUNTRY_GENDER_STATS: Record<string, GenderStats> = {
     femaleUniGradPct: 42,
     year: 2023,
   },
-  zm: {
-    malePct: 50.1,
-    femalePct: 49.9,
-    sexRatioAtBirth: 103,
-    lifeExpectancyMale: 59.8,
-    lifeExpectancyFemale: 63.2,
-    literacyMalePct: 85.3,
-    literacyFemalePct: 72.8,
-    laborForceMalePct: 74,
-    laborForceFemale: 60,
-    parliamentFemale: 15.2,
-    wageGapPct: 22,
-    maternalMortality: 278,
-    femaleUniGradPct: 36,
-    year: 2023,
-  },
   zw: {
     malePct: 49.4,
     femalePct: 50.6,
@@ -31304,9 +35589,7 @@ function CountryGenderStatsPanel({ country }: { country: Country }) {
         </p>
         <div className="grid grid-cols-2 gap-2 mb-2">
           <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-3 text-center">
-            <p className="text-[10px] text-blue-400 font-sans mb-0.5">
-              ♂ Male
-            </p>
+            <p className="text-[10px] text-blue-400 font-sans mb-0.5">♂ Male</p>
             <p className="text-xl font-bold font-mono text-blue-400">
               {gs.lifeExpectancyMale}
             </p>
@@ -31856,12 +36139,7 @@ function fmtPrice(usd: number): string {
 interface ResourceEntry {
   name: string;
   category:
-    | "Energy"
-    | "Minerals"
-    | "Agriculture"
-    | "Forestry"
-    | "Water"
-    | "Fisheries";
+    "Energy" | "Minerals" | "Agriculture" | "Forestry" | "Water" | "Fisheries";
   significance: "Major" | "Significant" | "Minor";
   note?: string;
 }
@@ -35643,9 +39921,6 @@ export function CountriesPage() {
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
         {/* ── PAGE HEADER ── */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 bg-secondary/20 rounded-lg">
-            <Globe size={26} weight="fill" className="text-secondary" />
-          </div>
           <div className="flex-1">
             <h1 className="text-2xl font-bold font-sans text-foreground">
               World Countries
@@ -35662,17 +39937,27 @@ export function CountriesPage() {
             <DownloadSimple size={13} weight="bold" />
             Export CSV
           </button>
+          {/* Said "Live data" beside a pulsing dot. The fetch runs on mount and
+              then every 30 minutes, and the World Bank publishes annual
+              figures — nothing about it is live. The pull is unchanged; the
+              badge now reports when it last completed instead of implying a
+              stream. */}
           <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-mono transition-all ${isRefreshing ? "bg-warning/10 border-warning/30 text-warning" : lastUpdated ? "bg-success/10 border-success/30 text-success" : "bg-muted/50 border-border text-muted-foreground"}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-mono transition-all ${isRefreshing ? "bg-warning/10 border-warning/30 text-warning" : lastUpdated ? "bg-muted/50 border-border text-muted-foreground" : "bg-muted/50 border-border text-muted-foreground"}`}
+            title={
+              lastUpdated
+                ? `World Bank data fetched at ${lastUpdated.toLocaleString()}`
+                : "Showing the figures bundled with the app"
+            }
           >
-            <span
-              className={`w-1.5 h-1.5 rounded-full shrink-0 ${isRefreshing ? "bg-warning animate-pulse" : lastUpdated ? "bg-success animate-pulse" : "bg-muted-foreground"}`}
-            />
             {isRefreshing
               ? "Updating…"
               : lastUpdated
-                ? "Live data"
-                : "Static data"}
+                ? `Updated ${lastUpdated.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}`
+                : "Bundled data"}
           </div>
         </div>
 
@@ -35682,47 +39967,36 @@ export function CountriesPage() {
             {
               label: "Countries Tracked",
               value: `${liveCountries.length}+`,
-              icon: <Globe size={18} weight="fill" />,
-              color: "text-secondary",
             },
             {
               label: "Combined GDP",
               value: fmtGDP(totalGDP),
-              icon: <CurrencyDollar size={18} weight="fill" />,
-              color: "text-success",
             },
             {
               label: "World Population",
               value: fmtPop(totalPop),
-              icon: <Users size={18} weight="fill" />,
-              color: "text-warning",
             },
             {
               label: "High HDI (≥0.8)",
               value: `${highHDI} nations`,
-              icon: <Star size={18} weight="fill" />,
-              color: "text-secondary",
             },
           ].map((s) => (
             <div
               key={s.label}
-              className="bg-card border border-border rounded-lg p-4 flex items-center gap-3"
+              className="bg-card border border-border rounded-lg p-4"
             >
-              <span className={s.color}>{s.icon}</span>
-              <div>
-                <p className="text-xs text-muted-foreground font-sans">
-                  {s.label}
-                </p>
-                <p className="text-base font-bold font-mono text-foreground">
-                  {s.value}
-                </p>
-              </div>
+              <p className="text-xs text-muted-foreground font-sans">
+                {s.label}
+              </p>
+              <p className="text-base font-bold font-mono text-foreground">
+                {s.value}
+              </p>
             </div>
           ))}
         </div>
 
         {/* ── SEARCH + FILTER BAR ── */}
-        <div className="flex flex-col bg-card border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
+        <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
           {/* Row 1: Search */}
           <div className="flex items-center gap-2">
             <MagnifyingGlass

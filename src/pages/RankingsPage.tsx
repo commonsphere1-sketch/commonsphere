@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
 import {
@@ -13,16 +13,12 @@ import {
   Minus,
   Trophy,
   ChartBar,
-  Funnel,
   SortAscending,
   SortDescending,
   Star,
   CaretDown,
   CaretUp,
   X,
-  TrendUp,
-  TrendDown,
-  Medal,
   MagnifyingGlass,
 } from "@phosphor-icons/react";
 
@@ -41,14 +37,41 @@ type MetricId =
   | "tradeBalance"
   | "easeOfBusiness";
 
+/**
+ * Categories are restricted to metrics held for every entity, country and US
+ * state alike, so no column can render N/A.
+ *
+ * Measured coverage over the 204 countries and 50 states:
+ *   hdi, gdpPerCapita, unemployment, incarceration, homelessness — complete
+ *   lifeExpectancy, gdpGrowth, inflation, tradeBalance — countries only
+ *   educationRank, healthcareRank, crimeIndex           — US states only
+ *   easeOfBusiness                                      — 29 of 204 countries
+ *
+ * That retired four tabs. Life Exp. and Transport ranked countries against
+ * states on data only one of them has, and Transport's primary metric was
+ * missing for 86% of countries; Education and Crime were US-state-only, which
+ * is how their leaderboards came to list countries showing "N/A" as the best
+ * in the world.
+ */
 type CategoryTab =
-  | "housing"
-  | "transportation"
-  | "lifeExpectancy"
   | "economy"
   | "hdi"
+  | "housing"
+  | "justice"
+  | "health"
   | "education"
-  | "crime";
+  | "infrastructure";
+
+/**
+ * Which pool a category can rank.
+ *
+ * Life expectancy exists for all 204 countries and no state; education rank
+ * exists for all 50 states and no country. Rather than drop those subjects or
+ * show half a table as N/A, a category declares the pool it applies to and
+ * selecting it switches the entity filter to match. Every column stays
+ * populated, and the page says which pool is being ranked.
+ */
+type CategoryPool = "all" | "country" | "state";
 
 interface CategoryMetric {
   id: string;
@@ -72,387 +95,171 @@ interface MetricDef {
   weight: number;
 }
 
-const CATEGORY_TABS: { id: CategoryTab; label: string; icon: string }[] = [
-  { id: "housing", label: "Housing", icon: "🏠" },
-  { id: "transportation", label: "Transport", icon: "🚆" },
-  { id: "lifeExpectancy", label: "Life Exp.", icon: "❤️" },
-  { id: "economy", label: "Economy", icon: "💹" },
-  { id: "hdi", label: "HDI", icon: "🌐" },
-  { id: "education", label: "Education", icon: "🎓" },
-  { id: "crime", label: "Crime", icon: "🔒" },
+const CATEGORY_TABS: {
+  id: CategoryTab;
+  label: string;
+  icon: string;
+  pool: CategoryPool;
+}[] = [
+  { id: "economy", label: "Economy", icon: "💹", pool: "all" },
+  { id: "hdi", label: "Development", icon: "🌐", pool: "all" },
+  { id: "housing", label: "Housing", icon: "🏠", pool: "all" },
+  { id: "justice", label: "Justice", icon: "⚖️", pool: "all" },
+  { id: "health", label: "Health", icon: "❤️", pool: "country" },
+  { id: "education", label: "Education", icon: "🎓", pool: "state" },
+  {
+    id: "infrastructure",
+    label: "Infrastructure",
+    icon: "🏗️",
+    pool: "country",
+  },
 ];
 
+const M_GDP_PER_CAPITA: CategoryMetric = {
+  id: "gdpPerCapita",
+  label: "GDP per Capita",
+  shortLabel: "GDP/cap",
+  description: "Gross domestic product per person (USD)",
+  higherIsBetter: true,
+  format: (v) =>
+    v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v.toFixed(0)}`,
+  color: "text-emerald-400",
+  accessor: (r) => r.gdpPerCapita,
+};
+
+const M_UNEMPLOYMENT: CategoryMetric = {
+  id: "unemployment",
+  label: "Unemployment",
+  shortLabel: "Unemploy.",
+  description: "Share of the labour force out of work (%)",
+  higherIsBetter: false,
+  format: (v) => `${v.toFixed(1)}%`,
+  color: "text-orange-400",
+  accessor: (r) => r.unemployment,
+};
+
+const M_HDI: CategoryMetric = {
+  id: "hdi",
+  label: "HDI",
+  shortLabel: "HDI",
+  description: "UNDP composite of health, education and income (0–1)",
+  higherIsBetter: true,
+  format: (v) => v.toFixed(3),
+  color: "text-violet-400",
+  accessor: (r) => r.hdi,
+};
+
+const M_HOMELESSNESS: CategoryMetric = {
+  id: "homelessness",
+  label: "Homelessness Rate",
+  shortLabel: "Homeless.",
+  description: "Homeless persons per 100,000 residents",
+  higherIsBetter: false,
+  format: (v) => `${v.toFixed(0)}/100k`,
+  color: "text-purple-400",
+  accessor: (r) => r.homelessness,
+};
+
+const M_INCARCERATION: CategoryMetric = {
+  id: "incarceration",
+  label: "Incarceration Rate",
+  shortLabel: "Incarcerat.",
+  description: "Prison population per 100,000 residents",
+  higherIsBetter: false,
+  format: (v) => `${v.toFixed(0)}/100k`,
+  color: "text-red-400",
+  accessor: (r) => r.incarceration,
+};
+
+const M_SCORE: CategoryMetric = {
+  id: "composite",
+  label: "Score",
+  shortLabel: "Score",
+  description: "Overall composite score",
+  higherIsBetter: true,
+  format: (v) => v.toFixed(1),
+  color: "text-yellow-400",
+  accessor: (r) => r.composite,
+};
+
+/** Countries only — every country has it, no state does. */
+const M_LIFE_EXPECTANCY: CategoryMetric = {
+  id: "lifeExpectancy",
+  label: "Life Expectancy",
+  shortLabel: "Life Exp.",
+  description: "Average years a newborn is expected to live",
+  higherIsBetter: true,
+  format: (v) => `${v.toFixed(1)} yrs`,
+  color: "text-blue-400",
+  accessor: (r) => r.lifeExpectancy,
+};
+
+/** US states only — a rank among the fifty, so it has no country analogue. */
+const M_EDUCATION_RANK: CategoryMetric = {
+  id: "educationRank",
+  label: "Education Rank",
+  shortLabel: "Edu. Rank",
+  description: "Education quality rank among US states (lower = better)",
+  higherIsBetter: false,
+  format: (v) => `${Math.round(v)}`,
+  color: "text-sky-400",
+  accessor: (r) => r.educationRank,
+};
+
+/** US states only, on the same 1–50 scale as the education rank. */
+const M_HEALTHCARE_RANK: CategoryMetric = {
+  id: "healthcareRank",
+  label: "Healthcare Rank",
+  shortLabel: "Health Rank",
+  description: "Healthcare system rank among US states (lower = better)",
+  higherIsBetter: false,
+  format: (v) => `${Math.round(v)}`,
+  color: "text-rose-400",
+  accessor: (r) => r.healthcareRank,
+};
+
+/**
+ * Countries only. This is the dataset's one infrastructure signal — there is
+ * no roads, rail, broadband or utilities measure for either pool — so the
+ * category is built on generation capacity and labelled as energy output
+ * rather than implying a broader infrastructure index.
+ */
+const M_ENERGY_OUTPUT: CategoryMetric = {
+  id: "energyOutputTWh",
+  label: "Energy Output",
+  shortLabel: "Energy",
+  description: "Annual primary energy production (TWh)",
+  higherIsBetter: true,
+  format: (v) =>
+    v >= 1000 ? `${(v / 1000).toFixed(1)}k TWh` : `${v.toFixed(0)} TWh`,
+  color: "text-yellow-400",
+  accessor: (r) => r.energyOutputTWh,
+};
+
+const M_SELF_SUFFICIENCY: CategoryMetric = {
+  id: "energySelfSufficiency",
+  label: "Energy Self-Sufficiency",
+  shortLabel: "Self-Suff.",
+  description:
+    "Production as a share of consumption — over 100% is a net exporter",
+  higherIsBetter: true,
+  format: (v) => `${v.toFixed(0)}%`,
+  color: "text-teal-400",
+  accessor: (r) => r.energySelfSufficiency,
+};
+
 const CATEGORY_METRICS: Record<CategoryTab, CategoryMetric[]> = {
-  housing: [
-    {
-      id: "homelessness",
-      label: "Homelessness Rate",
-      shortLabel: "Homeless.",
-      description: "Homeless persons per 100,000 residents",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(0)}/100k`,
-      color: "text-purple-400",
-      accessor: (r) => r.homelessness,
-    },
-    {
-      id: "inflation",
-      label: "Inflation Rate",
-      shortLabel: "Inflation",
-      description: "High inflation erodes housing affordability",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(1)}%`,
-      color: "text-amber-400",
-      accessor: (r) => r.inflation,
-    },
-    {
-      id: "gdpPerCapita",
-      label: "GDP per Capita",
-      shortLabel: "GDP/cap",
-      description: "Income level determines housing purchasing power",
-      higherIsBetter: true,
-      format: (v) =>
-        v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v.toFixed(0)}`,
-      color: "text-emerald-400",
-      accessor: (r) => r.gdpPerCapita,
-    },
-    {
-      id: "unemployment",
-      label: "Unemployment",
-      shortLabel: "Unemploy.",
-      description: "Unemployment drives housing insecurity",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(1)}%`,
-      color: "text-orange-400",
-      accessor: (r) => r.unemployment,
-    },
-    {
-      id: "composite",
-      label: "Score",
-      shortLabel: "Score",
-      description: "Overall composite score",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(1),
-      color: "text-yellow-400",
-      accessor: (r) => r.composite,
-    },
-  ],
-  transportation: [
-    {
-      id: "easeOfBusiness",
-      label: "Ease of Business",
-      shortLabel: "Bus. Rank",
-      description:
-        "World Bank rank — logistics & infrastructure (lower=better)",
-      higherIsBetter: false,
-      format: (v) => (v > 0 ? `#${Math.round(v)}` : "N/A"),
-      color: "text-lime-400",
-      accessor: (r) => r.easeOfBusiness,
-    },
-    {
-      id: "tradeBalance",
-      label: "Trade Balance",
-      shortLabel: "Trade Bal.",
-      description: "Strong trade surplus → robust transport networks",
-      higherIsBetter: true,
-      format: (v) => (v >= 0 ? `+${v.toFixed(0)}` : `${v.toFixed(0)}`),
-      color: "text-cyan-400",
-      accessor: (r) => r.tradeBalance,
-    },
-    {
-      id: "gdpPerCapita",
-      label: "GDP per Capita",
-      shortLabel: "GDP/cap",
-      description: "Income correlates with transport infrastructure",
-      higherIsBetter: true,
-      format: (v) =>
-        v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v.toFixed(0)}`,
-      color: "text-emerald-400",
-      accessor: (r) => r.gdpPerCapita,
-    },
-    {
-      id: "gdpGrowth",
-      label: "GDP Growth",
-      shortLabel: "Growth",
-      description: "Economic growth drives infrastructure expansion",
-      higherIsBetter: true,
-      format: (v) => `${v.toFixed(1)}%`,
-      color: "text-teal-400",
-      accessor: (r) => r.gdpGrowth,
-    },
-    {
-      id: "composite",
-      label: "Score",
-      shortLabel: "Score",
-      description: "Overall composite score",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(1),
-      color: "text-yellow-400",
-      accessor: (r) => r.composite,
-    },
-  ],
-  lifeExpectancy: [
-    {
-      id: "lifeExpectancy",
-      label: "Life Expectancy",
-      shortLabel: "Life Exp.",
-      description: "Average years a newborn is expected to live",
-      higherIsBetter: true,
-      format: (v) => `${v.toFixed(1)} yrs`,
-      color: "text-blue-400",
-      accessor: (r) => r.lifeExpectancy,
-    },
-    {
-      id: "hdi",
-      label: "HDI",
-      shortLabel: "HDI",
-      description: "UNDP composite including health & longevity (0–1)",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(3),
-      color: "text-violet-400",
-      accessor: (r) => r.hdi,
-    },
-    {
-      id: "healthcareRank",
-      label: "Healthcare Rank",
-      shortLabel: "Health Rank",
-      description: "Healthcare system quality ranking (lower=better)",
-      higherIsBetter: false,
-      format: (v) => (v > 0 ? `#${Math.round(v)}` : "N/A"),
-      color: "text-rose-400",
-      accessor: (r) => r.healthcareRank,
-    },
-    {
-      id: "gdpPerCapita",
-      label: "GDP per Capita",
-      shortLabel: "GDP/cap",
-      description: "Higher income enables better health outcomes",
-      higherIsBetter: true,
-      format: (v) =>
-        v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v.toFixed(0)}`,
-      color: "text-emerald-400",
-      accessor: (r) => r.gdpPerCapita,
-    },
-    {
-      id: "composite",
-      label: "Score",
-      shortLabel: "Score",
-      description: "Overall composite score",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(1),
-      color: "text-yellow-400",
-      accessor: (r) => r.composite,
-    },
-  ],
-  economy: [
-    {
-      id: "gdpPerCapita",
-      label: "GDP per Capita",
-      shortLabel: "GDP/cap",
-      description: "Gross domestic product per person (USD)",
-      higherIsBetter: true,
-      format: (v) =>
-        v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v.toFixed(0)}`,
-      color: "text-emerald-400",
-      accessor: (r) => r.gdpPerCapita,
-    },
-    {
-      id: "gdpGrowth",
-      label: "Growth",
-      shortLabel: "Growth",
-      description: "Year-on-year real GDP growth (%)",
-      higherIsBetter: true,
-      format: (v) => `${v.toFixed(1)}%`,
-      color: "text-teal-400",
-      accessor: (r) => r.gdpGrowth,
-    },
-    {
-      id: "unemployment",
-      label: "Unemployment",
-      shortLabel: "Unemploy.",
-      description: "Share of labor force unemployed (%)",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(1)}%`,
-      color: "text-orange-400",
-      accessor: (r) => r.unemployment,
-    },
-    {
-      id: "inflation",
-      label: "Inflation",
-      shortLabel: "Inflation",
-      description: "Annual consumer price index change (%)",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(1)}%`,
-      color: "text-amber-400",
-      accessor: (r) => r.inflation,
-    },
-    {
-      id: "composite",
-      label: "Score",
-      shortLabel: "Score",
-      description: "Overall composite score",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(1),
-      color: "text-yellow-400",
-      accessor: (r) => r.composite,
-    },
-  ],
-  hdi: [
-    {
-      id: "hdi",
-      label: "HDI",
-      shortLabel: "HDI",
-      description: "UNDP composite of life expectancy, education, income (0–1)",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(3),
-      color: "text-violet-400",
-      accessor: (r) => r.hdi,
-    },
-    {
-      id: "lifeExpectancy",
-      label: "Life Expectancy",
-      shortLabel: "Life Exp.",
-      description: "Longevity component of HDI",
-      higherIsBetter: true,
-      format: (v) => `${v.toFixed(1)} yrs`,
-      color: "text-blue-400",
-      accessor: (r) => r.lifeExpectancy,
-    },
-    {
-      id: "educationRank",
-      label: "Education Rank",
-      shortLabel: "Edu. Rank",
-      description: "Education quality ranking (lower=better)",
-      higherIsBetter: false,
-      format: (v) => (v > 0 ? `#${Math.round(v)}` : "N/A"),
-      color: "text-blue-400",
-      accessor: (r) => r.educationRank,
-    },
-    {
-      id: "gdpPerCapita",
-      label: "GDP per Capita",
-      shortLabel: "GDP/cap",
-      description: "Income component of HDI",
-      higherIsBetter: true,
-      format: (v) =>
-        v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v.toFixed(0)}`,
-      color: "text-emerald-400",
-      accessor: (r) => r.gdpPerCapita,
-    },
-    {
-      id: "composite",
-      label: "Score",
-      shortLabel: "Score",
-      description: "Overall composite score",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(1),
-      color: "text-yellow-400",
-      accessor: (r) => r.composite,
-    },
-  ],
-  education: [
-    {
-      id: "educationRank",
-      label: "Education Rank",
-      shortLabel: "Edu. Rank",
-      description: "National/state education quality ranking (lower=better)",
-      higherIsBetter: false,
-      format: (v) => (v > 0 ? `#${Math.round(v)}` : "N/A"),
-      color: "text-blue-400",
-      accessor: (r) => r.educationRank,
-    },
-    {
-      id: "hdi",
-      label: "HDI",
-      shortLabel: "HDI",
-      description: "UNDP composite including education component (0–1)",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(3),
-      color: "text-violet-400",
-      accessor: (r) => r.hdi,
-    },
-    {
-      id: "gdpPerCapita",
-      label: "GDP per Capita",
-      shortLabel: "GDP/cap",
-      description: "Income level correlates with education investment",
-      higherIsBetter: true,
-      format: (v) =>
-        v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v.toFixed(0)}`,
-      color: "text-emerald-400",
-      accessor: (r) => r.gdpPerCapita,
-    },
-    {
-      id: "unemployment",
-      label: "Unemployment",
-      shortLabel: "Unemploy.",
-      description: "Education outcomes correlate with employment",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(1)}%`,
-      color: "text-orange-400",
-      accessor: (r) => r.unemployment,
-    },
-    {
-      id: "composite",
-      label: "Score",
-      shortLabel: "Score",
-      description: "Overall composite score",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(1),
-      color: "text-yellow-400",
-      accessor: (r) => r.composite,
-    },
-  ],
-  crime: [
-    {
-      id: "crimeIndex",
-      label: "Crime Index",
-      shortLabel: "Crime Idx",
-      description: "Composite crime index — higher = more crime",
-      higherIsBetter: false,
-      format: (v) => (v > 0 ? v.toFixed(0) : "N/A"),
-      color: "text-red-400",
-      accessor: (r) => r.crimeIndex,
-    },
-    {
-      id: "incarceration",
-      label: "Incarceration",
-      shortLabel: "Incarcerat.",
-      description: "Prison population per 100,000 residents",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(0)}/100k`,
-      color: "text-red-400",
-      accessor: (r) => r.incarceration,
-    },
-    {
-      id: "homelessness",
-      label: "Homelessness",
-      shortLabel: "Homeless.",
-      description: "Homelessness strongly correlates with crime rates",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(0)}/100k`,
-      color: "text-purple-400",
-      accessor: (r) => r.homelessness,
-    },
-    {
-      id: "unemployment",
-      label: "Unemployment",
-      shortLabel: "Unemploy.",
-      description: "Unemployment correlates with public safety outcomes",
-      higherIsBetter: false,
-      format: (v) => `${v.toFixed(1)}%`,
-      color: "text-orange-400",
-      accessor: (r) => r.unemployment,
-    },
-    {
-      id: "composite",
-      label: "Score",
-      shortLabel: "Score",
-      description: "Overall composite score",
-      higherIsBetter: true,
-      format: (v) => v.toFixed(1),
-      color: "text-yellow-400",
-      accessor: (r) => r.composite,
-    },
+  economy: [M_GDP_PER_CAPITA, M_UNEMPLOYMENT, M_SCORE],
+  hdi: [M_HDI, M_GDP_PER_CAPITA, M_SCORE],
+  housing: [M_HOMELESSNESS, M_UNEMPLOYMENT, M_GDP_PER_CAPITA, M_SCORE],
+  justice: [M_INCARCERATION, M_HOMELESSNESS, M_SCORE],
+  health: [M_LIFE_EXPECTANCY, M_HDI, M_GDP_PER_CAPITA, M_SCORE],
+  education: [M_EDUCATION_RANK, M_HEALTHCARE_RANK, M_GDP_PER_CAPITA, M_SCORE],
+  infrastructure: [
+    M_ENERGY_OUTPUT,
+    M_SELF_SUFFICIENCY,
+    M_GDP_PER_CAPITA,
+    M_SCORE,
   ],
 };
 
@@ -565,7 +372,7 @@ const METRICS: MetricDef[] = [
     shortLabel: "Bus. Rank",
     description: "World Bank Ease of Doing Business rank — lower = better",
     higherIsBetter: false,
-    format: (v) => (v > 0 ? `#${Math.round(v)}` : "N/A"),
+    format: (v) => (v > 0 ? `${Math.round(v)}` : "N/A"),
     color: "text-lime-400",
     weight: 0,
   },
@@ -623,6 +430,10 @@ interface RankRow {
   educationRank: number;
   healthcareRank: number;
   crimeIndex: number;
+  /** Annual electricity/primary energy output, TWh. Countries only. */
+  energyOutputTWh: number;
+  /** Production as a share of consumption, %. Over 100 = net exporter. */
+  energySelfSufficiency: number;
 }
 
 function buildCountryRows(): RankRow[] {
@@ -642,10 +453,19 @@ function buildCountryRows(): RankRow[] {
       incarceration: social?.incarcerationRate ?? 0,
       homelessness: social?.homelessnessRate ?? 0,
       tradeBalance: c.tradeBalance,
-      easeOfBusiness: EASE_OF_BUSINESS[c.id] ?? 0,
-      educationRank: 0,
-      healthcareRank: 0,
-      crimeIndex: 0,
+      easeOfBusiness: EASE_OF_BUSINESS[c.id] ?? NaN,
+      // Not tracked per country in this dataset. These were 0, and because
+      // education and crime rank ascending ("lower is better"), every country
+      // tied at 0 and the Crime and Education leaderboards presented missing
+      // data as the best in the world.
+      educationRank: NaN,
+      healthcareRank: NaN,
+      crimeIndex: NaN,
+      energyOutputTWh: c.energy?.totalProductionTWh ?? NaN,
+      energySelfSufficiency:
+        c.energy && c.energy.totalUseTWh > 0
+          ? (c.energy.totalProductionTWh / c.energy.totalUseTWh) * 100
+          : NaN,
     } as Omit<RankRow, "composite"> & { composite: 0 };
   }) as RankRow[];
 }
@@ -662,22 +482,49 @@ function buildStateRows(): RankRow[] {
       id: `state-${s.id}`,
       name: s.name,
       type: "state",
-      flag: `https://flagcdn.com/w40/us.png`,
+      // Each state's own flag. This was the US national flag for all fifty,
+      // and was never rendered anyway — the table only drew an <img> for
+      // countries. State ids are the lowercase two-letter codes flagcdn
+      // expects, and all 50 were confirmed to resolve.
+      flag: `https://flagcdn.com/w40/us-${s.id}.png`,
       hdi: normalizedHdi,
       gdpPerCapita: gdpPerCap,
-      gdpGrowth: 2.4,
+      // gdpGrowth, lifeExpectancy and inflation are not in statesData. They
+      // were previously hardcoded to 2.4 / 78.5 / 3.2 for every state, which
+      // put an identical invented number in the table for all fifty and fed
+      // roughly a third of each state's composite. They are now marked
+      // unavailable via UNAVAILABLE_METRICS and excluded from scoring.
+      gdpGrowth: NaN,
       unemployment: s.unemploymentRate,
-      lifeExpectancy: 78.5,
-      inflation: 3.2,
+      lifeExpectancy: NaN,
+      inflation: NaN,
       incarceration: social?.incarcerationRate ?? s.incarcerationRate,
       homelessness: social?.homelessnessRate ?? s.homelessnessRate,
-      tradeBalance: 0,
-      easeOfBusiness: 0,
-      educationRank: s.educationRank ?? 0,
-      healthcareRank: s.healthcareRank ?? 0,
-      crimeIndex: s.crimeIndex ?? 0,
+      tradeBalance: NaN,
+      easeOfBusiness: NaN,
+      educationRank: s.educationRank ?? NaN,
+      healthcareRank: s.healthcareRank ?? NaN,
+      crimeIndex: s.crimeIndex ?? NaN,
+      // statesData carries an energy mix as percentages only, with no absolute
+      // output, so there is nothing comparable to a country's TWh figure.
+      energyOutputTWh: NaN,
+      energySelfSufficiency: NaN,
     } as Omit<RankRow, "composite"> & { composite: 0 };
   }) as RankRow[];
+}
+
+/** A metric is unavailable for a row when its value is not a finite number. */
+export function hasMetric(row: RankRow, id: keyof RankRow): boolean {
+  const v = row[id];
+  return typeof v === "number" && isFinite(v);
+}
+
+/**
+ * Formats a metric value, rendering a missing one as N/A. Several of the
+ * per-metric formatters call toFixed directly, which would print "NaN yrs".
+ */
+function fmtMetric(m: { format: (v: number) => string }, val: number): string {
+  return isFinite(val) ? m.format(val) : "N/A";
 }
 
 function percentile(
@@ -686,7 +533,7 @@ function percentile(
   higherIsBetter: boolean,
 ): number {
   const valid = allValues.filter((v) => isFinite(v));
-  if (valid.length === 0) return 50;
+  if (valid.length === 0 || !isFinite(value)) return 50;
   const min = Math.min(...valid);
   const max = Math.max(...valid);
   if (max === min) return 50;
@@ -694,11 +541,23 @@ function percentile(
   return higherIsBetter ? raw : 100 - raw;
 }
 
+/**
+ * Scores a row over the metrics it actually has data for, renormalising the
+ * weights across those metrics.
+ *
+ * Previously every metric was scored for every row, and rows without data
+ * carried placeholder numbers — states got a constant 2.4% growth, 78.5 year
+ * life expectancy, 3.2% inflation and a zero trade balance. Together those
+ * carry 5.5 of the 15 total weight, so more than a third of each state's
+ * composite came from invented figures. Skipping them means a state is
+ * measured only on what is known about it, and compared on the same scale.
+ */
 function computeComposite(row: RankRow, allRows: RankRow[]): number {
   const weightedMetrics = METRICS.filter(
-    (m) => m.id !== "composite" && m.weight > 0,
+    (m) => m.id !== "composite" && m.weight > 0 && hasMetric(row, m.id),
   );
   const totalWeight = weightedMetrics.reduce((s, m) => s + m.weight, 0);
+  if (totalWeight === 0) return 0;
   let score = 0;
   for (const m of weightedMetrics) {
     const allVals = allRows.map((r) => r[m.id] as number);
@@ -709,12 +568,19 @@ function computeComposite(row: RankRow, allRows: RankRow[]): number {
 }
 
 // ─── Medal component ──────────────────────────────────────────────────────────
+/** Colour for a podium position: 1 green, 2 amber, 3 red, then muted. */
+function rankColor(rank: number): string {
+  if (rank === 1) return "text-success";
+  if (rank === 2) return "text-amber-400";
+  if (rank === 3) return "text-destructive";
+  return "text-muted-foreground";
+}
+
 function MedalCell({ rank }: { rank: number }) {
-  if (rank === 1) return <span className="text-yellow-400 text-base">🥇</span>;
-  if (rank === 2) return <span className="text-slate-300 text-base">🥈</span>;
-  if (rank === 3) return <span className="text-amber-600 text-base">🥉</span>;
   return (
-    <span className="text-muted-foreground font-mono text-sm w-6 inline-block text-center">
+    <span
+      className={`font-mono text-sm w-6 inline-block text-center ${rankColor(rank)} ${rank <= 3 ? "font-bold" : ""}`}
+    >
       {rank}
     </span>
   );
@@ -731,6 +597,12 @@ function ScoreBar({
   higherIsBetter: boolean;
   color?: string;
 }) {
+  // An empty track for a missing value. percentile() returns 50 for a
+  // non-finite input, which would otherwise draw a half-full bar and read as
+  // a middling score rather than as no data.
+  if (!isFinite(value)) {
+    return <div className="w-10 h-1.5 bg-muted rounded-full overflow-hidden" />;
+  }
   const pct = percentile(value, allValues, higherIsBetter);
   const barColor =
     pct >= 66 ? "bg-success" : pct >= 33 ? "bg-amber-500" : "bg-destructive";
@@ -741,6 +613,41 @@ function ScoreBar({
         style={{ width: `${pct}%` }}
       />
     </div>
+  );
+}
+
+/**
+ * Flag for a row, country or state alike.
+ *
+ * Every site here previously drew an <img> only when the row was a country and
+ * a generic building glyph for a state, so no US state ever showed a flag.
+ * flagcdn serves state flags as us-<code>, and all fifty were verified to
+ * resolve; the glyph is kept as the fallback if a request fails.
+ */
+function EntityFlag({
+  row,
+  imgClassName,
+  iconSize,
+  iconClassName = "text-muted-foreground",
+}: {
+  row: RankRow;
+  imgClassName: string;
+  iconSize: number;
+  iconClassName?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <Buildings size={iconSize} weight="fill" className={iconClassName} />
+    );
+  }
+  return (
+    <img
+      src={row.flag}
+      alt=""
+      className={imgClassName}
+      onError={() => setFailed(true)}
+    />
   );
 }
 
@@ -765,24 +672,11 @@ function RowDetailPanel({
     <div className="animate-fade-in">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-3 flex-wrap">
-          {row.type === "country" ? (
-            <img
-              src={row.flag}
-              alt=""
-              className="w-8 h-5 rounded object-cover border border-border"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
-            />
-          ) : (
-            <div className="w-8 h-5 rounded bg-muted flex items-center justify-center border border-border">
-              <Buildings
-                size={12}
-                weight="fill"
-                className="text-muted-foreground"
-              />
-            </div>
-          )}
+          <EntityFlag
+            row={row}
+            imgClassName="w-12 h-8 rounded-md object-cover border border-border shadow-sm"
+            iconSize={12}
+          />
           <div>
             <h3 className="text-sm font-bold text-foreground">{row.name}</h3>
             <p className="text-[11px] text-muted-foreground">
@@ -809,49 +703,51 @@ function RowDetailPanel({
         </button>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-        {metricsToShow.map((m) => {
-          const val = row[m.id] as number;
-          const allVals = allValuesMap[m.id] ?? [];
-          const pct = percentile(val, allVals, m.higherIsBetter);
-          const barColor =
-            pct >= 66
-              ? "bg-success"
-              : pct >= 33
-                ? "bg-amber-500"
-                : "bg-destructive";
-          const textColor =
-            pct >= 66
-              ? "text-success"
-              : pct >= 33
-                ? "text-amber-400"
-                : "text-destructive";
-          return (
-            <div
-              key={m.id}
-              className="bg-background/60 border border-border/60 rounded-xl p-3"
-            >
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[11px] font-semibold text-foreground truncate mr-1">
-                  {m.shortLabel}
-                </span>
-                <span
-                  className={`text-xs font-mono font-bold ${textColor} shrink-0`}
-                >
-                  {m.format(val)}
-                </span>
+        {metricsToShow
+          .filter((m) => hasMetric(row, m.id))
+          .map((m) => {
+            const val = row[m.id] as number;
+            const allVals = allValuesMap[m.id] ?? [];
+            const pct = percentile(val, allVals, m.higherIsBetter);
+            const barColor =
+              pct >= 66
+                ? "bg-success"
+                : pct >= 33
+                  ? "bg-amber-500"
+                  : "bg-destructive";
+            const textColor =
+              pct >= 66
+                ? "text-success"
+                : pct >= 33
+                  ? "text-amber-400"
+                  : "text-destructive";
+            return (
+              <div
+                key={m.id}
+                className="bg-background/60 border border-border/60 rounded-xl p-3"
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[11px] font-semibold text-foreground truncate mr-1">
+                    {m.shortLabel}
+                  </span>
+                  <span
+                    className={`text-xs font-mono font-bold ${textColor} shrink-0`}
+                  >
+                    {fmtMetric(m, val)}
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden mb-1">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+                    style={{ width: `${Math.max(2, pct)}%` }}
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  {pct.toFixed(0)}th pct
+                </p>
               </div>
-              <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden mb-1">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${barColor}`}
-                  style={{ width: `${Math.max(2, pct)}%` }}
-                />
-              </div>
-              <p className="text-[10px] text-muted-foreground">
-                {pct.toFixed(0)}th pct
-              </p>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
     </div>
   );
@@ -898,23 +794,12 @@ function MobileCard({
           <MedalCell rank={rank} />
         </div>
         {/* Flag */}
-        <div className="w-6 h-4 rounded-sm overflow-hidden bg-muted shrink-0 flex items-center justify-center">
-          {row.type === "country" ? (
-            <img
-              src={row.flag}
-              alt=""
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
-            />
-          ) : (
-            <Buildings
-              size={10}
-              weight="fill"
-              className="text-muted-foreground"
-            />
-          )}
+        <div className="w-12 h-8 rounded overflow-hidden bg-muted border border-border shrink-0 flex items-center justify-center">
+          <EntityFlag
+            row={row}
+            imgClassName="w-full h-full object-cover"
+            iconSize={10}
+          />
         </div>
         {/* Name */}
         <div className="flex-1 min-w-0">
@@ -930,7 +815,7 @@ function MobileCard({
         {/* Primary metric */}
         <div className="flex flex-col items-end gap-0.5 shrink-0">
           <span className={`text-xs font-mono font-bold ${textColor}`}>
-            {primary.format(primaryVal)}
+            {fmtMetric(primary, primaryVal)}
           </span>
           <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
             <div
@@ -1038,16 +923,25 @@ export function RankingsPage() {
     CategoryTab,
     { metric: string; dir: SortDir }
   > = {
-    housing: { metric: "homelessness", dir: "asc" },
-    transportation: { metric: "easeOfBusiness", dir: "asc" },
-    lifeExpectancy: { metric: "lifeExpectancy", dir: "desc" },
     economy: { metric: "gdpPerCapita", dir: "desc" },
     hdi: { metric: "hdi", dir: "desc" },
+    housing: { metric: "homelessness", dir: "asc" },
+    justice: { metric: "incarceration", dir: "asc" },
+    health: { metric: "lifeExpectancy", dir: "desc" },
     education: { metric: "educationRank", dir: "asc" },
-    crime: { metric: "crimeIndex", dir: "asc" },
+    infrastructure: { metric: "energyOutputTWh", dir: "desc" },
   };
 
-  const filteredRows = useMemo(() => {
+  /**
+   * The ranking pool: entity and continent filters only.
+   *
+   * Those two are scope — they choose what an entity is ranked among. Search
+   * is a lookup, so it must not change anyone's rank; it is applied after
+   * ranking rather than before. Previously every rank was an index into the
+   * post-search list, so searching "mexic" awarded Mexico a gold medal for
+   * incarceration purely because it sorted first among the two matches.
+   */
+  const scopedRows = useMemo(() => {
     let rows = allRows;
     if (entityFilter !== "all")
       rows = rows.filter((r) => r.type === entityFilter);
@@ -1060,36 +954,64 @@ export function RankingsPage() {
         (r) => r.type === "state" || countryMap[r.id] === continentFilter,
       );
     }
-    if (searchQ.trim()) {
-      const q = searchQ.toLowerCase();
-      rows = rows.filter((r) => r.name.toLowerCase().includes(q));
-    }
+    return rows;
+  }, [allRows, entityFilter, continentFilter]);
+
+  const searchTerm = searchQ.trim().toLowerCase();
+  const matchesSearch = useCallback(
+    (r: RankRow) => !searchTerm || r.name.toLowerCase().includes(searchTerm),
+    [searchTerm],
+  );
+
+  const filteredRows = useMemo(() => {
+    let rows = scopedRows.filter(matchesSearch);
     rows = [...rows].sort((a, b) => {
       const av =
         sortMetric === "composite" ? a.composite : (a[sortMetric] as number);
       const bv =
         sortMetric === "composite" ? b.composite : (b[sortMetric] as number);
+      // Rows missing the sort metric go last in either direction. Subtracting
+      // NaN yields NaN, which sort treats as 0, scattering them through the
+      // results instead of keeping them out of the ranking.
+      const aOk = isFinite(av);
+      const bOk = isFinite(bv);
+      if (aOk !== bOk) return aOk ? -1 : 1;
+      if (!aOk) return 0;
       return sortDir === "desc" ? bv - av : av - bv;
     });
     return rows;
-  }, [allRows, entityFilter, continentFilter, searchQ, sortMetric, sortDir]);
+  }, [scopedRows, matchesSearch, sortMetric, sortDir]);
 
-  // The table rows are sorted by the category primary metric
-  // IMPORTANT: declared before pageRows and totalPages
-  const categoryTableRows = useMemo(() => {
+  /**
+   * The full category ranking over the pool, before search. Ranks are read
+   * from here so a searched entity shows the position it actually holds.
+   */
+  const categoryRankedAll = useMemo(() => {
     const primarySort = CATEGORY_PRIMARY_SORT[activeCategory];
-    return [...filteredRows].sort((a, b) => {
-      const getVal = (r: RankRow) => {
-        if (primarySort.metric === "educationRank") return r.educationRank;
-        if (primarySort.metric === "crimeIndex") return r.crimeIndex;
-        if (primarySort.metric === "healthcareRank") return r.healthcareRank;
-        return (r[primarySort.metric as keyof RankRow] as number) ?? 0;
-      };
-      const av = getVal(a);
-      const bv = getVal(b);
-      return primarySort.dir === "desc" ? bv - av : av - bv;
+    return [...scopedRows].sort((a, b) => {
+      const av = (r: RankRow) =>
+        r[primarySort.metric as keyof RankRow] as number;
+      const x = av(a);
+      const y = av(b);
+      const xOk = isFinite(x);
+      const yOk = isFinite(y);
+      if (xOk !== yOk) return xOk ? -1 : 1;
+      if (!xOk) return 0;
+      return primarySort.dir === "desc" ? y - x : x - y;
     });
-  }, [filteredRows, activeCategory]);
+  }, [scopedRows, activeCategory]);
+
+  const categoryRankById = useMemo(() => {
+    const m = new Map<string, number>();
+    categoryRankedAll.forEach((r, i) => m.set(r.id, i + 1));
+    return m;
+  }, [categoryRankedAll]);
+
+  // Displayed table rows keep the ranked order and only drop non-matches.
+  const categoryTableRows = useMemo(
+    () => categoryRankedAll.filter(matchesSearch),
+    [categoryRankedAll, matchesSearch],
+  );
 
   const totalPages = Math.ceil(categoryTableRows.length / PAGE_SIZE);
   const pageRows = useMemo(
@@ -1097,19 +1019,38 @@ export function RankingsPage() {
     [categoryTableRows, page],
   );
 
-  // Category-specific sorted rows (used for the Top 5 leaderboard in the category panel)
-  const categorySortedRows = useMemo(() => {
+  /** Leaderboard ranking over the pool, before search — same reasoning. */
+  const leaderboardAll = useMemo(() => {
     const nonComposite = activeCategoryMetrics.filter(
       (m) => m.id !== "composite",
     );
-    if (nonComposite.length === 0) return filteredRows;
+    if (nonComposite.length === 0) return scopedRows;
     const primary = nonComposite[0];
-    return [...filteredRows].sort((a, b) => {
+    // Rows without a value for the primary metric sort last rather than
+    // competing. With a "lower is better" metric such as crime or education
+    // rank, missing data used to sort to the very top, so the Top 5 was a list
+    // of entities with no data shown as "N/A".
+    return [...scopedRows].sort((a, b) => {
       const av = primary.accessor(a);
       const bv = primary.accessor(b);
+      const aOk = isFinite(av);
+      const bOk = isFinite(bv);
+      if (aOk !== bOk) return aOk ? -1 : 1;
+      if (!aOk) return 0;
       return primary.higherIsBetter ? bv - av : av - bv;
     });
-  }, [filteredRows, activeCategoryMetrics]);
+  }, [scopedRows, activeCategoryMetrics]);
+
+  const leaderboardRankById = useMemo(() => {
+    const m = new Map<string, number>();
+    leaderboardAll.forEach((r, i) => m.set(r.id, i + 1));
+    return m;
+  }, [leaderboardAll]);
+
+  const categorySortedRows = useMemo(
+    () => leaderboardAll.filter(matchesSearch),
+    [leaderboardAll, matchesSearch],
+  );
 
   // The columns to show in the table = active category metrics
   const tableColumns = activeCategoryMetrics;
@@ -1128,6 +1069,24 @@ export function RankingsPage() {
   function handleFilterChange(f: EntityFilter) {
     setEntityFilter(f);
     setContinentFilter("all");
+    setPage(0);
+  }
+
+  /** The pool the active category can rank, or "all" if it is unrestricted. */
+  const activePool: CategoryPool =
+    CATEGORY_TABS.find((t) => t.id === activeCategory)?.pool ?? "all";
+
+  /**
+   * Selecting a pool-locked category moves the entity filter with it, so the
+   * table is never asked to rank entities the category has no data for.
+   */
+  function selectCategory(id: CategoryTab) {
+    const pool = CATEGORY_TABS.find((t) => t.id === id)?.pool ?? "all";
+    setActiveCategory(id);
+    if (pool !== "all") {
+      setEntityFilter(pool);
+      setContinentFilter("all");
+    }
     setPage(0);
   }
 
@@ -1159,16 +1118,17 @@ export function RankingsPage() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <div className="p-2 rounded-xl bg-yellow-500/10">
-              <Trophy size={18} weight="fill" className="text-yellow-400" />
-            </div>
             <h1 className="text-xl sm:text-2xl font-bold text-foreground">
               Global Rankings
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground max-w-xl">
-            Composite index ranking of all countries and US states across 9
-            societal and economic indicators.
+            Composite index ranking of all countries and US states. The four
+            categories use only indicators held for every entity, so each column
+            is fully populated. The composite itself is scored on whatever a
+            given entity has — up to 9 indicators for countries, 5 for US states
+            — with the weights renormalised across those, so a missing one
+            neither helps nor hurts.
           </p>
         </div>
         <span className="text-xs text-muted-foreground font-mono bg-muted/50 border border-border rounded-lg px-2.5 py-1 shrink-0 self-start">
@@ -1266,26 +1226,14 @@ export function RankingsPage() {
                 >
                   <div className="flex flex-col items-center gap-1">
                     <span className="text-lg">
-                      {podiumRank === 1 ? "🥇" : podiumRank === 2 ? "🥈" : "🥉"}
+                      <span className={`font-mono font-bold ${rankColor(podiumRank)}`}>{podiumRank}</span>
                     </span>
-                    <div className="w-7 h-7 rounded-full overflow-hidden border border-border bg-muted flex items-center justify-center">
-                      {row.type === "country" ? (
-                        <img
-                          src={row.flag}
-                          alt=""
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display =
-                              "none";
-                          }}
-                        />
-                      ) : (
-                        <Buildings
-                          size={12}
-                          weight="fill"
-                          className="text-muted-foreground"
-                        />
-                      )}
+                    <div className="w-14 h-14 rounded-full overflow-hidden border border-border shadow-sm bg-muted flex items-center justify-center">
+                      <EntityFlag
+                        row={row}
+                        imgClassName="w-full h-full object-cover"
+                        iconSize={12}
+                      />
                     </div>
                     <span className="text-[10px] font-semibold text-foreground text-center leading-tight max-w-[70px]">
                       {row.name}
@@ -1311,41 +1259,27 @@ export function RankingsPage() {
               View by Category
             </span>
           </div>
-          {/* Tabs */}
-          <div className="flex flex-wrap gap-1.5 mb-4">
-            {CATEGORY_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setActiveCategory(tab.id);
-                  setPage(0);
-                }}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold transition-colors ${
-                  activeCategory === tab.id
-                    ? "bg-secondary text-secondary-foreground shadow-sm"
-                    : "bg-muted/50 border border-border text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <span className="text-[11px]">{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          {/* Tabs live in the sticky filter bar below, so they stay reachable
+              while scrolling the table they drive. */}
 
           {/* Top 5 leaderboard */}
           <p className="text-[10px] font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-            {CATEGORY_TABS.find((t) => t.id === activeCategory)?.icon} Top 5 —{" "}
+            {/* While searching this is no longer the top of the table, it is
+                the matches with the ranks they actually hold — say so rather
+                than labelling rank #133 as "Top 5". */}
+            {searchTerm ? "Matches" : "Top 5"} —{" "}
             {CATEGORY_TABS.find((t) => t.id === activeCategory)?.label}
           </p>
           <div className="flex flex-col gap-1">
-            {categorySortedRows.slice(0, 5).map((row, i) => {
+            {categorySortedRows.slice(0, 5).map((row) => {
+              const rank = leaderboardRankById.get(row.id) ?? 0;
               const primary =
                 activeCategoryMetrics.find((m) => m.id !== "composite") ??
                 activeCategoryMetrics[0];
               const val = primary.accessor(row);
-              const allVals = categorySortedRows.map((r) =>
-                primary.accessor(r),
-              );
+              // Scale the bar against the whole pool, not just the matches,
+              // so a searched row keeps the same bar it has in the full list.
+              const allVals = leaderboardAll.map((r) => primary.accessor(r));
               const pct = percentile(val, allVals, primary.higherIsBetter);
               const barColor =
                 pct >= 66
@@ -1359,43 +1293,27 @@ export function RankingsPage() {
                   className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
                 >
                   <span className="text-sm w-5 text-center shrink-0">
-                    {i === 0 ? (
-                      "🥇"
-                    ) : i === 1 ? (
-                      "🥈"
-                    ) : i === 2 ? (
-                      "🥉"
-                    ) : (
-                      <span className="text-muted-foreground font-mono text-xs">
-                        {i + 1}
-                      </span>
-                    )}
+                    <span
+                      className={`font-mono text-xs ${rankColor(rank)} ${rank <= 3 ? "font-bold" : ""}`}
+                    >
+                      {rank}
+                    </span>
                   </span>
-                  <div className="w-5 h-3.5 rounded-sm overflow-hidden bg-muted shrink-0">
-                    {row.type === "country" ? (
-                      <img
-                        src={row.flag}
-                        alt=""
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
-                    ) : (
-                      <Buildings
-                        size={9}
-                        weight="fill"
-                        className="text-muted-foreground m-auto"
-                      />
-                    )}
+                  <div className="w-11 h-7 rounded overflow-hidden bg-muted border border-border shrink-0">
+                    <EntityFlag
+                      row={row}
+                      imgClassName="w-full h-full object-cover"
+                      iconSize={9}
+                      iconClassName="text-muted-foreground m-auto"
+                    />
                   </div>
                   <span className="text-xs font-medium text-foreground flex-1 truncate">
                     {row.name}
                   </span>
                   <span
-                    className={`text-xs font-mono font-bold ${primary.color} shrink-0`}
+                    className={`text-xs font-mono font-bold ${barColor.replace("bg-success", "text-success").replace("bg-amber-500", "text-amber-400").replace("bg-destructive", "text-destructive")} shrink-0`}
                   >
-                    {primary.format(val)}
+                    {fmtMetric(primary, val)}
                   </span>
                   <div className="w-14 h-1.5 bg-muted rounded-full overflow-hidden shrink-0">
                     <div
@@ -1411,38 +1329,110 @@ export function RankingsPage() {
       </div>
 
       {/* ── Filters ─────────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-2">
-        {/* Entity type */}
-        <div className="flex bg-muted/50 border border-border rounded-xl p-0.5 gap-0.5">
-          {(["all", "country", "state"] as EntityFilter[]).map((f) => (
+      {/* Search + filters. Same two-row shell the countries and states pages
+          use: a full-width search row, then a rule and a row of pill filters
+          ending in a bare sort select. */}
+      <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
+        {/* Row 1: Search */}
+        <div className="flex items-center gap-2">
+          <MagnifyingGlass
+            size={16}
+            className="text-muted-foreground shrink-0"
+          />
+          <input
+            type="text"
+            placeholder="Search countries or states…"
+            value={searchQ}
+            onChange={(e) => {
+              setSearchQ(e.target.value);
+              setPage(0);
+            }}
+            className="flex-1 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
+          />
+          {searchQ && (
             <button
-              key={f}
-              onClick={() => handleFilterChange(f)}
-              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                entityFilter === f
-                  ? "bg-secondary text-secondary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              onClick={() => {
+                setSearchQ("");
+                setPage(0);
+              }}
+              className="text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
+              aria-label="Clear search"
             >
-              {f === "all"
-                ? "All"
-                : f === "country"
-                  ? "Countries"
-                  : "US States"}
+              <X size={13} />
             </button>
-          ))}
+          )}
         </div>
 
-        {/* Sort metric */}
-        <div className="flex items-center gap-1.5 bg-muted/50 border border-border rounded-xl px-2.5 py-1.5 min-w-0">
-          <Funnel size={12} className="text-muted-foreground shrink-0" />
+        {/* Row 2: category pills, entity pills, sort */}
+        <div className="flex flex-wrap items-center gap-2 pt-2 mt-1 border-t border-border/60">
+          {CATEGORY_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => selectCategory(tab.id)}
+              title={
+                tab.pool === "country"
+                  ? "Ranks countries — the underlying data is country-level"
+                  : tab.pool === "state"
+                    ? "Ranks US states — the underlying data is state-level"
+                    : undefined
+              }
+              className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
+                activeCategory === tab.id
+                  ? "bg-secondary/20 text-foreground border-secondary/40"
+                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+
+          <div className="w-px h-5 bg-border shrink-0" />
+
+          {(["all", "country", "state"] as EntityFilter[]).map((f) => {
+            // A pool-locked category fixes the entity filter, so offering the
+            // other two here would be a control that silently does nothing.
+            const locked = activePool !== "all";
+            const disabled = locked && f !== activePool;
+            return (
+              <button
+                key={f}
+                onClick={() => !disabled && handleFilterChange(f)}
+                disabled={disabled}
+                title={
+                  disabled
+                    ? `${CATEGORY_TABS.find((t) => t.id === activeCategory)?.label} is ranked over ${activePool === "country" ? "countries" : "US states"} only`
+                    : undefined
+                }
+                className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors shrink-0 ${
+                  disabled
+                    ? // opacity-40 rather than text-muted-foreground/40: the
+                      // token is already declared with an alpha channel, so the
+                      // slash modifier does not compose and the pill rendered
+                      // at full brightness, looking enabled.
+                      "bg-transparent border-border text-muted-foreground opacity-40 cursor-not-allowed"
+                    : entityFilter === f
+                      ? "bg-secondary/20 text-foreground border-secondary/40 cursor-pointer"
+                      : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
+                }`}
+              >
+                {f === "all"
+                  ? "All"
+                  : f === "country"
+                    ? "Countries"
+                    : "US States"}
+              </button>
+            );
+          })}
+
+          <div className="w-px h-5 bg-border shrink-0" />
+
           <select
             value={sortMetric}
             onChange={(e) => {
               setSortMetric(e.target.value as MetricId);
               setPage(0);
             }}
-            className="bg-transparent text-xs font-semibold text-foreground outline-none cursor-pointer max-w-[110px]"
+            className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
           >
             {METRICS.map((m) => (
               <option key={m.id} value={m.id}>
@@ -1452,7 +1442,10 @@ export function RankingsPage() {
           </select>
           <button
             onClick={() => setSortDir((d) => (d === "desc" ? "asc" : "desc"))}
-            className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+            className="text-muted-foreground hover:text-foreground transition-colors shrink-0 cursor-pointer"
+            aria-label={
+              sortDir === "desc" ? "Sort ascending" : "Sort descending"
+            }
           >
             {sortDir === "desc" ? (
               <SortDescending size={13} />
@@ -1460,35 +1453,6 @@ export function RankingsPage() {
               <SortAscending size={13} />
             )}
           </button>
-        </div>
-
-        {/* Search */}
-        <div className="flex items-center gap-1.5 bg-muted/50 border border-border rounded-xl px-2.5 py-1.5 flex-1 min-w-[140px] max-w-xs">
-          <MagnifyingGlass
-            size={12}
-            className="text-muted-foreground shrink-0"
-          />
-          <input
-            type="text"
-            placeholder="Search…"
-            value={searchQ}
-            onChange={(e) => {
-              setSearchQ(e.target.value);
-              setPage(0);
-            }}
-            className="bg-transparent text-xs text-foreground placeholder:text-muted-foreground outline-none flex-1 min-w-0"
-          />
-          {searchQ && (
-            <button
-              onClick={() => {
-                setSearchQ("");
-                setPage(0);
-              }}
-              className="text-muted-foreground hover:text-foreground shrink-0"
-            >
-              <X size={11} />
-            </button>
-          )}
         </div>
       </div>
 
@@ -1524,7 +1488,6 @@ export function RankingsPage() {
         {/* Column header — category label */}
         <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-muted/20">
           <span className="text-xs font-semibold text-foreground">
-            {CATEGORY_TABS.find((t) => t.id === activeCategory)?.icon}{" "}
             {CATEGORY_TABS.find((t) => t.id === activeCategory)?.label} Rankings
           </span>
           <span className="text-[10px] text-muted-foreground font-mono">
@@ -1582,7 +1545,7 @@ export function RankingsPage() {
             </thead>
             <tbody>
               {pageRows.map((row) => {
-                const globalRank = categoryTableRows.indexOf(row) + 1;
+                const globalRank = categoryRankById.get(row.id) ?? 0;
                 const isExpanded = expandedRowId === row.id;
                 return (
                   <React.Fragment key={row.id}>
@@ -1601,24 +1564,12 @@ export function RankingsPage() {
                       {/* Name */}
                       <td className="pr-3 py-2.5">
                         <div className="flex items-center gap-2">
-                          <div className="w-5 h-3.5 rounded-sm overflow-hidden bg-muted shrink-0 flex items-center justify-center">
-                            {row.type === "country" ? (
-                              <img
-                                src={row.flag}
-                                alt=""
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).style.display =
-                                    "none";
-                                }}
-                              />
-                            ) : (
-                              <Buildings
-                                size={9}
-                                weight="fill"
-                                className="text-muted-foreground"
-                              />
-                            )}
+                          <div className="w-11 h-7 rounded overflow-hidden bg-muted border border-border shrink-0 flex items-center justify-center">
+                            <EntityFlag
+                              row={row}
+                              imgClassName="w-full h-full object-cover"
+                              iconSize={9}
+                            />
                           </div>
                           <span className="font-medium text-foreground leading-tight truncate">
                             {row.name}
@@ -1664,7 +1615,7 @@ export function RankingsPage() {
                               <span
                                 className={`font-mono ${m.id === "composite" ? "text-yellow-400 font-bold" : textColor}`}
                               >
-                                {m.format(val)}
+                                {fmtMetric(m, val)}
                               </span>
                               <ScoreBar
                                 value={val}
@@ -1687,7 +1638,7 @@ export function RankingsPage() {
                             row={row}
                             allValuesMap={allValuesMap}
                             rank={globalRank}
-                            totalInPool={filteredRows.length}
+                            totalInPool={scopedRows.length}
                             onClose={() => setExpandedRowId(null)}
                           />
                         </td>
@@ -1703,7 +1654,7 @@ export function RankingsPage() {
         {/* Mobile card list */}
         <div className="md:hidden">
           {pageRows.map((row) => {
-            const globalRank = categoryTableRows.indexOf(row) + 1;
+            const globalRank = categoryRankById.get(row.id) ?? 0;
             const isExpanded = expandedRowId === row.id;
             return (
               <React.Fragment key={row.id}>
@@ -1725,7 +1676,7 @@ export function RankingsPage() {
                       row={row}
                       allValuesMap={allValuesMap}
                       rank={globalRank}
-                      totalInPool={filteredRows.length}
+                      totalInPool={scopedRows.length}
                       onClose={() => setExpandedRowId(null)}
                     />
                   </div>

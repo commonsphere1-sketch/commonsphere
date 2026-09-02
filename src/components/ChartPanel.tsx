@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -11,9 +11,9 @@ import {
   Area,
   AreaChart,
 } from "recharts";
-import { ChartLine, ChartBar, ArrowsOutSimple } from "@phosphor-icons/react";
+import { ChartLine, ChartBar,} from "@phosphor-icons/react";
 
-const generateData = (metric: string, timeRange: string) => {
+const generateData = (_metric: string, timeRange: string) => {
   const points: Record<string, number> = {
     "1M": 4,
     "3M": 6,

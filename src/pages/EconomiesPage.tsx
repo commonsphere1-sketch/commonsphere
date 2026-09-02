@@ -4,21 +4,8 @@ import {
   TrendUp,
   TrendDown,
   MagnifyingGlass,
-  ArrowUp,
-  ArrowDown,
   ArrowsLeftRight,
-  Anchor,
-  Package,
-  Boat,
-  Globe,
-  Flag,
-  MapTrifold,
-  Buildings,
-  CaretDown,
   Tree,
-  MapPin,
-  ChartBar,
-  Diamond,
 } from "@phosphor-icons/react";
 import {
   AreaChart,
@@ -38,6 +25,9 @@ import {
   Cell,
 } from "recharts";
 import { economiesData, type Economy } from "../data/economiesData";
+import { getUpcoming } from "../data/upcomingToWatch";
+import { type EconomyRents } from "../data/resourceRents";
+import { useResourceRents } from "../hooks/useResourceRents";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
 
@@ -54,7 +44,7 @@ type RareEarthMineral = {
 };
 
 const RARE_EARTH_MINERALS: Record<string, RareEarthMineral[]> = {
-  usa: [
+  "usa-eco": [
     {
       name: "Neodymium",
       symbol: "Nd",
@@ -136,7 +126,7 @@ const RARE_EARTH_MINERALS: Record<string, RareEarthMineral[]> = {
       color: "#a5b4fc",
     },
   ],
-  china: [
+  "china-eco": [
     {
       name: "Neodymium",
       symbol: "Nd",
@@ -218,7 +208,7 @@ const RARE_EARTH_MINERALS: Record<string, RareEarthMineral[]> = {
       color: "#38bdf8",
     },
   ],
-  eu: [
+  "eu-eco": [
     {
       name: "Neodymium",
       symbol: "Nd",
@@ -300,7 +290,7 @@ const RARE_EARTH_MINERALS: Record<string, RareEarthMineral[]> = {
       color: "#6ee7b7",
     },
   ],
-  germany: [
+  "germany-eco": [
     {
       name: "Lithium",
       symbol: "Li",
@@ -382,7 +372,7 @@ const RARE_EARTH_MINERALS: Record<string, RareEarthMineral[]> = {
       color: "#8b5cf6",
     },
   ],
-  india: [
+  "india-eco": [
     {
       name: "Lanthanum",
       symbol: "La",
@@ -464,7 +454,7 @@ const RARE_EARTH_MINERALS: Record<string, RareEarthMineral[]> = {
       color: "#7c3aed",
     },
   ],
-  japan: [
+  "japan-eco": [
     {
       name: "Neodymium",
       symbol: "Nd",
@@ -546,7 +536,7 @@ const RARE_EARTH_MINERALS: Record<string, RareEarthMineral[]> = {
       color: "#6ee7b7",
     },
   ],
-  brazil: [
+  "brazil-eco": [
     {
       name: "Niobium",
       symbol: "Nb",
@@ -710,6 +700,4346 @@ const RARE_EARTH_MINERALS: Record<string, RareEarthMineral[]> = {
       color: "#34d399",
     },
   ],
+  "australia-eco": [
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: true,
+      reserveKt: 7000,
+      globalShare: "~24%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: true,
+      reserveKt: 5700,
+      globalShare: "~5%",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: true,
+      surplus: true,
+      reserveKt: 1500,
+      globalShare: "~15%",
+      use: "Battery cathodes",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Dysprosium",
+      symbol: "Dy",
+      has: true,
+      surplus: true,
+      reserveKt: 220,
+      globalShare: "~3%",
+      use: "High-temp magnets",
+      color: "#f59e0b",
+    },
+    {
+      name: "Zirconium",
+      symbol: "Zr",
+      has: true,
+      surplus: true,
+      reserveKt: 50000,
+      globalShare: "~65%",
+      use: "Ceramics, nuclear cladding",
+      color: "#10b981",
+    },
+    {
+      name: "Scandium",
+      symbol: "Sc",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Deposits held",
+      use: "Aerospace alloys",
+      color: "#14b8a6",
+    },
+  ],
+  "chile-eco": [
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: true,
+      reserveKt: 9300,
+      globalShare: "~33%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: true,
+      reserveKt: 190000,
+      globalShare: "~19%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Molybdenum",
+      symbol: "Mo",
+      has: true,
+      surplus: true,
+      reserveKt: 1400,
+      globalShare: "~9%",
+      use: "Steel alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Rhenium",
+      symbol: "Re",
+      has: true,
+      surplus: true,
+      reserveKt: 1.3,
+      globalShare: "~52%",
+      use: "Jet engine superalloys",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Negligible",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Negligible",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "indonesia-eco": [
+    {
+      name: "Nickel",
+      symbol: "Ni",
+      has: true,
+      surplus: true,
+      reserveKt: 55000,
+      globalShare: "~42%",
+      use: "Stainless steel, batteries",
+      color: "#10b981",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: true,
+      surplus: true,
+      reserveKt: 600,
+      globalShare: "~5%",
+      use: "Battery cathodes",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Tin",
+      symbol: "Sn",
+      has: true,
+      surplus: true,
+      reserveKt: 800,
+      globalShare: "~17%",
+      use: "Solder, electronics",
+      color: "#f59e0b",
+    },
+    {
+      name: "Bauxite",
+      symbol: "Al",
+      has: true,
+      surplus: true,
+      reserveKt: 1000000,
+      globalShare: "~3%",
+      use: "Aluminium feedstock",
+      color: "#f97316",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Negligible",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Negligible",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+  ],
+  "russia-eco": [
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: 10000,
+      globalShare: "~9%",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Palladium",
+      symbol: "Pd",
+      has: true,
+      surplus: true,
+      reserveKt: 3.1,
+      globalShare: "~40%",
+      use: "Catalytic converters",
+      color: "#f59e0b",
+    },
+    {
+      name: "Nickel",
+      symbol: "Ni",
+      has: true,
+      surplus: true,
+      reserveKt: 8300,
+      globalShare: "~6%",
+      use: "Stainless steel, batteries",
+      color: "#10b981",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: true,
+      surplus: true,
+      reserveKt: 250,
+      globalShare: "~2%",
+      use: "Battery cathodes",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Titanium",
+      symbol: "Ti",
+      has: true,
+      surplus: true,
+      reserveKt: 4000,
+      globalShare: "~9%",
+      use: "Aerospace alloys",
+      color: "#14b8a6",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: 1000,
+      globalShare: "~3%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+  ],
+  "vietnam-eco": [
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: 3500,
+      globalShare: "~3%",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lanthanum",
+      symbol: "La",
+      has: true,
+      surplus: false,
+      reserveKt: 900,
+      globalShare: "~3%",
+      use: "Catalysts, optics",
+      color: "#f59e0b",
+    },
+    {
+      name: "Tungsten",
+      symbol: "W",
+      has: true,
+      surplus: true,
+      reserveKt: 100,
+      globalShare: "~3%",
+      use: "Cutting tools, alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Bauxite",
+      symbol: "Al",
+      has: true,
+      surplus: false,
+      reserveKt: 5800000,
+      globalShare: "~19%",
+      use: "Aluminium feedstock",
+      color: "#f97316",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Negligible",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Negligible",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "canada-eco": [
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: 830,
+      globalShare: "~1%",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Nickel",
+      symbol: "Ni",
+      has: true,
+      surplus: true,
+      reserveKt: 2200,
+      globalShare: "~2%",
+      use: "Stainless steel, batteries",
+      color: "#10b981",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: true,
+      surplus: true,
+      reserveKt: 220,
+      globalShare: "~2%",
+      use: "Battery cathodes",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: 3000,
+      globalShare: "~10%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Uranium",
+      symbol: "U",
+      has: true,
+      surplus: true,
+      reserveKt: 590,
+      globalShare: "~10%",
+      use: "Nuclear fuel",
+      color: "#14b8a6",
+    },
+    {
+      name: "Potash",
+      symbol: "K",
+      has: true,
+      surplus: true,
+      reserveKt: 1100000,
+      globalShare: "~31%",
+      use: "Fertilizer",
+      color: "#f97316",
+    },
+  ],
+  "southafrica-eco": [
+    {
+      name: "Platinum",
+      symbol: "Pt",
+      has: true,
+      surplus: true,
+      reserveKt: 63,
+      globalShare: "~90%",
+      use: "Catalysts, hydrogen",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Manganese",
+      symbol: "Mn",
+      has: true,
+      surplus: true,
+      reserveKt: 640000,
+      globalShare: "~37%",
+      use: "Steel, batteries",
+      color: "#f59e0b",
+    },
+    {
+      name: "Chromium",
+      symbol: "Cr",
+      has: true,
+      surplus: true,
+      reserveKt: 200000,
+      globalShare: "~36%",
+      use: "Stainless steel",
+      color: "#10b981",
+    },
+    {
+      name: "Vanadium",
+      symbol: "V",
+      has: true,
+      surplus: true,
+      reserveKt: 3500,
+      globalShare: "~23%",
+      use: "Alloys, grid batteries",
+      color: "#14b8a6",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: 790,
+      globalShare: "~1%",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Negligible",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+  ],
+  "kazakhstan-eco": [
+    {
+      name: "Uranium",
+      symbol: "U",
+      has: true,
+      surplus: true,
+      reserveKt: 815,
+      globalShare: "~13%",
+      use: "Nuclear fuel",
+      color: "#14b8a6",
+    },
+    {
+      name: "Chromium",
+      symbol: "Cr",
+      has: true,
+      surplus: true,
+      reserveKt: 230000,
+      globalShare: "~41%",
+      use: "Stainless steel",
+      color: "#10b981",
+    },
+    {
+      name: "Titanium",
+      symbol: "Ti",
+      has: true,
+      surplus: true,
+      reserveKt: 900,
+      globalShare: "~2%",
+      use: "Aerospace alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: true,
+      reserveKt: 20000,
+      globalShare: "~2%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Exploration stage",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Exploration stage",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+  ],
+  "malaysia-eco": [
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: 30,
+      globalShare: "<1%",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Yttrium",
+      symbol: "Y",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Ionic clay deposits",
+      use: "LEDs, superconductors",
+      color: "#f59e0b",
+    },
+    {
+      name: "Tin",
+      symbol: "Sn",
+      has: true,
+      surplus: true,
+      reserveKt: 250,
+      globalShare: "~5%",
+      use: "Solder, electronics",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Bauxite",
+      symbol: "Al",
+      has: true,
+      surplus: false,
+      reserveKt: 110000,
+      globalShare: "<1%",
+      use: "Aluminium feedstock",
+      color: "#f97316",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Negligible",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Negligible",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "myanmar-eco": [
+    {
+      name: "Dysprosium",
+      symbol: "Dy",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Major heavy-REE supplier",
+      use: "High-temp magnets",
+      color: "#f59e0b",
+    },
+    {
+      name: "Terbium",
+      symbol: "Tb",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Major heavy-REE supplier",
+      use: "Magnets, phosphors",
+      color: "#10b981",
+    },
+    {
+      name: "Tin",
+      symbol: "Sn",
+      has: true,
+      surplus: true,
+      reserveKt: 110,
+      globalShare: "~2%",
+      use: "Solder, electronics",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Unquantified",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Negligible",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Negligible",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "turkey-eco": [
+    {
+      name: "Boron",
+      symbol: "B",
+      has: true,
+      surplus: true,
+      reserveKt: 950000,
+      globalShare: "~73%",
+      use: "Glass, ceramics, agriculture",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Beylikova, unproven",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Chromium",
+      symbol: "Cr",
+      has: true,
+      surplus: true,
+      reserveKt: 26000,
+      globalShare: "~5%",
+      use: "Stainless steel",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Marble",
+      symbol: "Ca",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "~33% of trade",
+      use: "Construction stone",
+      color: "#f97316",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Negligible",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Negligible",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "morocco-eco": [
+    {
+      name: "Phosphate",
+      symbol: "P",
+      has: true,
+      surplus: true,
+      reserveKt: 50000000,
+      globalShare: "~70%",
+      use: "Fertilizer, LFP batteries",
+      color: "#10b981",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: true,
+      surplus: true,
+      reserveKt: 13,
+      globalShare: "<1%",
+      use: "Battery cathodes",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Silver",
+      symbol: "Ag",
+      has: true,
+      surplus: true,
+      reserveKt: 7,
+      globalShare: "~1%",
+      use: "Electronics, solar",
+      color: "#f59e0b",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Negligible",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Negligible",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Yttrium",
+      symbol: "Y",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Negligible",
+      use: "LEDs, superconductors",
+      color: "#14b8a6",
+    },
+  ],
+  "argentina-eco": [
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: true,
+      reserveKt: 4000,
+      globalShare: "~14%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: false,
+      reserveKt: 12000,
+      globalShare: "~1%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Silver",
+      symbol: "Ag",
+      has: true,
+      surplus: true,
+      reserveKt: 6,
+      globalShare: "~2%",
+      use: "Electronics, solar",
+      color: "#f59e0b",
+    },
+    {
+      name: "Boron",
+      symbol: "B",
+      has: true,
+      surplus: true,
+      reserveKt: 2000,
+      globalShare: "~1%",
+      use: "Glass, ceramics",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "peru-eco": [
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: true,
+      reserveKt: 120000,
+      globalShare: "~12%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Silver",
+      symbol: "Ag",
+      has: true,
+      surplus: true,
+      reserveKt: 110,
+      globalShare: "~22%",
+      use: "Electronics, solar",
+      color: "#f59e0b",
+    },
+    {
+      name: "Zinc",
+      symbol: "Zn",
+      has: true,
+      surplus: true,
+      reserveKt: 19000,
+      globalShare: "~8%",
+      use: "Galvanizing, alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Molybdenum",
+      symbol: "Mo",
+      has: true,
+      surplus: true,
+      reserveKt: 2300,
+      globalShare: "~15%",
+      use: "Steel alloys",
+      color: "#10b981",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Exploration stage",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+  ],
+  "mexico-eco": [
+    {
+      name: "Silver",
+      symbol: "Ag",
+      has: true,
+      surplus: true,
+      reserveKt: 37,
+      globalShare: "~7%",
+      use: "Electronics, solar",
+      color: "#f59e0b",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: true,
+      reserveKt: 53000,
+      globalShare: "~5%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Fluorspar",
+      symbol: "F",
+      has: true,
+      surplus: true,
+      reserveKt: 68000,
+      globalShare: "~13%",
+      use: "Refrigerants, steel flux",
+      color: "#10b981",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: 1700,
+      globalShare: "~6%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Zinc",
+      symbol: "Zn",
+      has: true,
+      surplus: true,
+      reserveKt: 11000,
+      globalShare: "~5%",
+      use: "Galvanizing, alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+  ],
+  "philippines-eco": [
+    {
+      name: "Nickel",
+      symbol: "Ni",
+      has: true,
+      surplus: true,
+      reserveKt: 4800,
+      globalShare: "~4%",
+      use: "Stainless steel, batteries",
+      color: "#10b981",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: true,
+      surplus: true,
+      reserveKt: 260,
+      globalShare: "~2%",
+      use: "Battery cathodes",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: false,
+      reserveKt: 4000,
+      globalShare: "<1%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: true,
+      surplus: true,
+      reserveKt: 0.9,
+      globalShare: "~2%",
+      use: "Electronics, reserves",
+      color: "#f59e0b",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+  ],
+  "ukraine-eco": [
+    {
+      name: "Titanium",
+      symbol: "Ti",
+      has: true,
+      surplus: true,
+      reserveKt: 5900,
+      globalShare: "~7%",
+      use: "Aerospace alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Graphite",
+      symbol: "C",
+      has: true,
+      surplus: false,
+      reserveKt: 19000,
+      globalShare: "~6%",
+      use: "Anodes, refractories",
+      color: "#14b8a6",
+    },
+    {
+      name: "Manganese",
+      symbol: "Mn",
+      has: true,
+      surplus: false,
+      reserveKt: 140000,
+      globalShare: "~8%",
+      use: "Steel, batteries",
+      color: "#f59e0b",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: 500,
+      globalShare: "~2%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Deposits unquantified",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#10b981",
+    },
+  ],
+  "sweden-eco": [
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: 1000,
+      globalShare: "~1%",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Iron",
+      symbol: "Fe",
+      has: true,
+      surplus: true,
+      reserveKt: 1300000,
+      globalShare: "~1%",
+      use: "Steel",
+      color: "#f97316",
+    },
+    {
+      name: "Graphite",
+      symbol: "C",
+      has: true,
+      surplus: false,
+      reserveKt: 1000,
+      globalShare: "<1%",
+      use: "Anodes, refractories",
+      color: "#14b8a6",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: false,
+      reserveKt: 1000,
+      globalShare: "<1%",
+      use: "Wiring, electrification",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Exploration stage",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#10b981",
+    },
+  ],
+  "finland-eco": [
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: true,
+      surplus: true,
+      reserveKt: 210,
+      globalShare: "~2%",
+      use: "Battery cathodes",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Nickel",
+      symbol: "Ni",
+      has: true,
+      surplus: true,
+      reserveKt: 1600,
+      globalShare: "~1%",
+      use: "Stainless steel, batteries",
+      color: "#10b981",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: 100,
+      globalShare: "<1%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Chromium",
+      symbol: "Cr",
+      has: true,
+      surplus: true,
+      reserveKt: 25000,
+      globalShare: "~4%",
+      use: "Stainless steel",
+      color: "#14b8a6",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Exploration stage",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Graphite",
+      symbol: "C",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Anodes, refractories",
+      color: "#f59e0b",
+    },
+  ],
+  "norway-eco": [
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Fen complex, unproven",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Nickel",
+      symbol: "Ni",
+      has: true,
+      surplus: false,
+      reserveKt: 100,
+      globalShare: "<1%",
+      use: "Stainless steel, batteries",
+      color: "#10b981",
+    },
+    {
+      name: "Titanium",
+      symbol: "Ti",
+      has: true,
+      surplus: true,
+      reserveKt: 37000,
+      globalShare: "~5%",
+      use: "Aerospace alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Graphite",
+      symbol: "C",
+      has: true,
+      surplus: false,
+      reserveKt: 600,
+      globalShare: "<1%",
+      use: "Anodes, refractories",
+      color: "#14b8a6",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#f59e0b",
+    },
+  ],
+  "portugal-eco": [
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: 60,
+      globalShare: "Largest in EU",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Tungsten",
+      symbol: "W",
+      has: true,
+      surplus: true,
+      reserveKt: 3,
+      globalShare: "~1%",
+      use: "Cutting tools, alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: true,
+      reserveKt: 2000,
+      globalShare: "<1%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Yttrium",
+      symbol: "Y",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "LEDs, superconductors",
+      color: "#10b981",
+    },
+  ],
+  "spain-eco": [
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: true,
+      reserveKt: 3000,
+      globalShare: "<1%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Tungsten",
+      symbol: "W",
+      has: true,
+      surplus: true,
+      reserveKt: 32,
+      globalShare: "~1%",
+      use: "Cutting tools, alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: 300,
+      globalShare: "~1%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Fluorspar",
+      symbol: "F",
+      has: true,
+      surplus: true,
+      reserveKt: 6000,
+      globalShare: "~1%",
+      use: "Refrigerants, steel flux",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "poland-eco": [
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: true,
+      reserveKt: 34000,
+      globalShare: "~3%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Silver",
+      symbol: "Ag",
+      has: true,
+      surplus: true,
+      reserveKt: 63,
+      globalShare: "~12%",
+      use: "Electronics, solar",
+      color: "#f59e0b",
+    },
+    {
+      name: "Zinc",
+      symbol: "Zn",
+      has: true,
+      surplus: false,
+      reserveKt: 1600,
+      globalShare: "<1%",
+      use: "Galvanizing, alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "czechia-eco": [
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: 1300,
+      globalShare: "~4%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Tungsten",
+      symbol: "W",
+      has: true,
+      surplus: false,
+      reserveKt: 2,
+      globalShare: "<1%",
+      use: "Cutting tools, alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Kaolin",
+      symbol: "Al",
+      has: true,
+      surplus: true,
+      reserveKt: 300000,
+      globalShare: "~3%",
+      use: "Ceramics, paper",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Yttrium",
+      symbol: "Y",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "LEDs, superconductors",
+      color: "#f59e0b",
+    },
+  ],
+  "serbia-eco": [
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: 1200,
+      globalShare: "~4%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: true,
+      reserveKt: 3000,
+      globalShare: "<1%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Boron",
+      symbol: "B",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Jadar deposit",
+      use: "Glass, ceramics",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Yttrium",
+      symbol: "Y",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "LEDs, superconductors",
+      color: "#f59e0b",
+    },
+  ],
+  "mozambique-eco": [
+    {
+      name: "Graphite",
+      symbol: "C",
+      has: true,
+      surplus: true,
+      reserveKt: 25000,
+      globalShare: "~8%",
+      use: "Anodes, refractories",
+      color: "#14b8a6",
+    },
+    {
+      name: "Titanium",
+      symbol: "Ti",
+      has: true,
+      surplus: true,
+      reserveKt: 14000,
+      globalShare: "~2%",
+      use: "Aerospace alloys, pigment",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Aluminium",
+      symbol: "Al",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Mozal smelter",
+      use: "Aluminium products",
+      color: "#f97316",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Exploration stage",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#10b981",
+    },
+  ],
+  "tanzania-eco": [
+    {
+      name: "Graphite",
+      symbol: "C",
+      has: true,
+      surplus: false,
+      reserveKt: 18000,
+      globalShare: "~6%",
+      use: "Anodes, refractories",
+      color: "#14b8a6",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: 890,
+      globalShare: "~1%",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: true,
+      surplus: true,
+      reserveKt: 1.1,
+      globalShare: "~2%",
+      use: "Electronics, reserves",
+      color: "#f59e0b",
+    },
+    {
+      name: "Nickel",
+      symbol: "Ni",
+      has: true,
+      surplus: false,
+      reserveKt: 300,
+      globalShare: "<1%",
+      use: "Stainless steel, batteries",
+      color: "#10b981",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#0ea5e9",
+    },
+  ],
+  "ghana-eco": [
+    {
+      name: "Bauxite",
+      symbol: "Al",
+      has: true,
+      surplus: true,
+      reserveKt: 900000,
+      globalShare: "~3%",
+      use: "Aluminium feedstock",
+      color: "#f97316",
+    },
+    {
+      name: "Manganese",
+      symbol: "Mn",
+      has: true,
+      surplus: true,
+      reserveKt: 13000,
+      globalShare: "~1%",
+      use: "Steel, batteries",
+      color: "#f59e0b",
+    },
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: true,
+      surplus: true,
+      reserveKt: 1.0,
+      globalShare: "~2%",
+      use: "Electronics, reserves",
+      color: "#10b981",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Ewoyaa, pre-production",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "nigeria-eco": [
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Emerging producer",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Tantalum",
+      symbol: "Ta",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Columbite-tantalite",
+      use: "Capacitors, electronics",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Tin",
+      symbol: "Sn",
+      has: true,
+      surplus: false,
+      reserveKt: 50,
+      globalShare: "~1%",
+      use: "Solder, electronics",
+      color: "#f59e0b",
+    },
+    {
+      name: "Zinc",
+      symbol: "Zn",
+      has: true,
+      surplus: false,
+      reserveKt: 500,
+      globalShare: "<1%",
+      use: "Galvanizing, alloys",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "uzbekistan-eco": [
+    {
+      name: "Uranium",
+      symbol: "U",
+      has: true,
+      surplus: true,
+      reserveKt: 130,
+      globalShare: "~2%",
+      use: "Nuclear fuel",
+      color: "#14b8a6",
+    },
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: true,
+      surplus: true,
+      reserveKt: 1.8,
+      globalShare: "~4%",
+      use: "Electronics, reserves",
+      color: "#f59e0b",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: true,
+      reserveKt: 6000,
+      globalShare: "<1%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Molybdenum",
+      symbol: "Mo",
+      has: true,
+      surplus: false,
+      reserveKt: 60,
+      globalShare: "<1%",
+      use: "Steel alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Exploration stage",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+  ],
+  "saudiarabia-eco": [
+    {
+      name: "Phosphate",
+      symbol: "P",
+      has: true,
+      surplus: true,
+      reserveKt: 1400000,
+      globalShare: "~2%",
+      use: "Fertilizer",
+      color: "#10b981",
+    },
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: true,
+      surplus: false,
+      reserveKt: 0.3,
+      globalShare: "<1%",
+      use: "Electronics, reserves",
+      color: "#f59e0b",
+    },
+    {
+      name: "Bauxite",
+      symbol: "Al",
+      has: true,
+      surplus: true,
+      reserveKt: 200000,
+      globalShare: "<1%",
+      use: "Aluminium feedstock",
+      color: "#f97316",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: false,
+      reserveKt: 900,
+      globalShare: "<1%",
+      use: "Wiring, electrification",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Exploration stage",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Brine pilots only",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+  ],
+  "colombia-eco": [
+    {
+      name: "Nickel",
+      symbol: "Ni",
+      has: true,
+      surplus: true,
+      reserveKt: 800,
+      globalShare: "<1%",
+      use: "Stainless steel, batteries",
+      color: "#10b981",
+    },
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: true,
+      surplus: true,
+      reserveKt: 0.3,
+      globalShare: "<1%",
+      use: "Electronics, reserves",
+      color: "#f59e0b",
+    },
+    {
+      name: "Emeralds",
+      symbol: "Be",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "~55% of trade",
+      use: "Gemstones",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: false,
+      reserveKt: 1000,
+      globalShare: "<1%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+  ],
+  "uk-eco": [
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Cornwall, pre-production",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Tin",
+      symbol: "Sn",
+      has: true,
+      surplus: false,
+      reserveKt: 12,
+      globalShare: "<1%",
+      use: "Solder, electronics",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Kaolin",
+      symbol: "Al",
+      has: true,
+      surplus: true,
+      reserveKt: 230000,
+      globalShare: "~2%",
+      use: "Ceramics, paper",
+      color: "#10b981",
+    },
+    {
+      name: "Gypsum",
+      symbol: "Ca",
+      has: true,
+      surplus: false,
+      reserveKt: 55000,
+      globalShare: "<1%",
+      use: "Plasterboard, cement",
+      color: "#f59e0b",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "france-eco": [
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: 320,
+      globalShare: "~1%",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Talc",
+      symbol: "Mg",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Trimouns, large",
+      use: "Fillers, ceramics",
+      color: "#10b981",
+    },
+    {
+      name: "Gypsum",
+      symbol: "Ca",
+      has: true,
+      surplus: true,
+      reserveKt: 100000,
+      globalShare: "~1%",
+      use: "Plasterboard, cement",
+      color: "#f59e0b",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Processing, not reserves",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Refining only",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Yttrium",
+      symbol: "Y",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "LEDs, superconductors",
+      color: "#0ea5e9",
+    },
+  ],
+  "southkorea-eco": [
+    {
+      name: "Tungsten",
+      symbol: "W",
+      has: true,
+      surplus: false,
+      reserveKt: 26,
+      globalShare: "~1%",
+      use: "Cutting tools, alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Graphite",
+      symbol: "C",
+      has: true,
+      surplus: false,
+      reserveKt: 1500,
+      globalShare: "<1%",
+      use: "Anodes, refractories",
+      color: "#14b8a6",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Import dependent",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Refining, not reserves",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Refining, not reserves",
+      use: "Battery cathodes",
+      color: "#10b981",
+    },
+    {
+      name: "Nickel",
+      symbol: "Ni",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Import dependent",
+      use: "Stainless steel, batteries",
+      color: "#f59e0b",
+    },
+  ],
+  "netherlands-eco": [
+    {
+      name: "Salt",
+      symbol: "Na",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Major EU producer",
+      use: "Chemicals, de-icing",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Trading hub only",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Yttrium",
+      symbol: "Y",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "LEDs, superconductors",
+      color: "#0ea5e9",
+    },
+  ],
+  "switzerland-eco": [
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: false,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "~65% of refining",
+      use: "Electronics, reserves",
+      color: "#f59e0b",
+    },
+    {
+      name: "Salt",
+      symbol: "Na",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Domestic supply",
+      use: "Chemicals, de-icing",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Trading hub only",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Trading hub only",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+  ],
+  "uae-eco": [
+    {
+      name: "Aluminium",
+      symbol: "Al",
+      has: false,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "~3% of smelting",
+      use: "Aluminium products",
+      color: "#f97316",
+    },
+    {
+      name: "Gypsum",
+      symbol: "Ca",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Large exporter",
+      use: "Plasterboard, cement",
+      color: "#f59e0b",
+    },
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: false,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Major refining hub",
+      use: "Electronics, reserves",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "belgium-eco": [
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Umicore refining hub",
+      use: "Battery cathodes",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Germanium",
+      symbol: "Ge",
+      has: false,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Major refiner",
+      use: "Optics, semiconductors",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Recycling only",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Yttrium",
+      symbol: "Y",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "LEDs, superconductors",
+      color: "#f59e0b",
+    },
+  ],
+  "singapore-eco": [
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "No domestic reserves",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Trading hub only",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Trading hub only",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Trading hub only",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Tin",
+      symbol: "Sn",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "No domestic reserves",
+      use: "Solder, electronics",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Yttrium",
+      symbol: "Y",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "No domestic reserves",
+      use: "LEDs, superconductors",
+      color: "#f59e0b",
+    },
+  ],
+  "israel-eco": [
+    {
+      name: "Bromine",
+      symbol: "Br",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "~35% of output",
+      use: "Flame retardants, drilling",
+      color: "#f97316",
+    },
+    {
+      name: "Potash",
+      symbol: "K",
+      has: true,
+      surplus: true,
+      reserveKt: 40000,
+      globalShare: "~1%",
+      use: "Fertilizer",
+      color: "#10b981",
+    },
+    {
+      name: "Phosphate",
+      symbol: "P",
+      has: true,
+      surplus: true,
+      reserveKt: 60000,
+      globalShare: "<1%",
+      use: "Fertilizer",
+      color: "#f59e0b",
+    },
+    {
+      name: "Magnesium",
+      symbol: "Mg",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Dead Sea brines",
+      use: "Alloys, lightweighting",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+  ],
+  "egypt-eco": [
+    {
+      name: "Phosphate",
+      symbol: "P",
+      has: true,
+      surplus: true,
+      reserveKt: 2800000,
+      globalShare: "~4%",
+      use: "Fertilizer",
+      color: "#10b981",
+    },
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: true,
+      surplus: true,
+      reserveKt: 0.6,
+      globalShare: "~1%",
+      use: "Electronics, reserves",
+      color: "#f59e0b",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Black sands, unquantified",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Titanium",
+      symbol: "Ti",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Black sand ilmenite",
+      use: "Aerospace alloys, pigment",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "thailand-eco": [
+    {
+      name: "Gypsum",
+      symbol: "Ca",
+      has: true,
+      surplus: true,
+      reserveKt: 200000,
+      globalShare: "Top exporter",
+      use: "Plasterboard, cement",
+      color: "#f59e0b",
+    },
+    {
+      name: "Tin",
+      symbol: "Sn",
+      has: true,
+      surplus: false,
+      reserveKt: 170,
+      globalShare: "~4%",
+      use: "Solder, electronics",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Potash",
+      symbol: "K",
+      has: true,
+      surplus: false,
+      reserveKt: 400000,
+      globalShare: "~4%",
+      use: "Fertilizer",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Ionic clay, small",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Exploration stage",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "denmark-eco": [
+    {
+      name: "Chalk",
+      symbol: "Ca",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Domestic supply",
+      use: "Cement, agriculture",
+      color: "#f59e0b",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None in Denmark proper",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Yttrium",
+      symbol: "Y",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "LEDs, superconductors",
+      color: "#0ea5e9",
+    },
+  ],
+  "pakistan-eco": [
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: false,
+      reserveKt: 6000,
+      globalShare: "~1%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Salt",
+      symbol: "Na",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Khewra, very large",
+      use: "Chemicals, food",
+      color: "#10b981",
+    },
+    {
+      name: "Chromium",
+      symbol: "Cr",
+      has: true,
+      surplus: false,
+      reserveKt: 500,
+      globalShare: "<1%",
+      use: "Stainless steel",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: true,
+      surplus: false,
+      reserveKt: 0.4,
+      globalShare: "<1%",
+      use: "Electronics, reserves",
+      color: "#f59e0b",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Exploration stage",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+  ],
+  "bangladesh-eco": [
+    {
+      name: "Limestone",
+      symbol: "Ca",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Domestic supply",
+      use: "Cement",
+      color: "#f59e0b",
+    },
+    {
+      name: "Titanium",
+      symbol: "Ti",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Beach sands, small",
+      use: "Pigment, alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+  ],
+  "austria-eco": [
+    {
+      name: "Tungsten",
+      symbol: "W",
+      has: true,
+      surplus: true,
+      reserveKt: 10,
+      globalShare: "~1%",
+      use: "Cutting tools, alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Magnesite",
+      symbol: "Mg",
+      has: true,
+      surplus: true,
+      reserveKt: 15000,
+      globalShare: "~2%",
+      use: "Refractories, steel",
+      color: "#10b981",
+    },
+    {
+      name: "Graphite",
+      symbol: "C",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Historic producer",
+      use: "Anodes, refractories",
+      color: "#14b8a6",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Koralpe, pre-production",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#f59e0b",
+    },
+  ],
+  "iran-eco": [
+    {
+      name: "Zinc",
+      symbol: "Zn",
+      has: true,
+      surplus: true,
+      reserveKt: 20000,
+      globalShare: "~8%",
+      use: "Galvanizing, alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: true,
+      reserveKt: 21000,
+      globalShare: "~2%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Iron",
+      symbol: "Fe",
+      has: true,
+      surplus: true,
+      reserveKt: 2700000,
+      globalShare: "~2%",
+      use: "Steel",
+      color: "#f59e0b",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Claims unverified",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Exploration stage",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "iraq-eco": [
+    {
+      name: "Sulfur",
+      symbol: "S",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Mishraq, large",
+      use: "Chemicals, fertilizer",
+      color: "#f59e0b",
+    },
+    {
+      name: "Phosphate",
+      symbol: "P",
+      has: true,
+      surplus: false,
+      reserveKt: 430000,
+      globalShare: "<1%",
+      use: "Fertilizer",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+  ],
+  "greece-eco": [
+    {
+      name: "Bauxite",
+      symbol: "Al",
+      has: true,
+      surplus: true,
+      reserveKt: 250000,
+      globalShare: "Largest in EU",
+      use: "Aluminium feedstock",
+      color: "#f97316",
+    },
+    {
+      name: "Perlite",
+      symbol: "Si",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "~30% of output",
+      use: "Insulation, filtration",
+      color: "#10b981",
+    },
+    {
+      name: "Nickel",
+      symbol: "Ni",
+      has: true,
+      surplus: false,
+      reserveKt: 500,
+      globalShare: "<1%",
+      use: "Stainless steel, batteries",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Magnesite",
+      symbol: "Mg",
+      has: true,
+      surplus: true,
+      reserveKt: 30000,
+      globalShare: "~3%",
+      use: "Refractories, steel",
+      color: "#f59e0b",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+  ],
+  "kuwait-eco": [
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "No domestic reserves",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "No domestic reserves",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "No domestic reserves",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "No domestic reserves",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Gypsum",
+      symbol: "Ca",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Local construction use",
+      use: "Plasterboard, cement",
+      color: "#f59e0b",
+    },
+    {
+      name: "Yttrium",
+      symbol: "Y",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "No domestic reserves",
+      use: "LEDs, superconductors",
+      color: "#0ea5e9",
+    },
+  ],
+  "qatar-eco": [
+    {
+      name: "Gypsum",
+      symbol: "Ca",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Local construction use",
+      use: "Plasterboard, cement",
+      color: "#f59e0b",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "No domestic reserves",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "No domestic reserves",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "No domestic reserves",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "No domestic reserves",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Yttrium",
+      symbol: "Y",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "No domestic reserves",
+      use: "LEDs, superconductors",
+      color: "#0ea5e9",
+    },
+  ],
+  "ethiopia-eco": [
+    {
+      name: "Tantalum",
+      symbol: "Ta",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Kenticha, notable",
+      use: "Capacitors, electronics",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Potash",
+      symbol: "K",
+      has: true,
+      surplus: false,
+      reserveKt: 130000,
+      globalShare: "~1%",
+      use: "Fertilizer",
+      color: "#10b981",
+    },
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: true,
+      surplus: true,
+      reserveKt: 0.2,
+      globalShare: "<1%",
+      use: "Electronics, reserves",
+      color: "#f59e0b",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Kenticha, pre-production",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "kenya-eco": [
+    {
+      name: "Titanium",
+      symbol: "Ti",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Kwale mineral sands",
+      use: "Pigment, alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Soda ash",
+      symbol: "Na",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Lake Magadi, large",
+      use: "Glass, chemicals",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Mrima Hill, undeveloped",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Zirconium",
+      symbol: "Zr",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Mineral sands by-product",
+      use: "Ceramics, refractories",
+      color: "#f59e0b",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "angola-eco": [
+    {
+      name: "Diamonds",
+      symbol: "C",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Top 5 by value",
+      use: "Gemstones, industrial",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Longonjo, pre-production",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Phosphate",
+      symbol: "P",
+      has: true,
+      surplus: false,
+      reserveKt: 150000,
+      globalShare: "<1%",
+      use: "Fertilizer",
+      color: "#10b981",
+    },
+    {
+      name: "Iron",
+      symbol: "Fe",
+      has: true,
+      surplus: false,
+      reserveKt: 100000,
+      globalShare: "<1%",
+      use: "Steel",
+      color: "#f59e0b",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Exploration stage",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "venezuela-eco": [
+    {
+      name: "Iron",
+      symbol: "Fe",
+      has: true,
+      surplus: false,
+      reserveKt: 4000000,
+      globalShare: "~2%",
+      use: "Steel",
+      color: "#f59e0b",
+    },
+    {
+      name: "Bauxite",
+      symbol: "Al",
+      has: true,
+      surplus: false,
+      reserveKt: 320000,
+      globalShare: "~1%",
+      use: "Aluminium feedstock",
+      color: "#f97316",
+    },
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: true,
+      surplus: false,
+      reserveKt: 0.8,
+      globalShare: "~1%",
+      use: "Electronics, reserves",
+      color: "#10b981",
+    },
+    {
+      name: "Coltan",
+      symbol: "Ta",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Orinoco, informal",
+      use: "Capacitors, electronics",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+  ],
+  "ecuador-eco": [
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: true,
+      reserveKt: 3000,
+      globalShare: "<1%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: true,
+      surplus: true,
+      reserveKt: 0.3,
+      globalShare: "<1%",
+      use: "Electronics, reserves",
+      color: "#f59e0b",
+    },
+    {
+      name: "Silver",
+      symbol: "Ag",
+      has: true,
+      surplus: false,
+      reserveKt: 1,
+      globalShare: "<1%",
+      use: "Electronics, solar",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "cambodia-eco": [
+    {
+      name: "Bauxite",
+      symbol: "Al",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Undeveloped deposits",
+      use: "Aluminium feedstock",
+      color: "#f97316",
+    },
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: true,
+      surplus: false,
+      reserveKt: 0.1,
+      globalShare: "<1%",
+      use: "Electronics, reserves",
+      color: "#f59e0b",
+    },
+    {
+      name: "Limestone",
+      symbol: "Ca",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Domestic supply",
+      use: "Cement",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "srilanka-eco": [
+    {
+      name: "Graphite",
+      symbol: "C",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Only vein graphite source",
+      use: "Anodes, refractories",
+      color: "#14b8a6",
+    },
+    {
+      name: "Titanium",
+      symbol: "Ti",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Pulmoddai ilmenite",
+      use: "Pigment, alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Zirconium",
+      symbol: "Zr",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Mineral sands by-product",
+      use: "Ceramics, refractories",
+      color: "#f59e0b",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Monazite, small",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#10b981",
+    },
+  ],
+  "nepal-eco": [
+    {
+      name: "Limestone",
+      symbol: "Ca",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Domestic cement supply",
+      use: "Cement",
+      color: "#f59e0b",
+    },
+    {
+      name: "Magnesite",
+      symbol: "Mg",
+      has: true,
+      surplus: false,
+      reserveKt: 20000,
+      globalShare: "<1%",
+      use: "Refractories, steel",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+  ],
+  "newzealand-eco": [
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: true,
+      surplus: true,
+      reserveKt: 0.2,
+      globalShare: "<1%",
+      use: "Electronics, reserves",
+      color: "#f59e0b",
+    },
+    {
+      name: "Iron",
+      symbol: "Fe",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Titanomagnetite sands",
+      use: "Steel",
+      color: "#f97316",
+    },
+    {
+      name: "Silver",
+      symbol: "Ag",
+      has: true,
+      surplus: false,
+      reserveKt: 1,
+      globalShare: "<1%",
+      use: "Electronics, solar",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "romania-eco": [
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: true,
+      surplus: false,
+      reserveKt: 0.4,
+      globalShare: "~1%",
+      use: "Electronics, reserves",
+      color: "#f59e0b",
+    },
+    {
+      name: "Salt",
+      symbol: "Na",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Large domestic reserves",
+      use: "Chemicals, de-icing",
+      color: "#10b981",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: false,
+      reserveKt: 1000,
+      globalShare: "<1%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "hungary-eco": [
+    {
+      name: "Bauxite",
+      symbol: "Al",
+      has: true,
+      surplus: false,
+      reserveKt: 20000,
+      globalShare: "<1%",
+      use: "Aluminium feedstock",
+      color: "#f97316",
+    },
+    {
+      name: "Manganese",
+      symbol: "Mn",
+      has: true,
+      surplus: false,
+      reserveKt: 2000,
+      globalShare: "<1%",
+      use: "Steel, batteries",
+      color: "#f59e0b",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Refining, not reserves",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Wiring, electrification",
+      color: "#0ea5e9",
+    },
+  ],
+  "slovakia-eco": [
+    {
+      name: "Magnesite",
+      symbol: "Mg",
+      has: true,
+      surplus: true,
+      reserveKt: 100000,
+      globalShare: "~5%",
+      use: "Refractories, steel",
+      color: "#10b981",
+    },
+    {
+      name: "Talc",
+      symbol: "Mg",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Gemerská Poloma",
+      use: "Fillers, ceramics",
+      color: "#f59e0b",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+  ],
+  "bulgaria-eco": [
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: true,
+      surplus: true,
+      reserveKt: 1500,
+      globalShare: "<1%",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: true,
+      surplus: true,
+      reserveKt: 0.2,
+      globalShare: "<1%",
+      use: "Electronics, reserves",
+      color: "#f59e0b",
+    },
+    {
+      name: "Zinc",
+      symbol: "Zn",
+      has: true,
+      surplus: false,
+      reserveKt: 500,
+      globalShare: "<1%",
+      use: "Galvanizing, alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "croatia-eco": [
+    {
+      name: "Limestone",
+      symbol: "Ca",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Cement and stone",
+      use: "Cement, construction",
+      color: "#f59e0b",
+    },
+    {
+      name: "Gypsum",
+      symbol: "Ca",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Domestic supply",
+      use: "Plasterboard, cement",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+  ],
+  "ireland-eco": [
+    {
+      name: "Zinc",
+      symbol: "Zn",
+      has: true,
+      surplus: true,
+      reserveKt: 1200,
+      globalShare: "Largest in EU",
+      use: "Galvanizing, alloys",
+      color: "#0ea5e9",
+    },
+    {
+      name: "Lead",
+      symbol: "Pb",
+      has: true,
+      surplus: true,
+      reserveKt: 300,
+      globalShare: "<1%",
+      use: "Batteries, shielding",
+      color: "#f59e0b",
+    },
+    {
+      name: "Gypsum",
+      symbol: "Ca",
+      has: true,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Domestic supply",
+      use: "Plasterboard, cement",
+      color: "#10b981",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Exploration stage",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "italy-eco": [
+    {
+      name: "Feldspar",
+      symbol: "Si",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Top global producer",
+      use: "Ceramics, glass",
+      color: "#10b981",
+    },
+    {
+      name: "Marble",
+      symbol: "Ca",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Carrara, premium stone",
+      use: "Construction stone",
+      color: "#f59e0b",
+    },
+    {
+      name: "Pumice",
+      symbol: "Si",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Significant producer",
+      use: "Abrasives, cement",
+      color: "#f97316",
+    },
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Geothermal brine pilots",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "None significant",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+  ],
+  "taiwan-eco": [
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Import dependent",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Import dependent",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Import dependent",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Import dependent",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Marble",
+      symbol: "Ca",
+      has: true,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Hualien, large",
+      use: "Construction stone",
+      color: "#f59e0b",
+    },
+    {
+      name: "Yttrium",
+      symbol: "Y",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Import dependent",
+      use: "LEDs, superconductors",
+      color: "#0ea5e9",
+    },
+  ],
+  "hongkong-eco": [
+    {
+      name: "Neodymium",
+      symbol: "Nd",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "No domestic reserves",
+      use: "EV motors, wind turbines",
+      color: "#6366f1",
+    },
+    {
+      name: "Lithium",
+      symbol: "Li",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Trading hub only",
+      use: "Batteries",
+      color: "#7c3aed",
+    },
+    {
+      name: "Cobalt",
+      symbol: "Co",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Trading hub only",
+      use: "Battery cathodes",
+      color: "#14b8a6",
+    },
+    {
+      name: "Copper",
+      symbol: "Cu",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "Trading hub only",
+      use: "Wiring, electrification",
+      color: "#f97316",
+    },
+    {
+      name: "Gold",
+      symbol: "Au",
+      has: false,
+      surplus: true,
+      reserveKt: null,
+      globalShare: "Major bullion market",
+      use: "Electronics, reserves",
+      color: "#f59e0b",
+    },
+    {
+      name: "Yttrium",
+      symbol: "Y",
+      has: false,
+      surplus: false,
+      reserveKt: null,
+      globalShare: "No domestic reserves",
+      use: "LEDs, superconductors",
+      color: "#0ea5e9",
+    },
+  ],
 };
 
 // Default for economies without specific data
@@ -720,7 +5050,7 @@ const DEFAULT_RARE_EARTHS: RareEarthMineral[] = [
     has: false,
     surplus: false,
     reserveKt: null,
-    globalShare: "Unknown",
+    globalShare: "None significant",
     use: "EV motors, wind turbines",
     color: "#6366f1",
   },
@@ -730,7 +5060,7 @@ const DEFAULT_RARE_EARTHS: RareEarthMineral[] = [
     has: false,
     surplus: false,
     reserveKt: null,
-    globalShare: "Unknown",
+    globalShare: "None significant",
     use: "Batteries",
     color: "#7c3aed",
   },
@@ -740,7 +5070,7 @@ const DEFAULT_RARE_EARTHS: RareEarthMineral[] = [
     has: false,
     surplus: false,
     reserveKt: null,
-    globalShare: "Unknown",
+    globalShare: "None significant",
     use: "Battery cathodes",
     color: "#4f46e5",
   },
@@ -750,7 +5080,7 @@ const DEFAULT_RARE_EARTHS: RareEarthMineral[] = [
     has: false,
     surplus: false,
     reserveKt: null,
-    globalShare: "Unknown",
+    globalShare: "None significant",
     use: "High-temp magnets",
     color: "#8b5cf6",
   },
@@ -760,7 +5090,7 @@ const DEFAULT_RARE_EARTHS: RareEarthMineral[] = [
     has: false,
     surplus: false,
     reserveKt: null,
-    globalShare: "Unknown",
+    globalShare: "None significant",
     use: "Catalysts, optics",
     color: "#a78bfa",
   },
@@ -770,7 +5100,7 @@ const DEFAULT_RARE_EARTHS: RareEarthMineral[] = [
     has: false,
     surplus: false,
     reserveKt: null,
-    globalShare: "Unknown",
+    globalShare: "None significant",
     use: "Polishing, glass",
     color: "#c4b5fd",
   },
@@ -780,7 +5110,7 @@ const DEFAULT_RARE_EARTHS: RareEarthMineral[] = [
     has: false,
     surplus: false,
     reserveKt: null,
-    globalShare: "Unknown",
+    globalShare: "None significant",
     use: "Aerospace alloys",
     color: "#34d399",
   },
@@ -790,7 +5120,7 @@ const DEFAULT_RARE_EARTHS: RareEarthMineral[] = [
     has: false,
     surplus: false,
     reserveKt: null,
-    globalShare: "Unknown",
+    globalShare: "None significant",
     use: "LEDs, superconductors",
     color: "#67e8f9",
   },
@@ -808,7 +5138,7 @@ const ECONOMY_RESOURCES: Record<
     share: string;
   }[]
 > = {
-  usa: [
+  "usa-eco": [
     {
       name: "Natural Gas",
       value: 12.6,
@@ -850,7 +5180,7 @@ const ECONOMY_RESOURCES: Record<
       share: "4th global",
     },
   ],
-  china: [
+  "china-eco": [
     {
       name: "Coal",
       value: 4560,
@@ -892,7 +5222,7 @@ const ECONOMY_RESOURCES: Record<
       share: "1st global",
     },
   ],
-  eu: [
+  "eu-eco": [
     {
       name: "Natural Gas",
       value: 47,
@@ -934,7 +5264,7 @@ const ECONOMY_RESOURCES: Record<
       share: "Czech/France",
     },
   ],
-  germany: [
+  "germany-eco": [
     {
       name: "Coal",
       value: 131,
@@ -976,7 +5306,7 @@ const ECONOMY_RESOURCES: Record<
       share: "Imports 90%",
     },
   ],
-  india: [
+  "india-eco": [
     {
       name: "Coal",
       value: 898,
@@ -1018,7 +5348,7 @@ const ECONOMY_RESOURCES: Record<
       share: "2nd global",
     },
   ],
-  japan: [
+  "japan-eco": [
     {
       name: "Iodine",
       value: 9.5,
@@ -1060,7 +5390,7 @@ const ECONOMY_RESOURCES: Record<
       share: "6th global",
     },
   ],
-  brazil: [
+  "brazil-eco": [
     {
       name: "Iron Ore",
       value: 411,
@@ -1102,7 +5432,7 @@ const ECONOMY_RESOURCES: Record<
       share: "Growing",
     },
   ],
-  "saudi-arabia": [
+  "saudiarabia-eco": [
     {
       name: "Crude Oil",
       value: 10.5,
@@ -1601,75 +5931,32 @@ const SECTOR_COLORS: Record<string, string> = {
   Textiles: "#10b981",
 };
 
-const SECTOR_ICONS: Record<string, string> = {
-  Services: "🏢",
-  Industry: "🏭",
-  Agriculture: "🌾",
-  Manufacturing: "⚙️",
-  Finance: "💰",
-  Technology: "💻",
-  Energy: "⚡",
-  Mining: "⛏️",
-  Tourism: "✈️",
-  IT: "🖥️",
-  Logistics: "🚢",
-  Chemicals: "🧪",
-  "Trade & Logistics": "📦",
-  Pharmaceuticals: "💊",
-  Semiconductors: "🔬",
-  BPO: "📞",
-  Fisheries: "🐟",
-  Garments: "👗",
-  Automotive: "🚗",
-  Textiles: "🧵",
-};
-
 function getSectorColor(name: string): string {
   return SECTOR_COLORS[name] ?? "#94a3b8";
 }
 
-function getSectorIcon(name: string): string {
-  return SECTOR_ICONS[name] ?? "📊";
-}
-
+/**
+ * One sector row inside the GDP-composition tile.
+ *
+ * Previously each sector rendered its own bordered card, which put four cards
+ * inside the modal-tile they already sat in, repeated "Share of GDP" four
+ * times, and used a five-dot meter that appears nowhere else in the app.
+ * This is the label / mono-value / h-1.5 bar pattern used for every other
+ * measured value in the codebase.
+ */
 function SectorBar({ name, share }: { name: string; share: number }) {
   const color = getSectorColor(name);
-  const icon = getSectorIcon(name);
   return (
-    <div className="p-2.5 rounded-lg bg-background/50 border border-border/40 hover:border-border/70 transition-colors">
-      <div className="flex items-center justify-between mb-1.5">
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm">{icon}</span>
-          <span className="text-xs font-semibold font-sans text-foreground">
-            {name}
-          </span>
-        </div>
-        <span className="text-sm font-bold font-mono" style={{ color }}>
-          {share}%
-        </span>
+    <div>
+      <div className="flex justify-between text-xs mb-1 gap-3">
+        <span className="text-muted-foreground font-sans truncate">{name}</span>
+        <span className="font-mono text-foreground shrink-0">{share}%</span>
       </div>
-      <div className="h-2 bg-muted rounded-full overflow-hidden">
+      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
         <div
-          className="h-full rounded-full transition-all duration-700"
+          className="h-full rounded-full transition-all duration-500"
           style={{ width: `${share}%`, background: color }}
         />
-      </div>
-      <div className="flex justify-between mt-1">
-        <span className="text-[10px] text-muted-foreground font-sans">
-          Share of GDP
-        </span>
-        <div className="flex gap-0.5">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div
-              key={i}
-              className="w-1 h-1 rounded-full"
-              style={{
-                background:
-                  i < Math.round(share / 20) ? color : "hsl(222,30%,25%)",
-              }}
-            />
-          ))}
-        </div>
       </div>
     </div>
   );
@@ -1801,9 +6088,12 @@ function AccordionSection({
 function EconomyModal({
   economy,
   onClose,
+  rents,
 }: {
   economy: Economy;
   onClose: () => void;
+  /** World Bank resource rents for this economy, when the fetch succeeded. */
+  rents?: EconomyRents;
 }) {
   const [activeChart, setActiveChart] = useState<
     "gdp" | "growth" | "inflation"
@@ -1857,7 +6147,20 @@ function EconomyModal({
         ? "hsl(150,55%,45%)"
         : "hsl(35,100%,50%)";
 
-  const resources = ECONOMY_RESOURCES[economy.id] ?? FALLBACK_RESOURCES;
+  // Prefer World Bank resource rents over the curated list: they are
+  // sourced, dated and cover ~250 economies. Curated data is the fallback
+  // for economies the World Bank does not report (Taiwan) and for when
+  // the request fails.
+  const resources = rents?.items.length
+    ? rents.items.map((r) => ({
+        name: r.name,
+        value: r.pctOfGdp,
+        unit: "% of GDP",
+        color: r.color,
+        icon: "",
+        share: `World Bank ${r.year}`,
+      }))
+    : (ECONOMY_RESOURCES[economy.id] ?? FALLBACK_RESOURCES);
 
   return (
     <div
@@ -1885,14 +6188,6 @@ function EconomyModal({
 
             {/* Left: entity icon + name */}
             <div className="relative flex items-center gap-4">
-              {/* Entity icon circle */}
-              <div className="w-14 h-14 rounded-xl shrink-0 border border-white/20 shadow-md bg-gradient-to-br from-secondary/30 to-secondary/10 flex items-center justify-center text-2xl">
-                {economy.entityType === "Country"
-                  ? "🌍"
-                  : economy.entityType === "Bloc"
-                    ? "🤝"
-                    : "🗺️"}
-              </div>
               <div>
                 <h2 className="text-xl font-bold font-sans text-foreground leading-tight">
                   {economy.name}
@@ -1912,11 +6207,6 @@ function EconomyModal({
                   <span
                     className={`flex items-center gap-1 text-xs font-mono ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}
                   >
-                    {economy.gdpGrowthRate >= 0 ? (
-                      <ArrowUp size={11} />
-                    ) : (
-                      <ArrowDown size={11} />
-                    )}
                     {economy.gdpGrowthRate}% growth
                   </span>
                 </div>
@@ -1933,41 +6223,16 @@ function EconomyModal({
                 }
                 title={isExpanded ? "Collapse" : "Expand to full screen"}
               >
-                {isExpanded ? (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M5 1H1v4M11 1h4v4M5 15H1v-4M11 15h4v-4"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
+                <span className="text-xs font-sans font-medium">
+                  {isExpanded ? "Collapse" : "Expand"}
+                </span>
               </button>
               <button
                 onClick={onClose}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-label="Close"
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M12 4L4 12M4 4l8 8"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
+                <span className="text-xs font-sans font-medium">Close</span>
               </button>
             </div>
           </div>
@@ -1982,7 +6247,7 @@ function EconomyModal({
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    📊 Key Economic Metrics
+                    Key Economic Metrics
                   </span>
                   <div className="flex-1 h-px bg-border/60" />
                 </div>
@@ -2060,13 +6325,13 @@ function EconomyModal({
                 </div>
               </div>
 
-              <SourceLink sources={SRC_IMF} />
+              <SourceLink sources={SRC_IMF} showIcon={false} />
 
               {/* ── 5-YEAR TRENDS CHART ── */}
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    📈 5-Year Trends
+                    5-Year Trends
                   </span>
                   <div className="flex-1 h-px bg-border/60" />
                   <div className="flex gap-1">
@@ -2155,7 +6420,7 @@ function EconomyModal({
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    🏭 GDP Composition by Sector
+                    GDP Composition by Sector
                   </span>
                   <div className="flex-1 h-px bg-border/60" />
                 </div>
@@ -2166,7 +6431,7 @@ function EconomyModal({
                       economyId={economy.id}
                     />
                   </div>
-                  <div className="space-y-2 mb-3">
+                  <div className="space-y-2.5 mb-3">
                     {economy.topSectors.map((s) => (
                       <SectorBar
                         key={s.name}
@@ -2249,7 +6514,7 @@ function EconomyModal({
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    🌐 Trade &amp; Partners
+                    Trade &amp; Partners
                   </span>
                   <div className="flex-1 h-px bg-border/60" />
                 </div>
@@ -2295,7 +6560,6 @@ function EconomyModal({
             ════════════════════════════════════════ */}
             <div className="flex items-center gap-2 pt-2">
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/15 border border-secondary/30">
-                <span className="text-xs">💹</span>
                 <span className="text-[10px] font-bold font-sans text-secondary uppercase tracking-widest">
                   Markets
                 </span>
@@ -2308,7 +6572,7 @@ function EconomyModal({
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    💹 Financial Markets
+                    Financial Markets
                   </span>
                   <div className="flex-1 h-px bg-border/60" />
                 </div>
@@ -2318,19 +6582,16 @@ function EconomyModal({
                       label: "Stock Market Cap",
                       value: `$${economy.stockMarketCap}T`,
                       color: "text-secondary",
-                      icon: "📈",
                     },
                     {
                       label: "FDI Inflow",
                       value: `$${economy.fdiInflowBillions}B`,
                       color: "text-green-400",
-                      icon: "💰",
                     },
                     {
                       label: "Trade Volume",
                       value: `$${economy.tradeVolumeTrillions}T`,
                       color: "text-blue-400",
-                      icon: "🔄",
                     },
                     {
                       label: "Interest Rate",
@@ -2339,7 +6600,6 @@ function EconomyModal({
                         economy.interestRate > 5
                           ? "text-warning"
                           : "text-success",
-                      icon: "🏦",
                     },
                     {
                       label: "Debt / GDP",
@@ -2350,20 +6610,17 @@ function EconomyModal({
                           : economy.debtToGDPRatio > 60
                             ? "text-warning"
                             : "text-success",
-                      icon: "📋",
                     },
                     {
                       label: "Credit Rating",
                       value: economy.creditRating,
                       color: ratingColor(economy.creditRating).split(" ")[0],
-                      icon: "⭐",
                     },
                   ].map((s) => (
                     <div
                       key={s.label}
                       className="modal-tile rounded-xl p-3 flex items-center gap-3"
                     >
-                      <span className="text-xl shrink-0">{s.icon}</span>
                       <div>
                         <p className="text-[10px] text-muted-foreground font-sans">
                           {s.label}
@@ -2383,7 +6640,7 @@ function EconomyModal({
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    📉 Growth vs Inflation Trend
+                    Growth vs Inflation Trend
                   </span>
                   <div className="flex-1 h-px bg-border/60" />
                 </div>
@@ -2456,85 +6713,7 @@ function EconomyModal({
                 </div>
               </div>
 
-              {/* GDP absolute trajectory */}
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    📊 GDP Trajectory ($T)
-                  </span>
-                  <div className="flex-1 h-px bg-border/60" />
-                </div>
-                <div className="modal-tile rounded-xl p-4">
-                  <div className="h-40">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart
-                        data={economy.trends}
-                        margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
-                      >
-                        <defs>
-                          <linearGradient
-                            id={`gdpTabGrad-${economy.id}`}
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop
-                              offset="5%"
-                              stopColor="hsl(200,85%,50%)"
-                              stopOpacity={0.3}
-                            />
-                            <stop
-                              offset="95%"
-                              stopColor="hsl(200,85%,50%)"
-                              stopOpacity={0}
-                            />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                          stroke="hsl(222,30%,25%)"
-                          vertical={false}
-                        />
-                        <XAxis
-                          dataKey="year"
-                          tick={{
-                            fill: "hsl(0,0%,60%)",
-                            fontSize: 10,
-                            fontFamily: "IBM Plex Mono",
-                          }}
-                          axisLine={false}
-                          tickLine={false}
-                        />
-                        <YAxis
-                          tick={{
-                            fill: "hsl(0,0%,60%)",
-                            fontSize: 10,
-                            fontFamily: "IBM Plex Mono",
-                          }}
-                          axisLine={false}
-                          tickLine={false}
-                          width={40}
-                        />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Area
-                          type="monotone"
-                          dataKey="gdp"
-                          name="GDP ($T)"
-                          stroke="hsl(200,85%,50%)"
-                          strokeWidth={2}
-                          fill={`url(#gdpTabGrad-${economy.id})`}
-                          dot={false}
-                          isAnimationActive
-                          animationDuration={600}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-
-              <SourceLink sources={SRC_OECD} />
+              <SourceLink sources={SRC_OECD} showIcon={false} />
             </div>
 
             {/* ════════════════════════════════════════
@@ -2542,7 +6721,6 @@ function EconomyModal({
             ════════════════════════════════════════ */}
             <div className="flex items-center gap-2 pt-2">
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30">
-                <span className="text-xs">⛏️</span>
                 <span className="text-[10px] font-bold font-sans text-amber-400 uppercase tracking-widest">
                   Resources
                 </span>
@@ -2582,7 +6760,7 @@ function EconomyModal({
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                          ⛏️ Natural Resources &amp; Commodities
+                          Natural Resources &amp; Commodities
                         </span>
                         <div className="flex-1 h-px bg-border/60" />
                         <span className="text-[10px] font-mono text-muted-foreground border border-border px-2 py-0.5 rounded-full bg-background/50">
@@ -2590,9 +6768,12 @@ function EconomyModal({
                         </span>
                       </div>
 
-                      {/* Donut + legend */}
+                      {/* Donut + resource rows in a single tile. The separate
+                          "Production & Output" bar chart listed the same five
+                          resources a second time, so its data is shown here as
+                          inline bars instead. */}
                       <div className="modal-tile rounded-xl p-4 mb-3">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 mb-4">
                           <div
                             className="shrink-0"
                             style={{ width: 120, height: 120 }}
@@ -2629,118 +6810,60 @@ function EconomyModal({
                               </PieChart>
                             </ResponsiveContainer>
                           </div>
-                          <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                            <div className="flex items-baseline gap-1.5 mb-0.5">
-                              <span
-                                className="text-sm font-bold font-mono"
-                                style={{ color: resources[0]?.color }}
-                              >
-                                {resources[0]?.icon} {resources[0]?.name}
-                              </span>
-                              <span className="text-[10px] text-muted-foreground font-sans">
-                                {resources[0]?.share}
-                              </span>
-                            </div>
-                            {resources.slice(0, 5).map((r) => (
-                              <div
-                                key={r.name}
-                                className="flex items-center gap-2 min-w-0"
-                              >
-                                <div
-                                  className="w-2 h-2 rounded-sm shrink-0"
-                                  style={{ background: r.color }}
-                                />
-                                <span className="text-[11px] font-sans text-foreground truncate flex-1">
-                                  {r.name}
-                                </span>
-                                <span className="text-[10px] font-mono shrink-0 text-muted-foreground">
-                                  {r.unit}
-                                </span>
-                                <span
-                                  className="text-[10px] font-mono shrink-0"
-                                  style={{ color: r.color }}
-                                >
-                                  {r.share}
-                                </span>
-                              </div>
-                            ))}
+                          <div className="min-w-0">
+                            <p
+                              className="text-sm font-bold font-mono truncate"
+                              style={{ color: resources[0]?.color }}
+                            >
+                              {resources[0]?.name}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground font-sans">
+                              {resources[0]?.share}
+                            </p>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Horizontal bar chart */}
-                      <div className="modal-tile rounded-xl p-4 mb-3">
-                        <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-3">
-                          Production &amp; Output
-                        </p>
-                        <div className="h-44">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                              data={resources}
-                              layout="vertical"
-                              margin={{ top: 0, right: 50, left: 0, bottom: 0 }}
-                            >
-                              <CartesianGrid
-                                strokeDasharray="3 3"
-                                stroke="rgba(255,255,255,0.05)"
-                                horizontal={false}
-                              />
-                              <XAxis
-                                type="number"
-                                tick={{
-                                  fill: "hsl(0,0%,50%)",
-                                  fontSize: 9,
-                                  fontFamily: "IBM Plex Mono",
-                                }}
-                                axisLine={false}
-                                tickLine={false}
-                              />
-                              <YAxis
-                                type="category"
-                                dataKey="name"
-                                tick={{
-                                  fill: "hsl(0,0%,65%)",
-                                  fontSize: 9,
-                                  fontFamily: "DM Sans",
-                                }}
-                                axisLine={false}
-                                tickLine={false}
-                                width={80}
-                              />
-                              <Tooltip
-                                contentStyle={{
-                                  background: "hsl(222,30%,14%)",
-                                  border: "1px solid rgba(255,255,255,0.1)",
-                                  borderRadius: 10,
-                                  fontSize: 11,
-                                  fontFamily: "IBM Plex Mono",
-                                }}
-                                formatter={(
-                                  v: number,
-                                  _: string,
-                                  props: any,
-                                ) => {
-                                  const res = resources.find(
-                                    (r) => r.name === props.payload.name,
-                                  );
-                                  return [
-                                    `${v} ${res?.unit ?? ""}`,
-                                    props.payload.name,
-                                  ];
-                                }}
-                                labelFormatter={() => ""}
-                              />
-                              <Bar
-                                dataKey="value"
-                                radius={[0, 4, 4, 0]}
-                                maxBarSize={14}
-                              >
-                                {resources.map((r) => (
-                                  <Cell key={r.name} fill={r.color} />
-                                ))}
-                              </Bar>
-                            </BarChart>
-                          </ResponsiveContainer>
+                        <div className="space-y-2.5">
+                          {resources.slice(0, 5).map((r) => {
+                            // Units differ between rows, so the bar shows each
+                            // resource against the largest value in this set
+                            // rather than implying a like-for-like comparison.
+                            const peak = Math.max(
+                              ...resources.slice(0, 5).map((x) => x.value),
+                              1,
+                            );
+                            return (
+                              <div key={r.name}>
+                                <div className="flex justify-between text-xs mb-1 gap-3">
+                                  <span className="text-muted-foreground font-sans truncate">
+                                    {r.name}
+                                    {r.share && (
+                                      <span className="text-muted-foreground/60">
+                                        {" · "}
+                                        {r.share}
+                                      </span>
+                                    )}
+                                  </span>
+                                  <span className="font-mono text-foreground shrink-0">
+                                    {r.value}
+                                    <span className="text-muted-foreground">
+                                      {" "}
+                                      {r.unit}
+                                    </span>
+                                  </span>
+                                </div>
+                                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full transition-all duration-500"
+                                    style={{
+                                      width: `${(r.value / peak) * 100}%`,
+                                      background: r.color,
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
 
@@ -2765,7 +6888,7 @@ function EconomyModal({
                             className="text-xs font-bold font-sans mt-0.5"
                             style={{ color: resources[0]?.color }}
                           >
-                            {resources[0]?.icon} {resources[0]?.name}
+                            {resources[0]?.name}
                           </p>
                           <p className="text-[10px] text-muted-foreground font-sans">
                             {resources[0]?.share}
@@ -2794,14 +6917,14 @@ function EconomyModal({
                           <div className="mt-4 pt-4 border-t border-border/50">
                             <div className="flex items-center gap-2 mb-3">
                               <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                                🧲 Rare Earth &amp; Critical Minerals
+                                Rare Earth &amp; Critical Minerals
                               </span>
                               <div className="flex-1 h-px bg-border/60" />
                               <div className="flex items-center gap-2 shrink-0">
-                                <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-success/10 mineral-pill-has border border-success/25">
                                   {hasCount} has
                                 </span>
-                                <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-warning/10 mineral-pill-surplus border border-warning/25">
                                   {surplusCount} surplus
                                 </span>
                               </div>
@@ -2809,8 +6932,8 @@ function EconomyModal({
                             {/* Legend */}
                             <div className="flex items-center gap-3 mb-3">
                               <div className="flex items-center gap-1.5">
-                                <div className="w-3 h-3 rounded-sm bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
-                                  <span className="text-[8px] text-emerald-400">
+                                <div className="w-3 h-3 rounded-sm bg-success/20 border border-success/40 flex items-center justify-center">
+                                  <span className="text-[8px] text-success">
                                     ✓
                                   </span>
                                 </div>
@@ -2819,8 +6942,8 @@ function EconomyModal({
                                 </span>
                               </div>
                               <div className="flex items-center gap-1.5">
-                                <div className="w-3 h-3 rounded-sm bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
-                                  <span className="text-[8px] text-amber-400">
+                                <div className="w-3 h-3 rounded-sm bg-warning/20 border border-warning/40 flex items-center justify-center">
+                                  <span className="text-[8px] text-warning">
                                     ↑
                                   </span>
                                 </div>
@@ -2839,73 +6962,63 @@ function EconomyModal({
                                 </span>
                               </div>
                             </div>
-                            {/* Minerals grid */}
-                            <div className="grid grid-cols-2 gap-2">
+                            {/* One row per mineral, matching the row lists used
+                                elsewhere in this modal rather than a grid of
+                                tinted cards nested inside this tile. Status
+                                colours use the success/warning tokens, which
+                                are defined for both themes — the previous
+                                emerald-400/amber-400 literals were fixed values
+                                that washed out on the light background. */}
+                            <div className="divide-y divide-border/40">
                               {rareEarths.map((m) => (
                                 <div
                                   key={m.name}
-                                  className={`rounded-xl border p-2.5 transition-colors ${
-                                    m.surplus
-                                      ? "bg-amber-500/8 border-amber-500/25"
-                                      : m.has
-                                        ? "bg-emerald-500/8 border-emerald-500/20"
-                                        : "bg-muted/30 border-border/40"
-                                  }`}
+                                  className="flex items-center gap-2 py-2"
                                 >
-                                  <div className="flex items-start justify-between gap-1 mb-1">
-                                    <div className="flex items-center gap-1.5 min-w-0">
-                                      <span
-                                        className="text-[10px] font-bold font-mono px-1 py-0.5 rounded"
-                                        style={{
-                                          color: m.color,
-                                          background: `${m.color}18`,
-                                        }}
-                                      >
-                                        {m.symbol}
-                                      </span>
-                                      <span className="text-[11px] font-semibold font-sans text-foreground truncate">
-                                        {m.name}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-1 shrink-0">
-                                      {m.surplus && (
-                                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/25 leading-none">
-                                          surplus
-                                        </span>
-                                      )}
-                                      <span
-                                        className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full leading-none border ${
-                                          m.has
-                                            ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/25"
-                                            : "bg-muted text-muted-foreground border-border"
-                                        }`}
-                                      >
-                                        {m.has ? "has" : "none"}
-                                      </span>
-                                    </div>
+                                  <span
+                                    className="text-[10px] font-bold font-mono px-1 py-0.5 rounded shrink-0"
+                                    style={{
+                                      color: m.color,
+                                      background: `${m.color}1f`,
+                                    }}
+                                  >
+                                    {m.symbol}
+                                  </span>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-[11px] font-semibold font-sans text-foreground truncate">
+                                      {m.name}
+                                    </p>
+                                    <p className="text-[9px] text-muted-foreground font-sans truncate">
+                                      {m.use}
+                                    </p>
                                   </div>
-                                  <p className="text-[9px] text-muted-foreground font-sans leading-snug mb-1 truncate">
-                                    {m.use}
-                                  </p>
-                                  <div className="flex items-center justify-between gap-1">
-                                    <span className="text-[9px] font-mono text-muted-foreground">
+                                  <div className="text-right shrink-0">
+                                    <p className="text-[9px] font-mono text-foreground">
                                       {m.reserveKt != null
                                         ? m.reserveKt >= 1000
-                                          ? `${(m.reserveKt / 1000).toFixed(0)}Mt reserves`
-                                          : `${m.reserveKt}kt reserves`
-                                        : "reserves N/A"}
-                                    </span>
-                                    <span
-                                      className="text-[9px] font-mono shrink-0"
-                                      style={{
-                                        color: m.has
-                                          ? m.color
-                                          : "hsl(0,0%,45%)",
-                                      }}
-                                    >
+                                          ? `${(m.reserveKt / 1000).toFixed(0)}Mt`
+                                          : `${m.reserveKt}kt`
+                                        : "—"}
+                                    </p>
+                                    <p className="text-[9px] font-mono text-muted-foreground">
                                       {m.globalShare}
-                                    </span>
+                                    </p>
                                   </div>
+                                  <span
+                                    className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full border shrink-0 ${
+                                      m.surplus
+                                        ? "bg-warning/15 mineral-pill-surplus border-warning/35"
+                                        : m.has
+                                          ? "bg-success/15 mineral-pill-has border-success/35"
+                                          : "bg-muted text-muted-foreground border-border"
+                                    }`}
+                                  >
+                                    {m.surplus
+                                      ? "surplus"
+                                      : m.has
+                                        ? "has"
+                                        : "none"}
+                                  </span>
                                 </div>
                               ))}
                             </div>
@@ -2913,7 +7026,7 @@ function EconomyModal({
                         );
                       })()}
                     </div>
-                    <SourceLink sources={SRC_WTO} />
+                    <SourceLink sources={SRC_WTO} showIcon={false} />
                   </>
                 );
               })()}
@@ -2924,7 +7037,6 @@ function EconomyModal({
             ════════════════════════════════════════ */}
             <div className="flex items-center gap-2 pt-2">
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/30">
-                <span className="text-xs">🚢</span>
                 <span className="text-[10px] font-bold font-sans text-blue-400 uppercase tracking-widest">
                   Maritime
                 </span>
@@ -2936,7 +7048,7 @@ function EconomyModal({
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    🚢 Maritime Trade
+                    Maritime Trade
                   </span>
                   <div className="flex-1 h-px bg-border/60" />
                 </div>
@@ -2982,7 +7094,7 @@ function EconomyModal({
                   {/* Ports */}
                   <div className="mb-3">
                     <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">
-                      ⚓ Major Ports
+                      Major Ports
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {economy.maritime.majorPorts.map((port) => (
@@ -2999,7 +7111,7 @@ function EconomyModal({
                   {/* Shipping lanes */}
                   <div>
                     <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">
-                      🌊 Shipping Lanes
+                      Shipping Lanes
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {economy.maritime.shippingLanes.map((lane) => (
@@ -3014,7 +7126,7 @@ function EconomyModal({
                   </div>
                 </div>
               </div>
-              <SourceLink sources={SRC_MARITIME} />
+              <SourceLink sources={SRC_MARITIME} showIcon={false} />
             </div>
           </div>
         </div>
@@ -3023,74 +7135,7 @@ function EconomyModal({
   );
 }
 
-type ViewMode = "economies" | "resources" | "region" | "valueStats";
-
-const REGION_DATA = [
-  {
-    region: "North America",
-    gdp: 30.1,
-    growth: 2.4,
-    countries: 3,
-    color: "#3b82f6",
-    flag: "🌎",
-  },
-  {
-    region: "European Union",
-    gdp: 19.4,
-    growth: 1.6,
-    countries: 27,
-    color: "#6366f1",
-    flag: "🇪🇺",
-  },
-  {
-    region: "East Asia & Pacific",
-    gdp: 38.2,
-    growth: 4.1,
-    countries: 37,
-    color: "#ef4444",
-    flag: "🌏",
-  },
-  {
-    region: "South Asia",
-    gdp: 5.8,
-    growth: 6.2,
-    countries: 8,
-    color: "#f97316",
-    flag: "🌏",
-  },
-  {
-    region: "Latin America",
-    gdp: 6.2,
-    growth: 2.1,
-    countries: 33,
-    color: "#10b981",
-    flag: "🌎",
-  },
-  {
-    region: "Middle East & N. Africa",
-    gdp: 4.9,
-    growth: 3.3,
-    countries: 21,
-    color: "#f59e0b",
-    flag: "🌍",
-  },
-  {
-    region: "Sub-Saharan Africa",
-    gdp: 2.1,
-    growth: 3.8,
-    countries: 48,
-    color: "#ec4899",
-    flag: "🌍",
-  },
-  {
-    region: "Central Asia",
-    gdp: 0.7,
-    growth: 4.5,
-    countries: 5,
-    color: "#a855f7",
-    flag: "🌏",
-  },
-];
+type ViewMode = "economies" | "resources";
 
 const RESOURCES_DATA = [
   {
@@ -3215,125 +7260,6 @@ const RESOURCES_DATA = [
   },
 ];
 
-const VALUE_STATS_DATA = [
-  {
-    category: "Stock Markets",
-    items: [
-      {
-        label: "NYSE + NASDAQ",
-        value: "$46.2T",
-        sub: "Market cap",
-        color: "text-blue-400",
-      },
-      {
-        label: "Shanghai SSE",
-        value: "$8.1T",
-        sub: "Market cap",
-        color: "text-red-400",
-      },
-      {
-        label: "Tokyo TSE",
-        value: "$6.9T",
-        sub: "Market cap",
-        color: "text-green-400",
-      },
-      {
-        label: "London LSE",
-        value: "$3.8T",
-        sub: "Market cap",
-        color: "text-purple-400",
-      },
-    ],
-  },
-  {
-    category: "Bond Markets",
-    items: [
-      {
-        label: "US Treasuries",
-        value: "$26.3T",
-        sub: "Outstanding",
-        color: "text-blue-400",
-      },
-      {
-        label: "EU Sovereign",
-        value: "$11.4T",
-        sub: "Outstanding",
-        color: "text-indigo-400",
-      },
-      {
-        label: "Japan JGBs",
-        value: "$9.8T",
-        sub: "Outstanding",
-        color: "text-green-400",
-      },
-      {
-        label: "China Gov't",
-        value: "$7.2T",
-        sub: "Outstanding",
-        color: "text-red-400",
-      },
-    ],
-  },
-  {
-    category: "Real Estate",
-    items: [
-      {
-        label: "Global RE Value",
-        value: "$326.5T",
-        sub: "Total 2025",
-        color: "text-amber-400",
-      },
-      {
-        label: "Residential",
-        value: "$258.5T",
-        sub: "79% of total",
-        color: "text-orange-400",
-      },
-      {
-        label: "Commercial",
-        value: "$38.0T",
-        sub: "11.6% of total",
-        color: "text-yellow-400",
-      },
-      {
-        label: "Industrial",
-        value: "$30.0T",
-        sub: "9.2% of total",
-        color: "text-lime-400",
-      },
-    ],
-  },
-  {
-    category: "Commodities",
-    items: [
-      {
-        label: "Oil & Gas Market",
-        value: "$5.8T",
-        sub: "Annual trade",
-        color: "text-orange-400",
-      },
-      {
-        label: "Metals Market",
-        value: "$3.2T",
-        sub: "Annual trade",
-        color: "text-slate-400",
-      },
-      {
-        label: "Agri Commodities",
-        value: "$1.9T",
-        sub: "Annual trade",
-        color: "text-green-400",
-      },
-      {
-        label: "Crypto (total)",
-        value: "$2.4T",
-        sub: "Market cap",
-        color: "text-purple-400",
-      },
-    ],
-  },
-];
-
 export function EconomiesPage() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
@@ -3342,6 +7268,7 @@ export function EconomiesPage() {
   >("gdpTrillions");
   const [selectedEconomy, setSelectedEconomy] = useState<Economy | null>(null);
   const [modalEconomy, setModalEconomy] = useState<Economy | null>(null);
+  const { rents: resourceRents } = useResourceRents();
   const [viewMode, setViewMode] = useState<ViewMode>("economies");
 
   // Deep-link: open entity from search bar via ?open=<id>
@@ -3356,8 +7283,6 @@ export function EconomiesPage() {
       window.history.replaceState({}, "", url.toString());
     }
   }, []);
-
-  const types = ["All", "Country", "Region", "Bloc"];
 
   const filtered = economiesData
     .filter((e) => {
@@ -3377,13 +7302,6 @@ export function EconomiesPage() {
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2.5 bg-secondary/20 rounded-lg">
-            <CurrencyDollar
-              size={26}
-              weight="fill"
-              className="text-secondary"
-            />
-          </div>
           <div>
             <h1 className="text-2xl font-bold font-sans text-foreground">
               Global Economies
@@ -3396,53 +7314,15 @@ export function EconomiesPage() {
         </div>
 
         {/* View Mode Tabs */}
-        <div className="flex flex-wrap items-center gap-2 mb-6">
-          {(
-            [
-              {
-                id: "economies",
-                label: "Economies",
-                icon: <CurrencyDollar size={13} weight="fill" />,
-              },
-              {
-                id: "resources",
-                label: "Resources",
-                icon: <Tree size={13} weight="fill" />,
-              },
-              {
-                id: "region",
-                label: "Region",
-                icon: <MapPin size={13} weight="fill" />,
-              },
-              {
-                id: "valueStats",
-                label: "Value Statistics",
-                icon: <ChartBar size={13} weight="fill" />,
-              },
-            ] as const
-          ).map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setViewMode(tab.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
-                viewMode === tab.id
-                  ? "bg-secondary/20 border-secondary/40 text-secondary"
-                  : "bg-card border-border text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
         {/* Summary Strip */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
             {
               label: "Global GDP",
-              value: "$104.5T",
-              sub: "estimated 2024",
+              value: "$118.4T",
+              // World Bank world aggregate for 2025, the latest completed year
+              // the source publishes. Was $104.5T labelled "estimated 2024".
+              sub: "World Bank · 2025",
               color: "text-secondary",
             },
             {
@@ -3481,131 +7361,12 @@ export function EconomiesPage() {
           ))}
         </div>
 
-        {/* ── Trending & Frequently Looked-Up Stats ── */}
-        <div className="mb-6 bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-            <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-              Trending &amp; Frequently Looked-Up
-            </p>
-            <span className="ml-auto text-[10px] text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-full">
-              2026 data
-            </span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {[
-              {
-                label: "📊 Global GDP",
-                value: "$105.4T",
-                sub: "+2.7% YoY",
-                color: "text-secondary",
-                bg: "bg-secondary/10 border-secondary/20",
-              },
-              {
-                label: "💱 USD/EUR Rate",
-                value: "0.921",
-                sub: "Mid-market Aug 2026",
-                color: "text-yellow-400",
-                bg: "bg-yellow-500/10 border-yellow-500/20",
-              },
-              {
-                label: "📈 Fastest Growing",
-                value: "India +6.3%",
-                sub: "Largest major economy",
-                color: "text-orange-400",
-                bg: "bg-orange-500/10 border-orange-500/20",
-              },
-              {
-                label: "🏦 US Fed Rate",
-                value: "5.25%",
-                sub: "Hold — Jun 2026",
-                color: "text-purple-400",
-                bg: "bg-purple-500/10 border-purple-500/20",
-              },
-              {
-                label: "⚡ Brent Crude",
-                value: "$83/bbl",
-                sub: "+1.8% last week",
-                color: "text-red-400",
-                bg: "bg-red-500/10 border-red-500/20",
-              },
-              {
-                label: "🥇 Gold (XAU)",
-                value: "$2,341",
-                sub: "Near all-time high",
-                color: "text-amber-400",
-                bg: "bg-amber-500/10 border-amber-500/20",
-              },
-            ].map((s) => (
-              <div
-                key={s.label}
-                className={`rounded-xl p-3 border ${s.bg} flex flex-col gap-1`}
-              >
-                <p className="text-[10px] font-sans text-muted-foreground leading-snug">
-                  {s.label}
-                </p>
-                <p className={`text-lg font-bold font-mono ${s.color}`}>
-                  {s.value}
-                </p>
-                <p className={`text-[10px] font-sans ${s.color} opacity-80`}>
-                  {s.sub}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 pt-3 border-t border-border/40">
-            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-              🔥 Upcoming to Watch
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {[
-                {
-                  label:
-                    "India overtaking Japan as 3rd largest economy · ~2027",
-                  color:
-                    "text-orange-400 border-orange-500/30 bg-orange-500/10",
-                },
-                {
-                  label: "Fed pivot probability rising · Sep 2026 FOMC meeting",
-                  color:
-                    "text-purple-400 border-purple-500/30 bg-purple-500/10",
-                },
-                {
-                  label: "BRICS common currency proposal — summit Oct 2026",
-                  color: "text-red-400 border-red-500/30 bg-red-500/10",
-                },
-                {
-                  label: "EU Carbon Border Adjustment — full enforcement 2026",
-                  color: "text-green-400 border-green-500/30 bg-green-500/10",
-                },
-                {
-                  label:
-                    "Argentina economic stabilization · Milei Year 3 review",
-                  color: "text-amber-400 border-amber-500/30 bg-amber-500/10",
-                },
-                {
-                  label: "Saudi Aramco dividend policy revision · Q4 2026",
-                  color:
-                    "text-yellow-400 border-yellow-500/30 bg-yellow-500/10",
-                },
-              ].map((e) => (
-                <span
-                  key={e.label}
-                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.color}`}
-                >
-                  {e.label}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
         <CurrencyConverter />
 
         <SourceLink sources={SRC_IMF} className="mb-4 -mt-2" />
 
         {/* Unified Search + Filter Bar */}
-        <div className="flex flex-col bg-card border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
+        <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
           {/* Row 1: Search */}
           <div className="flex items-center gap-2">
             <MagnifyingGlass
@@ -3620,9 +7381,37 @@ export function EconomiesPage() {
               className="flex-1 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
             />
           </div>
-          {/* Row 2: Filters */}
+          {/* Row 2: View tabs + filters + sort */}
           <div className="flex flex-wrap items-center gap-2 pt-2 mt-1 border-t border-border/60">
-            {(["All", "Country", "Region", "Bloc"] as const).map((t) => (
+            {(
+              [
+                {
+                  id: "economies",
+                  label: "Economies",
+                  icon: <CurrencyDollar size={13} weight="fill" />,
+                },
+                {
+                  id: "resources",
+                  label: "Resources",
+                  icon: <Tree size={13} weight="fill" />,
+                },
+              ] as const
+            ).map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setViewMode(tab.id)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
+                  viewMode === tab.id
+                    ? "bg-secondary/20 border-secondary/40 text-secondary"
+                    : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+            <div className="w-px h-4 bg-border shrink-0" />
+            {(["All", "Country", "Bloc"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTypeFilter(t)}
@@ -3649,9 +7438,29 @@ export function EconomiesPage() {
           </div>
         </div>
 
+        {/* ── Upcoming to Watch ── */}
+        <div className="mb-6 bg-card border border-border rounded-2xl p-5">
+          <div>
+            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+              🔥 Upcoming to Watch
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {getUpcoming("economies").map((e) => (
+                <span
+                  key={e.id}
+                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.className}`}
+                >
+                  {e.label}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {modalEconomy && (
           <EconomyModal
             economy={modalEconomy}
+            rents={resourceRents[modalEconomy.id]}
             onClose={() => setModalEconomy(null)}
           />
         )}
@@ -3680,7 +7489,6 @@ export function EconomiesPage() {
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">{r.icon}</span>
                       <div>
                         <p className="text-sm font-bold font-sans text-foreground">
                           {r.name}
@@ -3738,7 +7546,7 @@ export function EconomiesPage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-base font-bold font-sans text-foreground">
-                    🧲 Rare Earth &amp; Critical Minerals — Global Overview
+                    Rare Earth &amp; Critical Minerals — Global Overview
                   </h2>
                   <p className="text-xs text-muted-foreground font-sans">
                     Which economies have reserves vs. surplus · USGS / BGS 2025
@@ -3755,14 +7563,14 @@ export function EconomiesPage() {
                           Mineral
                         </th>
                         {[
-                          "USA",
                           "China",
-                          "EU",
-                          "Germany",
-                          "India",
-                          "Japan",
+                          "USA",
+                          "Australia",
                           "Brazil",
-                          "Saudi Arabia",
+                          "Chile",
+                          "Russia",
+                          "India",
+                          "Indonesia",
                         ].map((eco) => (
                           <th
                             key={eco}
@@ -3781,20 +7589,16 @@ export function EconomiesPage() {
                         "Dysprosium",
                         "Lanthanum",
                         "Cerium",
-                        "Niobium",
-                        "Terbium",
-                        "Scandium",
-                        "Yttrium",
                       ].map((mineralName, idx) => {
                         const econKeys = [
-                          "usa",
-                          "china",
-                          "eu",
-                          "germany",
-                          "india",
-                          "japan",
-                          "brazil",
-                          "saudi-arabia",
+                          "china-eco",
+                          "usa-eco",
+                          "australia-eco",
+                          "brazil-eco",
+                          "chile-eco",
+                          "russia-eco",
+                          "india-eco",
+                          "indonesia-eco",
                         ];
                         return (
                           <tr
@@ -3816,16 +7620,23 @@ export function EconomiesPage() {
                                   key={ecoId}
                                   className="px-3 py-2.5 text-center"
                                 >
-                                  {m?.surplus ? (
-                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/25 text-[9px] font-mono">
+                                  {m === undefined ? (
+                                    <span
+                                      className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-muted-foreground/50"
+                                      title={`${mineralName} is not among the minerals tracked for this economy`}
+                                    >
+                                      ·
+                                    </span>
+                                  ) : m.surplus ? (
+                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-warning/15 mineral-pill-surplus border border-warning/25">
                                       ↑ surplus
                                     </span>
-                                  ) : m?.has ? (
-                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 text-[9px] font-mono">
+                                  ) : m.has ? (
+                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-success/15 mineral-pill-has border border-success/25">
                                       ✓ has
                                     </span>
                                   ) : (
-                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground border border-border text-[9px] font-mono">
+                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
                                       — none
                                     </span>
                                   )}
@@ -3840,7 +7651,7 @@ export function EconomiesPage() {
                 </div>
                 <div className="px-4 py-3 border-t border-border bg-muted/10 flex items-center gap-4 flex-wrap">
                   <div className="flex items-center gap-1.5">
-                    <span className="inline-block px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/25 text-[9px] font-mono">
+                    <span className="inline-block px-2 py-0.5 rounded-full bg-warning/15 mineral-pill-surplus border border-warning/25 text-[9px] font-mono">
                       ↑ surplus
                     </span>
                     <span className="text-[10px] text-muted-foreground font-sans">
@@ -3848,7 +7659,7 @@ export function EconomiesPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 text-[9px] font-mono">
+                    <span className="inline-block px-2 py-0.5 rounded-full bg-success/15 mineral-pill-has border border-success/25 text-[9px] font-mono">
                       ✓ has
                     </span>
                     <span className="text-[10px] text-muted-foreground font-sans">
@@ -3861,6 +7672,14 @@ export function EconomiesPage() {
                     </span>
                     <span className="text-[10px] text-muted-foreground font-sans">
                       Scarce / must import
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block px-2 py-0.5 rounded-full text-muted-foreground/50 text-[9px] font-mono">
+                      ·
+                    </span>
+                    <span className="text-[10px] text-muted-foreground font-sans">
+                      Not tracked for that economy
                     </span>
                   </div>
                 </div>
@@ -3905,234 +7724,6 @@ export function EconomiesPage() {
               </div>
             </div>
             <SourceLink sources={SRC_WTO} className="mt-2" />
-          </div>
-        )}
-
-        {/* ── Region View ── */}
-        {viewMode === "region" && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <h2 className="text-lg font-bold font-sans text-foreground">
-                  GDP by World Region
-                </h2>
-                <p className="text-xs text-muted-foreground font-sans">
-                  Regional economic output & growth rates · 2025 estimates
-                </p>
-              </div>
-              <span className="text-[10px] font-mono bg-muted border border-border px-2.5 py-1 rounded-full text-muted-foreground">
-                {REGION_DATA.length} regions
-              </span>
-            </div>
-            {/* Bar chart */}
-            <div className="bg-card border border-border rounded-2xl p-5">
-              <p className="text-xs font-bold font-sans text-foreground mb-4">
-                GDP ($T) by Region — 2025
-              </p>
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart
-                  data={REGION_DATA}
-                  layout="vertical"
-                  margin={{ top: 0, right: 40, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="rgba(255,255,255,0.06)"
-                    horizontal={false}
-                  />
-                  <XAxis
-                    type="number"
-                    tick={{
-                      fill: "hsl(0,0%,55%)",
-                      fontSize: 9,
-                      fontFamily: "IBM Plex Mono",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(v) => `$${v}T`}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="region"
-                    tick={{
-                      fill: "hsl(0,0%,65%)",
-                      fontSize: 9,
-                      fontFamily: "DM Sans",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                    width={130}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: "hsl(222,30%,14%)",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: 10,
-                      fontSize: 11,
-                      fontFamily: "IBM Plex Mono",
-                    }}
-                    formatter={(v: number) => [`$${v}T`, "GDP"]}
-                    labelStyle={{ color: "hsl(0,0%,55%)" }}
-                  />
-                  <Bar
-                    dataKey="gdp"
-                    name="GDP"
-                    radius={[0, 4, 4, 0]}
-                    maxBarSize={18}
-                  >
-                    {REGION_DATA.map((r) => (
-                      <Cell key={r.region} fill={r.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            {/* Region cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {REGION_DATA.map((r) => (
-                <div
-                  key={r.region}
-                  className="bg-card border border-border rounded-xl p-4 hover:border-secondary/40 transition-colors"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xl">{r.flag}</span>
-                    <p className="text-xs font-bold font-sans text-foreground leading-tight">
-                      {r.region}
-                    </p>
-                  </div>
-                  <p
-                    className="text-2xl font-bold font-mono mb-0.5"
-                    style={{ color: r.color }}
-                  >
-                    ${r.gdp}T
-                  </p>
-                  <p className="text-[10px] text-muted-foreground font-sans mb-3">
-                    Nominal GDP
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-background/50 rounded-lg p-2 border border-border/40">
-                      <p className="text-[9px] text-muted-foreground font-sans">
-                        Growth
-                      </p>
-                      <p
-                        className={`text-sm font-bold font-mono ${r.growth >= 3 ? "text-success" : r.growth >= 2 ? "text-warning" : "text-muted-foreground"}`}
-                      >
-                        +{r.growth}%
-                      </p>
-                    </div>
-                    <div className="bg-background/50 rounded-lg p-2 border border-border/40">
-                      <p className="text-[9px] text-muted-foreground font-sans">
-                        Countries
-                      </p>
-                      <p className="text-sm font-bold font-mono text-foreground">
-                        {r.countries}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-3 h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${(r.gdp / 38.2) * 100}%`,
-                        background: r.color,
-                      }}
-                    />
-                  </div>
-                  <p className="text-[9px] text-muted-foreground font-mono mt-1 text-right">
-                    {((r.gdp / 104.5) * 100).toFixed(1)}% of global GDP
-                  </p>
-                </div>
-              ))}
-            </div>
-            <SourceLink sources={SRC_IMF} className="mt-2" />
-          </div>
-        )}
-
-        {/* ── Value Statistics View ── */}
-        {viewMode === "valueStats" && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <h2 className="text-lg font-bold font-sans text-foreground">
-                  Global Value Statistics
-                </h2>
-                <p className="text-xs text-muted-foreground font-sans">
-                  Stock markets, bonds, real estate & commodities · 2025
-                </p>
-              </div>
-              <span className="text-[10px] font-mono bg-muted border border-border px-2.5 py-1 rounded-full text-muted-foreground">
-                4 asset classes
-              </span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {VALUE_STATS_DATA.map((cat) => (
-                <div
-                  key={cat.category}
-                  className="bg-card border border-border rounded-2xl p-5"
-                >
-                  <p className="text-xs font-bold font-sans text-foreground mb-4 uppercase tracking-wide">
-                    {cat.category}
-                  </p>
-                  <div className="space-y-3">
-                    {cat.items.map((item) => (
-                      <div
-                        key={item.label}
-                        className="flex items-center justify-between gap-3 p-3 rounded-xl bg-background/50 border border-border/40 hover:border-border transition-colors"
-                      >
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold font-sans text-foreground">
-                            {item.label}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground font-sans">
-                            {item.sub}
-                          </p>
-                        </div>
-                        <p
-                          className={`text-lg font-bold font-mono shrink-0 ${item.color}`}
-                        >
-                          {item.value}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                  {/* Mini bar chart for relative sizes */}
-                  <div className="mt-4 pt-3 border-t border-border/40 space-y-2">
-                    {cat.items.map((item) => {
-                      const numericVal = parseFloat(
-                        item.value.replace(/[$T%,]/g, ""),
-                      );
-                      const max = Math.max(
-                        ...cat.items.map((i) =>
-                          parseFloat(i.value.replace(/[$T%,]/g, "")),
-                        ),
-                      );
-                      return (
-                        <div
-                          key={item.label}
-                          className="flex items-center gap-2"
-                        >
-                          <span className="text-[9px] font-sans text-muted-foreground w-28 truncate shrink-0">
-                            {item.label}
-                          </span>
-                          <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full ${item.color.replace("text-", "bg-")}`}
-                              style={{ width: `${(numericVal / max) * 100}%` }}
-                            />
-                          </div>
-                          <span
-                            className={`text-[9px] font-mono shrink-0 ${item.color}`}
-                          >
-                            {item.value}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <SourceLink sources={SRC_OECD} className="mt-2" />
           </div>
         )}
 
@@ -4243,7 +7834,7 @@ export function EconomiesPage() {
                       </div>
                       <div className="h-1 bg-muted rounded-full overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-secondary transition-all duration-500"
+                          className="h-full rounded-full bg-sky-500 transition-all duration-500"
                           style={{
                             width: `${Math.min(100, (economy.gdpTrillions / 104.5) * 100 * 4)}%`,
                           }}
@@ -4461,7 +8052,7 @@ export function EconomiesPage() {
                                     if (payload.gdp === maxGdp) {
                                       return (
                                         <circle
-                                          key={`hi-${economy.id}`}
+                                          key={`hi-${economy.id}-${cx}`}
                                           cx={cx}
                                           cy={cy}
                                           r={3}
@@ -4474,7 +8065,7 @@ export function EconomiesPage() {
                                     if (payload.gdp === minGdp) {
                                       return (
                                         <circle
-                                          key={`lo-${economy.id}`}
+                                          key={`lo-${economy.id}-${cx}`}
                                           cx={cx}
                                           cy={cy}
                                           r={3}

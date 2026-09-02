@@ -8,17 +8,13 @@ import {
   Users,
   ArrowUp,
   ArrowDown,
-  MagnifyingGlass,
-  FunnelSimple,
-  Info,
+  MagnifyingGlass,  Info,
   CheckCircle,
   Clock,
   XCircle,
   Globe,
   Buildings,
-  MapPin,
-  Flag,
-  Heart,
+  MapPin,  Heart,
   BookOpen,
   Wrench,
   ShieldChevron,
@@ -26,7 +22,6 @@ import {
   HandHeart,
   DeviceMobile,
 } from "@phosphor-icons/react";
-import { countriesData, type Country } from "../data/countriesData";
 import { SourceLink } from "../components/SourceLink";
 import {
   ScatterChart,
@@ -35,9 +30,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
+  ResponsiveContainer,} from "recharts";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -242,7 +235,7 @@ const policies: Policy[] = [
     adoptionRate: 68,
     impactScore: 7.2,
     description:
-      "Comprehensive reform of India&#39;s education system — replaces 34-year-old policy with a new 5+3+3+4 school structure, multilingual instruction in mother tongue up to Grade 5, emphasis on critical thinking, vocational training from Grade 6, and a target of 6% of GDP for education spending.",
+      "Comprehensive reform of India's education system — replaces 34-year-old policy with a new 5+3+3+4 school structure, multilingual instruction in mother tongue up to Grade 5, emphasis on critical thinking, vocational training from Grade 6, and a target of 6% of GDP for education spending.",
     tags: ["K-12", "Higher Ed", "Digital Learning", "Vocational"],
     partiesFavoring: [
       { name: "BJP (Bharatiya Janata Party)", stance: "strong" },
@@ -330,7 +323,7 @@ const policies: Policy[] = [
       "Create alternative to Western-led multilateral development banks",
     ],
     relatedPolicies: ["p6"],
-    legislativeBody: "National People&#39;s Congress (China)",
+    legislativeBody: "National People's Congress (China)",
     implementingAgency: "National Development and Reform Commission (NDRC)",
     renewalDate: "Ongoing (no fixed end date)",
   },
@@ -347,7 +340,7 @@ const policies: Policy[] = [
     adoptionRate: 73,
     impactScore: 6.5,
     description:
-      "Alliance-wide pledge for all 32 NATO members to spend at least 2% of GDP on defense, adopted at the Wales Summit in 2014 and reaffirmed post-Russia&#39;s 2022 invasion of Ukraine. As of 2024, 23 members meet the target — up from just 3 in 2014. New 2.5% target proposed for 2032.",
+      "Alliance-wide pledge for all 32 NATO members to spend at least 2% of GDP on defense, adopted at the Wales Summit in 2014 and reaffirmed post-Russia's 2022 invasion of Ukraine. As of 2024, 23 members meet the target — up from just 3 in 2014. New 2.5% target proposed for 2032.",
     tags: ["2% GDP", "Burden Sharing", "Collective Defense"],
     partiesFavoring: [
       {
@@ -365,7 +358,7 @@ const policies: Policy[] = [
     ],
     keyObjectives: [
       "Ensure all 32 NATO allies spend ≥2% of GDP on defense annually",
-      "Modernize NATO&#39;s collective deterrence against Russia and China",
+      "Modernize NATO's collective deterrence against Russia and China",
       "Increase alliance readiness with pre-positioned forces in Eastern Europe",
       "Coordinate intelligence sharing and cyber defense capabilities",
       "Propose 2.5% GDP target for member states by 2032",
@@ -388,7 +381,7 @@ const policies: Policy[] = [
     adoptionRate: 100,
     impactScore: 7.6,
     description:
-      "GiveDirectly&#39;s 12-year UBI experiment providing unconditional $22/month (long-term) or $500 lump-sum to ~21,000 rural Kenyans across 328 villages. The world&#39;s largest and longest-running UBI study, tracking economic, psychological, and community outcomes in randomized control trials.",
+      "GiveDirectly's 12-year UBI experiment providing unconditional $22/month (long-term) or $500 lump-sum to ~21,000 rural Kenyans across 328 villages. The world's largest and longest-running UBI study, tracking economic, psychological, and community outcomes in randomized control trials.",
     tags: ["UBI", "Poverty", "Cash Transfer", "Research"],
     partiesFavoring: [
       { name: "Progressive / Left parties globally", stance: "strong" },
@@ -437,7 +430,7 @@ const policies: Policy[] = [
     keyObjectives: [
       "Connect 250,000 gram panchayats with high-speed broadband",
       "Build Aadhaar-based digital identity for 1.4 billion citizens",
-      "Scale UPI to become the world&#39;s dominant real-time payment system",
+      "Scale UPI to become the world's dominant real-time payment system",
       "Move government services to digital-first through DigiLocker and e-governance",
       "Create 10 million IT jobs and develop a $1T digital economy by 2025",
     ],
@@ -459,7 +452,7 @@ const policies: Policy[] = [
     adoptionRate: 88,
     impactScore: 8.0,
     description:
-      "World&#39;s first comprehensive AI regulation — a risk-based framework that classifies AI systems as Unacceptable Risk (banned), High Risk (strict requirements), Limited Risk (transparency), or Minimal Risk (no obligations). Prohibits social scoring, real-time biometric surveillance, and manipulative AI in public spaces.",
+      "World's first comprehensive AI regulation — a risk-based framework that classifies AI systems as Unacceptable Risk (banned), High Risk (strict requirements), Limited Risk (transparency), or Minimal Risk (no obligations). Prohibits social scoring, real-time biometric surveillance, and manipulative AI in public spaces.",
     tags: ["AI", "Regulation", "High-Risk", "Transparency"],
     partiesFavoring: [
       { name: "S&D / Social Democrats (EU)", stance: "strong" },
@@ -495,7 +488,7 @@ const policies: Policy[] = [
     adoptionRate: 90,
     impactScore: 7.7,
     description:
-      "Landmark US health reform (&#39;Obamacare&#39;) — expanded Medicaid to millions of low-income adults, established health insurance marketplaces, banned pre-existing condition exclusions, allowed children to stay on parents&#39; plans until age 26, and mandated coverage of essential health benefits.",
+      "Landmark US health reform ('Obamacare') — expanded Medicaid to millions of low-income adults, established health insurance marketplaces, banned pre-existing condition exclusions, allowed children to stay on parents' plans until age 26, and mandated coverage of essential health benefits.",
     tags: ["Insurance", "Medicaid", "Marketplace", "Prevention"],
     partiesFavoring: [
       { name: "Democratic Party", stance: "strong" },
@@ -593,7 +586,7 @@ const policies: Policy[] = [
   },
   {
     id: "p15",
-    name: "Jobseeker&#39;s Allowance Reform — UK",
+    name: "Jobseeker's Allowance Reform — UK",
     domain: "Social",
     scope: "National",
     status: "Active",
@@ -716,12 +709,6 @@ function BudgetTab({ data }: { data: Policy[] }) {
           { label: "World Bank PFM", url: "https://www.worldbank.org/en/topic/publicfinancialmanagement" },
         ]} />
       </div>
-
-      {/* Policy budget table */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-border">
-          <h3 className="text-sm font-semibold text-foreground">Policy Budget Breakdown</h3>
-        </div>
 
       {/* Policy budget table */}
       <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -859,25 +846,16 @@ function PolicyModal({
               aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
               title={isExpanded ? "Collapse" : "Expand to full screen"}
             >
-              {isExpanded ? (
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 1H1v4M11 1h4v4M5 15H1v-4M11 15h4v-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              )}
+              <span className="text-xs font-sans font-medium">
+                  {isExpanded ? "Collapse" : "Expand"}
+                </span>
             </button>
             <button
               onClick={onClose}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer shrink-0"
               aria-label="Close"
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M12 4L4 12M4 4l8 8"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <span className="text-xs font-sans font-medium">Close</span>
             </button>
           </div>
 
@@ -1601,7 +1579,7 @@ const countryPolicyProfiles: CountryPolicyProfile[] = [
     gdp: 29170,
     overallPolicyStrength: 8.1,
     policyNotes:
-      "World&#39;s largest policy spender; driven by defense, healthcare, and clean energy investments post-IRA.",
+      "World's largest policy spender; driven by defense, healthcare, and clean energy investments post-IRA.",
     priorities: [
       {
         domain: "Defense",
@@ -2576,7 +2554,7 @@ const countryPolicyProfiles: CountryPolicyProfile[] = [
     gdp: 490,
     overallPolicyStrength: 5.8,
     policyNotes:
-      "Tinubu&#39;s subsidy removal shock; rebuilding foreign reserves, industrial diversification, and infrastructure spending.",
+      "Tinubu's subsidy removal shock; rebuilding foreign reserves, industrial diversification, and infrastructure spending.",
     priorities: [
       {
         domain: "Economy",

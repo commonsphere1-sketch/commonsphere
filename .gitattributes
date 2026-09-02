@@ -1,0 +1,18 @@
+# Normalise line endings in the repository itself rather than relying on each
+# machine's core.autocrlf. Text files are stored LF; git converts on checkout
+# so Windows working copies still get CRLF.
+* text=auto eol=lf
+
+# Binary assets must not be touched — normalising these corrupts them.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.svg  text eol=lf
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
+*.pdf   binary

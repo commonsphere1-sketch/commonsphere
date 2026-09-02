@@ -1443,7 +1443,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Coal Transition Fund",
       description:
-        "Supports Alabama&#39;s coal-dependent communities in transitioning toward natural gas and emerging solar capacity.",
+        "Supports Alabama's coal-dependent communities in transitioning toward natural gas and emerging solar capacity.",
     },
     Healthcare: {
       name: "Rural Hospital Stabilization",
@@ -1458,7 +1458,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Alabama Reads Initiative",
       description:
-        "Targets Alabama&#39;s bottom-five national literacy ranking with early-grade reading intervention programs.",
+        "Targets Alabama's bottom-five national literacy ranking with early-grade reading intervention programs.",
     },
     Economy: {
       name: "Automotive Supplier Network",
@@ -1478,19 +1478,19 @@ const STATE_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Black Belt Poverty Reduction Plan",
       description:
-        "Directs targeted investment into Alabama&#39;s historically impoverished Black Belt region.",
+        "Directs targeted investment into Alabama's historically impoverished Black Belt region.",
     },
   },
   ak: {
     Climate: {
       name: "Arctic Resilience Strategy",
       description:
-        "Addresses accelerating permafrost thaw and coastal erosion threatening Alaska&#39;s Native villages and infrastructure.",
+        "Addresses accelerating permafrost thaw and coastal erosion threatening Alaska's Native villages and infrastructure.",
     },
     Healthcare: {
       name: "Bush Medical Access Program",
       description:
-        "Funds air-transport medical services and telemedicine for Alaska&#39;s remote communities unreachable by road.",
+        "Funds air-transport medical services and telemedicine for Alaska's remote communities unreachable by road.",
     },
     Infrastructure: {
       name: "AMHS Ferry System Overhaul",
@@ -1500,17 +1500,17 @@ const STATE_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Alaska Native Language Preservation",
       description:
-        "Integrates Alaska&#39;s 20 indigenous languages into school curricula to prevent further language loss.",
+        "Integrates Alaska's 20 indigenous languages into school curricula to prevent further language loss.",
     },
     Economy: {
       name: "Permanent Fund Dividend Optimization",
       description:
-        "Reevaluates the formula distributing Alaska&#39;s oil revenue among residents to ensure long-term fiscal health.",
+        "Reevaluates the formula distributing Alaska's oil revenue among residents to ensure long-term fiscal health.",
     },
     Defense: {
       name: "NORAD Northern Perimeter Upgrade",
       description:
-        "Strengthens Alaska&#39;s early-warning radar and interceptor capacity as a front line of North American defense.",
+        "Strengthens Alaska's early-warning radar and interceptor capacity as a front line of North American defense.",
     },
     Technology: {
       name: "Satellite Broadband Deployment",
@@ -1527,12 +1527,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Colorado River Conservation Compact",
       description:
-        "Implements mandatory water conservation measures as Arizona&#39;s Colorado River allotment faces historic cuts.",
+        "Implements mandatory water conservation measures as Arizona's Colorado River allotment faces historic cuts.",
     },
     Healthcare: {
       name: "Border Health Corridor Program",
       description:
-        "Expands healthcare access along Arizona&#39;s 370-mile southern border where provider shortages are acute.",
+        "Expands healthcare access along Arizona's 370-mile southern border where provider shortages are acute.",
     },
     Infrastructure: {
       name: "Phoenix Light Rail Network Extension",
@@ -1562,7 +1562,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Maricopa Affordable Housing Fund",
       description:
-        "Addresses Maricopa County&#39;s acute housing shortage driven by rapid in-migration and rising home prices.",
+        "Addresses Maricopa County's acute housing shortage driven by rapid in-migration and rising home prices.",
     },
   },
   ar: {
@@ -1574,12 +1574,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Medicaid Expansion Sustainability",
       description:
-        "Extends Arkansas&#39; private-option Medicaid expansion to maintain coverage for 250,000 low-income adults.",
+        "Extends Arkansas' private-option Medicaid expansion to maintain coverage for 250,000 low-income adults.",
     },
     Infrastructure: {
       name: "Delta Agricultural Road Network",
       description:
-        "Repairs farm-to-market roads in the Arkansas Delta critical to the state&#39;s $20B agriculture sector.",
+        "Repairs farm-to-market roads in the Arkansas Delta critical to the state's $20B agriculture sector.",
     },
     Education: {
       name: "LEARNS Act Implementation Fund",
@@ -1604,14 +1604,14 @@ const STATE_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Delta Poverty Reduction Initiative",
       description:
-        "Targets Arkansas&#39;s Mississippi Delta region with workforce development, childcare, and nutrition programs.",
+        "Targets Arkansas's Mississippi Delta region with workforce development, childcare, and nutrition programs.",
     },
   },
   ca: {
     Climate: {
       name: "100% Clean Energy by 2035",
       description:
-        "Advances California&#39;s mandate to source all retail electricity from carbon-free resources by 2035.",
+        "Advances California's mandate to source all retail electricity from carbon-free resources by 2035.",
     },
     Healthcare: {
       name: "Medi-Cal Expansion for All Adults",
@@ -1621,12 +1621,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "High-Speed Rail Central Valley Link",
       description:
-        "Accelerates construction of the Fresno-to-Bakersfield segment of California&#39;s high-speed rail project.",
+        "Accelerates construction of the Fresno-to-Bakersfield segment of California's high-speed rail project.",
     },
     Education: {
       name: "Universal Transitional Kindergarten",
       description:
-        "Rolls out California&#39;s TK program to ensure all 4-year-olds have access to pre-kindergarten education.",
+        "Rolls out California's TK program to ensure all 4-year-olds have access to pre-kindergarten education.",
     },
     Economy: {
       name: "California CHIPS Act Incentives",
@@ -1636,7 +1636,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Wildfire Emergency Response Overhaul",
       description:
-        "Restructures Cal Fire&#39;s pre-positioning and air tanker resources to counter increasingly catastrophic wildfire seasons.",
+        "Restructures Cal Fire's pre-positioning and air tanker resources to counter increasingly catastrophic wildfire seasons.",
     },
     Technology: {
       name: "Generative AI Accountability Act",
@@ -1653,7 +1653,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Colorado Greenhouse Gas Roadmap",
       description:
-        "Enforces sector-specific emission reduction requirements to meet Colorado&#39;s 50%-by-2030 GHG target.",
+        "Enforces sector-specific emission reduction requirements to meet Colorado's 50%-by-2030 GHG target.",
     },
     Healthcare: {
       name: "Colorado Option Public Health Plan",
@@ -1673,12 +1673,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Outdoor Recreation Economy Plan",
       description:
-        "Invests in trails, public lands access, and outdoor-industry talent pipelines anchoring Colorado&#39;s $47B recreation economy.",
+        "Invests in trails, public lands access, and outdoor-industry talent pipelines anchoring Colorado's $47B recreation economy.",
     },
     Defense: {
       name: "NORAD & Space Command Sustainment",
       description:
-        "Protects and expands Colorado&#39;s role as home to NORAD, Space Command, and 25+ military installations.",
+        "Protects and expands Colorado's role as home to NORAD, Space Command, and 25+ military installations.",
     },
     Technology: {
       name: "Denver Tech Corridor Expansion",
@@ -1695,32 +1695,32 @@ const STATE_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Connecticut Offshore Wind Procurement",
       description:
-        "Contracts for offshore wind energy to meet Connecticut&#39;s 40% renewable target and replace aging gas peakers.",
+        "Contracts for offshore wind energy to meet Connecticut's 40% renewable target and replace aging gas peakers.",
     },
     Healthcare: {
       name: "HUSKY Health Benefit Expansion",
       description:
-        "Strengthens Connecticut&#39;s HUSKY Medicaid program with dental, vision, and behavioral health parity.",
+        "Strengthens Connecticut's HUSKY Medicaid program with dental, vision, and behavioral health parity.",
     },
     Infrastructure: {
       name: "Metro-North Rail Modernization",
       description:
-        "Upgrades Connecticut&#39;s Metro-North commuter rail fleet and station infrastructure serving New York commuters.",
+        "Upgrades Connecticut's Metro-North commuter rail fleet and station infrastructure serving New York commuters.",
     },
     Education: {
       name: "Achievement Gap Task Force",
       description:
-        "Implements evidence-based interventions targeting Connecticut&#39;s nation-leading Black-white academic achievement gap.",
+        "Implements evidence-based interventions targeting Connecticut's nation-leading Black-white academic achievement gap.",
     },
     Economy: {
       name: "Insurance Sector Talent Pipeline",
       description:
-        "Partners with Hartford&#39;s insurance industry to grow actuarial and insurtech talent in the state.",
+        "Partners with Hartford's insurance industry to grow actuarial and insurtech talent in the state.",
     },
     Defense: {
       name: "Submarine Industrial Base Investment",
       description:
-        "Expands workforce and facility capacity at Electric Boat&#39;s Groton yards building Virginia-class submarines.",
+        "Expands workforce and facility capacity at Electric Boat's Groton yards building Virginia-class submarines.",
     },
     Technology: {
       name: "FinTech & InsurTech Innovation Hub",
@@ -1730,7 +1730,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Connecticut Child Poverty Reduction Act",
       description:
-        "Strengthens the state&#39;s child tax credit and childcare subsidies to cut child poverty rates in Hartford and Bridgeport.",
+        "Strengthens the state's child tax credit and childcare subsidies to cut child poverty rates in Hartford and Bridgeport.",
     },
   },
   de: {
@@ -1742,32 +1742,32 @@ const STATE_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Delaware Cancer Consortium",
       description:
-        "Expands access to cancer screening and treatment to address Delaware&#39;s above-average cancer mortality rates.",
+        "Expands access to cancer screening and treatment to address Delaware's above-average cancer mortality rates.",
     },
     Infrastructure: {
       name: "I-95 Corridor and Port Access",
       description:
-        "Upgrades the I-95 interchange and access roads serving the Port of Wilmington, the nation&#39;s largest banana port.",
+        "Upgrades the I-95 interchange and access roads serving the Port of Wilmington, the nation's largest banana port.",
     },
     Education: {
       name: "Delaware STARS Quality Rating",
       description:
-        "Raises standards and compensation for early childhood educators through the state&#39;s STARS rating system.",
+        "Raises standards and compensation for early childhood educators through the state's STARS rating system.",
     },
     Economy: {
       name: "Corporate Headquarters Retention",
       description:
-        "Modernizes Delaware&#39;s General Corporation Law to keep it the preferred home for U.S. corporate charters.",
+        "Modernizes Delaware's General Corporation Law to keep it the preferred home for U.S. corporate charters.",
     },
     Defense: {
       name: "Dover AFB Airlift Mission Support",
       description:
-        "Sustains and expands Dover Air Force Base&#39;s strategic airlift and mortuary affairs operations.",
+        "Sustains and expands Dover Air Force Base's strategic airlift and mortuary affairs operations.",
     },
     Technology: {
       name: "Wilmington Fintech Cluster Initiative",
       description:
-        "Leverages Delaware&#39;s banking charter advantages to attract next-generation fintech companies to Wilmington.",
+        "Leverages Delaware's banking charter advantages to attract next-generation fintech companies to Wilmington.",
     },
     Social: {
       name: "Wilmington Violence Interruption Program",
@@ -1794,12 +1794,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Hope Scholarship & School Choice",
       description:
-        "Expands Florida&#39;s education savings accounts so families can choose among public, private, and charter schools.",
+        "Expands Florida's education savings accounts so families can choose among public, private, and charter schools.",
     },
     Economy: {
       name: "Space Coast Workforce Development",
       description:
-        "Builds aerospace engineering and technician talent pipelines to support Kennedy Space Center&#39;s growing commercial launch activity.",
+        "Builds aerospace engineering and technician talent pipelines to support Kennedy Space Center's growing commercial launch activity.",
     },
     Defense: {
       name: "MacDill AFB SOCOM Modernization",
@@ -1809,7 +1809,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Miami Tech Hub Expansion",
       description:
-        "Deepens Miami&#39;s emergence as a fintech and Web3 capital with grants, visa support, and co-investment funds.",
+        "Deepens Miami's emergence as a fintech and Web3 capital with grants, visa support, and co-investment funds.",
     },
     Social: {
       name: "Affordable Housing Trust Fund Boost",
@@ -1821,17 +1821,17 @@ const STATE_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Georgia Coastal Wetlands Protection",
       description:
-        "Strengthens protections for Georgia&#39;s 368,000-acre tidal marshes threatened by coastal development.",
+        "Strengthens protections for Georgia's 368,000-acre tidal marshes threatened by coastal development.",
     },
     Healthcare: {
       name: "Georgia Pathways Medicaid Program",
       description:
-        "Links Medicaid eligibility to work and community engagement requirements under the state&#39;s Section 1115 waiver.",
+        "Links Medicaid eligibility to work and community engagement requirements under the state's Section 1115 waiver.",
     },
     Infrastructure: {
       name: "Port of Savannah Inland Corridor",
       description:
-        "Expands freight rail and road access to the Port of Savannah, the nation&#39;s fastest-growing container port.",
+        "Expands freight rail and road access to the Port of Savannah, the nation's fastest-growing container port.",
     },
     Education: {
       name: "Georgia HOPE Scholarship Sustainability",
@@ -1841,7 +1841,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "EV Manufacturing Corridor",
       description:
-        "Supports Hyundai Metaplant, Rivian, and battery suppliers anchoring Georgia&#39;s emerging electric vehicle supply chain.",
+        "Supports Hyundai Metaplant, Rivian, and battery suppliers anchoring Georgia's emerging electric vehicle supply chain.",
     },
     Defense: {
       name: "Fort Moore Transformation Support",
@@ -1856,19 +1856,19 @@ const STATE_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Rural Georgia Access to Care Fund",
       description:
-        "Addresses healthcare and economic deserts in Georgia&#39;s rural south through mobile clinics and telehealth infrastructure.",
+        "Addresses healthcare and economic deserts in Georgia's rural south through mobile clinics and telehealth infrastructure.",
     },
   },
   hi: {
     Climate: {
       name: "Hawaii 100% Renewable Mandate",
       description:
-        "Accelerates deployment of solar, wind, and storage to meet Hawaii&#39;s legally binding 100% clean energy by 2045 goal.",
+        "Accelerates deployment of solar, wind, and storage to meet Hawaii's legally binding 100% clean energy by 2045 goal.",
     },
     Healthcare: {
       name: "Hawaii Prepaid Health Care Expansion",
       description:
-        "Strengthens Hawaii&#39;s unique employer health mandate to close coverage gaps for part-time and gig workers.",
+        "Strengthens Hawaii's unique employer health mandate to close coverage gaps for part-time and gig workers.",
     },
     Infrastructure: {
       name: "Honolulu Rail Transit System Completion",
@@ -1883,7 +1883,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Tourism Diversification Strategy",
       description:
-        "Reduces Hawaii&#39;s over-reliance on tourism by investing in ocean technology, defense, and creative industries.",
+        "Reduces Hawaii's over-reliance on tourism by investing in ocean technology, defense, and creative industries.",
     },
     Defense: {
       name: "Pearl Harbor-Hickam Resilience Plan",
@@ -1893,7 +1893,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Blue Economy Innovation Fund",
       description:
-        "Invests in ocean science, aquaculture technology, and marine renewable energy suited to Hawaii&#39;s island economy.",
+        "Invests in ocean science, aquaculture technology, and marine renewable energy suited to Hawaii's island economy.",
     },
     Social: {
       name: "Maui Fire Recovery & Housing Program",
@@ -1930,24 +1930,24 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Mountain Home AFB Expansion Plan",
       description:
-        "Upgrades F-15E facilities and training ranges at Mountain Home AFB, the Air Force&#39;s premier overland strike wing.",
+        "Upgrades F-15E facilities and training ranges at Mountain Home AFB, the Air Force's premier overland strike wing.",
     },
     Technology: {
       name: "Boise Tech Corridor Initiative",
       description:
-        "Develops Boise&#39;s emerging technology sector with a focus on agtech, precision agriculture, and industrial software.",
+        "Develops Boise's emerging technology sector with a focus on agtech, precision agriculture, and industrial software.",
     },
     Social: {
       name: "Rural Childcare Desert Initiative",
       description:
-        "Funds childcare center development in Idaho&#39;s rural counties where licensed slots are critically scarce.",
+        "Funds childcare center development in Idaho's rural counties where licensed slots are critically scarce.",
     },
   },
   il: {
     Climate: {
       name: "Climate & Equitable Jobs Act Rollout",
       description:
-        "Implements Illinois&#39; landmark 2021 CEJA mandate for 100% clean energy by 2050 with equity provisions.",
+        "Implements Illinois' landmark 2021 CEJA mandate for 100% clean energy by 2050 with equity provisions.",
     },
     Healthcare: {
       name: "Illinois' All Kids Health Access",
@@ -1957,54 +1957,54 @@ const STATE_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Chicago Transit Authority Modernization",
       description:
-        "Funds CTA Red Line south extension and fleet replacement to restore reliability across Chicago&#39;s rail network.",
+        "Funds CTA Red Line south extension and fleet replacement to restore reliability across Chicago's rail network.",
     },
     Education: {
       name: "Evidence-Based Funding Model",
       description:
-        "Continues Illinois&#39; shift to evidence-based K-12 funding that prioritizes districts most in need of resources.",
+        "Continues Illinois' shift to evidence-based K-12 funding that prioritizes districts most in need of resources.",
     },
     Economy: {
       name: "CHIPS Illinois Manufacturing Initiative",
       description:
-        "Leverages Illinois&#39; logistics advantage to attract semiconductor packaging and advanced manufacturing facilities.",
+        "Leverages Illinois' logistics advantage to attract semiconductor packaging and advanced manufacturing facilities.",
     },
     Defense: {
       name: "Scott AFB Logistics Hub Security",
       description:
-        "Protects and expands Scott Air Force Base&#39;s role as the Air Mobility Command headquarters and military logistics hub.",
+        "Protects and expands Scott Air Force Base's role as the Air Mobility Command headquarters and military logistics hub.",
     },
     Technology: {
       name: "Chicago Quantum Exchange Expansion",
       description:
-        "Builds on the University of Chicago&#39;s quantum computing leadership through state investment in quantum research.",
+        "Builds on the University of Chicago's quantum computing leadership through state investment in quantum research.",
     },
     Social: {
       name: "Chicago Violence Reduction Strategy",
       description:
-        "Expands community investment, mental health, and workforce programs in Chicago&#39;s highest-violence neighborhoods.",
+        "Expands community investment, mental health, and workforce programs in Chicago's highest-violence neighborhoods.",
     },
   },
   in: {
     Climate: {
       name: "Indiana Coal-to-Clean Transition Plan",
       description:
-        "Manages Indiana&#39;s shift away from coal — its largest power source — while protecting utility worker communities.",
+        "Manages Indiana's shift away from coal — its largest power source — while protecting utility worker communities.",
     },
     Healthcare: {
       name: "Indiana Healthy Indiana Plan (HIP)",
       description:
-        "Sustains Indiana&#39;s consumer-driven Medicaid HIP 2.0 program requiring beneficiary health accounts.",
+        "Sustains Indiana's consumer-driven Medicaid HIP 2.0 program requiring beneficiary health accounts.",
     },
     Infrastructure: {
       name: "I-69 Completion & Intermodal Upgrade",
       description:
-        "Completes Indiana&#39;s I-69 corridor from Indianapolis to Evansville and upgrades intermodal freight facilities.",
+        "Completes Indiana's I-69 corridor from Indianapolis to Evansville and upgrades intermodal freight facilities.",
     },
     Education: {
       name: "Indiana Next Level Jobs",
       description:
-        "Expands free workforce training certifications for high-demand fields aligned with Indiana&#39;s manufacturing economy.",
+        "Expands free workforce training certifications for high-demand fields aligned with Indiana's manufacturing economy.",
     },
     Economy: {
       name: "Indiana Statewide EV and Battery Cluster",
@@ -2014,7 +2014,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Crane Naval Surface Warfare Expansion",
       description:
-        "Grows research and manufacturing capacity at Crane NSWC, the Navy&#39;s largest inland military installation.",
+        "Grows research and manufacturing capacity at Crane NSWC, the Navy's largest inland military installation.",
     },
     Technology: {
       name: "Indiana AgriTech Innovation Fund",
@@ -2031,17 +2031,17 @@ const STATE_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Iowa Wind Integration Study",
       description:
-        "Plans grid upgrades to accommodate Iowa&#39;s wind-dominated energy mix, which already generates over 50% of state electricity.",
+        "Plans grid upgrades to accommodate Iowa's wind-dominated energy mix, which already generates over 50% of state electricity.",
     },
     Healthcare: {
       name: "Iowa Wellbeing Index & Prevention",
       description:
-        "Funds preventive care and mental health programs to address Iowa&#39;s rural physician shortage and aging workforce.",
+        "Funds preventive care and mental health programs to address Iowa's rural physician shortage and aging workforce.",
     },
     Infrastructure: {
       name: "Iowa 80-Series Highway Corridor",
       description:
-        "Upgrades I-80 and connecting state highways critical to Iowa&#39;s $33B annual agricultural export logistics.",
+        "Upgrades I-80 and connecting state highways critical to Iowa's $33B annual agricultural export logistics.",
     },
     Education: {
       name: "Iowa Reading Corps Scale-Up",
@@ -2051,7 +2051,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Iowa Soy & Corn Value-Add Strategy",
       description:
-        "Invests in processing and biofuels infrastructure to increase in-state value of Iowa&#39;s dominant commodity crops.",
+        "Invests in processing and biofuels infrastructure to increase in-state value of Iowa's dominant commodity crops.",
     },
     Defense: {
       name: "Iowa National Guard Disaster Readiness",
@@ -2066,7 +2066,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Iowa Rural Immigration Integration",
       description:
-        "Helps Iowa&#39;s meatpacking communities integrate immigrant workforces into schools, healthcare, and civic life.",
+        "Helps Iowa's meatpacking communities integrate immigrant workforces into schools, healthcare, and civic life.",
     },
   },
   ks: {
@@ -2078,17 +2078,17 @@ const STATE_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Kansas Medicaid Gap Coverage",
       description:
-        "Addresses Kansas&#39;s coverage gap by exploring hybrid Medicaid options for adults above the federal poverty line.",
+        "Addresses Kansas's coverage gap by exploring hybrid Medicaid options for adults above the federal poverty line.",
     },
     Infrastructure: {
       name: "Wichita Airport & Aviation Corridor",
       description:
-        "Modernizes Wichita Mid-Continent Airport facilities to support the nation&#39;s largest general aviation manufacturing cluster.",
+        "Modernizes Wichita Mid-Continent Airport facilities to support the nation's largest general aviation manufacturing cluster.",
     },
     Education: {
       name: "Kansas Education Funding Formula",
       description:
-        "Implements the Kansas Supreme Court&#39;s adequacy ruling by equalizing per-pupil funding across wealthy and poor districts.",
+        "Implements the Kansas Supreme Court's adequacy ruling by equalizing per-pupil funding across wealthy and poor districts.",
     },
     Economy: {
       name: "Kansas Agribusiness Innovation Park",
@@ -2115,17 +2115,17 @@ const STATE_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Kentucky Coal Miner Jobs Transition",
       description:
-        "Provides retraining and economic diversification support for Appalachian Kentucky&#39;s coal-mining workforce.",
+        "Provides retraining and economic diversification support for Appalachian Kentucky's coal-mining workforce.",
     },
     Healthcare: {
       name: "Kentucky kynect Health Coverage",
       description:
-        "Operates Kentucky&#39;s state-based insurance marketplace and expands outreach to the uninsured in rural counties.",
+        "Operates Kentucky's state-based insurance marketplace and expands outreach to the uninsured in rural counties.",
     },
     Infrastructure: {
       name: "Appalachian Kentucky Road Plan",
       description:
-        "Accelerates completion of four-lane highway links through eastern Kentucky to end the region&#39;s transportation isolation.",
+        "Accelerates completion of four-lane highway links through eastern Kentucky to end the region's transportation isolation.",
     },
     Education: {
       name: "Dual Credit Expansion for Rural Students",
@@ -2135,12 +2135,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Toyota & Ford EV Transition Support",
       description:
-        "Ensures Kentucky&#39;s major automotive plants in Georgetown and Louisville are competitive in the EV production era.",
+        "Ensures Kentucky's major automotive plants in Georgetown and Louisville are competitive in the EV production era.",
     },
     Defense: {
       name: "Fort Campbell Air Assault Readiness",
       description:
-        "Maintains the training intensity, Chinook fleet, and special operations readiness of Fort Campbell&#39;s 101st Airborne Division.",
+        "Maintains the training intensity, Chinook fleet, and special operations readiness of Fort Campbell's 101st Airborne Division.",
     },
     Technology: {
       name: "Kentucky Cybersecurity Talent Pipeline",
@@ -2150,19 +2150,19 @@ const STATE_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Appalachian Opioid Recovery Network",
       description:
-        "Expands medication-assisted treatment and recovery community organizations across Kentucky&#39;s hardest-hit Appalachian counties.",
+        "Expands medication-assisted treatment and recovery community organizations across Kentucky's hardest-hit Appalachian counties.",
     },
   },
   la: {
     Climate: {
       name: "Louisiana Coastal Master Plan",
       description:
-        "Invests in marsh restoration, levee upgrades, and barrier island rebuilding to slow Louisiana&#39;s catastrophic land loss.",
+        "Invests in marsh restoration, levee upgrades, and barrier island rebuilding to slow Louisiana's catastrophic land loss.",
     },
     Healthcare: {
       name: "Louisiana Medicaid Behavioral Health",
       description:
-        "Expands mental health and addiction treatment benefits within Medicaid following the state&#39;s opioid crisis surge.",
+        "Expands mental health and addiction treatment benefits within Medicaid following the state's opioid crisis surge.",
     },
     Infrastructure: {
       name: "New Orleans Flood Protection System",
@@ -2177,7 +2177,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "LNG Export Terminal Growth Strategy",
       description:
-        "Supports Louisiana&#39;s expansion of LNG export capacity, making the state a key U.S. energy export hub.",
+        "Supports Louisiana's expansion of LNG export capacity, making the state a key U.S. energy export hub.",
     },
     Defense: {
       name: "Barksdale AFB B-52 Sustainment",
@@ -2187,12 +2187,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "New Orleans Creative Technology Corridor",
       description:
-        "Leverages New Orleans&#39; film industry and music scene to attract digital media and gaming companies.",
+        "Leverages New Orleans' film industry and music scene to attract digital media and gaming companies.",
     },
     Social: {
       name: "Louisiana Child Poverty Emergency Act",
       description:
-        "Addresses Louisiana&#39;s nation-leading child poverty rate with expanded child tax credits and home visiting programs.",
+        "Addresses Louisiana's nation-leading child poverty rate with expanded child tax credits and home visiting programs.",
     },
   },
   me: {
@@ -2204,7 +2204,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Maine Dirigo Health Rural Access",
       description:
-        "Expands primary care and mental health services in Maine&#39;s vast rural stretches and island communities.",
+        "Expands primary care and mental health services in Maine's vast rural stretches and island communities.",
     },
     Infrastructure: {
       name: "Maine Turnpike Digital Corridor",
@@ -2214,17 +2214,17 @@ const STATE_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Maine Learning Technology Initiative",
       description:
-        "Maintains Maine&#39;s pioneering 1-to-1 laptop program while updating devices for modern digital learning.",
+        "Maintains Maine's pioneering 1-to-1 laptop program while updating devices for modern digital learning.",
     },
     Economy: {
       name: "Maine Lobster and Aquaculture Resilience",
       description:
-        "Protects Maine&#39;s $1.6B lobster industry and develops sustainable aquaculture amid warming Gulf of Maine waters.",
+        "Protects Maine's $1.6B lobster industry and develops sustainable aquaculture amid warming Gulf of Maine waters.",
     },
     Defense: {
       name: "Portsmouth Naval Shipyard Nuclear Overhaul",
       description:
-        "Supports Portsmouth Naval Shipyard&#39;s submarine overhaul capacity to meet growing SSN maintenance backlogs.",
+        "Supports Portsmouth Naval Shipyard's submarine overhaul capacity to meet growing SSN maintenance backlogs.",
     },
     Technology: {
       name: "Maine Remote Work Attraction Program",
@@ -2234,34 +2234,34 @@ const STATE_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Maine Wabanaki Tribal Services Parity",
       description:
-        "Addresses gaps in healthcare, housing, and social services for Maine&#39;s four federally recognized Wabanaki tribes.",
+        "Addresses gaps in healthcare, housing, and social services for Maine's four federally recognized Wabanaki tribes.",
     },
   },
   md: {
     Climate: {
       name: "Maryland Climate Solutions Now Act",
       description:
-        "Implements Maryland&#39;s mandate for a 60% reduction in greenhouse gases by 2031 and net-zero by 2045.",
+        "Implements Maryland's mandate for a 60% reduction in greenhouse gases by 2031 and net-zero by 2045.",
     },
     Healthcare: {
       name: "Maryland CRISP Health Data Exchange",
       description:
-        "Expands the state&#39;s clinical data exchange to improve care coordination and reduce preventable hospital readmissions.",
+        "Expands the state's clinical data exchange to improve care coordination and reduce preventable hospital readmissions.",
     },
     Infrastructure: {
       name: "Purple Line Light Rail Completion",
       description:
-        "Completes the Purple Line connecting Bethesda and New Carrollton through Maryland&#39;s under-served inner suburbs.",
+        "Completes the Purple Line connecting Bethesda and New Carrollton through Maryland's under-served inner suburbs.",
     },
     Education: {
-      name: "Blueprint for Maryland&#39;s Future",
+      name: "Blueprint for Maryland's Future",
       description:
         "Funds the decade-long Blueprint reform requiring higher teacher salaries, expanded pre-K, and community schools.",
     },
     Economy: {
       name: "BioHealth Capital Region Strategy",
       description:
-        "Builds on Maryland&#39;s NIH and FDA proximity to attract biotech, genomics, and life science companies.",
+        "Builds on Maryland's NIH and FDA proximity to attract biotech, genomics, and life science companies.",
     },
     Defense: {
       name: "Fort Meade Cyber Workforce Expansion",
@@ -2276,19 +2276,19 @@ const STATE_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Baltimore Renter Protections & Housing",
       description:
-        "Strengthens Baltimore City&#39;s renter protections and funds affordable housing preservation in gentrifying neighborhoods.",
+        "Strengthens Baltimore City's renter protections and funds affordable housing preservation in gentrifying neighborhoods.",
     },
   },
   ma: {
     Climate: {
       name: "Massachusetts Clean Energy Standard",
       description:
-        "Ratchets up Massachusetts&#39; annual requirements for utility procurement of clean electricity toward full decarbonization.",
+        "Ratchets up Massachusetts' annual requirements for utility procurement of clean electricity toward full decarbonization.",
     },
     Healthcare: {
       name: "Massachusetts Health Connector Stabilization",
       description:
-        "Strengthens the nation&#39;s first state health insurance exchange by expanding subsidies and simplifying enrollment.",
+        "Strengthens the nation's first state health insurance exchange by expanding subsidies and simplifying enrollment.",
     },
     Infrastructure: {
       name: "MBTA Safety & Reliability Overhaul",
@@ -2303,17 +2303,17 @@ const STATE_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Massachusetts Life Sciences Capital Program",
       description:
-        "Extends Massachusetts&#39; landmark life sciences capital investment program anchoring its $32B biotech cluster.",
+        "Extends Massachusetts' landmark life sciences capital investment program anchoring its $32B biotech cluster.",
     },
     Defense: {
       name: "Hanscom AFB Digital Systems Hub",
       description:
-        "Grows Hanscom Air Force Base&#39;s role as the Air Force&#39;s digital and command-and-control acquisition center.",
+        "Grows Hanscom Air Force Base's role as the Air Force's digital and command-and-control acquisition center.",
     },
     Technology: {
       name: "Boston Quantum Computing Initiative",
       description:
-        "Invests in quantum hardware, software, and talent to secure Boston&#39;s position as a global quantum computing leader.",
+        "Invests in quantum hardware, software, and talent to secure Boston's position as a global quantum computing leader.",
     },
     Social: {
       name: "MBTA Communities Affordable Housing Act",
@@ -2325,17 +2325,17 @@ const STATE_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Michigan Healthy Climate Plan",
       description:
-        "Implements Governor Whitmer&#39;s 2023 clean energy act requiring 100% carbon-free electricity by 2040.",
+        "Implements Governor Whitmer's 2023 clean energy act requiring 100% carbon-free electricity by 2040.",
     },
     Healthcare: {
       name: "Michigan Healthy Michigan Plan",
       description:
-        "Sustains Michigan&#39;s expanded Medicaid program covering 700,000 adults with community engagement components.",
+        "Sustains Michigan's expanded Medicaid program covering 700,000 adults with community engagement components.",
     },
     Infrastructure: {
       name: "Detroit-to-Pontiac I-75 Expansion",
       description:
-        "Reconstructs and widens the aging I-75 corridor connecting Detroit&#39;s auto manufacturing core to northern suburbs.",
+        "Reconstructs and widens the aging I-75 corridor connecting Detroit's auto manufacturing core to northern suburbs.",
     },
     Education: {
       name: "Michigan Reconnect Adult Education",
@@ -2350,17 +2350,17 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Michigan National Guard Cyber Unit Growth",
       description:
-        "Expands Michigan&#39;s elite National Guard cyber protection units supporting state and federal cyber defense operations.",
+        "Expands Michigan's elite National Guard cyber protection units supporting state and federal cyber defense operations.",
     },
     Technology: {
       name: "Michigan Mobility Innovation Sandbox",
       description:
-        "Operates the nation&#39;s largest autonomous and connected vehicle testing infrastructure in Ann Arbor and Detroit.",
+        "Operates the nation's largest autonomous and connected vehicle testing infrastructure in Ann Arbor and Detroit.",
     },
     Social: {
       name: "Flint Water Recovery & Lead Remediation",
       description:
-        "Continues replacing lead service lines and monitoring water quality as part of Flint&#39;s long-term recovery effort.",
+        "Continues replacing lead service lines and monitoring water quality as part of Flint's long-term recovery effort.",
     },
   },
   mn: {
@@ -2414,12 +2414,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Mississippi Rural Health Initiative",
       description:
-        "Addresses Mississippi&#39;s nation-worst health outcomes with mobile clinics across its 29 rural Critical Access Hospitals.",
+        "Addresses Mississippi's nation-worst health outcomes with mobile clinics across its 29 rural Critical Access Hospitals.",
     },
     Infrastructure: {
       name: "Port of Gulfport Expansion",
       description:
-        "Expands Port of Gulfport&#39;s containerized cargo capacity and improves rail connections to inland distribution centers.",
+        "Expands Port of Gulfport's containerized cargo capacity and improves rail connections to inland distribution centers.",
     },
     Education: {
       name: "Mississippi Literacy-Based Promotion Act",
@@ -2434,24 +2434,24 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Camp Shelby Training Range Modernization",
       description:
-        "Upgrades Camp Shelby&#39;s maneuver ranges to support joint and multinational training at the South&#39;s largest National Guard facility.",
+        "Upgrades Camp Shelby's maneuver ranges to support joint and multinational training at the South's largest National Guard facility.",
     },
     Technology: {
       name: "Mississippi Broadband Development Act",
       description:
-        "Deploys fiber internet to Mississippi&#39;s counties where 30%+ of residents lack any broadband access option.",
+        "Deploys fiber internet to Mississippi's counties where 30%+ of residents lack any broadband access option.",
     },
     Social: {
       name: "Mississippi Childhood Poverty Emergency Plan",
       description:
-        "Targets Mississippi&#39;s 27% child poverty rate with expanded SNAP, EITC, and universal school meals.",
+        "Targets Mississippi's 27% child poverty rate with expanded SNAP, EITC, and universal school meals.",
     },
   },
   mo: {
     Climate: {
       name: "Missouri Wind and Solar Expansion Act",
       description:
-        "Removes regulatory barriers to utility-scale wind and solar development in Missouri&#39;s energy mix.",
+        "Removes regulatory barriers to utility-scale wind and solar development in Missouri's energy mix.",
     },
     Healthcare: {
       name: "Missouri Medicaid Expansion Implementation",
@@ -2476,12 +2476,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Whiteman AFB B-21 Raider Transition",
       description:
-        "Manages Whiteman Air Force Base&#39;s transition from B-2 Spirit to the next-generation B-21 Raider stealth bomber.",
+        "Manages Whiteman Air Force Base's transition from B-2 Spirit to the next-generation B-21 Raider stealth bomber.",
     },
     Technology: {
       name: "Saint Louis Financial Technology Growth",
       description:
-        "Supports Saint Louis&#39; Centene-anchored digital health and insurance technology startup ecosystem.",
+        "Supports Saint Louis' Centene-anchored digital health and insurance technology startup ecosystem.",
     },
     Social: {
       name: "Ferguson Consent Decree Community Investment",
@@ -2498,7 +2498,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Montana HELP Act Medicaid Continuity",
       description:
-        "Renews and strengthens Montana&#39;s Medicaid expansion program covering 100,000 low-income adults since 2016.",
+        "Renews and strengthens Montana's Medicaid expansion program covering 100,000 low-income adults since 2016.",
     },
     Infrastructure: {
       name: "Montana Backroads Improvement Fund",
@@ -2508,27 +2508,27 @@ const STATE_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Montana Indian Education for All",
       description:
-        "Fulfills the state&#39;s constitutional mandate to teach the history and culture of Montana&#39;s 12 tribal nations in public schools.",
+        "Fulfills the state's constitutional mandate to teach the history and culture of Montana's 12 tribal nations in public schools.",
     },
     Economy: {
       name: "Montana Outdoor Recreation Economy Strategy",
       description:
-        "Diversifies Montana&#39;s economy by marketing its public lands as a national destination for outdoor recreation businesses.",
+        "Diversifies Montana's economy by marketing its public lands as a national destination for outdoor recreation businesses.",
     },
     Defense: {
       name: "Malmstrom AFB ICBM Sentinel Transition",
       description:
-        "Supports Malmstrom AFB&#39;s shift from Minuteman III to the LGM-35A Sentinel ICBM, modernizing nuclear deterrence.",
+        "Supports Malmstrom AFB's shift from Minuteman III to the LGM-35A Sentinel ICBM, modernizing nuclear deterrence.",
     },
     Technology: {
       name: "Montana Rural Digital Connectivity Plan",
       description:
-        "Brings reliable broadband to Montana&#39;s vast rural expanse to retain young workers and support remote-work migration.",
+        "Brings reliable broadband to Montana's vast rural expanse to retain young workers and support remote-work migration.",
     },
     Social: {
       name: "Montana Missing and Murdered Indigenous Persons Act",
       description:
-        "Funds investigations and victim services addressing the disproportionate rate of MMIP cases among Montana&#39;s tribal nations.",
+        "Funds investigations and victim services addressing the disproportionate rate of MMIP cases among Montana's tribal nations.",
     },
   },
   ne: {
@@ -2545,7 +2545,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Nebraska Interstate Grain Corridor",
       description:
-        "Upgrades I-80 and connecting rail lines handling Nebraska&#39;s massive grain, beef, and ethanol export volumes.",
+        "Upgrades I-80 and connecting rail lines handling Nebraska's massive grain, beef, and ethanol export volumes.",
     },
     Education: {
       name: "Nebraska Sandhills Teacher Recruitment",
@@ -2555,7 +2555,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Nebraska Beef Value Chain Initiative",
       description:
-        "Invests in processing capacity and branding to capture more value from Nebraska&#39;s position as the nation&#39;s top beef state.",
+        "Invests in processing capacity and branding to capture more value from Nebraska's position as the nation's top beef state.",
     },
     Defense: {
       name: "Offutt AFB Strategic Command Resilience",
@@ -2570,14 +2570,14 @@ const STATE_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Nebraska Rural Mental Health Network",
       description:
-        "Builds telehealth mental health capacity for Nebraska&#39;s farming communities experiencing high rates of farm-stress suicide.",
+        "Builds telehealth mental health capacity for Nebraska's farming communities experiencing high rates of farm-stress suicide.",
     },
   },
   nv: {
     Climate: {
       name: "Nevada Water Conservation & Reuse Act",
       description:
-        "Mandates water recycling and turf removal to manage Las Vegas&#39; shrinking Colorado River allotment.",
+        "Mandates water recycling and turf removal to manage Las Vegas' shrinking Colorado River allotment.",
     },
     Healthcare: {
       name: "Nevada Medicaid Managed Care Expansion",
@@ -2602,7 +2602,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Nellis AFB Advanced Warfare Center Expansion",
       description:
-        "Expands Nellis Air Force Base&#39;s advanced air warfare training range, including Red Flag exercise infrastructure.",
+        "Expands Nellis Air Force Base's advanced air warfare training range, including Red Flag exercise infrastructure.",
     },
     Technology: {
       name: "Tahoe-Reno Industrial Center Tech Growth",
@@ -2612,7 +2612,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Nevada Comprehensive Harm Reduction Act",
       description:
-        "Expands syringe service programs and naloxone distribution to address Nevada&#39;s above-average opioid mortality rate.",
+        "Expands syringe service programs and naloxone distribution to address Nevada's above-average opioid mortality rate.",
     },
   },
   nh: {
@@ -2624,7 +2624,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "New Hampshire Medicaid Care Management",
       description:
-        "Modernizes New Hampshire&#39;s Medicaid managed care contracts to improve mental health and addiction treatment outcomes.",
+        "Modernizes New Hampshire's Medicaid managed care contracts to improve mental health and addiction treatment outcomes.",
     },
     Infrastructure: {
       name: "Northern Pass Successor Transmission Line",
@@ -2661,7 +2661,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "New Jersey Offshore Wind Master Plan",
       description:
-        "Advances New Jersey&#39;s 11 GW offshore wind commitment with port infrastructure, workforce training, and supply chain investment.",
+        "Advances New Jersey's 11 GW offshore wind commitment with port infrastructure, workforce training, and supply chain investment.",
     },
     Healthcare: {
       name: "New Jersey FamilyCare Expansion",
@@ -2681,12 +2681,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "New Jersey Life Sciences & Pharma Corridor",
       description:
-        "Strengthens NJ&#39;s pharmaceutical corridor anchored by Johnson & Johnson, Merck, and Bristol Myers Squibb.",
+        "Strengthens NJ's pharmaceutical corridor anchored by Johnson & Johnson, Merck, and Bristol Myers Squibb.",
     },
     Defense: {
       name: "Joint Base MDL Mission Preservation",
       description:
-        "Protects Joint Base McGuire-Dix-Lakehurst&#39;s diverse airlift, Army Reserve, and homeland defense missions.",
+        "Protects Joint Base McGuire-Dix-Lakehurst's diverse airlift, Army Reserve, and homeland defense missions.",
     },
     Technology: {
       name: "New Jersey Innovation HQ Program",
@@ -2696,19 +2696,19 @@ const STATE_SPECIFIC_POLICIES: Record<
     Social: {
       name: "New Jersey Eviction Protection & Housing Stability",
       description:
-        "Strengthens tenant protections and funds legal aid to prevent displacement from NJ&#39;s high-cost rental market.",
+        "Strengthens tenant protections and funds legal aid to prevent displacement from NJ's high-cost rental market.",
     },
   },
   nm: {
     Climate: {
       name: "New Mexico Energy Transition Act",
       description:
-        "Implements New Mexico&#39;s mandate for 50% renewable electricity by 2030 and 80% by 2040 from its solar-rich resource base.",
+        "Implements New Mexico's mandate for 50% renewable electricity by 2030 and 80% by 2040 from its solar-rich resource base.",
     },
     Healthcare: {
       name: "New Mexico Behavioral Health System Rebuild",
       description:
-        "Reconstructs New Mexico&#39;s behavioral health network a decade after the 2013 provider sanctions dismantled it.",
+        "Reconstructs New Mexico's behavioral health network a decade after the 2013 provider sanctions dismantled it.",
     },
     Infrastructure: {
       name: "New Mexico Rural Water Authority",
@@ -2733,7 +2733,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Los Alamos National Lab Tech Commercialization",
       description:
-        "Transfers Los Alamos National Laboratory&#39;s quantum and materials science discoveries into commercial New Mexico ventures.",
+        "Transfers Los Alamos National Laboratory's quantum and materials science discoveries into commercial New Mexico ventures.",
     },
     Social: {
       name: "New Mexico Early Childhood Education Fund",
@@ -2745,7 +2745,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Climate Leadership and Community Protection Act",
       description:
-        "Enforces New York&#39;s nation-leading law mandating 70% renewable electricity by 2030 and net-zero GHG by 2050.",
+        "Enforces New York's nation-leading law mandating 70% renewable electricity by 2030 and net-zero GHG by 2050.",
     },
     Healthcare: {
       name: "New York Health Act Single-Payer Study",
@@ -2755,22 +2755,22 @@ const STATE_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Penn Station & MTA Capital Overhaul",
       description:
-        "Executes New York&#39;s $68B MTA capital program while advancing a redesigned Penn Station area development.",
+        "Executes New York's $68B MTA capital program while advancing a redesigned Penn Station area development.",
     },
     Education: {
       name: "New York Universal Pre-K Expansion",
       description:
-        "Scales New York City&#39;s universal pre-K model statewide to give every 3 and 4-year-old access to quality early education.",
+        "Scales New York City's universal pre-K model statewide to give every 3 and 4-year-old access to quality early education.",
     },
     Economy: {
       name: "New York Life Sciences Cluster Investment",
       description:
-        "Partners with academia and private investors to build a biotech ecosystem in New York City&#39;s East Side innovation corridor.",
+        "Partners with academia and private investors to build a biotech ecosystem in New York City's East Side innovation corridor.",
     },
     Defense: {
       name: "West Point Cyber Leadership Institute",
       description:
-        "Expands West Point&#39;s cybersecurity programs to produce military and government cyber officers for national security.",
+        "Expands West Point's cybersecurity programs to produce military and government cyber officers for national security.",
     },
     Technology: {
       name: "New York City Artificial Intelligence Hub",
@@ -2787,12 +2787,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "North Carolina Clean Energy Plan",
       description:
-        "Implements Duke Energy&#39;s regulatory mandate to reduce carbon emissions 70% by 2030 and reach net-zero by 2050.",
+        "Implements Duke Energy's regulatory mandate to reduce carbon emissions 70% by 2030 and reach net-zero by 2050.",
     },
     Healthcare: {
       name: "NC Medicaid Managed Care Transformation",
       description:
-        "Completes North Carolina&#39;s shift to Medicaid managed care while extending coverage to 600,000 newly eligible adults.",
+        "Completes North Carolina's shift to Medicaid managed care while extending coverage to 600,000 newly eligible adults.",
     },
     Infrastructure: {
       name: "Charlotte & Raleigh-Durham Airport Expansion",
@@ -2802,34 +2802,34 @@ const STATE_SPECIFIC_POLICIES: Record<
     Education: {
       name: "NC Leandro Education Equity Ruling",
       description:
-        "Implements the state Supreme Court&#39;s Leandro ruling requiring adequate, equitable education funding for every child.",
+        "Implements the state Supreme Court's Leandro ruling requiring adequate, equitable education funding for every child.",
     },
     Economy: {
       name: "Research Triangle Life Science Cluster",
       description:
-        "Expands the Research Triangle&#39;s biotech, pharma, and genomics industry with targeted university-industry partnerships.",
+        "Expands the Research Triangle's biotech, pharma, and genomics industry with targeted university-industry partnerships.",
     },
     Defense: {
       name: "Fort Liberty Airborne & Special Ops Readiness",
       description:
-        "Sustains the training readiness of Fort Liberty&#39;s 82nd Airborne Division and adjacent Special Operations units.",
+        "Sustains the training readiness of Fort Liberty's 82nd Airborne Division and adjacent Special Operations units.",
     },
     Technology: {
       name: "NC Microelectronics Hub Initiative",
       description:
-        "Leverages the CHIPS Act designation as part of the National Semiconductor Technology Center&#39;s Southeast node.",
+        "Leverages the CHIPS Act designation as part of the National Semiconductor Technology Center's Southeast node.",
     },
     Social: {
       name: "Opportunity NC Rural Poverty Initiative",
       description:
-        "Targets persistent poverty in North Carolina&#39;s eastern Coastal Plain and western mountain counties.",
+        "Targets persistent poverty in North Carolina's eastern Coastal Plain and western mountain counties.",
     },
   },
   nd: {
     Climate: {
       name: "North Dakota Carbon Capture & Storage Hub",
       description:
-        "Develops geological CO2 storage sites to pair with North Dakota&#39;s ethanol and power plant emissions for carbon-neutral energy.",
+        "Develops geological CO2 storage sites to pair with North Dakota's ethanol and power plant emissions for carbon-neutral energy.",
     },
     Healthcare: {
       name: "North Dakota Behavioral Health Access Plan",
@@ -2844,44 +2844,44 @@ const STATE_SPECIFIC_POLICIES: Record<
     Education: {
       name: "North Dakota Behavioral Health Graduate Program",
       description:
-        "Partners with universities to grow the behavioral health workforce addressing North Dakota&#39;s rural mental health shortage.",
+        "Partners with universities to grow the behavioral health workforce addressing North Dakota's rural mental health shortage.",
     },
     Economy: {
       name: "North Dakota Agricultural Trade Expansion",
       description:
-        "Opens new export markets for North Dakota&#39;s No. 1-ranked crop commodity exports including durum wheat and sunflowers.",
+        "Opens new export markets for North Dakota's No. 1-ranked crop commodity exports including durum wheat and sunflowers.",
     },
     Defense: {
       name: "Minot AFB Dual-Mission Modernization",
       description:
-        "Sustains Minot Air Force Base&#39;s unique dual nuclear mission operating both B-52H bombers and Minuteman III ICBMs.",
+        "Sustains Minot Air Force Base's unique dual nuclear mission operating both B-52H bombers and Minuteman III ICBMs.",
     },
     Technology: {
       name: "North Dakota Precision Ag Drone Corridor",
       description:
-        "Designates North Dakota&#39;s open airspace as a premier testing zone for agricultural drone and UAS operations.",
+        "Designates North Dakota's open airspace as a premier testing zone for agricultural drone and UAS operations.",
     },
     Social: {
       name: "North Dakota Native American Tribal Services Compact",
       description:
-        "Expands state-tribal compacts delivering improved healthcare, housing, and social services to ND&#39;s five tribal nations.",
+        "Expands state-tribal compacts delivering improved healthcare, housing, and social services to ND's five tribal nations.",
     },
   },
   oh: {
     Climate: {
       name: "Ohio Nuclear Preservation & Clean Energy",
       description:
-        "Supports Ohio&#39;s nuclear plants as a clean baseload resource while developing offshore wind agreements on Lake Erie.",
+        "Supports Ohio's nuclear plants as a clean baseload resource while developing offshore wind agreements on Lake Erie.",
     },
     Healthcare: {
       name: "OhioMHAS Addiction Recovery Services",
       description:
-        "Expands Ohio&#39;s mental health and addiction services system, which became a national model during the opioid crisis.",
+        "Expands Ohio's mental health and addiction services system, which became a national model during the opioid crisis.",
     },
     Infrastructure: {
       name: "Ohio Turnpike Modernization Program",
       description:
-        "Reinvests Ohio Turnpike revenues into major corridor upgrades supporting the state&#39;s dominant freight economy.",
+        "Reinvests Ohio Turnpike revenues into major corridor upgrades supporting the state's dominant freight economy.",
     },
     Education: {
       name: "Ohio Straight A Fund Innovation Grants",
@@ -2891,7 +2891,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Ohio Intel Semiconductor Ecosystem Build",
       description:
-        "Develops the workforce, supply chain, and utility infrastructure to support Intel&#39;s New Albany chip fab megasite.",
+        "Develops the workforce, supply chain, and utility infrastructure to support Intel's New Albany chip fab megasite.",
     },
     Defense: {
       name: "Wright-Patterson AFB Research Hub",
@@ -2913,7 +2913,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Oklahoma Wind & Solar Grid Integration",
       description:
-        "Upgrades power transmission lines to carry Oklahoma&#39;s large wind surplus east to load centers in drought years.",
+        "Upgrades power transmission lines to carry Oklahoma's large wind surplus east to load centers in drought years.",
     },
     Healthcare: {
       name: "Oklahoma Tribal Health Compact Expansion",
@@ -2923,7 +2923,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Oklahoma I-40 & Crossroads Corridor",
       description:
-        "Upgrades the I-40/I-35/I-44 crossroads in Oklahoma City, one of the nation&#39;s highest-volume freight intersections.",
+        "Upgrades the I-40/I-35/I-44 crossroads in Oklahoma City, one of the nation's highest-volume freight intersections.",
     },
     Education: {
       name: "Oklahoma Reading Sufficiency Act",
@@ -2938,29 +2938,29 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Tinker AFB B-21 Depot Preparation",
       description:
-        "Prepares Tinker Air Force Base&#39;s Aerospace Maintenance and Regeneration depot for B-21 heavy maintenance work.",
+        "Prepares Tinker Air Force Base's Aerospace Maintenance and Regeneration depot for B-21 heavy maintenance work.",
     },
     Technology: {
       name: "Oklahoma Agtech & Precision Farming Initiative",
       description:
-        "Partners Oklahoma State University with agriculture technology companies to modernize the state&#39;s farming operations.",
+        "Partners Oklahoma State University with agriculture technology companies to modernize the state's farming operations.",
     },
     Social: {
       name: "Oklahoma Native American Child Welfare Compact",
       description:
-        "Strengthens implementation of the Indian Child Welfare Act in Oklahoma&#39;s court system following the Haaland v. Brackeen ruling.",
+        "Strengthens implementation of the Indian Child Welfare Act in Oklahoma's court system following the Haaland v. Brackeen ruling.",
     },
   },
   or: {
     Climate: {
       name: "Oregon Clean Fuels Program Expansion",
       description:
-        "Strengthens Oregon&#39;s low-carbon fuel standard to cut transportation sector emissions from vehicles and trucks.",
+        "Strengthens Oregon's low-carbon fuel standard to cut transportation sector emissions from vehicles and trucks.",
     },
     Healthcare: {
       name: "Oregon Coordinated Care Organizations",
       description:
-        "Expands Oregon&#39;s innovative Medicaid CCO model integrating physical, mental, and dental health around each community.",
+        "Expands Oregon's innovative Medicaid CCO model integrating physical, mental, and dental health around each community.",
     },
     Infrastructure: {
       name: "Portland Metro MAX & Bus Rapid Transit",
@@ -2980,12 +2980,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Camp Rilea Pacific Coast Training Expansion",
       description:
-        "Expands Oregon National Guard&#39;s Camp Rilea to support Pacific Command exercises and tsunami response readiness.",
+        "Expands Oregon National Guard's Camp Rilea to support Pacific Command exercises and tsunami response readiness.",
     },
     Technology: {
       name: "Silicon Forest Semiconductor Continuity",
       description:
-        "Supports Intel&#39;s Hillsboro R&D campus and the surrounding semiconductor equipment supply chain through capital incentives.",
+        "Supports Intel's Hillsboro R&D campus and the surrounding semiconductor equipment supply chain through capital incentives.",
     },
     Social: {
       name: "Oregon Measure 110 Addiction Treatment Fund",
@@ -2997,7 +2997,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Pennsylvania RGGI Participation",
       description:
-        "Implements Governor Shapiro&#39;s approach to carbon pricing for power sector while navigating legislative opposition.",
+        "Implements Governor Shapiro's approach to carbon pricing for power sector while navigating legislative opposition.",
     },
     Healthcare: {
       name: "Pennsylvania Medicaid Managed Care Reform",
@@ -3012,7 +3012,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Pennsylvania Basic Education Funding Reform",
       description:
-        "Implements the court-ordered funding equity mandate ensuring Pennsylvania&#39;s poorest districts receive adequate state support.",
+        "Implements the court-ordered funding equity mandate ensuring Pennsylvania's poorest districts receive adequate state support.",
     },
     Economy: {
       name: "Pennsylvania Manufacturing Renaissance Fund",
@@ -3022,29 +3022,29 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Tobyhanna Army Depot Technology Refresh",
       description:
-        "Upgrades Tobyhanna Army Depot&#39;s electronics and communications systems repair capability for modern battlefield equipment.",
+        "Upgrades Tobyhanna Army Depot's electronics and communications systems repair capability for modern battlefield equipment.",
     },
     Technology: {
       name: "Pittsburgh Autonomous Vehicle Corridor",
       description:
-        "Designates Pittsburgh&#39;s hill-and-bridge network as a premier autonomous vehicle testing and development environment.",
+        "Designates Pittsburgh's hill-and-bridge network as a premier autonomous vehicle testing and development environment.",
     },
     Social: {
       name: "Philadelphia Anti-Poverty Action Plan",
       description:
-        "Addresses Philadelphia&#39;s nation-leading big-city poverty rate of 21% with workforce, housing, and family support.",
+        "Addresses Philadelphia's nation-leading big-city poverty rate of 21% with workforce, housing, and family support.",
     },
   },
   ri: {
     Climate: {
       name: "Rhode Island Offshore Wind Development",
       description:
-        "Builds on Block Island &#39;s pioneering offshore wind farm by contracting additional capacity for the New England grid.",
+        "Builds on Block Island 's pioneering offshore wind farm by contracting additional capacity for the New England grid.",
     },
     Healthcare: {
       name: "Rhode Island Unified Health Infrastructure",
       description:
-        "Upgrades Rhode Island&#39;s linked health data system enabling population health management across all payers.",
+        "Upgrades Rhode Island's linked health data system enabling population health management across all payers.",
     },
     Infrastructure: {
       name: "Providence Train Station & I-195 Corridor",
@@ -3064,7 +3064,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Naval Station Newport Officer Education Hub",
       description:
-        "Maintains and expands Naval Station Newport&#39;s role as the Navy&#39;s officer professional development and war gaming center.",
+        "Maintains and expands Naval Station Newport's role as the Navy's officer professional development and war gaming center.",
     },
     Technology: {
       name: "Brown University Innovation District",
@@ -3074,7 +3074,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Rhode Island Central Falls Community Recovery Fund",
       description:
-        "Invests in economic opportunity and community development in Central Falls, the state&#39;s most densely populated city.",
+        "Invests in economic opportunity and community development in Central Falls, the state's most densely populated city.",
     },
   },
   sc: {
@@ -3086,17 +3086,17 @@ const STATE_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "SC Rural Hospital Incentive Program",
       description:
-        "Offers loan forgiveness and recruitment bonuses to attract physicians and nurses to South Carolina&#39;s rural hospital deserts.",
+        "Offers loan forgiveness and recruitment bonuses to attract physicians and nurses to South Carolina's rural hospital deserts.",
     },
     Infrastructure: {
       name: "Port of Charleston Deepening & Expansion",
       description:
-        "Completes harbor deepening enabling Neo-Panamax vessels to call at Charleston&#39;s Leatherman Terminal at full capacity.",
+        "Completes harbor deepening enabling Neo-Panamax vessels to call at Charleston's Leatherman Terminal at full capacity.",
     },
     Education: {
       name: "SC Read to Succeed Literacy Act",
       description:
-        "Sustains SC&#39;s early literacy law requiring grade-level reading by end of third grade with retention and support tools.",
+        "Sustains SC's early literacy law requiring grade-level reading by end of third grade with retention and support tools.",
     },
     Economy: {
       name: "SC Boeing & Advanced Manufacturing Growth",
@@ -3106,7 +3106,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Shaw AFB Ninth Air Force Readiness",
       description:
-        "Maintains Ninth Air Force&#39;s A-10 and F-16 training programs at Shaw AFB under evolving air superiority threats.",
+        "Maintains Ninth Air Force's A-10 and F-16 training programs at Shaw AFB under evolving air superiority threats.",
     },
     Technology: {
       name: "SC Cybersecurity Center of Excellence",
@@ -3116,7 +3116,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Social: {
       name: "SC Rural Broadband and Telehealth Initiative",
       description:
-        "Connects the telehealth infrastructure needed for South Carolina&#39;s isolated rural patients to specialist care remotely.",
+        "Connects the telehealth infrastructure needed for South Carolina's isolated rural patients to specialist care remotely.",
     },
   },
   sd: {
@@ -3133,7 +3133,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "South Dakota Roads for Economic Growth",
       description:
-        "Upgrades the secondary road network connecting South Dakota&#39;s grain elevators and livestock yards to I-90 and I-29.",
+        "Upgrades the secondary road network connecting South Dakota's grain elevators and livestock yards to I-90 and I-29.",
     },
     Education: {
       name: "SD Teacher Compensation Initiative",
@@ -3153,19 +3153,19 @@ const STATE_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "South Dakota Crop Data Analytics Center",
       description:
-        "Creates a state-backed agricultural data center enabling precision analytics for South Dakota&#39;s soy and corn farmers.",
+        "Creates a state-backed agricultural data center enabling precision analytics for South Dakota's soy and corn farmers.",
     },
     Social: {
       name: "Pine Ridge Reservation Economic Development",
       description:
-        "Provides capital, infrastructure, and business support to Pine Ridge, one of the nation&#39;s most economically distressed communities.",
+        "Provides capital, infrastructure, and business support to Pine Ridge, one of the nation's most economically distressed communities.",
     },
   },
   tn: {
     Climate: {
       name: "Tennessee Valley Clean Energy Partnership",
       description:
-        "Coordinates with TVA to accelerate decarbonization of Tennessee&#39;s utility grid through nuclear expansion and solar.",
+        "Coordinates with TVA to accelerate decarbonization of Tennessee's utility grid through nuclear expansion and solar.",
     },
     Healthcare: {
       name: "Tennessee TennCare Innovation Waiver",
@@ -3190,12 +3190,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Arnold Engineering Development Complex Growth",
       description:
-        "Expands AEDC&#39;s aerospace testing capabilities, which support every major US military and commercial aircraft program.",
+        "Expands AEDC's aerospace testing capabilities, which support every major US military and commercial aircraft program.",
     },
     Technology: {
       name: "Nashville Health IT Innovation District",
       description:
-        "Positions Nashville&#39;s HCA-anchored health management industry as a hub for health information technology startups.",
+        "Positions Nashville's HCA-anchored health management industry as a hub for health information technology startups.",
     },
     Social: {
       name: "Tennessee Rural Mental Health and Addiction Recovery",
@@ -3212,17 +3212,17 @@ const STATE_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Texas DSH Hospital Supplemental Funding",
       description:
-        "Secures federal disproportionate share funding for Texas&#39;s safety-net hospitals serving the state&#39;s 5M uninsured residents.",
+        "Secures federal disproportionate share funding for Texas's safety-net hospitals serving the state's 5M uninsured residents.",
     },
     Infrastructure: {
       name: "Texas TxDOT Unified Transportation Program",
       description:
-        "Executes Texas&#39; $100B 10-year transportation plan targeting I-35 expansion and border port-of-entry upgrades.",
+        "Executes Texas' $100B 10-year transportation plan targeting I-35 expansion and border port-of-entry upgrades.",
     },
     Education: {
       name: "Texas House Bill 3 Funding Reform",
       description:
-        "Sustains HB 3&#39;s historic teacher pay raises and early literacy funding amid property tax compression pressures.",
+        "Sustains HB 3's historic teacher pay raises and early literacy funding amid property tax compression pressures.",
     },
     Economy: {
       name: "Texas Semiconductor & AI Manufacturing Cluster",
@@ -3232,24 +3232,24 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Fort Cavazos Armored Brigade Readiness",
       description:
-        "Maintains Fort Cavazos&#39;s III Corps armored readiness and supports the rotation of NATO commitment forces through Texas.",
+        "Maintains Fort Cavazos's III Corps armored readiness and supports the rotation of NATO commitment forces through Texas.",
     },
     Technology: {
       name: "Austin-San Antonio Tech Corridor Expansion",
       description:
-        "Bridges Austin&#39;s Corridor 130 tech cluster with San Antonio&#39;s cybersecurity cluster through joint infrastructure investment.",
+        "Bridges Austin's Corridor 130 tech cluster with San Antonio's cybersecurity cluster through joint infrastructure investment.",
     },
     Social: {
       name: "Texas Border Humanitarian Response",
       description:
-        "Expands state-funded migrant processing capacity and provides humanitarian services at Texas&#39;s Rio Grande crossings.",
+        "Expands state-funded migrant processing capacity and provides humanitarian services at Texas's Rio Grande crossings.",
     },
   },
   ut: {
     Climate: {
       name: "Utah Water Conservation Mandate",
       description:
-        "Requires per-capita water use reductions across Utah&#39;s municipalities as Great Salt Lake levels reach historic lows.",
+        "Requires per-capita water use reductions across Utah's municipalities as Great Salt Lake levels reach historic lows.",
     },
     Healthcare: {
       name: "Utah Medicaid Expansion Full Implementation",
@@ -3274,7 +3274,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Hill AFB F-35 Operations Group Expansion",
       description:
-        "Supports Hill Air Force Base&#39;s growing F-35 fleet and its role as the primary USAF F-35 depot maintenance center.",
+        "Supports Hill Air Force Base's growing F-35 fleet and its role as the primary USAF F-35 depot maintenance center.",
     },
     Technology: {
       name: "Utah AI & Machine Learning Research Center",
@@ -3284,24 +3284,24 @@ const STATE_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Utah Refugee Resettlement Integration Plan",
       description:
-        "Integrates Utah&#39;s large refugee population — among the highest per-capita nationally — through workforce and education programs.",
+        "Integrates Utah's large refugee population — among the highest per-capita nationally — through workforce and education programs.",
     },
   },
   vt: {
     Climate: {
       name: "Vermont Climate Action Plan Implementation",
       description:
-        "Executes Vermont&#39;s nation-leading climate commitment to reduce emissions 26% below 2005 levels by 2025.",
+        "Executes Vermont's nation-leading climate commitment to reduce emissions 26% below 2005 levels by 2025.",
     },
     Healthcare: {
       name: "Vermont Green Mountain Care Sustainability",
       description:
-        "Sustains Vermont&#39;s all-payer Accountable Care Organization model and explores expanded public option alternatives.",
+        "Sustains Vermont's all-payer Accountable Care Organization model and explores expanded public option alternatives.",
     },
     Infrastructure: {
       name: "Vermont Road Flood Resilience Program",
       description:
-        "Rebuilds roads and bridges after repeated severe flooding events that have damaged Vermont&#39;s rural road network.",
+        "Rebuilds roads and bridges after repeated severe flooding events that have damaged Vermont's rural road network.",
     },
     Education: {
       name: "Vermont Act 46 District Consolidation",
@@ -3311,12 +3311,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Vermont Creative Economy Development Plan",
       description:
-        "Supports Vermont&#39;s craft beverage, food artisan, and outdoor recreation sectors that anchor the rural creative economy.",
+        "Supports Vermont's craft beverage, food artisan, and outdoor recreation sectors that anchor the rural creative economy.",
     },
     Defense: {
       name: "Burlington VTANG F-35 Integration",
       description:
-        "Manages the political and operational integration of F-35A aircraft at Burlington International Airport&#39;s Air National Guard base.",
+        "Manages the political and operational integration of F-35A aircraft at Burlington International Airport's Air National Guard base.",
     },
     Technology: {
       name: "Vermont Remote Work Welcome Center",
@@ -3326,34 +3326,34 @@ const STATE_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Vermont Opioid Abatement Authority",
       description:
-        "Directs opioid settlement funds into Vermont&#39;s nationally recognized hub-and-spoke addiction treatment model.",
+        "Directs opioid settlement funds into Vermont's nationally recognized hub-and-spoke addiction treatment model.",
     },
   },
   va: {
     Climate: {
       name: "Virginia Clean Economy Act Execution",
       description:
-        "Implements Virginia&#39;s law requiring 100% clean electricity by 2045 and 30% offshore wind by 2030.",
+        "Implements Virginia's law requiring 100% clean electricity by 2045 and 30% offshore wind by 2030.",
     },
     Healthcare: {
       name: "Virginia Medicaid Expansion & Second Chance",
       description:
-        "Sustains Virginia&#39;s 2019 Medicaid expansion while adding work requirement waivers for justice-involved individuals.",
+        "Sustains Virginia's 2019 Medicaid expansion while adding work requirement waivers for justice-involved individuals.",
     },
     Infrastructure: {
       name: "I-66 & I-95 Northern Virginia Express",
       description:
-        "Expands Northern Virginia&#39;s managed lanes network to handle the nation&#39;s second-worst commuter congestion.",
+        "Expands Northern Virginia's managed lanes network to handle the nation's second-worst commuter congestion.",
     },
     Education: {
       name: "Virginia 3rd Grade Reading Guarantee",
       description:
-        "Implements Virginia&#39;s early literacy reform requiring structured phonics instruction and grade-level proficiency by 3rd grade.",
+        "Implements Virginia's early literacy reform requiring structured phonics instruction and grade-level proficiency by 3rd grade.",
     },
     Economy: {
       name: "Virginia Quantum Initiative",
       description:
-        "Positions Northern Virginia&#39;s defense tech and data center ecosystem as an early leader in quantum computing applications.",
+        "Positions Northern Virginia's defense tech and data center ecosystem as an early leader in quantum computing applications.",
     },
     Defense: {
       name: "Pentagon Force Protection Agency Modernization",
@@ -3363,7 +3363,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Northern Virginia Data Center Leadership Strategy",
       description:
-        "Manages the world&#39;s largest data center market responsibly through energy, zoning, and fiber policies.",
+        "Manages the world's largest data center market responsibly through energy, zoning, and fiber policies.",
     },
     Social: {
       name: "Virginia Eviction Prevention & Diversion",
@@ -3375,12 +3375,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Washington Climate Commitment Act Cap-and-Trade",
       description:
-        "Operates Washington&#39;s cap-and-invest carbon market, directing revenues into clean transportation and environmental justice.",
+        "Operates Washington's cap-and-invest carbon market, directing revenues into clean transportation and environmental justice.",
     },
     Healthcare: {
       name: "Washington Cascade Care Public Option",
       description:
-        "Offers the nation&#39;s first state-designed public health option on the exchange with negotiated provider rates.",
+        "Offers the nation's first state-designed public health option on the exchange with negotiated provider rates.",
     },
     Infrastructure: {
       name: "SR-99 Tunnel & Seattle Surface Rebuild",
@@ -3390,12 +3390,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Washington College Grant Expansion",
       description:
-        "Increases the income threshold for Washington&#39;s need-based college grant to make college affordable for middle-income families.",
+        "Increases the income threshold for Washington's need-based college grant to make college affordable for middle-income families.",
     },
     Economy: {
       name: "Washington Aerospace & Defense Cluster",
       description:
-        "Protects Boeing&#39;s supply chain and deepens the commercial space and defense technology ecosystem in the Puget Sound.",
+        "Protects Boeing's supply chain and deepens the commercial space and defense technology ecosystem in the Puget Sound.",
     },
     Defense: {
       name: "Naval Base Kitsap Trident Submarine Support",
@@ -3422,12 +3422,12 @@ const STATE_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "West Virginia AllPayer Claims Database",
       description:
-        "Uses comprehensive claims data to address WV&#39;s worst-in-nation health outcomes and direct treatment resources efficiently.",
+        "Uses comprehensive claims data to address WV's worst-in-nation health outcomes and direct treatment resources efficiently.",
     },
     Infrastructure: {
       name: "Corridor H Appalachian Highway Completion",
       description:
-        "Completes West Virginia&#39;s final segment of the Appalachian Development Highway System connecting rural counties to the I-81 spine.",
+        "Completes West Virginia's final segment of the Appalachian Development Highway System connecting rural counties to the I-81 spine.",
     },
     Education: {
       name: "West Virginia Hope Scholarship",
@@ -3437,7 +3437,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "West Virginia Hydrogen Hub Development",
       description:
-        "Positions WV&#39;s natural gas and industrial pipeline infrastructure as a platform for clean hydrogen production and export.",
+        "Positions WV's natural gas and industrial pipeline infrastructure as a platform for clean hydrogen production and export.",
     },
     Defense: {
       name: "WV National Guard Chemical-Biological Response",
@@ -3447,7 +3447,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "West Virginia Broadband Enhancement Council",
       description:
-        "Coordinates federal and state broadband funding to close WV&#39;s 33%-unserved household gap through a statewide plan.",
+        "Coordinates federal and state broadband funding to close WV's 33%-unserved household gap through a statewide plan.",
     },
     Social: {
       name: "West Virginia Substance Use Recovery Ecosystem",
@@ -3469,7 +3469,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Wisconsin highways & Freight Corridor Plan",
       description:
-        "Executes WisDOT&#39;s highway system plan with emphasis on the I-94 Fox Valley corridor and Madison beltline.",
+        "Executes WisDOT's highway system plan with emphasis on the I-94 Fox Valley corridor and Madison beltline.",
     },
     Education: {
       name: "Wisconsin Reading First Literacy Initiative",
@@ -3484,29 +3484,29 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Volk Field Combat Readiness Training Upgrade",
       description:
-        "Modernizes Volk Field&#39;s air combat range facilities to support F-35 transition training for ANG units.",
+        "Modernizes Volk Field's air combat range facilities to support F-35 transition training for ANG units.",
     },
     Technology: {
       name: "Milwaukee Water Technology Hub",
       description:
-        "Expands Milwaukee&#39;s water technology cluster led by A.O. Smith into a global center for municipal water innovation.",
+        "Expands Milwaukee's water technology cluster led by A.O. Smith into a global center for municipal water innovation.",
     },
     Social: {
       name: "Wisconsin Milwaukee Violence Interruption Program",
       description:
-        "Expands community-based credible messenger and violence interruption programs in Milwaukee&#39;s highest-violence districts.",
+        "Expands community-based credible messenger and violence interruption programs in Milwaukee's highest-violence districts.",
     },
   },
   wy: {
     Climate: {
       name: "Wyoming Coal Carbon Capture Initiative",
       description:
-        "Invests in carbon capture and sequestration technology at Wyoming&#39;s Dry Fork coal plant to demonstrate low-carbon coal.",
+        "Invests in carbon capture and sequestration technology at Wyoming's Dry Fork coal plant to demonstrate low-carbon coal.",
     },
     Healthcare: {
       name: "Wyoming Rural Health Access Compact",
       description:
-        "Uses interstate medical licensing compacts and telemedicine to counter Wyoming&#39;s extreme rural physician-to-patient distances.",
+        "Uses interstate medical licensing compacts and telemedicine to counter Wyoming's extreme rural physician-to-patient distances.",
     },
     Infrastructure: {
       name: "Wyoming Gas Gathering Pipeline Upgrade",
@@ -3516,7 +3516,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Wyoming Heritage Scholarship",
       description:
-        "Offers in-state tuition scholarships to Wyoming graduates who commit to careers in the state&#39;s priority economic sectors.",
+        "Offers in-state tuition scholarships to Wyoming graduates who commit to careers in the state's priority economic sectors.",
     },
     Economy: {
       name: "Wyoming Diversification Beyond Coal and Gas",
@@ -3526,7 +3526,7 @@ const STATE_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "F.E. Warren AFB Sentinel ICBM Conversion",
       description:
-        "Manages F.E. Warren Air Force Base&#39;s transition from aging Minuteman III to the next-generation Sentinel ICBM system.",
+        "Manages F.E. Warren Air Force Base's transition from aging Minuteman III to the next-generation Sentinel ICBM system.",
     },
     Technology: {
       name: "Wyoming Carbon Utilization Research Center",
@@ -3721,7 +3721,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "PLA Modernization 2035 Program",
       description:
-        "Upgrades the People&#39;s Liberation Army with hypersonic missiles, stealth aircraft, and space-based warfare capabilities.",
+        "Upgrades the People's Liberation Army with hypersonic missiles, stealth aircraft, and space-based warfare capabilities.",
     },
     Technology: {
       name: "New Generation AI Development Plan",
@@ -3738,12 +3738,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Energiewende Phase III",
       description:
-        "Accelerates Germany&#39;s transition from nuclear and coal to offshore wind, green hydrogen, and district heating.",
+        "Accelerates Germany's transition from nuclear and coal to offshore wind, green hydrogen, and district heating.",
     },
     Healthcare: {
       name: "Statutory Health Insurance Reform",
       description:
-        "Stabilizes GKV premiums and expands mental health coverage under Germany&#39;s dual public-private system.",
+        "Stabilizes GKV premiums and expands mental health coverage under Germany's dual public-private system.",
     },
     Infrastructure: {
       name: "Deutschlandtakt Rail Upgrade",
@@ -3763,7 +3763,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Zeitenwende Defense Investment",
       description:
-        "Commits €100B Sondervermögen special fund to modernize Bundeswehr equipment and meet NATO&#39;s 2% GDP target.",
+        "Commits €100B Sondervermögen special fund to modernize Bundeswehr equipment and meet NATO's 2% GDP target.",
     },
     Technology: {
       name: "German AI Strategy",
@@ -3773,19 +3773,19 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Housing Benefit Plus Expansion",
       description:
-        "Triples Wohngeld recipients and raises thresholds to protect renters from Germany&#39;s surging housing costs.",
+        "Triples Wohngeld recipients and raises thresholds to protect renters from Germany's surging housing costs.",
     },
   },
   jp: {
     Climate: {
       name: "Green Transformation GX Strategy",
       description:
-        "Mobilizes ¥150T over 10 years to decarbonize Japan&#39;s energy-intensive economy through hydrogen and nuclear restart.",
+        "Mobilizes ¥150T over 10 years to decarbonize Japan's energy-intensive economy through hydrogen and nuclear restart.",
     },
     Healthcare: {
       name: "Universal Health Insurance Sustainability",
       description:
-        "Addresses financing shortfalls in Japan&#39;s universal health insurance as the population rapidly ages.",
+        "Addresses financing shortfalls in Japan's universal health insurance as the population rapidly ages.",
     },
     Infrastructure: {
       name: "Linear Chuo Shinkansen Construction",
@@ -3815,19 +3815,19 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Declining Birthrate Emergency Measures",
       description:
-        "Triples childcare funding and expands parental leave to reverse Japan&#39;s historic fertility rate decline.",
+        "Triples childcare funding and expands parental leave to reverse Japan's historic fertility rate decline.",
     },
   },
   in: {
     Climate: {
       name: "National Solar Mission Scale-Up",
       description:
-        "Targets 500 GW of renewable capacity by 2030, anchored by Rajasthan&#39;s solar parks and offshore wind.",
+        "Targets 500 GW of renewable capacity by 2030, anchored by Rajasthan's solar parks and offshore wind.",
     },
     Healthcare: {
       name: "Ayushman Bharat PM-JAY Expansion",
       description:
-        "Extends free hospital care to 500M Indians under the world&#39;s largest health assurance scheme.",
+        "Extends free hospital care to 500M Indians under the world's largest health assurance scheme.",
     },
     Infrastructure: {
       name: "PM Gati Shakti National Master Plan",
@@ -3837,7 +3837,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "National Education Policy 2020 Implementation",
       description:
-        "Transforms India&#39;s school and higher education system toward multidisciplinary, foundational literacy-first learning.",
+        "Transforms India's school and higher education system toward multidisciplinary, foundational literacy-first learning.",
     },
     Economy: {
       name: "Production Linked Incentive Scheme",
@@ -3857,14 +3857,14 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "PM Awas Yojana Housing for All",
       description:
-        "Constructs 20M affordable homes for the urban and rural poor under India&#39;s flagship housing mission.",
+        "Constructs 20M affordable homes for the urban and rural poor under India's flagship housing mission.",
     },
   },
   gb: {
     Climate: {
       name: "UK Net Zero Strategy",
       description:
-        "Charts Britain&#39;s path to net-zero emissions by 2050 with offshore wind, hydrogen, and heat pump expansion.",
+        "Charts Britain's path to net-zero emissions by 2050 with offshore wind, hydrogen, and heat pump expansion.",
     },
     Healthcare: {
       name: "NHS 10-Year Workforce Plan",
@@ -3921,7 +3921,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Reform of Lycée & Baccalaureate",
       description:
-        "Replaces France&#39;s traditional baccalauréat with a continuous assessment and specialization-based model.",
+        "Replaces France's traditional baccalauréat with a continuous assessment and specialization-based model.",
     },
     Economy: {
       name: "France 2030 Industrial Investment Plan",
@@ -3936,12 +3936,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "French National AI Strategy",
       description:
-        "Establishes a €1.5B national AI plan anchored by INRIA research centers and Paris&#39;s Station F startups.",
+        "Establishes a €1.5B national AI plan anchored by INRIA research centers and Paris's Station F startups.",
     },
     Social: {
       name: "Plan Pauvreté Social Investment",
       description:
-        "Invests in early childhood, youth employment, and poverty prevention to reduce France&#39;s social exclusion rate.",
+        "Invests in early childhood, youth employment, and poverty prevention to reduce France's social exclusion rate.",
     },
   },
   br: {
@@ -3953,7 +3953,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "SUS Universal Health System Expansion",
       description:
-        "Increases funding for Brazil&#39;s SUS public health system to cut regional access disparities.",
+        "Increases funding for Brazil's SUS public health system to cut regional access disparities.",
     },
     Infrastructure: {
       name: "PAC Infrastructure Acceleration Program",
@@ -3973,10 +3973,10 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "SISFRON Border Monitoring System",
       description:
-        "Expands SISFRON sensor networks along Brazil&#39;s 16,000 km land border to combat illegal trade and deforestation.",
+        "Expands SISFRON sensor networks along Brazil's 16,000 km land border to combat illegal trade and deforestation.",
     },
     Technology: {
-      name: "Brazil&#39;s Artificial Intelligence Strategy",
+      name: "Brazil's Artificial Intelligence Strategy",
       description:
         "Coordinates federal AI investment through MCTI with applications in agriculture, health, and public services.",
     },
@@ -3990,12 +3990,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "PNIEC National Energy-Climate Plan",
       description:
-        "Sets Italy&#39;s path to 65% renewable electricity by 2030 while phasing out coal plants.",
+        "Sets Italy's path to 65% renewable electricity by 2030 while phasing out coal plants.",
     },
     Healthcare: {
       name: "Piano Nazionale di Ripresa Sanità",
       description:
-        "Uses PNRR recovery funds to modernize Italy&#39;s NHS facilities and reduce North-South healthcare inequality.",
+        "Uses PNRR recovery funds to modernize Italy's NHS facilities and reduce North-South healthcare inequality.",
     },
     Infrastructure: {
       name: "Ponte sullo Stretto di Messina",
@@ -4015,7 +4015,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Italy NATO 2% Commitment Plan",
       description:
-        "Increases Italian defense spending toward NATO&#39;s GDP threshold with focus on joint interoperability.",
+        "Increases Italian defense spending toward NATO's GDP threshold with focus on joint interoperability.",
     },
     Technology: {
       name: "Italian National Supercomputing Center",
@@ -4025,7 +4025,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Piano Nazionale Contro la Povertà",
       description:
-        "Implements Italy&#39;s Reddito di Inclusione and active labor market measures to cut severe deprivation rates.",
+        "Implements Italy's Reddito di Inclusione and active labor market measures to cut severe deprivation rates.",
     },
   },
   ca_c: {
@@ -4035,7 +4035,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
         "Implements carbon pricing, clean fuel standards, and methane regulation across all provinces and territories.",
     },
     Healthcare: {
-      name: "Canada&#39;s Dental Care Plan",
+      name: "Canada's Dental Care Plan",
       description:
         "Provides public dental coverage to 9M uninsured Canadians under a landmark new federal program.",
     },
@@ -4057,12 +4057,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "NORAD Modernization Initiative",
       description:
-        "Invests $40B to upgrade Canada&#39;s Arctic surveillance, Over-the-Horizon Radar, and interceptor capacity.",
+        "Invests $40B to upgrade Canada's Arctic surveillance, Over-the-Horizon Radar, and interceptor capacity.",
     },
     Technology: {
       name: "Pan-Canadian Artificial Intelligence Strategy",
       description:
-        "Funds CIFAR-led AI institutes in Montreal, Toronto, and Edmonton to sustain Canada&#39;s global AI research edge.",
+        "Funds CIFAR-led AI institutes in Montreal, Toronto, and Edmonton to sustain Canada's global AI research edge.",
     },
     Social: {
       name: "National Housing Strategy",
@@ -4163,17 +4163,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Spanish Mental Health Strategy",
       description:
-        "Expands public mental health services and adds 1,000 clinical psychologists to Spain&#39;s NHS through 2025.",
+        "Expands public mental health services and adds 1,000 clinical psychologists to Spain's NHS through 2025.",
     },
     Infrastructure: {
       name: "Spain Rail PERTE Railway Modernization",
       description:
-        "Invests €12B in renewing Spain&#39;s 17,000 km conventional rail network with next-generation signalling.",
+        "Invests €12B in renewing Spain's 17,000 km conventional rail network with next-generation signalling.",
     },
     Education: {
       name: "LOMLOE Education Law Implementation",
       description:
-        "Restructures Spain&#39;s educational system with student-centered learning, bilingual programs, and STEM integration.",
+        "Restructures Spain's educational system with student-centered learning, bilingual programs, and STEM integration.",
     },
     Economy: {
       name: "Spain Digital Decade Industrial PERTE",
@@ -4183,7 +4183,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Plan DIANA Defense Innovation Fund",
       description:
-        "Mirrors NATO&#39;s DIANA fund at the national level to accelerate dual-use technology development in Spain.",
+        "Mirrors NATO's DIANA fund at the national level to accelerate dual-use technology development in Spain.",
     },
     Technology: {
       name: "Spain National AI Strategy ENIA",
@@ -4193,7 +4193,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Ingreso Mínimo Vital Basic Income",
       description:
-        "Provides a minimum vital income to Spain&#39;s 1.5M most vulnerable households to eliminate extreme poverty.",
+        "Provides a minimum vital income to Spain's 1.5M most vulnerable households to eliminate extreme poverty.",
     },
   },
   mx_c: {
@@ -4210,12 +4210,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Tren Maya Railway Completion",
       description:
-        "Completes the 1,554 km Tren Maya passenger and cargo railway across Mexico&#39;s Yucatán Peninsula.",
+        "Completes the 1,554 km Tren Maya passenger and cargo railway across Mexico's Yucatán Peninsula.",
     },
     Education: {
       name: "Nueva Escuela Mexicana Curriculum",
       description:
-        "Replaces Mexico&#39;s textbooks with community-oriented, critical thinking-based learning materials.",
+        "Replaces Mexico's textbooks with community-oriented, critical thinking-based learning materials.",
     },
     Economy: {
       name: "Mexico Nearshoring Competitiveness Plan",
@@ -4225,12 +4225,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Guardia Nacional Border Security Mission",
       description:
-        "Deploys the National Guard to curb cartel violence and irregular migration at Mexico&#39;s northern and southern borders.",
+        "Deploys the National Guard to curb cartel violence and irregular migration at Mexico's northern and southern borders.",
     },
     Technology: {
       name: "Mexico Digital Agenda 2024-2030",
       description:
-        "Closes Mexico&#39;s 55% digital gap through community internet centers and universal mobile connectivity.",
+        "Closes Mexico's 55% digital gap through community internet centers and universal mobile connectivity.",
     },
     Social: {
       name: "Sembrando Vida Rural Livelihoods",
@@ -4242,7 +4242,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Indonesia Just Energy Transition Partnership",
       description:
-        "Mobilizes $20B from G7 countries to retire Sumatran coal plants and scale up Indonesia&#39;s renewable capacity.",
+        "Mobilizes $20B from G7 countries to retire Sumatran coal plants and scale up Indonesia's renewable capacity.",
     },
     Healthcare: {
       name: "JKN Universal Health Coverage Expansion",
@@ -4252,12 +4252,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Nusantara Capital City Construction",
       description:
-        "Builds Indonesia&#39;s new capital city on Borneo to relieve pressure on Jakarta&#39;s sinking coastline.",
+        "Builds Indonesia's new capital city on Borneo to relieve pressure on Jakarta's sinking coastline.",
     },
     Education: {
       name: "Merdeka Belajar Education Freedom Policy",
       description:
-        "Reforms Indonesia&#39;s curriculum to reduce national examinations and promote project-based deeper learning.",
+        "Reforms Indonesia's curriculum to reduce national examinations and promote project-based deeper learning.",
     },
     Economy: {
       name: "Nickel Downstreaming Industrialization",
@@ -4304,7 +4304,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Vision 2030 Economic Diversification",
       description:
-        "Reduces oil&#39;s share of GDP from 42% to 16% through tourism, entertainment, mining, and manufacturing.",
+        "Reduces oil's share of GDP from 42% to 16% through tourism, entertainment, mining, and manufacturing.",
     },
     Defense: {
       name: "Saudi Localized Defense Industry Program",
@@ -4351,7 +4351,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Netherlands NATO Adaptive Defense Plan",
       description:
-        "Scales defense spending toward 2% GDP and positions Rotterdam as NATO&#39;s logistics and supply chain anchor.",
+        "Scales defense spending toward 2% GDP and positions Rotterdam as NATO's logistics and supply chain anchor.",
     },
     Technology: {
       name: "Dutch AI Coalition National Program",
@@ -4368,7 +4368,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Turkey Green Deal Action Plan",
       description:
-        "Aligns Turkey&#39;s industrial and energy policy with the EU Green Deal as a candidate for EU membership.",
+        "Aligns Turkey's industrial and energy policy with the EU Green Deal as a candidate for EU membership.",
     },
     Healthcare: {
       name: "Health Transformation Program Phase II",
@@ -4420,7 +4420,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "BAHN 2050 Rail Vision",
       description:
-        "Plans Switzerland&#39;s next-generation railway infrastructure, expanding capacity and cutting cross-country travel times.",
+        "Plans Switzerland's next-generation railway infrastructure, expanding capacity and cutting cross-country travel times.",
     },
     Education: {
       name: "Swiss MINT Talent Promotion",
@@ -4462,7 +4462,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "CPK Central Communication Hub",
       description:
-        "Develops Centralny Port Komunikacyjny, a new mega-airport and rail hub outside Warsaw, as Poland&#39;s transport spine.",
+        "Develops Centralny Port Komunikacyjny, a new mega-airport and rail hub outside Warsaw, as Poland's transport spine.",
     },
     Education: {
       name: "Polish Curriculum Quality Restoration",
@@ -4472,7 +4472,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Polish Investments in Development Agency",
       description:
-        "Channels EU structural funds and state co-investment into Poland&#39;s lagging eastern and industrial transition regions.",
+        "Channels EU structural funds and state co-investment into Poland's lagging eastern and industrial transition regions.",
     },
     Defense: {
       name: "Poland 4% GDP Defense Buildup",
@@ -4487,7 +4487,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "800 Plus Child Benefit Enhancement",
       description:
-        "Raises Poland&#39;s flagship child benefit from 500 to 800 PLN per month to support families and boost birth rates.",
+        "Raises Poland's flagship child benefit from 500 to 800 PLN per month to support families and boost birth rates.",
     },
   },
   se: {
@@ -4519,7 +4519,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "NATO Integration Defense Plan",
       description:
-        "Restructures Sweden&#39;s total defense system around NATO Article 5 commitments following 2024 accession.",
+        "Restructures Sweden's total defense system around NATO Article 5 commitments following 2024 accession.",
     },
     Technology: {
       name: "Sweden Datadriven Public Sector",
@@ -4546,7 +4546,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "National Transport Plan 2025-2036",
       description:
-        "Allocates NOK 1.2T to road, rail, cycling, and coastal transport infrastructure over Norway&#39;s 12-year NTP.",
+        "Allocates NOK 1.2T to road, rail, cycling, and coastal transport infrastructure over Norway's 12-year NTP.",
     },
     Education: {
       name: "Norwegian Competence Reform Lære Hele Livet",
@@ -4561,12 +4561,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Norway Long-Term Defence Plan",
       description:
-        "Commits NOK 600B over a decade to scale up the Armed Forces following Russia&#39;s invasion of Ukraine.",
+        "Commits NOK 600B over a decade to scale up the Armed Forces following Russia's invasion of Ukraine.",
     },
     Technology: {
       name: "Norwegian Data Economy Initiative",
       description:
-        "Creates sovereign data sharing infrastructure for Norway&#39;s fisheries, energy, and maritime industries.",
+        "Creates sovereign data sharing infrastructure for Norway's fisheries, energy, and maritime industries.",
     },
     Social: {
       name: "Norway Poverty Reduction Children Programme",
@@ -4578,7 +4578,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Thailand National Energy Plan 2024",
       description:
-        "Raises renewable energy to 51% of Thailand&#39;s mix by 2037 through solar, wind, and biogas expansion.",
+        "Raises renewable energy to 51% of Thailand's mix by 2037 through solar, wind, and biogas expansion.",
     },
     Healthcare: {
       name: "Thailand 30 Baht Universal Coverage Scheme",
@@ -4603,17 +4603,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Royal Thai Armed Forces Modernization",
       description:
-        "Upgrades Thailand&#39;s ground and air forces in response to growing regional tensions and maritime boundary disputes.",
+        "Upgrades Thailand's ground and air forces in response to growing regional tensions and maritime boundary disputes.",
     },
     Technology: {
       name: "Thailand Digital Economy Promotion Plan",
       description:
-        "Develops digital parks, smart cities, and an AI talent pipeline to position Bangkok as ASEAN&#39;s digital hub.",
+        "Develops digital parks, smart cities, and an AI talent pipeline to position Bangkok as ASEAN's digital hub.",
     },
     Social: {
       name: "Thailand Social Protection Floor Reform",
       description:
-        "Expands cash transfers to 14M informal workers lacking labor protections under Thailand&#39;s social insurance system.",
+        "Expands cash transfers to 14M informal workers lacking labor protections under Thailand's social insurance system.",
     },
   },
   be: {
@@ -4633,9 +4633,9 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
         "Modernizes Belgian rail with ETCS signalling and new rolling stock to compete with road freight and private cars.",
     },
     Education: {
-      name: "Pacte d&#39;Excellence School Reform",
+      name: "Pacte d'Excellence School Reform",
       description:
-        "Redesigns Wallonia&#39;s schooling system with competency-based learning and reduced early tracking between ages 6-15.",
+        "Redesigns Wallonia's schooling system with competency-based learning and reduced early tracking between ages 6-15.",
     },
     Economy: {
       name: "Belgian National Recovery Plan",
@@ -4655,19 +4655,19 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Belgian Poverty Reduction Strategy",
       description:
-        "Addresses Belgium&#39;s structural poverty via benefit indexation, social housing investment, and energy poverty relief.",
+        "Addresses Belgium's structural poverty via benefit indexation, social housing investment, and energy poverty relief.",
     },
   },
   ar_c: {
     Climate: {
       name: "Argentina Just Energy Transition Strategy",
       description:
-        "Develops Patagonian wind and Andean solar to diversify Argentina&#39;s energy matrix beyond natural gas.",
+        "Develops Patagonian wind and Andean solar to diversify Argentina's energy matrix beyond natural gas.",
     },
     Healthcare: {
       name: "PAIS Health Emergency Fund",
       description:
-        "Maintains emergency funding for medicines and hospital operations amid Argentina&#39;s macroeconomic crisis.",
+        "Maintains emergency funding for medicines and hospital operations amid Argentina's macroeconomic crisis.",
     },
     Infrastructure: {
       name: "Vaca Muerta Pipeline Expansion",
@@ -4709,12 +4709,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Healthier SG Preventive Care Plan",
       description:
-        "Shifts Singapore&#39;s health system toward preventive care through GP enrolment, health plans, and community programs.",
+        "Shifts Singapore's health system toward preventive care through GP enrolment, health plans, and community programs.",
     },
     Infrastructure: {
       name: "Singapore-Johor Rapid Transit System",
       description:
-        "Connects Singapore&#39;s Woodlands to Johor Bahru with a cross-border rail link easing daily commuter congestion.",
+        "Connects Singapore's Woodlands to Johor Bahru with a cross-border rail link easing daily commuter congestion.",
     },
     Education: {
       name: "Singapore Skills Future Mid-Career Support",
@@ -4729,7 +4729,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Singapore Next Generation SAF Transformation",
       description:
-        "Integrates AI, autonomous systems, and cyber capabilities into the Singapore Armed Forces&#39; digital ground, sea, and air operations.",
+        "Integrates AI, autonomous systems, and cyber capabilities into the Singapore Armed Forces' digital ground, sea, and air operations.",
     },
     Technology: {
       name: "Singapore National AI Strategy 2.0",
@@ -4751,7 +4751,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "National Health Insurance Bill Implementation",
       description:
-        "Begins phased implementation of universal NHI to replace South Africa&#39;s deeply unequal private-public health divide.",
+        "Begins phased implementation of universal NHI to replace South Africa's deeply unequal private-public health divide.",
     },
     Infrastructure: {
       name: "South Africa Electricity Grid Emergency Plan",
@@ -4771,7 +4771,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "SANDF Capabilities Restoration Program",
       description:
-        "Rebuilds South Africa&#39;s atrophied military with new equipment, improved pay, and reformed recruitment standards.",
+        "Rebuilds South Africa's atrophied military with new equipment, improved pay, and reformed recruitment standards.",
     },
     Technology: {
       name: "South Africa Digital and Future Skills",
@@ -4793,12 +4793,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Nigeria Basic Health Care Provision Fund",
       description:
-        "Channels 1% of consolidated revenue to primary healthcare centers across Nigeria&#39;s 36 states.",
+        "Channels 1% of consolidated revenue to primary healthcare centers across Nigeria's 36 states.",
     },
     Infrastructure: {
       name: "Lagos-Kano Rail Modernization",
       description:
-        "Completes the standard gauge rail linking Lagos to Kano, Nigeria&#39;s two largest commercial cities.",
+        "Completes the standard gauge rail linking Lagos to Kano, Nigeria's two largest commercial cities.",
     },
     Education: {
       name: "Nigeria UBEC Universal Basic Education Fund",
@@ -4808,7 +4808,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Nigeria FX Unification and Fiscal Reform",
       description:
-        "Unifies Nigeria&#39;s multiple exchange rates and removes petrol subsidy to stabilize the naira and fiscal balance.",
+        "Unifies Nigeria's multiple exchange rates and removes petrol subsidy to stabilize the naira and fiscal balance.",
     },
     Defense: {
       name: "Nigeria Counter-Insurgency Northeast Strategy",
@@ -4818,7 +4818,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Nigerian Startup Act Implementation",
       description:
-        "Implements the 2022 Startup Act with tax incentives, labels, and a startup portal to grow Lagos&#39;s tech ecosystem.",
+        "Implements the 2022 Startup Act with tax incentives, labels, and a startup portal to grow Lagos's tech ecosystem.",
     },
     Social: {
       name: "Nigeria Social Investment Programme",
@@ -4830,22 +4830,22 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Egypt Nexus of Water-Food-Energy Plan",
       description:
-        "Integrates water conservation, solar desalination, and food security into Egypt&#39;s adaptation to Nile water stress.",
+        "Integrates water conservation, solar desalination, and food security into Egypt's adaptation to Nile water stress.",
     },
     Healthcare: {
       name: "Egyptian Universal Health Insurance Law",
       description:
-        "Phases in universal health coverage across Egypt&#39;s 27 governorates over 15 years starting with Port Said.",
+        "Phases in universal health coverage across Egypt's 27 governorates over 15 years starting with Port Said.",
     },
     Infrastructure: {
       name: "Egypt New Administrative Capital",
       description:
-        "Completes construction of Egypt&#39;s new 45,000 hectare capital city east of Cairo to decongest the megacity.",
+        "Completes construction of Egypt's new 45,000 hectare capital city east of Cairo to decongest the megacity.",
     },
     Education: {
       name: "Egypt Vision 2030 Education Reform",
       description:
-        "Introduces updated curricula, digital learning, and teacher training in alignment with Egypt&#39;s development goals.",
+        "Introduces updated curricula, digital learning, and teacher training in alignment with Egypt's development goals.",
     },
     Economy: {
       name: "Egypt Ras El Hekma Mega-Development Deal",
@@ -4855,7 +4855,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Egyptian Armed Forces Capability Modernization",
       description:
-        "Upgrades Egypt&#39;s air, naval, and ground forces as the largest Arab military amid persistent regional instability.",
+        "Upgrades Egypt's air, naval, and ground forces as the largest Arab military amid persistent regional instability.",
     },
     Technology: {
       name: "Egypt Digital Economy & E-Government",
@@ -4880,9 +4880,9 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
         "Merges 20 DHBs into a single national health system to reduce inequalities and streamline commissioning.",
     },
     Infrastructure: {
-      name: "New Zealand Let&#39;s Get Wellington Moving",
+      name: "New Zealand Let's Get Wellington Moving",
       description:
-        "Delivers rapid transit and road improvements for Wellington&#39;s congested transport network.",
+        "Delivers rapid transit and road improvements for Wellington's congested transport network.",
     },
     Education: {
       name: "New Zealand Learning Support Action Plan",
@@ -4956,7 +4956,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "UAE Net Zero 2050 Strategic Initiative",
       description:
-        "Invests $163B to decarbonize the UAE&#39;s economy through Abu Dhabi&#39;s Barakah nuclear and ADNOC low-carbon gas.",
+        "Invests $163B to decarbonize the UAE's economy through Abu Dhabi's Barakah nuclear and ADNOC low-carbon gas.",
     },
     Healthcare: {
       name: "UAE Unified Medical Record System",
@@ -4986,12 +4986,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "UAE National AI Strategy 2031",
       description:
-        "Targets 25% contribution to GDP from AI by 2031 through Abu Dhabi&#39;s Falcon LLM and G42 research programs.",
+        "Targets 25% contribution to GDP from AI by 2031 through Abu Dhabi's Falcon LLM and G42 research programs.",
     },
     Social: {
       name: "UAE Gender Balance National Agenda",
       description:
-        "Increases women&#39;s representation in leadership, tech, and government to meet the National Gender Balance Index targets.",
+        "Increases women's representation in leadership, tech, and government to meet the National Gender Balance Index targets.",
     },
   },
   il: {
@@ -5003,7 +5003,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Israel Digital Health Innovation Fund",
       description:
-        "Leverages Israel&#39;s unique population health data to develop AI diagnostic and hospital management systems.",
+        "Leverages Israel's unique population health data to develop AI diagnostic and hospital management systems.",
     },
     Infrastructure: {
       name: "Israel Fast Rail Tel Aviv-Jerusalem Upgrade",
@@ -5021,9 +5021,9 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
         "Provides bridge capital to startups, expedites foreign worker permits, and stabilizes the shekel through central bank interventions.",
     },
     Defense: {
-      name: "Israel Iron Dome and David&#39;s Sling Replenishment",
+      name: "Israel Iron Dome and David's Sling Replenishment",
       description:
-        "Accelerates domestic restocking and US-assisted production of Iron Dome and David&#39;s Sling interceptor missiles.",
+        "Accelerates domestic restocking and US-assisted production of Iron Dome and David's Sling interceptor missiles.",
     },
     Technology: {
       name: "Israel Quantum Computing National Plan",
@@ -5040,7 +5040,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Austria Ökostromausbau-Beschleunigungsgesetz",
       description:
-        "Accelerates Austria&#39;s transition to 100% renewable electricity by 2030 through streamlined permitting.",
+        "Accelerates Austria's transition to 100% renewable electricity by 2030 through streamlined permitting.",
     },
     Healthcare: {
       name: "Austria Healthcare Reform 2023",
@@ -5050,7 +5050,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Brenner Base Tunnel Completion",
       description:
-        "Advances Austria&#39;s Brenner Base Tunnel to shift Alpine freight traffic from road to rail by 2032.",
+        "Advances Austria's Brenner Base Tunnel to shift Alpine freight traffic from road to rail by 2032.",
     },
     Education: {
       name: "Austria Pflichtschule Digital Skills Plan",
@@ -5065,7 +5065,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Austria Armed Forces Equipment Procurement",
       description:
-        "Replaces Austrian military&#39;s largest capability gaps with new helicopters, vehicles, and signals equipment.",
+        "Replaces Austrian military's largest capability gaps with new helicopters, vehicles, and signals equipment.",
     },
     Technology: {
       name: "Austria AI Innovation Lab Network",
@@ -5075,7 +5075,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Austria Wohnbauoffensive Affordable Housing",
       description:
-        "Increases subsidized social housing construction to counter Vienna&#39;s rapidly rising private rental prices.",
+        "Increases subsidized social housing construction to counter Vienna's rapidly rising private rental prices.",
     },
   },
   dk: {
@@ -5092,7 +5092,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Fehmarnbelt Fixed Link Completion",
       description:
-        "Completes the world&#39;s longest immersed tunnel under the Fehmarnbelt, linking Denmark and Germany by 2029.",
+        "Completes the world's longest immersed tunnel under the Fehmarnbelt, linking Denmark and Germany by 2029.",
     },
     Education: {
       name: "Denmark Gymnasiereform Secondary Overhaul",
@@ -5102,7 +5102,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Danish Pharmaceutical Competitiveness Strategy",
       description:
-        "Supports Novo Nordisk&#39;s global GLP-1 expansion by developing talent and regulatory capacity in Denmark.",
+        "Supports Novo Nordisk's global GLP-1 expansion by developing talent and regulatory capacity in Denmark.",
     },
     Defense: {
       name: "Denmark Defense & Intelligence Uplift",
@@ -5124,7 +5124,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Finland Carbon Neutrality by 2035 Plan",
       description:
-        "Targets the world&#39;s earliest carbon neutrality among large economies through forestry, clean energy, and CCS.",
+        "Targets the world's earliest carbon neutrality among large economies through forestry, clean energy, and CCS.",
     },
     Healthcare: {
       name: "Finnish Wellbeing Services Counties Reform",
@@ -5134,12 +5134,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Finland Rail Network 12-Year Plan",
       description:
-        "Invests €12B in the Rail Network Condition and Reliability Programme to tackle Finland&#39;s infrastructure backlog.",
+        "Invests €12B in the Rail Network Condition and Reliability Programme to tackle Finland's infrastructure backlog.",
     },
     Education: {
       name: "Finland Teacher Profession Attractiveness Program",
       description:
-        "Restores teaching&#39;s prestige through salary reform and reduced workload to attract qualified educators.",
+        "Restores teaching's prestige through salary reform and reduced workload to attract qualified educators.",
     },
     Economy: {
       name: "Finland Sustainable Growth Program",
@@ -5149,7 +5149,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Finland NATO Integration Defense Build-up",
       description:
-        "Integrates Finland&#39;s F-35, HX fighter, and northern defense doctrine into NATO&#39;s Article 5 posture.",
+        "Integrates Finland's F-35, HX fighter, and northern defense doctrine into NATO's Article 5 posture.",
     },
     Technology: {
       name: "Finnish AI Program AINO",
@@ -5176,7 +5176,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Athens-Thessaloniki High-Speed Rail",
       description:
-        "Completes Hellenic Train&#39;s high-speed upgrade cutting Athens-Thessaloniki travel time to 3 hours.",
+        "Completes Hellenic Train's high-speed upgrade cutting Athens-Thessaloniki travel time to 3 hours.",
     },
     Education: {
       name: "Greece University Law Reform 2024",
@@ -5191,7 +5191,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Greece Hellenic Armed Forces Procurement",
       description:
-        "Acquires Rafale jets, FDI frigates, and SCALP cruise missiles to modernize Greece&#39;s military amid Turkey tensions.",
+        "Acquires Rafale jets, FDI frigates, and SCALP cruise missiles to modernize Greece's military amid Turkey tensions.",
     },
     Technology: {
       name: "Greece Digital Transformation Bible",
@@ -5208,7 +5208,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Portugal National Energy and Climate Plan",
       description:
-        "Achieves 80% renewable electricity by 2026 using the Iberian Peninsula&#39;s exceptional solar and wind resources.",
+        "Achieves 80% renewable electricity by 2026 using the Iberian Peninsula's exceptional solar and wind resources.",
     },
     Healthcare: {
       name: "Portugal SNS Primary Care Expansion",
@@ -5233,17 +5233,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Portugal NATO Atlantic Flank Investment",
       description:
-        "Upgrades maritime patrol, Azores basing, and C2 capacity to strengthen Portugal&#39;s Atlantic Alliance role.",
+        "Upgrades maritime patrol, Azores basing, and C2 capacity to strengthen Portugal's Atlantic Alliance role.",
     },
     Technology: {
       name: "Portugal Startup Act Implementation",
       description:
-        "Expands Portugal&#39;s innovative startup visa, R&D tax credits, and the Web Summit legacy tech ecosystem.",
+        "Expands Portugal's innovative startup visa, R&D tax credits, and the Web Summit legacy tech ecosystem.",
     },
     Social: {
       name: "Portugal Emergency Housing Plan MAIS HABITAÇÃO",
       description:
-        "Caps rent increases, expands social housing, and offers state-backed mortgages to tackle Portugal&#39;s housing crisis.",
+        "Caps rent increases, expands social housing, and offers state-backed mortgages to tackle Portugal's housing crisis.",
     },
   },
   cz: {
@@ -5270,7 +5270,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Czech Transition to Electric Vehicles Plan",
       description:
-        "Funds Czech automotive suppliers&#39; switch to EV components as Skoda and local Tier 1 plants electrify.",
+        "Funds Czech automotive suppliers' switch to EV components as Skoda and local Tier 1 plants electrify.",
     },
     Defense: {
       name: "Czech F-35 Acquisition Program",
@@ -5297,12 +5297,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Romania National Health Infrastructure Investment",
       description:
-        "Builds 10 new regional hospitals using EU Recovery funds to replace Romania&#39;s crumbling Soviet-era facilities.",
+        "Builds 10 new regional hospitals using EU Recovery funds to replace Romania's crumbling Soviet-era facilities.",
     },
     Infrastructure: {
       name: "Romania Moldova-Iași-Ungheni Gas Pipeline",
       description:
-        "Expands interconnection pipelines to reduce Romania&#39;s energy dependence on Russian gas.",
+        "Expands interconnection pipelines to reduce Romania's energy dependence on Russian gas.",
     },
     Education: {
       name: "Romania Educated Romania Presidential Program",
@@ -5317,7 +5317,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Romania NATO Eastern Flank F-16 Program",
       description:
-        "Operates fleet of F-16 jets and hosts NATO battle groups as Romania&#39;s defense spending rises above 2% GDP.",
+        "Operates fleet of F-16 jets and hosts NATO battle groups as Romania's defense spending rises above 2% GDP.",
     },
     Technology: {
       name: "Romania Digital Romania Initiative",
@@ -5327,7 +5327,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Romania Roma Inclusion Strategy",
       description:
-        "Implements housing construction, school enrollment, and healthcare access programs for Romania&#39;s 2M Roma citizens.",
+        "Implements housing construction, school enrollment, and healthcare access programs for Romania's 2M Roma citizens.",
     },
   },
   hu: {
@@ -5344,17 +5344,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Budapest Metro 4 Line Extension",
       description:
-        "Extends Budapest&#39;s M4 metro line to relieve the city&#39;s most congested surface transit corridors.",
+        "Extends Budapest's M4 metro line to relieve the city's most congested surface transit corridors.",
     },
     Education: {
       name: "Hungary Dual Vocational Training Reform",
       description:
-        "Expands company-based apprenticeship training aligned with Germany&#39;s dual system for Hungarian industry.",
+        "Expands company-based apprenticeship training aligned with Germany's dual system for Hungarian industry.",
     },
     Economy: {
       name: "Hungary Battery Manufacturing Corridor",
       description:
-        "Attracts CATL, Samsung SDI, and SVOLT to Hungary&#39;s EV battery industrial zone along the M7 corridor.",
+        "Attracts CATL, Samsung SDI, and SVOLT to Hungary's EV battery industrial zone along the M7 corridor.",
     },
     Defense: {
       name: "Hungary Army Zrínyi 2026 Modernization",
@@ -5369,14 +5369,14 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Hungary Family Protection Action Plan",
       description:
-        "Provides mortgage relief, baby bonds, and grandparent childcare subsidies to raise Hungary&#39;s birth rate.",
+        "Provides mortgage relief, baby bonds, and grandparent childcare subsidies to raise Hungary's birth rate.",
     },
   },
   ua: {
     Climate: {
       name: "Ukraine Green Recovery Reconstruction Plan",
       description:
-        "Integrates climate-resilient rebuilding and renewable energy dominance into Ukraine&#39;s post-war reconstruction.",
+        "Integrates climate-resilient rebuilding and renewable energy dominance into Ukraine's post-war reconstruction.",
     },
     Healthcare: {
       name: "Ukraine Medical Guarantee Program Continuity",
@@ -5406,7 +5406,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Ukraine Diia Digital State App",
       description:
-        "Operates Diia as the world&#39;s leading government super-app, delivering 150+ services digitally despite wartime conditions.",
+        "Operates Diia as the world's leading government super-app, delivering 150+ services digitally despite wartime conditions.",
     },
     Social: {
       name: "Ukraine Internally Displaced Persons Support",
@@ -5423,12 +5423,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Slovakia Healthcare Transformation Plan",
       description:
-        "Reforms hospital governance and recruits abroad to address Slovakia&#39;s acute physician and nurse shortage.",
+        "Reforms hospital governance and recruits abroad to address Slovakia's acute physician and nurse shortage.",
     },
     Infrastructure: {
       name: "Slovakia D4 Bratislava Ring Road",
       description:
-        "Completes the Bratislava D4/R7 ring road and bridge PPP project easing the capital&#39;s severe traffic congestion.",
+        "Completes the Bratislava D4/R7 ring road and bridge PPP project easing the capital's severe traffic congestion.",
     },
     Education: {
       name: "Slovak Education Resilience Plan",
@@ -5448,24 +5448,24 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Slovakia Digital Transformation Act 2030",
       description:
-        "Mandates full digital public service availability and launches Slovakia&#39;s government cloud infrastructure.",
+        "Mandates full digital public service availability and launches Slovakia's government cloud infrastructure.",
     },
     Social: {
       name: "Slovakia Roma Community Integration Strategy",
       description:
-        "Builds social housing, improves sanitation, and increases school enrollment for Slovakia&#39;s 400,000 Roma citizens.",
+        "Builds social housing, improves sanitation, and increases school enrollment for Slovakia's 400,000 Roma citizens.",
     },
   },
   bg: {
     Climate: {
       name: "Bulgaria REPowerEU Transition Plan",
       description:
-        "Phases out lignite coal operations and grows renewables to address Bulgaria&#39;s high per-capita emissions.",
+        "Phases out lignite coal operations and grows renewables to address Bulgaria's high per-capita emissions.",
     },
     Healthcare: {
       name: "Bulgaria National Healthcare Strategy 2030",
       description:
-        "Rebuilds Bulgaria&#39;s degraded hospital infrastructure and improves physician retention to stop healthcare emigration.",
+        "Rebuilds Bulgaria's degraded hospital infrastructure and improves physician retention to stop healthcare emigration.",
     },
     Infrastructure: {
       name: "Bulgaria Hemus Motorway Completion",
@@ -5475,7 +5475,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Bulgaria National Education Strategy 2030",
       description:
-        "Addresses Bulgaria&#39;s workforce literacy crisis through early intervention, teacher pay increases, and school modernization.",
+        "Addresses Bulgaria's workforce literacy crisis through early intervention, teacher pay increases, and school modernization.",
     },
     Economy: {
       name: "Bulgaria PNRR Competitiveness Reforms",
@@ -5485,7 +5485,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Bulgaria F-16 Procurement & NATO Integration",
       description:
-        "Procures F-16 Block 70 fighters and integrates Bulgarian air and naval forces into NATO&#39;s eastern flank architecture.",
+        "Procures F-16 Block 70 fighters and integrates Bulgarian air and naval forces into NATO's eastern flank architecture.",
     },
     Technology: {
       name: "Bulgaria Digital Transformation Roadmap",
@@ -5495,7 +5495,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Bulgaria Anti-Demographic Decline Strategy",
       description:
-        "Offers pro-natalist subsidies, diaspora return incentives, and childcare expansion to reverse Bulgaria&#39;s population collapse.",
+        "Offers pro-natalist subsidies, diaspora return incentives, and childcare expansion to reverse Bulgaria's population collapse.",
     },
   },
   hr: {
@@ -5507,7 +5507,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Croatia Healthcare Reform and Digitalization",
       description:
-        "Digitizes patient records and restructures hospital management in Croatia&#39;s National Recovery and Resilience Plan.",
+        "Digitizes patient records and restructures hospital management in Croatia's National Recovery and Resilience Plan.",
     },
     Infrastructure: {
       name: "Croatia Pelješac Bridge Leveraging",
@@ -5527,7 +5527,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Croatia Rafale Integration & NATO Contribution",
       description:
-        "Integrates 12 French Rafale M jets into Croatian Air Force and contributes to NATO&#39;s Baltic Air Policing rotation.",
+        "Integrates 12 French Rafale M jets into Croatian Air Force and contributes to NATO's Baltic Air Policing rotation.",
     },
     Technology: {
       name: "Croatia Digital Croatia Strategy 2026",
@@ -5554,7 +5554,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Serbia Belgrade-Budapest High-Speed Rail",
       description:
-        "Completes the Budapest-Belgrade HSR link as part of China&#39;s BRI and EU Trans-European Network priorities.",
+        "Completes the Budapest-Belgrade HSR link as part of China's BRI and EU Trans-European Network priorities.",
     },
     Education: {
       name: "Serbia Dual Education System Scale-Up",
@@ -5586,7 +5586,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Ireland Climate Action Plan 2024",
       description:
-        "Enforces legally binding sectoral ceilings reducing Ireland&#39;s GHG emissions 51% by 2030 across all sectors.",
+        "Enforces legally binding sectoral ceilings reducing Ireland's GHG emissions 51% by 2030 across all sectors.",
     },
     Healthcare: {
       name: "Ireland Sláintecare Reform Implementation",
@@ -5601,7 +5601,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Ireland Action Plan for Education",
       description:
-        "Raises Ireland&#39;s PISA rankings, expands special needs support, and grows STEM participation by 20%.",
+        "Raises Ireland's PISA rankings, expands special needs support, and grows STEM participation by 20%.",
     },
     Economy: {
       name: "Ireland Pillar Two Corporate Tax Compliance",
@@ -5616,7 +5616,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Ireland AI Ireland Strategy",
       description:
-        "Positions Ireland as Europe&#39;s transparent and ethical AI hub leveraging its Big Tech cluster in Dublin.",
+        "Positions Ireland as Europe's transparent and ethical AI hub leveraging its Big Tech cluster in Dublin.",
     },
     Social: {
       name: "Ireland Housing for All Plan",
@@ -5633,12 +5633,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Taiwan National Health Insurance Adjustment",
       description:
-        "Reforms NHI premium and copayment structures to sustain the world&#39;s most-cited single-payer insurance system.",
+        "Reforms NHI premium and copayment structures to sustain the world's most-cited single-payer insurance system.",
     },
     Infrastructure: {
       name: "Taiwan HSR Capacity Expansion",
       description:
-        "Adds track capacity and rolling stock to Taiwan&#39;s high-speed rail to handle explosive demand between Taipei and Kaohsiung.",
+        "Adds track capacity and rolling stock to Taiwan's high-speed rail to handle explosive demand between Taipei and Kaohsiung.",
     },
     Education: {
       name: "Taiwan STEM and Semiconductor Talent Program",
@@ -5690,7 +5690,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Hong Kong Fintech and Virtual Asset Policy",
       description:
-        "Issues comprehensive licensing for virtual asset trading platforms to position Hong Kong as Asia&#39;s crypto hub.",
+        "Issues comprehensive licensing for virtual asset trading platforms to position Hong Kong as Asia's crypto hub.",
     },
     Defense: {
       name: "HKPF National Security Law Implementation",
@@ -5705,7 +5705,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Hong Kong Poverty Alleviation Community Care",
       description:
-        "Extends community care vouchers and elderly poverty relief as Hong Kong&#39;s Gini coefficient remains the developed world&#39;s highest.",
+        "Extends community care vouchers and elderly poverty relief as Hong Kong's Gini coefficient remains the developed world's highest.",
     },
   },
   ir: {
@@ -5754,7 +5754,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Iraq Flaring Reduction Partnership",
       description:
-        "Partners with World Bank GGFR to end routine gas flaring from Iraq&#39;s oil fields and monetize associated gas.",
+        "Partners with World Bank GGFR to end routine gas flaring from Iraq's oil fields and monetize associated gas.",
     },
     Healthcare: {
       name: "Iraq Primary Healthcare Reconstruction",
@@ -5784,7 +5784,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Iraq Digital Infrastructure Development",
       description:
-        "Expands fiber broadband and data center capacity to support Iraq&#39;s emerging e-commerce and digital services sector.",
+        "Expands fiber broadband and data center capacity to support Iraq's emerging e-commerce and digital services sector.",
     },
     Social: {
       name: "Iraq IDP Return and Reconstruction Fund",
@@ -5796,17 +5796,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Malaysia New Industrial Master Plan Green Pillar",
       description:
-        "Integrates solar manufacturing, green hydrogen, and EV assembly into Malaysia&#39;s 2030 industrial strategy.",
+        "Integrates solar manufacturing, green hydrogen, and EV assembly into Malaysia's 2030 industrial strategy.",
     },
     Healthcare: {
       name: "Malaysia MyHealth Initiative Expansion",
       description:
-        "Extends the Ministry of Health&#39;s digital health record and teleconsultation system to all 1,036 government clinics.",
+        "Extends the Ministry of Health's digital health record and teleconsultation system to all 1,036 government clinics.",
     },
     Infrastructure: {
       name: "Malaysia East Coast Rail Link Completion",
       description:
-        "Completes the ECRL linking Port Klang to Kota Bharu, opening Malaysia&#39;s interior to industrial development.",
+        "Completes the ECRL linking Port Klang to Kota Bharu, opening Malaysia's interior to industrial development.",
     },
     Education: {
       name: "Malaysia Malaysia Education Blueprint 2013-2025 Close-Out",
@@ -5821,12 +5821,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Malaysia Royal Malaysian Armed Forces Modernization",
       description:
-        "Upgrades Malaysia&#39;s navy and air force to defend the South China Sea maritime boundary claims.",
+        "Upgrades Malaysia's navy and air force to defend the South China Sea maritime boundary claims.",
     },
     Technology: {
       name: "Malaysia MyDIGITAL Digital Economy Blueprint",
       description:
-        "Digitizes government services, develops cloud infrastructure, and grows Malaysia&#39;s digital economy to 22.6% of GDP.",
+        "Digitizes government services, develops cloud infrastructure, and grows Malaysia's digital economy to 22.6% of GDP.",
     },
     Social: {
       name: "Malaysia PADU Household Data Registry",
@@ -5838,7 +5838,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Vietnam Just Energy Transition Partnership",
       description:
-        "Mobilizes $15.5B from G7 partners to retire Vietnam&#39;s coal plants and accelerate offshore wind development.",
+        "Mobilizes $15.5B from G7 partners to retire Vietnam's coal plants and accelerate offshore wind development.",
     },
     Healthcare: {
       name: "Vietnam Universal Health Coverage Strategy",
@@ -5861,9 +5861,9 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
         "Attracts tier-1 Samsung, Intel, and Apple supplier relocations while increasing domestic content requirements.",
     },
     Defense: {
-      name: "Vietnam Three No&#39;s Defense Policy Modernization",
+      name: "Vietnam Three No's Defense Policy Modernization",
       description:
-        "Modernizes navy and air force while maintaining the &#39;Three Nos&#39; foreign policy to manage China tensions.",
+        "Modernizes navy and air force while maintaining the 'Three Nos' foreign policy to manage China tensions.",
     },
     Technology: {
       name: "Vietnam National Digital Transformation Program",
@@ -5915,7 +5915,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Philippines Subsidized Rice for All Program",
       description:
-        "Implements President Marcos&#39;s P29/kg subsidized rice program for low-income Filipinos amid supply shortages.",
+        "Implements President Marcos's P29/kg subsidized rice program for low-income Filipinos amid supply shortages.",
     },
   },
   bd: {
@@ -5932,7 +5932,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Bangladesh Padma Bridge Transport Link",
       description:
-        "Leverages the newly opened Padma Bridge to industrialize Bangladesh&#39;s south and west regions.",
+        "Leverages the newly opened Padma Bridge to industrialize Bangladesh's south and west regions.",
     },
     Education: {
       name: "Bangladesh Smart Education Program",
@@ -5969,7 +5969,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Pakistan Sehat Sahulat Universal Healthcare Program",
       description:
-        "Provides Rs.1M free inpatient coverage per family annually under Imran Khan&#39;s landmark health card scheme.",
+        "Provides Rs.1M free inpatient coverage per family annually under Imran Khan's landmark health card scheme.",
     },
     Infrastructure: {
       name: "Pakistan CPEC Phase II Development",
@@ -6011,7 +6011,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Sri Lanka Free Health Services Restoration",
       description:
-        "Restores medicines, consumables, and doctor shortages following the 2022 economic collapse&#39;s impact on healthcare.",
+        "Restores medicines, consumables, and doctor shortages following the 2022 economic collapse's impact on healthcare.",
     },
     Infrastructure: {
       name: "Sri Lanka Port City Colombo completion",
@@ -6048,7 +6048,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Nepal NDC Hydro-Centric Energy Vision",
       description:
-        "Harnesses Nepal&#39;s 83 GW hydropower potential as the centerpiece of its nationally determined contribution.",
+        "Harnesses Nepal's 83 GW hydropower potential as the centerpiece of its nationally determined contribution.",
     },
     Healthcare: {
       name: "Nepal Health Insurance Program Expansion",
@@ -6058,7 +6058,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Nepal Fast Track Road Kathmandu-Terai",
       description:
-        "Completes the 72 km Fast Track connecting Kathmandu to the Terai plains to end the capital&#39;s supply bottleneck.",
+        "Completes the 72 km Fast Track connecting Kathmandu to the Terai plains to end the capital's supply bottleneck.",
     },
     Education: {
       name: "Nepal School Sector Development Plan",
@@ -6073,12 +6073,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Nepal Army UN Peacekeeping Contribution",
       description:
-        "Maintains Nepal&#39;s status as a top UN peacekeeping contributor with specialized engineering and medical units.",
+        "Maintains Nepal's status as a top UN peacekeeping contributor with specialized engineering and medical units.",
     },
     Technology: {
       name: "Nepal Digital Nepal Framework",
       description:
-        "Builds Nepal&#39;s digital government infrastructure addressing e-governance, digital skills, and national cybersecurity.",
+        "Builds Nepal's digital government infrastructure addressing e-governance, digital skills, and national cybersecurity.",
     },
     Social: {
       name: "Nepal Social Security Allowance Expansion",
@@ -6100,7 +6100,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Myanmar Kyaukphyu SEZ China Corridor",
       description:
-        "Advances China-financed Kyaukphyu deep-sea port as the anchor of Myanmar&#39;s southern economic corridor.",
+        "Advances China-financed Kyaukphyu deep-sea port as the anchor of Myanmar's southern economic corridor.",
     },
     Education: {
       name: "Myanmar Civil Disobedience Schools",
@@ -6137,7 +6137,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Cambodia Health Equity Fund",
       description:
-        "Provides free public hospital care to Cambodia&#39;s 2.2M poverty-card holders through the Health Equity Fund.",
+        "Provides free public hospital care to Cambodia's 2.2M poverty-card holders through the Health Equity Fund.",
     },
     Infrastructure: {
       name: "Cambodia Phnom Penh-Sihanoukville Expressway",
@@ -6167,7 +6167,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Cambodia Social Assistance Program ID-Poor",
       description:
-        "Delivers targeted social assistance, food, and healthcare to the 2.2M households in Cambodia&#39;s poor registry.",
+        "Delivers targeted social assistance, food, and healthcare to the 2.2M households in Cambodia's poor registry.",
     },
   },
   uz: {
@@ -6179,12 +6179,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Uzbekistan Healthcare Reform Concept 2025",
       description:
-        "Builds a tiered primary, secondary, and tertiary care system replacing Uzbekistan&#39;s legacy Soviet Semashko model.",
+        "Builds a tiered primary, secondary, and tertiary care system replacing Uzbekistan's legacy Soviet Semashko model.",
     },
     Infrastructure: {
       name: "Uzbekistan New Tashkent City Development",
       description:
-        "Develops New Tashkent as a satellite city with modern infrastructure to relieve the capital&#39;s density pressure.",
+        "Develops New Tashkent as a satellite city with modern infrastructure to relieve the capital's density pressure.",
     },
     Education: {
       name: "Uzbekistan New Uzbekistan University",
@@ -6236,7 +6236,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Kazakhstan AIFC Astana Financial Hub",
       description:
-        "Develops the Astana International Financial Centre as Central Asia&#39;s foremost capital markets and FinTech hub.",
+        "Develops the Astana International Financial Centre as Central Asia's foremost capital markets and FinTech hub.",
     },
     Defense: {
       name: "Kazakhstan CSTO Deterrence Balance",
@@ -6273,7 +6273,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Kuwait PAAET Vocational Training Reform",
       description:
-        "Revamps PAAET technical colleges to align vocational outputs with Kuwait&#39;s labor nationalization (Kuwaitization) goals.",
+        "Revamps PAAET technical colleges to align vocational outputs with Kuwait's labor nationalization (Kuwaitization) goals.",
     },
     Economy: {
       name: "Kuwait Vision 2035 New Kuwait Diversification",
@@ -6293,7 +6293,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Kuwait Bidun Statelessness Resolution",
       description:
-        "Addresses the estimated 100,000 Bidun stateless residents&#39; access to services, documentation, and naturalization pathways.",
+        "Addresses the estimated 100,000 Bidun stateless residents' access to services, documentation, and naturalization pathways.",
     },
   },
   qa: {
@@ -6330,12 +6330,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Qatar Digital Agenda 2030",
       description:
-        "Develops Qatar&#39;s digital economy through QF&#39;s Arab Research and Innovation Academy and smart government services.",
+        "Develops Qatar's digital economy through QF's Arab Research and Innovation Academy and smart government services.",
     },
     Social: {
       name: "Qatar Kafala Labour Reform 2024",
       description:
-        "Implements minimum wage, right to change jobs, and exit permit reforms for Qatar&#39;s 2M migrant workers.",
+        "Implements minimum wage, right to change jobs, and exit permit reforms for Qatar's 2M migrant workers.",
     },
   },
   et: {
@@ -6357,7 +6357,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Ethiopia General Education Quality Improvement",
       description:
-        "Increases teacher quality, textbook provision, and classroom construction for Ethiopia&#39;s 26M primary students.",
+        "Increases teacher quality, textbook provision, and classroom construction for Ethiopia's 26M primary students.",
     },
     Economy: {
       name: "Ethiopia Homegrown Economic Reform",
@@ -6367,17 +6367,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Ethiopia Post-Tigray National Reconciliation Command",
       description:
-        "Rebuilds the ENDF as a national not ethnic institution following the Tigray War&#39;s devastating institutional damage.",
+        "Rebuilds the ENDF as a national not ethnic institution following the Tigray War's devastating institutional damage.",
     },
     Technology: {
       name: "Ethiopia Ethio Telecom 4G National Expansion",
       description:
-        "Expands Ethio Telecom&#39;s 4G network to connect 20 million new users and enable mobile financial services.",
+        "Expands Ethio Telecom's 4G network to connect 20 million new users and enable mobile financial services.",
     },
     Social: {
       name: "Ethiopia National Social Protection Policy",
       description:
-        "Implements Ethiopia&#39;s Productive Safety Net Program with expanded cash-for-work and direct support for 8M beneficiaries.",
+        "Implements Ethiopia's Productive Safety Net Program with expanded cash-for-work and direct support for 8M beneficiaries.",
     },
   },
   ke: {
@@ -6399,12 +6399,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Kenya Competency Based Curriculum Full Implementation",
       description:
-        "Completes the rollout of Kenya&#39;s new CBC system across all grades with adequate teacher training and materials.",
+        "Completes the rollout of Kenya's new CBC system across all grades with adequate teacher training and materials.",
     },
     Economy: {
       name: "Kenya Africa Digital Economy Ambition",
       description:
-        "Targets Nairobi as Africa&#39;s leading fintech hub through M-Pesa ecosystem development and startup ecosystem support.",
+        "Targets Nairobi as Africa's leading fintech hub through M-Pesa ecosystem development and startup ecosystem support.",
     },
     Defense: {
       name: "Kenya Multinational Security Support Haiti Mission",
@@ -6426,32 +6426,32 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Ghana Nationally Determined Contributions 2030",
       description:
-        "Funds solar park development and sustainable forest management to meet Ghana&#39;s 15% emissions reduction pledge.",
+        "Funds solar park development and sustainable forest management to meet Ghana's 15% emissions reduction pledge.",
     },
     Healthcare: {
       name: "Ghana NHIA Health Insurance Sustainability",
       description:
-        "Reforms the National Health Insurance Authority&#39;s claims processing to prevent provider payment arrears.",
+        "Reforms the National Health Insurance Authority's claims processing to prevent provider payment arrears.",
     },
     Infrastructure: {
       name: "Ghana Accra-Kumasi Expressway Construction",
       description:
-        "Builds the Accra-Kumasi 4-lane expressway to improve the economic artery between Ghana&#39;s two largest cities.",
+        "Builds the Accra-Kumasi 4-lane expressway to improve the economic artery between Ghana's two largest cities.",
     },
     Education: {
       name: "Ghana Free Senior High School Policy",
       description:
-        "Sustains and improves quality of Ghana&#39;s Free SHS program which has doubled secondary school enrollment.",
+        "Sustains and improves quality of Ghana's Free SHS program which has doubled secondary school enrollment.",
     },
     Economy: {
       name: "Ghana Gold for Oil Barter Program",
       description:
-        "Develops a structured gold purchase and oil barter program to address Ghana&#39;s chronic FX shortage.",
+        "Develops a structured gold purchase and oil barter program to address Ghana's chronic FX shortage.",
     },
     Defense: {
       name: "Ghana Armed Forces UN Peacekeeping Enhancement",
       description:
-        "Maintains Ghana&#39;s tradition of UN peacekeeping contributions with investments in training and equipment.",
+        "Maintains Ghana's tradition of UN peacekeeping contributions with investments in training and equipment.",
     },
     Technology: {
       name: "Ghana Digital Financial Services Policy",
@@ -6510,42 +6510,42 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Angola Renewable Energy for All Program",
       description:
-        "Develops the Caculo Cabaça hydropower project and solar mini-grids to electrify Angola&#39;s 50% unelectrified population.",
+        "Develops the Caculo Cabaça hydropower project and solar mini-grids to electrify Angola's 50% unelectrified population.",
     },
     Healthcare: {
       name: "Angola National Health Development Plan",
       description:
-        "Rebuilds Angola&#39;s primary health network devastated by civil war with 210 new health centers.",
+        "Rebuilds Angola's primary health network devastated by civil war with 210 new health centers.",
     },
     Infrastructure: {
       name: "Angola Lobito Corridor Railway Rehabilitation",
       description:
-        "Rehabilitates the 1,344 km Lobito Corridor connecting Zambia and DRC copper and cobalt mines to Angola&#39;s Atlantic port.",
+        "Rehabilitates the 1,344 km Lobito Corridor connecting Zambia and DRC copper and cobalt mines to Angola's Atlantic port.",
     },
     Education: {
       name: "Angola Education Expansion Plan",
       description:
-        "Builds 13,000 classrooms and trains 200,000 teachers to accommodate Angola&#39;s rapidly growing youth population.",
+        "Builds 13,000 classrooms and trains 200,000 teachers to accommodate Angola's rapidly growing youth population.",
     },
     Economy: {
       name: "Angola Oil Sector Diversification Strategy",
       description:
-        "Develops agriculture, fisheries, and diamond mining to complement oil as Angola&#39;s sovereign wealth fund diversifies.",
+        "Develops agriculture, fisheries, and diamond mining to complement oil as Angola's sovereign wealth fund diversifies.",
     },
     Defense: {
       name: "Angola FAPLA Maritime Security Enhancement",
       description:
-        "Expands Angola&#39;s naval patrol capacity in the Gulf of Guinea to combat piracy and protect offshore oil platforms.",
+        "Expands Angola's naval patrol capacity in the Gulf of Guinea to combat piracy and protect offshore oil platforms.",
     },
     Technology: {
       name: "Angola Digital Agenda 2022-2027",
       description:
-        "Develops Angola&#39;s telecoms infrastructure, e-government, and digital economy with fiber connecting all 18 provinces.",
+        "Develops Angola's telecoms infrastructure, e-government, and digital economy with fiber connecting all 18 provinces.",
     },
     Social: {
       name: "Angola National Social Action Program",
       description:
-        "Provides cash transfers, food baskets, and subsidized utilities to Angola&#39;s extreme poor as oil wealth contracts.",
+        "Provides cash transfers, food baskets, and subsidized utilities to Angola's extreme poor as oil wealth contracts.",
     },
   },
   ma: {
@@ -6562,7 +6562,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Morocco Atlantic-Mediterranean High-Speed Rail",
       description:
-        "Expands the Al Boraq TGV from Tangier-Casablanca to Agadir and Marrakech as North Africa&#39;s premier rail network.",
+        "Expands the Al Boraq TGV from Tangier-Casablanca to Agadir and Marrakech as North Africa's premier rail network.",
     },
     Education: {
       name: "Morocco National Education Reform 2022-2026",
@@ -6587,7 +6587,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Morocco Al Ghad Social Protection Reform",
       description:
-        "Transitions Morocco&#39;s subsidy system to targeted cash transfers for the poorest 30% of households.",
+        "Transitions Morocco's subsidy system to targeted cash transfers for the poorest 30% of households.",
     },
   },
   mz: {
@@ -6609,7 +6609,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Mozambique Accelerated Literacy Program",
       description:
-        "Targets Mozambique&#39;s 60% adult illiteracy through community literacy circles and radio-based education.",
+        "Targets Mozambique's 60% adult illiteracy through community literacy circles and radio-based education.",
     },
     Economy: {
       name: "Mozambique LNG Rovuma Basin Development",
@@ -6624,24 +6624,24 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Mozambique Digital Financial Inclusion",
       description:
-        "Extends M-Pesa and mobile banking access to Mozambique&#39;s 85% unbanked rural population.",
+        "Extends M-Pesa and mobile banking access to Mozambique's 85% unbanked rural population.",
     },
     Social: {
       name: "Mozambique First 1000 Days Child Nutrition",
       description:
-        "Implements First 1000 Days programs to address Mozambique&#39;s 38% stunting rate among children under five.",
+        "Implements First 1000 Days programs to address Mozambique's 38% stunting rate among children under five.",
     },
   },
   co: {
     Climate: {
       name: "Colombia Total Transformation Energy Plan",
       description:
-        "Accelerates offshore wind, solar, and green hydrogen development to complement Colombia&#39;s hydro-dominated grid.",
+        "Accelerates offshore wind, solar, and green hydrogen development to complement Colombia's hydro-dominated grid.",
     },
     Healthcare: {
       name: "Colombia Petro Healthcare Reform",
       description:
-        "Restructures Colombia&#39;s managed care system to increase public funding and reduce EPS insurer margins.",
+        "Restructures Colombia's managed care system to increase public funding and reduce EPS insurer margins.",
     },
     Infrastructure: {
       name: "Colombia Concesiones Viales 5G Program",
@@ -6666,7 +6666,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Colombia Blockchain and Digital Government",
       description:
-        "Uses blockchain for land registry and anti-corruption controls in Colombia&#39;s notoriously fraud-prone title systems.",
+        "Uses blockchain for land registry and anti-corruption controls in Colombia's notoriously fraud-prone title systems.",
     },
     Social: {
       name: "Colombia Total Peace Reintegration Program",
@@ -6683,12 +6683,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Chile FONASA Premium Coverage Expansion",
       description:
-        "Raises FONASA&#39;s benefit basket to include prescription drugs, dental care, and mental health services.",
+        "Raises FONASA's benefit basket to include prescription drugs, dental care, and mental health services.",
     },
     Infrastructure: {
       name: "Chile Tren Central Electrification Program",
       description:
-        "Electrifies Chile&#39;s central rail network from Santiago to Curicó reducing carbon emissions from passenger travel.",
+        "Electrifies Chile's central rail network from Santiago to Curicó reducing carbon emissions from passenger travel.",
     },
     Education: {
       name: "Chile Gratuidad Free Higher Education",
@@ -6730,17 +6730,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Peru Línea 2 Lima Metro Completion",
       description:
-        "Completes Línea 2 of Lima Metro providing east-west mass transit to relieve the city&#39;s gridlocked road network.",
+        "Completes Línea 2 of Lima Metro providing east-west mass transit to relieve the city's gridlocked road network.",
     },
     Education: {
       name: "Peru Aprendo en Casa Learning Recovery",
       description:
-        "Implements a combined in-person and digital learning recovery program post-COVID for Peru&#39;s 8.7M students.",
+        "Implements a combined in-person and digital learning recovery program post-COVID for Peru's 8.7M students.",
     },
     Economy: {
       name: "Peru Mine Conflict Resolution Strategy",
       description:
-        "Modernizes the prior consultation process and social license framework governing Peru&#39;s $60B mining pipeline.",
+        "Modernizes the prior consultation process and social license framework governing Peru's $60B mining pipeline.",
     },
     Defense: {
       name: "Peru Pacific Coast Defense Modernization",
@@ -6750,7 +6750,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Peru Digital Transformation Government Plan",
       description:
-        "Digitizes all citizen-facing government services and launches Peru&#39;s national digital identity credential.",
+        "Digitizes all citizen-facing government services and launches Peru's national digital identity credential.",
     },
     Social: {
       name: "Peru Cuna Más Early Childhood Program",
@@ -6814,7 +6814,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Ecuador Multimodal Trade Corridor Development",
       description:
-        "Develops the Manta-Manaos corridor connecting Ecuador&#39;s Pacific coast to Brazil&#39;s Amazon river system.",
+        "Develops the Manta-Manaos corridor connecting Ecuador's Pacific coast to Brazil's Amazon river system.",
     },
     Education: {
       name: "Ecuador Millennium Education Units Expansion",
@@ -6824,7 +6824,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Ecuador Non-Oil Economy Diversification",
       description:
-        "Develops shrimp aquaculture, cut flowers, and cacao specialty exports to broaden Ecuador&#39;s dollarized economy.",
+        "Develops shrimp aquaculture, cut flowers, and cacao specialty exports to broaden Ecuador's dollarized economy.",
     },
     Defense: {
       name: "Ecuador Mexico Asylum Crisis Management",
@@ -6846,12 +6846,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Algeria Solar Renewable Target SKTM",
       description:
-        "Targets 15 GW of solar capacity by 2035 through the Sahara&#39;s exceptional irradiation resources.",
+        "Targets 15 GW of solar capacity by 2035 through the Sahara's exceptional irradiation resources.",
     },
     Healthcare: {
       name: "Algeria National Health Plan 2025",
       description:
-        "Builds 50 new hospital facilities and upgrades 1,000 polyclinics to address Algeria&#39;s expanding urban population.",
+        "Builds 50 new hospital facilities and upgrades 1,000 polyclinics to address Algeria's expanding urban population.",
     },
     Infrastructure: {
       name: "Algeria Trans-Saharan Highway Completion",
@@ -6871,7 +6871,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Algeria Armed Forces Regional Power Projection",
       description:
-        "Sustains Algeria&#39;s position as Africa&#39;s largest defense spender with Russian and Chinese equipment procurement.",
+        "Sustains Algeria's position as Africa's largest defense spender with Russian and Chinese equipment procurement.",
     },
     Technology: {
       name: "Algeria Algérie Télécom 4G National Rollout",
@@ -6888,7 +6888,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Sudan Khartoum Region Desertification Control",
       description:
-        "Implements sand barrier plantings and watershed management to slow the Sahara&#39;s southward advance.",
+        "Implements sand barrier plantings and watershed management to slow the Sahara's southward advance.",
     },
     Healthcare: {
       name: "Sudan Wartime Health Services Continuity",
@@ -6898,7 +6898,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Sudan Merowe Dam Region Power Restoration",
       description:
-        "Restores power transmission from Merowe Dam after war damage to Khartoum&#39;s electricity supply grid.",
+        "Restores power transmission from Merowe Dam after war damage to Khartoum's electricity supply grid.",
     },
     Education: {
       name: "Sudan Emergency Education in Displacement",
@@ -6923,7 +6923,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Sudan Humanitarian Emergency Response Plan",
       description:
-        "Coordinates the world&#39;s largest displacement crisis response for 10M displaced Sudanese through UN OCHA.",
+        "Coordinates the world's largest displacement crisis response for 10M displaced Sudanese through UN OCHA.",
     },
   },
   ug: {
@@ -6935,7 +6935,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Uganda NRM Health Insurance Pilot",
       description:
-        "Pilots community health insurance in 3 districts as a precursor to Uganda&#39;s Universal Health Coverage rollout.",
+        "Pilots community health insurance in 3 districts as a precursor to Uganda's Universal Health Coverage rollout.",
     },
     Infrastructure: {
       name: "Uganda Kampala-Entebbe Expressway Extension",
@@ -6955,7 +6955,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Uganda UPDF Somalia AMISOM Contribution",
       description:
-        "Maintains Uganda&#39;s lead role in AMISOM/ATMIS as the largest troop contributor to Somalia&#39;s stabilization mission.",
+        "Maintains Uganda's lead role in AMISOM/ATMIS as the largest troop contributor to Somalia's stabilization mission.",
     },
     Technology: {
       name: "Uganda Digital Transformation Masterplan",
@@ -6972,7 +6972,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Ivory Coast Forest Code Implementation",
       description:
-        "Enforces zero-deforestation cocoa supply chain standards to preserve Ivory Coast&#39;s remaining 3M hectares of forest.",
+        "Enforces zero-deforestation cocoa supply chain standards to preserve Ivory Coast's remaining 3M hectares of forest.",
     },
     Healthcare: {
       name: "Ivory Coast Couverture Maladie Universelle",
@@ -7000,7 +7000,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
         "Continues professionalizing the FRCI armed forces following decade of post-electoral conflict.",
     },
     Technology: {
-      name: "Ivory Coast Digital Côte d&#39;Ivoire Strategy",
+      name: "Ivory Coast Digital Côte d'Ivoire Strategy",
       description:
         "Develops the Abidjan digital economy with fiber expansion, startups, and a Francophone tech talent pool.",
     },
@@ -7014,7 +7014,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Cameroon NDC REDD+ Forest Carbon",
       description:
-        "Monetizes Cameroon&#39;s Congo Basin forests through REDD+ carbon credits to fund conservation and community development.",
+        "Monetizes Cameroon's Congo Basin forests through REDD+ carbon credits to fund conservation and community development.",
     },
     Healthcare: {
       name: "Cameroon Basic Health Districts Reform",
@@ -7024,7 +7024,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Cameroon Kribi Deep-Sea Port Phase 2",
       description:
-        "Develops Phase 2 of Kribi&#39;s deep-sea port to position Cameroon as the logistics hub for Central Africa.",
+        "Develops Phase 2 of Kribi's deep-sea port to position Cameroon as the logistics hub for Central Africa.",
     },
     Education: {
       name: "Cameroon Anglophone Education Crisis Response",
@@ -7034,7 +7034,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Cameroon Oil Transition Fiscal Strategy",
       description:
-        "Prepares Cameroon&#39;s budget for declining oil revenues by developing bauxite, rubber, and manufacturing sectors.",
+        "Prepares Cameroon's budget for declining oil revenues by developing bauxite, rubber, and manufacturing sectors.",
     },
     Defense: {
       name: "Cameroon BIR Anti-Boko Haram Operations",
@@ -7044,7 +7044,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Cameroon Digital Economy Development",
       description:
-        "Develops Cameroon&#39;s startup ecosystem through Orange Digital Centers and the national fiber optic backbone.",
+        "Develops Cameroon's startup ecosystem through Orange Digital Centers and the national fiber optic backbone.",
     },
     Social: {
       name: "Cameroon Anglophone Crisis IDPs Support",
@@ -7061,7 +7061,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Zambia Universal Health Coverage Road Map",
       description:
-        "Develops health financing and primary care frameworks for Zambia&#39;s path to universal coverage.",
+        "Develops health financing and primary care frameworks for Zambia's path to universal coverage.",
     },
     Infrastructure: {
       name: "Zambia TAZARA Rail Rehabilitation",
@@ -7076,12 +7076,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Zambia Copper-Cobalt Transition Economy",
       description:
-        "Expands Zambia&#39;s cobalt and manganese processing to capture EV battery supply chain value beyond raw ore export.",
+        "Expands Zambia's cobalt and manganese processing to capture EV battery supply chain value beyond raw ore export.",
     },
     Defense: {
       name: "Zambia ZAF C-27J airlift capacity",
       description:
-        "Maintains the Zambia Air Force&#39;s C-27J tactical airlift capacity for humanitarian and peacekeeping deployments.",
+        "Maintains the Zambia Air Force's C-27J tactical airlift capacity for humanitarian and peacekeeping deployments.",
     },
     Technology: {
       name: "Zambia Digital Economy Policy 2021",
@@ -7133,14 +7133,14 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Zimbabwe Harmonized Social Cash Transfer",
       description:
-        "Provides ZIMRA-collected revenue-backed monthly transfers to Zimbabwe&#39;s most destitute households.",
+        "Provides ZIMRA-collected revenue-backed monthly transfers to Zimbabwe's most destitute households.",
     },
   },
   sn: {
     Climate: {
       name: "Senegal Grand Vent Wind Farms Development",
       description:
-        "Develops the Taiba N&#39;Diaye and planned offshore wind projects to shift Senegal&#39;s electricity from expensive fuel oil.",
+        "Develops the Taiba N'Diaye and planned offshore wind projects to shift Senegal's electricity from expensive fuel oil.",
     },
     Healthcare: {
       name: "Senegal Couverture Maladie Universelle CMU",
@@ -7153,24 +7153,24 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
         "Operates the TER light rail connecting Dakar center to Blaise Diagne International Airport in 45 minutes.",
     },
     Education: {
-      name: "Senegal Programme d&#39;Amélioration de la Qualité",
+      name: "Senegal Programme d'Amélioration de la Qualité",
       description:
         "Improves foundational reading and numeracy in Senegalese schools through structured pedagogy training programs.",
     },
     Economy: {
       name: "Senegal Pétrole et Gaz First Revenues Strategy",
       description:
-        "Prepares Senegal&#39;s sovereign wealth fund and local content rules for first oil and gas production revenues.",
+        "Prepares Senegal's sovereign wealth fund and local content rules for first oil and gas production revenues.",
     },
     Defense: {
       name: "Senegal ECOWAS Regional Security Anchor",
       description:
-        "Supports ECOWAS good governance and security missions from Dakar as the region&#39;s most stable democratic anchor.",
+        "Supports ECOWAS good governance and security missions from Dakar as the region's most stable democratic anchor.",
     },
     Technology: {
       name: "Senegal Digital Senegal Policy 2025",
       description:
-        "Builds on the St. Louis Smart City and Dakar Silicon Valley ambitions to grow Senegal&#39;s technology exports.",
+        "Builds on the St. Louis Smart City and Dakar Silicon Valley ambitions to grow Senegal's technology exports.",
     },
     Social: {
       name: "Senegal Programme Nationale Bourses de Sécurité Familiale",
@@ -7182,22 +7182,22 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Tunisia National Energy Transition Plan",
       description:
-        "Targets 35% renewable electricity by 2030 using Tunisia&#39;s solar and wind resources for domestic and European export.",
+        "Targets 35% renewable electricity by 2030 using Tunisia's solar and wind resources for domestic and European export.",
     },
     Healthcare: {
       name: "Tunisia CNAM Health Insurance Reform",
       description:
-        "Reforms the CNAM national insurance fund&#39;s provider payment system to reduce out-of-pocket costs for chronic disease.",
+        "Reforms the CNAM national insurance fund's provider payment system to reduce out-of-pocket costs for chronic disease.",
     },
     Infrastructure: {
       name: "Tunisia Tunis-Sfax Rail Modernization",
       description:
-        "Upgrades Tunisia&#39;s main north-south rail corridor to reduce freight costs and link coastal cities.",
+        "Upgrades Tunisia's main north-south rail corridor to reduce freight costs and link coastal cities.",
     },
     Education: {
       name: "Tunisia School Reform and Dropout Prevention",
       description:
-        "Redesigns secondary education tracks to reduce Tunisia&#39;s 100,000 annual school dropouts and unemployment cliff.",
+        "Redesigns secondary education tracks to reduce Tunisia's 100,000 annual school dropouts and unemployment cliff.",
     },
     Economy: {
       name: "Tunisia IMF Support Program 2024",
@@ -7212,7 +7212,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Tunisia Digital Economy Act Implementation",
       description:
-        "Implements Tunisia&#39;s FinTech regulatory sandbox, startup law, and e-commerce payment infrastructure expansion.",
+        "Implements Tunisia's FinTech regulatory sandbox, startup law, and e-commerce payment infrastructure expansion.",
     },
     Social: {
       name: "Tunisia Amen Social Protection Program",
@@ -7224,27 +7224,27 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "DRC Congo Basin CAFI Forest Protection",
       description:
-        "Partners with Norway and UK in the Central African Forest Initiative to preserve the world&#39;s second largest rainforest.",
+        "Partners with Norway and UK in the Central African Forest Initiative to preserve the world's second largest rainforest.",
     },
     Healthcare: {
       name: "DRC Ebola Emergency Response Capacity",
       description:
-        "Builds permanent rapid response infrastructure to contain future Ebola outbreaks in DRC&#39;s endemic eastern provinces.",
+        "Builds permanent rapid response infrastructure to contain future Ebola outbreaks in DRC's endemic eastern provinces.",
     },
     Infrastructure: {
       name: "DRC Grand Inga Hydropower Expansion",
       description:
-        "Develops Grand Inga 3 to generate 11,000 MW connecting DRC&#39;s 80M unelectrified citizens and export to Southern Africa.",
+        "Develops Grand Inga 3 to generate 11,000 MW connecting DRC's 80M unelectrified citizens and export to Southern Africa.",
     },
     Education: {
-      name: "DRC Gratuité de l&#39;Enseignement Free Primary Education",
+      name: "DRC Gratuité de l'Enseignement Free Primary Education",
       description:
-        "Implements President Tshisekedi&#39;s free primary schooling mandate that added 4M new students in its first year.",
+        "Implements President Tshisekedi's free primary schooling mandate that added 4M new students in its first year.",
     },
     Economy: {
       name: "DRC Critical Minerals Coltan Governance",
       description:
-        "Improves coltan, cobalt, and lithium governance frameworks to capture more value from DRC&#39;s extraordinary mineral wealth.",
+        "Improves coltan, cobalt, and lithium governance frameworks to capture more value from DRC's extraordinary mineral wealth.",
     },
     Defense: {
       name: "DRC FARDC M23 Eastern Congo Operations",
@@ -7254,19 +7254,19 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "DRC Digital Congo River Development",
       description:
-        "Leverages Airtel and Vodacom mobile money to deliver financial services to DRC&#39;s vast unbanked rural population.",
+        "Leverages Airtel and Vodacom mobile money to deliver financial services to DRC's vast unbanked rural population.",
     },
     Social: {
       name: "DRC Food Security Emergency Response",
       description:
-        "Responds to the world&#39;s largest food security crisis with 25M food-insecure Congolese through WFP crisis operations.",
+        "Responds to the world's largest food security crisis with 25M food-insecure Congolese through WFP crisis operations.",
     },
   },
   rw: {
     Climate: {
       name: "Rwanda Green Growth and Climate Resilience",
       description:
-        "Implements Rwanda&#39;s Green Growth strategy combining reforestation, wetland restoration, and clean cooking fuel.",
+        "Implements Rwanda's Green Growth strategy combining reforestation, wetland restoration, and clean cooking fuel.",
     },
     Healthcare: {
       name: "Rwanda Mutuelle de Santé Community Health",
@@ -7276,7 +7276,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Rwanda Kigali Mass Transit System",
       description:
-        "Deploys Bus Rapid Transit and electric buses to address Kigali&#39;s rapidly worsening urban traffic congestion.",
+        "Deploys Bus Rapid Transit and electric buses to address Kigali's rapidly worsening urban traffic congestion.",
     },
     Education: {
       name: "Rwanda Smart Classroom Digital Learning",
@@ -7286,12 +7286,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Rwanda Visit Rwanda Tourism Strategy",
       description:
-        "Grows Rwanda&#39;s premium tourism brand through gorilla permits, MICE conferences, and Arsenal FC sponsorship.",
+        "Grows Rwanda's premium tourism brand through gorilla permits, MICE conferences, and Arsenal FC sponsorship.",
     },
     Defense: {
       name: "Rwanda RDF Regional Peacekeeping Operations",
       description:
-        "Deploys 4,000 RDF troops to Mozambique Cabo Delgado and SADC DRC missions as Africa&#39;s premium peace force.",
+        "Deploys 4,000 RDF troops to Mozambique Cabo Delgado and SADC DRC missions as Africa's premium peace force.",
     },
     Technology: {
       name: "Rwanda Smart Kigali Innovation City",
@@ -7308,17 +7308,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Mali Sahel Great Green Wall Contribution",
       description:
-        "Plants trees and restores 5M hectares of degraded Sahelian land as Mali&#39;s contribution to the Great Green Wall.",
+        "Plants trees and restores 5M hectares of degraded Sahelian land as Mali's contribution to the Great Green Wall.",
     },
     Healthcare: {
       name: "Mali PRODESS Health Sector Development",
       description:
-        "Implements Mali&#39;s health program to rebuild primary care networks devastated by conflict in the north and center.",
+        "Implements Mali's health program to rebuild primary care networks devastated by conflict in the north and center.",
     },
     Infrastructure: {
       name: "Mali Dakar-Bamako Rail Rehabilitation",
       description:
-        "Rehabilitates the historic Dakar-Bamako railway for passenger and freight to reduce Mali&#39;s transport isolation.",
+        "Rehabilitates the historic Dakar-Bamako railway for passenger and freight to reduce Mali's transport isolation.",
     },
     Education: {
       name: "Mali Conflict-Sensitive Education Response",
@@ -7328,7 +7328,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Mali Gold Mining Revenue Management",
       description:
-        "Improves Mali&#39;s gold taxation and local content frameworks to retain more value from its #1 export.",
+        "Improves Mali's gold taxation and local content frameworks to retain more value from its #1 export.",
     },
     Defense: {
       name: "Mali FAMA Wagner/Africa Corps Partnership",
@@ -7338,7 +7338,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Mali Mobile Financial Services Expansion",
       description:
-        "Extends Orange Money and Moov Africa mobile payment platforms to Mali&#39;s rural smallholder farming communities.",
+        "Extends Orange Money and Moov Africa mobile payment platforms to Mali's rural smallholder farming communities.",
     },
     Social: {
       name: "Mali Humanitarian Crisis Response Plan",
@@ -7350,7 +7350,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Burkina Faso Great Green Wall Reforestation",
       description:
-        "Mobilizes community-based reforestation to halt the Sahara&#39;s advance into Burkina&#39;s degraded Sahel farmland.",
+        "Mobilizes community-based reforestation to halt the Sahara's advance into Burkina's degraded Sahel farmland.",
     },
     Healthcare: {
       name: "Burkina Faso Resilient Health System Plan",
@@ -7392,22 +7392,22 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Niger Great Green Wall National Contribution",
       description:
-        "Implements farmer-managed natural regeneration on 5M hectares as Niger&#39;s Great Green Wall cornerstone.",
+        "Implements farmer-managed natural regeneration on 5M hectares as Niger's Great Green Wall cornerstone.",
     },
     Healthcare: {
       name: "Niger Maternal Child Health Emergency Scale-Up",
       description:
-        "Funds UNFPA and UNICEF emergency packages to address Niger&#39;s world-highest birth rate and child mortality.",
+        "Funds UNFPA and UNICEF emergency packages to address Niger's world-highest birth rate and child mortality.",
     },
     Infrastructure: {
       name: "Niger Trans-Saharan Highway Section Development",
       description:
-        "Builds Niger&#39;s sections of the Trans-Saharan Highway linking Agadez to Arlit and Algeria.",
+        "Builds Niger's sections of the Trans-Saharan Highway linking Agadez to Arlit and Algeria.",
     },
     Education: {
       name: "Niger Demographic Pressure School Construction",
       description:
-        "Constructs emergency classrooms to serve Niger&#39;s 3.7% annual population growth rate overwhelming school capacity.",
+        "Constructs emergency classrooms to serve Niger's 3.7% annual population growth rate overwhelming school capacity.",
     },
     Economy: {
       name: "Niger Uranium to Petrostate Transition",
@@ -7422,7 +7422,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Niger Mobile Connectivity Rural Expansion",
       description:
-        "Extends Niamey&#39;s telecoms network to Diffa, Agadez, and Tahoua regions with satellite-assisted connectivity.",
+        "Extends Niamey's telecoms network to Diffa, Agadez, and Tahoua regions with satellite-assisted connectivity.",
     },
     Social: {
       name: "Niger Food Aid Crisis Response",
@@ -7434,7 +7434,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Madagascar Great South Climate Adaptation",
       description:
-        "Addresses the southern Grand Sud&#39;s worst drought in 40 years with water harvesting and dry-land agriculture support.",
+        "Addresses the southern Grand Sud's worst drought in 40 years with water harvesting and dry-land agriculture support.",
     },
     Healthcare: {
       name: "Madagascar FANOME Pharmacy Network",
@@ -7444,22 +7444,22 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Madagascar Route Nationale 7 Rehabilitation",
       description:
-        "Rehabilitates Route Nationale 7 linking Antananarivo to Toliara as the nation&#39;s economic spine.",
+        "Rehabilitates Route Nationale 7 linking Antananarivo to Toliara as the nation's economic spine.",
     },
     Education: {
       name: "Madagascar Accessible Quality Education Plan",
       description:
-        "Recruits 10,000 FRAM community teachers and provides textbooks to reverse Madagascar&#39;s school quality decline.",
+        "Recruits 10,000 FRAM community teachers and provides textbooks to reverse Madagascar's school quality decline.",
     },
     Economy: {
       name: "Madagascar Vanilla and Ecotourism Strategy",
       description:
-        "Supports premium vanilla export quality certification and expands ecotourism to leverage Madagascar&#39;s biodiversity.",
+        "Supports premium vanilla export quality certification and expands ecotourism to leverage Madagascar's biodiversity.",
     },
     Defense: {
       name: "Madagascar Coast Guard Anti-Piracy Capacity",
       description:
-        "Develops coast guard patrol capacity with EU CRIMARIO support to deter piracy in Madagascar&#39;s Exclusive Economic Zone.",
+        "Develops coast guard patrol capacity with EU CRIMARIO support to deter piracy in Madagascar's Exclusive Economic Zone.",
     },
     Technology: {
       name: "Madagascar Digital Madagascar Plan",
@@ -7469,29 +7469,29 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Madagascar Fiavota Social Protection Program",
       description:
-        "Provides cash transfers to 200,000 food-insecure households in Madagascar&#39;s drought-stricken southern regions.",
+        "Provides cash transfers to 200,000 food-insecure households in Madagascar's drought-stricken southern regions.",
     },
   },
   na: {
     Climate: {
       name: "Namibia Green Hydrogen Ambition Strategy",
       description:
-        "Develops Namibia&#39;s Tsau //Khaeb green hydrogen project to produce and export green ammonia using Namib wind and sun.",
+        "Develops Namibia's Tsau //Khaeb green hydrogen project to produce and export green ammonia using Namib wind and sun.",
     },
     Healthcare: {
       name: "Namibia National Health Policy 2014-2024 Review",
       description:
-        "Evaluates and refreshes Namibia&#39;s national health policy to address HIV, TB, and NCDs amid inequality.",
+        "Evaluates and refreshes Namibia's national health policy to address HIV, TB, and NCDs amid inequality.",
     },
     Infrastructure: {
       name: "Namibia Trans-Caprivi Corridor Upgrade",
       description:
-        "Upgrades the Trans-Caprivi Highway connecting Namibia&#39;s Walvis Bay port to Zambia, Zimbabwe, and Botswana.",
+        "Upgrades the Trans-Caprivi Highway connecting Namibia's Walvis Bay port to Zambia, Zimbabwe, and Botswana.",
     },
     Education: {
       name: "Namibia Education and Training Sector Plan",
       description:
-        "Raises pass rates and graduate quality in the VTC vocational training system supporting Namibia&#39;s mining economy.",
+        "Raises pass rates and graduate quality in the VTC vocational training system supporting Namibia's mining economy.",
     },
     Economy: {
       name: "Namibia Critical Minerals Green Economy Plan",
@@ -7501,17 +7501,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Namibia NDF SADC Mission Contribution",
       description:
-        "Deploys Namibia Defence Force units to SADC missions in DRC as part of Namibia&#39;s regional security role.",
+        "Deploys Namibia Defence Force units to SADC missions in DRC as part of Namibia's regional security role.",
     },
     Technology: {
       name: "Namibia Digital Namibia Initiative",
       description:
-        "Expands fiber connectivity, government digital services, and mobile broadband to Namibia&#39;s dispersed rural population.",
+        "Expands fiber connectivity, government digital services, and mobile broadband to Namibia's dispersed rural population.",
     },
     Social: {
       name: "Namibia Basic Income Grant Pilot",
       description:
-        "Evaluates a permanent BIG following the Otjivero-Omitara pilot&#39;s demonstrated impacts on poverty and crime reduction.",
+        "Evaluates a permanent BIG following the Otjivero-Omitara pilot's demonstrated impacts on poverty and crime reduction.",
     },
   },
   bw: {
@@ -7523,37 +7523,37 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Botswana HIV Treatment Program",
       description:
-        "Maintains Botswana&#39;s world-leading 99% viral suppression rate among HIV-positive citizens on ART.",
+        "Maintains Botswana's world-leading 99% viral suppression rate among HIV-positive citizens on ART.",
     },
     Infrastructure: {
       name: "Botswana Rail Modernization Initiative",
       description:
-        "Upgrades Botswana Railways&#39; coal and copper freight capacity on the North-South rail corridor.",
+        "Upgrades Botswana Railways' coal and copper freight capacity on the North-South rail corridor.",
     },
     Education: {
       name: "Botswana Human Capital Development Strategy",
       description:
-        "Reforms tertiary education to align graduates with Botswana&#39;s economic diversification priorities beyond diamonds.",
+        "Reforms tertiary education to align graduates with Botswana's economic diversification priorities beyond diamonds.",
     },
     Economy: {
       name: "Botswana Economic Diversification Drive",
       description:
-        "Develops beef, tourism, and financial services to reduce dependence on Debswana&#39;s diamond revenue.",
+        "Develops beef, tourism, and financial services to reduce dependence on Debswana's diamond revenue.",
     },
     Defense: {
       name: "Botswana BDF Professionalization Program",
       description:
-        "Builds the BDF&#39;s border protection, counter-poaching, and regional peacekeeping professionalism.",
+        "Builds the BDF's border protection, counter-poaching, and regional peacekeeping professionalism.",
     },
     Technology: {
       name: "Botswana Smart Botswana National Strategy",
       description:
-        "Develops the Innovation Hub, BITC tech investment, and e-government infrastructure for Botswana&#39;s knowledge economy.",
+        "Develops the Innovation Hub, BITC tech investment, and e-government infrastructure for Botswana's knowledge economy.",
     },
     Social: {
       name: "Botswana Ipelegeng Labor Programme",
       description:
-        "Provides 60,000 seasonal work opportunities for Botswana&#39;s poor through the Ipelegeng public works program.",
+        "Provides 60,000 seasonal work opportunities for Botswana's poor through the Ipelegeng public works program.",
     },
   },
   mw: {
@@ -7575,12 +7575,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Malawi Free Primary Education Strengthening",
       description:
-        "Improves teacher deployment and textbook supply for Malawi&#39;s 4.7M primary students enrolled in free education.",
+        "Improves teacher deployment and textbook supply for Malawi's 4.7M primary students enrolled in free education.",
     },
     Economy: {
       name: "Malawi Tobacco Diversification Strategy",
       description:
-        "Develops soybean, groundnut, and specialty coffee exports to reduce Malawi&#39;s structural dependence on tobacco.",
+        "Develops soybean, groundnut, and specialty coffee exports to reduce Malawi's structural dependence on tobacco.",
     },
     Defense: {
       name: "Malawi MDF UN Peacekeeping Contribution",
@@ -7590,7 +7590,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Malawi Digital Malawi Program",
       description:
-        "Connects Malawi&#39;s 4G network to rural health centers, schools, and government offices via the fiber backbone.",
+        "Connects Malawi's 4G network to rural health centers, schools, and government offices via the fiber backbone.",
     },
     Social: {
       name: "Malawi Social Cash Transfer Programme",
@@ -7602,17 +7602,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Somalia Flood and Drought Early Warning",
       description:
-        "Develops SWALIM flood and drought early warning with FAO to protect Somalia&#39;s climate-vulnerable riverine communities.",
+        "Develops SWALIM flood and drought early warning with FAO to protect Somalia's climate-vulnerable riverine communities.",
     },
     Healthcare: {
       name: "Somalia Essential Package of Health Services",
       description:
-        "Funds the WHO-designed EPHS through GAVI, Global Fund, and donor grants reaching 50% of Somalis&#39; basic care needs.",
+        "Funds the WHO-designed EPHS through GAVI, Global Fund, and donor grants reaching 50% of Somalis' basic care needs.",
     },
     Infrastructure: {
       name: "Somalia Mogadishu Port Redevelopment",
       description:
-        "Develops Mogadishu&#39;s port with DP World concession to create a sustainable customs and trade revenue base.",
+        "Develops Mogadishu's port with DP World concession to create a sustainable customs and trade revenue base.",
     },
     Education: {
       name: "Somalia Education Sector Strategic Plan",
@@ -7632,7 +7632,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Somalia Hormuud Telesom Mobile Economy",
       description:
-        "Leverages Somalia&#39;s world-leading mobile money penetration through Hormuud&#39;s EVC Plus as a development platform.",
+        "Leverages Somalia's world-leading mobile money penetration through Hormuud's EVC Plus as a development platform.",
     },
     Social: {
       name: "Somalia Durable Solutions Displacement Response",
@@ -7669,12 +7669,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Eritrea PFDJ Standing Army Maintenance",
       description:
-        "Maintains one of Africa&#39;s largest militaries relative to population under indefinite national service conscription.",
+        "Maintains one of Africa's largest militaries relative to population under indefinite national service conscription.",
     },
     Technology: {
       name: "Eritrea Restricted Telecoms Infrastructure",
       description:
-        "Operates state-controlled EriTel telecoms monopoly with among the world&#39;s lowest internet penetration rates.",
+        "Operates state-controlled EriTel telecoms monopoly with among the world's lowest internet penetration rates.",
     },
     Social: {
       name: "Eritrea Diaspora Remittances Formalization",
@@ -7696,17 +7696,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Afghanistan Salma Dam Reconstruction Support",
       description:
-        "Sustains the Salma Dam&#39;s irrigation and electricity generation serving western Afghanistan&#39;s Herat province.",
+        "Sustains the Salma Dam's irrigation and electricity generation serving western Afghanistan's Herat province.",
     },
     Education: {
-      name: "Afghanistan Girls&#39; Education Suppression Response",
+      name: "Afghanistan Girls' Education Suppression Response",
       description:
         "Supports underground and community-based schooling for girls banned from education beyond 6th grade by the Taliban.",
     },
     Economy: {
       name: "Afghanistan Opium Economy Eradication",
       description:
-        "Implements Taliban&#39;s opium ban reducing 90% of global heroin supply overnight but collapsing farmer livelihoods.",
+        "Implements Taliban's opium ban reducing 90% of global heroin supply overnight but collapsing farmer livelihoods.",
     },
     Defense: {
       name: "Afghanistan IEA Internal Security Operations",
@@ -7728,7 +7728,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Oman Vision 2040 Carbon Neutral Ambition",
       description:
-        "Targets net-zero by 2050 through solar and green hydrogen development aligned with Oman&#39;s Vision 2040.",
+        "Targets net-zero by 2050 through solar and green hydrogen development aligned with Oman's Vision 2040.",
     },
     Healthcare: {
       name: "Oman National Health Strategy 2016-2020 Extension",
@@ -7743,7 +7743,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Oman Applied Sciences University Expansion",
       description:
-        "Builds applied science and technology universities in Sohar and Salalah supporting Oman&#39;s industrial economy.",
+        "Builds applied science and technology universities in Sohar and Salalah supporting Oman's industrial economy.",
     },
     Economy: {
       name: "Oman Omanisation Labour Nationalisation",
@@ -7758,7 +7758,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Oman Digital Oman Strategy",
       description:
-        "Digitizes government services, develops Muscat&#39;s IT ecosystem, and promotes Oman as a data center destination.",
+        "Digitizes government services, develops Muscat's IT ecosystem, and promotes Oman as a data center destination.",
     },
     Social: {
       name: "Oman Tanfeedh Diversification Job Creation",
@@ -7770,12 +7770,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Jordan National Green Growth Plan",
       description:
-        "Targets 31% renewable electricity by 2030 using Jordan&#39;s Aqaba wind and Ma&#39;an solar resources.",
+        "Targets 31% renewable electricity by 2030 using Jordan's Aqaba wind and Ma'an solar resources.",
     },
     Healthcare: {
       name: "Jordan Health Sector Reform National Strategy",
       description:
-        "Improves health financing and purchaser-provider split to extend quality coverage to Jordan&#39;s large refugee population.",
+        "Improves health financing and purchaser-provider split to extend quality coverage to Jordan's large refugee population.",
     },
     Infrastructure: {
       name: "Jordan National Railway Project",
@@ -7800,7 +7800,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Jordan Digital Jordan Transformation",
       description:
-        "Builds Jordan&#39;s digital economy through e-government, ICT outsourcing exports, and fintech ecosystem development.",
+        "Builds Jordan's digital economy through e-government, ICT outsourcing exports, and fintech ecosystem development.",
     },
     Social: {
       name: "Jordan Syrian Refugee Jordan Compact",
@@ -7817,17 +7817,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Lebanon Health Sector Emergency Fund",
       description:
-        "Maintains critical hospital operations through WHO and donor funding as Lebanon&#39;s health system faces collapse.",
+        "Maintains critical hospital operations through WHO and donor funding as Lebanon's health system faces collapse.",
     },
     Infrastructure: {
       name: "Lebanon Beirut Port Reconstruction",
       description:
-        "Rebuilds Beirut&#39;s port following the 2020 ammonium nitrate explosion that destroyed the country&#39;s main trade gateway.",
+        "Rebuilds Beirut's port following the 2020 ammonium nitrate explosion that destroyed the country's main trade gateway.",
     },
     Education: {
       name: "Lebanon RACE2 Refugee Education Access",
       description:
-        "Maintains double-shift public schools enrolling 200,000 Syrian students within Lebanon&#39;s collapsed education system.",
+        "Maintains double-shift public schools enrolling 200,000 Syrian students within Lebanon's collapsed education system.",
     },
     Economy: {
       name: "Lebanon IMF Capital Controls Reform",
@@ -7842,12 +7842,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Lebanon Digital Economy Amid Crisis",
       description:
-        "Supports Beirut&#39;s resilient startup ecosystem continuing to raise capital and export digital services despite the crisis.",
+        "Supports Beirut's resilient startup ecosystem continuing to raise capital and export digital services despite the crisis.",
     },
     Social: {
       name: "Lebanon Social Protection Emergency Net",
       description:
-        "Delivers World Bank funded Emergency Social Safety Net cash transfers to Lebanon&#39;s extreme poor and refugees.",
+        "Delivers World Bank funded Emergency Social Safety Net cash transfers to Lebanon's extreme poor and refugees.",
     },
   },
   sy: {
@@ -7864,7 +7864,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Syria Post-Assad Infrastructure Reconstruction",
       description:
-        "Begins assessment and early reconstruction of Syria&#39;s destroyed power grid, water networks, and road system.",
+        "Begins assessment and early reconstruction of Syria's destroyed power grid, water networks, and road system.",
     },
     Education: {
       name: "Syria No Lost Generation Education Scale-Up",
@@ -7879,7 +7879,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Syria SNA Post-Assad Security Consolidation",
       description:
-        "Integrates Syria&#39;s fractured armed factions into a unified national defense structure under HTS-led governance.",
+        "Integrates Syria's fractured armed factions into a unified national defense structure under HTS-led governance.",
     },
     Technology: {
       name: "Syria Telecommunication Reconstruction Priority",
@@ -7896,7 +7896,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Yemen Water Security Emergency Program",
       description:
-        "Addresses Yemen&#39;s critical water scarcity through solar-powered desalination and groundwater protection aid.",
+        "Addresses Yemen's critical water scarcity through solar-powered desalination and groundwater protection aid.",
     },
     Healthcare: {
       name: "Yemen Health System Wartime Continuity",
@@ -7906,7 +7906,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Yemen Aden Port Rehabilitation",
       description:
-        "Rehabilitates Aden port capacity for fuel and food imports critical to southern Yemen&#39;s humanitarian supply chain.",
+        "Rehabilitates Aden port capacity for fuel and food imports critical to southern Yemen's humanitarian supply chain.",
     },
     Education: {
       name: "Yemen Conflict-Sensitive Education Continuity",
@@ -7953,12 +7953,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Azerbaijan State Program on Education",
       description:
-        "Expands STEM education and English-language instruction to build Azerbaijan&#39;s non-oil knowledge economy workforce.",
+        "Expands STEM education and English-language instruction to build Azerbaijan's non-oil knowledge economy workforce.",
     },
     Economy: {
       name: "Azerbaijan COP29 Green Economy Transition",
       description:
-        "Leverages COP29 host status to reshape Azerbaijan&#39;s image and attract green hydrogen investment beyond oil.",
+        "Leverages COP29 host status to reshape Azerbaijan's image and attract green hydrogen investment beyond oil.",
     },
     Defense: {
       name: "Azerbaijan Bayraktar Modernized Armed Forces",
@@ -7980,12 +7980,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Georgia Hydropower to Solar Diversification",
       description:
-        "Develops Kartli and Black Sea offshore wind to complement Georgia&#39;s hydro-dominated but drought-vulnerable grid.",
+        "Develops Kartli and Black Sea offshore wind to complement Georgia's hydro-dominated but drought-vulnerable grid.",
     },
     Healthcare: {
       name: "Georgia Universal Healthcare Program Sustainability",
       description:
-        "Sustains Georgia&#39;s universal healthcare program covering 2.7M citizens through efficient managed care contracts.",
+        "Sustains Georgia's universal healthcare program covering 2.7M citizens through efficient managed care contracts.",
     },
     Infrastructure: {
       name: "Georgia Anaklia Deep Sea Port Development",
@@ -7993,7 +7993,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
         "Revives the Anaklia deep-sea port project to make Georgia a key Caspian-Black Sea transshipment hub.",
     },
     Education: {
-      name: "Georgia Teachers&#39; Professional Development",
+      name: "Georgia Teachers' Professional Development",
       description:
         "Implements mandatory professional development cycles and performance pay reform for Georgian public school teachers.",
     },
@@ -8005,12 +8005,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Georgia NATO Interoperability Program",
       description:
-        "Advances Georgia&#39;s Annual National Program with NATO to align defense reforms toward membership standards.",
+        "Advances Georgia's Annual National Program with NATO to align defense reforms toward membership standards.",
     },
     Technology: {
       name: "Georgia Digital Economy Strategy",
       description:
-        "Develops Tbilisi&#39;s startup ecosystem and e-government through the Enterprise Georgia digital acceleration fund.",
+        "Develops Tbilisi's startup ecosystem and e-government through the Enterprise Georgia digital acceleration fund.",
     },
     Social: {
       name: "Georgia Pro-EU Civil Society Response",
@@ -8032,7 +8032,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Armenia North-South Road Corridor Completion",
       description:
-        "Completes the North-South Highway linking the Iranian border to Tbilisi as Armenia&#39;s economic spine.",
+        "Completes the North-South Highway linking the Iranian border to Tbilisi as Armenia's economic spine.",
     },
     Education: {
       name: "Armenia Digital School Program",
@@ -8042,12 +8042,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Armenia IT Export Growth Strategy",
       description:
-        "Builds on the post-2022 Russian tech worker influx to grow Armenia&#39;s IT exports beyond $500M annually.",
+        "Builds on the post-2022 Russian tech worker influx to grow Armenia's IT exports beyond $500M annually.",
     },
     Defense: {
       name: "Armenia Military Procurement Diversification",
       description:
-        "Diversifies Armenia&#39;s defense procurement from Russia toward France, India, and Greece following Karabakh defeat.",
+        "Diversifies Armenia's defense procurement from Russia toward France, India, and Greece following Karabakh defeat.",
     },
     Technology: {
       name: "Armenia Data and High Technology Park Expansion",
@@ -8064,7 +8064,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Turkmenistan Methane Leak Reduction Plan",
       description:
-        "Addresses Turkmenistan&#39;s status as the world&#39;s second largest methane emitter from oil and gas infrastructure.",
+        "Addresses Turkmenistan's status as the world's second largest methane emitter from oil and gas infrastructure.",
     },
     Healthcare: {
       name: "Turkmenistan State Medical Reform",
@@ -8074,7 +8074,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Turkmenistan Trans-Caspian Pipeline Development",
       description:
-        "Advances Turkmenistan&#39;s push for a Trans-Caspian Pipeline to export gas to Europe bypassing Russia.",
+        "Advances Turkmenistan's push for a Trans-Caspian Pipeline to export gas to Europe bypassing Russia.",
     },
     Education: {
       name: "Turkmenistan Higher Education Access Expansion",
@@ -8094,7 +8094,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Turkmenistan IT Infrastructure Investment",
       description:
-        "Expands Ashgabat&#39;s fiber internet backbone and mobile networks as a tool of controlled modernization.",
+        "Expands Ashgabat's fiber internet backbone and mobile networks as a tool of controlled modernization.",
     },
     Social: {
       name: "Turkmenistan Social Security Benefits Management",
@@ -8126,17 +8126,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Tajikistan Rogun Dam Revenue Model",
       description:
-        "Develops the Rogun Hydropower Plant as Tajikistan&#39;s primary long-term electricity export revenue strategy.",
+        "Develops the Rogun Hydropower Plant as Tajikistan's primary long-term electricity export revenue strategy.",
     },
     Defense: {
       name: "Tajikistan 201st Russian Military Base Hosting",
       description:
-        "Hosts Russia&#39;s 201st Military Base as the core of Tajikistan&#39;s security against Afghan border threats.",
+        "Hosts Russia's 201st Military Base as the core of Tajikistan's security against Afghan border threats.",
     },
     Technology: {
       name: "Tajikistan E-Government Portal Development",
       description:
-        "Develops Tajikistan&#39;s single e-services portal to reduce bureaucratic barriers and corruption in public services.",
+        "Develops Tajikistan's single e-services portal to reduce bureaucratic barriers and corruption in public services.",
     },
     Social: {
       name: "Tajikistan Remittance-Dependent Social Stability",
@@ -8178,7 +8178,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Kyrgyzstan Digital Transformation Program",
       description:
-        "Builds on tunduk interoperability platform to digitize government services and develop Bishkek&#39;s tech ecosystem.",
+        "Builds on tunduk interoperability platform to digitize government services and develop Bishkek's tech ecosystem.",
     },
     Social: {
       name: "Kyrgyzstan Labor Migration Social Protection",
@@ -8190,7 +8190,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Mongolia Net Zero Carbon Fund",
       description:
-        "Channels Asian Development Bank green bonds into renewable energy to diversify Mongolia&#39;s coal-dependent grid.",
+        "Channels Asian Development Bank green bonds into renewable energy to diversify Mongolia's coal-dependent grid.",
     },
     Healthcare: {
       name: "Mongolia National Health Development Program",
@@ -8200,7 +8200,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Mongolia-China Rail Expansion",
       description:
-        "Expands rail capacity on Mongolia&#39;s south-north corridor to increase coal export throughput to China.",
+        "Expands rail capacity on Mongolia's south-north corridor to increase coal export throughput to China.",
     },
     Education: {
       name: "Mongolia Mongolian Language Education Reform",
@@ -8210,17 +8210,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Mongolia Oyu Tolgoi Copper Revenue Management",
       description:
-        "Manages the Rio Tinto Oyu Tolgoi copper mine ramp-up to transform Mongolia&#39;s GDP within a decade.",
+        "Manages the Rio Tinto Oyu Tolgoi copper mine ramp-up to transform Mongolia's GDP within a decade.",
     },
     Defense: {
       name: "Mongolia Third Neighbor Military Partnership",
       description:
-        "Deepens military exercises with the US and Japan as building blocks of Mongolia&#39;s Third Neighbor security policy.",
+        "Deepens military exercises with the US and Japan as building blocks of Mongolia's Third Neighbor security policy.",
     },
     Technology: {
       name: "Mongolia Smart Mongolia Digital Strategy",
       description:
-        "Deploys e-government, digital ID, and 4G connectivity to Mongolia&#39;s sparsely populated steppe communities.",
+        "Deploys e-government, digital ID, and 4G connectivity to Mongolia's sparsely populated steppe communities.",
     },
     Social: {
       name: "Mongolia Child Money Programme",
@@ -8237,7 +8237,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Laos Health Sector Reform Plan",
       description:
-        "Expands district hospital capacity and outreach to Laos&#39;s remote mountainous provinces and ethnic minority communities.",
+        "Expands district hospital capacity and outreach to Laos's remote mountainous provinces and ethnic minority communities.",
     },
     Infrastructure: {
       name: "Laos China Railway Connectivity Expansion",
@@ -8257,7 +8257,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Laos LPDR Defense Modernization",
       description:
-        "Maintains close defense partnerships with Vietnam and China while gradually modernizing the Lao People&#39;s Army.",
+        "Maintains close defense partnerships with Vietnam and China while gradually modernizing the Lao People's Army.",
     },
     Technology: {
       name: "Laos Digital Economy Policy",
@@ -8267,24 +8267,24 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Laos UXO Contamination Clearance Program",
       description:
-        "Continues removing unexploded ordnance from the Vietnam era that makes 25% of Laos&#39;s land unusable.",
+        "Continues removing unexploded ordnance from the Vietnam era that makes 25% of Laos's land unusable.",
     },
   },
   bn: {
     Climate: {
       name: "Brunei Green Economy Blueprint 2035",
       description:
-        "Develops mangrove conservation, solar energy, and carbon trading within Brunei&#39;s forest carbon stock framework.",
+        "Develops mangrove conservation, solar energy, and carbon trading within Brunei's forest carbon stock framework.",
     },
     Healthcare: {
       name: "Brunei National Health Blueprint 2035",
       description:
-        "Expands mental health services and NCD prevention to serve Brunei&#39;s aging and increasingly sedentary population.",
+        "Expands mental health services and NCD prevention to serve Brunei's aging and increasingly sedentary population.",
     },
     Infrastructure: {
       name: "Brunei Pulau Muara Besar Industrial Island",
       description:
-        "Develops PMB industrial island&#39;s downstream oil refinery and petrochemical complex for export diversification.",
+        "Develops PMB industrial island's downstream oil refinery and petrochemical complex for export diversification.",
     },
     Education: {
       name: "Brunei SPN21 Education System Improvement",
@@ -8294,7 +8294,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Brunei Vision 2035 Non-Oil Revenue Development",
       description:
-        "Develops tourism, halal food, and Islamic finance to supplement Brunei&#39;s declining oil and gas revenues.",
+        "Develops tourism, halal food, and Islamic finance to supplement Brunei's declining oil and gas revenues.",
     },
     Defense: {
       name: "Brunei Royal Brunei Armed Forces UK Partnership",
@@ -8316,7 +8316,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Bhutan Carbon-Negative Commitment",
       description:
-        "Maintains and expands Bhutan&#39;s carbon-negative status by protecting 72% forest cover and exporting clean hydropower.",
+        "Maintains and expands Bhutan's carbon-negative status by protecting 72% forest cover and exporting clean hydropower.",
     },
     Healthcare: {
       name: "Bhutan Free Universal Healthcare System",
@@ -8326,7 +8326,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Bhutan Gelephu Mindfulness City Development",
       description:
-        "Develops the visionary Gelephu Mindfulness City as Bhutan&#39;s gateway to India and economic diversification hub.",
+        "Develops the visionary Gelephu Mindfulness City as Bhutan's gateway to India and economic diversification hub.",
     },
     Education: {
       name: "Bhutan GNH-Based Education System",
@@ -8336,12 +8336,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Bhutan Tourism High-Value Low-Volume Policy",
       description:
-        "Maintains the $200/night sustainable development fee for tourists to preserve Bhutan&#39;s Himalayan environment and culture.",
+        "Maintains the $200/night sustainable development fee for tourists to preserve Bhutan's Himalayan environment and culture.",
     },
     Defense: {
       name: "Bhutan India Security Umbrella Partnership",
       description:
-        "Relies on India&#39;s security guarantee and the 2007 Friendship Treaty as Bhutan&#39;s primary defense framework.",
+        "Relies on India's security guarantee and the 2007 Friendship Treaty as Bhutan's primary defense framework.",
     },
     Technology: {
       name: "Bhutan Desuung Digital Transformation Scouts",
@@ -8393,14 +8393,14 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Maldives Affordable Housing Development Program",
       description:
-        "Constructs social flats in Hulhumalé Phase 2 to rehouse Malé&#39;s densely packed residents.",
+        "Constructs social flats in Hulhumalé Phase 2 to rehouse Malé's densely packed residents.",
     },
   },
   tl: {
     Climate: {
       name: "Timor-Leste Climate Change Policy",
       description:
-        "Develops climate-smart agriculture and mangrove restoration to protect Timor-Leste&#39;s coastal communities.",
+        "Develops climate-smart agriculture and mangrove restoration to protect Timor-Leste's coastal communities.",
     },
     Healthcare: {
       name: "Timor-Leste Health Sector Strategic Plan IV",
@@ -8430,7 +8430,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Timor-Leste Digital Economy Master Plan",
       description:
-        "Extends mobile broadband, fintech, and government digitalization to Timor-Leste&#39;s 13 municipalities.",
+        "Extends mobile broadband, fintech, and government digitalization to Timor-Leste's 13 municipalities.",
     },
     Social: {
       name: "Timor-Leste Bolsa da Mãe Social Transfer",
@@ -8447,17 +8447,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Belarus State Health System Reform",
       description:
-        "Upgrades Belarus&#39;s largely Soviet-era healthcare system with new diagnostic equipment and specialist centers.",
+        "Upgrades Belarus's largely Soviet-era healthcare system with new diagnostic equipment and specialist centers.",
     },
     Infrastructure: {
       name: "Belarus BelNPP Nuclear Station Operation",
       description:
-        "Operates the Ostrovets BelNPP nuclear plant providing 40% of Belarus&#39;s electricity and reducing Russian gas dependence.",
+        "Operates the Ostrovets BelNPP nuclear plant providing 40% of Belarus's electricity and reducing Russian gas dependence.",
     },
     Education: {
       name: "Belarus IT Education Specialization",
       description:
-        "Expands BSU and BSUIR ICT faculties to serve the Hi-Tech Park&#39;s $3.5B annual software export industry.",
+        "Expands BSU and BSUIR ICT faculties to serve the Hi-Tech Park's $3.5B annual software export industry.",
     },
     Economy: {
       name: "Belarus Russian Integration Economic Union",
@@ -8472,7 +8472,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Belarus Hi-Tech Park Startup Hub",
       description:
-        "Maintains the Hi-Tech Park&#39;s generous tax exemptions attracting global tech companies and fostering domestic startups.",
+        "Maintains the Hi-Tech Park's generous tax exemptions attracting global tech companies and fostering domestic startups.",
     },
     Social: {
       name: "Belarus State Social Support Maintenance",
@@ -8489,12 +8489,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Moldova National Health Strategy 2030",
       description:
-        "Modernizes Moldova&#39;s degraded health system infrastructure with EU neighborhood fund support.",
+        "Modernizes Moldova's degraded health system infrastructure with EU neighborhood fund support.",
     },
     Infrastructure: {
       name: "Moldova Iași-Ungheni-Chișinău Gas Pipeline",
       description:
-        "Completes the gas interconnector pipeline enabling Romania gas supplies to all of Moldova&#39;s consumers.",
+        "Completes the gas interconnector pipeline enabling Romania gas supplies to all of Moldova's consumers.",
     },
     Education: {
       name: "Moldova EU Horizon Education Integration",
@@ -8519,7 +8519,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Moldova Ukrainian Refugee Integration",
       description:
-        "Integrates 100,000 Ukrainian refugees — the highest per capita of any country — into Moldova&#39;s social services.",
+        "Integrates 100,000 Ukrainian refugees — the highest per capita of any country — into Moldova's social services.",
     },
   },
   al: {
@@ -8531,17 +8531,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Albania National Health System Transformation",
       description:
-        "Restructures Albania&#39;s primary care system with new family medicine centers in urban and rural areas.",
+        "Restructures Albania's primary care system with new family medicine centers in urban and rural areas.",
     },
     Infrastructure: {
       name: "Albania Adriatic-Ionian Highway Completion",
       description:
-        "Completes Albania&#39;s sections of the Adriatic-Ionian Motorway corridor connecting Western Balkans to EU networks.",
+        "Completes Albania's sections of the Adriatic-Ionian Motorway corridor connecting Western Balkans to EU networks.",
     },
     Education: {
       name: "Albania Reforming Pre-University Education System",
       description:
-        "Implements EU-aligned curriculum reforms and new teacher evaluation frameworks in Albania&#39;s reopened school system.",
+        "Implements EU-aligned curriculum reforms and new teacher evaluation frameworks in Albania's reopened school system.",
     },
     Economy: {
       name: "Albania EU Accession Economic Convergence",
@@ -8561,7 +8561,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Albania National Strategy Against Trafficking",
       description:
-        "Implements comprehensive anti-trafficking legislation and victim support services for Albania&#39;s vulnerable populations.",
+        "Implements comprehensive anti-trafficking legislation and victim support services for Albania's vulnerable populations.",
     },
   },
   mk: {
@@ -8578,7 +8578,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "North Macedonia Corridor 8 Railway Link",
       description:
-        "Builds the Corridor 8 rail linking Albania&#39;s Adriatic coast through Macedonia to Bulgaria and the Black Sea.",
+        "Builds the Corridor 8 rail linking Albania's Adriatic coast through Macedonia to Bulgaria and the Black Sea.",
     },
     Education: {
       name: "North Macedonia Curriculum Reform 2018-2025",
@@ -8593,7 +8593,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "North Macedonia NATO Integration Defense Plan",
       description:
-        "Fully integrates North Macedonia&#39;s defense into NATO collective defense structures following 2020 accession.",
+        "Fully integrates North Macedonia's defense into NATO collective defense structures following 2020 accession.",
     },
     Technology: {
       name: "North Macedonia Digital Agenda 2025",
@@ -8615,7 +8615,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Bosnia & Herzegovina Health System Coordination",
       description:
-        "Improves coordination among Bosnia&#39;s 13 separate health ministries to standardize essential benefit packages.",
+        "Improves coordination among Bosnia's 13 separate health ministries to standardize essential benefit packages.",
     },
     Infrastructure: {
       name: "Bosnia & Herzegovina Corridor 5c Motorway",
@@ -8635,7 +8635,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Bosnia & Herzegovina EUFOR Althea Security Support",
       description:
-        "Maintains EUFOR Althea&#39;s 1,100 troops providing Bosnia&#39;s security guarantees while building local capacity.",
+        "Maintains EUFOR Althea's 1,100 troops providing Bosnia's security guarantees while building local capacity.",
     },
     Technology: {
       name: "Bosnia & Herzegovina Digital Transformation Plan",
@@ -8699,7 +8699,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Kosovo National Health Strategy 2021-2030",
       description:
-        "Builds universal primary care coverage and referral systems for Kosovo&#39;s predominantly young population.",
+        "Builds universal primary care coverage and referral systems for Kosovo's predominantly young population.",
     },
     Infrastructure: {
       name: "Kosovo Highway R7 Prishtina-Montenegro",
@@ -8714,7 +8714,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Kosovo Diaspora Investment Attraction",
       description:
-        "Channels the Kosovar diaspora&#39;s 15% of GDP remittances into productive FDI through a diaspora investment fund.",
+        "Channels the Kosovar diaspora's 15% of GDP remittances into productive FDI through a diaspora investment fund.",
     },
     Defense: {
       name: "Kosovo KSF NATO Interoperability Upgrade",
@@ -8724,12 +8724,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Kosovo Digital Kosovo Vision 2030",
       description:
-        "Develops e-government, fintech, and IT outsourcing as Kosovo&#39;s fastest-growing economic sectors.",
+        "Develops e-government, fintech, and IT outsourcing as Kosovo's fastest-growing economic sectors.",
     },
     Social: {
       name: "Kosovo Youth Employment Challenge",
       description:
-        "Addresses Kosovo&#39;s 25% youth unemployment with EU-funded vocational training and SME startup programs.",
+        "Addresses Kosovo's 25% youth unemployment with EU-funded vocational training and SME startup programs.",
     },
   },
   si: {
@@ -8751,22 +8751,22 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Slovenia Digital Competence Framework Schools",
       description:
-        "Integrates e-Šolska torba digital tools and computational thinking into Slovenia&#39;s primary curriculum.",
+        "Integrates e-Šolska torba digital tools and computational thinking into Slovenia's primary curriculum.",
     },
     Economy: {
       name: "Slovenia Innovation Ecosystem Strengthening",
       description:
-        "Builds on Lek pharmaceuticals and Iskra electronics heritage to grow Slovenia&#39;s med-tech startup ecosystem.",
+        "Builds on Lek pharmaceuticals and Iskra electronics heritage to grow Slovenia's med-tech startup ecosystem.",
     },
     Defense: {
       name: "Slovenia NATO Enhanced Forward Presence Host",
       description:
-        "Hosts and contributes to NATO&#39;s enhanced forward presence in the Eastern Flank&#39;s collective defense architecture.",
+        "Hosts and contributes to NATO's enhanced forward presence in the Eastern Flank's collective defense architecture.",
     },
     Technology: {
       name: "Slovenia Digital Slovenia 2030",
       description:
-        "Advances Slovenia&#39;s digital transformation in government, healthcare, and SME digitalization with EU NextGen funds.",
+        "Advances Slovenia's digital transformation in government, healthcare, and SME digitalization with EU NextGen funds.",
     },
     Social: {
       name: "Slovenia Long-Term Care Act Implementation",
@@ -8788,7 +8788,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Latvia Rail Baltica Active Construction",
       description:
-        "Advances Rail Baltica&#39;s European standard gauge railway connecting Riga to Tallinn and Warsaw.",
+        "Advances Rail Baltica's European standard gauge railway connecting Riga to Tallinn and Warsaw.",
     },
     Education: {
       name: "Latvia Latvian Language as Sole Education Medium",
@@ -8798,7 +8798,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Latvia Defense Industry Cluster Development",
       description:
-        "Attracts NATO defense contractors to Latvia&#39;s industrial parks as demand for Baltic defense manufacturing rises.",
+        "Attracts NATO defense contractors to Latvia's industrial parks as demand for Baltic defense manufacturing rises.",
     },
     Defense: {
       name: "Latvia NATO Battle Group Host and Expansion",
@@ -8808,7 +8808,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Latvia Digital Transformation Guidelines 2027",
       description:
-        "Advances e-Latvija interoperability, government data sharing, and Riga&#39;s ICT startup ecosystem.",
+        "Advances e-Latvija interoperability, government data sharing, and Riga's ICT startup ecosystem.",
     },
     Social: {
       name: "Latvia Demographic Reversal Action Plan",
@@ -8840,7 +8840,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Lithuania Laser and Photonics Industry Strategy",
       description:
-        "Develops and protects Lithuania&#39;s globally leading laser and photonics manufacturing cluster in Vilnius.",
+        "Develops and protects Lithuania's globally leading laser and photonics manufacturing cluster in Vilnius.",
     },
     Defense: {
       name: "Lithuania German Brigade Forward Deployment",
@@ -8850,7 +8850,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Lithuania Digital Public Infrastructure Strategy",
       description:
-        "Develops digital identity, open banking, and e-government services for Lithuania&#39;s digital residents and citizens.",
+        "Develops digital identity, open banking, and e-government services for Lithuania's digital residents and citizens.",
     },
     Social: {
       name: "Lithuania Child Poverty Safety Net Enhancement",
@@ -8867,17 +8867,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Estonia E-Health Digital Record Expansion",
       description:
-        "Leverages Estonia&#39;s X-Road data infrastructure to integrate hospital, pharmacy, and GP health records nationwide.",
+        "Leverages Estonia's X-Road data infrastructure to integrate hospital, pharmacy, and GP health records nationwide.",
     },
     Infrastructure: {
       name: "Estonia Rail Baltic Tallinn-Pärnu Section",
       description:
-        "Completes Rail Baltica&#39;s Estonian section connecting Tallinn International Airport to the Latvian border.",
+        "Completes Rail Baltica's Estonian section connecting Tallinn International Airport to the Latvian border.",
     },
     Education: {
       name: "Estonia Computing & Coding in Schools",
       description:
-        "Maintains and deepens Estonia&#39;s pioneering K-12 coding curriculum as the model for EU digital skills education.",
+        "Maintains and deepens Estonia's pioneering K-12 coding curriculum as the model for EU digital skills education.",
     },
     Economy: {
       name: "Estonia Startup Estonia Unicorn Pipeline",
@@ -8892,7 +8892,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Estonia Digital Nation Blueprint 2030",
       description:
-        "Advances Estonia&#39;s global digital governance leadership through e-Residency, X-Road, and digital embassies.",
+        "Advances Estonia's global digital governance leadership through e-Residency, X-Road, and digital embassies.",
     },
     Social: {
       name: "Estonia Working Life Integration of Russians",
@@ -8909,7 +8909,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Iceland Universal Healthcare Sustainability Review",
       description:
-        "Addresses long waiting times in Iceland&#39;s universal healthcare system through capacity and workforce expansion.",
+        "Addresses long waiting times in Iceland's universal healthcare system through capacity and workforce expansion.",
     },
     Infrastructure: {
       name: "Iceland Highlands Road F-System Development",
@@ -8919,7 +8919,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Iceland University of Iceland Strategic Vision",
       description:
-        "Strengthens Iceland&#39;s only comprehensive university to reduce student emigration to Scandinavia and the UK.",
+        "Strengthens Iceland's only comprehensive university to reduce student emigration to Scandinavia and the UK.",
     },
     Economy: {
       name: "Iceland Data Center Green Economy Development",
@@ -8929,7 +8929,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Iceland Keflavík US-NATO Base Operations Continuation",
       description:
-        "Maintains Keflavík base operations with US and NATO partners as Iceland&#39;s non-military defense contribution.",
+        "Maintains Keflavík base operations with US and NATO partners as Iceland's non-military defense contribution.",
     },
     Technology: {
       name: "Iceland Digital Iceland Government Strategy",
@@ -8939,39 +8939,39 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Iceland Gender Pay Gap Enforcement Law",
       description:
-        "Enforces Iceland&#39;s Equal Pay Standard requiring companies to certify equal pay to retain operating licenses.",
+        "Enforces Iceland's Equal Pay Standard requiring companies to certify equal pay to retain operating licenses.",
     },
   },
   lu: {
     Climate: {
       name: "Luxembourg Climate Law Net-Zero 2050",
       description:
-        "Implements Luxembourg&#39;s binding climate law with carbon pricing, renewable incentives, and EV fleet mandates.",
+        "Implements Luxembourg's binding climate law with carbon pricing, renewable incentives, and EV fleet mandates.",
     },
     Healthcare: {
       name: "Luxembourg CNS Health System Stabilization",
       description:
-        "Reforms the CNS national health fund to manage unsustainable cost growth in one of Europe&#39;s richest health systems.",
+        "Reforms the CNS national health fund to manage unsustainable cost growth in one of Europe's richest health systems.",
     },
     Infrastructure: {
       name: "Luxembourg Free Public Transit Upgrade",
       description:
-        "Expands rail and tram capacity following Luxembourg&#39;s historic 2020 introduction of free national public transport.",
+        "Expands rail and tram capacity following Luxembourg's historic 2020 introduction of free national public transport.",
     },
     Education: {
       name: "Luxembourg Multilingual Education Enhancement",
       description:
-        "Strengthens trilingual Luxembourgish-German-French instruction to serve Luxembourg&#39;s 47% foreign-born population.",
+        "Strengthens trilingual Luxembourgish-German-French instruction to serve Luxembourg's 47% foreign-born population.",
     },
     Economy: {
       name: "Luxembourg Space Economy Leadership Plan",
       description:
-        "Builds on SES, LuxSpace, and Space Resources legislation to make Luxembourg the EU&#39;s commercial space economy hub.",
+        "Builds on SES, LuxSpace, and Space Resources legislation to make Luxembourg the EU's commercial space economy hub.",
     },
     Defense: {
       name: "Luxembourg NATO Collective Defense Contribution",
       description:
-        "Provides financial contributions, satellite communications, and F-35 acquisition as Luxembourg&#39;s NATO commitment.",
+        "Provides financial contributions, satellite communications, and F-35 acquisition as Luxembourg's NATO commitment.",
     },
     Technology: {
       name: "Luxembourg AI and Data Economy Fund",
@@ -8981,7 +8981,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Luxembourg Housing Crisis Solutions Package",
       description:
-        "Introduces rent controls, accelerated permitting, and social housing investment to address Luxembourg&#39;s acute housing shortage.",
+        "Introduces rent controls, accelerated permitting, and social housing investment to address Luxembourg's acute housing shortage.",
     },
   },
   cy: {
@@ -8993,12 +8993,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Cyprus GESY General Health System Stabilization",
       description:
-        "Fine-tunes GESY&#39;s capitation payments and specialist co-pay structures as Cyprus&#39;s landmark health reform matures.",
+        "Fine-tunes GESY's capitation payments and specialist co-pay structures as Cyprus's landmark health reform matures.",
     },
     Infrastructure: {
       name: "Cyprus Energy Interconnection with Israel-Greece",
       description:
-        "Advances the EuroAsia Interconnector undersea cable connecting Cyprus to Israel and Greece&#39;s European grid.",
+        "Advances the EuroAsia Interconnector undersea cable connecting Cyprus to Israel and Greece's European grid.",
     },
     Education: {
       name: "Cyprus Vocational Education Attractiveness Reform",
@@ -9030,12 +9030,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Malta Climate Action Plan",
       description:
-        "Develops the Bahar ic-Caghaq floating solar facility and energy storage to replace Malta&#39;s gas-fired generation.",
+        "Develops the Bahar ic-Caghaq floating solar facility and energy storage to replace Malta's gas-fired generation.",
     },
     Healthcare: {
       name: "Malta Health Strategy National Plan",
       description:
-        "Reduces hospital waiting times and expands community mental health services for Malta&#39;s aging population.",
+        "Reduces hospital waiting times and expands community mental health services for Malta's aging population.",
     },
     Infrastructure: {
       name: "Malta Gozo Tunnel Feasibility",
@@ -9050,7 +9050,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Malta iGaming and Digital Services Economy",
       description:
-        "Modernizes the regulatory framework for Malta&#39;s dominant iGaming and digital services export sector.",
+        "Modernizes the regulatory framework for Malta's dominant iGaming and digital services export sector.",
     },
     Defense: {
       name: "Malta Armed Forces SAR Enhancement",
@@ -9087,12 +9087,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Liechtenstein Dual Education Innovation System",
       description:
-        "Strengthens Liechtenstein&#39;s high-quality apprenticeship system feeding precision manufacturing and financial industries.",
+        "Strengthens Liechtenstein's high-quality apprenticeship system feeding precision manufacturing and financial industries.",
     },
     Economy: {
       name: "Liechtenstein Financial Center Modernization",
       description:
-        "Adapts Liechtenstein&#39;s wealth management and foundations industry to EU AMLD compliance and digital asset regulation.",
+        "Adapts Liechtenstein's wealth management and foundations industry to EU AMLD compliance and digital asset regulation.",
     },
     Defense: {
       name: "Liechtenstein Police Non-Military Security",
@@ -9107,7 +9107,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Liechtenstein Cross-Border Worker Integration",
       description:
-        "Manages social cohesion as 55% of Liechtenstein&#39;s workforce commutes daily from Switzerland and Austria.",
+        "Manages social cohesion as 55% of Liechtenstein's workforce commutes daily from Switzerland and Austria.",
     },
   },
   mc: {
@@ -9119,17 +9119,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Monaco Healthcare for Residents and Monaco-Ville",
       description:
-        "Maintains universal healthcare for Monaco&#39;s residents through the state medical network and CAF subsidies.",
+        "Maintains universal healthcare for Monaco's residents through the state medical network and CAF subsidies.",
     },
     Infrastructure: {
       name: "Monaco Land Reclamation Extension Project",
       description:
-        "Develops the Portier Cove land extension adding 6 hectares of eco-engineered land to Monaco&#39;s coastline.",
+        "Develops the Portier Cove land extension adding 6 hectares of eco-engineered land to Monaco's coastline.",
     },
     Education: {
       name: "Monaco Public Education Quality Maintenance",
       description:
-        "Operates Monaco&#39;s small but high-quality public schools delivering multilingual education aligned with French curricula.",
+        "Operates Monaco's small but high-quality public schools delivering multilingual education aligned with French curricula.",
     },
     Economy: {
       name: "Monaco Tech and Green Economy Diversification",
@@ -9144,7 +9144,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Monaco 5G Smart Principality Initiative",
       description:
-        "Deploys one of the world&#39;s densest 5G networks supporting smart maritime, traffic, and building management.",
+        "Deploys one of the world's densest 5G networks supporting smart maritime, traffic, and building management.",
     },
     Social: {
       name: "Monaco Affordable Housing for Monégasques",
@@ -9176,7 +9176,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "San Marino Banking Sector Reform",
       description:
-        "Reforms San Marino&#39;s banking system following the 2014 Banca CIS crisis to rebuild international correspondent banking.",
+        "Reforms San Marino's banking system following the 2014 Banca CIS crisis to rebuild international correspondent banking.",
     },
     Defense: {
       name: "San Marino Crossbow Corps Ceremonial Guard",
@@ -9213,7 +9213,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Cuba Technology Education Modernization",
       description:
-        "Updates university ICT curricula and provides limited computer access to maintain Cuba&#39;s high human capital base.",
+        "Updates university ICT curricula and provides limited computer access to maintain Cuba's high human capital base.",
     },
     Economy: {
       name: "Cuba Currency Unification Stability Measures",
@@ -9223,12 +9223,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Cuba Revolutionary Armed Forces Modernization",
       description:
-        "Maintains the FAR&#39;s internal security and international training cooperation roles amid deteriorating equipment.",
+        "Maintains the FAR's internal security and international training cooperation roles amid deteriorating equipment.",
     },
     Technology: {
       name: "Cuba ETECSA Network Expansion",
       description:
-        "Expands ETECSA&#39;s 3G and 4G mobile network while maintaining state control over internet access and content.",
+        "Expands ETECSA's 3G and 4G mobile network while maintaining state control over internet access and content.",
     },
     Social: {
       name: "Cuba Food Rationing System Libreta Reform",
@@ -9265,7 +9265,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Dominican Republic Haiti Border Security",
       description:
-        "Deploys additional forces and border fencing following Haiti&#39;s governance collapse and gang control of Port-au-Prince.",
+        "Deploys additional forces and border fencing following Haiti's governance collapse and gang control of Port-au-Prince.",
     },
     Technology: {
       name: "Dominican Republic Digital Economy Strategy",
@@ -9282,7 +9282,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Haiti Climate Resilience Strategy",
       description:
-        "Develops disaster risk reduction and early warning capacities for Haiti&#39;s extreme vulnerability to hurricanes and floods.",
+        "Develops disaster risk reduction and early warning capacities for Haiti's extreme vulnerability to hurricanes and floods.",
     },
     Healthcare: {
       name: "Haiti MSPP Emergency Health System Support",
@@ -9324,7 +9324,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Guatemala Green Compact NDC Implementation",
       description:
-        "Implements afforestation, clean cookstoves, and hydropower targets from Guatemala&#39;s Nationally Determined Contribution.",
+        "Implements afforestation, clean cookstoves, and hydropower targets from Guatemala's Nationally Determined Contribution.",
     },
     Healthcare: {
       name: "Guatemala Universal Health Coverage Expansion",
@@ -9344,7 +9344,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Guatemala Anti-Corruption Investment Climate Reform",
       description:
-        "Implements President Arévalo&#39;s anti-corruption agenda to improve investment climate and FDI attraction.",
+        "Implements President Arévalo's anti-corruption agenda to improve investment climate and FDI attraction.",
     },
     Defense: {
       name: "Guatemala Northern Triangle Border Security",
@@ -9354,7 +9354,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Guatemala Digital Economy and Fintech Policy",
       description:
-        "Develops digital payment infrastructure and fintech regulation to formalize Guatemala&#39;s large informal economy.",
+        "Develops digital payment infrastructure and fintech regulation to formalize Guatemala's large informal economy.",
     },
     Social: {
       name: "Guatemala Semilla Migration Root Causes Strategy",
@@ -9366,12 +9366,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Honduras NDC Adaptation Forests and Water",
       description:
-        "Protects Honduras&#39;s forest cover and watershed protection as climate adaptation for its agriculture-dependent economy.",
+        "Protects Honduras's forest cover and watershed protection as climate adaptation for its agriculture-dependent economy.",
     },
     Healthcare: {
       name: "Honduras SESAL Primary Care Service Delivery",
       description:
-        "Expands SESAL&#39;s outreach to rural Honduras through mobile teams and community health volunteers.",
+        "Expands SESAL's outreach to rural Honduras through mobile teams and community health volunteers.",
     },
     Infrastructure: {
       name: "Honduras Corredor Seco Highway Rehabilitation",
@@ -9386,7 +9386,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Honduras Próspera ZEDE Special Zone Policy",
       description:
-        "Manages the political and legal dispute surrounding Próspera&#39;s charter city model following regulatory reversal.",
+        "Manages the political and legal dispute surrounding Próspera's charter city model following regulatory reversal.",
     },
     Defense: {
       name: "Honduras Armed Forces Counter-Narcotics Operations",
@@ -9399,7 +9399,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
         "Digitizes business registration, tax filing, and public procurement to reduce corruption and improve competitiveness.",
     },
     Social: {
-      name: "Honduras Ciudad Mujer Women&#39;s Services Centers",
+      name: "Honduras Ciudad Mujer Women's Services Centers",
       description:
         "Operates Ciudad Mujer integrated service centers providing healthcare, legal aid, and economic empowerment.",
     },
@@ -9423,7 +9423,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "El Salvador Digital Education Pack",
       description:
-        "Provides tablets and connectivity to all primary school students in El Salvador&#39;s public education system.",
+        "Provides tablets and connectivity to all primary school students in El Salvador's public education system.",
     },
     Economy: {
       name: "El Salvador Bitcoin Legal Tender Evolution",
@@ -9450,7 +9450,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Nicaragua Renewable Energy Geothermal Expansion",
       description:
-        "Expands Nicaragua&#39;s remarkable 75% renewable grid through geothermal and wind additions in Rivas and León.",
+        "Expands Nicaragua's remarkable 75% renewable grid through geothermal and wind additions in Rivas and León.",
     },
     Healthcare: {
       name: "Nicaragua Primary Healthcare Network Strengthening",
@@ -9465,17 +9465,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Nicaragua Literacy Campaign 2.0 Continuation",
       description:
-        "Maintains Nicaragua&#39;s tradition of mass literacy campaigns to address remaining adult illiteracy.",
+        "Maintains Nicaragua's tradition of mass literacy campaigns to address remaining adult illiteracy.",
     },
     Economy: {
       name: "Nicaragua Maquila Export Manufacturing Strategy",
       description:
-        "Develops textile and cigar export manufacturing leveraging Nicaragua&#39;s CAFTA-DR market access and low labor costs.",
+        "Develops textile and cigar export manufacturing leveraging Nicaragua's CAFTA-DR market access and low labor costs.",
     },
     Defense: {
       name: "Nicaragua Ejército de Nicaragua Internal Security",
       description:
-        "Maintains the Ejército de Nicaragua&#39;s internal security functions supporting Ortega government stability.",
+        "Maintains the Ejército de Nicaragua's internal security functions supporting Ortega government stability.",
     },
     Technology: {
       name: "Nicaragua Digital Connectivity Government Program",
@@ -9492,32 +9492,32 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Costa Rica Carbon Neutrality 2050 Plan",
       description:
-        "Operationalizes Costa Rica&#39;s National Decarbonization Plan targeting net-zero through transport and energy transition.",
+        "Operationalizes Costa Rica's National Decarbonization Plan targeting net-zero through transport and energy transition.",
     },
     Healthcare: {
       name: "Costa Rica CCSS Universal Insurance Modernization",
       description:
-        "Reforms the CCSS to reduce waiting times and digitize services while maintaining Costa Rica&#39;s universal coverage model.",
+        "Reforms the CCSS to reduce waiting times and digitize services while maintaining Costa Rica's universal coverage model.",
     },
     Infrastructure: {
       name: "Costa Rica Route 27 Pacific Highway Expansion",
       description:
-        "Expands Route 27 to six lanes connecting San José to Caldera&#39;s Pacific port for tourist and freight traffic.",
+        "Expands Route 27 to six lanes connecting San José to Caldera's Pacific port for tourist and freight traffic.",
     },
     Education: {
       name: "Costa Rica National Education Plan Quality Focus",
       description:
-        "Shifts Costa Rica&#39;s education investment from access to quality, targeting PISA benchmark improvements.",
+        "Shifts Costa Rica's education investment from access to quality, targeting PISA benchmark improvements.",
     },
     Economy: {
       name: "Costa Rica Medical Device Export Expansion",
       description:
-        "Deepens Costa Rica&#39;s medical device export cluster in the Coyol Free Zone as the No. 1 US medical device supplier.",
+        "Deepens Costa Rica's medical device export cluster in the Coyol Free Zone as the No. 1 US medical device supplier.",
     },
     Defense: {
       name: "Costa Rica Fuerza Pública Border Security",
       description:
-        "Strengthens the Fuerza Pública&#39;s border control capacity to manage narcotics trafficking from Panama and Nicaragua.",
+        "Strengthens the Fuerza Pública's border control capacity to manage narcotics trafficking from Panama and Nicaragua.",
     },
     Technology: {
       name: "Costa Rica Digital Transformation Plan 2023-2026",
@@ -9534,7 +9534,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Panama Climate Change National Plan",
       description:
-        "Funds watershed protection and low-carbon cities to safeguard the Panama Canal&#39;s water supply from drought.",
+        "Funds watershed protection and low-carbon cities to safeguard the Panama Canal's water supply from drought.",
     },
     Healthcare: {
       name: "Panama CSS Social Security Health Reform",
@@ -9569,7 +9569,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Panama Red de Oportunidades Social Transfer",
       description:
-        "Provides monthly cash transfers and social services to Panama&#39;s extreme rural and indigenous poor populations.",
+        "Provides monthly cash transfers and social services to Panama's extreme rural and indigenous poor populations.",
     },
   },
   jm: {
@@ -9581,7 +9581,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Healthcare: {
       name: "Jamaica NHF and JADEP Sustainability",
       description:
-        "Sustains Jamaica&#39;s National Health Fund and drug plan for chronic disease management on a constrained budget.",
+        "Sustains Jamaica's National Health Fund and drug plan for chronic disease management on a constrained budget.",
     },
     Infrastructure: {
       name: "Jamaica JUTC BRT Kingston Bus Rapid Transit",
@@ -9591,7 +9591,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Jamaica Early Childhood Commission Quality Program",
       description:
-        "Raises quality standards across Jamaica&#39;s 2,700 early childhood institutions catering to 130,000 children.",
+        "Raises quality standards across Jamaica's 2,700 early childhood institutions catering to 130,000 children.",
     },
     Economy: {
       name: "Jamaica Tourism Post-COVID Resilience Strategy",
@@ -9643,17 +9643,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Trinidad & Tobago TTDF Coastal Maritime Patrol",
       description:
-        "Operates TTDF coast guard patrols combating cocaine trafficking through Trinidad&#39;s strategic Caribbean location.",
+        "Operates TTDF coast guard patrols combating cocaine trafficking through Trinidad's strategic Caribbean location.",
     },
     Technology: {
       name: "Trinidad & Tobago Digital Transformation Roadmap",
       description:
-        "Digitizes TTBizLink trade facilitation, e-government services, and develops Port of Spain&#39;s fintech sector.",
+        "Digitizes TTBizLink trade facilitation, e-government services, and develops Port of Spain's fintech sector.",
     },
     Social: {
       name: "Trinidad & Tobago SOCIAL SECTOR Investment Programme",
       description:
-        "Funds social housing, food support, and community uplift programs for T&T&#39;s urban and rural poor.",
+        "Funds social housing, food support, and community uplift programs for T&T's urban and rural poor.",
     },
   },
   bs: {
@@ -9670,7 +9670,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Bahamas Paradise Island Bridge Upgrade",
       description:
-        "Rehabilitates the Nassau-Paradise Island bridge infrastructure critical to Bahamas&#39; tourism industry connectivity.",
+        "Rehabilitates the Nassau-Paradise Island bridge infrastructure critical to Bahamas' tourism industry connectivity.",
     },
     Education: {
       name: "Bahamas Education Transformation Plan",
@@ -9702,7 +9702,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Barbados Bridgetown Initiative Climate Finance",
       description:
-        "Champions PM Mottley&#39;s Bridgetown Initiative reforming the global financial architecture for climate-vulnerable countries.",
+        "Champions PM Mottley's Bridgetown Initiative reforming the global financial architecture for climate-vulnerable countries.",
     },
     Healthcare: {
       name: "Barbados QEH Queen Elizabeth Hospital Expansion",
@@ -9712,7 +9712,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Barbados Transport Board Electric Bus Fleet",
       description:
-        "Converts the Transport Board to an all-electric bus fleet by 2030 as part of Barbados&#39; energy transition.",
+        "Converts the Transport Board to an all-electric bus fleet by 2030 as part of Barbados' energy transition.",
     },
     Education: {
       name: "Barbados SJPP Samuel Jackman Prescod Polytechnic Reform",
@@ -9727,12 +9727,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Barbados Barbados Defence Force Regional Disaster Role",
       description:
-        "Maintains the BDF&#39;s small regional disaster response and coast guard capacity for Eastern Caribbean security.",
+        "Maintains the BDF's small regional disaster response and coast guard capacity for Eastern Caribbean security.",
     },
     Technology: {
       name: "Barbados Digital Economy Policy 2025-2030",
       description:
-        "Develops Bridgetown&#39;s fintech, digital nomad, and blockchain innovation ecosystem based on a clear regulatory framework.",
+        "Develops Bridgetown's fintech, digital nomad, and blockchain innovation ecosystem based on a clear regulatory framework.",
     },
     Social: {
       name: "Barbados National Housing Programme Affordable Units",
@@ -9764,7 +9764,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Belize Debt-for-Nature Swap Blue Bond",
       description:
-        "Executes a blue bond debt swap directing savings toward marine conservation protecting Belize&#39;s tourism economy.",
+        "Executes a blue bond debt swap directing savings toward marine conservation protecting Belize's tourism economy.",
     },
     Defense: {
       name: "Belize BDF Guatemala Border Defense",
@@ -9779,14 +9779,14 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Belize Social Investment Fund Community Development",
       description:
-        "Funds community infrastructure, school meals, and poverty reduction programs in Belize&#39;s most vulnerable communities.",
+        "Funds community infrastructure, school meals, and poverty reduction programs in Belize's most vulnerable communities.",
     },
   },
   uy: {
     Climate: {
       name: "Uruguay 100% Clean Electricity Achievement",
       description:
-        "Sustains Uruguay&#39;s 98% renewable electricity leadership while developing green hydrogen export for Europe.",
+        "Sustains Uruguay's 98% renewable electricity leadership while developing green hydrogen export for Europe.",
     },
     Healthcare: {
       name: "Uruguay FONASA Integrated Health Reform",
@@ -9801,7 +9801,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Uruguay Plan Ceibal Digital Education Model",
       description:
-        "Evolves Plan Ceibal from the world&#39;s first 1:1 laptop program to an AI-driven personalized learning platform.",
+        "Evolves Plan Ceibal from the world's first 1:1 laptop program to an AI-driven personalized learning platform.",
     },
     Economy: {
       name: "Uruguay Hydrogen Andes-Atlantic Ambition",
@@ -9811,12 +9811,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Uruguay FFAA UN Peacekeeping Engagement",
       description:
-        "Maintains Uruguay&#39;s strong tradition as a proportional UN peacekeeping contributor in the DRC, Haiti, and Colombia.",
+        "Maintains Uruguay's strong tradition as a proportional UN peacekeeping contributor in the DRC, Haiti, and Colombia.",
     },
     Technology: {
       name: "Uruguay Digital Uruguay Gov.uy Portal",
       description:
-        "Deepens Uruguay&#39;s Gov.uy digital government services into a fully integrated citizen data and services platform.",
+        "Deepens Uruguay's Gov.uy digital government services into a fully integrated citizen data and services platform.",
     },
     Social: {
       name: "Uruguay Uruguay Social MIDES Income Support",
@@ -9828,12 +9828,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Paraguay National Climate Change Plan",
       description:
-        "Develops reforestation incentives and cattleman carbon offset programs for the Chaco&#39;s deforested farmland.",
+        "Develops reforestation incentives and cattleman carbon offset programs for the Chaco's deforested farmland.",
     },
     Healthcare: {
       name: "Paraguay Universal Coverage Health Reform",
       description:
-        "Expands the MSPyBS primary care network with mobile units serving Paraguay&#39;s dispersed rural population.",
+        "Expands the MSPyBS primary care network with mobile units serving Paraguay's dispersed rural population.",
     },
     Infrastructure: {
       name: "Paraguay Bioceanic Road Corridor Completion",
@@ -9843,12 +9843,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Paraguay Jóvenes en Acción TVET Expansion",
       description:
-        "Scales technical and vocational education through SNPP to reduce Paraguay&#39;s structural skills mismatch.",
+        "Scales technical and vocational education through SNPP to reduce Paraguay's structural skills mismatch.",
     },
     Economy: {
       name: "Paraguay Crypto Mining Clean Energy Position",
       description:
-        "Markets Paraguay&#39;s Itaipú hydroelectric surplus as clean energy for Bitcoin mining and data center operations.",
+        "Markets Paraguay's Itaipú hydroelectric surplus as clean energy for Bitcoin mining and data center operations.",
     },
     Defense: {
       name: "Paraguay FAP Anti-Narcotrafficking Operations",
@@ -9880,12 +9880,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Bolivia Puerto Busch Atlantic Access Canal",
       description:
-        "Develops Bolivia&#39;s Puerto Busch canal project to gain direct river access to the Paraná-Paraguay waterway.",
+        "Develops Bolivia's Puerto Busch canal project to gain direct river access to the Paraná-Paraguay waterway.",
     },
     Education: {
       name: "Bolivia Constitutional Plurinational Education Reform",
       description:
-        "Deepens the implementation of indigenous language instruction across Bolivia&#39;s 36 recognized languages.",
+        "Deepens the implementation of indigenous language instruction across Bolivia's 36 recognized languages.",
     },
     Economy: {
       name: "Bolivia Natural Gas Income Stabilization",
@@ -9912,7 +9912,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Suriname Rainforest Carbon Sink Protection",
       description:
-        "Seeks payment for Suriname&#39;s 93% forest cover which makes it one of the world&#39;s few carbon-negative countries.",
+        "Seeks payment for Suriname's 93% forest cover which makes it one of the world's few carbon-negative countries.",
     },
     Healthcare: {
       name: "Suriname MOH Primary Health Reconstruction",
@@ -9922,17 +9922,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Suriname Nieuwe Haven Paramaribo Port",
       description:
-        "Develops the new Paramaribo port to handle Suriname&#39;s anticipated offshore oil and gold export surge.",
+        "Develops the new Paramaribo port to handle Suriname's anticipated offshore oil and gold export surge.",
     },
     Education: {
       name: "Suriname National Education Plan 2030",
       description:
-        "Aligns Suriname&#39;s education system with Dutch Caricom standards and local economic development priorities.",
+        "Aligns Suriname's education system with Dutch Caricom standards and local economic development priorities.",
     },
     Economy: {
       name: "Suriname TotalEnergies Offshore Oil Production",
       description:
-        "Develops the Block 58 offshore oil discovery to become a major new revenue source for Suriname&#39;s treasury.",
+        "Develops the Block 58 offshore oil discovery to become a major new revenue source for Suriname's treasury.",
     },
     Defense: {
       name: "Suriname SNS Amazon Border Security",
@@ -9974,12 +9974,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Guyana EXXON-led Oil Economy Management",
       description:
-        "Establishes the Natural Resource Fund governance model to responsibly manage Guyana&#39;s booming oil revenues.",
+        "Establishes the Natural Resource Fund governance model to responsibly manage Guyana's booming oil revenues.",
     },
     Defense: {
       name: "Guyana GDF Venezuela Border Protection",
       description:
-        "Strengthens Guyana Defence Force capacity following Venezuela&#39;s 2023 annexation claim over the Essequibo region.",
+        "Strengthens Guyana Defence Force capacity following Venezuela's 2023 annexation claim over the Essequibo region.",
     },
     Technology: {
       name: "Guyana National ICT Plan 2030",
@@ -9989,19 +9989,19 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Guyana Hinterland Communities Development Program",
       description:
-        "Provides infrastructure, services, and economic opportunities to Amerindian communities in Guyana&#39;s interior regions.",
+        "Provides infrastructure, services, and economic opportunities to Amerindian communities in Guyana's interior regions.",
     },
   },
   pg: {
     Climate: {
       name: "Papua New Guinea NDC Forests and Energy",
       description:
-        "Pursues REDD+ forest carbon payments and hydro expansion to monetize PNG&#39;s extraordinary natural resources.",
+        "Pursues REDD+ forest carbon payments and hydro expansion to monetize PNG's extraordinary natural resources.",
     },
     Healthcare: {
       name: "Papua New Guinea National Health Plan",
       description:
-        "Rebuilds PNG&#39;s collapsed rural health system through aid-funded community health worker deployment.",
+        "Rebuilds PNG's collapsed rural health system through aid-funded community health worker deployment.",
     },
     Infrastructure: {
       name: "Papua New Guinea Highlands Highway Rehabilitation",
@@ -10026,29 +10026,29 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Technology: {
       name: "Papua New Guinea Connect PNG Connectivity",
       description:
-        "Deploys submarine cable connectivity and rural broadband towers to reduce PNG&#39;s extreme digital exclusion.",
+        "Deploys submarine cable connectivity and rural broadband towers to reduce PNG's extreme digital exclusion.",
     },
     Social: {
       name: "Papua New Guinea Gender-Based Violence Emergency Plan",
       description:
-        "Addresses PNG&#39;s extreme GBV rates through safe houses, legal reform, and community-based prevention programs.",
+        "Addresses PNG's extreme GBV rates through safe houses, legal reform, and community-based prevention programs.",
     },
   },
   fj: {
     Climate: {
       name: "Fiji 100% Renewable Energy Target",
       description:
-        "Advances Fiji&#39;s 100% renewable electricity goal using hydro, solar, and wind on Viti Levu and Vanua Levu.",
+        "Advances Fiji's 100% renewable electricity goal using hydro, solar, and wind on Viti Levu and Vanua Levu.",
     },
     Healthcare: {
       name: "Fiji Non-Communicable Disease Response",
       description:
-        "Combats Fiji&#39;s extremely high NCD burden through community health promotion and primary care strengthening.",
+        "Combats Fiji's extremely high NCD burden through community health promotion and primary care strengthening.",
     },
     Infrastructure: {
       name: "Fiji Kings Road Upgrade Viti Levu Circular",
       description:
-        "Rehabilitates the Kings Road around Viti Levu completing the island&#39;s circular highway network.",
+        "Rehabilitates the Kings Road around Viti Levu completing the island's circular highway network.",
     },
     Education: {
       name: "Fiji Free Education from Primary to Secondary",
@@ -10063,7 +10063,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Fiji RFMF UN Peacekeeping Tradition",
       description:
-        "Maintains Fiji&#39;s contribution to UN peacekeeping in the Golan Heights and other missions as a national tradition.",
+        "Maintains Fiji's contribution to UN peacekeeping in the Golan Heights and other missions as a national tradition.",
     },
     Technology: {
       name: "Fiji Digital Fiji ICT Strategy",
@@ -10105,7 +10105,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Solomon Islands China Security Agreement Response",
       description:
-        "Manages Australia and Pacific partners&#39; concerns about the 2022 Solomon Islands-China Security Agreement.",
+        "Manages Australia and Pacific partners' concerns about the 2022 Solomon Islands-China Security Agreement.",
     },
     Technology: {
       name: "Solomon Islands Submarine Cable Connectivity",
@@ -10147,7 +10147,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Vanuatu VMF Force Professionalization",
       description:
-        "Develops the Vanuatu Mobile Force&#39;s disaster response and internal security capabilities with Australian support.",
+        "Develops the Vanuatu Mobile Force's disaster response and internal security capabilities with Australian support.",
     },
     Technology: {
       name: "Vanuatu Rural Internet and Mobile Money",
@@ -10157,7 +10157,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Social: {
       name: "Vanuatu Traditional land and Kastom Rights",
       description:
-        "Recognizes traditional Kastom governance and land rights within Vanuatu&#39;s formal legal and social protection systems.",
+        "Recognizes traditional Kastom governance and land rights within Vanuatu's formal legal and social protection systems.",
     },
   },
   ws: {
@@ -10179,12 +10179,12 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Education: {
       name: "Samoa Education Sector Plan",
       description:
-        "Improves school access, teacher quality, and ICT skills to meet Samoa&#39;s human development goals.",
+        "Improves school access, teacher quality, and ICT skills to meet Samoa's human development goals.",
     },
     Economy: {
       name: "Samoa Remittance-Dependent Economy Management",
       description:
-        "Maintains low transfer cost policies and builds financial literacy for Samoa&#39;s 20% GDP remittance inflows.",
+        "Maintains low transfer cost policies and builds financial literacy for Samoa's 20% GDP remittance inflows.",
     },
     Defense: {
       name: "Samoa SPS Samoa Police Service Maritime Patrol",
@@ -10206,22 +10206,22 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Tonga Integrated Resilience Framework",
       description:
-        "Combines cyclone-resilient infrastructure, mangrove protection, and 70% renewable electricity for Tonga&#39;s resilience.",
+        "Combines cyclone-resilient infrastructure, mangrove protection, and 70% renewable electricity for Tonga's resilience.",
     },
     Healthcare: {
       name: "Tonga National Health Promotion Strategy",
       description:
-        "Addresses Tonga&#39;s extreme NCD burden through community sports, dietary change, and primary care campaigns.",
+        "Addresses Tonga's extreme NCD burden through community sports, dietary change, and primary care campaigns.",
     },
     Infrastructure: {
       name: "Tonga Hunga Volcano Recovery Reconstruction",
       description:
-        "Rebuilds Tonga&#39;s internet cable, port, and housing infrastructure destroyed by the 2022 Hunga Tonga eruption.",
+        "Rebuilds Tonga's internet cable, port, and housing infrastructure destroyed by the 2022 Hunga Tonga eruption.",
     },
     Education: {
       name: "Tonga Education Sector Plan Quality Assurance",
       description:
-        "Improves teacher standards and school quality across Tonga&#39;s 169 islands through ministry-led reform.",
+        "Improves teacher standards and school quality across Tonga's 169 islands through ministry-led reform.",
     },
     Economy: {
       name: "Tonga Blue Economy Ocean Resources",
@@ -10231,7 +10231,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Tonga HMAF Disaster Response Readiness",
       description:
-        "Maintains His Majesty&#39;s Armed Forces disaster response capacity following the Hunga Tonga volcanic eruption.",
+        "Maintains His Majesty's Armed Forces disaster response capacity following the Hunga Tonga volcanic eruption.",
     },
     Technology: {
       name: "Tonga National ICT Policy Digital Connectivity",
@@ -10248,17 +10248,17 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Climate: {
       name: "Bahrain National Energy Efficiency Action Plan",
       description:
-        "Targets 5% renewable energy and 6% energy efficiency improvement as Bahrain&#39;s contribution to regional decarbonization.",
+        "Targets 5% renewable energy and 6% energy efficiency improvement as Bahrain's contribution to regional decarbonization.",
     },
     Healthcare: {
       name: "Bahrain National Health Strategy 2030",
       description:
-        "Develops private healthcare capacity and specialized tertiary services for Bahrain&#39;s regional medical tourism ambitions.",
+        "Develops private healthcare capacity and specialized tertiary services for Bahrain's regional medical tourism ambitions.",
     },
     Infrastructure: {
       name: "Bahrain Metro Urban Mobility Project",
       description:
-        "Develops a metro and bus rapid transit system to reduce Manama&#39;s traffic congestion and car dependency.",
+        "Develops a metro and bus rapid transit system to reduce Manama's traffic congestion and car dependency.",
     },
     Education: {
       name: "Bahrain Vision 2030 Knowledge Economy Push",
@@ -10273,7 +10273,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Defense: {
       name: "Bahrain NAVCENT US 5th Fleet Host",
       description:
-        "Hosts the US Navy&#39;s 5th Fleet at NSA Bahrain as the anchor of US military presence and Gulf security architecture.",
+        "Hosts the US Navy's 5th Fleet at NSA Bahrain as the anchor of US military presence and Gulf security architecture.",
     },
     Technology: {
       name: "Bahrain Cloud First Government Strategy",
@@ -10300,7 +10300,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Infrastructure: {
       name: "Palestine Gaza Reconstruction International Plan",
       description:
-        "Coordinates international donor reconstruction plans for Gaza&#39;s destroyed housing, water, and hospital infrastructure.",
+        "Coordinates international donor reconstruction plans for Gaza's destroyed housing, water, and hospital infrastructure.",
     },
     Education: {
       name: "Palestine UNRWA School Emergency Operations",
@@ -10310,7 +10310,7 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
     Economy: {
       name: "Palestine Post-Conflict Economic Reconstruction",
       description:
-        "Plans post-conflict economic reconstruction to rebuild Gaza&#39;s $26B destroyed economy with international donor support.",
+        "Plans post-conflict economic reconstruction to rebuild Gaza's $26B destroyed economy with international donor support.",
     },
     Defense: {
       name: "Palestine PNA Security Coordination Framework",
@@ -11008,21 +11008,19 @@ export function PolicyPage() {
       {/* Page header */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-blue-500/15">
-            <Buildings size={16} weight="fill" className="text-blue-400" />
-          </div>
           <h1 className="text-lg font-semibold text-foreground">
             Public Policy
           </h1>
         </div>
-        <p className="text-xs text-muted-foreground pl-8">
+        {/* pl-8 dropped with the icon — it existed to clear the badge. */}
+        <p className="text-xs text-muted-foreground">
           Policy ratings, allocations, and spending priorities across US States
           and Countries
         </p>
       </div>
 
       {/* Controls — unified filter bar (EconomiesPage style) */}
-      <div className="flex flex-col bg-card border border-border/60 rounded-2xl px-4 py-2.5 w-full">
+      <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 w-full">
         {/* Row 1: Search */}
         <div className="flex items-center gap-2">
           <MagnifyingGlass

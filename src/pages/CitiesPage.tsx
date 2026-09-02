@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  Buildings,
   MagnifyingGlass,
   MapPin,
   X,
@@ -8,18 +7,15 @@ import {
   MapTrifold,
   Scales,
   ArrowLeft,
-  NotePencil,
   DownloadSimple,
   House,
   Train,
   FirstAid,
   GraduationCap,
   WifiHigh,
-  Leaf,
   ChartBar,
   Rocket,
 } from "@phosphor-icons/react";
-import { useNotes } from "../contexts/NotesContext";
 import {
   AreaChart,
   Area,
@@ -30,6 +26,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { citiesData, type City } from "../data/citiesData";
+import { getUpcoming } from "../data/upcomingToWatch";
 import { SourceLink } from "../components/SourceLink";
 
 const SRC_CITIES = [
@@ -1074,7 +1071,7 @@ const CITY_LAWS: Record<string, CityLaw[]> = {
       category: "Environment",
       title: "Tokyo Cap-and-Trade Program",
       description:
-        "World&#39;s first urban emissions trading scheme requiring large facilities to cut CO₂.",
+        "World's first urban emissions trading scheme requiring large facilities to cut CO₂.",
       enacted: "2010",
       status: "Active",
       color: "#34d399",
@@ -1146,7 +1143,7 @@ const CITY_LAWS: Record<string, CityLaw[]> = {
     },
     {
       category: "Housing",
-      title: "Mayor&#39;s London Plan",
+      title: "Mayor's London Plan",
       description:
         "Requires 35–50% affordable housing in new residential developments.",
       enacted: "2021",
@@ -1354,7 +1351,7 @@ const CITY_LAWS: Record<string, CityLaw[]> = {
       category: "Environment",
       title: "Net Zero Emissions by 2035 Strategy",
       description:
-        "City of Sydney&#39;s commitment to decarbonise council operations and support district renewable energy.",
+        "City of Sydney's commitment to decarbonise council operations and support district renewable energy.",
       enacted: "2021",
       status: "Active",
       color: "#34d399",
@@ -1428,7 +1425,7 @@ const CITY_LAWS: Record<string, CityLaw[]> = {
       category: "Transport",
       title: "Mobility Act (Mobilitätsgesetz)",
       description:
-        "Germany&#39;s first state mobility law, prioritising cycling, pedestrians, and public transit.",
+        "Germany's first state mobility law, prioritising cycling, pedestrians, and public transit.",
       enacted: "2018",
       status: "Active",
       color: "#60a5fa",
@@ -2202,7 +2199,6 @@ function CityLegalStatusGrid({ city }: { city: City }) {
   return (
     <div className="modal-tile rounded-xl border border-border/60 p-4 mb-4">
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-base">⚖️</span>
         <h3 className="text-sm font-bold font-sans text-foreground">
           What&#39;s Legal &amp; Illegal in {city.name}
         </h3>
@@ -2213,7 +2209,6 @@ function CityLegalStatusGrid({ city }: { city: City }) {
             key={t.topic}
             className="flex items-start gap-2.5 p-2.5 rounded-lg bg-background/40 border border-border/40 hover:border-border/70 transition-colors"
           >
-            <span className="text-base shrink-0 mt-0.5">{t.icon}</span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
                 <span className="text-xs font-semibold font-sans text-foreground leading-tight">
@@ -2881,7 +2876,6 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
     "overview",
   );
   const [isExpanded, setIsExpanded] = useState(false);
-  const { openNote } = useNotes();
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -2955,16 +2949,6 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               <button
-                onClick={() =>
-                  openNote({ entityName: city.name, entityType: "City" })
-                }
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-sans font-medium bg-secondary/15 text-secondary border border-secondary/30 hover:bg-secondary/25 transition-colors cursor-pointer"
-                aria-label="Take note about this city"
-              >
-                <NotePencil size={13} weight="fill" />
-                Take Note
-              </button>
-              <button
                 onClick={() => setIsExpanded((v) => !v)}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
                 aria-label={
@@ -2972,34 +2956,16 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                 }
                 title={isExpanded ? "Collapse" : "Expand to full screen"}
               >
-                {isExpanded ? (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M5 1H1v4M11 1h4v4M5 15H1v-4M11 15h4v-4"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
+                <span className="text-xs font-sans font-medium">
+                  {isExpanded ? "Collapse" : "Expand"}
+                </span>
               </button>
               <button
                 onClick={onClose}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 aria-label="Close"
               >
-                <X size={18} weight="bold" />
+                <span className="text-xs font-sans font-medium">Close</span>
               </button>
             </div>
           </div>
@@ -3426,9 +3392,6 @@ export function CitiesPage() {
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 bg-secondary/20 rounded-lg">
-            <Buildings size={26} weight="fill" className="text-secondary" />
-          </div>
           <div>
             <h1 className="text-2xl font-bold font-sans text-foreground">
               Global Cities
@@ -3490,123 +3453,8 @@ export function CitiesPage() {
           ))}
         </div>
 
-        {/* ── Trending & Frequently Looked-Up Stats ── */}
-        <div className="mb-6 bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-            <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-              Trending &amp; Frequently Looked-Up
-            </p>
-            <span className="ml-auto text-[10px] text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-full">
-              2026 data
-            </span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {[
-              {
-                label: "🏠 Most Expensive Rent",
-                value: "Monaco",
-                sub: "$6,500/mo 1BR",
-                color: "text-red-400",
-                bg: "bg-red-500/10 border-red-500/20",
-              },
-              {
-                label: "🚇 Best Transit",
-                value: "Tokyo",
-                sub: "Score 97/100",
-                color: "text-purple-400",
-                bg: "bg-purple-500/10 border-purple-500/20",
-              },
-              {
-                label: "🚴 Best Cycling City",
-                value: "Amsterdam",
-                sub: "Score 97/100",
-                color: "text-green-400",
-                bg: "bg-green-500/10 border-green-500/20",
-              },
-              {
-                label: "🏥 Best Healthcare",
-                value: "Singapore",
-                sub: "Score 90/100",
-                color: "text-secondary",
-                bg: "bg-secondary/10 border-secondary/20",
-              },
-              {
-                label: "💻 Fastest Internet",
-                value: "Singapore",
-                sub: "310 Mbps avg",
-                color: "text-cyan-400",
-                bg: "bg-cyan-500/10 border-cyan-500/20",
-              },
-              {
-                label: "🦄 Most Unicorns",
-                value: "San Francisco",
-                sub: "287 unicorns",
-                color: "text-pink-400",
-                bg: "bg-pink-500/10 border-pink-500/20",
-              },
-            ].map((s) => (
-              <div
-                key={s.label}
-                className={`rounded-xl p-3 border ${s.bg} flex flex-col gap-1`}
-              >
-                <p className="text-[10px] font-sans text-muted-foreground leading-snug">
-                  {s.label}
-                </p>
-                <p
-                  className={`text-sm font-bold font-mono ${s.color} leading-tight`}
-                >
-                  {s.value}
-                </p>
-                <p className={`text-[10px] font-sans ${s.color} opacity-80`}>
-                  {s.sub}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 pt-3 border-t border-border/40">
-            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-              🔥 Upcoming to Watch
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {[
-                {
-                  label: "Riyadh skyscraper boom — world&#39;s tallest by 2030",
-                  color: "text-amber-400 border-amber-500/30 bg-amber-500/10",
-                },
-                {
-                  label: "NYC congestion pricing impact on commute data · 2026",
-                  color: "text-secondary border-secondary/30 bg-secondary/10",
-                },
-                {
-                  label: "Singapore Changi T5 opening — aviation hub status",
-                  color:
-                    "text-purple-400 border-purple-500/30 bg-purple-500/10",
-                },
-                {
-                  label:
-                    "Lagos digital economy: Africa&#39;s Silicon Lagoon scaling",
-                  color: "text-green-400 border-green-500/30 bg-green-500/10",
-                },
-                {
-                  label: "Dubai 15-minute city policy rollout · 2026–2030",
-                  color:
-                    "text-orange-400 border-orange-500/30 bg-orange-500/10",
-                },
-              ].map((e) => (
-                <span
-                  key={e.label}
-                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.color}`}
-                >
-                  {e.label}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
         {/* Unified Search + Filter Bar */}
-        <div className="flex flex-col bg-card border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
+        <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
           {/* Row 1: Search */}
           <div className="flex items-center gap-2">
             <MagnifyingGlass
@@ -3647,6 +3495,25 @@ export function CitiesPage() {
               <option value="safetyIndex">Sort: Safety</option>
               <option value="costOfLivingIndex">Sort: Cost of Living</option>
             </select>
+          </div>
+        </div>
+
+        {/* ── Upcoming to Watch ── */}
+        <div className="mb-6 bg-card border border-border rounded-2xl p-5">
+          <div>
+            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+              🔥 Upcoming to Watch
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {getUpcoming("cities").map((e) => (
+                <span
+                  key={e.id}
+                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.className}`}
+                >
+                  {e.label}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 

@@ -11,12 +11,10 @@ import {
   City,
   CurrencyDollar,
   NotePencil,
-  Warning,
   Lectern,
   HandHeart,
   Crown,
   Scales,
-  Users,
   ChartLine,
   Info,
   X,
@@ -30,7 +28,6 @@ import {
   ArrowSquareOut,
   Leaf,
   Trophy,
-  BookOpen,
 } from "@phosphor-icons/react";
 
 interface SidebarNavProps {
@@ -56,7 +53,7 @@ const analysisNav = [
   { to: "/dashboard/rankings", label: "Rankings", icon: Trophy, end: false },
   { to: "/dashboard/policy", label: "Policy", icon: Scales, end: false },
   {
-    to: "/dashboard/worldmap",
+    to: "/dashboard/world-leaders",
     label: "World Leaders",
     icon: Lectern,
     end: false,
@@ -173,7 +170,7 @@ const DATA_SOURCES = [
   },
   {
     icon: Lightning,
-    name: "Int&#39;l Energy Agency",
+    name: "Int'l Energy Agency",
     category: "Energy",
     desc: "Global energy production, consumption, renewable share, and CO₂ emissions.",
     color: "text-yellow-400",
@@ -573,10 +570,8 @@ function NavItem({
         to={to}
         end={end}
         className={({ isActive }) =>
-          `flex items-center py-2 rounded-lg transition-all duration-250 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer group w-full ${
-            isActive
-              ? "bg-secondary text-secondary-foreground border border-secondary/60 shadow-[0_1px_4px_rgba(160,160,160,0.2)]"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border"
+          `flex items-center py-2 rounded-lg transition-all duration-250 ease-in-out cursor-pointer group w-full ${
+            isActive ? "nav-item-active" : "nav-item-idle"
           } ${collapsed && !mobile ? "justify-center px-0" : "gap-3 px-3"}`
         }
         title={collapsed && !mobile ? label : undefined}
@@ -587,7 +582,9 @@ function NavItem({
             <Icon
               size={18}
               weight={isActive ? "fill" : "regular"}
-              className={`shrink-0 transition-colors duration-200 ${isActive ? "text-secondary-foreground" : ""}`}
+              // No colour class: the icon inherits the item's colour through
+              // currentColor, so it can never disagree with the label.
+              className="shrink-0 transition-colors duration-200"
             />
             {(!collapsed || mobile) && (
               <span className="text-[12px] leading-none font-medium font-sans truncate tracking-wide">
@@ -674,7 +671,7 @@ export function SidebarNav({
         <li>
           <button
             onClick={() => setShowAbout(true)}
-            className={`flex items-center py-2 rounded-lg transition-all duration-250 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer group w-full text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border ${collapsed && !mobile ? "justify-center px-0" : "gap-3 px-3"}`}
+            className={`flex items-center py-2 rounded-lg transition-all duration-250 ease-in-out cursor-pointer group w-full text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border ${collapsed && !mobile ? "justify-center px-0" : "gap-3 px-3"}`}
             title={collapsed && !mobile ? "About" : undefined}
             aria-label="About CommonSphere"
           >
@@ -699,7 +696,7 @@ export function SidebarNav({
         <div className="px-2 pt-3 border-t border-border mt-2">
           <button
             onClick={onToggle}
-            className={`flex items-center gap-2 px-2.5 py-2 rounded-lg w-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-250 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer ${
+            className={`flex items-center gap-2 px-2.5 py-2 rounded-lg w-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-250 ease-in-out cursor-pointer ${
               collapsed ? "justify-center px-0" : ""
             }`}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}

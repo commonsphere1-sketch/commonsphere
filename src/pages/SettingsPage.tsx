@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
-  GearSix,
   User,
   Bell,
   Lock,
@@ -19,6 +18,14 @@ import { Input } from "@/components/ui/input";
 import { countriesData } from "@/data/countriesData";
 import { usStatesData } from "@/data/statesData";
 import { sanitizeText, validateEmail, LIMITS } from "@/lib/security";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  useProfilePhoto,
+  avatarTextColor,
+  AVATAR_COLORS,
+} from "@/contexts/ProfilePhotoContext";
+import { useProfile } from "@/contexts/ProfileContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // ─── Topic config ────────────────────────────────────────────────────────────
 const ALERT_TOPICS = [
@@ -224,17 +231,42 @@ function WatchedRow({
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export function SettingsPage() {
-  const [darkMode, setDarkMode] = useState(true);
+  const {
+    photo,
+    setPhotoFromFile,
+    removePhoto,
+    isSaving: isSavingPhoto,
+    avatarColor,
+    setAvatarColor,
+  } = useProfilePhoto();
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [photoError, setPhotoError] = useState("");
+  // Read the real theme rather than a local copy. This button used to drive
+  // its own useState seeded to true, so it flipped its own icon while the page
+  // stayed put — and it claimed "Dark" even when the app was in light mode.
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === "dark";
   const [notifications, setNotifications] = useState(true);
   const [emailAlerts, setEmailAlerts] = useState(true);
+  const {
+    displayName: savedName,
+    email: savedEmail,
+    save: saveProfile,
+  } = useProfile();
   const [displayName, setDisplayName] = useState("Jane Doe");
   const [email, setEmail] = useState("jane.doe@commonsphere.io");
+
+  // The context reads localStorage in an effect, so the saved values arrive on
+  // the render after mount. Adopt them once they land, rather than seeding
+  // useState, which would keep showing the placeholder.
+  useEffect(() => {
+    if (savedName) setDisplayName(savedName);
+  }, [savedName]);
+  useEffect(() => {
+    if (savedEmail) setEmail(savedEmail);
+  }, [savedEmail]);
   const [profileError, setProfileError] = useState("");
   const [profileSaved, setProfileSaved] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [passwordSaved, setPasswordSaved] = useState(false);
   const [watched, setWatched] = useState<WatchedEntity[]>([
     {
       id: "country-us",
@@ -271,29 +303,17 @@ export function SettingsPage() {
       setProfileError(ev.message);
       return;
     }
+    if (!saveProfile(cleanName, cleanEmail)) {
+      setProfileError("Could not save — this browser's storage is full.");
+      return;
+    }
+    // Show what was actually stored. Sanitizing can strip characters, and
+    // leaving the raw text in the field would misreport what was saved.
+    setDisplayName(cleanName);
+    setEmail(cleanEmail);
     setProfileError("");
     setProfileSaved(true);
     setTimeout(() => setProfileSaved(false), 2000);
-  }
-
-  function handlePasswordUpdate() {
-    if (!currentPassword.trim()) {
-      setPasswordError("Current password is required.");
-      return;
-    }
-    if (newPassword.length < 8) {
-      setPasswordError("New password must be at least 8 characters.");
-      return;
-    }
-    if (newPassword === currentPassword) {
-      setPasswordError("New password must differ from current password.");
-      return;
-    }
-    setPasswordError("");
-    setPasswordSaved(true);
-    setCurrentPassword("");
-    setNewPassword("");
-    setTimeout(() => setPasswordSaved(false), 2000);
   }
 
   function addEntity(e: WatchedEntity) {
@@ -320,7 +340,6 @@ export function SettingsPage() {
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
       <div className="px-6 py-8 max-w-2xl mx-auto">
         <div className="flex items-center gap-3 mb-8">
-          <GearSix size={28} weight="fill" className="text-secondary" />
           <div>
             <h1 className="text-2xl font-bold font-sans text-foreground">
               Settings
@@ -346,6 +365,123 @@ export function SettingsPage() {
             </h2>
           </div>
           <div className="space-y-4">
+            {/* Profile photo */}
+            <div>
+              <span className="block text-xs text-muted-foreground font-sans mb-2">
+                Profile Photo
+              </span>
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16 shrink-0">
+                  {photo && (
+                    <AvatarImage src={photo} alt="Your profile photo" />
+                  )}
+                  <AvatarFallback
+                    className="text-sm font-bold"
+                    style={{
+                      background: avatarColor,
+                      color: avatarTextColor(avatarColor),
+                    }}
+                  >
+                    {displayName
+                      ? displayName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase()
+                      : "?"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col gap-2 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <input
+                      ref={photoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        // reset so re-picking the same file still fires onChange
+                        e.target.value = "";
+                        if (!file) return;
+                        setPhotoError("");
+                        const err = await setPhotoFromFile(file);
+                        if (err) setPhotoError(err);
+                      }}
+                    />
+                    <Button
+                      onClick={() => photoInputRef.current?.click()}
+                      disabled={isSavingPhoto}
+                      className="bg-muted text-foreground hover:bg-secondary/20 text-xs font-sans h-8"
+                    >
+                      {isSavingPhoto
+                        ? "Saving…"
+                        : photo
+                          ? "Change photo"
+                          : "Upload photo"}
+                    </Button>
+                    {photo && (
+                      <Button
+                        onClick={() => {
+                          removePhoto();
+                          setPhotoError("");
+                        }}
+                        className="bg-transparent border border-border text-muted-foreground hover:text-foreground text-xs font-sans h-8"
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                  {!photo && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[11px] text-muted-foreground font-sans">
+                        Colour
+                      </span>
+                      {AVATAR_COLORS.map((c) => (
+                        <button
+                          key={c}
+                          onClick={() => setAvatarColor(c)}
+                          aria-label={`Use ${c} as the avatar colour`}
+                          aria-pressed={
+                            avatarColor.toLowerCase() === c.toLowerCase()
+                          }
+                          className={`w-5 h-5 rounded-full shrink-0 cursor-pointer transition-transform hover:scale-110 ${
+                            avatarColor.toLowerCase() === c.toLowerCase()
+                              ? "ring-2 ring-offset-2 ring-offset-card ring-foreground"
+                              : "border border-border"
+                          }`}
+                          style={{ background: c }}
+                        />
+                      ))}
+                      {/* Free choice beyond the swatches. The initials colour
+                          follows whatever is picked, so any value stays
+                          readable. */}
+                      <label
+                        className="text-[11px] text-muted-foreground font-sans underline cursor-pointer"
+                        title="Pick any colour"
+                      >
+                        custom
+                        <input
+                          type="color"
+                          value={avatarColor}
+                          onChange={(e) => setAvatarColor(e.target.value)}
+                          className="sr-only"
+                        />
+                      </label>
+                    </div>
+                  )}
+                  <p className="text-[11px] text-muted-foreground font-sans leading-snug">
+                    Stored on this device only — the photo is resized to 256px
+                    and never uploaded, so neither it nor the colour will follow
+                    you to another browser.
+                  </p>
+                  {photoError && (
+                    <p className="text-xs text-destructive">{photoError}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div>
               <label
                 htmlFor="display-name"
@@ -485,13 +621,13 @@ export function SettingsPage() {
               </p>
             </div>
             <button
-              onClick={() => setDarkMode((v) => !v)}
+              onClick={toggleTheme}
               className="flex items-center gap-2 px-4 py-2 rounded-md bg-muted text-muted-foreground hover:bg-border hover:text-foreground transition-colors duration-150 cursor-pointer text-sm font-normal font-sans"
               aria-label={
-                darkMode ? "Switch to light mode" : "Switch to dark mode"
+                isDark ? "Switch to light mode" : "Switch to dark mode"
               }
             >
-              {darkMode ? (
+              {isDark ? (
                 <>
                   <Moon size={18} weight="fill" className="text-secondary" />
                   <span className="text-foreground">Dark</span>
@@ -520,61 +656,23 @@ export function SettingsPage() {
               Security
             </h2>
           </div>
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="current-password"
-                className="block text-xs text-muted-foreground font-sans mb-1"
-              >
-                Current Password
-              </label>
-              <Input
-                id="current-password"
-                type="password"
-                placeholder="••••••••"
-                value={currentPassword}
-                onChange={(e) => {
-                  setCurrentPassword(e.target.value);
-                  setPasswordError("");
-                }}
-                className="bg-muted border-border text-foreground placeholder:text-muted-foreground h-9 text-sm"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="new-password"
-                className="block text-xs text-muted-foreground font-sans mb-1"
-              >
-                New Password{" "}
-                <span className="text-muted-foreground font-normal">
-                  (min. 8 characters)
-                </span>
-              </label>
-              <Input
-                id="new-password"
-                type="password"
-                placeholder="••••••••"
-                value={newPassword}
-                onChange={(e) => {
-                  setNewPassword(e.target.value);
-                  setPasswordError("");
-                }}
-                minLength={8}
-                className="bg-muted border-border text-foreground placeholder:text-muted-foreground h-9 text-sm"
-              />
-            </div>
-            {passwordError && (
-              <p className="text-xs text-destructive">{passwordError}</p>
-            )}
-            {passwordSaved && (
-              <p className="text-xs text-success">Password updated.</p>
-            )}
-            <Button
-              onClick={handlePasswordUpdate}
-              className="bg-primary text-primary-foreground hover:bg-muted text-sm font-normal h-9 px-4 border border-border"
-            >
-              Update Password
-            </Button>
+          {/*
+            No password form here on purpose. CommonSphere has no backend and
+            the SDK exposes only login/logout — there is nothing to change a
+            password against. The form that used to sit here validated input,
+            cleared the fields and reported "Password updated." while changing
+            nothing, which on a security panel could convince someone they had
+            rotated a compromised password when they had not.
+          */}
+          <div className="space-y-3">
+            <p className="text-sm font-sans text-foreground">
+              Your password is managed by your sign-in provider
+            </p>
+            <p className="text-xs text-muted-foreground font-sans leading-snug">
+              CommonSphere never receives or stores your password. Signing in is
+              handled by the account you authenticate with, so password changes
+              happen there rather than here.
+            </p>
           </div>
         </section>
       </div>

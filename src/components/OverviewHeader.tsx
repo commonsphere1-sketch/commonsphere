@@ -1,4 +1,3 @@
-import React from "react";
 import { Funnel } from "@phosphor-icons/react";
 import {
   Select,

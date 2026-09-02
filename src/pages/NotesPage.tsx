@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@animaapp/playground-react-sdk";
 import { sanitizeUrl } from "@/lib/security";
 import {
@@ -15,6 +15,18 @@ import {
 } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 
+/** Shape of a "Note" record as this page consumes it. The SDK's useQuery
+ *  returns `data: any`, so the fields are declared here for type safety. */
+type Note = {
+  id: string;
+  title?: string;
+  content: string;
+  entityName?: string;
+  entityType?: string;
+  createdAt?: string;
+  links?: string;
+  voiceRecordingUrl?: string;
+};
 export function NotesPage() {
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<string>("All");
@@ -24,7 +36,7 @@ export function NotesPage() {
 
   const entityTypes = ["All", "Country", "State", "City", "Economy"];
 
-  const filtered = (notes ?? []).filter((n) => {
+  const filtered = ((notes ?? []) as Note[]).filter((n: Note) => {
     const matchSearch =
       !search ||
       n.title?.toLowerCase().includes(search.toLowerCase()) ||
@@ -54,7 +66,6 @@ export function NotesPage() {
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <NotePencil size={28} weight="fill" className="text-secondary" />
           <div>
             <h1 className="text-2xl font-bold font-sans text-foreground">My Notes</h1>
             <p className="text-muted-foreground text-sm font-sans">Notes taken while examining data</p>
@@ -99,7 +110,7 @@ export function NotesPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filtered.map((note) => {
+                {filtered.map((note: Note) => {
                   const noteLinks = parseLinks(note.links);
                   return (
                     <NoteCard
