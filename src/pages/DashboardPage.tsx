@@ -5311,6 +5311,23 @@ function ExpandableCard({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  // Hover is tracked in state rather than with a :hover class because the row's
+  // background is an inline style keyed to accentColor, and a Tailwind hover
+  // variant cannot override an inline background.
+  const [hover, setHover] = useState(false);
+
+  // The row previously only had hover:opacity-90, which fades it — reading as
+  // disabled rather than clickable. It now warms toward the card's accent
+  // colour on hover, and a little further again when already open.
+  const headerBg = open
+    ? isLight
+      ? accentColor + (hover ? "0f" : "06")
+      : accentColor + (hover ? "1c" : "10")
+    : hover
+      ? isLight
+        ? accentColor + "0b"
+        : accentColor + "14"
+      : "transparent";
 
   return (
     <div
@@ -5320,22 +5337,23 @@ function ExpandableCard({
       {/* Header / toggle row */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-3 px-5 py-4 text-left transition-all hover:opacity-90"
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        onFocus={() => setHover(true)}
+        onBlur={() => setHover(false)}
+        aria-expanded={open}
+        className="w-full flex items-center gap-3 px-5 py-4 text-left transition-colors duration-150 cursor-pointer"
         style={{
           borderBottom: open ? `1px solid ${gridLine}` : "none",
-          background: open
-            ? isLight
-              ? accentColor + "06"
-              : accentColor + "10"
-            : "transparent",
+          background: headerBg,
         }}
       >
         {/* Icon */}
         <div
-          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-150"
           style={{
-            background: accentColor + "15",
-            border: `1px solid ${accentColor}25`,
+            background: accentColor + (hover ? "26" : "15"),
+            border: `1px solid ${accentColor}${hover ? "45" : "25"}`,
           }}
         >
           {icon}
@@ -5369,10 +5387,10 @@ function ExpandableCard({
 
         {/* Chevron */}
         <div
-          className="shrink-0 transition-transform duration-200"
+          className="shrink-0 transition-all duration-200"
           style={{
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
-            color: mutedText,
+            color: hover ? accentColor : mutedText,
           }}
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
