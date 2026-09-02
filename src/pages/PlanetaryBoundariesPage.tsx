@@ -922,7 +922,7 @@ function BoundaryDetailPanel({
         >
           {boundary.icon}
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 sm:flex-none sm:basis-64">
           <h3
             className="text-sm font-bold font-sans leading-snug"
             style={{ color: headText }}
@@ -941,7 +941,7 @@ function BoundaryDetailPanel({
           </span>
         </div>
         <p
-          className="hidden sm:block flex-1 text-[11px] font-sans leading-relaxed pt-0.5"
+          className="hidden sm:block flex-1 max-w-2xl text-[11px] font-sans leading-relaxed pt-0.5"
           style={{ color: isLight ? "#475569" : "#94a3b8" }}
         >
           {boundary.summary}
@@ -957,7 +957,7 @@ function BoundaryDetailPanel({
       </p>
 
       {/* The three sections read across rather than down. */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 items-start">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 items-start">
 
       {/* Key Variables */}
       <div>
@@ -990,7 +990,7 @@ function BoundaryDetailPanel({
                     {v.name}
                   </span>
                 </div>
-                <div className="flex items-center justify-between mt-1 gap-2">
+                <div className="flex items-center justify-between gap-2 mt-1 max-w-sm">
                   <div>
                     <p
                       className="text-[9px] font-mono"
@@ -1054,14 +1054,14 @@ function BoundaryDetailPanel({
       </div>
 
       {/* Geopolitical Links */}
-      <div>
+      <div className="sm:col-span-2 lg:col-span-1">
         <p
           className="text-[9px] font-mono uppercase tracking-widest mb-2"
           style={{ color: mutedText }}
         >
           Geopolitical Dimensions
         </p>
-        <div className="flex flex-col gap-2">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
           {boundary.geopoliticalLinks.map((link, i) => (
             <div
               key={i}
