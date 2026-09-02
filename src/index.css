@@ -736,3 +736,72 @@ html.light .mineral-pill-surplus {
 .recharts-tooltip-wrapper[style*="visibility: hidden"] {
   display: none !important;
 }
+
+/* ── Clickable containers ─────────────────────────────────
+   Cards that respond to a click sit above the page: a dark drop shadow in
+   light mode, and in dark mode a white one, since a dark shadow is invisible
+   against a near-black page.
+
+   Keyed on card-sized radii rather than on .cursor-pointer alone. That class
+   also lands on 40px icon buttons and the sidebar nav pills, which are
+   deliberately flat glass, and the cursor itself is inherited — on one page
+   2,111 elements compute to cursor:pointer while only ~100 are actually
+   containers, so matching the computed cursor would shadow every nested span.
+   Ranked-list rows are excluded for the same reason: they are flush with each
+   other and carry no radius, so shadows there only muddy the dividers.
+
+   !important is required because .modal-tile sets box-shadow that way; the
+   two overrides below re-state its inset sheen so those cards keep it. */
+html.light :is(.cursor-pointer, button, [role="button"]):is(.rounded-xl, .rounded-2xl),
+html.light article.cursor-pointer {
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.07),
+    0 6px 16px rgba(15, 23, 42, 0.07) !important;
+  transition: box-shadow 0.2s ease !important;
+}
+html.light :is(.cursor-pointer, button, [role="button"]):is(.rounded-xl, .rounded-2xl):hover,
+html.light article.cursor-pointer:hover {
+  box-shadow:
+    0 2px 6px rgba(15, 23, 42, 0.1),
+    0 12px 28px rgba(15, 23, 42, 0.12) !important;
+}
+
+html.dark :is(.cursor-pointer, button, [role="button"]):is(.rounded-xl, .rounded-2xl),
+html.dark article.cursor-pointer {
+  box-shadow:
+    0 1px 3px rgba(255, 255, 255, 0.05),
+    0 6px 18px rgba(255, 255, 255, 0.06) !important;
+  transition: box-shadow 0.2s ease !important;
+}
+html.dark :is(.cursor-pointer, button, [role="button"]):is(.rounded-xl, .rounded-2xl):hover,
+html.dark article.cursor-pointer:hover {
+  box-shadow:
+    0 2px 6px rgba(255, 255, 255, 0.09),
+    0 12px 30px rgba(255, 255, 255, 0.11) !important;
+}
+
+/* .modal-tile cards keep the sheen along their top edge. */
+html.light .modal-tile.cursor-pointer {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 1px 3px rgba(15, 23, 42, 0.07),
+    0 6px 16px rgba(15, 23, 42, 0.07) !important;
+}
+html.light .modal-tile.cursor-pointer:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 2px 6px rgba(15, 23, 42, 0.1),
+    0 12px 28px rgba(15, 23, 42, 0.12) !important;
+}
+html.dark .modal-tile.cursor-pointer {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 1px 3px rgba(255, 255, 255, 0.05),
+    0 6px 18px rgba(255, 255, 255, 0.06) !important;
+}
+html.dark .modal-tile.cursor-pointer:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 2px 6px rgba(255, 255, 255, 0.09),
+    0 12px 30px rgba(255, 255, 255, 0.11) !important;
+}
