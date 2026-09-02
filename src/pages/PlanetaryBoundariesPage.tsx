@@ -1252,6 +1252,56 @@ export function PlanetaryBoundariesPage() {
         </div>
 
         {/* ── MAIN CONTENT GRID ─────────────────────────────────────────── */}
+        {/* Nine-boundary selector — full width above the chart. It is the
+            page's primary control, so it leads; the chart below reflects
+            whichever boundary is picked here. */}
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 mb-6">
+          <div className="bg-card border border-border rounded-2xl p-4 xl:col-span-3">
+            <p className="text-[10px] font-mono uppercase tracking-widest mb-3 text-muted-foreground">
+              All Nine Boundaries
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {BOUNDARIES.map((b) => (
+                <BoundarySummaryCard
+                  key={b.id}
+                  boundary={b}
+                  selected={selectedId === b.id}
+                  onSelect={() => setSelectedId(b.id)}
+                  isLight={isLight}
+                  headText={headText}
+                  mutedText={mutedText}
+                  gridLine={gridLine}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="bg-card border border-border rounded-2xl p-4">
+            <p className="text-[10px] font-mono uppercase tracking-widest mb-3 text-muted-foreground">
+              Legend
+            </p>
+            <div className="flex flex-col gap-2">
+              {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                <div key={key} className="flex items-center gap-2">
+                  <div
+                    className="w-3 h-3 rounded-full shrink-0"
+                    style={{ background: cfg.color }}
+                  />
+                  <span className="text-[10px] font-sans text-foreground">
+                    {cfg.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 pt-3 text-[10px] font-sans leading-relaxed text-muted-foreground border-t border-border">
+              The inner green circle represents the Safe Operating Space.
+              Segments extending beyond the dashed boundary line indicate
+              transgression.
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
           {/* LEFT: Boundary list */}
 
@@ -1427,55 +1477,6 @@ export function PlanetaryBoundariesPage() {
                   </p>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Nine-boundary selector — full width beneath the chart, where
-            nine items fit as a grid instead of a tall thin column. */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 mb-6">
-          <div className="bg-card border border-border rounded-2xl p-4 xl:col-span-3">
-            <p className="text-[10px] font-mono uppercase tracking-widest mb-3 text-muted-foreground">
-              All Nine Boundaries
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {BOUNDARIES.map((b) => (
-                <BoundarySummaryCard
-                  key={b.id}
-                  boundary={b}
-                  selected={selectedId === b.id}
-                  onSelect={() => setSelectedId(b.id)}
-                  isLight={isLight}
-                  headText={headText}
-                  mutedText={mutedText}
-                  gridLine={gridLine}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Legend */}
-          <div className="bg-card border border-border rounded-2xl p-4">
-            <p className="text-[10px] font-mono uppercase tracking-widest mb-3 text-muted-foreground">
-              Legend
-            </p>
-            <div className="flex flex-col gap-2">
-              {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                <div key={key} className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full shrink-0"
-                    style={{ background: cfg.color }}
-                  />
-                  <span className="text-[10px] font-sans text-foreground">
-                    {cfg.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 pt-3 text-[10px] font-sans leading-relaxed text-muted-foreground border-t border-border">
-              The inner green circle represents the Safe Operating Space.
-              Segments extending beyond the dashed boundary line indicate
-              transgression.
             </div>
           </div>
         </div>
