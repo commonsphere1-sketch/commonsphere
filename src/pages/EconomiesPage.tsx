@@ -29,6 +29,10 @@ import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
 import { StyledSelect } from "../components/StyledSelect";
+import {
+  ResourceModal,
+  type ResourceSummary,
+} from "../components/ResourceModal";
 
 // ── Rare Earth Minerals data per economy ────────────────────────────────────
 type RareEarthMineral = {
@@ -7264,6 +7268,8 @@ export function EconomiesPage() {
   const [modalEconomy, setModalEconomy] = useState<Economy | null>(null);
   const { rents: resourceRents } = useResourceRents();
   const [viewMode, setViewMode] = useState<ViewMode>("economies");
+  const [selectedResource, setSelectedResource] =
+    useState<ResourceSummary | null>(null);
 
   // Deep-link: open entity from search bar via ?open=<id>
   React.useEffect(() => {
@@ -7477,9 +7483,12 @@ export function EconomiesPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {RESOURCES_DATA.map((r) => (
-                <div
+                <button
                   key={r.name}
-                  className="bg-card border border-border rounded-xl p-4 hover:border-secondary/40 transition-colors"
+                  type="button"
+                  onClick={() => setSelectedResource(r)}
+                  aria-label={`${r.name} details`}
+                  className="text-left w-full bg-card border border-border rounded-xl p-4 hover:border-secondary/40 transition-colors cursor-pointer"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -7532,7 +7541,7 @@ export function EconomiesPage() {
                       }}
                     />
                   </div>
-                </div>
+                </button>
               ))}
             </div>
             {/* ── Rare Earth Minerals Global Overview ── */}
@@ -8108,6 +8117,12 @@ export function EconomiesPage() {
           </div>
         )}
       </div>
+      {selectedResource && (
+        <ResourceModal
+          resource={selectedResource}
+          onClose={() => setSelectedResource(null)}
+        />
+      )}
     </div>
   );
 }
