@@ -1,4 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import {
+  isSupabaseConfigured,
+  fetchProfile,
+  saveProfile,
+} from "@/lib/supabase";
 
 /**
  * ProfileContext
@@ -30,6 +35,8 @@ interface ProfileContextValue {
   /** Saved username, or "" when the user has never chosen one. */
   username: string;
   save: (name: string, email: string, username?: string) => boolean;
+  /** True when the profile is backed by Supabase rather than this device. */
+  isRemote: boolean;
 }
 
 const ProfileContext = createContext<ProfileContextValue>({
@@ -37,6 +44,7 @@ const ProfileContext = createContext<ProfileContextValue>({
   email: "",
   username: "",
   save: () => true,
+  isRemote: false,
 });
 
 function read(key: string): string {
@@ -53,10 +61,25 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
 
+  // Local storage is read first so the fields are populated immediately, then
+  // Supabase overwrites them if it has a row. Doing it the other way round
+  // would leave the form blank while the network call is in flight.
   useEffect(() => {
     setDisplayName(read(NAME_KEY));
     setEmail(read(EMAIL_KEY));
     setUsername(read(USERNAME_KEY));
+
+    if (!isSupabaseConfigured()) return;
+    let cancelled = false;
+    fetchProfile().then((row) => {
+      if (cancelled || !row) return;
+      if (row.display_name) setDisplayName(row.display_name);
+      if (row.email) setEmail(row.email);
+      if (row.username) setUsername(row.username);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   /** Returns false when storage rejected the write, so the UI can say so. */
@@ -69,6 +92,16 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(EMAIL_KEY, nextEmail);
       if (nextUsername !== undefined)
         localStorage.setItem(USERNAME_KEY, nextUsername);
+      // Mirror to Supabase when configured. The local write above already
+      // succeeded, so this is best-effort: a failed sync must not report the
+      // save as failed when the value is safely on the device.
+      if (isSupabaseConfigured()) {
+        void saveProfile({
+          displayName: name,
+          email: nextEmail,
+          username: nextUsername ?? username,
+        });
+      }
       return true;
     } catch {
       return false;
@@ -76,7 +109,15 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ProfileContext.Provider value={{ displayName, email, username, save }}>
+    <ProfileContext.Provider
+      value={{
+        displayName,
+        email,
+        username,
+        save,
+        isRemote: isSupabaseConfigured(),
+      }}
+    >
       {children}
     </ProfileContext.Provider>
   );
