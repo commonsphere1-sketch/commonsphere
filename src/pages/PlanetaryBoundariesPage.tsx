@@ -1473,27 +1473,29 @@ export function PlanetaryBoundariesPage() {
                 boundary. Composite of expert consensus and conflict literature.
               </p>
             </div>
+          </div>
+        </div>
 
-            {/* Science Note */}
-            <div className="bg-green-500/5 border border-green-500/20 rounded-2xl p-4">
-              <div className="flex items-start gap-2.5">
-                <Info
-                  size={14}
-                  weight="fill"
-                  className="text-green-500 shrink-0 mt-0.5"
-                />
-                <div>
-                  <p className="text-[11px] font-bold font-sans mb-1 text-green-600 dark:text-green-400">
-                    About Planetary Boundaries
-                  </p>
-                  <p className="text-[10px] font-sans leading-relaxed text-muted-foreground">
-                    Framework introduced by Johan Rockström and colleagues in
-                    2009 (Nature). Updated in 2015 (Science) and 2023. As of
-                    2026, six of nine boundaries are transgressed. Biosphere
-                    integrity and novel entities are most severely exceeded.
-                  </p>
-                </div>
-              </div>
+        {/* Framework note — spans the page beneath the dashboard, where it
+            reads as a footnote to the whole board rather than to the
+            risk matrix it happened to sit under. */}
+        <div className="bg-green-500/5 border border-green-500/20 rounded-2xl p-4 mb-6">
+          <div className="flex items-start gap-2.5">
+            <Info
+              size={14}
+              weight="fill"
+              className="text-green-500 shrink-0 mt-0.5"
+            />
+            <div>
+              <p className="text-[11px] font-bold font-sans mb-1 text-green-600 dark:text-green-400">
+                About Planetary Boundaries
+              </p>
+              <p className="text-[10px] font-sans leading-relaxed text-muted-foreground">
+                Framework introduced by Johan Rockström and colleagues in
+                2009 (Nature). Updated in 2015 (Science) and 2023. As of
+                2026, six of nine boundaries are transgressed. Biosphere
+                integrity and novel entities are most severely exceeded.
+              </p>
             </div>
           </div>
         </div>
