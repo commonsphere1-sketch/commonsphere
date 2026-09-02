@@ -37,7 +37,7 @@ const EduSignInPage = lazy(() =>
   import("./pages/EduSignInPage").then((m) => ({ default: m.EduSignInPage })),
 );
 const PolicyPage = lazy(() =>
-  import("./pages/PolicyPage").then((m) => ({ default: m.PolicyPage })),
+  import("./pages/countiresPolicyPage").then((m) => ({ default: m.PolicyPage })),
 );
 const AboutPage = lazy(() =>
   import("./pages/AboutPage").then((m) => ({ default: m.AboutPage })),
@@ -65,7 +65,7 @@ const GlobalIndexesPage = lazy(() =>
 );
 // WorldMapPage fetches a 3MB TopoJSON file — keep lazy to avoid stalling the bundler
 const WorldMapPage = lazy(() =>
-  import("./pages/WorldMapPage").then((m) => ({ default: m.WorldMapPage })),
+  import("./pages/WorldleadersPage").then((m) => ({ default: m.WorldMapPage })),
 );
 
 function PageFallback() {
