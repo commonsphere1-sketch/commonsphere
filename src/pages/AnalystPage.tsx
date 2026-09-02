@@ -293,7 +293,7 @@ export function AnalystPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   /* theme tokens */
-  const bg = isLight ? "#f8fafc" : "#0b0b14";
+  const bg = isLight ? "#ffffff" : "#0b0b14";
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
   const cardBorder = isLight
     ? "1px solid rgba(0,0,0,0.09)"

@@ -95,19 +95,28 @@ html.light {
   --color-neutral-foreground: hsl(38, 15%, 15%);
   --color-success: hsl(152, 52%, 32%);
   --color-warning: hsl(35, 90%, 42%);
-  --color-background: hsl(0, 0%, 96%);
+  --color-background: hsl(0, 0%, 100%);
   --color-foreground: hsl(38, 18%, 8%);
   --color-card: hsl(0, 0%, 100%);
   --color-card-foreground: hsl(38, 18%, 8%);
-  --color-border: hsl(40, 18%, 85%);
+  --color-border: hsl(40, 14%, 82%);
   --color-muted: hsl(42, 16%, 92%);
   --color-muted-foreground: hsl(38, 10%, 40%);
   --card-glow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 html.light body {
-  background-color: hsl(0, 0%, 96%);
+  background-color: hsl(0, 0%, 100%);
   color: hsl(38, 18%, 8%);
+}
+
+/* Cards used to read as raised because the page behind them was grey. On a
+   white page the fill no longer separates them, so they get a soft shadow to
+   keep that sense of a panel sitting above the surface. */
+html.light .bg-card {
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 1px 3px rgba(15, 23, 42, 0.05);
 }
 
 /* ── Header frosted-glass search ───────────────────────── */

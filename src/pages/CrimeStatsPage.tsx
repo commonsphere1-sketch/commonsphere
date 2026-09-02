@@ -655,7 +655,7 @@ export function CrimeStatsPage() {
   return (
     <div
       className="min-h-screen w-full animate-fade-in"
-      style={{ background: isLight ? "#f8fafc" : "#0b0b14", color: bodyText }}
+      style={{ background: isLight ? "#ffffff" : "#0b0b14", color: bodyText }}
     >
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-4 flex flex-col gap-4">
         {/* ── HERO ─────────────────────────────────────────────────── */}

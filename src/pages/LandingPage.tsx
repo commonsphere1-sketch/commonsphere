@@ -516,7 +516,7 @@ export function LandingPage() {
   }, []);
 
   // Theme tokens
-  const bg = dark ? "bg-[#06101f]" : "bg-[#f8fafc]";
+  const bg = dark ? "bg-[#06101f]" : "bg-white";
   const fg = dark ? "text-white" : "text-gray-900";
   const subFg = dark ? "text-slate-400" : "text-gray-500";
   const cardBg = dark
