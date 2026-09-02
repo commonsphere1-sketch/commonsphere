@@ -49,6 +49,15 @@ export const DEFAULT_AVATAR_COLOR = "#999999";
  * dark one. Uses relative luminance rather than a naive average so that, for
  * example, yellow counts as light and blue as dark.
  */
+/**
+ * True for a plain 6-digit hex colour. Storage is user-writable, so a value
+ * read back from it is treated the same way a stored note URL is: re-checked
+ * rather than trusted, falling back to the default when it fails.
+ */
+export function isValidAvatarColor(value: string): boolean {
+  return /^#[0-9a-fA-F]{6}$/.test(value);
+}
+
 export function avatarTextColor(hex: string): string {
   const lum = (h: string): number | null => {
     const m = /^#?([0-9a-f]{6})$/i.exec(h.trim());
@@ -137,7 +146,7 @@ export function ProfilePhotoProvider({
     try {
       setPhoto(localStorage.getItem(STORAGE_KEY));
       const c = localStorage.getItem(COLOR_KEY);
-      if (c) setAvatarColorState(c);
+      if (c && isValidAvatarColor(c)) setAvatarColorState(c);
     } catch {
       // private mode or blocked storage — run without a saved photo
     }
@@ -168,6 +177,7 @@ export function ProfilePhotoProvider({
   };
 
   const setAvatarColor = (hex: string) => {
+    if (!isValidAvatarColor(hex)) return;
     setAvatarColorState(hex);
     try {
       localStorage.setItem(COLOR_KEY, hex);

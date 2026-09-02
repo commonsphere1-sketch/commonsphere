@@ -57,8 +57,13 @@ export function NotesPage() {
     if (!raw) return [];
     let parsed: string[];
     try { parsed = JSON.parse(raw); } catch { parsed = raw.split(/[\n,]/).map((s) => s.trim()).filter(Boolean); }
-    // Re-validate every stored URL — reject anything non-http/https
-    return parsed.filter((u) => sanitizeUrl(u) !== null);
+    // Re-validate every stored URL — reject anything non-http/https, and
+    // keep the normalised form. Filtering on sanitizeUrl but returning the
+    // raw string let a scheme-less "example.com" through as a relative href,
+    // which navigated to /example.com inside the app instead of off-site.
+    return parsed
+      .map((u) => sanitizeUrl(u))
+      .filter((u): u is string => u !== null);
   };
 
   return (
