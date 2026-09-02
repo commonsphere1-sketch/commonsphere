@@ -713,3 +713,17 @@ html.light .mineral-pill-has {
 html.light .mineral-pill-surplus {
   color: hsl(28, 95%, 28%);
 }
+
+/* ── Recharts tooltips must not widen the page ────────────
+   Recharts keeps a tooltip mounted after it is dismissed, leaving it at
+   whatever transform it last had and only setting visibility:hidden.
+   visibility:hidden still occupies layout, so an invisible node parked
+   ~2,100px to the right stretched the document to 2,393px against a
+   1,296px viewport and gave the dashboard a horizontal scrollbar.
+
+   display:none removes it from layout entirely. It is already invisible,
+   so nothing is lost, and Recharts re-shows it by clearing the inline
+   visibility when the pointer returns to a chart. */
+.recharts-tooltip-wrapper[style*="visibility: hidden"] {
+  display: none !important;
+}
