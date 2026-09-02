@@ -47,3 +47,7 @@ coverage/
 
 # ...but the template is meant to be shared; it holds no values.
 !.env.example
+
+# Agent skills installed via `npx skills add` — machine-local tooling
+.agents/
+skills-lock.json
