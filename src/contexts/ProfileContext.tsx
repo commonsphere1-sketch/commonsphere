@@ -20,18 +20,22 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 const NAME_KEY = "cs-display-name";
 const EMAIL_KEY = "cs-email";
+const USERNAME_KEY = "cs-username";
 
 interface ProfileContextValue {
   /** Saved display name, or "" when the user has never saved one. */
   displayName: string;
   /** Saved email, or "" when the user has never saved one. */
   email: string;
-  save: (name: string, email: string) => boolean;
+  /** Saved username, or "" when the user has never chosen one. */
+  username: string;
+  save: (name: string, email: string, username?: string) => boolean;
 }
 
 const ProfileContext = createContext<ProfileContextValue>({
   displayName: "",
   email: "",
+  username: "",
   save: () => true,
 });
 
@@ -47,19 +51,24 @@ function read(key: string): string {
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
 
   useEffect(() => {
     setDisplayName(read(NAME_KEY));
     setEmail(read(EMAIL_KEY));
+    setUsername(read(USERNAME_KEY));
   }, []);
 
   /** Returns false when storage rejected the write, so the UI can say so. */
-  const save = (name: string, nextEmail: string) => {
+  const save = (name: string, nextEmail: string, nextUsername?: string) => {
     setDisplayName(name);
     setEmail(nextEmail);
+    if (nextUsername !== undefined) setUsername(nextUsername);
     try {
       localStorage.setItem(NAME_KEY, name);
       localStorage.setItem(EMAIL_KEY, nextEmail);
+      if (nextUsername !== undefined)
+        localStorage.setItem(USERNAME_KEY, nextUsername);
       return true;
     } catch {
       return false;
@@ -67,7 +76,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ProfileContext.Provider value={{ displayName, email, save }}>
+    <ProfileContext.Provider value={{ displayName, email, username, save }}>
       {children}
     </ProfileContext.Provider>
   );

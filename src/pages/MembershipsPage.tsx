@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useProfile } from "@/contexts/ProfileContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { sanitizeText, validateEmail, LIMITS } from "@/lib/security";
 import {
   CheckCircle,
   Star,
@@ -470,6 +473,59 @@ export function MembershipsPage() {
   const [submitted, setSubmitted] = useState(false);
   const [eduError, setEduError] = useState("");
 
+  // ── Create-account form ──────────────────────────────────────────────
+  const { displayName, email: savedEmail, username, save } = useProfile();
+  const { login } = useAuth();
+  const [accountName, setAccountName] = useState("");
+  const [accountUsername, setAccountUsername] = useState("");
+  const [accountEmail, setAccountEmail] = useState("");
+  const [accountError, setAccountError] = useState("");
+  const [accountSaved, setAccountSaved] = useState(false);
+
+  // Seed from anything already saved, once it has loaded from storage.
+  React.useEffect(() => {
+    if (displayName) setAccountName((v) => v || displayName);
+    if (savedEmail) setAccountEmail((v) => v || savedEmail);
+    if (username) setAccountUsername((v) => v || username);
+  }, [displayName, savedEmail, username]);
+
+  function handleCreateAccount() {
+    const name = sanitizeText(accountName);
+    // Usernames are the one field with a shape worth enforcing: it is meant to
+    // be a stable handle, so restrict it rather than sanitising silently.
+    const handle = accountUsername.trim().replace(/^@/, "");
+    const mail = sanitizeText(accountEmail).toLowerCase();
+
+    if (!name) {
+      setAccountError("Enter a display name.");
+      return;
+    }
+    if (handle.length < 3) {
+      setAccountError("Usernames need at least 3 characters.");
+      return;
+    }
+    if (!/^[a-zA-Z0-9_.]+$/.test(handle)) {
+      setAccountError(
+        "Usernames can use letters, numbers, underscores and dots only.",
+      );
+      return;
+    }
+    const ev = validateEmail(mail);
+    if (!ev.ok) {
+      setAccountError(ev.message);
+      return;
+    }
+    if (!save(name, mail, handle)) {
+      setAccountError("Could not save — this browser's storage is full.");
+      return;
+    }
+    setAccountName(name);
+    setAccountEmail(mail);
+    setAccountUsername(handle);
+    setAccountError("");
+    setAccountSaved(true);
+  }
+
   const handleEduSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.toLowerCase().endsWith(".edu")) {
@@ -712,6 +768,146 @@ export function MembershipsPage() {
                   </button>
                 </div>
               ))}
+            </div>
+
+            {/* ── Create an account ──────────────────────────────────────
+                Profile details are collected here and stored with the rest of
+                the profile. Credentials deliberately are not: there is no
+                backend to create an account against, and the SDK hands sign-in
+                to its own provider, so a password box here would either go
+                nowhere or keep a password in browser storage. The button hands
+                off to that provider instead. */}
+            <div
+              id="create-account"
+              className="rounded-xl border border-border bg-card p-5 mt-6"
+            >
+              <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+                <UserCircle size={15} className="text-secondary" /> Create your
+                account
+              </h3>
+              <p className="text-xs text-muted-foreground mb-4 max-w-lg">
+                Choose how you appear on CommonSphere. Your password is set with
+                our sign-in provider on the next step — we never ask for it
+                here.
+              </p>
+
+              {accountSaved ? (
+                <div className="rounded-lg border border-success/30 bg-success/5 p-4">
+                  <p className="text-sm font-medium text-success mb-1">
+                    Details saved
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Saved on this device as{" "}
+                    <span className="font-mono text-foreground">
+                      @{accountUsername.trim()}
+                    </span>
+                    . Continue to sign-in to finish creating the account.
+                  </p>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <button
+                      onClick={() => {
+                        void login().catch(() => {});
+                      }}
+                      className="px-3 py-2 rounded-lg text-xs font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                    >
+                      Continue to secure sign-in
+                    </button>
+                    <button
+                      onClick={() => setAccountSaved(false)}
+                      className="px-3 py-2 rounded-lg text-xs font-semibold border border-border text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Edit details
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label
+                        htmlFor="acct-name"
+                        className="block text-[11px] text-muted-foreground mb-1"
+                      >
+                        Display name
+                      </label>
+                      <input
+                        id="acct-name"
+                        value={accountName}
+                        maxLength={LIMITS.NAME}
+                        onChange={(e) => {
+                          setAccountName(e.target.value);
+                          setAccountError("");
+                        }}
+                        placeholder="Ada Lovelace"
+                        className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="acct-username"
+                        className="block text-[11px] text-muted-foreground mb-1"
+                      >
+                        Username
+                      </label>
+                      <div className="flex items-center bg-muted border border-border rounded-lg px-3 focus-within:ring-1 focus-within:ring-ring">
+                        <span className="text-sm text-muted-foreground select-none">
+                          @
+                        </span>
+                        <input
+                          id="acct-username"
+                          value={accountUsername}
+                          maxLength={30}
+                          onChange={(e) => {
+                            setAccountUsername(e.target.value);
+                            setAccountError("");
+                          }}
+                          placeholder="alovelace"
+                          className="w-full bg-transparent py-2 pl-1 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="acct-email"
+                        className="block text-[11px] text-muted-foreground mb-1"
+                      >
+                        Email
+                      </label>
+                      <input
+                        id="acct-email"
+                        type="email"
+                        value={accountEmail}
+                        maxLength={LIMITS.EMAIL}
+                        onChange={(e) => {
+                          setAccountEmail(e.target.value);
+                          setAccountError("");
+                        }}
+                        placeholder="ada@example.org"
+                        className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                      />
+                    </div>
+                  </div>
+
+                  {accountError && (
+                    <p className="text-xs text-destructive mt-2">
+                      {accountError}
+                    </p>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-3 mt-4">
+                    <button
+                      onClick={handleCreateAccount}
+                      className="px-4 py-2 rounded-lg text-xs font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                    >
+                      Save and continue
+                    </button>
+                    <p className="text-[10px] text-muted-foreground">
+                      Details are kept on this device. No password is collected
+                      on this page.
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* What's included grid */}
