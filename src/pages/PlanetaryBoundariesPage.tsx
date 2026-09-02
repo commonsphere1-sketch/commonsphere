@@ -1255,8 +1255,8 @@ export function PlanetaryBoundariesPage() {
         {/* Nine-boundary selector — full width above the chart. It is the
             page's primary control, so it leads; the chart below reflects
             whichever boundary is picked here. */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 mb-6">
-          <div className="bg-card border border-border rounded-2xl p-4 xl:col-span-3">
+        <div className="mb-6">
+          <div className="bg-card border border-border rounded-2xl p-4">
             <p className="text-[10px] font-mono uppercase tracking-widest mb-3 text-muted-foreground">
               All Nine Boundaries
             </p>
@@ -1275,36 +1275,9 @@ export function PlanetaryBoundariesPage() {
               ))}
             </div>
           </div>
-
-          {/* Legend */}
-          <div className="bg-card border border-border rounded-2xl p-4">
-            <p className="text-[10px] font-mono uppercase tracking-widest mb-3 text-muted-foreground">
-              Legend
-            </p>
-            <div className="flex flex-col gap-2">
-              {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                <div key={key} className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full shrink-0"
-                    style={{ background: cfg.color }}
-                  />
-                  <span className="text-[10px] font-sans text-foreground">
-                    {cfg.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 pt-3 text-[10px] font-sans leading-relaxed text-muted-foreground border-t border-border">
-              The inner green circle represents the Safe Operating Space.
-              Segments extending beyond the dashed boundary line indicate
-              transgression.
-            </div>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
-          {/* LEFT: Boundary list */}
-
           {/* CENTER: Radial Chart */}
           <div className="lg:col-span-7 flex flex-col gap-4">
             <div className="bg-card border border-border rounded-2xl p-4">
@@ -1321,6 +1294,27 @@ export function PlanetaryBoundariesPage() {
                   {highRisk} of 9 exceeded
                 </span>
               </div>
+
+              {/* Legend — a strip under the header rather than a separate
+                  card, so the key sits with the chart it explains. */}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-3 pb-3 border-b border-border">
+                {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                  <div key={key} className="flex items-center gap-1.5">
+                    <div
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ background: cfg.color }}
+                    />
+                    <span className="text-[10px] font-sans text-muted-foreground">
+                      {cfg.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] font-sans leading-relaxed text-muted-foreground mb-3">
+                The inner green circle represents the Safe Operating Space.
+                Segments extending beyond the dashed boundary line indicate
+                transgression.
+              </p>
               <PlanetaryBoundariesRadialChart
                 boundaries={BOUNDARIES}
                 selected={selectedId}
