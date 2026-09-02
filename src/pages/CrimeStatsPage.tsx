@@ -547,12 +547,6 @@ const GTI_SCORES = [
   { country: "Mozambique", score: 6.92, flag: "🇲🇿", change: +0.55 },
 ];
 
-/** 0–1 alpha as the two hex digits an 8-digit colour needs. */
-const hex = (a: number) =>
-  Math.round(Math.min(1, Math.max(0, a)) * 255)
-    .toString(16)
-    .padStart(2, "0");
-
 /** Columns for the regional crime matrix, in reading order. */
 const CRIME_COLUMNS = [
   { key: "homicide", short: "Homi", label: "Homicide" },
@@ -1245,10 +1239,10 @@ export function CrimeStatsPage() {
                 rate of 36.8 are not on the same scale and colouring them
                 against one range would wash homicide out again. */}
             <div className="overflow-x-auto -mx-1 px-1 flex-1">
-              <table className="w-full h-full border-collapse">
+              <table className="w-full border-collapse table-fixed">
                 <thead>
                   <tr>
-                    <th className="text-left pb-1.5 pr-2 sticky left-0">
+                    <th className="text-left pb-1.5 pr-2 w-[74px]">
                       <span
                         className="text-[9px] font-mono uppercase tracking-wider"
                         style={{ color: mutedText }}
@@ -1286,7 +1280,7 @@ export function CrimeStatsPage() {
                         className="cursor-pointer transition-opacity"
                         style={{ opacity: dimmed ? 0.4 : 1 }}
                       >
-                        <td className="py-0.5 pr-2 whitespace-nowrap">
+                        <td className="py-0.5 pr-2 whitespace-nowrap align-bottom">
                           <span
                             className="text-[11px] font-semibold font-sans"
                             style={{ color: headText }}
@@ -1299,29 +1293,40 @@ export function CrimeStatsPage() {
                           const max = Math.max(
                             ...REGIONAL_CRIME.map((r) => r[c.key]),
                           );
-                          // Floor the alpha so the lowest value in a column is
-                          // still legible rather than fading to the card.
-                          const alpha = 0.1 + (val / max) * 0.55;
+                          // Floor the height so the smallest value in a
+                          // column is still a visible bar rather than nothing
+                          // at all — E. Asia's 0.8 homicides against L.
+                          // America's 36.8 would otherwise round away.
+                          const pct = 6 + (val / max) * 94;
                           return (
-                            <td key={c.key} className="py-0.5 px-1">
-                              <div
-                                className="rounded-lg text-center py-1.5 transition-colors"
-                                style={{
-                                  background: `${CATEGORY_COLORS[c.key]}${hex(
-                                    alpha,
-                                  )}`,
-                                  border: `1px solid ${CATEGORY_COLORS[c.key]}${hex(
-                                    0.18 + (val / max) * 0.3,
-                                  )}`,
-                                }}
-                                title={`${c.label}: ${val} per 100,000`}
-                              >
+                            <td
+                              key={c.key}
+                              className="px-1 py-1.5 align-bottom"
+                              title={`${c.label}: ${val} per 100,000`}
+                            >
+                              <div className="flex flex-col items-center justify-end gap-1.5">
                                 <span
-                                  className="text-[10px] font-mono font-semibold"
+                                  className="text-[10px] font-mono font-semibold leading-none"
                                   style={{ color: headText }}
                                 >
                                   {val}
                                 </span>
+                                <div
+                                  className="w-2 rounded-full relative overflow-hidden"
+                                  style={{
+                                    height: 56,
+                                    background: `${CATEGORY_COLORS[c.key]}14`,
+                                    border: `1px solid ${CATEGORY_COLORS[c.key]}2e`,
+                                  }}
+                                >
+                                  <div
+                                    className="absolute inset-x-0 bottom-0 rounded-full transition-all duration-300"
+                                    style={{
+                                      height: `${pct}%`,
+                                      background: CATEGORY_COLORS[c.key],
+                                    }}
+                                  />
+                                </div>
                               </div>
                             </td>
                           );
