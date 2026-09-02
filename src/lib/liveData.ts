@@ -391,11 +391,24 @@ const FIPS_TO_ABBR: Record<string, string> = {
 };
 
 /**
- * Fetch state-level unemployment rates from the BLS public API (no key).
- * Returns a map of state abbreviation → unemployment rate (%).
+ * State-level unemployment from BLS.
+ *
+ * Disabled, and not because it is unimplemented — the request below is
+ * correct, but api.bls.gov sends no Access-Control-Allow-Origin header, so the
+ * browser refuses the response every time. The call therefore could not ever
+ * succeed from a static front end; all it did was throw a CORS error into the
+ * console on every page load and burn a request. The catch swallowed the
+ * failure, so the app looked fine while doing this on repeat.
+ *
+ * The code is kept rather than deleted because it is exactly what a server-side
+ * proxy would run. Route it through one, or through a Supabase edge function,
+ * and flip this flag.
  */
+const BLS_REACHABLE_FROM_BROWSER = false;
+
 async function fetchBLSStateUnemployment(): Promise<Map<string, number>> {
   const out = new Map<string, number>();
+  if (!BLS_REACHABLE_FROM_BROWSER) return out;
   try {
     // Series IDs for state unemployment: "LAUST" + FIPS(2) + "0000000000003"
     // We batch all 50 states in one request (BLS allows up to 50 series/request)
@@ -606,6 +619,15 @@ export async function fetchLiveCountryData(): Promise<LiveDataResult> {
     states: mergedStates,
     patchedCount,
     lastUpdated: new Date(),
-    source: "World Bank · BLS · US Census Bureau",
+    // Names only the providers that actually returned something. The old value
+    // was the fixed string "World Bank · BLS · US Census Bureau", which
+    // credited all three whatever happened — BLS is unreachable from the
+    // browser and Census stays idle without a key, so in practice it was
+    // crediting two sources that contributed nothing.
+    source: [
+      "World Bank",
+      ...(blsUnempMap.size ? ["BLS"] : []),
+      ...(censusMap.size ? ["US Census Bureau"] : []),
+    ].join(" · "),
   };
 }

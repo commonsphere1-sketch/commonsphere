@@ -40,8 +40,8 @@ const VALUES = [
   },
   {
     icon: <Lightning size={24} weight="fill" />,
-    title: "Real-time Intelligence",
-    desc: "Our data pipeline refreshes continuously, surfacing leadership changes, policy shifts, conflict developments, and economic signals as they happen.",
+    title: "Kept Current",
+    desc: "Country and state indicators are pulled from the World Bank and refreshed while you have the app open. Written entries — policy notes, conflict and leadership records — are curated and carry their own dates.",
     color: "text-secondary",
     bg: "bg-secondary/10",
   },

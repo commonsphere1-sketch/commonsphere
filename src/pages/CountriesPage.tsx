@@ -39937,17 +39937,27 @@ export function CountriesPage() {
             <DownloadSimple size={13} weight="bold" />
             Export CSV
           </button>
+          {/* Said "Live data" beside a pulsing dot. The fetch runs on mount and
+              then every 30 minutes, and the World Bank publishes annual
+              figures — nothing about it is live. The pull is unchanged; the
+              badge now reports when it last completed instead of implying a
+              stream. */}
           <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-mono transition-all ${isRefreshing ? "bg-warning/10 border-warning/30 text-warning" : lastUpdated ? "bg-success/10 border-success/30 text-success" : "bg-muted/50 border-border text-muted-foreground"}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-mono transition-all ${isRefreshing ? "bg-warning/10 border-warning/30 text-warning" : lastUpdated ? "bg-muted/50 border-border text-muted-foreground" : "bg-muted/50 border-border text-muted-foreground"}`}
+            title={
+              lastUpdated
+                ? `World Bank data fetched at ${lastUpdated.toLocaleString()}`
+                : "Showing the figures bundled with the app"
+            }
           >
-            <span
-              className={`w-1.5 h-1.5 rounded-full shrink-0 ${isRefreshing ? "bg-warning animate-pulse" : lastUpdated ? "bg-success animate-pulse" : "bg-muted-foreground"}`}
-            />
             {isRefreshing
               ? "Updating…"
               : lastUpdated
-                ? "Live data"
-                : "Static data"}
+                ? `Updated ${lastUpdated.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}`
+                : "Bundled data"}
           </div>
         </div>
 

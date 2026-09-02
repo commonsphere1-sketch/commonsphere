@@ -119,12 +119,12 @@ const CAPABILITIES = [
   {
     icon: Cpu,
     title: "Admin & API Dashboard",
-    desc: "Live integrations with NewsAPI and ProPublica Congress API for real-time legislative and news data.",
+    desc: "Source registry, request logs, and the World Bank indicator pulls that keep country and state figures current.",
     tag: "Admin",
   },
   {
     icon: FlowArrow,
-    title: "Real-Time Filtering & Sorting",
+    title: "Instant Filtering & Sorting",
     desc: "Filter and sort across all datasets — countries, states, metrics — instantly with no page reloads.",
     tag: "Data",
   },
@@ -802,9 +802,9 @@ export function LandingPage() {
               Built on verified, reputable data
             </h2>
             <p className={`text-sm max-w-xl mx-auto ${subFg}`}>
-              CommonSphere aggregates data from 17 international organizations,
-              government agencies, and real-time APIs. Every data point is
-              traceable.
+              CommonSphere aggregates data from international organizations and
+              government agencies, with country and state indicators pulled from
+              the World Bank. Every data point is traceable.
             </p>
           </div>
 
@@ -834,9 +834,9 @@ export function LandingPage() {
             <div className="flex flex-wrap gap-6 justify-center text-center">
               {[
                 {
-                  label: "Real-Time APIs",
-                  value: "4",
-                  desc: "NewsAPI, ProPublica, BLS, Census",
+                  label: "Live API",
+                  value: "1",
+                  desc: "World Bank indicators, refreshed in-app",
                 },
                 {
                   label: "Data Sources",
@@ -845,8 +845,8 @@ export function LandingPage() {
                 },
                 {
                   label: "Update Frequency",
-                  value: "Daily",
-                  desc: "Most metrics refreshed every 24h",
+                  value: "30 min",
+                  desc: "World Bank pull while a tab is open",
                 },
                 {
                   label: "Historical Depth",
@@ -922,7 +922,6 @@ export function LandingPage() {
               {[
                 "State-to-state comparison tools",
                 "Real polling aggregates (538, Pew, RCP)",
-                "Congressional records via ProPublica",
                 "BLS employment & labor data",
                 "FBI crime statistics",
               ].map((item) => (
@@ -1015,7 +1014,7 @@ export function LandingPage() {
             <span
               className={`text-xs font-semibold uppercase tracking-widest ${dark ? "text-sky-400" : "text-sky-600"}`}
             >
-              Live Data Cards
+              Data Cards
             </span>
             <h2
               className={`text-3xl sm:text-4xl font-bold mt-2 mb-3 ${fg}`}

@@ -570,7 +570,7 @@ function NavItem({
         to={to}
         end={end}
         className={({ isActive }) =>
-          `flex items-center py-2 rounded-lg transition-all duration-250 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer group w-full ${
+          `flex items-center py-2 rounded-lg transition-all duration-250 ease-in-out cursor-pointer group w-full ${
             isActive ? "nav-item-active" : "nav-item-idle"
           } ${collapsed && !mobile ? "justify-center px-0" : "gap-3 px-3"}`
         }
@@ -671,7 +671,7 @@ export function SidebarNav({
         <li>
           <button
             onClick={() => setShowAbout(true)}
-            className={`flex items-center py-2 rounded-lg transition-all duration-250 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer group w-full text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border ${collapsed && !mobile ? "justify-center px-0" : "gap-3 px-3"}`}
+            className={`flex items-center py-2 rounded-lg transition-all duration-250 ease-in-out cursor-pointer group w-full text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border ${collapsed && !mobile ? "justify-center px-0" : "gap-3 px-3"}`}
             title={collapsed && !mobile ? "About" : undefined}
             aria-label="About CommonSphere"
           >
@@ -696,7 +696,7 @@ export function SidebarNav({
         <div className="px-2 pt-3 border-t border-border mt-2">
           <button
             onClick={onToggle}
-            className={`flex items-center gap-2 px-2.5 py-2 rounded-lg w-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-250 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer ${
+            className={`flex items-center gap-2 px-2.5 py-2 rounded-lg w-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-250 ease-in-out cursor-pointer ${
               collapsed ? "justify-center px-0" : ""
             }`}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
