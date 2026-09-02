@@ -7,7 +7,6 @@ import {
   TrendDown,
   ArrowUp,
   ArrowDown,
-  CaretRight,
   Info,
   MagnifyingGlass,
   Skull,
@@ -547,6 +546,21 @@ const GTI_SCORES = [
   { country: "Iraq", score: 7.18, flag: "🇮🇶", change: -0.15 },
   { country: "Mozambique", score: 6.92, flag: "🇲🇿", change: +0.55 },
 ];
+
+/** 0–1 alpha as the two hex digits an 8-digit colour needs. */
+const hex = (a: number) =>
+  Math.round(Math.min(1, Math.max(0, a)) * 255)
+    .toString(16)
+    .padStart(2, "0");
+
+/** Columns for the regional crime matrix, in reading order. */
+const CRIME_COLUMNS = [
+  { key: "homicide", short: "Homi", label: "Homicide" },
+  { key: "robbery", short: "Robb", label: "Robbery" },
+  { key: "burglary", short: "Burg", label: "Burglary" },
+  { key: "carTheft", short: "Theft", label: "Car theft" },
+  { key: "drugOffense", short: "Drug", label: "Drug offences" },
+] as const;
 
 const CATEGORY_COLORS: Record<string, string> = {
   homicide: "#ef4444",
@@ -1129,10 +1143,7 @@ export function CrimeStatsPage() {
               badge="Top 20"
               isLight={isLight}
             />
-            <div
-              className="flex flex-col gap-2.5 overflow-y-auto"
-              style={{ maxHeight: 420 }}
-            >
+            <div className="flex flex-col gap-2.5">
               {SAFETY_INDEX.map((item) => (
                 <div key={item.country} className="flex items-center gap-2.5">
                   <span
@@ -1206,7 +1217,7 @@ export function CrimeStatsPage() {
 
           {/* Regional Crime Categories */}
           <div
-            className="lg:col-span-5 rounded-2xl p-5"
+            className="lg:col-span-5 rounded-2xl p-5 flex flex-col"
             style={{
               background: cardBg,
               border: cardBorder,
@@ -1219,153 +1230,107 @@ export function CrimeStatsPage() {
               isLight={isLight}
             />
             {/* Legend */}
-            <div className="flex flex-wrap gap-3 mb-3">
-              {[
-                { key: "homicide", label: "Homicide" },
-                { key: "robbery", label: "Robbery" },
-                { key: "burglary", label: "Burglary" },
-                { key: "carTheft", label: "Car Theft" },
-                { key: "drugOffense", label: "Drug Offenses" },
-              ].map((c) => (
-                <div key={c.key} className="flex items-center gap-1">
-                  <div
-                    className="w-2.5 h-2.5 rounded-sm"
-                    style={{ background: CATEGORY_COLORS[c.key] }}
-                  />
-                  <span
-                    className="text-[10px] font-mono"
-                    style={{ color: mutedText }}
-                  >
-                    {c.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-col gap-3">
-              {REGIONAL_CRIME.map((region) => (
-                <div key={region.region}>
-                  <div
-                    className="flex items-center justify-between mb-1 cursor-pointer"
-                    onClick={() =>
-                      setSelectedRegion(
-                        selectedRegion === region.region ? null : region.region,
-                      )
-                    }
-                  >
-                    <span
-                      className="text-[11px] font-semibold font-sans"
-                      style={{ color: headText }}
-                    >
-                      {region.region}
-                    </span>
-                    <div className="flex items-center gap-1">
+            {/* Per-100k matrix.
+                This replaced stacked proportion bars. Those normalised each
+                row to 100%, which had two problems: homicide became a
+                sub-pixel sliver (1.1 against a row total of 853 in W. Europe)
+                even though it is the headline figure in the badge, and
+                magnitude vanished entirely — L. America totals 1,924 and E.
+                Asia 233, yet both drew a full-width bar. Thirty-two of the
+                forty numbers were also hidden behind a click.
+
+                A matrix shows every value at once and reads down a column as
+                well as across a row. Shading is scaled within each column, not
+                across the table, because a burglary rate of 620 and a homicide
+                rate of 36.8 are not on the same scale and colouring them
+                against one range would wash homicide out again. */}
+            <div className="overflow-x-auto -mx-1 px-1 flex-1">
+              <table className="w-full h-full border-collapse">
+                <thead>
+                  <tr>
+                    <th className="text-left pb-1.5 pr-2 sticky left-0">
                       <span
-                        className="text-[10px] font-mono px-1.5 py-0.5 rounded-full"
-                        style={{
-                          background:
-                            region.homicide > 20
-                              ? "#ef444420"
-                              : region.homicide > 5
-                                ? "#f59e0b20"
-                                : "#10b98120",
-                          color:
-                            region.homicide > 20
-                              ? "#ef4444"
-                              : region.homicide > 5
-                                ? "#f59e0b"
-                                : "#10b981",
-                        }}
+                        className="text-[9px] font-mono uppercase tracking-wider"
+                        style={{ color: mutedText }}
                       >
-                        {region.homicide} homicide/100k
+                        Region
                       </span>
-                      <CaretRight
-                        size={10}
-                        weight="bold"
-                        style={{
-                          color: mutedText,
-                          transform:
-                            selectedRegion === region.region
-                              ? "rotate(90deg)"
-                              : "none",
-                          transition: "transform 0.2s",
-                        }}
-                      />
-                    </div>
-                  </div>
-                  {/* Stacked mini bars */}
-                  <div className="flex gap-px h-5 rounded overflow-hidden">
-                    {(
-                      [
-                        "homicide",
-                        "robbery",
-                        "burglary",
-                        "carTheft",
-                        "drugOffense",
-                      ] as const
-                    ).map((cat) => {
-                      const val = region[cat];
-                      const total =
-                        region.homicide +
-                        region.robbery +
-                        region.burglary +
-                        region.carTheft +
-                        region.drugOffense;
-                      const pct = (val / total) * 100;
-                      return (
-                        <div
-                          key={cat}
-                          className="h-full transition-all"
-                          style={{
-                            width: `${pct}%`,
-                            background: CATEGORY_COLORS[cat],
-                            opacity:
-                              selectedRegion === null ||
-                              selectedRegion === region.region
-                                ? 1
-                                : 0.3,
-                          }}
-                          title={`${cat}: ${val}/100k`}
-                        />
-                      );
-                    })}
-                  </div>
-                  {selectedRegion === region.region && (
-                    <div className="mt-2 grid grid-cols-5 gap-1">
-                      {(
-                        [
-                          { key: "homicide", label: "Homicide" },
-                          { key: "robbery", label: "Robbery" },
-                          { key: "burglary", label: "Burglary" },
-                          { key: "carTheft", label: "Car Theft" },
-                          { key: "drugOffense", label: "Drug" },
-                        ] as const
-                      ).map((c) => (
-                        <div
-                          key={c.key}
-                          className="rounded-lg p-2 text-center"
-                          style={{
-                            background: CATEGORY_COLORS[c.key] + "18",
-                            border: `1px solid ${CATEGORY_COLORS[c.key]}30`,
-                          }}
+                    </th>
+                    {CRIME_COLUMNS.map((c) => (
+                      <th key={c.key} className="pb-2 px-1">
+                        <span
+                          className="text-[9px] font-mono uppercase tracking-wider"
+                          style={{ color: CATEGORY_COLORS[c.key] }}
                         >
-                          <p
-                            className="text-[11px] font-bold font-mono"
-                            style={{ color: CATEGORY_COLORS[c.key] }}
+                          {c.short}
+                        </span>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {REGIONAL_CRIME.map((region) => {
+                    const dimmed =
+                      selectedRegion !== null &&
+                      selectedRegion !== region.region;
+                    return (
+                      <tr
+                        key={region.region}
+                        onClick={() =>
+                          setSelectedRegion(
+                            selectedRegion === region.region
+                              ? null
+                              : region.region,
+                          )
+                        }
+                        className="cursor-pointer transition-opacity"
+                        style={{ opacity: dimmed ? 0.4 : 1 }}
+                      >
+                        <td className="py-0.5 pr-2 whitespace-nowrap">
+                          <span
+                            className="text-[11px] font-semibold font-sans"
+                            style={{ color: headText }}
                           >
-                            {region[c.key]}
-                          </p>
-                          <p
-                            className="text-[8px] font-sans leading-tight mt-0.5"
-                            style={{ color: mutedText }}
-                          >
-                            {c.label}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+                            {region.region}
+                          </span>
+                        </td>
+                        {CRIME_COLUMNS.map((c) => {
+                          const val = region[c.key];
+                          const max = Math.max(
+                            ...REGIONAL_CRIME.map((r) => r[c.key]),
+                          );
+                          // Floor the alpha so the lowest value in a column is
+                          // still legible rather than fading to the card.
+                          const alpha = 0.1 + (val / max) * 0.55;
+                          return (
+                            <td key={c.key} className="py-0.5 px-1">
+                              <div
+                                className="rounded-lg text-center py-1.5 transition-colors"
+                                style={{
+                                  background: `${CATEGORY_COLORS[c.key]}${hex(
+                                    alpha,
+                                  )}`,
+                                  border: `1px solid ${CATEGORY_COLORS[c.key]}${hex(
+                                    0.18 + (val / max) * 0.3,
+                                  )}`,
+                                }}
+                                title={`${c.label}: ${val} per 100,000`}
+                              >
+                                <span
+                                  className="text-[10px] font-mono font-semibold"
+                                  style={{ color: headText }}
+                                >
+                                  {val}
+                                </span>
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
             <SourceLink
               sources={{
