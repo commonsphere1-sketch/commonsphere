@@ -909,9 +909,13 @@ function BoundaryDetailPanel({
   const sc = STATUS_CONFIG[boundary.status];
 
   return (
-    <div className="flex flex-col gap-4 animate-fade-in h-full">
-      {/* Header */}
-      <div className="flex items-start gap-3">
+    <div className="animate-fade-in">
+      {/* Header — a full-width bar carrying identity and summary together, so
+          the three data columns beneath it all start on one baseline. */}
+      <div
+        className="flex items-start gap-4 pb-4 mb-4 border-b"
+        style={{ borderColor: gridLine }}
+      >
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
           style={{ background: boundary.color + "18", color: boundary.color }}
@@ -936,15 +940,24 @@ function BoundaryDetailPanel({
             {sc.label}
           </span>
         </div>
+        <p
+          className="hidden sm:block flex-1 text-[11px] font-sans leading-relaxed pt-0.5"
+          style={{ color: isLight ? "#475569" : "#94a3b8" }}
+        >
+          {boundary.summary}
+        </p>
       </div>
 
-      {/* Summary */}
+      {/* Summary again for narrow screens, where the header bar wraps badly. */}
       <p
-        className="text-[11px] font-sans leading-relaxed"
+        className="sm:hidden text-[11px] font-sans leading-relaxed mb-4"
         style={{ color: isLight ? "#475569" : "#94a3b8" }}
       >
         {boundary.summary}
       </p>
+
+      {/* The three sections read across rather than down. */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 items-start">
 
       {/* Key Variables */}
       <div>
@@ -1075,8 +1088,13 @@ function BoundaryDetailPanel({
         </div>
       </div>
 
+      </div>
+
       {/* Source */}
-      <p className="text-[9px] font-sans" style={{ color: mutedText }}>
+      <p
+        className="text-[9px] font-sans mt-4 pt-3 border-t"
+        style={{ color: mutedText, borderColor: gridLine }}
+      >
         Source: {boundary.source}
       </p>
     </div>
@@ -1277,6 +1295,21 @@ export function PlanetaryBoundariesPage() {
           </div>
         </div>
 
+        {/* Selected boundary — full width above the dashboard. The panel
+            reads horizontally here, so every variable, ecological note and
+            geopolitical link is on screen at once instead of stacked in a
+            narrow rail that had to be scrolled. */}
+        <div className="bg-card border border-border rounded-2xl p-5 mb-6">
+            <BoundaryDetailPanel
+              boundary={selected}
+              isLight={isLight}
+              headText={headText}
+              mutedText={mutedText}
+              gridLine={gridLine}
+              cardBg={cardBg}
+            />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
           {/* CENTER: Radial Chart */}
           <div className="lg:col-span-7 flex flex-col gap-4">
@@ -1327,6 +1360,10 @@ export function PlanetaryBoundariesPage() {
               </p>
             </div>
 
+          </div>
+
+          {/* RIGHT: Risk matrix + framework note */}
+          <div className="lg:col-span-5 flex flex-col gap-4">
             {/* Geopolitical Matrix */}
             <div className="bg-card border border-border rounded-2xl p-5 flex-1">
               <p className="text-[10px] font-mono uppercase tracking-widest mb-1 text-green-500">
@@ -1435,20 +1472,6 @@ export function PlanetaryBoundariesPage() {
                 Security index reflects geopolitical instability risk per
                 boundary. Composite of expert consensus and conflict literature.
               </p>
-            </div>
-          </div>
-
-          {/* RIGHT: Detail panel */}
-          <div className="lg:col-span-5 flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
-            <div className="bg-card border border-border rounded-2xl p-5">
-              <BoundaryDetailPanel
-                boundary={selected}
-                isLight={isLight}
-                headText={headText}
-                mutedText={mutedText}
-                gridLine={gridLine}
-                cardBg={cardBg}
-              />
             </div>
 
             {/* Science Note */}
