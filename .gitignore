@@ -44,3 +44,6 @@ coverage/
 # Local Claude Code config — launch.json hardcodes a machine-specific
 # node.exe path, so it should not be shared
 .claude/
+
+# ...but the template is meant to be shared; it holds no values.
+!.env.example
