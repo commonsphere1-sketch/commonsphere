@@ -28,6 +28,7 @@ import { useResourceRents } from "../hooks/useResourceRents";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
+import { StyledSelect } from "../components/StyledSelect";
 
 // ── Rare Earth Minerals data per economy ────────────────────────────────────
 type RareEarthMineral = {
@@ -5762,6 +5763,11 @@ function CurrencyConverter() {
   const resultVal = convert(amount, fromCur, toCur);
   const currencies = Object.keys(FX_RATES).filter((c) => c !== "HKD2");
 
+  const currencyOptions = currencies.map((c) => ({
+    value: c,
+    label: `${c} — ${CURRENCY_NAMES[c] ?? c}`,
+  }));
+
   return (
     <div className="bg-card border border-border rounded-2xl p-5 mb-6">
       <div className="flex items-center gap-2 mb-4">
@@ -5810,17 +5816,12 @@ function CurrencyConverter() {
               className="flex-1 bg-transparent text-sm font-mono text-foreground focus:outline-none min-w-0"
               placeholder="1"
             />
-            <select
+            <StyledSelect
               value={fromCur}
-              onChange={(e) => setFromCur(e.target.value)}
-              className="bg-transparent text-xs font-mono text-muted-foreground focus:outline-none cursor-pointer shrink-0"
-            >
-              {currencies.map((c) => (
-                <option key={c} value={c}>
-                  {c} — {CURRENCY_NAMES[c] ?? c}
-                </option>
-              ))}
-            </select>
+              onValueChange={setFromCur}
+              ariaLabel="Convert from currency"
+              options={currencyOptions}
+            />
           </div>
         </div>
 
@@ -5845,17 +5846,12 @@ function CurrencyConverter() {
             <span className="flex-1 text-sm font-mono font-bold text-foreground min-w-0 truncate">
               {resultVal}
             </span>
-            <select
+            <StyledSelect
               value={toCur}
-              onChange={(e) => setToCur(e.target.value)}
-              className="bg-transparent text-xs font-mono text-muted-foreground focus:outline-none cursor-pointer shrink-0"
-            >
-              {currencies.map((c) => (
-                <option key={c} value={c}>
-                  {c} — {CURRENCY_NAMES[c] ?? c}
-                </option>
-              ))}
-            </select>
+              onValueChange={setToCur}
+              ariaLabel="Convert to currency"
+              options={currencyOptions}
+            />
           </div>
         </div>
       </div>

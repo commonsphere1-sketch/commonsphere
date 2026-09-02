@@ -826,3 +826,31 @@ html.dark .modal-tile.cursor-pointer:hover {
     0 2px 6px rgba(255, 255, 255, 0.09),
     0 12px 30px rgba(255, 255, 255, 0.11) !important;
 }
+
+/* ── Dropdown panels ──────────────────────────────────────
+   Floating lists cannot use bg-card. That token is translucent in dark mode
+   (rgba(255,255,255,0.03)) because cards sit on the page and borrow its
+   colour; a dropdown floats over arbitrary content, so the same fill lets
+   the text underneath show straight through the options.
+
+   This keeps the site's glass language — blur and saturate over what is
+   behind — but on a fill opaque enough to read against, since a dropdown
+   has no dimming scrim under it the way .modal-glass does. */
+.dropdown-glass {
+  background: rgba(16, 16, 26, 0.88) !important;
+  backdrop-filter: blur(24px) saturate(170%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(170%) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+html.light .dropdown-glass {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(24px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  box-shadow:
+    0 12px 32px rgba(15, 23, 42, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
