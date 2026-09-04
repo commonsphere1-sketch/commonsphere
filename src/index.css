@@ -494,11 +494,22 @@ html.light
 .rounded-xl,
 .rounded-2xl,
 .rounded-3xl,
-.bg-card {
+.bg-card,
+.rounded-lg:not(:has(img)) {
   box-shadow: var(--card-glow);
 }
+
+/* The rounded-lg tiles are reached by their radius because several set their
+   fill inline rather than through .bg-card. Image wrappers are held back:
+   the state flags are rounded-lg too, and a highlight there draws a line
+   across the flag rather than along a panel edge.
+
+   The sidebar is excluded whole. Its rows are transparent glass by design,
+   and not all of them carry the nav-item classes — the About row is a plain
+   rounded-lg button, so naming the classes alone missed it. */
 .nav-item-idle,
-.nav-item-active {
+.nav-item-active,
+.sidebar-bar .rounded-lg {
   box-shadow: none;
 }
 
