@@ -102,7 +102,9 @@ html.light {
   --color-border: hsl(40, 14%, 82%);
   --color-muted: hsl(42, 16%, 92%);
   --color-muted-foreground: hsl(38, 10%, 40%);
-  --card-glow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  /* Dark mode lights the top edge; on a white card a white line is
+     invisible, so light mode draws the same edge in ink instead. */
+  --card-glow: inset 0 1px 0 rgba(15, 23, 42, 0.14);
 }
 
 html.light body {
