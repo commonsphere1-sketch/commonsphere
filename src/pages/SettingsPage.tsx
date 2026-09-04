@@ -22,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   useProfilePhoto,
   avatarTextColor,
+  GLASS_AVATAR,
   AVATAR_COLORS,
 } from "@/contexts/ProfilePhotoContext";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -376,11 +377,17 @@ export function SettingsPage() {
                     <AvatarImage src={photo} alt="Your profile photo" />
                   )}
                   <AvatarFallback
-                    className="text-sm font-bold"
-                    style={{
-                      background: avatarColor,
-                      color: avatarTextColor(avatarColor),
-                    }}
+                    className={`text-sm font-bold avatar-surface${
+                      avatarColor === GLASS_AVATAR ? " avatar-glass" : ""
+                    }`}
+                    style={
+                      avatarColor === GLASS_AVATAR
+                        ? undefined
+                        : {
+                            background: avatarColor,
+                            color: avatarTextColor(avatarColor),
+                          }
+                    }
                   >
                     {displayName
                       ? displayName
@@ -437,6 +444,20 @@ export function SettingsPage() {
                       <span className="text-[11px] text-muted-foreground font-sans">
                         Colour
                       </span>
+                      {/* Glass sits with the swatches because it answers the
+                          same question: what fills the avatar when there is
+                          no photo. */}
+                      <button
+                        onClick={() => setAvatarColor(GLASS_AVATAR)}
+                        aria-label="Use a glass avatar"
+                        aria-pressed={avatarColor === GLASS_AVATAR}
+                        title="Glass"
+                        className={`avatar-surface avatar-glass w-5 h-5 rounded-full shrink-0 cursor-pointer transition-transform hover:scale-110 ${
+                          avatarColor === GLASS_AVATAR
+                            ? "ring-2 ring-offset-2 ring-offset-card ring-foreground"
+                            : ""
+                        }`}
+                      />
                       {AVATAR_COLORS.map((c) => (
                         <button
                           key={c}
@@ -445,10 +466,10 @@ export function SettingsPage() {
                           aria-pressed={
                             avatarColor.toLowerCase() === c.toLowerCase()
                           }
-                          className={`w-5 h-5 rounded-full shrink-0 cursor-pointer transition-transform hover:scale-110 ${
+                          className={`avatar-surface w-5 h-5 rounded-full shrink-0 cursor-pointer transition-transform hover:scale-110 ${
                             avatarColor.toLowerCase() === c.toLowerCase()
                               ? "ring-2 ring-offset-2 ring-offset-card ring-foreground"
-                              : "border border-border"
+                              : ""
                           }`}
                           style={{ background: c }}
                         />

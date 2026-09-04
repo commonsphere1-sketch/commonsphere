@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   useProfilePhoto,
   avatarTextColor,
+  GLASS_AVATAR,
 } from "@/contexts/ProfilePhotoContext";
 import { useProfile } from "@/contexts/ProfileContext";
 import { usStatesData } from "@/data/statesData";
@@ -319,11 +320,17 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
                   alt="User avatar"
                 />
                 <AvatarFallback
-                  className="text-xs font-bold"
-                  style={{
-                    background: avatarColor,
-                    color: avatarTextColor(avatarColor),
-                  }}
+                  className={`text-xs font-bold avatar-surface${
+                    avatarColor === GLASS_AVATAR ? " avatar-glass" : ""
+                  }`}
+                  style={
+                    avatarColor === GLASS_AVATAR
+                      ? undefined
+                      : {
+                          background: avatarColor,
+                          color: avatarTextColor(avatarColor),
+                        }
+                  }
                 >
                   {(() => {
                     // Same precedence as the label above, so the initials never

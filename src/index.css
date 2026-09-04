@@ -972,3 +972,42 @@ html.light .modal-glass .modal-tile {
 html.light .modal-glass {
   --card-glow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
+
+/* ── Glass avatar ─────────────────────────────────────────
+   An alternative to filling the avatar with a flat colour. It cannot be a
+   stored hex value the way the swatches are: glass depends on what is behind
+   it and on the theme, so the fill lives here instead and the stored value is
+   only a marker.
+
+   Carries the card shimmer along its top edge, so it reads as the same
+   material as the panels around it. */
+/* The material every avatar is made of, whatever fills it — the same top
+   shimmer the panels carry, over an edge and a small lift. The fill is left
+   alone here so a colour keeps its own and glass can set its own below. */
+.avatar-surface {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    var(--card-glow),
+    0 1px 3px rgba(0, 0, 0, 0.32);
+}
+html.light .avatar-surface {
+  border-color: rgba(15, 23, 42, 0.16);
+  box-shadow:
+    var(--card-glow),
+    0 1px 3px rgba(15, 23, 42, 0.1);
+}
+
+/* Glass differs from the swatches only in the fill: translucent, and blurring
+   whatever sits behind it, where a colour is solid. */
+.avatar-glass {
+  background: rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: blur(12px) saturate(170%);
+  -webkit-backdrop-filter: blur(12px) saturate(170%);
+  color: #f1f0ff !important;
+}
+html.light .avatar-glass {
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(12px) saturate(150%) brightness(0.97);
+  -webkit-backdrop-filter: blur(12px) saturate(150%) brightness(0.97);
+  color: hsl(38, 18%, 12%) !important;
+}

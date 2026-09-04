@@ -42,6 +42,15 @@ export const AVATAR_COLORS = [
 export const DEFAULT_AVATAR_COLOR = "#999999";
 
 /**
+ * Avatar styled as glass rather than filled with a colour.
+ *
+ * Stored in the same slot as the swatches, so it is a sentinel rather than a
+ * hex value — the fill has to come from CSS, since glass depends on what is
+ * behind it and on the theme, neither of which a stored colour can express.
+ */
+export const GLASS_AVATAR = "glass";
+
+/**
  * Readable text colour for a given background.
  *
  * The initials sit directly on the chosen colour, so the foreground has to
@@ -55,7 +64,7 @@ export const DEFAULT_AVATAR_COLOR = "#999999";
  * rather than trusted, falling back to the default when it fails.
  */
 export function isValidAvatarColor(value: string): boolean {
-  return /^#[0-9a-fA-F]{6}$/.test(value);
+  return value === GLASS_AVATAR || /^#[0-9a-fA-F]{6}$/.test(value);
 }
 
 export function avatarTextColor(hex: string): string {
