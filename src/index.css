@@ -48,7 +48,7 @@
      a highlight. Dark mode carries a brighter edge than light on purpose:
      a lit rim is what reads as glass against near-black. */
   --card-glow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
     inset 0 0 0 1px rgba(255, 255, 255, 0.035), 0 0 0 1px rgba(0, 0, 0, 0.4);
   /* Premium shadow */
   --premium-shadow: 0 4px 24px rgba(0, 0, 0, 0.5), 0 1px 4px rgba(0, 0, 0, 0.3);
@@ -108,7 +108,7 @@ html.light {
   --color-muted-foreground: hsl(38, 10%, 40%);
   /* Dark mode lights the top edge; on a white card a white line is
      invisible, so light mode draws the same edge in ink instead. */
-  --card-glow: inset 0 1px 0 rgba(15, 23, 42, 0.14);
+  --card-glow: inset 0 1px 0 rgba(15, 23, 42, 0.26);
 }
 
 html.light body {
@@ -483,10 +483,23 @@ html.light
 }
 
 /* ── Luxury card polish ───────────────────────────── */
-/* Cards with rounded-xl or rounded-2xl get a faint top-edge shimmer in dark mode */
+/* Every container carries the top-edge shimmer, not just the two largest
+   radii — .bg-card is what reaches the rounded-lg stat tiles, which the
+   radius list alone missed.
+
+   .rounded-md is deliberately absent: it is 368 elements on this page, all
+   of them buttons and sidebar rows, and a highlight on each would be noise
+   rather than polish. The sidebar's nav items are excluded for the same
+   reason — they are transparent glass on purpose. */
 .rounded-xl,
-.rounded-2xl {
+.rounded-2xl,
+.rounded-3xl,
+.bg-card {
   box-shadow: var(--card-glow);
+}
+.nav-item-idle,
+.nav-item-active {
+  box-shadow: none;
 }
 
 /* Premium card hover state */
