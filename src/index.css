@@ -938,3 +938,18 @@ div.rounded-full.overflow-hidden > div.rounded-full::after {
   z-index: -1;
   pointer-events: none;
 }
+
+/* ── Tiles inside a modal keep their original sheen ───────
+   .modal-tile does double duty: the tiles inside a modal, and the policy
+   rows and state cards out on the page. Those page containers were meant to
+   take the bolder card edge; the tiles in a modal were not, and reading them
+   together made the modals louder than before.
+
+   Scoping to .modal-glass separates the two, since a modal's tiles are
+   always inside that panel while the page containers never are. */
+.modal-glass .modal-tile {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+html.light .modal-glass .modal-tile {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
