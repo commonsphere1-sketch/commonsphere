@@ -289,14 +289,14 @@ html.light .fixed.inset-0:has(.modal-glass) {
   backdrop-filter: blur(10px) saturate(130%);
   -webkit-backdrop-filter: blur(10px) saturate(130%);
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
 }
 html.light .modal-tile {
   background: rgba(255, 255, 255, 0.58) !important;
   backdrop-filter: blur(10px) saturate(140%);
   -webkit-backdrop-filter: blur(10px) saturate(140%);
   border: 1px solid rgba(120, 100, 70, 0.16) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  box-shadow: inset 0 1px 0 rgba(15, 23, 42, 0.26) !important;
 }
 
 /* ── Sidebar nav items: frosted glass ────────────────────
@@ -833,25 +833,25 @@ html.dark article.cursor-pointer:hover {
 /* .modal-tile cards keep the sheen along their top edge. */
 html.light .modal-tile.cursor-pointer {
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 1px 0 rgba(15, 23, 42, 0.26),
     0 1px 3px rgba(15, 23, 42, 0.07),
     0 6px 16px rgba(15, 23, 42, 0.07) !important;
 }
 html.light .modal-tile.cursor-pointer:hover {
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 1px 0 rgba(15, 23, 42, 0.26),
     0 2px 6px rgba(15, 23, 42, 0.1),
     0 12px 28px rgba(15, 23, 42, 0.12) !important;
 }
 html.dark .modal-tile.cursor-pointer {
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
     0 1px 3px rgba(255, 255, 255, 0.05),
     0 6px 18px rgba(255, 255, 255, 0.06) !important;
 }
 html.dark .modal-tile.cursor-pointer:hover {
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
     0 2px 6px rgba(255, 255, 255, 0.09),
     0 12px 30px rgba(255, 255, 255, 0.11) !important;
 }
