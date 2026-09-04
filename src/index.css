@@ -112,9 +112,15 @@ html.light body {
 
 /* Cards used to read as raised because the page behind them was grey. On a
    white page the fill no longer separates them, so they get a soft shadow to
-   keep that sense of a panel sitting above the surface. */
+   keep that sense of a panel sitting above the surface.
+
+   --card-glow leads every one of these lists on purpose. box-shadow replaces
+   rather than merges, so setting a drop shadow here silently dropped the
+   inset top-edge shimmer that .rounded-xl/.rounded-2xl paint on cards. It has
+   to be re-stated to survive. */
 html.light .bg-card {
   box-shadow:
+    var(--card-glow),
     0 1px 2px rgba(15, 23, 42, 0.04),
     0 1px 3px rgba(15, 23, 42, 0.05);
 }
@@ -776,6 +782,7 @@ html.light .mineral-pill-surplus {
 html.light :is(.cursor-pointer, button, [role="button"]):is(.rounded-xl, .rounded-2xl),
 html.light article.cursor-pointer {
   box-shadow:
+    var(--card-glow),
     0 1px 3px rgba(15, 23, 42, 0.07),
     0 6px 16px rgba(15, 23, 42, 0.07) !important;
   transition: box-shadow 0.2s ease !important;
@@ -783,6 +790,7 @@ html.light article.cursor-pointer {
 html.light :is(.cursor-pointer, button, [role="button"]):is(.rounded-xl, .rounded-2xl):hover,
 html.light article.cursor-pointer:hover {
   box-shadow:
+    var(--card-glow),
     0 2px 6px rgba(15, 23, 42, 0.1),
     0 12px 28px rgba(15, 23, 42, 0.12) !important;
 }
@@ -790,6 +798,7 @@ html.light article.cursor-pointer:hover {
 html.dark :is(.cursor-pointer, button, [role="button"]):is(.rounded-xl, .rounded-2xl),
 html.dark article.cursor-pointer {
   box-shadow:
+    var(--card-glow),
     0 1px 3px rgba(255, 255, 255, 0.05),
     0 6px 18px rgba(255, 255, 255, 0.06) !important;
   transition: box-shadow 0.2s ease !important;
@@ -797,6 +806,7 @@ html.dark article.cursor-pointer {
 html.dark :is(.cursor-pointer, button, [role="button"]):is(.rounded-xl, .rounded-2xl):hover,
 html.dark article.cursor-pointer:hover {
   box-shadow:
+    var(--card-glow),
     0 2px 6px rgba(255, 255, 255, 0.09),
     0 12px 30px rgba(255, 255, 255, 0.11) !important;
 }
