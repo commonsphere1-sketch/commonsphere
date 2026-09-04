@@ -854,3 +854,47 @@ html.light .dropdown-glass {
     0 12px 32px rgba(15, 23, 42, 0.14),
     inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
 }
+
+/* ── Value bars ───────────────────────────────────────────
+   Bars now sit in a well tinted with their own colour, the way the crime
+   matrix does, rather than in a flat grey channel.
+
+   The colour is known only to the fill — set inline or by a utility class,
+   differently at every one of these — and CSS cannot read a child's colour
+   to style its parent. So the well is drawn by a pseudo-element on the fill
+   with background: inherit, which resolves to the fill's own colour. It is
+   inflated to cover the whole track and clipped by the track's existing
+   overflow-hidden, so it reads as the track's background.
+
+   isolation on the track matters: it makes the track a stacking context, so
+   the negative z-index lands above the track's own background but below the
+   fill, instead of disappearing behind the card.
+
+   Orientation is untouched. The fill keeps whatever width or height it was
+   given, so horizontal bars stay horizontal and vertical ones vertical. */
+div.rounded-full.overflow-hidden:has(> div.rounded-full) {
+  isolation: isolate;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+html.light div.rounded-full.overflow-hidden:has(> div.rounded-full) {
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+/* Only fills that are not already positioned. This selector outranks
+   Tailwind’s .absolute, and forcing relative here re-anchored the crime
+   matrix’s vertical fills to the top of their track, inverting the very
+   bars this styling was taken from. An absolute fill is already a
+   containing block for the pseudo-element, so it needs nothing. */
+div.rounded-full.overflow-hidden > div.rounded-full:not(.absolute) {
+  position: relative;
+}
+div.rounded-full.overflow-hidden > div.rounded-full::after {
+  content: "";
+  position: absolute;
+  inset: -999px;
+  background: inherit;
+  opacity: 0.12;
+  z-index: -1;
+  pointer-events: none;
+}
