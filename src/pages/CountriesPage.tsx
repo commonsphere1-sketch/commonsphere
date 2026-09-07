@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
+  Compass,
   Globe,
   MagnifyingGlass,
   MapPin,
@@ -39859,6 +39861,7 @@ function CountryCompareSection({
 }
 
 export function CountriesPage() {
+  const navigate = useNavigate();
   const {
     countries: liveCountries,
     isRefreshing,
@@ -39931,6 +39934,13 @@ export function CountriesPage() {
               data for countries worldwide
             </p>
           </div>
+          <button
+            onClick={() => navigate("/dashboard/political-compass")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-secondary/40 bg-secondary/20 text-secondary hover:bg-secondary/30 transition-colors text-[11px] font-sans cursor-pointer shrink-0"
+          >
+            <Compass size={13} weight="bold" />
+            Political Compass
+          </button>
           <button
             onClick={() => exportCountriesToCSV(filtered)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-[11px] font-sans cursor-pointer"

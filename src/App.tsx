@@ -49,6 +49,11 @@ const PlanetaryBoundariesPage = lazy(() =>
     default: m.PlanetaryBoundariesPage,
   })),
 );
+const PoliticalCompassPage = lazy(() =>
+  import("./pages/PoliticalCompassPage").then((m) => ({
+    default: m.PoliticalCompassPage,
+  })),
+);
 const CrimeStatsPage = lazy(() =>
   import("./pages/CrimeStatsPage").then((m) => ({ default: m.CrimeStatsPage })),
 );
@@ -95,6 +100,10 @@ export default function App() {
               <Route path="settings" element={<SettingsPage />} />
               <Route path="states" element={<StatesPage />} />
               <Route path="countries" element={<CountriesPage />} />
+              <Route
+                path="political-compass"
+                element={<PoliticalCompassPage />}
+              />
               <Route path="cities" element={<CitiesPage />} />
               <Route path="economies" element={<EconomiesPage />} />
               <Route path="policy" element={<PolicyPage />} />
