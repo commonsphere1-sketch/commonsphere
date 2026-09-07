@@ -378,40 +378,53 @@ const ATTACK_TYPES = [
 /* ─── Modern Slavery Data ─────────────────────────────────────────────── */
 
 // Global Slavery Index 2023 — victims by region (millions) and prevalence per 1,000
+//
+// Colours are the first five slots of the validated categorical order, taken in
+// fixed slot order rather than chosen by eye. The previous set ran three blues
+// together: purple against blue measured ΔE 0.9 under deuteranopia — one colour
+// to a red-green colourblind reader — and blue against indigo ΔE 7.2 for normal
+// vision, under the 15 floor, so two regions read alike on screen.
+// colorDark is stepped for the dark card rather than being a flip of the light
+// value; both columns pass every check against this page's own surfaces.
 const SLAVERY_BY_REGION = [
   {
     region: "Asia & Pacific",
     victims: 29.3,
     prevalence: 6.6,
-    color: "#f59e0b",
+    color: "#2a78d6",
+    colorDark: "#3987e5",
     flag: "🌏",
   },
   {
     region: "Africa",
     victims: 9.8,
     prevalence: 7.6,
-    color: "#ef4444",
+    color: "#eb6834",
+    colorDark: "#d95926",
     flag: "🌍",
   },
   {
     region: "Europe & C. Asia",
     victims: 2.1,
     prevalence: 2.2,
-    color: "#6366f1",
+    color: "#1baf7a",
+    colorDark: "#199e70",
     flag: "🌍",
   },
   {
     region: "Americas",
     victims: 1.8,
     prevalence: 1.7,
-    color: "#3b82f6",
+    color: "#eda100",
+    colorDark: "#c98500",
     flag: "🌎",
   },
   {
     region: "Arab States",
     victims: 0.9,
     prevalence: 5.3,
-    color: "#a855f7",
+    color: "#e87ba4",
+    colorDark: "#d55181",
     flag: "🌍",
   },
 ];
@@ -2504,26 +2517,31 @@ export function CrimeStatsPage() {
                 />
                 <Bar dataKey="victims" radius={[0, 4, 4, 0]}>
                   {SLAVERY_BY_REGION.map((entry) => (
-                    <Cell key={entry.region} fill={entry.color} />
+                    <Cell
+                      key={entry.region}
+                      fill={isLight ? entry.color : entry.colorDark}
+                    />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
             {/* Region cards */}
             <div className="grid grid-cols-5 gap-2 mt-3">
-              {SLAVERY_BY_REGION.map((r) => (
+              {SLAVERY_BY_REGION.map((r) => {
+                const swatch = isLight ? r.color : r.colorDark;
+                return (
                 <div
                   key={r.region}
                   className="rounded-lg p-2 text-center"
                   style={{
-                    background: r.color + "15",
-                    border: `1px solid ${r.color}30`,
+                    background: swatch + "15",
+                    border: `1px solid ${swatch}30`,
                   }}
                 >
                   <p className="text-base mb-0.5">{r.flag}</p>
                   <p
                     className="text-[10px] font-bold font-mono"
-                    style={{ color: r.color }}
+                    style={{ color: swatch }}
                   >
                     {r.victims}M
                   </p>
@@ -2534,7 +2552,8 @@ export function CrimeStatsPage() {
                     {r.prevalence}/1k
                   </p>
                 </div>
-              ))}
+                );
+              })}
             </div>
             <SourceLink
               sources={{
