@@ -497,7 +497,7 @@ export function HumanitarianPage() {
     : "var(--card-glow)";
   const headText = isLight ? "#0f172a" : "#f1f0ff";
   const bodyText = isLight ? "#1e293b" : "#e2e8f0";
-  const mutedText = isLight ? "rgba(30,41,59,0.48)" : "rgba(255,255,255,0.38)";
+  const mutedText = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.38)";
   const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
 
   return (

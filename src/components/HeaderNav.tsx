@@ -231,6 +231,7 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
             }
             onFocus={() => results.length > 0 && setOpen(true)}
             className="header-search-input pl-10 border text-foreground focus:ring-ring h-9 text-sm rounded-full transition-colors duration-150"
+            role="combobox"
             aria-label="Global search"
             aria-expanded={open}
             aria-autocomplete="list"

@@ -12973,6 +12973,7 @@ export function StatesPage() {
             })}
             <div className="w-px h-5 bg-border shrink-0" />
             <select
+              aria-label="Sort results"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
               className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"

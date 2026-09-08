@@ -15948,6 +15948,7 @@ function RichestFamiliesView() {
         <div className="ml-auto flex items-center gap-2">
           <span className="text-xs text-muted-foreground">Sort:</span>
           <select
+            aria-label="Sort royal families"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
             className="bg-transparent text-xs text-muted-foreground focus:outline-none cursor-pointer border border-border rounded-lg px-2 py-1"
@@ -16277,6 +16278,7 @@ function CEOsView() {
         <div className="ml-auto flex items-center gap-2">
           <span className="text-xs text-muted-foreground">Sort:</span>
           <select
+            aria-label="Sort richest families"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
             className="bg-transparent text-xs text-muted-foreground focus:outline-none cursor-pointer border border-border rounded-lg px-2 py-1"

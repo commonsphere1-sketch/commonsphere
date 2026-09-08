@@ -91,14 +91,18 @@ html.light {
   --color-header-bg: #fefcf8;
   --color-primary: hsl(40, 20%, 90%);
   --color-primary-foreground: hsl(40, 25%, 12%);
-  --color-secondary: hsl(0, 0%, 68%);
+  /* Was 68%, which rendered #adadad — 2.24:1 on the white page and the
+     single largest source of contrast failures site-wide. 46% is the first
+     step clearing 4.5:1. */
+  --color-secondary: hsl(0, 0%, 46%);
   --color-secondary-foreground: hsl(0, 0%, 100%);
   --color-tertiary: hsl(0, 0%, 56%);
   --color-tertiary-foreground: hsl(0, 0%, 100%);
   --color-neutral: hsl(42, 20%, 93%);
   --color-neutral-foreground: hsl(38, 15%, 15%);
   --color-success: hsl(152, 52%, 32%);
-  --color-warning: hsl(35, 90%, 42%);
+  /* Was 42% — #cb7b0b, 3.29:1 on white. 35% clears 4.5:1 at the same hue. */
+  --color-warning: hsl(35, 90%, 35%);
   --color-background: hsl(0, 0%, 100%);
   --color-foreground: hsl(38, 18%, 8%);
   --color-card: hsl(0, 0%, 100%);

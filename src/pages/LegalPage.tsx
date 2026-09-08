@@ -19,6 +19,36 @@ import {
 
 const EFFECTIVE = "8 September 2026";
 
+/** How the accessibility claim below was arrived at. */
+const AUDIT = { tool: "4.10.2", date: "8 September 2026" };
+
+/**
+ * Known WCAG failures, as measured. Listing them is what an accessibility
+ * statement is for; claiming conformance the audit contradicts is not.
+ */
+const KNOWN_ISSUES = [
+  {
+    criterion: "1.4.3 Contrast (Minimum) — AA",
+    detail:
+      "Some small text uses status colours — greens, reds, ambers for values and deltas — that fall below the 4.5:1 ratio against a white background. This affects figures on the dashboard, countries, economies and crime pages in light mode. The value is always available as text and never conveyed by colour alone, but the contrast itself is short of the standard.",
+  },
+  {
+    criterion: "1.1.1 Non-text Content — A",
+    detail:
+      "Segments inside some charts on the crime page are drawn without text alternatives of their own. The same figures appear as labelled text next to the chart.",
+  },
+  {
+    criterion: "2.1.1 Keyboard — A",
+    detail:
+      "One scrollable list on the crime page cannot be scrolled by keyboard alone, because the region is not focusable.",
+  },
+  {
+    criterion: "2.5.8 Target Size (Minimum) — AA (WCAG 2.2)",
+    detail:
+      "At least one inline source link is smaller than the 24×24 pixel minimum.",
+  },
+];
+
 /** The keys this app writes, so the privacy section can be specific. */
 const STORED_KEYS = [
   ["cs-display-name", "The name shown in the header"],
@@ -79,6 +109,7 @@ export function LegalPage() {
     { id: "privacy", label: "Privacy & Your Data" },
     { id: "sources", label: "Data & Accuracy" },
     { id: "accessibility", label: "Accessibility" },
+    { id: "gdpr", label: "Your Rights (GDPR)" },
   ];
 
   return (
@@ -294,22 +325,146 @@ export function LegalPage() {
             icon={<Eye size={18} weight="fill" />}
             title="Accessibility"
           >
+            <H>Conformance status</H>
             <P>
-              The aim is WCAG 2.1 AA. Text and interface colours are checked for
-              contrast against the surface they sit on, in both light and dark
-              themes, and chart palettes are checked for separation under
-              colour-vision deficiency so that series stay distinguishable.
+              The target is WCAG 2.1 level AA. CommonSphere is currently{" "}
+              <strong>partially conformant</strong>: it meets much of the
+              standard, but the known exceptions below are real and are not yet
+              fixed. This is stated plainly rather than claimed as full
+              conformance, because an overstated accessibility statement is
+              itself a defect.
             </P>
+
+            <H>How this was assessed</H>
             <P>
-              Charts do not rely on colour alone: series are labelled or carry a
-              legend, and figures are given as text beside the graphic. Controls
-              are reachable by keyboard and carry accessible names.
+              Automated testing with axe-core {AUDIT.tool} against WCAG 2.1 A
+              and AA rules, run over the main pages in both light and dark
+              themes on {AUDIT.date}. Automated tools catch only part of the
+              standard — roughly a third of the success criteria — so the
+              absence of a reported error is not proof of conformance. No
+              independent audit and no assistive-technology user testing has
+              been carried out.
             </P>
+
+            <H>Known non-conformances</H>
+            <div className="flex flex-col gap-2 mt-1">
+              {KNOWN_ISSUES.map((k) => (
+                <div key={k.criterion} className="flex gap-2.5">
+                  <div
+                    className="w-1 rounded-full shrink-0 mt-1 bg-warning"
+                    style={{ minHeight: 14 }}
+                  />
+                  <div>
+                    <p className="text-[12px] font-bold font-sans text-foreground">
+                      {k.criterion}
+                    </p>
+                    <p className="text-[12px] font-sans leading-relaxed text-muted-foreground">
+                      {k.detail}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <H>What does work</H>
+            <P>
+              Charts do not rely on colour alone: series carry a legend or
+              direct labels, and figures appear as text beside the graphic.
+              Chart palettes are checked for separation under colour-vision
+              deficiency. Interactive controls carry accessible names, and the
+              interface is operable with a keyboard.
+            </P>
+
+            <H>Feedback</H>
             <P>
               If something is unusable with a screen reader, a keyboard or at
-              high zoom, that is a defect worth reporting — including which page
-              and which assistive technology.
+              high zoom, that is a defect worth reporting — including the page
+              and the assistive technology in use. Reports about accessibility
+              are treated as bugs, not requests.
             </P>
+          </Section>
+
+          {/* ── GDPR ── */}
+          <Section
+            id="gdpr"
+            icon={<Database size={18} weight="fill" />}
+            title="Your Rights (GDPR)"
+          >
+            <P>
+              Where the General Data Protection Regulation applies, these are
+              the rights it gives you and how they work here.
+            </P>
+
+            <H>What personal data is processed</H>
+            <P>
+              A display name, email address, username and avatar image, if you
+              enter them. All of it is written to your own browser's storage and
+              none of it is sent anywhere — this site has no server to receive
+              it. In GDPR terms almost nothing is processed by the operator at
+              all, because the data never leaves your device.
+            </P>
+
+            <H>Legal basis</H>
+            <P>
+              The profile details you enter are stored to provide the feature
+              you asked for, on the basis of your consent, which you give by
+              entering them and withdraw by clearing them. Preferences such as
+              theme are strictly necessary for the interface you requested. No
+              processing is carried out for marketing, profiling or automated
+              decision-making — none of those happen here.
+            </P>
+
+            <H>Who else is involved</H>
+            <P>
+              Two third parties can see something. The World Bank receives your
+              IP address when the site fetches indicator data from its public
+              API, as any web request implies. The authentication provider
+              handles sign-in and processes the credentials you give it
+              directly; this site never receives them. Each operates under its
+              own privacy notice.
+            </P>
+
+            <H>Retention</H>
+            <P>
+              Data stays in your browser until you remove it. There is no
+              server-side copy, so there is no retention schedule to run and
+              nothing to expire.
+            </P>
+
+            <H>Your rights</H>
+            <P>
+              You have the right to access your data, correct it, erase it,
+              restrict or object to its processing, and to data portability.
+              Because everything is held locally, you exercise most of these
+              directly: the settings screen shows and edits what is stored, and
+              clearing site data in your browser erases it completely and
+              immediately. You also have the right to lodge a complaint with
+              your national supervisory authority.
+            </P>
+
+            <H>Transfers outside the EEA</H>
+            <P>
+              No personal data is transferred by this site, because none is
+              collected by it. Requests to the World Bank's API reach servers
+              outside the EEA and carry your IP address.
+            </P>
+
+            {/* Unmissable on the page, because shipping this section with the
+                controller unnamed would be a GDPR failure in itself. */}
+            <div className="bg-destructive/5 border border-destructive/30 rounded-xl p-3 mt-2">
+              <p className="text-[12px] font-bold font-sans text-foreground mb-1">
+                Outstanding — must be completed before publication
+              </p>
+              <p className="text-[12px] font-sans leading-relaxed text-muted-foreground">
+                GDPR requires the identity and contact details of the data
+                controller, and a contact point for privacy requests. Those are
+                facts about whoever operates CommonSphere, so they are not
+                filled in here rather than guessed. Add the operating entity's
+                legal name, address and a contact email, plus a Data Protection
+                Officer if one is appointed and the relevant supervisory
+                authority.
+              </p>
+            </div>
           </Section>
 
           {/* ── Standing caveat ── */}
