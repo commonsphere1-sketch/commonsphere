@@ -14,6 +14,7 @@ import {
   Lectern,
   HandHeart,
   Crown,
+  Scroll,
   Scales,
   ChartLine,
   Info,
@@ -82,6 +83,7 @@ const bottomNav = [
   { to: "/dashboard/notes", label: "My Notes", icon: NotePencil, end: false },
   { to: "/dashboard/settings", label: "Settings", icon: GearSix, end: false },
   { to: "/membership", label: "Membership", icon: Crown, end: false },
+  { to: "/dashboard/legal", label: "Terms & Policies", icon: Scroll, end: false },
 ];
 
 // ─── About Modal ────────────────────────────────────────────────────────────

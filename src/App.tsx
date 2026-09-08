@@ -41,6 +41,9 @@ const PolicyPage = lazy(() =>
     default: m.PolicyPage,
   })),
 );
+const LegalPage = lazy(() =>
+  import("./pages/LegalPage").then((m) => ({ default: m.LegalPage })),
+);
 const AboutPage = lazy(() =>
   import("./pages/AboutPage").then((m) => ({ default: m.AboutPage })),
 );
@@ -108,6 +111,7 @@ export default function App() {
               />
               <Route path="comparisons" element={<ComparisonsPage />} />
               <Route path="about" element={<AboutPage />} />
+              <Route path="legal" element={<LegalPage />} />
               <Route
                 path="planetary-boundaries"
                 element={<PlanetaryBoundariesPage />}
