@@ -14,6 +14,8 @@ import {
 } from "../data/mapJoin";
 import { useTheme } from "../contexts/ThemeContext";
 import { isG20, g20Countries, G20_UNION_MEMBERS } from "../data/g20";
+import { StyledSelect } from "../components/StyledSelect";
+import { citiesData } from "../data/citiesData";
 
 /**
  * Equal Earth world map and a US state map, both shaded from the site's own
@@ -199,6 +201,9 @@ export function WorldMapsPage() {
   const [stateMetric, setStateMetric] = useState("education");
   const [hovered, setHovered] = useState<{ name: string; value: string } | null>(null);
   const [scope, setScope] = useState<"all" | "g20">("all");
+  // The second map focuses on one country. The US is the default because it is
+  // the only one with subdivision figures behind it.
+  const [focusCode, setFocusCode] = useState("US");
 
   const ramp = isLight ? RAMP_LIGHT : RAMP_DARK;
   const noData = isLight ? "#e8eaed" : "#24242c";
@@ -328,6 +333,134 @@ export function WorldMapsPage() {
       .filter((v): v is number => v !== null && Number.isFinite(v));
     return { breaks: quantileBreaks(values, ramp.length), count: values.length };
   }, [activeState, ramp.length]);
+
+  /* ── Focus map ── */
+  // ISO codes Natural Earth ships subdivisions for at 1:50m.
+  const ADMIN1_COUNTRIES = useMemo(
+    () => new Set(["RU", "US", "IN", "ID", "CN", "BR", "CA", "AU", "ZA"]),
+    [],
+  );
+
+  const [admin1, setAdmin1] = useState<{
+    features: { properties: { c: string; n: string } }[];
+  } | null>(null);
+
+  useEffect(() => {
+    if (focusCode === "US" || !ADMIN1_COUNTRIES.has(focusCode) || admin1) return;
+    let cancelled = false;
+    import("../data/geo/admin1.topo.json")
+      .then((mod) => {
+        if (cancelled) return;
+        const topo = (mod.default ?? mod) as unknown as Topology;
+        const key = Object.keys(topo.objects)[0];
+        setAdmin1(
+          feature(topo, topo.objects[key] as never) as unknown as {
+            features: { properties: { c: string; n: string } }[];
+          },
+        );
+      })
+      .catch(() => {
+        // The outline still draws; only the internal borders are lost.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [focusCode, admin1, ADMIN1_COUNTRIES]);
+
+  // Loaded lazily: 110m is too coarse once zoomed to a single country.
+  const [detailWorld, setDetailWorld] = useState<{
+    features: { properties: { name: string } }[];
+  } | null>(null);
+
+  useEffect(() => {
+    if (focusCode === "US" || detailWorld) return;
+    let cancelled = false;
+    import("world-atlas/countries-50m.json")
+      .then((mod) => {
+        if (cancelled) return;
+        const topo = (mod.default ?? mod) as unknown as Topology;
+        setDetailWorld(
+          feature(topo, topo.objects.countries as never) as unknown as {
+            features: { properties: { name: string } }[];
+          },
+        );
+      })
+      .catch(() => {
+        // The 110m outline still draws, so a failed fetch costs detail, not
+        // the map.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [focusCode, detailWorld]);
+
+  const featureByCode = useMemo(() => {
+    const m = new Map<string, { properties: { name: string } }>();
+    const source = detailWorld ?? world;
+    for (const f of source.features) {
+      const c = countryForFeature(f.properties.name);
+      if (c) m.set(c.code, f);
+    }
+    return m;
+  }, [world, detailWorld]);
+
+  const focusCountry = useMemo(
+    () => countriesData.find((c) => c.code === focusCode) ?? null,
+    [focusCode],
+  );
+
+  // Only countries with geometry are offered; picking one with no outline would
+  // give an empty card.
+  const focusOptions = useMemo(
+    () =>
+      countriesData
+        .filter((c) => featureByCode.has(c.code))
+        .map((c) => ({ value: c.code, label: c.name }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [featureByCode],
+  );
+
+  const focusGeo = useMemo(() => {
+    if (focusCode === "US") return null; // the US keeps its state-level map
+    const f = featureByCode.get(focusCode);
+    if (!f) return null;
+    const projection = geoEqualEarth().fitExtent(
+      [
+        [24, 24],
+        [US_W - 24, US_H - 24],
+      ],
+      f as never,
+    );
+    return { d: geoPath(projection)(f as never) ?? "", feature: f };
+  }, [focusCode, featureByCode]);
+
+  /** Subdivision outlines for the focused country, if any are published. */
+  const focusSubdivisions = useMemo(() => {
+    if (focusCode === "US" || !focusGeo || !admin1) return [];
+    const projection = geoEqualEarth().fitExtent(
+      [
+        [24, 24],
+        [US_W - 24, US_H - 24],
+      ],
+      focusGeo.feature as never,
+    );
+    const path = geoPath(projection);
+    return admin1.features
+      .filter((f) => f.properties.c === focusCode)
+      .map((f) => ({ n: f.properties.n, d: path(f as never) ?? "" }))
+      .filter((f) => f.d.length > 0);
+  }, [focusCode, focusGeo, admin1]);
+
+  /** Cities the dataset happens to hold for the focused country. */
+  const focusCities = useMemo(
+    () =>
+      focusCountry
+        ? citiesData
+            .filter((c) => c.countryCode === focusCountry.code)
+            .sort((a, b) => b.population - a.population)
+        : [],
+    [focusCountry],
+  );
 
   /* ── State labels ──
      Measured from the projected path, so a state only gets an outside label
@@ -728,19 +861,31 @@ export function WorldMapsPage() {
               <MapTrifold size={16} weight="fill" className="text-secondary" />
               <div>
                 <p className="text-[10px] font-mono uppercase tracking-widest text-secondary">
-                  Albers USA projection
+                  {focusCode === "US" ? "Albers USA projection" : "Country focus"}
                 </p>
                 <h2 className="text-sm font-bold font-sans text-foreground">
-                  {activeState.label} by state
+                  {focusCode === "US"
+                    ? `${activeState.label} by state`
+                    : (focusCountry?.name ?? "Select a country")}
                 </h2>
               </div>
             </div>
-            <span className="text-[10px] font-mono text-muted-foreground">
-              {stateShading.count} of {usStatesData.length} states
-            </span>
+            <div className="flex items-center gap-3">
+              {focusCode === "US" && (
+                <span className="text-[10px] font-mono text-muted-foreground">
+                  {stateShading.count} of {usStatesData.length} states
+                </span>
+              )}
+              <StyledSelect
+                value={focusCode}
+                onValueChange={setFocusCode}
+                ariaLabel="Choose which country to map"
+                options={focusOptions}
+              />
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 mb-3">
+          <div className={`flex-wrap items-center gap-2 mb-3 ${focusCode === "US" ? "flex" : "hidden"}`}>
             {STATE_INDICATORS.map((i) => (
               <button
                 key={i.id}
@@ -753,6 +898,8 @@ export function WorldMapsPage() {
             ))}
           </div>
 
+          {focusCode === "US" ? (
+          <>
           <svg
             viewBox={`0 0 ${US_W} ${US_H}`}
             className="w-full h-auto"
@@ -826,6 +973,114 @@ export function WorldMapsPage() {
             the boundary data but not in the state dataset, so they are drawn
             unshaded.
           </p>
+          </>
+          ) : (
+            <>
+              {/* One country, drawn at its own scale. It is a single outline
+                  rather than a shaded set of regions because this project holds
+                  no province-level figures for any country but the US — and an
+                  invented one would be worse than none. */}
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 items-start">
+                <div className="lg:col-span-3">
+                  <svg
+                    viewBox={`0 0 ${US_W} ${US_H}`}
+                    className="w-full h-auto"
+                    role="img"
+                    aria-label={`Outline map of ${focusCountry?.name ?? "the selected country"}`}
+                  >
+                    {focusGeo && (
+                      <path
+                        d={focusGeo.d}
+                        fill={ramp[3]}
+                        stroke={stroke}
+                        strokeWidth={0.8}
+                      />
+                    )}
+                    {/* Internal borders drawn over the fill, unshaded: this
+                        project has no per-subdivision figures for any country
+                        but the US, and a colour here would imply one. */}
+                    {focusSubdivisions.map((sd) => (
+                      <path
+                        key={sd.n}
+                        d={sd.d}
+                        fill="none"
+                        stroke={stroke}
+                        strokeWidth={0.5}
+                        strokeOpacity={0.8}
+                      >
+                        <title>{sd.n}</title>
+                      </path>
+                    ))}
+                  </svg>
+                </div>
+
+                <div className="lg:col-span-2 flex flex-col gap-2">
+                  {focusCountry &&
+                    [
+                      ["Capital", focusCountry.capital],
+                      ["Government", focusCountry.governmentType],
+                      ["Population", `${(focusCountry.population / 1e6).toFixed(1)}M`],
+                      ["GDP", `$${(focusCountry.gdp / 1000).toFixed(2)}T`],
+                      ["GDP per capita", `$${Math.round(focusCountry.gdpPerCapita).toLocaleString()}`],
+                      ["GDP growth", `${focusCountry.gdpGrowth > 0 ? "+" : ""}${focusCountry.gdpGrowth}%`],
+                      ["Life expectancy", `${focusCountry.lifeExpectancy} yrs`],
+                      ["Human development", focusCountry.humanDevelopmentIndex.toFixed(3)],
+                      ["Unemployment", `${focusCountry.unemploymentRate}%`],
+                      ["Inflation", `${focusCountry.inflationRate}%`],
+                      ["Area", `${(focusCountry.areaKm2 / 1e6).toFixed(2)}M km²`],
+                      ["Currency", focusCountry.currency],
+                    ].map(([k, v]) => (
+                      <div
+                        key={k}
+                        className="flex items-baseline justify-between gap-3 rounded-lg px-3 py-1.5"
+                        style={{
+                          background: isLight ? "rgba(0,0,0,0.025)" : "rgba(255,255,255,0.04)",
+                          border: isLight
+                            ? "1px solid rgba(0,0,0,0.06)"
+                            : "1px solid rgba(255,255,255,0.06)",
+                        }}
+                      >
+                        <span className="text-[10px] font-sans text-muted-foreground">{k}</span>
+                        <span className="text-[12px] font-mono font-semibold text-foreground text-right">
+                          {v}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {focusCities.length > 0 && (
+                <div className="mt-4 pt-3 border-t border-border/40">
+                  <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
+                    Cities in this dataset
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {focusCities.map((c) => (
+                      <span
+                        key={c.id}
+                        className="px-3 py-1 rounded-full text-[11px] font-sans border border-border text-muted-foreground"
+                      >
+                        {c.name}{" "}
+                        <span className="font-mono">
+                          {(c.population / 1e6).toFixed(1)}M
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <p className="text-[9px] font-sans mt-3 pt-3 border-t border-border/40 text-muted-foreground">
+                {ADMIN1_COUNTRIES.has(focusCode)
+                  ? `Internal borders shown are ${focusSubdivisions.length} first-order divisions from Natural Earth. `
+                  : "Natural Earth publishes first-order divisions at this resolution for nine countries only — Russia, the United States, India, Indonesia, China, Brazil, Canada, Australia and South Africa — so this country is drawn as a single outline. "}
+                Subdivisions are outlined but never shaded: this project holds
+                state-level figures for the US and none for any other country's
+                provinces, and a colour here would imply a number that does not
+                exist.
+              </p>
+            </>
+          )}
         </div>
 
         {/* ── Sources ── */}
