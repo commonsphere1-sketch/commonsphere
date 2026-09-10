@@ -14,6 +14,7 @@ import {
   Lectern,
   HandHeart,
   Crown,
+  GlobeHemisphereWest,
   Scroll,
   Scales,
   ChartLine,
@@ -77,6 +78,7 @@ const analysisNav = [
     icon: ShieldCheck,
     end: false,
   },
+  { to: "/dashboard/maps", label: "World Maps", icon: GlobeHemisphereWest, end: false },
 ];
 
 const bottomNav = [

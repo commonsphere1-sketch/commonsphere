@@ -27,7 +27,9 @@
   --color-card-foreground: hsl(40, 16%, 92%);
   --color-border: rgba(255, 255, 255, 0.065);
   --color-muted: rgba(255, 255, 255, 0.045);
-  --color-muted-foreground: rgba(255, 255, 255, 0.42);
+  /* 0.42 composited to rgb(116,116,118) — 4.1:1 on the card and 4.0:1 on the
+     page, both under the 4.5 floor for body text. 0.46 clears each. */
+  --color-muted-foreground: rgba(255, 255, 255, 0.46);
   --font-sans: "DM Sans", sans-serif;
   --font-display: "Playfair Display", "Cormorant Garant", Georgia, serif;
   --font-mono: "IBM Plex Mono", monospace;
