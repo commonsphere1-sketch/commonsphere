@@ -1,10 +1,24 @@
-import React, { useMemo, useState, useEffect, useCallback } from "react";
-import { geoEqualEarth, geoAlbersUsa, geoPath, geoGraticule10 } from "d3-geo";
-import { feature } from "topojson-client";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import {
+  geoEqualEarth,
+  geoAlbersUsa,
+  geoPath,
+  geoGraticule10,
+  geoBounds,
+  geoArea,
+} from "d3-geo";
+import { feature, mesh, merge } from "topojson-client";
 import type { Topology } from "topojson-specification";
 import worldTopo from "world-atlas/countries-110m.json";
 import statesTopo from "us-atlas/states-10m.json";
-import { GlobeHemisphereWest, MapTrifold, Info, CaretDown } from "@phosphor-icons/react";
+import {
+  GlobeHemisphereWest,
+  MapTrifold,
+  Info,
+  CaretDown,
+  MagnifyingGlassPlus,
+  MagnifyingGlassMinus,
+} from "@phosphor-icons/react";
 import { countriesData, type Country } from "../data/countriesData";
 import { usStatesData, type USState } from "../data/statesData";
 import {
@@ -47,20 +61,148 @@ type Subdivision = {
   h: number;
 };
 
-type Subdivisions = {
-  all: Subdivision[];
-  inside: Subdivision[];
-  outside: Subdivision[];
-  columnX: number;
+
+/**
+ * Indices of the divisions worth framing the map on.
+ *
+ * Fitting the map to everything a country administers makes nonsense of the
+ * common case: France's overseas départements stretch the extent from Guyane
+ * to Réunion, and metropolitan France came out about 17px wide with its
+ * départements at 6px. Measured, not guessed — that is what the page drew
+ * before this existed, and the world atlas outline spans the same degrees, so
+ * this was never a question of which boundary file to use.
+ *
+ * Divisions whose bounding boxes sit within SLACK degrees of one another are
+ * grouped, transitively, so a strait or a river mouth does not split a country
+ * and an archipelago stays whole.
+ *
+ * The largest group by division count is kept, and any other group is kept
+ * too when it carries a real share of both the divisions and the land. Both
+ * tests are needed, and each was chosen against a case that fails the other:
+ *
+ *  - Land alone framed Malaysia on Borneo and dropped 13 of its 16 states,
+ *    because Sabah and Sarawak outweigh the peninsula in area.
+ *  - Count alone dragged the Netherlands out to the Caribbean for Bonaire,
+ *    St. Eustatius and Saba — 3 of 15 divisions, and about a thousandth of
+ *    the land.
+ *
+ * Run across all 241 countries, 22 drop anything at all, and every one of
+ * those drops is a distant offshore territory: Svalbard, the Azores, the
+ * Canaries, the Galápagos, the Chatham Islands, Lord Howe.
+ *
+ * Nothing is discarded. Whatever is left out is named under the map.
+ */
+const CLUSTER_SLACK_DEG = 2;
+
+/* Inset maps for the outlying groups. Each is square and drawn at its own
+   scale, so a territory is legible next to a mainland thousands of times its
+   size. Eight is well past what any country needs — the most any one has is
+   six — and the remainder is still named. */
+const INSET_SIZE = 100;
+const INSET_PAD = 8;
+const MAX_INSETS = 8;
+
+/** One outlying group, drawn beside the map at its own scale. */
+type Inset = {
+  key: string;
+  name: string;
+  d: string;
+  interior: string;
+};
+const CLUSTER_MIN_COUNT = 0.15;
+const CLUSTER_MIN_AREA = 0.05;
+
+type DivisionClusters = {
+  /** Indices the map is framed on. */
+  keep: number[];
+  /** Everything else, grouped and ordered by land, largest first. */
+  outliers: number[][];
 };
 
-/** One shared empty value, so the memo never returns two different shapes. */
-const NO_SUBDIVISIONS: Subdivisions = {
-  all: [],
-  inside: [],
-  outside: [],
-  columnX: 0,
-};
+function clusterDivisions(
+  features: { properties: { n: string } }[],
+): DivisionClusters {
+  const all = features.map((_, i) => i);
+  if (features.length < 2) return { keep: all, outliers: [] };
+
+  const boxes = features.map((f) => geoBounds(f as never));
+  const areas = features.map((f) => geoArea(f as never));
+
+  const parent = features.map((_, i) => i);
+  const find = (i: number): number => {
+    while (parent[i] !== i) {
+      parent[i] = parent[parent[i]];
+      i = parent[i];
+    }
+    return i;
+  };
+  const union = (a: number, b: number) => {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra !== rb) parent[ra] = rb;
+  };
+
+  const M = CLUSTER_SLACK_DEG;
+  for (let i = 0; i < features.length; i++) {
+    const [[ax0, ay0], [ax1, ay1]] = boxes[i];
+    if (!Number.isFinite(ax0)) continue;
+    for (let j = i + 1; j < features.length; j++) {
+      const [[bx0, by0], [bx1, by1]] = boxes[j];
+      if (!Number.isFinite(bx0)) continue;
+      if (ax0 - M <= bx1 && bx0 - M <= ax1 && ay0 - M <= by1 && by0 - M <= ay1) {
+        union(i, j);
+      }
+    }
+  }
+
+  const groups = new Map<number, { count: number; land: number; idx: number[] }>();
+  for (let i = 0; i < features.length; i++) {
+    const r = find(i);
+    const g = groups.get(r) ?? { count: 0, land: 0, idx: [] };
+    g.count += 1;
+    g.land += areas[i];
+    g.idx.push(i);
+    groups.set(r, g);
+  }
+
+  const totalLand = areas.reduce((sum, a) => sum + a, 0) || 1;
+  const ranked = [...groups.values()].sort(
+    (a, b) => b.count - a.count || b.land - a.land,
+  );
+
+  const keep = [...ranked[0].idx];
+  const outliers: { land: number; idx: number[] }[] = [];
+
+  for (const g of ranked.slice(1)) {
+    if (
+      g.count / features.length >= CLUSTER_MIN_COUNT &&
+      g.land / totalLand >= CLUSTER_MIN_AREA
+    ) {
+      keep.push(...g.idx);
+    } else {
+      outliers.push({ land: g.land, idx: g.idx });
+    }
+  }
+
+  outliers.sort((a, b) => b.land - a.land);
+
+  return {
+    keep: keep.sort((a, b) => a - b),
+    outliers: outliers.map((g) => g.idx),
+  };
+}
+
+/* The drawing canvas. Every map on this page shares it so they stay the same
+   size on screen, and the zoom maths below is expressed in these units. */
+const US_W = 960;
+const US_H = 560;
+const PAD = 24;
+
+/* Zoom bounds. 1 fits the country to the canvas; 8 is where the 1:10m arcs
+   start to show their own quantisation, so there is nothing further to see. */
+const ZOOM_MIN = 1;
+const ZOOM_MAX = 8;
+const ZOOM_STEP = 1.6;
 
 const RAMP_LIGHT = ["#60c860", "#28a883", "#26838e", "#355f8d", "#45347e", "#440154"];
 const RAMP_DARK = ["#404286", "#2e6e8e", "#21958b", "#3cba75", "#96d73f", "#fde725"];
@@ -292,8 +434,6 @@ export function WorldMapsPage() {
     return { path: geoPath(projection), projection };
   }, []);
 
-  const US_W = 960;
-  const US_H = 560;
   const statePath = useMemo(() => {
     const projection = geoAlbersUsa().fitExtent(
       [
@@ -395,9 +535,14 @@ export function WorldMapsPage() {
     [admin1Manifest],
   );
 
+  /* The whole topology is kept, not just its features: the country outline is
+     merged from these same arcs and the internal borders are meshed from them,
+     which is the only way the two are guaranteed to line up. Drawing a 1:50m
+     outline around 1:10m divisions leaves subdivisions hanging over the coast. */
   const [admin1, setAdmin1] = useState<{
     code: string;
-    features: { properties: { n: string } }[];
+    topo: Topology;
+    key: string;
   } | null>(null);
 
   useEffect(() => {
@@ -408,11 +553,7 @@ export function WorldMapsPage() {
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((topo: Topology) => {
         if (cancelled) return;
-        const key = Object.keys(topo.objects)[0];
-        const fc = feature(topo, topo.objects[key] as never) as unknown as {
-          features: { properties: { n: string } }[];
-        };
-        setAdmin1({ code: focusCode, features: fc.features });
+        setAdmin1({ code: focusCode, topo, key: Object.keys(topo.objects)[0] });
       })
       .catch(() => {
         // The outline still draws; only the internal borders are lost.
@@ -475,36 +616,143 @@ export function WorldMapsPage() {
     [featureByCode],
   );
 
-  const focusGeo = useMemo(() => {
-    if (focusCode === "US") return null; // the US keeps its state-level map
-    const f = featureByCode.get(focusCode);
-    if (!f) return null;
-    const projection = geoEqualEarth().fitExtent(
-      [
-        [24, 24],
-        [US_W - 24, US_H - 24],
-      ],
-      f as never,
-    );
-    return { d: geoPath(projection)(f as never) ?? "", feature: f };
-  }, [focusCode, featureByCode]);
+  /* ── Focus map viewport ──
+     Zoom is applied to the viewBox rather than to a transform, so the geometry
+     memo never has to know about it. Strokes and text are divided by the zoom
+     so they hold their size on screen while the country grows underneath. */
+  const [zoom, setZoom] = useState(1);
+  const [center, setCenter] = useState({ x: US_W / 2, y: US_H / 2 });
+  const drag = useRef<{ px: number; py: number; cx: number; cy: number } | null>(
+    null,
+  );
 
-  /** Subdivision outlines for the focused country, if any are published. */
-  const focusSubdivisions = useMemo(() => {
-    if (focusCode === "US" || !focusGeo || !admin1) return NO_SUBDIVISIONS;
-    const projection = geoEqualEarth().fitExtent(
-      [
-        [24, 24],
-        [US_W - 24, US_H - 24],
-      ],
-      focusGeo.feature as never,
+  /* A new country is a new map; keeping the old viewport would drop the reader
+     somewhere arbitrary inside it. */
+  useEffect(() => {
+    setZoom(1);
+    setCenter({ x: US_W / 2, y: US_H / 2 });
+  }, [focusCode]);
+
+  /* The viewport may not leave the canvas, or the country slides off-screen
+     with no way back but the reset button. */
+  const clampCenter = useCallback((x: number, y: number, k: number) => {
+    const halfW = US_W / (2 * k);
+    const halfH = US_H / (2 * k);
+    return {
+      x: Math.min(US_W - halfW, Math.max(halfW, x)),
+      y: Math.min(US_H - halfH, Math.max(halfH, y)),
+    };
+  }, []);
+
+  const zoomTo = useCallback(
+    (k: number) => {
+      const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, k));
+      setZoom(next);
+      setCenter((c) => clampCenter(c.x, c.y, next));
+    },
+    [clampCenter],
+  );
+
+  const beginPan = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (zoom === 1) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    drag.current = { px: e.clientX, py: e.clientY, cx: center.x, cy: center.y };
+  };
+
+  const movePan = (e: React.PointerEvent<SVGSVGElement>) => {
+    const d = drag.current;
+    if (!d) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (rect.width === 0) return;
+    // Canvas units travelled per device pixel at this zoom.
+    const perPx = US_W / zoom / rect.width;
+    setCenter(
+      clampCenter(
+        d.cx - (e.clientX - d.px) * perPx,
+        d.cy - (e.clientY - d.py) * perPx,
+        zoom,
+      ),
     );
-    const path = geoPath(projection);
-    // Already scoped to one country by the fetch; guard against a stale
-    // response arriving after the selection moved on.
-    if (admin1.code !== focusCode) return NO_SUBDIVISIONS;
-    const mine = admin1.features
-      .map((f) => {
+  };
+
+  const endPan = () => {
+    drag.current = null;
+  };
+
+  const focusViewBox = `${center.x - US_W / (2 * zoom)} ${
+    center.y - US_H / (2 * zoom)
+  } ${US_W / zoom} ${US_H / zoom}`;
+
+  /**
+   * Everything geometric about the focused country, in one pass.
+   *
+   * The outline is merged from the admin-1 arcs and the internal borders are
+   * meshed from the same topology, so the two cannot disagree — the coast a
+   * division ends on is literally the same arc the outline is drawn from.
+   * Only the countries with a single division fall back to the world atlas
+   * outline, and there is nothing internal to misalign there.
+   *
+   * mesh(..., (a, b) => a !== b) yields interior borders only, so a shared
+   * border is one stroke rather than two stacked on each other. That is what
+   * stops internal lines reading heavier than the coast.
+   *
+   * The projection is fitted to the mainland cluster, not to everything the
+   * country administers — see mainlandIndices for why.
+   */
+  const focusMap = useMemo(() => {
+    if (focusCode === "US") return null;
+    const useAdmin1 = admin1 !== null && admin1.code === focusCode;
+    const worldFeature = featureByCode.get(focusCode);
+
+    const fitTo = (geo: unknown, box: [[number, number], [number, number]]) =>
+      geoEqualEarth().fitExtent(box, geo as never);
+
+    const mainBox: [[number, number], [number, number]] = [
+      [PAD, PAD],
+      [US_W - PAD, US_H - PAD],
+    ];
+
+    if (!useAdmin1) {
+      if (!worldFeature) return null;
+      const path = geoPath(fitTo(worldFeature, mainBox));
+      return {
+        outline: path(worldFeature as never) ?? "",
+        interior: "",
+        parts: [] as Subdivision[],
+        insets: [] as Inset[],
+        offView: [] as string[],
+      };
+    }
+
+    const obj = admin1.topo.objects[admin1.key] as unknown as {
+      type: string;
+      geometries: { properties?: { n?: string } }[];
+    };
+    const fc = feature(admin1.topo, obj as never) as unknown as {
+      features: { properties: { n: string } }[];
+    };
+
+    const { keep, outliers } = clusterDivisions(fc.features);
+    const keptGeoms = keep.map((i) => obj.geometries[i]);
+
+    const outlineGeo = merge(
+      admin1.topo,
+      keptGeoms as Parameters<typeof merge>[1],
+    );
+    const path = geoPath(fitTo(outlineGeo, mainBox));
+
+    const interior =
+      path(
+        mesh(
+          admin1.topo,
+          { type: "GeometryCollection", geometries: keptGeoms } as never,
+          (a, b) => a !== b,
+        ) as never,
+      ) ?? "";
+
+    const parts: Subdivision[] = keep
+      .map((i) => {
+        const f = fc.features[i];
         const [cx, cy] = path.centroid(f as never);
         const [[x0, y0], [x1, y1]] = path.bounds(f as never);
         return {
@@ -518,26 +766,109 @@ export function WorldMapsPage() {
       })
       .filter((f) => f.d.length > 0 && Number.isFinite(f.cx));
 
-    /* Roughly 5.3px per character at 9px in this mono face — measured off the
-       rendered labels rather than assumed, and deliberately a little
-       pessimistic so a name never spills past its own border. */
-    const widthOf = (name: string) => name.length * 5.3;
+    /* Each outlying group gets its own small map at its own scale, the way an
+       atlas insets the DOM beside metropolitan France. Drawn to scale on the
+       main map they would be a few pixels of nothing, and left off entirely
+       they would be a quiet omission. */
+    const nameOf = (group: number[]) => {
+      const names = group
+        .map((i) => fc.features[i].properties.n ?? "")
+        .filter((n) => n.trim().length > 0);
+      if (names.length === 0) return "Unnamed";
+      if (names.length <= 2) return names.join(" & ");
+      return `${names[0]} +${names.length - 1}`;
+    };
 
-    /* Seven features across AI, AQ, CO, KI, MX, RU and VE carry no name in
-       Natural Earth. Their borders still draw; only the label is skipped,
-       because an empty <text> is a blank spot the reader cannot interpret. */
-    const named = mine.filter((f) => f.n.trim().length > 0);
-    const fits = (f: Subdivision) => f.w >= widthOf(f.n) + 6 && f.h >= 12;
+    const insetBox: [[number, number], [number, number]] = [
+      [INSET_PAD, INSET_PAD],
+      [INSET_SIZE - INSET_PAD, INSET_SIZE - INSET_PAD],
+    ];
 
-    const inside = named.filter(fits);
-    const outside = named.filter((f) => !fits(f)).sort((a, b) => a.cy - b.cy);
+    const insets: Inset[] = outliers.slice(0, MAX_INSETS).map((group) => {
+      const geoms = group.map((i) => obj.geometries[i]);
+      const collection = {
+        type: "GeometryCollection",
+        geometries: geoms,
+      };
+      const merged = merge(admin1.topo, geoms as Parameters<typeof merge>[1]);
+      const ip = geoPath(fitTo(merged, insetBox));
+      return {
+        key: group.join("-"),
+        name: nameOf(group),
+        d: ip(merged as never) ?? "",
+        interior:
+          group.length > 1
+            ? (ip(mesh(admin1.topo, collection as never, (a, b) => a !== b) as never) ?? "")
+            : "",
+      };
+    });
 
-    // Right-align the column to the widest name it must carry.
-    const columnWidth = outside.reduce((w, f) => Math.max(w, widthOf(f.n)), 0);
-    const columnX = Math.max(US_W * 0.55, US_W - 20 - columnWidth);
+    /* Anything past the inset cap is still named, never silently dropped. */
+    const offView = outliers
+      .slice(MAX_INSETS)
+      .flatMap((group) => group.map((i) => fc.features[i].properties.n ?? ""))
+      .filter((n) => n.trim().length > 0)
+      .sort((a, b) => a.localeCompare(b));
 
-    return { all: mine, inside, outside, columnX };
-  }, [focusCode, focusGeo, admin1]);
+    return {
+      outline: path(outlineGeo as never) ?? "",
+      interior,
+      parts,
+      insets,
+      offView,
+    };
+  }, [focusCode, featureByCode, admin1]);
+
+  /**
+   * Which names fit on the map at the current zoom, and which do not.
+   *
+   * Labels hold a constant size on screen, so zooming in grows the geometry
+   * underneath them and more names earn a place. A label is drawn only when it
+   * fits inside its own division *and* clears every label already placed —
+   * largest division first, so the biggest regions keep their names when space
+   * runs out. Anything left over is listed under the map instead of being
+   * dragged out on a leader line, which is what used to run off the canvas:
+   * Russia's 86 divisions stacked to y=1315 in a 560-tall viewBox.
+   */
+  const focusLabels = useMemo(() => {
+    const parts = focusMap?.parts ?? [];
+    const named = parts.filter((f) => f.n.trim().length > 0);
+
+    /* Roughly 5.3px per character at 9px in this mono face, measured off the
+       rendered labels. Divided by the zoom because the text keeps its size on
+       screen while the map beneath it grows. */
+    const charW = 5.3 / zoom;
+    const lineH = 10 / zoom;
+
+    const byArea = [...named].sort((a, b) => b.w * b.h - a.w * a.h);
+    const placed: { x0: number; y0: number; x1: number; y1: number }[] = [];
+    const inside: Subdivision[] = [];
+
+    for (const f of byArea) {
+      const w = f.n.length * charW;
+      if (f.w < w + 6 / zoom || f.h < lineH + 2 / zoom) continue;
+      const box = {
+        x0: f.cx - w / 2 - charW,
+        y0: f.cy - lineH / 2 - lineH * 0.2,
+        x1: f.cx + w / 2 + charW,
+        y1: f.cy + lineH / 2 + lineH * 0.2,
+      };
+      const clash = placed.some(
+        (p) => box.x0 < p.x1 && box.x1 > p.x0 && box.y0 < p.y1 && box.y1 > p.y0,
+      );
+      if (clash) continue;
+      placed.push(box);
+      inside.push(f);
+    }
+
+    const shown = new Set(inside.map((f) => f.n));
+    const unlabelled = named
+      .filter((f) => !shown.has(f.n))
+      .map((f) => f.n)
+      .sort((a, b) => a.localeCompare(b));
+
+    return { inside, unlabelled, total: named.length };
+  }, [focusMap, zoom]);
 
   /**
    * The sentence under the focus map, describing only what is actually drawn.
@@ -555,12 +886,22 @@ export function WorldMapsPage() {
     if (published <= 1) {
       return "Natural Earth records a single first-order division for this country, so it is drawn as one outline. ";
     }
-    const drawn = focusSubdivisions.all.length;
+    const drawn = focusMap?.parts.length ?? 0;
     if (drawn === 0) {
       return `Loading ${published} first-order divisions from Natural Earth. `;
     }
-    return `Internal borders shown are ${drawn} first-order divisions from Natural Earth. `;
-  }, [admin1Manifest, focusCode, focusSubdivisions.all.length]);
+    const insets = focusMap?.insets.length ?? 0;
+    const off = focusMap?.offView.length ?? 0;
+    const framed = insets
+      ? ` The map is framed on the main landmass; ${insets} outlying territor${
+          insets === 1 ? "y is" : "ies are"
+        } drawn beside it, each at its own scale.`
+      : "";
+    const listed = off
+      ? ` ${off} further division${off === 1 ? " is" : "s are"} named below.`
+      : "";
+    return `Internal borders shown are ${drawn} first-order divisions from Natural Earth.${framed}${listed} `;
+  }, [admin1Manifest, focusCode, focusMap]);
 
   /** Cities the dataset happens to hold for the focused country. */
   const focusCities = useMemo(
@@ -1093,40 +1434,129 @@ export function WorldMapsPage() {
                   invented one would be worse than none. */}
               <div>
                 <div>
-                  <svg
-                    viewBox={`0 0 ${US_W} ${US_H}`}
-                    className="w-full h-auto"
-                    role="img"
-                    aria-label={`Outline map of ${focusCountry?.name ?? "the selected country"}`}
-                  >
-                    {focusGeo && (
-                      <path
-                        d={focusGeo.d}
-                        fill={ramp[3]}
-                        stroke={stroke}
-                        strokeWidth={0.8}
-                      />
-                    )}
-                    {/* Internal borders drawn over the fill, unshaded: this
-                        project has no per-subdivision figures for any country
-                        but the US, and a colour here would imply one. */}
-                    {focusSubdivisions.all.map((sd) => (
-                      <path
-                        key={sd.n}
-                        d={sd.d}
-                        fill="none"
-                        stroke={stroke}
-                        strokeWidth={0.5}
-                        strokeOpacity={0.8}
-                      >
-                        <title>{sd.n}</title>
-                      </path>
-                    ))}
+                  {/* Zoom controls sit outside the drawing, so they stay
+                      reachable by keyboard and never overlap the map. */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => zoomTo(zoom / ZOOM_STEP)}
+                      disabled={zoom <= ZOOM_MIN}
+                      aria-label="Zoom out"
+                      className="w-7 h-7 rounded-lg border border-border text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <MagnifyingGlassMinus size={14} className="mx-auto" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => zoomTo(zoom * ZOOM_STEP)}
+                      disabled={zoom >= ZOOM_MAX}
+                      aria-label="Zoom in"
+                      className="w-7 h-7 rounded-lg border border-border text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <MagnifyingGlassPlus size={14} className="mx-auto" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setZoom(1);
+                        setCenter({ x: US_W / 2, y: US_H / 2 });
+                      }}
+                      disabled={zoom === 1}
+                      className="px-2 h-7 rounded-lg border border-border text-[10px] font-mono uppercase tracking-widest text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Reset
+                    </button>
+                    <span
+                      className="text-[10px] font-mono text-muted-foreground"
+                      aria-live="polite"
+                    >
+                      {zoom.toFixed(1)}× · {focusLabels.inside.length} of{" "}
+                      {focusLabels.total} names shown
+                    </span>
+                  </div>
 
-                    {/* Names that fit inside their own division. */}
-                    {focusSubdivisions.inside.map((sd) => (
+                  {/* Map and territories side by side on a wide screen, the
+                      territories dropping underneath when there is no room. */}
+                  <div className="flex flex-col md:flex-row md:items-start gap-3">
+                  <svg
+                    viewBox={focusViewBox}
+                    className="w-full h-auto md:flex-1 md:min-w-0"
+                    style={{
+                      cursor: zoom > 1 ? "grab" : "default",
+                      touchAction: zoom > 1 ? "none" : "auto",
+                    }}
+                    onPointerDown={beginPan}
+                    onPointerMove={movePan}
+                    onPointerUp={endPan}
+                    onPointerCancel={endPan}
+                    role="img"
+                    aria-label={`Outline map of ${focusCountry?.name ?? "the selected country"}${
+                      focusMap && focusMap.parts.length > 1
+                        ? `, showing ${focusMap.parts.length} internal divisions`
+                        : ""
+                    }`}
+                  >
+                    {focusMap && (
+                      <>
+                        {/* The fill and the coast, from the merged arcs. */}
+                        <path
+                          d={focusMap.outline}
+                          fill={ramp[3]}
+                          stroke={stroke}
+                          strokeWidth={1 / zoom}
+                          strokeLinejoin="round"
+                        />
+
+                        {/* Hit targets: one invisible shape per division, so
+                            every name is discoverable on hover even when it is
+                            too small to carry a label. */}
+                        {focusMap.parts.map((sd, i) => (
+                          <path
+                            key={`hit-${sd.n}-${i}`}
+                            d={sd.d}
+                            fill="transparent"
+                            stroke="none"
+                          >
+                            <title>{sd.n || "Unnamed division"}</title>
+                          </path>
+                        ))}
+
+                        {/* Internal borders as a single mesh, so a shared
+                            border is one stroke rather than two stacked on
+                            each other — that is what used to make internal
+                            lines read heavier than the coast. Unshaded: this
+                            project has no per-division figures outside the US,
+                            and a colour here would imply one. */}
+                        {focusMap.interior && (
+                          <path
+                            d={focusMap.interior}
+                            fill="none"
+                            stroke={stroke}
+                            strokeWidth={0.6 / zoom}
+                            strokeOpacity={0.75}
+                            strokeLinejoin="round"
+                            pointerEvents="none"
+                          />
+                        )}
+
+                        {/* The coast again, over the mesh, so the outline stays
+                            the crispest line on the map. */}
+                        <path
+                          d={focusMap.outline}
+                          fill="none"
+                          stroke={stroke}
+                          strokeWidth={1 / zoom}
+                          strokeLinejoin="round"
+                          pointerEvents="none"
+                        />
+                      </>
+                    )}
+
+                    {/* Names that fit inside their own division and clash with
+                        no name already placed. Zooming in makes room for more. */}
+                    {focusLabels.inside.map((sd, i) => (
                       <text
-                        key={`in-${sd.n}`}
+                        key={`in-${sd.n}-${i}`}
                         x={sd.cx}
                         y={sd.cy}
                         textAnchor="middle"
@@ -1134,7 +1564,7 @@ export function WorldMapsPage() {
                         pointerEvents="none"
                         className="font-mono"
                         style={{
-                          fontSize: 9,
+                          fontSize: 9 / zoom,
                           fontWeight: 600,
                           fill: labelInkFor(ramp[3]),
                         }}
@@ -1142,37 +1572,52 @@ export function WorldMapsPage() {
                         {sd.n}
                       </text>
                     ))}
-
-                    {/* The rest, stacked beside the map. */}
-                    {focusSubdivisions.outside.map((sd, i) => {
-                      const y = 40 + i * 15;
-                      const x = focusSubdivisions.columnX;
-                      return (
-                        <g key={`out-${sd.n}`} pointerEvents="none">
-                          <polyline
-                            points={`${sd.cx},${sd.cy} ${x - 8},${y} ${x - 3},${y}`}
-                            fill="none"
-                            stroke={isLight ? "rgba(15,23,42,0.3)" : "rgba(255,255,255,0.3)"}
-                            strokeWidth={0.6}
-                          />
-                          <text
-                            x={x}
-                            y={y}
-                            textAnchor="start"
-                            dominantBaseline="middle"
-                            className="font-mono"
-                            style={{
-                              fontSize: 9,
-                              fontWeight: 600,
-                              fill: isLight ? "#0f172a" : "#f1f0ff",
-                            }}
-                          >
-                            {sd.n}
-                          </text>
-                        </g>
-                      );
-                    })}
                   </svg>
+
+                  {focusMap && focusMap.insets.length > 0 && (
+                    <div
+                      className="flex flex-row md:flex-col flex-wrap gap-2 md:w-[104px] md:shrink-0"
+                      role="group"
+                      aria-label="Territories shown separately, each at its own scale"
+                    >
+                      {focusMap.insets.map((ins) => (
+                        <div key={ins.key} className="w-[92px] md:w-full">
+                          <svg
+                            viewBox={`0 0 ${INSET_SIZE} ${INSET_SIZE}`}
+                            className="w-full h-auto rounded-lg"
+                            style={{
+                              background: isLight
+                                ? "rgba(0,0,0,0.025)"
+                                : "rgba(255,255,255,0.04)",
+                            }}
+                            role="img"
+                            aria-label={`${ins.name}, drawn at its own scale`}
+                          >
+                            <path
+                              d={ins.d}
+                              fill={ramp[3]}
+                              stroke={stroke}
+                              strokeWidth={0.8}
+                              strokeLinejoin="round"
+                            />
+                            {ins.interior && (
+                              <path
+                                d={ins.interior}
+                                fill="none"
+                                stroke={stroke}
+                                strokeWidth={0.5}
+                                strokeOpacity={0.75}
+                              />
+                            )}
+                          </svg>
+                          <p className="mt-0.5 text-[9px] font-sans leading-tight text-muted-foreground text-center">
+                            {ins.name}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  </div>
                 </div>
 
                 {/* Attached to the map: same panel, directly beneath it. */}
@@ -1180,6 +1625,7 @@ export function WorldMapsPage() {
                   <button
                     onClick={() => setFactsOpen((v) => !v)}
                     aria-expanded={factsOpen}
+                    aria-controls="focus-country-details"
                     className="flex items-center gap-1.5 w-full text-left px-1 py-1 rounded text-[11px] font-medium font-sans text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                   >
                     <CaretDown
@@ -1191,7 +1637,8 @@ export function WorldMapsPage() {
                   </button>
 
                   {factsOpen && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
+                    <div id="focus-country-details">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
                   {focusCountry &&
                     [
                       ["Capital", focusCountry.capital],
@@ -1223,7 +1670,53 @@ export function WorldMapsPage() {
                         </span>
                       </div>
                     ))}
-                </div>
+                      </div>
+
+                      {/* Names the map could not carry legibly. They are listed
+                          rather than dragged out on leader lines: a column of
+                          86 of them ran off the bottom of the canvas, and every
+                          one of these is still on the map under the pointer. */}
+                      {focusLabels.unlabelled.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-border/40">
+                          <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
+                            {focusLabels.unlabelled.length} more division
+                            {focusLabels.unlabelled.length === 1 ? "" : "s"} — too
+                            small to label at {zoom.toFixed(1)}×
+                            {zoom < ZOOM_MAX ? "; zoom in to place more" : ""}
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {focusLabels.unlabelled.map((n, i) => (
+                              <span
+                                key={`${n}-${i}`}
+                                className="px-2.5 py-0.5 rounded-full text-[10px] font-sans border border-border text-muted-foreground"
+                              >
+                                {n}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {focusMap && focusMap.offView.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-border/40">
+                          <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
+                            {focusMap.offView.length} division
+                            {focusMap.offView.length === 1 ? "" : "s"} outside
+                            this view
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {focusMap.offView.map((n, i) => (
+                              <span
+                                key={`off-${n}-${i}`}
+                                className="px-2.5 py-0.5 rounded-full text-[10px] font-sans border border-border text-muted-foreground"
+                              >
+                                {n}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
