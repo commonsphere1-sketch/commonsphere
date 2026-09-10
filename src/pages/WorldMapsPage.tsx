@@ -445,10 +445,37 @@ export function WorldMapsPage() {
       focusGeo.feature as never,
     );
     const path = geoPath(projection);
-    return admin1.features
+    const mine = admin1.features
       .filter((f) => f.properties.c === focusCode)
-      .map((f) => ({ n: f.properties.n, d: path(f as never) ?? "" }))
-      .filter((f) => f.d.length > 0);
+      .map((f) => {
+        const [cx, cy] = path.centroid(f as never);
+        const [[x0, y0], [x1, y1]] = path.bounds(f as never);
+        return {
+          n: f.properties.n,
+          d: path(f as never) ?? "",
+          cx,
+          cy,
+          w: x1 - x0,
+          h: y1 - y0,
+        };
+      })
+      .filter((f) => f.d.length > 0 && Number.isFinite(f.cx));
+
+    /* Roughly 5.3px per character at 9px in this mono face — measured off the
+       rendered labels rather than assumed, and deliberately a little
+       pessimistic so a name never spills past its own border. */
+    const widthOf = (name: string) => name.length * 5.3;
+
+    const inside = mine.filter((f) => f.w >= widthOf(f.n) + 6 && f.h >= 12);
+    const outside = mine
+      .filter((f) => !(f.w >= widthOf(f.n) + 6 && f.h >= 12))
+      .sort((a, b) => a.cy - b.cy);
+
+    // Right-align the column to the widest name it must carry.
+    const columnWidth = outside.reduce((w, f) => Math.max(w, widthOf(f.n)), 0);
+    const columnX = Math.max(US_W * 0.55, US_W - 20 - columnWidth);
+
+    return { all: mine, inside, outside, columnX };
   }, [focusCode, focusGeo, admin1]);
 
   /** Cities the dataset happens to hold for the focused country. */
@@ -999,7 +1026,7 @@ export function WorldMapsPage() {
                     {/* Internal borders drawn over the fill, unshaded: this
                         project has no per-subdivision figures for any country
                         but the US, and a colour here would imply one. */}
-                    {focusSubdivisions.map((sd) => (
+                    {focusSubdivisions.all?.map((sd) => (
                       <path
                         key={sd.n}
                         d={sd.d}
@@ -1011,6 +1038,56 @@ export function WorldMapsPage() {
                         <title>{sd.n}</title>
                       </path>
                     ))}
+
+                    {/* Names that fit inside their own division. */}
+                    {focusSubdivisions.inside?.map((sd) => (
+                      <text
+                        key={`in-${sd.n}`}
+                        x={sd.cx}
+                        y={sd.cy}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        pointerEvents="none"
+                        className="font-mono"
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 600,
+                          fill: labelInkFor(ramp[3]),
+                        }}
+                      >
+                        {sd.n}
+                      </text>
+                    ))}
+
+                    {/* The rest, stacked beside the map. */}
+                    {focusSubdivisions.outside?.map((sd, i) => {
+                      const y = 40 + i * 15;
+                      const x = focusSubdivisions.columnX ?? US_W - 150;
+                      return (
+                        <g key={`out-${sd.n}`} pointerEvents="none">
+                          <polyline
+                            points={`${sd.cx},${sd.cy} ${x - 8},${y} ${x - 3},${y}`}
+                            fill="none"
+                            stroke={isLight ? "rgba(15,23,42,0.3)" : "rgba(255,255,255,0.3)"}
+                            strokeWidth={0.6}
+                          />
+                          <text
+                            x={x}
+                            y={y}
+                            textAnchor="start"
+                            dominantBaseline="middle"
+                            className="font-mono"
+                            style={{
+                              fontSize: 9,
+                              fontWeight: 600,
+                              fill: isLight ? "#0f172a" : "#f1f0ff",
+                            }}
+                          >
+                            {sd.n}
+                          </text>
+                        </g>
+                      );
+                    })}
                   </svg>
                 </div>
 
@@ -1072,7 +1149,7 @@ export function WorldMapsPage() {
 
               <p className="text-[9px] font-sans mt-3 pt-3 border-t border-border/40 text-muted-foreground">
                 {ADMIN1_COUNTRIES.has(focusCode)
-                  ? `Internal borders shown are ${focusSubdivisions.length} first-order divisions from Natural Earth. `
+                  ? `Internal borders shown are ${focusSubdivisions.all?.length ?? 0} first-order divisions from Natural Earth. `
                   : "Natural Earth publishes first-order divisions at this resolution for nine countries only — Russia, the United States, India, Indonesia, China, Brazil, Canada, Australia and South Africa — so this country is drawn as a single outline. "}
                 Subdivisions are outlined but never shaded: this project holds
                 state-level figures for the US and none for any other country's
