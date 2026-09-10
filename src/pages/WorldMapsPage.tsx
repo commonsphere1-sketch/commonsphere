@@ -13,6 +13,7 @@ import {
   auditMapJoin,
 } from "../data/mapJoin";
 import { useTheme } from "../contexts/ThemeContext";
+import { isG20, g20Countries, G20_UNION_MEMBERS } from "../data/g20";
 
 /**
  * Equal Earth world map and a US state map, both shaded from the site's own
@@ -197,9 +198,13 @@ export function WorldMapsPage() {
   const [countryMetric, setCountryMetric] = useState("hdi");
   const [stateMetric, setStateMetric] = useState("education");
   const [hovered, setHovered] = useState<{ name: string; value: string } | null>(null);
+  const [scope, setScope] = useState<"all" | "g20">("all");
 
   const ramp = isLight ? RAMP_LIGHT : RAMP_DARK;
   const noData = isLight ? "#e8eaed" : "#24242c";
+  // Deliberately different from noData: "not selected" and "no figure" are not
+  // the same statement, and the legend names both.
+  const outOfScope = isLight ? "#f4f5f7" : "#191920";
   const stroke = isLight ? "#ffffff" : "#15151d";
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
   const cardBorder = isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)";
@@ -268,13 +273,43 @@ export function WorldMapsPage() {
 
   /* ── Country shading ── */
   const activeCountry = COUNTRY_INDICATORS.find((i) => i.id === countryMetric)!;
+  const inScope = scope === "g20" ? g20Countries : countriesData;
   const countryShading = useMemo(() => {
-    const values = countriesData
+    const values = inScope
       .map((c) => activeCountry.get(c))
       .filter((v): v is number => v !== null && Number.isFinite(v));
     const breaks = quantileBreaks(values, ramp.length);
     return { breaks, min: Math.min(...values), max: Math.max(...values), count: values.length };
-  }, [activeCountry, ramp.length]);
+  }, [activeCountry, ramp.length, inScope]);
+
+  /* ── G20 figures ──
+     Shares are of the world totals in this dataset, not of a published world
+     figure, so the numerator and denominator come from the same place. */
+  const g20Stats = useMemo(() => {
+    const sum = (list: Country[], f: (c: Country) => number) =>
+      list.reduce((a, c) => a + (f(c) || 0), 0);
+    const worldPop = sum(countriesData, (c) => c.population);
+    const worldGdp = sum(countriesData, (c) => c.gdp);
+    const pop = sum(g20Countries, (c) => c.population);
+    const gdp = sum(g20Countries, (c) => c.gdp);
+    return {
+      members: g20Countries.length,
+      pop,
+      gdp,
+      popShare: worldPop ? (pop / worldPop) * 100 : 0,
+      gdpShare: worldGdp ? (gdp / worldGdp) * 100 : 0,
+    };
+  }, []);
+
+  /* Members ranked by whatever indicator the map is showing. */
+  const g20Ranked = useMemo(
+    () =>
+      g20Countries
+        .map((c) => ({ c, v: activeCountry.get(c) }))
+        .filter((r): r is { c: Country; v: number } => r.v !== null && Number.isFinite(r.v))
+        .sort((a, b) => (activeCountry.higherIsBetter ? b.v - a.v : a.v - b.v)),
+    [activeCountry],
+  );
 
   const colourFor = (value: number | null, breaks: number[], higherIsBetter: boolean) => {
     if (value === null || !Number.isFinite(value)) return noData;
@@ -427,11 +462,27 @@ export function WorldMapsPage() {
               </div>
             </div>
             <span className="text-[10px] font-mono text-muted-foreground">
-              {countryShading.count} of {countriesData.length} countries have this figure
+              {countryShading.count} of {inScope.length}{" "}
+              {scope === "g20" ? "G20 states" : "countries"} have this figure
             </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 mb-3">
+            <button
+              onClick={() => setScope("all")}
+              aria-pressed={scope === "all"}
+              className={chip(scope === "all")}
+            >
+              All countries
+            </button>
+            <button
+              onClick={() => setScope("g20")}
+              aria-pressed={scope === "g20"}
+              className={chip(scope === "g20")}
+            >
+              G20 only
+            </button>
+            <div className="w-px h-5 bg-border shrink-0" />
             {COUNTRY_INDICATORS.map((i) => (
               <button
                 key={i.id}
@@ -459,18 +510,27 @@ export function WorldMapsPage() {
             />
             {world.features.map((f, i) => {
               const country = countryForFeature(f.properties.name);
-              const value = country ? activeCountry.get(country) : null;
+              const outside = scope === "g20" && country !== null && !isG20(country);
+              const value = country && !outside ? activeCountry.get(country) : null;
               return (
                 <path
                   key={i}
                   d={worldPath.path(f as never) ?? undefined}
-                  fill={colourFor(value, countryShading.breaks, activeCountry.higherIsBetter)}
+                  fill={
+                    outside
+                      ? outOfScope
+                      : colourFor(value, countryShading.breaks, activeCountry.higherIsBetter)
+                  }
                   stroke={stroke}
                   strokeWidth={0.3}
                   onMouseEnter={() =>
                     setHovered({
                       name: country?.name ?? f.properties.name,
-                      value: value !== null ? activeCountry.format(value) : "no data",
+                      value: outside
+                        ? "not a G20 member"
+                        : value !== null
+                          ? activeCountry.format(value)
+                          : "no data",
                     })
                   }
                   onMouseLeave={() => setHovered(null)}
@@ -485,9 +545,116 @@ export function WorldMapsPage() {
             lowLabel="Lower"
             highLabel="Higher"
             higherIsBetter={activeCountry.higherIsBetter}
+            extra={
+              scope === "g20"
+                ? { colour: outOfScope, label: "Not a G20 member" }
+                : undefined
+            }
             hovered={hovered}
           />
         </div>
+
+        {/* ── G20 figures, only while that scope is selected ── */}
+        {scope === "g20" && (
+          <div
+            className="rounded-2xl p-5 mb-6"
+            style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}
+          >
+            <p className="text-[10px] font-mono uppercase tracking-widest text-secondary mb-1">
+              Group of Twenty
+            </p>
+            <h2 className="text-sm font-bold font-sans text-foreground mb-1">
+              {g20Stats.members} member states
+            </h2>
+            <p className="text-[11px] font-sans text-muted-foreground mb-4">
+              The G20 has 21 members. The {g20Stats.members} states below are
+              mapped; the other two — the{" "}
+              {G20_UNION_MEMBERS.join(" and the ")} — are unions rather than
+              countries, so they have no country row and no share of their own
+              here. The African Union joined in 2023.
+            </p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+              {[
+                { label: "Combined population", value: `${(g20Stats.pop / 1e9).toFixed(2)}B` },
+                { label: "Share of world population", value: `${g20Stats.popShare.toFixed(1)}%` },
+                { label: "Combined GDP", value: `$${(g20Stats.gdp / 1000).toFixed(1)}T` },
+                { label: "Share of world GDP", value: `${g20Stats.gdpShare.toFixed(1)}%` },
+              ].map((k) => (
+                <div
+                  key={k.label}
+                  className="rounded-lg px-3 py-2"
+                  style={{
+                    background: isLight ? "rgba(0,0,0,0.025)" : "rgba(255,255,255,0.04)",
+                    border: isLight
+                      ? "1px solid rgba(0,0,0,0.06)"
+                      : "1px solid rgba(255,255,255,0.06)",
+                  }}
+                >
+                  <p className="text-[9px] font-mono uppercase tracking-wide text-muted-foreground">
+                    {k.label}
+                  </p>
+                  <p className="text-base font-bold font-mono text-foreground">{k.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
+              Members by {activeCountry.label}
+            </p>
+            <div className="overflow-x-auto -mx-1 px-1">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="pb-2 text-left text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
+                      #
+                    </th>
+                    <th className="pb-2 text-left text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
+                      Member
+                    </th>
+                    <th className="pb-2 text-right text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
+                      {activeCountry.label}
+                    </th>
+                    <th className="pb-2 text-right text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
+                      Population
+                    </th>
+                    <th className="pb-2 text-right text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
+                      GDP
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {g20Ranked.map((r, i) => (
+                    <tr key={r.c.id} className="border-b border-border/40">
+                      <td className="py-1.5 text-[11px] font-mono text-muted-foreground">
+                        {i + 1}
+                      </td>
+                      <td className="py-1.5 text-[12px] font-semibold font-sans text-foreground">
+                        {r.c.name}
+                      </td>
+                      <td className="py-1.5 text-[12px] font-mono text-right text-foreground">
+                        {activeCountry.format(r.v)}
+                      </td>
+                      <td className="py-1.5 text-[12px] font-mono text-right text-muted-foreground">
+                        {(r.c.population / 1e6).toFixed(1)}M
+                      </td>
+                      <td className="py-1.5 text-[12px] font-mono text-right text-muted-foreground">
+                        ${(r.c.gdp / 1000).toFixed(2)}T
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {g20Ranked.length < g20Stats.members && (
+              <p className="text-[9px] font-sans mt-2 text-muted-foreground">
+                {g20Stats.members - g20Ranked.length} member
+                {g20Stats.members - g20Ranked.length === 1 ? "" : "s"} have no
+                figure for {activeCountry.label} and are omitted from the ranking.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* ── Continental aggregates ── */}
         <div
@@ -691,6 +858,7 @@ function Legend({
   lowLabel,
   highLabel,
   higherIsBetter,
+  extra,
   hovered,
 }: {
   ramp: string[];
@@ -699,6 +867,8 @@ function Legend({
   highLabel: string;
   /** Mirrors how the map reads the ramp, so the two cannot disagree. */
   higherIsBetter: boolean;
+  /** A further tone to name, e.g. countries outside the selected scope. */
+  extra?: { colour: string; label: string };
   hovered: { name: string; value: string } | null;
 }) {
   const shown = higherIsBetter ? ramp : [...ramp].reverse();
@@ -719,6 +889,17 @@ function Legend({
           />
           <span className="text-[10px] font-sans text-muted-foreground">No data</span>
         </span>
+        {extra && (
+          <span className="flex items-center gap-1.5">
+            <span
+              className="w-2.5 h-2.5 rounded-full inline-block border border-border"
+              style={{ background: extra.colour }}
+            />
+            <span className="text-[10px] font-sans text-muted-foreground">
+              {extra.label}
+            </span>
+          </span>
+        )}
       </div>
       {/* Reserved height, so the layout does not jump as the pointer moves. */}
       <div className="min-h-[18px]" aria-live="polite">
