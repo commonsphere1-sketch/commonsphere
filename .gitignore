@@ -51,3 +51,4 @@ coverage/
 # Agent skills installed via `npx skills add` — machine-local tooling
 .agents/
 skills-lock.json
+admin1-10m-raw.geojson

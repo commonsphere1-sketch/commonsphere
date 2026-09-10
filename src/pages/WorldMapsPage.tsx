@@ -1,10 +1,10 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { geoEqualEarth, geoAlbersUsa, geoPath, geoGraticule10 } from "d3-geo";
 import { feature } from "topojson-client";
 import type { Topology } from "topojson-specification";
 import worldTopo from "world-atlas/countries-110m.json";
 import statesTopo from "us-atlas/states-10m.json";
-import { GlobeHemisphereWest, MapTrifold, Info } from "@phosphor-icons/react";
+import { GlobeHemisphereWest, MapTrifold, Info, CaretDown } from "@phosphor-icons/react";
 import { countriesData, type Country } from "../data/countriesData";
 import { usStatesData, type USState } from "../data/statesData";
 import {
@@ -34,6 +34,34 @@ import { citiesData } from "../data/citiesData";
 
 // Viridis, trimmed per theme so the extreme step still separates from the
 // card behind it. Ordered low → high in both.
+/* Served from static/ (vite publicDir), so the path is absolute — the router
+   has no basename and the app already assumes a root deploy. */
+const ADMIN1_BASE = "/geo/admin1";
+
+type Subdivision = {
+  n: string;
+  d: string;
+  cx: number;
+  cy: number;
+  w: number;
+  h: number;
+};
+
+type Subdivisions = {
+  all: Subdivision[];
+  inside: Subdivision[];
+  outside: Subdivision[];
+  columnX: number;
+};
+
+/** One shared empty value, so the memo never returns two different shapes. */
+const NO_SUBDIVISIONS: Subdivisions = {
+  all: [],
+  inside: [],
+  outside: [],
+  columnX: 0,
+};
+
 const RAMP_LIGHT = ["#60c860", "#28a883", "#26838e", "#355f8d", "#45347e", "#440154"];
 const RAMP_DARK = ["#404286", "#2e6e8e", "#21958b", "#3cba75", "#96d73f", "#fde725"];
 
@@ -204,6 +232,7 @@ export function WorldMapsPage() {
   // The second map focuses on one country. The US is the default because it is
   // the only one with subdivision figures behind it.
   const [focusCode, setFocusCode] = useState("US");
+  const [factsOpen, setFactsOpen] = useState(true);
 
   const ramp = isLight ? RAMP_LIGHT : RAMP_DARK;
   const noData = isLight ? "#e8eaed" : "#24242c";
@@ -335,29 +364,55 @@ export function WorldMapsPage() {
   }, [activeState, ramp.length]);
 
   /* ── Focus map ── */
-  // ISO codes Natural Earth ships subdivisions for at 1:50m.
-  const ADMIN1_COUNTRIES = useMemo(
-    () => new Set(["RU", "US", "IN", "ID", "CN", "BR", "CA", "AU", "ZA"]),
-    [],
+  /* Natural Earth's 1:10m admin-1 file covers every country, but at 38.8 MB it
+     is far too large to bundle. build-admin1.cjs splits it into one TopoJSON
+     per country under static/geo/admin1 — 241 files averaging 30 KB — and the
+     manifest maps ISO code to feature count, so the page knows which countries
+     have divisions to draw without fetching anything. */
+  const [admin1Manifest, setAdmin1Manifest] = useState<Record<
+    string,
+    number
+  > | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${ADMIN1_BASE}/manifest.json`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((m: Record<string, number> | null) => {
+        if (!cancelled && m) setAdmin1Manifest(m);
+      })
+      .catch(() => {
+        // Every country still draws its outline; only internal borders are lost.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /* One division is the country itself, so it draws no internal border. */
+  const hasAdmin1 = useCallback(
+    (code: string) => (admin1Manifest?.[code] ?? 0) > 1,
+    [admin1Manifest],
   );
 
   const [admin1, setAdmin1] = useState<{
-    features: { properties: { c: string; n: string } }[];
+    code: string;
+    features: { properties: { n: string } }[];
   } | null>(null);
 
   useEffect(() => {
-    if (focusCode === "US" || !ADMIN1_COUNTRIES.has(focusCode) || admin1) return;
+    if (focusCode === "US" || !hasAdmin1(focusCode)) return;
+    if (admin1?.code === focusCode) return;
     let cancelled = false;
-    import("../data/geo/admin1.topo.json")
-      .then((mod) => {
+    fetch(`${ADMIN1_BASE}/${focusCode}.json`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((topo: Topology) => {
         if (cancelled) return;
-        const topo = (mod.default ?? mod) as unknown as Topology;
         const key = Object.keys(topo.objects)[0];
-        setAdmin1(
-          feature(topo, topo.objects[key] as never) as unknown as {
-            features: { properties: { c: string; n: string } }[];
-          },
-        );
+        const fc = feature(topo, topo.objects[key] as never) as unknown as {
+          features: { properties: { n: string } }[];
+        };
+        setAdmin1({ code: focusCode, features: fc.features });
       })
       .catch(() => {
         // The outline still draws; only the internal borders are lost.
@@ -365,7 +420,7 @@ export function WorldMapsPage() {
     return () => {
       cancelled = true;
     };
-  }, [focusCode, admin1, ADMIN1_COUNTRIES]);
+  }, [focusCode, admin1, hasAdmin1]);
 
   // Loaded lazily: 110m is too coarse once zoomed to a single country.
   const [detailWorld, setDetailWorld] = useState<{
@@ -436,7 +491,7 @@ export function WorldMapsPage() {
 
   /** Subdivision outlines for the focused country, if any are published. */
   const focusSubdivisions = useMemo(() => {
-    if (focusCode === "US" || !focusGeo || !admin1) return [];
+    if (focusCode === "US" || !focusGeo || !admin1) return NO_SUBDIVISIONS;
     const projection = geoEqualEarth().fitExtent(
       [
         [24, 24],
@@ -445,13 +500,15 @@ export function WorldMapsPage() {
       focusGeo.feature as never,
     );
     const path = geoPath(projection);
+    // Already scoped to one country by the fetch; guard against a stale
+    // response arriving after the selection moved on.
+    if (admin1.code !== focusCode) return NO_SUBDIVISIONS;
     const mine = admin1.features
-      .filter((f) => f.properties.c === focusCode)
       .map((f) => {
         const [cx, cy] = path.centroid(f as never);
         const [[x0, y0], [x1, y1]] = path.bounds(f as never);
         return {
-          n: f.properties.n,
+          n: f.properties.n ?? "",
           d: path(f as never) ?? "",
           cx,
           cy,
@@ -466,10 +523,14 @@ export function WorldMapsPage() {
        pessimistic so a name never spills past its own border. */
     const widthOf = (name: string) => name.length * 5.3;
 
-    const inside = mine.filter((f) => f.w >= widthOf(f.n) + 6 && f.h >= 12);
-    const outside = mine
-      .filter((f) => !(f.w >= widthOf(f.n) + 6 && f.h >= 12))
-      .sort((a, b) => a.cy - b.cy);
+    /* Seven features across AI, AQ, CO, KI, MX, RU and VE carry no name in
+       Natural Earth. Their borders still draw; only the label is skipped,
+       because an empty <text> is a blank spot the reader cannot interpret. */
+    const named = mine.filter((f) => f.n.trim().length > 0);
+    const fits = (f: Subdivision) => f.w >= widthOf(f.n) + 6 && f.h >= 12;
+
+    const inside = named.filter(fits);
+    const outside = named.filter((f) => !fits(f)).sort((a, b) => a.cy - b.cy);
 
     // Right-align the column to the widest name it must carry.
     const columnWidth = outside.reduce((w, f) => Math.max(w, widthOf(f.n)), 0);
@@ -477,6 +538,29 @@ export function WorldMapsPage() {
 
     return { all: mine, inside, outside, columnX };
   }, [focusCode, focusGeo, admin1]);
+
+  /**
+   * The sentence under the focus map, describing only what is actually drawn.
+   *
+   * Natural Earth publishes first-order divisions for every country at 1:10m,
+   * but seven of the 204 countries in this dataset — Tuvalu, Puerto Rico,
+   * Guam, the Faroe Islands, Monaco, Western Sahara and Niue — have exactly
+   * one, so there is no internal border to draw. Only Puerto Rico and Western
+   * Sahara are reachable here, since the selector offers the 171 countries the
+   * world atlas carries geometry for. Counted off the manifest, not asserted.
+   */
+  const bordersNote = useMemo(() => {
+    if (!admin1Manifest) return "Internal borders load with the country. ";
+    const published = admin1Manifest[focusCode] ?? 0;
+    if (published <= 1) {
+      return "Natural Earth records a single first-order division for this country, so it is drawn as one outline. ";
+    }
+    const drawn = focusSubdivisions.all.length;
+    if (drawn === 0) {
+      return `Loading ${published} first-order divisions from Natural Earth. `;
+    }
+    return `Internal borders shown are ${drawn} first-order divisions from Natural Earth. `;
+  }, [admin1Manifest, focusCode, focusSubdivisions.all.length]);
 
   /** Cities the dataset happens to hold for the focused country. */
   const focusCities = useMemo(
@@ -1007,8 +1091,8 @@ export function WorldMapsPage() {
                   rather than a shaded set of regions because this project holds
                   no province-level figures for any country but the US — and an
                   invented one would be worse than none. */}
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 items-start">
-                <div className="lg:col-span-3">
+              <div>
+                <div>
                   <svg
                     viewBox={`0 0 ${US_W} ${US_H}`}
                     className="w-full h-auto"
@@ -1026,7 +1110,7 @@ export function WorldMapsPage() {
                     {/* Internal borders drawn over the fill, unshaded: this
                         project has no per-subdivision figures for any country
                         but the US, and a colour here would imply one. */}
-                    {focusSubdivisions.all?.map((sd) => (
+                    {focusSubdivisions.all.map((sd) => (
                       <path
                         key={sd.n}
                         d={sd.d}
@@ -1040,7 +1124,7 @@ export function WorldMapsPage() {
                     ))}
 
                     {/* Names that fit inside their own division. */}
-                    {focusSubdivisions.inside?.map((sd) => (
+                    {focusSubdivisions.inside.map((sd) => (
                       <text
                         key={`in-${sd.n}`}
                         x={sd.cx}
@@ -1060,9 +1144,9 @@ export function WorldMapsPage() {
                     ))}
 
                     {/* The rest, stacked beside the map. */}
-                    {focusSubdivisions.outside?.map((sd, i) => {
+                    {focusSubdivisions.outside.map((sd, i) => {
                       const y = 40 + i * 15;
-                      const x = focusSubdivisions.columnX ?? US_W - 150;
+                      const x = focusSubdivisions.columnX;
                       return (
                         <g key={`out-${sd.n}`} pointerEvents="none">
                           <polyline
@@ -1091,7 +1175,23 @@ export function WorldMapsPage() {
                   </svg>
                 </div>
 
-                <div className="lg:col-span-2 flex flex-col gap-2">
+                {/* Attached to the map: same panel, directly beneath it. */}
+                <div className="mt-3 border-t border-border/60 pt-3">
+                  <button
+                    onClick={() => setFactsOpen((v) => !v)}
+                    aria-expanded={factsOpen}
+                    className="flex items-center gap-1.5 w-full text-left px-1 py-1 rounded text-[11px] font-medium font-sans text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    <CaretDown
+                      size={11}
+                      weight="bold"
+                      className={`transition-transform duration-200 ${factsOpen ? "" : "-rotate-90"}`}
+                    />
+                    {focusCountry?.name ?? "Country"} details
+                  </button>
+
+                  {factsOpen && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
                   {focusCountry &&
                     [
                       ["Capital", focusCountry.capital],
@@ -1124,6 +1224,8 @@ export function WorldMapsPage() {
                       </div>
                     ))}
                 </div>
+                  )}
+                </div>
               </div>
 
               {focusCities.length > 0 && (
@@ -1148,9 +1250,7 @@ export function WorldMapsPage() {
               )}
 
               <p className="text-[9px] font-sans mt-3 pt-3 border-t border-border/40 text-muted-foreground">
-                {ADMIN1_COUNTRIES.has(focusCode)
-                  ? `Internal borders shown are ${focusSubdivisions.all?.length ?? 0} first-order divisions from Natural Earth. `
-                  : "Natural Earth publishes first-order divisions at this resolution for nine countries only — Russia, the United States, India, Indonesia, China, Brazil, Canada, Australia and South Africa — so this country is drawn as a single outline. "}
+                {bordersNote}
                 Subdivisions are outlined but never shaded: this project holds
                 state-level figures for the US and none for any other country's
                 provinces, and a colour here would imply a number that does not
@@ -1169,8 +1269,11 @@ export function WorldMapsPage() {
             Sources
           </p>
           <p className="text-[11px] font-sans leading-relaxed text-muted-foreground">
-            Country and state boundaries: Natural Earth (public domain) via
-            world-atlas, and the US Census Bureau via us-atlas. Indicators:
+            Country outlines: Natural Earth (public domain) via world-atlas.
+            Internal subdivision borders: Natural Earth 1:10m admin-1, 4,596
+            first-order divisions across 241 countries, split per country and
+            fetched only for the country on screen. US states: the US Census
+            Bureau via us-atlas. Indicators:
             CommonSphere's own country and state datasets, which draw on the
             World Bank, IMF, UN agencies and national statistical offices —
             each page carries the source for the figures it shows. Nothing on
