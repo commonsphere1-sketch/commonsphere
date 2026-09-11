@@ -797,6 +797,33 @@ export function WorldMapsPage() {
     [worldDrawn],
   );
 
+  /* Path strings, computed once per geometry rather than on every render.
+     Hovering sets page state and re-renders the page, so building 241 country
+     outlines at 1:50m, every state and the graticule inside the render put
+     that whole cost on each pointer move. */
+  const graticuleD = useMemo(
+    () => worldPath.path(geoGraticule10()) ?? undefined,
+    [worldPath],
+  );
+  const worldShapes = useMemo(
+    () =>
+      worldDrawn.features.map((f) => ({
+        name: f.properties.name,
+        country: countryForFeature(f.properties.name),
+        d: worldPath.path(f as never) ?? undefined,
+      })),
+    [worldDrawn, worldPath],
+  );
+  const stateShapes = useMemo(
+    () =>
+      states.features.map((f) => ({
+        name: f.properties.name,
+        state: stateForFeature(f.properties.name),
+        d: statePath(f as never) ?? undefined,
+      })),
+    [states, statePath],
+  );
+
   // The same audit for the 1:50m file, which every map ends up drawing.
   useEffect(() => {
     if (!import.meta.env.DEV || !detailWorld) return;
@@ -1264,19 +1291,18 @@ export function WorldMapsPage() {
             </defs>
             {/* Graticule first, so borders sit above it. */}
             <path
-              d={worldPath.path(geoGraticule10()) ?? undefined}
+              d={graticuleD}
               fill="none"
               stroke={isLight ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)"}
               strokeWidth={0.5 / worldZoom.zoom}
             />
-            {worldDrawn.features.map((f, i) => {
-              const country = countryForFeature(f.properties.name);
+            {worldShapes.map(({ name, country, d }, i) => {
               const outside = scope === "g20" && country !== null && !isG20(country);
               const value = country && !outside ? activeCountry.get(country) : null;
               return (
                 <path
                   key={i}
-                  d={worldPath.path(f as never) ?? undefined}
+                  d={d}
                   fill={
                     outside
                       ? outOfScope
@@ -1286,7 +1312,7 @@ export function WorldMapsPage() {
                   strokeWidth={0.3 / worldZoom.zoom}
                   onMouseEnter={() =>
                     setHovered({
-                      name: country?.name ?? f.properties.name,
+                      name: country?.name ?? name,
                       value: outside
                         ? "not a G20 member"
                         : value !== null
@@ -1545,19 +1571,18 @@ export function WorldMapsPage() {
             <defs>
               <NoDataHatch id="nodata-us" base={noData} line={noDataHatch} zoom={zoom} />
             </defs>
-            {states.features.map((f, i) => {
-              const state = stateForFeature(f.properties.name);
+            {stateShapes.map(({ name, state, d }, i) => {
               const value = state ? activeState.get(state) : null;
               return (
                 <path
                   key={i}
-                  d={statePath(f as never) ?? undefined}
+                  d={d}
                   fill={colourFor(value, stateShading.breaks) ?? "url(#nodata-us)"}
                   stroke={stroke}
                   strokeWidth={0.5 / zoom}
                   onMouseEnter={() =>
                     setHovered({
-                      name: state?.name ?? f.properties.name,
+                      name: state?.name ?? name,
                       value: value !== null ? activeState.format(value) : "not in dataset",
                     })
                   }
