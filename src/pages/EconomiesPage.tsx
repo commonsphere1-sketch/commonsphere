@@ -5962,7 +5962,6 @@ function SectorBar({ name, share }: { name: string; share: number }) {
 
 function SectorDonut({
   sectors,
-  economyId,
 }: {
   sectors: { name: string; shareOfGDP: number }[];
   economyId: string;
@@ -6063,25 +6062,6 @@ function SectorDonut({
   );
 }
 
-function AccordionSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}) {
-  return (
-    <div className="border border-border rounded-lg overflow-hidden">
-      <div className="w-full flex items-center justify-between px-4 py-2.5 bg-muted">
-        <span className="text-sm font-semibold font-sans text-foreground">
-          {title}
-        </span>
-      </div>
-      <div className="px-4 py-3 bg-muted/40">{children}</div>
-    </div>
-  );
-}
 
 function EconomyModal({
   economy,
@@ -7264,7 +7244,6 @@ export function EconomiesPage() {
   const [sortBy, setSortBy] = useState<
     "gdpTrillions" | "gdpGrowthRate" | "inflationRate" | "stockMarketCap"
   >("gdpTrillions");
-  const [selectedEconomy, setSelectedEconomy] = useState<Economy | null>(null);
   const [modalEconomy, setModalEconomy] = useState<Economy | null>(null);
   const { rents: resourceRents } = useResourceRents();
   const [viewMode, setViewMode] = useState<ViewMode>("economies");
@@ -7292,10 +7271,6 @@ export function EconomiesPage() {
     })
     .sort((a, b) => b[sortBy] - a[sortBy]);
 
-  const globalGDP = economiesData.reduce(
-    (sum, e) => sum + (e.entityType === "Country" ? e.gdpTrillions : 0),
-    0,
-  );
 
   return (
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
@@ -7950,12 +7925,6 @@ export function EconomiesPage() {
                       const pad = (maxGdp - minGdp) * 0.12 || maxGdp * 0.05;
                       const domainMin = Math.max(0, minGdp - pad);
                       const domainMax = maxGdp + pad;
-                      const loPoint = economy.trends.find(
-                        (t) => t.gdp === minGdp,
-                      );
-                      const hiPoint = economy.trends.find(
-                        (t) => t.gdp === maxGdp,
-                      );
                       return (
                         <>
                           <div className="flex items-center justify-between mb-0.5">

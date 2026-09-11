@@ -591,7 +591,6 @@ function SectionHeader({
   isLight: boolean;
 }) {
   const headText = isLight ? "#0f172a" : "#f1f0ff";
-  const mutedText = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.38)";
   return (
     <div className="mb-4">
       {sub && (

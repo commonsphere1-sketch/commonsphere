@@ -247,7 +247,6 @@ export function SettingsPage() {
   // stayed put — and it claimed "Dark" even when the app was in light mode.
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
-  const [notifications, setNotifications] = useState(true);
   const [emailAlerts, setEmailAlerts] = useState(true);
   const {
     displayName: savedName,

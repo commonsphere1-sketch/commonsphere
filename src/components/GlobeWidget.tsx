@@ -95,23 +95,6 @@ export function GlobeWidget({ isLight }: GlobeWidgetProps) {
       return [cx + x3 * R, cy - y3 * R];
     };
 
-    const spherePt = (
-      lat: number,
-      lon: number,
-      rx: number,
-      ry: number,
-      cx: number,
-      cy: number,
-      R: number,
-    ) => {
-      const phi = (lat * Math.PI) / 180;
-      const theta = (lon * Math.PI) / 180;
-      const x = Math.cos(phi) * Math.cos(theta);
-      const y = Math.sin(phi);
-      const z = Math.cos(phi) * Math.sin(theta);
-      const [rx3, ry3, rz3] = rot3D(x, y, z, rx, ry);
-      return { pt: project(rx3, ry3, rz3, cx, cy, R), z: rz3 };
-    };
 
     /* ── resize canvas ── */
     const resize = () => {

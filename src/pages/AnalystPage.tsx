@@ -244,35 +244,6 @@ const TRENDING_TOPICS = [
 
 /* ─── Sub-components ────────────────────────────────────────────────────── */
 
-function Avatar({
-  analyst,
-  size = 8,
-}: {
-  analyst: (typeof ANALYSTS)[0];
-  size?: number;
-}) {
-  return (
-    <div className="relative shrink-0">
-      <div
-        className={`w-${size} h-${size} rounded-full flex items-center justify-center text-white font-bold`}
-        style={{
-          background: analyst.color,
-          fontSize: size <= 7 ? "10px" : size <= 9 ? "11px" : "12px",
-          width: `${size * 4}px`,
-          height: `${size * 4}px`,
-        }}
-      >
-        {analyst.initials}
-      </div>
-      {analyst.online && (
-        <span
-          className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-current"
-          style={{ background: "#10b981", borderColor: "inherit" }}
-        />
-      )}
-    </div>
-  );
-}
 
 /* ─── Main Page ─────────────────────────────────────────────────────────── */
 

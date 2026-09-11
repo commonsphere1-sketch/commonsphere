@@ -494,7 +494,6 @@ async function fetchCensusStateData(): Promise<
 
     // First row is headers: ["NAME","B19013_001E","B01003_001E","state"]
     const [header, ...rows] = raw;
-    const nameIdx = header.indexOf("NAME");
     const incomeIdx = header.indexOf("B19013_001E");
     const popIdx = header.indexOf("B01003_001E");
     const fipsIdx = header.indexOf("state");

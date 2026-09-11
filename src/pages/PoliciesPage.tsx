@@ -2873,17 +2873,6 @@ function CountriesTab() {
     return true;
   });
 
-  const domainList = [
-    "All",
-    "Climate",
-    "Healthcare",
-    "Education",
-    "Infrastructure",
-    "Defense",
-    "Economy",
-    "Social",
-    "Technology",
-  ] as const;
 
   const getTopPriority = (profile: CountryPolicyProfile) => {
     const sorted = [...profile.priorities].sort((a, b) => b.score - a.score);

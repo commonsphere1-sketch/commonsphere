@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { RESOURCE_DETAILS } from "../data/resourceDetails";
 
 export interface ResourceSummary {

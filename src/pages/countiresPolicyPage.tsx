@@ -1398,16 +1398,7 @@ const CATEGORY_CONFIG: Record<
   },
 };
 
-const SCORE_COLORS = [
-  { min: 8.5, bar: "bg-emerald-400" },
-  { min: 7.5, bar: "bg-blue-400" },
-  { min: 6.5, bar: "bg-yellow-400" },
-  { min: 0, bar: "bg-red-400" },
-];
 
-function getBarColor(score: number) {
-  return SCORE_COLORS.find((c) => score >= c.min)?.bar ?? "bg-red-400";
-}
 
 // ── Seeded RNG helper ────────────────────────────────────────────────────────
 

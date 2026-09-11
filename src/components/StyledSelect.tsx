@@ -1,4 +1,3 @@
-import React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { CaretDown, CaretUp, Check } from "@phosphor-icons/react";
 

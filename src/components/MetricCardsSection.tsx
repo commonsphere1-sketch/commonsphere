@@ -99,11 +99,7 @@ const metricsData = [
   },
 ];
 
-interface MetricCardsSectionProps {
-  metric: string;
-}
-
-export function MetricCardsSection({ metric }: MetricCardsSectionProps) {
+export function MetricCardsSection() {
   return (
     <section aria-labelledby="highlights-heading">
       <h2

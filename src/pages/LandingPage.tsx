@@ -313,8 +313,6 @@ function NavDropdown({
   dark,
   navigate,
   subFg,
-  fg,
-  navBg,
 }: {
   dark: boolean;
   navigate: (path: string) => void;

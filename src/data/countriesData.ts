@@ -102,23 +102,6 @@ export interface Country {
 }
 
 // Helper to build a military object
-function mkMilitary(
-  budgetBn: number,
-  activeTroops: number,
-  reserveTroops: number,
-  globalFirepowerRank: number,
-  nuclearWarheads: number,
-  capabilities: string[],
-): MilitaryStats {
-  return {
-    budgetBn,
-    activeTroops,
-    reserveTroops,
-    globalFirepowerRank,
-    nuclearWarheads,
-    capabilities,
-  };
-}
 
 // Helper to build a PMI object
 function mkPMI(

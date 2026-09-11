@@ -65,56 +65,6 @@ const UNEMPLOYMENT_PROJ = [
   { year: "2030", rate: 3.5 },
 ];
 
-const RISK_PROJECTIONS = [
-  {
-    region: "East Asia",
-    current: 42,
-    proj2027: 55,
-    change: +13,
-    direction: "up" as const,
-    category: "Geopolitical",
-  },
-  {
-    region: "Middle East",
-    current: 78,
-    proj2027: 71,
-    change: -7,
-    direction: "down" as const,
-    category: "Conflict",
-  },
-  {
-    region: "Sub-Saharan Africa",
-    current: 61,
-    proj2027: 58,
-    change: -3,
-    direction: "down" as const,
-    category: "Economic",
-  },
-  {
-    region: "Eastern Europe",
-    current: 84,
-    proj2027: 62,
-    change: -22,
-    direction: "down" as const,
-    category: "Conflict",
-  },
-  {
-    region: "Latin America",
-    current: 49,
-    proj2027: 52,
-    change: +3,
-    direction: "up" as const,
-    category: "Political",
-  },
-  {
-    region: "South Asia",
-    current: 56,
-    proj2027: 59,
-    change: +3,
-    direction: "up" as const,
-    category: "Climate",
-  },
-];
 
 const SCENARIOS = [
   {
@@ -457,7 +407,6 @@ function SectionHeader({
   isLight: boolean;
 }) {
   const headText = isLight ? "#0f172a" : "#f1f0ff";
-  const mutedText = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.38)";
   return (
     <div className="mb-4">
       {sub && (

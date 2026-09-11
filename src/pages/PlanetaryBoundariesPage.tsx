@@ -658,15 +658,9 @@ function PlanetaryBoundariesRadialChart({
     return polarToXY(midAngle, r);
   }
 
-  function iconPosition(b: Boundary) {
-    const midAngle = b.angleStart + b.angleSpan / 2;
-    const r = outerMaxR + 14;
-    return polarToXY(midAngle, r);
-  }
 
   const safeColor = "#22c55e";
   const warnColor = "#f59e0b";
-  const riskColor = "#ef4444";
 
   return (
     <div className="relative flex items-center justify-center">
@@ -843,7 +837,6 @@ function PlanetaryBoundariesRadialChart({
         {boundaries.map((b) => {
           const midAngle = b.angleStart + b.angleSpan / 2;
           const lp = labelPosition(b);
-          const ip = iconPosition(b);
           const isSelected = selected === b.id;
           // Text anchor based on angle
           const anchor =
@@ -897,7 +890,6 @@ function BoundaryDetailPanel({
   headText,
   mutedText,
   gridLine,
-  cardBg,
 }: {
   boundary: Boundary;
   isLight: boolean;
@@ -969,8 +961,6 @@ function BoundaryDetailPanel({
         </p>
         <div className="flex flex-col gap-2">
           {boundary.variables.map((v) => {
-            const exceeded =
-              v.safe !== "Undefined" && v.safe !== "Historical baseline";
             return (
               <div
                 key={v.name}
@@ -1106,7 +1096,6 @@ function BoundarySummaryCard({
   boundary,
   selected,
   onSelect,
-  isLight,
   headText,
   mutedText,
   gridLine,
@@ -1187,24 +1176,13 @@ export function PlanetaryBoundariesPage() {
   const [selectedId, setSelectedId] = useState<string>("climate");
 
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
-  const cardBorder = isLight
-    ? "1px solid rgba(0,0,0,0.09)"
-    : "1px solid rgba(255,255,255,0.08)";
-  const cardShadow = isLight
-    ? "var(--card-glow), 0 1px 10px rgba(0,0,0,0.07)"
-    : "var(--card-glow)";
   const mutedText = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.38)";
-  const bodyText = isLight ? "#1e293b" : "#e2e8f0";
   const headText = isLight ? "#0f172a" : "#f1f0ff";
   const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
 
   const selected = BOUNDARIES.find((b) => b.id === selectedId) ?? BOUNDARIES[0];
 
   const highRisk = BOUNDARIES.filter((b) => b.status === "high_risk").length;
-  const increasing = BOUNDARIES.filter(
-    (b) => b.status === "increasing_risk",
-  ).length;
-  const safe = BOUNDARIES.filter((b) => b.status === "safe").length;
 
   return (
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
