@@ -192,10 +192,13 @@ function clusterDivisions(
   };
 }
 
-/* The drawing canvas. Every map on this page shares it so they stay the same
-   size on screen, and the zoom maths below is expressed in these units. */
+/* Drawing canvases, in viewBox units. The US and country-focus maps share one
+   so switching between them never resizes the card; the world map is wider
+   because Equal Earth's whole sphere is roughly 2:1. */
 const US_W = 960;
 const US_H = 560;
+const WORLD_W = 960;
+const WORLD_H = 480;
 const PAD = 24;
 
 /* Zoom bounds. 1 fits the country to the canvas; 8 is where the 1:10m arcs
@@ -203,6 +206,151 @@ const PAD = 24;
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 8;
 const ZOOM_STEP = 1.6;
+
+/**
+ * Zoom and pan for one map canvas.
+ *
+ * Zoom is applied to the viewBox rather than to a transform, so no geometry
+ * memo has to know about it. Callers divide strokes and text by the zoom so
+ * they hold their size on screen while the map grows underneath. The viewport
+ * is clamped to the canvas, so a map can never be dragged away with no way
+ * back but the reset button. Passing resetKey returns to 1x whenever it changes.
+ */
+function useMapZoom(width: number, height: number, resetKey?: unknown) {
+  const [zoom, setZoom] = useState(1);
+  const [center, setCenter] = useState({ x: width / 2, y: height / 2 });
+  const drag = useRef<{ px: number; py: number; cx: number; cy: number } | null>(
+    null,
+  );
+
+  const reset = useCallback(() => {
+    setZoom(1);
+    setCenter({ x: width / 2, y: height / 2 });
+  }, [width, height]);
+
+  // A new subject is a new map; the old viewport would land somewhere arbitrary.
+  useEffect(() => {
+    reset();
+  }, [reset, resetKey]);
+
+  const clamp = useCallback(
+    (x: number, y: number, k: number) => {
+      const halfW = width / (2 * k);
+      const halfH = height / (2 * k);
+      return {
+        x: Math.min(width - halfW, Math.max(halfW, x)),
+        y: Math.min(height - halfH, Math.max(halfH, y)),
+      };
+    },
+    [width, height],
+  );
+
+  const zoomTo = useCallback(
+    (k: number) => {
+      const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, k));
+      setZoom(next);
+      setCenter((c) => clamp(c.x, c.y, next));
+    },
+    [clamp],
+  );
+
+  const endPan = () => {
+    drag.current = null;
+  };
+
+  const panProps = {
+    onPointerDown: (e: React.PointerEvent<SVGSVGElement>) => {
+      if (zoom === 1) return;
+      e.currentTarget.setPointerCapture(e.pointerId);
+      drag.current = { px: e.clientX, py: e.clientY, cx: center.x, cy: center.y };
+    },
+    onPointerMove: (e: React.PointerEvent<SVGSVGElement>) => {
+      const d = drag.current;
+      if (!d) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      if (rect.width === 0) return;
+      // Canvas units travelled per device pixel at this zoom.
+      const perPx = width / zoom / rect.width;
+      setCenter(
+        clamp(
+          d.cx - (e.clientX - d.px) * perPx,
+          d.cy - (e.clientY - d.py) * perPx,
+          zoom,
+        ),
+      );
+    },
+    onPointerUp: endPan,
+    onPointerCancel: endPan,
+  };
+
+  const style: React.CSSProperties = {
+    cursor: zoom > 1 ? "grab" : "default",
+    touchAction: zoom > 1 ? "none" : "auto",
+  };
+
+  const viewBox = `${center.x - width / (2 * zoom)} ${
+    center.y - height / (2 * zoom)
+  } ${width / zoom} ${height / zoom}`;
+
+  return { zoom, zoomTo, reset, viewBox, panProps, style };
+}
+
+/**
+ * Zoom buttons for one map. They sit outside the drawing so they stay
+ * reachable by keyboard and never cover the map. Each carries the map's name,
+ * because the page has more than one set and "Zoom in" alone would not say
+ * which map it moves.
+ */
+function ZoomControls({
+  zoom,
+  onZoom,
+  onReset,
+  label,
+  children,
+}: {
+  zoom: number;
+  onZoom: (k: number) => void;
+  onReset: () => void;
+  label: string;
+  children?: React.ReactNode;
+}) {
+  const button =
+    "h-7 rounded-lg border border-border text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed";
+  return (
+    <div className="flex items-center gap-2 mb-2">
+      <button
+        type="button"
+        onClick={() => onZoom(zoom / ZOOM_STEP)}
+        disabled={zoom <= ZOOM_MIN}
+        aria-label={`Zoom out of the ${label}`}
+        className={`w-7 ${button}`}
+      >
+        <MagnifyingGlassMinus size={14} className="mx-auto" />
+      </button>
+      <button
+        type="button"
+        onClick={() => onZoom(zoom * ZOOM_STEP)}
+        disabled={zoom >= ZOOM_MAX}
+        aria-label={`Zoom in on the ${label}`}
+        className={`w-7 ${button}`}
+      >
+        <MagnifyingGlassPlus size={14} className="mx-auto" />
+      </button>
+      <button
+        type="button"
+        onClick={onReset}
+        disabled={zoom === 1}
+        aria-label={`Reset the ${label} zoom`}
+        className={`px-2 text-[10px] font-mono uppercase tracking-widest ${button}`}
+      >
+        Reset
+      </button>
+      <span className="text-[10px] font-mono text-muted-foreground" aria-live="polite">
+        {zoom.toFixed(1)}×{children}
+      </span>
+    </div>
+  );
+}
 
 const RAMP_LIGHT = ["#60c860", "#28a883", "#26838e", "#355f8d", "#45347e", "#440154"];
 const RAMP_DARK = ["#404286", "#2e6e8e", "#21958b", "#3cba75", "#96d73f", "#fde725"];
@@ -421,8 +569,6 @@ export function WorldMapsPage() {
   }, [world]);
 
   /* ── World projection: Equal Earth, fitted to the viewbox ── */
-  const WORLD_W = 960;
-  const WORLD_H = 480;
   const worldPath = useMemo(() => {
     const projection = geoEqualEarth().fitExtent(
       [
@@ -563,13 +709,15 @@ export function WorldMapsPage() {
     };
   }, [focusCode, admin1, hasAdmin1]);
 
-  // Loaded lazily: 110m is too coarse once zoomed to a single country.
+  // Loaded after first paint, for every map: 110m has no shape at all for 33
+  // of the dataset's countries — Malta, Singapore, most of the Caribbean and
+  // the Pacific — and is too coarse once zoomed.
   const [detailWorld, setDetailWorld] = useState<{
     features: { properties: { name: string } }[];
   } | null>(null);
 
   useEffect(() => {
-    if (focusCode === "US" || detailWorld) return;
+    if (detailWorld) return;
     let cancelled = false;
     import("world-atlas/countries-50m.json")
       .then((mod) => {
@@ -588,7 +736,39 @@ export function WorldMapsPage() {
     return () => {
       cancelled = true;
     };
-  }, [focusCode, detailWorld]);
+  }, [detailWorld]);
+
+  /* The world map draws 110m first and switches to 1:50m when it arrives. */
+  const worldDrawn: { features: { properties: { name: string } }[] } =
+    detailWorld ?? world;
+
+  /* Countries the drawn atlas has a shape for — what the caption may claim.
+     1:50m has one for every country in the dataset except Tuvalu. */
+  const drawnCountryCount = useMemo(
+    () =>
+      new Set(
+        worldDrawn.features
+          .map((f) => countryForFeature(f.properties.name)?.code)
+          .filter(Boolean),
+      ).size,
+    [worldDrawn],
+  );
+
+  // The same audit for the 1:50m file, which every map ends up drawing.
+  useEffect(() => {
+    if (!import.meta.env.DEV || !detailWorld) return;
+    const { matched, unexpectedMisses } = auditMapJoin(
+      detailWorld.features.map((f) => f.properties.name),
+    );
+    if (unexpectedMisses.length) {
+      console.warn(
+        `[maps] 1:50m: ${unexpectedMisses.length} country features did not match the dataset:`,
+        unexpectedMisses,
+      );
+    } else {
+      console.info(`[maps] 1:50m join clean — ${matched} country features matched`);
+    }
+  }, [detailWorld]);
 
   const featureByCode = useMemo(() => {
     const m = new Map<string, { properties: { name: string } }>();
@@ -616,72 +796,13 @@ export function WorldMapsPage() {
     [featureByCode],
   );
 
-  /* ── Focus map viewport ──
-     Zoom is applied to the viewBox rather than to a transform, so the geometry
-     memo never has to know about it. Strokes and text are divided by the zoom
-     so they hold their size on screen while the country grows underneath. */
-  const [zoom, setZoom] = useState(1);
-  const [center, setCenter] = useState({ x: US_W / 2, y: US_H / 2 });
-  const drag = useRef<{ px: number; py: number; cx: number; cy: number } | null>(
-    null,
-  );
-
-  /* A new country is a new map; keeping the old viewport would drop the reader
-     somewhere arbitrary inside it. */
-  useEffect(() => {
-    setZoom(1);
-    setCenter({ x: US_W / 2, y: US_H / 2 });
-  }, [focusCode]);
-
-  /* The viewport may not leave the canvas, or the country slides off-screen
-     with no way back but the reset button. */
-  const clampCenter = useCallback((x: number, y: number, k: number) => {
-    const halfW = US_W / (2 * k);
-    const halfH = US_H / (2 * k);
-    return {
-      x: Math.min(US_W - halfW, Math.max(halfW, x)),
-      y: Math.min(US_H - halfH, Math.max(halfH, y)),
-    };
-  }, []);
-
-  const zoomTo = useCallback(
-    (k: number) => {
-      const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, k));
-      setZoom(next);
-      setCenter((c) => clampCenter(c.x, c.y, next));
-    },
-    [clampCenter],
-  );
-
-  const beginPan = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (zoom === 1) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    drag.current = { px: e.clientX, py: e.clientY, cx: center.x, cy: center.y };
-  };
-
-  const movePan = (e: React.PointerEvent<SVGSVGElement>) => {
-    const d = drag.current;
-    if (!d) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    if (rect.width === 0) return;
-    // Canvas units travelled per device pixel at this zoom.
-    const perPx = US_W / zoom / rect.width;
-    setCenter(
-      clampCenter(
-        d.cx - (e.clientX - d.px) * perPx,
-        d.cy - (e.clientY - d.py) * perPx,
-        zoom,
-      ),
-    );
-  };
-
-  const endPan = () => {
-    drag.current = null;
-  };
-
-  const focusViewBox = `${center.x - US_W / (2 * zoom)} ${
-    center.y - US_H / (2 * zoom)
-  } ${US_W / zoom} ${US_H / zoom}`;
+  /* ── Viewports ──
+     One per canvas. The US map and the country focus map share a card and a
+     canvas, so they share a viewport, and it resets whenever the country
+     changes. `zoom` is that shared level, which the label pass depends on. */
+  const worldZoom = useMapZoom(WORLD_W, WORLD_H);
+  const focusZoom = useMapZoom(US_W, US_H, focusCode);
+  const zoom = focusZoom.zoom;
 
   /**
    * Everything geometric about the focused country, in one pass.
@@ -876,9 +997,9 @@ export function WorldMapsPage() {
    * Natural Earth publishes first-order divisions for every country at 1:10m,
    * but seven of the 204 countries in this dataset — Tuvalu, Puerto Rico,
    * Guam, the Faroe Islands, Monaco, Western Sahara and Niue — have exactly
-   * one, so there is no internal border to draw. Only Puerto Rico and Western
-   * Sahara are reachable here, since the selector offers the 171 countries the
-   * world atlas carries geometry for. Counted off the manifest, not asserted.
+   * one, so there is no internal border to draw. Six of them can be selected
+   * here; Tuvalu cannot, because the 1:50m atlas the selector draws from has
+   * no shape for it. Counted off the manifest and the atlas, not asserted.
    */
   const bordersNote = useMemo(() => {
     if (!admin1Manifest) return "Internal borders load with the country. ";
@@ -1006,7 +1127,7 @@ export function WorldMapsPage() {
             World &amp; Regional Maps
           </h1>
           <p className="text-muted-foreground text-sm font-sans">
-            Equal-area maps of {countriesData.length} countries and{" "}
+            Equal-area maps of {drawnCountryCount} countries and{" "}
             {usStatesData.length} US states, shaded by development, health,
             economy and society indicators
           </p>
@@ -1080,9 +1201,17 @@ export function WorldMapsPage() {
             ))}
           </div>
 
+          <ZoomControls
+            zoom={worldZoom.zoom}
+            onZoom={worldZoom.zoomTo}
+            onReset={worldZoom.reset}
+            label="world map"
+          />
           <svg
-            viewBox={`0 0 ${WORLD_W} ${WORLD_H}`}
+            viewBox={worldZoom.viewBox}
             className="w-full h-auto"
+            style={worldZoom.style}
+            {...worldZoom.panProps}
             role="img"
             aria-label={`World map shaded by ${activeCountry.label}`}
           >
@@ -1091,9 +1220,9 @@ export function WorldMapsPage() {
               d={worldPath.path(geoGraticule10()) ?? undefined}
               fill="none"
               stroke={isLight ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)"}
-              strokeWidth={0.5}
+              strokeWidth={0.5 / worldZoom.zoom}
             />
-            {world.features.map((f, i) => {
+            {worldDrawn.features.map((f, i) => {
               const country = countryForFeature(f.properties.name);
               const outside = scope === "g20" && country !== null && !isG20(country);
               const value = country && !outside ? activeCountry.get(country) : null;
@@ -1107,7 +1236,7 @@ export function WorldMapsPage() {
                       : colourFor(value, countryShading.breaks, activeCountry.higherIsBetter)
                   }
                   stroke={stroke}
-                  strokeWidth={0.3}
+                  strokeWidth={0.3 / worldZoom.zoom}
                   onMouseEnter={() =>
                     setHovered({
                       name: country?.name ?? f.properties.name,
@@ -1352,9 +1481,17 @@ export function WorldMapsPage() {
 
           {focusCode === "US" ? (
           <>
+          <ZoomControls
+            zoom={zoom}
+            onZoom={focusZoom.zoomTo}
+            onReset={focusZoom.reset}
+            label="United States map"
+          />
           <svg
-            viewBox={`0 0 ${US_W} ${US_H}`}
+            viewBox={focusZoom.viewBox}
             className="w-full h-auto"
+            style={focusZoom.style}
+            {...focusZoom.panProps}
             role="img"
             aria-label={`United States map shaded by ${activeState.label}`}
           >
@@ -1367,7 +1504,7 @@ export function WorldMapsPage() {
                   d={statePath(f as never) ?? undefined}
                   fill={colourFor(value, stateShading.breaks, activeState.higherIsBetter)}
                   stroke={stroke}
-                  strokeWidth={0.5}
+                  strokeWidth={0.5 / zoom}
                   onMouseEnter={() =>
                     setHovered({
                       name: state?.name ?? f.properties.name,
@@ -1387,7 +1524,7 @@ export function WorldMapsPage() {
                     points={l.leader}
                     fill="none"
                     stroke={isLight ? "rgba(15,23,42,0.35)" : "rgba(255,255,255,0.35)"}
-                    strokeWidth={0.75}
+                    strokeWidth={0.75 / zoom}
                   />
                 )}
                 <text
@@ -1397,7 +1534,7 @@ export function WorldMapsPage() {
                   dominantBaseline="middle"
                   className="font-mono"
                   style={{
-                    fontSize: l.outside ? 11 : 12,
+                    fontSize: (l.outside ? 11 : 12) / zoom,
                     fontWeight: 600,
                     fill: l.outside
                       ? isLight
@@ -1434,61 +1571,23 @@ export function WorldMapsPage() {
                   invented one would be worse than none. */}
               <div>
                 <div>
-                  {/* Zoom controls sit outside the drawing, so they stay
-                      reachable by keyboard and never overlap the map. */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <button
-                      type="button"
-                      onClick={() => zoomTo(zoom / ZOOM_STEP)}
-                      disabled={zoom <= ZOOM_MIN}
-                      aria-label="Zoom out"
-                      className="w-7 h-7 rounded-lg border border-border text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      <MagnifyingGlassMinus size={14} className="mx-auto" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => zoomTo(zoom * ZOOM_STEP)}
-                      disabled={zoom >= ZOOM_MAX}
-                      aria-label="Zoom in"
-                      className="w-7 h-7 rounded-lg border border-border text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      <MagnifyingGlassPlus size={14} className="mx-auto" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setZoom(1);
-                        setCenter({ x: US_W / 2, y: US_H / 2 });
-                      }}
-                      disabled={zoom === 1}
-                      className="px-2 h-7 rounded-lg border border-border text-[10px] font-mono uppercase tracking-widest text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      Reset
-                    </button>
-                    <span
-                      className="text-[10px] font-mono text-muted-foreground"
-                      aria-live="polite"
-                    >
-                      {zoom.toFixed(1)}× · {focusLabels.inside.length} of{" "}
-                      {focusLabels.total} names shown
-                    </span>
-                  </div>
+                  <ZoomControls
+                    zoom={zoom}
+                    onZoom={focusZoom.zoomTo}
+                    onReset={focusZoom.reset}
+                    label={`${focusCountry?.name ?? "country"} map`}
+                  >
+                    {" "}· {focusLabels.inside.length} of {focusLabels.total} names shown
+                  </ZoomControls>
 
                   {/* Map and territories side by side on a wide screen, the
                       territories dropping underneath when there is no room. */}
                   <div className="flex flex-col md:flex-row md:items-start gap-3">
                   <svg
-                    viewBox={focusViewBox}
+                    viewBox={focusZoom.viewBox}
                     className="w-full h-auto md:flex-1 md:min-w-0"
-                    style={{
-                      cursor: zoom > 1 ? "grab" : "default",
-                      touchAction: zoom > 1 ? "none" : "auto",
-                    }}
-                    onPointerDown={beginPan}
-                    onPointerMove={movePan}
-                    onPointerUp={endPan}
-                    onPointerCancel={endPan}
+                    style={focusZoom.style}
+                    {...focusZoom.panProps}
                     role="img"
                     aria-label={`Outline map of ${focusCountry?.name ?? "the selected country"}${
                       focusMap && focusMap.parts.length > 1
