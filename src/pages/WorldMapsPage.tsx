@@ -352,14 +352,50 @@ function ZoomControls({
   );
 }
 
-const RAMP_LIGHT = ["#60c860", "#28a883", "#26838e", "#355f8d", "#45347e", "#440154"];
-const RAMP_DARK = ["#404286", "#2e6e8e", "#21958b", "#3cba75", "#96d73f", "#fde725"];
+/* Greys: low values black, high values light grey, lowest bucket first.
+   Steps are spaced so every adjacent pair has the same contrast ratio (1.6:1
+   light, 1.5:1 dark); even spacing in perceived lightness left the two
+   darkest buckets at 1.1:1, which reads as one colour. The end of each ramp
+   nearest the card colour is held at 2:1 against it so no country dissolves
+   into the background. That rules out pure black in dark mode, where it sits
+   at 1.1:1 on the card; the dark ramp starts at the darkest grey that still
+   clears 2:1. Checked with the dataviz ordinal checks against the surfaces
+   as painted: #ffffff and #0f0f13. */
+const RAMP_LIGHT = ["#000000", "#303030", "#4f4f4f", "#6e6e6e", "#909090", "#b7b7b7"];
+const RAMP_DARK = ["#464646", "#5f5f5f", "#7a7a7a", "#989898", "#b9b9b9", "#e0e0e0"];
+
+/** The "no figure" fill: a 45 degree hatch that keeps its spacing on screen at any zoom. */
+function NoDataHatch({
+  id,
+  base,
+  line,
+  zoom,
+}: {
+  id: string;
+  base: string;
+  line: string;
+  zoom: number;
+}) {
+  const size = 4 / zoom;
+  return (
+    <pattern
+      id={id}
+      patternUnits="userSpaceOnUse"
+      width={size}
+      height={size}
+      patternTransform="rotate(45)"
+    >
+      <rect width={size} height={size} fill={base} />
+      <line x1={size / 2} y1={0} x2={size / 2} y2={size} stroke={line} strokeWidth={1.5 / zoom} />
+    </pattern>
+  );
+}
 
 /**
  * Readable label colour for a given fill.
  *
- * The spectrum runs from deep purple to bright yellow-green, so a fixed label
- * colour is unreadable at one end or the other. This scores the two candidates
+ * The ramp runs from black to light grey, so a fixed label colour is
+ * unreadable at one end or the other. This scores the two candidates
  * against the fill actually rendered and takes the better.
  */
 function labelInkFor(fill: string): string {
@@ -381,7 +417,7 @@ type CountryIndicator = {
   label: string;
   group: string;
   unit: string;
-  /** Higher is better, which decides which end of the ramp reads as "good". */
+  /** Higher is better. Orders the ranking list; colour follows the value itself. */
   higherIsBetter: boolean;
   get: (c: Country) => number | null;
   format: (v: number) => string;
@@ -450,7 +486,7 @@ type StateIndicator = {
   label: string;
   group: string;
   higherIsBetter: boolean;
-  /** Ranks run 1 = best, so they are inverted for colouring, not for display. */
+  /** Ranks run 1 = best, so the legend names its ends Best rank and Worst rank. */
   isRank?: boolean;
   get: (s: USState) => number | null;
   format: (v: number) => string;
@@ -525,10 +561,14 @@ export function WorldMapsPage() {
   const [factsOpen, setFactsOpen] = useState(true);
 
   const ramp = isLight ? RAMP_LIGHT : RAMP_DARK;
-  const noData = isLight ? "#e8eaed" : "#24242c";
-  // Deliberately different from noData: "not selected" and "no figure" are not
-  // the same statement, and the legend names both.
-  const outOfScope = isLight ? "#f4f5f7" : "#191920";
+  /* "No figure" is a hatch, not a tone: on a grey ramp any flat grey would
+     read as a value. "Not selected" is the plain near-surface fill, lighter
+     than every light-mode step and darker than every dark-mode step, so a
+     value, no figure and not selected cannot be taken for one another.
+     noData is the hatch's base, used wherever a flat colour is needed. */
+  const noData = isLight ? "#f4f5f7" : "#191920";
+  const noDataHatch = isLight ? "#a3a3a3" : "#5c5c5c";
+  const outOfScope = noData;
   const stroke = isLight ? "#ffffff" : "#15151d";
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
   const cardBorder = isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)";
@@ -631,13 +671,16 @@ export function WorldMapsPage() {
     [activeCountry],
   );
 
-  const colourFor = (value: number | null, breaks: number[], higherIsBetter: boolean) => {
-    if (value === null || !Number.isFinite(value)) return noData;
+  /* The ramp colour for a value, or null when there is no figure. Colour
+     follows the value itself for every indicator — low is black, high is
+     light grey — so the legend's "Lower" end is always the dark one. It used
+     to flip where less is better, which put black at the "Higher" end for
+     unemployment and the US ranks. */
+  const colourFor = (value: number | null, breaks: number[]): string | null => {
+    if (value === null || !Number.isFinite(value)) return null;
     let idx = 0;
     while (idx < breaks.length && value >= breaks[idx]) idx++;
-    // A low unemployment rate is a good outcome, so the ramp is read backwards
-    // for indicators where less is better. The legend flips with it.
-    return ramp[higherIsBetter ? idx : ramp.length - 1 - idx];
+    return ramp[idx];
   };
 
   /* ── State shading ── */
@@ -1049,7 +1092,8 @@ export function WorldMapsPage() {
       const state = stateForFeature(f.properties.name);
       if (!state) continue; // DC and the territories carry no dataset row
       const value = activeState.get(state);
-      const fill = colourFor(value, stateShading.breaks, activeState.higherIsBetter);
+      // Label ink is scored against a flat colour, so a hatched state uses its base.
+      const fill = colourFor(value, stateShading.breaks) ?? noData;
       const [cx, cy] = statePath.centroid(f as never);
       if (!Number.isFinite(cx) || !Number.isFinite(cy)) continue;
       const [[x0, y0], [x1, y1]] = statePath.bounds(f as never);
@@ -1215,6 +1259,9 @@ export function WorldMapsPage() {
             role="img"
             aria-label={`World map shaded by ${activeCountry.label}`}
           >
+            <defs>
+              <NoDataHatch id="nodata-world" base={noData} line={noDataHatch} zoom={worldZoom.zoom} />
+            </defs>
             {/* Graticule first, so borders sit above it. */}
             <path
               d={worldPath.path(geoGraticule10()) ?? undefined}
@@ -1233,7 +1280,7 @@ export function WorldMapsPage() {
                   fill={
                     outside
                       ? outOfScope
-                      : colourFor(value, countryShading.breaks, activeCountry.higherIsBetter)
+                      : (colourFor(value, countryShading.breaks) ?? "url(#nodata-world)")
                   }
                   stroke={stroke}
                   strokeWidth={0.3 / worldZoom.zoom}
@@ -1256,9 +1303,9 @@ export function WorldMapsPage() {
           <Legend
             ramp={ramp}
             noData={noData}
+            noDataHatch={noDataHatch}
             lowLabel="Lower"
             highLabel="Higher"
-            higherIsBetter={activeCountry.higherIsBetter}
             extra={
               scope === "g20"
                 ? { colour: outOfScope, label: "Not a G20 member" }
@@ -1495,6 +1542,9 @@ export function WorldMapsPage() {
             role="img"
             aria-label={`United States map shaded by ${activeState.label}`}
           >
+            <defs>
+              <NoDataHatch id="nodata-us" base={noData} line={noDataHatch} zoom={zoom} />
+            </defs>
             {states.features.map((f, i) => {
               const state = stateForFeature(f.properties.name);
               const value = state ? activeState.get(state) : null;
@@ -1502,7 +1552,7 @@ export function WorldMapsPage() {
                 <path
                   key={i}
                   d={statePath(f as never) ?? undefined}
-                  fill={colourFor(value, stateShading.breaks, activeState.higherIsBetter)}
+                  fill={colourFor(value, stateShading.breaks) ?? "url(#nodata-us)"}
                   stroke={stroke}
                   strokeWidth={0.5 / zoom}
                   onMouseEnter={() =>
@@ -1552,9 +1602,9 @@ export function WorldMapsPage() {
           <Legend
             ramp={ramp}
             noData={noData}
+            noDataHatch={noDataHatch}
             lowLabel={activeState.isRank ? "Best rank" : "Lower"}
             highLabel={activeState.isRank ? "Worst rank" : "Higher"}
-            higherIsBetter={activeState.higherIsBetter}
             hovered={hovered}
           />
           <p className="text-[9px] font-sans mt-2 text-muted-foreground">
@@ -1882,29 +1932,28 @@ export function WorldMapsPage() {
 function Legend({
   ramp,
   noData,
+  noDataHatch,
   lowLabel,
   highLabel,
-  higherIsBetter,
   extra,
   hovered,
 }: {
   ramp: string[];
   noData: string;
+  /** Hatch line colour, so the swatch matches the map's "no figure" fill. */
+  noDataHatch: string;
   lowLabel: string;
   highLabel: string;
-  /** Mirrors how the map reads the ramp, so the two cannot disagree. */
-  higherIsBetter: boolean;
   /** A further tone to name, e.g. countries outside the selected scope. */
   extra?: { colour: string; label: string };
   hovered: { name: string; value: string } | null;
 }) {
-  const shown = higherIsBetter ? ramp : [...ramp].reverse();
   return (
     <div className="flex items-center justify-between gap-4 mt-3 pt-3 border-t border-border/40 flex-wrap">
       <div className="flex items-center gap-2">
         <span className="text-[10px] font-sans text-muted-foreground">{lowLabel}</span>
         <div className="flex rounded-full overflow-hidden">
-          {shown.map((c) => (
+          {ramp.map((c) => (
             <span key={c} className="w-7 h-2.5" style={{ background: c }} />
           ))}
         </div>
@@ -1912,7 +1961,9 @@ function Legend({
         <span className="flex items-center gap-1.5 ml-2">
           <span
             className="w-2.5 h-2.5 rounded-full inline-block border border-border"
-            style={{ background: noData }}
+            style={{
+              background: `repeating-linear-gradient(45deg, ${noDataHatch} 0 1.5px, ${noData} 1.5px 4px)`,
+            }}
           />
           <span className="text-[10px] font-sans text-muted-foreground">No data</span>
         </span>
