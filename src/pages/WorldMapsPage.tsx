@@ -219,6 +219,30 @@ const WORLD_W = 960;
 const WORLD_H = 480;
 const PAD = 24;
 
+/**
+ * Vertical space a map card needs for everything that is not the map: its
+ * heading, the scope chips, the legend and the source note, plus the card's own
+ * padding. Measured at 205-238px across viewports from 1366 to 2560 wide, the
+ * spread coming from the legend and note wrapping onto more rows when narrow.
+ * Rounded up so the card still fits when they wrap furthest.
+ */
+const MAP_CHROME_PX = 330;
+
+/**
+ * The narrowest a map may be drawn, in CSS pixels.
+ *
+ * Labels are sized in canvas units - 13 for the world map, 12 for a state, 11
+ * for an off-map territory - so how legible they are is decided entirely by how
+ * far the 960-unit canvas is scaled down. This is 95% of that canvas, which
+ * holds a state label at about 11px.
+ *
+ * It exists because fitting the card to the screen and keeping the map readable
+ * conflict on a short screen: at 1280x720 a pure fit rendered every state label
+ * between 7.7 and 8.4px. Below roughly 850px of viewport height the map stops
+ * shrinking and the page scrolls instead, which is the better of the two.
+ */
+const MAP_MIN_WIDTH_PX = 912;
+
 /* Zoom bounds. 1 fits the country to the canvas; 8 is where the 1:10m arcs
    start to show their own quantisation, so there is nothing further to see. */
 const ZOOM_MIN = 1;
@@ -291,9 +315,15 @@ function useMapZoom(width: number, height: number, resetKey?: unknown) {
       const d = drag.current;
       if (!d) return;
       const rect = e.currentTarget.getBoundingClientRect();
-      if (rect.width === 0) return;
-      // Canvas units travelled per device pixel at this zoom.
-      const perPx = width / zoom / rect.width;
+      if (rect.width === 0 || rect.height === 0) return;
+      /* Canvas units travelled per device pixel. Whenever the box's aspect
+         differs from the viewBox's, the drawing is letterboxed inside it and
+         only one axis binds, so the scale is the smaller of the two - the rule
+         preserveAspectRatio="meet" already uses to lay the drawing out. Reading
+         width alone would make a drag lag the pointer by the difference. */
+      const scale = Math.min(rect.width / (width / zoom), rect.height / (height / zoom));
+      if (!Number.isFinite(scale) || scale <= 0) return;
+      const perPx = 1 / scale;
       setCenter(
         clamp(
           d.cx - (e.clientX - d.px) * perPx,
@@ -309,6 +339,19 @@ function useMapZoom(width: number, height: number, resetKey?: unknown) {
   const style: React.CSSProperties = {
     cursor: zoom > 1 ? "grab" : "default",
     touchAction: zoom > 1 ? "none" : "auto",
+    /* Keep the whole card - map, legend and note - on one screen, so a map is
+       never taller than the space it has. Width is what is capped, not height:
+       with h-auto the height follows the width, so the box stays equal to the
+       drawing. Capping height instead would letterbox the box, leaving dead
+       space beside the map and breaking the pan conversion above, which needs
+       the box to match what is drawn.
+
+       The chrome subtracted is roughly fixed rather than proportional, which is
+       why this is not a flat percentage of the viewport: a 70% cap overflowed a
+       1366x768 screen by ~70px while leaving height unused at 2560x1440. */
+    maxWidth: `calc(max(${MAP_MIN_WIDTH_PX}px, (100vh - ${MAP_CHROME_PX}px) * ${(
+      width / height
+    ).toFixed(4)}))`,
   };
 
   const viewBox = `${center.x - width / (2 * zoom)} ${
@@ -1347,7 +1390,10 @@ export function WorldMapsPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
-      <div className="px-6 py-8 max-w-screen-2xl mx-auto">
+      {/* Wider than the usual 2xl cap: at 2560 the maps stopped growing at
+          1488px and sat in ~890px of empty space. Height is capped per map
+          below, so the extra width cannot push a card past the viewport. */}
+      <div className="px-6 py-8 max-w-[2000px] mx-auto">
         {/* ── Header ── */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold font-sans text-foreground">
@@ -1432,7 +1478,7 @@ export function WorldMapsPage() {
           />
           <svg
             viewBox={worldZoom.viewBox}
-            className="w-full h-auto"
+            className="w-full h-auto mx-auto"
             style={worldZoom.style}
             {...worldZoom.panProps}
             role="img"
@@ -1797,7 +1843,7 @@ export function WorldMapsPage() {
           />
           <svg
             viewBox={focusZoom.viewBox}
-            className="w-full h-auto"
+            className="w-full h-auto mx-auto"
             style={focusZoom.style}
             {...focusZoom.panProps}
             role="img"
@@ -1895,7 +1941,7 @@ export function WorldMapsPage() {
                   <div className="flex flex-col md:flex-row md:items-start gap-3">
                   <svg
                     viewBox={focusZoom.viewBox}
-                    className="w-full h-auto md:flex-1 md:min-w-0"
+                    className="w-full h-auto mx-auto md:mx-0 md:flex-1 md:min-w-0"
                     style={focusZoom.style}
                     {...focusZoom.panProps}
                     role="img"
