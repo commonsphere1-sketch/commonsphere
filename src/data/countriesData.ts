@@ -1,4 +1,5 @@
 import { COUNTRY_REFERENCE } from "./countryReference";
+import { GDP_HISTORY } from "./gdpHistory";
 
 export interface Industry {
   name: string;
@@ -110,7 +111,9 @@ export interface Country {
   tradeBalance: number; // billions
   inflationRate: number;
   areaKm2: number;
-  trends: { year: string; gdp: number; hdi: number }[];
+  /** GDP by year, in billions of current US dollars, from the World Bank.
+   *  Empty when it reports no usable series; the pages then draw no chart. */
+  trends: { year: string; gdp: number }[];
   /** Homeless persons per 100,000 residents */
   homelessnessRate?: number;
   /** Incarcerated persons per 100,000 residents */
@@ -142,18 +145,6 @@ function mkEnergy(
     totalProductionTWh: prodTWh,
     mix: mix.map(([source, pct, color]) => ({ source, pct, color })),
   };
-}
-
-function mkTrends(
-  gdp2026: number,
-  hdi: number,
-): { year: string; gdp: number; hdi: number }[] {
-  const years = ["2022", "2023", "2024", "2025", "2026"];
-  return years.map((year, i) => ({
-    year,
-    gdp: Math.round(gdp2026 * (0.88 + i * 0.03)),
-    hdi: parseFloat((hdi - 0.01 + i * 0.003).toFixed(3)),
-  }));
 }
 
 export const countriesData: Country[] = [
@@ -219,7 +210,7 @@ export const countriesData: Country[] = [
     tradeBalance: -918,
     inflationRate: 2.9,
     areaKm2: 9833520,
-    trends: mkTrends(29170, 0.93),
+    trends: [],
   },
   {
     id: "ca",
@@ -273,7 +264,7 @@ export const countriesData: Country[] = [
     tradeBalance: -22,
     inflationRate: 2.4,
     areaKm2: 9984670,
-    trends: mkTrends(2290, 0.938),
+    trends: [],
   },
   {
     id: "mx",
@@ -333,7 +324,7 @@ export const countriesData: Country[] = [
     tradeBalance: -10,
     inflationRate: 3.8,
     areaKm2: 1964375,
-    trends: mkTrends(1420, 0.762),
+    trends: [],
   },
   {
     id: "gt",
@@ -383,7 +374,7 @@ export const countriesData: Country[] = [
     tradeBalance: -5,
     inflationRate: 4.7,
     areaKm2: 108889,
-    trends: mkTrends(104, 0.632),
+    trends: [],
   },
   {
     id: "cu",
@@ -424,7 +415,7 @@ export const countriesData: Country[] = [
     tradeBalance: -3,
     inflationRate: 30.0,
     areaKm2: 109884,
-    trends: mkTrends(98, 0.758),
+    trends: [],
   },
   {
     id: "ht",
@@ -460,7 +451,7 @@ export const countriesData: Country[] = [
     tradeBalance: -4,
     inflationRate: 18.5,
     areaKm2: 27750,
-    trends: mkTrends(18, 0.53),
+    trends: [],
   },
   {
     id: "do",
@@ -497,7 +488,7 @@ export const countriesData: Country[] = [
     tradeBalance: -10,
     inflationRate: 3.8,
     areaKm2: 48671,
-    trends: mkTrends(132, 0.772),
+    trends: [],
   },
   {
     id: "hn",
@@ -534,7 +525,7 @@ export const countriesData: Country[] = [
     tradeBalance: -4,
     inflationRate: 5.8,
     areaKm2: 112492,
-    trends: mkTrends(37, 0.626),
+    trends: [],
   },
   {
     id: "sv",
@@ -575,7 +566,7 @@ export const countriesData: Country[] = [
     tradeBalance: -5,
     inflationRate: 1.0,
     areaKm2: 21041,
-    trends: mkTrends(37, 0.681),
+    trends: [],
   },
   {
     id: "ni",
@@ -613,7 +604,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 7.9,
     areaKm2: 130373,
-    trends: mkTrends(19, 0.672),
+    trends: [],
   },
   {
     id: "cr",
@@ -650,7 +641,7 @@ export const countriesData: Country[] = [
     tradeBalance: 4,
     inflationRate: 2.2,
     areaKm2: 51100,
-    trends: mkTrends(81, 0.815),
+    trends: [],
   },
   {
     id: "pa",
@@ -687,7 +678,7 @@ export const countriesData: Country[] = [
     tradeBalance: -5,
     inflationRate: 1.5,
     areaKm2: 75417,
-    trends: mkTrends(88, 0.811),
+    trends: [],
   },
   {
     id: "jm",
@@ -724,7 +715,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 5.8,
     areaKm2: 10991,
-    trends: mkTrends(18, 0.714),
+    trends: [],
   },
   {
     id: "tt",
@@ -759,7 +750,7 @@ export const countriesData: Country[] = [
     tradeBalance: 5,
     inflationRate: 4.9,
     areaKm2: 5128,
-    trends: mkTrends(30, 0.818),
+    trends: [],
   },
   {
     id: "bz",
@@ -799,7 +790,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 3.6,
     areaKm2: 22966,
-    trends: mkTrends(4, 0.688),
+    trends: [],
   },
   // ── SOUTH AMERICA ──
   {
@@ -851,7 +842,7 @@ export const countriesData: Country[] = [
     tradeBalance: 73,
     inflationRate: 4.7,
     areaKm2: 8510345,
-    trends: mkTrends(2360, 0.766),
+    trends: [],
   },
   {
     id: "ar",
@@ -907,7 +898,7 @@ export const countriesData: Country[] = [
     tradeBalance: 18,
     inflationRate: 118.0,
     areaKm2: 2780400,
-    trends: mkTrends(710, 0.845),
+    trends: [],
   },
   {
     id: "cl",
@@ -966,7 +957,7 @@ export const countriesData: Country[] = [
     tradeBalance: 6,
     inflationRate: 4.5,
     areaKm2: 756102,
-    trends: mkTrends(368, 0.863),
+    trends: [],
   },
   {
     id: "co_co",
@@ -1007,7 +998,7 @@ export const countriesData: Country[] = [
     tradeBalance: -11,
     inflationRate: 5.2,
     areaKm2: 1141748,
-    trends: mkTrends(338, 0.763),
+    trends: [],
   },
   {
     id: "pe",
@@ -1048,7 +1039,7 @@ export const countriesData: Country[] = [
     tradeBalance: 14,
     inflationRate: 3.8,
     areaKm2: 1285216,
-    trends: mkTrends(289, 0.767),
+    trends: [],
   },
   {
     id: "ve",
@@ -1084,7 +1075,7 @@ export const countriesData: Country[] = [
     tradeBalance: 8,
     inflationRate: 100.0,
     areaKm2: 916445,
-    trends: mkTrends(104, 0.695),
+    trends: [],
   },
   {
     id: "ec",
@@ -1124,7 +1115,7 @@ export const countriesData: Country[] = [
     tradeBalance: 3,
     inflationRate: 2.1,
     areaKm2: 283561,
-    trends: mkTrends(130, 0.769),
+    trends: [],
   },
   {
     id: "bo",
@@ -1164,7 +1155,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 4.8,
     areaKm2: 1098581,
-    trends: mkTrends(48, 0.702),
+    trends: [],
   },
   {
     id: "py",
@@ -1207,7 +1198,7 @@ export const countriesData: Country[] = [
     tradeBalance: 3,
     inflationRate: 3.9,
     areaKm2: 406752,
-    trends: mkTrends(47, 0.721),
+    trends: [],
   },
   {
     id: "uy",
@@ -1252,7 +1243,7 @@ export const countriesData: Country[] = [
     tradeBalance: 3,
     inflationRate: 4.6,
     areaKm2: 176215,
-    trends: mkTrends(84, 0.834),
+    trends: [],
   },
   {
     id: "gy",
@@ -1292,7 +1283,7 @@ export const countriesData: Country[] = [
     tradeBalance: 6,
     inflationRate: 4.2,
     areaKm2: 214969,
-    trends: mkTrends(26, 0.723),
+    trends: [],
   },
   {
     id: "sr",
@@ -1332,7 +1323,7 @@ export const countriesData: Country[] = [
     tradeBalance: NaN, // no World Bank figure since 2010
     inflationRate: 52.4,
     areaKm2: 163820,
-    trends: mkTrends(4, 0.73),
+    trends: [],
   },
   // ── EUROPE ──
   {
@@ -1387,7 +1378,7 @@ export const countriesData: Country[] = [
     tradeBalance: 248,
     inflationRate: 2.2,
     areaKm2: 357114,
-    trends: mkTrends(4530, 0.952),
+    trends: [],
   },
   {
     id: "fr",
@@ -1435,7 +1426,7 @@ export const countriesData: Country[] = [
     tradeBalance: -106,
     inflationRate: 1.7,
     areaKm2: 551695,
-    trends: mkTrends(3050, 0.913),
+    trends: [],
   },
   {
     id: "gb",
@@ -1495,7 +1486,7 @@ export const countriesData: Country[] = [
     tradeBalance: -185,
     inflationRate: 2.8,
     areaKm2: 243610,
-    trends: mkTrends(3340, 0.943),
+    trends: [],
   },
   {
     id: "it",
@@ -1556,7 +1547,7 @@ export const countriesData: Country[] = [
     tradeBalance: 52,
     inflationRate: 1.1,
     areaKm2: 301340,
-    trends: mkTrends(2290, 0.909),
+    trends: [],
   },
   {
     id: "es",
@@ -1613,7 +1604,7 @@ export const countriesData: Country[] = [
     tradeBalance: -14,
     inflationRate: 2.8,
     areaKm2: 505990,
-    trends: mkTrends(1700, 0.908),
+    trends: [],
   },
   {
     id: "nl",
@@ -1659,7 +1650,7 @@ export const countriesData: Country[] = [
     tradeBalance: 88,
     inflationRate: 2.7,
     areaKm2: 41543,
-    trends: mkTrends(1150, 0.948),
+    trends: [],
   },
   {
     id: "ch",
@@ -1700,7 +1691,7 @@ export const countriesData: Country[] = [
     tradeBalance: 62,
     inflationRate: 1.3,
     areaKm2: 41285,
-    trends: mkTrends(960, 0.964),
+    trends: [],
   },
   {
     id: "se",
@@ -1741,7 +1732,7 @@ export const countriesData: Country[] = [
     tradeBalance: 22,
     inflationRate: 1.7,
     areaKm2: 450295,
-    trends: mkTrends(625, 0.954),
+    trends: [],
   },
   {
     id: "no",
@@ -1786,7 +1777,7 @@ export const countriesData: Country[] = [
     tradeBalance: 162,
     inflationRate: 3.1,
     areaKm2: 385207,
-    trends: mkTrends(580, 0.967),
+    trends: [],
   },
   {
     id: "dk",
@@ -1827,7 +1818,7 @@ export const countriesData: Country[] = [
     tradeBalance: 32,
     inflationRate: 2.1,
     areaKm2: 43094,
-    trends: mkTrends(428, 0.955),
+    trends: [],
   },
   {
     id: "fi",
@@ -1873,7 +1864,7 @@ export const countriesData: Country[] = [
     tradeBalance: 3,
     inflationRate: 2.0,
     areaKm2: 338145,
-    trends: mkTrends(318, 0.942),
+    trends: [],
   },
   {
     id: "pl",
@@ -1910,7 +1901,7 @@ export const countriesData: Country[] = [
     tradeBalance: -5,
     inflationRate: 4.9,
     areaKm2: 312679,
-    trends: mkTrends(810, 0.881),
+    trends: [],
   },
   {
     id: "be",
@@ -1952,7 +1943,7 @@ export const countriesData: Country[] = [
     tradeBalance: 11,
     inflationRate: 2.2,
     areaKm2: 30528,
-    trends: mkTrends(660, 0.944),
+    trends: [],
   },
   {
     id: "at",
@@ -1994,7 +1985,7 @@ export const countriesData: Country[] = [
     tradeBalance: 8,
     inflationRate: 3.0,
     areaKm2: 83871,
-    trends: mkTrends(550, 0.928),
+    trends: [],
   },
   {
     id: "pt",
@@ -2043,7 +2034,7 @@ export const countriesData: Country[] = [
     tradeBalance: -12,
     inflationRate: 2.4,
     areaKm2: 92212,
-    trends: mkTrends(310, 0.869),
+    trends: [],
   },
   {
     id: "gr",
@@ -2085,7 +2076,7 @@ export const countriesData: Country[] = [
     tradeBalance: -26,
     inflationRate: 2.8,
     areaKm2: 131957,
-    trends: mkTrends(254, 0.897),
+    trends: [],
   },
   {
     id: "cz",
@@ -2127,7 +2118,7 @@ export const countriesData: Country[] = [
     tradeBalance: 9,
     inflationRate: 3.4,
     areaKm2: 78866,
-    trends: mkTrends(352, 0.904),
+    trends: [],
   },
   {
     id: "ro",
@@ -2173,7 +2164,7 @@ export const countriesData: Country[] = [
     tradeBalance: -28,
     inflationRate: 5.4,
     areaKm2: 238397,
-    trends: mkTrends(375, 0.825),
+    trends: [],
   },
   {
     id: "hu",
@@ -2219,7 +2210,7 @@ export const countriesData: Country[] = [
     tradeBalance: 4,
     inflationRate: 4.8,
     areaKm2: 93028,
-    trends: mkTrends(230, 0.854),
+    trends: [],
   },
   {
     id: "ua",
@@ -2260,7 +2251,7 @@ export const countriesData: Country[] = [
     tradeBalance: -17,
     inflationRate: 11.5,
     areaKm2: 603550,
-    trends: mkTrends(195, 0.778),
+    trends: [],
   },
   {
     id: "sk",
@@ -2306,7 +2297,7 @@ export const countriesData: Country[] = [
     tradeBalance: -5,
     inflationRate: 10.5,
     areaKm2: 49035,
-    trends: mkTrends(133, 0.855),
+    trends: [],
   },
   {
     id: "hr",
@@ -2348,7 +2339,7 @@ export const countriesData: Country[] = [
     tradeBalance: -5,
     inflationRate: 5.4,
     areaKm2: 56594,
-    trends: mkTrends(82, 0.858),
+    trends: [],
   },
   {
     id: "rs",
@@ -2393,7 +2384,7 @@ export const countriesData: Country[] = [
     tradeBalance: -6,
     inflationRate: 12.4,
     areaKm2: 77474,
-    trends: mkTrends(75, 0.805),
+    trends: [],
   },
   {
     id: "bg",
@@ -2443,7 +2434,7 @@ export const countriesData: Country[] = [
     tradeBalance: -5,
     inflationRate: 8.5,
     areaKm2: 110879,
-    trends: mkTrends(101, 0.795),
+    trends: [],
   },
   {
     id: "ee",
@@ -2493,7 +2484,7 @@ export const countriesData: Country[] = [
     tradeBalance: -3,
     inflationRate: 9.2,
     areaKm2: 45228,
-    trends: mkTrends(41, 0.899),
+    trends: [],
   },
   {
     id: "lv",
@@ -2538,7 +2529,7 @@ export const countriesData: Country[] = [
     tradeBalance: -4,
     inflationRate: 8.9,
     areaKm2: 64589,
-    trends: mkTrends(44, 0.879),
+    trends: [],
   },
   {
     id: "lt",
@@ -2579,7 +2570,7 @@ export const countriesData: Country[] = [
     tradeBalance: -5,
     inflationRate: 9.1,
     areaKm2: 65300,
-    trends: mkTrends(77, 0.875),
+    trends: [],
   },
   {
     id: "si",
@@ -2621,7 +2612,7 @@ export const countriesData: Country[] = [
     tradeBalance: 2,
     inflationRate: 7.4,
     areaKm2: 20273,
-    trends: mkTrends(68, 0.918),
+    trends: [],
   },
   {
     id: "ie",
@@ -2671,7 +2662,7 @@ export const countriesData: Country[] = [
     tradeBalance: 148,
     inflationRate: 2.4,
     areaKm2: 70273,
-    trends: mkTrends(533, 0.945),
+    trends: [],
   },
   {
     id: "by",
@@ -2722,7 +2713,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 5.1,
     areaKm2: 207600,
-    trends: mkTrends(73, 0.801),
+    trends: [],
   },
   {
     id: "md",
@@ -2767,7 +2758,7 @@ export const countriesData: Country[] = [
     tradeBalance: -3,
     inflationRate: 13.4,
     areaKm2: 33846,
-    trends: mkTrends(16, 0.763),
+    trends: [],
   },
   {
     id: "al_al",
@@ -2810,7 +2801,7 @@ export const countriesData: Country[] = [
     tradeBalance: -3,
     inflationRate: 4.8,
     areaKm2: 28748,
-    trends: mkTrends(23, 0.796),
+    trends: [],
   },
   {
     id: "mk",
@@ -2855,7 +2846,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 6.5,
     areaKm2: 25713,
-    trends: mkTrends(15, 0.77),
+    trends: [],
   },
   {
     id: "ba",
@@ -2899,7 +2890,7 @@ export const countriesData: Country[] = [
     tradeBalance: -3,
     inflationRate: 3.4,
     areaKm2: 51197,
-    trends: mkTrends(26, 0.78),
+    trends: [],
   },
   {
     id: "me_eu",
@@ -2943,7 +2934,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 8.6,
     areaKm2: 13812,
-    trends: mkTrends(7, 0.832),
+    trends: [],
   },
   {
     id: "xk",
@@ -2987,7 +2978,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 4.7,
     areaKm2: 10887,
-    trends: mkTrends(10, 0.739),
+    trends: [],
   },
   {
     id: "lu",
@@ -3028,7 +3019,7 @@ export const countriesData: Country[] = [
     tradeBalance: 6,
     inflationRate: 2.9,
     areaKm2: 2586,
-    trends: mkTrends(85, 0.93),
+    trends: [],
   },
   {
     id: "cy",
@@ -3072,7 +3063,7 @@ export const countriesData: Country[] = [
     tradeBalance: -6,
     inflationRate: 3.4,
     areaKm2: 9251,
-    trends: mkTrends(31, 0.896),
+    trends: [],
   },
   {
     id: "mt_eu",
@@ -3120,7 +3111,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 5.1,
     areaKm2: 316,
-    trends: mkTrends(20, 0.918),
+    trends: [],
   },
   {
     id: "is",
@@ -3171,7 +3162,7 @@ export const countriesData: Country[] = [
     tradeBalance: 1,
     inflationRate: 8.7,
     areaKm2: 103000,
-    trends: mkTrends(28, 0.959),
+    trends: [],
   },
   // ── ASIA ──
   {
@@ -3227,7 +3218,7 @@ export const countriesData: Country[] = [
     tradeBalance: 840,
     inflationRate: 0.2,
     areaKm2: 9596960,
-    trends: mkTrends(19530, 0.793),
+    trends: [],
   },
   {
     id: "jp",
@@ -3275,7 +3266,7 @@ export const countriesData: Country[] = [
     tradeBalance: -49,
     inflationRate: 2.9,
     areaKm2: 377930,
-    trends: mkTrends(4440, 0.923),
+    trends: [],
   },
   {
     id: "in",
@@ -3338,7 +3329,7 @@ export const countriesData: Country[] = [
     tradeBalance: -78,
     inflationRate: 4.9,
     areaKm2: 3287263,
-    trends: mkTrends(4270, 0.65),
+    trends: [],
   },
   {
     id: "kr",
@@ -3384,7 +3375,7 @@ export const countriesData: Country[] = [
     tradeBalance: 40,
     inflationRate: 2.3,
     areaKm2: 100210,
-    trends: mkTrends(1840, 0.932),
+    trends: [],
   },
   {
     id: "sa",
@@ -3428,7 +3419,7 @@ export const countriesData: Country[] = [
     tradeBalance: 98,
     inflationRate: 1.7,
     areaKm2: 2149690,
-    trends: mkTrends(1140, 0.878),
+    trends: [],
   },
   {
     id: "ng",
@@ -3480,7 +3471,7 @@ export const countriesData: Country[] = [
     tradeBalance: 6,
     inflationRate: 24.5,
     areaKm2: 923768,
-    trends: mkTrends(490, 0.54),
+    trends: [],
   },
   {
     id: "et",
@@ -3533,7 +3524,7 @@ export const countriesData: Country[] = [
     tradeBalance: -14,
     inflationRate: 22.0,
     areaKm2: 1104300,
-    trends: mkTrends(172, 0.498),
+    trends: [],
   },
   {
     id: "eg",
@@ -3584,7 +3575,7 @@ export const countriesData: Country[] = [
     tradeBalance: -30,
     inflationRate: 12.0,
     areaKm2: 1002450,
-    trends: mkTrends(432, 0.736),
+    trends: [],
   },
   {
     id: "za",
@@ -3646,7 +3637,7 @@ export const countriesData: Country[] = [
     tradeBalance: 7,
     inflationRate: 4.7,
     areaKm2: 1219090,
-    trends: mkTrends(395, 0.721),
+    trends: [],
   },
   {
     id: "sg",
@@ -3685,7 +3676,7 @@ export const countriesData: Country[] = [
     tradeBalance: 69,
     inflationRate: 2.5,
     areaKm2: 724,
-    trends: mkTrends(510, 0.943),
+    trends: [],
   },
   {
     id: "ph",
@@ -3727,7 +3718,7 @@ export const countriesData: Country[] = [
     tradeBalance: -48,
     inflationRate: 3.7,
     areaKm2: 300000,
-    trends: mkTrends(474, 0.715),
+    trends: [],
   },
   {
     id: "vn",
@@ -3772,7 +3763,7 @@ export const countriesData: Country[] = [
     tradeBalance: 32,
     inflationRate: 3.0,
     areaKm2: 331210,
-    trends: mkTrends(476, 0.731),
+    trends: [],
   },
   {
     id: "pk",
@@ -3814,7 +3805,7 @@ export const countriesData: Country[] = [
     tradeBalance: -18,
     inflationRate: 8.5,
     areaKm2: 881913,
-    trends: mkTrends(365, 0.549),
+    trends: [],
   },
   {
     id: "bd",
@@ -3855,7 +3846,7 @@ export const countriesData: Country[] = [
     tradeBalance: -15,
     inflationRate: 7.4,
     areaKm2: 147570,
-    trends: mkTrends(490, 0.666),
+    trends: [],
   },
   {
     id: "ae",
@@ -3898,7 +3889,7 @@ export const countriesData: Country[] = [
     tradeBalance: 48,
     inflationRate: 2.6,
     areaKm2: 83600,
-    trends: mkTrends(540, 0.914),
+    trends: [],
   },
   {
     id: "il_as",
@@ -3946,7 +3937,7 @@ export const countriesData: Country[] = [
     tradeBalance: -24,
     inflationRate: 3.6,
     areaKm2: 22072,
-    trends: mkTrends(548, 0.921),
+    trends: [],
   },
   {
     id: "ir",
@@ -3983,7 +3974,7 @@ export const countriesData: Country[] = [
     tradeBalance: 24,
     inflationRate: 35.0,
     areaKm2: 1648195,
-    trends: mkTrends(385, 0.777),
+    trends: [],
   },
   {
     id: "iq",
@@ -4032,7 +4023,7 @@ export const countriesData: Country[] = [
     tradeBalance: 40,
     inflationRate: 4.0,
     areaKm2: 438317,
-    trends: mkTrends(264, 0.686),
+    trends: [],
   },
   {
     id: "kz",
@@ -4081,7 +4072,7 @@ export const countriesData: Country[] = [
     tradeBalance: 24,
     inflationRate: 10.8,
     areaKm2: 2724900,
-    trends: mkTrends(260, 0.802),
+    trends: [],
   },
   {
     id: "uz",
@@ -4130,7 +4121,7 @@ export const countriesData: Country[] = [
     tradeBalance: -5,
     inflationRate: 10.5,
     areaKm2: 448978,
-    trends: mkTrends(98, 0.727),
+    trends: [],
   },
   {
     id: "mm",
@@ -4175,7 +4166,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 18.0,
     areaKm2: 676578,
-    trends: mkTrends(50, 0.585),
+    trends: [],
   },
   {
     id: "kh",
@@ -4220,7 +4211,7 @@ export const countriesData: Country[] = [
     tradeBalance: -4,
     inflationRate: 2.1,
     areaKm2: 181035,
-    trends: mkTrends(30, 0.593),
+    trends: [],
   },
   {
     id: "lk",
@@ -4262,7 +4253,7 @@ export const countriesData: Country[] = [
     tradeBalance: -6,
     inflationRate: 2.5,
     areaKm2: 65610,
-    trends: mkTrends(84, 0.78),
+    trends: [],
   },
   {
     id: "np",
@@ -4309,7 +4300,7 @@ export const countriesData: Country[] = [
     tradeBalance: -13,
     inflationRate: 7.8,
     areaKm2: 147181,
-    trends: mkTrends(41, 0.602),
+    trends: [],
   },
   {
     id: "jo",
@@ -4354,7 +4345,7 @@ export const countriesData: Country[] = [
     tradeBalance: -10,
     inflationRate: 2.1,
     areaKm2: 89342,
-    trends: mkTrends(50, 0.736),
+    trends: [],
   },
   {
     id: "lb",
@@ -4398,7 +4389,7 @@ export const countriesData: Country[] = [
     tradeBalance: -12,
     inflationRate: 22.0,
     areaKm2: 10452,
-    trends: mkTrends(23, 0.706),
+    trends: [],
   },
   {
     id: "sy",
@@ -4446,7 +4437,7 @@ export const countriesData: Country[] = [
     tradeBalance: -3,
     inflationRate: 140.0,
     areaKm2: 185180,
-    trends: mkTrends(23, 0.577),
+    trends: [],
   },
   {
     id: "ye",
@@ -4486,7 +4477,7 @@ export const countriesData: Country[] = [
     tradeBalance: -5,
     inflationRate: 18.0,
     areaKm2: 527968,
-    trends: mkTrends(21, 0.455),
+    trends: [],
   },
   {
     id: "om",
@@ -4533,7 +4524,7 @@ export const countriesData: Country[] = [
     tradeBalance: 11,
     inflationRate: 1.0,
     areaKm2: 309500,
-    trends: mkTrends(105, 0.816),
+    trends: [],
   },
   {
     id: "qa",
@@ -4572,7 +4563,7 @@ export const countriesData: Country[] = [
     tradeBalance: 81,
     inflationRate: 3.0,
     areaKm2: 11586,
-    trends: mkTrends(235, 0.855),
+    trends: [],
   },
   {
     id: "kw",
@@ -4607,7 +4598,7 @@ export const countriesData: Country[] = [
     tradeBalance: 44,
     inflationRate: 3.5,
     areaKm2: 17818,
-    trends: mkTrends(161, 0.831),
+    trends: [],
   },
   {
     id: "bh",
@@ -4654,7 +4645,7 @@ export const countriesData: Country[] = [
     tradeBalance: 5,
     inflationRate: 1.0,
     areaKm2: 786,
-    trends: mkTrends(44, 0.875),
+    trends: [],
   },
   {
     id: "am",
@@ -4707,7 +4698,7 @@ export const countriesData: Country[] = [
     tradeBalance: -4,
     inflationRate: 2.5,
     areaKm2: 29743,
-    trends: mkTrends(25, 0.791),
+    trends: [],
   },
   {
     id: "az_as",
@@ -4751,7 +4742,7 @@ export const countriesData: Country[] = [
     tradeBalance: 12,
     inflationRate: 8.8,
     areaKm2: 86600,
-    trends: mkTrends(78, 0.745),
+    trends: [],
   },
   {
     id: "ge_as",
@@ -4799,7 +4790,7 @@ export const countriesData: Country[] = [
     tradeBalance: -4,
     inflationRate: 2.5,
     areaKm2: 69700,
-    trends: mkTrends(28, 0.802),
+    trends: [],
   },
   {
     id: "tm",
@@ -4839,7 +4830,7 @@ export const countriesData: Country[] = [
     tradeBalance: 4,
     inflationRate: 8.0,
     areaKm2: 488100,
-    trends: mkTrends(59, 0.745),
+    trends: [],
   },
   {
     id: "kg",
@@ -4883,7 +4874,7 @@ export const countriesData: Country[] = [
     tradeBalance: -3,
     inflationRate: 10.8,
     areaKm2: 199951,
-    trends: mkTrends(13, 0.701),
+    trends: [],
   },
   {
     id: "tj",
@@ -4926,7 +4917,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 5.3,
     areaKm2: 143100,
-    trends: mkTrends(12, 0.685),
+    trends: [],
   },
   {
     id: "af",
@@ -4979,7 +4970,7 @@ export const countriesData: Country[] = [
     tradeBalance: -3,
     inflationRate: -5.0,
     areaKm2: 652230,
-    trends: mkTrends(14, 0.478),
+    trends: [],
   },
   {
     id: "mn_as",
@@ -5023,7 +5014,7 @@ export const countriesData: Country[] = [
     tradeBalance: 2,
     inflationRate: 10.3,
     areaKm2: 1564110,
-    trends: mkTrends(20, 0.737),
+    trends: [],
   },
   {
     id: "kp",
@@ -5067,7 +5058,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 4.0,
     areaKm2: 120538,
-    trends: mkTrends(17, 0.733),
+    trends: [],
   },
   {
     id: "la",
@@ -5119,7 +5110,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 30.0,
     areaKm2: 236800,
-    trends: mkTrends(15, 0.607),
+    trends: [],
   },
   {
     id: "tl",
@@ -5159,7 +5150,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1.39, // World Bank NE.RSB.GNFS.CD, 2024
     inflationRate: 7.4,
     areaKm2: 14874,
-    trends: mkTrends(3, 0.607),
+    trends: [],
   },
   {
     id: "bn",
@@ -5198,7 +5189,7 @@ export const countriesData: Country[] = [
     tradeBalance: 3,
     inflationRate: 0.4,
     areaKm2: 5765,
-    trends: mkTrends(15, 0.829),
+    trends: [],
   },
   // ── AFRICA ──
   {
@@ -5242,7 +5233,7 @@ export const countriesData: Country[] = [
     tradeBalance: 3,
     inflationRate: 20.0,
     areaKm2: 2344858,
-    trends: mkTrends(66, 0.479),
+    trends: [],
   },
   {
     id: "tz",
@@ -5292,7 +5283,7 @@ export const countriesData: Country[] = [
     tradeBalance: -5,
     inflationRate: 4.0,
     areaKm2: 945087,
-    trends: mkTrends(84, 0.532),
+    trends: [],
   },
   {
     id: "ke",
@@ -5342,7 +5333,7 @@ export const countriesData: Country[] = [
     tradeBalance: -10,
     inflationRate: 6.8,
     areaKm2: 580367,
-    trends: mkTrends(118, 0.601),
+    trends: [],
   },
   {
     id: "gh",
@@ -5383,7 +5374,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 22.0,
     areaKm2: 238533,
-    trends: mkTrends(72, 0.602),
+    trends: [],
   },
   {
     id: "ao",
@@ -5423,7 +5414,7 @@ export const countriesData: Country[] = [
     tradeBalance: 12,
     inflationRate: 13.5,
     areaKm2: 1246700,
-    trends: mkTrends(118, 0.59),
+    trends: [],
   },
   {
     id: "ma",
@@ -5472,7 +5463,7 @@ export const countriesData: Country[] = [
     tradeBalance: -16,
     inflationRate: 6.1,
     areaKm2: 446550,
-    trends: mkTrends(142, 0.698),
+    trends: [],
   },
   {
     id: "dz",
@@ -5512,7 +5503,7 @@ export const countriesData: Country[] = [
     tradeBalance: 18,
     inflationRate: 9.3,
     areaKm2: 2381741,
-    trends: mkTrends(239, 0.745),
+    trends: [],
   },
   {
     id: "sd",
@@ -5557,7 +5548,7 @@ export const countriesData: Country[] = [
     tradeBalance: -4,
     inflationRate: 83.6,
     areaKm2: 1886068,
-    trends: mkTrends(62, 0.508),
+    trends: [],
   },
   {
     id: "ug",
@@ -5605,7 +5596,7 @@ export const countriesData: Country[] = [
     tradeBalance: -4,
     inflationRate: 5.4,
     areaKm2: 241038,
-    trends: mkTrends(50, 0.544),
+    trends: [],
   },
   {
     id: "ci",
@@ -5653,7 +5644,7 @@ export const countriesData: Country[] = [
     tradeBalance: 3,
     inflationRate: 4.2,
     areaKm2: 322463,
-    trends: mkTrends(79, 0.55),
+    trends: [],
   },
   {
     id: "cm",
@@ -5697,7 +5688,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 7.4,
     areaKm2: 475442,
-    trends: mkTrends(47, 0.576),
+    trends: [],
   },
   {
     id: "sn",
@@ -5742,7 +5733,7 @@ export const countriesData: Country[] = [
     tradeBalance: -4,
     inflationRate: 4.0,
     areaKm2: 196722,
-    trends: mkTrends(31, 0.511),
+    trends: [],
   },
   {
     id: "zw",
@@ -5794,7 +5785,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 47.6,
     areaKm2: 390757,
-    trends: mkTrends(26, 0.55),
+    trends: [],
   },
   {
     id: "mz",
@@ -5838,7 +5829,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 6.3,
     areaKm2: 801590,
-    trends: mkTrends(18, 0.456),
+    trends: [],
   },
   {
     id: "mg",
@@ -5887,7 +5878,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 9.0,
     areaKm2: 587041,
-    trends: mkTrends(15, 0.503),
+    trends: [],
   },
   {
     id: "zm",
@@ -5934,7 +5925,7 @@ export const countriesData: Country[] = [
     tradeBalance: 1.88, // World Bank NE.RSB.GNFS.CD, 2024
     inflationRate: 13.1,
     areaKm2: 752612,
-    trends: mkTrends(29, 0.565),
+    trends: [],
   },
   {
     id: "ml",
@@ -5978,7 +5969,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 2.7,
     areaKm2: 1240192,
-    trends: mkTrends(20, 0.428),
+    trends: [],
   },
   {
     id: "bf",
@@ -6023,7 +6014,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 0.8,
     areaKm2: 274222,
-    trends: mkTrends(19, 0.449),
+    trends: [],
   },
   {
     id: "ne",
@@ -6064,7 +6055,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 3.7,
     areaKm2: 1267000,
-    trends: mkTrends(16, 0.394),
+    trends: [],
   },
   {
     id: "tn",
@@ -6108,7 +6099,7 @@ export const countriesData: Country[] = [
     tradeBalance: -5,
     inflationRate: 9.3,
     areaKm2: 163610,
-    trends: mkTrends(47, 0.731),
+    trends: [],
   },
   {
     id: "ly",
@@ -6147,7 +6138,7 @@ export const countriesData: Country[] = [
     tradeBalance: 15,
     inflationRate: 2.4,
     areaKm2: 1759540,
-    trends: mkTrends(50, 0.718),
+    trends: [],
   },
   {
     id: "rw",
@@ -6203,7 +6194,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 14.5,
     areaKm2: 26338,
-    trends: mkTrends(14, 0.534),
+    trends: [],
   },
   {
     id: "bj",
@@ -6251,7 +6242,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 2.7,
     areaKm2: 114763,
-    trends: mkTrends(19, 0.525),
+    trends: [],
   },
   {
     id: "ss",
@@ -6295,7 +6286,7 @@ export const countriesData: Country[] = [
     tradeBalance: 1,
     inflationRate: 102.0,
     areaKm2: 619745,
-    trends: mkTrends(7, 0.385),
+    trends: [],
   },
   {
     id: "so",
@@ -6339,7 +6330,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 5.1,
     areaKm2: 637657,
-    trends: mkTrends(9, 0.361),
+    trends: [],
   },
   {
     id: "er",
@@ -6387,7 +6378,7 @@ export const countriesData: Country[] = [
     tradeBalance: NaN, // no World Bank figure since 2011
     inflationRate: 6.0,
     areaKm2: 117600,
-    trends: mkTrends(2, 0.492),
+    trends: [],
   },
   {
     id: "dj",
@@ -6427,7 +6418,7 @@ export const countriesData: Country[] = [
     tradeBalance: 0.679, // World Bank NE.RSB.GNFS.CD, 2025
     inflationRate: 3.5,
     areaKm2: 23200,
-    trends: mkTrends(4, 0.509),
+    trends: [],
   },
   {
     id: "bi",
@@ -6475,7 +6466,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 27.0,
     areaKm2: 27834,
-    trends: mkTrends(3, 0.426),
+    trends: [],
   },
   {
     id: "mw",
@@ -6527,7 +6518,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 26.0,
     areaKm2: 118484,
-    trends: mkTrends(13, 0.512),
+    trends: [],
   },
   {
     id: "na",
@@ -6580,7 +6571,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2.90, // World Bank NE.RSB.GNFS.CD, 2025
     inflationRate: 5.9,
     areaKm2: 824292,
-    trends: mkTrends(13, 0.615),
+    trends: [],
   },
   {
     id: "bw",
@@ -6625,7 +6616,7 @@ export const countriesData: Country[] = [
     tradeBalance: 2,
     inflationRate: 4.2,
     areaKm2: 581730,
-    trends: mkTrends(20, 0.693),
+    trends: [],
   },
   {
     id: "mu",
@@ -6670,7 +6661,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 7.0,
     areaKm2: 2040,
-    trends: mkTrends(14, 0.802),
+    trends: [],
   },
   {
     id: "sz",
@@ -6718,7 +6709,7 @@ export const countriesData: Country[] = [
     tradeBalance: 0.00151, // World Bank NE.RSB.GNFS.CD, 2024
     inflationRate: 5.2,
     areaKm2: 17364,
-    trends: mkTrends(5, 0.597),
+    trends: [],
   },
   {
     id: "ls",
@@ -6761,7 +6752,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 7.0,
     areaKm2: 30355,
-    trends: mkTrends(3, 0.527),
+    trends: [],
   },
   {
     id: "gm",
@@ -6804,7 +6795,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 10.2,
     areaKm2: 11295,
-    trends: mkTrends(2, 0.5),
+    trends: [],
   },
   {
     id: "gn",
@@ -6853,7 +6844,7 @@ export const countriesData: Country[] = [
     tradeBalance: 1,
     inflationRate: 10.5,
     areaKm2: 245857,
-    trends: mkTrends(16, 0.465),
+    trends: [],
   },
   {
     id: "gw",
@@ -6894,7 +6885,7 @@ export const countriesData: Country[] = [
     tradeBalance: -0.332, // World Bank NE.RSB.GNFS.CD, 2025
     inflationRate: 3.8,
     areaKm2: 36125,
-    trends: mkTrends(2, 0.483),
+    trends: [],
   },
   {
     id: "sl",
@@ -6943,7 +6934,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 43.9,
     areaKm2: 71740,
-    trends: mkTrends(4, 0.477),
+    trends: [],
   },
   {
     id: "lr",
@@ -6983,7 +6974,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 7.0,
     areaKm2: 111369,
-    trends: mkTrends(4, 0.481),
+    trends: [],
   },
   {
     id: "tg",
@@ -7031,7 +7022,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 5.2,
     areaKm2: 56785,
-    trends: mkTrends(9, 0.539),
+    trends: [],
   },
   {
     id: "ga_af",
@@ -7072,7 +7063,7 @@ export const countriesData: Country[] = [
     tradeBalance: 3,
     inflationRate: 4.2,
     areaKm2: 267668,
-    trends: mkTrends(21, 0.697),
+    trends: [],
   },
   {
     id: "cg",
@@ -7116,7 +7107,7 @@ export const countriesData: Country[] = [
     tradeBalance: 2,
     inflationRate: 4.5,
     areaKm2: 342000,
-    trends: mkTrends(15, 0.571),
+    trends: [],
   },
   {
     id: "cf",
@@ -7161,7 +7152,7 @@ export const countriesData: Country[] = [
     tradeBalance: -0.436, // World Bank NE.RSB.GNFS.CD, 2025
     inflationRate: 4.8,
     areaKm2: 622984,
-    trends: mkTrends(3, 0.404),
+    trends: [],
   },
   {
     id: "td",
@@ -7201,7 +7192,7 @@ export const countriesData: Country[] = [
     tradeBalance: 2.73, // World Bank NE.RSB.GNFS.CD, 2025
     inflationRate: 5.3,
     areaKm2: 1284000,
-    trends: mkTrends(13, 0.394),
+    trends: [],
   },
   {
     id: "cv",
@@ -7240,7 +7231,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 5.2,
     areaKm2: 4033,
-    trends: mkTrends(2, 0.662),
+    trends: [],
   },
   {
     id: "sc",
@@ -7287,7 +7278,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 2.6,
     areaKm2: 459,
-    trends: mkTrends(2, 0.796),
+    trends: [],
   },
   {
     id: "st",
@@ -7326,7 +7317,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 18.0,
     areaKm2: 964,
-    trends: mkTrends(1, 0.618),
+    trends: [],
   },
   {
     id: "gq",
@@ -7367,7 +7358,7 @@ export const countriesData: Country[] = [
     tradeBalance: 2,
     inflationRate: 4.8,
     areaKm2: 28051,
-    trends: mkTrends(12, 0.596),
+    trends: [],
   },
   {
     id: "km",
@@ -7407,7 +7398,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 10.0,
     areaKm2: 2235,
-    trends: mkTrends(1, 0.558),
+    trends: [],
   },
   // ── OCEANIA ──
   {
@@ -7473,7 +7464,7 @@ export const countriesData: Country[] = [
     tradeBalance: 82,
     inflationRate: 2.4,
     areaKm2: 36193,
-    trends: mkTrends(790, 0.925),
+    trends: [],
   },
   {
     id: "au_oc",
@@ -7531,7 +7522,7 @@ export const countriesData: Country[] = [
     tradeBalance: 40,
     inflationRate: 2.8,
     areaKm2: 7692024,
-    trends: mkTrends(1810, 0.948),
+    trends: [],
   },
   {
     id: "nz",
@@ -7581,7 +7572,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 2.8,
     areaKm2: 268838,
-    trends: mkTrends(262, 0.941),
+    trends: [],
   },
   {
     id: "pg",
@@ -7625,7 +7616,7 @@ export const countriesData: Country[] = [
     tradeBalance: 6,
     inflationRate: 5.3,
     areaKm2: 462840,
-    trends: mkTrends(37, 0.558),
+    trends: [],
   },
   {
     id: "fj",
@@ -7669,7 +7660,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 5.0,
     areaKm2: 18274,
-    trends: mkTrends(5, 0.73),
+    trends: [],
   },
   {
     id: "sb",
@@ -7709,7 +7700,7 @@ export const countriesData: Country[] = [
     tradeBalance: -0.479, // World Bank NE.RSB.GNFS.CD, 2024
     inflationRate: 5.9,
     areaKm2: 28896,
-    trends: mkTrends(2, 0.564),
+    trends: [],
   },
   {
     id: "vu",
@@ -7749,7 +7740,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 4.7,
     areaKm2: 12189,
-    trends: mkTrends(1, 0.596),
+    trends: [],
   },
   {
     id: "ws",
@@ -7793,7 +7784,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 9.8,
     areaKm2: 2842,
-    trends: mkTrends(1, 0.707),
+    trends: [],
   },
   {
     id: "to",
@@ -7832,7 +7823,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 7.0,
     areaKm2: 747,
-    trends: mkTrends(1, 0.74),
+    trends: [],
   },
   {
     id: "ki",
@@ -7875,7 +7866,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 2.5,
     areaKm2: 726,
-    trends: mkTrends(0, 0.624),
+    trends: [],
   },
   {
     id: "fm",
@@ -7918,7 +7909,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 4.4,
     areaKm2: 702,
-    trends: mkTrends(0, 0.62),
+    trends: [],
   },
   {
     id: "pw",
@@ -7958,7 +7949,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 3.6,
     areaKm2: 459,
-    trends: mkTrends(0, 0.767),
+    trends: [],
   },
   {
     id: "mh",
@@ -7997,7 +7988,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 3.0,
     areaKm2: 181,
-    trends: mkTrends(0, 0.639),
+    trends: [],
   },
   {
     id: "nr",
@@ -8044,7 +8035,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 3.0,
     areaKm2: 21,
-    trends: mkTrends(0, 0.721),
+    trends: [],
   },
   {
     id: "tv",
@@ -8083,7 +8074,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 4.0,
     areaKm2: 26,
-    trends: mkTrends(0, 0.641),
+    trends: [],
   },
   // ── TERRITORIES & DEPENDENCIES ──
   {
@@ -8142,7 +8133,7 @@ export const countriesData: Country[] = [
     tradeBalance: 62,
     inflationRate: 3.4,
     areaKm2: 9104,
-    trends: mkTrends(118, 0.845),
+    trends: [],
   },
   {
     id: "gu",
@@ -8195,7 +8186,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 3.2,
     areaKm2: 541,
-    trends: mkTrends(6, 0.839),
+    trends: [],
   },
   {
     id: "bm",
@@ -8254,7 +8245,7 @@ export const countriesData: Country[] = [
     tradeBalance: 4,
     inflationRate: 2.8,
     areaKm2: 54,
-    trends: mkTrends(8, 0.906),
+    trends: [],
   },
   {
     id: "fo",
@@ -8318,7 +8309,7 @@ export const countriesData: Country[] = [
     tradeBalance: 1,
     inflationRate: 5.1,
     areaKm2: 1393,
-    trends: mkTrends(4, 0.95),
+    trends: [],
   },
   {
     id: "gl",
@@ -8371,7 +8362,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 7.4,
     areaKm2: 2166086,
-    trends: mkTrends(3, 0.84),
+    trends: [],
   },
   // ── CARIBBEAN ──
   {
@@ -8424,7 +8415,7 @@ export const countriesData: Country[] = [
     tradeBalance: -3,
     inflationRate: 3.1,
     areaKm2: 13943,
-    trends: mkTrends(13, 0.812),
+    trends: [],
   },
   {
     id: "ag",
@@ -8463,7 +8454,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 3.5,
     areaKm2: 443,
-    trends: mkTrends(2, 0.78),
+    trends: [],
   },
   {
     id: "dm",
@@ -8512,7 +8503,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 3.0,
     areaKm2: 751,
-    trends: mkTrends(1, 0.72),
+    trends: [],
   },
   {
     id: "gd",
@@ -8551,7 +8542,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 2.8,
     areaKm2: 344,
-    trends: mkTrends(1, 0.779),
+    trends: [],
   },
   {
     id: "bb",
@@ -8595,7 +8586,7 @@ export const countriesData: Country[] = [
     tradeBalance: -2,
     inflationRate: 4.3,
     areaKm2: 430,
-    trends: mkTrends(5, 0.814),
+    trends: [],
   },
   {
     id: "lc",
@@ -8639,7 +8630,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 4.0,
     areaKm2: 617,
-    trends: mkTrends(2, 0.718),
+    trends: [],
   },
   {
     id: "vc",
@@ -8679,7 +8670,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 3.6,
     areaKm2: 389,
-    trends: mkTrends(1, 0.751),
+    trends: [],
   },
   {
     id: "kn",
@@ -8726,7 +8717,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 2.9,
     areaKm2: 261,
-    trends: mkTrends(1, 0.777),
+    trends: [],
   },
   // ── SOUTHEAST ASIA (MISSING) ──
   {
@@ -8797,7 +8788,7 @@ export const countriesData: Country[] = [
     tradeBalance: 36,
     inflationRate: 2.8,
     areaKm2: 1904569,
-    trends: mkTrends(1490, 0.705),
+    trends: [],
   },
   {
     id: "my",
@@ -8851,7 +8842,7 @@ export const countriesData: Country[] = [
     tradeBalance: 42,
     inflationRate: 1.8,
     areaKm2: 329847,
-    trends: mkTrends(440, 0.799),
+    trends: [],
   },
   {
     id: "th",
@@ -8912,7 +8903,7 @@ export const countriesData: Country[] = [
     tradeBalance: 20,
     inflationRate: 0.9,
     areaKm2: 513120,
-    trends: mkTrends(574, 0.8),
+    trends: [],
   },
   // ── SOUTH ASIA (MISSING) ──
   {
@@ -8956,7 +8947,7 @@ export const countriesData: Country[] = [
     tradeBalance: -3,
     inflationRate: 2.5,
     areaKm2: 298,
-    trends: mkTrends(7, 0.762),
+    trends: [],
   },
   {
     id: "bt",
@@ -9006,7 +8997,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 4.2,
     areaKm2: 38394,
-    trends: mkTrends(3, 0.681),
+    trends: [],
   },
   // ── EUROPE (MICRO-STATES) ──
   {
@@ -9055,7 +9046,7 @@ export const countriesData: Country[] = [
     tradeBalance: 0.628, // World Bank NE.RSB.GNFS.CD, 2023
     inflationRate: 2.5,
     areaKm2: 61,
-    trends: mkTrends(2, 0.961),
+    trends: [],
   },
   {
     id: "li",
@@ -9094,7 +9085,7 @@ export const countriesData: Country[] = [
     tradeBalance: 2,
     inflationRate: 2.0,
     areaKm2: 160,
-    trends: mkTrends(7, 0.967),
+    trends: [],
   },
   {
     id: "ad",
@@ -9146,7 +9137,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 2.8,
     areaKm2: 468,
-    trends: mkTrends(3, 0.858),
+    trends: [],
   },
   {
     id: "mc",
@@ -9192,7 +9183,7 @@ export const countriesData: Country[] = [
     tradeBalance: 1,
     inflationRate: 1.5,
     areaKm2: 2,
-    trends: mkTrends(9, 0.956),
+    trends: [],
   },
   // ── AFRICA (MISSING) ──
   {
@@ -9237,7 +9228,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 9.6,
     areaKm2: 1030700,
-    trends: mkTrends(10, 0.54),
+    trends: [],
   },
   // ── TURKEY & CAUCASUS ──
   {
@@ -9298,7 +9289,7 @@ export const countriesData: Country[] = [
     tradeBalance: -55,
     inflationRate: 38.0,
     areaKm2: 783562,
-    trends: mkTrends(1344, 0.855),
+    trends: [],
   },
   // ── AFRICA (REMAINING) ──
   {
@@ -9338,7 +9329,7 @@ export const countriesData: Country[] = [
     tradeBalance: NaN, // not covered by the World Bank
     inflationRate: 4.0,
     areaKm2: 266000,
-    trends: mkTrends(1, 0.52),
+    trends: [],
   },
   // ── ASIA (REMAINING) ──
   {
@@ -9386,7 +9377,7 @@ export const countriesData: Country[] = [
     tradeBalance: -5,
     inflationRate: 5.5,
     areaKm2: 6020,
-    trends: mkTrends(19, 0.715),
+    trends: [],
   },
   // ── OCEANIA (REMAINING) ──
   {
@@ -9431,7 +9422,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 3.5,
     areaKm2: 236,
-    trends: mkTrends(0, 0.788),
+    trends: [],
   },
   {
     id: "nu",
@@ -9469,7 +9460,7 @@ export const countriesData: Country[] = [
     tradeBalance: -1,
     inflationRate: 3.0,
     areaKm2: 260,
-    trends: mkTrends(0, 0.68),
+    trends: [],
   },
   // ── RUSSIA ──
   {
@@ -9516,7 +9507,7 @@ export const countriesData: Country[] = [
     tradeBalance: 148,
     inflationRate: 9.0,
     areaKm2: 17098242,
-    trends: mkTrends(1960, 0.824),
+    trends: [],
   },
 ];
 
@@ -9533,6 +9524,11 @@ const factbook = (year?: string): DataSource => ({
 });
 
 for (const c of countriesData) {
+  /* Real GDP history, or none at all. What this replaced was a formula:
+     each country's current GDP scaled by 0.88, 0.91, 0.94, 0.97 and 1.00
+     across five fixed years, drawn as if it were history. */
+  c.trends = GDP_HISTORY[c.code] ?? [];
+
   const ref = COUNTRY_REFERENCE[c.code];
   if (!ref) continue;
   if (!c.religions?.length && ref.religions) {

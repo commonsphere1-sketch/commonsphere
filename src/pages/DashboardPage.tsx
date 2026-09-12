@@ -4402,7 +4402,7 @@ function InteractiveDataPanel({
                         className="text-[9px] font-mono uppercase tracking-widest"
                         style={{ color: mutedText }}
                       >
-                        GDP Trend
+                        GDP Trend · World Bank
                       </p>
                       <ResponsiveContainer width="100%" height={72}>
                         <AreaChart
