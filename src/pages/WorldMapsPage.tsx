@@ -30,6 +30,12 @@ import { useTheme } from "../contexts/ThemeContext";
 import { isG20, g20Countries, G20_UNION_MEMBERS, G20_MEMBER_CODES } from "../data/g20";
 import { isG7, g7Countries, G7_PARTICIPANTS, G7_MEMBER_CODES } from "../data/g7";
 import {
+  isBrics,
+  bricsCountries,
+  BRICS_MEMBER_CODES,
+  BRICS_MEMBERSHIP_NOTE,
+} from "../data/brics";
+import {
   isGlobalNorth,
   isGlobalSouth,
   globalNorthCountries,
@@ -219,6 +225,11 @@ const ZOOM_MIN = 1;
 const ZOOM_MAX = 8;
 const ZOOM_STEP = 1.6;
 
+/* Below this zoom the whole world is in view, where a country's name is often
+   wider than the country; above it the reader is looking at one country, so
+   the title names that instead of its continent. */
+const CONTINENT_TITLE_BELOW = 2;
+
 /**
  * Zoom and pan for one map canvas.
  *
@@ -403,7 +414,7 @@ function NoDataHatch({
   );
 }
 
-type ScopeId = "all" | "g20" | "g7" | "north" | "south";
+type ScopeId = "all" | "g20" | "g7" | "brics" | "north" | "south";
 
 /**
  * The groups the world map can narrow to.
@@ -465,6 +476,17 @@ const SCOPES: Scope[] = [
     belongs: isG7,
     codes: G7_MEMBER_CODES,
     outsideLabel: "Not a G7 member",
+  },
+  {
+    id: "brics",
+    chip: "BRICS",
+    title: "BRICS",
+    noun: "BRICS states",
+    rowLabel: "Member",
+    members: bricsCountries,
+    belongs: isBrics,
+    codes: BRICS_MEMBER_CODES,
+    outsideLabel: "Not a BRICS member",
   },
   {
     id: "north",
@@ -631,7 +653,14 @@ export function WorldMapsPage() {
 
   const [countryMetric, setCountryMetric] = useState("hdi");
   const [stateMetric, setStateMetric] = useState("education");
-  const [hovered, setHovered] = useState<{ name: string; value: string } | null>(null);
+  const [hovered, setHovered] = useState<{
+    name: string;
+    value: string;
+    /** Centre of the hovered shape, for the title the world map draws. */
+    cx?: number;
+    cy?: number;
+    continent?: string;
+  } | null>(null);
   const [scope, setScope] = useState<ScopeId>("all");
   // The second map focuses on one country. The US is the default because it is
   // the only one with subdivision figures behind it.
@@ -923,11 +952,16 @@ export function WorldMapsPage() {
   );
   const worldShapes = useMemo(
     () =>
-      worldDrawn.features.map((f) => ({
-        name: f.properties.name,
-        country: countryForFeature(f.properties.name),
-        d: worldPath.path(f as never) ?? undefined,
-      })),
+      worldDrawn.features.map((f) => {
+        const [cx, cy] = worldPath.path.centroid(f as never);
+        return {
+          name: f.properties.name,
+          country: countryForFeature(f.properties.name),
+          d: worldPath.path(f as never) ?? undefined,
+          cx,
+          cy,
+        };
+      }),
     [worldDrawn, worldPath],
   );
   /* Drawn only inside the countries in scope: in G20 mode the others are a
@@ -1414,7 +1448,7 @@ export function WorldMapsPage() {
               stroke={isLight ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)"}
               strokeWidth={0.5 / worldZoom.zoom}
             />
-            {worldShapes.map(({ name, country, d }, i) => {
+            {worldShapes.map(({ name, country, d, cx, cy }, i) => {
               const outside =
                 activeScope.belongs !== null &&
                 country !== null &&
@@ -1435,10 +1469,13 @@ export function WorldMapsPage() {
                     setHovered({
                       name: country?.name ?? name,
                       value: outside
-                        ? "not a G20 member"
+                        ? `not in ${activeScope.title}`
                         : value !== null
                           ? activeCountry.format(value)
                           : "no data",
+                      cx,
+                      cy,
+                      continent: country?.continent,
                     })
                   }
                   onMouseLeave={() => setHovered(null)}
@@ -1460,6 +1497,38 @@ export function WorldMapsPage() {
                 pointerEvents="none"
               />
             )}
+
+            {/* The title under the cursor: the continent while the whole world
+                is in view, the country once zoomed in. Same ink and halo as the
+                map's other labels and the same size on screen at any zoom. It
+                takes no pointer events, so it cannot interrupt its own hover. */}
+            {hovered &&
+              hovered.cx !== undefined &&
+              hovered.cy !== undefined &&
+              Number.isFinite(hovered.cx) &&
+              Number.isFinite(hovered.cy) && (
+                <text
+                  x={hovered.cx}
+                  y={hovered.cy}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  pointerEvents="none"
+                  className="font-mono"
+                  style={{
+                    fontSize: 13 / worldZoom.zoom,
+                    fontWeight: 700,
+                    fill: labelInk,
+                    stroke: labelHalo,
+                    strokeWidth: 3.5 / worldZoom.zoom,
+                    strokeLinejoin: "round",
+                    paintOrder: "stroke",
+                  }}
+                >
+                  {worldZoom.zoom < CONTINENT_TITLE_BELOW
+                    ? (hovered.continent ?? hovered.name)
+                    : hovered.name}
+                </text>
+              )}
           </svg>
 
           <Legend
@@ -1500,6 +1569,7 @@ export function WorldMapsPage() {
                   here. The African Union joined in 2023.
                 </>
               )}
+              {scope === "brics" && <>{BRICS_MEMBERSHIP_NOTE}</>}
               {scope === "g7" && (
                 <>
                   The {groupStats.members} member states are mapped. The{" "}
