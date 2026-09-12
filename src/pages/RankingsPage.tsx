@@ -363,7 +363,10 @@ const METRICS: MetricDef[] = [
     shortLabel: "Trade Bal.",
     description: "Exports minus imports (positive = surplus)",
     higherIsBetter: true,
-    format: (v) => (v >= 0 ? `+${v.toFixed(0)}` : `${v.toFixed(0)}`),
+    format: (v) => {
+      const s = Math.abs(v) < 10 ? v.toFixed(2) : v.toFixed(0);
+      return v >= 0 ? `+${s}` : s;
+    },
     color: "text-cyan-400",
     weight: 1,
   },

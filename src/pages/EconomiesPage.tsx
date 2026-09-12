@@ -7864,9 +7864,12 @@ export function EconomiesPage() {
                           },
                           {
                             label: "Trade Balance",
-                            value: `${country.tradeBalance >= 0 ? "+" : ""}$${country.tradeBalance}B`,
-                            color:
-                              country.tradeBalance >= 0
+                            value: Number.isFinite(country.tradeBalance)
+                              ? `${country.tradeBalance >= 0 ? "+" : ""}$${country.tradeBalance}B`
+                              : "No data",
+                            color: !Number.isFinite(country.tradeBalance)
+                              ? "text-muted-foreground"
+                              : country.tradeBalance >= 0
                                 ? "text-success"
                                 : "text-destructive",
                           },

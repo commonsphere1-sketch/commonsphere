@@ -3885,12 +3885,23 @@ function CountryModal({
                             </span>
                           ))}
                         </div>
+                        {(country as any).sources?.spokenLanguages && (
+                          <SourceLink sources={(country as any).sources.spokenLanguages} />
+                        )}
                       </div>
                     )}
                     {(country as any).landmarks?.length > 0 && (
                       <div className="modal-tile rounded-lg p-4">
                         <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">
-                          Top Landmarks
+                          {/* UNESCO sites are inscribed properties, not a ranking,
+                              so they are titled as what they are. */}
+                          {(country as any).worldHeritageCount
+                            ? `World Heritage Sites${
+                                (country as any).worldHeritageCount > (country as any).landmarks.length
+                                  ? ` (${(country as any).landmarks.length} of ${(country as any).worldHeritageCount})`
+                                  : ""
+                              }`
+                            : "Top Landmarks"}
                         </p>
                         <ul className="space-y-1">
                           {(country as any).landmarks.map((lm: string) => (
@@ -3903,6 +3914,9 @@ function CountryModal({
                             </li>
                           ))}
                         </ul>
+                        {(country as any).sources?.landmarks && (
+                          <SourceLink sources={(country as any).sources.landmarks} />
+                        )}
                       </div>
                     )}
                     {(country as any).religions?.length > 0 && (
@@ -3920,6 +3934,9 @@ function CountryModal({
                             </span>
                           ))}
                         </div>
+                        {(country as any).sources?.religions && (
+                          <SourceLink sources={(country as any).sources.religions} />
+                        )}
                       </div>
                     )}
                   </div>
@@ -7253,6 +7270,9 @@ function CountrySociologicalBreakdown({ country }: { country: Country }) {
                 </div>
               ))}
             </div>
+            {country.sources?.religions && (
+              <SourceLink sources={country.sources.religions} />
+            )}
           </div>
         )}
 
@@ -7278,6 +7298,9 @@ function CountrySociologicalBreakdown({ country }: { country: Country }) {
                 </span>
               ))}
             </div>
+            {country.sources?.spokenLanguages && (
+              <SourceLink sources={country.sources.spokenLanguages} />
+            )}
           </div>
         )}
 
@@ -33754,7 +33777,7 @@ function exportCountriesToCSV(
     c.inflationRate,
     c.lifeExpectancy,
     c.humanDevelopmentIndex,
-    c.tradeBalance,
+    Number.isFinite(c.tradeBalance) ? c.tradeBalance : "",
     c.governmentType,
     c.currency,
   ]);

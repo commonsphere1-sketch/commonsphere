@@ -1,3 +1,5 @@
+import { COUNTRY_REFERENCE } from "./countryReference";
+
 export interface Industry {
   name: string;
   /** % share of GDP this industry represents */
@@ -56,6 +58,15 @@ export type EconomyType =
   | "Offshore Financial Economy"
   | "Tourism-Dependent Economy";
 
+/** A citation for one field: what to show, and where to check it. */
+export interface DataSource {
+  label: string;
+  url: string;
+}
+
+/** Fields that can be filled from sourced reference data (see the end of this file). */
+export type ReferenceField = "religions" | "spokenLanguages" | "landmarks";
+
 export interface Country {
   id: string;
   name: string;
@@ -76,6 +87,11 @@ export interface Country {
   spokenLanguages?: string[];
   landmarks?: string[];
   religions?: string[];
+  /** Where a field came from, when it was filled from reference data rather
+   *  than written in this file. The Countries page cites it beside the field. */
+  sources?: Partial<Record<ReferenceField, DataSource>>;
+  /** Set when `landmarks` lists UNESCO World Heritage sites: the full count. */
+  worldHeritageCount?: number;
   /** Dominant political ideologies (e.g. Liberal Democracy, Nationalism, Socialism) */
   politicalIdeologies?: string[];
   /** Governance style tags (e.g. Welfare State, Rule of Law, Authoritarian, Theocracy) */
@@ -1313,7 +1329,7 @@ export const countriesData: Country[] = [
     unemploymentRate: 8.8,
     lifeExpectancy: 71.7,
     humanDevelopmentIndex: 0.73,
-    tradeBalance: 0,
+    tradeBalance: NaN, // no World Bank figure since 2010
     inflationRate: 52.4,
     areaKm2: 163820,
     trends: mkTrends(4, 0.73),
@@ -5140,7 +5156,7 @@ export const countriesData: Country[] = [
     unemploymentRate: 3.8,
     lifeExpectancy: 69.3,
     humanDevelopmentIndex: 0.607,
-    tradeBalance: 0,
+    tradeBalance: -1.39, // World Bank NE.RSB.GNFS.CD, 2024
     inflationRate: 7.4,
     areaKm2: 14874,
     trends: mkTrends(3, 0.607),
@@ -5915,7 +5931,7 @@ export const countriesData: Country[] = [
     unemploymentRate: 12.3,
     lifeExpectancy: 61.2,
     humanDevelopmentIndex: 0.565,
-    tradeBalance: 0,
+    tradeBalance: 1.88, // World Bank NE.RSB.GNFS.CD, 2024
     inflationRate: 13.1,
     areaKm2: 752612,
     trends: mkTrends(29, 0.565),
@@ -6368,7 +6384,7 @@ export const countriesData: Country[] = [
     unemploymentRate: 5.0,
     lifeExpectancy: 66.3,
     humanDevelopmentIndex: 0.492,
-    tradeBalance: 0,
+    tradeBalance: NaN, // no World Bank figure since 2011
     inflationRate: 6.0,
     areaKm2: 117600,
     trends: mkTrends(2, 0.492),
@@ -6408,7 +6424,7 @@ export const countriesData: Country[] = [
     unemploymentRate: 26.4,
     lifeExpectancy: 67.4,
     humanDevelopmentIndex: 0.509,
-    tradeBalance: 0,
+    tradeBalance: 0.679, // World Bank NE.RSB.GNFS.CD, 2025
     inflationRate: 3.5,
     areaKm2: 23200,
     trends: mkTrends(4, 0.509),
@@ -6561,7 +6577,7 @@ export const countriesData: Country[] = [
     unemploymentRate: 19.8,
     lifeExpectancy: 63.7,
     humanDevelopmentIndex: 0.615,
-    tradeBalance: 0,
+    tradeBalance: -2.90, // World Bank NE.RSB.GNFS.CD, 2025
     inflationRate: 5.9,
     areaKm2: 824292,
     trends: mkTrends(13, 0.615),
@@ -6699,7 +6715,7 @@ export const countriesData: Country[] = [
     unemploymentRate: 22.5,
     lifeExpectancy: 57.7,
     humanDevelopmentIndex: 0.597,
-    tradeBalance: 0,
+    tradeBalance: 0.00151, // World Bank NE.RSB.GNFS.CD, 2024
     inflationRate: 5.2,
     areaKm2: 17364,
     trends: mkTrends(5, 0.597),
@@ -6875,7 +6891,7 @@ export const countriesData: Country[] = [
     unemploymentRate: 2.5,
     lifeExpectancy: 59.0,
     humanDevelopmentIndex: 0.483,
-    tradeBalance: 0,
+    tradeBalance: -0.332, // World Bank NE.RSB.GNFS.CD, 2025
     inflationRate: 3.8,
     areaKm2: 36125,
     trends: mkTrends(2, 0.483),
@@ -7142,7 +7158,7 @@ export const countriesData: Country[] = [
     unemploymentRate: 6.9,
     lifeExpectancy: 53.9,
     humanDevelopmentIndex: 0.404,
-    tradeBalance: 0,
+    tradeBalance: -0.436, // World Bank NE.RSB.GNFS.CD, 2025
     inflationRate: 4.8,
     areaKm2: 622984,
     trends: mkTrends(3, 0.404),
@@ -7182,7 +7198,7 @@ export const countriesData: Country[] = [
     unemploymentRate: 1.5,
     lifeExpectancy: 54.4,
     humanDevelopmentIndex: 0.394,
-    tradeBalance: 0,
+    tradeBalance: 2.73, // World Bank NE.RSB.GNFS.CD, 2025
     inflationRate: 5.3,
     areaKm2: 1284000,
     trends: mkTrends(13, 0.394),
@@ -7690,7 +7706,7 @@ export const countriesData: Country[] = [
     unemploymentRate: 2.0,
     lifeExpectancy: 73.3,
     humanDevelopmentIndex: 0.564,
-    tradeBalance: 0,
+    tradeBalance: -0.479, // World Bank NE.RSB.GNFS.CD, 2024
     inflationRate: 5.9,
     areaKm2: 28896,
     trends: mkTrends(2, 0.564),
@@ -9036,7 +9052,7 @@ export const countriesData: Country[] = [
     unemploymentRate: 7.0,
     lifeExpectancy: 85.4,
     humanDevelopmentIndex: 0.961,
-    tradeBalance: 0,
+    tradeBalance: 0.628, // World Bank NE.RSB.GNFS.CD, 2023
     inflationRate: 2.5,
     areaKm2: 61,
     trends: mkTrends(2, 0.961),
@@ -9319,7 +9335,7 @@ export const countriesData: Country[] = [
     unemploymentRate: 12.0,
     lifeExpectancy: 70.0,
     humanDevelopmentIndex: 0.52,
-    tradeBalance: 0,
+    tradeBalance: NaN, // not covered by the World Bank
     inflationRate: 4.0,
     areaKm2: 266000,
     trends: mkTrends(1, 0.52),
@@ -9503,3 +9519,36 @@ export const countriesData: Country[] = [
     trends: mkTrends(1960, 0.824),
   },
 ];
+
+/* ── Sourced reference data ─────────────────────────────────────────────────
+   Religions, spoken languages and landmarks for countries that have none
+   above, from countryReference.ts (generated by build-country-reference.cjs).
+   A value written above is never replaced, and each field filled here
+   records its source so the page can cite it. */
+const FACTBOOK_URL = "https://www.cia.gov/the-world-factbook/";
+const WORLD_HERITAGE_URL = "https://data.unesco.org/explore/dataset/whc001/";
+const factbook = (year?: string): DataSource => ({
+  label: `CIA World Factbook${year ? `, ${year}` : ""}`,
+  url: FACTBOOK_URL,
+});
+
+for (const c of countriesData) {
+  const ref = COUNTRY_REFERENCE[c.code];
+  if (!ref) continue;
+  if (!c.religions?.length && ref.religions) {
+    c.religions = ref.religions;
+    c.sources = { ...c.sources, religions: factbook(ref.religionsYear) };
+  }
+  if (!c.spokenLanguages?.length && ref.spokenLanguages) {
+    c.spokenLanguages = ref.spokenLanguages;
+    c.sources = { ...c.sources, spokenLanguages: factbook(ref.languagesYear) };
+  }
+  if (!c.landmarks?.length && ref.heritageSites) {
+    c.landmarks = ref.heritageSites;
+    c.worldHeritageCount = ref.heritageSiteCount;
+    c.sources = {
+      ...c.sources,
+      landmarks: { label: "UNESCO World Heritage List (CC BY-SA 4.0)", url: WORLD_HERITAGE_URL },
+    };
+  }
+}

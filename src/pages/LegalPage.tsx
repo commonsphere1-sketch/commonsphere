@@ -293,6 +293,14 @@ export function LegalPage() {
               publishers — together with curated datasets compiled for this
               site. Panels name their source where one applies.
             </P>
+            <P>
+              Where a country's entry had no breakdown of religions or
+              languages, those come from the CIA World Factbook (public
+              domain), labelled with the year of the figures it cites. Where it
+              had no landmarks, the site lists properties on UNESCO's World
+              Heritage List, used under CC BY-SA 4.0. Map boundaries are from
+              Natural Earth (public domain) and the US Census Bureau.
+            </P>
 
             <H>What "current" means here</H>
             <P>

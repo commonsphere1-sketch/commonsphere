@@ -2452,7 +2452,9 @@ const COMPARE_METRICS = [
     label: "Trade Balance",
     unit: "B",
     get: (c: (typeof countriesData)[0]) =>
-      `${c.tradeBalance >= 0 ? "+" : ""}$${c.tradeBalance}B`,
+      Number.isFinite(c.tradeBalance)
+        ? `${c.tradeBalance >= 0 ? "+" : ""}$${c.tradeBalance}B`
+        : "No data",
     raw: (c: (typeof countriesData)[0]) => c.tradeBalance,
     higherBetter: true,
     color: "#14b8a6",
@@ -2881,17 +2883,22 @@ function CompareCountriesTool({
                   ))}
                 </div>
                 {COMPARE_METRICS.map((m, ri) => {
+                  // Only countries with a figure can be best or worst; subtracting
+                  // a missing value (NaN) would scramble the sort.
+                  const ranked = selectedCountries.filter((c) =>
+                    Number.isFinite(m.raw(c)),
+                  );
                   const bestId =
-                    selectedCountries.length >= 2
-                      ? [...selectedCountries].sort((a, b) =>
+                    ranked.length >= 2
+                      ? [...ranked].sort((a, b) =>
                           m.higherBetter
                             ? m.raw(b) - m.raw(a)
                             : m.raw(a) - m.raw(b),
                         )[0].id
                       : null;
                   const worstId =
-                    selectedCountries.length >= 2
-                      ? [...selectedCountries].sort((a, b) =>
+                    ranked.length >= 2
+                      ? [...ranked].sort((a, b) =>
                           m.higherBetter
                             ? m.raw(a) - m.raw(b)
                             : m.raw(b) - m.raw(a),
@@ -4341,9 +4348,13 @@ function InteractiveDataPanel({
                       },
                       {
                         label: "Trade Balance",
-                        value: `${c.tradeBalance >= 0 ? "+" : ""}$${c.tradeBalance}B`,
+                        value: Number.isFinite(c.tradeBalance)
+                          ? `${c.tradeBalance >= 0 ? "+" : ""}$${c.tradeBalance}B`
+                          : "No data",
                         icon: <Scales size={10} weight="fill" />,
-                        color: c.tradeBalance >= 0 ? "#10b981" : "#ef4444",
+                        color: !Number.isFinite(c.tradeBalance)
+                          ? mutedText
+                          : c.tradeBalance >= 0 ? "#10b981" : "#ef4444",
                       },
                       {
                         label: "Area",
