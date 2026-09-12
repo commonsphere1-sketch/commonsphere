@@ -694,12 +694,14 @@ const WORLD_GDP_SERIES = [
   { year: "2025", gdp: 118.4 },
 ];
 
+// IMF World Economic Outlook, April 2026 (PCPIPCH, consumer prices, annual
+// %): the world aggregate and advanced economies. 2026 is a projection.
 const INFLATION_DATA = [
-  { year: "2022", g20: 8.7, adv: 7.3 },
-  { year: "2023", g20: 6.1, adv: 4.6 },
-  { year: "2024", g20: 4.8, adv: 3.2 },
-  { year: "2025", g20: 3.9, adv: 2.6 },
-  { year: "2026", g20: 3.2, adv: 2.2 },
+  { year: "2022", world: 8.7, adv: 7.3 },
+  { year: "2023", world: 6.7, adv: 4.6 },
+  { year: "2024", world: 5.8, adv: 2.6 },
+  { year: "2025", world: 4.1, adv: 2.5 },
+  { year: "2026", world: 4.4, adv: 2.8 },
 ];
 
 /**
@@ -1293,15 +1295,15 @@ const MACRO_FORECAST_2026 = [
   {
     label: "World GDP Growth",
     value: "+3.1%",
-    delta: "+0.3pp vs 2025",
-    up: true,
+    delta: "-0.3pp vs 2025",
+    up: false,
     color: "#6366f1",
   },
   {
-    label: "G20 Inflation",
+    label: "Advanced Econ. Inflation",
     value: "2.8%",
-    delta: "-1.1pp",
-    up: false,
+    delta: "+0.3pp vs 2025",
+    up: true,
     color: "#10b981",
   },
   {
@@ -1313,7 +1315,7 @@ const MACRO_FORECAST_2026 = [
   },
   {
     label: "EM Growth Premium",
-    value: "+2.4pp",
+    value: "+2.1pp",
     delta: "over advanced",
     up: true,
     color: "#f59e0b",
@@ -4006,13 +4008,13 @@ function InteractiveDataPanel({
                       }}
                       formatter={(v: number, n: string) => [
                         `${v}%`,
-                        n === "g20" ? "G20" : "Advanced",
+                        n === "world" ? "World" : "Advanced",
                       ]}
                       labelStyle={{ color: mutedText }}
                     />
                     <Line
                       type="monotone"
-                      dataKey="g20"
+                      dataKey="world"
                       stroke="#f59e0b"
                       strokeWidth={1.5}
                       dot={false}
@@ -4028,7 +4030,7 @@ function InteractiveDataPanel({
                 </ResponsiveContainer>
                 <div className="flex items-center gap-4 mt-1">
                   {[
-                    { label: "G20", color: "#f59e0b" },
+                    { label: "World", color: "#f59e0b" },
                     { label: "Advanced", color: "#3b82f6" },
                   ].map((l) => (
                     <div key={l.label} className="flex items-center gap-1">
@@ -6783,13 +6785,13 @@ export function DashboardPage() {
                     }}
                     formatter={(v: number, name: string) => [
                       `${v}%`,
-                      name === "g20" ? "G20" : "Advanced",
+                      name === "world" ? "World" : "Advanced",
                     ]}
                     labelStyle={{ color: mutedText }}
                   />
                   <Line
                     type="monotone"
-                    dataKey="g20"
+                    dataKey="world"
                     stroke="#f59e0b"
                     strokeWidth={2}
                     dot={{ fill: "#f59e0b", r: 2.5, strokeWidth: 0 }}
@@ -6805,7 +6807,7 @@ export function DashboardPage() {
               </ResponsiveContainer>
               <div className="flex items-center gap-4 mt-2">
                 {[
-                  { label: "G20 Avg", color: "#f59e0b" },
+                  { label: "World", color: "#f59e0b" },
                   { label: "Advanced", color: "#3b82f6" },
                 ].map((l) => (
                   <div key={l.label} className="flex items-center gap-1">
