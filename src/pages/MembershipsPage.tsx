@@ -3,6 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { sanitizeText, validateEmail, LIMITS } from "@/lib/security";
+import { countriesData } from "@/data/countriesData";
+import { usStatesData } from "@/data/statesData";
+import { citiesData } from "@/data/citiesData";
+import { economiesData } from "@/data/economiesData";
+import { ROYAL_FAMILIES } from "@/data/royalFamiliesData";
 import {
   CheckCircle,
   Star,
@@ -40,37 +45,56 @@ import {
   Fingerprint,
 } from "@phosphor-icons/react";
 
-// ─── Entitlement Matrix ───────────────────────────────────────────────────────
+// ─── Entitlement Matrix ─────────────────────────────────────────────────────
+
+/**
+ * Every count on this page is read from the data files rather than typed, so
+ * the offer cannot drift from the site the way "195+ countries" and
+ * "300+ cities" once did against an actual 34.
+ */
+const COUNTS = {
+  countries: countriesData.length,
+  states: usStatesData.length,
+  cities: citiesData.length,
+  economies: economiesData.length,
+  royals: ROYAL_FAMILIES.length,
+  ranked: countriesData.length + usStatesData.length,
+};
+
+type PlanId = "free" | "supporter" | "professional" | "team";
 
 /**
  * Membership tiers.
  *
- * Feature lines describe what the site actually ships. Counts come from the
- * data files — 204 countries, 50 states, 34 cities, 77 economies, 27 royal
- * profiles — not the round numbers this page used to carry ("195+ countries",
- * "300+ cities" against an actual 34).
+ * Two rules govern this file, because a pricing page that oversells is worse
+ * than one that undersells:
  *
- * Anything not built yet sits in `roadmap` and renders as "Planned" rather
- * than as a sold feature. That covers the public API, team seats and citation
- * export; CSV, PNG and print-to-PDF export do ship.
+ *   1. A line in `features` ships today. Anything else sits in `roadmap` and
+ *      renders as "Planned", so nobody pays expecting it now.
+ *   2. Counts come from COUNTS, never from memory.
+ *
+ * Checked against the code before it was written here. Ships: the whole
+ * catalogue and every module; CSV export on countries and cities; notes and
+ * pins held on the device; a source and reporting year beside the figures;
+ * World Bank series from 2018. Does not ship, and is marked Planned:
+ * advertising, chart PNG export (src/lib/exportImage.ts exists but no page
+ * calls it), print stylesheets, alerts, an API, citation export, team seats
+ * and analyst publishing.
  *
  * Shape of the offer, and why:
- *   Free      no card, so the catalogue itself does the selling. Nothing here
- *             is gated behind a trial clock, which is what a civic-data site
- *             should feel like, and it is the top of the funnel for the rest.
- *   Supporter an impulse price for citizens, journalists and teachers. The
- *             paid line starts at exports and saved work — the things that
- *             turn browsing into a habit.
- *   Pro       expensable without sign-off in most organisations, aimed at
- *             researchers and policy analysts who need to cite and reuse.
+ *   Free      no card, and advertising pays for it, which is what keeps the
+ *             catalogue open to everyone. It is also the top of the funnel.
+ *   Supporter an impulse price. The paid line starts where browsing turns
+ *             into work: no ads, exports and saved research.
+ *   Pro       expensable without sign-off, for people who cite and reuse.
  *   Team      per-seat with a five-seat floor, which is where recurring
- *             revenue actually comes from: newsrooms, NGOs and departments.
- * Annual is priced at ten months for twelve, which trades a modest discount
- * for the retention and cash flow that make the cheaper tiers viable.
+ *             revenue comes from: newsrooms, NGOs and departments.
+ * Annual is ten months for twelve, trading a modest discount for the
+ * retention and cash flow that make the cheaper tiers viable.
  */
 const PLANS = [
   {
-    id: "free",
+    id: "free" as PlanId,
     name: "Free",
     price: "$0",
     period: "forever",
@@ -84,18 +108,19 @@ const PLANS = [
     audience: "Anyone · Curious readers · Classroom use",
     note: "Students and educators: verify with an .edu address for Pro features at no cost.",
     features: [
-      "All 204 countries, 50 US states and 34 city profiles",
-      "77 economies with figures refreshed from the World Bank",
-      "Composite rankings across 254 entities and 7 categories",
-      "World leaders and 27 royal family profiles",
-      "Planetary boundaries, crime and humanitarian modules",
-      "Compare up to 3 entities side by side",
+      `All ${COUNTS.countries} countries, ${COUNTS.states} US states and ${COUNTS.cities} city profiles`,
+      `${COUNTS.economies} economies with figures refreshed from the World Bank`,
+      `Composite rankings across ${COUNTS.ranked} entities and 7 categories`,
+      `World leaders and ${COUNTS.royals} royal family profiles`,
+      "World and regional maps: G7, G20, BRICS, Global North and South",
+      "Planetary boundaries, crime, humanitarian and policy modules",
+      "Compare entities side by side, with no cap",
       "Light and dark themes",
     ],
     roadmap: [],
   },
   {
-    id: "supporter",
+    id: "supporter" as PlanId,
     name: "Supporter",
     price: "$6",
     period: "per month",
@@ -106,23 +131,26 @@ const PLANS = [
       "bg-secondary hover:bg-secondary/80 text-secondary-foreground shadow-lg shadow-secondary/20",
     accentClass: "text-secondary",
     checkClass: "text-secondary",
-    desc: "For readers who come back — export what you find and keep your work.",
+    desc: "For readers who come back — keep your work, and browse without ads.",
     audience: "Citizens · Journalists · Teachers · Advocates",
     note: null,
     features: [
       "Everything in Free",
-      "Unlimited multi-entity comparisons",
-      "Export any table to CSV",
-      "Export any chart to PNG at 2x resolution",
-      "Print-ready pages — save to PDF from your browser",
+      "Export country and city tables to CSV",
       "Research notes and clippings, kept on your device",
-      "Watchlist alerts for the countries and states you follow",
+      "Pin the countries and states you follow",
       "Supports the running costs of an open civic dataset",
     ],
-    roadmap: ["Notes synced across your devices"],
+    roadmap: [
+      "Ad-free browsing, once advertising launches",
+      "Export any chart to PNG at 2x",
+      "Print-ready pages — save to PDF from your browser",
+      "Notes synced across your devices",
+      "Alerts when a figure you follow is revised",
+    ],
   },
   {
-    id: "professional",
+    id: "professional" as PlanId,
     name: "Professional",
     price: "$28",
     period: "per month",
@@ -138,19 +166,19 @@ const PLANS = [
     note: null,
     features: [
       "Everything in Supporter",
-      "Bulk CSV export across every module, not one page at a time",
-      "Every figure carries its source and reporting year",
-      "Full historical series behind each indicator",
-      "Priority refresh when upstream sources publish",
+      "Every figure carries its source and the year it refers to",
+      "World Bank series behind each country from 2018",
       "Early access to new modules",
     ],
     roadmap: [
+      "Bulk CSV export across every module at once",
       "Citation export (BibTeX, RIS)",
       "Read-only API for your own tooling",
+      "Priority refresh when upstream sources publish",
     ],
   },
   {
-    id: "team",
+    id: "team" as PlanId,
     name: "Team",
     price: "$18",
     period: "per seat / month",
@@ -166,214 +194,217 @@ const PLANS = [
     note: "Billed per seat with a five-seat minimum. Invoicing and PO accepted.",
     features: [
       "Everything in Professional for every seat",
-      "Shared collections and saved comparisons",
       "Named billing contact and consolidated invoicing",
       "Onboarding session for the group",
     ],
     roadmap: [
+      "Shared collections and saved comparisons",
       "Admin console with seat management",
       "Single sign-on",
-      "Shared workspaces with per-seat permissions",
     ],
   },
 ];
+
+/**
+ * The advertising disclaimer shown with the Free plan.
+ *
+ * Written for what is true now and stays true at launch: no ad network runs
+ * on the site yet, so it says so rather than implying ads already pay for it.
+ * It states the limits up front, because being transparent is the point of
+ * saying any of this at all.
+ */
+const ADS_DISCLAIMER = {
+  headline: "Free is paid for by advertising",
+  body:
+    "Advertising is what keeps the whole catalogue open — no paywall, no trial " +
+    "clock, every figure available to everyone. No ad network runs on the site " +
+    "yet. When one does, ads will be labelled as ads, kept out of the figures " +
+    "and charts themselves, and no advertiser will decide what a source says. " +
+    "Your notes and pins stay on your device. Supporter and above remove ads.",
+};
+
 
 // ─── Feature grid (shown below plans) ────────────────────────────────────────
 
 const FEATURE_GRID = [
   {
     icon: Globe,
-    label: "204 Countries",
+    label: `${COUNTS.countries} Countries`,
     desc: "Refreshed from the World Bank",
   },
-  { icon: MapTrifold, label: "34 Cities", desc: "Urban profiles & stats" },
+  {
+    icon: MapTrifold,
+    label: `${COUNTS.cities} Cities`,
+    desc: "Urban profiles & stats",
+  },
   {
     icon: Buildings,
-    label: "All 50 US States",
+    label: `All ${COUNTS.states} US States`,
     desc: "Full state intelligence",
   },
   {
     icon: ChartLineUp,
-    label: "254 Ranked Entities",
+    label: `${COUNTS.ranked} Ranked Entities`,
     desc: "Countries and US states scored",
+  },
+  {
+    icon: MagnifyingGlass,
+    label: "World & Regional Maps",
+    desc: "G7, G20, BRICS, North and South",
   },
   { icon: Flag, label: "Active Conflicts", desc: "Military & conflict data" },
   {
-    icon: UserCircle,
-    label: "Congress Tracker",
-    desc: "Bills, votes & positions",
+    icon: Newspaper,
+    label: "World Leaders",
+    desc: `Profiles and ${COUNTS.royals} royal families`,
   },
-  { icon: Newspaper, label: "Political Library", desc: "Ideologies & parties" },
   {
     icon: ShieldCheck,
-    label: "Verified Sources",
-    desc: "UN, World Bank, ILO & more",
+    label: "Sourced Figures",
+    desc: "Each panel names where it comes from",
   },
   { icon: Heartbeat, label: "Humanitarian", desc: "Crisis & aid data" },
   {
     icon: Fingerprint,
     label: "Crime Statistics",
-    desc: "National & global stats",
+    desc: "UNODC, Numbeo & prison data",
   },
   {
     icon: Atom,
     label: "Planetary Boundaries",
-    desc: "Biosphere & climate science",
+    desc: "Nine Earth-system processes",
   },
   { icon: Scales, label: "Policy Hub", desc: "Public policy deep-dives" },
 ];
 
+
 // ─── Comparison table rows ────────────────────────────────────────────────────
 
-type FeatureRow = {
-  label: string;
-  student: boolean | string;
-  public: boolean | string;
-  professional: boolean | string;
-};
+type FeatureRow = { label: string } & Record<PlanId, boolean | string>;
+
+const PLANNED = "Planned";
 
 const COMPARISON_ROWS: FeatureRow[] = [
   {
-    label: "Countries / Cities / States",
-    student: true,
-    public: true,
+    label: `${COUNTS.countries} countries, ${COUNTS.cities} cities, ${COUNTS.states} states`,
+    free: true,
+    supporter: true,
     professional: true,
+    team: true,
   },
   {
-    label: "Political library & quizzes",
-    student: true,
-    public: true,
+    label: "World & regional maps, rankings and indexes",
+    free: true,
+    supporter: true,
     professional: true,
+    team: true,
   },
   {
-    label: "Global rankings & indexes",
-    student: true,
-    public: true,
+    label: "Conflicts, humanitarian, crime, planetary boundaries",
+    free: true,
+    supporter: true,
     professional: true,
+    team: true,
   },
   {
-    label: "Polls & public opinion hub",
-    student: true,
-    public: true,
+    label: "Compare entities side by side",
+    free: "No cap",
+    supporter: "No cap",
+    professional: "No cap",
+    team: "No cap",
+  },
+  {
+    label: "Source and reporting year beside each figure",
+    free: true,
+    supporter: true,
     professional: true,
+    team: true,
   },
   {
-    label: "Conflicts & military data",
-    student: true,
-    public: true,
+    label: "Research notes and pins (kept on your device)",
+    free: true,
+    supporter: true,
     professional: true,
+    team: true,
   },
   {
-    label: "Humanitarian crisis data",
-    student: true,
-    public: true,
+    label: "Advertising",
+    free: "Shown",
+    supporter: "Removed",
+    professional: "Removed",
+    team: "Removed",
+  },
+  {
+    label: "CSV export (countries, cities)",
+    free: false,
+    supporter: true,
     professional: true,
+    team: true,
   },
   {
-    label: "Crime statistics module",
-    student: true,
-    public: true,
-    professional: true,
+    label: "Chart PNG export and print-ready pages",
+    free: false,
+    supporter: PLANNED,
+    professional: PLANNED,
+    team: PLANNED,
   },
   {
-    label: "Planetary boundaries & biosphere",
-    student: true,
-    public: true,
-    professional: true,
+    label: "Notes synced across devices, revision alerts",
+    free: false,
+    supporter: PLANNED,
+    professional: PLANNED,
+    team: PLANNED,
   },
   {
-    label: "Historical archives (60+ years)",
-    student: true,
-    public: true,
-    professional: true,
+    label: "Bulk export across every module",
+    free: false,
+    supporter: false,
+    professional: PLANNED,
+    team: PLANNED,
   },
   {
-    label: "Advanced comparison tool",
-    student: true,
-    public: true,
-    professional: true,
+    label: "Citation export (BibTeX, RIS)",
+    free: false,
+    supporter: false,
+    professional: PLANNED,
+    team: PLANNED,
   },
   {
-    label: "Export (CSV, PNG, PDF)",
-    student: true,
-    public: true,
-    professional: true,
+    label: "Read-only API",
+    free: false,
+    supporter: false,
+    professional: PLANNED,
+    team: PLANNED,
   },
   {
-    label: "Unlimited bookmarks & collections",
-    student: true,
-    public: true,
-    professional: true,
+    label: "Seats, admin console and single sign-on",
+    free: false,
+    supporter: false,
+    professional: false,
+    team: PLANNED,
   },
   {
-    label: "Bookmarks limit",
-    student: "Unlimited",
-    public: "Unlimited",
-    professional: "Unlimited",
-  },
-  {
-    label: "Research notes & annotations",
-    student: true,
-    public: false,
-    professional: true,
-  },
-  {
-    label: "Clipboard & clipping manager",
-    student: true,
-    public: false,
-    professional: true,
-  },
-  {
-    label: "Choropleth world map",
-    student: true,
-    public: false,
-    professional: true,
-  },
-  {
-    label: "Policy hub deep-dives",
-    student: true,
-    public: false,
-    professional: true,
-  },
-  {
-    label: "Alerts & notifications",
-    student: true,
-    public: false,
-    professional: true,
-  },
-  {
-    label: "API access",
-    student: "Unlimited",
-    public: false,
-    professional: "Full",
-  },
-  { label: "BibTeX export", student: true, public: false, professional: true },
-  {
-    label: "Team seats",
-    student: "Workspace",
-    public: false,
-    professional: "Up to 5",
-  },
-  {
-    label: "Priority support",
-    student: true,
-    public: false,
-    professional: true,
+    label: "Invoicing, PO and group onboarding",
+    free: false,
+    supporter: false,
+    professional: false,
+    team: true,
   },
 ];
+
 
 // ─── EDU perks ────────────────────────────────────────────────────────────────
 
 const EDU_PERKS = [
-  "Full Professional plan — completely free for verified students & faculty",
-  "Export tables to CSV and charts to PNG",
-  "Print-ready pages for coursework and handouts",
-  "Priority refresh when upstream sources publish",
-  "Full historical series behind every indicator",
-  "Access to conflicts, humanitarian, crime & planetary data",
-  "Congress tracker, policy hub & political library",
-  "Research notes, clipboard manager & annotation tools",
+  "Everything in Professional, free for as long as you are enrolled",
+  "Every module and dataset, with no paywall anywhere",
+  "Export country and city tables to CSV",
+  "A source and a reporting year beside each figure, ready to cite",
+  "World Bank series behind each country from 2018",
+  "Research notes and clippings for coursework",
+  "No advertising",
 ];
+
 
 // ─── Analyst tiers ────────────────────────────────────────────────────────────
 
@@ -468,6 +499,35 @@ type Tab = "plans" | "compare" | "edu" | "analyst";
 
 export function MembershipsPage() {
   const navigate = useNavigate();
+
+  /* Which plan the reader picked, if any. There is no billing integration,
+     so a paid plan cannot be bought here: the button records the choice, says
+     so plainly, and takes them to the account form, which does work. */
+  const [interest, setInterest] = useState<string | null>(null);
+
+  const noteInterest = (label: string) => {
+    try {
+      localStorage.setItem("cs-plan-interest", label);
+    } catch {
+      /* Private windows and full storage both throw; the choice still shows. */
+    }
+    setInterest(label);
+    requestAnimationFrame(() =>
+      document
+        .getElementById("create-account")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    );
+  };
+
+  const choosePlan = (id: PlanId) => {
+    if (id === "free") {
+      navigate("/dashboard");
+      return;
+    }
+    setTab("plans");
+    const plan = PLANS.find((p) => p.id === id);
+    noteInterest(plan ? plan.name : id);
+  };
   const [tab, setTab] = useState<Tab>("plans");
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -654,15 +714,15 @@ export function MembershipsPage() {
                 },
                 {
                   icon: MagnifyingGlass,
-                  label: "Public",
-                  sub: "$9 / month",
+                  label: "Supporter",
+                  sub: `${PLANS.find((p) => p.id === "supporter")!.price} / month`,
                   color: "text-secondary",
                   bg: "bg-secondary/8 border-secondary/20",
                 },
                 {
                   icon: Briefcase,
                   label: "Professional",
-                  sub: "$29 / month",
+                  sub: `${PLANS.find((p) => p.id === "professional")!.price} / month`,
                   color: "text-violet-400",
                   bg: "bg-violet-500/8 border-violet-500/20",
                 },
@@ -758,16 +818,32 @@ export function MembershipsPage() {
                     ))}
                   </ul>
                   <button
+                    onClick={() => choosePlan(plan.id)}
                     className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-all ${plan.btnClass}`}
                   >
                     {plan.id === "free"
                       ? "Start browsing"
-                      : plan.id === "team"
-                        ? "Talk to us"
-                        : `Choose ${plan.name}`}
+                      : `Choose ${plan.name}`}
                   </button>
                 </div>
               ))}
+            </div>
+
+            {/* ── How Free is paid for ───────────────────────────────────
+                Stated next to the plans rather than in a footer, because a
+                reader deciding between them is owed it at that moment. */}
+            <div className="rounded-xl border border-warning/20 bg-warning/5 p-4 flex items-start gap-3">
+              <Warning
+                size={16}
+                weight="fill"
+                className="text-warning shrink-0 mt-0.5"
+              />
+              <div className="text-xs leading-relaxed">
+                <p className="font-semibold text-warning mb-1">
+                  {ADS_DISCLAIMER.headline}
+                </p>
+                <p className="text-muted-foreground">{ADS_DISCLAIMER.body}</p>
+              </div>
             </div>
 
             {/* ── Create an account ──────────────────────────────────────
@@ -790,6 +866,14 @@ export function MembershipsPage() {
                 our sign-in provider on the next step — we never ask for it
                 here.
               </p>
+              {interest && (
+                <p className="text-xs text-secondary mb-4 max-w-lg">
+                  You chose <span className="font-semibold">{interest}</span>.
+                  Billing is not open yet, so nothing has been charged and nothing
+                  is held: the choice is saved on this device, and every module is
+                  open to you in the meantime.
+                </p>
+              )}
 
               {accountSaved ? (
                 <div className="rounded-lg border border-success/30 bg-success/5 p-4">
@@ -960,7 +1044,7 @@ export function MembershipsPage() {
         {tab === "compare" && (
           <div className="rounded-xl border border-border bg-card overflow-hidden">
             {/* Header row */}
-            <div className="grid grid-cols-4 bg-muted/40 border-b border-border">
+            <div className="grid grid-cols-5 bg-muted/40 border-b border-border">
               <div className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Feature
               </div>
@@ -973,7 +1057,12 @@ export function MembershipsPage() {
                     {p.name}
                   </div>
                   <div className="text-xs text-muted-foreground font-mono">
-                    {p.price}/{p.id === "student" ? "enrolled" : "mo"}
+                    {p.price}
+                    {p.id === "free"
+                      ? ""
+                      : p.id === "team"
+                        ? " / seat"
+                        : " / mo"}
                   </div>
                 </div>
               ))}
@@ -982,24 +1071,23 @@ export function MembershipsPage() {
             {COMPARISON_ROWS.map((row, i) => (
               <div
                 key={row.label}
-                className={`grid grid-cols-4 border-b border-border last:border-0 ${i % 2 === 0 ? "" : "bg-muted/20"}`}
+                className={`grid grid-cols-5 border-b border-border last:border-0 ${i % 2 === 0 ? "" : "bg-muted/20"}`}
               >
                 <div className="p-3 px-4 text-xs text-muted-foreground flex items-center">
                   {row.label}
                 </div>
-                <div className="p-3 flex items-center justify-center border-l border-border">
-                  <CellValue val={row.student} />
-                </div>
-                <div className="p-3 flex items-center justify-center border-l border-border">
-                  <CellValue val={row.public} />
-                </div>
-                <div className="p-3 flex items-center justify-center border-l border-border">
-                  <CellValue val={row.professional} />
-                </div>
+                {PLANS.map((p) => (
+                  <div
+                    key={p.id}
+                    className="p-3 flex items-center justify-center border-l border-border"
+                  >
+                    <CellValue val={row[p.id]} />
+                  </div>
+                ))}
               </div>
             ))}
             {/* Footer CTA */}
-            <div className="grid grid-cols-4 bg-muted/40 border-t border-border">
+            <div className="grid grid-cols-5 bg-muted/40 border-t border-border">
               <div className="p-4" />
               {PLANS.map((p) => (
                 <div
@@ -1007,9 +1095,10 @@ export function MembershipsPage() {
                   className="p-3 border-l border-border flex justify-center"
                 >
                   <button
+                    onClick={() => choosePlan(p.id)}
                     className={`w-full py-2 rounded-lg font-semibold text-xs transition-all ${p.btnClass}`}
                   >
-                    {p.id === "student" ? "Verify .edu" : "Get Started"}
+                    {p.id === "free" ? "Start browsing" : "Create account"}
                   </button>
                 </div>
               ))}
@@ -1031,10 +1120,16 @@ export function MembershipsPage() {
               </h2>
               <p className="text-muted-foreground text-sm max-w-2xl">
                 Are you a policy researcher, economist, journalist, or academic?
-                Apply for an Official Analyst subscription to publish verified
-                reports directly on the pages users are already reading — state
+                The Official Analyst programme will let you publish verified
+                reports directly on the pages readers are already on — state
                 profiles, country dashboards, economy pages, and more.
               </p>
+              <div className="mt-4 rounded-lg border border-warning/20 bg-warning/5 px-4 py-3 text-xs text-warning">
+                <span className="font-semibold">Not open yet.</span> Publishing,
+                review and analyst profiles are still being built, so the tiers
+                below describe what is planned and nothing can be bought today.
+                Registering interest records it on this device.
+              </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                 {[
                   {
@@ -1118,9 +1213,10 @@ export function MembershipsPage() {
                     ))}
                   </ul>
                   <button
+                    onClick={() => noteInterest(`Analyst — ${tier.name}`)}
                     className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-all ${tier.btnClass}`}
                   >
-                    Apply for {tier.name}
+                    Register interest
                   </button>
                 </div>
               ))}
@@ -1264,7 +1360,8 @@ export function MembershipsPage() {
                 </ul>
                 <div className="mt-5 flex items-center gap-2 text-xs text-muted-foreground">
                   <Sparkle size={12} className="text-warning" />
-                  Used by researchers at 200+ universities worldwide
+                  Every module is already open without an account — verification
+                  is for keeping Pro features free once billing starts.
                 </div>
               </div>
 
@@ -1278,14 +1375,16 @@ export function MembershipsPage() {
                       className="text-emerald-400 mx-auto mb-4"
                     />
                     <h3 className="text-xl font-bold mb-2 text-foreground">
-                      Check your inbox
+                      Noted — verification opens with accounts
                     </h3>
                     <p className="text-muted-foreground text-sm">
-                      We&#39;ve sent a verification link to{" "}
+                      No email has been sent to{" "}
                       <span className="text-emerald-400 font-mono text-xs">
                         {email}
                       </span>
-                      . Click it to activate your free Student plan.
+                      , because student verification is not running yet. It is saved
+                      on this device. Nothing is gated in the meantime: every module
+                      is already open to you.
                     </p>
                     <button
                       onClick={() => {
@@ -1336,7 +1435,7 @@ export function MembershipsPage() {
                         type="submit"
                         className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg shadow-emerald-600/20"
                       >
-                        Send Verification Link <ArrowRight size={14} />
+                        Register for verification <ArrowRight size={14} />
                       </button>
                     </form>
                     <p className="text-muted-foreground text-[11px] mt-5 text-center">
@@ -1344,17 +1443,11 @@ export function MembershipsPage() {
                       annually.
                     </p>
                     <div className="border-t border-border mt-5 pt-5 text-center">
-                      <p className="text-muted-foreground text-xs mb-3">
-                        Or sign in with
+                      <p className="text-muted-foreground text-xs">
+                        Google and Microsoft sign-in arrive with accounts. Until
+                        then there is nothing to sign in to, and nothing is
+                        withheld without it.
                       </p>
-                      <div className="flex gap-3">
-                        <button className="flex-1 border border-border hover:border-muted-foreground rounded-lg py-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-all">
-                          Google
-                        </button>
-                        <button className="flex-1 border border-border hover:border-muted-foreground rounded-lg py-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-all">
-                          Microsoft
-                        </button>
-                      </div>
                     </div>
                   </>
                 )}
