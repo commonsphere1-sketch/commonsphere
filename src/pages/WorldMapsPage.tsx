@@ -27,7 +27,7 @@ import {
   auditMapJoin,
 } from "../data/mapJoin";
 import { useTheme } from "../contexts/ThemeContext";
-import { isG20, g20Countries, G20_UNION_MEMBERS } from "../data/g20";
+import { isG20, g20Countries, G20_UNION_MEMBERS, G20_MEMBER_CODES } from "../data/g20";
 import { StyledSelect } from "../components/StyledSelect";
 import { citiesData } from "../data/citiesData";
 
@@ -51,6 +51,9 @@ import { citiesData } from "../data/citiesData";
 /* Served from static/ (vite publicDir), so the path is absolute — the router
    has no basename and the app already assumes a root deploy. */
 const ADMIN1_BASE = "/geo/admin1";
+/* Every country's internal borders as one simplified line layer, built by
+   build-admin1-borders.cjs from the same per-country files. */
+const ADMIN1_BORDERS_URL = "/geo/admin1-borders.json";
 
 type Subdivision = {
   n: string;
@@ -698,6 +701,33 @@ export function WorldMapsPage() {
      per country under static/geo/admin1 — 241 files averaging 30 KB — and the
      manifest maps ISO code to feature count, so the page knows which countries
      have divisions to draw without fetching anything. */
+  /* The world map's internal borders: one line per shared border between two
+     divisions of the same country, for all 194 countries that have any.
+     Loaded after first paint; if it fails, the map simply draws without them. */
+  const [admin1Borders, setAdmin1Borders] = useState<{
+    features: { properties: { c: string } }[];
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(ADMIN1_BORDERS_URL)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((topo: Topology) => {
+        if (cancelled) return;
+        setAdmin1Borders(
+          feature(topo, topo.objects.b as never) as unknown as {
+            features: { properties: { c: string } }[];
+          },
+        );
+      })
+      .catch(() => {
+        // Country outlines still draw; only the internal borders are missing.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const [admin1Manifest, setAdmin1Manifest] = useState<Record<
     string,
     number
@@ -814,6 +844,17 @@ export function WorldMapsPage() {
       })),
     [worldDrawn, worldPath],
   );
+  /* Drawn only inside the countries in scope: in G20 mode the others are a
+     plain "not selected" fill, and lines across them would read as data. */
+  const admin1BordersD = useMemo(() => {
+    if (!admin1Borders) return undefined;
+    const g20 = new Set<string>(G20_MEMBER_CODES);
+    const features =
+      scope === "g20"
+        ? admin1Borders.features.filter((f) => g20.has(f.properties.c))
+        : admin1Borders.features;
+    return worldPath.path({ type: "FeatureCollection", features } as never) ?? undefined;
+  }, [admin1Borders, worldPath, scope]);
   const stateShapes = useMemo(
     () =>
       states.features.map((f) => ({
@@ -1324,6 +1365,21 @@ export function WorldMapsPage() {
                 />
               );
             })}
+            {/* First-order internal borders — states, provinces, regions — as one
+                unshaded layer over the fills. Lighter than the country borders so
+                countries still read first, and it takes no pointer events, so a
+                hover still reports the country underneath. */}
+            {admin1BordersD && (
+              <path
+                d={admin1BordersD}
+                fill="none"
+                stroke={stroke}
+                strokeOpacity={0.6}
+                strokeWidth={0.3 / worldZoom.zoom}
+                strokeLinejoin="round"
+                pointerEvents="none"
+              />
+            )}
           </svg>
 
           <Legend
@@ -1938,8 +1994,10 @@ export function WorldMapsPage() {
           <p className="text-[11px] font-sans leading-relaxed text-muted-foreground">
             Country outlines: Natural Earth (public domain) via world-atlas.
             Internal subdivision borders: Natural Earth 1:10m admin-1, 4,596
-            first-order divisions across 241 countries, split per country and
-            fetched only for the country on screen. US states: the US Census
+            first-order divisions across 241 countries. The world map draws the
+            internal borders of all 194 countries that have any, simplified to
+            within 0.02° — under half a pixel at the deepest zoom; the country
+            focus map fetches one country at full detail. US states: the US Census
             Bureau via us-atlas. Indicators:
             CommonSphere's own country and state datasets, which draw on the
             World Bank, IMF, UN agencies and national statistical offices —

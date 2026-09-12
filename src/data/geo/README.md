@@ -30,7 +30,17 @@ filename — and coordinates are quantised at 1e4.
 curl -sL -o admin1-10m-raw.geojson \
   https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_1_states_provinces.geojson
 node --max-old-space-size=4096 build-admin1.cjs
+node build-admin1-borders.cjs
 rm admin1-10m-raw.geojson
 ```
+
+## The world map's border layer
+
+`static/geo/admin1-borders.json` is built from the per-country files, so it
+must be regenerated after them. It keeps only the borders a country's
+divisions share with one another — no coastlines, no country outlines — for
+the 194 countries that have any, simplified with Douglas-Peucker to within
+0.02° (under half a pixel at the map's 8x zoom) with endpoints kept, so the
+lines still meet the coast. About 690 KB, 226 KB gzipped, fetched once.
 
 The raw download is deliberately not committed.
