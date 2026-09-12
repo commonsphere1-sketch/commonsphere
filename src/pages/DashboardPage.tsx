@@ -680,14 +680,18 @@ const fmtB = (n: number) =>
   n >= 1000 ? `$${(n / 1000).toFixed(1)}T` : `$${n.toFixed(0)}B`;
 
 /* ─── Static data ──────────────────────────────────────────────────────── */
+// World Bank, GDP (current US$), world aggregate, in trillions. The series
+// this replaced understated every year - 2024 read 105.4 against the Bank's
+// 111.7 - and ended a year early.
 const WORLD_GDP_SERIES = [
-  { year: "2018", gdp: 85.8 },
-  { year: "2019", gdp: 87.6 },
-  { year: "2020", gdp: 84.9 },
-  { year: "2021", gdp: 96.1 },
-  { year: "2022", gdp: 100.6 },
-  { year: "2023", gdp: 104.5 },
-  { year: "2024", gdp: 105.4 },
+  { year: "2018", gdp: 87.3 },
+  { year: "2019", gdp: 88.8 },
+  { year: "2020", gdp: 86.4 },
+  { year: "2021", gdp: 98.8 },
+  { year: "2022", gdp: 102.9 },
+  { year: "2023", gdp: 107.3 },
+  { year: "2024", gdp: 111.7 },
+  { year: "2025", gdp: 118.4 },
 ];
 
 const INFLATION_DATA = [
@@ -1211,16 +1215,20 @@ const US_RD_BREAKTHROUGHS = [
 
 /* ─── Trends & Projections static data ────────────────────────────────── */
 
+// IMF World Economic Outlook, April 2026 (NGDPD, GDP at current prices),
+// world aggregate, in trillions. What this replaced put 2024 at 105.4
+// against the IMF's 111.6, and projected 2025 at 107.1 - a projection below
+// what that year actually came in at, 118.2.
 const GDP_PROJECTION_COMBINED = [
-  { year: "2020", gdp: 84.9, type: "actual" },
-  { year: "2021", gdp: 96.1, type: "actual" },
-  { year: "2022", gdp: 100.6, type: "actual" },
-  { year: "2023", gdp: 104.5, type: "actual" },
-  { year: "2024", gdp: 105.4, type: "actual" },
-  { year: "2025", gdp: 107.1, type: "projected" },
-  { year: "2026", gdp: 109.8, type: "projected" },
-  { year: "2027", gdp: 113.2, type: "projected" },
-  { year: "2028", gdp: 116.9, type: "projected" },
+  { year: "2020", gdp: 86.2, type: "actual" },
+  { year: "2021", gdp: 98.4, type: "actual" },
+  { year: "2022", gdp: 102.7, type: "actual" },
+  { year: "2023", gdp: 107.2, type: "actual" },
+  { year: "2024", gdp: 111.6, type: "actual" },
+  { year: "2025", gdp: 118.2, type: "actual" },
+  { year: "2026", gdp: 126.3, type: "projected" },
+  { year: "2027", gdp: 131.9, type: "projected" },
+  { year: "2028", gdp: 138.1, type: "projected" },
 ];
 
 // Recharts cannot vary stroke style within a single <Area>, so the series is
@@ -1543,7 +1551,8 @@ function TrendsProjectionsPanel({
                 className="text-[9px] font-mono uppercase tracking-widest mb-3"
                 style={{ color: mutedText }}
               >
-                World GDP — Actual vs IMF Projection (USD Trillions)
+                World GDP — actual vs IMF projection · WEO April 2026 (USD
+                trillions)
               </p>
               <ResponsiveContainer width="100%" height={180}>
                 <AreaChart
@@ -3675,7 +3684,7 @@ function InteractiveDataPanel({
                   className="text-[9px] font-mono uppercase tracking-widest mb-1.5"
                   style={{ color: mutedText }}
                 >
-                  World GDP Trend
+                  World GDP Trend · World Bank
                 </p>
                 <ResponsiveContainer width="100%" height={52}>
                   <AreaChart
