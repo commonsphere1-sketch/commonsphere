@@ -28,6 +28,15 @@ import {
 } from "../data/mapJoin";
 import { useTheme } from "../contexts/ThemeContext";
 import { isG20, g20Countries, G20_UNION_MEMBERS, G20_MEMBER_CODES } from "../data/g20";
+import { isG7, g7Countries, G7_PARTICIPANTS, G7_MEMBER_CODES } from "../data/g7";
+import {
+  isGlobalNorth,
+  isGlobalSouth,
+  globalNorthCountries,
+  globalSouthCountries,
+  GLOBAL_NORTH_CODES,
+  GLOBAL_SOUTH_CODES,
+} from "../data/developmentStatus";
 import { StyledSelect } from "../components/StyledSelect";
 import { citiesData } from "../data/citiesData";
 
@@ -394,6 +403,93 @@ function NoDataHatch({
   );
 }
 
+type ScopeId = "all" | "g20" | "g7" | "north" | "south";
+
+/**
+ * The groups the world map can narrow to.
+ *
+ * Each carries its own members, the test for belonging, the codes the
+ * internal-border layer is clipped to, and what to call everything outside it,
+ * so adding a group does not mean threading another condition through the page.
+ *
+ * "Global North" and "Global South" are not official categories and no body
+ * publishes a membership list, so they are the UN M49 developed / developing
+ * classification. The panel says so, in UNSD's own terms, wherever they appear.
+ */
+type Scope = {
+  id: ScopeId;
+  chip: string;
+  /** Heading for the panel. */
+  title: string;
+  /** Plural noun for "N of M ___ have this figure". */
+  noun: string;
+  /** What one row of the panel's table is. */
+  rowLabel: "Member" | "Country";
+  members: Country[];
+  /** null for every country: nothing is out of scope. */
+  belongs: ((c: Country) => boolean) | null;
+  codes: readonly string[] | null;
+  outsideLabel: string | null;
+};
+
+const SCOPES: Scope[] = [
+  {
+    id: "all",
+    chip: "All countries",
+    title: "All countries",
+    noun: "countries",
+    rowLabel: "Country",
+    members: countriesData,
+    belongs: null,
+    codes: null,
+    outsideLabel: null,
+  },
+  {
+    id: "g20",
+    chip: "G20",
+    title: "Group of Twenty",
+    noun: "G20 states",
+    rowLabel: "Member",
+    members: g20Countries,
+    belongs: isG20,
+    codes: G20_MEMBER_CODES,
+    outsideLabel: "Not a G20 member",
+  },
+  {
+    id: "g7",
+    chip: "G7",
+    title: "Group of Seven",
+    noun: "G7 states",
+    rowLabel: "Member",
+    members: g7Countries,
+    belongs: isG7,
+    codes: G7_MEMBER_CODES,
+    outsideLabel: "Not a G7 member",
+  },
+  {
+    id: "north",
+    chip: "Global North",
+    title: "Global North",
+    noun: "countries",
+    rowLabel: "Country",
+    members: globalNorthCountries,
+    belongs: isGlobalNorth,
+    codes: GLOBAL_NORTH_CODES,
+    outsideLabel: "Not classified developed",
+  },
+  {
+    id: "south",
+    chip: "Global South",
+    title: "Global South",
+    noun: "countries",
+    rowLabel: "Country",
+    members: globalSouthCountries,
+    belongs: isGlobalSouth,
+    codes: GLOBAL_SOUTH_CODES,
+    outsideLabel: "Not classified developing",
+  },
+];
+
 type CountryIndicator = {
   id: string;
   label: string;
@@ -536,7 +632,7 @@ export function WorldMapsPage() {
   const [countryMetric, setCountryMetric] = useState("hdi");
   const [stateMetric, setStateMetric] = useState("education");
   const [hovered, setHovered] = useState<{ name: string; value: string } | null>(null);
-  const [scope, setScope] = useState<"all" | "g20">("all");
+  const [scope, setScope] = useState<ScopeId>("all");
   // The second map focuses on one country. The US is the default because it is
   // the only one with subdivision figures behind it.
   const [focusCode, setFocusCode] = useState("US");
@@ -621,7 +717,12 @@ export function WorldMapsPage() {
 
   /* ── Country shading ── */
   const activeCountry = COUNTRY_INDICATORS.find((i) => i.id === countryMetric)!;
-  const inScope = scope === "g20" ? g20Countries : countriesData;
+  const activeScope = SCOPES.find((s) => s.id === scope)!;
+  const inScope = activeScope.members;
+  /* M49 classifies neither Kosovo nor Taiwan, so they belong to no scope and
+     are drawn out of scope rather than assigned to one. */
+  const unclassifiedCount =
+    countriesData.length - globalNorthCountries.length - globalSouthCountries.length;
   const countryShading = useMemo(() => {
     const values = inScope
       .map((c) => activeCountry.get(c))
@@ -633,30 +734,30 @@ export function WorldMapsPage() {
   /* ── G20 figures ──
      Shares are of the world totals in this dataset, not of a published world
      figure, so the numerator and denominator come from the same place. */
-  const g20Stats = useMemo(() => {
+  const groupStats = useMemo(() => {
     const sum = (list: Country[], f: (c: Country) => number) =>
       list.reduce((a, c) => a + (f(c) || 0), 0);
     const worldPop = sum(countriesData, (c) => c.population);
     const worldGdp = sum(countriesData, (c) => c.gdp);
-    const pop = sum(g20Countries, (c) => c.population);
-    const gdp = sum(g20Countries, (c) => c.gdp);
+    const pop = sum(inScope, (c) => c.population);
+    const gdp = sum(inScope, (c) => c.gdp);
     return {
-      members: g20Countries.length,
+      members: inScope.length,
       pop,
       gdp,
       popShare: worldPop ? (pop / worldPop) * 100 : 0,
       gdpShare: worldGdp ? (gdp / worldGdp) * 100 : 0,
     };
-  }, []);
+  }, [inScope]);
 
-  /* Members ranked by whatever indicator the map is showing. */
-  const g20Ranked = useMemo(
+  /* The group's countries, ranked by whatever indicator the map is showing. */
+  const groupRanked = useMemo(
     () =>
-      g20Countries
+      inScope
         .map((c) => ({ c, v: activeCountry.get(c) }))
         .filter((r): r is { c: Country; v: number } => r.v !== null && Number.isFinite(r.v))
         .sort((a, b) => (activeCountry.higherIsBetter ? b.v - a.v : a.v - b.v)),
-    [activeCountry],
+    [activeCountry, inScope],
   );
 
   /* The ramp colour for a value, or null when there is no figure. Colour
@@ -833,13 +934,12 @@ export function WorldMapsPage() {
      plain "not selected" fill, and lines across them would read as data. */
   const admin1BordersD = useMemo(() => {
     if (!admin1Borders) return undefined;
-    const g20 = new Set<string>(G20_MEMBER_CODES);
-    const features =
-      scope === "g20"
-        ? admin1Borders.features.filter((f) => g20.has(f.properties.c))
-        : admin1Borders.features;
+    const codes = activeScope.codes ? new Set<string>(activeScope.codes) : null;
+    const features = codes
+      ? admin1Borders.features.filter((f) => codes.has(f.properties.c))
+      : admin1Borders.features;
     return worldPath.path({ type: "FeatureCollection", features } as never) ?? undefined;
-  }, [admin1Borders, worldPath, scope]);
+  }, [admin1Borders, worldPath, activeScope]);
   const stateShapes = useMemo(
     () =>
       states.features.map((f) => ({
@@ -1261,26 +1361,22 @@ export function WorldMapsPage() {
               </div>
             </div>
             <span className="text-[10px] font-mono text-muted-foreground">
-              {countryShading.count} of {inScope.length}{" "}
-              {scope === "g20" ? "G20 states" : "countries"} have this figure
+              {countryShading.count} of {inScope.length} {activeScope.noun} have
+              this figure
             </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 mb-3">
-            <button
-              onClick={() => setScope("all")}
-              aria-pressed={scope === "all"}
-              className={chip(scope === "all")}
-            >
-              All countries
-            </button>
-            <button
-              onClick={() => setScope("g20")}
-              aria-pressed={scope === "g20"}
-              className={chip(scope === "g20")}
-            >
-              G20 only
-            </button>
+            {SCOPES.map((sc) => (
+              <button
+                key={sc.id}
+                onClick={() => setScope(sc.id)}
+                aria-pressed={scope === sc.id}
+                className={chip(scope === sc.id)}
+              >
+                {sc.chip}
+              </button>
+            ))}
             <div className="w-px h-5 bg-border shrink-0" />
             {COUNTRY_INDICATORS.map((i) => (
               <button
@@ -1319,7 +1415,10 @@ export function WorldMapsPage() {
               strokeWidth={0.5 / worldZoom.zoom}
             />
             {worldShapes.map(({ name, country, d }, i) => {
-              const outside = scope === "g20" && country !== null && !isG20(country);
+              const outside =
+                activeScope.belongs !== null &&
+                country !== null &&
+                !activeScope.belongs(country);
               const value = country && !outside ? activeCountry.get(country) : null;
               return (
                 <path
@@ -1370,40 +1469,64 @@ export function WorldMapsPage() {
             lowLabel="Lower"
             highLabel="Higher"
             extra={
-              scope === "g20"
-                ? { colour: outOfScope, label: "Not a G20 member" }
+              activeScope.outsideLabel
+                ? { colour: outOfScope, label: activeScope.outsideLabel }
                 : undefined
             }
             hovered={hovered}
           />
         </div>
 
-        {/* ── G20 figures, only while that scope is selected ── */}
-        {scope === "g20" && (
+        {/* ── Group figures, while a group scope is selected ── */}
+        {scope !== "all" && (
           <div
             className="rounded-2xl p-5 mb-6"
             style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}
           >
             <p className="text-[10px] font-mono uppercase tracking-widest text-secondary mb-1">
-              Group of Twenty
+              {activeScope.title}
             </p>
             <h2 className="text-sm font-bold font-sans text-foreground mb-1">
-              {g20Stats.members} member states
+              {groupStats.members}{" "}
+              {activeScope.rowLabel === "Member" ? "member states" : "countries"}
             </h2>
             <p className="text-[11px] font-sans text-muted-foreground mb-4">
-              The G20 has 21 members. The {g20Stats.members} states below are
-              mapped; the other two — the{" "}
-              {G20_UNION_MEMBERS.join(" and the ")} — are unions rather than
-              countries, so they have no country row and no share of their own
-              here. The African Union joined in 2023.
+              {scope === "g20" && (
+                <>
+                  The G20 has 21 members. The {groupStats.members} states below are
+                  mapped; the other two — the{" "}
+                  {G20_UNION_MEMBERS.join(" and the ")} — are unions rather than
+                  countries, so they have no country row and no share of their own
+                  here. The African Union joined in 2023.
+                </>
+              )}
+              {scope === "g7" && (
+                <>
+                  The {groupStats.members} member states are mapped. The{" "}
+                  {G7_PARTICIPANTS.join(" and ")} takes part in every summit but is
+                  not counted as a member and has no country row of its own here.
+                </>
+              )}
+              {(scope === "north" || scope === "south") && (
+                <>
+                  Global North and Global South are not official categories and no
+                  body publishes a membership list, so this uses the UN Statistics
+                  Division's M49 developed / developing classification. UNSD states
+                  that those designations are for statistical convenience and do not
+                  express a judgement about the stage a country has reached in the
+                  development process.{" "}
+                  {unclassifiedCount} countries here are classified neither way and
+                  are drawn as out of scope.
+                </>
+              )}
             </p>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
               {[
-                { label: "Combined population", value: `${(g20Stats.pop / 1e9).toFixed(2)}B` },
-                { label: "Share of world population", value: `${g20Stats.popShare.toFixed(1)}%` },
-                { label: "Combined GDP", value: `$${(g20Stats.gdp / 1000).toFixed(1)}T` },
-                { label: "Share of world GDP", value: `${g20Stats.gdpShare.toFixed(1)}%` },
+                { label: "Combined population", value: `${(groupStats.pop / 1e9).toFixed(2)}B` },
+                { label: "Share of world population", value: `${groupStats.popShare.toFixed(1)}%` },
+                { label: "Combined GDP", value: `$${(groupStats.gdp / 1000).toFixed(1)}T` },
+                { label: "Share of world GDP", value: `${groupStats.gdpShare.toFixed(1)}%` },
               ].map((k) => (
                 <div
                   key={k.label}
@@ -1424,7 +1547,8 @@ export function WorldMapsPage() {
             </div>
 
             <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
-              Members by {activeCountry.label}
+              {activeScope.rowLabel === "Member" ? "Members" : "Countries"} by{" "}
+              {activeCountry.label}
             </p>
             <div className="overflow-x-auto -mx-1 px-1">
               <table className="w-full border-collapse">
@@ -1434,7 +1558,7 @@ export function WorldMapsPage() {
                       #
                     </th>
                     <th className="pb-2 text-left text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
-                      Member
+                      {activeScope.rowLabel}
                     </th>
                     <th className="pb-2 text-right text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
                       {activeCountry.label}
@@ -1448,7 +1572,7 @@ export function WorldMapsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {g20Ranked.map((r, i) => (
+                  {groupRanked.map((r, i) => (
                     <tr key={r.c.id} className="border-b border-border/40">
                       <td className="py-1.5 text-[11px] font-mono text-muted-foreground">
                         {i + 1}
@@ -1470,11 +1594,15 @@ export function WorldMapsPage() {
                 </tbody>
               </table>
             </div>
-            {g20Ranked.length < g20Stats.members && (
+            {groupRanked.length < groupStats.members && (
               <p className="text-[9px] font-sans mt-2 text-muted-foreground">
-                {g20Stats.members - g20Ranked.length} member
-                {g20Stats.members - g20Ranked.length === 1 ? "" : "s"} have no
-                figure for {activeCountry.label} and are omitted from the ranking.
+                {groupStats.members - groupRanked.length}{" "}
+                {activeScope.rowLabel === "Member" ? "member" : "country"}
+                {groupStats.members - groupRanked.length === 1 ? "" : "s"}{" "}
+                {groupStats.members - groupRanked.length === 1 ? "has" : "have"} no
+                figure for {activeCountry.label} and{" "}
+                {groupStats.members - groupRanked.length === 1 ? "is" : "are"} omitted
+                from the ranking.
               </p>
             )}
           </div>
@@ -1983,7 +2111,10 @@ export function WorldMapsPage() {
             internal borders of all 194 countries that have any, simplified to
             within 0.02° — under half a pixel at the deepest zoom; the country
             focus map fetches one country at full detail. US states: the US Census
-            Bureau via us-atlas. Indicators:
+            Bureau via us-atlas. Group scopes: G7 and G20 membership as those
+            groups publish it; Global North and South follow the UN M49 developed /
+            developing classification, which UNSD states is for statistical
+            convenience rather than a judgement about development. Indicators:
             CommonSphere's own country and state datasets, which draw on the
             World Bank, IMF, UN agencies and national statistical offices —
             each page carries the source for the figures it shows. Nothing on
