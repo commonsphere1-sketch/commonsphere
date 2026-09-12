@@ -10798,8 +10798,12 @@ function EntityFlag({ group }: { group: EntityGroup }) {
         onError={(e) => {
           const el = e.currentTarget as HTMLImageElement;
           el.style.display = "none";
-          if (el.parentElement)
-            el.parentElement.innerHTML = `<span class='text-[10px] text-muted-foreground px-1'>${group.entityName.slice(0, 2).toUpperCase()}</span>`;
+          if (el.parentElement) {
+            const initials = document.createElement("span");
+            initials.className = "text-[10px] text-muted-foreground px-1";
+            initials.textContent = group.entityName.slice(0, 2).toUpperCase();
+            el.parentElement.replaceChildren(initials);
+          }
         }}
       />
     </div>

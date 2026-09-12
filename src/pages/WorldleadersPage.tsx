@@ -13755,8 +13755,12 @@ function LeaderCard({
               className="w-full h-full object-cover"
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.display = "none";
-                (e.currentTarget.parentElement as HTMLElement).innerHTML =
-                  `<span class="text-2xl">${leader.flag}</span>`;
+                const fallback = document.createElement("span");
+                fallback.className = "text-2xl";
+                fallback.textContent = leader.flag;
+                (e.currentTarget.parentElement as HTMLElement).replaceChildren(
+                  fallback,
+                );
               }}
             />
           </div>
@@ -14357,8 +14361,12 @@ function MonarchCard({
               className="w-full h-full object-cover"
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.display = "none";
-                (e.currentTarget.parentElement as HTMLElement).innerHTML =
-                  `<span class="text-2xl">${monarch.flag}</span>`;
+                const fallback = document.createElement("span");
+                fallback.className = "text-2xl";
+                fallback.textContent = monarch.flag;
+                (e.currentTarget.parentElement as HTMLElement).replaceChildren(
+                  fallback,
+                );
               }}
             />
           </div>

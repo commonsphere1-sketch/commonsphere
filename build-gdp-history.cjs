@@ -47,6 +47,8 @@ function loadCountries() {
   const byCode = new Map();
   for (const row of json[1]) {
     if (row.value === null || !wanted.has(row.country.id)) continue;
+    // Written into generated source, so it is validated rather than trusted.
+    if (!/^\d{4}$/.test(String(row.date)) || !Number.isFinite(row.value)) continue;
     if (!byCode.has(row.country.id)) byCode.set(row.country.id, []);
     byCode.get(row.country.id).push({ year: row.date, gdp: row.value / 1e9 });
   }
