@@ -394,27 +394,6 @@ function NoDataHatch({
   );
 }
 
-/**
- * Readable label colour for a given fill.
- *
- * The ramp runs from black to light grey, so a fixed label colour is
- * unreadable at one end or the other. This scores the two candidates
- * against the fill actually rendered and takes the better.
- */
-function labelInkFor(fill: string): string {
-  const m = /^#([0-9a-f]{6})$/i.exec(fill);
-  if (!m) return "#000000";
-  const n = parseInt(m[1], 16);
-  const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
-    const c = v / 255;
-    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-  });
-  const lum = 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
-  const ratio = (a: number, b: number) =>
-    (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-  return ratio(lum, 0) >= ratio(lum, 1) ? "#0b0b0b" : "#ffffff";
-}
-
 type CountryIndicator = {
   id: string;
   label: string;
@@ -572,6 +551,12 @@ export function WorldMapsPage() {
   const noData = isLight ? "#f4f5f7" : "#191920";
   const noDataHatch = isLight ? "#a3a3a3" : "#5c5c5c";
   const outOfScope = noData;
+  /* Map labels: white in dark mode, black in light mode. A fixed ink on a grey
+     ramp would fail contrast somewhere — white on the dark-mode mid grey is
+     2.9:1 — so each label carries a halo in the opposite colour, which is what
+     keeps it legible on every fill. */
+  const labelInk = isLight ? "#000000" : "#ffffff";
+  const labelHalo = isLight ? "#ffffff" : "#000000";
   const stroke = isLight ? "#ffffff" : "#15151d";
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
   const cardBorder = isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)";
@@ -1151,24 +1136,21 @@ export function WorldMapsPage() {
      when its own geometry genuinely cannot hold the text. */
   const stateLabels = useMemo(() => {
     const inside: {
-      abbr: string; x: number; y: number; fill: string;
+      abbr: string; x: number; y: number;
       outside: false; leader: null;
     }[] = [];
-    const tooSmall: { abbr: string; cx: number; cy: number; fill: string }[] = [];
+    const tooSmall: { abbr: string; cx: number; cy: number }[] = [];
 
     for (const f of states.features) {
       const state = stateForFeature(f.properties.name);
       if (!state) continue; // DC and the territories carry no dataset row
-      const value = activeState.get(state);
-      // Label ink is scored against a flat colour, so a hatched state uses its base.
-      const fill = colourFor(value, stateShading.breaks) ?? noData;
       const [cx, cy] = statePath.centroid(f as never);
       if (!Number.isFinite(cx) || !Number.isFinite(cy)) continue;
       const [[x0, y0], [x1, y1]] = statePath.bounds(f as never);
       // Two characters at 12px need roughly this much room.
       const fits = x1 - x0 >= 22 && y1 - y0 >= 14;
-      if (fits) inside.push({ abbr: state.abbreviation, x: cx, y: cy, fill, outside: false, leader: null });
-      else tooSmall.push({ abbr: state.abbreviation, cx, cy, fill });
+      if (fits) inside.push({ abbr: state.abbreviation, x: cx, y: cy, outside: false, leader: null });
+      else tooSmall.push({ abbr: state.abbreviation, cx, cy });
     }
 
     // The ones that do not fit are stacked down the right edge in the order
@@ -1184,14 +1166,13 @@ export function WorldMapsPage() {
           abbr: t.abbr,
           x: COL_X,
           y,
-          fill: t.fill,
           outside: true as const,
           leader: `${t.cx},${t.cy} ${COL_X - 10},${y} ${COL_X - 4},${y}`,
         };
       });
 
     return [...inside, ...outside];
-  }, [states, statePath, activeState, stateShading.breaks]);
+  }, [states, statePath]);
 
   /* ── Continental aggregates ── */
   const continents = useMemo(() => {
@@ -1667,11 +1648,11 @@ export function WorldMapsPage() {
                   style={{
                     fontSize: (l.outside ? 11 : 12) / zoom,
                     fontWeight: 600,
-                    fill: l.outside
-                      ? isLight
-                        ? "#0f172a"
-                        : "#f1f0ff"
-                      : labelInkFor(l.fill),
+                    fill: labelInk,
+                    stroke: labelHalo,
+                    strokeWidth: 3 / zoom,
+                    strokeLinejoin: "round",
+                    paintOrder: "stroke",
                   }}
                 >
                   {l.abbr}
@@ -1796,7 +1777,11 @@ export function WorldMapsPage() {
                         style={{
                           fontSize: 9 / zoom,
                           fontWeight: 600,
-                          fill: labelInkFor(ramp[3]),
+                          fill: labelInk,
+                          stroke: labelHalo,
+                          strokeWidth: 2.2 / zoom,
+                          strokeLinejoin: "round",
+                          paintOrder: "stroke",
                         }}
                       >
                         {sd.n}
