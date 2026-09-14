@@ -8,10 +8,8 @@
  * (mesh with a !== b), which drops coastlines and the country's own outline,
  * then simplifies them for world scale and writes one quantised TopoJSON.
  *
- * Simplification is Douglas-Peucker at TOLERANCE degrees. At the map's
- * deepest zoom a pixel is about 0.05 degrees, so 0.02 keeps every line within
- * half a pixel of the 1:10m source. Endpoints are never removed, so borders
- * still meet the coast.
+ * Simplification is Douglas-Peucker at TOLERANCE degrees, from
+ * geo-simplify.cjs, which build-map-layers.cjs shares.
  *
  * Run after build-admin1.cjs:  node build-admin1-borders.cjs
  */
@@ -19,41 +17,11 @@ const fs = require("fs");
 const path = require("path");
 const { mesh } = require("topojson-client");
 const { topology } = require("topojson-server");
+const { simplify } = require("./geo-simplify.cjs");
 
 const SRC = path.join(__dirname, "static/geo/admin1");
 const OUT = path.join(__dirname, "static/geo/admin1-borders.json");
 const TOLERANCE = 0.02;
-
-function simplify(points, tol) {
-  if (points.length < 3) return points;
-  const keep = new Uint8Array(points.length);
-  keep[0] = keep[points.length - 1] = 1;
-  const stack = [[0, points.length - 1]];
-  while (stack.length) {
-    const [a, b] = stack.pop();
-    const [x1, y1] = points[a];
-    const [x2, y2] = points[b];
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const len2 = dx * dx + dy * dy;
-    let far = -1;
-    let farDist = tol;
-    for (let i = a + 1; i < b; i++) {
-      const [x, y] = points[i];
-      const t = len2 ? Math.max(0, Math.min(1, ((x - x1) * dx + (y - y1) * dy) / len2)) : 0;
-      const d = Math.hypot(x - (x1 + t * dx), y - (y1 + t * dy));
-      if (d > farDist) {
-        farDist = d;
-        far = i;
-      }
-    }
-    if (far >= 0) {
-      keep[far] = 1;
-      stack.push([a, far], [far, b]);
-    }
-  }
-  return points.filter((_, i) => keep[i]);
-}
 
 const features = [];
 let before = 0;

@@ -70,6 +70,39 @@ const ADMIN1_BASE = "/geo/admin1";
    build-admin1-borders.cjs from the same per-country files. */
 const ADMIN1_BORDERS_URL = "/geo/admin1-borders.json";
 
+/* The physical and infrastructure layers, all built by build-map-layers.cjs.
+   None is bundled: each is fetched the first time its toggle is switched on,
+   because most visits to this page never turn one on. Sizes gzipped: rivers
+   161 KB, lakes 100 KB, mines 157 KB, ports 16 KB. */
+const OVERLAY_URL = {
+  rivers: "/geo/rivers.json",
+  lakes: "/geo/lakes.json",
+  ports: "/geo/ports.json",
+  mines: "/geo/mines.json",
+} as const;
+
+type OverlayId = keyof typeof OVERLAY_URL;
+
+/** A point layer as build-map-layers.cjs writes it: a header plus index rows.
+    Generic over the row shape so destructuring a row keeps its tuple types. */
+type PointLayer<Row> = {
+  fields: string[];
+  rows: Row[];
+};
+
+/** ports.json — [name, lon, lat, scalerank]. */
+type PortRow = [string, number, number, number];
+
+/** mines.json — [name, commodityIdx, countryIdx, kindIdx, record, lon, lat].
+    record is 0 for a working facility and 1 for a known deposit; the two come
+    from different USGS datasets and are never added together. */
+type MineRow = [string, number, number, number, number, number, number];
+type MineLayer = PointLayer<MineRow> & {
+  commodities: string[];
+  countries: string[];
+  kinds: string[];
+};
+
 type Subdivision = {
   n: string;
   d: string;
@@ -254,6 +287,68 @@ const ZOOM_STEP = 1.6;
    the title names that instead of its continent. */
 const CONTINENT_TITLE_BELOW = 2;
 
+/* Natural Earth ranks a river 1 (the Amazon, the Nile) to 10 (a minor
+   tributary). At world view only the trunk rivers are drawn - all 1,454 at
+   once turn the continents into a grey haze - and the rest appear once the
+   reader has zoomed past RIVER_DETAIL_ABOVE, where there is room for them. */
+const RIVER_TRUNK_RANK = 4;
+const RIVER_DETAIL_ABOVE = 2;
+
+/* Ports are thinned at world view: 1,081 dots of a fixed screen size merge
+   into a smudge that says nothing, so below this zoom only the most prominent
+   are drawn. Natural Earth ranks a port 1 (Rotterdam, Shanghai) to 10.
+   Mineral sites are deliberately not thinned - where they cluster is the whole
+   point of the layer - which they can afford because the layer is drawn as two
+   paths rather than 9,639 elements. */
+const PORT_DETAIL_ABOVE = 2;
+const PORT_MAJOR_RANK = 5;
+
+/* Mineral sites are the one layer dense enough to bury the map underneath it:
+   9,639 dots at full size turn Europe, China, Australia and the eastern United
+   States into solid colour, and the choropleth the page is actually about
+   stops being readable. Rather than hide the layer at world view - a toggle
+   that visibly does nothing is worse - the dots are drawn small and part
+   transparent until the reader zooms in, where there is room for them at full
+   size. Where mining concentrates still reads; what is under it survives. */
+const MINE_FULL_DETAIL_ABOVE = 2;
+const MINE_DOT = { far: 0.55, near: 1.5 };
+const MINE_OPACITY = { far: 0.5, near: 0.85 };
+
+/**
+ * The overlay layers offered under the world map, in the order they are drawn:
+ * water first, then what people built on it and dug out of the ground.
+ *
+ * `about` is the button's tooltip and says where the layer comes from and what
+ * it leaves out, so a reader meets the caveat at the switch rather than after
+ * drawing a conclusion from it.
+ */
+const OVERLAYS: { id: OverlayId; label: string; about: string }[] = [
+  {
+    id: "rivers",
+    label: "Rivers",
+    about:
+      "Rivers and lake centrelines, Natural Earth 1:10m, public domain. Major rivers at world view; the rest once zoomed in.",
+  },
+  {
+    id: "lakes",
+    label: "Lakes",
+    about:
+      "Lakes and reservoirs, Natural Earth 1:10m, public domain. 1,310 of them; the smallest are omitted at this scale.",
+  },
+  {
+    id: "ports",
+    label: "Ports",
+    about:
+      "1,081 ports, Natural Earth 1:10m, public domain. Ranked by prominence, not by tonnage — this is not a throughput ranking.",
+  },
+  {
+    id: "mines",
+    label: "Mineral sites",
+    about:
+      "9,639 sites from two USGS datasets: working operations surveyed 2003-2008, which exclude the United States, and known deposits, which do not. Not a current census.",
+  },
+];
+
 /**
  * Zoom and pan for one map canvas.
  *
@@ -359,6 +454,40 @@ function useMapZoom(width: number, height: number, resetKey?: unknown) {
   } ${width / zoom} ${height / zoom}`;
 
   return { zoom, zoomTo, reset, viewBox, panProps, style };
+}
+
+/**
+ * Fetches one overlay the first time it is switched on, then keeps it.
+ *
+ * The layers total 1.4 MB, so bundling them would make every visit pay for
+ * data most visits never ask for. Switching a layer off keeps what was already
+ * fetched, so toggling it back on is instant and costs no second request.
+ *
+ * A failed fetch is reported to the caller rather than thrown: the map is still
+ * readable without an overlay, so the rest of the page must not come down with
+ * it.
+ */
+function useOverlay<T>(url: string, enabled: boolean) {
+  const [data, setData] = useState<T | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (!enabled || data || failed) return;
+    let cancelled = false;
+    fetch(url)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((json: T) => {
+        if (!cancelled) setData(json);
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [url, enabled, data, failed]);
+
+  return { data, loading: enabled && !data && !failed, failed };
 }
 
 /**
@@ -726,6 +855,24 @@ export function WorldMapsPage() {
   const labelInk = isLight ? "#000000" : "#ffffff";
   const labelHalo = isLight ? "#ffffff" : "#000000";
   const stroke = isLight ? "#ffffff" : "#15151d";
+  /* The choropleth is deliberately greyscale, which leaves hue free to mean
+     "this is not the shaded figure": water blue, port amber, mineral rust.
+
+     Colour alone is not enough to tell the layers apart, and cannot be made
+     enough here. The grey ramp spans the whole luminance range, so whatever
+     luminance an overlay takes, it matches some step of the ramp it is drawn
+     over - the first pairing tried put rivers and ports at 1.00:1 luminance,
+     identical in greyscale. The layers are therefore separated by shape, which
+     no colour vision affects: rivers are lines, lakes are filled areas, ports
+     are squares and mineral sites circles. These values are simply the best
+     luminance separation available on top of that - 1.67:1 between the closest
+     pair in light, 1.55:1 in dark, against 1.00:1 and 1.10:1 before. */
+  const overlayInk: Record<OverlayId, string> = {
+    rivers: isLight ? "#14608f" : "#4a9ad8",
+    lakes: isLight ? "#14608f" : "#4a9ad8",
+    ports: isLight ? "#e0a030" : "#ffd27a",
+    mines: isLight ? "#6e1e0a" : "#c0512c",
+  };
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
   const cardBorder = isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)";
   const cardShadow = isLight
@@ -1009,6 +1156,112 @@ export function WorldMapsPage() {
   );
   /* Drawn only inside the countries in scope: in G20 mode the others are a
      plain "not selected" fill, and lines across them would read as data. */
+  /* ── Overlay layers ───────────────────────────────────────────────────
+     Rivers, lakes, ports and mineral sites. Each is off by default and fetched
+     only when first switched on; see useOverlay above. */
+  const [overlay, setOverlay] = useState<Record<OverlayId, boolean>>({
+    rivers: false,
+    lakes: false,
+    ports: false,
+    mines: false,
+  });
+  const toggleOverlay = useCallback(
+    (id: OverlayId) => setOverlay((o) => ({ ...o, [id]: !o[id] })),
+    [],
+  );
+
+  const rivers = useOverlay<Topology>(OVERLAY_URL.rivers, overlay.rivers);
+  const lakes = useOverlay<Topology>(OVERLAY_URL.lakes, overlay.lakes);
+  const ports = useOverlay<PointLayer<PortRow>>(OVERLAY_URL.ports, overlay.ports);
+  const mines = useOverlay<MineLayer>(OVERLAY_URL.mines, overlay.mines);
+
+  const activeOverlays = OVERLAYS.filter((o) => overlay[o.id]);
+
+  const overlayState: Record<OverlayId, { loading: boolean; failed: boolean }> = {
+    rivers: { loading: rivers.loading, failed: rivers.failed },
+    lakes: { loading: lakes.loading, failed: lakes.failed },
+    ports: { loading: ports.loading, failed: ports.failed },
+    mines: { loading: mines.loading, failed: mines.failed },
+  };
+
+  /* Rivers are drawn in two passes so the map reads at every zoom: the trunk
+     rivers always, the rest only once zoomed past RIVER_DETAIL_ABOVE. Drawing
+     all 1,454 at world view turns the continents into a grey haze. */
+  const riverPaths = useMemo(() => {
+    if (!rivers.data) return null;
+    const fc = feature(rivers.data, rivers.data.objects.r as never) as unknown as {
+      features: { properties: { n: string; s: number } }[];
+    };
+    const bySize = (max: number) =>
+      worldPath.path({
+        type: "FeatureCollection",
+        features: fc.features.filter((f) => f.properties.s <= max),
+      } as never) ?? undefined;
+    return { trunk: bySize(RIVER_TRUNK_RANK), all: bySize(99) };
+  }, [rivers.data, worldPath]);
+
+  const lakePaths = useMemo(() => {
+    if (!lakes.data) return undefined;
+    return (
+      worldPath.path(
+        feature(lakes.data, lakes.data.objects.l as never) as never,
+      ) ?? undefined
+    );
+  }, [lakes.data, worldPath]);
+
+  /* Point layers are drawn as one path each rather than one element per site.
+     With a circle per site the mineral layer put 9,639 nodes in the document,
+     and because the map re-renders on hover, moving the cursor across it cost a
+     measured 33 ms a time - two dropped frames. Two paths render the same dots
+     for two nodes and no per-hover reconciliation. */
+  const dot = (x: number, y: number, r: number) =>
+    `M${x - r},${y}a${r},${r} 0 1,0 ${2 * r},0a${r},${r} 0 1,0 ${-2 * r},0`;
+  /* Ports are squares and mineral sites circles, so the two point layers stay
+     distinguishable without reference to their colour. */
+  const box = (x: number, y: number, r: number) =>
+    `M${x - r},${y - r}h${2 * r}v${2 * r}h${-2 * r}Z`;
+
+  const portPoints = useMemo(() => {
+    if (!ports.data) return null;
+    return ports.data.rows
+      .map(([, lon, lat, rank]) => {
+        const p = worldPath.projection([lon, lat]);
+        return p ? { x: p[0], y: p[1], rank } : null;
+      })
+      .filter((p): p is { x: number; y: number; rank: number } => p !== null);
+  }, [ports.data, worldPath]);
+
+  const minePoints = useMemo(() => {
+    if (!mines.data) return null;
+    const out: { x: number; y: number; deposit: boolean }[] = [];
+    for (const [, , , , record, lon, lat] of mines.data.rows) {
+      const p = worldPath.projection([lon, lat]);
+      if (p) out.push({ x: p[0], y: p[1], deposit: record === 1 });
+    }
+    return out;
+  }, [mines.data, worldPath]);
+
+  /* What the mineral layer actually holds, counted from the data rather than
+     written by hand, so the note cannot drift from the file it describes. The
+     two record types are reported separately: a deposit and an operation can
+     be the same place, so a combined total would overstate it. */
+  const mineSummary = useMemo(() => {
+    if (!mines.data) return null;
+    const d = mines.data;
+    const byCommodity = new Map<string, number>();
+    let operations = 0;
+    for (const [, ci, , , record] of d.rows) {
+      if (record === 0) operations++;
+      const name = d.commodities[ci];
+      if (name) byCommodity.set(name, (byCommodity.get(name) ?? 0) + 1);
+    }
+    return {
+      operations,
+      deposits: d.rows.length - operations,
+      top: [...byCommodity.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6),
+    };
+  }, [mines.data]);
+
   const admin1BordersD = useMemo(() => {
     if (!admin1Borders) return undefined;
     const codes = activeScope.codes ? new Set<string>(activeScope.codes) : null;
@@ -1075,6 +1328,37 @@ export function WorldMapsPage() {
      changes. `zoom` is that shared level, which the label pass depends on. */
   const worldZoom = useMapZoom(WORLD_W, WORLD_H);
   const focusZoom = useMapZoom(US_W, US_H, focusCode);
+
+  /* These two depend on the zoom, so they are declared after it: the dots keep
+     a constant size on screen, which means their radius is in canvas units
+     divided by the current zoom. */
+  const portsD = useMemo(() => {
+    if (!portPoints) return undefined;
+    const r = 1.5 / worldZoom.zoom;
+    return portPoints
+      .filter((p) => worldZoom.zoom > PORT_DETAIL_ABOVE || p.rank <= PORT_MAJOR_RANK)
+      .map((p) => box(p.x, p.y, r))
+      .join("");
+  }, [portPoints, worldZoom.zoom]);
+
+  const minesD = useMemo(() => {
+    if (!minePoints) return null;
+    const near = worldZoom.zoom > MINE_FULL_DETAIL_ABOVE;
+    const r = (near ? MINE_DOT.near : MINE_DOT.far) / worldZoom.zoom;
+    const solid: string[] = [];
+    const hollow: string[] = [];
+    for (const p of minePoints) (p.deposit ? hollow : solid).push(dot(p.x, p.y, r));
+    return {
+      solid: solid.join(""),
+      hollow: hollow.join(""),
+      opacity: near ? MINE_OPACITY.near : MINE_OPACITY.far,
+      /* Far out, a hollow ring of 0.55 units would close up into a blob, so
+         both record types are drawn solid and the distinction returns with the
+         zoom that makes it legible. */
+      ringed: near,
+    };
+  }, [minePoints, worldZoom.zoom]);
+
   const zoom = focusZoom.zoom;
 
   /**
@@ -1470,6 +1754,46 @@ export function WorldMapsPage() {
             ))}
           </div>
 
+          {/* Overlay toggles. Separate row from the scope and indicator chips
+              because these do not change what is shaded - they add a layer on
+              top of it - and a reader who mistook one for the other would read
+              the map wrongly. */}
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
+              Layers
+            </span>
+            {OVERLAYS.map((o) => {
+              const state = overlayState[o.id];
+              return (
+                <button
+                  key={o.id}
+                  onClick={() => toggleOverlay(o.id)}
+                  aria-pressed={overlay[o.id]}
+                  className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
+                    overlay[o.id]
+                      ? "border-transparent"
+                      : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                  }`}
+                  style={
+                    overlay[o.id]
+                      ? { background: `${overlayInk[o.id]}26`, borderColor: `${overlayInk[o.id]}66`, color: overlayInk[o.id] }
+                      : undefined
+                  }
+                  title={o.about}
+                >
+                  <span
+                    aria-hidden
+                    className={`w-2 h-2 shrink-0 ${o.id === "ports" ? "" : "rounded-full"}`}
+                    style={{ background: overlay[o.id] ? overlayInk[o.id] : "currentColor", opacity: overlay[o.id] ? 1 : 0.45 }}
+                  />
+                  {o.label}
+                  {state.loading && <span className="font-mono opacity-70">…</span>}
+                  {state.failed && <span className="font-mono opacity-70">unavailable</span>}
+                </button>
+              );
+            })}
+          </div>
+
           <ZoomControls
             zoom={worldZoom.zoom}
             onZoom={worldZoom.zoomTo}
@@ -1544,6 +1868,66 @@ export function WorldMapsPage() {
               />
             )}
 
+            {/* ── Overlays ──────────────────────────────────────────────
+                Drawn over the fills and the internal borders, under the hover
+                title. None takes pointer events, so hovering a river still
+                reports the country beneath it and the choropleth stays the
+                thing the map is about. Widths and radii are divided by the
+                zoom, so every layer holds its size on screen. */}
+            {overlay.lakes && lakePaths && (
+              <path
+                d={lakePaths}
+                fill={overlayInk.lakes}
+                fillOpacity={0.55}
+                stroke={overlayInk.lakes}
+                strokeWidth={0.3 / worldZoom.zoom}
+                pointerEvents="none"
+              />
+            )}
+            {overlay.rivers && riverPaths && (
+              <path
+                d={
+                  worldZoom.zoom > RIVER_DETAIL_ABOVE
+                    ? riverPaths.all
+                    : riverPaths.trunk
+                }
+                fill="none"
+                stroke={overlayInk.rivers}
+                strokeOpacity={0.85}
+                strokeWidth={0.6 / worldZoom.zoom}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                pointerEvents="none"
+              />
+            )}
+            {overlay.mines && minesD && (
+              /* A working operation is drawn solid and a known deposit hollow,
+                 because they come from different datasets and mean different
+                 things - one is a mine that was running, the other is ore known
+                 to be in the ground. */
+              <g pointerEvents="none">
+                <path d={minesD.solid} fill={overlayInk.mines} fillOpacity={minesD.opacity} />
+                <path
+                  d={minesD.hollow}
+                  fill={minesD.ringed ? "none" : overlayInk.mines}
+                  fillOpacity={minesD.opacity}
+                  stroke={minesD.ringed ? overlayInk.mines : "none"}
+                  strokeWidth={0.7 / worldZoom.zoom}
+                  strokeOpacity={0.9}
+                />
+              </g>
+            )}
+            {overlay.ports && portsD && (
+              <path
+                d={portsD}
+                fill={overlayInk.ports}
+                fillOpacity={0.9}
+                stroke={labelHalo}
+                strokeWidth={0.4 / worldZoom.zoom}
+                pointerEvents="none"
+              />
+            )}
+
             {/* The title under the cursor: the continent while the whole world
                 is in view, the country once zoomed in. Same ink and halo as the
                 map's other labels and the same size on screen at any zoom. It
@@ -1590,6 +1974,38 @@ export function WorldMapsPage() {
             }
             hovered={hovered}
           />
+
+          {/* Where each switched-on layer came from, and what it does not say.
+              Printed under the map rather than hidden in a tooltip, because a
+              reader who has just drawn a conclusion from the mineral layer is
+              the one who most needs to know it stops in 2008 and omits the
+              United States. */}
+          {activeOverlays.length > 0 && (
+            <div className="mt-2 space-y-1">
+              {activeOverlays.map((o) => (
+                <p key={o.id} className="text-[9px] font-sans text-muted-foreground">
+                  <span
+                    aria-hidden
+                    className={`inline-block w-1.5 h-1.5 mr-1.5 align-middle ${
+                      o.id === "ports" ? "" : "rounded-full"
+                    }`}
+                    style={{ background: overlayInk[o.id] }}
+                  />
+                  <span className="font-medium text-foreground">{o.label}</span> — {o.about}
+                </p>
+              ))}
+              {overlay.mines && mineSummary && (
+                <p className="text-[9px] font-sans text-muted-foreground pl-3">
+                  A filled dot is one of {mineSummary.operations.toLocaleString()}{" "}
+                  working operations, a hollow one of{" "}
+                  {mineSummary.deposits.toLocaleString()} known deposits. They are
+                  counted separately: the same place can be both, and the two
+                  datasets do not share a survey date. Most common:{" "}
+                  {mineSummary.top.map(([name, n]) => `${name} (${n})`).join(", ")}.
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* ── Group figures, while a group scope is selected ── */}
