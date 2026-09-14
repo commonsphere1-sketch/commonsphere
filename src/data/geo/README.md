@@ -55,7 +55,12 @@ only when its toggle on the maps page is first switched on:
 | `rivers.json` | 1,454 rivers and lake centrelines | Natural Earth 1:10m | 161 KB gzipped |
 | `lakes.json` | 1,310 lakes and reservoirs | Natural Earth 1:10m | 100 KB gzipped |
 | `ports.json` | 1,081 ports | Natural Earth 1:10m | 16 KB gzipped |
-| `mines.json` | 9,639 mineral sites | USGS, two datasets | 157 KB gzipped |
+| `infrastructure.json` | trunk roads, principal railways, 893 airports | Natural Earth 1:10m | 396 KB gzipped |
+| `mines.json` | 16,424 mineral sites | USGS, three surveys | 256 KB gzipped |
+
+Every layer is drawn on all three maps — the world map, the United States map
+and the per-country map — in whatever projection that map uses, clipped to the
+country in view. One set of switches drives all of them.
 
 Natural Earth is public domain. The two USGS datasets are US Government work
 and likewise public domain.
@@ -66,23 +71,56 @@ pixel at the map's deepest zoom. Point layers are written as index rows against
 a string table rather than as GeoJSON, which is what keeps 9,639 mineral sites
 down to 157 KB.
 
+### What the infrastructure layer does not say
+
+It is the **trunk network** — major highways, secondary highways, beltways and
+bypasses, plus principal railways — not every road. The full 1:10m files hold
+82,013 separate ways and 2.1 million positions; written out whole they came to
+8 MB, with the per-way overhead dominating. Merging each network into one
+geometry and keeping the trunk routes brings it into line with the other layers.
+
+More importantly, **coverage is uneven between regions**, so the layer must not
+be read as a measure of how much road or rail a country has. Clipping Natural
+Earth's railways to country boundaries and comparing with the World Bank's
+route-km (`IS.RRS.TOTL.KM`, latest per country, 2021) gives:
+
+| country | Natural Earth km | World Bank km | ratio |
+|---|---|---|---|
+| India | 41,300 | 68,103 | 0.61x |
+| United States | 91,404 | 148,553 | 0.62x |
+| China | 70,329 | 109,767 | 0.64x |
+| Canada | 35,426 | 48,150 | 0.74x |
+| France | 21,858 | 27,716 | 0.79x |
+| Germany | 31,798 | 33,401 | 0.95x |
+| Poland | 24,540 | 18,620 | 1.32x |
+| Russia | 119,275 | 85,544 | 1.39x |
+
+A spread of 0.61x to 1.39x. The layer is a cartographic reference, not a
+network census, and the note under the map says so.
+
 ### What the mineral layer does not say
 
-It merges two USGS datasets that answer different questions, and neither is
-current:
+It merges three USGS surveys that answer different questions, and **none is
+current** — the newest is 2008 and the rest are 2003. USGS publishes no later
+point-location dataset at this coverage:
 
 - **Mineral operations outside the United States** — working mines, plants,
   refineries and smelters, surveyed 2003–2008. As its title says, it contains
-  **no United States records at all**.
+  no United States records at all.
+- **Active mines and mineral plants in the United States** — the companion
+  survey that does, from 2003. Without it the map showed an empty United States
+  and relied on a note to explain why.
 - **Major mineral deposits of the world** (OFR 2005-1294) — known deposits,
-  which is not the same thing as a working mine, and which does include the
-  United States.
+  which is not the same thing as a working mine.
 
-The two are kept apart by a `record` flag rather than summed, because a deposit
-and an operation at the same place are two different facts. The map draws an
-operation as a filled circle and a deposit as a hollow one, and the note under
-the map states the survey dates and the United States gap, so an empty United
-States reads as a gap in the source rather than as an absence of mining.
+Operations and deposits are kept apart by a `record` flag rather than summed,
+because a deposit and an operation at the same place are two different facts.
+The map draws an operation as a filled circle and a deposit as a hollow one,
+and the note under the map carries every survey date.
+
+On the United States map, Albers USA does not clip hard at the border, so a
+site just inside Canada or Mexico is drawn too; the country outline is the
+guide to what is actually inside.
 
 ### Regenerating
 

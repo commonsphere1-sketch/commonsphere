@@ -79,6 +79,7 @@ const OVERLAY_URL = {
   lakes: "/geo/lakes.json",
   ports: "/geo/ports.json",
   mines: "/geo/mines.json",
+  infrastructure: "/geo/infrastructure.json",
 } as const;
 
 type OverlayId = keyof typeof OVERLAY_URL;
@@ -101,6 +102,12 @@ type MineLayer = PointLayer<MineRow> & {
   commodities: string[];
   countries: string[];
   kinds: string[];
+};
+
+/** infrastructure.json — two TopoJSON objects, `rd` and `rl`, each a single
+    merged MultiLineString, plus airports as [name, lon, lat, major] rows. */
+type InfrastructureLayer = Topology & {
+  airports: [string, number, number, number][];
 };
 
 type Subdivision = {
@@ -303,6 +310,10 @@ const RIVER_DETAIL_ABOVE = 2;
 const PORT_DETAIL_ABOVE = 2;
 const PORT_MAJOR_RANK = 5;
 
+/* Airports thin the same way: 387 of the 893 are classed major, and those are
+   the ones worth drawing while the whole world is in view. */
+const AIRPORT_DETAIL_ABOVE = 2;
+
 /* Mineral sites are the one layer dense enough to bury the map underneath it:
    9,639 dots at full size turn Europe, China, Australia and the eastern United
    States into solid colour, and the choropleth the page is actually about
@@ -342,12 +353,64 @@ const OVERLAYS: { id: OverlayId; label: string; about: string }[] = [
       "1,081 ports, Natural Earth 1:10m, public domain. Ranked by prominence, not by tonnage — this is not a throughput ranking.",
   },
   {
+    id: "infrastructure",
+    label: "Infrastructure",
+    about:
+      "Trunk roads, principal railways and 893 airports, Natural Earth 1:10m, public domain. The trunk network, not every road — and coverage is uneven, so it is not a measure of how much road or rail a country has.",
+  },
+  {
     id: "mines",
     label: "Mineral sites",
     about:
-      "9,639 sites from two USGS datasets: working operations surveyed 2003-2008, which exclude the United States, and known deposits, which do not. Not a current census.",
+      "16,424 sites from three USGS surveys: working operations outside the United States (2003-2008), active mines and plants inside it (2003), and known deposits worldwide (2005). Historical surveys, not a current census - USGS publishes no later point data at this coverage.",
   },
 ];
+
+/**
+ * A line drawn over a casing, so it reads whatever lies underneath it.
+ *
+ * The overlay colours were picked to separate from each other and from the
+ * grey ramp, but the fill under a line is whatever the choropleth put there.
+ * Measured against the mid-grey a country map uses, the river blue came out at
+ * 1.05:1 and the infrastructure violet at 1.15:1 - all but invisible inside
+ * the country, while perfectly clear on the dark background outside it.
+ *
+ * No choice of colour fixes that, because the fill underneath changes with the
+ * data. A casing does: the same halo the labels use, drawn slightly wider
+ * beneath the line, so every line carries its own contrasting edge.
+ */
+function CasedLine({
+  d,
+  ink,
+  halo,
+  width,
+  zoom,
+  dash,
+  opacity = 0.9,
+}: {
+  d: string | undefined;
+  ink: string;
+  halo: string;
+  width: number;
+  zoom: number;
+  dash?: string;
+  opacity?: number;
+}) {
+  if (!d) return null;
+  const shared = {
+    d,
+    fill: "none",
+    strokeLinecap: dash ? ("butt" as const) : ("round" as const),
+    strokeLinejoin: "round" as const,
+    strokeDasharray: dash,
+  };
+  return (
+    <g pointerEvents="none">
+      <path {...shared} stroke={halo} strokeOpacity={0.55} strokeWidth={(width + 1.2) / zoom} />
+      <path {...shared} stroke={ink} strokeOpacity={opacity} strokeWidth={width / zoom} />
+    </g>
+  );
+}
 
 /**
  * Zoom and pan for one map canvas.
@@ -359,15 +422,25 @@ const OVERLAYS: { id: OverlayId; label: string; about: string }[] = [
  * back but the reset button. Passing resetKey returns to 1x whenever it changes.
  */
 function useMapZoom(width: number, height: number, resetKey?: unknown) {
-  const [zoom, setZoom] = useState(1);
-  const [center, setCenter] = useState({ x: width / 2, y: height / 2 });
+  /* Zoom and centre are one piece of state, not two.
+
+     They were separate, and every handler read the current zoom from its own
+     closure. A wheel notch is a factor applied to that zoom, so when a
+     trackpad delivered ten events in a frame - which is what a flick is - all
+     ten read the same starting zoom and computed the same result. Measured:
+     one of ten events survived, and the gesture felt dead.
+
+     With a single state and functional updates, each event sees what the one
+     before it did, so a flick accumulates. */
+  const [view, setView] = useState({ zoom: 1, x: width / 2, y: height / 2 });
+  const { zoom } = view;
+  const center = view;
   const drag = useRef<{ px: number; py: number; cx: number; cy: number } | null>(
     null,
   );
 
   const reset = useCallback(() => {
-    setZoom(1);
-    setCenter({ x: width / 2, y: height / 2 });
+    setView({ zoom: 1, x: width / 2, y: height / 2 });
   }, [width, height]);
 
   // A new subject is a new map; the old viewport would land somewhere arbitrary.
@@ -387,18 +460,155 @@ function useMapZoom(width: number, height: number, resetKey?: unknown) {
     [width, height],
   );
 
+  /** The zoom buttons, which name an absolute level. */
   const zoomTo = useCallback(
     (k: number) => {
-      const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, k));
-      setZoom(next);
-      setCenter((c) => clamp(c.x, c.y, next));
+      setView((v) => {
+        const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, k));
+        return { zoom: next, ...clamp(v.x, v.y, next) };
+      });
     },
     [clamp],
+  );
+
+  /* Where the drawing sits inside its box, and how big it is on screen.
+     The box can be wider than the drawing, so this is the one place that
+     converts between client pixels and canvas units; the pan handler and the
+     wheel handler both use it rather than each doing the arithmetic. */
+  const frame = useCallback(
+    (rect: DOMRect, k: number) => {
+      if (rect.width === 0 || rect.height === 0) return null;
+      const scale = Math.min(rect.width / (width / k), rect.height / (height / k));
+      if (!Number.isFinite(scale) || scale <= 0) return null;
+      const drawnW = (width / k) * scale;
+      const drawnH = (height / k) * scale;
+      return {
+        scale,
+        drawnW,
+        drawnH,
+        left: rect.left + (rect.width - drawnW) / 2,
+        top: rect.top + (rect.height - drawnH) / 2,
+      };
+    },
+    [width, height],
+  );
+
+  /**
+   * Multiplies the zoom while holding one point of the map still - the point
+   * under the cursor for a wheel, the middle for a keystroke.
+   *
+   * Takes a factor rather than a level so that consecutive events compose: two
+   * notches in one frame are two multiplications, not two writes of the same
+   * number. `fx`/`fy` are where the held point sits across the drawing, 0 to
+   * 1, and are independent of the zoom - the drawing is fitted to the box the
+   * same way whatever the zoom, so the fraction does not move.
+   *
+   * The canvas coordinate under that point is the same before and after, which
+   * gives the new centre directly: at a fraction fx across a viewport w wide,
+   * the centre lies fx - 0.5 viewports from that coordinate.
+   */
+  const zoomBy = useCallback(
+    (factor: number, fx: number, fy: number) => {
+      setView((v) => {
+        const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, v.zoom * factor));
+        if (next === v.zoom) return v;
+        const atX = v.x - width / (2 * v.zoom) + fx * (width / v.zoom);
+        const atY = v.y - height / (2 * v.zoom) + fy * (height / v.zoom);
+        return {
+          zoom: next,
+          ...clamp(
+            atX + (width / next) * (0.5 - fx),
+            atY + (height / next) * (0.5 - fy),
+            next,
+          ),
+        };
+      });
+    },
+    [clamp, width, height],
   );
 
   const endPan = () => {
     drag.current = null;
   };
+
+  /* Wheel and trackpad. The gesture zooms rather than scrolling the page,
+     which is what a map is expected to do, so the event is consumed - hence a
+     non-passive listener attached by hand below, since React's onWheel is
+     passive and cannot preventDefault.
+
+     deltaY is normalised by mode: a line-wise wheel reports ~3 lines a notch, a
+     pixel-wise trackpad tens of pixels, and a page-wise wheel one page. Without
+     this a trackpad flings from world view to full zoom in one flick. */
+  const onWheel = useCallback(
+    (e: WheelEvent) => {
+      e.preventDefault();
+      const el = e.currentTarget as SVGSVGElement;
+      /* Any zoom gives the same fx/fy, so this one does not have to be the
+         live one - which is what keeps the handler free of stale state. */
+      const f = frame(el.getBoundingClientRect(), 1);
+      if (!f) return;
+      const perNotch = e.deltaMode === 1 ? 1 / 3 : e.deltaMode === 2 ? 1 : 1 / 100;
+      const notches = -e.deltaY * perNotch;
+      zoomBy(
+        Math.pow(ZOOM_STEP, notches),
+        Math.min(1, Math.max(0, (e.clientX - f.left) / f.drawnW)),
+        Math.min(1, Math.max(0, (e.clientY - f.top) / f.drawnH)),
+      );
+    },
+    [frame, zoomBy],
+  );
+
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [onWheel]);
+
+  /* Keyboard, for anyone not using a mouse. +/- zoom about the middle, the
+     arrows pan by a fifth of the viewport, 0 resets. The map is focusable, so
+     these only fire once the reader has tabbed to it - they cannot steal the
+     arrow keys from the page. */
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent<SVGSVGElement>) => {
+      const step = 0.2;
+      const pan = (dx: number, dy: number) =>
+        setView((v) => ({
+          zoom: v.zoom,
+          ...clamp(v.x + (dx * width) / v.zoom, v.y + (dy * height) / v.zoom, v.zoom),
+        }));
+      switch (e.key) {
+        case "+":
+        case "=":
+          zoomBy(ZOOM_STEP, 0.5, 0.5);
+          break;
+        case "-":
+        case "_":
+          zoomBy(1 / ZOOM_STEP, 0.5, 0.5);
+          break;
+        case "0":
+          reset();
+          break;
+        case "ArrowLeft":
+          pan(-step, 0);
+          break;
+        case "ArrowRight":
+          pan(step, 0);
+          break;
+        case "ArrowUp":
+          pan(0, -step);
+          break;
+        case "ArrowDown":
+          pan(0, step);
+          break;
+        default:
+          return; // every other key belongs to the page
+      }
+      e.preventDefault();
+    },
+    [clamp, reset, width, height, zoomBy],
+  );
 
   const panProps = {
     onPointerDown: (e: React.PointerEvent<SVGSVGElement>) => {
@@ -409,23 +619,19 @@ function useMapZoom(width: number, height: number, resetKey?: unknown) {
     onPointerMove: (e: React.PointerEvent<SVGSVGElement>) => {
       const d = drag.current;
       if (!d) return;
+      /* Canvas units travelled per device pixel, from the same frame helper
+         the wheel uses: whenever the box's aspect differs from the viewBox's,
+         the drawing is letterboxed inside it and only one axis binds. Reading
+         the box width alone would make a drag lag the pointer. */
       const rect = e.currentTarget.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) return;
-      /* Canvas units travelled per device pixel. Whenever the box's aspect
-         differs from the viewBox's, the drawing is letterboxed inside it and
-         only one axis binds, so the scale is the smaller of the two - the rule
-         preserveAspectRatio="meet" already uses to lay the drawing out. Reading
-         width alone would make a drag lag the pointer by the difference. */
-      const scale = Math.min(rect.width / (width / zoom), rect.height / (height / zoom));
-      if (!Number.isFinite(scale) || scale <= 0) return;
-      const perPx = 1 / scale;
-      setCenter(
-        clamp(
-          d.cx - (e.clientX - d.px) * perPx,
-          d.cy - (e.clientY - d.py) * perPx,
-          zoom,
-        ),
-      );
+      const dx = e.clientX - d.px;
+      const dy = e.clientY - d.py;
+      setView((v) => {
+        const f = frame(rect, v.zoom);
+        if (!f) return v;
+        const perPx = 1 / f.scale;
+        return { zoom: v.zoom, ...clamp(d.cx - dx * perPx, d.cy - dy * perPx, v.zoom) };
+      });
     },
     onPointerUp: endPan,
     onPointerCancel: endPan,
@@ -433,6 +639,7 @@ function useMapZoom(width: number, height: number, resetKey?: unknown) {
 
   const style: React.CSSProperties = {
     cursor: zoom > 1 ? "grab" : "default",
+    outlineOffset: "2px",
     touchAction: zoom > 1 ? "none" : "auto",
     /* Keep the whole card - map, legend and note - on one screen, so a map is
        never taller than the space it has. Width is what is capped, not height:
@@ -453,7 +660,15 @@ function useMapZoom(width: number, height: number, resetKey?: unknown) {
     center.y - height / (2 * zoom)
   } ${width / zoom} ${height / zoom}`;
 
-  return { zoom, zoomTo, reset, viewBox, panProps, style };
+  /* Focusable so the keyboard handler can receive keys at all, and labelled
+     with what those keys do. */
+  const a11yProps = {
+    ref: svgRef,
+    tabIndex: 0,
+    onKeyDown,
+  };
+
+  return { zoom, zoomTo, reset, viewBox, panProps, style, a11yProps };
 }
 
 /**
@@ -872,6 +1087,7 @@ export function WorldMapsPage() {
     lakes: isLight ? "#14608f" : "#4a9ad8",
     ports: isLight ? "#e0a030" : "#ffd27a",
     mines: isLight ? "#6e1e0a" : "#c0512c",
+    infrastructure: isLight ? "#9c4fc0" : "#c88ce6",
   };
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
   const cardBorder = isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)";
@@ -1164,6 +1380,7 @@ export function WorldMapsPage() {
     lakes: false,
     ports: false,
     mines: false,
+    infrastructure: false,
   });
   const toggleOverlay = useCallback(
     (id: OverlayId) => setOverlay((o) => ({ ...o, [id]: !o[id] })),
@@ -1174,6 +1391,10 @@ export function WorldMapsPage() {
   const lakes = useOverlay<Topology>(OVERLAY_URL.lakes, overlay.lakes);
   const ports = useOverlay<PointLayer<PortRow>>(OVERLAY_URL.ports, overlay.ports);
   const mines = useOverlay<MineLayer>(OVERLAY_URL.mines, overlay.mines);
+  const infra = useOverlay<InfrastructureLayer>(
+    OVERLAY_URL.infrastructure,
+    overlay.infrastructure,
+  );
 
   const activeOverlays = OVERLAYS.filter((o) => overlay[o.id]);
 
@@ -1182,6 +1403,7 @@ export function WorldMapsPage() {
     lakes: { loading: lakes.loading, failed: lakes.failed },
     ports: { loading: ports.loading, failed: ports.failed },
     mines: { loading: mines.loading, failed: mines.failed },
+    infrastructure: { loading: infra.loading, failed: infra.failed },
   };
 
   /* Rivers are drawn in two passes so the map reads at every zoom: the trunk
@@ -1220,6 +1442,10 @@ export function WorldMapsPage() {
      distinguishable without reference to their colour. */
   const box = (x: number, y: number, r: number) =>
     `M${x - r},${y - r}h${2 * r}v${2 * r}h${-2 * r}Z`;
+  /* Airports are triangles - the third mark shape, after the port square and
+     the mineral circle - so the three point layers never depend on colour. */
+  const tri = (x: number, y: number, r: number) =>
+    `M${x},${y - r}L${x + r},${y + r}L${x - r},${y + r}Z`;
 
   const portPoints = useMemo(() => {
     if (!ports.data) return null;
@@ -1240,6 +1466,24 @@ export function WorldMapsPage() {
     }
     return out;
   }, [mines.data, worldPath]);
+
+  const infraPaths = useMemo(() => {
+    if (!infra.data) return null;
+    const d = infra.data;
+    const draw = (key: string) =>
+      worldPath.path(feature(d, d.objects[key] as never) as never) ?? undefined;
+    return { roads: draw("rd"), rails: draw("rl") };
+  }, [infra.data, worldPath]);
+
+  const airportPoints = useMemo(() => {
+    if (!infra.data) return null;
+    return infra.data.airports
+      .map(([, lon, lat, major]) => {
+        const p = worldPath.projection([lon, lat]);
+        return p ? { x: p[0], y: p[1], major: major === 1 } : null;
+      })
+      .filter((p): p is { x: number; y: number; major: boolean } => p !== null);
+  }, [infra.data, worldPath]);
 
   /* What the mineral layer actually holds, counted from the data rather than
      written by hand, so the note cannot drift from the file it describes. The
@@ -1341,6 +1585,15 @@ export function WorldMapsPage() {
       .join("");
   }, [portPoints, worldZoom.zoom]);
 
+  const airportsD = useMemo(() => {
+    if (!airportPoints) return undefined;
+    const r = 1.6 / worldZoom.zoom;
+    return airportPoints
+      .filter((p) => worldZoom.zoom > AIRPORT_DETAIL_ABOVE || p.major)
+      .map((p) => tri(p.x, p.y, r))
+      .join("");
+  }, [airportPoints, worldZoom.zoom]);
+
   const minesD = useMemo(() => {
     if (!minePoints) return null;
     const near = worldZoom.zoom > MINE_FULL_DETAIL_ABOVE;
@@ -1399,6 +1652,8 @@ export function WorldMapsPage() {
         parts: [] as Subdivision[],
         insets: [] as Inset[],
         offView: [] as string[],
+        path,
+        geo: worldFeature as unknown,
       };
     }
 
@@ -1494,8 +1749,169 @@ export function WorldMapsPage() {
       parts,
       insets,
       offView,
+      path,
+      geo: outlineGeo as unknown,
     };
   }, [focusCode, featureByCode, admin1]);
+
+  /* ── The same overlays, on whichever country is in focus ──────────────
+     The layers are lon/lat, so they can be drawn in any projection; what
+     changes is that the focus map is one country, and the files cover the
+     world. Everything is therefore clipped to that country's own bounding box
+     before it is projected - otherwise the map would carry every road and
+     every mine on earth, nearly all of it outside the viewBox and none of it
+     free to draw.
+
+     The box is taken from the geography the projection was fitted to, so it
+     follows whatever is being shown, including the outlying groups the
+     projection chose to leave out. A degree of margin keeps a river that
+     leaves the country from stopping dead at the border. */
+  const focusFrame = useMemo(() => {
+    const path = focusCode === "US" ? statePath : focusMap?.path;
+    const geo = focusCode === "US" ? (states as unknown) : focusMap?.geo;
+    if (!path || !geo) return null;
+    const [[w, s0], [e, n]] = geoBounds(geo as never);
+    if (![w, s0, e, n].every(Number.isFinite)) return null;
+    const M = 1;
+    /* geoBounds reports the SHORTER way round, so for a country that reaches
+       across the antimeridian the western edge is numerically larger than the
+       eastern one. The United States is such a country - Guam at 144.6 East,
+       Maine at 64.6 West - and so are Russia, New Zealand, Fiji and Kiribati.
+       Read as a plain interval that box excludes the whole country: tested
+       with lon >= 144.6 && lon <= -64.6, New York fails, and the layer came
+       out empty rather than wrong-looking, which is why it needed measuring
+       rather than a glance. When the edges are the wrong way round the test
+       is an OR, not an AND. */
+    return {
+      path,
+      bounds: { w: w - M, s: s0 - M, e: e + M, n: n + M, wraps: w > e },
+    };
+  }, [focusCode, statePath, states, focusMap]);
+
+  type FocusBounds = NonNullable<typeof focusFrame>["bounds"];
+
+  const inBounds = useCallback(
+    (lon: number, lat: number, b: FocusBounds) =>
+      lat >= b.s &&
+      lat <= b.n &&
+      (b.wraps ? lon >= b.w || lon <= b.e : lon >= b.w && lon <= b.e),
+    [],
+  );
+
+  /** Does any part of this line come near the country in view? */
+  const lineNear = useCallback(
+    (line: [number, number][], b: FocusBounds) => {
+      for (const [x, y] of line) if (inBounds(x, y, b)) return true;
+      return false;
+    },
+    [inBounds],
+  );
+
+  const focusOverlays = useMemo(() => {
+    if (!focusFrame) return null;
+    const { path, bounds } = focusFrame;
+    const inBox = (lon: number, lat: number) => inBounds(lon, lat, bounds);
+
+    /* Multi-feature layers are filtered feature by feature. */
+    const clipCollection = (topo: Topology | null, key: string) => {
+      if (!topo) return undefined;
+      const fc = feature(topo, topo.objects[key] as never) as unknown as {
+        features: { geometry: { type: string; coordinates: unknown } }[];
+      };
+      const kept = fc.features.filter((f) => {
+        const g = f.geometry;
+        if (!g) return false;
+        if (g.type === "MultiLineString") {
+          return (g.coordinates as [number, number][][]).some((l) => lineNear(l, bounds));
+        }
+        if (g.type === "Polygon") {
+          return lineNear((g.coordinates as [number, number][][])[0], bounds);
+        }
+        if (g.type === "MultiPolygon") {
+          return (g.coordinates as [number, number][][][]).some((p) => lineNear(p[0], bounds));
+        }
+        return false;
+      });
+      if (!kept.length) return undefined;
+      return path({ type: "FeatureCollection", features: kept } as never) ?? undefined;
+    };
+
+    /* Roads and railways arrive as one merged geometry each, so they are
+       filtered line by line instead of feature by feature. */
+    const clipMerged = (topo: Topology | null, key: string) => {
+      if (!topo) return undefined;
+      const fc = feature(topo, topo.objects[key] as never) as unknown as {
+        features: { geometry: { type: string; coordinates: [number, number][][] } }[];
+      };
+      const lines: [number, number][][] = [];
+      for (const f of fc.features) {
+        if (!f.geometry) continue;
+        for (const l of f.geometry.coordinates) if (lineNear(l, bounds)) lines.push(l);
+      }
+      if (!lines.length) return undefined;
+      return path({ type: "MultiLineString", coordinates: lines } as never) ?? undefined;
+    };
+
+    /* A projection may refuse a point outside what it covers - Albers USA
+       returns null for anywhere that is not the United States - so the result
+       is checked rather than assumed. */
+    const project = path.projection() as unknown as
+      ((c: [number, number]) => [number, number] | null) | null;
+    const place = <T,>(rows: T[], lon: (r: T) => number, lat: (r: T) => number) =>
+      !project
+        ? []
+        : rows
+            .filter((r) => inBox(lon(r), lat(r)))
+            .map((r) => {
+              const p = project([lon(r), lat(r)]);
+              return p && Number.isFinite(p[0]) && Number.isFinite(p[1])
+                ? { x: p[0], y: p[1], row: r }
+                : null;
+            })
+            .filter((p): p is { x: number; y: number; row: T } => p !== null);
+
+    return {
+      rivers: clipCollection(rivers.data, "r"),
+      lakes: clipCollection(lakes.data, "l"),
+      roads: clipMerged(infra.data, "rd"),
+      rails: clipMerged(infra.data, "rl"),
+      ports: ports.data ? place(ports.data.rows, (r) => r[1], (r) => r[2]) : null,
+      airports: infra.data ? place(infra.data.airports, (r) => r[1], (r) => r[2]) : null,
+      mines: mines.data ? place(mines.data.rows, (r) => r[5], (r) => r[6]) : null,
+    };
+  }, [focusFrame, lineNear, inBounds, rivers.data, lakes.data, infra.data, ports.data, mines.data]);
+
+  /* Marks on the focus map keep the same shapes as on the world map, drawn a
+     little larger because there is room for them on one country.
+
+     Mineral sites are the exception, and get the same treatment they get on the
+     world map: there are 7,160 of them in the United States alone, and at full
+     size they cover the country rather than showing where mining is. They are
+     drawn small and part transparent until the reader zooms in. */
+  const focusMarks = useMemo(() => {
+    if (!focusOverlays) return null;
+    const z = focusZoom.zoom;
+    const r = 2 / z;
+    const near = z > MINE_FULL_DETAIL_ABOVE;
+    const mineR = (near ? MINE_DOT.near : MINE_DOT.far) / z;
+    const join = (
+      pts: { x: number; y: number }[] | null,
+      shape: (x: number, y: number, r: number) => string,
+      radius = r,
+    ) => (pts && pts.length ? pts.map((p) => shape(p.x, p.y, radius)).join("") : undefined);
+    const mineSolid = focusOverlays.mines?.filter((p) => p.row[4] === 0) ?? [];
+    const mineHollow = focusOverlays.mines?.filter((p) => p.row[4] === 1) ?? [];
+    return {
+      ports: join(focusOverlays.ports, box),
+      airports: join(focusOverlays.airports, tri),
+      mineSolid: join(mineSolid, dot, mineR),
+      mineHollow: join(mineHollow, dot, mineR),
+      mineOpacity: near ? MINE_OPACITY.near : MINE_OPACITY.far,
+      /* Too small to read as a ring when zoomed out, so both kinds are solid
+         until the distinction can actually be seen. */
+      mineRinged: near,
+    };
+  }, [focusOverlays, focusZoom.zoom]);
 
   /**
    * Which names fit on the map at the current zoom, and which do not.
@@ -1665,6 +2081,103 @@ export function WorldMapsPage() {
       .sort((a, b) => b.population - a.population);
   }, []);
 
+  /* Where each switched-on layer came from, and what it does not say.
+  
+     Printed under the map rather than hidden in a tooltip, because a reader who
+     has just drawn a conclusion from the mineral layer is the one who most
+     needs to know that it stops in 2008 and omits the United States.
+  
+     Shared between the maps for the same reason the toggles are: one set of
+     caveats, so the country map cannot quietly omit one the world map gives. */
+  const layerNotes = () =>
+    activeOverlays.length === 0 ? null : (
+        <div className="mt-2 space-y-1">
+          {activeOverlays.map((o) => (
+            <p key={o.id} className="text-[9px] font-sans text-muted-foreground">
+              <span
+                aria-hidden
+                className={`inline-block w-1.5 h-1.5 mr-1.5 align-middle ${
+                  o.id === "ports" || o.id === "infrastructure" ? "" : "rounded-full"
+                }`}
+                style={
+                  o.id === "infrastructure"
+                    ? { background: overlayInk[o.id], clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }
+                    : { background: overlayInk[o.id] }
+                }
+              />
+              <span className="font-medium text-foreground">{o.label}</span> — {o.about}
+            </p>
+          ))}
+          {overlay.mines && mineSummary && (
+            <p className="text-[9px] font-sans text-muted-foreground pl-3">
+              A filled dot is one of {mineSummary.operations.toLocaleString()}{" "}
+              working operations, a hollow one of{" "}
+              {mineSummary.deposits.toLocaleString()} known deposits. They are
+              counted separately: the same place can be both, and the surveys
+              do not share a date. Most common:{" "}
+              {mineSummary.top.map(([name, n]) => `${name} (${n})`).join(", ")}.
+            </p>
+          )}
+        </div>
+    );
+
+  /* The overlay toggles, drawn under every map that can show them.
+  
+     One row of markup and one piece of state, so switching a layer on under
+     the world map switches it on under the country map too - they are the
+     same layers, and two independent sets would invite the reader to wonder
+     why the same switch says different things in two places.
+  
+     Kept in a row of their own, apart from the scope and indicator chips,
+     because these do not change what is shaded - they add a layer over it -
+     and a reader who mistook one for the other would read the map wrongly. */
+  const layerToggles = () => (
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
+          Layers
+        </span>
+        {OVERLAYS.map((o) => {
+          const state = overlayState[o.id];
+          return (
+            <button
+              key={o.id}
+              onClick={() => toggleOverlay(o.id)}
+              aria-pressed={overlay[o.id]}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
+                overlay[o.id]
+                  ? "border-transparent"
+                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
+              style={
+                overlay[o.id]
+                  ? { background: `${overlayInk[o.id]}26`, borderColor: `${overlayInk[o.id]}66`, color: overlayInk[o.id] }
+                  : undefined
+              }
+              title={o.about}
+            >
+              <span
+                aria-hidden
+                className={`w-2 h-2 shrink-0 ${
+                  o.id === "ports" || o.id === "infrastructure" ? "" : "rounded-full"
+                }`}
+                style={{
+                  background: overlay[o.id] ? overlayInk[o.id] : "currentColor",
+                  opacity: overlay[o.id] ? 1 : 0.45,
+                  ...(o.id === "infrastructure"
+                    ? { clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }
+                    : {}),
+                }}
+              />
+              {o.label}
+              {state.loading && <span className="font-mono opacity-70">…</span>}
+              {state.failed && <span className="font-mono opacity-70">unavailable</span>}
+            </button>
+          );
+        })}
+      </div>
+
+  );
+
   const chip = (active: boolean) =>
     `px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
       active
@@ -1754,59 +2267,24 @@ export function WorldMapsPage() {
             ))}
           </div>
 
-          {/* Overlay toggles. Separate row from the scope and indicator chips
-              because these do not change what is shaded - they add a layer on
-              top of it - and a reader who mistook one for the other would read
-              the map wrongly. */}
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
-              Layers
-            </span>
-            {OVERLAYS.map((o) => {
-              const state = overlayState[o.id];
-              return (
-                <button
-                  key={o.id}
-                  onClick={() => toggleOverlay(o.id)}
-                  aria-pressed={overlay[o.id]}
-                  className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
-                    overlay[o.id]
-                      ? "border-transparent"
-                      : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                  }`}
-                  style={
-                    overlay[o.id]
-                      ? { background: `${overlayInk[o.id]}26`, borderColor: `${overlayInk[o.id]}66`, color: overlayInk[o.id] }
-                      : undefined
-                  }
-                  title={o.about}
-                >
-                  <span
-                    aria-hidden
-                    className={`w-2 h-2 shrink-0 ${o.id === "ports" ? "" : "rounded-full"}`}
-                    style={{ background: overlay[o.id] ? overlayInk[o.id] : "currentColor", opacity: overlay[o.id] ? 1 : 0.45 }}
-                  />
-                  {o.label}
-                  {state.loading && <span className="font-mono opacity-70">…</span>}
-                  {state.failed && <span className="font-mono opacity-70">unavailable</span>}
-                </button>
-              );
-            })}
-          </div>
+          {layerToggles()}
 
           <ZoomControls
             zoom={worldZoom.zoom}
             onZoom={worldZoom.zoomTo}
             onReset={worldZoom.reset}
             label="world map"
-          />
+          >
+            {" "}· scroll to zoom, drag to pan
+          </ZoomControls>
           <svg
             viewBox={worldZoom.viewBox}
             className="w-full h-auto mx-auto"
             style={worldZoom.style}
             {...worldZoom.panProps}
+            {...worldZoom.a11yProps}
             role="img"
-            aria-label={`World map shaded by ${activeCountry.label}`}
+            aria-label={`World map shaded by ${activeCountry.label}. Scroll to zoom; once focused, plus and minus zoom, the arrow keys pan and 0 resets.`}
           >
             <defs>
               <NoDataHatch id="nodata-world" base={noData} line={noDataHatch} zoom={worldZoom.zoom} />
@@ -1874,6 +2352,22 @@ export function WorldMapsPage() {
                 reports the country beneath it and the choropleth stays the
                 thing the map is about. Widths and radii are divided by the
                 zoom, so every layer holds its size on screen. */}
+            {overlay.infrastructure && infraPaths && (
+              /* Roads solid and railways dashed, so the two line networks stay
+                 apart without reference to colour. Drawn first of the overlays,
+                 so water and the point layers read over them. */
+              <g pointerEvents="none">
+                <CasedLine d={infraPaths.roads} ink={overlayInk.infrastructure} halo={labelHalo} width={0.45} zoom={worldZoom.zoom} opacity={0.75} />
+                <CasedLine
+                  d={infraPaths.rails}
+                  ink={overlayInk.infrastructure}
+                  halo={labelHalo}
+                  width={0.5}
+                  zoom={worldZoom.zoom}
+                  dash={`${2.4 / worldZoom.zoom} ${1.6 / worldZoom.zoom}`}
+                />
+              </g>
+            )}
             {overlay.lakes && lakePaths && (
               <path
                 d={lakePaths}
@@ -1885,19 +2379,13 @@ export function WorldMapsPage() {
               />
             )}
             {overlay.rivers && riverPaths && (
-              <path
-                d={
-                  worldZoom.zoom > RIVER_DETAIL_ABOVE
-                    ? riverPaths.all
-                    : riverPaths.trunk
-                }
-                fill="none"
-                stroke={overlayInk.rivers}
-                strokeOpacity={0.85}
-                strokeWidth={0.6 / worldZoom.zoom}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                pointerEvents="none"
+              <CasedLine
+                d={worldZoom.zoom > RIVER_DETAIL_ABOVE ? riverPaths.all : riverPaths.trunk}
+                ink={overlayInk.rivers}
+                halo={labelHalo}
+                width={0.6}
+                zoom={worldZoom.zoom}
+                opacity={0.85}
               />
             )}
             {overlay.mines && minesD && (
@@ -1906,7 +2394,24 @@ export function WorldMapsPage() {
                  things - one is a mine that was running, the other is ore known
                  to be in the ground. */
               <g pointerEvents="none">
-                <path d={minesD.solid} fill={overlayInk.mines} fillOpacity={minesD.opacity} />
+                {/* Every mark carries a halo for the same reason the lines carry
+                    a casing: the fill underneath is whatever the choropleth put
+                    there, and against a pale step the rust would vanish. */}
+                <path
+                  d={minesD.solid}
+                  fill={overlayInk.mines}
+                  fillOpacity={minesD.opacity}
+                  stroke={labelHalo}
+                  strokeOpacity={0.55}
+                  strokeWidth={0.4 / worldZoom.zoom}
+                />
+                <path
+                  d={minesD.hollow}
+                  fill="none"
+                  stroke={labelHalo}
+                  strokeOpacity={0.55}
+                  strokeWidth={(minesD.ringed ? 1.5 : 0.9) / worldZoom.zoom}
+                />
                 <path
                   d={minesD.hollow}
                   fill={minesD.ringed ? "none" : overlayInk.mines}
@@ -1916,6 +2421,16 @@ export function WorldMapsPage() {
                   strokeOpacity={0.9}
                 />
               </g>
+            )}
+            {overlay.infrastructure && airportsD && (
+              <path
+                d={airportsD}
+                fill={overlayInk.infrastructure}
+                fillOpacity={0.95}
+                stroke={labelHalo}
+                strokeWidth={0.35 / worldZoom.zoom}
+                pointerEvents="none"
+              />
             )}
             {overlay.ports && portsD && (
               <path
@@ -1975,37 +2490,7 @@ export function WorldMapsPage() {
             hovered={hovered}
           />
 
-          {/* Where each switched-on layer came from, and what it does not say.
-              Printed under the map rather than hidden in a tooltip, because a
-              reader who has just drawn a conclusion from the mineral layer is
-              the one who most needs to know it stops in 2008 and omits the
-              United States. */}
-          {activeOverlays.length > 0 && (
-            <div className="mt-2 space-y-1">
-              {activeOverlays.map((o) => (
-                <p key={o.id} className="text-[9px] font-sans text-muted-foreground">
-                  <span
-                    aria-hidden
-                    className={`inline-block w-1.5 h-1.5 mr-1.5 align-middle ${
-                      o.id === "ports" ? "" : "rounded-full"
-                    }`}
-                    style={{ background: overlayInk[o.id] }}
-                  />
-                  <span className="font-medium text-foreground">{o.label}</span> — {o.about}
-                </p>
-              ))}
-              {overlay.mines && mineSummary && (
-                <p className="text-[9px] font-sans text-muted-foreground pl-3">
-                  A filled dot is one of {mineSummary.operations.toLocaleString()}{" "}
-                  working operations, a hollow one of{" "}
-                  {mineSummary.deposits.toLocaleString()} known deposits. They are
-                  counted separately: the same place can be both, and the two
-                  datasets do not share a survey date. Most common:{" "}
-                  {mineSummary.top.map(([name, n]) => `${name} (${n})`).join(", ")}.
-                </p>
-              )}
-            </div>
-          )}
+          {layerNotes()}
         </div>
 
         {/* ── Group figures, while a group scope is selected ── */}
@@ -2251,6 +2736,8 @@ export function WorldMapsPage() {
 
           {focusCode === "US" ? (
           <>
+          {layerToggles()}
+
           <ZoomControls
             zoom={zoom}
             onZoom={focusZoom.zoomTo}
@@ -2262,6 +2749,7 @@ export function WorldMapsPage() {
             className="w-full h-auto mx-auto"
             style={focusZoom.style}
             {...focusZoom.panProps}
+            {...focusZoom.a11yProps}
             role="img"
             aria-label={`United States map shaded by ${activeState.label}`}
           >
@@ -2319,6 +2807,90 @@ export function WorldMapsPage() {
                 </text>
               </g>
             ))}
+            {/* The same overlays as the world map, in this map's own projection and
+                clipped to the country in view. */}
+            {overlay.infrastructure && focusOverlays && (
+              <g pointerEvents="none">
+                {focusOverlays.roads && (
+                  <CasedLine d={focusOverlays.roads} ink={overlayInk.infrastructure} halo={labelHalo} width={0.5} zoom={focusZoom.zoom} opacity={0.75} />
+                )}
+                {focusOverlays.rails && (
+                  <CasedLine
+                    d={focusOverlays.rails}
+                    ink={overlayInk.infrastructure}
+                    halo={labelHalo}
+                    width={0.55}
+                    zoom={focusZoom.zoom}
+                    dash={`${2.4 / focusZoom.zoom} ${1.6 / focusZoom.zoom}`}
+                  />
+                )}
+              </g>
+            )}
+            {overlay.lakes && focusOverlays?.lakes && (
+              <path
+                d={focusOverlays.lakes}
+                fill={overlayInk.lakes}
+                fillOpacity={0.55}
+                stroke={overlayInk.lakes}
+                strokeWidth={0.3 / focusZoom.zoom}
+                pointerEvents="none"
+              />
+            )}
+            {overlay.rivers && focusOverlays?.rivers && (
+              <CasedLine d={focusOverlays.rivers} ink={overlayInk.rivers} halo={labelHalo} width={0.7} zoom={focusZoom.zoom} opacity={0.85} />
+            )}
+            {overlay.mines && focusMarks && (
+              <g pointerEvents="none">
+                {focusMarks.mineSolid && (
+                  <path
+                    d={focusMarks.mineSolid}
+                    fill={overlayInk.mines}
+                    fillOpacity={focusMarks.mineOpacity}
+                    stroke={labelHalo}
+                    strokeOpacity={0.55}
+                    strokeWidth={0.4 / focusZoom.zoom}
+                  />
+                )}
+                {focusMarks.mineHollow && (
+                  <>
+                    <path
+                      d={focusMarks.mineHollow}
+                      fill="none"
+                      stroke={labelHalo}
+                      strokeOpacity={0.55}
+                      strokeWidth={(focusMarks.mineRinged ? 1.5 : 0.9) / focusZoom.zoom}
+                    />
+                    <path
+                      d={focusMarks.mineHollow}
+                      fill={focusMarks.mineRinged ? "none" : overlayInk.mines}
+                      fillOpacity={focusMarks.mineOpacity}
+                      stroke={focusMarks.mineRinged ? overlayInk.mines : "none"}
+                      strokeWidth={0.7 / focusZoom.zoom}
+                    />
+                  </>
+                )}
+              </g>
+            )}
+            {overlay.infrastructure && focusMarks?.airports && (
+              <path
+                d={focusMarks.airports}
+                fill={overlayInk.infrastructure}
+                fillOpacity={0.95}
+                stroke={labelHalo}
+                strokeWidth={0.35 / focusZoom.zoom}
+                pointerEvents="none"
+              />
+            )}
+            {overlay.ports && focusMarks?.ports && (
+              <path
+                d={focusMarks.ports}
+                fill={overlayInk.ports}
+                fillOpacity={0.9}
+                stroke={labelHalo}
+                strokeWidth={0.4 / focusZoom.zoom}
+                pointerEvents="none"
+              />
+            )}
           </svg>
 
           <Legend
@@ -2334,6 +2906,14 @@ export function WorldMapsPage() {
             the boundary data but not in the state dataset, so they are drawn
             unshaded.
           </p>
+          {overlay.mines && (
+            <p className="text-[9px] font-sans mt-1 text-muted-foreground">
+              Albers USA does not clip hard at the border, so a mineral site just
+              inside Canada or Mexico is drawn here too. The country outline is
+              the guide to what is actually in the United States.
+            </p>
+          )}
+          {layerNotes()}
           </>
           ) : (
             <>
@@ -2343,6 +2923,8 @@ export function WorldMapsPage() {
                   invented one would be worse than none. */}
               <div>
                 <div>
+                  {layerToggles()}
+
                   <ZoomControls
                     zoom={zoom}
                     onZoom={focusZoom.zoomTo}
@@ -2360,6 +2942,7 @@ export function WorldMapsPage() {
                     className="w-full h-auto mx-auto md:mx-0 md:flex-1 md:min-w-0"
                     style={focusZoom.style}
                     {...focusZoom.panProps}
+                    {...focusZoom.a11yProps}
                     role="img"
                     aria-label={`Outline map of ${focusCountry?.name ?? "the selected country"}${
                       focusMap && focusMap.parts.length > 1
@@ -2447,6 +3030,90 @@ export function WorldMapsPage() {
                         {sd.n}
                       </text>
                     ))}
+                    {/* The same overlays as the world map, in this map's own projection and
+                        clipped to the country in view. */}
+                    {overlay.infrastructure && focusOverlays && (
+                      <g pointerEvents="none">
+                        {focusOverlays.roads && (
+                          <CasedLine d={focusOverlays.roads} ink={overlayInk.infrastructure} halo={labelHalo} width={0.5} zoom={focusZoom.zoom} opacity={0.75} />
+                        )}
+                        {focusOverlays.rails && (
+                          <CasedLine
+                            d={focusOverlays.rails}
+                            ink={overlayInk.infrastructure}
+                            halo={labelHalo}
+                            width={0.55}
+                            zoom={focusZoom.zoom}
+                            dash={`${2.4 / focusZoom.zoom} ${1.6 / focusZoom.zoom}`}
+                          />
+                        )}
+                      </g>
+                    )}
+                    {overlay.lakes && focusOverlays?.lakes && (
+                      <path
+                        d={focusOverlays.lakes}
+                        fill={overlayInk.lakes}
+                        fillOpacity={0.55}
+                        stroke={overlayInk.lakes}
+                        strokeWidth={0.3 / focusZoom.zoom}
+                        pointerEvents="none"
+                      />
+                    )}
+                    {overlay.rivers && focusOverlays?.rivers && (
+                      <CasedLine d={focusOverlays.rivers} ink={overlayInk.rivers} halo={labelHalo} width={0.7} zoom={focusZoom.zoom} opacity={0.85} />
+                    )}
+                    {overlay.mines && focusMarks && (
+                      <g pointerEvents="none">
+                        {focusMarks.mineSolid && (
+                          <path
+                            d={focusMarks.mineSolid}
+                            fill={overlayInk.mines}
+                            fillOpacity={focusMarks.mineOpacity}
+                            stroke={labelHalo}
+                            strokeOpacity={0.55}
+                            strokeWidth={0.4 / focusZoom.zoom}
+                          />
+                        )}
+                        {focusMarks.mineHollow && (
+                          <>
+                            <path
+                              d={focusMarks.mineHollow}
+                              fill="none"
+                              stroke={labelHalo}
+                              strokeOpacity={0.55}
+                              strokeWidth={(focusMarks.mineRinged ? 1.5 : 0.9) / focusZoom.zoom}
+                            />
+                            <path
+                              d={focusMarks.mineHollow}
+                              fill={focusMarks.mineRinged ? "none" : overlayInk.mines}
+                              fillOpacity={focusMarks.mineOpacity}
+                              stroke={focusMarks.mineRinged ? overlayInk.mines : "none"}
+                              strokeWidth={0.7 / focusZoom.zoom}
+                            />
+                          </>
+                        )}
+                      </g>
+                    )}
+                    {overlay.infrastructure && focusMarks?.airports && (
+                      <path
+                        d={focusMarks.airports}
+                        fill={overlayInk.infrastructure}
+                        fillOpacity={0.95}
+                        stroke={labelHalo}
+                        strokeWidth={0.35 / focusZoom.zoom}
+                        pointerEvents="none"
+                      />
+                    )}
+                    {overlay.ports && focusMarks?.ports && (
+                      <path
+                        d={focusMarks.ports}
+                        fill={overlayInk.ports}
+                        fillOpacity={0.9}
+                        stroke={labelHalo}
+                        strokeWidth={0.4 / focusZoom.zoom}
+                        pointerEvents="none"
+                      />
+                    )}
                   </svg>
 
                   {focusMap && focusMap.insets.length > 0 && (
@@ -2494,6 +3161,8 @@ export function WorldMapsPage() {
                   )}
                   </div>
                 </div>
+
+                {layerNotes()}
 
                 {/* Attached to the map: same panel, directly beneath it. */}
                 <div className="mt-3 border-t border-border/60 pt-3">
