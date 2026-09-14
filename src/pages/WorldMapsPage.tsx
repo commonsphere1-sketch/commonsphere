@@ -1150,6 +1150,14 @@ export function WorldMapsPage() {
     return geoPath(projection);
   }, [states]);
 
+  const usOutlineD = useMemo(() => {
+    const topo = statesTopo as unknown as Topology;
+    const obj = topo.objects.states as unknown as {
+      geometries: Parameters<typeof merge>[1];
+    };
+    return statePath(merge(topo, obj.geometries) as never) ?? undefined;
+  }, [statePath]);
+
   /* ── Country shading ── */
   const activeCountry = COUNTRY_INDICATORS.find((i) => i.id === countryMetric)!;
   const activeScope = SCOPES.find((s) => s.id === scope)!;
@@ -2807,90 +2815,100 @@ export function WorldMapsPage() {
                 </text>
               </g>
             ))}
-            {/* The same overlays as the world map, in this map's own projection and
-                clipped to the country in view. */}
-            {overlay.infrastructure && focusOverlays && (
-              <g pointerEvents="none">
-                {focusOverlays.roads && (
-                  <CasedLine d={focusOverlays.roads} ink={overlayInk.infrastructure} halo={labelHalo} width={0.5} zoom={focusZoom.zoom} opacity={0.75} />
-                )}
-                {focusOverlays.rails && (
-                  <CasedLine
-                    d={focusOverlays.rails}
-                    ink={overlayInk.infrastructure}
-                    halo={labelHalo}
-                    width={0.55}
-                    zoom={focusZoom.zoom}
-                    dash={`${2.4 / focusZoom.zoom} ${1.6 / focusZoom.zoom}`}
-                  />
-                )}
-              </g>
-            )}
-            {overlay.lakes && focusOverlays?.lakes && (
-              <path
-                d={focusOverlays.lakes}
-                fill={overlayInk.lakes}
-                fillOpacity={0.55}
-                stroke={overlayInk.lakes}
-                strokeWidth={0.3 / focusZoom.zoom}
-                pointerEvents="none"
-              />
-            )}
-            {overlay.rivers && focusOverlays?.rivers && (
-              <CasedLine d={focusOverlays.rivers} ink={overlayInk.rivers} halo={labelHalo} width={0.7} zoom={focusZoom.zoom} opacity={0.85} />
-            )}
-            {overlay.mines && focusMarks && (
-              <g pointerEvents="none">
-                {focusMarks.mineSolid && (
-                  <path
-                    d={focusMarks.mineSolid}
-                    fill={overlayInk.mines}
-                    fillOpacity={focusMarks.mineOpacity}
-                    stroke={labelHalo}
-                    strokeOpacity={0.55}
-                    strokeWidth={0.4 / focusZoom.zoom}
-                  />
-                )}
-                {focusMarks.mineHollow && (
-                  <>
+            {/* These are worldwide files. Without clipping they run on across Canada and Mexico, and the map stops being a map of the United States. */}
+            <defs>
+              {usOutlineD && (
+                <clipPath id="clip-us">
+                  <path d={usOutlineD} />
+                </clipPath>
+              )}
+            </defs>
+            <g clipPath={usOutlineD ? "url(#clip-us)" : undefined}>
+              {/* The same overlays as the world map, in this map's own projection and
+                  clipped to the country in view. */}
+              {overlay.infrastructure && focusOverlays && (
+                <g pointerEvents="none">
+                  {focusOverlays.roads && (
+                    <CasedLine d={focusOverlays.roads} ink={overlayInk.infrastructure} halo={labelHalo} width={0.5} zoom={focusZoom.zoom} opacity={0.75} />
+                  )}
+                  {focusOverlays.rails && (
+                    <CasedLine
+                      d={focusOverlays.rails}
+                      ink={overlayInk.infrastructure}
+                      halo={labelHalo}
+                      width={0.55}
+                      zoom={focusZoom.zoom}
+                      dash={`${2.4 / focusZoom.zoom} ${1.6 / focusZoom.zoom}`}
+                    />
+                  )}
+                </g>
+              )}
+              {overlay.lakes && focusOverlays?.lakes && (
+                <path
+                  d={focusOverlays.lakes}
+                  fill={overlayInk.lakes}
+                  fillOpacity={0.55}
+                  stroke={overlayInk.lakes}
+                  strokeWidth={0.3 / focusZoom.zoom}
+                  pointerEvents="none"
+                />
+              )}
+              {overlay.rivers && focusOverlays?.rivers && (
+                <CasedLine d={focusOverlays.rivers} ink={overlayInk.rivers} halo={labelHalo} width={0.7} zoom={focusZoom.zoom} opacity={0.85} />
+              )}
+              {overlay.mines && focusMarks && (
+                <g pointerEvents="none">
+                  {focusMarks.mineSolid && (
                     <path
-                      d={focusMarks.mineHollow}
-                      fill="none"
+                      d={focusMarks.mineSolid}
+                      fill={overlayInk.mines}
+                      fillOpacity={focusMarks.mineOpacity}
                       stroke={labelHalo}
                       strokeOpacity={0.55}
-                      strokeWidth={(focusMarks.mineRinged ? 1.5 : 0.9) / focusZoom.zoom}
+                      strokeWidth={0.4 / focusZoom.zoom}
                     />
-                    <path
-                      d={focusMarks.mineHollow}
-                      fill={focusMarks.mineRinged ? "none" : overlayInk.mines}
-                      fillOpacity={focusMarks.mineOpacity}
-                      stroke={focusMarks.mineRinged ? overlayInk.mines : "none"}
-                      strokeWidth={0.7 / focusZoom.zoom}
-                    />
-                  </>
-                )}
-              </g>
-            )}
-            {overlay.infrastructure && focusMarks?.airports && (
-              <path
-                d={focusMarks.airports}
-                fill={overlayInk.infrastructure}
-                fillOpacity={0.95}
-                stroke={labelHalo}
-                strokeWidth={0.35 / focusZoom.zoom}
-                pointerEvents="none"
-              />
-            )}
-            {overlay.ports && focusMarks?.ports && (
-              <path
-                d={focusMarks.ports}
-                fill={overlayInk.ports}
-                fillOpacity={0.9}
-                stroke={labelHalo}
-                strokeWidth={0.4 / focusZoom.zoom}
-                pointerEvents="none"
-              />
-            )}
+                  )}
+                  {focusMarks.mineHollow && (
+                    <>
+                      <path
+                        d={focusMarks.mineHollow}
+                        fill="none"
+                        stroke={labelHalo}
+                        strokeOpacity={0.55}
+                        strokeWidth={(focusMarks.mineRinged ? 1.5 : 0.9) / focusZoom.zoom}
+                      />
+                      <path
+                        d={focusMarks.mineHollow}
+                        fill={focusMarks.mineRinged ? "none" : overlayInk.mines}
+                        fillOpacity={focusMarks.mineOpacity}
+                        stroke={focusMarks.mineRinged ? overlayInk.mines : "none"}
+                        strokeWidth={0.7 / focusZoom.zoom}
+                      />
+                    </>
+                  )}
+                </g>
+              )}
+              {overlay.infrastructure && focusMarks?.airports && (
+                <path
+                  d={focusMarks.airports}
+                  fill={overlayInk.infrastructure}
+                  fillOpacity={0.95}
+                  stroke={labelHalo}
+                  strokeWidth={0.35 / focusZoom.zoom}
+                  pointerEvents="none"
+                />
+              )}
+              {overlay.ports && focusMarks?.ports && (
+                <path
+                  d={focusMarks.ports}
+                  fill={overlayInk.ports}
+                  fillOpacity={0.9}
+                  stroke={labelHalo}
+                  strokeWidth={0.4 / focusZoom.zoom}
+                  pointerEvents="none"
+                />
+              )}
+            </g>
           </svg>
 
           <Legend
@@ -2906,13 +2924,6 @@ export function WorldMapsPage() {
             the boundary data but not in the state dataset, so they are drawn
             unshaded.
           </p>
-          {overlay.mines && (
-            <p className="text-[9px] font-sans mt-1 text-muted-foreground">
-              Albers USA does not clip hard at the border, so a mineral site just
-              inside Canada or Mexico is drawn here too. The country outline is
-              the guide to what is actually in the United States.
-            </p>
-          )}
           {layerNotes()}
           </>
           ) : (
@@ -3030,90 +3041,100 @@ export function WorldMapsPage() {
                         {sd.n}
                       </text>
                     ))}
-                    {/* The same overlays as the world map, in this map's own projection and
-                        clipped to the country in view. */}
-                    {overlay.infrastructure && focusOverlays && (
-                      <g pointerEvents="none">
-                        {focusOverlays.roads && (
-                          <CasedLine d={focusOverlays.roads} ink={overlayInk.infrastructure} halo={labelHalo} width={0.5} zoom={focusZoom.zoom} opacity={0.75} />
-                        )}
-                        {focusOverlays.rails && (
-                          <CasedLine
-                            d={focusOverlays.rails}
-                            ink={overlayInk.infrastructure}
-                            halo={labelHalo}
-                            width={0.55}
-                            zoom={focusZoom.zoom}
-                            dash={`${2.4 / focusZoom.zoom} ${1.6 / focusZoom.zoom}`}
-                          />
-                        )}
-                      </g>
-                    )}
-                    {overlay.lakes && focusOverlays?.lakes && (
-                      <path
-                        d={focusOverlays.lakes}
-                        fill={overlayInk.lakes}
-                        fillOpacity={0.55}
-                        stroke={overlayInk.lakes}
-                        strokeWidth={0.3 / focusZoom.zoom}
-                        pointerEvents="none"
-                      />
-                    )}
-                    {overlay.rivers && focusOverlays?.rivers && (
-                      <CasedLine d={focusOverlays.rivers} ink={overlayInk.rivers} halo={labelHalo} width={0.7} zoom={focusZoom.zoom} opacity={0.85} />
-                    )}
-                    {overlay.mines && focusMarks && (
-                      <g pointerEvents="none">
-                        {focusMarks.mineSolid && (
-                          <path
-                            d={focusMarks.mineSolid}
-                            fill={overlayInk.mines}
-                            fillOpacity={focusMarks.mineOpacity}
-                            stroke={labelHalo}
-                            strokeOpacity={0.55}
-                            strokeWidth={0.4 / focusZoom.zoom}
-                          />
-                        )}
-                        {focusMarks.mineHollow && (
-                          <>
+                    {/* Clipped to the country itself, so a road or a river stops at the border instead of running on through its neighbours. */}
+                    <defs>
+                      {focusMap?.outline && (
+                        <clipPath id="clip-focus-country">
+                          <path d={focusMap?.outline} />
+                        </clipPath>
+                      )}
+                    </defs>
+                    <g clipPath={focusMap?.outline ? "url(#clip-focus-country)" : undefined}>
+                      {/* The same overlays as the world map, in this map's own projection and
+                          clipped to the country in view. */}
+                      {overlay.infrastructure && focusOverlays && (
+                        <g pointerEvents="none">
+                          {focusOverlays.roads && (
+                            <CasedLine d={focusOverlays.roads} ink={overlayInk.infrastructure} halo={labelHalo} width={0.5} zoom={focusZoom.zoom} opacity={0.75} />
+                          )}
+                          {focusOverlays.rails && (
+                            <CasedLine
+                              d={focusOverlays.rails}
+                              ink={overlayInk.infrastructure}
+                              halo={labelHalo}
+                              width={0.55}
+                              zoom={focusZoom.zoom}
+                              dash={`${2.4 / focusZoom.zoom} ${1.6 / focusZoom.zoom}`}
+                            />
+                          )}
+                        </g>
+                      )}
+                      {overlay.lakes && focusOverlays?.lakes && (
+                        <path
+                          d={focusOverlays.lakes}
+                          fill={overlayInk.lakes}
+                          fillOpacity={0.55}
+                          stroke={overlayInk.lakes}
+                          strokeWidth={0.3 / focusZoom.zoom}
+                          pointerEvents="none"
+                        />
+                      )}
+                      {overlay.rivers && focusOverlays?.rivers && (
+                        <CasedLine d={focusOverlays.rivers} ink={overlayInk.rivers} halo={labelHalo} width={0.7} zoom={focusZoom.zoom} opacity={0.85} />
+                      )}
+                      {overlay.mines && focusMarks && (
+                        <g pointerEvents="none">
+                          {focusMarks.mineSolid && (
                             <path
-                              d={focusMarks.mineHollow}
-                              fill="none"
+                              d={focusMarks.mineSolid}
+                              fill={overlayInk.mines}
+                              fillOpacity={focusMarks.mineOpacity}
                               stroke={labelHalo}
                               strokeOpacity={0.55}
-                              strokeWidth={(focusMarks.mineRinged ? 1.5 : 0.9) / focusZoom.zoom}
+                              strokeWidth={0.4 / focusZoom.zoom}
                             />
-                            <path
-                              d={focusMarks.mineHollow}
-                              fill={focusMarks.mineRinged ? "none" : overlayInk.mines}
-                              fillOpacity={focusMarks.mineOpacity}
-                              stroke={focusMarks.mineRinged ? overlayInk.mines : "none"}
-                              strokeWidth={0.7 / focusZoom.zoom}
-                            />
-                          </>
-                        )}
-                      </g>
-                    )}
-                    {overlay.infrastructure && focusMarks?.airports && (
-                      <path
-                        d={focusMarks.airports}
-                        fill={overlayInk.infrastructure}
-                        fillOpacity={0.95}
-                        stroke={labelHalo}
-                        strokeWidth={0.35 / focusZoom.zoom}
-                        pointerEvents="none"
-                      />
-                    )}
-                    {overlay.ports && focusMarks?.ports && (
-                      <path
-                        d={focusMarks.ports}
-                        fill={overlayInk.ports}
-                        fillOpacity={0.9}
-                        stroke={labelHalo}
-                        strokeWidth={0.4 / focusZoom.zoom}
-                        pointerEvents="none"
-                      />
-                    )}
+                          )}
+                          {focusMarks.mineHollow && (
+                            <>
+                              <path
+                                d={focusMarks.mineHollow}
+                                fill="none"
+                                stroke={labelHalo}
+                                strokeOpacity={0.55}
+                                strokeWidth={(focusMarks.mineRinged ? 1.5 : 0.9) / focusZoom.zoom}
+                              />
+                              <path
+                                d={focusMarks.mineHollow}
+                                fill={focusMarks.mineRinged ? "none" : overlayInk.mines}
+                                fillOpacity={focusMarks.mineOpacity}
+                                stroke={focusMarks.mineRinged ? overlayInk.mines : "none"}
+                                strokeWidth={0.7 / focusZoom.zoom}
+                              />
+                            </>
+                          )}
+                        </g>
+                      )}
+                      {overlay.infrastructure && focusMarks?.airports && (
+                        <path
+                          d={focusMarks.airports}
+                          fill={overlayInk.infrastructure}
+                          fillOpacity={0.95}
+                          stroke={labelHalo}
+                          strokeWidth={0.35 / focusZoom.zoom}
+                          pointerEvents="none"
+                        />
+                      )}
+                      {overlay.ports && focusMarks?.ports && (
+                        <path
+                          d={focusMarks.ports}
+                          fill={overlayInk.ports}
+                          fillOpacity={0.9}
+                          stroke={labelHalo}
+                          strokeWidth={0.4 / focusZoom.zoom}
+                          pointerEvents="none"
+                        />
+                      )}
+                    </g>
                   </svg>
 
                   {focusMap && focusMap.insets.length > 0 && (
