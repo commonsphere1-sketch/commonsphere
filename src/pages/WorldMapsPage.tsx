@@ -367,6 +367,46 @@ const OVERLAYS: { id: OverlayId; label: string; about: string }[] = [
 ];
 
 /**
+ * The selected country's flag, for the corner of the focus card.
+ *
+ * From flagcdn, which the Countries page already uses - not a regional
+ * indicator emoji, because Windows has no glyphs for those pairs and renders
+ * them as the two letters instead, so the emoji route reads as "CN" rather
+ * than a flag on a large share of visitors' machines.
+ *
+ * Falls back to the map icon if the image does not arrive: a country flagcdn
+ * has no picture for, or a viewer who is offline, gets the header the card had
+ * before rather than a broken-image box. Give it a `key` of the country code so
+ * a new country starts with a fresh attempt rather than inheriting the last
+ * one's failure.
+ */
+function CountryFlag({ code, name }: { code?: string; name?: string }) {
+  const [failed, setFailed] = useState(false);
+  const cc = (code ?? "").toLowerCase();
+  if (!cc || failed) {
+    return <MapTrifold size={16} weight="fill" className="text-secondary" />;
+  }
+  return (
+    <img
+      src={`https://flagcdn.com/w40/${cc}.png`}
+      srcSet={`https://flagcdn.com/w80/${cc}.png 2x`}
+      width={24}
+      height={16}
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
+      /* The country's name sits beside it in the heading, so the flag is
+         decorative and announcing it again would only repeat the name. */
+      alt=""
+      aria-hidden
+      title={name}
+      className="rounded-[2px] object-cover shrink-0"
+      style={{ border: "1px solid rgba(128,128,128,0.35)" }}
+    />
+  );
+}
+
+/**
  * A line drawn over a casing, so it reads whatever lies underneath it.
  *
  * The overlay colours were picked to separate from each other and from the
@@ -2283,7 +2323,7 @@ export function WorldMapsPage() {
             onReset={worldZoom.reset}
             label="world map"
           >
-            {" "}· scroll to zoom, drag to pan
+            {" "}· scroll or +/- to zoom, drag or arrows to pan
           </ZoomControls>
           <svg
             viewBox={worldZoom.viewBox}
@@ -2702,7 +2742,11 @@ export function WorldMapsPage() {
         >
           <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <MapTrifold size={16} weight="fill" className="text-secondary" />
+              <CountryFlag
+                key={focusCode}
+                code={focusCode}
+                name={focusCode === "US" ? "United States" : focusCountry?.name}
+              />
               <div>
                 <p className="text-[10px] font-mono uppercase tracking-widest text-secondary">
                   {focusCode === "US" ? "Albers USA projection" : "Country focus"}
@@ -2751,7 +2795,9 @@ export function WorldMapsPage() {
             onZoom={focusZoom.zoomTo}
             onReset={focusZoom.reset}
             label="United States map"
-          />
+          >
+            {" "}· scroll or +/- to zoom, drag or arrows to pan
+          </ZoomControls>
           <svg
             viewBox={focusZoom.viewBox}
             className="w-full h-auto mx-auto"
@@ -2942,7 +2988,8 @@ export function WorldMapsPage() {
                     onReset={focusZoom.reset}
                     label={`${focusCountry?.name ?? "country"} map`}
                   >
-                    {" "}· {focusLabels.inside.length} of {focusLabels.total} names shown
+                    {" "}· {focusLabels.inside.length} of {focusLabels.total} names
+                    shown · scroll or +/- to zoom
                   </ZoomControls>
 
                   {/* Map and territories side by side on a wide screen, the
