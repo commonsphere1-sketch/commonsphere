@@ -384,14 +384,14 @@ function CountryFlag({ code, name }: { code?: string; name?: string }) {
   const [failed, setFailed] = useState(false);
   const cc = (code ?? "").toLowerCase();
   if (!cc || failed) {
-    return <MapTrifold size={16} weight="fill" className="text-secondary" />;
+    return <MapTrifold size={28} weight="fill" className="text-secondary shrink-0" />;
   }
   return (
     <img
-      src={`https://flagcdn.com/w40/${cc}.png`}
-      srcSet={`https://flagcdn.com/w80/${cc}.png 2x`}
-      width={24}
-      height={16}
+      src={`https://flagcdn.com/w80/${cc}.png`}
+      srcSet={`https://flagcdn.com/w160/${cc}.png 2x`}
+      width={42}
+      height={28}
       loading="lazy"
       decoding="async"
       onError={() => setFailed(true)}
@@ -400,7 +400,7 @@ function CountryFlag({ code, name }: { code?: string; name?: string }) {
       alt=""
       aria-hidden
       title={name}
-      className="rounded-[2px] object-cover shrink-0"
+      className="h-7 w-auto rounded-[2px] shrink-0"
       style={{ border: "1px solid rgba(128,128,128,0.35)" }}
     />
   );
@@ -2750,6 +2750,7 @@ export function WorldMapsPage() {
               <div>
                 <p className="text-[10px] font-mono uppercase tracking-widest text-secondary">
                   {focusCode === "US" ? "Albers USA projection" : "Country focus"}
+                  {focusCountry?.continent ? ` · ${focusCountry.continent}` : ""}
                 </p>
                 <h2 className="text-sm font-bold font-sans text-foreground">
                   {focusCode === "US"
