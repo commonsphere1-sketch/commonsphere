@@ -68,7 +68,7 @@ const analysisNav = [
   },
   {
     to: "/dashboard/planetary-boundaries",
-    label: "Planetary Boundaries",
+    label: "Climate",
     icon: Leaf,
     end: false,
   },

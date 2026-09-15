@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import {
+  CLIMATE_INDICATORS,
+  CLIMATE_RETRIEVED,
+  type ClimateIndicator,
+} from "../data/climateIndicators";
+import {
   Leaf,
   Info,
   ArrowRight,
@@ -1191,16 +1196,92 @@ export function PlanetaryBoundariesPage() {
         <div className="flex items-center gap-3 mb-6">
           <div>
             <h1 className="text-2xl font-bold font-sans text-foreground">
-              Planetary Boundaries
+              Climate &amp; Planetary Boundaries
             </h1>
             <p className="text-muted-foreground text-sm font-sans">
-              Nine Earth-system processes that define the safe operating space
-              for humanity
+              What the climate is measured at today, and the nine Earth-system
+              processes that define the safe operating space for humanity
             </p>
           </div>
         </div>
 
         {/* ── KPI STRIP ─────────────────────────────────────────────────── */}
+        {/* ── MEASURED NOW ──────────────────────────────────────────────
+            The readings the monitoring agencies publish, each with the month
+            it belongs to and the same measure ten years earlier. A figure like
+            "429 ppm" says nothing on its own about which way it is going. */}
+        <div className="bg-card border border-border rounded-2xl p-4 mb-6">
+          <div className="flex items-baseline justify-between gap-3 mb-3 flex-wrap">
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              Measured now — greenhouse gases, warming and ice
+            </p>
+            <p className="text-[10px] font-mono text-muted-foreground">
+              retrieved {CLIMATE_RETRIEVED}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {CLIMATE_INDICATORS.map((ind: ClimateIndicator) => {
+              const change =
+                ind.decadeAgo === null ? null : ind.value - ind.decadeAgo;
+              /* Less ice is the bad direction; for every other reading here it
+                 is more. The arrow follows the measure, not the sign. */
+              const worseWhenUp = ind.id !== "sea-ice";
+              const worse =
+                change === null ? null : worseWhenUp ? change > 0 : change < 0;
+              return (
+                <div
+                  key={ind.id}
+                  className="rounded-xl border border-border/60 p-3 flex flex-col gap-1"
+                >
+                  <p className="text-[11px] font-sans text-muted-foreground leading-snug">
+                    {ind.label}
+                  </p>
+                  <p className="text-xl font-bold font-mono text-foreground leading-none">
+                    {ind.value}
+                    <span className="text-[11px] font-normal text-muted-foreground ml-1">
+                      {ind.unit}
+                    </span>
+                  </p>
+                  <p className="text-[10px] font-mono text-muted-foreground">
+                    {ind.period}
+                  </p>
+                  {change !== null && (
+                    <p
+                      className={`text-[10px] font-mono ${
+                        worse ? "text-red-500" : "text-emerald-500"
+                      }`}
+                    >
+                      {change > 0 ? "+" : ""}
+                      {Math.abs(change) < 1
+                        ? change.toFixed(2)
+                        : change.toFixed(1)}{" "}
+                      <span className="text-muted-foreground">
+                        vs {ind.decadeAgo} a decade earlier
+                      </span>
+                    </p>
+                  )}
+                  {ind.note && (
+                    <p className="text-[9px] font-sans text-muted-foreground leading-snug mt-0.5">
+                      {ind.note}
+                    </p>
+                  )}
+                  <p className="text-[9px] font-sans text-muted-foreground mt-auto pt-1">
+                    <a
+                      href={ind.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline decoration-dotted hover:text-foreground"
+                    >
+                      {ind.source}
+                    </a>
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
             {
