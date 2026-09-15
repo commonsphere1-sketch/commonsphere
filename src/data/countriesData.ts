@@ -1,5 +1,10 @@
 import { COUNTRY_REFERENCE } from "./countryReference";
 import { GDP_HISTORY } from "./gdpHistory";
+import {
+  COUNTRY_INDICATORS,
+  COUNTRY_INDICATORS_SOURCE,
+  type CountryIndicators,
+} from "./countryIndicators";
 
 export interface Industry {
   name: string;
@@ -66,7 +71,17 @@ export interface DataSource {
 }
 
 /** Fields that can be filled from sourced reference data (see the end of this file). */
-export type ReferenceField = "religions" | "spokenLanguages" | "landmarks";
+export type ReferenceField =
+  | "religions"
+  | "spokenLanguages"
+  | "landmarks"
+  | "population"
+  | "gdp"
+  | "gdpPerCapita"
+  | "gdpGrowth"
+  | "lifeExpectancy"
+  | "unemploymentRate"
+  | "inflationRate";
 
 export interface Country {
   id: string;
@@ -9528,6 +9543,34 @@ for (const c of countriesData) {
      each country's current GDP scaled by 0.88, 0.91, 0.94, 0.97 and 1.00
      across five fixed years, drawn as if it were history. */
   c.trends = GDP_HISTORY[c.code] ?? [];
+
+  /* Measured figures, refreshed from the World Bank and carrying their year.
+
+     These were written by hand and were very largely real - an audit against
+     the World Bank matched 186 of 200 populations to a published year - but
+     they were not all the same year. The best fit ran from 2018 to 2025
+     depending on the country, with nothing on the page saying so, which made a
+     comparison between two countries silently a comparison between two
+     different years. Each value now states the year it is for.
+
+     A country the World Bank does not report keeps the figure it had. */
+  const wb = COUNTRY_INDICATORS[c.code];
+  if (wb) {
+    for (const [field, m] of Object.entries(wb) as [
+      keyof CountryIndicators,
+      { v: number; y: string },
+    ][]) {
+      if (!m) continue;
+      (c as unknown as Record<string, number>)[field] = m.v;
+      c.sources = {
+        ...c.sources,
+        [field]: {
+          label: `${COUNTRY_INDICATORS_SOURCE.label}, ${m.y}`,
+          url: COUNTRY_INDICATORS_SOURCE.url,
+        },
+      };
+    }
+  }
 
   const ref = COUNTRY_REFERENCE[c.code];
   if (!ref) continue;

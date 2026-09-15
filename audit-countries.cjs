@@ -7,6 +7,10 @@
  * which hand-written figures are wrong, and by how much, before deciding what
  * to do about them.
  *
+ * Area is not checked. The World Bank's surface area includes inland water and
+ * is not the total area the site lists - it puts Canada at 15.6m km2 against
+ * the standard 9,984,670 - so comparing the two only produced false alarms.
+ *
  * Tolerances are deliberately generous. These fields move year to year and the
  * site does not say which year it means, so anything within the band is
  * treated as plausibly a different vintage rather than an error. What the
@@ -41,7 +45,6 @@ const FIELDS = {
   lifeExpectancy: { code: "SP.DYN.LE00.IN", conv: (v) => v, abs: 3, label: "life expectancy (yrs)" },
   unemploymentRate: { code: "SL.UEM.TOTL.ZS", conv: (v) => v, abs: 4, label: "unemployment (%)" },
   inflationRate: { code: "FP.CPI.TOTL.ZG", conv: (v) => v, abs: 5, label: "inflation (%)" },
-  areaKm2: { code: "AG.SRF.TOTL.K2", conv: (v) => v, tol: 0.1, label: "area (km2)" },
 };
 
 function loadCountries() {
