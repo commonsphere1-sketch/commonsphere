@@ -1443,7 +1443,16 @@ export function WorldMapsPage() {
   /* ── Overlay layers ───────────────────────────────────────────────────
      Rivers, lakes, ports and mineral sites. Each is off by default and fetched
      only when first switched on; see useOverlay above. */
-  const [overlay, setOverlay] = useState<Record<OverlayId, boolean>>({
+  /* Each map card keeps its own switches. They were one piece of state, so
+     turning a layer on under the world map turned it on under the country map
+     as well - the cards are read one at a time, and a switch that also moves a
+     switch further down the page is a surprise rather than a convenience.
+
+     What they still share is the data. The fetches below are driven by whether
+     EITHER card wants a layer, so switching rivers on in both costs one
+     request, and switching it off in one card does not throw away what the
+     other is still drawing. */
+  const [worldLayers, setWorldLayers] = useState<Record<OverlayId, boolean>>({
     rivers: false,
     lakes: false,
     ports: false,
@@ -1451,21 +1460,31 @@ export function WorldMapsPage() {
     infrastructure: false,
     pollution: false,
   });
-  const toggleOverlay = useCallback(
-    (id: OverlayId) => setOverlay((o) => ({ ...o, [id]: !o[id] })),
+  const [focusLayers, setFocusLayers] = useState<Record<OverlayId, boolean>>({
+    rivers: false,
+    lakes: false,
+    ports: false,
+    mines: false,
+    infrastructure: false,
+    pollution: false,
+  });
+
+  type LayerSetter = React.Dispatch<React.SetStateAction<Record<OverlayId, boolean>>>;
+  const toggleLayer = useCallback(
+    (set: LayerSetter, id: OverlayId) => set((o) => ({ ...o, [id]: !o[id] })),
     [],
   );
+  const wanted = (id: OverlayId) => worldLayers[id] || focusLayers[id];
 
-  const rivers = useOverlay<Topology>(OVERLAY_URL.rivers, overlay.rivers);
-  const lakes = useOverlay<Topology>(OVERLAY_URL.lakes, overlay.lakes);
-  const ports = useOverlay<PointLayer<PortRow>>(OVERLAY_URL.ports, overlay.ports);
-  const mines = useOverlay<MineLayer>(OVERLAY_URL.mines, overlay.mines);
+  const rivers = useOverlay<Topology>(OVERLAY_URL.rivers, wanted("rivers"));
+  const lakes = useOverlay<Topology>(OVERLAY_URL.lakes, wanted("lakes"));
+  const ports = useOverlay<PointLayer<PortRow>>(OVERLAY_URL.ports, wanted("ports"));
+  const mines = useOverlay<MineLayer>(OVERLAY_URL.mines, wanted("mines"));
   const infra = useOverlay<InfrastructureLayer>(
     OVERLAY_URL.infrastructure,
-    overlay.infrastructure,
+    wanted("infrastructure"),
   );
 
-  const activeOverlays = OVERLAYS.filter((o) => overlay[o.id]);
 
   const overlayState: Record<OverlayId, { loading: boolean; failed: boolean }> = {
     rivers: { loading: rivers.loading, failed: rivers.failed },
@@ -2187,8 +2206,9 @@ export function WorldMapsPage() {
   
      Shared between the maps for the same reason the toggles are: one set of
      caveats, so the country map cannot quietly omit one the world map gives. */
-  const layerNotes = () =>
-    activeOverlays.length === 0 ? null : (
+  const layerNotes = (layers: Record<OverlayId, boolean>) => {
+    const activeOverlays = OVERLAYS.filter((o) => layers[o.id]);
+    return activeOverlays.length === 0 ? null : (
         <div className="mt-2 space-y-1">
           {activeOverlays.map((o) => (
             <p key={o.id} className="text-[9px] font-sans text-muted-foreground">
@@ -2206,7 +2226,7 @@ export function WorldMapsPage() {
               <span className="font-medium text-foreground">{o.label}</span> — {o.about}
             </p>
           ))}
-          {overlay.pollution && (
+          {layers.pollution && (
             <p className="text-[9px] font-sans text-muted-foreground pl-3">
               Bands are the WHO thresholds as the World Bank states them: the
               guideline at 10 µg/m³, then interim targets 3, 2 and 1 at 15, 25
@@ -2216,7 +2236,7 @@ export function WorldMapsPage() {
               within it the pollution sits.
             </p>
           )}
-          {overlay.mines && mineSummary && (
+          {layers.mines && mineSummary && (
             <p className="text-[9px] font-sans text-muted-foreground pl-3">
               A filled dot is one of {mineSummary.operations.toLocaleString()}{" "}
               working operations, a hollow one of{" "}
@@ -2228,18 +2248,20 @@ export function WorldMapsPage() {
           )}
         </div>
     );
+  };
 
   /* The overlay toggles, drawn under every map that can show them.
   
-     One row of markup and one piece of state, so switching a layer on under
-     the world map switches it on under the country map too - they are the
-     same layers, and two independent sets would invite the reader to wonder
-     why the same switch says different things in two places.
+     One row of markup, but each card passes its own state in: the world map
+     and the country map keep their switches to themselves, so turning a layer
+     on under one does not reach down the page and turn it on under the other.
+     The layer data is still shared, so the independence costs no extra
+     requests.
   
      Kept in a row of their own, apart from the scope and indicator chips,
      because these do not change what is shaded - they add a layer over it -
      and a reader who mistook one for the other would read the map wrongly. */
-  const layerToggles = () => (
+  const layerToggles = (layers: Record<OverlayId, boolean>, set: LayerSetter) => (
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
           Layers
@@ -2249,15 +2271,15 @@ export function WorldMapsPage() {
           return (
             <button
               key={o.id}
-              onClick={() => toggleOverlay(o.id)}
-              aria-pressed={overlay[o.id]}
+              onClick={() => toggleLayer(set, o.id)}
+              aria-pressed={layers[o.id]}
               className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
-                overlay[o.id]
+                layers[o.id]
                   ? "border-transparent"
                   : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
               style={
-                overlay[o.id]
+                layers[o.id]
                   ? { background: `${overlayInk[o.id]}26`, borderColor: `${overlayInk[o.id]}66`, color: overlayInk[o.id] }
                   : undefined
               }
@@ -2269,8 +2291,8 @@ export function WorldMapsPage() {
                   o.id === "ports" || o.id === "infrastructure" ? "" : "rounded-full"
                 }`}
                 style={{
-                  background: overlay[o.id] ? overlayInk[o.id] : "currentColor",
-                  opacity: overlay[o.id] ? 1 : 0.45,
+                  background: layers[o.id] ? overlayInk[o.id] : "currentColor",
+                  opacity: layers[o.id] ? 1 : 0.45,
                   ...(o.id === "infrastructure"
                     ? { clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }
                     : {}),
@@ -2375,7 +2397,7 @@ export function WorldMapsPage() {
             ))}
           </div>
 
-          {layerToggles()}
+          {layerToggles(worldLayers, setWorldLayers)}
 
           <ZoomControls
             zoom={worldZoom.zoom}
@@ -2460,7 +2482,7 @@ export function WorldMapsPage() {
                 reports the country beneath it and the choropleth stays the
                 thing the map is about. Widths and radii are divided by the
                 zoom, so every layer holds its size on screen. */}
-            {overlay.pollution &&
+            {worldLayers.pollution &&
               pollutionBands.map((b) => (
                 <path
                   key={b.band}
@@ -2470,7 +2492,7 @@ export function WorldMapsPage() {
                   pointerEvents="none"
                 />
               ))}
-            {overlay.infrastructure && infraPaths && (
+            {worldLayers.infrastructure && infraPaths && (
               /* Roads solid and railways dashed, so the two line networks stay
                  apart without reference to colour. Drawn first of the overlays,
                  so water and the point layers read over them. */
@@ -2486,7 +2508,7 @@ export function WorldMapsPage() {
                 />
               </g>
             )}
-            {overlay.lakes && lakePaths && (
+            {worldLayers.lakes && lakePaths && (
               <path
                 d={lakePaths}
                 fill={overlayInk.lakes}
@@ -2496,7 +2518,7 @@ export function WorldMapsPage() {
                 pointerEvents="none"
               />
             )}
-            {overlay.rivers && riverPaths && (
+            {worldLayers.rivers && riverPaths && (
               <CasedLine
                 d={worldZoom.zoom > RIVER_DETAIL_ABOVE ? riverPaths.all : riverPaths.trunk}
                 ink={overlayInk.rivers}
@@ -2506,7 +2528,7 @@ export function WorldMapsPage() {
                 opacity={0.85}
               />
             )}
-            {overlay.mines && minesD && (
+            {worldLayers.mines && minesD && (
               /* A working operation is drawn solid and a known deposit hollow,
                  because they come from different datasets and mean different
                  things - one is a mine that was running, the other is ore known
@@ -2540,7 +2562,7 @@ export function WorldMapsPage() {
                 />
               </g>
             )}
-            {overlay.infrastructure && airportsD && (
+            {worldLayers.infrastructure && airportsD && (
               <path
                 d={airportsD}
                 fill={overlayInk.infrastructure}
@@ -2550,7 +2572,7 @@ export function WorldMapsPage() {
                 pointerEvents="none"
               />
             )}
-            {overlay.ports && portsD && (
+            {worldLayers.ports && portsD && (
               <path
                 d={portsD}
                 fill={overlayInk.ports}
@@ -2608,7 +2630,7 @@ export function WorldMapsPage() {
             hovered={hovered}
           />
 
-          {layerNotes()}
+          {layerNotes(worldLayers)}
         </div>
 
         {/* ── Group figures, while a group scope is selected ── */}
@@ -2859,7 +2881,7 @@ export function WorldMapsPage() {
 
           {focusCode === "US" ? (
           <>
-          {layerToggles()}
+          {layerToggles(focusLayers, setFocusLayers)}
 
           <ZoomControls
             zoom={zoom}
@@ -2932,7 +2954,7 @@ export function WorldMapsPage() {
                 </text>
               </g>
             ))}
-            {overlay.pollution && focusPollution && usOutlineD && (
+            {focusLayers.pollution && focusPollution && usOutlineD && (
               <path
                 d={usOutlineD}
                 fill={overlayInk.pollution}
@@ -2951,7 +2973,7 @@ export function WorldMapsPage() {
             <g clipPath={usOutlineD ? "url(#clip-us)" : undefined}>
               {/* The same overlays as the world map, in this map's own projection and
                   clipped to the country in view. */}
-              {overlay.infrastructure && focusOverlays && (
+              {focusLayers.infrastructure && focusOverlays && (
                 <g pointerEvents="none">
                   {focusOverlays.roads && (
                     <CasedLine d={focusOverlays.roads} ink={overlayInk.infrastructure} halo={labelHalo} width={0.5} zoom={focusZoom.zoom} opacity={0.75} />
@@ -2968,7 +2990,7 @@ export function WorldMapsPage() {
                   )}
                 </g>
               )}
-              {overlay.lakes && focusOverlays?.lakes && (
+              {focusLayers.lakes && focusOverlays?.lakes && (
                 <path
                   d={focusOverlays.lakes}
                   fill={overlayInk.lakes}
@@ -2978,10 +3000,10 @@ export function WorldMapsPage() {
                   pointerEvents="none"
                 />
               )}
-              {overlay.rivers && focusOverlays?.rivers && (
+              {focusLayers.rivers && focusOverlays?.rivers && (
                 <CasedLine d={focusOverlays.rivers} ink={overlayInk.rivers} halo={labelHalo} width={0.7} zoom={focusZoom.zoom} opacity={0.85} />
               )}
-              {overlay.mines && focusMarks && (
+              {focusLayers.mines && focusMarks && (
                 <g pointerEvents="none">
                   {focusMarks.mineSolid && (
                     <path
@@ -3013,7 +3035,7 @@ export function WorldMapsPage() {
                   )}
                 </g>
               )}
-              {overlay.infrastructure && focusMarks?.airports && (
+              {focusLayers.infrastructure && focusMarks?.airports && (
                 <path
                   d={focusMarks.airports}
                   fill={overlayInk.infrastructure}
@@ -3023,7 +3045,7 @@ export function WorldMapsPage() {
                   pointerEvents="none"
                 />
               )}
-              {overlay.ports && focusMarks?.ports && (
+              {focusLayers.ports && focusMarks?.ports && (
                 <path
                   d={focusMarks.ports}
                   fill={overlayInk.ports}
@@ -3049,7 +3071,7 @@ export function WorldMapsPage() {
             the boundary data but not in the state dataset, so they are drawn
             unshaded.
           </p>
-          {layerNotes()}
+          {layerNotes(focusLayers)}
           </>
           ) : (
             <>
@@ -3059,7 +3081,7 @@ export function WorldMapsPage() {
                   invented one would be worse than none. */}
               <div>
                 <div>
-                  {layerToggles()}
+                  {layerToggles(focusLayers, setFocusLayers)}
 
                   <ZoomControls
                     zoom={zoom}
@@ -3167,7 +3189,7 @@ export function WorldMapsPage() {
                         {sd.n}
                       </text>
                     ))}
-                    {overlay.pollution && focusPollution && focusMap?.outline && (
+                    {focusLayers.pollution && focusPollution && focusMap?.outline && (
                       <path
                         d={focusMap?.outline}
                         fill={overlayInk.pollution}
@@ -3186,7 +3208,7 @@ export function WorldMapsPage() {
                     <g clipPath={focusMap?.outline ? "url(#clip-focus-country)" : undefined}>
                       {/* The same overlays as the world map, in this map's own projection and
                           clipped to the country in view. */}
-                      {overlay.infrastructure && focusOverlays && (
+                      {focusLayers.infrastructure && focusOverlays && (
                         <g pointerEvents="none">
                           {focusOverlays.roads && (
                             <CasedLine d={focusOverlays.roads} ink={overlayInk.infrastructure} halo={labelHalo} width={0.5} zoom={focusZoom.zoom} opacity={0.75} />
@@ -3203,7 +3225,7 @@ export function WorldMapsPage() {
                           )}
                         </g>
                       )}
-                      {overlay.lakes && focusOverlays?.lakes && (
+                      {focusLayers.lakes && focusOverlays?.lakes && (
                         <path
                           d={focusOverlays.lakes}
                           fill={overlayInk.lakes}
@@ -3213,10 +3235,10 @@ export function WorldMapsPage() {
                           pointerEvents="none"
                         />
                       )}
-                      {overlay.rivers && focusOverlays?.rivers && (
+                      {focusLayers.rivers && focusOverlays?.rivers && (
                         <CasedLine d={focusOverlays.rivers} ink={overlayInk.rivers} halo={labelHalo} width={0.7} zoom={focusZoom.zoom} opacity={0.85} />
                       )}
-                      {overlay.mines && focusMarks && (
+                      {focusLayers.mines && focusMarks && (
                         <g pointerEvents="none">
                           {focusMarks.mineSolid && (
                             <path
@@ -3248,7 +3270,7 @@ export function WorldMapsPage() {
                           )}
                         </g>
                       )}
-                      {overlay.infrastructure && focusMarks?.airports && (
+                      {focusLayers.infrastructure && focusMarks?.airports && (
                         <path
                           d={focusMarks.airports}
                           fill={overlayInk.infrastructure}
@@ -3258,7 +3280,7 @@ export function WorldMapsPage() {
                           pointerEvents="none"
                         />
                       )}
-                      {overlay.ports && focusMarks?.ports && (
+                      {focusLayers.ports && focusMarks?.ports && (
                         <path
                           d={focusMarks.ports}
                           fill={overlayInk.ports}
@@ -3317,7 +3339,7 @@ export function WorldMapsPage() {
                   </div>
                 </div>
 
-                {layerNotes()}
+                {layerNotes(focusLayers)}
 
                 {/* Attached to the map: same panel, directly beneath it. */}
                 <div className="mt-3 border-t border-border/60 pt-3">
