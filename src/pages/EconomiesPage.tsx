@@ -7390,7 +7390,7 @@ export function EconomiesPage() {
             />
           </div>
           {/* Row 2: View tabs + filters + sort */}
-          <CollapsibleFilters>
+          <CollapsibleFilters id="economies">
             {(
               [
                 {

@@ -9308,7 +9308,7 @@ export function StatesPage() {
             />
           </div>
           {/* Row 2: Pills + Sort */}
-          <CollapsibleFilters>
+          <CollapsibleFilters id="states">
             {regions.map((r) => (
               <button
                 key={r}

@@ -3242,7 +3242,7 @@ export function CitiesPage() {
             />
           </div>
           {/* Row 2: Filters */}
-          <CollapsibleFilters>
+          <CollapsibleFilters id="cities">
             {allRegions.map((r) => (
               <button
                 key={r}

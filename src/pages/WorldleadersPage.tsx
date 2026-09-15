@@ -15734,7 +15734,7 @@ export function WorldLeadersPage() {
             />
           </div>
           {/* Row 2: Region pills + divider + ideology select */}
-          <CollapsibleFilters>
+          <CollapsibleFilters id="world-leaders">
             {REGIONS.map((r) => (
               <button
                 key={r}

@@ -1368,7 +1368,7 @@ export function RankingsPage() {
         </div>
 
         {/* Row 2: category pills, entity pills, sort */}
-        <CollapsibleFilters>
+        <CollapsibleFilters id="rankings">
           {CATEGORY_TABS.map((tab) => (
             <button
               key={tab.id}

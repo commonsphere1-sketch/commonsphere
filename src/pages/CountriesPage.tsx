@@ -33946,7 +33946,7 @@ export function CountriesPage() {
             />
           </div>
           {/* Row 2: Continent pills + sort */}
-          <CollapsibleFilters>
+          <CollapsibleFilters id="countries">
             {continents.map((c) => (
               <button
                 key={c}

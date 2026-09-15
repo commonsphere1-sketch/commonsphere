@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { CaretDown } from "@phosphor-icons/react";
 
-const STORAGE_KEY = "cs-filters-open";
+const STORAGE_PREFIX = "cs-filters-open:";
 
 /**
  * Wraps a page's filter pills in a collapsible section.
@@ -10,14 +10,22 @@ const STORAGE_KEY = "cs-filters-open";
  * sticky bar, so they cost the same vertical space on every scroll. Being
  * able to fold them away buys that space back.
  *
- * The choice is stored rather than held per page: these bars are the same
- * control on eight pages, so collapsing one collapses them all, and the
- * preference survives a reload.
+ * The choice is stored per page, under the page's own `id`, and survives a
+ * reload. It used to be one key for all of them, so folding the filters away
+ * on one page folded them on the other six - these bars look alike but they
+ * hold different controls, and a reader who hides the economy filters has said
+ * nothing about the ones on the countries page.
+ *
+ * `id` is required rather than defaulted for that reason: a new page that
+ * forgot to pass one would silently share another page's setting.
  */
 export function CollapsibleFilters({
+  id,
   children,
   label = "Filters",
 }: {
+  /** Unique per page. Names the stored preference; never shown. */
+  id: string;
   children: React.ReactNode;
   label?: string;
 }) {
@@ -25,9 +33,11 @@ export function CollapsibleFilters({
   // value afterwards renders the filters open for a frame, so a collapsed bar
   // visibly flashes its pills on every page load. Defaults to open, so nobody
   // who has not chosen to hide them ever finds them hidden.
+  const storageKey = STORAGE_PREFIX + id;
+
   const [open, setOpen] = useState(() => {
     try {
-      return localStorage.getItem(STORAGE_KEY) !== "closed";
+      return localStorage.getItem(storageKey) !== "closed";
     } catch {
       return true; // storage blocked
     }
@@ -37,7 +47,7 @@ export function CollapsibleFilters({
     setOpen((prev) => {
       const next = !prev;
       try {
-        localStorage.setItem(STORAGE_KEY, next ? "open" : "closed");
+        localStorage.setItem(storageKey, next ? "open" : "closed");
       } catch {
         // the choice still applies for this session
       }

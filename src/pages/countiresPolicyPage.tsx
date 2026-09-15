@@ -11036,7 +11036,7 @@ export function PolicyPage() {
           </span>
         </div>
         {/* Row 2: Tab pills + divider + category pills */}
-        <CollapsibleFilters>
+        <CollapsibleFilters id="policy">
           {/* Entity-type tabs */}
           {TABS.map((t) => (
             <button
