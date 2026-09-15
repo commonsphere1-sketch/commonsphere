@@ -15,7 +15,6 @@ export interface Economy {
   interestRate: number;
   currencyCode: string;
   currencyName: string;
-  topSectors: { name: string; shareOfGDP: number }[];
   topExports: string[];
   topImports: string[];
   tradingPartners: string[];
@@ -53,12 +52,6 @@ export const economiesData: Economy[] = [
     interestRate: 4.0,
     currencyCode: "USD",
     currencyName: "US Dollar",
-    topSectors: [
-      { name: "Services", shareOfGDP: 77 },
-      { name: "Industry", shareOfGDP: 18 },
-      { name: "Agriculture", shareOfGDP: 1 },
-      { name: "Finance", shareOfGDP: 8 },
-    ],
     topExports: [
       "Refined Petroleum",
       "Aircraft",
@@ -128,12 +121,6 @@ export const economiesData: Economy[] = [
     interestRate: 3.1,
     currencyCode: "CNY",
     currencyName: "Chinese Yuan (Renminbi)",
-    topSectors: [
-      { name: "Services", shareOfGDP: 54 },
-      { name: "Industry", shareOfGDP: 39 },
-      { name: "Agriculture", shareOfGDP: 7 },
-      { name: "Manufacturing", shareOfGDP: 27 },
-    ],
     topExports: ["Electronics", "Machinery", "Vehicles", "Plastics", "Steel"],
     topImports: ["Semiconductors", "Oil", "Soybeans", "Iron Ore", "Aircraft"],
     tradingPartners: ["USA", "Japan", "South Korea", "Germany", "Australia"],
@@ -191,12 +178,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.4,
     currencyCode: "EUR",
     currencyName: "Euro",
-    topSectors: [
-      { name: "Services", shareOfGDP: 72 },
-      { name: "Industry", shareOfGDP: 24 },
-      { name: "Agriculture", shareOfGDP: 2 },
-      { name: "Finance", shareOfGDP: 6 },
-    ],
     topExports: [
       "Machinery",
       "Pharmaceuticals",
@@ -260,12 +241,6 @@ export const economiesData: Economy[] = [
     interestRate: 0.5,
     currencyCode: "JPY",
     currencyName: "Japanese Yen",
-    topSectors: [
-      { name: "Services", shareOfGDP: 69 },
-      { name: "Industry", shareOfGDP: 30 },
-      { name: "Agriculture", shareOfGDP: 1 },
-      { name: "Technology", shareOfGDP: 10 },
-    ],
     topExports: [
       "Vehicles",
       "Electronics",
@@ -335,12 +310,6 @@ export const economiesData: Economy[] = [
     interestRate: 5.75,
     currencyCode: "INR",
     currencyName: "Indian Rupee",
-    topSectors: [
-      { name: "Services", shareOfGDP: 55 },
-      { name: "Industry", shareOfGDP: 26 },
-      { name: "Agriculture", shareOfGDP: 18 },
-      { name: "IT", shareOfGDP: 8 },
-    ],
     topExports: [
       "Petroleum Products",
       "Pharmaceuticals",
@@ -404,12 +373,6 @@ export const economiesData: Economy[] = [
     interestRate: 4.25,
     currencyCode: "GBP",
     currencyName: "British Pound Sterling",
-    topSectors: [
-      { name: "Services", shareOfGDP: 79 },
-      { name: "Industry", shareOfGDP: 19 },
-      { name: "Agriculture", shareOfGDP: 1 },
-      { name: "Finance", shareOfGDP: 9 },
-    ],
     topExports: ["Machines", "Vehicles", "Pharmaceuticals", "Gold", "Aircraft"],
     topImports: ["Cars", "Gold", "Gas", "Electronics", "Pharmaceuticals"],
     tradingPartners: ["EU", "USA", "China", "Switzerland", "Norway"],
@@ -467,12 +430,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.65,
     currencyCode: "EUR",
     currencyName: "Euro",
-    topSectors: [
-      { name: "Industry", shareOfGDP: 30 },
-      { name: "Services", shareOfGDP: 69 },
-      { name: "Agriculture", shareOfGDP: 1 },
-      { name: "Manufacturing", shareOfGDP: 22 },
-    ],
     topExports: [
       "Vehicles",
       "Machinery",
@@ -536,12 +493,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.65,
     currencyCode: "EUR",
     currencyName: "Euro",
-    topSectors: [
-      { name: "Services", shareOfGDP: 79 },
-      { name: "Industry", shareOfGDP: 19 },
-      { name: "Agriculture", shareOfGDP: 2 },
-      { name: "Tourism", shareOfGDP: 7 },
-    ],
     topExports: [
       "Aircraft",
       "Pharmaceuticals",
@@ -598,12 +549,6 @@ export const economiesData: Economy[] = [
     interestRate: 10.75,
     currencyCode: "BRL",
     currencyName: "Brazilian Real",
-    topSectors: [
-      { name: "Services", shareOfGDP: 65 },
-      { name: "Industry", shareOfGDP: 22 },
-      { name: "Agriculture", shareOfGDP: 9 },
-      { name: "Mining", shareOfGDP: 5 },
-    ],
     topExports: ["Soybeans", "Iron Ore", "Crude Oil", "Beef", "Corn"],
     topImports: ["Machinery", "Fuel", "Electronics", "Vehicles", "Chemicals"],
     tradingPartners: ["China", "USA", "Argentina", "Netherlands", "Germany"],
@@ -653,12 +598,6 @@ export const economiesData: Economy[] = [
     interestRate: 3.25,
     currencyCode: "CAD",
     currencyName: "Canadian Dollar",
-    topSectors: [
-      { name: "Services", shareOfGDP: 71 },
-      { name: "Industry", shareOfGDP: 26 },
-      { name: "Agriculture", shareOfGDP: 2 },
-      { name: "Energy", shareOfGDP: 10 },
-    ],
     topExports: ["Crude Oil", "Gold", "Vehicles", "Wheat", "Machinery"],
     topImports: [
       "Vehicles",
@@ -715,12 +654,6 @@ export const economiesData: Economy[] = [
     interestRate: 3.0,
     currencyCode: "KRW",
     currencyName: "South Korean Won",
-    topSectors: [
-      { name: "Manufacturing", shareOfGDP: 29 },
-      { name: "Services", shareOfGDP: 60 },
-      { name: "Technology", shareOfGDP: 14 },
-      { name: "Agriculture", shareOfGDP: 2 },
-    ],
     topExports: ["Semiconductors", "Vehicles", "Ships", "Displays", "Steel"],
     topImports: [
       "Semiconductors",
@@ -777,12 +710,6 @@ export const economiesData: Economy[] = [
     interestRate: 3.85,
     currencyCode: "AUD",
     currencyName: "Australian Dollar",
-    topSectors: [
-      { name: "Services", shareOfGDP: 72 },
-      { name: "Mining", shareOfGDP: 14 },
-      { name: "Agriculture", shareOfGDP: 3 },
-      { name: "Industry", shareOfGDP: 11 },
-    ],
     topExports: ["Iron Ore", "Coal", "LNG", "Gold", "Beef"],
     topImports: [
       "Electronics",
@@ -839,12 +766,6 @@ export const economiesData: Economy[] = [
     interestRate: 21.0,
     currencyCode: "RUB",
     currencyName: "Russian Ruble",
-    topSectors: [
-      { name: "Energy", shareOfGDP: 23 },
-      { name: "Services", shareOfGDP: 55 },
-      { name: "Industry", shareOfGDP: 32 },
-      { name: "Agriculture", shareOfGDP: 4 },
-    ],
     topExports: ["Oil", "Natural Gas", "Metals", "Weapons", "Wheat"],
     topImports: [
       "Electronics",
@@ -901,12 +822,6 @@ export const economiesData: Economy[] = [
     interestRate: 9.0,
     currencyCode: "MXN",
     currencyName: "Mexican Peso",
-    topSectors: [
-      { name: "Services", shareOfGDP: 64 },
-      { name: "Industry", shareOfGDP: 32 },
-      { name: "Agriculture", shareOfGDP: 4 },
-      { name: "Manufacturing", shareOfGDP: 20 },
-    ],
     topExports: [
       "Manufactured Goods",
       "Oil",
@@ -964,12 +879,6 @@ export const economiesData: Economy[] = [
     interestRate: 5.75,
     currencyCode: "IDR",
     currencyName: "Indonesian Rupiah",
-    topSectors: [
-      { name: "Services", shareOfGDP: 43 },
-      { name: "Industry", shareOfGDP: 40 },
-      { name: "Agriculture", shareOfGDP: 13 },
-      { name: "Mining", shareOfGDP: 12 },
-    ],
     topExports: ["Coal", "Palm Oil", "Nickel", "Clothing", "Footwear"],
     topImports: [
       "Machinery",
@@ -1026,12 +935,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.75,
     currencyCode: "EUR",
     currencyName: "Euro",
-    topSectors: [
-      { name: "Services", shareOfGDP: 72 },
-      { name: "Industry", shareOfGDP: 20 },
-      { name: "Agriculture", shareOfGDP: 2 },
-      { name: "Logistics", shareOfGDP: 9 },
-    ],
     topExports: [
       "Machinery",
       "Electronics",
@@ -1087,12 +990,6 @@ export const economiesData: Economy[] = [
     interestRate: 5.5,
     currencyCode: "SAR",
     currencyName: "Saudi Riyal",
-    topSectors: [
-      { name: "Energy", shareOfGDP: 40 },
-      { name: "Services", shareOfGDP: 45 },
-      { name: "Industry", shareOfGDP: 13 },
-      { name: "Agriculture", shareOfGDP: 2 },
-    ],
     topExports: [
       "Crude Oil",
       "Refined Petroleum",
@@ -1149,12 +1046,6 @@ export const economiesData: Economy[] = [
     interestRate: 42.5,
     currencyCode: "TRY",
     currencyName: "Turkish Lira",
-    topSectors: [
-      { name: "Services", shareOfGDP: 60 },
-      { name: "Industry", shareOfGDP: 32 },
-      { name: "Agriculture", shareOfGDP: 7 },
-      { name: "Tourism", shareOfGDP: 6 },
-    ],
     topExports: [
       "Machinery",
       "Vehicles",
@@ -1211,12 +1102,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.75,
     currencyCode: "EUR",
     currencyName: "Euro",
-    topSectors: [
-      { name: "Services", shareOfGDP: 74 },
-      { name: "Industry", shareOfGDP: 23 },
-      { name: "Agriculture", shareOfGDP: 3 },
-      { name: "Tourism", shareOfGDP: 12 },
-    ],
     topExports: [
       "Vehicles",
       "Machinery",
@@ -1281,12 +1166,6 @@ export const economiesData: Economy[] = [
     interestRate: 1.25,
     currencyCode: "CHF",
     currencyName: "Swiss Franc",
-    topSectors: [
-      { name: "Services", shareOfGDP: 74 },
-      { name: "Industry", shareOfGDP: 25 },
-      { name: "Agriculture", shareOfGDP: 1 },
-      { name: "Finance", shareOfGDP: 10 },
-    ],
     topExports: [
       "Pharmaceuticals",
       "Chemicals",
@@ -1337,12 +1216,6 @@ export const economiesData: Economy[] = [
     interestRate: 35.0,
     currencyCode: "ARS",
     currencyName: "Argentine Peso",
-    topSectors: [
-      { name: "Services", shareOfGDP: 59 },
-      { name: "Agriculture", shareOfGDP: 10 },
-      { name: "Industry", shareOfGDP: 28 },
-      { name: "Mining", shareOfGDP: 4 },
-    ],
     topExports: ["Soybeans", "Corn", "Beef", "Crude Oil", "Lithium"],
     topImports: ["Machinery", "Electronics", "Vehicles", "Chemicals", "Fuel"],
     tradingPartners: ["Brazil", "China", "USA", "Chile", "Germany"],
@@ -1392,12 +1265,6 @@ export const economiesData: Economy[] = [
     interestRate: 5.4,
     currencyCode: "AED",
     currencyName: "UAE Dirham",
-    topSectors: [
-      { name: "Services", shareOfGDP: 55 },
-      { name: "Energy", shareOfGDP: 30 },
-      { name: "Industry", shareOfGDP: 14 },
-      { name: "Tourism", shareOfGDP: 9 },
-    ],
     topExports: [
       "Crude Oil",
       "Natural Gas",
@@ -1456,12 +1323,6 @@ export const economiesData: Economy[] = [
     interestRate: 5.75,
     currencyCode: "PLN",
     currencyName: "Polish Zloty",
-    topSectors: [
-      { name: "Services", shareOfGDP: 65 },
-      { name: "Industry", shareOfGDP: 33 },
-      { name: "Agriculture", shareOfGDP: 2 },
-      { name: "Manufacturing", shareOfGDP: 21 },
-    ],
     topExports: [
       "Machinery",
       "Electronic Equipment",
@@ -1516,12 +1377,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.5,
     currencyCode: "SEK",
     currencyName: "Swedish Krona",
-    topSectors: [
-      { name: "Services", shareOfGDP: 73 },
-      { name: "Industry", shareOfGDP: 26 },
-      { name: "Agriculture", shareOfGDP: 1 },
-      { name: "Technology", shareOfGDP: 12 },
-    ],
     topExports: [
       "Machinery",
       "Vehicles",
@@ -1573,12 +1428,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.75,
     currencyCode: "EUR",
     currencyName: "Euro",
-    topSectors: [
-      { name: "Services", shareOfGDP: 77 },
-      { name: "Industry", shareOfGDP: 22 },
-      { name: "Agriculture", shareOfGDP: 1 },
-      { name: "Chemicals", shareOfGDP: 8 },
-    ],
     topExports: [
       "Chemicals",
       "Machinery",
@@ -1631,12 +1480,6 @@ export const economiesData: Economy[] = [
     interestRate: 4.5,
     currencyCode: "NOK",
     currencyName: "Norwegian Krone",
-    topSectors: [
-      { name: "Energy", shareOfGDP: 26 },
-      { name: "Services", shareOfGDP: 65 },
-      { name: "Industry", shareOfGDP: 9 },
-      { name: "Fisheries", shareOfGDP: 2 },
-    ],
     topExports: ["Crude Oil", "Natural Gas", "Fish", "Machinery", "Aluminum"],
     topImports: ["Machinery", "Electronics", "Vehicles", "Metals", "Food"],
     tradingPartners: ["Germany", "UK", "Netherlands", "Sweden", "France"],
@@ -1687,12 +1530,6 @@ export const economiesData: Economy[] = [
     interestRate: 3.68,
     currencyCode: "SGD",
     currencyName: "Singapore Dollar",
-    topSectors: [
-      { name: "Services", shareOfGDP: 71 },
-      { name: "Manufacturing", shareOfGDP: 22 },
-      { name: "Finance", shareOfGDP: 14 },
-      { name: "Trade", shareOfGDP: 16 },
-    ],
     topExports: [
       "Electronics",
       "Refined Petroleum",
@@ -1743,12 +1580,6 @@ export const economiesData: Economy[] = [
     interestRate: 3.0,
     currencyCode: "MYR",
     currencyName: "Malaysian Ringgit",
-    topSectors: [
-      { name: "Services", shareOfGDP: 55 },
-      { name: "Industry", shareOfGDP: 38 },
-      { name: "Agriculture", shareOfGDP: 7 },
-      { name: "Manufacturing", shareOfGDP: 23 },
-    ],
     topExports: [
       "Electronics",
       "Palm Oil",
@@ -1808,12 +1639,6 @@ export const economiesData: Economy[] = [
     interestRate: 4.5,
     currencyCode: "ILS",
     currencyName: "Israeli New Shekel",
-    topSectors: [
-      { name: "Technology", shareOfGDP: 18 },
-      { name: "Services", shareOfGDP: 72 },
-      { name: "Industry", shareOfGDP: 16 },
-      { name: "Agriculture", shareOfGDP: 1 },
-    ],
     topExports: [
       "Diamonds",
       "Technology",
@@ -1859,12 +1684,6 @@ export const economiesData: Economy[] = [
     interestRate: 10.75,
     currencyCode: "COP",
     currencyName: "Colombian Peso",
-    topSectors: [
-      { name: "Services", shareOfGDP: 58 },
-      { name: "Industry", shareOfGDP: 26 },
-      { name: "Agriculture", shareOfGDP: 6 },
-      { name: "Mining", shareOfGDP: 10 },
-    ],
     topExports: ["Oil", "Coal", "Coffee", "Gold", "Flowers"],
     topImports: ["Electronics", "Machinery", "Chemicals", "Vehicles", "Fuels"],
     tradingPartners: ["USA", "China", "Panama", "Ecuador", "Mexico"],
@@ -1909,12 +1728,6 @@ export const economiesData: Economy[] = [
     interestRate: 27.25,
     currencyCode: "EGP",
     currencyName: "Egyptian Pound",
-    topSectors: [
-      { name: "Services", shareOfGDP: 52 },
-      { name: "Industry", shareOfGDP: 35 },
-      { name: "Agriculture", shareOfGDP: 11 },
-      { name: "Tourism", shareOfGDP: 5 },
-    ],
     topExports: ["Oil", "Natural Gas", "Gold", "Chemicals", "Textiles"],
     topImports: ["Machinery", "Oil", "Food", "Electronics", "Metals"],
     tradingPartners: ["China", "Saudi Arabia", "USA", "UAE", "Turkey"],
@@ -1967,12 +1780,6 @@ export const economiesData: Economy[] = [
     interestRate: 8.25,
     currencyCode: "ZAR",
     currencyName: "South African Rand",
-    topSectors: [
-      { name: "Services", shareOfGDP: 63 },
-      { name: "Industry", shareOfGDP: 27 },
-      { name: "Agriculture", shareOfGDP: 3 },
-      { name: "Mining", shareOfGDP: 8 },
-    ],
     topExports: ["Gold", "Platinum", "Iron Ore", "Coal", "Vehicles"],
     topImports: ["Oil", "Machinery", "Electronics", "Chemicals", "Vehicles"],
     tradingPartners: ["China", "USA", "Germany", "UK", "Japan"],
@@ -2023,12 +1830,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.5,
     currencyCode: "THB",
     currencyName: "Thai Baht",
-    topSectors: [
-      { name: "Manufacturing", shareOfGDP: 27 },
-      { name: "Services", shareOfGDP: 59 },
-      { name: "Agriculture", shareOfGDP: 9 },
-      { name: "Tourism", shareOfGDP: 12 },
-    ],
     topExports: ["Electronics", "Vehicles", "Rubber", "Machinery", "Gold"],
     topImports: [
       "Electronics",
@@ -2084,12 +1885,6 @@ export const economiesData: Economy[] = [
     interestRate: 3.35,
     currencyCode: "DKK",
     currencyName: "Danish Krone",
-    topSectors: [
-      { name: "Services", shareOfGDP: 76 },
-      { name: "Industry", shareOfGDP: 22 },
-      { name: "Agriculture", shareOfGDP: 2 },
-      { name: "Pharmaceuticals", shareOfGDP: 9 },
-    ],
     topExports: [
       "Pharmaceuticals",
       "Machinery",
@@ -2142,12 +1937,6 @@ export const economiesData: Economy[] = [
     interestRate: 26.25,
     currencyCode: "NGN",
     currencyName: "Nigerian Naira",
-    topSectors: [
-      { name: "Services", shareOfGDP: 52 },
-      { name: "Agriculture", shareOfGDP: 24 },
-      { name: "Industry", shareOfGDP: 24 },
-      { name: "Energy", shareOfGDP: 10 },
-    ],
     topExports: ["Crude Oil", "LNG", "Cocoa", "Fertilizers", "Sesame Seeds"],
     topImports: ["Machinery", "Electronics", "Vehicles", "Food", "Chemicals"],
     tradingPartners: ["India", "Spain", "USA", "Netherlands", "China"],
@@ -2193,12 +1982,6 @@ export const economiesData: Economy[] = [
     interestRate: 13.0,
     currencyCode: "PKR",
     currencyName: "Pakistani Rupee",
-    topSectors: [
-      { name: "Services", shareOfGDP: 53 },
-      { name: "Agriculture", shareOfGDP: 24 },
-      { name: "Industry", shareOfGDP: 19 },
-      { name: "Textiles", shareOfGDP: 11 },
-    ],
     topExports: ["Textiles", "Clothing", "Rice", "Leather", "Sports Goods"],
     topImports: [
       "Oil",
@@ -2249,12 +2032,6 @@ export const economiesData: Economy[] = [
     interestRate: 4.5,
     currencyCode: "VND",
     currencyName: "Vietnamese Dong",
-    topSectors: [
-      { name: "Industry", shareOfGDP: 38 },
-      { name: "Services", shareOfGDP: 42 },
-      { name: "Agriculture", shareOfGDP: 12 },
-      { name: "Manufacturing", shareOfGDP: 25 },
-    ],
     topExports: ["Electronics", "Clothing", "Footwear", "Machinery", "Coffee"],
     topImports: ["Electronics", "Machinery", "Cotton", "Chemicals", "Steel"],
     tradingPartners: ["China", "USA", "South Korea", "Japan", "Australia"],
@@ -2302,12 +2079,6 @@ export const economiesData: Economy[] = [
     interestRate: 5.0,
     currencyCode: "CLP",
     currencyName: "Chilean Peso",
-    topSectors: [
-      { name: "Services", shareOfGDP: 56 },
-      { name: "Industry", shareOfGDP: 32 },
-      { name: "Agriculture", shareOfGDP: 4 },
-      { name: "Mining", shareOfGDP: 12 },
-    ],
     topExports: ["Copper", "Lithium", "Grapes", "Cellulose", "Salmon"],
     topImports: ["Oil", "Electronics", "Vehicles", "Machinery", "Gas"],
     tradingPartners: ["China", "USA", "Japan", "Brazil", "South Korea"],
@@ -2358,12 +2129,6 @@ export const economiesData: Economy[] = [
     interestRate: 6.25,
     currencyCode: "PHP",
     currencyName: "Philippine Peso",
-    topSectors: [
-      { name: "Services", shareOfGDP: 62 },
-      { name: "Industry", shareOfGDP: 28 },
-      { name: "Agriculture", shareOfGDP: 10 },
-      { name: "BPO", shareOfGDP: 8 },
-    ],
     topExports: [
       "Electronics",
       "Semiconductors",
@@ -2426,12 +2191,6 @@ export const economiesData: Economy[] = [
     interestRate: 9.75,
     currencyCode: "BDT",
     currencyName: "Bangladeshi Taka",
-    topSectors: [
-      { name: "Services", shareOfGDP: 52 },
-      { name: "Industry", shareOfGDP: 35 },
-      { name: "Agriculture", shareOfGDP: 12 },
-      { name: "Garments", shareOfGDP: 16 },
-    ],
     topExports: ["Garments", "Knitwear", "Jute", "Leather", "Shrimp"],
     topImports: ["Cotton", "Oil", "Machinery", "Electronics", "Wheat"],
     tradingPartners: ["USA", "Germany", "UK", "China", "Spain"],
@@ -2472,12 +2231,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.75,
     currencyCode: "EUR",
     currencyName: "Euro",
-    topSectors: [
-      { name: "Services", shareOfGDP: 69 },
-      { name: "Industry", shareOfGDP: 30 },
-      { name: "Agriculture", shareOfGDP: 1 },
-      { name: "Tourism", shareOfGDP: 5 },
-    ],
     topExports: [
       "Machinery",
       "Vehicles",
@@ -2526,12 +2279,6 @@ export const economiesData: Economy[] = [
     interestRate: 23.0,
     currencyCode: "IRR",
     currencyName: "Iranian Rial",
-    topSectors: [
-      { name: "Services", shareOfGDP: 48 },
-      { name: "Industry", shareOfGDP: 40 },
-      { name: "Agriculture", shareOfGDP: 12 },
-      { name: "Energy", shareOfGDP: 22 },
-    ],
     topExports: [
       "Crude Oil",
       "Natural Gas",
@@ -2594,12 +2341,6 @@ export const economiesData: Economy[] = [
     interestRate: 6.0,
     currencyCode: "IQD",
     currencyName: "Iraqi Dinar",
-    topSectors: [
-      { name: "Energy", shareOfGDP: 42 },
-      { name: "Services", shareOfGDP: 48 },
-      { name: "Agriculture", shareOfGDP: 5 },
-      { name: "Industry", shareOfGDP: 5 },
-    ],
     topExports: ["Crude Oil", "Natural Gas", "Gold", "Dates", "Fertilizers"],
     topImports: [
       "Food",
@@ -2655,12 +2396,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.75,
     currencyCode: "EUR",
     currencyName: "Euro",
-    topSectors: [
-      { name: "Services", shareOfGDP: 76 },
-      { name: "Industry", shareOfGDP: 23 },
-      { name: "Agriculture", shareOfGDP: 2 },
-      { name: "Tourism", shareOfGDP: 15 },
-    ],
     topExports: [
       "Machinery",
       "Vehicles",
@@ -2717,12 +2452,6 @@ export const economiesData: Economy[] = [
     interestRate: 3.75,
     currencyCode: "CZK",
     currencyName: "Czech Koruna",
-    topSectors: [
-      { name: "Industry", shareOfGDP: 32 },
-      { name: "Services", shareOfGDP: 62 },
-      { name: "Agriculture", shareOfGDP: 2 },
-      { name: "Automotive", shareOfGDP: 10 },
-    ],
     topExports: [
       "Machinery",
       "Vehicles",
@@ -2771,12 +2500,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.75,
     currencyCode: "EUR",
     currencyName: "Euro",
-    topSectors: [
-      { name: "Services", shareOfGDP: 80 },
-      { name: "Industry", shareOfGDP: 14 },
-      { name: "Agriculture", shareOfGDP: 4 },
-      { name: "Tourism", shareOfGDP: 20 },
-    ],
     topExports: [
       "Refined Petroleum",
       "Pharmaceuticals",
@@ -2835,12 +2558,6 @@ export const economiesData: Economy[] = [
     interestRate: 4.25,
     currencyCode: "KWD",
     currencyName: "Kuwaiti Dinar",
-    topSectors: [
-      { name: "Energy", shareOfGDP: 50 },
-      { name: "Services", shareOfGDP: 44 },
-      { name: "Industry", shareOfGDP: 5 },
-      { name: "Agriculture", shareOfGDP: 0 },
-    ],
     topExports: ["Crude Oil", "Refined Petroleum", "Fertilizers", "Chemicals"],
     topImports: [
       "Electronics",
@@ -2885,12 +2602,6 @@ export const economiesData: Economy[] = [
     interestRate: 5.5,
     currencyCode: "QAR",
     currencyName: "Qatari Riyal",
-    topSectors: [
-      { name: "Energy", shareOfGDP: 45 },
-      { name: "Services", shareOfGDP: 45 },
-      { name: "Industry", shareOfGDP: 9 },
-      { name: "Agriculture", shareOfGDP: 0 },
-    ],
     topExports: ["LNG", "Crude Oil", "Petrochemicals", "Aluminum"],
     topImports: [
       "Machinery",
@@ -2940,12 +2651,6 @@ export const economiesData: Economy[] = [
     interestRate: 14.0,
     currencyCode: "ETB",
     currencyName: "Ethiopian Birr",
-    topSectors: [
-      { name: "Agriculture", shareOfGDP: 36 },
-      { name: "Services", shareOfGDP: 38 },
-      { name: "Industry", shareOfGDP: 23 },
-      { name: "Manufacturing", shareOfGDP: 8 },
-    ],
     topExports: ["Coffee", "Gold", "Sesame", "Flowers", "Khat"],
     topImports: ["Machinery", "Oil", "Electronics", "Food", "Vehicles"],
     tradingPartners: ["China", "UAE", "Saudi Arabia", "Somalia", "USA"],
@@ -2984,12 +2689,6 @@ export const economiesData: Economy[] = [
     interestRate: 13.0,
     currencyCode: "KES",
     currencyName: "Kenyan Shilling",
-    topSectors: [
-      { name: "Services", shareOfGDP: 52 },
-      { name: "Agriculture", shareOfGDP: 22 },
-      { name: "Industry", shareOfGDP: 17 },
-      { name: "Tourism", shareOfGDP: 8 },
-    ],
     topExports: ["Tea", "Flowers", "Coffee", "Vegetables", "Refined Petroleum"],
     topImports: ["Oil", "Machinery", "Electronics", "Iron & Steel", "Vehicles"],
     tradingPartners: ["Uganda", "USA", "Netherlands", "UK", "Tanzania"],
@@ -3029,12 +2728,6 @@ export const economiesData: Economy[] = [
     interestRate: 27.0,
     currencyCode: "GHS",
     currencyName: "Ghanaian Cedi",
-    topSectors: [
-      { name: "Services", shareOfGDP: 47 },
-      { name: "Industry", shareOfGDP: 34 },
-      { name: "Agriculture", shareOfGDP: 19 },
-      { name: "Mining", shareOfGDP: 12 },
-    ],
     topExports: ["Gold", "Crude Oil", "Cocoa", "Manganese", "Cashews"],
     topImports: ["Oil", "Machinery", "Food", "Electronics", "Vehicles"],
     tradingPartners: ["UAE", "China", "USA", "Switzerland", "India"],
@@ -3073,12 +2766,6 @@ export const economiesData: Economy[] = [
     interestRate: 6.0,
     currencyCode: "TZS",
     currencyName: "Tanzanian Shilling",
-    topSectors: [
-      { name: "Agriculture", shareOfGDP: 26 },
-      { name: "Services", shareOfGDP: 47 },
-      { name: "Industry", shareOfGDP: 26 },
-      { name: "Tourism", shareOfGDP: 7 },
-    ],
     topExports: ["Gold", "Coffee", "Cashews", "Cotton", "Tobacco"],
     topImports: ["Oil", "Machinery", "Electronics", "Vehicles", "Food"],
     tradingPartners: ["India", "China", "UAE", "South Africa", "Kenya"],
@@ -3127,12 +2814,6 @@ export const economiesData: Economy[] = [
     interestRate: 19.5,
     currencyCode: "AOA",
     currencyName: "Angolan Kwanza",
-    topSectors: [
-      { name: "Energy", shareOfGDP: 32 },
-      { name: "Services", shareOfGDP: 46 },
-      { name: "Agriculture", shareOfGDP: 11 },
-      { name: "Industry", shareOfGDP: 11 },
-    ],
     topExports: ["Crude Oil", "Diamonds", "Refined Petroleum", "Gas", "Timber"],
     topImports: [
       "Machinery",
@@ -3182,12 +2863,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.75,
     currencyCode: "MAD",
     currencyName: "Moroccan Dirham",
-    topSectors: [
-      { name: "Services", shareOfGDP: 55 },
-      { name: "Industry", shareOfGDP: 28 },
-      { name: "Agriculture", shareOfGDP: 12 },
-      { name: "Tourism", shareOfGDP: 7 },
-    ],
     topExports: [
       "Cars",
       "Phosphate",
@@ -3242,12 +2917,6 @@ export const economiesData: Economy[] = [
     interestRate: 14.25,
     currencyCode: "MZN",
     currencyName: "Mozambican Metical",
-    topSectors: [
-      { name: "Agriculture", shareOfGDP: 26 },
-      { name: "Services", shareOfGDP: 46 },
-      { name: "Industry", shareOfGDP: 21 },
-      { name: "Energy", shareOfGDP: 8 },
-    ],
     topExports: ["Coal", "Aluminum", "Natural Gas", "Electricity", "Tobacco"],
     topImports: ["Machinery", "Electronics", "Oil", "Vehicles", "Food"],
     tradingPartners: [
@@ -3303,12 +2972,6 @@ export const economiesData: Economy[] = [
     interestRate: 6.0,
     currencyCode: "PEN",
     currencyName: "Peruvian Sol",
-    topSectors: [
-      { name: "Services", shareOfGDP: 52 },
-      { name: "Industry", shareOfGDP: 35 },
-      { name: "Agriculture", shareOfGDP: 7 },
-      { name: "Mining", shareOfGDP: 14 },
-    ],
     topExports: ["Copper", "Gold", "Zinc", "Fisheries", "Coffee"],
     topImports: ["Oil", "Electronics", "Machinery", "Vehicles", "Chemicals"],
     tradingPartners: ["China", "USA", "South Korea", "Japan", "Switzerland"],
@@ -3348,12 +3011,6 @@ export const economiesData: Economy[] = [
     interestRate: 59.5,
     currencyCode: "VES",
     currencyName: "Venezuelan Bolívar",
-    topSectors: [
-      { name: "Energy", shareOfGDP: 30 },
-      { name: "Services", shareOfGDP: 45 },
-      { name: "Industry", shareOfGDP: 20 },
-      { name: "Agriculture", shareOfGDP: 5 },
-    ],
     topExports: ["Crude Oil", "Refined Petroleum", "Gold", "Aluminum"],
     topImports: [
       "Food",
@@ -3405,12 +3062,6 @@ export const economiesData: Economy[] = [
     interestRate: 12.0,
     currencyCode: "USD",
     currencyName: "US Dollar (dollarized)",
-    topSectors: [
-      { name: "Services", shareOfGDP: 52 },
-      { name: "Industry", shareOfGDP: 26 },
-      { name: "Agriculture", shareOfGDP: 8 },
-      { name: "Energy", shareOfGDP: 14 },
-    ],
     topExports: ["Crude Oil", "Bananas", "Shrimp", "Flowers", "Cacao"],
     topImports: ["Machinery", "Electronics", "Vehicles", "Chemicals", "Food"],
     tradingPartners: ["USA", "China", "Panama", "Colombia", "Peru"],
@@ -3452,12 +3103,6 @@ export const economiesData: Economy[] = [
     interestRate: 9.0,
     currencyCode: "MMK",
     currencyName: "Myanmar Kyat",
-    topSectors: [
-      { name: "Agriculture", shareOfGDP: 22 },
-      { name: "Services", shareOfGDP: 43 },
-      { name: "Industry", shareOfGDP: 35 },
-      { name: "Garments", shareOfGDP: 10 },
-    ],
     topExports: ["Natural Gas", "Garments", "Jade", "Rice", "Timber"],
     topImports: ["Electronics", "Machinery", "Oil", "Vehicles", "Chemicals"],
     tradingPartners: ["China", "Thailand", "Singapore", "India", "Japan"],
@@ -3502,12 +3147,6 @@ export const economiesData: Economy[] = [
     interestRate: 11.0,
     currencyCode: "KHR",
     currencyName: "Cambodian Riel",
-    topSectors: [
-      { name: "Services", shareOfGDP: 40 },
-      { name: "Industry", shareOfGDP: 32 },
-      { name: "Agriculture", shareOfGDP: 22 },
-      { name: "Tourism", shareOfGDP: 10 },
-    ],
     topExports: ["Garments", "Footwear", "Rice", "Rubber", "Fish"],
     topImports: ["Oil", "Machinery", "Electronics", "Vehicles", "Fabric"],
     tradingPartners: ["USA", "China", "Vietnam", "Thailand", "Japan"],
@@ -3547,12 +3186,6 @@ export const economiesData: Economy[] = [
     interestRate: 8.5,
     currencyCode: "LKR",
     currencyName: "Sri Lankan Rupee",
-    topSectors: [
-      { name: "Services", shareOfGDP: 56 },
-      { name: "Industry", shareOfGDP: 28 },
-      { name: "Agriculture", shareOfGDP: 8 },
-      { name: "Tourism", shareOfGDP: 5 },
-    ],
     topExports: ["Garments", "Tea", "Rubber", "Gems", "Seafood"],
     topImports: ["Oil", "Electronics", "Machinery", "Vehicles", "Textiles"],
     tradingPartners: ["USA", "UK", "Germany", "India", "China"],
@@ -3596,12 +3229,6 @@ export const economiesData: Economy[] = [
     interestRate: 5.0,
     currencyCode: "NPR",
     currencyName: "Nepalese Rupee",
-    topSectors: [
-      { name: "Services", shareOfGDP: 57 },
-      { name: "Agriculture", shareOfGDP: 25 },
-      { name: "Industry", shareOfGDP: 14 },
-      { name: "Tourism", shareOfGDP: 7 },
-    ],
     topExports: ["Carpets", "Tea", "Electricity", "Pashmina", "Garments"],
     topImports: ["Oil", "Electronics", "Machinery", "Gold", "Vehicles"],
     tradingPartners: ["India", "China", "USA", "Germany", "UK"],
@@ -3642,12 +3269,6 @@ export const economiesData: Economy[] = [
     interestRate: 3.5,
     currencyCode: "NZD",
     currencyName: "New Zealand Dollar",
-    topSectors: [
-      { name: "Services", shareOfGDP: 69 },
-      { name: "Industry", shareOfGDP: 18 },
-      { name: "Agriculture", shareOfGDP: 9 },
-      { name: "Tourism", shareOfGDP: 5 },
-    ],
     topExports: ["Dairy", "Meat", "Wood", "Wool", "Tourism"],
     topImports: [
       "Electronics",
@@ -3699,12 +3320,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.75,
     currencyCode: "EUR",
     currencyName: "Euro",
-    topSectors: [
-      { name: "Services", shareOfGDP: 72 },
-      { name: "Industry", shareOfGDP: 26 },
-      { name: "Agriculture", shareOfGDP: 2 },
-      { name: "Technology", shareOfGDP: 14 },
-    ],
     topExports: [
       "Machinery",
       "Paper",
@@ -3758,12 +3373,6 @@ export const economiesData: Economy[] = [
     interestRate: 6.5,
     currencyCode: "RON",
     currencyName: "Romanian Leu",
-    topSectors: [
-      { name: "Services", shareOfGDP: 62 },
-      { name: "Industry", shareOfGDP: 34 },
-      { name: "Agriculture", shareOfGDP: 4 },
-      { name: "Manufacturing", shareOfGDP: 22 },
-    ],
     topExports: [
       "Vehicles",
       "Machinery",
@@ -3813,12 +3422,6 @@ export const economiesData: Economy[] = [
     interestRate: 6.5,
     currencyCode: "HUF",
     currencyName: "Hungarian Forint",
-    topSectors: [
-      { name: "Services", shareOfGDP: 58 },
-      { name: "Industry", shareOfGDP: 35 },
-      { name: "Agriculture", shareOfGDP: 4 },
-      { name: "Automotive", shareOfGDP: 14 },
-    ],
     topExports: [
       "Vehicles",
       "Electronics",
@@ -3873,12 +3476,6 @@ export const economiesData: Economy[] = [
     interestRate: 14.5,
     currencyCode: "UAH",
     currencyName: "Ukrainian Hryvnia",
-    topSectors: [
-      { name: "Services", shareOfGDP: 57 },
-      { name: "Industry", shareOfGDP: 26 },
-      { name: "Agriculture", shareOfGDP: 11 },
-      { name: "IT", shareOfGDP: 5 },
-    ],
     topExports: ["Grain", "Iron Ore", "Steel", "Sunflower Oil", "IT Services"],
     topImports: ["Energy", "Machinery", "Electronics", "Vehicles", "Chemicals"],
     tradingPartners: ["Poland", "China", "Germany", "Romania", "Turkey"],
@@ -3924,12 +3521,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.75,
     currencyCode: "EUR",
     currencyName: "Euro",
-    topSectors: [
-      { name: "Industry", shareOfGDP: 35 },
-      { name: "Services", shareOfGDP: 63 },
-      { name: "Agriculture", shareOfGDP: 2 },
-      { name: "Automotive", shareOfGDP: 13 },
-    ],
     topExports: [
       "Vehicles",
       "Machinery",
@@ -3980,12 +3571,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.75,
     currencyCode: "BGN",
     currencyName: "Bulgarian Lev",
-    topSectors: [
-      { name: "Services", shareOfGDP: 63 },
-      { name: "Industry", shareOfGDP: 29 },
-      { name: "Agriculture", shareOfGDP: 4 },
-      { name: "Tourism", shareOfGDP: 6 },
-    ],
     topExports: [
       "Petroleum Products",
       "Copper",
@@ -4030,12 +3615,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.75,
     currencyCode: "EUR",
     currencyName: "Euro",
-    topSectors: [
-      { name: "Services", shareOfGDP: 72 },
-      { name: "Industry", shareOfGDP: 26 },
-      { name: "Agriculture", shareOfGDP: 3 },
-      { name: "Tourism", shareOfGDP: 20 },
-    ],
     topExports: [
       "Machinery",
       "Refined Petroleum",
@@ -4090,12 +3669,6 @@ export const economiesData: Economy[] = [
     interestRate: 5.75,
     currencyCode: "RSD",
     currencyName: "Serbian Dinar",
-    topSectors: [
-      { name: "Services", shareOfGDP: 55 },
-      { name: "Industry", shareOfGDP: 26 },
-      { name: "Agriculture", shareOfGDP: 6 },
-      { name: "Manufacturing", shareOfGDP: 17 },
-    ],
     topExports: ["Vehicles", "Iron & Steel", "Rubber", "Machinery", "Corn"],
     topImports: ["Machinery", "Electronics", "Oil", "Vehicles", "Chemicals"],
     tradingPartners: ["Germany", "Italy", "Bosnia", "Romania", "China"],
@@ -4140,12 +3713,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.75,
     currencyCode: "EUR",
     currencyName: "Euro",
-    topSectors: [
-      { name: "Services", shareOfGDP: 58 },
-      { name: "Industry", shareOfGDP: 40 },
-      { name: "Agriculture", shareOfGDP: 1 },
-      { name: "Pharmaceuticals", shareOfGDP: 22 },
-    ],
     topExports: [
       "Pharmaceuticals",
       "Electronics",
@@ -4208,12 +3775,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.75,
     currencyCode: "EUR",
     currencyName: "Euro",
-    topSectors: [
-      { name: "Services", shareOfGDP: 74 },
-      { name: "Industry", shareOfGDP: 24 },
-      { name: "Agriculture", shareOfGDP: 2 },
-      { name: "Tourism", shareOfGDP: 6 },
-    ],
     topExports: [
       "Machinery",
       "Vehicles",
@@ -4270,12 +3831,6 @@ export const economiesData: Economy[] = [
     interestRate: 2.0,
     currencyCode: "TWD",
     currencyName: "New Taiwan Dollar",
-    topSectors: [
-      { name: "Industry", shareOfGDP: 37 },
-      { name: "Services", shareOfGDP: 63 },
-      { name: "Agriculture", shareOfGDP: 1 },
-      { name: "Semiconductors", shareOfGDP: 15 },
-    ],
     topExports: [
       "Semiconductors",
       "Electronics",
@@ -4338,12 +3893,6 @@ export const economiesData: Economy[] = [
     interestRate: 5.5,
     currencyCode: "HKD",
     currencyName: "Hong Kong Dollar",
-    topSectors: [
-      { name: "Services", shareOfGDP: 93 },
-      { name: "Finance", shareOfGDP: 22 },
-      { name: "Trade & Logistics", shareOfGDP: 21 },
-      { name: "Tourism", shareOfGDP: 4 },
-    ],
     topExports: [
       "Electrical Machinery",
       "Jewelry",
@@ -4404,12 +3953,6 @@ export const economiesData: Economy[] = [
     interestRate: 14.0,
     currencyCode: "UZS",
     currencyName: "Uzbekistani Som",
-    topSectors: [
-      { name: "Services", shareOfGDP: 46 },
-      { name: "Industry", shareOfGDP: 33 },
-      { name: "Agriculture", shareOfGDP: 22 },
-      { name: "Mining", shareOfGDP: 8 },
-    ],
     topExports: ["Gold", "Natural Gas", "Cotton", "Copper", "Chemicals"],
     topImports: ["Machinery", "Electronics", "Chemicals", "Food", "Vehicles"],
     tradingPartners: ["China", "Russia", "Kazakhstan", "Turkey", "South Korea"],
@@ -4450,12 +3993,6 @@ export const economiesData: Economy[] = [
     interestRate: 14.25,
     currencyCode: "KZT",
     currencyName: "Kazakhstani Tenge",
-    topSectors: [
-      { name: "Energy", shareOfGDP: 22 },
-      { name: "Services", shareOfGDP: 54 },
-      { name: "Industry", shareOfGDP: 34 },
-      { name: "Agriculture", shareOfGDP: 5 },
-    ],
     topExports: ["Crude Oil", "Natural Gas", "Copper", "Wheat", "Uranium"],
     topImports: ["Machinery", "Electronics", "Vehicles", "Chemicals", "Food"],
     tradingPartners: ["China", "Russia", "Italy", "Netherlands", "Switzerland"],

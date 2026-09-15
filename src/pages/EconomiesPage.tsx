@@ -30,6 +30,11 @@ import { countriesData } from "../data/countriesData";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
 import { StyledSelect } from "../components/StyledSelect";
 import {
+  ECONOMY_SECTORS,
+  ECONOMY_SECTORS_SOURCE,
+  type EconomySectors,
+} from "../data/economySectors";
+import {
   ResourceModal,
   type ResourceSummary,
 } from "../components/ResourceModal";
@@ -5907,6 +5912,9 @@ const ratingColor = (r: string) => {
 };
 
 const SECTOR_COLORS: Record<string, string> = {
+  /* The residual part of GDP: taxes on products less subsidies on them. Grey,
+     because it is the part that is not an industry. */
+  "Taxes less subsidies": "#94a3b8",
   Services: "#38bdf8",
   Industry: "#a78bfa",
   Agriculture: "#4ade80",
@@ -5960,42 +5968,50 @@ function SectorBar({ name, share }: { name: string; share: number }) {
   );
 }
 
-function SectorDonut({
-  sectors,
-}: {
-  sectors: { name: string; shareOfGDP: number }[];
-  economyId: string;
-}) {
-  const dominant = [...sectors].sort((a, b) => b.shareOfGDP - a.shareOfGDP)[0];
-  const pieData = sectors.map((s) => ({ name: s.name, value: s.shareOfGDP }));
+/**
+ * GDP composition as a pie.
+ *
+ * The figures come from ECONOMY_SECTORS, which is generated from the World
+ * Bank's national accounts. The slices sum to exactly 100 by construction, so
+ * the number printed on a slice is the size of that slice — which the hand
+ * written data this replaced could not promise: sixty-one of the seventy-seven
+ * economies had shares that did not sum to 100, and a pie silently normalises
+ * whatever it is handed, so every slice drawn from them was a share of a total
+ * no source reported.
+ *
+ * Manufacturing is not a slice. The World Bank's definition has industry
+ * "comprised of mining, manufacturing, construction, electricity, water, and
+ * gas", so manufacturing is inside the industry slice and is quoted underneath
+ * as an "of which" figure instead.
+ */
+function SectorPie({ sectors }: { sectors: EconomySectors }) {
+  const dominant = [...sectors.slices].sort((a, b) => b.pct - a.pct)[0];
+  const pieData = sectors.slices.map((x) => ({ name: x.name, value: x.pct }));
+  const basisLabel = sectors.basis === "gdp" ? "of GDP" : "of value added";
 
   const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload?.length) {
-      const entry = payload[0];
-      return (
-        <div className="bg-card border border-border rounded-lg p-2.5 text-xs font-mono shadow-lg">
-          <p
-            style={{ color: getSectorColor(entry.name) }}
-            className="font-semibold"
-          >
-            {entry.name}
-          </p>
-          <p className="text-foreground">{entry.value}% of GDP</p>
-        </div>
-      );
-    }
-    return null;
+    if (!active || !payload?.length) return null;
+    const entry = payload[0];
+    return (
+      <div className="bg-card border border-border rounded-lg p-2.5 text-xs font-mono shadow-lg">
+        <p style={{ color: getSectorColor(entry.name) }} className="font-semibold">
+          {entry.name}
+        </p>
+        <p className="text-foreground">
+          {entry.value}% {basisLabel}
+        </p>
+      </div>
+    );
   };
 
   return (
     <div>
       <div className="flex items-center gap-1 mb-3">
         <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-          Sector Distribution
+          Sector Distribution · {sectors.year}
         </p>
       </div>
       <div className="flex items-center gap-4">
-        {/* Recharts PieChart donut */}
         <div className="shrink-0" style={{ width: 110, height: 110 }}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -6003,9 +6019,11 @@ function SectorDonut({
                 data={pieData}
                 cx="50%"
                 cy="50%"
-                innerRadius={28}
-                outerRadius={50}
-                paddingAngle={2}
+                /* A pie, so no hole and no gaps between slices: the parts of a
+                   whole should visibly meet. */
+                innerRadius={0}
+                outerRadius={52}
+                paddingAngle={0}
                 dataKey="value"
                 startAngle={90}
                 endAngle={-270}
@@ -6024,44 +6042,48 @@ function SectorDonut({
             </PieChart>
           </ResponsiveContainer>
         </div>
-        {/* Center label overlay via absolute-ish trick using a separate div */}
         <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-          {/* Dominant callout */}
           <div className="flex items-baseline gap-1.5 mb-1">
             <span
               className="text-xl font-bold font-mono"
               style={{ color: getSectorColor(dominant.name) }}
             >
-              {dominant.shareOfGDP}%
+              {dominant.pct}%
             </span>
             <span className="text-xs font-sans text-muted-foreground">
               {dominant.name}
             </span>
           </div>
-          {/* Legend rows */}
-          {sectors.slice(0, 5).map((s) => (
-            <div key={s.name} className="flex items-center gap-2 min-w-0">
+          {sectors.slices.map((x) => (
+            <div key={x.name} className="flex items-center gap-2 min-w-0">
               <div
                 className="w-2 h-2 rounded-sm shrink-0"
-                style={{ background: getSectorColor(s.name) }}
+                style={{ background: getSectorColor(x.name) }}
               />
               <span className="text-[11px] font-sans text-foreground truncate flex-1">
-                {s.name}
+                {x.name}
               </span>
               <span
                 className="text-[11px] font-mono shrink-0"
-                style={{ color: getSectorColor(s.name) }}
+                style={{ color: getSectorColor(x.name) }}
               >
-                {s.shareOfGDP}%
+                {x.pct}%
               </span>
             </div>
           ))}
         </div>
       </div>
+      <p className="text-[9px] font-sans text-muted-foreground mt-2 leading-snug">
+        Value added by sector, {basisLabel.replace("of ", "as a share of ")},{" "}
+        {sectors.year}, from {ECONOMY_SECTORS_SOURCE.label}.
+        {sectors.basis === "valueAdded" &&
+          " Charted on value added rather than GDP because subsidies on products exceed taxes on them here, so the sectors come to more than GDP."}
+        {sectors.manufacturing !== null &&
+          ` Of the industry share, manufacturing is ${sectors.manufacturing}% of GDP.`}
+      </p>
     </div>
   );
 }
-
 
 function EconomyModal({
   economy,
@@ -6403,88 +6425,81 @@ function EconomyModal({
                   <div className="flex-1 h-px bg-border/60" />
                 </div>
                 <div className="modal-tile rounded-xl p-4">
-                  <div className="mb-4">
-                    <SectorDonut
-                      sectors={economy.topSectors}
-                      economyId={economy.id}
-                    />
-                  </div>
-                  <div className="space-y-2.5 mb-3">
-                    {economy.topSectors.map((s) => (
-                      <SectorBar
-                        key={s.name}
-                        name={s.name}
-                        share={s.shareOfGDP}
-                      />
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/40">
-                    <div className="text-center">
-                      <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
-                        Dominant
-                      </p>
-                      <p className="text-xs font-bold font-sans text-foreground mt-0.5">
-                        {
-                          [...economy.topSectors].sort(
-                            (a, b) => b.shareOfGDP - a.shareOfGDP,
-                          )[0]?.name
-                        }
-                      </p>
-                      <p
-                        className="text-[10px] font-mono"
-                        style={{
-                          color: getSectorColor(
-                            [...economy.topSectors].sort(
-                              (a, b) => b.shareOfGDP - a.shareOfGDP,
-                            )[0]?.name,
-                          ),
-                        }}
-                      >
-                        {
-                          [...economy.topSectors].sort(
-                            (a, b) => b.shareOfGDP - a.shareOfGDP,
-                          )[0]?.shareOfGDP
-                        }
-                        % of GDP
-                      </p>
-                    </div>
-                    <div className="text-center border-x border-border/40">
-                      <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
-                        Sectors
-                      </p>
-                      <p className="text-xl font-bold font-mono text-foreground mt-0.5">
-                        {economy.topSectors.length}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground font-sans">
-                        tracked
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
-                        Diversification
-                      </p>
-                      <p
-                        className="text-xs font-bold font-sans mt-0.5"
-                        style={{
-                          color:
-                            economy.topSectors.length >= 4
-                              ? "#4ade80"
-                              : "#fb923c",
-                        }}
-                      >
-                        {economy.topSectors.length >= 4
-                          ? "High"
-                          : economy.topSectors.length >= 3
-                            ? "Medium"
-                            : "Low"}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground font-sans">
-                        {economy.topSectors.length >= 4
-                          ? "Multi-sector"
-                          : "Concentrated"}
-                      </p>
-                    </div>
-                  </div>
+                  {(() => {
+                    /* One lookup for the whole tile. The World Bank has no
+                       national accounts for two of the economies listed here -
+                       Taiwan is not one of its reporters, and Venezuela has no
+                       figures - so those say so rather than showing a chart
+                       built from nothing. */
+                    const sectors: EconomySectors | undefined =
+                      ECONOMY_SECTORS[economy.id];
+                    if (!sectors) {
+                      return (
+                        <p className="text-[11px] font-sans text-muted-foreground">
+                          The World Bank publishes no sector breakdown for{" "}
+                          {economy.name}, so none is shown. Inventing one would
+                          be worse than leaving it out.
+                        </p>
+                      );
+                    }
+                    const ranked = [...sectors.slices].sort((a, b) => b.pct - a.pct);
+                    const dominant = ranked[0];
+                    return (
+                      <>
+                        <div className="mb-4">
+                          <SectorPie sectors={sectors} />
+                        </div>
+                        <div className="space-y-2.5 mb-3">
+                          {sectors.slices.map((x) => (
+                            <SectorBar key={x.name} name={x.name} share={x.pct} />
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/40">
+                          <div className="text-center">
+                            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
+                              Largest
+                            </p>
+                            <p className="text-xs font-bold font-sans text-foreground mt-0.5">
+                              {dominant.name}
+                            </p>
+                            <p
+                              className="text-[10px] font-mono"
+                              style={{ color: getSectorColor(dominant.name) }}
+                            >
+                              {dominant.pct}%{" "}
+                              {sectors.basis === "gdp" ? "of GDP" : "of value added"}
+                            </p>
+                          </div>
+                          <div className="text-center border-x border-border/40">
+                            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
+                              Manufacturing
+                            </p>
+                            <p className="text-xl font-bold font-mono text-foreground mt-0.5">
+                              {sectors.manufacturing === null
+                                ? "—"
+                                : `${sectors.manufacturing}%`}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground font-sans">
+                              {sectors.manufacturing === null
+                                ? "not reported"
+                                : "of GDP, within industry"}
+                            </p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
+                              Reported
+                            </p>
+                            <p className="text-xl font-bold font-mono text-foreground mt-0.5">
+                              {sectors.year}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground font-sans">
+                              World Bank
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -6712,6 +6727,17 @@ function EconomyModal({
                   name: r.name,
                   value: r.value,
                 }));
+                /* Rents are each a share of GDP and do not sum to 100, so the
+                   only whole a pie of them can represent is their own total.
+                   Stated rather than left for the reader to infer from a slice
+                   that is 45% of the circle next to a label reading 3.2%. */
+                const rentTotal = resources.reduce(
+                  (n: number, r: { value: number }) => n + (r.value || 0),
+                  0,
+                );
+                const rentShare = (v: number) =>
+                  rentTotal > 0 ? Math.round((v / rentTotal) * 1000) / 10 : 0;
+
                 const ResourceTooltip = ({ active, payload }: any) => {
                   if (active && payload?.length) {
                     const entry = payload[0];
@@ -6723,6 +6749,10 @@ function EconomyModal({
                           className="font-semibold"
                         >
                           {entry.name}
+                        </p>
+                        <p className="text-foreground">
+                          {rentShare(entry.value)}% of this economy's resource
+                          rents
                         </p>
                         <p className="text-foreground">
                           {entry.value} {res?.unit}
@@ -6762,9 +6792,11 @@ function EconomyModal({
                                   data={pieData}
                                   cx="50%"
                                   cy="50%"
-                                  innerRadius={30}
+                                  /* A pie: no hole, and no gaps, because the
+                                     slices are parts of one total. */
+                                  innerRadius={0}
                                   outerRadius={54}
-                                  paddingAngle={2}
+                                  paddingAngle={0}
                                   dataKey="value"
                                   startAngle={90}
                                   endAngle={-270}
@@ -6797,6 +6829,12 @@ function EconomyModal({
                             </p>
                             <p className="text-[10px] text-muted-foreground font-sans">
                               {resources[0]?.share}
+                            </p>
+                            <p className="text-[9px] text-muted-foreground font-sans mt-1.5 leading-snug">
+                              Slices are each commodity's share of this
+                              economy's resource rents, which together come to{" "}
+                              {Math.round(rentTotal * 10) / 10}% of GDP. The
+                              rows below give each one as its own share of GDP.
                             </p>
                           </div>
                         </div>
