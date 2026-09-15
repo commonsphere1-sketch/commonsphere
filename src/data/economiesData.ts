@@ -1,3 +1,9 @@
+import {
+  ECONOMY_INDICATORS,
+  ECONOMY_INDICATORS_SOURCE,
+  type EconomyIndicators,
+} from "./economyIndicators";
+
 export interface Economy {
   id: string;
   name: string;
@@ -4018,3 +4024,42 @@ export const economiesData: Economy[] = [
     },
   },
 ];
+
+/**
+ * Headline figures refreshed from the World Bank and the IMF, each carrying
+ * the year it is for.
+ *
+ * These were written by hand and were largely real - an audit matched 72 of 76
+ * GDP figures and 75 of 76 growth rates to a year one of those bodies actually
+ * published - but they spanned 2018 to 2025 with nothing saying which, so two
+ * economies side by side could be two different years. Each value now states
+ * its own.
+ *
+ * Debt moves the furthest, and mostly because the measure changed rather than
+ * the country: the IMF reports general government gross debt, which is wider
+ * than the central-government figure some of these were. Taiwan is in neither
+ * body's data and keeps what it had.
+ */
+export const ECONOMY_FIGURE_SOURCES: Record<
+  string,
+  Partial<Record<keyof EconomyIndicators, { label: string; url: string; year: string }>>
+> = {};
+
+for (const e of economiesData) {
+  const m = ECONOMY_INDICATORS[e.id];
+  if (!m) continue;
+  const cites: Record<string, { label: string; url: string; year: string }> = {};
+  for (const [field, hit] of Object.entries(m) as [
+    keyof EconomyIndicators,
+    { v: number; y: string },
+  ][]) {
+    if (!hit) continue;
+    (e as unknown as Record<string, number>)[field] = hit.v;
+    const src =
+      field === "debtToGDPRatio"
+        ? ECONOMY_INDICATORS_SOURCE.imf
+        : ECONOMY_INDICATORS_SOURCE.worldBank;
+    cites[field] = { label: src.label, url: src.url, year: hit.y };
+  }
+  ECONOMY_FIGURE_SOURCES[e.id] = cites;
+}
