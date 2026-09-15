@@ -43,6 +43,11 @@ import {
   GLOBAL_NORTH_CODES,
   GLOBAL_SOUTH_CODES,
 } from "../data/developmentStatus";
+import {
+  AIR_QUALITY,
+  AIR_QUALITY_SOURCE,
+  pm25Band,
+} from "../data/airQuality";
 import { StyledSelect } from "../components/StyledSelect";
 import { citiesData } from "../data/citiesData";
 
@@ -82,7 +87,9 @@ const OVERLAY_URL = {
   infrastructure: "/geo/infrastructure.json",
 } as const;
 
-type OverlayId = keyof typeof OVERLAY_URL;
+/* Air pollution is the one layer that is not fetched: it is 197 numbers, a
+   few kilobytes, so it rides in the bundle rather than costing a request. */
+type OverlayId = keyof typeof OVERLAY_URL | "pollution";
 
 /** A point layer as build-map-layers.cjs writes it: a header plus index rows.
     Generic over the row shape so destructuring a row keeps its tuple types. */
@@ -314,6 +321,12 @@ const PORT_MAJOR_RANK = 5;
    the ones worth drawing while the whole world is in view. */
 const AIRPORT_DETAIL_ABOVE = 2;
 
+/* How strongly each PM2.5 band is washed over the choropleth. Index 0 is the
+   band that meets the WHO guideline and is never drawn, so its entry is 0. The
+   rest climb far enough apart to be told apart at a glance, and stop well short
+   of hiding the grey underneath. */
+const POLLUTION_OPACITY = [0, 0.18, 0.3, 0.44, 0.6];
+
 /* Mineral sites are the one layer dense enough to bury the map underneath it:
    9,639 dots at full size turn Europe, China, Australia and the eastern United
    States into solid colour, and the choropleth the page is actually about
@@ -357,6 +370,12 @@ const OVERLAYS: { id: OverlayId; label: string; about: string }[] = [
     label: "Infrastructure",
     about:
       "Trunk roads, principal railways and 893 airports, Natural Earth 1:10m, public domain. The trunk network, not every road — and coverage is uneven, so it is not a measure of how much road or rail a country has.",
+  },
+  {
+    id: "pollution",
+    label: "Air pollution",
+    about:
+      "Countries whose population-weighted mean PM2.5 exceeds the WHO guideline, World Bank 2023. Shaded by how far above it they sit. One national figure per country, weighted by where people live - it says where people breathe polluted air, not where within a country the pollution is.",
   },
   {
     id: "mines",
@@ -1128,6 +1147,7 @@ export function WorldMapsPage() {
     ports: isLight ? "#e0a030" : "#ffd27a",
     mines: isLight ? "#6e1e0a" : "#c0512c",
     infrastructure: isLight ? "#9c4fc0" : "#c88ce6",
+    pollution: isLight ? "#b3006b" : "#ff6fb5",
   };
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
   const cardBorder = isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)";
@@ -1429,6 +1449,7 @@ export function WorldMapsPage() {
     ports: false,
     mines: false,
     infrastructure: false,
+    pollution: false,
   });
   const toggleOverlay = useCallback(
     (id: OverlayId) => setOverlay((o) => ({ ...o, [id]: !o[id] })),
@@ -1452,6 +1473,8 @@ export function WorldMapsPage() {
     ports: { loading: ports.loading, failed: ports.failed },
     mines: { loading: mines.loading, failed: mines.failed },
     infrastructure: { loading: infra.loading, failed: infra.failed },
+    // Bundled, so it is never pending and cannot fail to arrive.
+    pollution: { loading: false, failed: false },
   };
 
   /* Rivers are drawn in two passes so the map reads at every zoom: the trunk
@@ -1553,6 +1576,22 @@ export function WorldMapsPage() {
       top: [...byCommodity.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6),
     };
   }, [mines.data]);
+
+  const pollutionBands = useMemo(() => {
+    const byBand = new Map<number, string[]>();
+    for (const { country, d } of worldShapes) {
+      if (!country || !d) continue;
+      const reading = AIR_QUALITY[country.code];
+      if (!reading) continue;
+      const band = pm25Band(reading.pm25);
+      if (band === 0) continue; // meets the guideline; nothing to mark
+      if (!byBand.has(band)) byBand.set(band, []);
+      byBand.get(band)!.push(d);
+    }
+    return [...byBand.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([band, ds]) => ({ band, d: ds.join(""), opacity: POLLUTION_OPACITY[band] }));
+  }, [worldShapes]);
 
   const admin1BordersD = useMemo(() => {
     if (!admin1Borders) return undefined;
@@ -1936,6 +1975,17 @@ export function WorldMapsPage() {
      world map: there are 7,160 of them in the United States alone, and at full
      size they cover the country rather than showing where mining is. They are
      drawn small and part transparent until the reader zooms in. */
+  /* The focused country's own band, so the focus maps can wash the whole
+     country the one colour its single national figure supports. */
+  const focusPollution = useMemo(() => {
+    const code = focusCode === "US" ? "US" : focusCountry?.code;
+    const reading = code ? AIR_QUALITY[code] : undefined;
+    if (!reading) return null;
+    const band = pm25Band(reading.pm25);
+    if (band === 0) return null;
+    return { band, pm25: reading.pm25, year: reading.year, opacity: POLLUTION_OPACITY[band] };
+  }, [focusCode, focusCountry]);
+
   const focusMarks = useMemo(() => {
     if (!focusOverlays) return null;
     const z = focusZoom.zoom;
@@ -2156,6 +2206,16 @@ export function WorldMapsPage() {
               <span className="font-medium text-foreground">{o.label}</span> — {o.about}
             </p>
           ))}
+          {overlay.pollution && (
+            <p className="text-[9px] font-sans text-muted-foreground pl-3">
+              Bands are the WHO thresholds as the World Bank states them: the
+              guideline at 10 µg/m³, then interim targets 3, 2 and 1 at 15, 25
+              and 35. Countries at or below the guideline are left unshaded.
+              Figures are {AIR_QUALITY_SOURCE.years} and population-weighted, so
+              they describe the air a country's people breathe rather than where
+              within it the pollution sits.
+            </p>
+          )}
           {overlay.mines && mineSummary && (
             <p className="text-[9px] font-sans text-muted-foreground pl-3">
               A filled dot is one of {mineSummary.operations.toLocaleString()}{" "}
@@ -2400,6 +2460,16 @@ export function WorldMapsPage() {
                 reports the country beneath it and the choropleth stays the
                 thing the map is about. Widths and radii are divided by the
                 zoom, so every layer holds its size on screen. */}
+            {overlay.pollution &&
+              pollutionBands.map((b) => (
+                <path
+                  key={b.band}
+                  d={b.d}
+                  fill={overlayInk.pollution}
+                  fillOpacity={b.opacity}
+                  pointerEvents="none"
+                />
+              ))}
             {overlay.infrastructure && infraPaths && (
               /* Roads solid and railways dashed, so the two line networks stay
                  apart without reference to colour. Drawn first of the overlays,
@@ -2862,7 +2932,15 @@ export function WorldMapsPage() {
                 </text>
               </g>
             ))}
-            {/* These are worldwide files. Without clipping they run on across Canada and Mexico, and the map stops being a map of the United States. */}
+            {overlay.pollution && focusPollution && usOutlineD && (
+              <path
+                d={usOutlineD}
+                fill={overlayInk.pollution}
+                fillOpacity={focusPollution.opacity}
+                pointerEvents="none"
+              />
+            )}
+                        {/* These are worldwide files. Without clipping they run on across Canada and Mexico, and the map stops being a map of the United States. */}
             <defs>
               {usOutlineD && (
                 <clipPath id="clip-us">
@@ -3089,7 +3167,15 @@ export function WorldMapsPage() {
                         {sd.n}
                       </text>
                     ))}
-                    {/* Clipped to the country itself, so a road or a river stops at the border instead of running on through its neighbours. */}
+                    {overlay.pollution && focusPollution && focusMap?.outline && (
+                      <path
+                        d={focusMap?.outline}
+                        fill={overlayInk.pollution}
+                        fillOpacity={focusPollution.opacity}
+                        pointerEvents="none"
+                      />
+                    )}
+                                        {/* Clipped to the country itself, so a road or a river stops at the border instead of running on through its neighbours. */}
                     <defs>
                       {focusMap?.outline && (
                         <clipPath id="clip-focus-country">
