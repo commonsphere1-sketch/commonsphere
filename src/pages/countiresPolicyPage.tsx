@@ -10705,7 +10705,7 @@ function PolicyCardItem({ card }: { card: PolicyCard }) {
   const Icon = cfg.icon;
 
   return (
-    <div className="bg-card rounded-2xl border border-border/50 p-4 flex flex-col gap-2.5 hover:border-border/80 hover:shadow-sm transition-all duration-150">
+    <div className="bg-card rounded-2xl border border-border/50 p-4 flex flex-col gap-2.5 hover:border-border/80 hover:shadow-sm transition-all duration-150 w-64 shrink-0 snap-start">
       {/* Top row: badge | trend + GDP% + score */}
       <div className="flex items-center gap-2">
         <div
@@ -10754,8 +10754,9 @@ function PolicyCardItem({ card }: { card: PolicyCard }) {
         {card.description}
       </p>
 
-      {/* Allocation */}
-      <p className="text-[11px] text-muted-foreground">
+      {/* Allocation. mt-auto so it sits on the bottom edge of every card,
+          which is what makes equal-height cards look deliberate. */}
+      <p className="text-[11px] text-muted-foreground mt-auto">
         <span className="text-foreground font-semibold">{card.allocated}</span>{" "}
         allocated
       </p>
@@ -10925,8 +10926,13 @@ function EntityRow({ group }: { group: EntityGroup }) {
       </button>
 
       {open && (
-        <div className="px-5 pb-5 pt-1 border-t border-border/40">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+        <div className="px-5 pb-5 pt-1 border-t border-border/40 min-w-0">
+          <div
+            className="flex items-stretch gap-3 mt-3 overflow-x-auto pb-1 snap-x"
+            tabIndex={0}
+            role="group"
+            aria-label="Policies by category — scrolls sideways"
+          >
             {group.policies.map((card) => (
               <PolicyCardItem key={card.id} card={card} />
             ))}

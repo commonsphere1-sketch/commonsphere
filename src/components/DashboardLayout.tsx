@@ -68,7 +68,7 @@ export function DashboardLayout() {
 
         {/* Main Content */}
         <main
-          className={`flex-1 min-h-0 transition-all duration-300 ease-in-out ${
+          className={`flex-1 min-h-0 min-w-0 transition-all duration-300 ease-in-out ${
             sidebarOpen ? "md:ml-44" : "md:ml-14"
           }`}
           id="main-content"
