@@ -5485,48 +5485,6 @@ const ECONOMY_RESOURCES: Record<
 };
 
 // Fallback generic resources for economies not explicitly listed
-const FALLBACK_RESOURCES = [
-  {
-    name: "Agricultural",
-    value: 45,
-    unit: "% land",
-    color: "#4ade80",
-    icon: "🌾",
-    share: "Varies",
-  },
-  {
-    name: "Hydro Power",
-    value: 28,
-    unit: "TWh/yr",
-    color: "#38bdf8",
-    icon: "💧",
-    share: "Regional",
-  },
-  {
-    name: "Forestry",
-    value: 22,
-    unit: "% coverage",
-    color: "#65a30d",
-    icon: "🌲",
-    share: "Regional",
-  },
-  {
-    name: "Fisheries",
-    value: 18,
-    unit: "Mt/yr",
-    color: "#06b6d4",
-    icon: "🐟",
-    share: "Regional",
-  },
-  {
-    name: "Minerals",
-    value: 12,
-    unit: "% exports",
-    color: "#94a3b8",
-    icon: "⛏️",
-    share: "Varies",
-  },
-];
 
 const SRC_IMF = [
   {
@@ -6094,6 +6052,8 @@ function SectorPie({ sectors }: { sectors: EconomySectors }) {
           ` Of the industry share, manufacturing is ${sectors.manufacturing}% ${
             sectors.basis === "gdp" ? "of GDP" : "of value added"
           }.`}
+        {sectors.topSubSector &&
+          ` Its largest single industry is ${sectors.topSubSector.name.toLowerCase()}, at ${sectors.topSubSector.pct}% of GDP on its own.`}
       </p>
     </div>
   );
@@ -6174,7 +6134,7 @@ function EconomyModal({
         icon: "",
         share: `World Bank ${r.year}`,
       }))
-    : (ECONOMY_RESOURCES[economy.id] ?? FALLBACK_RESOURCES);
+    : (ECONOMY_RESOURCES[economy.id] ?? []);
 
   return (
     <div
@@ -6486,19 +6446,23 @@ function EconomyModal({
                           </div>
                           <div className="text-center border-x border-border/40">
                             <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
-                              Manufacturing
+                              {sectors.topSubSector ? "Largest industry" : "Manufacturing"}
                             </p>
                             <p className="text-xl font-bold font-mono text-foreground mt-0.5">
-                              {sectors.manufacturing === null
-                                ? "—"
-                                : `${sectors.manufacturing}%`}
+                              {sectors.topSubSector
+                                ? `${sectors.topSubSector.pct}%`
+                                : sectors.manufacturing === null
+                                  ? "—"
+                                  : `${sectors.manufacturing}%`}
                             </p>
                             <p className="text-[10px] text-muted-foreground font-sans">
-                              {sectors.manufacturing === null
-                                ? "not reported"
-                                : sectors.basis === "gdp"
-                                  ? "of GDP, within industry"
-                                  : "of value added, within industry"}
+                              {sectors.topSubSector
+                                ? sectors.topSubSector.name.toLowerCase()
+                                : sectors.manufacturing === null
+                                  ? "not reported"
+                                  : sectors.basis === "gdp"
+                                    ? "of GDP, within industry"
+                                    : "of value added, within industry"}
                             </p>
                           </div>
                           <div className="text-center">
@@ -6796,6 +6760,16 @@ function EconomyModal({
                           "Production & Output" bar chart listed the same five
                           resources a second time, so its data is shown here as
                           inline bars instead. */}
+                      {resources.length === 0 ? (
+                        <div className="modal-tile rounded-xl p-4 mb-3">
+                          <p className="text-[11px] font-sans text-muted-foreground">
+                            The World Bank publishes no resource-rent figures
+                            for {economy.name}, so none are shown.
+                            {economy.name === "Venezuela" &&
+                              " Its last reported oil rents were 11.3% of GDP in 2014; nothing has been published since, and a twelve-year-old figure is not a current one."}
+                          </p>
+                        </div>
+                      ) : (
                       <div className="modal-tile rounded-xl p-4 mb-3">
                         <div className="flex items-center gap-4 mb-4">
                           <div
@@ -6898,8 +6872,12 @@ function EconomyModal({
                           })}
                         </div>
                       </div>
+                      )}
 
-                      {/* Summary strip */}
+                      {/* Summary strip. Only where there is something to
+                          summarise: it named a data source even when no source
+                          had reported anything. */}
+                      {resources.length > 0 && (
                       <div className="grid grid-cols-3 gap-2">
                         <div className="modal-tile rounded-xl p-3 text-center">
                           <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
@@ -6935,6 +6913,7 @@ function EconomyModal({
                           </p>
                         </div>
                       </div>
+                      )}
 
                       {/* ── Rare Earth Minerals ── */}
                       {(() => {

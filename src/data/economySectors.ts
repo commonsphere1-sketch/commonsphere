@@ -48,6 +48,13 @@ export type EconomySectors = {
   /** Part of the industry slice, never a slice of its own. Percent of GDP. */
   manufacturing: number | null;
   /**
+   * The largest single industry within manufacturing, where the source breaks
+   * it down that far. Only Taiwan's statistics office does; the World Bank and
+   * the UN both stop at the aggregate, so this is absent for everyone else
+   * rather than guessed at.
+   */
+  topSubSector?: { name: string; pct: number };
+  /**
    * Which body published the figures. The World Bank covers all but a few; the
    * UN Statistics Division fills gaps the World Bank does not report, and its
    * shares are of value added rather than of GDP. Taiwan comes from its own
@@ -391,6 +398,7 @@ export const ECONOMY_SECTORS: Record<string, EconomySectors> = {
   "taiwan-eco": {
     name: "Taiwan", code: "TWN", year: "2024", basis: "gdp", source: "dgbas",
     manufacturing: 35.6,
+    topSubSector: { name: "Electronic Parts and Components", pct: 17.2 },
     slices: [{ name: "Agriculture", pct: 1.5 }, { name: "Industry", pct: 40.3 }, { name: "Services", pct: 57.9 }, { name: "Statistical discrepancy", pct: 0.3 }],
   },
   "tanzania-eco": {

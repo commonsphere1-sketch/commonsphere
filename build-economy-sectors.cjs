@@ -160,12 +160,33 @@ async function loadTaiwan() {
     const manu = num(anyRow(/^\s*C\. Manufacturing/), y);
     if (![a, ind, srv, gdp].every(Number.isFinite) || gdp <= 0) continue;
     const pct = (v) => (v / gdp) * 100;
+
+    /* The largest manufacturing sub-sector. "Industry 40% of GDP" says nothing
+       about what an economy is for; for Taiwan the answer is one line further
+       down the same table, and it is a bigger share of GDP than most countries'
+       entire manufacturing sector. Read from the data rather than asserted, so
+       it stays true if the ranking changes. */
+    let top = null;
+    for (const r of rows) {
+      const label = (r[0] || "").trim();
+      if (!/^C[A-Z]. /.test(label)) continue;
+      const v = num(r, y);
+      if (!Number.isFinite(v)) continue;
+      if (!top || v > top.raw) top = { raw: v, label };
+    }
+    const tidy = (label) =>
+      label
+        .replace(/^C[A-Z].\s*/, "")
+        .replace(/^Manufacture of /, "")
+        .trim();
+
     return {
       year: y,
       agriculture: pct(a),
       industry: pct(ind),
       services: pct(srv),
       manufacturing: Number.isFinite(manu) ? +pct(manu).toFixed(1) : null,
+      topSubSector: top ? { name: tidy(top.label), pct: +pct(top.raw).toFixed(1) } : null,
     };
   }
   throw new Error("Taiwan: no complete year found");
@@ -347,6 +368,9 @@ async function fetchIndicator(code) {
     /* The World Bank first, because it is the source the rest of the page
        already uses and its three shares are percentages of GDP. */
     let a, i, s2, manu, year, source, entity;
+    /* Only a source that breaks industry down can fill this; the World Bank's
+       three shares and the UN's ISIC groups both stop short of it. */
+    let topSubSector = null;
     const agr = code && series.agriculture.get(code);
     const ind = code && series.industry.get(code);
     const srv = code && series.services.get(code);
@@ -365,6 +389,7 @@ async function fetchIndicator(code) {
       year = taiwan.year;
       a = taiwan.agriculture; i = taiwan.industry; s2 = taiwan.services;
       manu = taiwan.manufacturing;
+      topSubSector = taiwan.topSubSector;
       source = "dgbas";
       entity = "TWN";
       fromDgbas++;
@@ -443,6 +468,7 @@ async function fetchIndicator(code) {
       basis: onGdp ? "gdp" : "valueAdded",
       slices: rounded.map(([n, v]) => ({ name: n, pct: v })),
       manufacturing: manu === null ? null : +manu.toFixed(1),
+      topSubSector,
     });
   }
 
@@ -454,6 +480,9 @@ async function fetchIndicator(code) {
         `  "${r.id}": {\n` +
         `    name: ${JSON.stringify(r.name)}, code: "${r.code}", year: "${r.year}", basis: "${r.basis}", source: "${r.source}",\n` +
         `    manufacturing: ${r.manufacturing === null ? "null" : r.manufacturing},\n` +
+        (r.topSubSector
+          ? `    topSubSector: { name: ${JSON.stringify(r.topSubSector.name)}, pct: ${r.topSubSector.pct} },\n`
+          : "") +
         `    slices: [${r.slices.map((x) => `{ name: ${JSON.stringify(x.name)}, pct: ${x.pct} }`).join(", ")}],\n` +
         `  },`,
     )
@@ -511,6 +540,13 @@ export type EconomySectors = {
   slices: { name: string; pct: number }[];
   /** Part of the industry slice, never a slice of its own. Percent of GDP. */
   manufacturing: number | null;
+  /**
+   * The largest single industry within manufacturing, where the source breaks
+   * it down that far. Only Taiwan's statistics office does; the World Bank and
+   * the UN both stop at the aggregate, so this is absent for everyone else
+   * rather than guessed at.
+   */
+  topSubSector?: { name: string; pct: number };
   /**
    * Which body published the figures. The World Bank covers all but a few; the
    * UN Statistics Division fills gaps the World Bank does not report, and its
