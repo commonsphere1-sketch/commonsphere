@@ -23,7 +23,7 @@
  * kept rather than scaled away, because scaling it away would overstate every
  * other share.
  *
- * 75 of the 77 economies on the page have a figure; years 2021, 2022, 2023, 2024, 2025.
+ * 76 of the 77 economies on the page have a figure; years 2021, 2022, 2023, 2024, 2025.
  */
 export const ECONOMY_SECTORS_SOURCE = {
   label: "World Bank — national accounts, value added by sector (% of GDP)",
@@ -47,382 +47,393 @@ export type EconomySectors = {
   slices: { name: string; pct: number }[];
   /** Part of the industry slice, never a slice of its own. Percent of GDP. */
   manufacturing: number | null;
+  /**
+   * Which body published the figures. The World Bank covers all but a few; the
+   * UN Statistics Division fills gaps the World Bank does not report, and its
+   * shares are of value added rather than of GDP.
+   */
+  source: "worldBank" | "un";
 };
 
 /** Keyed by the economy id used in economiesData.ts. */
 export const ECONOMY_SECTORS: Record<string, EconomySectors> = {
   "angola-eco": {
-    name: "Angola", code: "AGO", year: "2025", basis: "gdp",
+    name: "Angola", code: "AGO", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 6.8,
     slices: [{ name: "Agriculture", pct: 25.2 }, { name: "Industry", pct: 27.1 }, { name: "Services", pct: 46.8 }, { name: "Taxes less subsidies", pct: 0.9 }],
   },
   "argentina-eco": {
-    name: "Argentina", code: "ARG", year: "2025", basis: "gdp",
+    name: "Argentina", code: "ARG", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 13.6,
     slices: [{ name: "Agriculture", pct: 5.5 }, { name: "Industry", pct: 22.9 }, { name: "Services", pct: 56.2 }, { name: "Taxes less subsidies", pct: 15.4 }],
   },
   "australia-eco": {
-    name: "Australia", code: "AUS", year: "2025", basis: "gdp",
+    name: "Australia", code: "AUS", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 5.3,
     slices: [{ name: "Agriculture", pct: 2.3 }, { name: "Industry", pct: 23.9 }, { name: "Services", pct: 67.4 }, { name: "Taxes less subsidies", pct: 6.4 }],
   },
   "austria-eco": {
-    name: "Austria", code: "AUT", year: "2025", basis: "gdp",
+    name: "Austria", code: "AUT", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 15.2,
     slices: [{ name: "Agriculture", pct: 1.3 }, { name: "Industry", pct: 24 }, { name: "Services", pct: 64 }, { name: "Taxes less subsidies", pct: 10.7 }],
   },
   "bangladesh-eco": {
-    name: "Bangladesh", code: "BGD", year: "2025", basis: "gdp",
+    name: "Bangladesh", code: "BGD", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 22.4,
     slices: [{ name: "Agriculture", pct: 11.4 }, { name: "Industry", pct: 34 }, { name: "Services", pct: 52.2 }, { name: "Taxes less subsidies", pct: 2.4 }],
   },
   "belgium-eco": {
-    name: "Belgium", code: "BEL", year: "2025", basis: "gdp",
+    name: "Belgium", code: "BEL", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 11.2,
     slices: [{ name: "Agriculture", pct: 0.7 }, { name: "Industry", pct: 18.6 }, { name: "Services", pct: 71.3 }, { name: "Taxes less subsidies", pct: 9.4 }],
   },
   "brazil-eco": {
-    name: "Brazil", code: "BRA", year: "2025", basis: "gdp",
+    name: "Brazil", code: "BRA", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 11.8,
     slices: [{ name: "Agriculture", pct: 6.1 }, { name: "Industry", pct: 20.1 }, { name: "Services", pct: 59.8 }, { name: "Taxes less subsidies", pct: 14 }],
   },
   "bulgaria-eco": {
-    name: "Bulgaria", code: "BGR", year: "2025", basis: "gdp",
+    name: "Bulgaria", code: "BGR", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: null,
     slices: [{ name: "Agriculture", pct: 2.5 }, { name: "Industry", pct: 21.2 }, { name: "Services", pct: 63.3 }, { name: "Taxes less subsidies", pct: 13 }],
   },
   "cambodia-eco": {
-    name: "Cambodia", code: "KHM", year: "2025", basis: "gdp",
+    name: "Cambodia", code: "KHM", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 29,
     slices: [{ name: "Agriculture", pct: 16.1 }, { name: "Industry", pct: 43.1 }, { name: "Services", pct: 35 }, { name: "Taxes less subsidies", pct: 5.8 }],
   },
   "canada-eco": {
-    name: "Canada", code: "CAN", year: "2022", basis: "gdp",
+    name: "Canada", code: "CAN", year: "2022", basis: "gdp", source: "worldBank",
     manufacturing: 9.3,
     slices: [{ name: "Agriculture", pct: 1.9 }, { name: "Industry", pct: 27.4 }, { name: "Services", pct: 64.1 }, { name: "Taxes less subsidies", pct: 6.6 }],
   },
   "chile-eco": {
-    name: "Chile", code: "CHL", year: "2025", basis: "gdp",
+    name: "Chile", code: "CHL", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 9,
     slices: [{ name: "Agriculture", pct: 3.5 }, { name: "Industry", pct: 31.4 }, { name: "Services", pct: 55.5 }, { name: "Taxes less subsidies", pct: 9.6 }],
   },
   "china-eco": {
-    name: "China", code: "CHN", year: "2025", basis: "gdp",
+    name: "China", code: "CHN", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 24.7,
     slices: [{ name: "Agriculture", pct: 6.7 }, { name: "Industry", pct: 35.6 }, { name: "Services", pct: 57.7 }, { name: "Taxes less subsidies", pct: 0 }],
   },
   "colombia-eco": {
-    name: "Colombia", code: "COL", year: "2025", basis: "gdp",
+    name: "Colombia", code: "COL", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 9.9,
     slices: [{ name: "Agriculture", pct: 9.9 }, { name: "Industry", pct: 21.8 }, { name: "Services", pct: 58.5 }, { name: "Taxes less subsidies", pct: 9.8 }],
   },
   "croatia-eco": {
-    name: "Croatia", code: "HRV", year: "2025", basis: "gdp",
+    name: "Croatia", code: "HRV", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 10.1,
     slices: [{ name: "Agriculture", pct: 2.8 }, { name: "Industry", pct: 19 }, { name: "Services", pct: 60.9 }, { name: "Taxes less subsidies", pct: 17.3 }],
   },
   "czechia-eco": {
-    name: "Czechia", code: "CZE", year: "2025", basis: "gdp",
+    name: "Czechia", code: "CZE", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 19.4,
     slices: [{ name: "Agriculture", pct: 1.9 }, { name: "Industry", pct: 28.7 }, { name: "Services", pct: 60.9 }, { name: "Taxes less subsidies", pct: 8.5 }],
   },
   "denmark-eco": {
-    name: "Denmark", code: "DNK", year: "2025", basis: "gdp",
+    name: "Denmark", code: "DNK", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 18.7,
     slices: [{ name: "Agriculture", pct: 1.2 }, { name: "Industry", pct: 24.8 }, { name: "Services", pct: 62.7 }, { name: "Taxes less subsidies", pct: 11.3 }],
   },
   "ecuador-eco": {
-    name: "Ecuador", code: "ECU", year: "2025", basis: "gdp",
+    name: "Ecuador", code: "ECU", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 13.2,
     slices: [{ name: "Agriculture", pct: 9.7 }, { name: "Industry", pct: 25.7 }, { name: "Services", pct: 56.9 }, { name: "Taxes less subsidies", pct: 7.7 }],
   },
   "egypt-eco": {
-    name: "Egypt", code: "EGY", year: "2025", basis: "gdp",
+    name: "Egypt", code: "EGY", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 14.5,
     slices: [{ name: "Agriculture", pct: 16.6 }, { name: "Industry", pct: 32.1 }, { name: "Services", pct: 47.2 }, { name: "Taxes less subsidies", pct: 4.1 }],
   },
   "ethiopia-eco": {
-    name: "Ethiopia", code: "ETH", year: "2025", basis: "gdp",
+    name: "Ethiopia", code: "ETH", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 4.2,
     slices: [{ name: "Agriculture", pct: 32.8 }, { name: "Industry", pct: 27.8 }, { name: "Services", pct: 36.6 }, { name: "Taxes less subsidies", pct: 2.8 }],
   },
   "eu-eco": {
-    name: "European Union", code: "EUU", year: "2025", basis: "gdp",
+    name: "European Union", code: "EUU", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 14.3,
     slices: [{ name: "Agriculture", pct: 1.6 }, { name: "Industry", pct: 22.2 }, { name: "Services", pct: 65.9 }, { name: "Taxes less subsidies", pct: 10.3 }],
   },
   "finland-eco": {
-    name: "Finland", code: "FIN", year: "2025", basis: "gdp",
+    name: "Finland", code: "FIN", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 14.2,
     slices: [{ name: "Agriculture", pct: 2.6 }, { name: "Industry", pct: 22.5 }, { name: "Services", pct: 62.1 }, { name: "Taxes less subsidies", pct: 12.8 }],
   },
   "france-eco": {
-    name: "France", code: "FRA", year: "2025", basis: "gdp",
+    name: "France", code: "FRA", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 9.5,
     slices: [{ name: "Agriculture", pct: 1.4 }, { name: "Industry", pct: 16.8 }, { name: "Services", pct: 70.8 }, { name: "Taxes less subsidies", pct: 11 }],
   },
   "germany-eco": {
-    name: "Germany", code: "DEU", year: "2025", basis: "gdp",
+    name: "Germany", code: "DEU", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 17.6,
     slices: [{ name: "Agriculture", pct: 0.9 }, { name: "Industry", pct: 25.2 }, { name: "Services", pct: 64.4 }, { name: "Taxes less subsidies", pct: 9.5 }],
   },
   "ghana-eco": {
-    name: "Ghana", code: "GHA", year: "2025", basis: "gdp",
+    name: "Ghana", code: "GHA", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 10.1,
     slices: [{ name: "Agriculture", pct: 21.3 }, { name: "Industry", pct: 29.3 }, { name: "Services", pct: 42.8 }, { name: "Taxes less subsidies", pct: 6.6 }],
   },
   "greece-eco": {
-    name: "Greece", code: "GRC", year: "2025", basis: "gdp",
+    name: "Greece", code: "GRC", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 9.1,
     slices: [{ name: "Agriculture", pct: 3.6 }, { name: "Industry", pct: 15.2 }, { name: "Services", pct: 67.4 }, { name: "Taxes less subsidies", pct: 13.8 }],
   },
   "hongkong-eco": {
-    name: "Hong Kong", code: "HKG", year: "2024", basis: "gdp",
+    name: "Hong Kong", code: "HKG", year: "2024", basis: "gdp", source: "worldBank",
     manufacturing: 0.9,
     slices: [{ name: "Agriculture", pct: 0 }, { name: "Industry", pct: 6.2 }, { name: "Services", pct: 91.5 }, { name: "Taxes less subsidies", pct: 2.3 }],
   },
   "hungary-eco": {
-    name: "Hungary", code: "HUN", year: "2025", basis: "gdp",
+    name: "Hungary", code: "HUN", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 15.1,
     slices: [{ name: "Agriculture", pct: 2.7 }, { name: "Industry", pct: 23 }, { name: "Services", pct: 60 }, { name: "Taxes less subsidies", pct: 14.3 }],
   },
   "india-eco": {
-    name: "India", code: "IND", year: "2025", basis: "gdp",
+    name: "India", code: "IND", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 13.5,
     slices: [{ name: "Agriculture", pct: 16.2 }, { name: "Industry", pct: 25.2 }, { name: "Services", pct: 49.4 }, { name: "Taxes less subsidies", pct: 9.2 }],
   },
   "indonesia-eco": {
-    name: "Indonesia", code: "IDN", year: "2025", basis: "gdp",
+    name: "Indonesia", code: "IDN", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 19.1,
     slices: [{ name: "Agriculture", pct: 13.1 }, { name: "Industry", pct: 38.7 }, { name: "Services", pct: 43.9 }, { name: "Taxes less subsidies", pct: 4.3 }],
   },
   "iran-eco": {
-    name: "Iran", code: "IRN", year: "2025", basis: "gdp",
+    name: "Iran", code: "IRN", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: null,
     slices: [{ name: "Agriculture", pct: 10.6 }, { name: "Industry", pct: 39.6 }, { name: "Services", pct: 47.1 }, { name: "Taxes less subsidies", pct: 2.7 }],
   },
   "iraq-eco": {
-    name: "Iraq", code: "IRQ", year: "2025", basis: "valueAdded",
+    name: "Iraq", code: "IRQ", year: "2025", basis: "valueAdded", source: "worldBank",
     manufacturing: 4,
     slices: [{ name: "Agriculture", pct: 3.4 }, { name: "Industry", pct: 44.9 }, { name: "Services", pct: 51.7 }],
   },
   "ireland-eco": {
-    name: "Ireland", code: "IRL", year: "2025", basis: "gdp",
+    name: "Ireland", code: "IRL", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 33.9,
     slices: [{ name: "Agriculture", pct: 1.1 }, { name: "Industry", pct: 37.8 }, { name: "Services", pct: 56.6 }, { name: "Taxes less subsidies", pct: 4.5 }],
   },
   "israel-eco": {
-    name: "Israel", code: "ISR", year: "2024", basis: "gdp",
+    name: "Israel", code: "ISR", year: "2024", basis: "gdp", source: "worldBank",
     manufacturing: 11.2,
     slices: [{ name: "Agriculture", pct: 1.3 }, { name: "Industry", pct: 17.2 }, { name: "Services", pct: 72.9 }, { name: "Taxes less subsidies", pct: 8.6 }],
   },
   "italy-eco": {
-    name: "Italy", code: "ITA", year: "2025", basis: "gdp",
+    name: "Italy", code: "ITA", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 15,
     slices: [{ name: "Agriculture", pct: 2.1 }, { name: "Industry", pct: 22.6 }, { name: "Services", pct: 64.5 }, { name: "Taxes less subsidies", pct: 10.8 }],
   },
   "japan-eco": {
-    name: "Japan", code: "JPN", year: "2024", basis: "gdp",
+    name: "Japan", code: "JPN", year: "2024", basis: "gdp", source: "worldBank",
     manufacturing: 18.8,
     slices: [{ name: "Agriculture", pct: 1 }, { name: "Industry", pct: 26.8 }, { name: "Services", pct: 71.4 }, { name: "Taxes less subsidies", pct: 0.8 }],
   },
   "kazakhstan-eco": {
-    name: "Kazakhstan", code: "KAZ", year: "2025", basis: "gdp",
+    name: "Kazakhstan", code: "KAZ", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 12.7,
     slices: [{ name: "Agriculture", pct: 3.7 }, { name: "Industry", pct: 32.3 }, { name: "Services", pct: 57.8 }, { name: "Taxes less subsidies", pct: 6.2 }],
   },
   "kenya-eco": {
-    name: "Kenya", code: "KEN", year: "2025", basis: "gdp",
+    name: "Kenya", code: "KEN", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 7.1,
     slices: [{ name: "Agriculture", pct: 23.2 }, { name: "Industry", pct: 16.3 }, { name: "Services", pct: 55 }, { name: "Taxes less subsidies", pct: 5.5 }],
   },
   "kuwait-eco": {
-    name: "Kuwait", code: "KWT", year: "2025", basis: "valueAdded",
+    name: "Kuwait", code: "KWT", year: "2025", basis: "valueAdded", source: "worldBank",
     manufacturing: 7.7,
     slices: [{ name: "Agriculture", pct: 0.5 }, { name: "Industry", pct: 47.4 }, { name: "Services", pct: 52.1 }],
   },
   "malaysia-eco": {
-    name: "Malaysia", code: "MYS", year: "2025", basis: "gdp",
+    name: "Malaysia", code: "MYS", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 22.1,
     slices: [{ name: "Agriculture", pct: 8.2 }, { name: "Industry", pct: 35.7 }, { name: "Services", pct: 54.8 }, { name: "Taxes less subsidies", pct: 1.3 }],
   },
   "mexico-eco": {
-    name: "Mexico", code: "MEX", year: "2025", basis: "gdp",
+    name: "Mexico", code: "MEX", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 20,
     slices: [{ name: "Agriculture", pct: 3.9 }, { name: "Industry", pct: 30.6 }, { name: "Services", pct: 58.8 }, { name: "Taxes less subsidies", pct: 6.7 }],
   },
   "morocco-eco": {
-    name: "Morocco", code: "MAR", year: "2025", basis: "gdp",
+    name: "Morocco", code: "MAR", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 14.9,
     slices: [{ name: "Agriculture", pct: 10.5 }, { name: "Industry", pct: 25.2 }, { name: "Services", pct: 52.4 }, { name: "Taxes less subsidies", pct: 11.9 }],
   },
   "mozambique-eco": {
-    name: "Mozambique", code: "MOZ", year: "2025", basis: "gdp",
+    name: "Mozambique", code: "MOZ", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 6.2,
     slices: [{ name: "Agriculture", pct: 25.6 }, { name: "Industry", pct: 22.1 }, { name: "Services", pct: 42 }, { name: "Taxes less subsidies", pct: 10.3 }],
   },
   "myanmar-eco": {
-    name: "Myanmar", code: "MMR", year: "2025", basis: "gdp",
+    name: "Myanmar", code: "MMR", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 25.1,
     slices: [{ name: "Agriculture", pct: 25.3 }, { name: "Industry", pct: 36.2 }, { name: "Services", pct: 38.5 }, { name: "Taxes less subsidies", pct: 0 }],
   },
   "nepal-eco": {
-    name: "Nepal", code: "NPL", year: "2025", basis: "gdp",
+    name: "Nepal", code: "NPL", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 5,
     slices: [{ name: "Agriculture", pct: 21.6 }, { name: "Industry", pct: 12.1 }, { name: "Services", pct: 54.3 }, { name: "Taxes less subsidies", pct: 12 }],
   },
   "netherlands-eco": {
-    name: "Netherlands", code: "NLD", year: "2025", basis: "gdp",
+    name: "Netherlands", code: "NLD", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 10.1,
     slices: [{ name: "Agriculture", pct: 1.7 }, { name: "Industry", pct: 17.7 }, { name: "Services", pct: 70.4 }, { name: "Taxes less subsidies", pct: 10.2 }],
   },
   "newzealand-eco": {
-    name: "New Zealand", code: "NZL", year: "2023", basis: "gdp",
+    name: "New Zealand", code: "NZL", year: "2023", basis: "gdp", source: "worldBank",
     manufacturing: 8.3,
     slices: [{ name: "Agriculture", pct: 4 }, { name: "Industry", pct: 19.4 }, { name: "Services", pct: 68.3 }, { name: "Taxes less subsidies", pct: 8.3 }],
   },
   "nigeria-eco": {
-    name: "Nigeria", code: "NGA", year: "2025", basis: "gdp",
+    name: "Nigeria", code: "NGA", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 8.3,
     slices: [{ name: "Agriculture", pct: 23 }, { name: "Industry", pct: 16.4 }, { name: "Services", pct: 58.3 }, { name: "Taxes less subsidies", pct: 2.3 }],
   },
   "norway-eco": {
-    name: "Norway", code: "NOR", year: "2025", basis: "gdp",
+    name: "Norway", code: "NOR", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 6.1,
     slices: [{ name: "Agriculture", pct: 1.6 }, { name: "Industry", pct: 34.5 }, { name: "Services", pct: 55 }, { name: "Taxes less subsidies", pct: 8.9 }],
   },
   "pakistan-eco": {
-    name: "Pakistan", code: "PAK", year: "2025", basis: "gdp",
+    name: "Pakistan", code: "PAK", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 13,
     slices: [{ name: "Agriculture", pct: 23 }, { name: "Industry", pct: 20.1 }, { name: "Services", pct: 50.9 }, { name: "Taxes less subsidies", pct: 6 }],
   },
   "peru-eco": {
-    name: "Peru", code: "PER", year: "2024", basis: "gdp",
+    name: "Peru", code: "PER", year: "2024", basis: "gdp", source: "worldBank",
     manufacturing: 12.2,
     slices: [{ name: "Agriculture", pct: 7.5 }, { name: "Industry", pct: 34.3 }, { name: "Services", pct: 50.9 }, { name: "Taxes less subsidies", pct: 7.3 }],
   },
   "philippines-eco": {
-    name: "Philippines", code: "PHL", year: "2025", basis: "valueAdded",
+    name: "Philippines", code: "PHL", year: "2025", basis: "valueAdded", source: "worldBank",
     manufacturing: 15.3,
     slices: [{ name: "Agriculture", pct: 8.6 }, { name: "Industry", pct: 27 }, { name: "Services", pct: 64.4 }],
   },
   "poland-eco": {
-    name: "Poland", code: "POL", year: "2025", basis: "gdp",
+    name: "Poland", code: "POL", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 15,
     slices: [{ name: "Agriculture", pct: 2.5 }, { name: "Industry", pct: 25.8 }, { name: "Services", pct: 59.7 }, { name: "Taxes less subsidies", pct: 12 }],
   },
   "portugal-eco": {
-    name: "Portugal", code: "PRT", year: "2025", basis: "gdp",
+    name: "Portugal", code: "PRT", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 11.3,
     slices: [{ name: "Agriculture", pct: 2 }, { name: "Industry", pct: 18.3 }, { name: "Services", pct: 66.5 }, { name: "Taxes less subsidies", pct: 13.2 }],
   },
   "qatar-eco": {
-    name: "Qatar", code: "QAT", year: "2025", basis: "valueAdded",
+    name: "Qatar", code: "QAT", year: "2025", basis: "valueAdded", source: "worldBank",
     manufacturing: 7.9,
     slices: [{ name: "Agriculture", pct: 0.3 }, { name: "Industry", pct: 54.7 }, { name: "Services", pct: 45 }],
   },
   "romania-eco": {
-    name: "Romania", code: "ROU", year: "2025", basis: "gdp",
+    name: "Romania", code: "ROU", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 11.8,
     slices: [{ name: "Agriculture", pct: 3 }, { name: "Industry", pct: 25.3 }, { name: "Services", pct: 61.8 }, { name: "Taxes less subsidies", pct: 9.9 }],
   },
   "russia-eco": {
-    name: "Russia", code: "RUS", year: "2025", basis: "gdp",
+    name: "Russia", code: "RUS", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 13.7,
     slices: [{ name: "Agriculture", pct: 3.1 }, { name: "Industry", pct: 29.7 }, { name: "Services", pct: 58.8 }, { name: "Taxes less subsidies", pct: 8.4 }],
   },
   "saudiarabia-eco": {
-    name: "Saudi Arabia", code: "SAU", year: "2025", basis: "gdp",
+    name: "Saudi Arabia", code: "SAU", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 15.8,
     slices: [{ name: "Agriculture", pct: 2.6 }, { name: "Industry", pct: 43 }, { name: "Services", pct: 48.9 }, { name: "Taxes less subsidies", pct: 5.5 }],
   },
   "serbia-eco": {
-    name: "Serbia", code: "SRB", year: "2025", basis: "gdp",
+    name: "Serbia", code: "SRB", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: null,
     slices: [{ name: "Agriculture", pct: 3.3 }, { name: "Industry", pct: 22.3 }, { name: "Services", pct: 59.7 }, { name: "Taxes less subsidies", pct: 14.7 }],
   },
   "singapore-eco": {
-    name: "Singapore", code: "SGP", year: "2025", basis: "gdp",
+    name: "Singapore", code: "SGP", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 17.4,
     slices: [{ name: "Agriculture", pct: 0 }, { name: "Industry", pct: 22.7 }, { name: "Services", pct: 71.6 }, { name: "Taxes less subsidies", pct: 5.7 }],
   },
   "slovakia-eco": {
-    name: "Slovakia", code: "SVK", year: "2025", basis: "gdp",
+    name: "Slovakia", code: "SVK", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 16.2,
     slices: [{ name: "Agriculture", pct: 1.6 }, { name: "Industry", pct: 28.1 }, { name: "Services", pct: 59.8 }, { name: "Taxes less subsidies", pct: 10.5 }],
   },
   "southafrica-eco": {
-    name: "South Africa", code: "ZAF", year: "2025", basis: "gdp",
+    name: "South Africa", code: "ZAF", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 12.3,
     slices: [{ name: "Agriculture", pct: 2.8 }, { name: "Industry", pct: 24.1 }, { name: "Services", pct: 63.1 }, { name: "Taxes less subsidies", pct: 10 }],
   },
   "southkorea-eco": {
-    name: "South Korea", code: "KOR", year: "2025", basis: "gdp",
+    name: "South Korea", code: "KOR", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 27.4,
     slices: [{ name: "Agriculture", pct: 1.5 }, { name: "Industry", pct: 34.3 }, { name: "Services", pct: 57.2 }, { name: "Taxes less subsidies", pct: 7 }],
   },
   "spain-eco": {
-    name: "Spain", code: "ESP", year: "2025", basis: "gdp",
+    name: "Spain", code: "ESP", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 10.6,
     slices: [{ name: "Agriculture", pct: 2.7 }, { name: "Industry", pct: 19.6 }, { name: "Services", pct: 68.3 }, { name: "Taxes less subsidies", pct: 9.4 }],
   },
   "srilanka-eco": {
-    name: "Sri Lanka", code: "LKA", year: "2025", basis: "gdp",
+    name: "Sri Lanka", code: "LKA", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 17.1,
     slices: [{ name: "Agriculture", pct: 8.4 }, { name: "Industry", pct: 25.4 }, { name: "Services", pct: 54.6 }, { name: "Taxes less subsidies", pct: 11.6 }],
   },
   "sweden-eco": {
-    name: "Sweden", code: "SWE", year: "2025", basis: "gdp",
+    name: "Sweden", code: "SWE", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 12.5,
     slices: [{ name: "Agriculture", pct: 1.5 }, { name: "Industry", pct: 21 }, { name: "Services", pct: 67.1 }, { name: "Taxes less subsidies", pct: 10.4 }],
   },
   "switzerland-eco": {
-    name: "Switzerland", code: "CHE", year: "2025", basis: "gdp",
+    name: "Switzerland", code: "CHE", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 18.9,
     slices: [{ name: "Agriculture", pct: 0.6 }, { name: "Industry", pct: 25 }, { name: "Services", pct: 71.8 }, { name: "Taxes less subsidies", pct: 2.6 }],
   },
   "tanzania-eco": {
-    name: "Tanzania", code: "TZA", year: "2025", basis: "gdp",
+    name: "Tanzania", code: "TZA", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: null,
     slices: [{ name: "Agriculture", pct: 22.9 }, { name: "Industry", pct: 29.8 }, { name: "Services", pct: 28.8 }, { name: "Taxes less subsidies", pct: 18.5 }],
   },
   "thailand-eco": {
-    name: "Thailand", code: "THA", year: "2025", basis: "gdp",
+    name: "Thailand", code: "THA", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 23.7,
     slices: [{ name: "Agriculture", pct: 8.7 }, { name: "Industry", pct: 31.1 }, { name: "Services", pct: 60.2 }, { name: "Taxes less subsidies", pct: 0 }],
   },
   "turkey-eco": {
-    name: "Turkey", code: "TUR", year: "2025", basis: "gdp",
+    name: "Turkey", code: "TUR", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: null,
     slices: [{ name: "Agriculture", pct: 5.2 }, { name: "Industry", pct: 24 }, { name: "Services", pct: 59.5 }, { name: "Taxes less subsidies", pct: 11.3 }],
   },
   "ukraine-eco": {
-    name: "Ukraine", code: "UKR", year: "2025", basis: "gdp",
+    name: "Ukraine", code: "UKR", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 8.3,
     slices: [{ name: "Agriculture", pct: 7.6 }, { name: "Industry", pct: 17.9 }, { name: "Services", pct: 60.9 }, { name: "Taxes less subsidies", pct: 13.6 }],
   },
   "uae-eco": {
-    name: "United Arab Emirates", code: "ARE", year: "2024", basis: "valueAdded",
+    name: "United Arab Emirates", code: "ARE", year: "2024", basis: "valueAdded", source: "worldBank",
     manufacturing: 9.4,
     slices: [{ name: "Agriculture", pct: 0.8 }, { name: "Industry", pct: 44.3 }, { name: "Services", pct: 54.9 }],
   },
   "uk-eco": {
-    name: "United Kingdom", code: "GBR", year: "2025", basis: "gdp",
+    name: "United Kingdom", code: "GBR", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 7.7,
     slices: [{ name: "Agriculture", pct: 0.6 }, { name: "Industry", pct: 16.5 }, { name: "Services", pct: 73.1 }, { name: "Taxes less subsidies", pct: 9.8 }],
   },
   "usa-eco": {
-    name: "United States", code: "USA", year: "2021", basis: "gdp",
+    name: "United States", code: "USA", year: "2021", basis: "gdp", source: "worldBank",
     manufacturing: 10.5,
     slices: [{ name: "Agriculture", pct: 0.9 }, { name: "Industry", pct: 17.6 }, { name: "Services", pct: 76.3 }, { name: "Taxes less subsidies", pct: 5.2 }],
   },
   "uzbekistan-eco": {
-    name: "Uzbekistan", code: "UZB", year: "2025", basis: "gdp",
+    name: "Uzbekistan", code: "UZB", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 20.8,
     slices: [{ name: "Agriculture", pct: 16.6 }, { name: "Industry", pct: 32.5 }, { name: "Services", pct: 46.5 }, { name: "Taxes less subsidies", pct: 4.4 }],
   },
+  "venezuela-eco": {
+    name: "Venezuela", code: "VEN", year: "2024", basis: "valueAdded", source: "un",
+    manufacturing: 16.9,
+    slices: [{ name: "Agriculture", pct: 4.5 }, { name: "Industry", pct: 52.2 }, { name: "Services", pct: 43.3 }],
+  },
   "vietnam-eco": {
-    name: "Vietnam", code: "VNM", year: "2025", basis: "gdp",
+    name: "Vietnam", code: "VNM", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 24.5,
     slices: [{ name: "Agriculture", pct: 11.6 }, { name: "Industry", pct: 37.6 }, { name: "Services", pct: 42.8 }, { name: "Taxes less subsidies", pct: 8 }],
   },

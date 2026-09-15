@@ -6075,11 +6075,19 @@ function SectorPie({ sectors }: { sectors: EconomySectors }) {
       </div>
       <p className="text-[9px] font-sans text-muted-foreground mt-2 leading-snug">
         Value added by sector, {basisLabel.replace("of ", "as a share of ")},{" "}
-        {sectors.year}, from {ECONOMY_SECTORS_SOURCE.label}.
+        {sectors.year}, from{" "}
+        {sectors.source === "un"
+          ? "the UN Statistics Division's national accounts, which report economies the World Bank does not"
+          : ECONOMY_SECTORS_SOURCE.label}
+        .
         {sectors.basis === "valueAdded" &&
-          " Charted on value added rather than GDP because subsidies on products exceed taxes on them here, so the sectors come to more than GDP."}
+          (sectors.source === "un"
+            ? " The UN publishes this as a distribution across value added, so the shares are of value added rather than of GDP and there is no separate figure for taxes less subsidies."
+            : " Charted on value added rather than GDP because subsidies on products exceed taxes on them here, so the sectors come to more than GDP.")}
         {sectors.manufacturing !== null &&
-          ` Of the industry share, manufacturing is ${sectors.manufacturing}% of GDP.`}
+          ` Of the industry share, manufacturing is ${sectors.manufacturing}% ${
+            sectors.basis === "gdp" ? "of GDP" : "of value added"
+          }.`}
       </p>
     </div>
   );
@@ -6482,7 +6490,9 @@ function EconomyModal({
                             <p className="text-[10px] text-muted-foreground font-sans">
                               {sectors.manufacturing === null
                                 ? "not reported"
-                                : "of GDP, within industry"}
+                                : sectors.basis === "gdp"
+                                  ? "of GDP, within industry"
+                                  : "of value added, within industry"}
                             </p>
                           </div>
                           <div className="text-center">

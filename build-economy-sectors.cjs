@@ -38,6 +38,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { execSync } = require("child_process");
+const { readXlsx } = require("./xlsx-lite.cjs");
 
 const OUT = path.join(__dirname, "src/data/economySectors.ts");
 const UA = "commonsphere-data-build/1.0 (+https://github.com/commonsphere1-sketch/commonsphere)";
@@ -50,6 +51,86 @@ const INDICATORS = {
   services: "NV.SRV.TOTL.ZS",
   manufacturing: "NV.IND.MANF.ZS",
 };
+
+/**
+ * The UN Statistics Division's national accounts, used only where the World
+ * Bank has nothing. Its "Percentage Distribution (Shares) of GDP" table covers
+ * economies the World Bank does not report, Venezuela among them.
+ *
+ * Its breakdown is by ISIC group rather than the World Bank's three sectors, so
+ * the groups are added up to the same three. The mapping follows the World
+ * Bank's own definitions: industry is mining, manufacturing, utilities and
+ * construction; services is everything from wholesale trade onwards.
+ *
+ * These shares sum to 100 across value added, not GDP, so anything sourced here
+ * is charted on the value-added basis the type already supports.
+ */
+const UN_SHARES_URL = "https://unstats.un.org/unsd/amaapi/api/file/22";
+const UN_AGRICULTURE = ["Agriculture, hunting, forestry, fishing (ISIC A-B)"];
+const UN_INDUSTRY = ["Mining, Manufacturing, Utilities (ISIC C-E)", "Construction (ISIC F)"];
+const UN_SERVICES = [
+  "Wholesale, retail trade, restaurants and hotels (ISIC G-H)",
+  "Transport, storage and communication (ISIC I)",
+  "Other Activities (ISIC J-P)",
+];
+const UN_MANUFACTURING = "Manufacturing (ISIC D)";
+
+/** The UN's name for an economy, where it differs from the site's. */
+const UN_ALIAS = {
+  Venezuela: "Venezuela (Bolivarian Republic of)",
+};
+
+/**
+ * Reads the UN table once and returns a lookup of economy name to its three
+ * sector shares, for the latest year all of them are reported.
+ */
+async function loadUnShares() {
+  const at = path.join(CACHE, "un-shares.xlsx");
+  if (!fs.existsSync(at)) {
+    const res = await fetch(UN_SHARES_URL, { headers: { "User-Agent": UA } });
+    if (!res.ok) throw new Error(`UN shares: HTTP ${res.status}`);
+    fs.writeFileSync(at, Buffer.from(await res.arrayBuffer()));
+  }
+  const { rows } = readXlsx(at);
+  const headerRow = rows.findIndex((r) => (r[0] || "").trim() === "CountryID");
+  if (headerRow < 0) throw new Error("UN shares: header row not found");
+  const years = rows[headerRow].slice(3);
+
+  // name -> indicator -> year index -> value
+  const byCountry = new Map();
+  for (const r of rows.slice(headerRow + 1)) {
+    const name = (r[1] || "").trim();
+    const indicator = (r[2] || "").trim();
+    if (!name || !indicator) continue;
+    if (!byCountry.has(name)) byCountry.set(name, new Map());
+    byCountry.get(name).set(indicator, r.slice(3));
+  }
+
+  return (siteName) => {
+    const unName = UN_ALIAS[siteName] ?? siteName;
+    const table = byCountry.get(unName);
+    if (!table) return null;
+    const needed = [...UN_AGRICULTURE, ...UN_INDUSTRY, ...UN_SERVICES];
+    if (!needed.every((k) => table.has(k))) return null;
+
+    // Latest year every needed group reports.
+    let idx = -1;
+    for (let i = years.length - 1; i >= 0; i--) {
+      if (needed.every((k) => { const v = table.get(k)[i]; return v !== undefined && v !== "" && Number.isFinite(+v); })) { idx = i; break; }
+    }
+    if (idx < 0) return null;
+
+    const sum = (keys) => keys.reduce((n, k) => n + Number(table.get(k)[idx]), 0);
+    const manuRaw = table.get(UN_MANUFACTURING)?.[idx];
+    return {
+      year: String(years[idx]),
+      agriculture: sum(UN_AGRICULTURE),
+      industry: sum(UN_INDUSTRY),
+      services: sum(UN_SERVICES),
+      manufacturing: manuRaw !== undefined && manuRaw !== "" && Number.isFinite(+manuRaw) ? Number(manuRaw) : null,
+    };
+  };
+}
 
 /**
  * Where the site's name for an economy differs from the World Bank's. Each is
@@ -131,22 +212,47 @@ async function fetchIndicator(code) {
   const unmatched = [];
   const noData = [];
 
+  const unShares = await loadUnShares();
+  let fromUn = 0;
+
   for (const e of economies) {
     const code = ALIAS[e.name] ?? byName.get(e.name.toLowerCase());
-    if (!code) { unmatched.push(e.name); continue; }
 
-    const agr = series.agriculture.get(code);
-    const ind = series.industry.get(code);
-    const srv = series.services.get(code);
-    if (!agr || !ind || !srv) { noData.push(`${e.name} (${code})`); continue; }
+    /* The World Bank first, because it is the source the rest of the page
+       already uses and its three shares are percentages of GDP. */
+    let a, i, s2, manu, year, source, entity;
+    const agr = code && series.agriculture.get(code);
+    const ind = code && series.industry.get(code);
+    const srv = code && series.services.get(code);
+    const years =
+      agr && ind && srv
+        ? [...agr.keys()].filter((y) => ind.has(y) && srv.has(y)).sort((x, y) => +y - +x)
+        : [];
 
-    // The newest year all three are reported for, so one pie is one year.
-    const years = [...agr.keys()].filter((y) => ind.has(y) && srv.has(y)).sort((a, b) => +b - +a);
-    if (!years.length) { noData.push(`${e.name} (${code}, no common year)`); continue; }
-    const year = years[0];
+    if (years.length) {
+      year = years[0];
+      a = agr.get(year); i = ind.get(year); s2 = srv.get(year);
+      manu = series.manufacturing.get(code)?.get(year) ?? null;
+      source = "worldBank";
+      entity = code;
+    } else {
+      /* Only where the World Bank has nothing. The UN reports shares of value
+         added rather than of GDP, which the basis field records. */
+      const un = unShares(e.name);
+      if (!un) {
+        if (!code) unmatched.push(e.name);
+        else noData.push(`${e.name} (${code})`);
+        continue;
+      }
+      year = un.year;
+      a = un.agriculture; i = un.industry; s2 = un.services;
+      manu = un.manufacturing;
+      source = "un";
+      entity = code ?? "UN";
+      fromUn++;
+    }
 
-    const a = agr.get(year), i = ind.get(year), s = srv.get(year);
-    const manu = series.manufacturing.get(code)?.get(year) ?? null;
+    const s = s2;
     const residual = 100 - (a + i + s);
 
     /* Normally the three shares fall short of 100 and the gap is taxes less
@@ -159,7 +265,11 @@ async function fetchIndicator(code) {
        to more than the whole. Those are charted as shares of value added
        instead, which is a total that does exist, and the basis is recorded so
        the page can say which it is showing. */
-    const onGdp = residual >= 0;
+    /* The UN's table is already a distribution across value added - its rows
+       sum to 100 - so there is no remainder of GDP to show. Treating it as a
+       GDP breakdown would label it wrongly and add a 0% slice for taxes that
+       the source never reported. */
+    const onGdp = source !== "un" && residual >= 0;
     const parts = onGdp
       ? [
           ["Agriculture", a],
@@ -188,7 +298,8 @@ async function fetchIndicator(code) {
     resolved.push({
       id: e.id,
       name: e.name,
-      code,
+      code: entity,
+      source,
       year,
       basis: onGdp ? "gdp" : "valueAdded",
       slices: rounded.map(([n, v]) => ({ name: n, pct: v })),
@@ -202,7 +313,7 @@ async function fetchIndicator(code) {
     .map(
       (r) =>
         `  "${r.id}": {\n` +
-        `    name: ${JSON.stringify(r.name)}, code: "${r.code}", year: "${r.year}", basis: "${r.basis}",\n` +
+        `    name: ${JSON.stringify(r.name)}, code: "${r.code}", year: "${r.year}", basis: "${r.basis}", source: "${r.source}",\n` +
         `    manufacturing: ${r.manufacturing === null ? "null" : r.manufacturing},\n` +
         `    slices: [${r.slices.map((x) => `{ name: ${JSON.stringify(x.name)}, pct: ${x.pct} }`).join(", ")}],\n` +
         `  },`,
@@ -261,6 +372,12 @@ export type EconomySectors = {
   slices: { name: string; pct: number }[];
   /** Part of the industry slice, never a slice of its own. Percent of GDP. */
   manufacturing: number | null;
+  /**
+   * Which body published the figures. The World Bank covers all but a few; the
+   * UN Statistics Division fills gaps the World Bank does not report, and its
+   * shares are of value added rather than of GDP.
+   */
+  source: "worldBank" | "un";
 };
 
 /** Keyed by the economy id used in economiesData.ts. */
@@ -280,6 +397,7 @@ ${rows}
   const va = resolved.filter((r) => r.basis === "valueAdded");
   console.log(`  every pie sums to 100 within ${worst.toFixed(2)} points`);
   console.log(`  charted on GDP: ${resolved.length - va.length}; on value added: ${va.length}${va.length ? ` (${va.map((r) => r.name).join(", ")})` : ""}`);
+  console.log(`  from the World Bank: ${resolved.length - fromUn}; from the UN: ${fromUn}${fromUn ? ` (${resolved.filter((r) => r.source === "un").map((r) => r.name).join(", ")})` : ""}`);
 })().catch((e) => {
   console.error(e);
   process.exit(1);
