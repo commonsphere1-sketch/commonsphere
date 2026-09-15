@@ -23,7 +23,7 @@
  * kept rather than scaled away, because scaling it away would overstate every
  * other share.
  *
- * 76 of the 77 economies on the page have a figure; years 2021, 2022, 2023, 2024, 2025.
+ * 77 of the 77 economies on the page have a figure; years 2021, 2022, 2023, 2024, 2025.
  */
 export const ECONOMY_SECTORS_SOURCE = {
   label: "World Bank — national accounts, value added by sector (% of GDP)",
@@ -50,9 +50,10 @@ export type EconomySectors = {
   /**
    * Which body published the figures. The World Bank covers all but a few; the
    * UN Statistics Division fills gaps the World Bank does not report, and its
-   * shares are of value added rather than of GDP.
+   * shares are of value added rather than of GDP. Taiwan comes from its own
+   * statistics office, which neither of the others covers.
    */
-  source: "worldBank" | "un";
+  source: "worldBank" | "un" | "dgbas";
 };
 
 /** Keyed by the economy id used in economiesData.ts. */
@@ -386,6 +387,11 @@ export const ECONOMY_SECTORS: Record<string, EconomySectors> = {
     name: "Switzerland", code: "CHE", year: "2025", basis: "gdp", source: "worldBank",
     manufacturing: 18.9,
     slices: [{ name: "Agriculture", pct: 0.6 }, { name: "Industry", pct: 25 }, { name: "Services", pct: 71.8 }, { name: "Taxes less subsidies", pct: 2.6 }],
+  },
+  "taiwan-eco": {
+    name: "Taiwan", code: "TWN", year: "2024", basis: "gdp", source: "dgbas",
+    manufacturing: 35.6,
+    slices: [{ name: "Agriculture", pct: 1.5 }, { name: "Industry", pct: 40.3 }, { name: "Services", pct: 57.9 }, { name: "Statistical discrepancy", pct: 0.3 }],
   },
   "tanzania-eco": {
     name: "Tanzania", code: "TZA", year: "2025", basis: "gdp", source: "worldBank",

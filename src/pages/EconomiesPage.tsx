@@ -5912,9 +5912,11 @@ const ratingColor = (r: string) => {
 };
 
 const SECTOR_COLORS: Record<string, string> = {
-  /* The residual part of GDP: taxes on products less subsidies on them. Grey,
-     because it is the part that is not an industry. */
+  /* The residual parts of GDP: whatever is left once the three sectors are
+     counted. Grey, because neither is an industry. Which one applies depends on
+     the source - see economySectors.ts. */
   "Taxes less subsidies": "#94a3b8",
+  "Statistical discrepancy": "#94a3b8",
   Services: "#38bdf8",
   Industry: "#a78bfa",
   Agriculture: "#4ade80",
@@ -6078,8 +6080,12 @@ function SectorPie({ sectors }: { sectors: EconomySectors }) {
         {sectors.year}, from{" "}
         {sectors.source === "un"
           ? "the UN Statistics Division's national accounts, which report economies the World Bank does not"
-          : ECONOMY_SECTORS_SOURCE.label}
+          : sectors.source === "dgbas"
+            ? "Taiwan's Directorate-General of Budget, Accounting and Statistics, which publishes the breakdown that neither the World Bank nor the UN covers"
+            : ECONOMY_SECTORS_SOURCE.label}
         .
+        {sectors.source === "dgbas" &&
+          " Its figures already distribute import duties and value-added tax across the three sectors, so what is left over is the statistical discrepancy rather than taxes."}
         {sectors.basis === "valueAdded" &&
           (sectors.source === "un"
             ? " The UN publishes this as a distribution across value added, so the shares are of value added rather than of GDP and there is no separate figure for taxes less subsidies."

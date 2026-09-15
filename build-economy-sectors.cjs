@@ -38,6 +38,9 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { execSync } = require("child_process");
+const https = require("https");
+const http = require("http");
+const tls = require("tls");
 const { readXlsx } = require("./xlsx-lite.cjs");
 
 const OUT = path.join(__dirname, "src/data/economySectors.ts");
@@ -51,6 +54,122 @@ const INDICATORS = {
   services: "NV.SRV.TOTL.ZS",
   manufacturing: "NV.IND.MANF.ZS",
 };
+
+/**
+ * Taiwan, which neither of the other two sources covers: it is not a World Bank
+ * reporter and, not being a UN member, is absent from the UN's table. Its own
+ * statistics office publishes the breakdown, so that is where this reads it.
+ *
+ * Two things make it awkward, and both are handled rather than worked around.
+ *
+ * The server sends only its leaf certificate and omits the TWCA intermediate,
+ * so the chain cannot be built from Node's bundled roots and an ordinary fetch
+ * fails with UNABLE_TO_VERIFY_LEAF_SIGNATURE. The intermediate is fetched from
+ * the URL the server's own certificate names in its Authority Information
+ * Access extension and supplied to the request. Verification stays on: a
+ * substituted intermediate would not chain to a trusted root and would fail
+ * exactly as it should. Turning verification off would have been one line and
+ * is not worth a national statistic.
+ *
+ * And its "Addendum" rows already have import duties and VAT distributed into
+ * the three sectors, which is how an industry-origin presentation is usually
+ * laid out. That is why they sum to GDP less only the statistical discrepancy,
+ * not to value added - so what is left over here is the discrepancy, and is
+ * labelled as that rather than as taxes.
+ */
+const DGBAS_TABLE =
+  "https://ws.dgbas.gov.tw/001/Upload/464/relfile/10320/2688/" +
+  "%E7%94%9F%E7%94%A2%E5%B8%B3_%E5%B9%B4_%E5%B0%8D%E5%A4%96%E7%99%BC%E5%B8%83%E7%89%88(056)_eng.xlsx";
+const DGBAS_INTERMEDIATE = "http://sslserver.twca.com.tw/cacert/secure_sha2_2023G3.crt";
+/** Current prices; sheet 4 is the chained-dollar version, which cannot give shares. */
+const DGBAS_SHEET = "xl/worksheets/sheet3.xml";
+
+function httpGet(url, opts = {}) {
+  return new Promise((resolve, reject) => {
+    const mod = url.startsWith("https:") ? https : http;
+    mod
+      .get(url, opts, (res) => {
+        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          res.resume();
+          return resolve(httpGet(new URL(res.headers.location, url).toString(), opts));
+        }
+        if (res.statusCode !== 200) {
+          res.resume();
+          return reject(new Error(`HTTP ${res.statusCode} for ${url}`));
+        }
+        const chunks = [];
+        res.on("data", (c) => chunks.push(c));
+        res.on("end", () => resolve(Buffer.concat(chunks)));
+      })
+      .on("error", reject);
+  });
+}
+
+const derToPem = (der) =>
+  "-----BEGIN CERTIFICATE-----\n" +
+  (der.toString("base64").match(/.{1,64}/g) || []).join("\n") +
+  "\n-----END CERTIFICATE-----\n";
+
+async function loadTaiwan() {
+  const at = path.join(CACHE, "taiwan-gdp-by-activity.xlsx");
+  if (!fs.existsSync(at)) {
+    const der = await httpGet(DGBAS_INTERMEDIATE);
+    const pem = der.subarray(0, 1).toString() === "-" ? der.toString("utf8") : derToPem(der);
+    const agent = new https.Agent({
+      ca: [...tls.rootCertificates, pem],
+      rejectUnauthorized: true,
+    });
+    const body = await httpGet(DGBAS_TABLE, {
+      agent,
+      headers: { "User-Agent": UA, Referer: "https://eng.stat.gov.tw/cp.aspx?n=2334" },
+    });
+    fs.writeFileSync(at, body);
+  }
+
+  const { rows } = readXlsx(at, DGBAS_SHEET);
+  const header = rows[3] || [];
+  const cols = new Map();
+  header.forEach((c, i) => {
+    const t = String(c || "").trim();
+    if (/^(19|20)\d\d$/.test(t)) cols.set(t, i);
+  });
+  const years = [...cols.keys()].sort();
+  if (!years.length) throw new Error("Taiwan: no year columns; the table layout changed");
+
+  /* The three sector names appear twice - once as ISIC letter rows, once in the
+     Addendum - so only the Addendum copies are read. */
+  const afterAddendum = (label) => {
+    let seen = false;
+    for (const r of rows) {
+      const t = (r[0] || "").trim();
+      if (/^Addendum/i.test(t)) { seen = true; continue; }
+      if (seen && t === label) return r;
+    }
+    return null;
+  };
+  const anyRow = (re) => rows.find((r) => re.test((r[0] || "").trim())) ?? null;
+  const num = (r, y) => (r ? Number(String(r[cols.get(y)] ?? "").replace(/,/g, "")) : NaN);
+
+  // Newest year with every figure present.
+  for (let i = years.length - 1; i >= 0; i--) {
+    const y = years[i];
+    const a = num(afterAddendum("Agriculture"), y);
+    const ind = num(afterAddendum("Industry"), y);
+    const srv = num(afterAddendum("Services"), y);
+    const gdp = num(anyRow(/^GDP$/), y);
+    const manu = num(anyRow(/^\s*C\. Manufacturing/), y);
+    if (![a, ind, srv, gdp].every(Number.isFinite) || gdp <= 0) continue;
+    const pct = (v) => (v / gdp) * 100;
+    return {
+      year: y,
+      agriculture: pct(a),
+      industry: pct(ind),
+      services: pct(srv),
+      manufacturing: Number.isFinite(manu) ? +pct(manu).toFixed(1) : null,
+    };
+  }
+  throw new Error("Taiwan: no complete year found");
+}
 
 /**
  * The UN Statistics Division's national accounts, used only where the World
@@ -213,7 +332,14 @@ async function fetchIndicator(code) {
   const noData = [];
 
   const unShares = await loadUnShares();
+  let taiwan = null;
+  try {
+    taiwan = await loadTaiwan();
+  } catch (e) {
+    console.log("  Taiwan: " + e.message + " — it will have no breakdown");
+  }
   let fromUn = 0;
+  let fromDgbas = 0;
 
   for (const e of economies) {
     const code = ALIAS[e.name] ?? byName.get(e.name.toLowerCase());
@@ -235,6 +361,13 @@ async function fetchIndicator(code) {
       manu = series.manufacturing.get(code)?.get(year) ?? null;
       source = "worldBank";
       entity = code;
+    } else if (e.name === "Taiwan" && taiwan) {
+      year = taiwan.year;
+      a = taiwan.agriculture; i = taiwan.industry; s2 = taiwan.services;
+      manu = taiwan.manufacturing;
+      source = "dgbas";
+      entity = "TWN";
+      fromDgbas++;
     } else {
       /* Only where the World Bank has nothing. The UN reports shares of value
          added rather than of GDP, which the basis field records. */
@@ -270,12 +403,18 @@ async function fetchIndicator(code) {
        GDP breakdown would label it wrongly and add a 0% slice for taxes that
        the source never reported. */
     const onGdp = source !== "un" && residual >= 0;
+    /* What the remainder of GDP actually is. For the World Bank's value-added
+       shares it is taxes on products less subsidies. Taiwan's figures already
+       have those taxes inside the sectors, so what is left there is only the
+       statistical discrepancy - calling it taxes would be wrong. */
+    const residualLabel =
+      source === "dgbas" ? "Statistical discrepancy" : "Taxes less subsidies";
     const parts = onGdp
       ? [
           ["Agriculture", a],
           ["Industry", i],
           ["Services", s],
-          ["Taxes less subsidies", residual],
+          [residualLabel, residual],
         ]
       : [
           ["Agriculture", a],
@@ -375,9 +514,10 @@ export type EconomySectors = {
   /**
    * Which body published the figures. The World Bank covers all but a few; the
    * UN Statistics Division fills gaps the World Bank does not report, and its
-   * shares are of value added rather than of GDP.
+   * shares are of value added rather than of GDP. Taiwan comes from its own
+   * statistics office, which neither of the others covers.
    */
-  source: "worldBank" | "un";
+  source: "worldBank" | "un" | "dgbas";
 };
 
 /** Keyed by the economy id used in economiesData.ts. */
@@ -397,7 +537,10 @@ ${rows}
   const va = resolved.filter((r) => r.basis === "valueAdded");
   console.log(`  every pie sums to 100 within ${worst.toFixed(2)} points`);
   console.log(`  charted on GDP: ${resolved.length - va.length}; on value added: ${va.length}${va.length ? ` (${va.map((r) => r.name).join(", ")})` : ""}`);
-  console.log(`  from the World Bank: ${resolved.length - fromUn}; from the UN: ${fromUn}${fromUn ? ` (${resolved.filter((r) => r.source === "un").map((r) => r.name).join(", ")})` : ""}`);
+  const named = (src) => resolved.filter((r) => r.source === src).map((r) => r.name).join(", ");
+  console.log(`  from the World Bank: ${resolved.length - fromUn - fromDgbas}`);
+  if (fromUn) console.log(`  from the UN: ${fromUn} (${named("un")})`);
+  if (fromDgbas) console.log(`  from DGBAS: ${fromDgbas} (${named("dgbas")})`);
 })().catch((e) => {
   console.error(e);
   process.exit(1);
