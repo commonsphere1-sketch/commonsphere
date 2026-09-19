@@ -25,7 +25,13 @@ export function SourceLink({
   className = "",
   showIcon = true,
 }: SourceLinkProps) {
-  const list = Array.isArray(sources) ? sources : [sources];
+  // The same source can reach a panel twice (two figures from one dataset);
+  // list it once.
+  const list = (Array.isArray(sources) ? sources : [sources]).filter(
+    (src, i, all) => all.findIndex((o) => o.label === src.label && o.url === src.url) === i,
+  );
+  // Nothing to cite: render nothing rather than an empty "Source:" label.
+  if (list.length === 0) return null;
 
   return (
     <div

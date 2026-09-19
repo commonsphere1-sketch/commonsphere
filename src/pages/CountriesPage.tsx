@@ -715,7 +715,7 @@ function CountryModal({
                 <SourceLink
                   sources={[
                     ...SRC_WORLDBANK,
-                    ...(["humanDevelopmentIndex"] as const)
+                    ...(["humanDevelopmentIndex", "lifeExpectancy"] as const)
                       .map((f) => country.sources?.[f])
                       .filter((x): x is { label: string; url: string } => !!x),
                     ...(["medianAge", "cpiScore"] as const)
@@ -737,7 +737,9 @@ function CountryModal({
                         </h3>
                         <p className="text-[10px] text-muted-foreground font-sans mb-3">
                           {country.keyIndustries && country.keyIndustries.length > 0
-                            ? `Share of GDP (value added), ${country.sources?.keyIndustries?.label.match(/\d{4}$/)?.[0] ?? ""}. Shares omit taxes less subsidies on products, so they do not sum to 100.`
+                            ? country.sources?.keyIndustries?.label.startsWith("Taiwan DGBAS")
+                              ? `Share of GDP, ${country.sources.keyIndustries.label.match(/\d{4}$/)?.[0] ?? ""}, from Taiwan's statistics office, which spreads product taxes across the sectors; the small remainder is a statistical discrepancy.`
+                              : `Share of GDP (value added), ${country.sources?.keyIndustries?.label.match(/\d{4}$/)?.[0] ?? ""}. Shares omit taxes less subsidies on products, so they do not sum to 100.`
                             : "The World Bank publishes no complete sector split for this country."}
                         </p>
                         <div className="space-y-2">
@@ -768,6 +770,9 @@ function CountryModal({
                             </div>
                           ))}
                         </div>
+                        {country.sources?.keyIndustries && (
+                          <SourceLink sources={[country.sources.keyIndustries]} className="mt-2" />
+                        )}
                       </div>
                       {/* Land use donut */}
                       {getBiosphere(country) ? (
@@ -1475,7 +1480,13 @@ function CountryDemographicsChart({ country }: { country: Country }) {
           ...(COUNTRY_PANELS[country.id]?.medianAge
             ? [panelSource(COUNTRY_PANELS[country.id]!.medianAge!)]
             : []),
-          ...(age ? [{ label: `World Bank — population by age, ${age.year}`, url: "https://data.worldbank.org/indicator/SP.POP.0014.TO.ZS" }] : []),
+          ...(age
+            ? [
+                COUNTRY_PANELS[country.id]?.age0to14?.s === "wpp"
+                  ? panelSource(COUNTRY_PANELS[country.id]!.age0to14!)
+                  : { label: `World Bank — population by age, ${age.year}`, url: "https://data.worldbank.org/indicator/SP.POP.0014.TO.ZS" },
+              ]
+            : []),
           ...(country.sources?.humanDevelopmentIndex ? [country.sources.humanDevelopmentIndex] : []),
         ]}
         className="mt-2"
@@ -15488,8 +15499,9 @@ function CountryEducationPanel({ country }: { country: Country }) {
       </div>
       {!edu.literacy && (
         <p className="text-[10px] text-muted-foreground font-sans mb-4 leading-relaxed">
-          Most high-income countries stopped measuring adult literacy this way
-          decades ago, so UNESCO has no recent figure for them.
+          {country.code === "TW"
+            ? "UNESCO and UNDP, the sources used here, do not cover Taiwan."
+            : "Most high-income countries stopped measuring adult literacy this way decades ago, so UNESCO has no recent figure for them."}
         </p>
       )}
 
@@ -15554,13 +15566,15 @@ const SRC_GENDER = [
  */
 function genderStatsFor(id: string) {
   const p = COUNTRY_PANELS[id];
-  if (!p?.femalePct || !p.lifeExpMale || !p.lifeExpFemale) return null;
+  if (!p?.lifeExpMale || !p.lifeExpFemale) return null;
   const v = (f: PanelField) => p[f]?.v;
   const y = (f: PanelField) => p[f]?.y;
   return {
-    malePct: Math.round((100 - p.femalePct.v) * 10) / 10,
-    femalePct: p.femalePct.v,
-    popYear: p.femalePct.y,
+    // Not published for every country (Taiwan: the UN sources used here give
+    // no sex split of the population), so the split bar is optional.
+    malePct: p.femalePct ? Math.round((100 - p.femalePct.v) * 10) / 10 : null,
+    femalePct: p.femalePct?.v ?? null,
+    popYear: p.femalePct?.y,
     /** Boys per 100 girls at birth (the World Bank publishes it per 1). */
     sexRatioAtBirth: p.sexRatioAtBirth ? Math.round(p.sexRatioAtBirth.v * 1000) / 10 : null,
     sexRatioYear: y("sexRatioAtBirth"),
@@ -15619,6 +15633,7 @@ function CountryGenderStatsPanel({ country }: { country: Country }) {
       </div>
 
       {/* Population split bar */}
+      {gs.malePct != null && gs.femalePct != null && (
       <div className="mb-4">
         <div className="flex items-center justify-between text-[10px] mb-1.5">
           <span className="flex items-center gap-1 text-blue-400 font-semibold font-sans">
@@ -15659,7 +15674,7 @@ function CountryGenderStatsPanel({ country }: { country: Country }) {
           </div>
         </div>
       </div>
-
+      )}
       {/* Life Expectancy comparison */}
       <div className="mb-4">
         <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
@@ -15857,7 +15872,18 @@ function CountryGenderStatsPanel({ country }: { country: Country }) {
           </div>
         )}
       </div>
-      <SourceLink sources={SRC_GENDER} className="mt-2" />
+      <SourceLink
+        sources={(() => {
+          // Where the figures came from somewhere other than the World Bank
+          // (Taiwan: its interior ministry and the UN), cite those instead.
+          const p = COUNTRY_PANELS[country.id];
+          const other = [p?.lifeExpFemale, p?.sexRatioAtBirth]
+            .filter((f): f is PanelFigure => !!f && !!f.s && f.s !== "wb")
+            .map(panelSource);
+          return other.length ? other : SRC_GENDER;
+        })()}
+        className="mt-2"
+      />
     </div>
   );
 }

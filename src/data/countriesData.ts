@@ -7,6 +7,7 @@ import {
 } from "./countryIndicators";
 import { COUNTRY_PANELS, panelSource, type PanelFigure } from "./countryPanels";
 import { COUNTRY_ENERGY, ENERGY_SOURCE } from "./countryEnergy";
+import { ECONOMY_SECTORS } from "./economySectors";
 
 export interface Industry {
   name: string;
@@ -9594,6 +9595,12 @@ for (const c of countriesData) {
   const cite = (field: ReferenceField, f: PanelFigure) => {
     c.sources = { ...c.sources, [field]: panelSource(f) };
   };
+  // Life expectancy for a country the World Bank does not cover (Taiwan: its
+  // Ministry of the Interior's official life table).
+  if (p?.lifeExpectancy && !COUNTRY_INDICATORS[c.code]?.lifeExpectancy) {
+    c.lifeExpectancy = p.lifeExpectancy.v;
+    cite("lifeExpectancy", p.lifeExpectancy);
+  }
   if (p?.hdi) {
     c.humanDevelopmentIndex = p.hdi.v;
     cite("humanDevelopmentIndex", p.hdi);
@@ -9617,7 +9624,31 @@ for (const c of countriesData) {
     ];
     cite("keyIndustries", sv);
   } else {
-    c.keyIndustries = [];
+    /* No World Bank split. Taiwan's statistics office (DGBAS) publishes one,
+       already used on the Economies page; reuse it rather than leave the
+       chart empty. Its shares are of GDP with taxes distributed across the
+       sectors, so the remainder is a statistical discrepancy. */
+    const es = Object.values(ECONOMY_SECTORS).find((e) => e.name === c.name && e.source === "dgbas");
+    if (es) {
+      const pct = (n: string) => es.slices.find((x) => x.name === n)?.pct ?? 0;
+      const ind = pct("Industry"), mfg = es.manufacturing;
+      c.keyIndustries = [
+        { name: "Services", gdpShare: pct("Services"), color: "hsl(200,85%,55%)" },
+        ...(mfg !== null && mfg <= ind
+          ? [
+              { name: "Manufacturing", gdpShare: mfg, color: "hsl(18,80%,55%)" },
+              { name: "Mining, construction & utilities", gdpShare: Math.round((ind - mfg) * 10) / 10, color: "hsl(30,70%,45%)" },
+            ]
+          : [{ name: "Industry", gdpShare: ind, color: "hsl(18,80%,55%)" }]),
+        { name: "Agriculture, forestry & fishing", gdpShare: pct("Agriculture"), color: "hsl(90,60%,40%)" },
+      ];
+      c.sources = {
+        ...c.sources,
+        keyIndustries: { label: `Taiwan DGBAS — national accounts, ${es.year}`, url: "https://eng.stat.gov.tw/" },
+      };
+    } else {
+      c.keyIndustries = [];
+    }
   }
 
   /* Energy production, consumption and production mix from the US EIA, for

@@ -20,6 +20,12 @@
  *                            refuses automated requests, and is not worked
  *                            around; Our World in Data republishes the index
  *                            with TI's scores unchanged.
+ *   UN WUP 2025 (via OWID)   urban share, where the World Bank has none
+ *
+ * Taiwan is not covered by the World Bank or UNDP. It gets the UN figures
+ * above (the UN publishes Taiwan as TWN), plus two sources of its own: the
+ * Ministry of the Interior's life table (life expectancy, overall and by
+ * sex) and DGBAS's HDI, which DGBAS computes with UNDP's formula.
  *
  * Every figure is the latest year published for that country, and nothing
  * older than ten years is kept: several of these series are sparse (adult
@@ -32,6 +38,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { execSync } = require("child_process");
+const { unzip } = require("./xlsx-lite.cjs");
 
 const OUT = path.join(__dirname, "src/data/countryPanels.ts");
 const UA = "commonsphere-data-build/1.0 (+https://github.com/commonsphere1-sketch/commonsphere)";
@@ -100,8 +107,11 @@ const SOURCES = {
   wb: { label: "World Bank — World Development Indicators", url: "https://data.worldbank.org/" },
   wbDerived: { label: "World Bank — five-year age bands, summed", url: "https://data.worldbank.org/indicator/SP.POP.1519.FE.5Y" },
   hdr: { label: "UNDP — Human Development Report 2025", url: "https://hdr.undp.org/data-center/documentation-and-downloads" },
-  wpp: { label: "UN — World Population Prospects 2024 (via Our World in Data)", url: "https://ourworldindata.org/grapher/median-age" },
+  wpp: { label: "UN — World Population Prospects 2024 (via Our World in Data)", url: "https://population.un.org/wpp/" },
   iea: { label: "IEA — Global EV Outlook (via Our World in Data)", url: "https://ourworldindata.org/grapher/electric-car-sales-share" },
+  wup: { label: "UN — World Urbanization Prospects 2025 (via Our World in Data)", url: "https://ourworldindata.org/grapher/share-of-population-urban" },
+  moi: { label: "Taiwan Ministry of the Interior — abridged life table", url: "https://www.moi.gov.tw/english/cl.aspx?n=7780" },
+  dgbas: { label: "Taiwan DGBAS — HDI computed with UNDP's formula", url: "https://eng.stat.gov.tw/News_Content.aspx?n=4610&s=233232" },
   cpi: { label: "Transparency International — CPI (via Our World in Data)", url: "https://ourworldindata.org/grapher/ti-corruption-perception-index" },
 };
 
@@ -165,6 +175,27 @@ async function owid(slug, column) {
   });
 }
 
+/** OWID grapher CSV → iso3 → { y, v: {column: value} } for the latest year
+ *  in which every one of `columns` has a value. */
+async function owidMulti(slug, columns) {
+  return cached(slug + ".csv", `https://ourworldindata.org/grapher/${slug}.csv?v=1&csvType=full&useColumnShortNames=true`, (t) => {
+    const rows = csvRows(t);
+    const head = rows[0];
+    const ci = head.indexOf("code"), yi = head.indexOf("year");
+    const idx = columns.map((c) => head.indexOf(c));
+    if (ci < 0 || yi < 0 || idx.some((i) => i < 0)) throw new Error(`${slug}: columns not found in ${head.join(",")}`);
+    const out = {};
+    for (const r of rows.slice(1)) {
+      const code = r[ci], y = r[yi];
+      if (!code || code.startsWith("OWID_") || +y < OLDEST) continue;
+      const vals = idx.map((i) => Number(r[i]));
+      if (idx.some((i) => r[i] === "") || vals.some((v) => !Number.isFinite(v))) continue;
+      if (!out[code] || +y > +out[code].y) out[code] = { y, v: Object.fromEntries(columns.map((c, k) => [c, vals[k]])) };
+    }
+    return out;
+  });
+}
+
 /** UNDP HDR 2025 → iso3 → { hdi, mys } for the latest year present. */
 async function hdr() {
   return cached("hdr25.csv", "https://hdr.undp.org/sites/default/files/2025_HDR/HDR25_Composite_indices_complete_time_series.csv", (t) => {
@@ -188,6 +219,76 @@ async function hdr() {
   });
 }
 
+/**
+ * Taiwan's HDI. UNDP leaves Taiwan out; its statistics office (DGBAS) computes
+ * the index with UNDP's formula from Taiwan's own data and publishes the
+ * series as an OpenDocument sheet. The latest year in the current (2014)
+ * method's column is used.
+ */
+const DGBAS_HDI = "https://ws.dgbas.gov.tw/001/Upload/464/relfile/11760/233232/%E4%BA%BA%E9%A1%9E%E7%99%BC%E5%B1%95%E6%8C%87%E6%95%B8.ods";
+async function taiwanHdi() {
+  const at = path.join(CACHE, "dgbas-hdi.ods");
+  if (!fs.existsSync(at)) {
+    const res = await fetch(DGBAS_HDI, { headers: { "User-Agent": UA } });
+    if (!res.ok) throw new Error(`DGBAS HDI: HTTP ${res.status}`);
+    fs.writeFileSync(at, Buffer.from(await res.arrayBuffer()));
+  }
+  const x = unzip(at).get("content.xml").toString("utf8");
+  let best = null;
+  for (const m of x.matchAll(/<table:table-row[^>]*>([\s\S]*?)<\/table:table-row>/g)) {
+    const cells = [...m[1].matchAll(/<table:table-cell([^>]*?)(?:\/>|>([\s\S]*?)<\/table:table-cell>)/g)].flatMap((c) => {
+      const rep = Math.min(+((c[1].match(/number-columns-repeated="(\d+)"/) || [])[1] || 1), 20);
+      const v = (c[1].match(/office:value="([^"]+)"/) || [])[1] ?? (c[2] || "").replace(/<[^>]+>/g, "").trim();
+      return Array(rep).fill(v);
+    });
+    // Year, then (old, 2010, 2014, current) value/rank pairs; current is column 7.
+    if (/^(19|20)\d\d$/.test(cells[0]) && Number.isFinite(Number(cells[7])) && cells[7] !== "")
+      if (!best || +cells[0] > +best.y) best = { v: Number(cells[7]), y: cells[0] };
+  }
+  if (!best || best.v < 0.8 || best.v > 1) throw new Error(`DGBAS HDI: unexpected ${JSON.stringify(best)}`);
+  return best;
+}
+
+/**
+ * Taiwan's official life expectancy, from the Ministry of the Interior's
+ * abridged life table. The page lists one .ods per year, newest first; the
+ * first is used and its year read from the file. In Table 1 the Total, Male
+ * and Female sections each have an age "0" row whose last column is e0.
+ * Newer and official, so it is preferred over the UN estimate for Taiwan.
+ */
+const MOI_LIFE = "https://www.moi.gov.tw/english/cl.aspx?n=7780";
+async function taiwanLifeTable() {
+  const page = path.join(CACHE, "moi-life.html");
+  if (!fs.existsSync(page)) {
+    const res = await fetch(MOI_LIFE, { headers: { "User-Agent": UA } });
+    if (!res.ok) throw new Error(`MOI life table page: HTTP ${res.status}`);
+    fs.writeFileSync(page, await res.text());
+  }
+  const link = (fs.readFileSync(page, "utf8").match(/href="(https:\/\/ws\.moi\.gov\.tw\/Download\.ashx\?[^"]+)"[^>]*title="Abridged life table in Republic of China Area, (\d{4})\.ods"/) || []);
+  if (!link[1]) throw new Error("MOI life table: no .ods link found");
+  const at = path.join(CACHE, `moi-life-${link[2]}.ods`);
+  if (!fs.existsSync(at)) {
+    const res = await fetch(link[1].replace(/&amp;/g, "&"), { headers: { "User-Agent": UA } });
+    if (!res.ok) throw new Error(`MOI life table: HTTP ${res.status}`);
+    fs.writeFileSync(at, Buffer.from(await res.arrayBuffer()));
+  }
+  const x = unzip(at).get("content.xml").toString("utf8");
+  const t = (x.match(/<table:table table:name="Table_1"[\s\S]*?<\/table:table>/) || [])[0];
+  if (!t) throw new Error("MOI life table: no Table_1");
+  const out = {};
+  let sec = null;
+  for (const m of t.matchAll(/<table:table-row[^>]*>([\s\S]*?)<\/table:table-row>/g)) {
+    const r = [...m[1].matchAll(/<table:table-cell([^>]*?)(?:\/>|>([\s\S]*?)<\/table:table-cell>)/g)].map(
+      (c) => (c[1].match(/office:value="([^"]+)"/) || [])[1] ?? (c[2] || "").replace(/<[^>]+>/g, "").trim(),
+    );
+    if (/^(Total|Male|Female)$/.test(r[0])) sec = r[0];
+    if (r[0] === "0" && sec) { out[sec] = { v: Number(r[6]), y: link[2] }; sec = null; }
+  }
+  for (const k of ["Total", "Male", "Female"])
+    if (!(out[k]?.v > 60 && out[k].v < 95)) throw new Error(`MOI life table: ${k} = ${out[k] && out[k].v}`);
+  return out;
+}
+
 function loadCountries() {
   const bundle = path.join(CACHE, "countriesData.cjs");
   execSync(
@@ -206,6 +307,9 @@ function loadCountries() {
     return m;
   });
   // Kosovo is XK to the site and XKX to the World Bank; both lists agree.
+  // Taiwan is not on the World Bank's list at all, but the UN, TI and OWID
+  // publish it as TWN; without this it got nothing from any source.
+  iso3.TW ||= "TWN";
   const series = {};
   for (const [f, spec] of Object.entries(WB)) series[f] = await worldBank(spec.code);
   const bandSeries = {};
@@ -213,10 +317,26 @@ function loadCountries() {
     for (const sex of ["MA", "FE"]) bandSeries[b + sex] = await worldBank(`SP.POP.${b}.${sex}.5Y`);
   const popM = await worldBank("SP.POP.TOTL.MA.IN");
   const popF = await worldBank("SP.POP.TOTL.FE.IN");
+  // UN fallbacks, used only where the World Bank has no figure for a country
+  // (in practice Taiwan). All UN WPP 2024 estimates, or UN WUP for urban share.
+  const wppBirth = await owid("crude-birth-rate", "birth_rate__sex_all__age_all__variant_estimates");
+  const wppDeath = await owid("crude-death-rate", "death_rate__sex_all__age_all__variant_estimates");
+  const wppSexRatio = await owid("sex-ratio-at-birth", "sex_ratio__sex_all__age_0__variant_estimates");
+  const wupUrban = await owid("share-of-population-urban", "share__area_type_urban__data_type_estimates");
+  const wppLife = await owidMulti("life-expectancy-of-women-vs-life-expectancy-of-men", [
+    "life_expectancy__sex_female__age_0__variant_estimates",
+    "life_expectancy__sex_male__age_0__variant_estimates",
+  ]);
+  const BAND_COLS = ["0_4", "5_9", "10_14", "15_19", "20_24", "25_29", "30_34", "35_39", "40_44", "45_49", "50_54", "55_59", "60_64", "65_69", "70_74", "75_79", "80_84", "85_89", "90_94", "95_99", "100plus"].map(
+    (b) => `population__sex_all__age_${b}__variant_estimates`,
+  );
+  const wppBands = await owidMulti("population-by-five-year-age-group", BAND_COLS);
   const median = await owid("median-age", "median_age__sex_all__age_all__variant_estimates");
   const cpi = await owid("ti-corruption-perception-index", "cpi_score");
   const ev = await owid("electric-car-sales-share", "ev_sales_share");
   const undp = await hdr();
+  const twHdi = await taiwanHdi();
+  const twLife = await taiwanLifeTable();
 
   const countries = loadCountries();
   const rows = [];
@@ -237,6 +357,32 @@ function loadCountries() {
       note(f, hit.y);
     };
     for (const [f, spec] of Object.entries(WB)) put(f, series[f][i3], spec.dp);
+    // UN fallbacks where the World Bank has nothing for this country.
+    const has = (f) => parts.some((p) => p.startsWith(f + ":"));
+    if (!has("birthRate")) put("birthRate", wppBirth[i3], 1, "wpp");
+    if (!has("deathRate")) put("deathRate", wppDeath[i3], 1, "wpp");
+    if (!has("sexRatioAtBirth") && wppSexRatio[i3]) put("sexRatioAtBirth", { v: wppSexRatio[i3].v / 100, y: wppSexRatio[i3].y }, 3, "wpp");
+    if (!has("urbanPct")) put("urbanPct", wupUrban[i3], 1, "wup");
+    if (c.code === "TW") {
+      put("lifeExpectancy", twLife.Total, 1, "moi");
+      put("lifeExpMale", twLife.Male, 1, "moi");
+      put("lifeExpFemale", twLife.Female, 1, "moi");
+    }
+    if (!has("lifeExpFemale") && wppLife[i3]) {
+      put("lifeExpFemale", { v: wppLife[i3].v.life_expectancy__sex_female__age_0__variant_estimates, y: wppLife[i3].y }, 1, "wpp");
+      put("lifeExpMale", { v: wppLife[i3].v.life_expectancy__sex_male__age_0__variant_estimates, y: wppLife[i3].y }, 1, "wpp");
+    }
+    if (!has("age0to14") && wppBands[i3]) {
+      const b = wppBands[i3].v, yy = wppBands[i3].y;
+      const sum = (from, to) => BAND_COLS.slice(from, to).reduce((a, c) => a + b[c], 0);
+      const total = sum(0, BAND_COLS.length);
+      const pct = (from, to) => ({ v: (sum(from, to) / total) * 100, y: yy });
+      put("age0to14", pct(0, 3), 1, "wpp");
+      put("age15to24", pct(3, 5), 1, "wpp");
+      put("age25to54", pct(5, 11), 1, "wpp");
+      put("age55to64", pct(11, 13), 1, "wpp");
+      put("age65up", pct(13, BAND_COLS.length), 1, "wpp");
+    }
     // Derived age groups, only when every input is for the same year as the
     // directly published 0–14 share.
     const y = series.age0to14[i3]?.y;
@@ -262,7 +408,7 @@ function loadCountries() {
     put("medianAge", median[i3], 1, "wpp");
     put("cpiScore", cpi[i3], 0, "cpi");
     put("evSalesShare", ev[i3], 1, "iea");
-    put("hdi", undp[i3]?.hdi, 3, "hdr");
+    put("hdi", undp[i3]?.hdi ?? (c.code === "TW" ? twHdi : undefined), 3, undp[i3]?.hdi ? "hdr" : "dgbas");
     put("schoolingYears", undp[i3]?.mys, 1, "hdr");
     if (parts.length) rows.push(`  ${JSON.stringify(c.id)}: { ${parts.join(", ")} },`);
   }
@@ -285,7 +431,7 @@ function loadCountries() {
   expect("cpiScore", 55, 80);
   expect("age65up", 14, 22);
 
-  const fields = [...Object.keys(WB), ...Object.keys(BANDS), "medianAge", "cpiScore", "evSalesShare", "hdi", "schoolingYears"];
+  const fields = [...Object.keys(WB), ...Object.keys(BANDS), "lifeExpectancy", "medianAge", "cpiScore", "evSalesShare", "hdi", "schoolingYears"];
   const today = new Date().toISOString().slice(0, 10);
   fs.writeFileSync(
     OUT,
