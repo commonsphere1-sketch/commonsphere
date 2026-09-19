@@ -1,10 +1,8 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
-import {
-  COUNTRY_SOCIAL_STATS,
-  STATE_SOCIAL_STATS,
-} from "../data/socialStatsData";
+import { STATE_SOCIAL_STATS } from "../data/socialStatsData";
+import { PRISON_RATES } from "../data/prisonRates";
 import {
   Globe,
   Buildings,
@@ -43,9 +41,17 @@ type MetricId =
  * state alike, so no column can render N/A.
  *
  * Measured coverage over the 204 countries and 50 states:
- *   hdi, gdpPerCapita, unemployment, incarceration, homelessness — complete
+ *   hdi, gdpPerCapita, unemployment                     — complete
+ *   incarceration      — all states; 187 countries (World Prison Brief, dated,
+ *                        nothing over ten years old; WPB publishes no UK or
+ *                        Bosnia total)
  *   lifeExpectancy, gdpGrowth, inflation, tradeBalance — countries only
- *   educationRank, healthcareRank, crimeIndex           — US states only
+ *   educationRank, healthcareRank, crimeIndex, homelessness — US states only
+ *
+ * Homelessness was "complete" for countries only because a rate had been
+ * written in for every one. There is no international series behind such a
+ * table - national definitions differ too much to compare - so the country
+ * figures were removed and Housing now ranks US states.
  *   easeOfBusiness                                      — 29 of 204 countries
  *
  * That retired four tabs. Life Exp. and Transport ranked countries against
@@ -104,7 +110,7 @@ const CATEGORY_TABS: {
 }[] = [
   { id: "economy", label: "Economy", icon: "💹", pool: "all" },
   { id: "hdi", label: "Development", icon: "🌐", pool: "all" },
-  { id: "housing", label: "Housing", icon: "🏠", pool: "all" },
+  { id: "housing", label: "Housing", icon: "🏠", pool: "state" },
   { id: "justice", label: "Justice", icon: "⚖️", pool: "all" },
   { id: "health", label: "Health", icon: "❤️", pool: "country" },
   { id: "education", label: "Education", icon: "🎓", pool: "state" },
@@ -442,7 +448,6 @@ interface RankRow {
 
 function buildCountryRows(): RankRow[] {
   return countriesData.map((c) => {
-    const social = COUNTRY_SOCIAL_STATS[c.id];
     return {
       id: `country-${c.id}`,
       name: c.name,
@@ -454,8 +459,9 @@ function buildCountryRows(): RankRow[] {
       unemployment: c.unemploymentRate,
       lifeExpectancy: c.lifeExpectancy,
       inflation: c.inflationRate,
-      incarceration: social?.incarcerationRate ?? 0,
-      homelessness: social?.homelessnessRate ?? 0,
+      // World Prison Brief, dated; missing where WPB has no national rate.
+      incarceration: PRISON_RATES[c.id]?.v ?? NaN,
+      homelessness: NaN,
       tradeBalance: c.tradeBalance,
       easeOfBusiness: EASE_OF_BUSINESS[c.id] ?? NaN,
       // Not tracked per country in this dataset. These were 0, and because

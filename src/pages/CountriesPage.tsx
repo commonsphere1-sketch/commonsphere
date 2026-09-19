@@ -4,7 +4,6 @@ import {
   MapPin,
   Shield,
   Users,
-  Sword,
   Airplane,
   Buildings,
   Flag,
@@ -16,9 +15,11 @@ import {
   Scales,
   Star,
   DownloadSimple,
+  ChartPie,
 } from "@phosphor-icons/react";
-import { getMilitary, fmtPers, type MilitaryStats } from "../data/militaryData";
-import { BIOSPHERE_PRESETS, BIOSPHERE_DEFAULT } from "../data/biosphereData";
+import { MILITARY_BRANCHES, fmtPers } from "../data/militaryData";
+import { MILITARY_MEASURED, MILITARY_SOURCES, type MilitaryFigure, type MilitaryMeasured } from "../data/militarySpending";
+import { LAND_USE, LAND_USE_SOURCE } from "../data/landUse";
 import {
   BarChart,
   Bar,
@@ -32,7 +33,7 @@ import {
   Pie,
 } from "recharts";
 import { type Country, type EnergyStats } from "../data/countriesData";
-import { getCountrySocialStats } from "../data/socialStatsData";
+import { PRISON_RATES, PRISON_RATES_SOURCE } from "../data/prisonRates";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
@@ -3050,13 +3051,6 @@ const SRC_WORLDBANK = [
     url: "https://www.imf.org/en/Publications/WEO",
   },
 ];
-const SRC_MILITARY = [
-  {
-    label: "SIPRI Military Expenditure DB",
-    url: "https://www.sipri.org/databases/milex",
-  },
-  { label: "Global Firepower Index", url: "https://www.globalfirepower.com/" },
-];
 const SRC_ENERGY = [
   {
     label: "IEA World Energy Balances",
@@ -3103,163 +3097,154 @@ const hdiBadge = (hdi: number) => {
   return "bg-orange-500/20 text-orange-400";
 };
 
+/** FAO land use as donut slices, or null where FAO/World Bank publish none. */
 function getBiosphere(country: Country) {
-  return BIOSPHERE_PRESETS[country.id] ?? BIOSPHERE_DEFAULT;
+  const l = LAND_USE[country.id];
+  if (!l) return null;
+  return [
+    { label: "Forest", value: l.forest, color: "hsl(150,60%,42%)" },
+    { label: "Cropland", value: l.cropland, color: "hsl(90,55%,40%)" },
+    { label: "Pasture", value: l.pasture, color: "hsl(45,70%,50%)" },
+    { label: "Other land", value: l.other, color: "hsl(0,0%,48%)" },
+  ].filter((x) => x.value > 0);
 }
 
 // ── Military Panel Sub-component ──
-function MilitarySection({ mil }: { mil: MilitaryStats }) {
-  const totalBases = mil.nationalBases + mil.intlBases;
-  const nationalPct =
-    totalBases > 0 ? (mil.nationalBases / totalBases) * 100 : 0;
-  const intlPct = totalBases > 0 ? (mil.intlBases / totalBases) * 100 : 0;
+/** "$954.4B", "$18.2B", "$640M" from US$ millions. */
+function fmtMilUSD(m: number): string {
+  if (m >= 1_000_000) return `$${(m / 1_000_000).toFixed(2)}T`;
+  if (m >= 1_000) return `$${(m / 1_000).toFixed(1)}B`;
+  return `$${Math.round(m)}M`;
+}
 
+/** Year and SIPRI's own caveat, e.g. "2025 · SIPRI estimate". */
+function milSub(f: MilitaryFigure, what: string): string {
+  const flag =
+    f.flag === "estimate" ? " · SIPRI estimate" : f.flag === "uncertain" ? " · highly uncertain" : "";
+  return `${what}, ${f.y}${flag}`;
+}
+
+function MilitarySection({
+  measured,
+  branches,
+}: {
+  measured: MilitaryMeasured | null;
+  branches: string[] | null;
+}) {
+  const m = measured;
   const kpiCards = [
-    {
-      label: "Active Personnel",
-      value: fmtPers(mil.activePers),
-      sub: mil.activePers.toLocaleString(),
-      icon: <Users size={14} weight="fill" className="text-red-400" />,
-      accent: "border-red-500/25 bg-red-500/5",
-      valueColor: "text-red-400",
-    },
-    {
-      label: "Reserve Personnel",
-      value: fmtPers(mil.reservePers),
-      sub: mil.reservePers.toLocaleString(),
-      icon: <Shield size={14} weight="fill" className="text-orange-400" />,
-      accent: "border-orange-500/25 bg-orange-500/5",
-      valueColor: "text-orange-400",
-    },
-    {
-      label: "Total Inventory",
-      value: mil.inventory.toLocaleString(),
-      sub: "assets tracked",
-      icon: <Sword size={14} weight="fill" className="text-yellow-400" />,
-      accent: "border-yellow-500/25 bg-yellow-500/5",
-      valueColor: "text-yellow-400",
-    },
-    {
-      label: "Defence Budget",
-      value: `$${mil.defenceBudgetB}B`,
-      sub: "annual USD",
+    m?.spendUSDm && {
+      label: "Military Spending",
+      value: fmtMilUSD(m.spendUSDm.v),
+      sub: milSub(m.spendUSDm, "current US$"),
       icon: <CurrencyDollar size={14} weight="fill" className="text-success" />,
       accent: "border-green-500/25 bg-green-500/5",
       valueColor: "text-success",
     },
+    m?.shareOfGDP && {
+      label: "Share of GDP",
+      value: `${m.shareOfGDP.v}%`,
+      sub: milSub(m.shareOfGDP, "of GDP"),
+      icon: <ChartPie size={14} weight="fill" className="text-yellow-400" />,
+      accent: "border-yellow-500/25 bg-yellow-500/5",
+      valueColor: "text-yellow-400",
+    },
+    m?.shareOfGovt && {
+      label: "Share of Govt Spending",
+      value: `${m.shareOfGovt.v}%`,
+      sub: milSub(m.shareOfGovt, "of government spending"),
+      icon: <Shield size={14} weight="fill" className="text-orange-400" />,
+      accent: "border-orange-500/25 bg-orange-500/5",
+      valueColor: "text-orange-400",
+    },
+    m?.personnel && {
+      label: "Armed Forces Personnel",
+      value: fmtPers(m.personnel.v),
+      sub: `${m.personnel.v.toLocaleString()} · incl. paramilitary, ${m.personnel.y}`,
+      icon: <Users size={14} weight="fill" className="text-red-400" />,
+      accent: "border-red-500/25 bg-red-500/5",
+      valueColor: "text-red-400",
+    },
+  ].filter(Boolean) as {
+    label: string;
+    value: string;
+    sub: string;
+    icon: React.ReactNode;
+    accent: string;
+    valueColor: string;
+  }[];
+
+  const sources = [
+    ...(m?.spendUSDm || m?.shareOfGDP || m?.shareOfGovt ? [MILITARY_SOURCES.sipri] : []),
+    ...(m?.personnel ? [MILITARY_SOURCES.personnel] : []),
   ];
 
   return (
     <div className="modal-tile rounded-lg p-4 mb-4">
       {/* Section header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-red-500/10 rounded-md border border-red-500/20">
-            <Shield size={13} weight="fill" className="text-red-400" />
-          </div>
-          <div>
-            <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-              Military Capacity
-            </h3>
-            <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-              {mil.branches.length} active service branches
-            </p>
-          </div>
+      <div className="flex items-center gap-2 mb-4">
+        <div className="p-1.5 bg-red-500/10 rounded-md border border-red-500/20">
+          <Shield size={13} weight="fill" className="text-red-400" />
         </div>
-        <span className="text-[10px] font-mono text-muted-foreground border border-border px-2 py-0.5 rounded-full bg-background/50">
-          {totalBases} bases total
-        </span>
+        <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+          Military
+        </h3>
       </div>
 
-      {/* KPI cards — 2×2 grid */}
-      <div className="grid grid-cols-2 gap-2 mb-4">
-        {kpiCards.map((k) => (
-          <div key={k.label} className={`rounded-lg border p-3 ${k.accent}`}>
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] font-sans text-muted-foreground uppercase tracking-wider">
-                {k.label}
-              </span>
-              {k.icon}
+      {kpiCards.length > 0 ? (
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          {kpiCards.map((k) => (
+            <div key={k.label} className={`rounded-lg border p-3 ${k.accent}`}>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] font-sans text-muted-foreground uppercase tracking-wider">
+                  {k.label}
+                </span>
+                {k.icon}
+              </div>
+              <p className={`text-xl font-bold font-mono leading-none ${k.valueColor}`}>
+                {k.value}
+              </p>
+              <p className="text-[9px] text-muted-foreground font-mono mt-1 opacity-80">
+                {k.sub}
+              </p>
             </div>
-            <p
-              className={`text-xl font-bold font-mono leading-none ${k.valueColor}`}
-            >
-              {k.value}
-            </p>
-            <p className="text-[9px] text-muted-foreground font-mono mt-1 opacity-70">
-              {k.sub}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* Base deployment breakdown */}
-      <div className="rounded-lg border border-border bg-background/40 p-3 mb-3">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-            Base Deployment
-          </p>
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 text-[10px] font-mono text-secondary">
-              <span className="w-1.5 h-1.5 rounded-full bg-secondary inline-block" />
-              {mil.nationalBases} National
-            </span>
-            <span className="flex items-center gap-1 text-[10px] font-mono text-purple-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 inline-block" />
-              {mil.intlBases} Overseas
-            </span>
-          </div>
-        </div>
-
-        {/* Stacked bar */}
-        {totalBases > 0 ? (
-          <>
-            <div className="flex h-2.5 rounded-full overflow-hidden bg-muted gap-px">
-              <div
-                className="h-full bg-secondary transition-all duration-700 rounded-l-full"
-                style={{ width: `${nationalPct}%` }}
-              />
-              {intlPct > 0 && (
-                <div
-                  className="h-full bg-purple-500 transition-all duration-700 rounded-r-full"
-                  style={{ width: `${intlPct}%` }}
-                />
-              )}
-            </div>
-            <div className="flex justify-between mt-1.5">
-              <span className="text-[9px] font-mono text-secondary opacity-80">
-                {nationalPct.toFixed(0)}% domestic
-              </span>
-              <span className="text-[9px] font-mono text-purple-400 opacity-80">
-                {intlPct.toFixed(0)}% international
-              </span>
-            </div>
-          </>
-        ) : (
-          <p className="text-[10px] text-muted-foreground font-sans italic">
-            No base data available
-          </p>
-        )}
-      </div>
-
-      {/* Service Branches */}
-      <div>
-        <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-          Service Branches
-        </p>
-        <div className="flex flex-wrap gap-1.5">
-          {mil.branches.map((b) => (
-            <span
-              key={b}
-              className="inline-flex items-center gap-1 text-[10px] bg-card text-foreground border border-border px-2.5 py-1 rounded-md font-sans hover:border-red-500/30 hover:text-red-400 transition-colors"
-            >
-              <span className="w-1 h-1 rounded-full bg-red-400/70 shrink-0" />
-              {b}
-            </span>
           ))}
         </div>
-      </div>
-      <SourceLink sources={SRC_MILITARY} className="mt-3" />
+      ) : (
+        <p className="text-[10px] text-muted-foreground font-sans italic mb-3">
+          Neither SIPRI nor the World Bank publishes military figures for this
+          country.
+        </p>
+      )}
+
+      {m?.personnel && (
+        <p className="text-[10px] text-muted-foreground font-sans mb-3 leading-relaxed">
+          Personnel is the IISS count the World Bank republishes, which it has
+          not extended past {m.personnel.y}; current IISS figures are not
+          openly published.
+        </p>
+      )}
+
+      {/* Service Branches */}
+      {branches && branches.length > 0 && (
+        <div>
+          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+            Service Branches
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {branches.map((b) => (
+              <span
+                key={b}
+                className="inline-flex items-center gap-1 text-[10px] bg-card text-foreground border border-border px-2.5 py-1 rounded-md font-sans hover:border-red-500/30 hover:text-red-400 transition-colors"
+              >
+                <span className="w-1 h-1 rounded-full bg-red-400/70 shrink-0" />
+                {b}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      {sources.length > 0 && <SourceLink sources={sources} className="mt-3" />}
     </div>
   );
 }
@@ -3748,16 +3733,17 @@ function CountryModal({
                           ))}
                         </div>
                       </div>
-                      {/* Biosphere donut */}
+                      {/* Land use donut */}
+                      {getBiosphere(country) ? (
                       <div className="shrink-0 flex flex-col items-center">
                         <h3 className="text-sm font-semibold font-sans text-foreground mb-1">
-                          Biosphere
+                          Land Use
                         </h3>
                         <div className="relative w-32 h-32">
                           <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                               <Pie
-                                data={getBiosphere(country)}
+                                data={getBiosphere(country)!}
                                 cx="50%"
                                 cy="50%"
                                 innerRadius={34}
@@ -3767,7 +3753,7 @@ function CountryModal({
                                 isAnimationActive
                                 animationDuration={700}
                               >
-                                {getBiosphere(country).map((entry, idx) => (
+                                {getBiosphere(country)!.map((entry, idx) => (
                                   <Cell
                                     key={idx}
                                     fill={entry.color}
@@ -3797,7 +3783,7 @@ function CountryModal({
                           </ResponsiveContainer>
                         </div>
                         <div className="mt-1 space-y-0.5 w-full">
-                          {getBiosphere(country).map((seg) => (
+                          {getBiosphere(country)!.map((seg) => (
                             <div
                               key={seg.label}
                               className="flex items-center gap-1.5"
@@ -3818,7 +3804,12 @@ function CountryModal({
                             </div>
                           ))}
                         </div>
+                        <p className="text-[10px] text-muted-foreground font-sans mt-1 text-center">
+                          Share of land, {LAND_USE[country.id].y}
+                        </p>
+                        <SourceLink sources={[LAND_USE_SOURCE]} className="mt-1" />
                       </div>
+                      ) : null}
                     </div>
                   </div>
                 )}
@@ -3832,8 +3823,11 @@ function CountryModal({
                 )}
 
                 {/* Military */}
-                {getMilitary(country.id) && (
-                  <MilitarySection mil={getMilitary(country.id)!} />
+                {(MILITARY_MEASURED[country.id] || MILITARY_BRANCHES[country.id]) && (
+                  <MilitarySection
+                    measured={MILITARY_MEASURED[country.id] ?? null}
+                    branches={MILITARY_BRANCHES[country.id] ?? null}
+                  />
                 )}
 
                 {/* Languages & Government */}
@@ -3945,10 +3939,11 @@ function CountryModal({
                 {/* ── CRIME STATISTICS ── */}
                 <CountryCrimeStatsPanel country={country} />
 
-                {/* ── HOMELESSNESS & INCARCERATION (below crime stats) ── */}
+                {/* ── INCARCERATION (below crime stats) ── */}
                 {(() => {
-                  const ss = getCountrySocialStats(country.id);
-                  if (!ss) return null;
+                  const pr = PRISON_RATES[country.id];
+                  if (!pr) return null;
+                  const ss = { incarcerationRate: pr.v };
                   return (
                     <div className="modal-tile rounded-lg p-4 mt-4">
                       <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-3">
@@ -3957,34 +3952,7 @@ function CountryModal({
                           (per 100k residents)
                         </span>
                       </p>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="rounded-lg border border-border bg-background/40 p-3">
-                          <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
-                            🏚️ Homelessness Rate
-                          </p>
-                          <p
-                            className={`text-xl font-bold font-mono ${ss.homelessnessRate >= 20 ? "text-destructive" : ss.homelessnessRate >= 8 ? "text-warning" : "text-success"}`}
-                          >
-                            {ss.homelessnessRate}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-                            per 100,000
-                          </p>
-                          <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all duration-700"
-                              style={{
-                                width: `${Math.min(100, (ss.homelessnessRate / 50) * 100)}%`,
-                                background:
-                                  ss.homelessnessRate >= 20
-                                    ? "hsl(0,70%,55%)"
-                                    : ss.homelessnessRate >= 8
-                                      ? "hsl(38,92%,50%)"
-                                      : "hsl(142,71%,45%)",
-                              }}
-                            />
-                          </div>
-                        </div>
+                      <div className="grid grid-cols-1 gap-3">
                         <div className="rounded-lg border border-border bg-background/40 p-3">
                           <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
                             ⛓️ Incarceration Rate
@@ -3992,10 +3960,11 @@ function CountryModal({
                           <p
                             className={`text-xl font-bold font-mono ${ss.incarcerationRate >= 400 ? "text-destructive" : ss.incarcerationRate >= 150 ? "text-warning" : "text-success"}`}
                           >
+                            {pr.approx ? "c. " : ""}
                             {ss.incarcerationRate}
                           </p>
                           <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-                            per 100,000
+                            prisoners per 100,000 people · count at {pr.at}
                           </p>
                           <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
                             <div
@@ -4013,6 +3982,7 @@ function CountryModal({
                           </div>
                         </div>
                       </div>
+                      <SourceLink sources={[PRISON_RATES_SOURCE]} className="mt-3" />
                     </div>
                   );
                 })()}

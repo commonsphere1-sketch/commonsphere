@@ -4,8 +4,11 @@
  * Here because the UN's national accounts are published as xlsx and nothing
  * else in this repo needed a spreadsheet before. It handles what that file
  * uses - deflated zip entries, shared strings, inline strings and numbers -
- * and deliberately nothing else: no formulas, no dates, no styles. If a future
- * source needs more than this, reach for a library rather than growing it.
+ * and deliberately little else: no formulas, no dates. The one piece of
+ * styling it reads is each cell's font colour, because SIPRI marks its own
+ * estimates in blue and highly uncertain figures in red, and that is data.
+ * If a future source needs more than this, reach for a library rather than
+ * growing it.
  */
 const fs = require("fs");
 const zlib = require("zlib");
@@ -57,10 +60,24 @@ const colNum = (ref) => {
   return n - 1;
 };
 
-function sheetRows(xml, strings) {
+/** Font colour per cell style index, as "indexed:12" or "rgb:FFFF0000". */
+function styleColors(xml) {
+  if (!xml) return [];
+  const x = xml.toString("utf8");
+  const fonts = [...(x.match(/<fonts[^>]*>([\s\S]*?)<\/fonts>/) || ["", ""])[1].matchAll(/<font>([\s\S]*?)<\/font>|<font\/>/g)].map((m) => {
+    const c = (m[1] || "").match(/<color (indexed|rgb|theme)="([^"]+)"/);
+    return c ? c[1] + ":" + c[2] : undefined;
+  });
+  const xfs = (x.match(/<cellXfs[^>]*>([\s\S]*?)<\/cellXfs>/) || ["", ""])[1];
+  return [...xfs.matchAll(/<xf ([^>]*?)\/?>/g)].map((m) => fonts[+((m[1].match(/fontId="(\d+)"/) || [])[1] || 0)]);
+}
+
+function sheetRows(xml, strings, colors) {
   const rows = [];
+  const tints = [];
   for (const rm of xml.toString("utf8").matchAll(/<row[^>]*>([\s\S]*?)<\/row>/g)) {
     const cells = [];
+    const tint = [];
     for (const cm of rm[1].matchAll(/<c([^>]*)>([\s\S]*?)<\/c>/g)) {
       const attrs = cm[1];
       const ref = (attrs.match(/r="([A-Z]+\d+)"/) || [])[1];
@@ -71,11 +88,16 @@ function sheetRows(xml, strings) {
       if (type === "s" && vRaw !== undefined) val = strings[+vRaw] ?? "";
       else if (type === "inlineStr" && isRaw) val = unesc(isRaw[1]);
       else if (vRaw !== undefined) val = vRaw;
-      if (ref) cells[colNum(ref)] = val;
+      if (ref) {
+        cells[colNum(ref)] = val;
+        const st = (attrs.match(/ s="(\d+)"/) || [])[1];
+        if (st !== undefined) tint[colNum(ref)] = colors[+st];
+      }
     }
     rows.push(cells);
+    tints.push(tint);
   }
-  return rows;
+  return { rows, tints };
 }
 
 function readXlsx(path, sheetName) {
@@ -83,7 +105,8 @@ function readXlsx(path, sheetName) {
   const strings = sharedStrings(zip.get("xl/sharedStrings.xml"));
   const names = [...zip.keys()].filter((k) => /^xl\/worksheets\/sheet\d+\.xml$/.test(k)).sort();
   const pick = sheetName ? sheetName : names[0];
-  return { sheets: names, rows: sheetRows(zip.get(pick), strings) };
+  const { rows, tints } = sheetRows(zip.get(pick), strings, styleColors(zip.get("xl/styles.xml")));
+  return { sheets: names, rows, colors: tints };
 }
 
 module.exports = { readXlsx };
