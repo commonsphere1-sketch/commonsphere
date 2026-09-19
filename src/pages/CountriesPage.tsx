@@ -1,3 +1,4 @@
+import { na, has, orZero } from "../lib/na";
 import React, { useState } from "react";
 import {
   MagnifyingGlass,
@@ -110,6 +111,7 @@ const continentColors: Record<string, string> = {
 };
 
 const hdiBadge = (hdi: number) => {
+  if (!has(hdi)) return "bg-muted text-muted-foreground"; // not published
   if (hdi >= 0.9) return "bg-green-500/20 text-green-400";
   if (hdi >= 0.8) return "bg-secondary/20 text-secondary";
   if (hdi >= 0.7) return "bg-yellow-500/20 text-yellow-400";
@@ -345,7 +347,7 @@ function CountryModal({
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full font-mono font-semibold ${hdiBadge(country.humanDevelopmentIndex)}`}
                   >
-                    HDI {country.humanDevelopmentIndex}
+                    HDI {na(country.humanDevelopmentIndex, (v) => String(v))}
                   </span>
                 </div>
               </div>
@@ -493,7 +495,7 @@ function CountryModal({
                     { label: "Currency", value: country.currency },
                     {
                       label: "HDI",
-                      value: String(country.humanDevelopmentIndex),
+                      value: na(country.humanDevelopmentIndex, (v) => String(v)),
                     },
                   ].map((s) => (
                     <div key={s.label}>
@@ -531,7 +533,7 @@ function CountryModal({
                     {[
                       {
                         label: "HDI Score",
-                        value: `${country.humanDevelopmentIndex}`,
+                        value: na(country.humanDevelopmentIndex, (v) => String(v)),
                         sub: "0–1 scale",
                         color:
                           country.humanDevelopmentIndex >= 0.8
@@ -542,7 +544,7 @@ function CountryModal({
                       },
                       {
                         label: "Life Expectancy",
-                        value: `${country.lifeExpectancy} yrs`,
+                        value: na(country.lifeExpectancy, (v) => `${v} yrs`),
                         sub: "average",
                         color:
                           country.lifeExpectancy >= 75
@@ -737,9 +739,11 @@ function CountryModal({
                         </h3>
                         <p className="text-[10px] text-muted-foreground font-sans mb-3">
                           {country.keyIndustries && country.keyIndustries.length > 0
-                            ? country.sources?.keyIndustries?.label.startsWith("Taiwan DGBAS")
+                            ? country.sources?.keyIndustries?.label.startsWith("UN Statistics")
+                              ? `Share of value added, ${country.sources.keyIndustries.label.match(/\d{4}$/)?.[0] ?? ""}, from the UN's national accounts, so the shares sum to 100. The UN fills gaps in national reporting with its own estimates.`
+                              : country.sources?.keyIndustries?.label.startsWith("Taiwan DGBAS")
                               ? `Share of GDP, ${country.sources.keyIndustries.label.match(/\d{4}$/)?.[0] ?? ""}, from Taiwan's statistics office, which spreads product taxes across the sectors; the small remainder is a statistical discrepancy.`
-                              : `Share of GDP (value added), ${country.sources?.keyIndustries?.label.match(/\d{4}$/)?.[0] ?? ""}. Shares omit taxes less subsidies on products, so they do not sum to 100.`
+                              : `Share of GDP (value added), ${country.sources?.keyIndustries?.label.match(/\d{4}$/)?.[0] ?? ""}. Taxes less subsidies on products belong to no sector, so the shares sum to less than 100, or to more where subsidies exceed those taxes.`
                             : "The World Bank publishes no complete sector split for this country."}
                         </p>
                         <div className="space-y-2">
@@ -894,7 +898,7 @@ function CountryModal({
                     </p>
                     <p className="text-xs text-muted-foreground font-sans mt-1">
                       {country.currency}
-                      {country.gdpGrowth > 0 ? " · Growing" : " · Contracting"}
+                      {has(country.gdpGrowth) ? (country.gdpGrowth > 0 ? " · Growing" : " · Contracting") : ""}
                     </p>
                   </div>
                 </div>
@@ -1442,14 +1446,14 @@ function CountryDemographicsChart({ country }: { country: Country }) {
           <div className="flex justify-between text-[10px] mb-1">
             <span className="text-muted-foreground font-sans">HDI Score</span>
             <span className="font-mono font-semibold text-foreground">
-              {country.humanDevelopmentIndex}
+              {na(country.humanDevelopmentIndex, (v) => String(v))}
             </span>
           </div>
           <div className="h-2 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-700"
               style={{
-                width: `${country.humanDevelopmentIndex * 100}%`,
+                width: `${orZero(country.humanDevelopmentIndex) * 100}%`,
                 background:
                   country.humanDevelopmentIndex >= 0.8
                     ? "#34d399"
@@ -1471,7 +1475,7 @@ function CountryDemographicsChart({ country }: { country: Country }) {
             Life Expectancy
           </span>
           <span className="text-xs font-mono font-bold text-foreground">
-            {country.lifeExpectancy} yrs
+            {na(country.lifeExpectancy, (v) => `${v} yrs`)}
           </span>
         </div>
       </div>
@@ -16141,7 +16145,8 @@ function exportCountriesToCSV(
     c.currency,
   ]);
   const csv = [headers, ...rows]
-    .map((r) => r.map((v: any) => `"${v}"`).join(","))
+    // Unpublished figures are NaN; export them as empty cells, not "NaN".
+    .map((r) => r.map((v: any) => `"${typeof v === "number" && !Number.isFinite(v) ? "" : v}"`).join(","))
     .join("\n");
   const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
@@ -16203,7 +16208,7 @@ export function CountriesPage() {
     .sort((a, b) => b[sortBy] - a[sortBy]);
 
   // Summary stats
-  const totalGDP = liveCountries.reduce((s, c) => s + c.gdp, 0);
+  const totalGDP = liveCountries.reduce((s, c) => s + orZero(c.gdp), 0);
   const totalPop = liveCountries.reduce((s, c) => s + c.population, 0);
   const highHDI = liveCountries.filter(
     (c) => c.humanDevelopmentIndex >= 0.8,
@@ -16409,7 +16414,7 @@ export function CountriesPage() {
                       GDP
                     </p>
                     <p className="text-sm font-bold font-mono text-foreground">
-                      {fmtGDP(country.gdp)}
+                      {na(country.gdp, fmtGDP)}
                     </p>
                   </div>
                   <div>
@@ -16427,8 +16432,7 @@ export function CountriesPage() {
                     <p
                       className={`text-sm font-bold font-mono ${country.gdpGrowth >= 0 ? "text-success" : "text-destructive"}`}
                     >
-                      {country.gdpGrowth >= 0 ? "+" : ""}
-                      {country.gdpGrowth}%
+                      {na(country.gdpGrowth, (v) => `${v >= 0 ? "+" : ""}${v}%`)}
                     </p>
                   </div>
                   <div>
@@ -16436,7 +16440,7 @@ export function CountriesPage() {
                       Life Expect.
                     </p>
                     <p className="text-sm font-bold font-mono text-foreground">
-                      {country.lifeExpectancy} yrs
+                      {na(country.lifeExpectancy, (v) => `${v} yrs`)}
                     </p>
                   </div>
                 </div>
@@ -16448,14 +16452,14 @@ export function CountriesPage() {
                       Human Development
                     </span>
                     <span className="font-mono font-semibold text-foreground">
-                      {country.humanDevelopmentIndex}
+                      {na(country.humanDevelopmentIndex, (v) => String(v))}
                     </span>
                   </div>
                   <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
-                        width: `${country.humanDevelopmentIndex * 100}%`,
+                        width: `${orZero(country.humanDevelopmentIndex) * 100}%`,
                         background:
                           country.humanDevelopmentIndex >= 0.8
                             ? "hsl(142,71%,45%)"
@@ -16483,7 +16487,7 @@ export function CountriesPage() {
                     <span
                       className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full ${hdiBg}`}
                     >
-                      HDI {country.humanDevelopmentIndex}
+                      HDI {na(country.humanDevelopmentIndex, (v) => String(v))}
                     </span>
                     {ext?.cpiScore != null && (
                       <span

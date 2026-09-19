@@ -307,9 +307,9 @@ function loadCountries() {
     return m;
   });
   // Kosovo is XK to the site and XKX to the World Bank; both lists agree.
-  // Taiwan is not on the World Bank's list at all, but the UN, TI and OWID
-  // publish it as TWN; without this it got nothing from any source.
-  iso3.TW ||= "TWN";
+  // Taiwan, Western Sahara, Cook Islands and Niue are not on the World
+  // Bank list at all, but the UN, TI and EIA publish them under these codes.
+  Object.assign(iso3, { TW: "TWN", EH: "ESH", CK: "COK", NU: "NIU", ...iso3 });
   const series = {};
   for (const [f, spec] of Object.entries(WB)) series[f] = await worldBank(spec.code);
   const bandSeries = {};

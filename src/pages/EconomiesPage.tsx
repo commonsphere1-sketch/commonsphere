@@ -1,3 +1,4 @@
+import { na } from "../lib/na";
 import React, { useState, useCallback } from "react";
 import {
   CurrencyDollar,
@@ -2396,12 +2397,12 @@ export function EconomiesPage() {
                         const stats = [
                           {
                             label: "GDP Per Capita",
-                            value: `$${country.gdpPerCapita.toLocaleString()}`,
+                            value: na(country.gdpPerCapita, (v) => `${v.toLocaleString()}`),
                             color: "text-foreground",
                           },
                           {
                             label: "GDP Growth",
-                            value: `${country.gdpGrowth > 0 ? "+" : ""}${country.gdpGrowth}%`,
+                            value: na(country.gdpGrowth, (v) => `${v > 0 ? "+" : ""}${v}%`),
                             color:
                               country.gdpGrowth >= 0
                                 ? "text-success"
@@ -2409,7 +2410,7 @@ export function EconomiesPage() {
                           },
                           {
                             label: "Unemployment",
-                            value: `${country.unemploymentRate}%`,
+                            value: na(country.unemploymentRate, (v) => `${v}%`),
                             color:
                               country.unemploymentRate <= 5
                                 ? "text-success"
@@ -2419,7 +2420,7 @@ export function EconomiesPage() {
                           },
                           {
                             label: "Inflation",
-                            value: `${country.inflationRate}%`,
+                            value: na(country.inflationRate, (v) => `${v}%`),
                             color:
                               country.inflationRate <= 3
                                 ? "text-success"

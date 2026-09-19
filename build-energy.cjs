@@ -89,8 +89,9 @@ function loadCountries() {
   {
     const res = await fetch("https://api.worldbank.org/v2/country?format=json&per_page=400", { headers: { "User-Agent": UA } });
     for (const c of (await res.json())[1]) iso3[c.iso2Code] = c.id;
-    // Taiwan is not on the World Bank's list; EIA publishes it as TWN.
-    iso3.TW ||= "TWN";
+    // Taiwan, Western Sahara, Cook Islands and Niue are not on the World
+    // Bank's list; EIA publishes them under these codes where it covers them.
+    Object.assign(iso3, { TW: "TWN", EH: "ESH", CK: "COK", NU: "NIU", ...iso3 });
   }
 
   const rows = [];

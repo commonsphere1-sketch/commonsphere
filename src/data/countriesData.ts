@@ -3,11 +3,13 @@ import { GDP_HISTORY } from "./gdpHistory";
 import {
   COUNTRY_INDICATORS,
   COUNTRY_INDICATORS_SOURCE,
+  COUNTRY_INDICATOR_FALLBACKS,
   type CountryIndicators,
 } from "./countryIndicators";
 import { COUNTRY_PANELS, panelSource, type PanelFigure } from "./countryPanels";
 import { COUNTRY_ENERGY, ENERGY_SOURCE } from "./countryEnergy";
 import { ECONOMY_SECTORS } from "./economySectors";
+import { UN_SECTORS, UN_SECTORS_SOURCE } from "./countrySectorsUn";
 
 export interface Industry {
   name: string;
@@ -9565,16 +9567,15 @@ for (const c of countriesData) {
   if (wb) {
     for (const [field, m] of Object.entries(wb) as [
       keyof CountryIndicators,
-      { v: number; y: string },
+      { v: number; y: string; s?: "imf" | "wpp" },
     ][]) {
       if (!m) continue;
       (c as unknown as Record<string, number>)[field] = m.v;
+      // Where the World Bank has nothing, the figure is the IMF's or the UN's.
+      const src = m.s ? COUNTRY_INDICATOR_FALLBACKS[m.s] : COUNTRY_INDICATORS_SOURCE;
       c.sources = {
         ...c.sources,
-        [field]: {
-          label: `${COUNTRY_INDICATORS_SOURCE.label}, ${m.y}`,
-          url: COUNTRY_INDICATORS_SOURCE.url,
-        },
+        [field]: { label: `${src.label}, ${m.y}`, url: src.url },
       };
     }
   }
@@ -9629,7 +9630,23 @@ for (const c of countriesData) {
        chart empty. Its shares are of GDP with taxes distributed across the
        sectors, so the remainder is a statistical discrepancy. */
     const es = Object.values(ECONOMY_SECTORS).find((e) => e.name === c.name && e.source === "dgbas");
-    if (es) {
+    const un = UN_SECTORS[c.id];
+    if (un) {
+      /* Otherwise the UN Statistics Division's national accounts (shares of
+         value added, so they sum to 100), built by build-country-sectors-un.cjs. */
+      const hasMf = un.manufacturing !== null && un.manufacturing <= un.industry;
+      c.keyIndustries = [
+        { name: "Services", gdpShare: un.services, color: "hsl(200,85%,55%)" },
+        ...(hasMf
+          ? [
+              { name: "Manufacturing", gdpShare: un.manufacturing!, color: "hsl(18,80%,55%)" },
+              { name: "Mining, construction & utilities", gdpShare: Math.round((un.industry - un.manufacturing!) * 10) / 10, color: "hsl(30,70%,45%)" },
+            ]
+          : [{ name: "Industry", gdpShare: un.industry, color: "hsl(18,80%,55%)" }]),
+        { name: "Agriculture, forestry & fishing", gdpShare: un.agriculture, color: "hsl(90,60%,40%)" },
+      ];
+      c.sources = { ...c.sources, keyIndustries: { label: `${UN_SECTORS_SOURCE.label}, ${un.y}`, url: UN_SECTORS_SOURCE.url } };
+    } else if (es) {
       const pct = (n: string) => es.slices.find((x) => x.name === n)?.pct ?? 0;
       const ind = pct("Industry"), mfg = es.manufacturing;
       c.keyIndustries = [
@@ -9662,6 +9679,15 @@ for (const c of countriesData) {
     c.sources = { ...c.sources, energy: { label: `${ENERGY_SOURCE.label}, ${en.y}`, url: ENERGY_SOURCE.url } };
   } else {
     delete c.energy;
+  }
+
+  /* Headline figures no source publishes. These were hand-written for a few
+     small states and territories that the World Bank, the IMF and the UN
+     do not cover (unemployment for Kiribati or Greenland, inflation for Cuba,
+     North Korea's GDP, an HDI for territories UNDP does not rate). They are blanked rather than shown as if measured;
+     NaN is "not published" everywhere on the site. */
+  for (const f of ["gdp", "gdpPerCapita", "gdpGrowth", "lifeExpectancy", "unemploymentRate", "inflationRate", "humanDevelopmentIndex"] as const) {
+    if (!c.sources?.[f]) (c as unknown as Record<string, number>)[f] = NaN;
   }
 
   const ref = COUNTRY_REFERENCE[c.code];

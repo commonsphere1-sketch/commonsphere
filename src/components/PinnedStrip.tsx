@@ -1,3 +1,4 @@
+import { na } from "../lib/na";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -188,8 +189,7 @@ export function PinnedStrip() {
                       className="text-[9px] font-mono mt-0.5"
                       style={{ color: mutedText }}
                     >
-                      {c.gdpGrowth >= 0 ? "+" : ""}
-                      {c.gdpGrowth}% GDP · {c.unemploymentRate.toFixed(1)}%
+                      {na(c.gdpGrowth, (v) => `${v >= 0 ? "+" : ""}${v}%`)} GDP · {na(c.unemploymentRate, (v) => `${v.toFixed(1)}%`)}
                       unemp.
                     </div>
                     {/* arrow */}

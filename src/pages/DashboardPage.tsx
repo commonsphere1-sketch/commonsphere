@@ -1,3 +1,4 @@
+import { na, has, sortKey } from "../lib/na";
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
@@ -103,7 +104,7 @@ function CountryCarousel({
 }) {
   const liveCountries = useLiveCountries();
   const sorted = React.useMemo(
-    () => [...liveCountries].sort((a, b) => b.gdp - a.gdp),
+    () => [...liveCountries].sort((a, b) => sortKey(b.gdp, "desc") - sortKey(a.gdp, "desc")),
     [liveCountries],
   );
 
@@ -170,7 +171,7 @@ function CountryCarousel({
   };
 
   const hdiColor = (h: number) =>
-    h >= 0.8 ? "#10b981" : h >= 0.65 ? "#f59e0b" : "#ef4444";
+    !has(h) ? "#9ca3af" : h >= 0.8 ? "#10b981" : h >= 0.65 ? "#f59e0b" : "#ef4444";
 
   return (
     <div
@@ -309,7 +310,7 @@ function CountryCarousel({
                           border: `1px solid ${hdiColor(country.humanDevelopmentIndex)}44`,
                         }}
                       >
-                        HDI {country.humanDevelopmentIndex}
+                        HDI {na(country.humanDevelopmentIndex, (v) => String(v))}
                       </span>
                     </div>
                   </div>
@@ -327,7 +328,7 @@ function CountryCarousel({
                         className="text-[11px] font-bold font-mono"
                         style={{ color: headText }}
                       >
-                        {fmtGDPShort(country.gdp)}
+                        {na(country.gdp, fmtGDPShort)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -342,7 +343,7 @@ function CountryCarousel({
                         style={{ color: gdpGrowthUp ? "#10b981" : "#ef4444" }}
                       >
                         {gdpGrowthUp ? "+" : ""}
-                        {country.gdpGrowth}%
+                        {na(country.gdpGrowth, (v) => `${v}%`)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -2391,8 +2392,8 @@ const COMPARE_METRICS = [
     unit: "",
     get: (c: (typeof countriesData)[0]) =>
       c.gdp >= 1000
-        ? `$${(c.gdp / 1000).toFixed(1)}T`
-        : `$${Math.round(c.gdp)}B`,
+        ? `${(c.gdp / 1000).toFixed(1)}T`
+        : has(c.gdp) ? `${Math.round(c.gdp)}B` : "—",
     raw: (c: (typeof countriesData)[0]) => c.gdp,
     higherBetter: true,
     color: "#6366f1",
@@ -2401,7 +2402,7 @@ const COMPARE_METRICS = [
     label: "GDP / Capita",
     unit: "",
     get: (c: (typeof countriesData)[0]) =>
-      `$${c.gdpPerCapita.toLocaleString()}`,
+      na(c.gdpPerCapita, (v) => `${v.toLocaleString()}`),
     raw: (c: (typeof countriesData)[0]) => c.gdpPerCapita,
     higherBetter: true,
     color: "#8b5cf6",
@@ -2410,7 +2411,7 @@ const COMPARE_METRICS = [
     label: "GDP Growth",
     unit: "%",
     get: (c: (typeof countriesData)[0]) =>
-      `${c.gdpGrowth >= 0 ? "+" : ""}${c.gdpGrowth}%`,
+      na(c.gdpGrowth, (v) => `${v >= 0 ? "+" : ""}${v}%`),
     raw: (c: (typeof countriesData)[0]) => c.gdpGrowth,
     higherBetter: true,
     color: "#10b981",
@@ -2431,7 +2432,7 @@ const COMPARE_METRICS = [
   {
     label: "Unemployment",
     unit: "%",
-    get: (c: (typeof countriesData)[0]) => `${c.unemploymentRate.toFixed(1)}%`,
+    get: (c: (typeof countriesData)[0]) => na(c.unemploymentRate, (v) => `${v.toFixed(1)}%`),
     raw: (c: (typeof countriesData)[0]) => c.unemploymentRate,
     higherBetter: false,
     color: "#f59e0b",
@@ -2439,7 +2440,7 @@ const COMPARE_METRICS = [
   {
     label: "Inflation",
     unit: "%",
-    get: (c: (typeof countriesData)[0]) => `${c.inflationRate}%`,
+    get: (c: (typeof countriesData)[0]) => na(c.inflationRate, (v) => `${v}%`),
     raw: (c: (typeof countriesData)[0]) => c.inflationRate,
     higherBetter: false,
     color: "#ef4444",
@@ -2447,7 +2448,7 @@ const COMPARE_METRICS = [
   {
     label: "Life Expectancy",
     unit: "yrs",
-    get: (c: (typeof countriesData)[0]) => `${c.lifeExpectancy} yrs`,
+    get: (c: (typeof countriesData)[0]) => na(c.lifeExpectancy, (v) => `${v} yrs`),
     raw: (c: (typeof countriesData)[0]) => c.lifeExpectancy,
     higherBetter: true,
     color: "#06b6d4",
@@ -2456,7 +2457,7 @@ const COMPARE_METRICS = [
     label: "HDI",
     unit: "",
     get: (c: (typeof countriesData)[0]) =>
-      `${c.humanDevelopmentIndex.toFixed(3)}`,
+      na(c.humanDevelopmentIndex, (v) => v.toFixed(3)),
     raw: (c: (typeof countriesData)[0]) => c.humanDevelopmentIndex,
     higherBetter: true,
     color: "#a855f7",
@@ -3506,7 +3507,7 @@ function InteractiveDataPanel({
   // sorted all countries by GDP desc
   const liveCountries = useLiveCountries();
   const allByGDP = useMemo(
-    () => [...liveCountries].sort((a, b) => b.gdp - a.gdp),
+    () => [...liveCountries].sort((a, b) => sortKey(b.gdp, "desc") - sortKey(a.gdp, "desc")),
     [liveCountries],
   );
 
@@ -3802,14 +3803,14 @@ function InteractiveDataPanel({
                         className="text-[11px] font-mono font-bold"
                         style={{ color: headText }}
                       >
-                        {fmtGDPShort(c.gdp)}
+                        {na(c.gdp, fmtGDPShort)}
                       </p>
                       <p
                         className="text-[10px] font-mono"
                         style={{ color: gdpUp ? "#10b981" : "#ef4444" }}
                       >
                         {gdpUp ? "+" : ""}
-                        {c.gdpGrowth}%
+                        {na(c.gdpGrowth, (v) => `${v}%`)}
                       </p>
                     </div>
                     <ArrowRight
@@ -4274,7 +4275,7 @@ function InteractiveDataPanel({
                         }}
                       >
                         GDP {gdpUp ? "+" : ""}
-                        {c.gdpGrowth}%
+                        {na(c.gdpGrowth, (v) => `${v}%`)}
                       </span>
                     </div>
                   </div>
@@ -4284,32 +4285,32 @@ function InteractiveDataPanel({
                     {[
                       {
                         label: "GDP",
-                        value: fmtGDPShort(c.gdp),
+                        value: na(c.gdp, fmtGDPShort),
                         color: "#6366f1",
                       },
                       {
                         label: "Growth",
-                        value: `${gdpUp ? "+" : ""}${c.gdpGrowth}%`,
+                        value: na(c.gdpGrowth, (v) => `${gdpUp ? "+" : ""}${v}%`),
                         color: gdpUp ? "#10b981" : "#ef4444",
                       },
                       {
                         label: "GDP/Cap",
-                        value: `$${c.gdpPerCapita.toLocaleString()}`,
+                        value: na(c.gdpPerCapita, (v) => `${v.toLocaleString()}`),
                         color: "#3b82f6",
                       },
                       {
                         label: "Inflation",
-                        value: `${c.inflationRate}%`,
+                        value: na(c.inflationRate, (v) => `${v}%`),
                         color: c.inflationRate > 6 ? "#ef4444" : "#f59e0b",
                       },
                       {
                         label: "Unemp.",
-                        value: `${c.unemploymentRate.toFixed(1)}%`,
+                        value: na(c.unemploymentRate, (v) => `${v.toFixed(1)}%`),
                         color: c.unemploymentRate < 5 ? "#10b981" : "#f59e0b",
                       },
                       {
                         label: "HDI",
-                        value: c.humanDevelopmentIndex.toFixed(3),
+                        value: na(c.humanDevelopmentIndex, (v) => v.toFixed(3)),
                         color:
                           c.humanDevelopmentIndex >= 0.8
                             ? "#10b981"
@@ -4355,7 +4356,7 @@ function InteractiveDataPanel({
                       },
                       {
                         label: "Life Expectancy",
-                        value: `${c.lifeExpectancy} yrs`,
+                        value: na(c.lifeExpectancy, (v) => `${v} yrs`),
                         icon: <Heart size={10} weight="fill" />,
                         color: "#ec4899",
                       },
@@ -4941,7 +4942,7 @@ function InteractiveDataPanel({
                           className="text-[11px] font-mono shrink-0"
                           style={{ color: headText }}
                         >
-                          {fmtGDPShort(c.gdp)}
+                          {na(c.gdp, fmtGDPShort)}
                         </span>
                         <span
                           className="text-[10px] font-mono shrink-0 w-10 text-right"
@@ -4949,8 +4950,7 @@ function InteractiveDataPanel({
                             color: c.gdpGrowth >= 0 ? "#10b981" : "#ef4444",
                           }}
                         >
-                          {c.gdpGrowth >= 0 ? "+" : ""}
-                          {c.gdpGrowth}%
+                          {na(c.gdpGrowth, (v) => `${v >= 0 ? "+" : ""}${v}%`)}
                         </span>
                         {eco?.fundingRaisedB !== undefined && (
                           <span
@@ -5334,7 +5334,7 @@ export function DashboardPage() {
 
   const liveCountries = useLiveCountries();
   const topCountries = useMemo(
-    () => [...liveCountries].sort((a, b) => b.gdp - a.gdp).slice(0, 6),
+    () => [...liveCountries].sort((a, b) => sortKey(b.gdp, "desc") - sortKey(a.gdp, "desc")).slice(0, 6),
     [liveCountries],
   );
   const topStates = useMemo(

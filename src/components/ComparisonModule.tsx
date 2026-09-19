@@ -1,3 +1,4 @@
+import { na } from "../lib/na";
 import { useState, useMemo, useRef, useEffect } from "react";
 import {
   X,
@@ -88,12 +89,12 @@ function statRow(e: EntityItem): Record<string, string> {
   if (e.kind === "country") {
     const c = e.data;
     return {
-      "💰 GDP per capita": `$${c.gdpPerCapita.toLocaleString()}`,
-      "📉 Unemployment": `${c.unemploymentRate}%`,
-      "📈 GDP growth": `${c.gdpGrowth > 0 ? "+" : ""}${c.gdpGrowth}%`,
-      "🛒 Inflation": `${c.inflationRate}%`,
-      "📈 HDI": `${c.humanDevelopmentIndex}`,
-      "❤️ Life expectancy": `${c.lifeExpectancy} yrs`,
+      "💰 GDP per capita": na(c.gdpPerCapita, (v) => `${v.toLocaleString()}`),
+      "📉 Unemployment": na(c.unemploymentRate, (v) => `${v}%`),
+      "📈 GDP growth": na(c.gdpGrowth, (v) => `${v > 0 ? "+" : ""}${v}%`),
+      "🛒 Inflation": na(c.inflationRate, (v) => `${v}%`),
+      "📈 HDI": na(c.humanDevelopmentIndex, (v) => String(v)),
+      "❤️ Life expectancy": na(c.lifeExpectancy, (v) => `${v} yrs`),
     };
   }
   const s = e.data;

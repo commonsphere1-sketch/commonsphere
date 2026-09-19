@@ -1,3 +1,4 @@
+import { na, has, orZero } from "../lib/na";
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import {
   geoEqualEarth,
@@ -977,7 +978,7 @@ const COUNTRY_INDICATORS: CountryIndicator[] = [
     group: "Development",
     unit: "HDI",
     higherIsBetter: true,
-    get: (c) => c.humanDevelopmentIndex ?? null,
+    get: (c) => (has(c.humanDevelopmentIndex) ? c.humanDevelopmentIndex : null),
     format: (v) => v.toFixed(3),
   },
   {
@@ -986,7 +987,7 @@ const COUNTRY_INDICATORS: CountryIndicator[] = [
     group: "Health",
     unit: "years",
     higherIsBetter: true,
-    get: (c) => c.lifeExpectancy ?? null,
+    get: (c) => (has(c.lifeExpectancy) ? c.lifeExpectancy : null),
     format: (v) => `${v.toFixed(1)} yrs`,
   },
   {
@@ -995,7 +996,7 @@ const COUNTRY_INDICATORS: CountryIndicator[] = [
     group: "Economy",
     unit: "USD",
     higherIsBetter: true,
-    get: (c) => c.gdpPerCapita ?? null,
+    get: (c) => (has(c.gdpPerCapita) ? c.gdpPerCapita : null),
     format: (v) => `$${Math.round(v).toLocaleString()}`,
   },
   {
@@ -1004,7 +1005,7 @@ const COUNTRY_INDICATORS: CountryIndicator[] = [
     group: "Economy",
     unit: "%",
     higherIsBetter: true,
-    get: (c) => c.gdpGrowth ?? null,
+    get: (c) => (has(c.gdpGrowth) ? c.gdpGrowth : null),
     format: (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}%`,
   },
   {
@@ -1013,7 +1014,7 @@ const COUNTRY_INDICATORS: CountryIndicator[] = [
     group: "Economy",
     unit: "%",
     higherIsBetter: false,
-    get: (c) => c.unemploymentRate ?? null,
+    get: (c) => (has(c.unemploymentRate) ? c.unemploymentRate : null),
     format: (v) => `${v.toFixed(1)}%`,
   },
   {
@@ -1244,9 +1245,9 @@ export function WorldMapsPage() {
     const sum = (list: Country[], f: (c: Country) => number) =>
       list.reduce((a, c) => a + (f(c) || 0), 0);
     const worldPop = sum(countriesData, (c) => c.population);
-    const worldGdp = sum(countriesData, (c) => c.gdp);
+    const worldGdp = sum(countriesData, (c) => orZero(c.gdp));
     const pop = sum(inScope, (c) => c.population);
-    const gdp = sum(inScope, (c) => c.gdp);
+    const gdp = sum(inScope, (c) => orZero(c.gdp));
     return {
       members: inScope.length,
       pop,
@@ -3368,13 +3369,13 @@ export function WorldMapsPage() {
                       ["Capital", focusCountry.capital],
                       ["Government", focusCountry.governmentType],
                       ["Population", `${(focusCountry.population / 1e6).toFixed(1)}M`],
-                      ["GDP", `$${(focusCountry.gdp / 1000).toFixed(2)}T`],
-                      ["GDP per capita", `$${Math.round(focusCountry.gdpPerCapita).toLocaleString()}`],
-                      ["GDP growth", `${focusCountry.gdpGrowth > 0 ? "+" : ""}${focusCountry.gdpGrowth}%`],
-                      ["Life expectancy", `${focusCountry.lifeExpectancy} yrs`],
-                      ["Human development", focusCountry.humanDevelopmentIndex.toFixed(3)],
-                      ["Unemployment", `${focusCountry.unemploymentRate}%`],
-                      ["Inflation", `${focusCountry.inflationRate}%`],
+                      ["GDP", na(focusCountry.gdp, (v) => `${(v / 1000).toFixed(2)}T`)],
+                      ["GDP per capita", na(focusCountry.gdpPerCapita, (v) => `${Math.round(v).toLocaleString()}`)],
+                      ["GDP growth", na(focusCountry.gdpGrowth, (v) => `${v > 0 ? "+" : ""}${v}%`)],
+                      ["Life expectancy", na(focusCountry.lifeExpectancy, (v) => `${v} yrs`)],
+                      ["Human development", na(focusCountry.humanDevelopmentIndex, (v) => v.toFixed(3))],
+                      ["Unemployment", na(focusCountry.unemploymentRate, (v) => `${v}%`)],
+                      ["Inflation", na(focusCountry.inflationRate, (v) => `${v}%`)],
                       ["Area", `${(focusCountry.areaKm2 / 1e6).toFixed(2)}M km²`],
                       ["Currency", focusCountry.currency],
                     ].map(([k, v]) => (

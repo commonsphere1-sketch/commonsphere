@@ -17,8 +17,19 @@
  * every country at the same time - but now the page can say which, instead of
  * implying they match.
  *
- * Nothing is estimated. Where the World Bank reports nothing, this writes
- * nothing, and countriesData keeps the value it already had.
+ * Nothing is estimated. Where the World Bank reports nothing, two other
+ * publishers are tried, and each figure records which one it came from:
+ *
+ *   IMF World Economic Outlook  GDP, GDP per capita, growth, inflation and
+ *                               unemployment. The current year and later are
+ *                               projections and are skipped; the latest year
+ *                               kept may still be an IMF estimate.
+ *   UN World Population Prospects 2024 (via Our World in Data)
+ *                               population, as the sum of the UN's five-year
+ *                               age groups for its latest estimate year.
+ *
+ * Where none of the three publishes a figure, there is no entry and
+ * countriesData blanks the field rather than keep a hand-written number.
  *
  *   node build-country-indicators.cjs
  */
@@ -51,6 +62,62 @@ const FIELDS = {
   unemploymentRate: { code: "SL.UEM.TOTL.ZS", conv: (v) => round(v) },
   inflationRate: { code: "FP.CPI.TOTL.ZG", conv: (v) => round(v) },
 };
+
+/** The site's field → IMF WEO datamapper indicator, and unit conversion. */
+const IMF = {
+  gdp: { code: "NGDPD", conv: (v) => v }, // already US$ billions
+  gdpPerCapita: { code: "NGDPDPC", conv: (v) => v },
+  gdpGrowth: { code: "NGDP_RPCH", conv: (v) => v },
+  inflationRate: { code: "PCPIPCH", conv: (v) => v },
+  unemploymentRate: { code: "LUR", conv: (v) => v },
+};
+
+/** iso3 → { v, year } for the latest year before the current one. */
+async function imf(code) {
+  const at = path.join(CACHE, "imf-" + code + ".json");
+  if (!fs.existsSync(at)) {
+    const res = await fetch("https://www.imf.org/external/datamapper/api/v1/" + code, { headers: { "User-Agent": UA } });
+    if (!res.ok) throw new Error(`IMF ${code}: HTTP ${res.status}`);
+    fs.writeFileSync(at, await res.text());
+  }
+  const series = JSON.parse(fs.readFileSync(at, "utf8"))?.values?.[code] ?? {};
+  const thisYear = new Date().getFullYear();
+  const out = {};
+  for (const [iso, years] of Object.entries(series)) {
+    let best = null;
+    for (const [y, v] of Object.entries(years)) {
+      if (v === null || !Number.isFinite(v) || +y >= thisYear || +y < thisYear - 10) continue;
+      if (!best || +y > +best.year) best = { v, year: y };
+    }
+    if (best) out[iso] = best;
+  }
+  return out;
+}
+
+/** UN WPP 2024 total population, iso3 → { v, year }, summed from age groups. */
+async function wppPopulation() {
+  const at = path.join(CACHE, "wpp-age5.csv");
+  if (!fs.existsSync(at)) {
+    const res = await fetch("https://ourworldindata.org/grapher/population-by-five-year-age-group.csv?v=1&csvType=full&useColumnShortNames=true", { headers: { "User-Agent": UA } });
+    if (!res.ok) throw new Error("OWID WPP: HTTP " + res.status);
+    fs.writeFileSync(at, await res.text());
+  }
+  const lines = fs.readFileSync(at, "utf8").trim().split(/\r?\n/).map((l) => l.split(","));
+  const head = lines[0];
+  const ci = head.indexOf("code"), yi = head.indexOf("year");
+  const cols = head.map((h, i) => [h, i]).filter(([h]) => /^population__sex_all__age_.*__variant_estimates$/.test(h)).map(([, i]) => i);
+  if (cols.length !== 21) throw new Error(`WPP: expected 21 age groups, found ${cols.length}`);
+  const out = {};
+  for (const r of lines.slice(1)) {
+    if (!r[ci] || r[ci].startsWith("OWID_") || cols.some((i) => r[i] === "")) continue;
+    const v = cols.reduce((a, i) => a + Number(r[i]), 0);
+    if (!out[r[ci]] || +r[yi] > +out[r[ci]].year) out[r[ci]] = { v, year: r[yi] };
+  }
+  return out;
+}
+
+/** Codes the World Bank's country list does not carry, as the IMF and UN write them. */
+const EXTRA_ISO3 = { TW: "TWN", EH: "ESH", CK: "COK", NU: "NIU" };
 
 const round = (v) => {
   const a = Math.abs(v);
@@ -93,6 +160,21 @@ async function latest(code) {
   const countries = loadCountries();
   const series = {};
   for (const [field, spec] of Object.entries(FIELDS)) series[field] = await latest(spec.code);
+  const imfSeries = {};
+  for (const [field, spec] of Object.entries(IMF)) imfSeries[field] = await imf(spec.code);
+  const wpp = await wppPopulation();
+  const iso3 = { ...EXTRA_ISO3 };
+  {
+    const at = path.join(CACHE, "wb-countries.json");
+    if (!fs.existsSync(at)) {
+      const res = await fetch("https://api.worldbank.org/v2/country?format=json&per_page=400", { headers: { "User-Agent": UA } });
+      fs.writeFileSync(at, await res.text());
+    }
+    for (const c of JSON.parse(fs.readFileSync(at, "utf8"))[1]) iso3[c.iso2Code] = c.id;
+  }
+  // The IMF writes Kosovo as UVK where the World Bank writes XKX.
+  const imfCode = (i3) => (i3 === "XKX" ? "UVK" : i3);
+  const fallbacks = [];
 
   const rows = [];
   const yearTally = {};
@@ -119,6 +201,22 @@ async function latest(code) {
           changed++;
           if (rel > 0.5) bigMoves.push({ name: c.name, field, before, value, year: hit.year, rel });
         }
+      }
+    }
+    // Fallbacks where the World Bank has nothing.
+    const i3 = iso3[c.code];
+    const has = (f) => parts.some((p) => p.startsWith(f + ":"));
+    if (i3) {
+      for (const [field, spec] of Object.entries(IMF)) {
+        if (has(field)) continue;
+        const hit = imfSeries[field][imfCode(i3)];
+        if (!hit) continue;
+        parts.push(`${field}: { v: ${round(spec.conv(hit.v))}, y: "${hit.year}", s: "imf" }`);
+        fallbacks.push(`${c.code} ${field} IMF ${hit.year}`);
+      }
+      if (!has("population") && wpp[i3]) {
+        parts.push(`population: { v: ${Math.round(wpp[i3].v)}, y: "${wpp[i3].year}", s: "wpp" }`);
+        fallbacks.push(`${c.code} population WPP ${wpp[i3].year}`);
       }
     }
     if (parts.length) rows.push(`  ${c.code}: { ${parts.join(", ")} },`);
@@ -153,6 +251,12 @@ ${Object.entries(FIELDS)
  * Where the World Bank reports nothing, there is no entry and countriesData
  * keeps whatever it had.
  */
+/** Where a figure has an "s" field, it came from here rather than the World Bank. */
+export const COUNTRY_INDICATOR_FALLBACKS = {
+  imf: { label: "IMF — World Economic Outlook", url: "https://www.imf.org/external/datamapper/" },
+  wpp: { label: "UN — World Population Prospects 2024 (via Our World in Data)", url: "https://population.un.org/wpp/" },
+};
+
 export const COUNTRY_INDICATORS_SOURCE = {
   label: "World Bank — World Development Indicators",
   url: "https://data.worldbank.org/",
@@ -160,7 +264,7 @@ export const COUNTRY_INDICATORS_SOURCE = {
 };
 
 /** A figure and the year it is for. */
-export type Measured = { v: number; y: string };
+export type Measured = { v: number; y: string; s?: "imf" | "wpp" };
 
 export type CountryIndicators = Partial<{
 ${Object.keys(FIELDS)
@@ -178,6 +282,7 @@ ${rows.join("\n")}
   console.log("  coverage: " + Object.entries(coverage).map(([f, n]) => `${f} ${n}`).join(", "));
   console.log("  years across all figures: " + years.slice(0, 8).map(([y, n]) => `${y}=${n}`).join("  "));
   console.log(`  unchanged (within 0.5%): ${same}; refreshed: ${changed}`);
+  console.log(`  filled from IMF / UN where the World Bank has nothing (${fallbacks.length}):\n    ` + fallbacks.join("\n    "));
   if (bigMoves.length) {
     bigMoves.sort((a, b) => b.rel - a.rel);
     console.log(`\n  figures that move by more than half — worth an eye:`);
