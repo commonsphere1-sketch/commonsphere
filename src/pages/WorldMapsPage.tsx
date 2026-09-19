@@ -21,6 +21,7 @@ import {
 } from "@phosphor-icons/react";
 import { countriesData, type Country } from "../data/countriesData";
 import { usStatesData, type USState } from "../data/statesData";
+import { STATE_INDICATORS as STATE_FIGURES } from "../data/stateIndicators";
 import {
   countryForFeature,
   stateForFeature,
@@ -1039,23 +1040,25 @@ type StateIndicator = {
 };
 
 const STATE_INDICATORS: StateIndicator[] = [
+  /* These were "Education Rank" and "Healthcare Rank", written into
+     statesData by hand with no source or year. They are now measured figures:
+     degree attainment from the Census Bureau's ACS 2024, and the BJS
+     imprisonment rate for 2023. */
   {
-    id: "education",
-    label: "Education Rank",
+    id: "bachelors",
+    label: "Bachelor's Degree or Higher",
     group: "Education",
-    higherIsBetter: false,
-    isRank: true,
-    get: (s) => s.educationRank ?? null,
-    format: (v) => `#${v}`,
+    higherIsBetter: true,
+    get: (s) => STATE_FIGURES[s.id]?.education.bachelorsOrHigherPct ?? null,
+    format: (v) => `${v.toFixed(1)}%`,
   },
   {
-    id: "healthcare",
-    label: "Healthcare Rank",
-    group: "Health",
+    id: "imprisonment",
+    label: "Imprisonment Rate",
+    group: "Justice",
     higherIsBetter: false,
-    isRank: true,
-    get: (s) => s.healthcareRank ?? null,
-    format: (v) => `#${v}`,
+    get: (s) => (Number.isFinite(s.incarcerationRate) ? s.incarcerationRate : null),
+    format: (v) => `${Math.round(v)} per 100k`,
   },
   {
     id: "income",
@@ -1098,7 +1101,7 @@ export function WorldMapsPage() {
   const isLight = theme === "light";
 
   const [countryMetric, setCountryMetric] = useState("hdi");
-  const [stateMetric, setStateMetric] = useState("education");
+  const [stateMetric, setStateMetric] = useState("bachelors");
   const [hovered, setHovered] = useState<{
     name: string;
     value: string;

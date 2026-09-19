@@ -25,1763 +25,120 @@ import {
   Legend,
 } from "recharts";
 import { type USState } from "../data/statesData";
-import { getStateSocialStats } from "../data/socialStatsData";
+import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
 import { getUpcoming } from "../data/upcomingToWatch";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
 
-// ─── Transportation Statistics per state ─────────────────────────────────
-interface StateTransportData {
-  carOwnershipPct: number; // % households with at least 1 vehicle
-  avgCommuteMin: number; // average commute time in minutes
-  publicTransitUsePct: number; // % of workers using public transit
-  walkBikePct: number; // % walking or cycling to work
-  interstatesMiles: number; // total interstate highway miles
-  bridgesTotal: number; // total bridges (thousands, approx)
-  airportsCommercial: number; // commercial service airports
-  trafficDeathsPer100k: number; // traffic fatalities per 100k residents
+// ─── Housing and commuting, from the American Community Survey ───────────
+// These panels used to read STATE_HOUSING and STATE_TRANSPORT, hand-written
+// tables (with a DEFAULT_ for any state missing), including an "affordability
+// index", mortgage rates and price changes with no source, and a commute split
+// that assumed 3% of every state's workers work from home. They now show the
+// Census Bureau's ACS 2024 figures (stateIndicators.ts, build-states.cjs).
+// Interstate miles, bridge and airport counts and traffic deaths are gone:
+// they had no stated source or year.
+
+function MiniStat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
+      <p className="text-[10px] text-muted-foreground font-sans mb-0.5 leading-tight">{label}</p>
+      <p className="text-base font-bold font-mono text-foreground">{value}</p>
+      {sub && <p className="text-[9px] text-muted-foreground font-sans mt-0.5">{sub}</p>}
+    </div>
+  );
 }
 
-const STATE_TRANSPORT: Record<string, StateTransportData> = {
-  al: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 25,
-    publicTransitUsePct: 1,
-    walkBikePct: 2,
-    interstatesMiles: 906,
-    bridgesTotal: 16,
-    airportsCommercial: 8,
-    trafficDeathsPer100k: 17.4,
-  },
-  ak: {
-    carOwnershipPct: 90,
-    avgCommuteMin: 20,
-    publicTransitUsePct: 3,
-    walkBikePct: 6,
-    interstatesMiles: 0,
-    bridgesTotal: 2,
-    airportsCommercial: 127,
-    trafficDeathsPer100k: 9.8,
-  },
-  az: {
-    carOwnershipPct: 92,
-    avgCommuteMin: 27,
-    publicTransitUsePct: 2,
-    walkBikePct: 2,
-    interstatesMiles: 1168,
-    bridgesTotal: 8,
-    airportsCommercial: 10,
-    trafficDeathsPer100k: 15.1,
-  },
-  ar: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 22,
-    publicTransitUsePct: 1,
-    walkBikePct: 1,
-    interstatesMiles: 638,
-    bridgesTotal: 12,
-    airportsCommercial: 5,
-    trafficDeathsPer100k: 18.9,
-  },
-  ca: {
-    carOwnershipPct: 88,
-    avgCommuteMin: 32,
-    publicTransitUsePct: 5,
-    walkBikePct: 4,
-    interstatesMiles: 2456,
-    bridgesTotal: 25,
-    airportsCommercial: 30,
-    trafficDeathsPer100k: 10.9,
-  },
-  co: {
-    carOwnershipPct: 91,
-    avgCommuteMin: 26,
-    publicTransitUsePct: 3,
-    walkBikePct: 4,
-    interstatesMiles: 952,
-    bridgesTotal: 8,
-    airportsCommercial: 12,
-    trafficDeathsPer100k: 12.4,
-  },
-  ct: {
-    carOwnershipPct: 90,
-    avgCommuteMin: 27,
-    publicTransitUsePct: 5,
-    walkBikePct: 3,
-    interstatesMiles: 346,
-    bridgesTotal: 4,
-    airportsCommercial: 5,
-    trafficDeathsPer100k: 7.2,
-  },
-  de: {
-    carOwnershipPct: 92,
-    avgCommuteMin: 26,
-    publicTransitUsePct: 4,
-    walkBikePct: 3,
-    interstatesMiles: 41,
-    bridgesTotal: 1,
-    airportsCommercial: 1,
-    trafficDeathsPer100k: 11.0,
-  },
-  fl: {
-    carOwnershipPct: 92,
-    avgCommuteMin: 29,
-    publicTransitUsePct: 2,
-    walkBikePct: 3,
-    interstatesMiles: 1470,
-    bridgesTotal: 12,
-    airportsCommercial: 20,
-    trafficDeathsPer100k: 15.4,
-  },
-  ga: {
-    carOwnershipPct: 92,
-    avgCommuteMin: 29,
-    publicTransitUsePct: 3,
-    walkBikePct: 2,
-    interstatesMiles: 1244,
-    bridgesTotal: 14,
-    airportsCommercial: 12,
-    trafficDeathsPer100k: 14.2,
-  },
-  hi: {
-    carOwnershipPct: 85,
-    avgCommuteMin: 27,
-    publicTransitUsePct: 8,
-    walkBikePct: 8,
-    interstatesMiles: 55,
-    bridgesTotal: 1,
-    airportsCommercial: 15,
-    trafficDeathsPer100k: 8.1,
-  },
-  id: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 21,
-    publicTransitUsePct: 1,
-    walkBikePct: 3,
-    interstatesMiles: 611,
-    bridgesTotal: 4,
-    airportsCommercial: 9,
-    trafficDeathsPer100k: 14.9,
-  },
-  il: {
-    carOwnershipPct: 88,
-    avgCommuteMin: 31,
-    publicTransitUsePct: 8,
-    walkBikePct: 3,
-    interstatesMiles: 2169,
-    bridgesTotal: 26,
-    airportsCommercial: 10,
-    trafficDeathsPer100k: 11.3,
-  },
-  in: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 24,
-    publicTransitUsePct: 1,
-    walkBikePct: 2,
-    interstatesMiles: 1172,
-    bridgesTotal: 19,
-    airportsCommercial: 6,
-    trafficDeathsPer100k: 13.9,
-  },
-  ia: {
-    carOwnershipPct: 94,
-    avgCommuteMin: 19,
-    publicTransitUsePct: 1,
-    walkBikePct: 3,
-    interstatesMiles: 782,
-    bridgesTotal: 24,
-    airportsCommercial: 7,
-    trafficDeathsPer100k: 11.0,
-  },
-  ks: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 21,
-    publicTransitUsePct: 1,
-    walkBikePct: 3,
-    interstatesMiles: 874,
-    bridgesTotal: 25,
-    airportsCommercial: 7,
-    trafficDeathsPer100k: 14.5,
-  },
-  ky: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 23,
-    publicTransitUsePct: 1,
-    walkBikePct: 2,
-    interstatesMiles: 766,
-    bridgesTotal: 14,
-    airportsCommercial: 6,
-    trafficDeathsPer100k: 16.9,
-  },
-  la: {
-    carOwnershipPct: 90,
-    avgCommuteMin: 26,
-    publicTransitUsePct: 2,
-    walkBikePct: 3,
-    interstatesMiles: 908,
-    bridgesTotal: 13,
-    airportsCommercial: 8,
-    trafficDeathsPer100k: 16.6,
-  },
-  me: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 24,
-    publicTransitUsePct: 1,
-    walkBikePct: 3,
-    interstatesMiles: 368,
-    bridgesTotal: 2,
-    airportsCommercial: 5,
-    trafficDeathsPer100k: 11.3,
-  },
-  md: {
-    carOwnershipPct: 90,
-    avgCommuteMin: 34,
-    publicTransitUsePct: 9,
-    walkBikePct: 4,
-    interstatesMiles: 482,
-    bridgesTotal: 5,
-    airportsCommercial: 5,
-    trafficDeathsPer100k: 8.8,
-  },
-  ma: {
-    carOwnershipPct: 85,
-    avgCommuteMin: 31,
-    publicTransitUsePct: 10,
-    walkBikePct: 5,
-    interstatesMiles: 569,
-    bridgesTotal: 5,
-    airportsCommercial: 8,
-    trafficDeathsPer100k: 5.6,
-  },
-  mi: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 25,
-    publicTransitUsePct: 2,
-    walkBikePct: 2,
-    interstatesMiles: 1239,
-    bridgesTotal: 11,
-    airportsCommercial: 10,
-    trafficDeathsPer100k: 11.1,
-  },
-  mn: {
-    carOwnershipPct: 92,
-    avgCommuteMin: 24,
-    publicTransitUsePct: 4,
-    walkBikePct: 3,
-    interstatesMiles: 913,
-    bridgesTotal: 13,
-    airportsCommercial: 10,
-    trafficDeathsPer100k: 8.4,
-  },
-  ms: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 24,
-    publicTransitUsePct: 1,
-    walkBikePct: 1,
-    interstatesMiles: 685,
-    bridgesTotal: 17,
-    airportsCommercial: 6,
-    trafficDeathsPer100k: 22.6,
-  },
-  mo: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 24,
-    publicTransitUsePct: 2,
-    walkBikePct: 2,
-    interstatesMiles: 1431,
-    bridgesTotal: 24,
-    airportsCommercial: 8,
-    trafficDeathsPer100k: 14.5,
-  },
-  mt: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 18,
-    publicTransitUsePct: 1,
-    walkBikePct: 4,
-    interstatesMiles: 1192,
-    bridgesTotal: 5,
-    airportsCommercial: 9,
-    trafficDeathsPer100k: 22.5,
-  },
-  ne: {
-    carOwnershipPct: 94,
-    avgCommuteMin: 19,
-    publicTransitUsePct: 1,
-    walkBikePct: 3,
-    interstatesMiles: 482,
-    bridgesTotal: 15,
-    airportsCommercial: 6,
-    trafficDeathsPer100k: 11.4,
-  },
-  nv: {
-    carOwnershipPct: 89,
-    avgCommuteMin: 26,
-    publicTransitUsePct: 3,
-    walkBikePct: 3,
-    interstatesMiles: 555,
-    bridgesTotal: 2,
-    airportsCommercial: 6,
-    trafficDeathsPer100k: 15.2,
-  },
-  nh: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 27,
-    publicTransitUsePct: 2,
-    walkBikePct: 3,
-    interstatesMiles: 225,
-    bridgesTotal: 2,
-    airportsCommercial: 4,
-    trafficDeathsPer100k: 8.0,
-  },
-  nj: {
-    carOwnershipPct: 87,
-    avgCommuteMin: 33,
-    publicTransitUsePct: 11,
-    walkBikePct: 3,
-    interstatesMiles: 446,
-    bridgesTotal: 6,
-    airportsCommercial: 5,
-    trafficDeathsPer100k: 7.5,
-  },
-  nm: {
-    carOwnershipPct: 91,
-    avgCommuteMin: 23,
-    publicTransitUsePct: 1,
-    walkBikePct: 3,
-    interstatesMiles: 1001,
-    bridgesTotal: 4,
-    airportsCommercial: 5,
-    trafficDeathsPer100k: 18.7,
-  },
-  ny: {
-    carOwnershipPct: 69,
-    avgCommuteMin: 34,
-    publicTransitUsePct: 26,
-    walkBikePct: 6,
-    interstatesMiles: 1674,
-    bridgesTotal: 17,
-    airportsCommercial: 15,
-    trafficDeathsPer100k: 5.3,
-  },
-  nc: {
-    carOwnershipPct: 92,
-    avgCommuteMin: 26,
-    publicTransitUsePct: 2,
-    walkBikePct: 2,
-    interstatesMiles: 1029,
-    bridgesTotal: 18,
-    airportsCommercial: 10,
-    trafficDeathsPer100k: 13.2,
-  },
-  nd: {
-    carOwnershipPct: 94,
-    avgCommuteMin: 17,
-    publicTransitUsePct: 1,
-    walkBikePct: 4,
-    interstatesMiles: 571,
-    bridgesTotal: 4,
-    airportsCommercial: 7,
-    trafficDeathsPer100k: 15.2,
-  },
-  oh: {
-    carOwnershipPct: 92,
-    avgCommuteMin: 24,
-    publicTransitUsePct: 2,
-    walkBikePct: 2,
-    interstatesMiles: 1574,
-    bridgesTotal: 27,
-    airportsCommercial: 8,
-    trafficDeathsPer100k: 11.3,
-  },
-  ok: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 23,
-    publicTransitUsePct: 1,
-    walkBikePct: 1,
-    interstatesMiles: 928,
-    bridgesTotal: 23,
-    airportsCommercial: 7,
-    trafficDeathsPer100k: 16.3,
-  },
-  or: {
-    carOwnershipPct: 89,
-    avgCommuteMin: 25,
-    publicTransitUsePct: 4,
-    walkBikePct: 5,
-    interstatesMiles: 727,
-    bridgesTotal: 8,
-    airportsCommercial: 8,
-    trafficDeathsPer100k: 10.7,
-  },
-  pa: {
-    carOwnershipPct: 89,
-    avgCommuteMin: 28,
-    publicTransitUsePct: 6,
-    walkBikePct: 3,
-    interstatesMiles: 1587,
-    bridgesTotal: 22,
-    airportsCommercial: 10,
-    trafficDeathsPer100k: 10.5,
-  },
-  ri: {
-    carOwnershipPct: 87,
-    avgCommuteMin: 26,
-    publicTransitUsePct: 4,
-    walkBikePct: 5,
-    interstatesMiles: 71,
-    bridgesTotal: 1,
-    airportsCommercial: 1,
-    trafficDeathsPer100k: 7.8,
-  },
-  sc: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 26,
-    publicTransitUsePct: 1,
-    walkBikePct: 2,
-    interstatesMiles: 843,
-    bridgesTotal: 9,
-    airportsCommercial: 7,
-    trafficDeathsPer100k: 19.4,
-  },
-  sd: {
-    carOwnershipPct: 94,
-    avgCommuteMin: 17,
-    publicTransitUsePct: 1,
-    walkBikePct: 3,
-    interstatesMiles: 678,
-    bridgesTotal: 6,
-    airportsCommercial: 7,
-    trafficDeathsPer100k: 14.5,
-  },
-  tn: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 26,
-    publicTransitUsePct: 1,
-    walkBikePct: 2,
-    interstatesMiles: 1161,
-    bridgesTotal: 20,
-    airportsCommercial: 8,
-    trafficDeathsPer100k: 15.2,
-  },
-  tx: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 28,
-    publicTransitUsePct: 2,
-    walkBikePct: 1,
-    interstatesMiles: 3233,
-    bridgesTotal: 53,
-    airportsCommercial: 26,
-    trafficDeathsPer100k: 14.7,
-  },
-  ut: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 24,
-    publicTransitUsePct: 3,
-    walkBikePct: 3,
-    interstatesMiles: 941,
-    bridgesTotal: 3,
-    airportsCommercial: 5,
-    trafficDeathsPer100k: 11.6,
-  },
-  vt: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 23,
-    publicTransitUsePct: 2,
-    walkBikePct: 6,
-    interstatesMiles: 319,
-    bridgesTotal: 2,
-    airportsCommercial: 3,
-    trafficDeathsPer100k: 10.8,
-  },
-  va: {
-    carOwnershipPct: 91,
-    avgCommuteMin: 29,
-    publicTransitUsePct: 5,
-    walkBikePct: 3,
-    interstatesMiles: 1153,
-    bridgesTotal: 14,
-    airportsCommercial: 10,
-    trafficDeathsPer100k: 10.1,
-  },
-  wa: {
-    carOwnershipPct: 89,
-    avgCommuteMin: 28,
-    publicTransitUsePct: 6,
-    walkBikePct: 4,
-    interstatesMiles: 768,
-    bridgesTotal: 8,
-    airportsCommercial: 13,
-    trafficDeathsPer100k: 9.3,
-  },
-  wv: {
-    carOwnershipPct: 92,
-    avgCommuteMin: 26,
-    publicTransitUsePct: 1,
-    walkBikePct: 2,
-    interstatesMiles: 549,
-    bridgesTotal: 7,
-    airportsCommercial: 3,
-    trafficDeathsPer100k: 17.7,
-  },
-  wi: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 22,
-    publicTransitUsePct: 2,
-    walkBikePct: 3,
-    interstatesMiles: 739,
-    bridgesTotal: 14,
-    airportsCommercial: 8,
-    trafficDeathsPer100k: 10.3,
-  },
-  wy: {
-    carOwnershipPct: 93,
-    avgCommuteMin: 18,
-    publicTransitUsePct: 1,
-    walkBikePct: 3,
-    interstatesMiles: 916,
-    bridgesTotal: 3,
-    airportsCommercial: 6,
-    trafficDeathsPer100k: 19.0,
-  },
-};
-
-// ─── Housing Statistics per state ─────────────────────────────────────────
-interface StateHousingData {
-  medianHomePrice: number; // median home price in thousands USD
-  medianRent: number; // median monthly rent in USD
-  homeOwnershipPct: number; // % households that own their home
-  vacancyRatePct: number; // % housing units vacant
-  affordabilityIndex: number; // 0-100, higher = more affordable
-  avgMortgageRate: number; // current avg 30-yr mortgage rate %
-  housingCostBurdenPct: number; // % households spending >30% income on housing
-  newPermitsPer1k: number; // new housing permits per 1k residents (annual)
-  priceYoYChangePct: number; // YoY % change in home prices
+function ShareBar({ parts }: { parts: { name: string; pct: number; color: string }[] }) {
+  return (
+    <>
+      <div className="flex h-3 rounded-full overflow-hidden gap-px">
+        {parts.map((p) => (
+          <div key={p.name} style={{ width: `${p.pct}%`, background: p.color }} title={`${p.name}: ${p.pct}%`} />
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5">
+        {parts.map((p) => (
+          <span key={p.name} className="flex items-center gap-1 text-[10px] font-sans text-muted-foreground">
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: p.color }} />
+            {p.name} <span className="font-mono text-foreground">{p.pct}%</span>
+          </span>
+        ))}
+      </div>
+    </>
+  );
 }
-
-const STATE_HOUSING: Record<string, StateHousingData> = {
-  al: {
-    medianHomePrice: 219,
-    medianRent: 1060,
-    homeOwnershipPct: 70,
-    vacancyRatePct: 14,
-    affordabilityIndex: 68,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 26,
-    newPermitsPer1k: 4.2,
-    priceYoYChangePct: 4.1,
-  },
-  ak: {
-    medianHomePrice: 348,
-    medianRent: 1380,
-    homeOwnershipPct: 64,
-    vacancyRatePct: 8,
-    affordabilityIndex: 44,
-    avgMortgageRate: 7.1,
-    housingCostBurdenPct: 30,
-    newPermitsPer1k: 2.1,
-    priceYoYChangePct: 2.8,
-  },
-  az: {
-    medianHomePrice: 421,
-    medianRent: 1590,
-    homeOwnershipPct: 65,
-    vacancyRatePct: 11,
-    affordabilityIndex: 38,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 35,
-    newPermitsPer1k: 7.8,
-    priceYoYChangePct: 5.2,
-  },
-  ar: {
-    medianHomePrice: 185,
-    medianRent: 880,
-    homeOwnershipPct: 66,
-    vacancyRatePct: 15,
-    affordabilityIndex: 74,
-    avgMortgageRate: 6.8,
-    housingCostBurdenPct: 24,
-    newPermitsPer1k: 3.1,
-    priceYoYChangePct: 5.6,
-  },
-  ca: {
-    medianHomePrice: 790,
-    medianRent: 2540,
-    homeOwnershipPct: 56,
-    vacancyRatePct: 7,
-    affordabilityIndex: 14,
-    avgMortgageRate: 7.1,
-    housingCostBurdenPct: 51,
-    newPermitsPer1k: 2.3,
-    priceYoYChangePct: 3.8,
-  },
-  co: {
-    medianHomePrice: 580,
-    medianRent: 1880,
-    homeOwnershipPct: 65,
-    vacancyRatePct: 7,
-    affordabilityIndex: 28,
-    avgMortgageRate: 7.0,
-    housingCostBurdenPct: 38,
-    newPermitsPer1k: 5.6,
-    priceYoYChangePct: 4.0,
-  },
-  ct: {
-    medianHomePrice: 410,
-    medianRent: 1760,
-    homeOwnershipPct: 65,
-    vacancyRatePct: 8,
-    affordabilityIndex: 32,
-    avgMortgageRate: 7.0,
-    housingCostBurdenPct: 38,
-    newPermitsPer1k: 2.0,
-    priceYoYChangePct: 9.1,
-  },
-  de: {
-    medianHomePrice: 370,
-    medianRent: 1560,
-    homeOwnershipPct: 72,
-    vacancyRatePct: 10,
-    affordabilityIndex: 40,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 33,
-    newPermitsPer1k: 3.9,
-    priceYoYChangePct: 6.8,
-  },
-  fl: {
-    medianHomePrice: 416,
-    medianRent: 1870,
-    homeOwnershipPct: 65,
-    vacancyRatePct: 13,
-    affordabilityIndex: 30,
-    avgMortgageRate: 7.0,
-    housingCostBurdenPct: 43,
-    newPermitsPer1k: 8.5,
-    priceYoYChangePct: 2.1,
-  },
-  ga: {
-    medianHomePrice: 320,
-    medianRent: 1580,
-    homeOwnershipPct: 63,
-    vacancyRatePct: 12,
-    affordabilityIndex: 45,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 33,
-    newPermitsPer1k: 6.9,
-    priceYoYChangePct: 4.4,
-  },
-  hi: {
-    medianHomePrice: 850,
-    medianRent: 2800,
-    homeOwnershipPct: 60,
-    vacancyRatePct: 12,
-    affordabilityIndex: 10,
-    avgMortgageRate: 7.2,
-    housingCostBurdenPct: 55,
-    newPermitsPer1k: 1.8,
-    priceYoYChangePct: 1.5,
-  },
-  id: {
-    medianHomePrice: 430,
-    medianRent: 1450,
-    homeOwnershipPct: 70,
-    vacancyRatePct: 8,
-    affordabilityIndex: 32,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 33,
-    newPermitsPer1k: 8.2,
-    priceYoYChangePct: 3.0,
-  },
-  il: {
-    medianHomePrice: 255,
-    medianRent: 1390,
-    homeOwnershipPct: 66,
-    vacancyRatePct: 9,
-    affordabilityIndex: 55,
-    avgMortgageRate: 7.0,
-    housingCostBurdenPct: 31,
-    newPermitsPer1k: 2.2,
-    priceYoYChangePct: 7.2,
-  },
-  in: {
-    medianHomePrice: 232,
-    medianRent: 1050,
-    homeOwnershipPct: 70,
-    vacancyRatePct: 10,
-    affordabilityIndex: 64,
-    avgMortgageRate: 6.8,
-    housingCostBurdenPct: 26,
-    newPermitsPer1k: 4.8,
-    priceYoYChangePct: 6.4,
-  },
-  ia: {
-    medianHomePrice: 205,
-    medianRent: 930,
-    homeOwnershipPct: 72,
-    vacancyRatePct: 9,
-    affordabilityIndex: 68,
-    avgMortgageRate: 6.8,
-    housingCostBurdenPct: 25,
-    newPermitsPer1k: 3.7,
-    priceYoYChangePct: 5.9,
-  },
-  ks: {
-    medianHomePrice: 210,
-    medianRent: 980,
-    homeOwnershipPct: 68,
-    vacancyRatePct: 10,
-    affordabilityIndex: 66,
-    avgMortgageRate: 6.8,
-    housingCostBurdenPct: 26,
-    newPermitsPer1k: 4.0,
-    priceYoYChangePct: 5.2,
-  },
-  ky: {
-    medianHomePrice: 215,
-    medianRent: 1000,
-    homeOwnershipPct: 68,
-    vacancyRatePct: 12,
-    affordabilityIndex: 66,
-    avgMortgageRate: 6.8,
-    housingCostBurdenPct: 27,
-    newPermitsPer1k: 4.1,
-    priceYoYChangePct: 6.1,
-  },
-  la: {
-    medianHomePrice: 210,
-    medianRent: 1080,
-    homeOwnershipPct: 66,
-    vacancyRatePct: 14,
-    affordabilityIndex: 62,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 30,
-    newPermitsPer1k: 2.9,
-    priceYoYChangePct: 2.5,
-  },
-  me: {
-    medianHomePrice: 380,
-    medianRent: 1520,
-    homeOwnershipPct: 73,
-    vacancyRatePct: 17,
-    affordabilityIndex: 33,
-    avgMortgageRate: 7.0,
-    housingCostBurdenPct: 36,
-    newPermitsPer1k: 3.8,
-    priceYoYChangePct: 8.3,
-  },
-  md: {
-    medianHomePrice: 415,
-    medianRent: 1890,
-    homeOwnershipPct: 68,
-    vacancyRatePct: 8,
-    affordabilityIndex: 30,
-    avgMortgageRate: 7.0,
-    housingCostBurdenPct: 37,
-    newPermitsPer1k: 3.0,
-    priceYoYChangePct: 5.8,
-  },
-  ma: {
-    medianHomePrice: 630,
-    medianRent: 2600,
-    homeOwnershipPct: 63,
-    vacancyRatePct: 7,
-    affordabilityIndex: 18,
-    avgMortgageRate: 7.1,
-    housingCostBurdenPct: 48,
-    newPermitsPer1k: 2.4,
-    priceYoYChangePct: 7.0,
-  },
-  mi: {
-    medianHomePrice: 235,
-    medianRent: 1160,
-    homeOwnershipPct: 72,
-    vacancyRatePct: 11,
-    affordabilityIndex: 60,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 28,
-    newPermitsPer1k: 3.1,
-    priceYoYChangePct: 6.8,
-  },
-  mn: {
-    medianHomePrice: 320,
-    medianRent: 1380,
-    homeOwnershipPct: 72,
-    vacancyRatePct: 7,
-    affordabilityIndex: 48,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 30,
-    newPermitsPer1k: 3.8,
-    priceYoYChangePct: 5.5,
-  },
-  ms: {
-    medianHomePrice: 175,
-    medianRent: 870,
-    homeOwnershipPct: 68,
-    vacancyRatePct: 17,
-    affordabilityIndex: 74,
-    avgMortgageRate: 6.8,
-    housingCostBurdenPct: 26,
-    newPermitsPer1k: 2.5,
-    priceYoYChangePct: 4.2,
-  },
-  mo: {
-    medianHomePrice: 228,
-    medianRent: 1070,
-    homeOwnershipPct: 67,
-    vacancyRatePct: 11,
-    affordabilityIndex: 62,
-    avgMortgageRate: 6.8,
-    housingCostBurdenPct: 28,
-    newPermitsPer1k: 3.9,
-    priceYoYChangePct: 5.7,
-  },
-  mt: {
-    medianHomePrice: 465,
-    medianRent: 1560,
-    homeOwnershipPct: 68,
-    vacancyRatePct: 12,
-    affordabilityIndex: 27,
-    avgMortgageRate: 7.0,
-    housingCostBurdenPct: 35,
-    newPermitsPer1k: 5.9,
-    priceYoYChangePct: 4.0,
-  },
-  ne: {
-    medianHomePrice: 248,
-    medianRent: 1060,
-    homeOwnershipPct: 67,
-    vacancyRatePct: 8,
-    affordabilityIndex: 58,
-    avgMortgageRate: 6.8,
-    housingCostBurdenPct: 27,
-    newPermitsPer1k: 4.6,
-    priceYoYChangePct: 6.0,
-  },
-  nv: {
-    medianHomePrice: 420,
-    medianRent: 1700,
-    homeOwnershipPct: 58,
-    vacancyRatePct: 11,
-    affordabilityIndex: 32,
-    avgMortgageRate: 7.0,
-    housingCostBurdenPct: 40,
-    newPermitsPer1k: 6.5,
-    priceYoYChangePct: 4.8,
-  },
-  nh: {
-    medianHomePrice: 450,
-    medianRent: 1800,
-    homeOwnershipPct: 71,
-    vacancyRatePct: 9,
-    affordabilityIndex: 27,
-    avgMortgageRate: 7.0,
-    housingCostBurdenPct: 35,
-    newPermitsPer1k: 3.5,
-    priceYoYChangePct: 8.9,
-  },
-  nj: {
-    medianHomePrice: 500,
-    medianRent: 2080,
-    homeOwnershipPct: 64,
-    vacancyRatePct: 8,
-    affordabilityIndex: 22,
-    avgMortgageRate: 7.1,
-    housingCostBurdenPct: 43,
-    newPermitsPer1k: 2.5,
-    priceYoYChangePct: 8.4,
-  },
-  nm: {
-    medianHomePrice: 295,
-    medianRent: 1250,
-    homeOwnershipPct: 68,
-    vacancyRatePct: 13,
-    affordabilityIndex: 46,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 30,
-    newPermitsPer1k: 3.5,
-    priceYoYChangePct: 5.1,
-  },
-  ny: {
-    medianHomePrice: 460,
-    medianRent: 2200,
-    homeOwnershipPct: 54,
-    vacancyRatePct: 9,
-    affordabilityIndex: 18,
-    avgMortgageRate: 7.1,
-    housingCostBurdenPct: 52,
-    newPermitsPer1k: 2.0,
-    priceYoYChangePct: 6.5,
-  },
-  nc: {
-    medianHomePrice: 335,
-    medianRent: 1500,
-    homeOwnershipPct: 65,
-    vacancyRatePct: 11,
-    affordabilityIndex: 44,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 33,
-    newPermitsPer1k: 7.6,
-    priceYoYChangePct: 5.3,
-  },
-  nd: {
-    medianHomePrice: 255,
-    medianRent: 990,
-    homeOwnershipPct: 62,
-    vacancyRatePct: 9,
-    affordabilityIndex: 60,
-    avgMortgageRate: 6.8,
-    housingCostBurdenPct: 25,
-    newPermitsPer1k: 4.3,
-    priceYoYChangePct: 3.8,
-  },
-  oh: {
-    medianHomePrice: 225,
-    medianRent: 1120,
-    homeOwnershipPct: 67,
-    vacancyRatePct: 11,
-    affordabilityIndex: 62,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 28,
-    newPermitsPer1k: 3.5,
-    priceYoYChangePct: 7.0,
-  },
-  ok: {
-    medianHomePrice: 195,
-    medianRent: 1000,
-    homeOwnershipPct: 66,
-    vacancyRatePct: 13,
-    affordabilityIndex: 68,
-    avgMortgageRate: 6.8,
-    housingCostBurdenPct: 25,
-    newPermitsPer1k: 4.4,
-    priceYoYChangePct: 4.3,
-  },
-  or: {
-    medianHomePrice: 480,
-    medianRent: 1720,
-    homeOwnershipPct: 63,
-    vacancyRatePct: 8,
-    affordabilityIndex: 26,
-    avgMortgageRate: 7.0,
-    housingCostBurdenPct: 41,
-    newPermitsPer1k: 4.0,
-    priceYoYChangePct: 3.2,
-  },
-  pa: {
-    medianHomePrice: 260,
-    medianRent: 1350,
-    homeOwnershipPct: 69,
-    vacancyRatePct: 11,
-    affordabilityIndex: 52,
-    avgMortgageRate: 7.0,
-    housingCostBurdenPct: 31,
-    newPermitsPer1k: 2.6,
-    priceYoYChangePct: 7.5,
-  },
-  ri: {
-    medianHomePrice: 445,
-    medianRent: 1960,
-    homeOwnershipPct: 62,
-    vacancyRatePct: 10,
-    affordabilityIndex: 24,
-    avgMortgageRate: 7.1,
-    housingCostBurdenPct: 44,
-    newPermitsPer1k: 2.1,
-    priceYoYChangePct: 9.2,
-  },
-  sc: {
-    medianHomePrice: 295,
-    medianRent: 1380,
-    homeOwnershipPct: 72,
-    vacancyRatePct: 14,
-    affordabilityIndex: 50,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 30,
-    newPermitsPer1k: 8.1,
-    priceYoYChangePct: 4.8,
-  },
-  sd: {
-    medianHomePrice: 300,
-    medianRent: 1140,
-    homeOwnershipPct: 68,
-    vacancyRatePct: 10,
-    affordabilityIndex: 52,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 28,
-    newPermitsPer1k: 5.2,
-    priceYoYChangePct: 5.5,
-  },
-  tn: {
-    medianHomePrice: 325,
-    medianRent: 1470,
-    homeOwnershipPct: 66,
-    vacancyRatePct: 12,
-    affordabilityIndex: 44,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 32,
-    newPermitsPer1k: 7.0,
-    priceYoYChangePct: 4.0,
-  },
-  tx: {
-    medianHomePrice: 305,
-    medianRent: 1560,
-    homeOwnershipPct: 63,
-    vacancyRatePct: 11,
-    affordabilityIndex: 44,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 34,
-    newPermitsPer1k: 9.3,
-    priceYoYChangePct: 1.8,
-  },
-  ut: {
-    medianHomePrice: 515,
-    medianRent: 1650,
-    homeOwnershipPct: 70,
-    vacancyRatePct: 6,
-    affordabilityIndex: 24,
-    avgMortgageRate: 7.0,
-    housingCostBurdenPct: 37,
-    newPermitsPer1k: 8.7,
-    priceYoYChangePct: 2.5,
-  },
-  vt: {
-    medianHomePrice: 395,
-    medianRent: 1620,
-    homeOwnershipPct: 71,
-    vacancyRatePct: 17,
-    affordabilityIndex: 30,
-    avgMortgageRate: 7.0,
-    housingCostBurdenPct: 36,
-    newPermitsPer1k: 2.7,
-    priceYoYChangePct: 9.5,
-  },
-  va: {
-    medianHomePrice: 380,
-    medianRent: 1780,
-    homeOwnershipPct: 68,
-    vacancyRatePct: 9,
-    affordabilityIndex: 36,
-    avgMortgageRate: 7.0,
-    housingCostBurdenPct: 35,
-    newPermitsPer1k: 4.4,
-    priceYoYChangePct: 6.0,
-  },
-  wa: {
-    medianHomePrice: 580,
-    medianRent: 1990,
-    homeOwnershipPct: 63,
-    vacancyRatePct: 7,
-    affordabilityIndex: 20,
-    avgMortgageRate: 7.1,
-    housingCostBurdenPct: 40,
-    newPermitsPer1k: 4.8,
-    priceYoYChangePct: 4.5,
-  },
-  wv: {
-    medianHomePrice: 155,
-    medianRent: 790,
-    homeOwnershipPct: 73,
-    vacancyRatePct: 17,
-    affordabilityIndex: 78,
-    avgMortgageRate: 6.8,
-    housingCostBurdenPct: 24,
-    newPermitsPer1k: 1.4,
-    priceYoYChangePct: 5.8,
-  },
-  wi: {
-    medianHomePrice: 285,
-    medianRent: 1240,
-    homeOwnershipPct: 68,
-    vacancyRatePct: 8,
-    affordabilityIndex: 52,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 29,
-    newPermitsPer1k: 3.8,
-    priceYoYChangePct: 6.5,
-  },
-  wy: {
-    medianHomePrice: 330,
-    medianRent: 1150,
-    homeOwnershipPct: 70,
-    vacancyRatePct: 14,
-    affordabilityIndex: 46,
-    avgMortgageRate: 6.9,
-    housingCostBurdenPct: 27,
-    newPermitsPer1k: 3.8,
-    priceYoYChangePct: 4.2,
-  },
-};
-
-const DEFAULT_HOUSING: StateHousingData = {
-  medianHomePrice: 300,
-  medianRent: 1300,
-  homeOwnershipPct: 66,
-  vacancyRatePct: 10,
-  affordabilityIndex: 50,
-  avgMortgageRate: 7.0,
-  housingCostBurdenPct: 30,
-  newPermitsPer1k: 4.0,
-  priceYoYChangePct: 4.5,
-};
-
 
 function HousingPanel({ state }: { state: USState }) {
-  const hd = STATE_HOUSING[state.id] ?? DEFAULT_HOUSING;
-
-  const ownershipData = [
-    { name: "Owner-Occupied", pct: hd.homeOwnershipPct, color: "#60a5fa" },
-    {
-      name: "Renter-Occupied",
-      pct: Math.max(0, 100 - hd.homeOwnershipPct - hd.vacancyRatePct),
-      color: "#34d399",
-    },
-    { name: "Vacant", pct: hd.vacancyRatePct, color: "#94a3b8" },
-  ];
-
-  const affordabilityLabel =
-    hd.affordabilityIndex >= 60
-      ? "Affordable"
-      : hd.affordabilityIndex >= 35
-        ? "Moderate"
-        : hd.affordabilityIndex >= 20
-          ? "Expensive"
-          : "Very Expensive";
-
-  const affordabilityColor =
-    hd.affordabilityIndex >= 60
-      ? "text-success"
-      : hd.affordabilityIndex >= 35
-        ? "text-warning"
-        : hd.affordabilityIndex >= 20
-          ? "text-orange-400"
-          : "text-destructive";
-
-  const yoyColor =
-    hd.priceYoYChangePct >= 7
-      ? "text-destructive"
-      : hd.priceYoYChangePct >= 4
-        ? "text-warning"
-        : "text-success";
-
-  const barChartData = [
-    { label: "Ownership", value: hd.homeOwnershipPct, fill: "#60a5fa" },
-    { label: "Cost Burden", value: hd.housingCostBurdenPct, fill: "#f87171" },
-    { label: "Vacancy", value: hd.vacancyRatePct, fill: "#94a3b8" },
-    { label: "Affordability", value: hd.affordabilityIndex, fill: "#34d399" },
-  ];
-
+  const h = STATE_INDICATORS[state.id]?.housing;
+  if (!h) return null;
+  const renter = Math.round((100 - h.homeOwnershipPct) * 10) / 10;
   return (
     <div className="modal-tile rounded-xl p-4 mt-4 border border-border/50">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-1.5 bg-amber-500/10 rounded-md border border-amber-500/20 shrink-0">
-          <svg
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="text-amber-400"
-          >
-            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-            Housing Statistics
-          </h3>
-          <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-            Home prices, rent, affordability &amp; ownership
-          </p>
-        </div>
-        <span
-          className={`ml-auto text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${hd.affordabilityIndex >= 60 ? "text-success bg-success/10 border-success/30" : hd.affordabilityIndex >= 35 ? "text-warning bg-warning/10 border-warning/30" : hd.affordabilityIndex >= 20 ? "text-orange-400 bg-orange-500/10 border-orange-500/30" : "text-destructive bg-destructive/10 border-destructive/30"}`}
-        >
-          {affordabilityLabel}
-        </span>
-      </div>
-
-      {/* 4 key stat tiles */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-          <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-            Median Home Price
-          </p>
-          <p className="text-base font-bold font-mono text-amber-400">
-            ${hd.medianHomePrice}K
-          </p>
-          <p className="text-[9px] text-muted-foreground font-sans">
-            2025 estimate
-          </p>
-        </div>
-        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-          <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-            Median Rent
-          </p>
-          <p className="text-base font-bold font-mono text-blue-400">
-            ${hd.medianRent.toLocaleString()}/mo
-          </p>
-          <p className="text-[9px] text-muted-foreground font-sans">monthly</p>
-        </div>
-        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-          <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-            Ownership Rate
-          </p>
-          <p className="text-base font-bold font-mono text-green-400">
-            {hd.homeOwnershipPct}%
-          </p>
-          <p className="text-[9px] text-muted-foreground font-sans">
-            households
-          </p>
-        </div>
-        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-          <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-            YoY Price Change
-          </p>
-          <p className={`text-base font-bold font-mono ${yoyColor}`}>
-            +{hd.priceYoYChangePct}%
-          </p>
-          <p className="text-[9px] text-muted-foreground font-sans">
-            annual change
-          </p>
-        </div>
-      </div>
-
-      {/* Charts row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
-        {/* Donut: occupancy breakdown */}
-        <div>
-          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-            Housing Occupancy Split
-          </p>
-          <div className="h-40">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <defs>
-                  {ownershipData.map((d, i) => (
-                    <linearGradient
-                      key={i}
-                      id={`housingGrad-${state.id}-${i}`}
-                      x1="0"
-                      y1="0"
-                      x2="1"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor={d.color} stopOpacity={0.9} />
-                      <stop
-                        offset="100%"
-                        stopColor={d.color}
-                        stopOpacity={0.6}
-                      />
-                    </linearGradient>
-                  ))}
-                </defs>
-                <Pie
-                  data={ownershipData}
-                  dataKey="pct"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={28}
-                  outerRadius={54}
-                  paddingAngle={2}
-                  isAnimationActive
-                  animationDuration={600}
-                >
-                  {ownershipData.map((_, i) => (
-                    <Cell key={i} fill={`url(#housingGrad-${state.id}-${i})`} />
-                  ))}
-                </Pie>
-                <Tooltip content={<ChartTip />} />
-                <Legend
-                  iconType="circle"
-                  iconSize={7}
-                  wrapperStyle={{ fontSize: 9, fontFamily: "IBM Plex Mono" }}
-                  formatter={(v) => (
-                    <span style={{ color: "hsl(0,0%,65%)" }}>{v}</span>
-                  )}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Bar chart: key housing metrics */}
-        <div>
-          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-            Housing Metrics (%)
-          </p>
-          <div className="h-40">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={barChartData}
-                margin={{ top: 4, right: 8, left: 0, bottom: 4 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="hsl(222,30%,22%)"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="label"
-                  tick={{
-                    fill: "hsl(0,0%,60%)",
-                    fontSize: 9,
-                    fontFamily: "IBM Plex Mono",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{
-                    fill: "hsl(0,0%,55%)",
-                    fontSize: 9,
-                    fontFamily: "IBM Plex Mono",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={28}
-                  domain={[0, 100]}
-                  tickFormatter={(v) => `${v}`}
-                />
-                <Tooltip
-                  content={({ active, payload }: any) => {
-                    if (!active || !payload?.length) return null;
-                    return (
-                      <div className="bg-card border border-border rounded-md p-2 text-xs font-mono shadow-lg">
-                        <p style={{ color: payload[0].payload.fill }}>
-                          {payload[0].payload.label}: {payload[0].value}%
-                        </p>
-                      </div>
-                    );
-                  }}
-                />
-                <Bar
-                  dataKey="value"
-                  radius={[4, 4, 0, 0]}
-                  isAnimationActive
-                  animationDuration={600}
-                >
-                  {barChartData.map((d, i) => (
-                    <Cell key={i} fill={d.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* Affordability index bar */}
-      <div className="rounded-lg border border-border bg-background/40 p-3 mb-3">
-        <div className="flex items-center justify-between mb-1">
-          <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider">
-            🏠 Housing Affordability Index
-          </p>
-          <span className={`text-xs font-bold font-mono ${affordabilityColor}`}>
-            {hd.affordabilityIndex}/100
-          </span>
-        </div>
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-700"
-            style={{
-              width: `${hd.affordabilityIndex}%`,
-              background:
-                hd.affordabilityIndex >= 60
-                  ? "hsl(142,71%,45%)"
-                  : hd.affordabilityIndex >= 35
-                    ? "hsl(38,92%,50%)"
-                    : hd.affordabilityIndex >= 20
-                      ? "hsl(24,95%,50%)"
-                      : "hsl(0,70%,55%)",
-            }}
-          />
-        </div>
-        <p className="text-[9px] text-muted-foreground font-sans mt-1">
-          {hd.affordabilityIndex >= 60
-            ? "Below national average cost burden — relatively affordable market"
-            : hd.affordabilityIndex >= 35
-              ? "Near national average — moderate housing cost pressure"
-              : hd.affordabilityIndex >= 20
-                ? "Above average cost burden — challenging market for buyers & renters"
-                : "Severely unaffordable — among the most expensive housing markets in the US"}
+      <div className="mb-4">
+        <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+          Housing
+        </h3>
+        <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+          American Community Survey, {h.y}
         </p>
       </div>
-
-      {/* Quick facts row */}
-      <div className="flex flex-wrap gap-2">
-        {[
-          { label: "Cost Burden", value: `${hd.housingCostBurdenPct}%` },
-          { label: "Avg Mortgage Rate", value: `${hd.avgMortgageRate}%` },
-          { label: "New Permits/1k", value: hd.newPermitsPer1k.toFixed(1) },
-          { label: "Vacancy Rate", value: `${hd.vacancyRatePct}%` },
-        ].map((f) => (
-          <div
-            key={f.label}
-            className="flex-1 min-w-[80px] rounded-lg border border-border/40 bg-background/30 px-2.5 py-2 text-center"
-          >
-            <p className="text-[10px] text-muted-foreground font-sans">
-              {f.label}
-            </p>
-            <p className="text-sm font-bold font-mono text-foreground">
-              {f.value}
-            </p>
-          </div>
-        ))}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+        <MiniStat label="Median home value" value={`$${Math.round(h.medianHomeValue / 1000)}K`} sub="owner-occupied" />
+        <MiniStat label="Median gross rent" value={`$${h.medianRent.toLocaleString()}`} sub="per month" />
+        <MiniStat label="Vacant homes" value={`${h.vacancyPct}%`} sub="of housing units" />
+        <MiniStat label="Rent-burdened" value={`${h.rentBurdenPct}%`} sub="renters paying 30%+ of income" />
       </div>
-
-      <SourceLink
-        sources={[
-          {
-            label: "Zillow Research",
-            url: "https://www.zillow.com/research/data/",
-          },
-          {
-            label: "Census Bureau ACS",
-            url: "https://www.census.gov/programs-surveys/acs/data.html",
-          },
-          {
-            label: "FHFA House Price Index",
-            url: "https://www.fhfa.gov/data/hpi",
-          },
+      <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+        Occupied homes
+      </p>
+      <ShareBar
+        parts={[
+          { name: "Owner-occupied", pct: h.homeOwnershipPct, color: "#60a5fa" },
+          { name: "Renter-occupied", pct: renter, color: "#34d399" },
         ]}
-        className="mt-3"
       />
+      <SourceLink sources={[STATE_SOURCES.acs]} className="mt-3" />
     </div>
   );
 }
-
-const DEFAULT_TRANSPORT: StateTransportData = {
-  carOwnershipPct: 91,
-  avgCommuteMin: 25,
-  publicTransitUsePct: 2,
-  walkBikePct: 3,
-  interstatesMiles: 600,
-  bridgesTotal: 8,
-  airportsCommercial: 5,
-  trafficDeathsPer100k: 13.0,
-};
-
 
 function TransportationPanel({ state }: { state: USState }) {
-  const td = STATE_TRANSPORT[state.id] ?? DEFAULT_TRANSPORT;
-
-  const commuteModeData = [
-    {
-      name: "Drive/Carpool",
-      pct: Math.max(0, 100 - td.publicTransitUsePct - td.walkBikePct - 3),
-      color: "#60a5fa",
-    },
-    { name: "Public Transit", pct: td.publicTransitUsePct, color: "#34d399" },
-    { name: "Walk / Bike", pct: td.walkBikePct, color: "#fbbf24" },
-    { name: "Work from Home", pct: 3, color: "#a78bfa" },
-  ];
-
-
+  const c = STATE_INDICATORS[state.id]?.commute;
+  if (!c) return null;
+  const other = Math.max(0, Math.round((100 - c.carTruckVanPct - c.transitPct - c.walkBikePct - c.workFromHomePct) * 10) / 10);
   return (
     <div className="modal-tile rounded-xl p-4 mt-4 border border-border/50">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-1.5 bg-blue-500/10 rounded-md border border-blue-500/20 shrink-0">
-          <svg
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="text-blue-400"
-          >
-            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-            Transportation Statistics
-          </h3>
-          <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-            Commute, transit, infrastructure &amp; road safety
-          </p>
-        </div>
-      </div>
-
-      {/* 4 key stat tiles */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-          <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-            Car Ownership
-          </p>
-          <p className="text-base font-bold font-mono text-blue-400">
-            {td.carOwnershipPct}%
-          </p>
-          <p className="text-[9px] text-muted-foreground font-sans">
-            households
-          </p>
-        </div>
-        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-          <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-            Avg Commute
-          </p>
-          <p className="text-base font-bold font-mono text-green-400">
-            {td.avgCommuteMin} min
-          </p>
-          <p className="text-[9px] text-muted-foreground font-sans">one way</p>
-        </div>
-        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-          <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-            Interstates
-          </p>
-          <p className="text-base font-bold font-mono text-amber-400">
-            {td.interstatesMiles.toLocaleString()} mi
-          </p>
-          <p className="text-[9px] text-muted-foreground font-sans">
-            total miles
-          </p>
-        </div>
-        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-          <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-            Traffic Deaths
-          </p>
-          <p
-            className={`text-base font-bold font-mono ${td.trafficDeathsPer100k >= 17 ? "text-destructive" : td.trafficDeathsPer100k >= 11 ? "text-warning" : "text-success"}`}
-          >
-            {td.trafficDeathsPer100k}
-          </p>
-          <p className="text-[9px] text-muted-foreground font-sans">per 100k</p>
-        </div>
-      </div>
-
-      {/* Commute mode breakdown chart + bars side by side */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
-        {/* Donut chart — commute modes */}
-        <div>
-          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-            Commute Mode Split
-          </p>
-          <div className="h-40">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <defs>
-                  {commuteModeData.map((d, i) => (
-                    <linearGradient
-                      key={i}
-                      id={`transGrad-${state.id}-${i}`}
-                      x1="0"
-                      y1="0"
-                      x2="1"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor={d.color} stopOpacity={0.9} />
-                      <stop
-                        offset="100%"
-                        stopColor={d.color}
-                        stopOpacity={0.6}
-                      />
-                    </linearGradient>
-                  ))}
-                </defs>
-                <Pie
-                  data={commuteModeData}
-                  dataKey="pct"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={28}
-                  outerRadius={54}
-                  paddingAngle={2}
-                  isAnimationActive
-                  animationDuration={600}
-                >
-                  {commuteModeData.map((_d, i) => (
-                    <Cell key={i} fill={`url(#transGrad-${state.id}-${i})`} />
-                  ))}
-                </Pie>
-                <Tooltip content={<ChartTip />} />
-                <Legend
-                  iconType="circle"
-                  iconSize={7}
-                  wrapperStyle={{ fontSize: 9, fontFamily: "IBM Plex Mono" }}
-                  formatter={(v) => (
-                    <span style={{ color: "hsl(0,0%,65%)" }}>{v}</span>
-                  )}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Horizontal bar chart — transit vs walk vs drive */}
-        <div>
-          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-            Infrastructure &amp; Access
-          </p>
-          <div className="h-40">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={[
-                  {
-                    label: "Car Own.",
-                    value: td.carOwnershipPct,
-                    fill: "#60a5fa",
-                  },
-                  {
-                    label: "Transit",
-                    value: td.publicTransitUsePct * 4,
-                    fill: "#34d399",
-                  },
-                  {
-                    label: "Walk/Bike",
-                    value: td.walkBikePct * 4,
-                    fill: "#fbbf24",
-                  },
-                  {
-                    label: "Airports",
-                    value: Math.min(100, td.airportsCommercial * 2),
-                    fill: "#a78bfa",
-                  },
-                ]}
-                margin={{ top: 4, right: 8, left: 0, bottom: 4 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="hsl(222,30%,22%)"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="label"
-                  tick={{
-                    fill: "hsl(0,0%,60%)",
-                    fontSize: 9,
-                    fontFamily: "IBM Plex Mono",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{
-                    fill: "hsl(0,0%,55%)",
-                    fontSize: 9,
-                    fontFamily: "IBM Plex Mono",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={28}
-                  domain={[0, 100]}
-                  tickFormatter={(v) => `${v}`}
-                />
-                <Tooltip
-                  content={({ active, payload }: any) => {
-                    if (!active || !payload?.length) return null;
-                    return (
-                      <div className="bg-card border border-border rounded-md p-2 text-xs font-mono shadow-lg">
-                        <p style={{ color: payload[0].payload.fill }}>
-                          {payload[0].payload.label}: {payload[0].value}
-                        </p>
-                      </div>
-                    );
-                  }}
-                />
-                <Bar
-                  dataKey="value"
-                  radius={[4, 4, 0, 0]}
-                  isAnimationActive
-                  animationDuration={600}
-                >
-                  {[
-                    { fill: "#60a5fa" },
-                    { fill: "#34d399" },
-                    { fill: "#fbbf24" },
-                    { fill: "#a78bfa" },
-                  ].map((d, i) => (
-                    <Cell key={i} fill={d.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* Road safety progress bar */}
-      <div className="rounded-lg border border-border bg-background/40 p-3 mb-3">
-        <div className="flex items-center justify-between mb-1">
-          <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider">
-            🛣️ Road Safety Index
-          </p>
-          <span
-            className={`text-xs font-bold font-mono ${td.trafficDeathsPer100k >= 17 ? "text-destructive" : td.trafficDeathsPer100k >= 11 ? "text-warning" : "text-success"}`}
-          >
-            {td.trafficDeathsPer100k}/100k fatalities
-          </span>
-        </div>
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-700"
-            style={{
-              width: `${Math.min(100, (td.trafficDeathsPer100k / 25) * 100)}%`,
-              background:
-                td.trafficDeathsPer100k >= 17
-                  ? "hsl(0,70%,55%)"
-                  : td.trafficDeathsPer100k >= 11
-                    ? "hsl(38,92%,50%)"
-                    : "hsl(142,71%,45%)",
-            }}
-          />
-        </div>
-        <p className="text-[9px] text-muted-foreground font-sans mt-1">
-          {td.trafficDeathsPer100k >= 17
-            ? "Above average — elevated road fatality risk"
-            : td.trafficDeathsPer100k >= 11
-              ? "Near national average (~13/100k)"
-              : "Below national average — safer roads"}
+      <div className="mb-4">
+        <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
+          Commuting
+        </h3>
+        <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+          Workers 16 and over, American Community Survey, {c.y}
         </p>
       </div>
-
-      {/* Quick facts row */}
-      <div className="flex flex-wrap gap-2">
-        {[
-          { label: "Commercial Airports", value: td.airportsCommercial },
-          { label: "Bridges (est.)", value: `${td.bridgesTotal}K` },
-          {
-            label: "Interstate Miles",
-            value: td.interstatesMiles.toLocaleString(),
-          },
-          { label: "Transit Use", value: `${td.publicTransitUsePct}%` },
-        ].map((f) => (
-          <div
-            key={f.label}
-            className="flex-1 min-w-[80px] rounded-lg border border-border/40 bg-background/30 px-2.5 py-2 text-center"
-          >
-            <p className="text-[10px] text-muted-foreground font-sans">
-              {f.label}
-            </p>
-            <p className="text-sm font-bold font-mono text-foreground">
-              {f.value}
-            </p>
-          </div>
-        ))}
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <MiniStat label="Mean commute" value={`${c.meanCommuteMin} min`} sub="one way, excluding home workers" />
+        <MiniStat label="Households with a vehicle" value={`${c.householdsWithVehiclePct}%`} />
       </div>
-
-      <SourceLink
-        sources={[
-          {
-            label: "US DOT / FHWA",
-            url: "https://www.fhwa.dot.gov/policyinformation/statistics.cfm",
-          },
-          {
-            label: "NHTSA Traffic Safety",
-            url: "https://www.nhtsa.gov/research-data",
-          },
-          {
-            label: "ACS Commute Data",
-            url: "https://www.census.gov/topics/employment/commuting.html",
-          },
+      <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+        How people get to work
+      </p>
+      <ShareBar
+        parts={[
+          { name: "Car, truck or van", pct: c.carTruckVanPct, color: "#60a5fa" },
+          { name: "Public transit", pct: c.transitPct, color: "#34d399" },
+          { name: "Walk or bike", pct: c.walkBikePct, color: "#fbbf24" },
+          { name: "Work from home", pct: c.workFromHomePct, color: "#a78bfa" },
+          { name: "Other", pct: other, color: "#94a3b8" },
         ]}
-        className="mt-3"
       />
+      <SourceLink sources={[STATE_SOURCES.acs]} className="mt-3" />
     </div>
   );
 }
 
-// ─── Mean elevation lookup (feet) per state ──────────────────────────────
 const STATE_ELEVATION_FT: Record<string, number> = {
   al: 500,
   ak: 1900,
@@ -1836,35 +193,10 @@ const STATE_ELEVATION_FT: Record<string, number> = {
 };
 
 // ── Source citation constants ────────────────────────────────────────────
-const SRC_BLS = [
-  { label: "Bureau of Labor Statistics", url: "https://www.bls.gov/data/" },
-  { label: "US Census Bureau", url: "https://data.census.gov/" },
-];
-const SRC_BEA = [
-  {
-    label: "Bureau of Economic Analysis",
-    url: "https://www.bea.gov/data/gdp/gdp-state",
-  },
-];
-const SRC_CENSUS = [
-  {
-    label: "US Census Bureau – ACS",
-    url: "https://www.census.gov/programs-surveys/acs/data.html",
-  },
-];
-const SRC_CONGRESS = [
-  { label: "Congress.gov", url: "https://www.congress.gov/" },
-  {
-    label: "National Conference of State Legislatures",
-    url: "https://www.ncsl.org/",
-  },
-];
-const SRC_EIA = [
-  {
-    label: "US Energy Information Administration",
-    url: "https://www.eia.gov/state/",
-  },
-];
+const SRC_BLS = [STATE_SOURCES.bls, STATE_SOURCES.population];
+const SRC_BEA = [STATE_SOURCES.bea];
+const SRC_CENSUS = [STATE_SOURCES.acs, STATE_SOURCES.population];
+const SRC_CONGRESS = [STATE_SOURCES.congress, STATE_SOURCES.apportionment, STATE_SOURCES.governors];
 
 const partyColor = {
   Democrat: "text-secondary border-secondary bg-secondary/10",
@@ -1880,7 +212,6 @@ const ETHNICITY_COLORS = [
   "#fbbf24",
   "#a78bfa",
 ];
-const LAND_COLORS = ["#f97316", "#84cc16", "#22d3ee", "#3b82f6", "#94a3b8"];
 const AGE_COLORS = ["#a78bfa", "#60a5fa", "#34d399", "#fbbf24", "#f87171"];
 const VOTER_COLORS = ["#3b82f6", "#ef4444", "#a3a3a3"];
 const WEALTH_COLORS = ["#22d3ee", "#60a5fa", "#fbbf24", "#f87171"];
@@ -2036,9 +367,13 @@ function DemographicsCharts({ state }: { state: USState }) {
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {/* 1. Ethnicity */}
       <div className="modal-tile rounded-lg p-4">
-        <h4 className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider mb-3">
-          Ethnicity / Demographics
+        <h4 className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider mb-1">
+          Race &amp; Hispanic Origin
         </h4>
+        <p className="text-[10px] text-muted-foreground font-sans mb-2">
+          Census estimates, {state.figureYears?.ethnicity}. White, Black and Asian
+          are non-Hispanic and single-race; Hispanic is of any race.
+        </p>
         <div className="h-44">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -2097,73 +432,12 @@ function DemographicsCharts({ state }: { state: USState }) {
         </div>
       </div>
 
-      {/* 2. Land Use */}
-      <div className="modal-tile rounded-lg p-4">
-        <h4 className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider mb-3">
-          Land Use / Distribution
-        </h4>
-        <div className="h-44">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <defs>
-                {state.landUse.map((_, i) => (
-                  <linearGradient
-                    key={i}
-                    id={`landGrad-${id}-${i}`}
-                    x1="0"
-                    y1="0"
-                    x2="1"
-                    y2="1"
-                  >
-                    <stop
-                      offset="0%"
-                      stopColor={LAND_COLORS[i % LAND_COLORS.length]}
-                      stopOpacity={0.9}
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor={LAND_COLORS[i % LAND_COLORS.length]}
-                      stopOpacity={0.6}
-                    />
-                  </linearGradient>
-                ))}
-              </defs>
-              <Pie
-                data={state.landUse}
-                dataKey="pct"
-                nameKey="type"
-                cx="50%"
-                cy="50%"
-                innerRadius={32}
-                outerRadius={60}
-                paddingAngle={2}
-                isAnimationActive
-                animationDuration={600}
-              >
-                {state.landUse.map((_, i) => (
-                  <Cell key={i} fill={`url(#landGrad-${id}-${i})`} />
-                ))}
-              </Pie>
-              <Tooltip content={<ChartTip />} />
-              <Legend
-                iconType="circle"
-                iconSize={8}
-                wrapperStyle={{ fontSize: 10, fontFamily: "IBM Plex Mono" }}
-                formatter={(v) => (
-                  <span style={{ color: "hsl(0,0%,65%)" }}>{v}</span>
-                )}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
       {/* 3. Age Distribution */}
       <div className="modal-tile rounded-lg p-4">
         <h4 className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider mb-2">
           Age Distribution{" "}
           <span className="text-muted-foreground normal-case font-normal">
-            (median {state.medianAge} yrs)
+            ({state.figureYears?.ageGroups}; median {state.medianAge} yrs, ACS {state.figureYears?.medianAge})
           </span>
         </h4>
         <div className="flex flex-col gap-1.5 mt-2">
@@ -2181,7 +455,7 @@ function DemographicsCharts({ state }: { state: USState }) {
       {/* 4. Voter Registration */}
       <div className="modal-tile rounded-lg p-4">
         <h4 className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider mb-3">
-          Voter Registration
+          {state.figureYears?.voterShare} Presidential Vote
         </h4>
         <div className="h-36">
           <ResponsiveContainer width="100%" height="100%">
@@ -2237,9 +511,13 @@ function DemographicsCharts({ state }: { state: USState }) {
 
       {/* 5. Wealth & Poverty */}
       <div className="modal-tile rounded-lg p-4">
-        <h4 className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider mb-3">
-          Wealth &amp; Poverty
+        <h4 className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider mb-1">
+          Income vs Poverty Line
         </h4>
+        <p className="text-[10px] text-muted-foreground font-sans mb-2">
+          Share of people by household income relative to the federal poverty
+          line, ACS {state.figureYears?.wealthPoverty}
+        </p>
         <div className="h-36">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
@@ -2292,9 +570,12 @@ function DemographicsCharts({ state }: { state: USState }) {
       </div>
 
       {/* 6. Energy Production */}
-      <div className="modal-tile rounded-lg p-4">
+      <div className="modal-tile rounded-lg p-4 sm:col-span-2">
         <h4 className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider mb-2">
-          Energy Production Mix
+          Electricity Generation Mix{" "}
+          <span className="text-muted-foreground normal-case font-normal">
+            ({state.figureYears?.energyMix})
+          </span>
         </h4>
         <div className="flex flex-col gap-1.5 mt-2">
           {state.energyMix
@@ -2308,7 +589,12 @@ function DemographicsCharts({ state }: { state: USState }) {
               />
             ))}
         </div>
-        <SourceLink sources={SRC_EIA} className="mt-2" />
+        <SourceLink sources={[STATE_SOURCES.eia]} className="mt-2" />
+      </div>
+      <div className="sm:col-span-2">
+        <SourceLink
+          sources={[STATE_SOURCES.population, STATE_SOURCES.acs, STATE_SOURCES.fec]}
+        />
       </div>
     </div>
   );
@@ -3621,15 +1907,6 @@ const STATE_EDUCATION: Record<string, StateEducationData> = {
   },
 };
 
-const DEFAULT_STATE_EDUCATION: StateEducationData = {
-  literacyRate: 88,
-  avgSchoolingYears: 13.0,
-  topSchools: [
-    { name: "State University", rankTag: "Main campus", type: "Public" },
-    { name: "State Technical College", type: "Technical" },
-  ],
-  eduNotes: "Education data being compiled.",
-};
 
 const TYPE_COLORS: Record<string, string> = {
   Public: "text-blue-400 border-blue-500/30 bg-blue-500/10",
@@ -3640,8 +1917,19 @@ const TYPE_COLORS: Record<string, string> = {
   HBCU: "text-amber-400 border-amber-500/30 bg-amber-500/10",
 };
 
+/**
+ * Education attainment from the Census Bureau's ACS, with the major
+ * universities kept from the written table by name only.
+ *
+ * Replaced: a literacy rate and "average schooling" per state with no source
+ * or year, an education rank credited to US News that could not be checked,
+ * rank tags on each university, uncited notes, and a DEFAULT that gave any
+ * state without an entry a "State University" and a "State Technical College".
+ */
 function StateEducationPanel({ state }: { state: USState }) {
-  const edu = STATE_EDUCATION[state.id] ?? DEFAULT_STATE_EDUCATION;
+  const e = STATE_INDICATORS[state.id]?.education;
+  const schools = STATE_EDUCATION[state.id]?.topSchools ?? [];
+  if (!e && schools.length === 0) return null;
 
   return (
     <div className="modal-tile rounded-lg p-4 mt-4">
@@ -3655,127 +1943,58 @@ function StateEducationPanel({ state }: { state: USState }) {
         </div>
         <div>
           <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-            Education Ranking & Top Schools
+            Education
           </h3>
           <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-            US News rankings, literacy & top universities
-          </p>
-        </div>
-        <span className="ml-auto text-[10px] font-mono text-indigo-400 border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 rounded-full">
-          #{state.educationRank}/50 States
-        </span>
-      </div>
-
-      {/* Stats Row */}
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-          <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-            Literacy Rate
-          </p>
-          <p
-            className={`text-base font-bold font-mono ${edu.literacyRate >= 92 ? "text-success" : edu.literacyRate >= 87 ? "text-warning" : "text-destructive"}`}
-          >
-            {edu.literacyRate}%
-          </p>
-        </div>
-        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-          <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-            Avg. Schooling
-          </p>
-          <p className="text-base font-bold font-mono text-foreground">
-            {edu.avgSchoolingYears} yrs
-          </p>
-        </div>
-        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-          <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-            Edu Rank
-          </p>
-          <p
-            className={`text-base font-bold font-mono ${state.educationRank <= 10 ? "text-success" : state.educationRank <= 25 ? "text-secondary" : state.educationRank <= 40 ? "text-warning" : "text-destructive"}`}
-          >
-            #{state.educationRank}
+            {e ? `Adults 25 and over, American Community Survey ${e.y}` : "Major universities"}
           </p>
         </div>
       </div>
 
-      {/* Literacy bar */}
-      <div className="mb-4">
-        <div className="flex justify-between text-[10px] mb-1">
-          <span className="text-muted-foreground font-sans">Literacy Rate</span>
-          <span
-            className={`font-mono font-semibold ${edu.literacyRate >= 92 ? "text-success" : edu.literacyRate >= 87 ? "text-warning" : "text-destructive"}`}
-          >
-            {edu.literacyRate}%
-          </span>
-        </div>
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-700"
-            style={{
-              width: `${edu.literacyRate}%`,
-              background:
-                edu.literacyRate >= 92
-                  ? "hsl(142,71%,45%)"
-                  : edu.literacyRate >= 87
-                    ? "hsl(38,92%,50%)"
-                    : "hsl(0,70%,55%)",
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Top Schools */}
-      <div className="mb-3">
-        <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-          Top Universities & Schools
-        </p>
-        <div className="space-y-2">
-          {edu.topSchools.map((u, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-2.5 p-2 rounded-lg bg-background/30 border border-border/40"
-            >
-              <span className="w-5 h-5 flex items-center justify-center rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-mono font-bold shrink-0">
-                {i + 1}
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-sans font-medium text-foreground truncate">
-                  {u.name}
-                </p>
-                {u.rankTag && (
-                  <p className="text-[10px] font-mono text-muted-foreground">
-                    {u.rankTag}
-                  </p>
-                )}
+      {e && (
+        <div className="space-y-3 mb-4">
+          {[
+            { label: "High school diploma or higher", pct: e.highSchoolOrHigherPct, color: "hsl(200,85%,55%)" },
+            { label: "Bachelor's degree or higher", pct: e.bachelorsOrHigherPct, color: "hsl(260,70%,65%)" },
+          ].map((b) => (
+            <div key={b.label}>
+              <div className="flex justify-between text-[10px] mb-1">
+                <span className="text-muted-foreground font-sans">{b.label}</span>
+                <span className="font-mono font-semibold text-foreground">{b.pct}%</span>
               </div>
-              <span
-                className={`text-[10px] font-sans px-1.5 py-0.5 rounded-full border shrink-0 ${TYPE_COLORS[u.type] ?? "text-secondary border-secondary/30 bg-secondary/10"}`}
-              >
-                {u.type}
-              </span>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div className="h-full rounded-full" style={{ width: `${b.pct}%`, background: b.color }} />
+              </div>
             </div>
           ))}
         </div>
-      </div>
+      )}
 
-      {/* Notes */}
-      {edu.eduNotes && (
-        <div className="rounded-lg bg-indigo-500/5 border border-indigo-500/20 p-3">
-          <p className="text-[11px] font-sans text-muted-foreground leading-relaxed">
-            {edu.eduNotes}
+      {schools.length > 0 && (
+        <div className="mb-3">
+          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+            Major Universities
           </p>
+          <div className="space-y-2">
+            {schools.map((u) => (
+              <div
+                key={u.name}
+                className="flex items-center gap-2.5 p-2 rounded-lg bg-background/30 border border-border/40"
+              >
+                <p className="flex-1 min-w-0 text-xs font-sans font-medium text-foreground truncate">
+                  {u.name}
+                </p>
+                <span
+                  className={`text-[10px] font-sans px-1.5 py-0.5 rounded-full border shrink-0 ${TYPE_COLORS[u.type] ?? "text-secondary border-secondary/30 bg-secondary/10"}`}
+                >
+                  {u.type}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
-      <SourceLink
-        sources={[
-          {
-            label: "US News Education Rankings",
-            url: "https://www.usnews.com/education/best-colleges",
-          },
-          { label: "NCES Education Stats", url: "https://nces.ed.gov/" },
-        ]}
-        className="mt-2"
-      />
+      {e && <SourceLink sources={[STATE_SOURCES.acs]} className="mt-2" />}
     </div>
   );
 }
@@ -7959,8 +6178,16 @@ function StateLawsTab({ state }: { state: USState }) {
           <p className="text-xs text-muted-foreground font-sans mt-0.5">
             What is legal, illegal, restricted, or varies by topic in this state
           </p>
+          {/* This header cited the congress-legislators, apportionment and
+              governors datasets, none of which say anything about state law.
+              The statuses below are written by hand and have not yet been
+              checked against statute, so the page says that instead. */}
+          <p className="text-[10px] text-muted-foreground font-sans mt-1.5 leading-relaxed">
+            Compiled summary, not yet checked against each state's statutes.
+            Laws change; confirm with official state sources before relying
+            on any entry.
+          </p>
         </div>
-        <SourceLink sources={SRC_CONGRESS} />
       </div>
 
       {/* Legal Status Grid — full focus */}
@@ -8317,7 +6544,7 @@ function StateModal({
                     <StatCard
                       label="Population"
                       value={`${(state.population / 1e6).toFixed(1)}M`}
-                      sub="residents"
+                      sub={`Census estimate, ${state.figureYears?.population ?? ""}`}
                     />
                     <StatCard
                       label="Mean Elevation"
@@ -8325,14 +6552,18 @@ function StateModal({
                       sub={`~${Math.round((STATE_ELEVATION_FT[state.id] ?? 0) * 0.3048)} m`}
                     />
                     <StatCard
-                      label="Governor Approval"
-                      value={`${state.approvalRating}%`}
-                      sub="approval rating"
+                      label="Governor"
+                      value={state.governor}
+                      sub={`${state.party}, since ${STATE_INDICATORS[state.id]?.governor.since.slice(0, 4) ?? ""}`}
                     />
                     <StatCard
-                      label="Political Lean"
-                      value={state.party}
-                      sub="dominant party"
+                      label="2024 President"
+                      value={(() => {
+                        const d = state.voterShare.find((v) => v.party === "Democrat")?.pct ?? 0;
+                        const r = state.voterShare.find((v) => v.party === "Republican")?.pct ?? 0;
+                        return r >= d ? `R +${(r - d).toFixed(1)}` : `D +${(d - r).toFixed(1)}`;
+                      })()}
+                      sub="margin, official FEC results"
                     />
                     <StatCard
                       label="Statehood"
@@ -8342,12 +6573,12 @@ function StateModal({
                     <StatCard
                       label="Area"
                       value={`${(state.areaKm2 / 1000).toFixed(0)}K km²`}
-                      sub="total land"
+                      sub="total area, incl. water"
                     />
                     <StatCard
                       label="House Seats"
                       value={`${state.houseSeats}`}
-                      sub="US House reps"
+                      sub="2020 apportionment"
                     />
                     <StatCard
                       label="Region"
@@ -8357,43 +6588,9 @@ function StateModal({
                   </div>
                 </div>
 
-                {/* Quality of Living tile.
-                    The wrapper tracks TaxCard's own col-span-2 sm:col-span-4.
-                    It used to be a fixed grid-cols-2, so TaxCard's span of 4
-                    created two implicit 0px columns; spanning those picked up
-                    two extra gaps and left TaxCard 24px wider than this tile
-                    and than every other section in the modal. */}
+                {/* Taxes and incomes. A "Quality of Living Score" sat beside
+                    this; it was a composite with no stated source and is gone. */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-0 items-stretch">
-                  <div className="modal-tile rounded-lg p-4 flex flex-col gap-1 col-span-2 sm:col-span-4 h-full">
-                    <p className="text-xs text-muted-foreground font-sans">
-                      Quality of Living Score
-                    </p>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span
-                        className={`text-2xl font-bold font-mono ${state.qualityOfLiving >= 75 ? "text-success" : state.qualityOfLiving >= 55 ? "text-warning" : "text-destructive"}`}
-                      >
-                        {state.qualityOfLiving}
-                        <span className="text-sm font-normal text-muted-foreground">
-                          /100
-                        </span>
-                      </span>
-                      <div className="flex-1 h-2.5 bg-background rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-700 ${state.qualityOfLiving >= 75 ? "bg-success" : state.qualityOfLiving >= 55 ? "bg-warning" : "bg-destructive"}`}
-                          style={{ width: `${state.qualityOfLiving}%` }}
-                        />
-                      </div>
-                      <span
-                        className={`text-xs font-sans px-2 py-0.5 rounded-full border ${state.qualityOfLiving >= 75 ? "text-success bg-success/10 border-success/30" : state.qualityOfLiving >= 55 ? "text-warning bg-warning/10 border-warning/30" : "text-destructive bg-destructive/10 border-destructive/30"}`}
-                      >
-                        {state.qualityOfLiving >= 75
-                          ? "High"
-                          : state.qualityOfLiving >= 55
-                            ? "Moderate"
-                            : "Low"}
-                      </span>
-                    </div>
-                  </div>
                   <TaxCard
                     incomeTax={state.stateTaxRate}
                     salesTax={state.salesTaxRate}
@@ -8402,7 +6599,7 @@ function StateModal({
                   />
                 </div>
                 <SourceLink
-                  sources={[...SRC_BEA, ...SRC_BLS]}
+                  sources={[...SRC_BEA, ...SRC_BLS, STATE_SOURCES.taxIncome, STATE_SOURCES.taxSales, STATE_SOURCES.dol]}
                   className="mb-4"
                 />
 
@@ -8620,306 +6817,47 @@ function StateModal({
 
                   <SourceLink sources={SRC_CENSUS} className="mt-3" />
 
-                  {/* Social Scores Row */}
-                  <div className="grid grid-cols-3 gap-3 mt-3">
-                    <div className="modal-tile rounded-lg p-3 text-center">
-                      <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-                        Education Rank
-                      </p>
-                      <p className="text-lg font-bold font-mono text-foreground">
-                        #{state.educationRank}
-                      </p>
-                      <p className="text-[9px] text-muted-foreground font-sans">
-                        out of 50
-                      </p>
-                    </div>
-                    <div className="modal-tile rounded-lg p-3 text-center">
-                      <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-                        Healthcare Rank
-                      </p>
-                      <p className="text-lg font-bold font-mono text-foreground">
-                        #{state.healthcareRank}
-                      </p>
-                      <p className="text-[9px] text-muted-foreground font-sans">
-                        out of 50
-                      </p>
-                    </div>
-                    <div className="modal-tile rounded-lg p-3 text-center">
-                      <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-                        Crime Index
-                      </p>
-                      <p
-                        className={`text-lg font-bold font-mono ${state.crimeIndex >= 55 ? "text-destructive" : state.crimeIndex >= 40 ? "text-warning" : "text-success"}`}
-                      >
-                        {state.crimeIndex}
-                      </p>
-                      <p className="text-[9px] text-muted-foreground font-sans">
-                        per 100k
-                      </p>
-                    </div>
-                  </div>
                 </div>
 
-                {/* Social Stats */}
+                {/* Incarceration (BJS). This section also showed a homelessness
+                    rate and a "crime rate" breakdown that multiplied one
+                    unsourced crime index by fixed factors to make assault,
+                    robbery, burglary, theft, auto and fraud figures - none of
+                    them measured. Both are gone; see build-states.cjs. */}
                 {(() => {
-                  const ss = getStateSocialStats(state.id);
-                  const ci = state.crimeIndex;
-                  const crimeData = [
-                    {
-                      name: "Assault",
-                      value: Math.round(ci * 1.52),
-                      color: "#f87171",
-                    },
-                    {
-                      name: "Robbery",
-                      value: Math.round(ci * 0.62),
-                      color: "#fb923c",
-                    },
-                    {
-                      name: "Burglary",
-                      value: Math.round(ci * 2.4),
-                      color: "#fbbf24",
-                    },
-                    {
-                      name: "Theft",
-                      value: Math.round(ci * 4.85),
-                      color: "#a78bfa",
-                    },
-                    {
-                      name: "Auto",
-                      value: Math.round(ci * 1.1),
-                      color: "#60a5fa",
-                    },
-                    {
-                      name: "Fraud",
-                      value: Math.round(ci * 0.98),
-                      color: "#34d399",
-                    },
-                  ];
-                  const crimeTotal = crimeData.reduce((s, d) => s + d.value, 0);
+                  const inc = STATE_INDICATORS[state.id]?.incarcerationRate;
+                  if (!inc) return null;
                   return (
                     <div className="modal-tile rounded-xl p-4 mt-4 border border-border/50">
                       <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3">
-                        Social Statistics{" "}
-                        <span className="text-muted-foreground normal-case font-normal">
-                          (per 100k residents)
-                        </span>
+                        Imprisonment Rate
                       </p>
-                      <div className="grid grid-cols-2 gap-3">
-                        {/* Homelessness */}
-                        {ss && (
-                          <div className="rounded-lg border border-border bg-background/40 p-3">
-                            <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
-                              🏚️ Homelessness Rate
-                            </p>
-                            <p
-                              className={`text-xl font-bold font-mono ${ss.homelessnessRate >= 25 ? "text-destructive" : ss.homelessnessRate >= 12 ? "text-warning" : "text-success"}`}
-                            >
-                              {ss.homelessnessRate}
-                            </p>
-                            <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-                              per 100,000 residents
-                            </p>
-                            <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full rounded-full transition-all duration-700"
-                                style={{
-                                  width: `${Math.min(100, (ss.homelessnessRate / 70) * 100)}%`,
-                                  background:
-                                    ss.homelessnessRate >= 25
-                                      ? "hsl(0,70%,55%)"
-                                      : ss.homelessnessRate >= 12
-                                        ? "hsl(38,92%,50%)"
-                                        : "hsl(142,71%,45%)",
-                                }}
-                              />
-                            </div>
-                          </div>
-                        )}
-                        {/* Incarceration */}
-                        {ss && (
-                          <div className="rounded-lg border border-border bg-background/40 p-3">
-                            <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
-                              ⛓️ Incarceration Rate
-                            </p>
-                            <p
-                              className={`text-xl font-bold font-mono ${ss.incarcerationRate >= 600 ? "text-destructive" : ss.incarcerationRate >= 350 ? "text-warning" : "text-success"}`}
-                            >
-                              {ss.incarcerationRate}
-                            </p>
-                            <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-                              per 100,000 residents
-                            </p>
-                            <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full rounded-full transition-all duration-700"
-                                style={{
-                                  width: `${Math.min(100, (ss.incarcerationRate / 800) * 100)}%`,
-                                  background:
-                                    ss.incarcerationRate >= 600
-                                      ? "hsl(0,70%,55%)"
-                                      : ss.incarcerationRate >= 350
-                                        ? "hsl(38,92%,50%)"
-                                        : "hsl(142,71%,45%)",
-                                }}
-                              />
-                            </div>
-                          </div>
-                        )}
-                        {/* Crime Rate — full width */}
-                        <div className="col-span-2 rounded-lg border border-border bg-background/40 p-3">
-                          <div className="flex items-center gap-2 mb-2">
-                            <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider">
-                              🚨 Crime Rate
-                            </p>
-                            <span
-                              className={`text-sm font-bold font-mono ${state.crimeIndex >= 55 ? "text-destructive" : state.crimeIndex >= 40 ? "text-warning" : "text-success"}`}
-                            >
-                              {state.crimeIndex}
-                              <span className="text-[10px] font-normal text-muted-foreground">
-                                /100
-                              </span>
-                            </span>
-                            <span
-                              className={`text-[10px] font-sans px-1.5 py-0.5 rounded-full border shrink-0 ${state.crimeIndex >= 55 ? "text-destructive bg-destructive/10 border-destructive/30" : state.crimeIndex >= 40 ? "text-warning bg-warning/10 border-warning/30" : "text-success bg-success/10 border-success/30"}`}
-                            >
-                              {state.crimeIndex >= 55
-                                ? "High"
-                                : state.crimeIndex >= 40
-                                  ? "Moderate"
-                                  : "Low"}
-                            </span>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <div
-                              style={{ width: 80, height: 80, flexShrink: 0 }}
-                            >
-                              <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                  <defs>
-                                    {crimeData.map((d, i) => (
-                                      <linearGradient
-                                        key={i}
-                                        id={`crimeGrad-${state.id}-${i}`}
-                                        x1="0"
-                                        y1="0"
-                                        x2="1"
-                                        y2="1"
-                                      >
-                                        <stop
-                                          offset="0%"
-                                          stopColor={d.color}
-                                          stopOpacity={0.9}
-                                        />
-                                        <stop
-                                          offset="100%"
-                                          stopColor={d.color}
-                                          stopOpacity={0.6}
-                                        />
-                                      </linearGradient>
-                                    ))}
-                                  </defs>
-                                  <Pie
-                                    data={crimeData}
-                                    dataKey="value"
-                                    nameKey="name"
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={20}
-                                    outerRadius={36}
-                                    paddingAngle={1}
-                                    isAnimationActive
-                                    animationDuration={600}
-                                  >
-                                    {crimeData.map((_d, i) => (
-                                      <Cell
-                                        key={i}
-                                        fill={`url(#crimeGrad-${state.id}-${i})`}
-                                      />
-                                    ))}
-                                  </Pie>
-                                  <Tooltip
-                                    content={({ active, payload }: any) => {
-                                      if (!active || !payload?.length)
-                                        return null;
-                                      const p = payload[0];
-                                      return (
-                                        <div className="bg-card border border-border rounded-md p-1.5 text-[10px] font-mono shadow-lg">
-                                          <p style={{ color: p.payload.color }}>
-                                            {p.name}: {p.value}{" "}
-                                            <span className="text-muted-foreground">
-                                              /100k
-                                            </span>
-                                          </p>
-                                        </div>
-                                      );
-                                    }}
-                                  />
-                                </PieChart>
-                              </ResponsiveContainer>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
-                                {crimeData.map((d) => (
-                                  <div
-                                    key={d.name}
-                                    className="flex items-center gap-1.5"
-                                  >
-                                    <span
-                                      className="w-1.5 h-1.5 rounded-full shrink-0"
-                                      style={{ backgroundColor: d.color }}
-                                    />
-                                    <span className="text-[10px] font-sans text-muted-foreground truncate">
-                                      {d.name}
-                                    </span>
-                                    <span
-                                      className="text-[10px] font-mono font-semibold ml-auto shrink-0"
-                                      style={{ color: d.color }}
-                                    >
-                                      {d.value}
-                                    </span>
-                                    <span className="text-[9px] text-muted-foreground font-mono shrink-0">
-                                      (
-                                      {Math.round((d.value / crimeTotal) * 100)}
-                                      %)
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="mt-1 pt-1 flex items-center gap-1.5">
-                                <span className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider">
-                                  Safety Index
-                                </span>
-                                <span
-                                  className={`text-[11px] font-bold font-mono ${100 - state.crimeIndex >= 60 ? "text-success" : 100 - state.crimeIndex >= 45 ? "text-warning" : "text-destructive"}`}
-                                >
-                                  {100 - state.crimeIndex}
-                                  <span className="text-[9px] font-normal text-muted-foreground">
-                                    /100
-                                  </span>
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          <SourceLink
-                            sources={[
-                              {
-                                label: "Numbeo Crime Index",
-                                url: "https://www.numbeo.com/crime/rankings_by_country.jsp",
-                              },
-                              {
-                                label: "FBI Crime Data Explorer",
-                                url: "https://cde.ucr.cjis.gov/",
-                              },
-                            ]}
-                            className="mt-2"
+                      <div className="rounded-lg border border-border bg-background/40 p-3">
+                        <p
+                          className={`text-xl font-bold font-mono ${inc.v >= 450 ? "text-destructive" : inc.v >= 300 ? "text-warning" : "text-success"}`}
+                        >
+                          {inc.v}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+                          sentenced prisoners under state jurisdiction per 100,000
+                          residents, end of {inc.y}
+                        </p>
+                        <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${Math.min(100, (inc.v / 700) * 100)}%`,
+                              background: inc.v >= 450 ? "hsl(0,70%,55%)" : inc.v >= 300 ? "hsl(38,92%,50%)" : "hsl(142,71%,45%)",
+                            }}
                           />
                         </div>
+                        {inc.note && (
+                          <p className="text-[10px] text-muted-foreground font-sans mt-2 leading-relaxed">
+                            BJS note: {inc.note}
+                          </p>
+                        )}
                       </div>
-                      <p className="text-[10px] text-muted-foreground font-sans mt-3">
-                        Sources: HUD Annual Homeless Assessment Report · Bureau
-                        of Justice Statistics (BJS)
-                      </p>
+                      <SourceLink sources={[STATE_SOURCES.bjs]} className="mt-3" />
                     </div>
                   );
                 })()}
@@ -9041,6 +6979,7 @@ function StateModal({
                     </div>
                   </div>
                 )}
+                <SourceLink sources={SRC_CONGRESS} className="mt-3" />
               </>
             ) /* end overview tab */
           }
@@ -9215,7 +7154,7 @@ export function StatesPage() {
   const [regionFilter, setRegionFilter] = useState("All");
   const [partyFilter, setPartyFilter] = useState("All");
   const [sortBy, setSortBy] = useState<
-    "population" | "gdp" | "medianIncome" | "approvalRating"
+    "population" | "gdp" | "medianIncome" | "unemploymentRate"
   >("gdp");
   const [modalState, setModalState] = useState<USState | null>(null);
 
@@ -9357,7 +7296,7 @@ export function StatesPage() {
               <option value="gdp">Sort: GDP</option>
               <option value="population">Sort: Population</option>
               <option value="medianIncome">Sort: Median Income</option>
-              <option value="approvalRating">Sort: Approval</option>
+              <option value="unemploymentRate">Sort: Unemployment</option>
             </select>
           </CollapsibleFilters>
         </div>
@@ -9484,26 +7423,6 @@ export function StatesPage() {
                   </p>
                 </div>
               </div>
-              {/* QoL bar */}
-              <div className="mb-2">
-                <div className="flex justify-between text-[10px] mb-1">
-                  <span className="text-muted-foreground font-sans">
-                    Quality of Living
-                  </span>
-                  <span
-                    className={`font-mono font-semibold ${state.qualityOfLiving >= 75 ? "text-success" : state.qualityOfLiving >= 55 ? "text-warning" : "text-destructive"}`}
-                  >
-                    {state.qualityOfLiving}/100
-                  </span>
-                </div>
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${state.qualityOfLiving >= 75 ? "bg-success" : state.qualityOfLiving >= 55 ? "bg-warning" : "bg-destructive"}`}
-                    style={{ width: `${state.qualityOfLiving}%` }}
-                  />
-                </div>
-              </div>
-
               {/* Voter share mini bars */}
               <div className="flex gap-1 h-1.5 rounded-full overflow-hidden mb-2">
                 {state.voterShare.map((v, i) => (

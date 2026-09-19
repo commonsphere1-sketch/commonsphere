@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import { countriesData, type Country } from "../data/countriesData";
 import { usStatesData, type USState } from "../data/statesData";
+import { STATE_INDICATORS as STATE_FIGURES } from "../data/stateIndicators";
 
 const COLORS = [
   "hsl(200,85%,50%)",
@@ -40,87 +41,71 @@ function norm(val: number, lo: number, hi: number) {
   return Math.round(Math.min(100, Math.max(0, ((val - lo) / (hi - lo)) * 100)));
 }
 
-function radarData(e: EntityItem) {
+/*
+ * What the comparison shows, and why it changed.
+ *
+ * The radar used to label proxies as if they were the thing named: a
+ * country's "Transport" axis was its GDP growth, "Crime" its unemployment,
+ * "Housing" its inflation and "Education" its HDI a second time; a state's
+ * "Transport" was its governor's approval rating and its "HDI" and "Life
+ * Exp." were unsourced education and healthcare ranks. Every axis is now the
+ * measure its label names, and a country and a state are only drawn on the
+ * same radar where both have that measure.
+ */
+type Axis = { axis: string; value: number };
+
+function radarData(e: EntityItem): Axis[] {
   if (e.kind === "country") {
     const c = e.data;
     return [
-      { axis: "Economy", value: norm(c.gdpPerCapita, 0, 120000) },
+      { axis: "GDP per capita", value: norm(c.gdpPerCapita, 0, 120000) },
+      { axis: "Employment", value: norm(100 - c.unemploymentRate, 75, 100) },
       { axis: "HDI", value: norm(c.humanDevelopmentIndex, 0.3, 1) },
-      { axis: "Life Exp.", value: norm(c.lifeExpectancy, 50, 90) },
-      {
-        axis: "Housing",
-        value: norm(100 - Math.min(100, c.inflationRate * 2), 40, 100),
-      },
-      { axis: "Transport", value: norm(c.gdpGrowth, -5, 15) },
-      { axis: "Education", value: norm(c.humanDevelopmentIndex, 0.3, 1) },
-      { axis: "Crime", value: norm(100 - c.unemploymentRate, 70, 100) },
-    ];
-  } else {
-    const s = e.data;
-    const avgIncome = s.averageIncome ?? s.medianIncome ?? 0;
-    return [
-      { axis: "Economy", value: norm(avgIncome / 1000, 30, 120) },
-      {
-        axis: "HDI",
-        value: norm(s.educationRank ? 51 - s.educationRank : 25, 0, 50),
-      },
-      {
-        axis: "Life Exp.",
-        value: norm(s.healthcareRank ? 51 - s.healthcareRank : 25, 0, 50),
-      },
-      { axis: "Housing", value: norm(avgIncome / 1000, 30, 120) },
-      { axis: "Transport", value: norm(s.approvalRating, 0, 100) },
-      {
-        axis: "Education",
-        value: norm(s.educationRank ? 51 - s.educationRank : 25, 0, 50),
-      },
-      { axis: "Crime", value: norm(100 - s.unemploymentRate * 4, 60, 100) },
+      { axis: "Life expectancy", value: norm(c.lifeExpectancy, 50, 90) },
+      { axis: "Price stability", value: norm(10 - Math.abs(c.inflationRate - 2), 0, 10) },
     ];
   }
+  const s = e.data;
+  const f = STATE_FIGURES[s.id];
+  return [
+    { axis: "GDP per capita", value: norm((s.gdp * 1e9) / s.population, 0, 120000) },
+    { axis: "Employment", value: norm(100 - s.unemploymentRate, 75, 100) },
+    { axis: "Median household income", value: norm(s.medianIncome, 40000, 110000) },
+    { axis: "Bachelor's degree+", value: norm(f?.education.bachelorsOrHigherPct ?? 0, 20, 50) },
+    { axis: "Home ownership", value: norm(f?.housing.homeOwnershipPct ?? 0, 40, 80) },
+  ];
 }
 
-// Stat rows for comparison table
-function statRow(e: EntityItem) {
+/** Axes every selected entity has, in order. */
+function sharedAxes(sel: EntityItem[]): string[] {
+  if (sel.length === 0) return [];
+  const sets = sel.map((e) => new Set(radarData(e).map((a) => a.axis)));
+  return radarData(sel[0]).map((a) => a.axis).filter((ax) => sets.every((st) => st.has(ax)));
+}
+
+// Stat rows for the comparison table. Keys missing for an entity show "—".
+function statRow(e: EntityItem): Record<string, string> {
   if (e.kind === "country") {
     const c = e.data;
     return {
-      "🏠 Housing": (() => {
-        const inflation = c.inflationRate;
-        return inflation > 8
-          ? "⚠ High cost pressure"
-          : inflation > 4
-            ? "Moderate affordability"
-            : "Relatively affordable";
-      })(),
-      "🚌 Transportation": `GDP growth ${c.gdpGrowth > 0 ? "+" : ""}${c.gdpGrowth}%`,
-      "❤️ Life Expectancy": `${c.lifeExpectancy} yrs`,
-      "💰 Economy": `$${c.gdpPerCapita.toLocaleString()} GDP/cap`,
+      "💰 GDP per capita": `$${c.gdpPerCapita.toLocaleString()}`,
+      "📉 Unemployment": `${c.unemploymentRate}%`,
+      "📈 GDP growth": `${c.gdpGrowth > 0 ? "+" : ""}${c.gdpGrowth}%`,
+      "🛒 Inflation": `${c.inflationRate}%`,
       "📈 HDI": `${c.humanDevelopmentIndex}`,
-      "🎓 Education": (() => {
-        const hdi = c.humanDevelopmentIndex;
-        return hdi >= 0.8
-          ? "Very High"
-          : hdi >= 0.7
-            ? "High"
-            : hdi >= 0.55
-              ? "Medium"
-              : "Low";
-      })(),
-      "🔒 Crime": `${c.unemploymentRate}% unemploy. (proxy)`,
-    };
-  } else {
-    const s = e.data;
-    const income = (s.averageIncome ?? s.medianIncome ?? 0).toLocaleString();
-    return {
-      "🏠 Housing": `$${income} avg income`,
-      "🚌 Transportation": `${s.approvalRating}% gov. approval`,
-      "❤️ Life Expectancy": `Healthcare rank #${s.healthcareRank ?? "—"}`,
-      "💰 Economy": `$${s.gdp}B GDP`,
-      "📈 HDI": `Education rank #${s.educationRank ?? "—"}`,
-      "🎓 Education": `Edu. rank #${s.educationRank ?? "—"}`,
-      "🔒 Crime": `${s.unemploymentRate}% unemployment`,
+      "❤️ Life expectancy": `${c.lifeExpectancy} yrs`,
     };
   }
+  const s = e.data;
+  const f = STATE_FIGURES[s.id];
+  return {
+    "💰 GDP per capita": `$${Math.round((s.gdp * 1e9) / s.population).toLocaleString()}`,
+    "📉 Unemployment": `${s.unemploymentRate}%`,
+    "🏠 Median household income": `$${s.medianIncome.toLocaleString()}`,
+    "🎓 Bachelor's degree+": f ? `${f.education.bachelorsOrHigherPct}%` : "—",
+    "🏡 Home ownership": f ? `${f.housing.homeOwnershipPct}%` : "—",
+    "🚌 Public transit commuters": f ? `${f.commute.transitPct}%` : "—",
+  };
 }
 
 export function ComparisonModule() {
@@ -180,28 +165,20 @@ export function ComparisonModule() {
   const removeEntity = (id: string) =>
     setSelected((prev) => prev.filter((x) => entityId(x) !== id));
 
-  // Build merged radar data
-  const radarAxes = [
-    "Economy",
-    "HDI",
-    "Life Exp.",
-    "Housing",
-    "Transport",
-    "Education",
-    "Crime",
-  ];
+  // Radar: only axes every selected entity has. Mixing countries and states
+  // leaves two (GDP per capita, employment), too few for a radar, so the
+  // chart is shown only when at least three axes are shared.
+  const radarAxes = sharedAxes(selected);
   const mergedRadar = radarAxes.map((axis) => {
     const row: Record<string, any> = { axis };
     selected.forEach((e) => {
-      row[entityName(e)] =
-        radarData(e).find((r) => r.axis === axis)?.value ?? 0;
+      row[entityName(e)] = radarData(e).find((r) => r.axis === axis)?.value ?? 0;
     });
     return row;
   });
 
-  const statKeys = Object.keys(
-    statRow(selected[0] ?? { kind: "country", data: countriesData[0] }),
-  );
+  // Table: every metric any selected entity has.
+  const statKeys = [...new Set(selected.flatMap((e) => Object.keys(statRow(e))))];
 
   return (
     <div className="space-y-6">
@@ -337,10 +314,22 @@ export function ComparisonModule() {
       {selected.length >= 2 && (
         <>
           {/* Radar chart */}
+          {radarAxes.length < 3 ? (
+            <div className="bg-card border border-border rounded-xl p-5 text-xs text-muted-foreground font-sans">
+              Countries and US states share only GDP per capita and
+              unemployment, too few measures for a profile chart. Compare
+              countries with countries, or states with states, to see one;
+              the table below lists every measure.
+            </div>
+          ) : (
           <div className="bg-card border border-border rounded-xl p-5">
-            <h3 className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider mb-4">
-              Performance Radar
+            <h3 className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider mb-1">
+              Profile
             </h3>
+            <p className="text-[10px] text-muted-foreground font-sans mb-3">
+              Each axis scaled 0–100 over a fixed range; the table below has the
+              actual figures.
+            </p>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart
@@ -394,6 +383,8 @@ export function ComparisonModule() {
               ))}
             </div>
           </div>
+
+          )}
 
           {/* Comparison table */}
           <div className="bg-card border border-border rounded-xl overflow-hidden">

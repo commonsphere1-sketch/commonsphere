@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
-import { STATE_SOCIAL_STATS } from "../data/socialStatsData";
 import { PRISON_RATES } from "../data/prisonRates";
 import {
   Globe,
@@ -46,7 +45,10 @@ type MetricId =
  *                        nothing over ten years old; WPB publishes no UK or
  *                        Bosnia total)
  *   lifeExpectancy, gdpGrowth, inflation, tradeBalance — countries only
- *   educationRank, healthcareRank, crimeIndex, homelessness — US states only
+ *   educationRank, healthcareRank, crimeIndex, homelessness — none: these
+ *     were unsourced state composites and are blanked in statesData, which
+ *     retired the Housing and Education tabs; HDI likewise covers countries
+ *     only (states used a "quality of living" score in its place)
  *
  * Homelessness was "complete" for countries only because a rate had been
  * written in for every one. There is no international series behind such a
@@ -109,11 +111,9 @@ const CATEGORY_TABS: {
   pool: CategoryPool;
 }[] = [
   { id: "economy", label: "Economy", icon: "💹", pool: "all" },
-  { id: "hdi", label: "Development", icon: "🌐", pool: "all" },
-  { id: "housing", label: "Housing", icon: "🏠", pool: "state" },
+  { id: "hdi", label: "Development", icon: "🌐", pool: "country" },
   { id: "justice", label: "Justice", icon: "⚖️", pool: "all" },
   { id: "health", label: "Health", icon: "❤️", pool: "country" },
-  { id: "education", label: "Education", icon: "🎓", pool: "state" },
   {
     id: "infrastructure",
     label: "Infrastructure",
@@ -259,7 +259,7 @@ const CATEGORY_METRICS: Record<CategoryTab, CategoryMetric[]> = {
   economy: [M_GDP_PER_CAPITA, M_UNEMPLOYMENT, M_SCORE],
   hdi: [M_HDI, M_GDP_PER_CAPITA, M_SCORE],
   housing: [M_HOMELESSNESS, M_UNEMPLOYMENT, M_GDP_PER_CAPITA, M_SCORE],
-  justice: [M_INCARCERATION, M_HOMELESSNESS, M_SCORE],
+  justice: [M_INCARCERATION, M_SCORE],
   health: [M_LIFE_EXPECTANCY, M_HDI, M_GDP_PER_CAPITA, M_SCORE],
   education: [M_EDUCATION_RANK, M_HEALTHCARE_RANK, M_GDP_PER_CAPITA, M_SCORE],
   infrastructure: [
@@ -483,11 +483,6 @@ function buildCountryRows(): RankRow[] {
 function buildStateRows(): RankRow[] {
   return usStatesData.map((s) => {
     const gdpPerCap = s.gdp > 0 ? Math.round((s.gdp * 1e9) / s.population) : 0;
-    const normalizedHdi = Math.min(
-      1,
-      Math.max(0, (s.qualityOfLiving ?? 50) / 100),
-    );
-    const social = STATE_SOCIAL_STATS[s.id];
     return {
       id: `state-${s.id}`,
       name: s.name,
@@ -497,7 +492,10 @@ function buildStateRows(): RankRow[] {
       // countries. State ids are the lowercase two-letter codes flagcdn
       // expects, and all 50 were confirmed to resolve.
       flag: `https://flagcdn.com/w40/us-${s.id}.png`,
-      hdi: normalizedHdi,
+      // States have no HDI. This used an unsourced "quality of living" score
+      // scaled to 0–1 as a stand-in, which ranked states against countries'
+      // real UNDP figures on a different measure entirely.
+      hdi: NaN,
       gdpPerCapita: gdpPerCap,
       // gdpGrowth, lifeExpectancy and inflation are not in statesData. They
       // were previously hardcoded to 2.4 / 78.5 / 3.2 for every state, which
@@ -508,8 +506,10 @@ function buildStateRows(): RankRow[] {
       unemployment: s.unemploymentRate,
       lifeExpectancy: NaN,
       inflation: NaN,
-      incarceration: social?.incarcerationRate ?? s.incarcerationRate,
-      homelessness: social?.homelessnessRate ?? s.homelessnessRate,
+      // BJS 2023 imprisonment rate (statesData, from build-states.cjs).
+      incarceration: s.incarcerationRate,
+      // HUD's counts could not be fetched; see build-states.cjs.
+      homelessness: NaN,
       tradeBalance: NaN,
       easeOfBusiness: NaN,
       educationRank: s.educationRank ?? NaN,

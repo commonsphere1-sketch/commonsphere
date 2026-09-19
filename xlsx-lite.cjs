@@ -78,8 +78,12 @@ function sheetRows(xml, strings, colors) {
   for (const rm of xml.toString("utf8").matchAll(/<row[^>]*>([\s\S]*?)<\/row>/g)) {
     const cells = [];
     const tint = [];
-    for (const cm of rm[1].matchAll(/<c([^>]*)>([\s\S]*?)<\/c>/g)) {
+    // An empty cell may be written self-closing (<c r="D2" s="8"/>). Matching
+    // only <c ...>...</c> used to read such a cell's attributes together with
+    // the next cell's value, putting that value one column early.
+    for (const cm of rm[1].matchAll(/<c((?:\s+[\w:]+="[^"]*")*)\s*(?:\/>|>([\s\S]*?)<\/c>)/g)) {
       const attrs = cm[1];
+      cm[2] = cm[2] || "";
       const ref = (attrs.match(/r="([A-Z]+\d+)"/) || [])[1];
       const type = (attrs.match(/t="([^"]+)"/) || [])[1];
       const vRaw = (cm[2].match(/<v>([\s\S]*?)<\/v>/) || [])[1];

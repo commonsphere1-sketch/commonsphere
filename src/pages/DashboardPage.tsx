@@ -51,6 +51,7 @@ import {
 import { countriesData } from "../data/countriesData";
 import { useLiveCountries } from "../contexts/LiveDataContext";
 import { usStatesData } from "../data/statesData";
+import { STATE_INDICATORS as STATE_FIGURES } from "../data/stateIndicators";
 import { economiesData } from "../data/economiesData";
 import { SourceLink } from "../components/SourceLink";
 
@@ -2361,10 +2362,11 @@ const STATE_COMPARE_METRICS = [
     color: "#a855f7",
   },
   {
-    label: "Quality of Life",
-    unit: "/100",
-    get: (s: (typeof usStatesData)[0]) => `${s.qualityOfLiving}/100`,
-    raw: (s: (typeof usStatesData)[0]) => s.qualityOfLiving,
+    // ACS 2024; replaced a "Quality of Life" score with no source.
+    label: "Bachelor's+",
+    unit: "%",
+    get: (s: (typeof usStatesData)[0]) => `${STATE_FIGURES[s.id]?.education.bachelorsOrHigherPct ?? "—"}%`,
+    raw: (s: (typeof usStatesData)[0]) => STATE_FIGURES[s.id]?.education.bachelorsOrHigherPct ?? 0,
     higherBetter: true,
     color: "#14b8a6",
   },
@@ -3386,9 +3388,9 @@ function CompareCountriesTool({
                     color: "#f59e0b",
                   },
                   {
-                    label: "Best QoL",
+                    label: "Lowest Unemployment",
                     entity: [...selectedStates].sort(
-                      (a, b) => b.qualityOfLiving - a.qualityOfLiving,
+                      (a, b) => a.unemploymentRate - b.unemploymentRate,
                     )[0],
                     color: "#a855f7",
                   },
