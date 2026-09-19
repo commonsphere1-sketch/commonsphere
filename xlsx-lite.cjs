@@ -109,4 +109,7 @@ function readXlsx(path, sheetName) {
   return { sheets: names, rows, colors: tints };
 }
 
-module.exports = { readXlsx };
+/** Every entry of a zip file, inflated: name → Buffer. */
+const unzip = (path) => entries(fs.readFileSync(path));
+
+module.exports = { readXlsx, unzip };

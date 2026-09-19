@@ -5,6 +5,8 @@ import {
   COUNTRY_INDICATORS_SOURCE,
   type CountryIndicators,
 } from "./countryIndicators";
+import { COUNTRY_PANELS, panelSource, type PanelFigure } from "./countryPanels";
+import { COUNTRY_ENERGY, ENERGY_SOURCE } from "./countryEnergy";
 
 export interface Industry {
   name: string;
@@ -81,7 +83,11 @@ export type ReferenceField =
   | "gdpGrowth"
   | "lifeExpectancy"
   | "unemploymentRate"
-  | "inflationRate";
+  | "inflationRate"
+  | "humanDevelopmentIndex"
+  | "tradeBalance"
+  | "keyIndustries"
+  | "energy";
 
 export interface Country {
   id: string;
@@ -9570,6 +9576,61 @@ for (const c of countriesData) {
         },
       };
     }
+  }
+
+  /* Human development index (UNDP), trade balance and the make-up of the
+     economy (World Bank), each with its year.
+
+     keyIndustries was a hand-written list of "most vital industries" with GDP
+     shares - Russia's "Defense & Arms" at 15% of GDP, for one - that no
+     national accounts publish. It is now the World Bank's value-added split:
+     agriculture, manufacturing, the rest of industry (mining, construction,
+     utilities) and services, all for one year. Where the World Bank has no
+     complete split for a year, the list is emptied rather than left invented.
+
+     A country UNDP does not cover (Taiwan, and a few territories) keeps its
+     written HDI, as before. */
+  const p = COUNTRY_PANELS[c.id];
+  const cite = (field: ReferenceField, f: PanelFigure) => {
+    c.sources = { ...c.sources, [field]: panelSource(f) };
+  };
+  if (p?.hdi) {
+    c.humanDevelopmentIndex = p.hdi.v;
+    cite("humanDevelopmentIndex", p.hdi);
+  }
+  if (p?.tradeBalanceUSD) {
+    c.tradeBalance = Math.round(p.tradeBalanceUSD.v / 1e8) / 10;
+    cite("tradeBalance", p.tradeBalanceUSD);
+  }
+  const ag = p?.agriculturePct, ind = p?.industryPct, mf = p?.manufacturingPct, sv = p?.servicesPct;
+  if (ag && ind && sv && ag.y === ind.y && ind.y === sv.y) {
+    const hasMf = !!mf && mf.y === ind.y && mf.v <= ind.v;
+    c.keyIndustries = [
+      { name: "Services", gdpShare: sv.v, color: "hsl(200,85%,55%)" },
+      ...(hasMf
+        ? [
+            { name: "Manufacturing", gdpShare: mf!.v, color: "hsl(18,80%,55%)" },
+            { name: "Mining, construction & utilities", gdpShare: Math.round((ind.v - mf!.v) * 10) / 10, color: "hsl(30,70%,45%)" },
+          ]
+        : [{ name: "Industry", gdpShare: ind.v, color: "hsl(18,80%,55%)" }]),
+      { name: "Agriculture, forestry & fishing", gdpShare: ag.v, color: "hsl(90,60%,40%)" },
+    ];
+    cite("keyIndustries", sv);
+  } else {
+    c.keyIndustries = [];
+  }
+
+  /* Energy production, consumption and production mix from the US EIA, for
+     one year. The written figures had the United States as a net energy
+     importer (25,700 TWh used, 24,900 produced); EIA has it producing 30,347
+     TWh against 27,712 used in 2024. A country EIA does not cover gets no
+     energy panel rather than keeping an unsourced one. */
+  const en = COUNTRY_ENERGY[c.id];
+  if (en) {
+    c.energy = { totalUseTWh: en.totalUseTWh, totalProductionTWh: en.totalProductionTWh, mix: en.mix };
+    c.sources = { ...c.sources, energy: { label: `${ENERGY_SOURCE.label}, ${en.y}`, url: ENERGY_SOURCE.url } };
+  } else {
+    delete c.energy;
   }
 
   const ref = COUNTRY_REFERENCE[c.code];
