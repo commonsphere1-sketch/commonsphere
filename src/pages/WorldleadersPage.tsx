@@ -33,6 +33,8 @@ import {
 } from "../data/electionCountdowns";
 import { ROYAL_FAMILIES, type RoyalMember } from "../data/royalFamiliesData";
 import { SourceLink } from "../components/SourceLink";
+import { ALLIANCES, ALLIANCES_CHECKED, type AllianceKind } from "../data/alliances";
+import { countriesData, type Country } from "../data/countriesData";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
 // Globe is used in LeaderDetail tabs — do not remove
 
@@ -15613,6 +15615,124 @@ function RichestFamiliesView() {
 
 // ── CEOsView ──────────────────────────────────────────────────────────────────
 
+// ── AlliancesView ─────────────────────────────────────────────────────────────
+/** Alliances, blocs and international agencies (data/alliances.ts). */
+function AlliancesView() {
+  const [kind, setKind] = useState<"All" | AllianceKind>("All");
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState<string | null>(null);
+  const byCode = useMemo(() => new Map(countriesData.map((c) => [c.code, c])), []);
+
+  const kinds: ("All" | AllianceKind)[] = ["All", "Security alliance", "Political & economic bloc", "International agency"];
+  const q = query.trim().toLowerCase();
+  const shown = ALLIANCES.filter((a) => {
+    if (kind !== "All" && a.kind !== kind) return false;
+    if (!q) return true;
+    // Match the organisation, or any member country by name.
+    return (
+      a.name.toLowerCase().includes(q) ||
+      a.short.toLowerCase().includes(q) ||
+      (a.members ?? []).some((m) => byCode.get(m)?.name.toLowerCase().includes(q))
+    );
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        {kinds.map((k) => (
+          <button
+            key={k}
+            onClick={() => setKind(k)}
+            className={`px-3 py-1.5 rounded-full text-xs font-sans border transition-colors ${kind === k ? "bg-secondary/20 text-secondary border-secondary/40" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+          >
+            {k === "All" ? "All" : `${k}s`}
+          </button>
+        ))}
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search an organisation or a country…"
+          className="ml-auto min-w-0 flex-1 sm:flex-none sm:w-64 bg-card border border-border rounded-lg px-3 py-1.5 text-xs font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-secondary/50"
+        />
+      </div>
+
+      <p className="text-[11px] text-muted-foreground font-sans">
+        Membership checked against each organisation's own list on {ALLIANCES_CHECKED}, except where
+        a card says otherwise. Suspensions change often and are described rather than shown.
+      </p>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        {shown.map((a) => {
+          const members = (a.members ?? []).map((m) => byCode.get(m)).filter((c): c is Country => !!c);
+          const isOpen = open === a.id;
+          const visible = isOpen ? members : members.slice(0, 12);
+          return (
+            <div key={a.id} className="modal-tile rounded-xl p-4 border border-border/60 flex flex-col">
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-bold font-sans text-foreground">{a.short}</p>
+                  <p className="text-xs text-muted-foreground font-sans">{a.name}</p>
+                </div>
+                <span className="shrink-0 text-[10px] font-sans px-2 py-0.5 rounded-full border border-border text-muted-foreground">
+                  {a.kind}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-sans text-muted-foreground mb-3">
+                <span>
+                  <span className="font-mono font-semibold text-foreground">{a.memberCount}</span> members
+                </span>
+                {a.founded && <span>Founded {a.founded}</span>}
+                {a.headquarters && <span>HQ {a.headquarters}</span>}
+              </div>
+
+              {members.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {visible.map((c) => (
+                    <span
+                      key={c.code}
+                      className="inline-flex items-center gap-1 text-[10px] font-sans px-1.5 py-0.5 rounded-md border border-border bg-background/40 text-foreground"
+                    >
+                      <img
+                        src={`https://flagcdn.com/w20/${c.code.toLowerCase()}.png`}
+                        alt=""
+                        className="w-3.5 h-auto rounded-[2px]"
+                        loading="lazy"
+                      />
+                      {c.name}
+                    </span>
+                  ))}
+                  {members.length > 12 && (
+                    <button
+                      onClick={() => setOpen(isOpen ? null : a.id)}
+                      className="text-[10px] font-sans px-1.5 py-0.5 rounded-md text-secondary hover:underline"
+                    >
+                      {isOpen ? "Show fewer" : `+${members.length - 12} more`}
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <p className="text-[11px] text-muted-foreground font-sans mb-2">
+                  Near-universal membership; the count is the organisation's own.
+                </p>
+              )}
+
+              {a.note && (
+                <p className="text-[11px] text-muted-foreground font-sans leading-relaxed mb-1">{a.note}</p>
+              )}
+              <div className="mt-auto">
+                <SourceLink sources={[a.source]} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {shown.length === 0 && (
+        <p className="text-sm text-muted-foreground font-sans">No organisation matches.</p>
+      )}
+    </div>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 export function WorldLeadersPage() {
   const [region, setRegion] = useState("All Regions");
@@ -15620,7 +15740,7 @@ export function WorldLeadersPage() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Leader | null>(null);
   const [viewMode, setViewMode] = useState<
-    "list" | "monarchies" | "richest"
+    "list" | "monarchies" | "richest" | "alliances"
   >("list");
 
   const ideologies = [
@@ -15795,7 +15915,20 @@ export function WorldLeadersPage() {
             />
             Richest Families
           </button>
+          <button
+            onClick={() => setViewMode("alliances")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${viewMode === "alliances" ? "bg-secondary/20 text-secondary border-secondary/40" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+          >
+            <Handshake
+              size={13}
+              weight={viewMode === "alliances" ? "fill" : "regular"}
+            />
+            Alliances &amp; International Agencies
+          </button>
         </div>
+
+        {/* ── Alliances & International Agencies View ── */}
+        {viewMode === "alliances" && <AlliancesView />}
 
         {/* ── Richest Families View ── */}
         {viewMode === "richest" && <RichestFamiliesView />}
