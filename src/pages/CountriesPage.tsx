@@ -16160,11 +16160,7 @@ function exportCountriesToCSV(
 // ── Comparison Section ────────────────────────────────────────────────────────
 
 export function CountriesPage() {
-  const {
-    countries: liveCountries,
-    isRefreshing,
-    lastUpdated,
-  } = useLiveData();
+  const { countries: liveCountries } = useLiveData();
   const [search, setSearch] = useState("");
   const [continentFilter, setContinentFilter] = useState("All");
   const [sortBy, setSortBy] = useState<
@@ -16241,21 +16237,10 @@ export function CountriesPage() {
               badge now reports when it last completed instead of implying a
               stream. */}
           <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-mono transition-all ${isRefreshing ? "bg-warning/10 border-warning/30 text-warning" : lastUpdated ? "bg-muted/50 border-border text-muted-foreground" : "bg-muted/50 border-border text-muted-foreground"}`}
-            title={
-              lastUpdated
-                ? `World Bank data fetched at ${lastUpdated.toLocaleString()}`
-                : "Showing the figures bundled with the app"
-            }
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-muted/50 text-[11px] font-mono text-muted-foreground"
+            title="Figures are built into the app from named sources; each one shows the year it is for"
           >
-            {isRefreshing
-              ? "Updating…"
-              : lastUpdated
-                ? `Updated ${lastUpdated.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}`
-                : "Bundled data"}
+            Built-in data
           </div>
         </div>
 

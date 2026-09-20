@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import {
   Globe,
   Users,
@@ -33,7 +34,7 @@ import {
 } from "../data/electionCountdowns";
 import { ROYAL_FAMILIES, type RoyalMember } from "../data/royalFamiliesData";
 import { SourceLink } from "../components/SourceLink";
-import { ALLIANCES, ALLIANCES_CHECKED, type AllianceKind } from "../data/alliances";
+import { ALLIANCES, ALLIANCES_CHECKED, type Alliance, type AllianceKind } from "../data/alliances";
 import { countriesData, type Country } from "../data/countriesData";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
 // Globe is used in LeaderDetail tabs — do not remove
@@ -15615,15 +15616,182 @@ function RichestFamiliesView() {
 
 // ── CEOsView ──────────────────────────────────────────────────────────────────
 
+// ── AllianceModal ─────────────────────────────────────────────────────────────
+/** Full detail for one organisation: what it is, its agenda, and its members. */
+function AllianceModal({
+  alliance,
+  members,
+  onClose,
+}: {
+  alliance: Alliance;
+  members: Country[];
+  onClose: () => void;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
+      >
+        <div className="p-6">
+          {/* Header — the shape used across the modals: emblem, title, meta
+              chips, then Expand and Close as text buttons. */}
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div>
+                <h2 className="text-xl font-bold font-sans text-foreground">
+                  {alliance.short}
+                </h2>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <span className="text-xs text-muted-foreground font-sans">
+                    {alliance.name}
+                  </span>
+                  <span className="text-xs border px-2 py-0.5 rounded-full font-sans text-secondary border-secondary/40 bg-secondary/10">
+                    {alliance.kind}
+                  </span>
+                  <span className="text-xs px-2 py-0.5 rounded-full font-mono font-semibold bg-muted text-foreground">
+                    {alliance.memberCount} members
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => setIsExpanded((v) => !v)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
+                title={isExpanded ? "Collapse" : "Expand to full screen"}
+              >
+                <span className="text-xs font-sans font-medium">
+                  {isExpanded ? "Collapse" : "Expand"}
+                </span>
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <span className="text-xs font-sans font-medium">Close</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Facts strip, as on the country and state modals */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+            {[
+              { label: "Members", value: `${alliance.memberCount}`, sub: "current" },
+              ...(alliance.founded
+                ? [{ label: "Founded", value: `${alliance.founded}`, sub: `${new Date().getFullYear() - alliance.founded} yrs ago` }]
+                : []),
+              ...(alliance.headquarters
+                ? [{ label: "Headquarters", value: alliance.headquarters, sub: "secretariat" }]
+                : []),
+            ].map((f) => (
+              <div key={f.label} className="modal-tile rounded-lg p-3">
+                <p className="text-xs text-muted-foreground font-sans">{f.label}</p>
+                <p className="text-lg font-bold font-mono text-foreground">{f.value}</p>
+                <p className="text-xs text-muted-foreground font-sans">{f.sub}</p>
+              </div>
+            ))}
+          </div>
+
+          {alliance.what && (
+            <div className="modal-tile rounded-lg p-4 mb-4">
+              <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+                What it is
+              </p>
+              <p className="text-sm font-sans text-foreground leading-relaxed">{alliance.what}</p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            {alliance.agenda && alliance.agenda.length > 0 && (
+              <div className="modal-tile rounded-lg p-4">
+                <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+                  On its agenda
+                </p>
+                <ul className="space-y-1.5">
+                  {alliance.agenda.map((a) => (
+                    <li key={a} className="flex gap-2 text-xs font-sans text-foreground leading-relaxed">
+                      <span className="text-secondary shrink-0">•</span>
+                      {a}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {alliance.impact && alliance.impact.length > 0 && (
+              <div className="modal-tile rounded-lg p-4">
+                <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+                  Significance
+                </p>
+                <ul className="space-y-1.5">
+                  {alliance.impact.map((a) => (
+                    <li key={a} className="flex gap-2 text-xs font-sans text-foreground leading-relaxed">
+                      <span className="text-amber-400 shrink-0">•</span>
+                      {a}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {members.length > 0 && (
+            <div className="modal-tile rounded-lg p-4 mb-4">
+              <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
+                Members
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {members.map((c) => (
+                  <span
+                    key={c.code}
+                    className="inline-flex items-center gap-1 text-[10px] bg-card text-foreground border border-border px-2 py-1 rounded-md font-sans"
+                  >
+                    <img
+                      src={`https://flagcdn.com/w20/${c.code.toLowerCase()}.png`}
+                      alt=""
+                      className="w-3.5 h-auto rounded-[2px]"
+                      loading="lazy"
+                    />
+                    {c.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {alliance.note && (
+            <p className="text-xs text-muted-foreground font-sans leading-relaxed mb-2">{alliance.note}</p>
+          )}
+          <p className="text-[10px] text-muted-foreground font-sans leading-relaxed">
+            Membership checked on {ALLIANCES_CHECKED}. What it is, its agenda and its significance are
+            a compiled summary, not a quotation from the organisation.
+          </p>
+          <SourceLink sources={[alliance.source]} className="mt-2" />
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 // ── AlliancesView ─────────────────────────────────────────────────────────────
 /** Alliances, blocs and international agencies (data/alliances.ts). */
 function AlliancesView() {
   const [kind, setKind] = useState<"All" | AllianceKind>("All");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<string | null>(null);
+  const [detail, setDetail] = useState<Alliance | null>(null);
   const byCode = useMemo(() => new Map(countriesData.map((c) => [c.code, c])), []);
 
-  const kinds: ("All" | AllianceKind)[] = ["All", "Security alliance", "Political & economic bloc", "International agency"];
+  const kinds: ("All" | AllianceKind)[] = ["All", "Security alliance", "Political & regional bloc", "Economic & trade bloc", "International agency"];
   const q = query.trim().toLowerCase();
   const shown = ALLIANCES.filter((a) => {
     if (kind !== "All" && a.kind !== kind) return false;
@@ -15667,7 +15835,19 @@ function AlliancesView() {
           const isOpen = open === a.id;
           const visible = isOpen ? members : members.slice(0, 12);
           return (
-            <div key={a.id} className="modal-tile rounded-xl p-4 border border-border/60 flex flex-col">
+            <div
+              key={a.id}
+              onClick={() => setDetail(a)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setDetail(a);
+                }
+              }}
+              className="modal-tile rounded-xl p-4 border border-border/60 flex flex-col cursor-pointer transition-colors hover:border-secondary/40"
+            >
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="min-w-0">
                   <p className="text-sm font-bold font-sans text-foreground">{a.short}</p>
@@ -15703,7 +15883,10 @@ function AlliancesView() {
                   ))}
                   {members.length > 12 && (
                     <button
-                      onClick={() => setOpen(isOpen ? null : a.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpen(isOpen ? null : a.id);
+                      }}
                       className="text-[10px] font-sans px-1.5 py-0.5 rounded-md text-secondary hover:underline"
                     >
                       {isOpen ? "Show fewer" : `+${members.length - 12} more`}
@@ -15719,15 +15902,23 @@ function AlliancesView() {
               {a.note && (
                 <p className="text-[11px] text-muted-foreground font-sans leading-relaxed mb-1">{a.note}</p>
               )}
-              <div className="mt-auto">
+              <div className="mt-auto" onClick={(e) => e.stopPropagation()}>
                 <SourceLink sources={[a.source]} />
               </div>
+              <p className="text-[10px] text-secondary font-sans mt-2">Open details →</p>
             </div>
           );
         })}
       </div>
       {shown.length === 0 && (
         <p className="text-sm text-muted-foreground font-sans">No organisation matches.</p>
+      )}
+      {detail && (
+        <AllianceModal
+          alliance={detail}
+          members={(detail.members ?? []).map((m) => byCode.get(m)).filter((c): c is Country => !!c)}
+          onClose={() => setDetail(null)}
+        />
       )}
     </div>
   );

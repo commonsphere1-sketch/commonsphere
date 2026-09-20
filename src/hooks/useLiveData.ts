@@ -1,25 +1,28 @@
 /**
  * useLiveData.ts
- * React hook that fetches live country/state data and keeps it fresh.
  *
- * Refresh strategy — the upstream sources do not change second-by-second, so
- * polling aggressively would burn requests for nothing:
- *   - World Bank  : revised a few times a year
- *   - BLS         : monthly (state unemployment)
- *   - Census ACS  : annual
- * So we refresh on mount, again on a long interval, and opportunistically when
- * the tab regains focus after going stale. That keeps a long-lived tab current
- * without hammering the APIs.
+ * The countries and states the pages read. It no longer fetches anything.
+ *
+ * It used to pull World Bank indicators from the browser on every page load
+ * and patch them over the bundled data. Two things are wrong with that now:
+ *
+ *  - The request is blocked. The World Bank API no longer sends an
+ *    Access-Control-Allow-Origin header to this origin, so every page load
+ *    produced a row of CORS errors in the console and the fetch always failed.
+ *  - Even when it worked, it defeated the point of the data build. Every
+ *    figure on the site is now built from a named source and carries the year
+ *    it is for (countryIndicators.ts, stateIndicators.ts and the rest). A
+ *    silent patch replaced those with undated numbers, so a country could show
+ *    a 2025 GDP labelled as a 2021 one.
+ *
+ * Refreshing from upstream belongs in the build scripts, which record the
+ * source and year with each figure; run those and commit the result.
+ *
+ * The hook keeps its shape so callers need no changes: `isRefreshing` is
+ * always false, `lastUpdated` always null, and `refresh` does nothing.
  */
-import { useState, useEffect, useCallback, useRef } from "react";
-import { fetchLiveCountryData, type LiveDataResult } from "../lib/liveData";
 import { countriesData, type Country } from "../data/countriesData";
 import { usStatesData, type USState } from "../data/statesData";
-
-/** How often a mounted page re-pulls upstream data. */
-export const LIVE_REFRESH_MS = 30 * 60 * 1000; // 30 minutes
-/** Refetch on tab focus only if the data is at least this old. */
-export const LIVE_STALE_MS = 5 * 60 * 1000; // 5 minutes
 
 export interface UseLiveDataReturn {
   countries: Country[];
@@ -31,70 +34,16 @@ export interface UseLiveDataReturn {
   refresh: () => void;
 }
 
-export function useLiveData(
-  refreshIntervalMs: number = LIVE_REFRESH_MS,
-): UseLiveDataReturn {
-  const [result, setResult] = useState<LiveDataResult | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+const STATIC: UseLiveDataReturn = {
+  countries: countriesData,
+  states: usStatesData,
+  isRefreshing: false,
+  lastUpdated: null,
+  patchedCount: 0,
+  source: "Built-in data, each figure dated",
+  refresh: () => {},
+};
 
-  // Guards against overlapping fetches and against setting state after unmount.
-  const inFlight = useRef(false);
-  const mounted = useRef(true);
-  const lastAt = useRef<number>(0);
-
-  const refresh = useCallback(async () => {
-    if (inFlight.current) return;
-    inFlight.current = true;
-    setIsRefreshing(true);
-    try {
-      const data = await fetchLiveCountryData();
-      if (mounted.current) {
-        setResult(data);
-        lastAt.current = Date.now();
-      }
-    } catch {
-      // Keep whatever we already have; the static data is the floor.
-    } finally {
-      inFlight.current = false;
-      if (mounted.current) setIsRefreshing(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    mounted.current = true;
-    refresh();
-
-    const id = window.setInterval(() => {
-      if (document.visibilityState === "visible") refresh();
-    }, refreshIntervalMs);
-
-    // A tab left open for hours should catch up as soon as it's looked at.
-    const onVisible = () => {
-      if (
-        document.visibilityState === "visible" &&
-        Date.now() - lastAt.current > LIVE_STALE_MS
-      ) {
-        refresh();
-      }
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("focus", onVisible);
-
-    return () => {
-      mounted.current = false;
-      window.clearInterval(id);
-      document.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener("focus", onVisible);
-    };
-  }, [refresh, refreshIntervalMs]);
-
-  return {
-    countries: result?.countries ?? countriesData,
-    states: result?.states ?? usStatesData,
-    isRefreshing,
-    lastUpdated: result?.lastUpdated ?? null,
-    patchedCount: result?.patchedCount ?? 0,
-    source: result?.source ?? "Static data",
-    refresh,
-  };
+export function useLiveData(): UseLiveDataReturn {
+  return STATIC;
 }
