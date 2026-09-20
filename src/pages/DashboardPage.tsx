@@ -5158,14 +5158,20 @@ function ExpandableCard({
   // The row previously only had hover:opacity-90, which fades it — reading as
   // disabled rather than clickable. It now warms toward the card's accent
   // colour on hover, and a little further again when already open.
+  //
+  // The tints were far too weak to see: on the light theme a hovered row came
+  // out at rgba(59,130,246,0.008), which is no change at all. They are now
+  // strong enough to read as a hover state while still being a tint - roughly
+  // 9% of the accent on the light theme and 16% on the dark one, deepening
+  // again when the card is already open.
   const headerBg = open
     ? isLight
-      ? accentColor + (hover ? "0f" : "06")
-      : accentColor + (hover ? "1c" : "10")
+      ? accentColor + (hover ? "24" : "12")
+      : accentColor + (hover ? "33" : "1a")
     : hover
       ? isLight
-        ? accentColor + "0b"
-        : accentColor + "14"
+        ? accentColor + "17"
+        : accentColor + "29"
       : "transparent";
 
   return (
@@ -5181,10 +5187,13 @@ function ExpandableCard({
         onFocus={() => setHover(true)}
         onBlur={() => setHover(false)}
         aria-expanded={open}
-        className="w-full flex items-center gap-3 px-5 py-4 text-left transition-colors duration-150 cursor-pointer"
+        className="w-full flex items-center gap-3 px-5 py-4 text-left transition-all duration-150 cursor-pointer"
         style={{
           borderBottom: open ? `1px solid ${gridLine}` : "none",
           background: headerBg,
+          // A bar in the accent colour on hover or while open, so the row
+          // reads as interactive even where a tint is hard to see.
+          boxShadow: hover || open ? `inset 3px 0 0 0 ${accentColor}` : "none",
         }}
       >
         {/* Icon */}
