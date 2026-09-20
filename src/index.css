@@ -1017,3 +1017,25 @@ html.light .avatar-glass {
   -webkit-backdrop-filter: blur(12px) saturate(150%) brightness(0.97);
   color: hsl(38, 18%, 12%) !important;
 }
+
+/* Selected filter chips and view toggles.
+
+   These used `bg-secondary/20 text-secondary border-secondary/40`. The theme
+   colours are plain `var(--color-…)` values, and Tailwind cannot apply an
+   opacity modifier to those, so the fill and the border silently came out
+   transparent. In dark mode the near-white `text-secondary` still read as
+   selected; in light mode `--color-secondary` is a mid grey barely different
+   from the muted text on an unselected chip, so the two looked identical.
+
+   One filled treatment instead, taken from the foreground colour, so a
+   selected chip is unmistakable in both themes and carries its own contrast:
+   a near-white pill with dark text in the dark theme, a near-black pill with
+   light text in the light one. */
+.chip-selected {
+  background: var(--color-foreground);
+  color: var(--color-background);
+  border-color: var(--color-foreground);
+}
+.chip-selected:hover {
+  opacity: 0.9;
+}

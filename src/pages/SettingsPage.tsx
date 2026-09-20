@@ -216,7 +216,7 @@ function WatchedRow({
               onClick={() => onToggleTopic(entity.id, t.id)}
               className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium border transition-colors ${
                 active
-                  ? "bg-secondary/20 text-secondary border-secondary/40"
+                  ? "chip-selected"
                   : "bg-transparent text-muted-foreground border-border hover:border-secondary/40 hover:text-secondary"
               }`}
             >

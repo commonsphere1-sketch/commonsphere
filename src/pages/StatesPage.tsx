@@ -7254,7 +7254,7 @@ export function StatesPage() {
                 onClick={() => setRegionFilter(r)}
                 className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
                   regionFilter === r
-                    ? "bg-secondary/20 text-secondary border-secondary/40"
+                    ? "chip-selected"
                     : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 }`}
               >
@@ -7266,12 +7266,12 @@ export function StatesPage() {
               const isActive = partyFilter === p;
               const activeStyle =
                 p === "Democrat"
-                  ? "bg-secondary/20 text-secondary border-secondary/40"
+                  ? "chip-selected"
                   : p === "Republican"
                     ? "bg-red-500/15 text-red-400 border-red-500/40"
                     : p === "Independent"
                       ? "bg-yellow-500/15 text-yellow-400 border-yellow-500/40"
-                      : "bg-secondary/20 text-secondary border-secondary/40";
+                      : "chip-selected";
               return (
                 <button
                   key={p}

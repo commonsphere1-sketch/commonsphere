@@ -15326,18 +15326,15 @@ function RichestFamiliesView() {
           {
             label: "Families Tracked",
             value: String(RICHEST_FAMILIES.length),
-            color: "text-amber-400",
           },
           {
             label: "Combined Est. Wealth",
             value: `$${totalWealth}B+`,
-            color: "text-green-400",
           },
-          { label: "Oldest Dynasty", value: "1744", color: "text-purple-400" },
+          { label: "Oldest Dynasty", value: "1744" },
           {
             label: "Countries Covered",
             value: String(new Set(RICHEST_FAMILIES.map((f) => f.country)).size),
-            color: "text-sky-400",
           },
         ].map((s) => (
           <div
@@ -15345,7 +15342,7 @@ function RichestFamiliesView() {
             className="bg-card border border-border rounded-lg p-4"
           >
             <p className="text-xs text-muted-foreground">{s.label}</p>
-            <p className={`text-xl font-bold font-mono ${s.color}`}>
+            <p className="text-xl font-bold font-mono text-foreground">
               {s.value}
             </p>
           </div>
@@ -15358,7 +15355,7 @@ function RichestFamiliesView() {
           <button
             key={s}
             onClick={() => setSectorFilter(s as typeof sectorFilter)}
-            className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${sectorFilter === s ? "bg-amber-500/15 text-amber-400 border-amber-500/40" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
+            className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${sectorFilter === s ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
           >
             {s === "All" ? "All Sectors" : s}
           </button>
@@ -15383,7 +15380,7 @@ function RichestFamiliesView() {
           <button
             key={f.id}
             onClick={() => setSelectedFamily(f)}
-            className={`w-full text-left rounded-xl border transition-all duration-200 overflow-hidden group hover:scale-[1.01] hover:shadow-lg ${selectedFamily?.id === f.id ? "border-amber-500/50 bg-amber-500/5 ring-1 ring-amber-500/20" : "border-border bg-card hover:border-amber-500/30"}`}
+            className={`w-full text-left rounded-xl border transition-all duration-200 overflow-hidden group hover:scale-[1.01] hover:shadow-lg ${selectedFamily?.id === f.id ? "border-secondary/50 bg-secondary/5 ring-1 ring-secondary/20" : "border-border bg-card hover:border-secondary/30"}`}
           >
             <div className="p-4">
               <div className="flex items-start justify-between gap-2 mb-2">
@@ -15811,7 +15808,7 @@ function AlliancesView() {
           <button
             key={k}
             onClick={() => setKind(k)}
-            className={`px-3 py-1.5 rounded-full text-xs font-sans border transition-colors ${kind === k ? "bg-secondary/20 text-secondary border-secondary/40" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+            className={`px-3 py-1.5 rounded-full text-xs font-sans border transition-colors ${kind === k ? "chip-selected" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
           >
             {k === "All" ? "All" : `${k}s`}
           </button>
@@ -15996,22 +15993,18 @@ export function WorldLeadersPage() {
             {
               label: "Leaders Profiled",
               value: String(LEADERS.length),
-              color: "text-secondary",
             },
             {
               label: "Currently in Office",
               value: String(inOffice),
-              color: "text-green-400",
             },
             {
               label: "Avg Approval Rating",
               value: `${avgApproval}%`,
-              color: "text-yellow-400",
             },
             {
               label: "Regions Covered",
               value: String(REGIONS.length - 1),
-              color: "text-purple-400",
             },
           ].map((s) => (
             <div
@@ -16021,7 +16014,7 @@ export function WorldLeadersPage() {
               <p className="text-xs text-muted-foreground font-sans">
                 {s.label}
               </p>
-              <p className={`text-xl font-bold font-mono ${s.color}`}>
+              <p className="text-xl font-bold font-mono text-foreground">
                 {s.value}
               </p>
             </div>
@@ -16052,7 +16045,7 @@ export function WorldLeadersPage() {
                 onClick={() => setRegion(r)}
                 className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
                   region === r
-                    ? "bg-secondary/20 text-secondary border-secondary/40"
+                    ? "chip-selected"
                     : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 }`}
               >
@@ -16078,7 +16071,7 @@ export function WorldLeadersPage() {
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <button
             onClick={() => setViewMode("list")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${viewMode === "list" ? "bg-secondary/20 text-secondary border-secondary/40" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${viewMode === "list" ? "chip-selected" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
           >
             <ListBullets
               size={13}
@@ -16088,7 +16081,7 @@ export function WorldLeadersPage() {
           </button>
           <button
             onClick={() => setViewMode("monarchies")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${viewMode === "monarchies" ? "bg-secondary/20 text-secondary border-secondary/40" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${viewMode === "monarchies" ? "chip-selected" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
           >
             <Crown
               size={13}
@@ -16098,7 +16091,7 @@ export function WorldLeadersPage() {
           </button>
           <button
             onClick={() => setViewMode("richest")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${viewMode === "richest" ? "bg-amber-500/20 text-amber-400 border-amber-500/40" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${viewMode === "richest" ? "chip-selected" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
           >
             <Money
               size={13}
@@ -16108,7 +16101,7 @@ export function WorldLeadersPage() {
           </button>
           <button
             onClick={() => setViewMode("alliances")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${viewMode === "alliances" ? "bg-secondary/20 text-secondary border-secondary/40" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${viewMode === "alliances" ? "chip-selected" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
           >
             <Handshake
               size={13}
@@ -16133,7 +16126,6 @@ export function WorldLeadersPage() {
                 {
                   label: "Reigning Monarchs",
                   value: String(ROYAL_FAMILIES.length),
-                  color: "text-yellow-400",
                 },
                 {
                   label: "Absolute Monarchies",
@@ -16141,7 +16133,6 @@ export function WorldLeadersPage() {
                     ROYAL_FAMILIES.filter((r) => r.systemType === "Absolute")
                       .length,
                   ),
-                  color: "text-red-400",
                 },
                 {
                   label: "Constitutional",
@@ -16150,7 +16141,6 @@ export function WorldLeadersPage() {
                       (r) => r.systemType === "Constitutional",
                     ).length,
                   ),
-                  color: "text-green-400",
                 },
                 {
                   label: "Semi-Constitutional",
@@ -16159,7 +16149,6 @@ export function WorldLeadersPage() {
                       (r) => r.systemType === "Semi-Constitutional",
                     ).length,
                   ),
-                  color: "text-amber-400",
                 },
               ].map((s) => (
                 <div
@@ -16167,7 +16156,7 @@ export function WorldLeadersPage() {
                   className="bg-card border border-border rounded-lg p-4"
                 >
                   <p className="text-xs text-muted-foreground">{s.label}</p>
-                  <p className={`text-xl font-bold font-mono ${s.color}`}>
+                  <p className="text-xl font-bold font-mono text-foreground">
                     {s.value}
                   </p>
                 </div>

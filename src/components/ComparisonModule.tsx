@@ -290,7 +290,7 @@ export function ComparisonModule() {
                               ? removeEntity(entityId(e))
                               : addEntity(e);
                           }}
-                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-sans cursor-pointer border transition-colors ${isSelected ? "bg-secondary/20 text-secondary border-secondary/40" : "bg-muted text-muted-foreground border-border hover:bg-secondary/10 hover:text-foreground"}`}
+                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-sans cursor-pointer border transition-colors ${isSelected ? "chip-selected" : "bg-muted text-muted-foreground border-border hover:bg-secondary/10 hover:text-foreground"}`}
                         >
                           {!isSelected && <Plus size={10} weight="bold" />}
                           {isSelected && (
