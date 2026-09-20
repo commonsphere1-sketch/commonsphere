@@ -5324,6 +5324,182 @@ function SectionHeader({
 }
 
 /* ═══════════════════════════════════════════════════════════════════════ */
+// ─── Quarter tracker ─────────────────────────────────────────────────────────
+/**
+ * Where the year is, by quarter.
+ *
+ * Two calendars, because a dashboard carrying US federal figures needs both
+ * and they disagree by a quarter: the calendar year runs January to December,
+ * while the US federal fiscal year runs 1 October to 30 September and is named
+ * for the year it ends in, so 20 September 2026 is calendar Q3 and federal
+ * FY2026 Q4.
+ *
+ * Everything is computed from the clock rather than written down, so nothing
+ * here can go stale. Dates are local-time midnights; a quarter ends the instant
+ * the next one begins, which is what the countdown counts to.
+ */
+type QuarterInfo = {
+  label: string;
+  start: Date;
+  /** Exclusive: the first instant of the next quarter. */
+  end: Date;
+  index: number;
+};
+
+/** The four calendar quarters of the year `now` falls in. */
+function calendarQuarters(now: Date): QuarterInfo[] {
+  const y = now.getFullYear();
+  return [0, 1, 2, 3].map((i) => ({
+    label: `Q${i + 1}`,
+    start: new Date(y, i * 3, 1),
+    end: new Date(y, i * 3 + 3, 1),
+    index: i,
+  }));
+}
+
+/**
+ * The four quarters of the US federal fiscal year `now` falls in. FY quarters
+ * start in October, and the fiscal year is named for the calendar year it ends
+ * in: October to December 2025 is FY2026 Q1.
+ */
+function fiscalQuarters(now: Date): { fy: number; quarters: QuarterInfo[] } {
+  const m = now.getMonth();
+  const startYear = m >= 9 ? now.getFullYear() : now.getFullYear() - 1;
+  const quarters = [0, 1, 2, 3].map((i) => ({
+    label: `Q${i + 1}`,
+    start: new Date(startYear, 9 + i * 3, 1),
+    end: new Date(startYear, 9 + (i + 1) * 3, 1),
+    index: i,
+  }));
+  return { fy: startYear + 1, quarters };
+}
+
+const QUARTER_FMT = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" });
+const range = (q: QuarterInfo) =>
+  `${QUARTER_FMT.format(q.start)} – ${QUARTER_FMT.format(new Date(q.end.getTime() - 1))}`;
+
+function QuarterTracker({
+  isLight,
+  cardBg,
+  cardBorder,
+  headText,
+  mutedText,
+  gridLine,
+}: {
+  isLight: boolean;
+  cardBg: string;
+  cardBorder: string;
+  headText: string;
+  mutedText: string;
+  gridLine: string;
+}) {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const accent = "#6366f1";
+  const calendar = calendarQuarters(now);
+  const fiscal = fiscalQuarters(now);
+  const current = calendar.find((q) => now >= q.start && now < q.end)!;
+  const currentFiscal = fiscal.quarters.find((q) => now >= q.start && now < q.end)!;
+
+  const span = current.end.getTime() - current.start.getTime();
+  const elapsed = now.getTime() - current.start.getTime();
+  const pct = Math.min(100, Math.max(0, (elapsed / span) * 100));
+
+  // Countdown to the first instant of the next quarter.
+  const left = current.end.getTime() - now.getTime();
+  const days = Math.floor(left / 86400000);
+  const hours = Math.floor((left % 86400000) / 3600000);
+  const minutes = Math.floor((left % 3600000) / 60000);
+  const seconds = Math.floor((left % 60000) / 1000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  const state = (q: QuarterInfo) =>
+    now >= q.end ? "done" : now >= q.start ? "current" : "ahead";
+
+  const chipStyle = (s: string) =>
+    s === "current"
+      ? { background: accent + (isLight ? "17" : "29"), border: `1px solid ${accent}`, color: isLight ? "#312e81" : "#c7d2fe" }
+      : s === "done"
+        ? { background: "transparent", border: `1px solid ${gridLine}`, color: mutedText }
+        : { background: "transparent", border: `1px dashed ${gridLine}`, color: mutedText };
+
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ background: cardBg, border: cardBorder }}>
+      <div className="px-5 py-4 flex flex-wrap items-center gap-x-4 gap-y-2" style={{ borderBottom: `1px solid ${gridLine}` }}>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold font-sans" style={{ color: headText }}>
+            Quarter Tracker
+          </span>
+          <span
+            className="text-[9px] font-mono px-2 py-0.5 rounded-full"
+            style={{ background: accent + "15", color: accent }}
+          >
+            {current.label} {current.start.getFullYear()}
+          </span>
+        </div>
+        <p className="text-[10px] font-sans" style={{ color: mutedText }}>
+          Calendar quarter {current.label}, {range(current)} · US federal fiscal year {fiscal.fy}, {currentFiscal.label}
+        </p>
+      </div>
+
+      <div className="px-5 py-4 flex flex-col gap-4">
+        {/* Countdown to the next quarter */}
+        <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
+          <div>
+            <p className="text-[10px] font-sans uppercase tracking-widest mb-1" style={{ color: mutedText }}>
+              {current.label} ends in
+            </p>
+            <p className="text-2xl font-bold font-mono" style={{ color: headText }}>
+              {days}d {pad(hours)}:{pad(minutes)}:{pad(seconds)}
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] font-sans uppercase tracking-widest mb-1" style={{ color: mutedText }}>
+              Elapsed
+            </p>
+            <p className="text-2xl font-bold font-mono" style={{ color: headText }}>
+              {pct.toFixed(1)}%
+            </p>
+          </div>
+          <p className="text-[10px] font-sans" style={{ color: mutedText }}>
+            {current.label} runs to {QUARTER_FMT.format(new Date(current.end.getTime() - 1))}; Q
+            {((current.index + 1) % 4) + 1} begins {QUARTER_FMT.format(current.end)}
+          </p>
+        </div>
+
+        {/* Progress through the current quarter */}
+        <div>
+          <div className="h-2 rounded-full overflow-hidden" style={{ background: isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }}>
+            <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: accent }} />
+          </div>
+        </div>
+
+        {/* The four quarters of this calendar year */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {calendar.map((q) => {
+            const s = state(q);
+            return (
+              <div key={q.label} className="rounded-xl px-3 py-2" style={chipStyle(s)}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold font-mono">{q.label}</span>
+                  <span className="text-[9px] font-sans uppercase tracking-wider">
+                    {s === "current" ? "now" : s === "done" ? "done" : "ahead"}
+                  </span>
+                </div>
+                <p className="text-[10px] font-sans mt-0.5">{range(q)}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function DashboardPage() {
   const navigate = useNavigate();
   const { theme } = useTheme();
@@ -5396,14 +5572,25 @@ export function DashboardPage() {
               className="text-sm font-sans mt-1 max-w-md"
               style={{ color: mutedText }}
             >
-              {/* "Real-time" overstated it: country and state figures do
-                  refresh from the World Bank, but the event and policy feeds
-                  are curated and carry their own dates. */}
-              Country and state figures refresh from the World Bank; event and
-              policy entries are curated and dated individually.
+              {/* The browser-side refresh is gone (see useLiveData): figures
+                  are built from named sources and carry the year they are
+                  for, and the feeds are curated and dated individually. */}
+              Country and state figures are built from named sources and show
+              the year they are for; event and policy entries are curated and
+              dated individually.
             </p>
           </div>
         </div>
+
+        {/* ── QUARTER TRACKER ────────────────────────────────────────────── */}
+        <QuarterTracker
+          isLight={isLight}
+          cardBg={cardBg}
+          cardBorder={cardBorder}
+          headText={headText}
+          mutedText={mutedText}
+          gridLine={gridLine}
+        />
 
         {/* ── COUNTRIES CAROUSEL ─────────────────────────────────────────── */}
         <CountryCarousel
