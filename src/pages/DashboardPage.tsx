@@ -5445,27 +5445,68 @@ const THEME_FILTERS = ["All", "Political", "Economic", "Social"] as const;
 const SCOPE_FILTERS = ["All", "National", "International"] as const;
 
 /**
- * How the countdown is set. Heavy monospace reads as a system readout; at 500
- * with the figures opened up it reads as a clock instead. `tabular-nums` is
- * the part that matters at one tick a second — proportional digits change
- * width as they change value, so the whole line jitters.
+ * How the countdown is set: the display serif the site already loads, at 500.
+ * Monospace read as a system readout, and IBM Plex Mono's zero carries a
+ * centre dot, which is a programmer's disambiguation mark rather than
+ * something a clock needs. Playfair's figures are lining, its zero is a plain
+ * oval, and its thick-to-thin contrast makes the stems noticeably narrower
+ * than the mono's uniform ones.
+ *
+ * What the serif costs is tabular figures: Playfair has no `tnum` feature (nor
+ * does DM Sans — both were measured), and its digits run from 0.38em for a 1
+ * to 0.62em for a 0. At one tick a second that jitter is very visible, so
+ * <Figures> boxes every digit to a fixed width and the layout does what the
+ * font will not.
  *
  * The unit and the separators are set back, so what the eye lands on is the
  * numerals rather than the punctuation between them.
  */
 const COUNTER: React.CSSProperties = {
+  fontFamily: '"Playfair Display", Georgia, serif',
+  fontWeight: 500,
+  letterSpacing: "0.015em",
+};
+const COUNTER_UNIT: React.CSSProperties = {
+  fontSize: "0.42em",
+  opacity: 0.5,
+  marginLeft: "0.14em",
+  letterSpacing: "0.12em",
+  textTransform: "uppercase",
+};
+const COUNTER_SEP: React.CSSProperties = { opacity: 0.32, padding: "0 0.02em" };
+
+/** The width every digit is boxed to: the widest Playfair figure, its 0. */
+const FIGURE_WIDTH = "0.62em";
+
+/** Digits boxed to a common width; punctuation keeps its own. */
+function Figures({ value }: { value: string }) {
+  return (
+    <>
+      {[...value].map((ch, i) =>
+        ch >= "0" && ch <= "9" ? (
+          <span
+            key={i}
+            className="inline-block text-center"
+            style={{ width: FIGURE_WIDTH }}
+          >
+            {ch}
+          </span>
+        ) : (
+          <span key={i} style={ch === ":" ? COUNTER_SEP : undefined}>
+            {ch}
+          </span>
+        ),
+      )}
+    </>
+  );
+}
+
+/** The row dates stay monospaced: they sit in a list, and they do not tick. */
+const ROW_FIGURES: React.CSSProperties = {
   fontWeight: 500,
   fontVariantNumeric: "tabular-nums",
   letterSpacing: "0.035em",
 };
-const COUNTER_UNIT: React.CSSProperties = {
-  fontSize: "0.46em",
-  opacity: 0.55,
-  marginLeft: "0.12em",
-  letterSpacing: "0.1em",
-  textTransform: "uppercase",
-};
-const COUNTER_SEP: React.CSSProperties = { opacity: 0.38, padding: "0 0.02em" };
 
 function QuarterTracker({
   isLight,
@@ -5603,22 +5644,18 @@ function QuarterTracker({
             <p className="text-[10px] font-sans uppercase tracking-widest mb-1" style={{ color: mutedText }}>
               {current.label} ends in
             </p>
-            <p className="text-[28px] leading-none font-mono" style={{ ...COUNTER, color: headText }}>
-              {days}
+            <p className="text-[32px] leading-none" style={{ ...COUNTER, color: headText }}>
+              <Figures value={String(days)} />
               <span style={COUNTER_UNIT}>d</span>{" "}
-              {pad(hours)}
-              <span style={COUNTER_SEP}>:</span>
-              {pad(minutes)}
-              <span style={COUNTER_SEP}>:</span>
-              {pad(seconds)}
+              <Figures value={`${pad(hours)}:${pad(minutes)}:${pad(seconds)}`} />
             </p>
           </div>
           <div>
             <p className="text-[10px] font-sans uppercase tracking-widest mb-1" style={{ color: mutedText }}>
               Elapsed
             </p>
-            <p className="text-[28px] leading-none font-mono" style={{ ...COUNTER, color: headText }}>
-              {pct.toFixed(1)}
+            <p className="text-[32px] leading-none" style={{ ...COUNTER, color: headText }}>
+              <Figures value={pct.toFixed(1)} />
               <span style={COUNTER_UNIT}>%</span>
             </p>
           </div>
@@ -5790,7 +5827,7 @@ function QuarterTracker({
                     <span className="sm:w-28 shrink-0 block">
                       <span
                         className="text-xs font-mono block"
-                        style={{ ...COUNTER, color: headText }}
+                        style={{ ...ROW_FIGURES, color: headText }}
                       >
                         {eventDateLabel(e)}
                       </span>
