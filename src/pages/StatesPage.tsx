@@ -29,6 +29,7 @@ import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
 import { getUpcoming } from "../data/upcomingToWatch";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
+import { Figures, COUNTER_FIGURES } from "../components/Figures";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
 
 // ─── Housing and commuting, from the American Community Survey ───────────
@@ -7061,7 +7062,7 @@ function USNationalBanner() {
               <p className="text-[9px] font-semibold text-muted-foreground font-sans uppercase tracking-widest mb-1">
                 Next Presidential Election · Nov 2028
               </p>
-              <div className="flex items-end gap-1 font-mono">
+              <div className="flex items-end gap-1">
                 {[
                   { val: String(days).padStart(3, "0"), label: "days" },
                   { val: String(hours).padStart(2, "0"), label: "hrs" },
@@ -7075,8 +7076,14 @@ function USNationalBanner() {
                       </span>
                     )}
                     <span className="flex flex-col items-center">
-                      <span className="text-base font-bold text-yellow-500 dark:text-yellow-400 leading-none tabular-nums">
-                        {val}
+                      {/* Same figures as the dashboard's quarter tracker: the
+                          display serif, with every digit boxed to a common
+                          width so a per-second tick does not shift the row. */}
+                      <span
+                        className="text-lg text-yellow-500 dark:text-yellow-400 leading-none"
+                        style={COUNTER_FIGURES}
+                      >
+                        <Figures value={val} />
                       </span>
                       <span className="text-[8px] text-muted-foreground uppercase tracking-wider mt-0.5">
                         {label}
