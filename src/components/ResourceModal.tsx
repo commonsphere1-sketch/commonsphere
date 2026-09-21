@@ -1,5 +1,11 @@
 import { useEffect } from "react";
 import { RESOURCE_DETAILS } from "../data/resourceDetails";
+import {
+  RESOURCE_PRODUCERS,
+  RESOURCE_PRODUCERS_SOURCE,
+  type Share,
+} from "../data/resourceProducers";
+import { SourceLink } from "./SourceLink";
 
 export interface ResourceSummary {
   name: string;
@@ -9,6 +15,115 @@ export interface ResourceSummary {
   holder: string;
   reserve: string;
   color: string;
+}
+
+/** Tonnes, read at a glance: 380 t, 92,000 t, 5.3 Mt, 1.6 bn t. */
+function fmtTonnes(t: number): string {
+  if (t >= 1e9) return `${(t / 1e9).toFixed(t >= 1e10 ? 0 : 1)} bn t`;
+  if (t >= 1e6) return `${(t / 1e6).toFixed(t >= 1e7 ? 0 : 1)} Mt`;
+  return `${Math.round(t).toLocaleString()} t`;
+}
+
+function fmtShare(s: Share | null): string | null {
+  if (!s) return null;
+  const mark = s.bound === "atMost" ? "≤" : s.bound === "atLeast" ? "≥" : "";
+  return `${mark}${s.pct}%`;
+}
+
+/**
+ * Every country USGS lists for the commodity: its 2025 production and its
+ * reserves, each with its share of the world. From resourceProducers.ts,
+ * built from USGS's Mineral Commodity Summaries 2026. Commodities USGS does
+ * not cover render nothing here rather than a table of guesses.
+ */
+function ProducerTable({ name }: { name: string }) {
+  const p = RESOURCE_PRODUCERS[name];
+  if (!p) return null;
+  const hasReserves = p.worldReserves !== null;
+
+  return (
+    <>
+      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mt-6 mb-2">
+        Countries · {p.year}
+      </p>
+      <div className="modal-tile rounded-xl p-3">
+        <div
+          className={`grid ${hasReserves ? "grid-cols-[1fr_auto_auto]" : "grid-cols-[1fr_auto]"} gap-x-4 pb-1.5 mb-1 border-b border-border/50`}
+        >
+          <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">Country</span>
+          <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground text-right">
+            Production
+          </span>
+          {hasReserves && (
+            <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground text-right">
+              Reserves
+            </span>
+          )}
+        </div>
+        {p.countries.map((c) => (
+          <div
+            key={c.name}
+            className={`grid ${hasReserves ? "grid-cols-[1fr_auto_auto]" : "grid-cols-[1fr_auto]"} gap-x-4 py-1 items-baseline`}
+          >
+            <span className="text-[11px] font-sans text-foreground">{c.name}</span>
+            <span className="text-[11px] font-mono text-foreground text-right">
+              {c.production ? (
+                <>
+                  {fmtTonnes(c.production.tonnes)}
+                  {c.productionShare && (
+                    <span className="text-muted-foreground"> · {fmtShare(c.productionShare)}</span>
+                  )}
+                </>
+              ) : (
+                <span className="text-muted-foreground">
+                  {c.productionWithheld ? "withheld" : "—"}
+                </span>
+              )}
+            </span>
+            {hasReserves && (
+              <span className="text-[11px] font-mono text-foreground text-right">
+                {c.reserves ? (
+                  <>
+                    {fmtTonnes(c.reserves.tonnes)}
+                    {c.reservesShare && (
+                      <span className="text-muted-foreground"> · {fmtShare(c.reservesShare)}</span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )}
+              </span>
+            )}
+          </div>
+        ))}
+        <div
+          className={`grid ${hasReserves ? "grid-cols-[1fr_auto_auto]" : "grid-cols-[1fr_auto]"} gap-x-4 pt-1.5 mt-1 border-t border-border/50`}
+        >
+          <span className="text-[11px] font-sans font-semibold text-foreground">World</span>
+          <span className="text-[11px] font-mono font-semibold text-foreground text-right">
+            {p.worldProduction.lowerBound ? ">" : ""}
+            {fmtTonnes(p.worldProduction.tonnes)}
+          </span>
+          {hasReserves && p.worldReserves && (
+            <span className="text-[11px] font-mono font-semibold text-foreground text-right">
+              {p.worldReserves.lowerBound ? ">" : ""}
+              {fmtTonnes(p.worldReserves.tonnes)}
+            </span>
+          )}
+        </div>
+        <p className="text-[9px] font-sans text-muted-foreground mt-2 leading-snug">
+          {p.measure}, {p.year}, with each country's share of the world.
+          {!hasReserves && " USGS publishes no reserves for refined aluminum — its reserves are bauxite ore."}
+          {p.countries.some((c) => c.productionWithheld) &&
+            " \"Withheld\" means USGS does not publish the figure, to protect company data — not that there is none."}
+          {p.worldReserves?.lowerBound &&
+            " The world reserve total is a minimum, so a share of it (≤) is an upper bound."}
+          {" "}Countries outside these are grouped by USGS as “other countries”.
+        </p>
+        <SourceLink sources={[RESOURCE_PRODUCERS_SOURCE]} className="mt-1" />
+      </div>
+    </>
+  );
 }
 
 /**
@@ -124,6 +239,9 @@ export function ResourceModal({
                   </p>
                 </div>
               </div>
+
+              {/* ── Countries ── */}
+              <ProducerTable name={resource.name} />
 
               {/* ── Uses ── */}
               <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mt-6 mb-2">
