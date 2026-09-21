@@ -5494,9 +5494,11 @@ function QuarterTracker({
   // style keyed to the quarter's colour, and a Tailwind hover variant cannot
   // override an inline background.
   const [hoverEvent, setHoverEvent] = useState<string | null>(null);
-  // The diary as a whole folds away. It opens on its own if a quarter is
-  // picked while it is shut, since picking one is a request to see it.
-  const [diaryOpen, setDiaryOpen] = useState(true);
+  // The diary as a whole folds away, and starts folded: the tracker leads
+  // with the countdown, and the header still says how many entries the
+  // quarter holds. It opens on its own if a quarter is picked, since picking
+  // one is a request to see it.
+  const [diaryOpen, setDiaryOpen] = useState(false);
 
   const season = SEASONS[selected];
   const accent = season.accent;
