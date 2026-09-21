@@ -5,17 +5,18 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        // "Figures" leads each stack. It is Spectral restricted to U+0030-0039
-        // (see the @font-face block in index.css), so every digit on the site
-        // is set in it while the letters beside them fall through to the
-        // family behind. font-sans, font-mono and font-display are otherwise
-        // unchanged.
-        sans: ['"Figures"', '"DM Sans"', "sans-serif"],
+        // Spectral is the site's typeface, words and numbers alike: sans and
+        // display both lead with it, so body text, labels and headings share
+        // the face the figures are set in. "Figures" still leads each stack —
+        // Spectral restricted to U+0030-0039 (see index.css) — which is what
+        // keeps digits in Spectral inside font-mono too, where the letters
+        // stay IBM Plex Mono. DM Sans and Playfair remain only as fallbacks.
+        sans: ['"Figures"', '"Spectral"', '"DM Sans"', "Georgia", "serif"],
         mono: ['"Figures"', '"IBM Plex Mono"', "monospace"],
         display: [
           '"Figures"',
+          '"Spectral"',
           '"Playfair Display"',
-          '"Cormorant Garant"',
           "Georgia",
           "serif",
         ],

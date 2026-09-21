@@ -257,7 +257,7 @@ export function GlobeWidget({ isLight }: GlobeWidgetProps) {
       ];
 
       const fontSize = Math.max(13, Math.min(17, W * 0.028));
-      ctx.font = `600 ${fontSize}px Figures, 'DM Sans', sans-serif`;
+      ctx.font = `600 ${fontSize}px Figures, Spectral, 'DM Sans', serif`;
 
       COUNTRY_LABELS.forEach((name, idx) => {
         const orbitIdx = idx % orbits.length;

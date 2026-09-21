@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=IBM+Plex+Mono:wght@400;500;600&family=Cormorant+Garant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Spectral:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=IBM+Plex+Mono:wght@400;500;600&family=Cormorant+Garant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&display=swap");
 
 /* ── Figures: one typeface for every number on the site ──────────────────────
    Spectral, restricted by unicode-range to U+0030–0039 — the ten digits and
@@ -80,11 +80,14 @@
   /* 0.42 composited to rgb(116,116,118) — 4.1:1 on the card and 4.0:1 on the
      page, both under the 4.5 floor for body text. 0.46 clears each. */
   --color-muted-foreground: rgba(255, 255, 255, 0.46);
-  /* "Figures" leads every stack: it covers the ten digits and nothing else,
-     so numbers are set in Spectral everywhere while the letters beside them
-     stay in DM Sans, IBM Plex Mono or Playfair. See the @font-face block. */
-  --font-sans: "Figures", "DM Sans", sans-serif;
-  --font-display: "Figures", "Playfair Display", "Cormorant Garant", Georgia, serif;
+  /* Spectral is the site's typeface for words as well as numbers: the word
+     font that matches the figures is the figures' own family, a text face
+     drawn for reading on screen. "Figures" still leads every stack — it covers
+     the ten digits only, and is what keeps them in Spectral inside
+     --font-mono, whose letters stay IBM Plex Mono. DM Sans and Playfair are
+     fallbacks now. */
+  --font-sans: "Figures", "Spectral", "DM Sans", Georgia, serif;
+  --font-display: "Figures", "Spectral", "Playfair Display", Georgia, serif;
   --font-mono: "Figures", "IBM Plex Mono", monospace;
   --border-radius: 12px;
 
@@ -119,7 +122,7 @@ html,
 body {
   background-color: #050509;
   color: hsl(40, 16%, 92%);
-  font-family: "Figures", "DM Sans", sans-serif;
+  font-family: "Figures", "Spectral", "DM Sans", Georgia, serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
