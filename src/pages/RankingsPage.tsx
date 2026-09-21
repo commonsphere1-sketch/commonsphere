@@ -722,7 +722,6 @@ function RowDetailPanel({
   compareFull: boolean;
   onToggleCompare: () => void;
 }) {
-  const metricsToShow = METRICS.filter((m) => m.id !== "composite");
   const topPercentile = Math.round((1 - (rank - 1) / totalInPool) * 100);
 
   return (
@@ -782,58 +781,9 @@ function RowDetailPanel({
           </button>
         </div>
       </div>
-      {/* One strip of standing bars rather than eight bordered cards.
-          The cards gave each indicator its own box, its own rule and its own
-          "96th pct" caption, so eight of them filled a screen and none could
-          be read against another — the thing you actually want from a profile
-          is the shape across all eight at once. This is the policy page's
-          idiom: a bar per measure, height for where it places, the figure
-          above it and the name below. */}
-      <div className="flex items-end gap-1 overflow-x-auto pb-1">
-        {metricsToShow
-          .filter((m) => hasMetric(row, m.id))
-          .map((m) => {
-            const val = row[m.id] as number;
-            const allVals = allValuesMap[m.id] ?? [];
-            const pct = percentile(val, allVals, m.higherIsBetter);
-            const barColor =
-              pct >= 66
-                ? "bg-success"
-                : pct >= 33
-                  ? "bg-amber-500"
-                  : "bg-destructive";
-            const textColor =
-              pct >= 66
-                ? "text-success"
-                : pct >= 33
-                  ? "text-amber-400"
-                  : "text-destructive";
-            return (
-              <div
-                key={m.id}
-                // Fixed narrow columns, not flex-1: an entity with three
-                // measures would otherwise stretch three bars across the whole
-                // panel, which reads as a chart of something rather than a
-                // compact strip.
-                className="w-14 shrink-0 flex flex-col items-center gap-0.5"
-                title={`${m.label} — ${fmtMetric(m, val)}, ${pct.toFixed(0)}th percentile of ${allVals.filter((v) => isFinite(v)).length}`}
-              >
-                <span className={`text-[10px] font-mono font-bold ${textColor} truncate max-w-full`}>
-                  {fmtMetric(m, val)}
-                </span>
-                <div className="w-1.5 h-10 bg-muted/60 rounded-full overflow-hidden flex items-end">
-                  <div
-                    className={`w-full rounded-full transition-all duration-500 ${barColor}`}
-                    style={{ height: `${Math.max(4, pct)}%` }}
-                  />
-                </div>
-                <span className="text-[9px] text-muted-foreground text-center leading-tight">
-                  {m.shortLabel}
-                </span>
-              </div>
-            );
-          })}
-      </div>
+      {/* The same strip the collapsed row carries, opened out: the figure
+          above each bar and the measure's name below. */}
+      <ProfileStrip row={row} allValuesMap={allValuesMap} />
       <p className="text-[9px] text-muted-foreground mt-2">
         Bar height is where this entity places among all those with the
         measure, not the value itself — so a short bar is a low placing, whether
@@ -844,6 +794,101 @@ function RowDetailPanel({
 }
 
 // ─── Mobile Card Row ───────────────────────────────────────────────────────────
+// ─── Profile strip ───────────────────────────────────────────────────────────
+/**
+ * An entity's whole profile as one row of standing bars, each one's height the
+ * placing on that measure. The policy page carries the same strip on its rows,
+ * where it summarises eight policy scores at a glance.
+ *
+ * Two sizes off one component. `bare` is what a collapsed row gets: bars only,
+ * no figures or names, small enough to sit between the entity's name and its
+ * score. Expanded, the same bars carry the figure above and the measure's name
+ * below.
+ *
+ * The bar is the placing, never the value — a short bar means a low placing
+ * whether the measure counts up (life expectancy) or down (unemployment), so
+ * the strip reads the same way across all of them.
+ */
+function ProfileStrip({
+  row,
+  allValuesMap,
+  bare = false,
+}: {
+  row: RankRow;
+  allValuesMap: Partial<Record<string, number[]>>;
+  bare?: boolean;
+}) {
+  const shown = METRICS.filter(
+    (m) => m.id !== "composite" && hasMetric(row, m.id),
+  );
+  if (shown.length === 0) return null;
+
+  return (
+    <div
+      className={
+        bare
+          ? "flex items-end gap-[3px]"
+          : "flex items-end gap-1 overflow-x-auto pb-1"
+      }
+    >
+      {shown.map((m) => {
+        const val = row[m.id] as number;
+        const allVals = allValuesMap[m.id] ?? [];
+        const pct = percentile(val, allVals, m.higherIsBetter);
+        const barColor =
+          pct >= 66 ? "bg-success" : pct >= 33 ? "bg-amber-500" : "bg-destructive";
+        const textColor =
+          pct >= 66
+            ? "text-success"
+            : pct >= 33
+              ? "text-amber-400"
+              : "text-destructive";
+        const title = `${m.label} — ${fmtMetric(m, val)}, ${pct.toFixed(0)}th percentile of ${allVals.filter((v) => isFinite(v)).length}`;
+
+        if (bare) {
+          return (
+            <div
+              key={m.id}
+              title={title}
+              className="w-[3px] h-5 bg-muted/60 rounded-full overflow-hidden flex items-end"
+            >
+              <div
+                className={`w-full rounded-full ${barColor}`}
+                style={{ height: `${Math.max(8, pct)}%` }}
+              />
+            </div>
+          );
+        }
+        return (
+          <div
+            key={m.id}
+            title={title}
+            // Fixed narrow columns, not flex-1: an entity with three measures
+            // would otherwise stretch three bars across the whole panel, which
+            // reads as a chart of something rather than a profile.
+            className="w-14 shrink-0 flex flex-col items-center gap-0.5"
+          >
+            <span
+              className={`text-[10px] font-mono font-bold ${textColor} truncate max-w-full`}
+            >
+              {fmtMetric(m, val)}
+            </span>
+            <div className="w-1.5 h-10 bg-muted/60 rounded-full overflow-hidden flex items-end">
+              <div
+                className={`w-full rounded-full transition-all duration-500 ${barColor}`}
+                style={{ height: `${Math.max(4, pct)}%` }}
+              />
+            </div>
+            <span className="text-[9px] text-muted-foreground text-center leading-tight">
+              {m.shortLabel}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function MobileCard({
   row,
   rank,
@@ -901,6 +946,12 @@ function MobileCard({
           >
             {row.type === "country" ? "Country" : "State"}
           </span>
+        </div>
+        {/* The whole profile at a glance, as on the policy rows. Not on a
+            phone: the strip and the name cannot both have the width, and it
+            was truncating "Luxembourg" to "Lu…" to make room. */}
+        <div className="shrink-0 hidden sm:block">
+          <ProfileStrip row={row} allValuesMap={allValuesMap} bare />
         </div>
         {/* Primary metric */}
         <div className="flex flex-col items-end gap-0.5 shrink-0">
@@ -2050,6 +2101,9 @@ export function RankingsPage() {
                 <th className="text-center px-2 py-2.5 text-muted-foreground font-semibold w-14 whitespace-nowrap">
                   Type
                 </th>
+                <th className="text-left px-2 py-2.5 text-muted-foreground font-semibold w-24 whitespace-nowrap">
+                  Profile
+                </th>
                 {tableColumns.map((m) => (
                   <th
                     key={m.id}
@@ -2136,6 +2190,11 @@ export function RankingsPage() {
                           {row.type === "country" ? "Ctry" : "State"}
                         </span>
                       </td>
+                      {/* Profile — every indicator this entity has, as a
+                          bar each, the way the policy rows carry theirs. */}
+                      <td className="px-2 py-2.5">
+                        <ProfileStrip row={row} allValuesMap={allValuesMap} bare />
+                      </td>
                       {/* Category metric columns */}
                       {tableColumns.map((m) => {
                         const val = m.accessor(row);
@@ -2172,7 +2231,8 @@ export function RankingsPage() {
                     {isExpanded && (
                       <tr className="border-b border-secondary/20 bg-secondary/5">
                         <td
-                          colSpan={3 + tableColumns.length}
+                          // rank, entity, type, profile, then the metric columns
+                          colSpan={4 + tableColumns.length}
                           className="px-4 py-4"
                         >
                           <RowDetailPanel
