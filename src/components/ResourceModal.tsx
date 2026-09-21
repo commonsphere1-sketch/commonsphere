@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { RESOURCE_DETAILS } from "../data/resourceDetails";
 import { RESOURCE_PRODUCERS } from "../data/resourceProducers";
 import { ENERGY_PRODUCERS } from "../data/energyProducers";
+import { OTHER_PRODUCERS } from "../data/otherProducers";
 import type { Amount, ProducerUnit, ResourceProducers, Share } from "../data/resourceProducerTypes";
 import { SourceLink } from "./SourceLink";
 
@@ -55,6 +56,7 @@ function fmtShare(s: Share | null): string | null {
 const PRODUCERS: Record<string, ResourceProducers> = {
   ...RESOURCE_PRODUCERS,
   ...ENERGY_PRODUCERS,
+  ...OTHER_PRODUCERS,
 };
 
 /**
@@ -70,7 +72,7 @@ function ProducerTable({ name }: { name: string }) {
   const cols = hasReserves ? "grid-cols-[1fr_auto_auto]" : "grid-cols-[1fr_auto]";
   const years =
     hasReserves && p.reservesYear && p.reservesYear !== p.productionYear
-      ? `production ${p.productionYear} · reserves ${p.reservesYear}`
+      ? `production ${p.productionYear} · ${(p.reservesLabel ?? "reserves").toLowerCase()} ${p.reservesYear}`
       : p.productionYear;
 
   return (
@@ -86,7 +88,7 @@ function ProducerTable({ name }: { name: string }) {
           </span>
           {hasReserves && (
             <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground text-right">
-              Reserves
+              {p.reservesLabel ?? "Reserves"}
             </span>
           )}
         </div>
@@ -97,6 +99,9 @@ function ProducerTable({ name }: { name: string }) {
               {c.production ? (
                 <>
                   {fmtAmount(c.production, p.productionUnit)}
+                  {p.estimated?.includes(c.name) && (
+                    <span className="text-muted-foreground"> est.</span>
+                  )}
                   {c.productionShare && (
                     <span className="text-muted-foreground"> · {fmtShare(c.productionShare)}</span>
                   )}

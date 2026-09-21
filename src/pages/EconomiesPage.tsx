@@ -27,6 +27,7 @@ import { getUpcoming } from "../data/upcomingToWatch";
 import { ECONOMY_ISO3, type EconomyRents } from "../data/resourceRents";
 import { RESOURCE_PRODUCERS } from "../data/resourceProducers";
 import { ENERGY_PRODUCERS } from "../data/energyProducers";
+import { OTHER_PRODUCERS } from "../data/otherProducers";
 import { useResourceRents } from "../hooks/useResourceRents";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
@@ -1918,7 +1919,7 @@ type ViewMode = "economies" | "resources";
  * leads with central-bank holdings, a different and deliberate measure that
  * its own detail text explains.
  */
-const CARD_PRODUCERS = { ...RESOURCE_PRODUCERS, ...ENERGY_PRODUCERS };
+const CARD_PRODUCERS = { ...RESOURCE_PRODUCERS, ...ENERGY_PRODUCERS, ...OTHER_PRODUCERS };
 
 function producerHeadline<T extends { name: string; holder: string; reserve: string }>(r: T): T {
   if (r.name === "Gold") return r;
@@ -1933,7 +1934,7 @@ function producerHeadline<T extends { name: string; holder: string; reserve: str
     return {
       ...r,
       holder: top.name,
-      reserve: `${mark(top.reservesShare.bound)}${top.reservesShare.pct}% of reserves`,
+      reserve: `${mark(top.reservesShare.bound)}${top.reservesShare.pct}% of ${(p.reservesLabel ?? "reserves").toLowerCase()}`,
     };
   }
   const top = p.countries.find((c) => c.productionShare);
