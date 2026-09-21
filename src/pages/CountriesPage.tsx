@@ -28,7 +28,7 @@ import {
   PieChart,
   Pie,
 } from "recharts";
-import { type Country, type EnergyStats } from "../data/countriesData";
+import { type Country, type EnergyStats, type ReferenceField } from "../data/countriesData";
 import { PRISON_RATES, PRISON_RATES_SOURCE } from "../data/prisonRates";
 import { COUNTRY_CRIME, CRIME_SOURCE, type CrimeFigure } from "../data/countryCrime";
 import { COUNTRY_PANELS, panelSource, type PanelField, type PanelFigure } from "../data/countryPanels";
@@ -16159,6 +16159,146 @@ function exportCountriesToCSV(
 
 // ── Comparison Section ────────────────────────────────────────────────────────
 
+// ─── International snapshot ───────────────────────────────────────────────────
+/**
+ * Where the extremes of the table sit: the most populous country, the largest
+ * economy, the longest life expectancy and so on.
+ *
+ * The states page carries the same idea, but its six figures are typed into
+ * the JSX ("California — $4.1T"), so they stay whatever they were on the day
+ * somebody wrote them. These are worked out from the same rows the table
+ * below renders, and only from fields that carry a source, so a tile cannot
+ * claim something the page cannot cite. A field with nothing behind it — area,
+ * which is hand-entered and uncited — is left out rather than shown bare.
+ */
+const SNAPSHOT_SPECS: {
+  label: string;
+  field: ReferenceField;
+  get: (c: Country) => number;
+  best: "max" | "min";
+  fmt: (v: number) => string;
+}[] = [
+  { label: "Most populous", field: "population", get: (c) => c.population, best: "max", fmt: fmtPop },
+  { label: "Largest economy", field: "gdp", get: (c) => c.gdp, best: "max", fmt: fmtGDP },
+  {
+    label: "Highest GDP per capita",
+    field: "gdpPerCapita",
+    get: (c) => c.gdpPerCapita,
+    best: "max",
+    fmt: (v) => `$${Math.round(v).toLocaleString()}`,
+  },
+  {
+    label: "Fastest growth",
+    field: "gdpGrowth",
+    get: (c) => c.gdpGrowth,
+    best: "max",
+    fmt: (v) => `${v.toFixed(1)}%`,
+  },
+  {
+    label: "Highest HDI",
+    field: "humanDevelopmentIndex",
+    get: (c) => c.humanDevelopmentIndex,
+    best: "max",
+    fmt: (v) => v.toFixed(3),
+  },
+  {
+    label: "Longest life expectancy",
+    field: "lifeExpectancy",
+    get: (c) => c.lifeExpectancy,
+    best: "max",
+    fmt: (v) => `${v.toFixed(1)} yrs`,
+  },
+  {
+    label: "Lowest unemployment",
+    field: "unemploymentRate",
+    get: (c) => c.unemploymentRate,
+    best: "min",
+    fmt: (v) => `${v.toFixed(1)}%`,
+  },
+  {
+    label: "Largest trade surplus",
+    field: "tradeBalance",
+    get: (c) => c.tradeBalance,
+    best: "max",
+    fmt: (v) => `$${Math.round(v).toLocaleString()}B`,
+  },
+];
+
+/** The year a source label ends with, when it carries one. */
+function sourceYear(label: string): string | undefined {
+  return /(\d{4})\s*$/.exec(label)?.[1];
+}
+
+function InternationalSnapshot({ countries }: { countries: Country[] }) {
+  const picks = SNAPSHOT_SPECS.map((spec) => {
+    // Only rows that both have the figure and say where it came from.
+    const eligible = countries.filter(
+      (c) => has(spec.get(c)) && c.sources?.[spec.field],
+    );
+    let winner: Country | undefined;
+    for (const c of eligible) {
+      if (!winner) {
+        winner = c;
+      } else {
+        const better =
+          spec.best === "max"
+            ? spec.get(c) > spec.get(winner)
+            : spec.get(c) < spec.get(winner);
+        if (better) winner = c;
+      }
+    }
+    return winner ? { spec, country: winner, source: winner.sources![spec.field]! } : null;
+  }).filter((p): p is NonNullable<typeof p> => p !== null);
+
+  if (picks.length === 0) return null;
+
+  return (
+    <div className="bg-card border border-border rounded-lg p-5 mb-6">
+      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+        <p className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider">
+          International Snapshot
+        </p>
+        <p className="text-[10px] text-muted-foreground font-sans">
+          Highest and lowest across the {countries.length} countries on this page
+        </p>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        {picks.map(({ spec, country, source }) => {
+          const year = sourceYear(source.label);
+          return (
+            <div
+              key={spec.label}
+              className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2.5 flex flex-col gap-1"
+            >
+              <span className="text-[10px] text-muted-foreground font-sans">
+                {spec.label}
+              </span>
+              <span className="flex items-center gap-1.5 min-w-0">
+                <img
+                  src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
+                  alt=""
+                  className="w-4 h-auto rounded-[2px] shrink-0"
+                  loading="lazy"
+                />
+                <span className="text-xs font-semibold font-sans text-foreground truncate">
+                  {country.name}
+                </span>
+              </span>
+              <span className="text-sm font-bold font-mono text-foreground">
+                {spec.fmt(spec.get(country))}
+                {year && (
+                  <span className="text-[10px] font-normal text-muted-foreground"> · {year}</span>
+                )}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <SourceLink sources={picks.map((p) => p.source)} className="mt-3" />
+    </div>
+  );
+}
+
 export function CountriesPage() {
   const { countries: liveCountries } = useLiveData();
   const [search, setSearch] = useState("");
@@ -16277,6 +16417,9 @@ export function CountriesPage() {
             </div>
           ))}
         </div>
+
+        {/* ── INTERNATIONAL SNAPSHOT ── */}
+        <InternationalSnapshot countries={liveCountries} />
 
         {/* ── SEARCH + FILTER BAR ── */}
         <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
