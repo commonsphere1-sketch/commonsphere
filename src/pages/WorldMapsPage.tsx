@@ -21,8 +21,7 @@ import {
   MagnifyingGlassMinus,
 } from "@phosphor-icons/react";
 import { countriesData, type Country } from "../data/countriesData";
-import { usStatesData, type USState } from "../data/statesData";
-import { STATE_INDICATORS as STATE_FIGURES } from "../data/stateIndicators";
+import { usStatesData } from "../data/statesData";
 import {
   countryForFeature,
   stateForFeature,
@@ -269,28 +268,17 @@ const WORLD_H = 480;
 const PAD = 24;
 
 /**
- * Vertical space a map card needs for everything that is not the map: its
- * heading, the scope chips, the legend and the source note, plus the card's own
- * padding. Measured at 205-238px across viewports from 1366 to 2560 wide, the
- * spread coming from the legend and note wrapping onto more rows when narrow.
- * Rounded up so the card still fits when they wrap furthest.
- */
-const MAP_CHROME_PX = 330;
-
-/**
- * The narrowest a map may be drawn, in CSS pixels.
+ * Vertical space a map card needs for everything that is not the map, plus
+ * the site's 64px sticky header above it: heading, scope chips, layer switches,
+ * zoom controls, legend, source note and the card's own padding.
  *
- * Labels are sized in canvas units - 13 for the world map, 12 for a state, 11
- * for an off-map territory - so how legible they are is decided entirely by how
- * far the 960-unit canvas is scaled down. This is 95% of that canvas, which
- * holds a state label at about 11px.
- *
- * It exists because fitting the card to the screen and keeping the map readable
- * conflict on a short screen: at 1280x720 a pure fit rendered every state label
- * between 7.7 and 8.4px. Below roughly 850px of viewport height the map stops
- * shrinking and the page scrolls instead, which is the better of the two.
+ * Re-measured after the layer and zoom rows were added — the old 330 predated
+ * them. The world card is the tallest: 243px around its map at 1440x900 and
+ * 277px at 1280x720, where the legend and note wrap furthest; with the header
+ * that is 341px. 350 keeps the whole card, map outline included, on screen at
+ * 1280x720, 1366x768, 1440x900 and 1920x960.
  */
-const MAP_MIN_WIDTH_PX = 912;
+const MAP_CHROME_PX = 350;
 
 /* Zoom bounds. 1 fits the country to the canvas; 8 is where the 1:10m arcs
    start to show their own quantisation, so there is nothing further to see. */
@@ -712,9 +700,12 @@ function useMapZoom(width: number, height: number, resetKey?: unknown) {
        The chrome subtracted is roughly fixed rather than proportional, which is
        why this is not a flat percentage of the viewport: a 70% cap overflowed a
        1366x768 screen by ~70px while leaving height unused at 2560x1440. */
-    maxWidth: `calc(max(${MAP_MIN_WIDTH_PX}px, (100vh - ${MAP_CHROME_PX}px) * ${(
-      width / height
-    ).toFixed(4)}))`,
+    // No floor. There was one — the map never went narrower than 912px, to
+    // keep state labels above ~11px — but on a screen
+    // shorter than ~850px that made the map taller than the window, so its
+    // bottom was cut off. The whole outline being visible wins; zoom is there
+    // for reading small labels.
+    maxWidth: `calc((100vh - ${MAP_CHROME_PX}px) * ${(width / height).toFixed(4)})`,
   };
 
   const viewBox = `${center.x - width / (2 * zoom)} ${
@@ -1029,64 +1020,6 @@ const COUNTRY_INDICATORS: CountryIndicator[] = [
   },
 ];
 
-type StateIndicator = {
-  id: string;
-  label: string;
-  group: string;
-  higherIsBetter: boolean;
-  /** Ranks run 1 = best, so the legend names its ends Best rank and Worst rank. */
-  isRank?: boolean;
-  get: (s: USState) => number | null;
-  format: (v: number) => string;
-};
-
-const STATE_INDICATORS: StateIndicator[] = [
-  /* These were "Education Rank" and "Healthcare Rank", written into
-     statesData by hand with no source or year. They are now measured figures:
-     degree attainment from the Census Bureau's ACS 2024, and the BJS
-     imprisonment rate for 2023. */
-  {
-    id: "bachelors",
-    label: "Bachelor's Degree or Higher",
-    group: "Education",
-    higherIsBetter: true,
-    get: (s) => STATE_FIGURES[s.id]?.education.bachelorsOrHigherPct ?? null,
-    format: (v) => `${v.toFixed(1)}%`,
-  },
-  {
-    id: "imprisonment",
-    label: "Imprisonment Rate",
-    group: "Justice",
-    higherIsBetter: false,
-    get: (s) => (Number.isFinite(s.incarcerationRate) ? s.incarcerationRate : null),
-    format: (v) => `${Math.round(v)} per 100k`,
-  },
-  {
-    id: "income",
-    label: "Median Income",
-    group: "Economy",
-    higherIsBetter: true,
-    get: (s) => s.medianIncome ?? null,
-    format: (v) => `$${Math.round(v).toLocaleString()}`,
-  },
-  {
-    id: "unemployment",
-    label: "Unemployment",
-    group: "Economy",
-    higherIsBetter: false,
-    get: (s) => s.unemploymentRate ?? null,
-    format: (v) => `${v.toFixed(1)}%`,
-  },
-  {
-    id: "population",
-    label: "Population",
-    group: "Society",
-    higherIsBetter: true,
-    get: (s) => s.population ?? null,
-    format: (v) => (v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v.toLocaleString()),
-  },
-];
-
 /** Quantile thresholds, so a handful of outliers cannot flatten the map. */
 function quantileBreaks(values: number[], buckets: number): number[] {
   const sorted = [...values].sort((a, b) => a - b);
@@ -1102,7 +1035,6 @@ export function WorldMapsPage() {
   const isLight = theme === "light";
 
   const [countryMetric, setCountryMetric] = useState("hdi");
-  const [stateMetric, setStateMetric] = useState("bachelors");
   const [hovered, setHovered] = useState<{
     name: string;
     value: string;
@@ -1278,15 +1210,6 @@ export function WorldMapsPage() {
     while (idx < breaks.length && value >= breaks[idx]) idx++;
     return ramp[idx];
   };
-
-  /* ── State shading ── */
-  const activeState = STATE_INDICATORS.find((i) => i.id === stateMetric)!;
-  const stateShading = useMemo(() => {
-    const values = usStatesData
-      .map((s) => activeState.get(s))
-      .filter((v): v is number => v !== null && Number.isFinite(v));
-    return { breaks: quantileBreaks(values, ramp.length), count: values.length };
-  }, [activeState, ramp.length]);
 
   /* ── Focus map ── */
   /* Natural Earth's 1:10m admin-1 file covers every country, but at 38.8 MB it
@@ -2850,17 +2773,12 @@ export function WorldMapsPage() {
                 </p>
                 <h2 className="text-sm font-bold font-sans text-foreground">
                   {focusCode === "US"
-                    ? `${activeState.label} by state`
+                    ? "United States"
                     : (focusCountry?.name ?? "Select a country")}
                 </h2>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {focusCode === "US" && (
-                <span className="text-[10px] font-mono text-muted-foreground">
-                  {stateShading.count} of {usStatesData.length} states
-                </span>
-              )}
               <StyledSelect
                 value={focusCode}
                 onValueChange={setFocusCode}
@@ -2868,19 +2786,6 @@ export function WorldMapsPage() {
                 options={focusOptions}
               />
             </div>
-          </div>
-
-          <div className={`flex-wrap items-center gap-2 mb-3 ${focusCode === "US" ? "flex" : "hidden"}`}>
-            {STATE_INDICATORS.map((i) => (
-              <button
-                key={i.id}
-                onClick={() => setStateMetric(i.id)}
-                aria-pressed={stateMetric === i.id}
-                className={chip(stateMetric === i.id)}
-              >
-                {i.label}
-              </button>
-            ))}
           </div>
 
           {focusCode === "US" ? (
@@ -2902,30 +2807,17 @@ export function WorldMapsPage() {
             {...focusZoom.panProps}
             {...focusZoom.a11yProps}
             role="img"
-            aria-label={`United States map shaded by ${activeState.label}`}
+            aria-label="Map of the United States by state"
           >
-            <defs>
-              <NoDataHatch id="nodata-us" base={noData} line={noDataHatch} zoom={zoom} />
-            </defs>
-            {stateShapes.map(({ name, state, d }, i) => {
-              const value = state ? activeState.get(state) : null;
-              return (
-                <path
-                  key={i}
-                  d={d}
-                  fill={colourFor(value, stateShading.breaks) ?? "url(#nodata-us)"}
-                  stroke={stroke}
-                  strokeWidth={0.5 / zoom}
-                  onMouseEnter={() =>
-                    setHovered({
-                      name: state?.name ?? name,
-                      value: value !== null ? activeState.format(value) : "not in dataset",
-                    })
-                  }
-                  onMouseLeave={() => setHovered(null)}
-                />
-              );
-            })}
+            {/* Drawn like every other country's focus map: one fill, the
+                internal borders, and each state's name on hover. It used to be
+                shaded by a statistic picked from a row of buttons, which no
+                other country's map had. */}
+            {stateShapes.map(({ name, state, d }, i) => (
+              <path key={i} d={d} fill={ramp[3]} stroke={stroke} strokeWidth={0.5 / zoom}>
+                <title>{state?.name ?? name}</title>
+              </path>
+            ))}
 
             {/* Labels last, so nothing is drawn over them. */}
             {stateLabels.map((l) => (
@@ -3062,19 +2954,6 @@ export function WorldMapsPage() {
             </g>
           </svg>
 
-          <Legend
-            ramp={ramp}
-            noData={noData}
-            noDataHatch={noDataHatch}
-            lowLabel={activeState.isRank ? "Best rank" : "Lower"}
-            highLabel={activeState.isRank ? "Worst rank" : "Higher"}
-            hovered={hovered}
-          />
-          <p className="text-[9px] font-sans mt-2 text-muted-foreground">
-            The District of Columbia and the five inhabited territories appear in
-            the boundary data but not in the state dataset, so they are drawn
-            unshaded.
-          </p>
           {layerNotes(focusLayers)}
           </>
           ) : (
