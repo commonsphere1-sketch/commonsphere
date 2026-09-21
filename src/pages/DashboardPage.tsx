@@ -2692,14 +2692,18 @@ function CompareCountriesTool({
             up to 4
           </span>
         </div>
+        {/* Hands this card's pins to the rankings page, which is the same
+            comparison with every indicator and each figure's rank — and which
+            can hold countries and states at once, as this card cannot. */}
         <button
-          onClick={() =>
-            onNav(
+          onClick={() => {
+            const ids = (
               tab === "countries"
-                ? "/dashboard/countries"
-                : "/dashboard/states",
-            )
-          }
+                ? selectedCountryIds.map((id) => `country-${id}`)
+                : selectedStateIds.map((id) => `state-${id}`)
+            ).join(",");
+            onNav(`/dashboard/rankings${ids ? `?compare=${ids}` : ""}`);
+          }}
           className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70"
           style={{ color: curAccent }}
         >

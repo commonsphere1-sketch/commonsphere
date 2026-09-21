@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
 import { PRISON_RATES } from "../data/prisonRates";
@@ -668,12 +668,18 @@ function RowDetailPanel({
   rank,
   totalInPool,
   onClose,
+  inCompare,
+  compareFull,
+  onToggleCompare,
 }: {
   row: RankRow;
   allValuesMap: Partial<Record<string, number[]>>;
   rank: number;
   totalInPool: number;
   onClose: () => void;
+  inCompare: boolean;
+  compareFull: boolean;
+  onToggleCompare: () => void;
 }) {
   const metricsToShow = METRICS.filter((m) => m.id !== "composite");
   const topPercentile = Math.round((1 - (rank - 1) / totalInPool) * 100);
@@ -702,15 +708,38 @@ function RowDetailPanel({
             </span>
           </div>
         </div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          className="p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <X size={14} />
-        </button>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Pinning from the row itself, so the comparison can be built while
+              reading the table rather than only from the search at the top. */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleCompare();
+            }}
+            disabled={!inCompare && compareFull}
+            title={
+              !inCompare && compareFull
+                ? `Remove one first — ${COMPARE_MAX} is the limit`
+                : undefined
+            }
+            className={`px-2.5 py-1 rounded-lg text-[10px] font-sans border transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${
+              inCompare
+                ? "border-border bg-muted text-foreground"
+                : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            }`}
+          >
+            {inCompare ? "In comparison" : "Compare"}
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            className="p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X size={14} />
+          </button>
+        </div>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
         {metricsToShow
@@ -862,6 +891,308 @@ type ContinentFilter =
 type SortDir = "asc" | "desc";
 
 // ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Comparison ──────────────────────────────────────────────────────────────
+/**
+ * The dashboard carries a compare card: pin up to four countries, or up to
+ * four US states, and read their headline figures side by side. This is that
+ * card's full form, and it does the three things the card cannot.
+ *
+ *  - Countries and states in one table. The card has a Countries tab and a
+ *    States tab, so the two can never be set against each other; the ranking
+ *    rows here are already one pool, so Norway and North Dakota line up in
+ *    adjacent columns.
+ *  - Every figure placed. The card marks whichever of the pinned few leads.
+ *    Leading three pinned countries says nothing about whether that is a good
+ *    figure, so each cell here carries its rank among all entities that
+ *    publish the measure, and a bar for where it sits between the lowest and
+ *    the highest.
+ *  - The whole indicator set rather than the headline six, including the
+ *    composite the rest of the page ranks on.
+ *
+ * Nothing is invented for a gap: an entity that does not publish a measure
+ * gets "N/A" and no rank, and is skipped when the best of the set is marked.
+ */
+const COMPARE_MAX = 6;
+
+/** Rank of every entity on every metric, best = 1, over the rows that have it. */
+function buildRankByMetric(rows: RankRow[]): Map<string, Map<string, number>> {
+  const out = new Map<string, Map<string, number>>();
+  for (const m of METRICS) {
+    const withData = rows.filter((r) => hasMetric(r, m.id));
+    withData.sort((a, b) => {
+      const av = a[m.id] as number;
+      const bv = b[m.id] as number;
+      return m.higherIsBetter ? bv - av : av - bv;
+    });
+    const ranks = new Map<string, number>();
+    withData.forEach((r, i) => ranks.set(r.id, i + 1));
+    out.set(m.id, ranks);
+  }
+  return out;
+}
+
+function ComparePicker({
+  allRows,
+  selectedIds,
+  onAdd,
+}: {
+  allRows: RankRow[];
+  selectedIds: string[];
+  onAdd: (id: string) => void;
+}) {
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, []);
+
+  const matches = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return [];
+    return allRows
+      .filter(
+        (r) =>
+          r.name.toLowerCase().includes(needle) && !selectedIds.includes(r.id),
+      )
+      .slice(0, 8);
+  }, [q, allRows, selectedIds]);
+
+  const full = selectedIds.length >= COMPARE_MAX;
+
+  return (
+    <div className="relative" ref={ref}>
+      <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-dashed border-border bg-transparent">
+        <MagnifyingGlass size={12} className="text-muted-foreground shrink-0" />
+        <input
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          disabled={full}
+          placeholder={full ? `${COMPARE_MAX} is the limit` : "Add a country or state…"}
+          className="bg-transparent text-[11px] font-sans text-foreground placeholder:text-muted-foreground focus:outline-none w-44 disabled:cursor-not-allowed"
+        />
+      </div>
+      {open && matches.length > 0 && (
+        <div className="absolute z-40 mt-1 w-64 max-h-64 overflow-y-auto rounded-xl border border-border bg-card shadow-xl">
+          {matches.map((r) => (
+            <button
+              key={r.id}
+              type="button"
+              onClick={() => {
+                onAdd(r.id);
+                setQ("");
+                setOpen(false);
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-muted/40 transition-colors cursor-pointer"
+            >
+              <EntityFlag
+                row={r}
+                imgClassName="w-5 h-3.5 rounded-[2px] object-cover border border-border shrink-0"
+                iconSize={9}
+              />
+              <span className="text-[11px] font-sans text-foreground truncate flex-1">
+                {r.name}
+              </span>
+              <span className="text-[9px] font-mono text-muted-foreground uppercase shrink-0">
+                {r.type}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ComparisonPanel({
+  selected,
+  allRows,
+  rankByMetric,
+  allValuesMap,
+  selectedIds,
+  onAdd,
+  onRemove,
+  onClear,
+}: {
+  selected: RankRow[];
+  allRows: RankRow[];
+  rankByMetric: Map<string, Map<string, number>>;
+  allValuesMap: Partial<Record<string, number[]>>;
+  selectedIds: string[];
+  onAdd: (id: string) => void;
+  onRemove: (id: string) => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className="bg-card border border-border rounded-2xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <p className="text-sm font-bold font-sans text-foreground">Compare</p>
+          <p className="text-[11px] text-muted-foreground font-sans">
+            Countries and US states together, each figure with its rank among
+            the {allRows.length} entities that the page ranks.
+          </p>
+        </div>
+        {selected.length > 0 && (
+          <button
+            type="button"
+            onClick={onClear}
+            className="text-[10px] font-sans text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
+            Clear all
+          </button>
+        )}
+      </div>
+
+      {/* Pinned entities */}
+      <div className="px-4 py-3 flex flex-wrap items-center gap-2 border-b border-border">
+        {selected.map((r) => (
+          <span
+            key={r.id}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-border bg-muted/40 text-[11px] font-semibold font-sans text-foreground"
+          >
+            <EntityFlag
+              row={r}
+              imgClassName="w-4 h-3 rounded-[2px] object-cover border border-border shrink-0"
+              iconSize={8}
+            />
+            <span className="truncate max-w-[9rem]">{r.name}</span>
+            <button
+              type="button"
+              onClick={() => onRemove(r.id)}
+              aria-label={`Remove ${r.name}`}
+              className="ml-0.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              <X size={10} weight="bold" />
+            </button>
+          </span>
+        ))}
+        <ComparePicker allRows={allRows} selectedIds={selectedIds} onAdd={onAdd} />
+      </div>
+
+      {selected.length === 0 ? (
+        <p className="px-4 py-6 text-[11px] font-sans text-muted-foreground">
+          Nothing pinned. Search above, or open any row in the table below and
+          add it from there.
+        </p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left text-[9px] font-sans uppercase tracking-widest text-muted-foreground font-medium px-4 py-2 sticky left-0 bg-card z-10">
+                  Indicator
+                </th>
+                {selected.map((r) => (
+                  <th key={r.id} className="px-3 py-2 min-w-[8.5rem]">
+                    <span className="flex items-center gap-1.5">
+                      <EntityFlag
+                        row={r}
+                        imgClassName="w-4 h-3 rounded-[2px] object-cover border border-border shrink-0"
+                        iconSize={8}
+                      />
+                      <span className="text-[11px] font-semibold font-sans text-foreground truncate">
+                        {r.name}
+                      </span>
+                    </span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {METRICS.map((m) => {
+                // Best of the pinned set, among those that publish it.
+                const withData = selected.filter((r) => hasMetric(r, m.id));
+                let best: RankRow | undefined;
+                for (const r of withData) {
+                  if (!best) best = r;
+                  else {
+                    const better = m.higherIsBetter
+                      ? (r[m.id] as number) > (best[m.id] as number)
+                      : (r[m.id] as number) < (best[m.id] as number);
+                    if (better) best = r;
+                  }
+                }
+                const ranks = rankByMetric.get(m.id);
+                const pool = allValuesMap[m.id] ?? [];
+                const poolSize = pool.filter((v) => isFinite(v)).length;
+
+                return (
+                  <tr key={m.id} className="border-b border-border/40 last:border-0">
+                    <td className="px-4 py-2 sticky left-0 bg-card z-10">
+                      <p className="text-[11px] font-sans text-foreground leading-snug">
+                        {m.label}
+                      </p>
+                      <p className="text-[9px] font-sans text-muted-foreground leading-snug">
+                        {m.higherIsBetter ? "higher is better" : "lower is better"}
+                        {poolSize > 0 && ` · ${poolSize} ranked`}
+                      </p>
+                    </td>
+                    {selected.map((r) => {
+                      const val = r[m.id] as number;
+                      const present = hasMetric(r, m.id);
+                      const rank = present ? ranks?.get(r.id) : undefined;
+                      // The bar is the share of ranked entities this one
+                      // beats, not a min-max percentile. On a measure with a
+                      // long tail — GDP per capita, where Monaco is three
+                      // times the next entity — min-max squashes almost
+                      // everyone into the same sliver, so the bar disagreed
+                      // with the rank printed directly above it.
+                      const pct =
+                        rank && poolSize > 1
+                          ? ((poolSize - rank) / (poolSize - 1)) * 100
+                          : 0;
+                      const isBest = best && r.id === best.id && withData.length > 1;
+                      return (
+                        <td key={r.id} className="px-3 py-2 align-top">
+                          <p
+                            className={`text-xs font-mono ${
+                              present ? "text-foreground" : "text-muted-foreground"
+                            } ${isBest ? "font-bold" : ""}`}
+                          >
+                            {fmtMetric(m, val)}
+                            {isBest && (
+                              <span className="ml-1 text-[9px] font-sans text-success">
+                                best
+                              </span>
+                            )}
+                          </p>
+                          {present && rank && (
+                            <>
+                              <p className="text-[9px] font-mono text-muted-foreground">
+                                #{rank} of {poolSize}
+                              </p>
+                              <div className="h-1 rounded-full bg-muted mt-1 overflow-hidden">
+                                <div
+                                  className="h-full rounded-full bg-secondary"
+                                  style={{ width: `${Math.max(2, pct)}%` }}
+                                />
+                              </div>
+                            </>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function RankingsPage() {
   const [activeCategory, setActiveCategory] = useState<CategoryTab>("economy");
   const [entityFilter, setEntityFilter] = useState<EntityFilter>("all");
@@ -871,6 +1202,16 @@ export function RankingsPage() {
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [searchQ, setSearchQ] = useState("");
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+  /**
+   * The pinned comparison, mirrored in ?compare= so a set can be linked and so
+   * the dashboard's compare card can hand its own pins over when you follow
+   * "Full explorer".
+   */
+  const [compareIds, setCompareIds] = useState<string[]>(() => {
+    const raw = new URLSearchParams(window.location.search).get("compare");
+    if (!raw) return [];
+    return raw.split(",").filter(Boolean).slice(0, COMPARE_MAX);
+  });
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 50;
 
@@ -883,6 +1224,23 @@ export function RankingsPage() {
       ...r,
       composite: computeComposite(r, combined),
     }));
+  }, []);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (compareIds.length) url.searchParams.set("compare", compareIds.join(","));
+    else url.searchParams.delete("compare");
+    window.history.replaceState(null, "", url.toString());
+  }, [compareIds]);
+
+  const toggleCompare = useCallback((id: string) => {
+    setCompareIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : prev.length >= COMPARE_MAX
+          ? prev
+          : [...prev, id],
+    );
   }, []);
 
   // allValues per metric for percentile bars
@@ -901,6 +1259,17 @@ export function RankingsPage() {
     map["crimeIndex"] = allRows.map((r) => r.crimeIndex);
     return map;
   }, [allRows]);
+
+  const rankByMetric = useMemo(() => buildRankByMetric(allRows), [allRows]);
+
+  /** The pinned rows, in the order they were pinned. */
+  const compareRows = useMemo(
+    () =>
+      compareIds
+        .map((id) => allRows.find((r) => r.id === id))
+        .filter((r): r is RankRow => !!r),
+    [compareIds, allRows],
+  );
 
   // Summary stats
   const summaryStats = useMemo(() => {
@@ -1133,12 +1502,13 @@ export function RankingsPage() {
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground max-w-xl">
-            Composite index ranking of all countries and US states. The four
-            categories use only indicators held for every entity, so each column
-            is fully populated. The composite itself is scored on whatever a
-            given entity has — up to 9 indicators for countries, 5 for US states
-            — with the weights renormalised across those, so a missing one
-            neither helps nor hurts.
+            Pin any countries and US states together and read them against
+            each other, every figure with its rank among all {allRows.length}{" "}
+            entities — the full form of the dashboard's compare card. The table
+            below is the pool you pick from, ranked on a composite scored over
+            whatever an entity actually has, up to 9 indicators for countries
+            and 5 for states, with the weights renormalised across those so a
+            missing one neither helps nor hurts.
           </p>
         </div>
         <span className="text-xs text-muted-foreground font-mono bg-muted/50 border border-border rounded-lg px-2.5 py-1 shrink-0 self-start">
@@ -1337,6 +1707,18 @@ export function RankingsPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Comparison ──────────────────────────────────────────────────── */}
+      <ComparisonPanel
+        selected={compareRows}
+        allRows={allRows}
+        rankByMetric={rankByMetric}
+        allValuesMap={allValuesMap}
+        selectedIds={compareIds}
+        onAdd={toggleCompare}
+        onRemove={toggleCompare}
+        onClear={() => setCompareIds([])}
+      />
 
       {/* ── Filters ─────────────────────────────────────────────────────── */}
       {/* Search + filters. Same two-row shell the countries and states pages
@@ -1650,6 +2032,9 @@ export function RankingsPage() {
                             rank={globalRank}
                             totalInPool={scopedRows.length}
                             onClose={() => setExpandedRowId(null)}
+                            inCompare={compareIds.includes(row.id)}
+                            compareFull={compareIds.length >= COMPARE_MAX}
+                            onToggleCompare={() => toggleCompare(row.id)}
                           />
                         </td>
                       </tr>
@@ -1688,6 +2073,9 @@ export function RankingsPage() {
                       rank={globalRank}
                       totalInPool={scopedRows.length}
                       onClose={() => setExpandedRowId(null)}
+                      inCompare={compareIds.includes(row.id)}
+                      compareFull={compareIds.length >= COMPARE_MAX}
+                      onToggleCompare={() => toggleCompare(row.id)}
                     />
                   </div>
                 )}
