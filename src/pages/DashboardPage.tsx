@@ -5501,6 +5501,10 @@ function QuarterTracker({
   // One entry open at a time: the detail is a few lines, and an accordion
   // keeps the quarter readable as a list of dates.
   const [openEvent, setOpenEvent] = useState<string | null>(null);
+  // Hover is state, not a :hover class: the row's background is an inline
+  // style keyed to the quarter's colour, and a Tailwind hover variant cannot
+  // override an inline background.
+  const [hoverEvent, setHoverEvent] = useState<string | null>(null);
   // The diary as a whole folds away. It opens on its own if a quarter is
   // picked while it is shut, since picking one is a request to see it.
   const [diaryOpen, setDiaryOpen] = useState(true);
@@ -5743,14 +5747,30 @@ function QuarterTracker({
             {shown.map((e) => {
               const st = eventState(e, now);
               const isOpen = openEvent === e.id;
+              const hovered = hoverEvent === e.id;
+              // The same hover the dashboard's expandable rows use: the row
+              // warms toward the quarter's colour rather than fading, and
+              // takes a bar in that colour down its leading edge, which is
+              // what carries the state where the tint is hard to see. A past
+              // row also comes back to full strength under the cursor, so it
+              // does not read as disabled.
+              const rowBg = isOpen
+                ? accent + (isLight ? (hovered ? "29" : "1f") : hovered ? "3d" : "33")
+                : hovered
+                  ? accent + (isLight ? "17" : "29")
+                  : st.kind === "now"
+                    ? tint(accent)
+                    : "transparent";
               return (
                 <div
                   key={e.id}
-                  className="rounded-lg overflow-hidden"
+                  onMouseEnter={() => setHoverEvent(e.id)}
+                  onMouseLeave={() => setHoverEvent(null)}
+                  className="rounded-lg overflow-hidden transition-all duration-150"
                   style={{
-                    border: `1px solid ${isOpen ? accent : gridLine}`,
-                    background: st.kind === "now" || isOpen ? tint(accent) : "transparent",
-                    opacity: st.kind === "past" && !isOpen ? 0.62 : 1,
+                    border: `1px solid ${isOpen || hovered ? accent : gridLine}`,
+                    background: rowBg,
+                    opacity: st.kind === "past" && !isOpen && !hovered ? 0.62 : 1,
                   }}
                 >
                   {/* Collapsed, a row is the date, where it sits in the year,
@@ -5759,8 +5779,13 @@ function QuarterTracker({
                   <button
                     type="button"
                     onClick={() => setOpenEvent(isOpen ? null : e.id)}
+                    onFocus={() => setHoverEvent(e.id)}
+                    onBlur={() => setHoverEvent(null)}
                     aria-expanded={isOpen}
-                    className="w-full text-left px-3 py-2.5 flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-1 cursor-pointer"
+                    className="w-full text-left px-3 py-2.5 flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-1 cursor-pointer transition-all duration-150"
+                    style={{
+                      boxShadow: hovered || isOpen ? `inset 3px 0 0 0 ${accent}` : "none",
+                    }}
                   >
                     <span className="sm:w-28 shrink-0 block">
                       <span
