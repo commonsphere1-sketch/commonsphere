@@ -5501,6 +5501,9 @@ function QuarterTracker({
   // One entry open at a time: the detail is a few lines, and an accordion
   // keeps the quarter readable as a list of dates.
   const [openEvent, setOpenEvent] = useState<string | null>(null);
+  // The diary as a whole folds away. It opens on its own if a quarter is
+  // picked while it is shut, since picking one is a request to see it.
+  const [diaryOpen, setDiaryOpen] = useState(true);
 
   const season = SEASONS[selected];
   const accent = season.accent;
@@ -5643,7 +5646,10 @@ function QuarterTracker({
               <button
                 key={q.label}
                 type="button"
-                onClick={() => setSelected(q.index)}
+                onClick={() => {
+                  setSelected(q.index);
+                  setDiaryOpen(true);
+                }}
                 aria-pressed={q.index === selected}
                 className="rounded-xl px-3 py-2 text-left transition-all cursor-pointer"
                 style={chipStyle(q.index)}
@@ -5665,23 +5671,40 @@ function QuarterTracker({
           })}
         </div>
 
-        {/* The chosen quarter's diary */}
+        {/* The chosen quarter's diary. The whole section folds away from its
+            own header, so the tracker can go back to being a countdown. */}
         <div className="rounded-xl overflow-hidden" style={{ border: `1px solid ${gridLine}` }}>
-          <div
-            className="px-4 py-3 flex flex-wrap items-center gap-x-3 gap-y-2"
-            style={{ background: tint(accent), borderBottom: `1px solid ${gridLine}` }}
+          <button
+            type="button"
+            onClick={() => setDiaryOpen((v) => !v)}
+            aria-expanded={diaryOpen}
+            className="w-full text-left px-4 py-3 flex flex-wrap items-center gap-x-3 gap-y-2 cursor-pointer"
+            style={{
+              background: tint(accent),
+              borderBottom: diaryOpen ? `1px solid ${gridLine}` : "none",
+            }}
           >
-            <span className="text-xs font-bold font-sans" style={{ color: ink }}>
+            <span className="text-sm font-bold font-sans" style={{ color: ink }}>
               Q{selected + 1} {CALENDAR_YEAR} · scheduled conferences and events
             </span>
-            <span className="text-[10px] font-sans" style={{ color: ink, opacity: 0.85 }}>
-              {shown.length} of {byQuarter[selected].length} shown
+            <span className="text-[11px] font-sans" style={{ color: ink, opacity: 0.85 }}>
+              {diaryOpen
+                ? `${shown.length} of ${byQuarter[selected].length} shown`
+                : `${byQuarter[selected].length} entries`}
             </span>
-          </div>
+            <span
+              className="text-[10px] font-sans uppercase tracking-wider ml-auto"
+              style={{ color: ink, opacity: 0.85 }}
+            >
+              {diaryOpen ? "Hide" : "Show"}
+            </span>
+          </button>
 
+          {diaryOpen && (
+          <>
           <div className="px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[9px] font-sans uppercase tracking-widest mr-0.5" style={{ color: mutedText }}>
+              <span className="text-[10px] font-sans uppercase tracking-widest mr-0.5" style={{ color: mutedText }}>
                 Theme
               </span>
               {THEME_FILTERS.map((t) => (
@@ -5690,7 +5713,7 @@ function QuarterTracker({
                   type="button"
                   onClick={() => setThemeFilter(t)}
                   aria-pressed={themeFilter === t}
-                  className="text-[10px] font-sans px-2.5 py-1 rounded-full transition-colors cursor-pointer"
+                  className="text-[11px] font-sans px-2.5 py-1 rounded-full transition-colors cursor-pointer"
                   style={filterStyle(themeFilter === t)}
                 >
                   {t}
@@ -5698,7 +5721,7 @@ function QuarterTracker({
               ))}
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[9px] font-sans uppercase tracking-widest mr-0.5" style={{ color: mutedText }}>
+              <span className="text-[10px] font-sans uppercase tracking-widest mr-0.5" style={{ color: mutedText }}>
                 Scope
               </span>
               {SCOPE_FILTERS.map((t) => (
@@ -5707,7 +5730,7 @@ function QuarterTracker({
                   type="button"
                   onClick={() => setScopeFilter(t)}
                   aria-pressed={scopeFilter === t}
-                  className="text-[10px] font-sans px-2.5 py-1 rounded-full transition-colors cursor-pointer"
+                  className="text-[11px] font-sans px-2.5 py-1 rounded-full transition-colors cursor-pointer"
                   style={filterStyle(scopeFilter === t)}
                 >
                   {t}
@@ -5741,26 +5764,26 @@ function QuarterTracker({
                   >
                     <span className="sm:w-28 shrink-0 block">
                       <span
-                        className="text-[11px] font-mono block"
+                        className="text-xs font-mono block"
                         style={{ ...COUNTER, color: headText }}
                       >
                         {eventDateLabel(e)}
                       </span>
                       <span
-                        className="text-[9px] font-sans uppercase tracking-wider block"
+                        className="text-[10px] font-sans uppercase tracking-wider block"
                         style={{ color: mutedText }}
                       >
                         {statusLabel(st)}
                       </span>
                     </span>
                     <span
-                      className="text-xs font-semibold font-sans min-w-0 flex-1"
+                      className="text-[13px] font-semibold font-sans min-w-0 flex-1"
                       style={{ color: headText }}
                     >
                       {e.name}
                     </span>
                     <span
-                      className="text-[9px] font-sans uppercase tracking-wider shrink-0"
+                      className="text-[10px] font-sans uppercase tracking-wider shrink-0"
                       style={{ color: mutedText }}
                     >
                       {isOpen ? "Close" : "Details"}
@@ -5769,29 +5792,29 @@ function QuarterTracker({
 
                   {isOpen && (
                     <div className="px-3 pb-3 sm:pl-[7.75rem]">
-                      <p className="text-[10px] font-sans" style={{ color: mutedText }}>
+                      <p className="text-[11px] font-sans" style={{ color: mutedText }}>
                         {e.org} · {e.city}
                         {e.city !== e.country && `, ${e.country}`}
                       </p>
-                      <p className="text-[10px] font-sans mt-1" style={{ color: mutedText }}>
+                      <p className="text-[11px] font-sans mt-1" style={{ color: mutedText }}>
                         {e.what}
                       </p>
                       <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                         <span
-                          className="text-[9px] font-sans px-2 py-0.5 rounded-full"
+                          className="text-[10px] font-sans px-2 py-0.5 rounded-full"
                           style={{ border: `1px solid ${gridLine}`, color: mutedText }}
                         >
                           {e.scope}
                         </span>
                         <span
-                          className="text-[9px] font-sans px-2 py-0.5 rounded-full"
+                          className="text-[10px] font-sans px-2 py-0.5 rounded-full"
                           style={{ background: tint(accent), color: ink }}
                         >
                           {e.theme}
                         </span>
                         {e.monthOnly && (
                           <span
-                            className="text-[9px] font-sans px-2 py-0.5 rounded-full"
+                            className="text-[10px] font-sans px-2 py-0.5 rounded-full"
                             style={{ border: `1px dashed ${gridLine}`, color: mutedText }}
                           >
                             days to be confirmed
@@ -5805,15 +5828,17 @@ function QuarterTracker({
               );
             })}
             {shown.length === 0 && (
-              <p className="text-[11px] font-sans" style={{ color: mutedText }}>
+              <p className="text-xs font-sans" style={{ color: mutedText }}>
                 Nothing in Q{selected + 1} matches those filters.
               </p>
             )}
-            <p className="text-[9px] font-sans mt-1" style={{ color: mutedText }}>
+            <p className="text-[10px] font-sans mt-1" style={{ color: mutedText }}>
               Each entry is taken from the convening body's own page and was checked on {CALENDAR_CHECKED}.
               Scheduled dates can move; the source link is the place to confirm one.
             </p>
           </div>
+          </>
+          )}
         </div>
       </div>
     </div>
