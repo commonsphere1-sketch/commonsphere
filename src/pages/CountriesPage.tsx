@@ -16253,8 +16253,8 @@ function InternationalSnapshot({ countries }: { countries: Country[] }) {
   if (picks.length === 0) return null;
 
   return (
-    <div className="bg-card border border-border rounded-lg p-5 mb-6">
-      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+    <div className="bg-card border border-border rounded-lg p-4 mb-6">
+      <div className="flex items-baseline justify-between gap-3 mb-2 flex-wrap">
         <p className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider">
           International Snapshot
         </p>
@@ -16262,39 +16262,49 @@ function InternationalSnapshot({ countries }: { countries: Country[] }) {
           Highest and lowest across the {countries.length} countries on this page
         </p>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      {/* Two or four across, never three: there are eight tiles, so a
+          three-wide grid always left a hole in the last row. Two lines each
+          rather than three — the year moves up beside the label, and the
+          value sits on the country's line instead of below it. */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {picks.map(({ spec, country, source }) => {
           const year = sourceYear(source.label);
           return (
             <div
               key={spec.label}
-              className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2.5 flex flex-col gap-1"
+              className="rounded-lg border border-border/60 bg-muted/30 px-2.5 py-2"
             >
-              <span className="text-[10px] text-muted-foreground font-sans">
-                {spec.label}
-              </span>
-              <span className="flex items-center gap-1.5 min-w-0">
-                <img
-                  src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
-                  alt=""
-                  className="w-4 h-auto rounded-[2px] shrink-0"
-                  loading="lazy"
-                />
-                <span className="text-xs font-semibold font-sans text-foreground truncate">
-                  {country.name}
+              <div className="flex items-baseline justify-between gap-1.5">
+                <span className="text-[10px] text-muted-foreground font-sans truncate">
+                  {spec.label}
                 </span>
-              </span>
-              <span className="text-sm font-bold font-mono text-foreground">
-                {spec.fmt(spec.get(country))}
                 {year && (
-                  <span className="text-[10px] font-normal text-muted-foreground"> · {year}</span>
+                  <span className="text-[9px] font-mono text-muted-foreground shrink-0">
+                    {year}
+                  </span>
                 )}
-              </span>
+              </div>
+              <div className="flex items-center justify-between gap-2 mt-0.5">
+                <span className="flex items-center gap-1.5 min-w-0">
+                  <img
+                    src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
+                    alt=""
+                    className="w-3.5 h-auto rounded-[2px] shrink-0"
+                    loading="lazy"
+                  />
+                  <span className="text-[11px] font-semibold font-sans text-foreground truncate">
+                    {country.name}
+                  </span>
+                </span>
+                <span className="text-xs font-bold font-mono text-foreground shrink-0">
+                  {spec.fmt(spec.get(country))}
+                </span>
+              </div>
             </div>
           );
         })}
       </div>
-      <SourceLink sources={picks.map((p) => p.source)} className="mt-3" />
+      <SourceLink sources={picks.map((p) => p.source)} className="mt-2" />
     </div>
   );
 }
