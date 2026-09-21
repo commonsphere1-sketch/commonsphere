@@ -52,7 +52,9 @@ const mainNav = [
 ];
 
 const analysisNav = [
-  { to: "/dashboard/rankings", label: "Rankings", icon: Trophy, end: false },
+  // The route keeps its /rankings path so existing links still resolve; the
+  // page itself is the comparison now, with the ranked list as its picker.
+  { to: "/dashboard/rankings", label: "Compare", icon: Trophy, end: false },
   { to: "/dashboard/policy", label: "Policy", icon: Scales, end: false },
   {
     to: "/dashboard/world-leaders",

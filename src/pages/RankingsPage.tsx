@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect, useRef } from "react"
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
 import { PRISON_RATES } from "../data/prisonRates";
+import { STATE_INDICATORS as STATE_FIGURES } from "../data/stateIndicators";
 import {
   Globe,
   Buildings,
@@ -440,6 +441,24 @@ interface RankRow {
   educationRank: number;
   healthcareRank: number;
   crimeIndex: number;
+  /**
+   * The measures the dashboard's compare card carries that the ranking never
+   * did. They are here to be compared, not ranked: none is in METRICS, so
+   * none is a sort key, a category tab or a composite input. Size measures
+   * especially — a country is not better for being large or populous, and
+   * ranking on them would say it was.
+   */
+  population: number;
+  /** Total GDP, billions USD. */
+  gdpTotal: number;
+  areaKm2: number;
+  /** US states only; countries have no equivalent series here. */
+  medianIncome: number;
+  averageIncome: number;
+  stateTaxRate: number;
+  salesTaxRate: number;
+  minimumWage: number;
+  bachelorsPct: number;
   /** Annual electricity/primary energy output, TWh. Countries only. */
   energyOutputTWh: number;
   /** Production as a share of consumption, %. Over 100 = net exporter. */
@@ -471,6 +490,17 @@ function buildCountryRows(): RankRow[] {
       educationRank: NaN,
       healthcareRank: NaN,
       crimeIndex: NaN,
+      population: c.population,
+      gdpTotal: c.gdp,
+      areaKm2: c.areaKm2,
+      // State fiscal and education series with no country-level equivalent in
+      // this dataset. Left unavailable rather than approximated.
+      medianIncome: NaN,
+      averageIncome: NaN,
+      stateTaxRate: NaN,
+      salesTaxRate: NaN,
+      minimumWage: NaN,
+      bachelorsPct: NaN,
       energyOutputTWh: c.energy?.totalProductionTWh ?? NaN,
       energySelfSufficiency:
         c.energy && c.energy.totalUseTWh > 0
@@ -515,6 +545,17 @@ function buildStateRows(): RankRow[] {
       educationRank: s.educationRank ?? NaN,
       healthcareRank: s.healthcareRank ?? NaN,
       crimeIndex: s.crimeIndex ?? NaN,
+      population: s.population,
+      gdpTotal: s.gdp,
+      areaKm2: s.areaKm2,
+      medianIncome: s.medianIncome,
+      averageIncome: s.averageIncome,
+      stateTaxRate: s.stateTaxRate,
+      salesTaxRate: s.salesTaxRate,
+      // 0 means the state follows the federal floor rather than setting one,
+      // which is a real answer, not a gap.
+      minimumWage: s.minimumWage,
+      bachelorsPct: STATE_FIGURES[s.id]?.education.bachelorsOrHigherPct ?? NaN,
       // statesData carries an energy mix as percentages only, with no absolute
       // output, so there is nothing comparable to a country's TWh figure.
       energyOutputTWh: NaN,
@@ -914,10 +955,98 @@ type SortDir = "asc" | "desc";
  */
 const COMPARE_MAX = 6;
 
+/**
+ * What the comparison shows, in reading order: the ranked indicators first,
+ * then the measures the dashboard's compare card carries — size, income, tax,
+ * schooling — which the ranking deliberately leaves alone.
+ *
+ * These extras are a separate list rather than additions to METRICS because
+ * METRICS drives the sort menu, the category tabs and the composite. Ranking
+ * on population or area would assert that bigger is better, and a state's tax
+ * rate is not a score. They are worth putting side by side all the same, which
+ * is what this page is for.
+ */
+interface CompareRow {
+  id: keyof RankRow;
+  label: string;
+  higherIsBetter: boolean;
+  format: (v: number) => string;
+  /** No better or worse direction — nothing is marked best on these. */
+  neutral?: boolean;
+}
+
+const usd0 = (v: number) => `$${Math.round(v).toLocaleString()}`;
+
+const COMPARE_EXTRAS: CompareRow[] = [
+  {
+    id: "gdpTotal",
+    label: "GDP, total",
+    higherIsBetter: true,
+    format: (v) =>
+      v >= 1000 ? `$${(v / 1000).toFixed(2)}T` : `$${Math.round(v)}B`,
+    neutral: true,
+  },
+  {
+    id: "population",
+    label: "Population",
+    higherIsBetter: true,
+    format: (v) =>
+      v >= 1e9 ? `${(v / 1e9).toFixed(2)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : `${(v / 1e3).toFixed(0)}k`,
+    neutral: true,
+  },
+  {
+    id: "areaKm2",
+    label: "Area",
+    higherIsBetter: true,
+    format: (v) =>
+      v >= 1e6 ? `${(v / 1e6).toFixed(2)}M km²` : `${Math.round(v).toLocaleString()} km²`,
+    neutral: true,
+  },
+  { id: "medianIncome", label: "Median household income", higherIsBetter: true, format: usd0 },
+  { id: "averageIncome", label: "Income per person", higherIsBetter: true, format: usd0 },
+  {
+    id: "stateTaxRate",
+    label: "Top state income tax",
+    higherIsBetter: false,
+    format: (v) => `${v.toFixed(1)}%`,
+    neutral: true,
+  },
+  {
+    id: "salesTaxRate",
+    label: "Sales tax, with local",
+    higherIsBetter: false,
+    format: (v) => `${v.toFixed(2)}%`,
+    neutral: true,
+  },
+  {
+    id: "minimumWage",
+    label: "Minimum wage",
+    higherIsBetter: true,
+    format: (v) => (v === 0 ? "federal $7.25" : `$${v.toFixed(2)}/hr`),
+  },
+  {
+    id: "bachelorsPct",
+    label: "Bachelor's degree or higher",
+    higherIsBetter: true,
+    format: (v) => `${v.toFixed(1)}%`,
+  },
+];
+
+/** Every row the comparison table draws. */
+const COMPARE_ROWS: CompareRow[] = [
+  ...METRICS.map((m) => ({
+    id: m.id as keyof RankRow,
+    label: m.label,
+    higherIsBetter: m.higherIsBetter,
+    format: m.format,
+  })),
+  ...COMPARE_EXTRAS,
+];
+
 /** Rank of every entity on every metric, best = 1, over the rows that have it. */
 function buildRankByMetric(rows: RankRow[]): Map<string, Map<string, number>> {
   const out = new Map<string, Map<string, number>>();
-  for (const m of METRICS) {
+  for (const m of COMPARE_ROWS) {
     const withData = rows.filter((r) => hasMetric(r, m.id));
     withData.sort((a, b) => {
       const av = a[m.id] as number;
@@ -1017,7 +1146,6 @@ function ComparisonPanel({
   selected,
   allRows,
   rankByMetric,
-  allValuesMap,
   selectedIds,
   onAdd,
   onRemove,
@@ -1026,7 +1154,6 @@ function ComparisonPanel({
   selected: RankRow[];
   allRows: RankRow[];
   rankByMetric: Map<string, Map<string, number>>;
-  allValuesMap: Partial<Record<string, number[]>>;
   selectedIds: string[];
   onAdd: (id: string) => void;
   onRemove: (id: string) => void;
@@ -1109,22 +1236,29 @@ function ComparisonPanel({
               </tr>
             </thead>
             <tbody>
-              {METRICS.map((m) => {
-                // Best of the pinned set, among those that publish it.
+              {COMPARE_ROWS.map((m) => {
+                // Best of the pinned set, among those that publish it. Size,
+                // tax and total output have no better direction, so nothing is
+                // marked on those — a bigger country is not a better one.
                 const withData = selected.filter((r) => hasMetric(r, m.id));
                 let best: RankRow | undefined;
-                for (const r of withData) {
-                  if (!best) best = r;
-                  else {
-                    const better = m.higherIsBetter
-                      ? (r[m.id] as number) > (best[m.id] as number)
-                      : (r[m.id] as number) < (best[m.id] as number);
-                    if (better) best = r;
+                if (!m.neutral) {
+                  for (const r of withData) {
+                    if (!best) best = r;
+                    else {
+                      const better = m.higherIsBetter
+                        ? (r[m.id] as number) > (best[m.id] as number)
+                        : (r[m.id] as number) < (best[m.id] as number);
+                      if (better) best = r;
+                    }
                   }
                 }
                 const ranks = rankByMetric.get(m.id);
-                const pool = allValuesMap[m.id] ?? [];
-                const poolSize = pool.filter((v) => isFinite(v)).length;
+                // The rank map holds exactly the entities that publish the
+                // measure, so its size is the pool. allValuesMap only covers
+                // the ranked METRICS, so the compare-only rows read "of 0"
+                // from it.
+                const poolSize = ranks?.size ?? 0;
 
                 return (
                   <tr key={m.id} className="border-b border-border/40 last:border-0">
@@ -1133,8 +1267,12 @@ function ComparisonPanel({
                         {m.label}
                       </p>
                       <p className="text-[9px] font-sans text-muted-foreground leading-snug">
-                        {m.higherIsBetter ? "higher is better" : "lower is better"}
-                        {poolSize > 0 && ` · ${poolSize} ranked`}
+                        {m.neutral
+                          ? "no better direction"
+                          : m.higherIsBetter
+                            ? "higher is better"
+                            : "lower is better"}
+                        {poolSize > 0 && ` · ${poolSize} with data`}
                       </p>
                     </td>
                     {selected.map((r) => {
@@ -1498,17 +1636,18 @@ export function RankingsPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-xl sm:text-2xl font-bold text-foreground">
-              Global Rankings
+              Compare
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground max-w-xl">
-            Pin any countries and US states together and read them against
-            each other, every figure with its rank among all {allRows.length}{" "}
-            entities — the full form of the dashboard's compare card. The table
-            below is the pool you pick from, ranked on a composite scored over
-            whatever an entity actually has, up to 9 indicators for countries
-            and 5 for states, with the weights renormalised across those so a
-            missing one neither helps nor hurts.
+            Pin any countries and US states together and read them against each
+            other across every measure the site holds — the full form of the
+            dashboard's compare card, with each figure placed among all{" "}
+            {allRows.length} entities. The table below is the pool you pick
+            from, ordered by a composite scored over whatever an entity
+            actually has, up to 9 indicators for countries and 5 for states,
+            with the weights renormalised across those so a missing one neither
+            helps nor hurts.
           </p>
         </div>
         <span className="text-xs text-muted-foreground font-mono bg-muted/50 border border-border rounded-lg px-2.5 py-1 shrink-0 self-start">
@@ -1713,7 +1852,6 @@ export function RankingsPage() {
         selected={compareRows}
         allRows={allRows}
         rankByMetric={rankByMetric}
-        allValuesMap={allValuesMap}
         selectedIds={compareIds}
         onAdd={toggleCompare}
         onRemove={toggleCompare}
@@ -1880,7 +2018,8 @@ export function RankingsPage() {
         {/* Column header — category label */}
         <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-muted/20">
           <span className="text-xs font-semibold text-foreground">
-            {CATEGORY_TABS.find((t) => t.id === activeCategory)?.label} Rankings
+            Pick from all entities · ranked by{" "}
+            {CATEGORY_TABS.find((t) => t.id === activeCategory)?.label.toLowerCase()}
           </span>
           <span className="text-[10px] text-muted-foreground font-mono">
             {filteredRows.length} results
