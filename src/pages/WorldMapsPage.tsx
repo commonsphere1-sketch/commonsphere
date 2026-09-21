@@ -268,17 +268,31 @@ const WORLD_H = 480;
 const PAD = 24;
 
 /**
- * Vertical space a map card needs for everything that is not the map, plus
- * the site's 64px sticky header above it: heading, scope chips, layer switches,
- * zoom controls, legend, source note and the card's own padding.
- *
- * Re-measured after the layer and zoom rows were added — the old 330 predated
- * them. The world card is the tallest: 243px around its map at 1440x900 and
- * 277px at 1280x720, where the legend and note wrap furthest; with the header
- * that is 341px. 350 keeps the whole card, map outline included, on screen at
- * 1280x720, 1366x768, 1440x900 and 1920x960.
+ * How a map card fits itself to the screen: `chromePx` is the vertical space
+ * everything that is not the map needs, and `minWidthPx` is the narrowest the
+ * map may be drawn. The map is sized so the card fits the window, but never
+ * narrower than the floor — below it the page scrolls instead of the map
+ * shrinking further. Labels are sized in canvas units, so the floor is what
+ * keeps them legible.
  */
-const MAP_CHROME_PX = 350;
+type MapFit = { chromePx: number; minWidthPx: number };
+
+/**
+ * The world map, as it was: heading, scope chips, legend and source note
+ * (measured at 205-238px across 1366-2560 wide, rounded up to 330), and a
+ * floor at 95% of the 960-unit canvas, which holds a label at about 11px.
+ */
+const WORLD_FIT: MapFit = { chromePx: 330, minWidthPx: 912 };
+
+/**
+ * The focus map — the US and any country picked from the menu. It has less
+ * around it than the world card (heading, layer switches, zoom controls: 162px
+ * at 1440x900, 226px with the site header), so it can be drawn larger before
+ * it fills the screen. Its floor is lower than the world map's, so on a short
+ * window it gives way gradually, from full size down to 640px, rather than
+ * either overflowing the screen or collapsing to a thumbnail.
+ */
+const FOCUS_FIT: MapFit = { chromePx: 240, minWidthPx: 640 };
 
 /* Zoom bounds. 1 fits the country to the canvas; 8 is where the 1:10m arcs
    start to show their own quantisation, so there is nothing further to see. */
@@ -470,7 +484,12 @@ function CasedLine({
  * is clamped to the canvas, so a map can never be dragged away with no way
  * back but the reset button. Passing resetKey returns to 1x whenever it changes.
  */
-function useMapZoom(width: number, height: number, resetKey?: unknown) {
+function useMapZoom(
+  width: number,
+  height: number,
+  resetKey?: unknown,
+  fit: MapFit = WORLD_FIT,
+) {
   /* Zoom and centre are one piece of state, not two.
 
      They were separate, and every handler read the current zoom from its own
@@ -700,12 +719,9 @@ function useMapZoom(width: number, height: number, resetKey?: unknown) {
        The chrome subtracted is roughly fixed rather than proportional, which is
        why this is not a flat percentage of the viewport: a 70% cap overflowed a
        1366x768 screen by ~70px while leaving height unused at 2560x1440. */
-    // No floor. There was one — the map never went narrower than 912px, to
-    // keep state labels above ~11px — but on a screen
-    // shorter than ~850px that made the map taller than the window, so its
-    // bottom was cut off. The whole outline being visible wins; zoom is there
-    // for reading small labels.
-    maxWidth: `calc((100vh - ${MAP_CHROME_PX}px) * ${(width / height).toFixed(4)})`,
+    maxWidth: `calc(max(${fit.minWidthPx}px, (100vh - ${fit.chromePx}px) * ${(
+      width / height
+    ).toFixed(4)}))`,
   };
 
   const viewBox = `${center.x - width / (2 * zoom)} ${
@@ -1604,7 +1620,7 @@ export function WorldMapsPage() {
      canvas, so they share a viewport, and it resets whenever the country
      changes. `zoom` is that shared level, which the label pass depends on. */
   const worldZoom = useMapZoom(WORLD_W, WORLD_H);
-  const focusZoom = useMapZoom(US_W, US_H, focusCode);
+  const focusZoom = useMapZoom(US_W, US_H, focusCode, FOCUS_FIT);
 
   /* These two depend on the zoom, so they are declared after it: the dots keep
      a constant size on screen, which means their radius is in canvas units
