@@ -34,8 +34,7 @@ type MetricId =
   | "inflation"
   | "incarceration"
   | "homelessness"
-  | "tradeBalance"
-  | "easeOfBusiness";
+  | "tradeBalance";
 
 /**
  * Categories are restricted to metrics held for every entity, country and US
@@ -56,7 +55,14 @@ type MetricId =
  * written in for every one. There is no international series behind such a
  * table - national definitions differ too much to compare - so the country
  * figures were removed and Housing now ranks US states.
- *   easeOfBusiness                                      — 29 of 204 countries
+ *
+ * easeOfBusiness was removed. It was the World Bank's Doing Business rank,
+ * typed in by hand for 29 countries with no source or year, and wrong where it
+ * could be checked: the United States at 55th when Doing Business 2020 put it
+ * 6th, Egypt at 93rd against 114th. The World Bank discontinued the index in
+ * September 2021 after an external review found data irregularities in the
+ * 2018 and 2020 editions, so there is no current series to correct it from.
+ * It carried no composite weight, so no score moved.
  *
  * That retired four tabs. Life Exp. and Transport ranked countries against
  * states on data only one of them has, and Transport's primary metric was
@@ -378,50 +384,8 @@ const METRICS: MetricDef[] = [
     color: "text-cyan-400",
     weight: 1,
   },
-  {
-    id: "easeOfBusiness",
-    label: "Ease of Business",
-    shortLabel: "Bus. Rank",
-    description: "World Bank Ease of Doing Business rank — lower = better",
-    higherIsBetter: false,
-    format: (v) => (v > 0 ? `${Math.round(v)}` : "N/A"),
-    color: "text-lime-400",
-    weight: 0,
-  },
 ];
 
-// ─── Ease-of-business data ─────────────────────────────────────────────────
-const EASE_OF_BUSINESS: Record<string, number> = {
-  us: 55,
-  cn: 31,
-  de: 22,
-  gb: 8,
-  fr: 32,
-  jp: 29,
-  in: 63,
-  br: 124,
-  ru: 28,
-  au_oc: 14,
-  kr: 5,
-  ca: 23,
-  sa: 62,
-  ae: 16,
-  sg: 2,
-  mx: 60,
-  za: 84,
-  ng: 131,
-  eg: 93,
-  il_as: 35,
-  ar: 126,
-  tr: 33,
-  id: 73,
-  my: 12,
-  th: 21,
-  vn: 70,
-  ph: 95,
-  pk: 108,
-  bd: 168,
-};
 
 interface RankRow {
   id: string;
@@ -437,7 +401,6 @@ interface RankRow {
   incarceration: number;
   homelessness: number;
   tradeBalance: number;
-  easeOfBusiness: number;
   composite: number;
   educationRank: number;
   healthcareRank: number;
@@ -458,6 +421,12 @@ interface RankRow {
    * publish on the same basis, so it compares directly.
    */
   medianAge: number;
+  /**
+   * Share of the population aged 65 and over, also held for both on the same
+   * definition: the World Bank's SP.POP.65UP.TO.ZS for countries, the Census
+   * Bureau's age groups for states.
+   */
+  age65Pct: number;
   /** Countries only, from countryPanels.ts (World Bank, UN, Transparency Intl). */
   urbanPct: number;
   internetPct: number;
@@ -476,6 +445,10 @@ interface RankRow {
   rentBurdenPct: number;
   meanCommuteMin: number;
   workFromHomePct: number;
+  transitPct: number;
+  walkBikePct: number;
+  vehiclePct: number;
+  vacancyPct: number;
   highSchoolPct: number;
   averageIncome: number;
   stateTaxRate: number;
@@ -506,7 +479,6 @@ function buildCountryRows(): RankRow[] {
       incarceration: PRISON_RATES[c.id]?.v ?? NaN,
       homelessness: NaN,
       tradeBalance: c.tradeBalance,
-      easeOfBusiness: EASE_OF_BUSINESS[c.id] ?? NaN,
       // Not tracked per country in this dataset. These were 0, and because
       // education and crime rank ascending ("lower is better"), every country
       // tied at 0 and the Crime and Education leaderboards presented missing
@@ -522,6 +494,7 @@ function buildCountryRows(): RankRow[] {
       // each figure carrying the year it is for. Nothing new is asserted here;
       // these were simply not being offered for comparison.
       medianAge: p?.medianAge?.v ?? NaN,
+      age65Pct: p?.age65up?.v ?? NaN,
       urbanPct: p?.urbanPct?.v ?? NaN,
       internetPct: p?.internetPct?.v ?? NaN,
       gini: p?.gini?.v ?? NaN,
@@ -541,6 +514,10 @@ function buildCountryRows(): RankRow[] {
       rentBurdenPct: NaN,
       meanCommuteMin: NaN,
       workFromHomePct: NaN,
+      transitPct: NaN,
+      walkBikePct: NaN,
+      vehiclePct: NaN,
+      vacancyPct: NaN,
       highSchoolPct: NaN,
       averageIncome: NaN,
       stateTaxRate: NaN,
@@ -588,7 +565,6 @@ function buildStateRows(): RankRow[] {
       // HUD's counts could not be fetched; see build-states.cjs.
       homelessness: NaN,
       tradeBalance: NaN,
-      easeOfBusiness: NaN,
       educationRank: s.educationRank ?? NaN,
       healthcareRank: s.healthcareRank ?? NaN,
       crimeIndex: s.crimeIndex ?? NaN,
@@ -598,6 +574,7 @@ function buildStateRows(): RankRow[] {
       // From stateIndicators.ts (build-states.cjs): Census ACS for age,
       // income, poverty, housing, commuting and schooling.
       medianAge: f?.medianAge.v ?? NaN,
+      age65Pct: f?.ageGroups.groups.find((g) => g.group === "65+")?.pct ?? NaN,
       // Countries have these from the World Bank; states do not, and the ACS
       // publishes nothing equivalent, so they stay unavailable.
       urbanPct: NaN,
@@ -617,6 +594,10 @@ function buildStateRows(): RankRow[] {
       rentBurdenPct: f?.housing.rentBurdenPct ?? NaN,
       meanCommuteMin: f?.commute.meanCommuteMin ?? NaN,
       workFromHomePct: f?.commute.workFromHomePct ?? NaN,
+      transitPct: f?.commute.transitPct ?? NaN,
+      walkBikePct: f?.commute.walkBikePct ?? NaN,
+      vehiclePct: f?.commute.householdsWithVehiclePct ?? NaN,
+      vacancyPct: f?.housing.vacancyPct ?? NaN,
       highSchoolPct: f?.education.highSchoolOrHigherPct ?? NaN,
       medianIncome: s.medianIncome,
       averageIncome: s.averageIncome,
@@ -1142,6 +1123,13 @@ const COMPARE_EXTRAS: CompareRow[] = [
     format: (v) => `${v.toFixed(1)} yrs`,
     neutral: true,
   },
+  {
+    id: "age65Pct",
+    label: "Aged 65 and over",
+    higherIsBetter: true,
+    format: pct1,
+    neutral: true,
+  },
 
   // Countries — from countryPanels.ts, each already sourced and dated.
   {
@@ -1224,6 +1212,34 @@ const COMPARE_EXTRAS: CompareRow[] = [
     id: "workFromHomePct",
     label: "Works from home",
     higherIsBetter: true,
+    format: pct1,
+    neutral: true,
+  },
+  {
+    id: "transitPct",
+    label: "Commutes by public transit",
+    higherIsBetter: true,
+    format: pct1,
+    neutral: true,
+  },
+  {
+    id: "walkBikePct",
+    label: "Walks or cycles to work",
+    higherIsBetter: true,
+    format: pct1,
+    neutral: true,
+  },
+  {
+    id: "vehiclePct",
+    label: "Households with a vehicle",
+    higherIsBetter: true,
+    format: pct1,
+    neutral: true,
+  },
+  {
+    id: "vacancyPct",
+    label: "Housing vacancy rate",
+    higherIsBetter: false,
     format: pct1,
     neutral: true,
   },
@@ -1465,7 +1481,11 @@ function ComparisonPanel({
               </tr>
             </thead>
             <tbody>
-              {COMPARE_ROWS.map((m) => {
+              {/* A measure nobody in the pool publishes — homelessness, since
+                  HUD's counts could not be fetched and there is no
+                  comparable international series — would only ever be a
+                  row of N/A, so it is not drawn. */}
+              {COMPARE_ROWS.filter((m) => (rankByMetric.get(m.id)?.size ?? 0) > 0).map((m) => {
                 // Best of the pinned set, among those that publish it. Size,
                 // tax and total output have no better direction, so nothing is
                 // marked on those — a bigger country is not a better one.
