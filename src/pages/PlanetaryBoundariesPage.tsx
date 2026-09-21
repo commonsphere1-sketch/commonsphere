@@ -1206,82 +1206,6 @@ export function PlanetaryBoundariesPage() {
         </div>
 
         {/* ── KPI STRIP ─────────────────────────────────────────────────── */}
-        {/* ── MEASURED NOW ──────────────────────────────────────────────
-            The readings the monitoring agencies publish, each with the month
-            it belongs to and the same measure ten years earlier. A figure like
-            "429 ppm" says nothing on its own about which way it is going. */}
-        <div className="bg-card border border-border rounded-2xl p-4 mb-6">
-          <div className="flex items-baseline justify-between gap-3 mb-3 flex-wrap">
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-              Measured now — greenhouse gases, warming and ice
-            </p>
-            <p className="text-[10px] font-mono text-muted-foreground">
-              retrieved {CLIMATE_RETRIEVED}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {CLIMATE_INDICATORS.map((ind: ClimateIndicator) => {
-              const change =
-                ind.decadeAgo === null ? null : ind.value - ind.decadeAgo;
-              /* Less ice is the bad direction; for every other reading here it
-                 is more. The arrow follows the measure, not the sign. */
-              const worseWhenUp = ind.id !== "sea-ice";
-              const worse =
-                change === null ? null : worseWhenUp ? change > 0 : change < 0;
-              return (
-                <div
-                  key={ind.id}
-                  className="rounded-xl border border-border/60 p-3 flex flex-col gap-1"
-                >
-                  <p className="text-[11px] font-sans text-muted-foreground leading-snug">
-                    {ind.label}
-                  </p>
-                  <p className="text-xl font-bold font-mono text-foreground leading-none">
-                    {ind.value}
-                    <span className="text-[11px] font-normal text-muted-foreground ml-1">
-                      {ind.unit}
-                    </span>
-                  </p>
-                  <p className="text-[10px] font-mono text-muted-foreground">
-                    {ind.period}
-                  </p>
-                  {change !== null && (
-                    <p
-                      className={`text-[10px] font-mono ${
-                        worse ? "text-red-500" : "text-emerald-500"
-                      }`}
-                    >
-                      {change > 0 ? "+" : ""}
-                      {Math.abs(change) < 1
-                        ? change.toFixed(2)
-                        : change.toFixed(1)}{" "}
-                      <span className="text-muted-foreground">
-                        vs {ind.decadeAgo} a decade earlier
-                      </span>
-                    </p>
-                  )}
-                  {ind.note && (
-                    <p className="text-[9px] font-sans text-muted-foreground leading-snug mt-0.5">
-                      {ind.note}
-                    </p>
-                  )}
-                  <p className="text-[9px] font-sans text-muted-foreground mt-auto pt-1">
-                    <a
-                      href={ind.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline decoration-dotted hover:text-foreground"
-                    >
-                      {ind.source}
-                    </a>
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
             {
@@ -3327,6 +3251,111 @@ export function PlanetaryBoundariesPage() {
           </div>
         </div>
 
+        {/* ── MEASURED NOW ──────────────────────────────────────────────
+            The readings the monitoring agencies publish, each with the month
+            it belongs to and the same measure ten years earlier. A figure like
+            "429 ppm" says nothing on its own about which way it is going.
+
+            It sits at the foot of the page, after the boundaries themselves:
+            it is the evidence underneath them, not the headline. As twelve
+            cards it ran to most of a screen, so it is a table now — one row
+            per reading, the numbers in columns that line up down the page
+            rather than restating "ppm" and "a decade earlier" twelve times. */}
+        <div className="bg-card border border-border rounded-2xl p-4 mb-6">
+          <div className="flex items-baseline justify-between gap-3 mb-3 flex-wrap">
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              Measured now — greenhouse gases, warming and ice
+            </p>
+            <p className="text-[10px] font-mono text-muted-foreground">
+              retrieved {CLIMATE_RETRIEVED}
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-border/60">
+                  {["Reading", "Latest", "Period", "vs a decade earlier", "Source"].map(
+                    (h, i) => (
+                      <th
+                        key={h}
+                        className={`text-[9px] font-sans uppercase tracking-widest text-muted-foreground font-medium pb-1.5 ${
+                          i === 0 ? "text-left" : "text-right"
+                        }`}
+                      >
+                        {h}
+                      </th>
+                    ),
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {CLIMATE_INDICATORS.map((ind: ClimateIndicator) => {
+                  const change =
+                    ind.decadeAgo === null ? null : ind.value - ind.decadeAgo;
+                  /* Less ice is the bad direction; for every other reading here
+                     it is more. The colour follows the measure, not the sign. */
+                  const worseWhenUp = ind.id !== "sea-ice";
+                  const worse =
+                    change === null ? null : worseWhenUp ? change > 0 : change < 0;
+                  return (
+                    <tr
+                      key={ind.id}
+                      className="border-b border-border/40 last:border-0 align-top"
+                    >
+                      <td className="py-2 pr-3">
+                        <p className="text-[11px] font-sans text-foreground leading-snug">
+                          {ind.label}
+                        </p>
+                        {ind.note && (
+                          <p className="text-[9px] font-sans text-muted-foreground leading-snug mt-0.5 max-w-prose">
+                            {ind.note}
+                          </p>
+                        )}
+                      </td>
+                      <td className="py-2 px-2 text-right whitespace-nowrap">
+                        <span className="text-sm font-bold font-mono text-foreground">
+                          {ind.value}
+                        </span>
+                        <span className="text-[10px] font-mono text-muted-foreground ml-1">
+                          {ind.unit}
+                        </span>
+                      </td>
+                      <td className="py-2 px-2 text-right whitespace-nowrap text-[10px] font-mono text-muted-foreground">
+                        {ind.period}
+                      </td>
+                      <td className="py-2 px-2 text-right whitespace-nowrap text-[10px] font-mono">
+                        {change === null ? (
+                          <span className="text-muted-foreground">—</span>
+                        ) : (
+                          <>
+                            <span className={worse ? "text-red-500" : "text-emerald-500"}>
+                              {change > 0 ? "+" : ""}
+                              {Math.abs(change) < 1
+                                ? change.toFixed(2)
+                                : change.toFixed(1)}
+                            </span>
+                            <span className="text-muted-foreground"> from {ind.decadeAgo}</span>
+                          </>
+                        )}
+                      </td>
+                      <td className="py-2 pl-2 text-right">
+                        <a
+                          href={ind.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[9px] font-sans text-muted-foreground underline decoration-dotted hover:text-foreground"
+                        >
+                          {ind.source}
+                        </a>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
         {/* ── FOOTER ────────────────────────────────────────────────────── */}
         <div className="text-center py-3 border-t border-border mt-2">
           <p className="text-[11px] font-sans text-muted-foreground">
