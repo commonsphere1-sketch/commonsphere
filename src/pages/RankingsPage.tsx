@@ -3,6 +3,7 @@ import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
 import { PRISON_RATES } from "../data/prisonRates";
 import { STATE_INDICATORS as STATE_FIGURES } from "../data/stateIndicators";
+import { COUNTRY_PANELS } from "../data/countryPanels";
 import {
   Globe,
   Buildings,
@@ -452,8 +453,30 @@ interface RankRow {
   /** Total GDP, billions USD. */
   gdpTotal: number;
   areaKm2: number;
+  /**
+   * Held for both kinds. Median age is the only one of these the two sides
+   * publish on the same basis, so it compares directly.
+   */
+  medianAge: number;
+  /** Countries only, from countryPanels.ts (World Bank, UN, Transparency Intl). */
+  urbanPct: number;
+  internetPct: number;
+  gini: number;
+  cpiScore: number;
+  physicians: number;
+  maternalMortality: number;
+  electricityAccess: number;
+  parliamentFemale: number;
   /** US states only; countries have no equivalent series here. */
   medianIncome: number;
+  povertyPct: number;
+  medianHomeValue: number;
+  medianRent: number;
+  homeOwnershipPct: number;
+  rentBurdenPct: number;
+  meanCommuteMin: number;
+  workFromHomePct: number;
+  highSchoolPct: number;
   averageIncome: number;
   stateTaxRate: number;
   salesTaxRate: number;
@@ -467,6 +490,7 @@ interface RankRow {
 
 function buildCountryRows(): RankRow[] {
   return countriesData.map((c) => {
+    const p = COUNTRY_PANELS[c.id];
     return {
       id: `country-${c.id}`,
       name: c.name,
@@ -493,9 +517,31 @@ function buildCountryRows(): RankRow[] {
       population: c.population,
       gdpTotal: c.gdp,
       areaKm2: c.areaKm2,
-      // State fiscal and education series with no country-level equivalent in
-      // this dataset. Left unavailable rather than approximated.
+      // Already built and sourced in countryPanels.ts — World Bank indicators,
+      // the UN's population prospects and Transparency International's CPI,
+      // each figure carrying the year it is for. Nothing new is asserted here;
+      // these were simply not being offered for comparison.
+      medianAge: p?.medianAge?.v ?? NaN,
+      urbanPct: p?.urbanPct?.v ?? NaN,
+      internetPct: p?.internetPct?.v ?? NaN,
+      gini: p?.gini?.v ?? NaN,
+      cpiScore: p?.cpiScore?.v ?? NaN,
+      physicians: p?.physicians?.v ?? NaN,
+      maternalMortality: p?.maternalMortality?.v ?? NaN,
+      electricityAccess: p?.electricityAccess?.v ?? NaN,
+      parliamentFemale: p?.parliamentFemale?.v ?? NaN,
+      // State fiscal, housing, commute and education series with no
+      // country-level equivalent in this dataset. Left unavailable rather
+      // than approximated.
       medianIncome: NaN,
+      povertyPct: NaN,
+      medianHomeValue: NaN,
+      medianRent: NaN,
+      homeOwnershipPct: NaN,
+      rentBurdenPct: NaN,
+      meanCommuteMin: NaN,
+      workFromHomePct: NaN,
+      highSchoolPct: NaN,
       averageIncome: NaN,
       stateTaxRate: NaN,
       salesTaxRate: NaN,
@@ -513,6 +559,7 @@ function buildCountryRows(): RankRow[] {
 function buildStateRows(): RankRow[] {
   return usStatesData.map((s) => {
     const gdpPerCap = s.gdp > 0 ? Math.round((s.gdp * 1e9) / s.population) : 0;
+    const f = STATE_FIGURES[s.id];
     return {
       id: `state-${s.id}`,
       name: s.name,
@@ -548,6 +595,29 @@ function buildStateRows(): RankRow[] {
       population: s.population,
       gdpTotal: s.gdp,
       areaKm2: s.areaKm2,
+      // From stateIndicators.ts (build-states.cjs): Census ACS for age,
+      // income, poverty, housing, commuting and schooling.
+      medianAge: f?.medianAge.v ?? NaN,
+      // Countries have these from the World Bank; states do not, and the ACS
+      // publishes nothing equivalent, so they stay unavailable.
+      urbanPct: NaN,
+      internetPct: NaN,
+      gini: NaN,
+      cpiScore: NaN,
+      physicians: NaN,
+      maternalMortality: NaN,
+      electricityAccess: NaN,
+      parliamentFemale: NaN,
+      povertyPct:
+        f?.poverty.groups.find((g) => g.label === "Below poverty line")?.pct ??
+        NaN,
+      medianHomeValue: f?.housing.medianHomeValue ?? NaN,
+      medianRent: f?.housing.medianRent ?? NaN,
+      homeOwnershipPct: f?.housing.homeOwnershipPct ?? NaN,
+      rentBurdenPct: f?.housing.rentBurdenPct ?? NaN,
+      meanCommuteMin: f?.commute.meanCommuteMin ?? NaN,
+      workFromHomePct: f?.commute.workFromHomePct ?? NaN,
+      highSchoolPct: f?.education.highSchoolOrHigherPct ?? NaN,
       medianIncome: s.medianIncome,
       averageIncome: s.averageIncome,
       stateTaxRate: s.stateTaxRate,
@@ -1037,6 +1107,7 @@ interface CompareRow {
 }
 
 const usd0 = (v: number) => `$${Math.round(v).toLocaleString()}`;
+const pct1 = (v: number) => `${v.toFixed(1)}%`;
 
 const COMPARE_EXTRAS: CompareRow[] = [
   {
@@ -1063,8 +1134,105 @@ const COMPARE_EXTRAS: CompareRow[] = [
       v >= 1e6 ? `${(v / 1e6).toFixed(2)}M km²` : `${Math.round(v).toLocaleString()} km²`,
     neutral: true,
   },
+  // Held on both sides, on the same basis, so it compares directly.
+  {
+    id: "medianAge",
+    label: "Median age",
+    higherIsBetter: true,
+    format: (v) => `${v.toFixed(1)} yrs`,
+    neutral: true,
+  },
+
+  // Countries — from countryPanels.ts, each already sourced and dated.
+  {
+    id: "urbanPct",
+    label: "Urban population",
+    higherIsBetter: true,
+    format: pct1,
+    neutral: true,
+  },
+  { id: "internetPct", label: "Internet use", higherIsBetter: true, format: pct1 },
+  {
+    id: "gini",
+    label: "Income inequality (Gini)",
+    higherIsBetter: false,
+    format: (v) => v.toFixed(1),
+  },
+  {
+    id: "cpiScore",
+    label: "Corruption Perceptions Index",
+    higherIsBetter: true,
+    format: (v) => `${Math.round(v)}/100`,
+  },
+  {
+    id: "physicians",
+    label: "Physicians per 1,000",
+    higherIsBetter: true,
+    format: (v) => v.toFixed(2),
+  },
+  {
+    id: "maternalMortality",
+    label: "Maternal deaths per 100,000 births",
+    higherIsBetter: false,
+    format: (v) => Math.round(v).toLocaleString(),
+  },
+  {
+    id: "electricityAccess",
+    label: "Electricity access",
+    higherIsBetter: true,
+    format: pct1,
+  },
+  {
+    id: "parliamentFemale",
+    label: "Women in parliament",
+    higherIsBetter: true,
+    format: pct1,
+  },
+
+  // US states — from stateIndicators.ts, Census ACS unless noted.
   { id: "medianIncome", label: "Median household income", higherIsBetter: true, format: usd0 },
   { id: "averageIncome", label: "Income per person", higherIsBetter: true, format: usd0 },
+  { id: "povertyPct", label: "Below the poverty line", higherIsBetter: false, format: pct1 },
+  {
+    id: "medianHomeValue",
+    label: "Median home value",
+    higherIsBetter: true,
+    format: usd0,
+    neutral: true,
+  },
+  {
+    id: "medianRent",
+    label: "Median rent",
+    higherIsBetter: false,
+    format: (v) => `${usd0(v)}/mo`,
+    neutral: true,
+  },
+  { id: "homeOwnershipPct", label: "Home ownership", higherIsBetter: true, format: pct1 },
+  {
+    id: "rentBurdenPct",
+    label: "Renters paying over 30% of income",
+    higherIsBetter: false,
+    format: pct1,
+  },
+  {
+    id: "meanCommuteMin",
+    label: "Mean commute",
+    higherIsBetter: false,
+    format: (v) => `${v.toFixed(1)} min`,
+  },
+  {
+    id: "workFromHomePct",
+    label: "Works from home",
+    higherIsBetter: true,
+    format: pct1,
+    neutral: true,
+  },
+  {
+    id: "highSchoolPct",
+    label: "High school or higher",
+    higherIsBetter: true,
+    format: pct1,
+  },
   {
     id: "stateTaxRate",
     label: "Top state income tax",
@@ -1303,7 +1471,7 @@ function ComparisonPanel({
                 // marked on those — a bigger country is not a better one.
                 const withData = selected.filter((r) => hasMetric(r, m.id));
                 let best: RankRow | undefined;
-                if (!m.neutral) {
+                if (!m.neutral && withData.length > 1) {
                   for (const r of withData) {
                     if (!best) best = r;
                     else {
@@ -1312,6 +1480,14 @@ function ComparisonPanel({
                         : (r[m.id] as number) < (best[m.id] as number);
                       if (better) best = r;
                     }
+                  }
+                  // Nobody wins a tie. Electricity access is 100% for most of
+                  // the rich world, and marking whichever happened to be
+                  // pinned first as "best" claims a difference that is not
+                  // there.
+                  const bv = best![m.id] as number;
+                  if (withData.filter((r) => (r[m.id] as number) === bv).length > 1) {
+                    best = undefined;
                   }
                 }
                 const ranks = rankByMetric.get(m.id);

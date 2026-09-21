@@ -29,7 +29,7 @@ import {
   Lightning,
   ArrowSquareOut,
   Leaf,
-  Trophy,
+  ArrowsLeftRight,
 } from "@phosphor-icons/react";
 
 interface SidebarNavProps {
@@ -54,7 +54,14 @@ const mainNav = [
 const analysisNav = [
   // The route keeps its /rankings path so existing links still resolve; the
   // page itself is the comparison now, with the ranked list as its picker.
-  { to: "/dashboard/rankings", label: "Compare", icon: Trophy, end: false },
+  {
+    to: "/dashboard/rankings",
+    label: "Compare",
+    // A trophy is a leaderboard's icon. The page pins entities side by side
+    // now, so the icon is two arrows facing each other.
+    icon: ArrowsLeftRight,
+    end: false,
+  },
   { to: "/dashboard/policy", label: "Policy", icon: Scales, end: false },
   {
     to: "/dashboard/world-leaders",
