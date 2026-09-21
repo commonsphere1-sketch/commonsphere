@@ -672,7 +672,11 @@ function PlanetaryBoundariesRadialChart({
       <svg
         viewBox="0 0 520 520"
         width="100%"
-        style={{ maxWidth: 680, overflow: "visible" }}
+        // 680 made the chart taller than a laptop viewport on its own, so the
+        // whole of it was never on screen at once. It is a nine-segment dial
+        // read at a glance, not a figure to study, and every label still fits
+        // at this size.
+        style={{ maxWidth: 400, overflow: "visible" }}
         aria-label="Planetary Boundaries radial chart"
       >
         <defs>
@@ -919,7 +923,12 @@ function BoundaryDetailPanel({
         >
           {boundary.icon}
         </div>
-        <div className="flex-1 min-w-0 sm:flex-none sm:basis-64">
+        {/* The name and the summary sat side by side, the summary taking a
+            fixed 16rem off the left for the title. That was fine while the
+            panel had the page's full width; beside the selector it squeezed
+            the summary into a four-word-wide ribbon. The summary now runs
+            under the title and uses the panel's whole width. */}
+        <div className="flex-1 min-w-0">
           <h3
             className="text-sm font-bold font-sans leading-snug"
             style={{ color: headText }}
@@ -936,25 +945,18 @@ function BoundaryDetailPanel({
             />
             {sc.label}
           </span>
+          <p
+            className="mt-2 text-[11px] font-sans leading-relaxed"
+            style={{ color: isLight ? "#475569" : "#94a3b8" }}
+          >
+            {boundary.summary}
+          </p>
         </div>
-        <p
-          className="hidden sm:block flex-1 max-w-2xl text-[11px] font-sans leading-relaxed pt-0.5"
-          style={{ color: isLight ? "#475569" : "#94a3b8" }}
-        >
-          {boundary.summary}
-        </p>
       </div>
 
-      {/* Summary again for narrow screens, where the header bar wraps badly. */}
-      <p
-        className="sm:hidden text-[11px] font-sans leading-relaxed mb-4"
-        style={{ color: isLight ? "#475569" : "#94a3b8" }}
-      >
-        {boundary.summary}
-      </p>
-
-      {/* The three sections read across rather than down. */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 items-start">
+      {/* Two columns, not three: beside the selector rail there is no room
+          for a third without every figure wrapping. */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
 
       {/* Key Variables */}
       <div>
@@ -1255,44 +1257,51 @@ export function PlanetaryBoundariesPage() {
         </div>
 
         {/* ── MAIN CONTENT GRID ─────────────────────────────────────────── */}
-        {/* Nine-boundary selector — full width above the chart. It is the
-            page's primary control, so it leads; the chart below reflects
-            whichever boundary is picked here. */}
-        <div className="mb-6">
-          <div className="bg-card border border-border rounded-2xl p-4">
-            <p className="text-[10px] font-mono uppercase tracking-widest mb-3 text-muted-foreground">
-              All Nine Boundaries
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {BOUNDARIES.map((b) => (
-                <BoundarySummaryCard
-                  key={b.id}
-                  boundary={b}
-                  selected={selectedId === b.id}
-                  onSelect={() => setSelectedId(b.id)}
-                  isLight={isLight}
-                  headText={headText}
-                  mutedText={mutedText}
-                  gridLine={gridLine}
-                />
-              ))}
+        {/* The nine boundaries and the one being read, side by side.
+            They were two stacked cards: nine buttons in a three-wide grid,
+            then the detail underneath. Picking a boundary scrolled the thing
+            you picked off the top of the screen, and you could not see which
+            of the nine was selected while reading it. As a list beside the
+            panel, the choice stays in view next to what it opened — the same
+            shape the dashboard's trends section uses. */}
+        <div className="bg-card border border-border rounded-2xl p-4 mb-6">
+          {/* Splits at md, not lg: the app's own chrome eats ~230px of the
+              window, so a 1024px breakpoint never fired on a laptop and the
+              two halves stayed stacked. */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div className="md:col-span-5 lg:col-span-4 md:border-r md:border-border md:pr-4">
+              <p className="text-[10px] font-mono uppercase tracking-widest mb-2 text-muted-foreground">
+                All Nine Boundaries
+              </p>
+              {/* One column once the panel is beside it; two on a narrow
+                  screen, where a single column would be a long thin strip. */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-2">
+                {BOUNDARIES.map((b) => (
+                  <BoundarySummaryCard
+                    key={b.id}
+                    boundary={b}
+                    selected={selectedId === b.id}
+                    onSelect={() => setSelectedId(b.id)}
+                    isLight={isLight}
+                    headText={headText}
+                    mutedText={mutedText}
+                    gridLine={gridLine}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="md:col-span-7 lg:col-span-8 min-w-0">
+              <BoundaryDetailPanel
+                boundary={selected}
+                isLight={isLight}
+                headText={headText}
+                mutedText={mutedText}
+                gridLine={gridLine}
+                cardBg={cardBg}
+              />
             </div>
           </div>
-        </div>
-
-        {/* Selected boundary — full width above the dashboard. The panel
-            reads horizontally here, so every variable, ecological note and
-            geopolitical link is on screen at once instead of stacked in a
-            narrow rail that had to be scrolled. */}
-        <div className="bg-card border border-border rounded-2xl p-5 mb-6">
-            <BoundaryDetailPanel
-              boundary={selected}
-              isLight={isLight}
-              headText={headText}
-              mutedText={mutedText}
-              gridLine={gridLine}
-              cardBg={cardBg}
-            />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
@@ -1328,10 +1337,12 @@ export function PlanetaryBoundariesPage() {
                   </div>
                 ))}
               </div>
-              <p className="text-[10px] font-sans leading-relaxed text-muted-foreground mb-3">
-                The inner green circle represents the Safe Operating Space.
-                Segments extending beyond the dashed boundary line indicate
-                transgression.
+              {/* One line, not two paragraphs. The legend above already names
+                  the three colours, so repeating them under the chart only
+                  pushed the chart itself off the screen. */}
+              <p className="text-[10px] font-sans text-muted-foreground mb-2">
+                The green core is the safe operating space; a segment past the
+                dashed ring has been transgressed. Click one to open it.
               </p>
               <PlanetaryBoundariesRadialChart
                 boundaries={BOUNDARIES}
@@ -1339,10 +1350,6 @@ export function PlanetaryBoundariesPage() {
                 onSelect={setSelectedId}
                 isLight={isLight}
               />
-              <p className="text-[10px] font-sans mt-2 text-center text-muted-foreground">
-                Click any segment to explore data. Red = transgressed, amber =
-                increasing risk, green = within limits.
-              </p>
             </div>
 
           </div>
