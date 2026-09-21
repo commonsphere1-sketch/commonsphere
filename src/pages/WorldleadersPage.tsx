@@ -15826,7 +15826,9 @@ function AlliancesView() {
         a card says otherwise. Suspensions change often and are described rather than shown.
       </p>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+      {/* One column at every width. Two across split the member-flag rows
+          into short stacks, and a bloc's members read best as one line. */}
+      <div className="grid grid-cols-1 gap-3">
         {shown.map((a) => {
           const members = (a.members ?? []).map((m) => byCode.get(m)).filter((c): c is Country => !!c);
           const isOpen = open === a.id;
