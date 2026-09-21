@@ -84,28 +84,69 @@ function sharedAxes(sel: EntityItem[]): string[] {
   return radarData(sel[0]).map((a) => a.axis).filter((ax) => sets.every((st) => st.has(ax)));
 }
 
-// Stat rows for the comparison table. Keys missing for an entity show "—".
+const money0 = (v: number) => `$${Math.round(v).toLocaleString()}`;
+/** Billions in, T or B out. The sign leads the currency: -$898B, not $-898B. */
+const bnUSD = (v: number) => {
+  const sign = v < 0 ? "-" : "";
+  const a = Math.abs(v);
+  return a >= 1000 ? `${sign}$${(a / 1000).toFixed(2)}T` : `${sign}$${Math.round(a)}B`;
+};
+const people = (v: number) =>
+  v >= 1e9 ? `${(v / 1e9).toFixed(2)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : `${(v / 1e3).toFixed(0)}k`;
+const areaKm = (v: number) =>
+  v >= 1e6 ? `${(v / 1e6).toFixed(2)}M km²` : `${Math.round(v).toLocaleString()} km²`;
+
+/**
+ * Stat rows for the comparison table: the same measures the dashboard's
+ * compare card carries, so the two agree on what "comparing" means. Ten for a
+ * country, ten for a state, four of them shared.
+ *
+ * Shared measures deliberately use the same key — GDP, Population,
+ * Unemployment, Area — so a country and a state pinned together line up on one
+ * row instead of producing two rows that say the same thing. A key an entity
+ * does not have renders "—".
+ *
+ * The labels lost their emoji here. Ten rows of assorted pictograms read as
+ * decoration rather than a table, and there is no sensible glyph for a top
+ * marginal income tax rate.
+ *
+ * The radar above is unchanged on purpose: it needs a measure that normalises
+ * to 0–100 with a defensible floor and ceiling, which size (GDP, population,
+ * area) and tax rates do not have. Bigger is not better, so an axis for it
+ * would assert something false.
+ */
 function statRow(e: EntityItem): Record<string, string> {
   if (e.kind === "country") {
     const c = e.data;
     return {
-      "💰 GDP per capita": na(c.gdpPerCapita, (v) => `${v.toLocaleString()}`),
-      "📉 Unemployment": na(c.unemploymentRate, (v) => `${v}%`),
-      "📈 GDP growth": na(c.gdpGrowth, (v) => `${v > 0 ? "+" : ""}${v}%`),
-      "🛒 Inflation": na(c.inflationRate, (v) => `${v}%`),
-      "📈 HDI": na(c.humanDevelopmentIndex, (v) => String(v)),
-      "❤️ Life expectancy": na(c.lifeExpectancy, (v) => `${v} yrs`),
+      GDP: na(c.gdp, bnUSD),
+      "GDP per capita": na(c.gdpPerCapita, money0),
+      "GDP growth": na(c.gdpGrowth, (v) => `${v > 0 ? "+" : ""}${v}%`),
+      Population: na(c.population, people),
+      Unemployment: na(c.unemploymentRate, (v) => `${v}%`),
+      Inflation: na(c.inflationRate, (v) => `${v}%`),
+      "Life expectancy": na(c.lifeExpectancy, (v) => `${v} yrs`),
+      HDI: na(c.humanDevelopmentIndex, (v) => String(v)),
+      "Trade balance": na(c.tradeBalance, (v) => `${v > 0 ? "+" : ""}${bnUSD(v)}`),
+      Area: na(c.areaKm2, areaKm),
     };
   }
   const s = e.data;
   const f = STATE_FIGURES[s.id];
   return {
-    "💰 GDP per capita": `$${Math.round((s.gdp * 1e9) / s.population).toLocaleString()}`,
-    "📉 Unemployment": `${s.unemploymentRate}%`,
-    "🏠 Median household income": `$${s.medianIncome.toLocaleString()}`,
-    "🎓 Bachelor's degree+": f ? `${f.education.bachelorsOrHigherPct}%` : "—",
-    "🏡 Home ownership": f ? `${f.housing.homeOwnershipPct}%` : "—",
-    "🚌 Public transit commuters": f ? `${f.commute.transitPct}%` : "—",
+    GDP: bnUSD(s.gdp),
+    "GDP per capita": money0((s.gdp * 1e9) / s.population),
+    Population: people(s.population),
+    Unemployment: `${s.unemploymentRate}%`,
+    "Median household income": money0(s.medianIncome),
+    "Income per person": money0(s.averageIncome),
+    "Top state income tax": `${s.stateTaxRate.toFixed(1)}%`,
+    "Sales tax, with local": `${s.salesTaxRate.toFixed(2)}%`,
+    // 0 means the state sets none of its own and follows the federal floor,
+    // which is an answer rather than a gap.
+    "Minimum wage": s.minimumWage === 0 ? "federal $7.25" : `$${s.minimumWage.toFixed(2)}/hr`,
+    "Bachelor's degree+": f ? `${f.education.bachelorsOrHigherPct}%` : "—",
+    Area: areaKm(s.areaKm2),
   };
 }
 
