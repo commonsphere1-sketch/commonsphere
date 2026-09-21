@@ -5609,7 +5609,10 @@ function QuarterTracker({
           </p>
         </div>
 
-        {/* Progress through the current quarter, in the current quarter's colour */}
+        {/* Progress through the current quarter.
+            A gradient, like the hero above it, and one that means something:
+            it runs from this season's colour into the next one, so the bar
+            hands over to the quarter it is counting down to as it fills. */}
         <div>
           <div
             className="h-2 rounded-full overflow-hidden"
@@ -5617,7 +5620,12 @@ function QuarterTracker({
           >
             <div
               className="h-full rounded-full transition-all duration-700"
-              style={{ width: `${pct}%`, background: SEASONS[current.index].accent }}
+              style={{
+                width: `${pct}%`,
+                background: `linear-gradient(90deg, ${SEASONS[current.index].accent} 0%, ${
+                  SEASONS[(current.index + 1) % 4].accent
+                } 100%)`,
+              }}
             />
           </div>
         </div>
