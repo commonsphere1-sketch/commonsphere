@@ -24,7 +24,7 @@ import {
   Pie,
   Legend,
 } from "recharts";
-import { type USState } from "../data/statesData";
+import { usStatesData, type USState } from "../data/statesData";
 import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
 import { getUpcoming } from "../data/upcomingToWatch";
 import { useLiveData } from "../hooks/useLiveData";
@@ -7009,6 +7009,167 @@ function useElectionCountdown() {
 }
 
 // ─── National Stats Banner ────────────────────────────────────────────────────
+// ─── National snapshot ────────────────────────────────────────────────────────
+/**
+ * Where the extremes of the fifty sit, laid out like the countries page's
+ * International Snapshot: eight two-line tiles, four across, each naming the
+ * state and the year its figure is for.
+ *
+ * This replaced six figures typed into the JSX — "California — 39.5M",
+ * "New Jersey — $100K" — which stayed whatever they were on the day they were
+ * written, carried no year, and cited BEA for all six whatever they were. They
+ * are now read from stateIndicators.ts, the same built figures the state
+ * modals show, and each tile cites the body its measure comes from. Area and
+ * statehood order went: neither is a statistic this page sources.
+ *
+ * A tie at the extreme is shown as a tie. BLS rounds unemployment to a tenth
+ * of a point, so two states sharing the lowest rate is ordinary, and naming
+ * only one would be arbitrary.
+ */
+type StateSnapSpec = {
+  label: string;
+  get: (f: (typeof STATE_INDICATORS)[string]) => { v: number; y: string } | undefined;
+  best: "max" | "min";
+  fmt: (v: number) => string;
+  source: { label: string; url: string };
+};
+
+const STATE_SNAPSHOT: StateSnapSpec[] = [
+  {
+    label: "Most populous",
+    get: (f) => f.population,
+    best: "max",
+    fmt: (v) => `${(v / 1e6).toFixed(1)}M`,
+    source: STATE_SOURCES.population,
+  },
+  {
+    label: "Largest economy",
+    get: (f) => f.gdp,
+    best: "max",
+    fmt: (v) => (v >= 1000 ? `$${(v / 1000).toFixed(2)}T` : `$${Math.round(v)}B`),
+    source: STATE_SOURCES.bea,
+  },
+  {
+    label: "Top income per person",
+    get: (f) => f.averageIncome,
+    best: "max",
+    fmt: (v) => `$${Math.round(v).toLocaleString()}`,
+    source: STATE_SOURCES.bea,
+  },
+  {
+    label: "Top median household income",
+    get: (f) => f.medianIncome,
+    best: "max",
+    fmt: (v) => `$${Math.round(v).toLocaleString()}`,
+    source: STATE_SOURCES.acs,
+  },
+  {
+    label: "Lowest unemployment",
+    get: (f) => f.unemploymentRate,
+    best: "min",
+    fmt: (v) => `${v.toFixed(1)}%`,
+    source: STATE_SOURCES.bls,
+  },
+  {
+    label: "Lowest poverty rate",
+    get: (f) => {
+      const g = f.poverty.groups.find((x) => x.label === "Below poverty line");
+      return g ? { v: g.pct, y: f.poverty.y } : undefined;
+    },
+    best: "min",
+    fmt: (v) => `${v.toFixed(1)}%`,
+    source: STATE_SOURCES.acs,
+  },
+  {
+    label: "Most degree holders",
+    get: (f) => ({ v: f.education.bachelorsOrHigherPct, y: f.education.y }),
+    best: "max",
+    fmt: (v) => `${v.toFixed(1)}%`,
+    source: STATE_SOURCES.acs,
+  },
+  {
+    label: "Lowest imprisonment",
+    get: (f) => f.incarcerationRate,
+    best: "min",
+    fmt: (v) => `${Math.round(v)}/100k`,
+    source: STATE_SOURCES.bjs,
+  },
+];
+
+/** "August 2026" reads as "Aug 2026" in a tile; a bare year stays as it is. */
+function shortPeriod(y: string): string {
+  const m = /^([A-Za-z]+) (\d{4})$/.exec(y);
+  return m ? `${m[1].slice(0, 3)} ${m[2]}` : y;
+}
+
+function StateSnapshot() {
+  const picks = STATE_SNAPSHOT.map((spec) => {
+    const rows = usStatesData
+      .map((s) => {
+        const f = STATE_INDICATORS[s.id];
+        const fig = f ? spec.get(f) : undefined;
+        return fig && Number.isFinite(fig.v) ? { s, fig } : null;
+      })
+      .filter((r): r is NonNullable<typeof r> => r !== null);
+    if (rows.length === 0) return null;
+    const vals = rows.map((r) => r.fig.v);
+    const target = spec.best === "max" ? Math.max(...vals) : Math.min(...vals);
+    const winners = rows.filter((r) => r.fig.v === target);
+    return { spec, winners, value: target, year: winners[0].fig.y };
+  }).filter((p): p is NonNullable<typeof p> => p !== null);
+
+  return (
+    <div className="p-4">
+      <div className="flex items-baseline justify-between gap-3 mb-2 flex-wrap">
+        <p className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider">
+          National Snapshot
+        </p>
+        <p className="text-[10px] text-muted-foreground font-sans">
+          Highest and lowest across the 50 states
+        </p>
+      </div>
+      {/* Two or four across, never three: eight tiles divide into both, so
+          the last row is always full. Four only from xl — state names run
+          longer than country names (Massachusetts, Connecticut) and beside a
+          six-figure income they truncated at sm widths. */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
+        {picks.map(({ spec, winners, value, year }) => (
+          <div
+            key={spec.label}
+            className="rounded-lg border border-border/60 bg-muted/30 px-2.5 py-2"
+          >
+            <div className="flex items-baseline justify-between gap-1.5">
+              <span className="text-[10px] text-muted-foreground font-sans truncate" title={spec.label}>
+                {spec.label}
+              </span>
+              <span className="text-[9px] font-mono text-muted-foreground shrink-0">
+                {shortPeriod(year)}
+              </span>
+            </div>
+            {/* No flag, and the name is never cut short: it wraps if it must,
+                and the grid stretches the rest of the row to match, so the
+                tiles stay level. */}
+            <div className="flex items-baseline justify-between gap-2 mt-0.5">
+              <span
+                className="text-[11px] font-semibold font-sans text-foreground leading-tight min-w-0 break-words"
+                title={winners.map((w) => w.s.name).join(", ")}
+              >
+                {winners.length > 2
+                  ? `${winners.length} states tie`
+                  : winners.map((w) => w.s.name).join(" & ")}
+              </span>
+              <span className="text-xs font-bold font-mono text-foreground shrink-0">
+                {spec.fmt(value)}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <SourceLink sources={picks.map((p) => p.spec.source)} className="mt-2" />
+    </div>
+  );
+}
+
 function USNationalBanner() {
   const { days, hours, mins, secs } = useElectionCountdown();
 
@@ -7097,60 +7258,8 @@ function USNationalBanner() {
         </div>
       </div>
 
-      {/* Bottom: snapshot */}
-      <div className="p-5">
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider">
-            National Snapshot
-          </p>
-          <SourceLink sources={SRC_BEA} />
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {[
-            {
-              label: "Largest State (area)",
-              value: "Alaska — 1.7M km²",
-              color: "bg-blue-500/20 text-blue-300",
-            },
-            {
-              label: "Most Populous",
-              value: "California — 39.5M",
-              color: "bg-green-500/20 text-green-300",
-            },
-            {
-              label: "Highest GDP",
-              value: "California — $4.1T",
-              color: "bg-yellow-500/20 text-yellow-300",
-            },
-            {
-              label: "Lowest Unemployment",
-              value: "North Dakota — 2.2%",
-              color: "bg-purple-500/20 text-purple-300",
-            },
-            {
-              label: "Highest Median Income",
-              value: "New Jersey — $100K",
-              color: "bg-pink-500/20 text-pink-300",
-            },
-            {
-              label: "Oldest State",
-              value: "Delaware — 1787",
-              color: "bg-orange-500/20 text-orange-300",
-            },
-          ].map((item) => (
-            <div key={item.label} className="flex flex-col gap-1">
-              <span className="text-[10px] text-muted-foreground font-sans">
-                {item.label}
-              </span>
-              <span
-                className={`text-[11px] font-mono px-2 py-0.5 rounded-full self-start ${item.color}`}
-              >
-                {item.value}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Bottom: snapshot, computed from the built state figures */}
+      <StateSnapshot />
     </div>
   );
 }

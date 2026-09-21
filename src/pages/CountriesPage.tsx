@@ -16265,8 +16265,11 @@ function InternationalSnapshot({ countries }: { countries: Country[] }) {
       {/* Two or four across, never three: there are eight tiles, so a
           three-wide grid always left a hole in the last row. Two lines each
           rather than three — the year moves up beside the label, and the
-          value sits on the country's line instead of below it. */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          value sits on the country's line instead of below it. Four only
+          from xl, as on the states card: names are never truncated now, so
+          at sm "United States" beside "$30.77T" wrapped to two lines and made
+          its row taller than the other. */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
         {picks.map(({ spec, country, source }) => {
           const year = sourceYear(source.label);
           return (
@@ -16284,17 +16287,11 @@ function InternationalSnapshot({ countries }: { countries: Country[] }) {
                   </span>
                 )}
               </div>
-              <div className="flex items-center justify-between gap-2 mt-0.5">
-                <span className="flex items-center gap-1.5 min-w-0">
-                  <img
-                    src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
-                    alt=""
-                    className="w-3.5 h-auto rounded-[2px] shrink-0"
-                    loading="lazy"
-                  />
-                  <span className="text-[11px] font-semibold font-sans text-foreground truncate">
-                    {country.name}
-                  </span>
+              {/* No flag, and the name is never cut short: it wraps if it
+                  must, and the grid stretches the rest of the row to match. */}
+              <div className="flex items-baseline justify-between gap-2 mt-0.5">
+                <span className="text-[11px] font-semibold font-sans text-foreground leading-tight min-w-0 break-words">
+                  {country.name}
                 </span>
                 <span className="text-xs font-bold font-mono text-foreground shrink-0">
                   {spec.fmt(spec.get(country))}
