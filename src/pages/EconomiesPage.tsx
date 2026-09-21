@@ -24,7 +24,7 @@ import {
 } from "recharts";
 import { economiesData, type Economy } from "../data/economiesData";
 import { getUpcoming } from "../data/upcomingToWatch";
-import { type EconomyRents } from "../data/resourceRents";
+import { ECONOMY_ISO3, type EconomyRents } from "../data/resourceRents";
 import { useResourceRents } from "../hooks/useResourceRents";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
@@ -35,6 +35,13 @@ import {
   ECONOMY_SECTORS_SOURCE,
   type EconomySectors,
 } from "../data/economySectors";
+import {
+  BUDGET_DIVISIONS,
+  BUDGET_SOURCE,
+  COUNTRY_BUDGET_BY_ISO3,
+  type BudgetDivision,
+  type CountryBudget,
+} from "../data/countryBudget";
 import {
   ResourceModal,
   type ResourceSummary,
@@ -674,6 +681,125 @@ function SectorPie({ sectors }: { sectors: EconomySectors }) {
   );
 }
 
+/** One colour per COFOG function, far enough apart to tell ten slices apart. */
+const BUDGET_COLORS: Record<BudgetDivision | "unclassified", string> = {
+  GF01: "#94a3b8", // general public services
+  GF02: "#ef4444", // defence
+  GF03: "#f97316", // public order & safety
+  GF04: "#eab308", // economic affairs
+  GF05: "#22c55e", // environment
+  GF06: "#14b8a6", // housing
+  GF07: "#06b6d4", // health
+  GF08: "#a855f7", // culture
+  GF09: "#3b82f6", // education
+  GF10: "#ec4899", // social protection
+  unclassified: "#64748b",
+};
+
+/**
+ * Where a government's money goes: each of the ten COFOG functions as a share
+ * of total government spending, from the IMF (countryBudget.ts, built by
+ * build-budget.cjs). Laid out like the sector pie above it.
+ *
+ * General government — central, state and local together — wherever the IMF
+ * has it, because that is what compares across countries: a central-government
+ * pie for the US would leave out most of its education spending, which states
+ * and localities carry. Where only central government is available it is used
+ * and the caption says so.
+ */
+function BudgetPie({ budget }: { budget: CountryBudget }) {
+  const slices = [
+    ...BUDGET_DIVISIONS.map((d) => ({
+      key: d.id as BudgetDivision | "unclassified",
+      name: d.label,
+      pct: budget.shares[d.id],
+    })),
+    ...(budget.unclassified
+      ? [{ key: "unclassified" as const, name: "Not classified by function", pct: budget.unclassified }]
+      : []),
+  ].filter((s) => s.pct > 0);
+  const ranked = [...slices].sort((a, b) => b.pct - a.pct);
+  const top = ranked[0];
+
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (!active || !payload?.length) return null;
+    const e = payload[0].payload;
+    return (
+      <div className="bg-card border border-border rounded-lg p-2.5 text-xs font-mono shadow-lg">
+        <p style={{ color: BUDGET_COLORS[e.key as keyof typeof BUDGET_COLORS] }} className="font-semibold">
+          {e.name}
+        </p>
+        <p className="text-foreground">{e.pct}% of government spending</p>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <div className="flex items-center gap-1 mb-3">
+        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+          Spending by function · {budget.y}
+        </p>
+      </div>
+      <div className="flex items-start gap-4">
+        <div className="shrink-0" style={{ width: 110, height: 110 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={slices}
+                cx="50%"
+                cy="50%"
+                innerRadius={0}
+                outerRadius={52}
+                paddingAngle={0}
+                dataKey="pct"
+                startAngle={90}
+                endAngle={-270}
+                isAnimationActive
+                animationDuration={600}
+              >
+                {slices.map((s) => (
+                  <Cell key={s.key} fill={BUDGET_COLORS[s.key]} stroke="transparent" />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+          <div className="flex items-baseline gap-1.5 mb-1">
+            <span className="text-xl font-bold font-mono" style={{ color: BUDGET_COLORS[top.key] }}>
+              {top.pct}%
+            </span>
+            <span className="text-xs font-sans text-muted-foreground">{top.name}</span>
+          </div>
+          {/* Largest first, so the list reads as a ranking of priorities. */}
+          {ranked.map((s) => (
+            <div key={s.key} className="flex items-center gap-2 min-w-0">
+              <div className="w-2 h-2 rounded-sm shrink-0" style={{ background: BUDGET_COLORS[s.key] }} />
+              <span className="text-[11px] font-sans text-foreground truncate flex-1">{s.name}</span>
+              <span className="text-[11px] font-mono shrink-0" style={{ color: BUDGET_COLORS[s.key] }}>
+                {s.pct}%
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p className="text-[9px] font-sans text-muted-foreground mt-2 leading-snug">
+        Each function as a share of total {budget.basis === "general" ? "general government" : "central government"}{" "}
+        spending, {budget.y}, from the {BUDGET_SOURCE.label}.
+        {budget.basis === "general"
+          ? " General government is central, state and local government together, which is what compares across countries."
+          : " Only central-government figures are published for this country, so spending by regional and local government is not included."}
+        {budget.spendingPctGdp !== undefined &&
+          ` Total spending was ${budget.spendingPctGdp}% of GDP that year.`}
+        {budget.unclassified &&
+          ` ${budget.unclassified}% of spending was not assigned to any function by the country, and is shown as its own slice.`}
+      </p>
+    </div>
+  );
+}
+
 function EconomyModal({
   economy,
   onClose,
@@ -1097,6 +1223,35 @@ function EconomyModal({
                   })()}
                 </div>
               </div>
+
+              {/* ── NATIONAL BUDGET ── */}
+              {economy.entityType === "Country" && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                      Government Spending by Function
+                    </span>
+                    <div className="flex-1 h-px bg-border/60" />
+                  </div>
+                  <div className="modal-tile rounded-xl p-4">
+                    {(() => {
+                      const iso3 = ECONOMY_ISO3[economy.id];
+                      const budget = iso3 ? COUNTRY_BUDGET_BY_ISO3[iso3] : undefined;
+                      if (!budget) {
+                        return (
+                          <p className="text-[11px] font-sans text-muted-foreground">
+                            {economy.name} does not report its government spending
+                            by function to the IMF, so no breakdown is shown rather
+                            than an estimate.
+                          </p>
+                        );
+                      }
+                      return <BudgetPie budget={budget} />;
+                    })()}
+                    <SourceLink sources={[BUDGET_SOURCE]} className="mt-3" />
+                  </div>
+                </div>
+              )}
 
               {/* ── TRADE & PARTNERS ── */}
               <div>
