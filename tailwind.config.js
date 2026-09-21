@@ -5,9 +5,15 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"DM Sans"', "sans-serif"],
-        mono: ['"IBM Plex Mono"', "monospace"],
+        // "Figures" leads each stack. It is Spectral restricted to U+0030-0039
+        // (see the @font-face block in index.css), so every digit on the site
+        // is set in it while the letters beside them fall through to the
+        // family behind. font-sans, font-mono and font-display are otherwise
+        // unchanged.
+        sans: ['"Figures"', '"DM Sans"', "sans-serif"],
+        mono: ['"Figures"', '"IBM Plex Mono"', "monospace"],
         display: [
+          '"Figures"',
           '"Playfair Display"',
           '"Cormorant Garant"',
           "Georgia",

@@ -1,5 +1,55 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=IBM+Plex+Mono:wght@400;500;600&family=Cormorant+Garant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Spectral:wght@400;500;600&display=swap");
 
+/* ── Figures: one typeface for every number on the site ──────────────────────
+   Spectral, restricted by unicode-range to U+0030–0039 — the ten digits and
+   nothing else. Named first in --font-sans, --font-mono and --font-display,
+   it supplies the digits wherever they appear while every other character
+   falls through to the family behind it, so a table of figures is set in
+   Spectral without turning its headings into a serif.
+
+   Spectral is the face because its digits are all one width in the font
+   itself (0.516em each), so columns still line up and a ticking clock does
+   not jitter — which is what the monospace was doing this job for.
+
+   Self-hosted rather than pointed at fonts.gstatic.com: unicode-range needs
+   its own @font-face, and the CDN's file paths are version-stamped (v15
+   today) and would break silently when that bumps. Four weights, latin
+   subset, ~90KB in total. Spectral is under the SIL Open Font License.
+   Only the range is restricted here; the @import above still loads the
+   whole face for the counters, which set Spectral directly. */
+@font-face {
+  font-family: "Figures";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/spectral-latin-400.woff2") format("woff2");
+  unicode-range: U+0030-0039;
+}
+@font-face {
+  font-family: "Figures";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/spectral-latin-500.woff2") format("woff2");
+  unicode-range: U+0030-0039;
+}
+@font-face {
+  font-family: "Figures";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/spectral-latin-600.woff2") format("woff2");
+  unicode-range: U+0030-0039;
+}
+@font-face {
+  font-family: "Figures";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/spectral-latin-700.woff2") format("woff2");
+  unicode-range: U+0030-0039;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -30,9 +80,12 @@
   /* 0.42 composited to rgb(116,116,118) — 4.1:1 on the card and 4.0:1 on the
      page, both under the 4.5 floor for body text. 0.46 clears each. */
   --color-muted-foreground: rgba(255, 255, 255, 0.46);
-  --font-sans: "DM Sans", sans-serif;
-  --font-display: "Playfair Display", "Cormorant Garant", Georgia, serif;
-  --font-mono: "IBM Plex Mono", monospace;
+  /* "Figures" leads every stack: it covers the ten digits and nothing else,
+     so numbers are set in Spectral everywhere while the letters beside them
+     stay in DM Sans, IBM Plex Mono or Playfair. See the @font-face block. */
+  --font-sans: "Figures", "DM Sans", sans-serif;
+  --font-display: "Figures", "Playfair Display", "Cormorant Garant", Georgia, serif;
+  --font-mono: "Figures", "IBM Plex Mono", monospace;
   --border-radius: 12px;
 
   /* Luxury silver gradient for accent lines / shimmer */
@@ -66,7 +119,7 @@ html,
 body {
   background-color: #050509;
   color: hsl(40, 16%, 92%);
-  font-family: "DM Sans", sans-serif;
+  font-family: "Figures", "DM Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;

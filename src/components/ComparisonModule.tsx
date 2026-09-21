@@ -343,7 +343,7 @@ export function ComparisonModule() {
                     tick={{
                       fill: "hsl(0,0%,60%)",
                       fontSize: 11,
-                      fontFamily: "IBM Plex Mono",
+                      fontFamily: "Figures, IBM Plex Mono",
                     }}
                   />
                   <Tooltip
@@ -351,7 +351,7 @@ export function ComparisonModule() {
                       background: "hsl(222,44%,12%)",
                       border: "1px solid hsl(222,30%,24%)",
                       borderRadius: 6,
-                      fontFamily: "IBM Plex Mono",
+                      fontFamily: "Figures, IBM Plex Mono",
                       fontSize: 11,
                     }}
                   />

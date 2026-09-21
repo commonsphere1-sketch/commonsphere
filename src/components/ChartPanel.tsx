@@ -157,7 +157,7 @@ export function ChartPanel({ entityType, timeRange, metric }: ChartPanelProps) {
                 tick={{
                   fill: "hsl(0, 0%, 60%)",
                   fontSize: 11,
-                  fontFamily: "IBM Plex Mono",
+                  fontFamily: "Figures, IBM Plex Mono",
                 }}
                 axisLine={false}
                 tickLine={false}
@@ -166,7 +166,7 @@ export function ChartPanel({ entityType, timeRange, metric }: ChartPanelProps) {
                 tick={{
                   fill: "hsl(0, 0%, 60%)",
                   fontSize: 11,
-                  fontFamily: "IBM Plex Mono",
+                  fontFamily: "Figures, IBM Plex Mono",
                 }}
                 axisLine={false}
                 tickLine={false}
@@ -177,7 +177,7 @@ export function ChartPanel({ entityType, timeRange, metric }: ChartPanelProps) {
                 wrapperStyle={{
                   fontSize: "12px",
                   color: "hsl(0, 0%, 70%)",
-                  fontFamily: "IBM Plex Mono",
+                  fontFamily: "Figures, IBM Plex Mono",
                 }}
               />
               <Area
@@ -220,7 +220,7 @@ export function ChartPanel({ entityType, timeRange, metric }: ChartPanelProps) {
                 tick={{
                   fill: "hsl(0, 0%, 60%)",
                   fontSize: 11,
-                  fontFamily: "IBM Plex Mono",
+                  fontFamily: "Figures, IBM Plex Mono",
                 }}
                 axisLine={false}
                 tickLine={false}
@@ -229,7 +229,7 @@ export function ChartPanel({ entityType, timeRange, metric }: ChartPanelProps) {
                 tick={{
                   fill: "hsl(0, 0%, 60%)",
                   fontSize: 11,
-                  fontFamily: "IBM Plex Mono",
+                  fontFamily: "Figures, IBM Plex Mono",
                 }}
                 axisLine={false}
                 tickLine={false}
@@ -240,7 +240,7 @@ export function ChartPanel({ entityType, timeRange, metric }: ChartPanelProps) {
                 wrapperStyle={{
                   fontSize: "12px",
                   color: "hsl(0, 0%, 70%)",
-                  fontFamily: "IBM Plex Mono",
+                  fontFamily: "Figures, IBM Plex Mono",
                 }}
               />
               <Bar

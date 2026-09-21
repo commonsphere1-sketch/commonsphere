@@ -2947,7 +2947,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                         tick={{
                           fill: "hsl(0,0%,60%)",
                           fontSize: 10,
-                          fontFamily: "IBM Plex Mono",
+                          fontFamily: "Figures, IBM Plex Mono",
                         }}
                         axisLine={false}
                         tickLine={false}
@@ -2956,7 +2956,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                         tick={{
                           fill: "hsl(0,0%,60%)",
                           fontSize: 10,
-                          fontFamily: "IBM Plex Mono",
+                          fontFamily: "Figures, IBM Plex Mono",
                         }}
                         axisLine={false}
                         tickLine={false}

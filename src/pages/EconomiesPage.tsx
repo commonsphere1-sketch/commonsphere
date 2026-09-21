@@ -972,7 +972,7 @@ function EconomyModal({
                           tick={{
                             fill: "hsl(0,0%,60%)",
                             fontSize: 10,
-                            fontFamily: "IBM Plex Mono",
+                            fontFamily: "Figures, IBM Plex Mono",
                           }}
                           axisLine={false}
                           tickLine={false}
@@ -981,7 +981,7 @@ function EconomyModal({
                           tick={{
                             fill: "hsl(0,0%,60%)",
                             fontSize: 10,
-                            fontFamily: "IBM Plex Mono",
+                            fontFamily: "Figures, IBM Plex Mono",
                           }}
                           axisLine={false}
                           tickLine={false}
@@ -1249,7 +1249,7 @@ function EconomyModal({
                           tick={{
                             fill: "hsl(0,0%,55%)",
                             fontSize: 9,
-                            fontFamily: "IBM Plex Mono",
+                            fontFamily: "Figures, IBM Plex Mono",
                           }}
                           axisLine={false}
                           tickLine={false}
@@ -1258,7 +1258,7 @@ function EconomyModal({
                           tick={{
                             fill: "hsl(0,0%,55%)",
                             fontSize: 9,
-                            fontFamily: "IBM Plex Mono",
+                            fontFamily: "Figures, IBM Plex Mono",
                           }}
                           axisLine={false}
                           tickLine={false}
@@ -2550,7 +2550,7 @@ export function EconomiesPage() {
                                   tick={{
                                     fill: "hsl(0,0%,50%)",
                                     fontSize: 8,
-                                    fontFamily: "IBM Plex Mono",
+                                    fontFamily: "Figures, IBM Plex Mono",
                                   }}
                                   axisLine={false}
                                   tickLine={false}
@@ -2561,7 +2561,7 @@ export function EconomiesPage() {
                                   tick={{
                                     fill: "hsl(0,0%,50%)",
                                     fontSize: 8,
-                                    fontFamily: "IBM Plex Mono",
+                                    fontFamily: "Figures, IBM Plex Mono",
                                   }}
                                   axisLine={false}
                                   tickLine={false}
@@ -2577,7 +2577,7 @@ export function EconomiesPage() {
                                     border: "1px solid rgba(255,255,255,0.1)",
                                     borderRadius: 8,
                                     fontSize: 10,
-                                    fontFamily: "IBM Plex Mono",
+                                    fontFamily: "Figures, IBM Plex Mono",
                                   }}
                                   formatter={(v: number) => [`$${v}T`, "GDP"]}
                                   labelStyle={{ color: "hsl(0,0%,55%)" }}

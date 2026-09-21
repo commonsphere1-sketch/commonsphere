@@ -423,7 +423,7 @@ function DemographicsCharts({ state }: { state: USState }) {
               <Legend
                 iconType="circle"
                 iconSize={8}
-                wrapperStyle={{ fontSize: 10, fontFamily: "IBM Plex Mono" }}
+                wrapperStyle={{ fontSize: 10, fontFamily: "Figures, IBM Plex Mono" }}
                 formatter={(v) => (
                   <span style={{ color: "hsl(0,0%,65%)" }}>{v}</span>
                 )}
@@ -476,7 +476,7 @@ function DemographicsCharts({ state }: { state: USState }) {
                 tick={{
                   fill: "hsl(0,0%,55%)",
                   fontSize: 9,
-                  fontFamily: "IBM Plex Mono",
+                  fontFamily: "Figures, IBM Plex Mono",
                 }}
                 axisLine={false}
                 tickLine={false}
@@ -488,7 +488,7 @@ function DemographicsCharts({ state }: { state: USState }) {
                 tick={{
                   fill: "hsl(0,0%,65%)",
                   fontSize: 10,
-                  fontFamily: "IBM Plex Mono",
+                  fontFamily: "Figures, IBM Plex Mono",
                 }}
                 axisLine={false}
                 tickLine={false}
@@ -535,7 +535,7 @@ function DemographicsCharts({ state }: { state: USState }) {
                 tick={{
                   fill: "hsl(0,0%,60%)",
                   fontSize: 9,
-                  fontFamily: "IBM Plex Mono",
+                  fontFamily: "Figures, IBM Plex Mono",
                 }}
                 axisLine={false}
                 tickLine={false}
@@ -544,7 +544,7 @@ function DemographicsCharts({ state }: { state: USState }) {
                 tick={{
                   fill: "hsl(0,0%,55%)",
                   fontSize: 9,
-                  fontFamily: "IBM Plex Mono",
+                  fontFamily: "Figures, IBM Plex Mono",
                 }}
                 axisLine={false}
                 tickLine={false}
