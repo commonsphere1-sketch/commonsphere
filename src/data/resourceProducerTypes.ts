@@ -44,4 +44,11 @@ export interface ResourceProducers {
   sources: { label: string; url: string }[];
   /** Caveats specific to this commodity's figures, shown under the table. */
   notes?: string[];
+  /**
+   * What the second column holds, where it is not reserves. Wheat has none —
+   * a harvest is not a reserve — so its second column is exports.
+   */
+  reservesLabel?: string;
+  /** Countries whose production figure the publisher marks as an estimate. */
+  estimated?: string[];
 }
