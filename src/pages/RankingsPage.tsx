@@ -782,7 +782,14 @@ function RowDetailPanel({
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+      {/* One strip of standing bars rather than eight bordered cards.
+          The cards gave each indicator its own box, its own rule and its own
+          "96th pct" caption, so eight of them filled a screen and none could
+          be read against another — the thing you actually want from a profile
+          is the shape across all eight at once. This is the policy page's
+          idiom: a bar per measure, height for where it places, the figure
+          above it and the name below. */}
+      <div className="flex items-end gap-1 overflow-x-auto pb-1">
         {metricsToShow
           .filter((m) => hasMetric(row, m.id))
           .map((m) => {
@@ -804,31 +811,34 @@ function RowDetailPanel({
             return (
               <div
                 key={m.id}
-                className="bg-background/60 border border-border/60 rounded-xl p-3"
+                // Fixed narrow columns, not flex-1: an entity with three
+                // measures would otherwise stretch three bars across the whole
+                // panel, which reads as a chart of something rather than a
+                // compact strip.
+                className="w-14 shrink-0 flex flex-col items-center gap-0.5"
+                title={`${m.label} — ${fmtMetric(m, val)}, ${pct.toFixed(0)}th percentile of ${allVals.filter((v) => isFinite(v)).length}`}
               >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-[11px] font-semibold text-foreground truncate mr-1">
-                    {m.shortLabel}
-                  </span>
-                  <span
-                    className={`text-xs font-mono font-bold ${textColor} shrink-0`}
-                  >
-                    {fmtMetric(m, val)}
-                  </span>
-                </div>
-                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden mb-1">
+                <span className={`text-[10px] font-mono font-bold ${textColor} truncate max-w-full`}>
+                  {fmtMetric(m, val)}
+                </span>
+                <div className="w-1.5 h-10 bg-muted/60 rounded-full overflow-hidden flex items-end">
                   <div
-                    className={`h-full rounded-full transition-all duration-500 ${barColor}`}
-                    style={{ width: `${Math.max(2, pct)}%` }}
+                    className={`w-full rounded-full transition-all duration-500 ${barColor}`}
+                    style={{ height: `${Math.max(4, pct)}%` }}
                   />
                 </div>
-                <p className="text-[10px] text-muted-foreground">
-                  {pct.toFixed(0)}th pct
-                </p>
+                <span className="text-[9px] text-muted-foreground text-center leading-tight">
+                  {m.shortLabel}
+                </span>
               </div>
             );
           })}
       </div>
+      <p className="text-[9px] text-muted-foreground mt-2">
+        Bar height is where this entity places among all those with the
+        measure, not the value itself — so a short bar is a low placing, whether
+        the measure counts up or down.
+      </p>
     </div>
   );
 }
