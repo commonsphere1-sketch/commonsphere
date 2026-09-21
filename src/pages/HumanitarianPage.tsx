@@ -28,6 +28,7 @@ import {
 } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
+import { DONOR_AID, DONOR_AID_SOURCE, DAC_TOTAL } from "../data/donorAid";
 
 /* ─── Data ──────────────────────────────────────────────────────────────── */
 
@@ -1714,7 +1715,9 @@ export function HumanitarianPage() {
             >
               Safe Drinking Water Access by Country
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+            {/* One column: read top to bottom it runs highest to lowest, which
+                two columns split into an order you had to zig-zag through. */}
+            <div className="grid grid-cols-1 gap-y-3">
               {WATER_ACCESS.map((w) => (
                 <div key={w.country} className="flex items-center gap-3">
                   <span className="text-base w-6 shrink-0">{w.flag}</span>
@@ -1775,8 +1778,185 @@ export function HumanitarianPage() {
               className="mt-4"
             />
           </div>
+
+          {/* ── Countries providing aid ── */}
+          <DonorAidCard
+            isLight={isLight}
+            cardBg={cardBg}
+            cardBorder={cardBorder}
+            cardShadow={cardShadow}
+            headText={headText}
+          />
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── Countries providing aid ──────────────────────────────────────────────────
+/**
+ * Who gives official development assistance, and how much, from the OECD's
+ * DAC1 table (donorAid.ts, built by build-donor-aid.cjs).
+ *
+ * The amount is in current US dollars on the grant-equivalent basis the OECD
+ * headlines. The change beside it is in real terms, as the OECD reports it —
+ * which is why the DAC total reads −23.1% rather than the −19.0% the two dollar
+ * figures would suggest. The share of national income is set against the UN's
+ * long-standing 0.7% target.
+ *
+ * Only providers that report to the OECD are here. China, India, Russia and
+ * others give aid but do not report to the DAC, so they are absent, not zero,
+ * and the card says so.
+ */
+function DonorAidCard({
+  isLight,
+  cardBg,
+  cardBorder,
+  cardShadow,
+  headText,
+}: {
+  isLight: boolean;
+  cardBg: string;
+  cardBorder: string;
+  cardShadow: string;
+  headText: string;
+}) {
+  const [showAll, setShowAll] = React.useState(false);
+  const shown = showAll ? DONOR_AID : DONOR_AID.slice(0, 15);
+  const max = DONOR_AID[0]?.usd ?? 1;
+  const muted = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.46)";
+  const track = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.07)";
+  const bar = isLight ? "#0f766e" : "#2dd4bf";
+  const fmtUsd = (v: number) =>
+    v >= 1e9 ? `$${(v / 1e9).toFixed(1)}bn` : `$${Math.round(v / 1e6)}m`;
+  const staleYears = DONOR_AID.filter((d) => d.year !== DAC_TOTAL.year);
+
+  return (
+    <div
+      className="rounded-2xl p-5"
+      style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}
+    >
+      <p
+        className="text-[10px] font-mono uppercase tracking-widest mb-1"
+        style={{ color: isLight ? "#115e59" : "rgba(45,212,191,0.75)" }}
+      >
+        OECD DAC · official development assistance, {DAC_TOTAL.year} preliminary
+      </p>
+      <h3 className="text-sm font-bold font-sans mb-3" style={{ color: headText }}>
+        Countries Providing Aid
+      </h3>
+
+      {/* The headline: the DAC total and how it moved. */}
+      <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 mb-4">
+        <p className="text-2xl font-bold font-mono" style={{ color: headText }}>
+          {fmtUsd(DAC_TOTAL.usd)}
+          <span className="text-[11px] font-sans font-normal ml-2" style={{ color: muted }}>
+            from DAC members in {DAC_TOTAL.year}
+          </span>
+        </p>
+        {DAC_TOTAL.realChangePct !== null && (
+          <p className="text-[12px] font-mono" style={{ color: DAC_TOTAL.realChangePct < 0 ? "#ef4444" : "#10b981" }}>
+            {DAC_TOTAL.realChangePct > 0 ? "+" : ""}
+            {DAC_TOTAL.realChangePct.toFixed(1)}%
+            <span className="font-sans ml-1.5" style={{ color: muted }}>
+              on {Number(DAC_TOTAL.year) - 1}, in real terms
+            </span>
+          </p>
+        )}
+      </div>
+
+      {/* Column heads */}
+      <div
+        className="grid grid-cols-[minmax(6rem,9rem)_1fr_4.5rem_4rem_4.5rem] gap-x-3 pb-1.5 mb-1 border-b"
+        style={{ borderColor: track }}
+      >
+        {["Donor", "", "Aid", "Change", "% of GNI"].map((h, i) => (
+          <span
+            key={i}
+            className={`text-[9px] font-sans uppercase tracking-widest ${i >= 2 ? "text-right" : ""}`}
+            style={{ color: muted }}
+          >
+            {h}
+          </span>
+        ))}
+      </div>
+
+      <div className="flex flex-col">
+        {shown.map((d) => {
+          const meets = d.pctGni !== null && d.pctGni >= 0.7;
+          return (
+            <div
+              key={d.iso3}
+              className="grid grid-cols-[minmax(6rem,9rem)_1fr_4.5rem_4rem_4.5rem] gap-x-3 items-center py-1.5"
+            >
+              <span className="text-[11px] font-sans truncate" style={{ color: headText }} title={d.name}>
+                {d.name}
+                {d.year !== DAC_TOTAL.year && (
+                  <span className="ml-1 text-[9px] font-mono" style={{ color: muted }}>
+                    {d.year}
+                  </span>
+                )}
+              </span>
+              <div className="h-2.5 rounded-full overflow-hidden" style={{ background: track }}>
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${Math.max(1, (d.usd / max) * 100)}%`, background: bar }}
+                />
+              </div>
+              <span className="text-[11px] font-mono font-bold text-right" style={{ color: headText }}>
+                {fmtUsd(d.usd)}
+              </span>
+              <span
+                className="text-[10px] font-mono text-right"
+                style={{
+                  color:
+                    d.realChangePct === null || d.realChangePct === 0
+                      ? muted
+                      : d.realChangePct < 0
+                        ? "#ef4444"
+                        : "#10b981",
+                }}
+              >
+                {d.realChangePct === null
+                  ? "—"
+                  : `${d.realChangePct > 0 ? "+" : ""}${d.realChangePct.toFixed(1)}%`}
+              </span>
+              <span
+                className="text-[10px] font-mono text-right"
+                style={{ color: meets ? "#10b981" : muted }}
+                title={meets ? "Meets the UN target of 0.7% of GNI" : undefined}
+              >
+                {d.pctGni === null ? "—" : `${d.pctGni.toFixed(2)}%`}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {DONOR_AID.length > 15 && (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          className="mt-2 text-[10px] font-sans uppercase tracking-wider cursor-pointer hover:underline"
+          style={{ color: muted }}
+        >
+          {showAll ? "Show top 15" : `Show all ${DONOR_AID.length}`}
+        </button>
+      )}
+
+      <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
+        Aid is in current US dollars on the grant-equivalent basis the OECD uses
+        for its headline; the change is in real terms, as the OECD reports it. A
+        share of national income shown in green meets the UN target of 0.7%.
+        {staleYears.length > 0 &&
+          ` ${staleYears.map((d) => d.name).join(", ")} ${
+            staleYears.length === 1 ? "has" : "have"
+          } not reported ${DAC_TOTAL.year} yet, so the latest year reported is shown beside the name.`}{" "}
+        Only providers that report to the OECD are listed: China, India, Russia
+        and others give aid but do not report it there, so they are missing, not
+        zero.
+      </p>
+      <SourceLink sources={[DONOR_AID_SOURCE]} className="mt-3" />
     </div>
   );
 }
