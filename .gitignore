@@ -52,3 +52,6 @@ coverage/
 .agents/
 skills-lock.json
 admin1-10m-raw.geojson
+
+# Wrangler local state (dry runs, dev sessions)
+.wrangler/
