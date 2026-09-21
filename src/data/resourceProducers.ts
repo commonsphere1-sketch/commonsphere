@@ -5,52 +5,29 @@
  * hand; change the script and re-run it. See that script for the method.
  */
 
-export type Amount = { tonnes: number; lowerBound: boolean };
-export type Share = { pct: number; bound: "exact" | "atMost" | "atLeast" };
-
-export interface ResourceProducer {
-  name: string;
-  production: Amount | null;
-  /** USGS withholds the figure to protect company data; not zero. */
-  productionWithheld?: boolean;
-  productionShare: Share | null;
-  reserves: Amount | null;
-  reservesShare: Share | null;
-}
-
-export interface ResourceProducers {
-  /** What "production" means for this commodity, in USGS's terms. */
-  measure: string;
-  year: string;
-  worldProduction: Amount;
-  /** Null where USGS reports no reserves for the commodity (aluminum). */
-  worldReserves: Amount | null;
-  /** Largest producer first. */
-  countries: ResourceProducer[];
-}
-
-export const RESOURCE_PRODUCERS_SOURCE = {
-  label: "USGS — Mineral Commodity Summaries 2026, world tables",
-  url: "https://doi.org/10.3133/mcs2026",
-};
+import type { ResourceProducers } from "./resourceProducerTypes";
+export type { ResourceProducers, ResourceProducer, Amount, Share } from "./resourceProducerTypes";
 
 export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
   "Copper": {
     "measure": "Mine production",
-    "year": "2025",
+    "productionYear": "2025",
+    "reservesYear": "2025",
+    "productionUnit": "t",
+    "reservesUnit": "t",
     "worldProduction": {
-      "tonnes": 23000000,
+      "value": 23000000,
       "lowerBound": false
     },
     "worldReserves": {
-      "tonnes": 980000000,
+      "value": 980000000,
       "lowerBound": false
     },
     "countries": [
       {
         "name": "Chile",
         "production": {
-          "tonnes": 5300000,
+          "value": 5300000,
           "lowerBound": false
         },
         "productionShare": {
@@ -58,7 +35,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 180000000,
+          "value": 180000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -69,7 +46,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "DR Congo",
         "production": {
-          "tonnes": 3200000,
+          "value": 3200000,
           "lowerBound": false
         },
         "productionShare": {
@@ -77,7 +54,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 80000000,
+          "value": 80000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -88,7 +65,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Peru",
         "production": {
-          "tonnes": 2700000,
+          "value": 2700000,
           "lowerBound": false
         },
         "productionShare": {
@@ -96,7 +73,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 85000000,
+          "value": 85000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -107,7 +84,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "China",
         "production": {
-          "tonnes": 1800000,
+          "value": 1800000,
           "lowerBound": false
         },
         "productionShare": {
@@ -115,7 +92,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 41000000,
+          "value": 41000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -126,7 +103,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Russia",
         "production": {
-          "tonnes": 1300000,
+          "value": 1300000,
           "lowerBound": false
         },
         "productionShare": {
@@ -134,7 +111,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 80000000,
+          "value": 80000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -145,7 +122,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "United States",
         "production": {
-          "tonnes": 1000000,
+          "value": 1000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -153,7 +130,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 47000000,
+          "value": 47000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -164,7 +141,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Zambia",
         "production": {
-          "tonnes": 940000,
+          "value": 940000,
           "lowerBound": false
         },
         "productionShare": {
@@ -172,7 +149,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 21000000,
+          "value": 21000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -183,7 +160,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Australia",
         "production": {
-          "tonnes": 730000,
+          "value": 730000,
           "lowerBound": false
         },
         "productionShare": {
@@ -191,7 +168,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 100000000,
+          "value": 100000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -202,7 +179,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Indonesia",
         "production": {
-          "tonnes": 710000,
+          "value": 710000,
           "lowerBound": false
         },
         "productionShare": {
@@ -210,7 +187,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 21000000,
+          "value": 21000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -221,7 +198,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Kazakhstan",
         "production": {
-          "tonnes": 710000,
+          "value": 710000,
           "lowerBound": false
         },
         "productionShare": {
@@ -229,7 +206,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 20000000,
+          "value": 20000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -240,7 +217,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Mexico",
         "production": {
-          "tonnes": 690000,
+          "value": 690000,
           "lowerBound": false
         },
         "productionShare": {
@@ -248,7 +225,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 53000000,
+          "value": 53000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -259,7 +236,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Canada",
         "production": {
-          "tonnes": 500000,
+          "value": 500000,
           "lowerBound": false
         },
         "productionShare": {
@@ -267,7 +244,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 7000000,
+          "value": 7000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -278,7 +255,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Poland",
         "production": {
-          "tonnes": 410000,
+          "value": 410000,
           "lowerBound": false
         },
         "productionShare": {
@@ -286,7 +263,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 33000000,
+          "value": 33000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -297,7 +274,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "India",
         "production": {
-          "tonnes": 23000,
+          "value": 23000,
           "lowerBound": false
         },
         "productionShare": {
@@ -305,7 +282,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 2200000,
+          "value": 2200000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -313,24 +290,36 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         }
       }
+    ],
+    "sources": [
+      {
+        "label": "USGS — Mineral Commodity Summaries 2026, world tables",
+        "url": "https://doi.org/10.3133/mcs2026"
+      }
+    ],
+    "notes": [
+      "Countries outside these are grouped by USGS as “other countries”."
     ]
   },
   "Lithium": {
     "measure": "Mine production (lithium content)",
-    "year": "2025",
+    "productionYear": "2025",
+    "reservesYear": "2025",
+    "productionUnit": "t",
+    "reservesUnit": "t",
     "worldProduction": {
-      "tonnes": 290000,
+      "value": 290000,
       "lowerBound": false
     },
     "worldReserves": {
-      "tonnes": 37000000,
+      "value": 37000000,
       "lowerBound": false
     },
     "countries": [
       {
         "name": "Australia",
         "production": {
-          "tonnes": 92000,
+          "value": 92000,
           "lowerBound": false
         },
         "productionShare": {
@@ -338,7 +327,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 8400000,
+          "value": 8400000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -349,7 +338,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "China",
         "production": {
-          "tonnes": 62000,
+          "value": 62000,
           "lowerBound": false
         },
         "productionShare": {
@@ -357,7 +346,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 4600000,
+          "value": 4600000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -368,7 +357,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Chile",
         "production": {
-          "tonnes": 56000,
+          "value": 56000,
           "lowerBound": false
         },
         "productionShare": {
@@ -376,7 +365,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 9200000,
+          "value": 9200000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -387,7 +376,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Zimbabwe",
         "production": {
-          "tonnes": 28000,
+          "value": 28000,
           "lowerBound": false
         },
         "productionShare": {
@@ -395,7 +384,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 500000,
+          "value": 500000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -406,7 +395,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Argentina",
         "production": {
-          "tonnes": 23000,
+          "value": 23000,
           "lowerBound": false
         },
         "productionShare": {
@@ -414,7 +403,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 4400000,
+          "value": 4400000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -425,7 +414,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Brazil",
         "production": {
-          "tonnes": 12000,
+          "value": 12000,
           "lowerBound": false
         },
         "productionShare": {
@@ -433,7 +422,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 540000,
+          "value": 540000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -444,7 +433,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Mali",
         "production": {
-          "tonnes": 9400,
+          "value": 9400,
           "lowerBound": false
         },
         "productionShare": {
@@ -452,7 +441,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 370000,
+          "value": 370000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -463,7 +452,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Canada",
         "production": {
-          "tonnes": 5600,
+          "value": 5600,
           "lowerBound": false
         },
         "productionShare": {
@@ -471,7 +460,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 1600000,
+          "value": 1600000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -482,7 +471,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Portugal",
         "production": {
-          "tonnes": 380,
+          "value": 380,
           "lowerBound": false
         },
         "productionShare": {
@@ -490,7 +479,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 60000,
+          "value": 60000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -504,7 +493,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
         "productionWithheld": true,
         "productionShare": null,
         "reserves": {
-          "tonnes": 4400000,
+          "value": 4400000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -512,24 +501,36 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         }
       }
+    ],
+    "sources": [
+      {
+        "label": "USGS — Mineral Commodity Summaries 2026, world tables",
+        "url": "https://doi.org/10.3133/mcs2026"
+      }
+    ],
+    "notes": [
+      "Countries outside these are grouped by USGS as “other countries”."
     ]
   },
   "Rare Earth": {
     "measure": "Mine production (rare-earth oxide equivalent)",
-    "year": "2025",
+    "productionYear": "2025",
+    "reservesYear": "2025",
+    "productionUnit": "t",
+    "reservesUnit": "t",
     "worldProduction": {
-      "tonnes": 390000,
+      "value": 390000,
       "lowerBound": false
     },
     "worldReserves": {
-      "tonnes": 85000000,
+      "value": 85000000,
       "lowerBound": true
     },
     "countries": [
       {
         "name": "China",
         "production": {
-          "tonnes": 270000,
+          "value": 270000,
           "lowerBound": false
         },
         "productionShare": {
@@ -537,7 +538,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 44000000,
+          "value": 44000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -548,7 +549,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "United States",
         "production": {
-          "tonnes": 51000,
+          "value": 51000,
           "lowerBound": false
         },
         "productionShare": {
@@ -556,7 +557,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 1900000,
+          "value": 1900000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -567,7 +568,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Australia",
         "production": {
-          "tonnes": 29000,
+          "value": 29000,
           "lowerBound": false
         },
         "productionShare": {
@@ -575,7 +576,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 6300000,
+          "value": 6300000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -586,7 +587,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Myanmar",
         "production": {
-          "tonnes": 22000,
+          "value": 22000,
           "lowerBound": false
         },
         "productionShare": {
@@ -599,7 +600,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Thailand",
         "production": {
-          "tonnes": 4800,
+          "value": 4800,
           "lowerBound": false
         },
         "productionShare": {
@@ -612,7 +613,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "India",
         "production": {
-          "tonnes": 2900,
+          "value": 2900,
           "lowerBound": false
         },
         "productionShare": {
@@ -625,7 +626,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Madagascar",
         "production": {
-          "tonnes": 2700,
+          "value": 2700,
           "lowerBound": false
         },
         "productionShare": {
@@ -638,7 +639,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Russia",
         "production": {
-          "tonnes": 2600,
+          "value": 2600,
           "lowerBound": false
         },
         "productionShare": {
@@ -646,7 +647,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 3800000,
+          "value": 3800000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -657,7 +658,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Brazil",
         "production": {
-          "tonnes": 2000,
+          "value": 2000,
           "lowerBound": false
         },
         "productionShare": {
@@ -665,7 +666,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 21000000,
+          "value": 21000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -676,7 +677,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Nigeria",
         "production": {
-          "tonnes": 1500,
+          "value": 1500,
           "lowerBound": false
         },
         "productionShare": {
@@ -689,7 +690,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Vietnam",
         "production": {
-          "tonnes": 150,
+          "value": 150,
           "lowerBound": false
         },
         "productionShare": {
@@ -697,7 +698,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 3500000,
+          "value": 3500000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -708,7 +709,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Malaysia",
         "production": {
-          "tonnes": 110,
+          "value": 110,
           "lowerBound": false
         },
         "productionShare": {
@@ -716,7 +717,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 710000,
+          "value": 710000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -729,7 +730,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
         "production": null,
         "productionShare": null,
         "reserves": {
-          "tonnes": 1500000,
+          "value": 1500000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -742,7 +743,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
         "production": null,
         "productionShare": null,
         "reserves": {
-          "tonnes": 890000,
+          "value": 890000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -755,7 +756,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
         "production": null,
         "productionShare": null,
         "reserves": {
-          "tonnes": 860000,
+          "value": 860000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -768,7 +769,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
         "production": null,
         "productionShare": null,
         "reserves": {
-          "tonnes": 830000,
+          "value": 830000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -776,24 +777,36 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "atMost"
         }
       }
+    ],
+    "sources": [
+      {
+        "label": "USGS — Mineral Commodity Summaries 2026, world tables",
+        "url": "https://doi.org/10.3133/mcs2026"
+      }
+    ],
+    "notes": [
+      "Countries outside these are grouped by USGS as “other countries”."
     ]
   },
   "Iron Ore": {
     "measure": "Mine production (usable ore); reserves as crude ore",
-    "year": "2025",
+    "productionYear": "2025",
+    "reservesYear": "2025",
+    "productionUnit": "t",
+    "reservesUnit": "t",
     "worldProduction": {
-      "tonnes": 2600000000,
+      "value": 2600000000,
       "lowerBound": false
     },
     "worldReserves": {
-      "tonnes": 200000000000,
+      "value": 200000000000,
       "lowerBound": false
     },
     "countries": [
       {
         "name": "Australia",
         "production": {
-          "tonnes": 980000000,
+          "value": 980000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -801,7 +814,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 59000000000,
+          "value": 59000000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -812,7 +825,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Brazil",
         "production": {
-          "tonnes": 420000000,
+          "value": 420000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -820,7 +833,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 34000000000,
+          "value": 34000000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -831,7 +844,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "India",
         "production": {
-          "tonnes": 310000000,
+          "value": 310000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -839,7 +852,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 5500000000,
+          "value": 5500000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -850,7 +863,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "China",
         "production": {
-          "tonnes": 290000000,
+          "value": 290000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -858,7 +871,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 17000000000,
+          "value": 17000000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -869,7 +882,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Iran",
         "production": {
-          "tonnes": 93000000,
+          "value": 93000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -877,7 +890,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 4200000000,
+          "value": 4200000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -888,7 +901,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Russia",
         "production": {
-          "tonnes": 86000000,
+          "value": 86000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -896,7 +909,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 35000000000,
+          "value": 35000000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -907,7 +920,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Canada",
         "production": {
-          "tonnes": 69000000,
+          "value": 69000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -915,7 +928,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 6000000000,
+          "value": 6000000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -926,7 +939,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "South Africa",
         "production": {
-          "tonnes": 66000000,
+          "value": 66000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -934,7 +947,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 1200000000,
+          "value": 1200000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -945,7 +958,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Ukraine",
         "production": {
-          "tonnes": 52000000,
+          "value": 52000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -953,7 +966,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 6500000000,
+          "value": 6500000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -964,7 +977,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "United States",
         "production": {
-          "tonnes": 38000000,
+          "value": 38000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -972,7 +985,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 3600000000,
+          "value": 3600000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -983,7 +996,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Kazakhstan",
         "production": {
-          "tonnes": 35000000,
+          "value": 35000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -991,7 +1004,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 3800000000,
+          "value": 3800000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1002,7 +1015,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Sweden",
         "production": {
-          "tonnes": 26000000,
+          "value": 26000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1010,7 +1023,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 1300000000,
+          "value": 1300000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1021,7 +1034,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Peru",
         "production": {
-          "tonnes": 21000000,
+          "value": 21000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1029,7 +1042,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 1800000000,
+          "value": 1800000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1040,7 +1053,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Chile",
         "production": {
-          "tonnes": 19000000,
+          "value": 19000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1048,7 +1061,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 3000000000,
+          "value": 3000000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1059,7 +1072,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Turkey",
         "production": {
-          "tonnes": 18000000,
+          "value": 18000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1067,7 +1080,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 150000000,
+          "value": 150000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1078,7 +1091,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Mauritania",
         "production": {
-          "tonnes": 15000000,
+          "value": 15000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1086,7 +1099,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 10000000000,
+          "value": 10000000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1097,7 +1110,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Mexico",
         "production": {
-          "tonnes": 7700000,
+          "value": 7700000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1105,7 +1118,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 940000000,
+          "value": 940000000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1113,24 +1126,36 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         }
       }
+    ],
+    "sources": [
+      {
+        "label": "USGS — Mineral Commodity Summaries 2026, world tables",
+        "url": "https://doi.org/10.3133/mcs2026"
+      }
+    ],
+    "notes": [
+      "Countries outside these are grouped by USGS as “other countries”."
     ]
   },
   "Gold": {
     "measure": "Mine production",
-    "year": "2025",
+    "productionYear": "2025",
+    "reservesYear": "2025",
+    "productionUnit": "t",
+    "reservesUnit": "t",
     "worldProduction": {
-      "tonnes": 3300,
+      "value": 3300,
       "lowerBound": false
     },
     "worldReserves": {
-      "tonnes": 66000,
+      "value": 66000,
       "lowerBound": false
     },
     "countries": [
       {
         "name": "China",
         "production": {
-          "tonnes": 380,
+          "value": 380,
           "lowerBound": false
         },
         "productionShare": {
@@ -1138,7 +1163,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 3200,
+          "value": 3200,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1149,7 +1174,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Russia",
         "production": {
-          "tonnes": 310,
+          "value": 310,
           "lowerBound": false
         },
         "productionShare": {
@@ -1157,7 +1182,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 12000,
+          "value": 12000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1168,7 +1193,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Australia",
         "production": {
-          "tonnes": 280,
+          "value": 280,
           "lowerBound": false
         },
         "productionShare": {
@@ -1176,7 +1201,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 13000,
+          "value": 13000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1187,7 +1212,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Canada",
         "production": {
-          "tonnes": 200,
+          "value": 200,
           "lowerBound": false
         },
         "productionShare": {
@@ -1195,7 +1220,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 3200,
+          "value": 3200,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1206,7 +1231,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "United States",
         "production": {
-          "tonnes": 160,
+          "value": 160,
           "lowerBound": false
         },
         "productionShare": {
@@ -1214,7 +1239,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 3000,
+          "value": 3000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1225,7 +1250,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Ghana",
         "production": {
-          "tonnes": 150,
+          "value": 150,
           "lowerBound": false
         },
         "productionShare": {
@@ -1233,7 +1258,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 1000,
+          "value": 1000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1244,7 +1269,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Mexico",
         "production": {
-          "tonnes": 140,
+          "value": 140,
           "lowerBound": false
         },
         "productionShare": {
@@ -1252,7 +1277,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 1400,
+          "value": 1400,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1263,7 +1288,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Kazakhstan",
         "production": {
-          "tonnes": 130,
+          "value": 130,
           "lowerBound": false
         },
         "productionShare": {
@@ -1271,7 +1296,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 2300,
+          "value": 2300,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1282,7 +1307,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Uzbekistan",
         "production": {
-          "tonnes": 130,
+          "value": 130,
           "lowerBound": false
         },
         "productionShare": {
@@ -1290,7 +1315,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 2200,
+          "value": 2200,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1301,7 +1326,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Peru",
         "production": {
-          "tonnes": 110,
+          "value": 110,
           "lowerBound": false
         },
         "productionShare": {
@@ -1309,7 +1334,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 2200,
+          "value": 2200,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1320,7 +1345,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "South Africa",
         "production": {
-          "tonnes": 90,
+          "value": 90,
           "lowerBound": false
         },
         "productionShare": {
@@ -1328,7 +1353,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 5000,
+          "value": 5000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1339,7 +1364,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Indonesia",
         "production": {
-          "tonnes": 90,
+          "value": 90,
           "lowerBound": false
         },
         "productionShare": {
@@ -1347,7 +1372,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 3600,
+          "value": 3600,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1358,7 +1383,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Brazil",
         "production": {
-          "tonnes": 80,
+          "value": 80,
           "lowerBound": false
         },
         "productionShare": {
@@ -1366,7 +1391,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 2500,
+          "value": 2500,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1374,24 +1399,36 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         }
       }
+    ],
+    "sources": [
+      {
+        "label": "USGS — Mineral Commodity Summaries 2026, world tables",
+        "url": "https://doi.org/10.3133/mcs2026"
+      }
+    ],
+    "notes": [
+      "Countries outside these are grouped by USGS as “other countries”."
     ]
   },
   "Silver": {
     "measure": "Mine production",
-    "year": "2025",
+    "productionYear": "2025",
+    "reservesYear": "2025",
+    "productionUnit": "t",
+    "reservesUnit": "t",
     "worldProduction": {
-      "tonnes": 26000,
+      "value": 26000,
       "lowerBound": false
     },
     "worldReserves": {
-      "tonnes": 610000,
+      "value": 610000,
       "lowerBound": false
     },
     "countries": [
       {
         "name": "Mexico",
         "production": {
-          "tonnes": 6300,
+          "value": 6300,
           "lowerBound": false
         },
         "productionShare": {
@@ -1399,7 +1436,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 37000,
+          "value": 37000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1410,7 +1447,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Peru",
         "production": {
-          "tonnes": 3600,
+          "value": 3600,
           "lowerBound": false
         },
         "productionShare": {
@@ -1418,7 +1455,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 110000,
+          "value": 110000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1429,7 +1466,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "China",
         "production": {
-          "tonnes": 3400,
+          "value": 3400,
           "lowerBound": false
         },
         "productionShare": {
@@ -1437,7 +1474,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 67000,
+          "value": 67000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1448,7 +1485,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Bolivia",
         "production": {
-          "tonnes": 1500,
+          "value": 1500,
           "lowerBound": false
         },
         "productionShare": {
@@ -1456,7 +1493,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 22000,
+          "value": 22000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1467,7 +1504,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Chile",
         "production": {
-          "tonnes": 1400,
+          "value": 1400,
           "lowerBound": false
         },
         "productionShare": {
@@ -1475,7 +1512,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 33000,
+          "value": 33000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1486,7 +1523,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Poland",
         "production": {
-          "tonnes": 1300,
+          "value": 1300,
           "lowerBound": false
         },
         "productionShare": {
@@ -1494,7 +1531,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 59000,
+          "value": 59000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1505,7 +1542,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Russia",
         "production": {
-          "tonnes": 1200,
+          "value": 1200,
           "lowerBound": false
         },
         "productionShare": {
@@ -1513,7 +1550,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 92000,
+          "value": 92000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1524,7 +1561,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "United States",
         "production": {
-          "tonnes": 1100,
+          "value": 1100,
           "lowerBound": false
         },
         "productionShare": {
@@ -1532,7 +1569,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 23000,
+          "value": 23000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1543,7 +1580,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Australia",
         "production": {
-          "tonnes": 1000,
+          "value": 1000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1551,7 +1588,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 91000,
+          "value": 91000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1562,7 +1599,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "India",
         "production": {
-          "tonnes": 800,
+          "value": 800,
           "lowerBound": false
         },
         "productionShare": {
@@ -1570,7 +1607,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 8000,
+          "value": 8000,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1581,7 +1618,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Argentina",
         "production": {
-          "tonnes": 800,
+          "value": 800,
           "lowerBound": false
         },
         "productionShare": {
@@ -1589,7 +1626,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 6500,
+          "value": 6500,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1600,7 +1637,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Kazakhstan",
         "production": {
-          "tonnes": 630,
+          "value": 630,
           "lowerBound": false
         },
         "productionShare": {
@@ -1613,7 +1650,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Canada",
         "production": {
-          "tonnes": 400,
+          "value": 400,
           "lowerBound": false
         },
         "productionShare": {
@@ -1621,7 +1658,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
           "bound": "exact"
         },
         "reserves": {
-          "tonnes": 4900,
+          "value": 4900,
           "lowerBound": false
         },
         "reservesShare": {
@@ -1632,7 +1669,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Sweden",
         "production": {
-          "tonnes": 400,
+          "value": 400,
           "lowerBound": false
         },
         "productionShare": {
@@ -1642,13 +1679,25 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
         "reserves": null,
         "reservesShare": null
       }
+    ],
+    "sources": [
+      {
+        "label": "USGS — Mineral Commodity Summaries 2026, world tables",
+        "url": "https://doi.org/10.3133/mcs2026"
+      }
+    ],
+    "notes": [
+      "Countries outside these are grouped by USGS as “other countries”."
     ]
   },
   "Aluminum": {
     "measure": "Smelter production (primary aluminum)",
-    "year": "2025",
+    "productionYear": "2025",
+    "reservesYear": null,
+    "productionUnit": "t",
+    "reservesUnit": null,
     "worldProduction": {
-      "tonnes": 74000000,
+      "value": 74000000,
       "lowerBound": false
     },
     "worldReserves": null,
@@ -1656,7 +1705,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "China",
         "production": {
-          "tonnes": 45000000,
+          "value": 45000000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1669,7 +1718,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "India",
         "production": {
-          "tonnes": 4200000,
+          "value": 4200000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1682,7 +1731,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Russia",
         "production": {
-          "tonnes": 3900000,
+          "value": 3900000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1695,7 +1744,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Canada",
         "production": {
-          "tonnes": 3300000,
+          "value": 3300000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1708,7 +1757,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "United Arab Emirates",
         "production": {
-          "tonnes": 2700000,
+          "value": 2700000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1721,7 +1770,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Bahrain",
         "production": {
-          "tonnes": 1600000,
+          "value": 1600000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1734,7 +1783,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Australia",
         "production": {
-          "tonnes": 1500000,
+          "value": 1500000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1747,7 +1796,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Norway",
         "production": {
-          "tonnes": 1300000,
+          "value": 1300000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1760,7 +1809,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Brazil",
         "production": {
-          "tonnes": 1200000,
+          "value": 1200000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1773,7 +1822,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Malaysia",
         "production": {
-          "tonnes": 1100000,
+          "value": 1100000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1786,7 +1835,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "Iceland",
         "production": {
-          "tonnes": 750000,
+          "value": 750000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1799,7 +1848,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
       {
         "name": "United States",
         "production": {
-          "tonnes": 660000,
+          "value": 660000,
           "lowerBound": false
         },
         "productionShare": {
@@ -1809,6 +1858,16 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = {
         "reserves": null,
         "reservesShare": null
       }
+    ],
+    "sources": [
+      {
+        "label": "USGS — Mineral Commodity Summaries 2026, world tables",
+        "url": "https://doi.org/10.3133/mcs2026"
+      }
+    ],
+    "notes": [
+      "USGS publishes no reserves for refined aluminum — its reserves are bauxite ore, a separate commodity.",
+      "Countries outside these are grouped by USGS as “other countries”."
     ]
   }
 };

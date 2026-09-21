@@ -1,10 +1,8 @@
 import { useEffect } from "react";
 import { RESOURCE_DETAILS } from "../data/resourceDetails";
-import {
-  RESOURCE_PRODUCERS,
-  RESOURCE_PRODUCERS_SOURCE,
-  type Share,
-} from "../data/resourceProducers";
+import { RESOURCE_PRODUCERS } from "../data/resourceProducers";
+import { ENERGY_PRODUCERS } from "../data/energyProducers";
+import type { Amount, ProducerUnit, ResourceProducers, Share } from "../data/resourceProducerTypes";
 import { SourceLink } from "./SourceLink";
 
 export interface ResourceSummary {
@@ -17,11 +15,34 @@ export interface ResourceSummary {
   color: string;
 }
 
-/** Tonnes, read at a glance: 380 t, 92,000 t, 5.3 Mt, 1.6 bn t. */
-function fmtTonnes(t: number): string {
-  if (t >= 1e9) return `${(t / 1e9).toFixed(t >= 1e10 ? 0 : 1)} bn t`;
-  if (t >= 1e6) return `${(t / 1e6).toFixed(t >= 1e7 ? 0 : 1)} Mt`;
-  return `${Math.round(t).toLocaleString()} t`;
+/**
+ * An amount in its own unit, read at a glance. Oil is in barrels and gas in
+ * cubic metres as published; nothing is converted into a unit its source did
+ * not use.
+ */
+function fmtAmount(a: Amount, unit: ProducerUnit): string {
+  const v = a.value;
+  const pre = a.lowerBound ? ">" : "";
+  switch (unit) {
+    case "t":
+      if (v >= 1e9) return `${pre}${(v / 1e9).toFixed(v >= 1e10 ? 0 : 1)} bn t`;
+      if (v >= 1e6) return `${pre}${(v / 1e6).toFixed(v >= 1e7 ? 0 : 1)} Mt`;
+      return `${pre}${Math.round(v).toLocaleString()} t`;
+    case "kb/d":
+      // Thousand barrels a day; a million or more reads better as mb/d.
+      return v >= 1000
+        ? `${pre}${(v / 1000).toFixed(1)} mb/d`
+        : `${pre}${Math.round(v).toLocaleString()} kb/d`;
+    case "mb":
+      // Million barrels; the large holders read better in billions.
+      return v >= 1000
+        ? `${pre}${(v / 1000).toFixed(v >= 10000 ? 0 : 1)} bn bbl`
+        : `${pre}${Math.round(v).toLocaleString()} m bbl`;
+    case "bcm":
+      return v >= 1000
+        ? `${pre}${(v / 1000).toFixed(1)} tcm`
+        : `${pre}${v >= 10 ? Math.round(v).toLocaleString() : v.toFixed(1)} bcm`;
+  }
 }
 
 function fmtShare(s: Share | null): string | null {
@@ -30,26 +51,35 @@ function fmtShare(s: Share | null): string | null {
   return `${mark}${s.pct}%`;
 }
 
+/** Every commodity with a country table: USGS minerals, then energy. */
+const PRODUCERS: Record<string, ResourceProducers> = {
+  ...RESOURCE_PRODUCERS,
+  ...ENERGY_PRODUCERS,
+};
+
 /**
- * Every country USGS lists for the commodity: its 2025 production and its
- * reserves, each with its share of the world. From resourceProducers.ts,
- * built from USGS's Mineral Commodity Summaries 2026. Commodities USGS does
- * not cover render nothing here rather than a table of guesses.
+ * Every country the source lists for the commodity: its production and its
+ * reserves, each with its share of the world. From resourceProducers.ts
+ * (USGS) and energyProducers.ts (EIA, OPEC). A commodity without a table
+ * renders nothing here rather than a table of guesses.
  */
 function ProducerTable({ name }: { name: string }) {
-  const p = RESOURCE_PRODUCERS[name];
+  const p = PRODUCERS[name];
   if (!p) return null;
-  const hasReserves = p.worldReserves !== null;
+  const hasReserves = p.worldReserves !== null && p.reservesUnit !== null;
+  const cols = hasReserves ? "grid-cols-[1fr_auto_auto]" : "grid-cols-[1fr_auto]";
+  const years =
+    hasReserves && p.reservesYear && p.reservesYear !== p.productionYear
+      ? `production ${p.productionYear} · reserves ${p.reservesYear}`
+      : p.productionYear;
 
   return (
     <>
       <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mt-6 mb-2">
-        Countries · {p.year}
+        Countries · {years}
       </p>
       <div className="modal-tile rounded-xl p-3">
-        <div
-          className={`grid ${hasReserves ? "grid-cols-[1fr_auto_auto]" : "grid-cols-[1fr_auto]"} gap-x-4 pb-1.5 mb-1 border-b border-border/50`}
-        >
+        <div className={`grid ${cols} gap-x-4 pb-1.5 mb-1 border-b border-border/50`}>
           <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">Country</span>
           <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground text-right">
             Production
@@ -61,30 +91,25 @@ function ProducerTable({ name }: { name: string }) {
           )}
         </div>
         {p.countries.map((c) => (
-          <div
-            key={c.name}
-            className={`grid ${hasReserves ? "grid-cols-[1fr_auto_auto]" : "grid-cols-[1fr_auto]"} gap-x-4 py-1 items-baseline`}
-          >
+          <div key={c.name} className={`grid ${cols} gap-x-4 py-1 items-baseline`}>
             <span className="text-[11px] font-sans text-foreground">{c.name}</span>
             <span className="text-[11px] font-mono text-foreground text-right">
               {c.production ? (
                 <>
-                  {fmtTonnes(c.production.tonnes)}
+                  {fmtAmount(c.production, p.productionUnit)}
                   {c.productionShare && (
                     <span className="text-muted-foreground"> · {fmtShare(c.productionShare)}</span>
                   )}
                 </>
               ) : (
-                <span className="text-muted-foreground">
-                  {c.productionWithheld ? "withheld" : "—"}
-                </span>
+                <span className="text-muted-foreground">{c.productionWithheld ? "withheld" : "—"}</span>
               )}
             </span>
             {hasReserves && (
               <span className="text-[11px] font-mono text-foreground text-right">
                 {c.reserves ? (
                   <>
-                    {fmtTonnes(c.reserves.tonnes)}
+                    {fmtAmount(c.reserves, p.reservesUnit!)}
                     {c.reservesShare && (
                       <span className="text-muted-foreground"> · {fmtShare(c.reservesShare)}</span>
                     )}
@@ -96,31 +121,26 @@ function ProducerTable({ name }: { name: string }) {
             )}
           </div>
         ))}
-        <div
-          className={`grid ${hasReserves ? "grid-cols-[1fr_auto_auto]" : "grid-cols-[1fr_auto]"} gap-x-4 pt-1.5 mt-1 border-t border-border/50`}
-        >
+        <div className={`grid ${cols} gap-x-4 pt-1.5 mt-1 border-t border-border/50`}>
           <span className="text-[11px] font-sans font-semibold text-foreground">World</span>
           <span className="text-[11px] font-mono font-semibold text-foreground text-right">
-            {p.worldProduction.lowerBound ? ">" : ""}
-            {fmtTonnes(p.worldProduction.tonnes)}
+            {fmtAmount(p.worldProduction, p.productionUnit)}
           </span>
           {hasReserves && p.worldReserves && (
             <span className="text-[11px] font-mono font-semibold text-foreground text-right">
-              {p.worldReserves.lowerBound ? ">" : ""}
-              {fmtTonnes(p.worldReserves.tonnes)}
+              {fmtAmount(p.worldReserves, p.reservesUnit!)}
             </span>
           )}
         </div>
         <p className="text-[9px] font-sans text-muted-foreground mt-2 leading-snug">
-          {p.measure}, {p.year}, with each country's share of the world.
-          {!hasReserves && " USGS publishes no reserves for refined aluminum — its reserves are bauxite ore."}
+          {p.measure}, with each country's share of the world.
           {p.countries.some((c) => c.productionWithheld) &&
-            " \"Withheld\" means USGS does not publish the figure, to protect company data — not that there is none."}
+            " “Withheld” means the figure is not published, to protect company data — not that there is none."}
           {p.worldReserves?.lowerBound &&
             " The world reserve total is a minimum, so a share of it (≤) is an upper bound."}
-          {" "}Countries outside these are grouped by USGS as “other countries”.
+          {p.notes?.map((n) => ` ${n}`)}
         </p>
-        <SourceLink sources={[RESOURCE_PRODUCERS_SOURCE]} className="mt-1" />
+        <SourceLink sources={p.sources} className="mt-1" />
       </div>
     </>
   );

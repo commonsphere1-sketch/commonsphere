@@ -186,12 +186,23 @@ function reading(raw, unit) {
       );
 
     if (!list.length || !prodWorld) throw new Error(`${spec.card}: nothing read — has the file changed?`);
+    // Written as { value, lowerBound } with the unit named, so the energy
+    // commodities (barrels, cubic metres) share the same shape and table.
+    const v = (a) => (a ? { value: a.tonnes, lowerBound: a.lowerBound } : null);
     out[spec.card] = {
       measure: spec.measure,
-      year: YEAR,
-      worldProduction: prodWorld,
-      worldReserves: resWorld,
-      countries: list,
+      productionYear: YEAR,
+      reservesYear: spec.reserves ? YEAR : null,
+      productionUnit: "t",
+      reservesUnit: spec.reserves ? "t" : null,
+      worldProduction: v(prodWorld),
+      worldReserves: v(resWorld),
+      countries: list.map((c) => ({ ...c, production: v(c.production), reserves: v(c.reserves) })),
+      sources: [{ label: "USGS — Mineral Commodity Summaries 2026, world tables", url: "https://doi.org/10.3133/mcs2026" }],
+      notes: [
+        ...(spec.reserves ? [] : ["USGS publishes no reserves for refined aluminum — its reserves are bauxite ore, a separate commodity."]),
+        "Countries outside these are grouped by USGS as “other countries”.",
+      ],
     };
   }
 
@@ -203,34 +214,8 @@ function reading(raw, unit) {
  * hand; change the script and re-run it. See that script for the method.
  */
 
-export type Amount = { tonnes: number; lowerBound: boolean };
-export type Share = { pct: number; bound: "exact" | "atMost" | "atLeast" };
-
-export interface ResourceProducer {
-  name: string;
-  production: Amount | null;
-  /** USGS withholds the figure to protect company data; not zero. */
-  productionWithheld?: boolean;
-  productionShare: Share | null;
-  reserves: Amount | null;
-  reservesShare: Share | null;
-}
-
-export interface ResourceProducers {
-  /** What "production" means for this commodity, in USGS's terms. */
-  measure: string;
-  year: string;
-  worldProduction: Amount;
-  /** Null where USGS reports no reserves for the commodity (aluminum). */
-  worldReserves: Amount | null;
-  /** Largest producer first. */
-  countries: ResourceProducer[];
-}
-
-export const RESOURCE_PRODUCERS_SOURCE = {
-  label: "USGS — Mineral Commodity Summaries 2026, world tables",
-  url: "https://doi.org/10.3133/mcs2026",
-};
+import type { ResourceProducers } from "./resourceProducerTypes";
+export type { ResourceProducers, ResourceProducer, Amount, Share } from "./resourceProducerTypes";
 
 export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = ${JSON.stringify(out, null, 2)};
 `;
@@ -238,7 +223,7 @@ export const RESOURCE_PRODUCERS: Record<string, ResourceProducers> = ${JSON.stri
   console.log(`wrote ${OUT}`);
   for (const [k, v] of Object.entries(out)) {
     const top = v.countries[0];
-    const topRes = [...v.countries].sort((a, b) => (b.reserves?.tonnes ?? 0) - (a.reserves?.tonnes ?? 0))[0];
+    const topRes = [...v.countries].sort((a, b) => (b.reserves?.value ?? 0) - (a.reserves?.value ?? 0))[0];
     console.log(
       `  ${k}: ${v.countries.length} countries; top producer ${top.name} ${top.productionShare?.pct}%` +
         (v.worldReserves ? `; top reserves ${topRes.name} ${topRes.reservesShare?.pct}% (${topRes.reservesShare?.bound})` : ""),

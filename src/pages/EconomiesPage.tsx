@@ -26,6 +26,7 @@ import { economiesData, type Economy } from "../data/economiesData";
 import { getUpcoming } from "../data/upcomingToWatch";
 import { ECONOMY_ISO3, type EconomyRents } from "../data/resourceRents";
 import { RESOURCE_PRODUCERS } from "../data/resourceProducers";
+import { ENERGY_PRODUCERS } from "../data/energyProducers";
 import { useResourceRents } from "../hooks/useResourceRents";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
@@ -1903,27 +1904,31 @@ function EconomyModal({
 type ViewMode = "economies" | "resources";
 
 /**
- * For the cards USGS covers, the headline holder and share are read from the
- * same USGS table as the country list inside the card, so the two cannot
- * disagree. They were typed in and had drifted — lithium said Chile held 36%
- * of the world's reserves, where USGS's 2026 figure is 24.9%; rare earths said
- * China held 38%, against up to 51.8%.
+ * For every card with a country table, the headline holder and share are read
+ * from that same table, so the card and the list inside it cannot disagree.
+ * They were typed in and had drifted — lithium said Chile held 36% of the
+ * world's reserves (USGS: 24.9%); rare earths said China held 38% (up to
+ * 51.8%); crude oil named Saudi Arabia, where OPEC's own bulletin puts
+ * Venezuela first, 19.3% to 17.0%; coal named China at 21%, where EIA puts the
+ * United States first at 21.3%.
  *
- * The share is of reserves where USGS reports them, and says so; aluminum has
- * none (its reserves are bauxite, a different commodity), so its card gives
- * the share of smelter output. Gold is left as it is: its card leads with
- * central-bank holdings, a different and deliberate measure that its own
- * detail text explains.
+ * The share is of reserves where the source reports them, and says so;
+ * aluminum has none (its reserves are bauxite, a different commodity), so its
+ * card gives the share of smelter output. Gold is left as it is: its card
+ * leads with central-bank holdings, a different and deliberate measure that
+ * its own detail text explains.
  */
-function usgsHeadline<T extends { name: string; holder: string; reserve: string }>(r: T): T {
+const CARD_PRODUCERS = { ...RESOURCE_PRODUCERS, ...ENERGY_PRODUCERS };
+
+function producerHeadline<T extends { name: string; holder: string; reserve: string }>(r: T): T {
   if (r.name === "Gold") return r;
-  const p = RESOURCE_PRODUCERS[r.name];
+  const p = CARD_PRODUCERS[r.name];
   if (!p) return r;
   const mark = (b: string) => (b === "atMost" ? "≤" : b === "atLeast" ? "≥" : "");
   if (p.worldReserves) {
     const top = [...p.countries]
       .filter((c) => c.reservesShare)
-      .sort((a, b) => (b.reserves?.tonnes ?? 0) - (a.reserves?.tonnes ?? 0))[0];
+      .sort((a, b) => (b.reserves?.value ?? 0) - (a.reserves?.value ?? 0))[0];
     if (!top?.reservesShare) return r;
     return {
       ...r,
@@ -2061,7 +2066,7 @@ const RESOURCES_DATA = [
     color: "#cbd5e1",
     icon: "🥈",
   },
-].map(usgsHeadline);
+].map(producerHeadline);
 
 export function EconomiesPage() {
   const [search, setSearch] = useState("");
