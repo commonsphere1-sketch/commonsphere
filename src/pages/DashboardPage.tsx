@@ -55,6 +55,13 @@ import { usStatesData } from "../data/statesData";
 import { STATE_INDICATORS as STATE_FIGURES } from "../data/stateIndicators";
 import { economiesData } from "../data/economiesData";
 import { SourceLink } from "../components/SourceLink";
+import {
+  CALENDAR_2026,
+  CALENDAR_CHECKED,
+  CALENDAR_YEAR,
+  eventQuarter,
+  type CalendarEvent,
+} from "../data/calendar2026";
 
 const SRC_DASH_ECONOMY = [
   { label: "World Bank Open Data", url: "https://data.worldbank.org/" },
@@ -5375,8 +5382,90 @@ function fiscalQuarters(now: Date): { fy: number; quarters: QuarterInfo[] } {
 }
 
 const QUARTER_FMT = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" });
+const MONTH_FMT = new Intl.DateTimeFormat("en-GB", { month: "long" });
 const range = (q: QuarterInfo) =>
   `${QUARTER_FMT.format(q.start)} – ${QUARTER_FMT.format(new Date(q.end.getTime() - 1))}`;
+
+/**
+ * A colour per quarter, taken from the northern-hemisphere season it mostly
+ * covers: winter blue, spring green, summer gold, autumn rust.
+ *
+ * `accent` draws the borders, the progress bar and the fills. Text is never
+ * the accent itself — on a tinted fill that is the pair most likely to fail
+ * contrast — so each season also carries the ink to write on it: a dark shade
+ * for the light theme, a pale one for the dark theme. The tint is the accent
+ * at roughly 12% on light and 20% on dark, which keeps the four quarters
+ * distinguishable without turning the card into a paintbox.
+ */
+const SEASONS = [
+  { name: "Winter", accent: "#4f83cc", inkLight: "#1b3a63", inkDark: "#cfe2ff" },
+  { name: "Spring", accent: "#4f9d69", inkLight: "#17402d", inkDark: "#cfeddb" },
+  { name: "Summer", accent: "#c79232", inkLight: "#54390a", inkDark: "#f7e4b6" },
+  { name: "Autumn", accent: "#c0653c", inkLight: "#5b2811", inkDark: "#f8d8c6" },
+] as const;
+
+/** Local midnight for an ISO yyyy-mm-dd, so nothing shifts by a time zone. */
+function isoDate(s: string): Date {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+/** How an entry reads as a date: a day, a span of days, or a bare month. */
+function eventDateLabel(e: CalendarEvent): string {
+  const start = isoDate(e.start);
+  if (e.monthOnly) return MONTH_FMT.format(start);
+  if (!e.end) return QUARTER_FMT.format(start);
+  const end = isoDate(e.end);
+  const sameMonth = start.getMonth() === end.getMonth();
+  return sameMonth
+    ? `${start.getDate()}–${QUARTER_FMT.format(end)}`
+    : `${QUARTER_FMT.format(start)} – ${QUARTER_FMT.format(end)}`;
+}
+
+/** Where an entry sits relative to the clock. A month-only entry uses its month. */
+function eventState(e: CalendarEvent, now: Date): { kind: "past" | "now" | "ahead"; days: number } {
+  const start = isoDate(e.start);
+  const last = e.monthOnly
+    ? new Date(start.getFullYear(), start.getMonth() + 1, 0)
+    : isoDate(e.end ?? e.start);
+  const endOfLast = new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1);
+  if (now >= endOfLast) return { kind: "past", days: 0 };
+  if (now >= start) return { kind: "now", days: 0 };
+  return { kind: "ahead", days: Math.ceil((start.getTime() - now.getTime()) / 86400000) };
+}
+
+/** "past", "under way", or how long until it starts. */
+function statusLabel(st: { kind: "past" | "now" | "ahead"; days: number }): string {
+  if (st.kind === "past") return "past";
+  if (st.kind === "now") return "under way";
+  return st.days === 1 ? "tomorrow" : `in ${st.days} days`;
+}
+
+const THEME_FILTERS = ["All", "Political", "Economic", "Social"] as const;
+const SCOPE_FILTERS = ["All", "National", "International"] as const;
+
+/**
+ * How the countdown is set. Heavy monospace reads as a system readout; at 500
+ * with the figures opened up it reads as a clock instead. `tabular-nums` is
+ * the part that matters at one tick a second — proportional digits change
+ * width as they change value, so the whole line jitters.
+ *
+ * The unit and the separators are set back, so what the eye lands on is the
+ * numerals rather than the punctuation between them.
+ */
+const COUNTER: React.CSSProperties = {
+  fontWeight: 500,
+  fontVariantNumeric: "tabular-nums",
+  letterSpacing: "0.035em",
+};
+const COUNTER_UNIT: React.CSSProperties = {
+  fontSize: "0.46em",
+  opacity: 0.55,
+  marginLeft: "0.12em",
+  letterSpacing: "0.1em",
+  textTransform: "uppercase",
+};
+const COUNTER_SEP: React.CSSProperties = { opacity: 0.38, padding: "0 0.02em" };
 
 function QuarterTracker({
   isLight,
@@ -5399,11 +5488,24 @@ function QuarterTracker({
     return () => window.clearInterval(id);
   }, []);
 
-  const accent = "#6366f1";
   const calendar = calendarQuarters(now);
   const fiscal = fiscalQuarters(now);
   const current = calendar.find((q) => now >= q.start && now < q.end)!;
   const currentFiscal = fiscal.quarters.find((q) => now >= q.start && now < q.end)!;
+
+  // The quarter whose diary is on show; the current one until the reader picks
+  // another. Kept in state, so the once-a-second clock tick does not reset it.
+  const [selected, setSelected] = useState(current.index);
+  const [themeFilter, setThemeFilter] = useState<(typeof THEME_FILTERS)[number]>("All");
+  const [scopeFilter, setScopeFilter] = useState<(typeof SCOPE_FILTERS)[number]>("All");
+  // One entry open at a time: the detail is a few lines, and an accordion
+  // keeps the quarter readable as a list of dates.
+  const [openEvent, setOpenEvent] = useState<string | null>(null);
+
+  const season = SEASONS[selected];
+  const accent = season.accent;
+  const ink = isLight ? season.inkLight : season.inkDark;
+  const tint = (a: string) => a + (isLight ? "1f" : "33");
 
   const span = current.end.getTime() - current.start.getTime();
   const elapsed = now.getTime() - current.start.getTime();
@@ -5420,23 +5522,64 @@ function QuarterTracker({
   const state = (q: QuarterInfo) =>
     now >= q.end ? "done" : now >= q.start ? "current" : "ahead";
 
-  const chipStyle = (s: string) =>
-    s === "current"
-      ? { background: accent + (isLight ? "17" : "29"), border: `1px solid ${accent}`, color: isLight ? "#312e81" : "#c7d2fe" }
-      : s === "done"
-        ? { background: "transparent", border: `1px solid ${gridLine}`, color: mutedText }
-        : { background: "transparent", border: `1px dashed ${gridLine}`, color: mutedText };
+  // Entries in the chosen quarter, in date order, after the two filters.
+  const byQuarter = useMemo(() => {
+    const out: CalendarEvent[][] = [[], [], [], []];
+    for (const e of CALENDAR_2026) out[eventQuarter(e)].push(e);
+    for (const list of out) list.sort((a, b) => a.start.localeCompare(b.start));
+    return out;
+  }, []);
+  const shown = byQuarter[selected].filter(
+    (e) =>
+      (themeFilter === "All" || e.theme === themeFilter) &&
+      (scopeFilter === "All" || e.scope === scopeFilter),
+  );
+
+  /**
+   * A quarter button. Three things have to read at a glance and they are
+   * carried by three different signals, so none of them has to fight the
+   * seasonal colour: the season is the fill, selection is the ring, and where
+   * the year actually is ("now", "done", "ahead") is the word on the right.
+   */
+  const chipStyle = (i: number): React.CSSProperties => {
+    const s = state(calendar[i]);
+    const c = SEASONS[i].accent;
+    const isSel = i === selected;
+    return {
+      background: s === "ahead" && !isSel ? "transparent" : tint(c),
+      border: `1px ${s === "ahead" && !isSel ? "dashed" : "solid"} ${isSel ? c : s === "current" ? c : gridLine}`,
+      color: s === "ahead" && !isSel ? mutedText : isLight ? SEASONS[i].inkLight : SEASONS[i].inkDark,
+      // A ring is the obvious signal for "this is the one you are reading",
+      // but every rounded clickable element on the site already carries an
+      // !important box-shadow (index.css), so an inline one never lands. An
+      // outline is not in that fight.
+      outline: isSel ? `2px solid ${c}` : "none",
+      outlineOffset: "1px",
+      opacity: s === "done" && !isSel ? 0.75 : 1,
+    };
+  };
+
+  // An unselected filter is still a control, so it keeps the body's text
+  // colour rather than the muted one used for captions — at 10px the muted
+  // grey is too faint to read on the dark theme.
+  const filterStyle = (on: boolean): React.CSSProperties =>
+    on
+      ? { background: tint(accent), border: `1px solid ${accent}`, color: ink }
+      : { background: "transparent", border: `1px solid ${gridLine}`, color: headText };
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: cardBg, border: cardBorder }}>
-      <div className="px-5 py-4 flex flex-wrap items-center gap-x-4 gap-y-2" style={{ borderBottom: `1px solid ${gridLine}` }}>
+      <div
+        className="px-5 py-4 flex flex-wrap items-center gap-x-4 gap-y-2"
+        style={{ borderBottom: `1px solid ${gridLine}` }}
+      >
         <div className="flex items-center gap-2">
           <span className="text-sm font-bold font-sans" style={{ color: headText }}>
             Quarter Tracker
           </span>
           <span
             className="text-[9px] font-mono px-2 py-0.5 rounded-full"
-            style={{ background: accent + "15", color: accent }}
+            style={{ background: tint(SEASONS[current.index].accent), color: isLight ? SEASONS[current.index].inkLight : SEASONS[current.index].inkDark }}
           >
             {current.label} {current.start.getFullYear()}
           </span>
@@ -5453,16 +5596,23 @@ function QuarterTracker({
             <p className="text-[10px] font-sans uppercase tracking-widest mb-1" style={{ color: mutedText }}>
               {current.label} ends in
             </p>
-            <p className="text-2xl font-bold font-mono" style={{ color: headText }}>
-              {days}d {pad(hours)}:{pad(minutes)}:{pad(seconds)}
+            <p className="text-[28px] leading-none font-mono" style={{ ...COUNTER, color: headText }}>
+              {days}
+              <span style={COUNTER_UNIT}>d</span>{" "}
+              {pad(hours)}
+              <span style={COUNTER_SEP}>:</span>
+              {pad(minutes)}
+              <span style={COUNTER_SEP}>:</span>
+              {pad(seconds)}
             </p>
           </div>
           <div>
             <p className="text-[10px] font-sans uppercase tracking-widest mb-1" style={{ color: mutedText }}>
               Elapsed
             </p>
-            <p className="text-2xl font-bold font-mono" style={{ color: headText }}>
-              {pct.toFixed(1)}%
+            <p className="text-[28px] leading-none font-mono" style={{ ...COUNTER, color: headText }}>
+              {pct.toFixed(1)}
+              <span style={COUNTER_UNIT}>%</span>
             </p>
           </div>
           <p className="text-[10px] font-sans" style={{ color: mutedText }}>
@@ -5471,29 +5621,199 @@ function QuarterTracker({
           </p>
         </div>
 
-        {/* Progress through the current quarter */}
+        {/* Progress through the current quarter, in the current quarter's colour */}
         <div>
-          <div className="h-2 rounded-full overflow-hidden" style={{ background: isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }}>
-            <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: accent }} />
+          <div
+            className="h-2 rounded-full overflow-hidden"
+            style={{ background: isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }}
+          >
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${pct}%`, background: SEASONS[current.index].accent }}
+            />
           </div>
         </div>
 
-        {/* The four quarters of this calendar year */}
+        {/* The four quarters of this calendar year, each one selectable */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {calendar.map((q) => {
             const s = state(q);
+            const count = byQuarter[q.index].length;
             return (
-              <div key={q.label} className="rounded-xl px-3 py-2" style={chipStyle(s)}>
+              <button
+                key={q.label}
+                type="button"
+                onClick={() => setSelected(q.index)}
+                aria-pressed={q.index === selected}
+                className="rounded-xl px-3 py-2 text-left transition-all cursor-pointer"
+                style={chipStyle(q.index)}
+              >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold font-mono">{q.label}</span>
+                  <span className="text-xs font-bold font-mono">
+                    {q.label} <span className="font-sans font-normal opacity-70">{SEASONS[q.index].name}</span>
+                  </span>
                   <span className="text-[9px] font-sans uppercase tracking-wider">
                     {s === "current" ? "now" : s === "done" ? "done" : "ahead"}
                   </span>
                 </div>
                 <p className="text-[10px] font-sans mt-0.5">{range(q)}</p>
-              </div>
+                <p className="text-[10px] font-sans opacity-80">
+                  {count} {count === 1 ? "entry" : "entries"}
+                </p>
+              </button>
             );
           })}
+        </div>
+
+        {/* The chosen quarter's diary */}
+        <div className="rounded-xl overflow-hidden" style={{ border: `1px solid ${gridLine}` }}>
+          <div
+            className="px-4 py-3 flex flex-wrap items-center gap-x-3 gap-y-2"
+            style={{ background: tint(accent), borderBottom: `1px solid ${gridLine}` }}
+          >
+            <span className="text-xs font-bold font-sans" style={{ color: ink }}>
+              Q{selected + 1} {CALENDAR_YEAR} · scheduled conferences and events
+            </span>
+            <span className="text-[10px] font-sans" style={{ color: ink, opacity: 0.85 }}>
+              {shown.length} of {byQuarter[selected].length} shown
+            </span>
+          </div>
+
+          <div className="px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[9px] font-sans uppercase tracking-widest mr-0.5" style={{ color: mutedText }}>
+                Theme
+              </span>
+              {THEME_FILTERS.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setThemeFilter(t)}
+                  aria-pressed={themeFilter === t}
+                  className="text-[10px] font-sans px-2.5 py-1 rounded-full transition-colors cursor-pointer"
+                  style={filterStyle(themeFilter === t)}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[9px] font-sans uppercase tracking-widest mr-0.5" style={{ color: mutedText }}>
+                Scope
+              </span>
+              {SCOPE_FILTERS.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setScopeFilter(t)}
+                  aria-pressed={scopeFilter === t}
+                  className="text-[10px] font-sans px-2.5 py-1 rounded-full transition-colors cursor-pointer"
+                  style={filterStyle(scopeFilter === t)}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="px-4 pb-4 flex flex-col gap-2">
+            {shown.map((e) => {
+              const st = eventState(e, now);
+              const isOpen = openEvent === e.id;
+              return (
+                <div
+                  key={e.id}
+                  className="rounded-lg overflow-hidden"
+                  style={{
+                    border: `1px solid ${isOpen ? accent : gridLine}`,
+                    background: st.kind === "now" || isOpen ? tint(accent) : "transparent",
+                    opacity: st.kind === "past" && !isOpen ? 0.62 : 1,
+                  }}
+                >
+                  {/* Collapsed, a row is the date, where it sits in the year,
+                      and what it is called. The rest waits for a click, so
+                      eleven entries stay a list rather than a wall. */}
+                  <button
+                    type="button"
+                    onClick={() => setOpenEvent(isOpen ? null : e.id)}
+                    aria-expanded={isOpen}
+                    className="w-full text-left px-3 py-2.5 flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-1 cursor-pointer"
+                  >
+                    <span className="sm:w-28 shrink-0 block">
+                      <span
+                        className="text-[11px] font-mono block"
+                        style={{ ...COUNTER, color: headText }}
+                      >
+                        {eventDateLabel(e)}
+                      </span>
+                      <span
+                        className="text-[9px] font-sans uppercase tracking-wider block"
+                        style={{ color: mutedText }}
+                      >
+                        {statusLabel(st)}
+                      </span>
+                    </span>
+                    <span
+                      className="text-xs font-semibold font-sans min-w-0 flex-1"
+                      style={{ color: headText }}
+                    >
+                      {e.name}
+                    </span>
+                    <span
+                      className="text-[9px] font-sans uppercase tracking-wider shrink-0"
+                      style={{ color: mutedText }}
+                    >
+                      {isOpen ? "Close" : "Details"}
+                    </span>
+                  </button>
+
+                  {isOpen && (
+                    <div className="px-3 pb-3 sm:pl-[7.75rem]">
+                      <p className="text-[10px] font-sans" style={{ color: mutedText }}>
+                        {e.org} · {e.city}
+                        {e.city !== e.country && `, ${e.country}`}
+                      </p>
+                      <p className="text-[10px] font-sans mt-1" style={{ color: mutedText }}>
+                        {e.what}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                        <span
+                          className="text-[9px] font-sans px-2 py-0.5 rounded-full"
+                          style={{ border: `1px solid ${gridLine}`, color: mutedText }}
+                        >
+                          {e.scope}
+                        </span>
+                        <span
+                          className="text-[9px] font-sans px-2 py-0.5 rounded-full"
+                          style={{ background: tint(accent), color: ink }}
+                        >
+                          {e.theme}
+                        </span>
+                        {e.monthOnly && (
+                          <span
+                            className="text-[9px] font-sans px-2 py-0.5 rounded-full"
+                            style={{ border: `1px dashed ${gridLine}`, color: mutedText }}
+                          >
+                            days to be confirmed
+                          </span>
+                        )}
+                      </div>
+                      <SourceLink sources={[e.source]} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {shown.length === 0 && (
+              <p className="text-[11px] font-sans" style={{ color: mutedText }}>
+                Nothing in Q{selected + 1} matches those filters.
+              </p>
+            )}
+            <p className="text-[9px] font-sans mt-1" style={{ color: mutedText }}>
+              Each entry is taken from the convening body's own page and was checked on {CALENDAR_CHECKED}.
+              Scheduled dates can move; the source link is the place to confirm one.
+            </p>
+          </div>
         </div>
       </div>
     </div>
