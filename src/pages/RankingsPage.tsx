@@ -19,6 +19,7 @@ import {
   CaretUp,
   X,
   MagnifyingGlass,
+  ArrowsLeftRight,
 } from "@phosphor-icons/react";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
 
@@ -1439,13 +1440,30 @@ function ComparisonPanel({
 }) {
   return (
     <div className="bg-card border border-border rounded-2xl">
-      <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-3 flex-wrap">
-        <div>
+      {/* A tinted header, indigo into teal like the dashboard hero, with the
+          sidebar's Compare icon. The card itself no longer clips (the
+          picker list must spill out), so the header rounds its own top. */}
+      <div
+        className="px-4 py-3 border-b border-border flex items-center justify-between gap-3 flex-wrap rounded-t-2xl"
+        style={{
+          background:
+            "linear-gradient(120deg, color-mix(in srgb, #6366f1 14%, transparent) 0%, color-mix(in srgb, #14b8a6 10%, transparent) 100%)",
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <span
+            className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+            style={{ background: "color-mix(in srgb, #6366f1 20%, transparent)", color: "#6366f1" }}
+          >
+            <ArrowsLeftRight size={16} weight="bold" />
+          </span>
+          <div>
           <p className="text-sm font-bold font-sans text-foreground">Compare</p>
           <p className="text-[11px] text-muted-foreground font-sans">
             Countries and US states together, each figure with its rank among
             the {allRows.length} entities that the page ranks.
           </p>
+          </div>
         </div>
         {selected.length > 0 && (
           <button
