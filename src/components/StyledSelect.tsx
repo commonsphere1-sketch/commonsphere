@@ -32,7 +32,7 @@ export function StyledSelect({
     <SelectPrimitive.Root value={value} onValueChange={onValueChange}>
       <SelectPrimitive.Trigger
         aria-label={ariaLabel}
-        className={`flex items-center gap-1 bg-transparent text-xs font-mono text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 rounded cursor-pointer shrink-0 transition-colors ${triggerClassName}`}
+        className={`flex items-center gap-1 bg-transparent text-xs font-sans text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 rounded cursor-pointer shrink-0 transition-colors ${triggerClassName}`}
       >
         <SelectPrimitive.Value />
         <SelectPrimitive.Icon asChild>
@@ -55,7 +55,7 @@ export function StyledSelect({
               <SelectPrimitive.Item
                 key={o.value}
                 value={o.value}
-                className="relative flex items-center gap-2 pl-7 pr-3 py-1.5 rounded-lg text-xs font-mono text-foreground cursor-pointer select-none outline-none data-[highlighted]:bg-secondary/20 data-[highlighted]:text-foreground data-[state=checked]:text-secondary transition-colors"
+                className="relative flex items-center gap-2 pl-7 pr-3 py-1.5 rounded-lg text-xs font-sans text-foreground cursor-pointer select-none outline-none data-[highlighted]:bg-secondary/20 data-[highlighted]:text-foreground data-[state=checked]:text-secondary transition-colors"
               >
                 <SelectPrimitive.ItemIndicator className="absolute left-2 flex items-center">
                   <Check size={11} weight="bold" />
