@@ -2800,6 +2800,7 @@ export function WorldMapsPage() {
                 onValueChange={setFocusCode}
                 ariaLabel="Choose which country to map"
                 options={focusOptions}
+                triggerClassName="px-3 py-2 bg-accent/8 border border-accent/40 hover:bg-accent/12 hover:border-accent/60 text-foreground font-medium text-sm"
               />
             </div>
           </div>
