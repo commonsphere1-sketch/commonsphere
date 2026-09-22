@@ -51,6 +51,7 @@ import {
 } from "../data/airQuality";
 import { StyledSelect } from "../components/StyledSelect";
 import { citiesData } from "../data/citiesData";
+import { COUNTRY_CLIMATE, type ClimateZone } from "../data/climateZones";
 
 /**
  * Equal Earth world map and a US state map, both shaded from the site's own
@@ -88,14 +89,15 @@ const OVERLAY_URL = {
   infrastructure: "/geo/infrastructure.json",
   capitals: "/geo/capitals.json",
   cities: "/geo/cities.json",
-  climate: "/geo/climate.json",
 } as const;
 
 /** Rough Köppen-style groupings - tropical, arid, temperate, continental,
     polar - each with its own ink, since a single colour can't tell the zones
-    apart the way it does for every other point layer. */
+    apart. Countries, not fetched points: like Air pollution below, this
+    rides in the bundle (one classification per country, from
+    COUNTRY_CLIMATE) and highlights whole shapes the way the scope chips
+    (G20, BRICS, ...) highlight member countries, rather than plotting dots. */
 const CLIMATE_ZONES = ["tropical", "arid", "temperate", "continental", "polar"] as const;
-type ClimateZone = (typeof CLIMATE_ZONES)[number];
 const CLIMATE_COLORS: Record<ClimateZone, string> = {
   tropical: "#1f9e5c",
   arid: "#d19a3a",
@@ -106,7 +108,7 @@ const CLIMATE_COLORS: Record<ClimateZone, string> = {
 
 /* Air pollution is the one layer that is not fetched: it is 197 numbers, a
    few kilobytes, so it rides in the bundle rather than costing a request. */
-type OverlayId = keyof typeof OVERLAY_URL | "pollution";
+type OverlayId = keyof typeof OVERLAY_URL | "pollution" | "climate";
 
 /** A point layer as build-map-layers.cjs writes it: a header plus index rows.
     Generic over the row shape so destructuring a row keeps its tuple types. */
@@ -419,7 +421,7 @@ const OVERLAYS: { id: OverlayId; label: string; about: string }[] = [
     id: "climate",
     label: "Climate",
     about:
-      "Broad climate zones - tropical, arid, temperate, continental and polar - at representative locations worldwide, in the tradition of the Köppen classification. A sample of points, not a shaded boundary map.",
+      "Every country shaded by its dominant broad climate zone - tropical, arid, temperate, continental or polar - a rough, Köppen-inspired generalisation of one zone per country, not a boundary map of where each actually starts and ends.",
   },
 ];
 
@@ -1479,12 +1481,6 @@ export function WorldMapsPage() {
     OVERLAY_URL.cities,
     wanted("cities"),
   );
-  const climate = useOverlay<PointLayer<[string, ClimateZone, number, number]>>(
-    OVERLAY_URL.climate,
-    wanted("climate"),
-  );
-
-
   const overlayState: Record<OverlayId, { loading: boolean; failed: boolean }> = {
     rivers: { loading: rivers.loading, failed: rivers.failed },
     lakes: { loading: lakes.loading, failed: lakes.failed },
@@ -1493,9 +1489,9 @@ export function WorldMapsPage() {
     infrastructure: { loading: infra.loading, failed: infra.failed },
     capitals: { loading: capitals.loading, failed: capitals.failed },
     cities: { loading: cities.loading, failed: cities.failed },
-    climate: { loading: climate.loading, failed: climate.failed },
-    // Bundled, so it is never pending and cannot fail to arrive.
+    // Bundled, so neither is ever pending and cannot fail to arrive.
     pollution: { loading: false, failed: false },
+    climate: { loading: false, failed: false },
   };
 
   /* Rivers are drawn in two passes so the map reads at every zoom: the trunk
@@ -1613,16 +1609,6 @@ export function WorldMapsPage() {
       .filter((p): p is { x: number; y: number } => p !== null);
   }, [cities.data, worldPath]);
 
-  const climatePoints = useMemo(() => {
-    if (!climate.data) return null;
-    return climate.data.rows
-      .map((row) => {
-        const p = worldPath.projection([row[2], row[3]]);
-        return p ? { x: p[0], y: p[1], zone: row[1], name: row[0] } : null;
-      })
-      .filter((p): p is { x: number; y: number; zone: ClimateZone; name: string } => p !== null);
-  }, [climate.data, worldPath]);
-
   /* What the mineral layer actually holds, counted from the data rather than
      written by hand, so the note cannot drift from the file it describes. The
      two record types are reported separately: a deposit and an operation can
@@ -1658,6 +1644,23 @@ export function WorldMapsPage() {
     return [...byBand.entries()]
       .sort((a, b) => a[0] - b[0])
       .map(([band, ds]) => ({ band, d: ds.join(""), opacity: POLLUTION_OPACITY[band] }));
+  }, [worldShapes]);
+
+  /* One merged path per climate zone, the same way pollutionBands merges by
+     band - a whole-country highlight like the scope chips (G20, BRICS, ...)
+     rather than points scattered over the map. */
+  const climateBands = useMemo(() => {
+    const byZone = new Map<ClimateZone, string[]>();
+    for (const { country, d } of worldShapes) {
+      if (!country || !d) continue;
+      const zone = COUNTRY_CLIMATE[country.code];
+      if (!zone) continue;
+      if (!byZone.has(zone)) byZone.set(zone, []);
+      byZone.get(zone)!.push(d);
+    }
+    return CLIMATE_ZONES.map((zone) => ({ zone, d: (byZone.get(zone) ?? []).join("") })).filter(
+      (b) => b.d,
+    );
   }, [worldShapes]);
 
   const admin1BordersD = useMemo(() => {
@@ -1778,15 +1781,6 @@ export function WorldMapsPage() {
     return cityPoints.map((p) => dot(p.x, p.y, r)).join("");
   }, [cityPoints, worldZoom.zoom]);
 
-  const climateByZone = useMemo(() => {
-    if (!climatePoints) return undefined;
-    const byZone: Partial<Record<ClimateZone, { x: number; y: number; name: string }[]>> = {};
-    for (const zone of CLIMATE_ZONES) {
-      const pts = climatePoints.filter((p) => p.zone === zone);
-      if (pts.length) byZone[zone] = pts;
-    }
-    return byZone;
-  }, [climatePoints]);
 
   const zoom = focusZoom.zoom;
 
@@ -2056,9 +2050,8 @@ export function WorldMapsPage() {
       mines: mines.data ? place(mines.data.rows, (r) => r[5], (r) => r[6]) : null,
       capitals: capitals.data ? place(capitals.data.rows, (r) => r[2], (r) => r[3]) : null,
       cities: cities.data ? place(cities.data.rows, (r) => r[3], (r) => r[4]) : null,
-      climate: climate.data ? place(climate.data.rows, (r) => r[2], (r) => r[3]) : null,
     };
-  }, [focusFrame, lineNear, inBounds, rivers.data, lakes.data, infra.data, ports.data, mines.data, capitals.data, cities.data, climate.data]);
+  }, [focusFrame, lineNear, inBounds, rivers.data, lakes.data, infra.data, ports.data, mines.data, capitals.data, cities.data]);
 
   /* Marks on the focus map keep the same shapes as on the world map, drawn a
      little larger because there is room for them on one country.
@@ -2078,6 +2071,14 @@ export function WorldMapsPage() {
     return { band, pm25: reading.pm25, year: reading.year, opacity: POLLUTION_OPACITY[band] };
   }, [focusCode, focusCountry]);
 
+  /* Same wash as pollution, but keyed to the focused country's own zone from
+     COUNTRY_CLIMATE rather than a data reading. */
+  const focusClimate = useMemo(() => {
+    const code = focusCode === "US" ? "US" : focusCountry?.code;
+    const zone = code ? COUNTRY_CLIMATE[code] : undefined;
+    return zone ?? null;
+  }, [focusCode, focusCountry]);
+
   const focusMarks = useMemo(() => {
     if (!focusOverlays) return null;
     const z = focusZoom.zoom;
@@ -2091,15 +2092,6 @@ export function WorldMapsPage() {
     ) => (pts && pts.length ? pts.map((p) => shape(p.x, p.y, radius)).join("") : undefined);
     const mineSolid = focusOverlays.mines?.filter((p) => p.row[4] === 0) ?? [];
     const mineHollow = focusOverlays.mines?.filter((p) => p.row[4] === 1) ?? [];
-    const climateByZone: Partial<Record<ClimateZone, { x: number; y: number; name: string }[]>> = {};
-    for (const zone of CLIMATE_ZONES) {
-      const pts = (focusOverlays.climate?.filter((p) => p.row[1] === zone) ?? []).map((p) => ({
-        x: p.x,
-        y: p.y,
-        name: p.row[0],
-      }));
-      if (pts.length) climateByZone[zone] = pts;
-    }
     return {
       ports: join(focusOverlays.ports, box, 3.2 / z),
       airports: join(focusOverlays.airports, tri),
@@ -2111,7 +2103,6 @@ export function WorldMapsPage() {
       mineRinged: near,
       capitals: join(focusOverlays.capitals, star, 4.8 / z),
       cities: join(focusOverlays.cities, dot, 3.2 / z),
-      climate: climateByZone,
     };
   }, [focusOverlays, focusZoom.zoom]);
 
@@ -2638,6 +2629,16 @@ export function WorldMapsPage() {
                   pointerEvents="none"
                 />
               ))}
+            {worldLayers.climate &&
+              climateBands.map((b) => (
+                <path
+                  key={b.zone}
+                  d={b.d}
+                  fill={CLIMATE_COLORS[b.zone]}
+                  fillOpacity={0.55}
+                  pointerEvents="none"
+                />
+              ))}
             {worldLayers.infrastructure && infraPaths && (
               /* Roads solid and railways dashed, so the two line networks stay
                  apart without reference to colour. Drawn first of the overlays,
@@ -2751,26 +2752,6 @@ export function WorldMapsPage() {
                 pointerEvents="none"
               />
             )}
-
-            {worldLayers.climate && climateByZone &&
-              CLIMATE_ZONES.map((zone) =>
-                climateByZone[zone] ? (
-                  <g key={zone} fill={CLIMATE_COLORS[zone]} stroke={labelHalo}>
-                    {climateByZone[zone]!.map((p, i) => (
-                      <circle
-                        key={i}
-                        cx={p.x}
-                        cy={p.y}
-                        r={3.4 / worldZoom.zoom}
-                        fillOpacity={0.85}
-                        strokeWidth={0.3 / worldZoom.zoom}
-                      >
-                        <title>{`${p.name} — ${zone}`}</title>
-                      </circle>
-                    ))}
-                  </g>
-                ) : null,
-              )}
 
             {/* The title under the cursor: the continent while the whole world
                 is in view, the country once zoomed in. Same ink and halo as the
@@ -3121,6 +3102,14 @@ export function WorldMapsPage() {
                 pointerEvents="none"
               />
             )}
+            {focusLayers.climate && focusClimate && usOutlineD && (
+              <path
+                d={usOutlineD}
+                fill={CLIMATE_COLORS[focusClimate]}
+                fillOpacity={0.4}
+                pointerEvents="none"
+              />
+            )}
                         {/* These are worldwide files. Without clipping they run on across Canada and Mexico, and the map stops being a map of the United States. */}
             <defs>
               {usOutlineD && (
@@ -3237,25 +3226,6 @@ export function WorldMapsPage() {
                 />
               )}
 
-              {focusLayers.climate && focusMarks?.climate &&
-                CLIMATE_ZONES.map((zone) =>
-                  focusMarks.climate?.[zone] ? (
-                    <g key={zone} fill={CLIMATE_COLORS[zone]} stroke={labelHalo}>
-                      {focusMarks.climate[zone]!.map((p, i) => (
-                        <circle
-                          key={i}
-                          cx={p.x}
-                          cy={p.y}
-                          r={3.4 / focusZoom.zoom}
-                          fillOpacity={0.85}
-                          strokeWidth={0.3 / focusZoom.zoom}
-                        >
-                          <title>{`${p.name} — ${zone}`}</title>
-                        </circle>
-                      ))}
-                    </g>
-                  ) : null,
-                )}
             </g>
           </svg>
 
@@ -3385,6 +3355,14 @@ export function WorldMapsPage() {
                         pointerEvents="none"
                       />
                     )}
+                    {focusLayers.climate && focusClimate && focusMap?.outline && (
+                      <path
+                        d={focusMap?.outline}
+                        fill={CLIMATE_COLORS[focusClimate]}
+                        fillOpacity={0.4}
+                        pointerEvents="none"
+                      />
+                    )}
                                         {/* Clipped to the country itself, so a road or a river stops at the border instead of running on through its neighbours. */}
                     <defs>
                       {focusMap?.outline && (
@@ -3501,25 +3479,6 @@ export function WorldMapsPage() {
                         />
                       )}
 
-                      {focusLayers.climate && focusMarks?.climate &&
-                        CLIMATE_ZONES.map((zone) =>
-                          focusMarks.climate?.[zone] ? (
-                            <g key={zone} fill={CLIMATE_COLORS[zone]} stroke={labelHalo}>
-                              {focusMarks.climate[zone]!.map((p, i) => (
-                                <circle
-                                  key={i}
-                                  cx={p.x}
-                                  cy={p.y}
-                                  r={3.4 / focusZoom.zoom}
-                                  fillOpacity={0.85}
-                                  strokeWidth={0.3 / focusZoom.zoom}
-                                >
-                                  <title>{`${p.name} — ${zone}`}</title>
-                                </circle>
-                              ))}
-                            </g>
-                          ) : null,
-                        )}
                     </g>
                   </svg>
 
