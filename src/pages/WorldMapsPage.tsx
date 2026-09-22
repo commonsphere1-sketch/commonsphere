@@ -337,6 +337,11 @@ const RIVER_DETAIL_ABOVE = 2;
    point of the layer - which they can afford because the layer is drawn as two
    paths rather than 9,639 elements. */
 const PORT_DETAIL_ABOVE = 2;
+/* Cities of a million or more are drawn large and always; the rest are small
+   and appear on the world map only once zoomed in, since 6,000 dots at world
+   scale would bury the countries. The country maps show every one. */
+const MAJOR_CITY_POP = 1_000_000;
+const CITY_DETAIL_ABOVE = 2;
 const PORT_MAJOR_RANK = 5;
 
 /* Airports thin the same way: 387 of the 893 are classed major, and those are
@@ -415,7 +420,7 @@ const OVERLAYS: { id: OverlayId; label: string; about: string }[] = [
     id: "cities",
     label: "Major cities",
     about:
-      "200+ major metropolitan areas globally with population over 1 million. Shows largest urban concentrations across all continents.",
+      "6,461 cities from GeoNames (public domain): every city of 100,000 or more, and at least the five largest in each country. Cities of a million or more are drawn large; the rest appear on the world map once zoomed in. Populations are GeoNames' own figures, not metro areas.",
   },
   {
     id: "climate",
@@ -1604,9 +1609,9 @@ export function WorldMapsPage() {
     return cities.data.rows
       .map((row) => {
         const p = worldPath.projection([row[3], row[4]]);
-        return p ? { x: p[0], y: p[1] } : null;
+        return p ? { x: p[0], y: p[1], major: row[2] >= MAJOR_CITY_POP } : null;
       })
-      .filter((p): p is { x: number; y: number } => p !== null);
+      .filter((p): p is { x: number; y: number; major: boolean } => p !== null);
   }, [cities.data, worldPath]);
 
   /* What the mineral layer actually holds, counted from the data rather than
@@ -1777,8 +1782,15 @@ export function WorldMapsPage() {
 
   const citiesD = useMemo(() => {
     if (!cityPoints) return undefined;
-    const r = 4.4 / worldZoom.zoom;
-    return cityPoints.map((p) => dot(p.x, p.y, r)).join("");
+    const z = worldZoom.zoom;
+    const showMinor = z > CITY_DETAIL_ABOVE;
+    let major = "";
+    let minor = "";
+    for (const p of cityPoints) {
+      if (p.major) major += dot(p.x, p.y, 4.4 / z);
+      else if (showMinor) minor += dot(p.x, p.y, 1.8 / z);
+    }
+    return { major, minor };
   }, [cityPoints, worldZoom.zoom]);
 
 
@@ -2102,7 +2114,10 @@ export function WorldMapsPage() {
          until the distinction can actually be seen. */
       mineRinged: near,
       capitals: join(focusOverlays.capitals, star, 4.8 / z),
-      cities: join(focusOverlays.cities, dot, 4.4 / z),
+      cities: {
+        major: join(focusOverlays.cities?.filter((p) => p.row[2] >= MAJOR_CITY_POP) ?? null, dot, 4.4 / z),
+        minor: join(focusOverlays.cities?.filter((p) => p.row[2] < MAJOR_CITY_POP) ?? null, dot, 2 / z),
+      },
     };
   }, [focusOverlays, focusZoom.zoom]);
 
@@ -2743,14 +2758,12 @@ export function WorldMapsPage() {
             )}
 
             {worldLayers.cities && citiesD && (
-              <path
-                d={citiesD}
-                fill={overlayInk.cities}
-                fillOpacity={0.9}
-                stroke={labelHalo}
-                strokeWidth={0.8 / worldZoom.zoom}
-                pointerEvents="none"
-              />
+              <g fill={overlayInk.cities} stroke={labelHalo} pointerEvents="none">
+                {citiesD.minor && (
+                  <path d={citiesD.minor} fillOpacity={0.75} strokeWidth={0.3 / worldZoom.zoom} />
+                )}
+                <path d={citiesD.major} fillOpacity={0.9} strokeWidth={0.8 / worldZoom.zoom} />
+              </g>
             )}
 
             {/* The title under the cursor: the continent while the whole world
@@ -3216,14 +3229,14 @@ export function WorldMapsPage() {
               )}
 
               {focusLayers.cities && focusMarks?.cities && (
-                <path
-                  d={focusMarks.cities}
-                  fill={overlayInk.cities}
-                  fillOpacity={0.9}
-                  stroke={labelHalo}
-                  strokeWidth={0.5 / focusZoom.zoom}
-                  pointerEvents="none"
-                />
+                <g fill={overlayInk.cities} stroke={labelHalo} pointerEvents="none">
+                  {focusMarks.cities.minor && (
+                    <path d={focusMarks.cities.minor} fillOpacity={0.75} strokeWidth={0.3 / focusZoom.zoom} />
+                  )}
+                  {focusMarks.cities.major && (
+                    <path d={focusMarks.cities.major} fillOpacity={0.9} strokeWidth={0.6 / focusZoom.zoom} />
+                  )}
+                </g>
               )}
 
             </g>
@@ -3469,14 +3482,14 @@ export function WorldMapsPage() {
                       )}
 
                       {focusLayers.cities && focusMarks?.cities && (
-                        <path
-                          d={focusMarks.cities}
-                          fill={overlayInk.cities}
-                          fillOpacity={0.9}
-                          stroke={labelHalo}
-                          strokeWidth={0.5 / focusZoom.zoom}
-                          pointerEvents="none"
-                        />
+                        <g fill={overlayInk.cities} stroke={labelHalo} pointerEvents="none">
+                          {focusMarks.cities.minor && (
+                            <path d={focusMarks.cities.minor} fillOpacity={0.75} strokeWidth={0.3 / focusZoom.zoom} />
+                          )}
+                          {focusMarks.cities.major && (
+                            <path d={focusMarks.cities.major} fillOpacity={0.9} strokeWidth={0.6 / focusZoom.zoom} />
+                          )}
+                        </g>
                       )}
 
                     </g>
