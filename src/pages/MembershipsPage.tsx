@@ -129,9 +129,9 @@ const PLANS = [
   {
     id: "supporter" as PlanId,
     name: "Supporter",
-    price: "$5",
+    price: "$10",
     period: "per month",
-    priceAnnual: "$50 billed yearly — two months free",
+    priceAnnual: "$100 billed yearly — two months free",
     borderClass: "border-secondary/50 ring-2 ring-secondary/20",
     badge: "Most Popular",
     btnClass:
