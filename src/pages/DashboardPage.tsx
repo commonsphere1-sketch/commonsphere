@@ -5458,6 +5458,75 @@ const ROW_FIGURES: React.CSSProperties = {
   letterSpacing: "0.035em",
 };
 
+/**
+ * Flags from every inhabited continent, orbiting the site's globe.
+ *
+ * The ring is one rotating element; each flag counter-rotates at the same
+ * rate so it stays upright rather than tumbling. Sizes are in the ring's own
+ * pixels, so the whole thing scales by changing SIZE alone. Nothing here is
+ * interactive or announced: it is decoration beside text that already says
+ * what the site covers, so the images are aria-hidden.
+ */
+function FlagOrbit({ mutedText }: { mutedText: string }) {
+  const FLAGS = ["za", "br", "jp", "de", "in", "us", "ng", "au", "mx", "eg", "fr", "id"];
+  const SIZE = 190;
+  const RADIUS = SIZE / 2 - 16;
+  const SPIN = "60s";
+
+  return (
+    <div className="shrink-0 self-center flex flex-col items-center gap-2">
+      <div
+        className="relative motion-reduce:[animation:none]"
+        style={{ width: SIZE, height: SIZE, animation: `spin ${SPIN} linear infinite` }}
+        aria-hidden
+      >
+        {FLAGS.map((cc, i) => {
+          const angle = (i / FLAGS.length) * 2 * Math.PI - Math.PI / 2;
+          return (
+            <img
+              key={cc}
+              src={`https://flagcdn.com/w40/${cc}.png`}
+              srcSet={`https://flagcdn.com/w80/${cc}.png 2x`}
+              width={28}
+              height={19}
+              loading="lazy"
+              decoding="async"
+              alt=""
+              className="absolute h-[19px] w-auto rounded-[2px] shadow-sm motion-reduce:[animation:none]"
+              style={{
+                left: SIZE / 2 + RADIUS * Math.cos(angle),
+                top: SIZE / 2 + RADIUS * Math.sin(angle),
+                transform: "translate(-50%, -50%)",
+                border: "1px solid rgba(128,128,128,0.35)",
+                animation: `spin ${SPIN} linear infinite reverse`,
+              }}
+            />
+          );
+        })}
+        {/* The globe at the centre holds still while the flags go round. */}
+        <div
+          className="absolute left-1/2 top-1/2 w-14 h-14 -translate-x-1/2 -translate-y-1/2 rounded-full overflow-hidden motion-reduce:[animation:none]"
+          style={{ animation: `spin ${SPIN} linear infinite reverse` }}
+        >
+          <img
+            src="https://c.animaapp.com/mnv7exnwOzX3vX/img/uploaded-asset-1776467236633-0.jpeg"
+            alt=""
+            className="logo-light absolute inset-0 w-full h-full object-contain scale-[1.28]"
+          />
+          <img
+            src="https://c.animaapp.com/mnv7exnwOzX3vX/img/uploaded-asset-1776467236635-1.jpeg"
+            alt=""
+            className="logo-dark absolute inset-0 w-full h-full object-contain scale-[1.28]"
+          />
+        </div>
+      </div>
+      <p className="text-[11px] font-sans text-center" style={{ color: mutedText }}>
+        One atlas for every country, free to read.
+      </p>
+    </div>
+  );
+}
+
 function QuarterTracker({
   isLight,
   cardBg,
@@ -5980,38 +6049,16 @@ export function DashboardPage() {
             </div>
             </div>
 
-            {/* A face for the catalogue: one flag from each inhabited
-                continent, so the welcome shows the community it covers rather
-                than only naming a count. Images from flagcdn, which the rest
-                of the site already uses - the regional-indicator emoji render
-                as bare letters on Windows. */}
-            <div className="shrink-0 lg:max-w-[300px]">
-              <div className="flex flex-wrap gap-1.5 lg:justify-end">
-                {["za", "br", "jp", "de", "in", "us", "ng", "au", "mx", "eg", "fr", "id"].map(
-                  (cc) => (
-                    <img
-                      key={cc}
-                      src={`https://flagcdn.com/w40/${cc}.png`}
-                      srcSet={`https://flagcdn.com/w80/${cc}.png 2x`}
-                      width={30}
-                      height={20}
-                      loading="lazy"
-                      decoding="async"
-                      alt=""
-                      aria-hidden
-                      className="h-5 w-auto rounded-[2px] shrink-0"
-                      style={{ border: "1px solid rgba(128,128,128,0.35)" }}
-                    />
-                  ),
-                )}
-              </div>
-              <p
-                className="text-[11px] font-sans mt-2 lg:text-right"
-                style={{ color: mutedText }}
-              >
-                One atlas for every country, free to read.
-              </p>
-            </div>
+            {/* A face for the catalogue: flags from every inhabited
+                continent, circling the site's own globe, so the welcome shows
+                the community it covers rather than only naming a count.
+                Images from flagcdn, which the rest of the site already uses -
+                the regional-indicator emoji render as bare letters on
+                Windows. The ring turns once a minute and each flag turns back
+                the other way at the same rate, so they orbit without ever
+                tipping over; it holds still for a reader who has asked for
+                reduced motion. */}
+            <FlagOrbit mutedText={mutedText} />
           </div>
         </div>
 
