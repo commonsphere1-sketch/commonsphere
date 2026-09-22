@@ -312,11 +312,12 @@ function CurrencyConverter() {
     label: `${c} — ${CURRENCY_NAMES[c] ?? c}`,
   }));
 
+  const ACCENT = "#3fa9b5";
   return (
     <div className="bg-card border border-border rounded-2xl p-5 mb-6">
       <div className="flex items-center gap-2 mb-4">
-        <div className="p-1.5 rounded-lg bg-secondary/20">
-          <ArrowsLeftRight size={16} weight="fill" className="text-secondary" />
+        <div className="p-1.5 rounded-lg" style={{ background: `color-mix(in srgb, ${ACCENT} 12%, transparent)` }}>
+          <ArrowsLeftRight size={16} weight="fill" style={{ color: ACCENT }} />
         </div>
         <div>
           <p className="text-sm font-semibold font-sans text-foreground leading-tight">
@@ -334,7 +335,8 @@ function CurrencyConverter() {
                 setFromCur(p.from);
                 setToCur(p.to);
               }}
-              className={`text-[10px] font-mono px-2 py-0.5 rounded-full border transition-colors cursor-pointer ${fromCur === p.from && toCur === p.to ? "bg-secondary/20 border-secondary/40 text-secondary" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
+              className={`text-[10px] font-mono px-2 py-0.5 rounded-full border transition-colors cursor-pointer ${fromCur === p.from && toCur === p.to ? "border-border text-foreground" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
+              style={fromCur === p.from && toCur === p.to ? { background: `color-mix(in srgb, ${ACCENT} 12%, transparent)`, borderColor: `color-mix(in srgb, ${ACCENT} 38%, transparent)` } : undefined}
             >
               {p.from}/{p.to}
             </button>
@@ -349,7 +351,7 @@ function CurrencyConverter() {
             Amount
           </label>
           <div className="flex items-center gap-2 bg-background/60 border border-border rounded-xl px-3 py-2.5">
-            <span className="text-sm font-bold font-mono text-secondary shrink-0">
+            <span className="text-sm font-bold font-mono shrink-0" style={{ color: ACCENT }}>
               {fromSym}
             </span>
             <input
@@ -372,7 +374,18 @@ function CurrencyConverter() {
         {/* SWAP */}
         <button
           onClick={swap}
-          className="flex items-center justify-center w-9 h-9 rounded-full bg-muted border border-border text-muted-foreground hover:text-foreground hover:bg-secondary/20 hover:border-secondary/40 transition-all cursor-pointer self-end sm:self-auto mb-1 sm:mb-0 shrink-0"
+          className="flex items-center justify-center w-9 h-9 rounded-full bg-muted border border-border text-muted-foreground transition-all cursor-pointer self-end sm:self-auto mb-1 sm:mb-0 shrink-0"
+          style={{ "--accent-color": ACCENT } as React.CSSProperties & { "--accent-color": string }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = ACCENT;
+            e.currentTarget.style.backgroundColor = `color-mix(in srgb, ${ACCENT} 12%, transparent)`;
+            e.currentTarget.style.borderColor = `color-mix(in srgb, ${ACCENT} 38%, transparent)`;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "";
+            e.currentTarget.style.backgroundColor = "";
+            e.currentTarget.style.borderColor = "";
+          }}
           aria-label="Swap currencies"
         >
           <ArrowsLeftRight size={14} weight="bold" />
@@ -383,8 +396,8 @@ function CurrencyConverter() {
           <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
             Result
           </label>
-          <div className="flex items-center gap-2 bg-secondary/5 border border-secondary/20 rounded-xl px-3 py-2.5">
-            <span className="text-sm font-bold font-mono text-secondary shrink-0">
+          <div className="flex items-center gap-2 border border-border rounded-xl px-3 py-2.5" style={{ background: `color-mix(in srgb, ${ACCENT} 8%, transparent)`, borderColor: `color-mix(in srgb, ${ACCENT} 25%, transparent)` }}>
+            <span className="text-sm font-bold font-mono shrink-0" style={{ color: ACCENT }}>
               {toSym}
             </span>
             <span className="flex-1 text-sm font-mono font-bold text-foreground min-w-0 truncate">
