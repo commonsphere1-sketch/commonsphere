@@ -1141,7 +1141,7 @@ const COMPARE_EXTRAS: CompareRow[] = [
     label: "GDP, total",
     higherIsBetter: true,
     format: (v) =>
-      v >= 1000 ? `$${(v / 1000).toFixed(2)}T` : `$${Math.round(v)}B`,
+      v >= 1000 ? `${(v / 1000).toFixed(2)}T` : v >= 1 ? `${Math.round(v)}B` : `${Math.round(v * 1000)}M`,
     neutral: true,
   },
   {

@@ -171,7 +171,7 @@ function CountryCarousel({
   // Marker positions: left pillar at right edge of card 5, right pillar symmetric
 
   const fmtGDPShort = (b: number) =>
-    b >= 1000 ? `$${(b / 1000).toFixed(1)}T` : `$${Math.round(b)}B`;
+    b >= 1000 ? `${(b / 1000).toFixed(1)}T` : b >= 1 ? `${Math.round(b)}B` : `${Math.round(b * 1000)}M`;
 
   const fmtPopShort = (n: number) => {
     if (n >= 1e9) return `${(n / 1e9).toFixed(1)}B`;
@@ -445,7 +445,7 @@ function StatesCarousel({
   const viewportWidth = cardWidth > 0 ? cardWidth * VISIBLE - GAP : null;
 
   const fmtGDP = (b: number) =>
-    b >= 1000 ? `$${(b / 1000).toFixed(1)}T` : `$${Math.round(b)}B`;
+    b >= 1000 ? `${(b / 1000).toFixed(1)}T` : b >= 1 ? `${Math.round(b)}B` : `${Math.round(b * 1000)}M`;
 
   const fmtPop = (n: number) => {
     if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
@@ -688,7 +688,7 @@ function StatesCarousel({
 
 /* ─── Helpers ──────────────────────────────────────────────────────────── */
 const fmtB = (n: number) =>
-  n >= 1000 ? `$${(n / 1000).toFixed(1)}T` : `$${n.toFixed(0)}B`;
+  n >= 1000 ? `${(n / 1000).toFixed(1)}T` : n >= 1 ? `${n.toFixed(0)}B` : `${Math.round(n * 1000)}M`;
 
 /* ─── Static data ──────────────────────────────────────────────────────── */
 // World Bank, GDP (current US$), world aggregate, in trillions. The series
@@ -3591,7 +3591,7 @@ function InteractiveDataPanel({
     TAB_CONFIG.find((t) => t.id === activeTab)?.color ?? "#6366f1";
 
   const fmtGDPShort = (b: number) =>
-    b >= 1000 ? `$${(b / 1000).toFixed(1)}T` : `$${Math.round(b)}B`;
+    b >= 1000 ? `${(b / 1000).toFixed(1)}T` : b >= 1 ? `${Math.round(b)}B` : `${Math.round(b * 1000)}M`;
 
   return (
     <div
@@ -5618,7 +5618,7 @@ function FocusCarousel({
     "w-full rounded-lg px-2.5 py-1.5 text-[11px] font-sans bg-transparent focus:outline-none";
 
   const fmtGDPShort = (b: number) =>
-    b >= 1000 ? `$${(b / 1000).toFixed(1)}T` : `$${Math.round(b)}B`;
+    b >= 1000 ? `${(b / 1000).toFixed(1)}T` : b >= 1 ? `${Math.round(b)}B` : `${Math.round(b * 1000)}M`;
   const hdiColor = (h: number) =>
     !has(h) ? "#9ca3af" : h >= 0.8 ? "#10b981" : h >= 0.65 ? "#f59e0b" : "#ef4444";
 

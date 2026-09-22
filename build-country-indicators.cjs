@@ -26,7 +26,11 @@
  *                               kept may still be an IMF estimate.
  *   UN World Population Prospects 2024 (via Our World in Data)
  *                               population, as the sum of the UN's five-year
- *                               age groups for its latest estimate year.
+ *                               age groups for its latest estimate year, and
+ *                               life expectancy at birth.
+ *   CIA World Factbook          GDP at the official exchange rate, real growth
+ *                               and inflation, for the few places no
+ *                               statistical agency covers (see FACTBOOK).
  *
  * Where none of the three publishes a figure, there is no entry and
  * countriesData blanks the field rather than keep a hand-written number.
@@ -116,6 +120,101 @@ async function wppPopulation() {
   return out;
 }
 
+/** UN WPP 2024 life expectancy at birth, both sexes, iso3 → { v, year }. */
+async function wppLifeExpectancy() {
+  const at = path.join(CACHE, "wpp-life.csv");
+  if (!fs.existsSync(at)) {
+    const res = await fetch("https://ourworldindata.org/grapher/life-expectancy.csv?v=1&csvType=full&useColumnShortNames=true", { headers: { "User-Agent": UA } });
+    if (!res.ok) throw new Error("OWID life expectancy: HTTP " + res.status);
+    fs.writeFileSync(at, await res.text());
+  }
+  const lines = fs.readFileSync(at, "utf8").trim().split(/\r?\n/).map((l) => l.split(","));
+  const head = lines[0];
+  const ci = head.indexOf("code"), yi = head.indexOf("year");
+  const vi = head.findIndex((h) => /life_expectancy/.test(h));
+  if (ci < 0 || yi < 0 || vi < 0) throw new Error("OWID life expectancy: unexpected columns " + head.join("|"));
+  const out = {};
+  for (const r of lines.slice(1)) {
+    if (!r[ci] || r[ci].startsWith("OWID_") || r[vi] === "") continue;
+    if (!out[r[ci]] || +r[yi] > +out[r[ci]].year) out[r[ci]] = { v: Number(r[vi]), year: r[yi] };
+  }
+  return out;
+}
+
+/**
+ * The CIA World Factbook, for the few places no statistical agency covers.
+ *
+ * The Factbook is public domain and is already this site's source for
+ * religions and languages. It is tried last, because its figures are
+ * estimates rather than national accounts, and only for the fields where it
+ * states a basis the site can use as-is: GDP at the official exchange rate
+ * (not the PPP series, which is in 2015 dollars and would not compare with
+ * the World Bank's current-dollar GDP for every other country), the real
+ * growth rate, and consumer price inflation.
+ *
+ * Paths are the Factbook's own GEC codes, which are not ISO: Cook Islands is
+ * "cw" and Cocos (Keeling) Islands is "ck". Each file is checked to name the
+ * country expected before anything is taken from it.
+ */
+const FACTBOOK = {
+  CK: { path: "australia-oceania/cw", name: "Cook Islands" },
+  NU: { path: "australia-oceania/ne", name: "Niue" },
+  KP: { path: "east-n-southeast-asia/kn", name: "North Korea" },
+};
+
+const money = (t) => {
+  const m = /\$([\d.,]+)\s*(trillion|billion|million)?/i.exec(t);
+  if (!m) return null;
+  const n = Number(m[1].replace(/,/g, ""));
+  if (!Number.isFinite(n)) return null;
+  const unit = (m[2] || "").toLowerCase();
+  return unit === "trillion" ? n * 1000 : unit === "billion" ? n : unit === "million" ? n / 1000 : n / 1e9;
+};
+const pct = (t) => {
+  const m = /(-?[\d.]+)\s*%/.exec(t);
+  return m ? Number(m[1]) : null;
+};
+const yearOf = (t) => {
+  const m = /\((\d{4})/.exec(t);
+  return m ? m[1] : null;
+};
+/** The most recent "Field YYYY" sub-entry the Factbook lists. */
+const latestSub = (node) => {
+  if (!node) return null;
+  if (node.text) return node.text;
+  const keys = Object.keys(node).filter((k) => /\d{4}$/.test(k)).sort().reverse();
+  return keys.length ? node[keys[0]].text : null;
+};
+
+async function factbookFigures() {
+  const out = {};
+  for (const [code, spec] of Object.entries(FACTBOOK)) {
+    const at = path.join(CACHE, `factbook-${code}.json`);
+    if (!fs.existsSync(at)) {
+      const res = await fetch(`https://raw.githubusercontent.com/factbook/factbook.json/master/${spec.path}.json`, { headers: { "User-Agent": UA } });
+      if (!res.ok) throw new Error(`Factbook ${code}: HTTP ${res.status}`);
+      fs.writeFileSync(at, await res.text());
+    }
+    const j = JSON.parse(fs.readFileSync(at, "utf8"));
+    const got = j?.Government?.["Country name"]?.["conventional short form"]?.text;
+    if (got !== spec.name) throw new Error(`Factbook ${code}: file names "${got}", expected "${spec.name}"`);
+    const E = j.Economy || {};
+    const take = (node, parse) => {
+      const text = latestSub(node);
+      if (!text) return null;
+      const v = parse(text), y = yearOf(text);
+      return v !== null && y ? { v, year: y } : null;
+    };
+    const fig = {
+      gdp: take(E["GDP (official exchange rate)"], money),
+      gdpGrowth: take(E["Real GDP growth rate"], pct),
+      inflationRate: take(E["Inflation rate (consumer prices)"], pct),
+    };
+    out[code] = Object.fromEntries(Object.entries(fig).filter(([, v]) => v));
+  }
+  return out;
+}
+
 /** Codes the World Bank's country list does not carry, as the IMF and UN write them. */
 const EXTRA_ISO3 = { TW: "TWN", EH: "ESH", CK: "COK", NU: "NIU" };
 
@@ -163,6 +262,8 @@ async function latest(code) {
   const imfSeries = {};
   for (const [field, spec] of Object.entries(IMF)) imfSeries[field] = await imf(spec.code);
   const wpp = await wppPopulation();
+  const wppLife = await wppLifeExpectancy();
+  const factbook = await factbookFigures();
   const iso3 = { ...EXTRA_ISO3 };
   {
     const at = path.join(CACHE, "wb-countries.json");
@@ -218,6 +319,16 @@ async function latest(code) {
         parts.push(`population: { v: ${Math.round(wpp[i3].v)}, y: "${wpp[i3].year}", s: "wpp" }`);
         fallbacks.push(`${c.code} population WPP ${wpp[i3].year}`);
       }
+      if (!has("lifeExpectancy") && wppLife[i3]) {
+        parts.push(`lifeExpectancy: { v: ${round(wppLife[i3].v)}, y: "${wppLife[i3].year}", s: "wpp" }`);
+        fallbacks.push(`${c.code} lifeExpectancy WPP ${wppLife[i3].year}`);
+      }
+    }
+    /* Last resort, and only for the handful in FACTBOOK. */
+    for (const [field, hit] of Object.entries(factbook[c.code] || {})) {
+      if (has(field)) continue;
+      parts.push(`${field}: { v: ${round(hit.v)}, y: "${hit.year}", s: "factbook" }`);
+      fallbacks.push(`${c.code} ${field} Factbook ${hit.year}`);
     }
     if (parts.length) rows.push(`  ${c.code}: { ${parts.join(", ")} },`);
   }
@@ -255,6 +366,7 @@ ${Object.entries(FIELDS)
 export const COUNTRY_INDICATOR_FALLBACKS = {
   imf: { label: "IMF — World Economic Outlook", url: "https://www.imf.org/external/datamapper/" },
   wpp: { label: "UN — World Population Prospects 2024 (via Our World in Data)", url: "https://population.un.org/wpp/" },
+  factbook: { label: "CIA World Factbook (public domain)", url: "https://www.cia.gov/the-world-factbook/" },
 };
 
 export const COUNTRY_INDICATORS_SOURCE = {
@@ -264,7 +376,7 @@ export const COUNTRY_INDICATORS_SOURCE = {
 };
 
 /** A figure and the year it is for. */
-export type Measured = { v: number; y: string; s?: "imf" | "wpp" };
+export type Measured = { v: number; y: string; s?: "imf" | "wpp" | "factbook" };
 
 export type CountryIndicators = Partial<{
 ${Object.keys(FIELDS)

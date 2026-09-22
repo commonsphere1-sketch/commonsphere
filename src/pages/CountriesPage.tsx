@@ -85,12 +85,24 @@ const SRC_CONSTITUTION = [
   { label: "Constitute Project", url: "https://www.constituteproject.org/" },
 ];
 
-// Format GDP: show B for < 1T, T for >= 1T
+/* Format GDP: trillions, billions, or millions.
+   Small economies are the reason for the last case - the Cook Islands'
+   $0.409bn rounded to "$0B" and Niue's to nothing at all, which reads as no
+   economy rather than a small one. */
 function fmtGDP(billionsUSD: number): string {
   if (billionsUSD >= 1000)
     return `$${(billionsUSD / 1000).toFixed(2).replace(/\.?0+$/, "")}T`;
   if (billionsUSD >= 1) return `$${Math.round(billionsUSD)}B`;
-  return `<$1B`;
+  if (billionsUSD >= 0.001) return `$${Math.round(billionsUSD * 1000)}M`;
+  return `$${Math.round(billionsUSD * 1e9).toLocaleString()}`;
+}
+
+/* Area in whichever unit keeps it readable. Fixed at millions, every small
+   country read "0.00M km²": the Cook Islands' 236 km² and Monaco's 2 are not
+   the same as nothing. */
+function fmtArea(km2: number): string {
+  if (km2 >= 1e6) return `${(km2 / 1e6).toFixed(2)}M km²`;
+  return `${Math.round(km2).toLocaleString()} km²`;
 }
 
 // Format population: show K for < 1M, M for >= 1M, B for >= 1B
@@ -453,7 +465,7 @@ function CountryModal({
                   <div className="flex items-center gap-2">
                     <span className="text-muted-foreground">Area:</span>
                     <span className="font-semibold text-foreground font-mono">
-                      {(country.areaKm2 / 1e6).toFixed(2)}M km²
+                      {fmtArea(country.areaKm2)}
                     </span>
                   </div>
                   <div className="w-px h-4 bg-border shrink-0" />
@@ -662,7 +674,7 @@ function CountryModal({
                     {[
                       {
                         label: "Total Area",
-                        value: `${(country.areaKm2 / 1e6).toFixed(2)}M km²`,
+                        value: `${fmtArea(country.areaKm2)}`,
                         sub: "land + water",
                         color: "text-foreground",
                       },
@@ -16220,7 +16232,7 @@ const SNAPSHOT_SPECS: {
     field: "tradeBalance",
     get: (c) => c.tradeBalance,
     best: "max",
-    fmt: (v) => `$${Math.round(v).toLocaleString()}B`,
+    fmt: (v) => (v >= 1 ? `${Math.round(v).toLocaleString()}B` : `${Math.round(v * 1000).toLocaleString()}M`),
   },
 ];
 
