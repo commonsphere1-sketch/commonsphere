@@ -7102,6 +7102,19 @@ function shortPeriod(y: string): string {
   return m ? `${m[1].slice(0, 3)} ${m[2]}` : y;
 }
 
+/** One accent per snapshot tile, as on the Countries page; the shared
+ *  measures (population, economy, unemployment) use the same colours there. */
+const STATE_SNAPSHOT_ACCENTS: Record<string, string> = {
+  "Most populous": "#6f8fe0",
+  "Largest economy": "#4fa37a",
+  "Top income per person": "#c79232",
+  "Top median household income": "#3fa9b5",
+  "Lowest unemployment": "#c0773c",
+  "Lowest poverty rate": "#d0677e",
+  "Most degree holders": "#9a7ad6",
+  "Lowest imprisonment": "#5a9e4b",
+};
+
 function StateSnapshot() {
   const picks = STATE_SNAPSHOT.map((spec) => {
     const rows = usStatesData
@@ -7133,13 +7146,21 @@ function StateSnapshot() {
           longer than country names (Massachusetts, Connecticut) and beside a
           six-figure income they truncated at sm widths. */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
-        {picks.map(({ spec, winners, value, year }) => (
+        {picks.map(({ spec, winners, value, year }) => {
+          const accent = STATE_SNAPSHOT_ACCENTS[spec.label] ?? "#8b8fa3";
+          const ink = `color-mix(in srgb, ${accent} 72%, var(--color-foreground))`;
+          return (
           <div
             key={spec.label}
-            className="rounded-lg border border-border/60 bg-muted/30 px-2.5 py-2"
+            className="rounded-lg px-2.5 py-2"
+            style={{
+              background: `color-mix(in srgb, ${accent} 12%, transparent)`,
+              border: `1px solid color-mix(in srgb, ${accent} 38%, transparent)`,
+              borderLeft: `3px solid ${accent}`,
+            }}
           >
             <div className="flex items-baseline justify-between gap-1.5">
-              <span className="text-[10px] text-muted-foreground font-sans truncate" title={spec.label}>
+              <span className="text-[10px] font-sans font-medium truncate" style={{ color: ink }} title={spec.label}>
                 {spec.label}
               </span>
               <span className="text-[9px] font-mono text-muted-foreground shrink-0">
@@ -7158,12 +7179,13 @@ function StateSnapshot() {
                   ? `${winners.length} states tie`
                   : winners.map((w) => w.s.name).join(" & ")}
               </span>
-              <span className="text-xs font-bold font-mono text-foreground shrink-0">
+              <span className="text-xs font-bold font-mono shrink-0" style={{ color: ink }}>
                 {spec.fmt(value)}
               </span>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
       <SourceLink sources={picks.map((p) => p.spec.source)} className="mt-2" />
     </div>

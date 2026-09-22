@@ -5403,10 +5403,12 @@ const range = (q: QuarterInfo) =>
  * distinguishable without turning the card into a paintbox.
  */
 const SEASONS = [
-  { name: "Winter", accent: "#4f83cc", inkLight: "#1b3a63", inkDark: "#cfe2ff" },
-  { name: "Spring", accent: "#4f9d69", inkLight: "#17402d", inkDark: "#cfeddb" },
-  { name: "Summer", accent: "#c79232", inkLight: "#54390a", inkDark: "#f7e4b6" },
-  { name: "Autumn", accent: "#c0653c", inkLight: "#5b2811", inkDark: "#f8d8c6" },
+  // bright: a clearer, more saturated version of the accent, for the
+  // progress bar, where the muted accents ran together into a muddy brown.
+  { name: "Winter", accent: "#4f83cc", bright: "#6fa8ff", inkLight: "#1b3a63", inkDark: "#cfe2ff" },
+  { name: "Spring", accent: "#4f9d69", bright: "#4cc48a", inkLight: "#17402d", inkDark: "#cfeddb" },
+  { name: "Summer", accent: "#c79232", bright: "#f6c343", inkLight: "#54390a", inkDark: "#f7e4b6" },
+  { name: "Autumn", accent: "#c0653c", bright: "#f27a54", inkLight: "#5b2811", inkDark: "#f8d8c6" },
 ] as const;
 
 /** Local midnight for an ISO yyyy-mm-dd, so nothing shifts by a time zone. */
@@ -5628,9 +5630,10 @@ function QuarterTracker({
               className="h-full rounded-full transition-all duration-700"
               style={{
                 width: `${pct}%`,
-                background: `linear-gradient(90deg, ${SEASONS[current.index].accent} 0%, ${
-                  SEASONS[(current.index + 1) % 4].accent
+                background: `linear-gradient(90deg, ${SEASONS[current.index].bright} 0%, ${
+                  SEASONS[(current.index + 1) % 4].bright
                 } 100%)`,
+                boxShadow: `0 0 10px ${SEASONS[(current.index + 1) % 4].bright}55`,
               }}
             />
           </div>
@@ -5679,21 +5682,20 @@ function QuarterTracker({
             aria-expanded={diaryOpen}
             className="w-full text-left px-4 py-3 flex flex-wrap items-center gap-x-3 gap-y-2 cursor-pointer"
             style={{
-              background: tint(accent),
               borderBottom: diaryOpen ? `1px solid ${gridLine}` : "none",
             }}
           >
-            <span className="text-sm font-bold font-sans" style={{ color: ink }}>
+            <span className="text-sm font-bold font-sans" style={{ color: headText }}>
               Q{selected + 1} {CALENDAR_YEAR} · scheduled conferences and events
             </span>
-            <span className="text-[11px] font-sans" style={{ color: ink, opacity: 0.85 }}>
+            <span className="text-[11px] font-sans" style={{ color: mutedText }}>
               {diaryOpen
                 ? `${shown.length} of ${byQuarter[selected].length} shown`
                 : `${byQuarter[selected].length} entries`}
             </span>
             <span
               className="text-[10px] font-sans uppercase tracking-wider ml-auto"
-              style={{ color: ink, opacity: 0.85 }}
+              style={{ color: mutedText }}
             >
               {diaryOpen ? "Hide" : "Show"}
             </span>
