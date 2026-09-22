@@ -5468,14 +5468,15 @@ const ROW_FIGURES: React.CSSProperties = {
  * what the site covers, so the images are aria-hidden.
  */
 function FlagOrbit({ mutedText }: { mutedText: string }) {
-  /* Twenty flags at 24px each fill a circumference of about 500px, so the
-     band closes up without the flags overlapping. Ordered to spread the
+  /* Twenty-eight flags at 24px each fill a circumference of about 670px, so
+     the band closes up without the flags overlapping. Ordered to spread the
      continents around the ring rather than clump them. */
   const FLAGS = [
     "za", "br", "jp", "de", "in", "us", "ng", "au", "mx", "eg",
     "fr", "id", "ca", "cn", "ar", "ke", "it", "kr", "sa", "gb",
+    "pe", "vn", "pl", "et", "cl", "th", "es", "ma",
   ];
-  const SIZE = 200;
+  const SIZE = 250;
   const RADIUS = SIZE / 2 - 14;
   const SPIN = "60s";
 
@@ -5514,7 +5515,7 @@ function FlagOrbit({ mutedText }: { mutedText: string }) {
         </div>
         {/* The globe sits outside the turning band, so it simply holds
             still - nothing to undo. */}
-        <div className="absolute left-1/2 top-1/2 w-16 h-16 -translate-x-1/2 -translate-y-1/2 rounded-full overflow-hidden">
+        <div className="absolute left-1/2 top-1/2 w-32 h-32 -translate-x-1/2 -translate-y-1/2 rounded-full overflow-hidden">
           <img
             src="https://c.animaapp.com/mnv7exnwOzX3vX/img/uploaded-asset-1776467236633-0.jpeg"
             alt=""
@@ -5979,20 +5980,20 @@ export function DashboardPage() {
         {/* ── HERO ──────────────────────────────────────────────────────── */}
         <div
           className="rounded-2xl relative overflow-hidden"
+          /* Black and white in both themes: the flags are the only colour
+             here, and a tinted card was competing with them. */
           style={{
-            background: isLight
-              ? "linear-gradient(130deg, #dbeafe 0%, #e0e7ff 60%, #d1fae5 100%)"
-              : "linear-gradient(130deg, #0f1535 0%, #0b0b14 50%, #0c1a0e 100%)",
+            background: isLight ? "#ffffff" : "#0b0b0d",
             border: isLight
-              ? "1px solid rgba(99,102,241,0.18)"
-              : "1px solid rgba(99,102,241,0.15)",
+              ? "1px solid rgba(0,0,0,0.12)"
+              : "1px solid rgba(255,255,255,0.12)",
           }}
         >
           {/* dot-grid background */}
           <div
-            className="absolute inset-0 pointer-events-none opacity-[0.035]"
+            className="absolute inset-0 pointer-events-none opacity-[0.05]"
             style={{
-              backgroundImage: `radial-gradient(circle, ${isLight ? "#4f46e5" : "#818cf8"} 1px, transparent 1px)`,
+              backgroundImage: `radial-gradient(circle, ${isLight ? "#000000" : "#ffffff"} 1px, transparent 1px)`,
               backgroundSize: "32px 32px",
             }}
           />
@@ -6003,7 +6004,7 @@ export function DashboardPage() {
             <div>
             <p
               className="text-[10px] font-mono uppercase tracking-widest mb-1"
-              style={{ color: isLight ? "#4f46e5" : "#818cf8" }}
+              style={{ color: mutedText }}
             >
               CommonSphere · Global Intelligence
             </p>
@@ -6018,8 +6019,7 @@ export function DashboardPage() {
               style={{ color: mutedText }}
             >
               A free atlas of how the world is doing — countries, economies,
-              climate and conflict, side by side. Start anywhere below, or jump
-              straight in.
+              climate and conflict, side by side. Start anywhere below.
             </p>
 
             {/* What is actually in here, counted from the data rather than
@@ -6033,27 +6033,6 @@ export function DashboardPage() {
               and the year it refers to
             </p>
 
-            <div className="flex flex-wrap gap-2 mt-4">
-              {[
-                { label: "Compare countries", to: "/dashboard/rankings", icon: Scales },
-                { label: "Explore the maps", to: "/dashboard/maps", icon: MapTrifold },
-                { label: "Browse economies", to: "/dashboard/economies", icon: Bank },
-              ].map(({ label, to, icon: Icon }) => (
-                <button
-                  key={to}
-                  onClick={() => navigate(to)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium font-sans transition-colors cursor-pointer"
-                  style={{
-                    background: isLight ? "rgba(255,255,255,0.72)" : "rgba(255,255,255,0.08)",
-                    border: `1px solid ${isLight ? "rgba(79,70,229,0.22)" : "rgba(129,140,248,0.28)"}`,
-                    color: headText,
-                  }}
-                >
-                  <Icon size={13} weight="bold" style={{ color: isLight ? "#4f46e5" : "#818cf8" }} />
-                  {label}
-                </button>
-              ))}
-            </div>
             </div>
 
             {/* A face for the catalogue: flags from every inhabited
