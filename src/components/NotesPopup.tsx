@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect,} from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useMutation } from "@animaapp/playground-react-sdk";
 import {
   sanitizeText,
@@ -6,6 +6,8 @@ import {
   validateNotePayload,
   LIMITS,
 } from "../lib/security";
+import { countriesData } from "../data/countriesData";
+import { usStatesData } from "../data/statesData";
 import {
   NotePencil,
   X,
@@ -29,6 +31,41 @@ export function NotesPopup() {
   const [content, setContent] = useState("");
   const [entityName, setEntityName] = useState("");
   const [entityType, setEntityType] = useState("");
+  /* The place locked in on the dashboard first, then anything pinned. Read
+     when the popup opens rather than once at mount, so a country followed a
+     moment ago is already here. Same localStorage keys the dashboard
+     carousel and the pinned strip write. */
+  const savedPlaces = useMemo(() => {
+    if (!open) return [];
+    const read = (key: string): string[] => {
+      try {
+        const raw = localStorage.getItem(key);
+        const ids = raw ? JSON.parse(raw) : [];
+        return Array.isArray(ids) ? ids : [];
+      } catch {
+        return [];
+      }
+    };
+    let focus: { kind?: string; id?: string } = {};
+    try {
+      focus = JSON.parse(localStorage.getItem("cs_focus") ?? "{}") ?? {};
+    } catch {
+      focus = {};
+    }
+    const out: { name: string; type: string; followed: boolean }[] = [];
+    const push = (name: string | undefined, type: string, followed: boolean) => {
+      if (name && !out.some((p) => p.name === name)) out.push({ name, type, followed });
+    };
+    if (focus.id) {
+      const pool = focus.kind === "state" ? usStatesData : countriesData;
+      push(pool.find((x) => x.id === focus.id)?.name, focus.kind === "state" ? "State" : "Country", true);
+    }
+    for (const id of read("cs_pinned_countries"))
+      push(countriesData.find((c) => c.id === id)?.name, "Country", false);
+    for (const id of read("cs_pinned_states"))
+      push(usStatesData.find((s) => s.id === id)?.name, "State", false);
+    return out.slice(0, 8);
+  }, [open]);
   const [linkInput, setLinkInput] = useState("");
   const [links, setLinks] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -243,13 +280,51 @@ export function NotesPopup() {
             <div className="flex items-center gap-1.5 px-2 py-1 bg-secondary/10 border border-secondary/20 rounded text-[10px] font-sans text-secondary">
               <span className="opacity-70">{entityType || "Entity"}:</span>
               <span className="font-semibold">{entityName}</span>
+              <button
+                onClick={() => {
+                  setEntityName("");
+                  setEntityType("");
+                }}
+                className="ml-auto opacity-60 hover:opacity-100"
+                aria-label="Clear the place this note is about"
+              >
+                <X size={9} weight="bold" />
+              </button>
+            </div>
+          )}
+
+          {/* The places the reader already follows or pinned, so a note can
+              be attached to one without typing it. Opened from a country
+              page the entity is already set, but the popup is also opened
+              from the corner of any page, where it is not. */}
+          {!entityName && savedPlaces.length > 0 && (
+            <div>
+              <p className="text-[10px] font-sans text-muted-foreground mb-1">
+                About one of yours?
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {savedPlaces.map((p) => (
+                  <button
+                    key={`${p.type}-${p.name}`}
+                    onClick={() => {
+                      setEntityName(p.name);
+                      setEntityType(p.type);
+                    }}
+                    className="px-2 py-0.5 rounded-full border border-border/60 text-[10px] font-sans text-muted-foreground hover:text-foreground hover:border-secondary/40 transition-colors"
+                  >
+                    {p.followed ? "★ " : ""}
+                    {p.name}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Title (optional)…"
+            placeholder="Name my file…"
+            aria-label="Name my file"
             maxLength={LIMITS.NOTE_TITLE}
             className="modal-tile border border-border/60 rounded px-2.5 py-1.5 text-xs font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-secondary/50 w-full"
           />

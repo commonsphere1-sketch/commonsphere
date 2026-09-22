@@ -5500,9 +5500,12 @@ function pinAlso(key: string, id: string) {
  * the place you follow.
  *
  * Kept to a single card rather than a row because the point is to choose,
- * not to browse - a row invites scanning, one card invites a decision. The
- * choice is stored on the device, so it survives a guest session and is
- * there when an account is made on the same browser.
+ * not to browse. It turns over by itself until a choice is made - a still
+ * card of Afghanistan reads as a list that failed to load - and stops for
+ * good once something is locked in, or for as long as the reader is
+ * hovering, typing or tabbed into it. The choice is stored on the device, so
+ * it survives a guest session and is there when an account is made in the
+ * same browser.
  */
 function FocusCarousel({
   mutedText,
@@ -5522,10 +5525,11 @@ function FocusCarousel({
   /* The card tracks WHICH place is showing, not its position in the list.
      Other pages sort the shared countriesData/usStatesData arrays for their
      own use, so a stored index quietly comes to point at a different place;
-     an id does not. It also opens on the reader's own choice rather than at
-     the top of the alphabet. */
+     an id does not. */
   const [curId, setCurId] = useState<string | null>(saved?.id ?? null);
   const [focus, setFocus] = useState<Focus | null>(saved);
+  const [paused, setPaused] = useState(false);
+  const [query, setQuery] = useState("");
 
   /* Alphabetical, so paging through has an order the reader can predict. */
   const countries = useMemo(
@@ -5549,7 +5553,22 @@ function FocusCarousel({
   const switchKind = (k: "country" | "state") => {
     setKind(k);
     setCurId(focus?.kind === k ? focus.id : null);
+    setQuery("");
   };
+
+  /* Turns over on its own until something is locked in. Reads the live list
+     through a ref-free functional update so the interval never closes over a
+     stale index. */
+  useEffect(() => {
+    if (focus || paused) return;
+    const t = setInterval(() => {
+      setCurId((id) => {
+        const pos = Math.max(0, list.findIndex((x) => x.id === id));
+        return list[(pos + 1) % list.length].id;
+      });
+    }, 3200);
+    return () => clearInterval(t);
+  }, [focus, paused, list]);
 
   const lockIn = () => {
     const next: Focus = { kind, id: item.id };
@@ -5562,6 +5581,15 @@ function FocusCarousel({
     pinAlso(kind === "country" ? LS_PINNED_COUNTRIES : LS_PINNED_STATES, item.id);
   };
 
+  const unlock = () => {
+    setFocus(null);
+    try {
+      localStorage.removeItem(LS_FOCUS);
+    } catch {
+      /* ignored */
+    }
+  };
+
   const openItem = () =>
     onOpen(
       kind === "country"
@@ -5569,11 +5597,23 @@ function FocusCarousel({
         : `/dashboard/states?open=${item.id}`,
     );
 
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    const starts = list.filter((x) => x.name.toLowerCase().startsWith(q));
+    const rest = list.filter(
+      (x) => !x.name.toLowerCase().startsWith(q) && x.name.toLowerCase().includes(q),
+    );
+    return [...starts, ...rest].slice(0, 6);
+  }, [query, list]);
+
   const line = isLight ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.14)";
   const chip = (on: boolean) =>
     `px-2.5 py-1 rounded-full text-[11px] font-sans transition-colors cursor-pointer ${
       on ? "chip-selected" : "hover:opacity-80"
     }`;
+  const field =
+    "w-full rounded-lg px-2.5 py-1.5 text-[11px] font-sans bg-transparent focus:outline-none";
 
   const fmtGDPShort = (b: number) =>
     b >= 1000 ? `$${(b / 1000).toFixed(1)}T` : `$${Math.round(b)}B`;
@@ -5674,18 +5714,13 @@ function FocusCarousel({
         {role === "cur" && (
           <button
             type="button"
-            onClick={lockIn}
-            disabled={isLocked}
-            className={`w-full py-1.5 text-[11px] font-semibold font-sans ${
-              isLocked ? "cursor-default" : "chip-selected cursor-pointer"
+            onClick={isLocked ? unlock : lockIn}
+            className={`w-full py-1.5 text-[11px] font-semibold font-sans cursor-pointer ${
+              isLocked ? "" : "chip-selected"
             }`}
-            style={
-              isLocked
-                ? { borderTop: `1px solid ${line}`, color: mutedText }
-                : { borderRadius: 0 }
-            }
+            style={isLocked ? { borderTop: `1px solid ${line}`, color: mutedText } : { borderRadius: 0 }}
           >
-            {isLocked ? "Following — you're set" : "Follow this one"}
+            {isLocked ? "Following — tap to change" : "Follow this one"}
           </button>
         )}
       </div>
@@ -5696,7 +5731,13 @@ function FocusCarousel({
   const next = list[(at + 1) % list.length];
 
   return (
-    <div className="shrink-0 self-center w-full lg:w-[400px]">
+    <div
+      className="shrink-0 self-center w-full lg:w-[400px]"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
+    >
       <div className="flex items-center gap-1.5 mb-2 justify-center">
         {(["country", "state"] as const).map((k) => (
           <button
@@ -5709,17 +5750,85 @@ function FocusCarousel({
             {k === "country" ? "Countries" : "US states"}
           </button>
         ))}
+
+        {/* Search sits with the tabs rather than under the deck: it is the
+            other way of choosing, so the two belong on the same line. */}
+        <div className="relative">
+          <div
+            className="flex items-center gap-1 pl-2 pr-1 rounded-full"
+            style={{ border: `1px solid ${line}` }}
+          >
+            <MagnifyingGlass size={11} style={{ color: mutedText }} />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && matches[0]) {
+                  setCurId(matches[0].id);
+                  setQuery("");
+                }
+              }}
+              placeholder="Search"
+              aria-label={kind === "country" ? "Search countries" : "Search states"}
+              className="w-20 focus:w-28 transition-[width] bg-transparent py-1 text-[11px] font-sans focus:outline-none"
+              style={{ color: headText }}
+            />
+          </div>
+          {matches.length > 0 && (
+            <ul
+              className="absolute z-20 left-0 mt-1 w-40 rounded-lg overflow-hidden py-1"
+              style={{
+                background: isLight ? "#fff" : "#15151a",
+                border: `1px solid ${line}`,
+                boxShadow: "0 8px 20px rgba(0,0,0,0.18)",
+              }}
+            >
+              {matches.map((m) => (
+                <li key={m.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurId(m.id);
+                      setQuery("");
+                    }}
+                    className="w-full text-left px-2.5 py-1.5 text-[11px] font-sans hover:opacity-80 cursor-pointer"
+                    style={{ color: headText }}
+                  >
+                    {m.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
-      {/* The deck: neighbours sit behind the centre card and half under it,
-          so paging feels like moving along a strip. They are buttons, so a
-          click on either side steps the deck that way. */}
-      <div className="relative h-[190px] flex items-center justify-center">
+      {/* The deck. Arrow keys step it, so a reader can run along the list
+          far faster than the card turns over by itself. */}
+      <div
+        className="relative h-[190px] flex items-center justify-center outline-none"
+        tabIndex={0}
+        role="group"
+        aria-label={kind === "country" ? "Choose a country to follow" : "Choose a state to follow"}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowRight") {
+            e.preventDefault();
+            step(1);
+          } else if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            step(-1);
+          } else if (e.key === "Enter") {
+            e.preventDefault();
+            lockIn();
+          }
+        }}
+      >
         <button
           type="button"
           onClick={() => step(-1)}
           aria-label={kind === "country" ? "Previous country" : "Previous state"}
-          className="absolute left-0 top-1/2 -translate-y-1/2 origin-center cursor-pointer"
+          className="absolute left-0 top-1/2 origin-center cursor-pointer"
           style={{ transform: "translate(-18%, -50%) scale(0.82)", opacity: 0.45, zIndex: 0 }}
         >
           <Card entry={prev} role="prev" />
@@ -5729,7 +5838,7 @@ function FocusCarousel({
           type="button"
           onClick={() => step(1)}
           aria-label={kind === "country" ? "Next country" : "Next state"}
-          className="absolute right-0 top-1/2 -translate-y-1/2 origin-center cursor-pointer"
+          className="absolute right-0 top-1/2 origin-center cursor-pointer"
           style={{ transform: "translate(18%, -50%) scale(0.82)", opacity: 0.45, zIndex: 0 }}
         >
           <Card entry={next} role="next" />
@@ -5748,10 +5857,11 @@ function FocusCarousel({
         </div>
       </div>
 
+
       <p className="text-[10px] font-sans mt-2 text-center" style={{ color: mutedText }}>
         {focus
           ? "Saved on this device — it carries over when you make an account."
-          : "Pick the place you care about and it stays on your dashboard."}
+          : "Turning until you pick one · arrow keys to move faster"}
       </p>
     </div>
   );
