@@ -1618,9 +1618,9 @@ export function WorldMapsPage() {
     return climate.data.rows
       .map((row) => {
         const p = worldPath.projection([row[2], row[3]]);
-        return p ? { x: p[0], y: p[1], zone: row[1] } : null;
+        return p ? { x: p[0], y: p[1], zone: row[1], name: row[0] } : null;
       })
-      .filter((p): p is { x: number; y: number; zone: ClimateZone } => p !== null);
+      .filter((p): p is { x: number; y: number; zone: ClimateZone; name: string } => p !== null);
   }, [climate.data, worldPath]);
 
   /* What the mineral layer actually holds, counted from the data rather than
@@ -1778,16 +1778,15 @@ export function WorldMapsPage() {
     return cityPoints.map((p) => dot(p.x, p.y, r)).join("");
   }, [cityPoints, worldZoom.zoom]);
 
-  const climateD = useMemo(() => {
+  const climateByZone = useMemo(() => {
     if (!climatePoints) return undefined;
-    const r = 3.4 / worldZoom.zoom;
-    const byZone: Partial<Record<ClimateZone, string>> = {};
+    const byZone: Partial<Record<ClimateZone, { x: number; y: number; name: string }[]>> = {};
     for (const zone of CLIMATE_ZONES) {
-      const d = climatePoints.filter((p) => p.zone === zone).map((p) => dot(p.x, p.y, r)).join("");
-      if (d) byZone[zone] = d;
+      const pts = climatePoints.filter((p) => p.zone === zone);
+      if (pts.length) byZone[zone] = pts;
     }
     return byZone;
-  }, [climatePoints, worldZoom.zoom]);
+  }, [climatePoints]);
 
   const zoom = focusZoom.zoom;
 
@@ -2092,12 +2091,14 @@ export function WorldMapsPage() {
     ) => (pts && pts.length ? pts.map((p) => shape(p.x, p.y, radius)).join("") : undefined);
     const mineSolid = focusOverlays.mines?.filter((p) => p.row[4] === 0) ?? [];
     const mineHollow = focusOverlays.mines?.filter((p) => p.row[4] === 1) ?? [];
-    const climateR = 3.4 / z;
-    const climateByZone: Partial<Record<ClimateZone, string>> = {};
+    const climateByZone: Partial<Record<ClimateZone, { x: number; y: number; name: string }[]>> = {};
     for (const zone of CLIMATE_ZONES) {
-      const pts = focusOverlays.climate?.filter((p) => p.row[1] === zone) ?? [];
-      const d = join(pts, dot, climateR);
-      if (d) climateByZone[zone] = d;
+      const pts = (focusOverlays.climate?.filter((p) => p.row[1] === zone) ?? []).map((p) => ({
+        x: p.x,
+        y: p.y,
+        name: p.row[0],
+      }));
+      if (pts.length) climateByZone[zone] = pts;
     }
     return {
       ports: join(focusOverlays.ports, box, 3.2 / z),
@@ -2329,6 +2330,22 @@ export function WorldMapsPage() {
               do not share a date. Most common:{" "}
               {mineSummary.top.map(([name, n]) => `${name} (${n})`).join(", ")}.
             </p>
+          )}
+          {layers.climate && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pl-3 pt-0.5">
+              {CLIMATE_ZONES.map((zone) => (
+                <span key={zone} className="flex items-center gap-1.5">
+                  <span
+                    aria-hidden
+                    className="w-2 h-2 rounded-full inline-block"
+                    style={{ background: CLIMATE_COLORS[zone] }}
+                  />
+                  <span className="text-[9px] font-sans text-muted-foreground capitalize">
+                    {zone}
+                  </span>
+                </span>
+              ))}
+            </div>
           )}
         </div>
     );
@@ -2735,18 +2752,23 @@ export function WorldMapsPage() {
               />
             )}
 
-            {worldLayers.climate && climateD &&
+            {worldLayers.climate && climateByZone &&
               CLIMATE_ZONES.map((zone) =>
-                climateD[zone] ? (
-                  <path
-                    key={zone}
-                    d={climateD[zone]}
-                    fill={CLIMATE_COLORS[zone]}
-                    fillOpacity={0.85}
-                    stroke={labelHalo}
-                    strokeWidth={0.3 / worldZoom.zoom}
-                    pointerEvents="none"
-                  />
+                climateByZone[zone] ? (
+                  <g key={zone} fill={CLIMATE_COLORS[zone]} stroke={labelHalo}>
+                    {climateByZone[zone]!.map((p, i) => (
+                      <circle
+                        key={i}
+                        cx={p.x}
+                        cy={p.y}
+                        r={3.4 / worldZoom.zoom}
+                        fillOpacity={0.85}
+                        strokeWidth={0.3 / worldZoom.zoom}
+                      >
+                        <title>{`${p.name} — ${zone}`}</title>
+                      </circle>
+                    ))}
+                  </g>
                 ) : null,
               )}
 
@@ -3218,15 +3240,20 @@ export function WorldMapsPage() {
               {focusLayers.climate && focusMarks?.climate &&
                 CLIMATE_ZONES.map((zone) =>
                   focusMarks.climate?.[zone] ? (
-                    <path
-                      key={zone}
-                      d={focusMarks.climate[zone]}
-                      fill={CLIMATE_COLORS[zone]}
-                      fillOpacity={0.85}
-                      stroke={labelHalo}
-                      strokeWidth={0.3 / focusZoom.zoom}
-                      pointerEvents="none"
-                    />
+                    <g key={zone} fill={CLIMATE_COLORS[zone]} stroke={labelHalo}>
+                      {focusMarks.climate[zone]!.map((p, i) => (
+                        <circle
+                          key={i}
+                          cx={p.x}
+                          cy={p.y}
+                          r={3.4 / focusZoom.zoom}
+                          fillOpacity={0.85}
+                          strokeWidth={0.3 / focusZoom.zoom}
+                        >
+                          <title>{`${p.name} — ${zone}`}</title>
+                        </circle>
+                      ))}
+                    </g>
                   ) : null,
                 )}
             </g>
@@ -3477,15 +3504,20 @@ export function WorldMapsPage() {
                       {focusLayers.climate && focusMarks?.climate &&
                         CLIMATE_ZONES.map((zone) =>
                           focusMarks.climate?.[zone] ? (
-                            <path
-                              key={zone}
-                              d={focusMarks.climate[zone]}
-                              fill={CLIMATE_COLORS[zone]}
-                              fillOpacity={0.85}
-                              stroke={labelHalo}
-                              strokeWidth={0.3 / focusZoom.zoom}
-                              pointerEvents="none"
-                            />
+                            <g key={zone} fill={CLIMATE_COLORS[zone]} stroke={labelHalo}>
+                              {focusMarks.climate[zone]!.map((p, i) => (
+                                <circle
+                                  key={i}
+                                  cx={p.x}
+                                  cy={p.y}
+                                  r={3.4 / focusZoom.zoom}
+                                  fillOpacity={0.85}
+                                  strokeWidth={0.3 / focusZoom.zoom}
+                                >
+                                  <title>{`${p.name} — ${zone}`}</title>
+                                </circle>
+                              ))}
+                            </g>
                           ) : null,
                         )}
                     </g>
