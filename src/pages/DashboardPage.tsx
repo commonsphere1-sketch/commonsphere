@@ -10,6 +10,7 @@ import {
   Scales,
   Crosshair,
   ArrowRight,
+  ArrowLeft,
   TrendUp,
   TrendDown,
   ArrowUp,
@@ -5458,18 +5459,52 @@ const ROW_FIGURES: React.CSSProperties = {
   letterSpacing: "0.035em",
 };
 
+/* The reader's chosen country or state, kept beside the pins in
+   localStorage so a guest session keeps it and an account on the same
+   device inherits it - the same device-local approach ProfileContext and
+   PinnedStrip already take. Locking one in also pins it, so the rest of the
+   site (the pinned strip) reflects the choice rather than holding a second,
+   private idea of what the reader follows. */
+const LS_FOCUS = "cs_focus";
+const LS_PINNED_COUNTRIES = "cs_pinned_countries";
+const LS_PINNED_STATES = "cs_pinned_states";
+
+type Focus = { kind: "country" | "state"; id: string };
+
+function readFocus(): Focus | null {
+  try {
+    const raw = localStorage.getItem(LS_FOCUS);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed?.id && (parsed.kind === "country" || parsed.kind === "state")
+      ? (parsed as Focus)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function pinAlso(key: string, id: string) {
+  try {
+    const stored = localStorage.getItem(key);
+    const ids: string[] = stored ? JSON.parse(stored) : [];
+    if (!ids.includes(id)) localStorage.setItem(key, JSON.stringify([...ids, id]));
+  } catch {
+    /* A browser with storage blocked still gets the carousel; it just
+       cannot remember the choice. */
+  }
+}
+
 /**
- * A drift of flags the reader can pick up: hover or focus one to see the
- * country, click it to open that country's page.
+ * One card at a time: page through countries or US states and lock one in as
+ * the place you follow.
  *
- * Positions are laid out on a jittered grid rather than at random, so the
- * flags spread over the whole card instead of clumping, and the jitter comes
- * from the index so it is the same on every render - a fresh Math.random()
- * each pass would make them jump whenever the card re-renders. Each flag
- * drifts on one of two paths with its own duration, so they do not bob in
- * unison; prefers-reduced-motion stops them (see .cs-drift in index.css).
+ * Kept to a single card rather than a row because the point is to choose,
+ * not to browse - a row invites scanning, one card invites a decision. The
+ * choice is stored on the device, so it survives a guest session and is
+ * there when an account is made on the same browser.
  */
-function FlagField({
+function FocusCarousel({
   mutedText,
   headText,
   isLight,
@@ -5478,79 +5513,169 @@ function FlagField({
   mutedText: string;
   headText: string;
   isLight: boolean;
-  onOpen: (id: string) => void;
+  onOpen: (path: string) => void;
 }) {
-  const COLS = 7;
-  const ROWS = 4;
-  const FLAGS = [
-    "za", "br", "jp", "de", "in", "us", "ng",
-    "au", "mx", "eg", "fr", "id", "ca", "cn",
-    "ar", "ke", "it", "kr", "sa", "gb", "pe",
-    "vn", "pl", "et", "cl", "th", "es", "ma",
-  ];
-  const byCode = useMemo(() => {
-    const m = new Map<string, (typeof countriesData)[number]>();
-    for (const c of countriesData) m.set(c.code.toLowerCase(), c);
-    return m;
-  }, []);
+  const fmtPeople = (n: number) =>
+    n >= 1e9 ? `${(n / 1e9).toFixed(2)}B` : n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n.toLocaleString();
+  const saved = readFocus();
+  const [kind, setKind] = useState<"country" | "state">(saved?.kind ?? "country");
+  /* The card tracks WHICH place is showing, not its position in the list.
+     Other pages sort the shared countriesData/usStatesData arrays for their
+     own use, so a stored index quietly comes to point at a different place;
+     an id does not. It also opens on the reader's own choice rather than at
+     the top of the alphabet. */
+  const [curId, setCurId] = useState<string | null>(saved?.id ?? null);
+  const [focus, setFocus] = useState<Focus | null>(saved);
+
+  /* Alphabetical, so paging through has an order the reader can predict. */
+  const countries = useMemo(
+    () => [...countriesData].sort((a, b) => a.name.localeCompare(b.name)),
+    [],
+  );
+  const states = useMemo(
+    () => [...usStatesData].sort((a, b) => a.name.localeCompare(b.name)),
+    [],
+  );
+
+  const list = kind === "country" ? countries : states;
+  const at = Math.max(0, list.findIndex((x) => x.id === curId));
+  const item = list[at];
+  const isLocked = focus?.kind === kind && focus.id === item.id;
+
+  const step = (d: number) => {
+    const n = (((at + d) % list.length) + list.length) % list.length;
+    setCurId(list[n].id);
+  };
+  const switchKind = (k: "country" | "state") => {
+    setKind(k);
+    setCurId(focus?.kind === k ? focus.id : null);
+  };
+
+  const lockIn = () => {
+    const next: Focus = { kind, id: item.id };
+    setFocus(next);
+    try {
+      localStorage.setItem(LS_FOCUS, JSON.stringify(next));
+    } catch {
+      /* ignored: see pinAlso */
+    }
+    pinAlso(kind === "country" ? LS_PINNED_COUNTRIES : LS_PINNED_STATES, item.id);
+  };
+
+  const openItem = () =>
+    onOpen(
+      kind === "country"
+        ? `/dashboard/countries?open=${item.id}`
+        : `/dashboard/states?open=${item.id}`,
+    );
+
+  const line = isLight ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.14)";
+  const chip = (on: boolean) =>
+    `px-2.5 py-1 rounded-full text-[11px] font-sans transition-colors cursor-pointer ${
+      on ? "chip-selected" : "hover:opacity-80"
+    }`;
+
+  const figures =
+    kind === "country"
+      ? [
+          { label: "Population", value: fmtPeople((item as (typeof countries)[number]).population) },
+          { label: "Capital", value: (item as (typeof countries)[number]).capital || "—" },
+        ]
+      : [
+          { label: "Population", value: fmtPeople((item as (typeof states)[number]).population) },
+          { label: "Capital", value: (item as (typeof states)[number]).capital },
+        ];
 
   return (
-    <div className="shrink-0 self-center flex flex-col items-center gap-2 w-full lg:w-[430px]">
-      <div className="relative w-full h-[190px] sm:h-[210px]">
-        {FLAGS.map((cc, i) => {
-          const col = i % COLS;
-          const row = Math.floor(i / COLS);
-          /* Deterministic jitter: an irrational step mod 1 spreads evenly
-             without the short repeating cycle a rounder number would give. */
-          const jx = ((i * 0.6180339887) % 1) - 0.5;
-          const jy = ((i * 0.4142135624) % 1) - 0.5;
-          const left = ((col + 0.5) / COLS) * 100 + jx * 7;
-          const top = ((row + 0.5) / ROWS) * 100 + jy * 14;
-          const country = byCode.get(cc);
-          const name = country?.name ?? cc.toUpperCase();
-          const border = isLight ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.22)";
-          return (
-            <button
-              key={cc}
-              type="button"
-              onClick={() => country && onOpen(country.id)}
-              title={name}
-              aria-label={country ? `Open ${name}` : name}
-              className="cs-drift group absolute -translate-x-1/2 -translate-y-1/2 rounded-[2px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-current hover:z-10 focus-visible:z-10"
-              style={{
-                left: `${left}%`,
-                top: `${top}%`,
-                animation: `cs-drift-${i % 2 === 0 ? "a" : "b"} ${6 + (i % 5)}s ease-in-out ${(i % 7) * 0.4}s infinite`,
-              }}
-            >
-              <img
-                src={`https://flagcdn.com/w40/${cc}.png`}
-                srcSet={`https://flagcdn.com/w80/${cc}.png 2x`}
-                width={34}
-                height={23}
-                loading="lazy"
-                decoding="async"
-                alt=""
-                className="h-[23px] w-auto rounded-[2px] shadow-sm transition-transform duration-200 group-hover:scale-[1.35] group-focus-visible:scale-[1.35]"
-                style={{ border: `1px solid ${border}` }}
-              />
-              {/* The name rides above the flag on hover or keyboard focus. */}
-              <span
-                className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1 whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-sans opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
-                style={{
-                  background: isLight ? "rgba(255,255,255,0.96)" : "rgba(20,20,24,0.96)",
-                  border: `1px solid ${isLight ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.14)"}`,
-                  color: headText,
-                }}
-              >
-                {name}
-              </span>
-            </button>
-          );
-        })}
+    <div className="shrink-0 self-center w-full lg:w-[330px]">
+      <div className="flex items-center gap-1.5 mb-2 lg:justify-center">
+        {(["country", "state"] as const).map((k) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => switchKind(k)}
+            className={chip(kind === k)}
+            style={kind === k ? undefined : { border: `1px solid ${line}`, color: mutedText }}
+          >
+            {k === "country" ? "Countries" : "US states"}
+          </button>
+        ))}
       </div>
-      <p className="text-[11px] font-sans text-center" style={{ color: mutedText }}>
-        Pick a flag to open that country.
+
+      <div
+        className="rounded-xl p-4 flex items-center gap-3"
+        style={{ border: `1px solid ${line}`, background: isLight ? "#fff" : "rgba(255,255,255,0.03)" }}
+      >
+        <button
+          type="button"
+          onClick={() => step(-1)}
+          aria-label={kind === "country" ? "Previous country" : "Previous state"}
+          className="shrink-0 p-1.5 rounded-full hover:opacity-70 cursor-pointer"
+          style={{ border: `1px solid ${line}`, color: mutedText }}
+        >
+          <ArrowLeft size={13} weight="bold" />
+        </button>
+
+        <div className="flex-1 min-w-0 text-center">
+          <button
+            type="button"
+            onClick={openItem}
+            className="w-full cursor-pointer"
+            aria-label={`Open ${item.name}`}
+          >
+            {kind === "country" ? (
+              <img
+                src={`https://flagcdn.com/w80/${(item as (typeof countries)[number]).code.toLowerCase()}.png`}
+                srcSet={`https://flagcdn.com/w160/${(item as (typeof countries)[number]).code.toLowerCase()}.png 2x`}
+                width={48}
+                height={32}
+                alt=""
+                className="h-8 w-auto mx-auto rounded-[2px] mb-1.5"
+                style={{ border: `1px solid ${line}` }}
+              />
+            ) : (
+              <div
+                className="h-8 mx-auto mb-1.5 px-2 inline-flex items-center rounded-[3px] text-sm font-bold font-mono"
+                style={{ border: `1px solid ${line}`, color: headText }}
+              >
+                {(item as (typeof states)[number]).abbreviation}
+              </div>
+            )}
+            <div className="text-sm font-bold font-sans truncate" style={{ color: headText }}>
+              {item.name}
+            </div>
+          </button>
+          <div className="text-[10px] font-sans mt-0.5 truncate" style={{ color: mutedText }}>
+            {figures.map((f) => `${f.label} ${f.value}`).join(" · ")}
+          </div>
+          <button
+            type="button"
+            onClick={lockIn}
+            disabled={isLocked}
+            className={`mt-2 w-full py-1.5 rounded-lg text-[11px] font-semibold font-sans transition-colors ${
+              isLocked ? "cursor-default" : "chip-selected cursor-pointer"
+            }`}
+            style={isLocked ? { border: `1px solid ${line}`, color: mutedText } : undefined}
+          >
+            {isLocked ? "Following — you're set" : "Follow this one"}
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => step(1)}
+          aria-label={kind === "country" ? "Next country" : "Next state"}
+          className="shrink-0 p-1.5 rounded-full hover:opacity-70 cursor-pointer"
+          style={{ border: `1px solid ${line}`, color: mutedText }}
+        >
+          <ArrowRight size={13} weight="bold" />
+        </button>
+      </div>
+
+      <p className="text-[10px] font-sans mt-2 text-center" style={{ color: mutedText }}>
+        {focus
+          ? "Saved on this device — it carries over when you make an account."
+          : "Pick the place you care about and it stays on your dashboard."}
       </p>
     </div>
   );
@@ -6065,7 +6190,7 @@ export function DashboardPage() {
                 the other way at the same rate, so they orbit without ever
                 tipping over; it holds still for a reader who has asked for
                 reduced motion. */}
-            <FlagField mutedText={mutedText} headText={headText} isLight={isLight} onOpen={(id) => navigate(`/dashboard/countries?open=${id}`)} />
+            <FocusCarousel mutedText={mutedText} headText={headText} isLight={isLight} onOpen={(p) => navigate(p)} />
           </div>
         </div>
 
