@@ -374,17 +374,19 @@ function CurrencyConverter() {
         {/* SWAP */}
         <button
           onClick={swap}
-          className="flex items-center justify-center w-9 h-9 rounded-full bg-muted border border-border text-muted-foreground transition-all cursor-pointer self-end sm:self-auto mb-1 sm:mb-0 shrink-0"
-          style={{ "--accent-color": ACCENT } as React.CSSProperties & { "--accent-color": string }}
+          className="flex items-center justify-center w-9 h-9 rounded-full border transition-all cursor-pointer self-center shrink-0"
+          style={{
+            background: `color-mix(in srgb, ${ACCENT} 12%, transparent)`,
+            borderColor: `color-mix(in srgb, ${ACCENT} 38%, transparent)`,
+            color: ACCENT
+          }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.color = ACCENT;
-            e.currentTarget.style.backgroundColor = `color-mix(in srgb, ${ACCENT} 12%, transparent)`;
-            e.currentTarget.style.borderColor = `color-mix(in srgb, ${ACCENT} 38%, transparent)`;
+            e.currentTarget.style.backgroundColor = `color-mix(in srgb, ${ACCENT} 22%, transparent)`;
+            e.currentTarget.style.borderColor = `color-mix(in srgb, ${ACCENT} 50%, transparent)`;
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.color = "";
-            e.currentTarget.style.backgroundColor = "";
-            e.currentTarget.style.borderColor = "";
+            e.currentTarget.style.backgroundColor = `color-mix(in srgb, ${ACCENT} 12%, transparent)`;
+            e.currentTarget.style.borderColor = `color-mix(in srgb, ${ACCENT} 38%, transparent)`;
           }}
           aria-label="Swap currencies"
         >
