@@ -1719,7 +1719,7 @@ export function WorldMapsPage() {
      divided by the current zoom. */
   const portsD = useMemo(() => {
     if (!portPoints) return undefined;
-    const r = 1.5 / worldZoom.zoom;
+    const r = 2.8 / worldZoom.zoom;
     return portPoints
       .filter((p) => worldZoom.zoom > PORT_DETAIL_ABOVE || p.rank <= PORT_MAJOR_RANK)
       .map((p) => box(p.x, p.y, r))
@@ -2075,7 +2075,7 @@ export function WorldMapsPage() {
     const mineSolid = focusOverlays.mines?.filter((p) => p.row[4] === 0) ?? [];
     const mineHollow = focusOverlays.mines?.filter((p) => p.row[4] === 1) ?? [];
     return {
-      ports: join(focusOverlays.ports, box),
+      ports: join(focusOverlays.ports, box, 3.2 / z),
       airports: join(focusOverlays.airports, tri),
       mineSolid: join(mineSolid, dot, mineR),
       mineHollow: join(mineHollow, dot, mineR),
@@ -2671,9 +2671,9 @@ export function WorldMapsPage() {
               <path
                 d={portsD}
                 fill={overlayInk.ports}
-                fillOpacity={0.9}
+                fillOpacity={1}
                 stroke={labelHalo}
-                strokeWidth={0.4 / worldZoom.zoom}
+                strokeWidth={0.7 / worldZoom.zoom}
                 pointerEvents="none"
               />
             )}
@@ -3148,9 +3148,9 @@ export function WorldMapsPage() {
                 <path
                   d={focusMarks.ports}
                   fill={overlayInk.ports}
-                  fillOpacity={0.9}
+                  fillOpacity={1}
                   stroke={labelHalo}
-                  strokeWidth={0.4 / focusZoom.zoom}
+                  strokeWidth={0.7 / focusZoom.zoom}
                   pointerEvents="none"
                 />
               )}
@@ -3403,9 +3403,9 @@ export function WorldMapsPage() {
                         <path
                           d={focusMarks.ports}
                           fill={overlayInk.ports}
-                          fillOpacity={0.9}
+                          fillOpacity={1}
                           stroke={labelHalo}
-                          strokeWidth={0.4 / focusZoom.zoom}
+                          strokeWidth={0.7 / focusZoom.zoom}
                           pointerEvents="none"
                         />
                       )}
