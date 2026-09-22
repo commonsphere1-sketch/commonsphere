@@ -1,124 +1,2216 @@
 {
-  "fields": ["name", "country", "population", "lon", "lat"],
+  "fields": [
+    "name",
+    "country",
+    "population",
+    "lon",
+    "lat"
+  ],
   "rows": [
-    ["Tokyo", "Japan", 37800000, 139.6917, 35.6762],
-    ["Delhi", "India", 32941000, 77.2090, 28.6139],
-    ["Shanghai", "China", 29000000, 121.4737, 31.2304],
-    ["São Paulo", "Brazil", 22639000, -46.6333, -23.5505],
-    ["Mexico City", "Mexico", 21581000, -99.1332, 19.4326],
-    ["Cairo", "Egypt", 21750000, 31.2357, 30.0444],
-    ["Dhaka", "Bangladesh", 21006000, 90.3563, 23.8103],
-    ["Osaka", "Japan", 19222000, 135.5023, 34.6937],
-    ["New York", "United States", 18604000, -74.0060, 40.7128],
-    ["Karachi", "Pakistan", 16010000, 67.0099, 24.8607],
-    ["Buenos Aires", "Argentina", 15369000, -58.3816, -34.6037],
-    ["Kolkata", "India", 15133000, 88.3639, 22.5726],
-    ["Manila", "Philippines", 14910000, 120.9842, 14.5995],
-    ["Lagos", "Nigeria", 15387000, 3.3792, 6.5244],
-    ["Rio de Janeiro", "Brazil", 13458000, -43.1729, -22.9068],
-    ["Guangzhou", "China", 15701000, 113.2644, 23.1291],
-    ["Los Angeles", "United States", 12457000, -118.2437, 34.0522],
-    ["Moscow", "Russia", 12678000, 37.6173, 55.7558],
-    ["Istanbul", "Turkey", 15415000, 28.9784, 41.0082],
-    ["Paris", "France", 12405000, 2.3522, 48.8566],
-    ["London", "United Kingdom", 14040000, -0.1276, 51.5074],
-    ["Madrid", "Spain", 6713000, -3.7038, 40.4168],
-    ["Berlin", "Germany", 3645000, 13.4050, 52.5200],
-    ["Rome", "Italy", 4873000, 12.4964, 41.9028],
-    ["Seoul", "South Korea", 9776000, 126.9780, 37.5665],
-    ["Bangkok", "Thailand", 8305000, 100.4955, 13.7563],
-    ["Hong Kong", "Hong Kong", 7451000, 114.1095, 22.3193],
-    ["Singapore", "Singapore", 5850000, 103.8198, 1.3521],
-    ["Toronto", "Canada", 6255000, -79.3957, 43.6629],
-    ["Chicago", "United States", 9614000, -87.6298, 41.8781],
-    ["Houston", "United States", 7122000, -95.3698, 29.7604],
-    ["Phoenix", "United States", 4948000, -112.0742, 33.4484],
-    ["Philadelphia", "United States", 6245000, -75.1652, 39.9526],
-    ["San Antonio", "United States", 2544000, -98.4936, 29.4241],
-    ["San Diego", "United States", 3255000, -117.1611, 32.7157],
-    ["Dallas", "United States", 7637000, -96.7969, 32.7767],
-    ["San Jose", "United States", 1021000, -121.8863, 37.3382],
-    ["Austin", "United States", 2310000, -97.7431, 30.2672],
-    ["Jacksonville", "United States", 1600000, -81.6557, 30.3322],
-    ["Seattle", "United States", 3979000, -122.3321, 47.6062],
-    ["Denver", "United States", 3154000, -104.9903, 39.7392],
-    ["Boston", "United States", 4873000, -71.0596, 42.3601],
-    ["Miami", "United States", 6066000, -80.1918, 25.7617],
-    ["Atlanta", "United States", 6081000, -84.3880, 33.7490],
-    ["Berlin", "Germany", 3645000, 13.4050, 52.5200],
-    ["Frankfurt", "Germany", 2753000, 8.6753, 50.1109],
-    ["Hamburg", "Germany", 1899000, 9.9937, 53.5511],
-    ["Munich", "Germany", 1472000, 11.5819, 48.1351],
-    ["Amsterdam", "Netherlands", 2410000, 4.8952, 52.3676],
-    ["Rotterdam", "Netherlands", 1324000, 4.4899, 51.9225],
-    ["Brussels", "Belgium", 2161000, 4.3517, 50.8503],
-    ["Vienna", "Austria", 1920000, 16.3738, 48.2082],
-    ["Prague", "Czech Republic", 1324000, 14.4418, 50.0755],
-    ["Budapest", "Hungary", 1752000, 19.0402, 47.4979],
-    ["Warsaw", "Poland", 1863000, 21.0122, 52.2297],
-    ["Moscow", "Russia", 12678000, 37.6173, 55.7558],
-    ["Saint Petersburg", "Russia", 5383000, 30.3609, 59.9311],
-    ["Stockholm", "Sweden", 1395000, 18.0686, 59.3293],
-    ["Oslo", "Norway", 1019000, 10.7522, 59.9139],
-    ["Copenhagen", "Denmark", 1345000, 12.5683, 55.6761],
-    ["Helsinki", "Finland", 656000, 24.9353, 60.1695],
-    ["Lisbon", "Portugal", 505000, -9.1393, 38.7223],
-    ["Barcelona", "Spain", 1636000, 2.1734, 41.3851],
-    ["Athens", "Greece", 3154000, 23.7275, 37.9838],
-    ["Istanbul", "Turkey", 15415000, 28.9784, 41.0082],
-    ["Ankara", "Turkey", 5445000, 32.8597, 39.9334],
-    ["Izmir", "Turkey", 4113000, 27.1428, 38.4235],
-    ["Tehran", "Iran", 8846000, 51.3890, 35.6892],
-    ["Baghdad", "Iraq", 7216000, 44.3615, 33.3157],
-    ["Amman", "Jordan", 4007000, 35.9311, 31.9454],
-    ["Tel Aviv", "Israel", 3577000, 34.7683, 32.0853],
-    ["Jerusalem", "Israel", 936000, 35.2137, 31.7683],
-    ["Beirut", "Lebanon", 2012000, 35.4944, 33.8547],
-    ["Damascus", "Syria", 2079000, 36.2765, 33.5138],
-    ["Riyadh", "Saudi Arabia", 6506000, 46.6753, 24.7136],
-    ["Jeddah", "Saudi Arabia", 3431000, 39.1925, 21.5433],
-    ["Kuwait City", "Kuwait", 2989000, 47.9774, 29.3759],
-    ["Doha", "Qatar", 2556000, 51.5310, 25.2854],
-    ["Abu Dhabi", "United Arab Emirates", 1483000, 54.3663, 24.4539],
-    ["Dubai", "United Arab Emirates", 3622000, 55.2708, 25.2048],
-    ["Muscat", "Oman", 1393000, 58.5400, 23.6100],
-    ["Colombo", "Sri Lanka", 5328000, 79.8612, 6.9271],
-    ["Bangalore", "India", 8436000, 77.5946, 12.9716],
-    ["Mumbai", "India", 20411000, 72.8479, 19.0760],
-    ["Pune", "India", 6430000, 73.8567, 18.5204],
-    ["Ahmedabad", "India", 8450000, 72.5458, 23.0225],
-    ["Surat", "India", 6081000, 72.8311, 21.1702],
-    ["Jaipur", "India", 4850000, 75.7873, 26.9124],
-    ["Lucknow", "India", 3382000, 80.9462, 26.8467],
-    ["Kanpur", "India", 2765000, 80.3593, 25.4358],
-    ["Nagpur", "India", 2405000, 79.0882, 21.1146],
-    ["Hyderabad", "India", 6809000, 78.4744, 17.3850],
-    ["Chennai", "India", 4646000, 80.2707, 13.0827],
-    ["Bangkok", "Thailand", 8305000, 100.4955, 13.7563],
-    ["Chiang Mai", "Thailand", 1239000, 98.9853, 18.7883],
-    ["Phuket", "Thailand", 390000, 98.3923, 8.0863],
-    ["Ho Chi Minh City", "Vietnam", 9089000, 106.6452, 10.8231],
-    ["Hanoi", "Vietnam", 7548000, 105.8542, 21.0285],
-    ["Da Nang", "Vietnam", 1134000, 107.5621, 16.0544],
-    ["Jakarta", "Indonesia", 10769000, 106.8456, -6.2088],
-    ["Surabaya", "Indonesia", 2765000, 112.7381, -7.2575],
-    ["Bandung", "Indonesia", 2444000, 107.6191, -6.9175],
-    ["Medan", "Indonesia", 2109000, 98.6722, 3.1952],
-    ["Makassar", "Indonesia", 1429000, 119.4329, -5.1477],
-    ["Palembang", "Indonesia", 1668000, 104.7453, -2.9181],
-    ["Semarang", "Indonesia", 1555000, 110.4002, -6.9701],
-    ["Kuala Lumpur", "Malaysia", 1982000, 101.6964, 3.1390],
-    ["George Town", "Malaysia", 827000, 100.3288, 5.4164],
-    ["Manila", "Philippines", 14910000, 120.9842, 14.5995],
-    ["Quezon City", "Philippines", 2936000, 121.0323, 14.6349],
-    ["Cebu City", "Philippines", 866000, 123.8854, 10.3157],
-    ["Davao City", "Philippines", 1776000, 125.4521, 6.9271],
-    ["Caloocan", "Philippines", 1523000, 121.0046, 14.6361],
-    ["Las Piñas", "Philippines", 595000, 120.9799, 14.3534],
-    ["Makati", "Philippines", 510000, 121.0311, 14.5547],
-    ["Taipei", "Taiwan", 2704000, 121.5653, 25.0330],
-    ["New Taipei", "Taiwan", 3971000, 121.4673, 25.0329],
-    ["Kaohsiung", "Taiwan", 1774000, 120.3006, 22.6133],
-    ["Taichung", "Taiwan", 2813000, 120.6623, 24.1477]
+    [
+      "Tokyo",
+      "Japan",
+      37800000,
+      139.6917,
+      35.6762
+    ],
+    [
+      "Delhi",
+      "India",
+      32941000,
+      77.209,
+      28.6139
+    ],
+    [
+      "Shanghai",
+      "China",
+      29000000,
+      121.4737,
+      31.2304
+    ],
+    [
+      "São Paulo",
+      "Brazil",
+      22639000,
+      -46.6333,
+      -23.5505
+    ],
+    [
+      "Mexico City",
+      "Mexico",
+      21581000,
+      -99.1332,
+      19.4326
+    ],
+    [
+      "Cairo",
+      "Egypt",
+      21750000,
+      31.2357,
+      30.0444
+    ],
+    [
+      "Dhaka",
+      "Bangladesh",
+      21006000,
+      90.3563,
+      23.8103
+    ],
+    [
+      "Osaka",
+      "Japan",
+      19222000,
+      135.5023,
+      34.6937
+    ],
+    [
+      "New York",
+      "United States",
+      18604000,
+      -74.006,
+      40.7128
+    ],
+    [
+      "Karachi",
+      "Pakistan",
+      16010000,
+      67.0099,
+      24.8607
+    ],
+    [
+      "Buenos Aires",
+      "Argentina",
+      15369000,
+      -58.3816,
+      -34.6037
+    ],
+    [
+      "Kolkata",
+      "India",
+      15133000,
+      88.3639,
+      22.5726
+    ],
+    [
+      "Manila",
+      "Philippines",
+      14910000,
+      120.9842,
+      14.5995
+    ],
+    [
+      "Lagos",
+      "Nigeria",
+      15387000,
+      3.3792,
+      6.5244
+    ],
+    [
+      "Rio de Janeiro",
+      "Brazil",
+      13458000,
+      -43.1729,
+      -22.9068
+    ],
+    [
+      "Guangzhou",
+      "China",
+      15701000,
+      113.2644,
+      23.1291
+    ],
+    [
+      "Los Angeles",
+      "United States",
+      12457000,
+      -118.2437,
+      34.0522
+    ],
+    [
+      "Moscow",
+      "Russia",
+      12678000,
+      37.6173,
+      55.7558
+    ],
+    [
+      "Istanbul",
+      "Turkey",
+      15415000,
+      28.9784,
+      41.0082
+    ],
+    [
+      "Paris",
+      "France",
+      12405000,
+      2.3522,
+      48.8566
+    ],
+    [
+      "London",
+      "United Kingdom",
+      14040000,
+      -0.1276,
+      51.5074
+    ],
+    [
+      "Madrid",
+      "Spain",
+      6713000,
+      -3.7038,
+      40.4168
+    ],
+    [
+      "Berlin",
+      "Germany",
+      3645000,
+      13.405,
+      52.52
+    ],
+    [
+      "Rome",
+      "Italy",
+      4873000,
+      12.4964,
+      41.9028
+    ],
+    [
+      "Seoul",
+      "South Korea",
+      9776000,
+      126.978,
+      37.5665
+    ],
+    [
+      "Bangkok",
+      "Thailand",
+      8305000,
+      100.4955,
+      13.7563
+    ],
+    [
+      "Hong Kong",
+      "Hong Kong",
+      7451000,
+      114.1095,
+      22.3193
+    ],
+    [
+      "Singapore",
+      "Singapore",
+      5850000,
+      103.8198,
+      1.3521
+    ],
+    [
+      "Toronto",
+      "Canada",
+      6255000,
+      -79.3957,
+      43.6629
+    ],
+    [
+      "Chicago",
+      "United States",
+      9614000,
+      -87.6298,
+      41.8781
+    ],
+    [
+      "Houston",
+      "United States",
+      7122000,
+      -95.3698,
+      29.7604
+    ],
+    [
+      "Phoenix",
+      "United States",
+      4948000,
+      -112.0742,
+      33.4484
+    ],
+    [
+      "Philadelphia",
+      "United States",
+      6245000,
+      -75.1652,
+      39.9526
+    ],
+    [
+      "San Antonio",
+      "United States",
+      2544000,
+      -98.4936,
+      29.4241
+    ],
+    [
+      "San Diego",
+      "United States",
+      3255000,
+      -117.1611,
+      32.7157
+    ],
+    [
+      "Dallas",
+      "United States",
+      7637000,
+      -96.7969,
+      32.7767
+    ],
+    [
+      "San Jose",
+      "United States",
+      1021000,
+      -121.8863,
+      37.3382
+    ],
+    [
+      "Austin",
+      "United States",
+      2310000,
+      -97.7431,
+      30.2672
+    ],
+    [
+      "Jacksonville",
+      "United States",
+      1600000,
+      -81.6557,
+      30.3322
+    ],
+    [
+      "Seattle",
+      "United States",
+      3979000,
+      -122.3321,
+      47.6062
+    ],
+    [
+      "Denver",
+      "United States",
+      3154000,
+      -104.9903,
+      39.7392
+    ],
+    [
+      "Boston",
+      "United States",
+      4873000,
+      -71.0596,
+      42.3601
+    ],
+    [
+      "Miami",
+      "United States",
+      6066000,
+      -80.1918,
+      25.7617
+    ],
+    [
+      "Atlanta",
+      "United States",
+      6081000,
+      -84.388,
+      33.749
+    ],
+    [
+      "Berlin",
+      "Germany",
+      3645000,
+      13.405,
+      52.52
+    ],
+    [
+      "Frankfurt",
+      "Germany",
+      2753000,
+      8.6753,
+      50.1109
+    ],
+    [
+      "Hamburg",
+      "Germany",
+      1899000,
+      9.9937,
+      53.5511
+    ],
+    [
+      "Munich",
+      "Germany",
+      1472000,
+      11.5819,
+      48.1351
+    ],
+    [
+      "Amsterdam",
+      "Netherlands",
+      2410000,
+      4.8952,
+      52.3676
+    ],
+    [
+      "Rotterdam",
+      "Netherlands",
+      1324000,
+      4.4899,
+      51.9225
+    ],
+    [
+      "Brussels",
+      "Belgium",
+      2161000,
+      4.3517,
+      50.8503
+    ],
+    [
+      "Vienna",
+      "Austria",
+      1920000,
+      16.3738,
+      48.2082
+    ],
+    [
+      "Prague",
+      "Czech Republic",
+      1324000,
+      14.4418,
+      50.0755
+    ],
+    [
+      "Budapest",
+      "Hungary",
+      1752000,
+      19.0402,
+      47.4979
+    ],
+    [
+      "Warsaw",
+      "Poland",
+      1863000,
+      21.0122,
+      52.2297
+    ],
+    [
+      "Moscow",
+      "Russia",
+      12678000,
+      37.6173,
+      55.7558
+    ],
+    [
+      "Saint Petersburg",
+      "Russia",
+      5383000,
+      30.3609,
+      59.9311
+    ],
+    [
+      "Stockholm",
+      "Sweden",
+      1395000,
+      18.0686,
+      59.3293
+    ],
+    [
+      "Oslo",
+      "Norway",
+      1019000,
+      10.7522,
+      59.9139
+    ],
+    [
+      "Copenhagen",
+      "Denmark",
+      1345000,
+      12.5683,
+      55.6761
+    ],
+    [
+      "Helsinki",
+      "Finland",
+      656000,
+      24.9353,
+      60.1695
+    ],
+    [
+      "Lisbon",
+      "Portugal",
+      505000,
+      -9.1393,
+      38.7223
+    ],
+    [
+      "Barcelona",
+      "Spain",
+      1636000,
+      2.1734,
+      41.3851
+    ],
+    [
+      "Athens",
+      "Greece",
+      3154000,
+      23.7275,
+      37.9838
+    ],
+    [
+      "Istanbul",
+      "Turkey",
+      15415000,
+      28.9784,
+      41.0082
+    ],
+    [
+      "Ankara",
+      "Turkey",
+      5445000,
+      32.8597,
+      39.9334
+    ],
+    [
+      "Izmir",
+      "Turkey",
+      4113000,
+      27.1428,
+      38.4235
+    ],
+    [
+      "Tehran",
+      "Iran",
+      8846000,
+      51.389,
+      35.6892
+    ],
+    [
+      "Baghdad",
+      "Iraq",
+      7216000,
+      44.3615,
+      33.3157
+    ],
+    [
+      "Amman",
+      "Jordan",
+      4007000,
+      35.9311,
+      31.9454
+    ],
+    [
+      "Tel Aviv",
+      "Israel",
+      3577000,
+      34.7683,
+      32.0853
+    ],
+    [
+      "Jerusalem",
+      "Israel",
+      936000,
+      35.2137,
+      31.7683
+    ],
+    [
+      "Beirut",
+      "Lebanon",
+      2012000,
+      35.4944,
+      33.8547
+    ],
+    [
+      "Damascus",
+      "Syria",
+      2079000,
+      36.2765,
+      33.5138
+    ],
+    [
+      "Riyadh",
+      "Saudi Arabia",
+      6506000,
+      46.6753,
+      24.7136
+    ],
+    [
+      "Jeddah",
+      "Saudi Arabia",
+      3431000,
+      39.1925,
+      21.5433
+    ],
+    [
+      "Kuwait City",
+      "Kuwait",
+      2989000,
+      47.9774,
+      29.3759
+    ],
+    [
+      "Doha",
+      "Qatar",
+      2556000,
+      51.531,
+      25.2854
+    ],
+    [
+      "Abu Dhabi",
+      "United Arab Emirates",
+      1483000,
+      54.3663,
+      24.4539
+    ],
+    [
+      "Dubai",
+      "United Arab Emirates",
+      3622000,
+      55.2708,
+      25.2048
+    ],
+    [
+      "Muscat",
+      "Oman",
+      1393000,
+      58.54,
+      23.61
+    ],
+    [
+      "Colombo",
+      "Sri Lanka",
+      5328000,
+      79.8612,
+      6.9271
+    ],
+    [
+      "Bangalore",
+      "India",
+      8436000,
+      77.5946,
+      12.9716
+    ],
+    [
+      "Mumbai",
+      "India",
+      20411000,
+      72.8479,
+      19.076
+    ],
+    [
+      "Pune",
+      "India",
+      6430000,
+      73.8567,
+      18.5204
+    ],
+    [
+      "Ahmedabad",
+      "India",
+      8450000,
+      72.5458,
+      23.0225
+    ],
+    [
+      "Surat",
+      "India",
+      6081000,
+      72.8311,
+      21.1702
+    ],
+    [
+      "Jaipur",
+      "India",
+      4850000,
+      75.7873,
+      26.9124
+    ],
+    [
+      "Lucknow",
+      "India",
+      3382000,
+      80.9462,
+      26.8467
+    ],
+    [
+      "Kanpur",
+      "India",
+      2765000,
+      80.3593,
+      25.4358
+    ],
+    [
+      "Nagpur",
+      "India",
+      2405000,
+      79.0882,
+      21.1146
+    ],
+    [
+      "Hyderabad",
+      "India",
+      6809000,
+      78.4744,
+      17.385
+    ],
+    [
+      "Chennai",
+      "India",
+      4646000,
+      80.2707,
+      13.0827
+    ],
+    [
+      "Bangkok",
+      "Thailand",
+      8305000,
+      100.4955,
+      13.7563
+    ],
+    [
+      "Chiang Mai",
+      "Thailand",
+      1239000,
+      98.9853,
+      18.7883
+    ],
+    [
+      "Phuket",
+      "Thailand",
+      390000,
+      98.3923,
+      8.0863
+    ],
+    [
+      "Ho Chi Minh City",
+      "Vietnam",
+      9089000,
+      106.6452,
+      10.8231
+    ],
+    [
+      "Hanoi",
+      "Vietnam",
+      7548000,
+      105.8542,
+      21.0285
+    ],
+    [
+      "Da Nang",
+      "Vietnam",
+      1134000,
+      107.5621,
+      16.0544
+    ],
+    [
+      "Jakarta",
+      "Indonesia",
+      10769000,
+      106.8456,
+      -6.2088
+    ],
+    [
+      "Surabaya",
+      "Indonesia",
+      2765000,
+      112.7381,
+      -7.2575
+    ],
+    [
+      "Bandung",
+      "Indonesia",
+      2444000,
+      107.6191,
+      -6.9175
+    ],
+    [
+      "Medan",
+      "Indonesia",
+      2109000,
+      98.6722,
+      3.1952
+    ],
+    [
+      "Makassar",
+      "Indonesia",
+      1429000,
+      119.4329,
+      -5.1477
+    ],
+    [
+      "Palembang",
+      "Indonesia",
+      1668000,
+      104.7453,
+      -2.9181
+    ],
+    [
+      "Semarang",
+      "Indonesia",
+      1555000,
+      110.4002,
+      -6.9701
+    ],
+    [
+      "Kuala Lumpur",
+      "Malaysia",
+      1982000,
+      101.6964,
+      3.139
+    ],
+    [
+      "George Town",
+      "Malaysia",
+      827000,
+      100.3288,
+      5.4164
+    ],
+    [
+      "Manila",
+      "Philippines",
+      14910000,
+      120.9842,
+      14.5995
+    ],
+    [
+      "Quezon City",
+      "Philippines",
+      2936000,
+      121.0323,
+      14.6349
+    ],
+    [
+      "Cebu City",
+      "Philippines",
+      866000,
+      123.8854,
+      10.3157
+    ],
+    [
+      "Davao City",
+      "Philippines",
+      1776000,
+      125.4521,
+      6.9271
+    ],
+    [
+      "Caloocan",
+      "Philippines",
+      1523000,
+      121.0046,
+      14.6361
+    ],
+    [
+      "Las Piñas",
+      "Philippines",
+      595000,
+      120.9799,
+      14.3534
+    ],
+    [
+      "Makati",
+      "Philippines",
+      510000,
+      121.0311,
+      14.5547
+    ],
+    [
+      "Taipei",
+      "Taiwan",
+      2704000,
+      121.5653,
+      25.033
+    ],
+    [
+      "New Taipei",
+      "Taiwan",
+      3971000,
+      121.4673,
+      25.0329
+    ],
+    [
+      "Kaohsiung",
+      "Taiwan",
+      1774000,
+      120.3006,
+      22.6133
+    ],
+    [
+      "Taichung",
+      "Taiwan",
+      2813000,
+      120.6623,
+      24.1477
+    ],
+    [
+      "Sydney",
+      "Australia",
+      1000000,
+      151.2093,
+      -33.8688
+    ],
+    [
+      "Johannesburg",
+      "South Africa",
+      1000000,
+      28.0473,
+      -26.2023
+    ],
+    [
+      "Nairobi",
+      "Kenya",
+      1000000,
+      36.8219,
+      -1.2921
+    ],
+    [
+      "Santiago",
+      "Chile",
+      1000000,
+      -70.6693,
+      -33.4489
+    ],
+    [
+      "Lima",
+      "Peru",
+      1000000,
+      -77.0428,
+      -12.0464
+    ],
+    [
+      "Bogotá",
+      "Colombia",
+      1000000,
+      -74.0721,
+      4.711
+    ],
+    [
+      "Caracas",
+      "Venezuela",
+      1000000,
+      -66.8895,
+      10.4806
+    ],
+    [
+      "Quito",
+      "Ecuador",
+      1000000,
+      -78.5018,
+      -0.2299
+    ],
+    [
+      "Paramaribo",
+      "Suriname",
+      1000000,
+      -55.2038,
+      5.852
+    ],
+    [
+      "Georgetown",
+      "Guyana",
+      1000000,
+      -58.1551,
+      6.8013
+    ],
+    [
+      "Kabul",
+      "Afghanistan",
+      1000000,
+      69.1761,
+      34.5553
+    ],
+    [
+      "Phnompenh",
+      "Cambodia",
+      1000000,
+      104.9282,
+      11.5564
+    ],
+    [
+      "Vientiane",
+      "Laos",
+      1000000,
+      102.6331,
+      17.9757
+    ],
+    [
+      "Yangon",
+      "Myanmar",
+      1000000,
+      96.1951,
+      16.8661
+    ],
+    [
+      "Dublin",
+      "Ireland",
+      1000000,
+      -6.2597,
+      53.3498
+    ],
+    [
+      "Ljubljana",
+      "Slovenia",
+      1000000,
+      14.5058,
+      46.0569
+    ],
+    [
+      "Belgrade",
+      "Serbia",
+      1000000,
+      20.4612,
+      44.8176
+    ],
+    [
+      "Bucharest",
+      "Romania",
+      1000000,
+      26.1025,
+      44.4268
+    ],
+    [
+      "Sofia",
+      "Bulgaria",
+      1000000,
+      23.3219,
+      42.6977
+    ],
+    [
+      "Skopje",
+      "North Macedonia",
+      1000000,
+      21.428,
+      41.9973
+    ],
+    [
+      "Tbilisi",
+      "Georgia",
+      1000000,
+      44.8097,
+      41.7151
+    ],
+    [
+      "Baku",
+      "Azerbaijan",
+      1000000,
+      49.8671,
+      40.3856
+    ],
+    [
+      "Yerevan",
+      "Armenia",
+      1000000,
+      44.5086,
+      40.1792
+    ],
+    [
+      "Sana'a",
+      "Yemen",
+      1000000,
+      44.2075,
+      15.3694
+    ],
+    [
+      "Ramallah",
+      "Palestine",
+      1000000,
+      35.2039,
+      31.9454
+    ],
+    [
+      "Khartoum",
+      "Sudan",
+      1000000,
+      32.5373,
+      15.5007
+    ],
+    [
+      "Addis Ababa",
+      "Ethiopia",
+      1000000,
+      38.7469,
+      9.032
+    ],
+    [
+      "Kigali",
+      "Rwanda",
+      1000000,
+      29.9189,
+      -1.9478
+    ],
+    [
+      "Kampala",
+      "Uganda",
+      1000000,
+      32.5825,
+      0.3476
+    ],
+    [
+      "Dar es Salaam",
+      "Tanzania",
+      1000000,
+      39.2695,
+      -6.8111
+    ],
+    [
+      "Lusaka",
+      "Zambia",
+      1000000,
+      28.2942,
+      -10.3399
+    ],
+    [
+      "Harare",
+      "Zimbabwe",
+      1000000,
+      31.0335,
+      -17.8252
+    ],
+    [
+      "Maputo",
+      "Mozambique",
+      1000000,
+      32.5832,
+      -23.8636
+    ],
+    [
+      "Gaborone",
+      "Botswana",
+      1000000,
+      25.9655,
+      -24.6282
+    ],
+    [
+      "Windhoek",
+      "Namibia",
+      1000000,
+      17.0832,
+      -22.5597
+    ],
+    [
+      "Freetown",
+      "Sierra Leone",
+      1000000,
+      -13.2298,
+      8.4606
+    ],
+    [
+      "Monrovia",
+      "Liberia",
+      1000000,
+      -10.8074,
+      6.3155
+    ],
+    [
+      "Accra",
+      "Ghana",
+      1000000,
+      -0.1969,
+      5.6037
+    ],
+    [
+      "Dakar",
+      "Senegal",
+      1000000,
+      -17.4369,
+      14.7167
+    ],
+    [
+      "Ouagadougou",
+      "Burkina Faso",
+      1000000,
+      -1.5197,
+      12.3714
+    ],
+    [
+      "Bamako",
+      "Mali",
+      1000000,
+      -8.0029,
+      12.6551
+    ],
+    [
+      "Algiers",
+      "Algeria",
+      1000000,
+      3.0588,
+      36.7538
+    ],
+    [
+      "Tunis",
+      "Tunisia",
+      1000000,
+      10.1957,
+      36.8065
+    ],
+    [
+      "Tripoli",
+      "Libya",
+      1000000,
+      13.1913,
+      32.8872
+    ],
+    [
+      "Casablanca",
+      "Morocco",
+      1000000,
+      -7.5898,
+      33.5731
+    ],
+    [
+      "Port-au-Prince",
+      "Haiti",
+      1000000,
+      -72.2963,
+      18.9712
+    ],
+    [
+      "Kingston",
+      "Jamaica",
+      1000000,
+      -76.7936,
+      17.9757
+    ],
+    [
+      "Havana",
+      "Cuba",
+      1000000,
+      -82.3666,
+      23.1136
+    ],
+    [
+      "Santo Domingo",
+      "Dominican Republic",
+      1000000,
+      -69.9312,
+      18.4861
+    ],
+    [
+      "San Juan",
+      "Puerto Rico",
+      1000000,
+      -66.1057,
+      18.4861
+    ],
+    [
+      "Port of Spain",
+      "Trinidad and Tobago",
+      1000000,
+      -61.5148,
+      10.7612
+    ],
+    [
+      "Bridgetown",
+      "Barbados",
+      1000000,
+      -59.5432,
+      13.1939
+    ],
+    [
+      "Wellington",
+      "New Zealand",
+      1000000,
+      174.7762,
+      -41.2865
+    ],
+    [
+      "Suva",
+      "Fiji",
+      1000000,
+      178.0591,
+      -18.1248
+    ],
+    [
+      "Honiara",
+      "Solomon Islands",
+      1000000,
+      160.7969,
+      -9.428
+    ],
+    [
+      "Port Moresby",
+      "Papua New Guinea",
+      1000000,
+      147.1789,
+      -9.4438
+    ],
+    [
+      "Ngerulmud",
+      "Palau",
+      1000000,
+      134.6241,
+      7.3444
+    ],
+    [
+      "Mariehamn",
+      "Aland Islands",
+      1000000,
+      19.9,
+      60.116667
+    ],
+    [
+      "Tirana",
+      "Albania",
+      1000000,
+      20,
+      41
+    ],
+    [
+      "Pago Pago",
+      "American Samoa",
+      1000000,
+      -170,
+      -14.33333333
+    ],
+    [
+      "Andorra la Vella",
+      "Andorra",
+      1000000,
+      1.5,
+      42.5
+    ],
+    [
+      "Luanda",
+      "Angola",
+      1000000,
+      18.5,
+      -12.5
+    ],
+    [
+      "The Valley",
+      "Anguilla",
+      1000000,
+      -63.16666666,
+      18.25
+    ],
+    [
+      "St. John's",
+      "Antigua and Barbuda",
+      1000000,
+      -61.8,
+      17.05
+    ],
+    [
+      "Oranjestad",
+      "Aruba",
+      1000000,
+      -69.96666666,
+      12.5
+    ],
+    [
+      "Manama",
+      "Bahrain",
+      1000000,
+      50.55,
+      26
+    ],
+    [
+      "Minsk",
+      "Belarus",
+      1000000,
+      28,
+      53
+    ],
+    [
+      "Belmopan",
+      "Belize",
+      1000000,
+      -88.75,
+      17.25
+    ],
+    [
+      "Porto-Novo",
+      "Benin",
+      1000000,
+      2.25,
+      9.5
+    ],
+    [
+      "Hamilton",
+      "Bermuda",
+      1000000,
+      -64.75,
+      32.33333333
+    ],
+    [
+      "Thimphu",
+      "Bhutan",
+      1000000,
+      90.5,
+      27.5
+    ],
+    [
+      "Sucre",
+      "Bolivia",
+      1000000,
+      -65,
+      -17
+    ],
+    [
+      "Kralendijk",
+      "Bonaire, Sint Eustatius and Saba",
+      1000000,
+      -68.266667,
+      12.15
+    ],
+    [
+      "Sarajevo",
+      "Bosnia and Herzegovina",
+      1000000,
+      18,
+      44
+    ],
+    [
+      "Diego Garcia",
+      "British Indian Ocean Territory",
+      1000000,
+      71.5,
+      -6
+    ],
+    [
+      "Bandar Seri Begawan",
+      "Brunei",
+      1000000,
+      114.66666666,
+      4.5
+    ],
+    [
+      "Bujumbura",
+      "Burundi",
+      1000000,
+      30,
+      -3.5
+    ],
+    [
+      "Yaounde",
+      "Cameroon",
+      1000000,
+      12,
+      6
+    ],
+    [
+      "Praia",
+      "Cape Verde",
+      1000000,
+      -24,
+      16
+    ],
+    [
+      "George Town",
+      "Cayman Islands",
+      1000000,
+      -80.5,
+      19.5
+    ],
+    [
+      "Bangui",
+      "Central African Republic",
+      1000000,
+      21,
+      7
+    ],
+    [
+      "N'Djamena",
+      "Chad",
+      1000000,
+      19,
+      15
+    ],
+    [
+      "Flying Fish Cove",
+      "Christmas Island",
+      1000000,
+      105.66666666,
+      -10.5
+    ],
+    [
+      "West Island",
+      "Cocos (Keeling) Islands",
+      1000000,
+      96.83333333,
+      -12.5
+    ],
+    [
+      "Moroni",
+      "Comoros",
+      1000000,
+      44.25,
+      -12.16666666
+    ],
+    [
+      "Brazzaville",
+      "Congo",
+      1000000,
+      15,
+      -1
+    ],
+    [
+      "Avarua",
+      "Cook Islands",
+      1000000,
+      -159.76666666,
+      -21.23333333
+    ],
+    [
+      "San Jose",
+      "Costa Rica",
+      1000000,
+      -84,
+      10
+    ],
+    [
+      "Zagreb",
+      "Croatia",
+      1000000,
+      15.5,
+      45.16666666
+    ],
+    [
+      "Willemstad",
+      "Curaçao",
+      1000000,
+      -68.933333,
+      12.116667
+    ],
+    [
+      "Nicosia",
+      "Cyprus",
+      1000000,
+      33,
+      35
+    ],
+    [
+      "Kinshasa",
+      "Democratic Republic of the Congo",
+      1000000,
+      25,
+      0
+    ],
+    [
+      "Djibouti",
+      "Djibouti",
+      1000000,
+      43,
+      11.5
+    ],
+    [
+      "Roseau",
+      "Dominica",
+      1000000,
+      -61.33333333,
+      15.41666666
+    ],
+    [
+      "San Salvador",
+      "El Salvador",
+      1000000,
+      -88.91666666,
+      13.83333333
+    ],
+    [
+      "Malabo",
+      "Equatorial Guinea",
+      1000000,
+      10,
+      2
+    ],
+    [
+      "Asmara",
+      "Eritrea",
+      1000000,
+      39,
+      15
+    ],
+    [
+      "Tallinn",
+      "Estonia",
+      1000000,
+      26,
+      59
+    ],
+    [
+      "Mbabane",
+      "Eswatini",
+      1000000,
+      31.5,
+      -26.5
+    ],
+    [
+      "Stanley",
+      "Falkland Islands",
+      1000000,
+      -59,
+      -51.75
+    ],
+    [
+      "Torshavn",
+      "Faroe Islands",
+      1000000,
+      -7,
+      62
+    ],
+    [
+      "Suva",
+      "Fiji Islands",
+      1000000,
+      175,
+      -18
+    ],
+    [
+      "Cayenne",
+      "French Guiana",
+      1000000,
+      -53,
+      4
+    ],
+    [
+      "Papeete",
+      "French Polynesia",
+      1000000,
+      -140,
+      -15
+    ],
+    [
+      "Port-aux-Francais",
+      "French Southern Territories",
+      1000000,
+      69.167,
+      -49.25
+    ],
+    [
+      "Libreville",
+      "Gabon",
+      1000000,
+      11.75,
+      -1
+    ],
+    [
+      "Gibraltar",
+      "Gibraltar",
+      1000000,
+      -5.35,
+      36.13333333
+    ],
+    [
+      "Nuuk",
+      "Greenland",
+      1000000,
+      -40,
+      72
+    ],
+    [
+      "St. George's",
+      "Grenada",
+      1000000,
+      -61.66666666,
+      12.11666666
+    ],
+    [
+      "Basse-Terre",
+      "Guadeloupe",
+      1000000,
+      -61.583333,
+      16.25
+    ],
+    [
+      "Hagatna",
+      "Guam",
+      1000000,
+      144.78333333,
+      13.46666666
+    ],
+    [
+      "Guatemala City",
+      "Guatemala",
+      1000000,
+      -90.25,
+      15.5
+    ],
+    [
+      "St Peter Port",
+      "Guernsey",
+      1000000,
+      -2.58333333,
+      49.46666666
+    ],
+    [
+      "Conakry",
+      "Guinea",
+      1000000,
+      -10,
+      11
+    ],
+    [
+      "Bissau",
+      "Guinea-Bissau",
+      1000000,
+      -15,
+      12
+    ],
+    [
+      "Tegucigalpa",
+      "Honduras",
+      1000000,
+      -86.5,
+      15
+    ],
+    [
+      "Hong Kong",
+      "Hong Kong S.A.R.",
+      1000000,
+      114.16666666,
+      22.25
+    ],
+    [
+      "Reykjavik",
+      "Iceland",
+      1000000,
+      -18,
+      65
+    ],
+    [
+      "Yamoussoukro",
+      "Ivory Coast",
+      1000000,
+      -5,
+      8
+    ],
+    [
+      "Saint Helier",
+      "Jersey",
+      1000000,
+      -2.16666666,
+      49.25
+    ],
+    [
+      "Astana",
+      "Kazakhstan",
+      1000000,
+      68,
+      48
+    ],
+    [
+      "Tarawa",
+      "Kiribati",
+      1000000,
+      173,
+      1.41666666
+    ],
+    [
+      "Pristina",
+      "Kosovo",
+      1000000,
+      20.3403035,
+      42.5612909
+    ],
+    [
+      "Bishkek",
+      "Kyrgyzstan",
+      1000000,
+      75,
+      41
+    ],
+    [
+      "Riga",
+      "Latvia",
+      1000000,
+      25,
+      57
+    ],
+    [
+      "Maseru",
+      "Lesotho",
+      1000000,
+      28.5,
+      -29.5
+    ],
+    [
+      "Vaduz",
+      "Liechtenstein",
+      1000000,
+      9.53333333,
+      47.26666666
+    ],
+    [
+      "Vilnius",
+      "Lithuania",
+      1000000,
+      24,
+      56
+    ],
+    [
+      "Luxembourg",
+      "Luxembourg",
+      1000000,
+      6.16666666,
+      49.75
+    ],
+    [
+      "Macao",
+      "Macau S.A.R.",
+      1000000,
+      113.55,
+      22.16666666
+    ],
+    [
+      "Antananarivo",
+      "Madagascar",
+      1000000,
+      47,
+      -20
+    ],
+    [
+      "Lilongwe",
+      "Malawi",
+      1000000,
+      34,
+      -13.5
+    ],
+    [
+      "Male",
+      "Maldives",
+      1000000,
+      73,
+      3.25
+    ],
+    [
+      "Valletta",
+      "Malta",
+      1000000,
+      14.58333333,
+      35.83333333
+    ],
+    [
+      "Douglas, Isle of Man",
+      "Man (Isle of)",
+      1000000,
+      -4.5,
+      54.25
+    ],
+    [
+      "Majuro",
+      "Marshall Islands",
+      1000000,
+      168,
+      9
+    ],
+    [
+      "Fort-de-France",
+      "Martinique",
+      1000000,
+      -61,
+      14.666667
+    ],
+    [
+      "Nouakchott",
+      "Mauritania",
+      1000000,
+      -12,
+      20
+    ],
+    [
+      "Port Louis",
+      "Mauritius",
+      1000000,
+      57.55,
+      -20.28333333
+    ],
+    [
+      "Mamoudzou",
+      "Mayotte",
+      1000000,
+      45.16666666,
+      -12.83333333
+    ],
+    [
+      "Palikir",
+      "Micronesia",
+      1000000,
+      158.25,
+      6.91666666
+    ],
+    [
+      "Chisinau",
+      "Moldova",
+      1000000,
+      29,
+      47
+    ],
+    [
+      "Monaco",
+      "Monaco",
+      1000000,
+      7.4,
+      43.73333333
+    ],
+    [
+      "Ulan Bator",
+      "Mongolia",
+      1000000,
+      105,
+      46
+    ],
+    [
+      "Podgorica",
+      "Montenegro",
+      1000000,
+      19.3,
+      42.5
+    ],
+    [
+      "Plymouth",
+      "Montserrat",
+      1000000,
+      -62.2,
+      16.75
+    ],
+    [
+      "Yaren",
+      "Nauru",
+      1000000,
+      166.91666666,
+      -0.53333333
+    ],
+    [
+      "Kathmandu",
+      "Nepal",
+      1000000,
+      84,
+      28
+    ],
+    [
+      "Noumea",
+      "New Caledonia",
+      1000000,
+      165.5,
+      -21.5
+    ],
+    [
+      "Managua",
+      "Nicaragua",
+      1000000,
+      -85,
+      13
+    ],
+    [
+      "Niamey",
+      "Niger",
+      1000000,
+      8,
+      16
+    ],
+    [
+      "Alofi",
+      "Niue",
+      1000000,
+      -169.86666666,
+      -19.03333333
+    ],
+    [
+      "Kingston",
+      "Norfolk Island",
+      1000000,
+      167.95,
+      -29.03333333
+    ],
+    [
+      "Pyongyang",
+      "North Korea",
+      1000000,
+      127,
+      40
+    ],
+    [
+      "Saipan",
+      "Northern Mariana Islands",
+      1000000,
+      145.75,
+      15.2
+    ],
+    [
+      "East Jerusalem",
+      "Palestinian Territory Occupied",
+      1000000,
+      35.2,
+      31.9
+    ],
+    [
+      "Panama City",
+      "Panama",
+      1000000,
+      -80,
+      9
+    ],
+    [
+      "Asunción",
+      "Paraguay",
+      1000000,
+      -58,
+      -23
+    ],
+    [
+      "Adamstown",
+      "Pitcairn Island",
+      1000000,
+      -130.1,
+      -25.06666666
+    ],
+    [
+      "Saint-Denis",
+      "Reunion",
+      1000000,
+      55.5,
+      -21.15
+    ],
+    [
+      "Jamestown",
+      "Saint Helena",
+      1000000,
+      -5.7,
+      -15.95
+    ],
+    [
+      "Basseterre",
+      "Saint Kitts and Nevis",
+      1000000,
+      -62.75,
+      17.33333333
+    ],
+    [
+      "Castries",
+      "Saint Lucia",
+      1000000,
+      -60.96666666,
+      13.88333333
+    ],
+    [
+      "Saint-Pierre",
+      "Saint Pierre and Miquelon",
+      1000000,
+      -56.33333333,
+      46.83333333
+    ],
+    [
+      "Kingstown",
+      "Saint Vincent and the Grenadines",
+      1000000,
+      -61.2,
+      13.25
+    ],
+    [
+      "Gustavia",
+      "Saint-Barthelemy",
+      1000000,
+      -63.41666666,
+      18.5
+    ],
+    [
+      "Marigot",
+      "Saint-Martin (French part)",
+      1000000,
+      -63.95,
+      18.08333333
+    ],
+    [
+      "Apia",
+      "Samoa",
+      1000000,
+      -172.33333333,
+      -13.58333333
+    ],
+    [
+      "San Marino",
+      "San Marino",
+      1000000,
+      12.41666666,
+      43.76666666
+    ],
+    [
+      "Sao Tome",
+      "Sao Tome and Principe",
+      1000000,
+      7,
+      1
+    ],
+    [
+      "Victoria",
+      "Seychelles",
+      1000000,
+      55.4540146,
+      -4.6574977
+    ],
+    [
+      "Philipsburg",
+      "Sint Maarten (Dutch part)",
+      1000000,
+      -63.05,
+      18.033333
+    ],
+    [
+      "Bratislava",
+      "Slovakia",
+      1000000,
+      19.5,
+      48.66666666
+    ],
+    [
+      "Mogadishu",
+      "Somalia",
+      1000000,
+      49,
+      10
+    ],
+    [
+      "Grytviken",
+      "South Georgia",
+      1000000,
+      -37,
+      -54.5
+    ],
+    [
+      "Juba",
+      "South Sudan",
+      1000000,
+      30,
+      7
+    ],
+    [
+      "Longyearbyen",
+      "Svalbard and Jan Mayen Islands",
+      1000000,
+      20,
+      78
+    ],
+    [
+      "Bern",
+      "Switzerland",
+      1000000,
+      8,
+      47
+    ],
+    [
+      "Dushanbe",
+      "Tajikistan",
+      1000000,
+      71,
+      39
+    ],
+    [
+      "Nassau",
+      "The Bahamas",
+      1000000,
+      -76,
+      24.25
+    ],
+    [
+      "Banjul",
+      "The Gambia",
+      1000000,
+      -16.56666666,
+      13.46666666
+    ],
+    [
+      "Dili",
+      "Timor-Leste",
+      1000000,
+      125.91666666,
+      -8.83333333
+    ],
+    [
+      "Lome",
+      "Togo",
+      1000000,
+      1.16666666,
+      8
+    ],
+    [
+      "Nuku'alofa",
+      "Tonga",
+      1000000,
+      -175,
+      -20
+    ],
+    [
+      "Ashgabat",
+      "Turkmenistan",
+      1000000,
+      60,
+      40
+    ],
+    [
+      "Cockburn Town",
+      "Turks and Caicos Islands",
+      1000000,
+      -71.58333333,
+      21.75
+    ],
+    [
+      "Funafuti",
+      "Tuvalu",
+      1000000,
+      178,
+      -8
+    ],
+    [
+      "Kyiv",
+      "Ukraine",
+      1000000,
+      32,
+      49
+    ],
+    [
+      "Montevideo",
+      "Uruguay",
+      1000000,
+      -56,
+      -33
+    ],
+    [
+      "Tashkent",
+      "Uzbekistan",
+      1000000,
+      64,
+      41
+    ],
+    [
+      "Port Vila",
+      "Vanuatu",
+      1000000,
+      167,
+      -16
+    ],
+    [
+      "Vatican City",
+      "Vatican City State (Holy See)",
+      1000000,
+      12.45,
+      41.9
+    ],
+    [
+      "Road Town",
+      "Virgin Islands (British)",
+      1000000,
+      -64.62305,
+      18.431383
+    ],
+    [
+      "Charlotte Amalie",
+      "Virgin Islands (US)",
+      1000000,
+      -64.93,
+      18.34
+    ],
+    [
+      "Mata Utu",
+      "Wallis and Futuna Islands",
+      1000000,
+      -176.2,
+      -13.3
+    ],
+    [
+      "El-Aaiun",
+      "Western Sahara",
+      1000000,
+      -13,
+      24.5
+    ]
   ]
 }

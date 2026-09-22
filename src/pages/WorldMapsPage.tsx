@@ -1777,7 +1777,7 @@ export function WorldMapsPage() {
 
   const citiesD = useMemo(() => {
     if (!cityPoints) return undefined;
-    const r = 3.2 / worldZoom.zoom;
+    const r = 4.4 / worldZoom.zoom;
     return cityPoints.map((p) => dot(p.x, p.y, r)).join("");
   }, [cityPoints, worldZoom.zoom]);
 
@@ -2102,7 +2102,7 @@ export function WorldMapsPage() {
          until the distinction can actually be seen. */
       mineRinged: near,
       capitals: join(focusOverlays.capitals, star, 4.8 / z),
-      cities: join(focusOverlays.cities, dot, 3.2 / z),
+      cities: join(focusOverlays.cities, dot, 4.4 / z),
     };
   }, [focusOverlays, focusZoom.zoom]);
 
@@ -2748,7 +2748,7 @@ export function WorldMapsPage() {
                 fill={overlayInk.cities}
                 fillOpacity={0.9}
                 stroke={labelHalo}
-                strokeWidth={0.6 / worldZoom.zoom}
+                strokeWidth={0.8 / worldZoom.zoom}
                 pointerEvents="none"
               />
             )}
@@ -3219,9 +3219,9 @@ export function WorldMapsPage() {
                 <path
                   d={focusMarks.cities}
                   fill={overlayInk.cities}
-                  fillOpacity={0.75}
+                  fillOpacity={0.9}
                   stroke={labelHalo}
-                  strokeWidth={0.3 / focusZoom.zoom}
+                  strokeWidth={0.5 / focusZoom.zoom}
                   pointerEvents="none"
                 />
               )}
@@ -3472,9 +3472,9 @@ export function WorldMapsPage() {
                         <path
                           d={focusMarks.cities}
                           fill={overlayInk.cities}
-                          fillOpacity={0.75}
+                          fillOpacity={0.9}
                           stroke={labelHalo}
-                          strokeWidth={0.3 / focusZoom.zoom}
+                          strokeWidth={0.5 / focusZoom.zoom}
                           pointerEvents="none"
                         />
                       )}
