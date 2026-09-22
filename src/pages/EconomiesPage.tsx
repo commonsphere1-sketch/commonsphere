@@ -2223,7 +2223,7 @@ export function EconomiesPage() {
                 onClick={() => setViewMode(tab.id)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
                   viewMode === tab.id
-                    ? "bg-secondary/20 border-secondary/40 text-secondary"
+                    ? "chip-selected"
                     : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 }`}
               >
