@@ -5529,6 +5529,8 @@ function FocusCarousel({
   const [curId, setCurId] = useState<string | null>(saved?.id ?? null);
   const [focus, setFocus] = useState<Focus | null>(saved);
   const [paused, setPaused] = useState(false);
+  const swipe = useRef(0);
+  const touchX = useRef<number | null>(null);
   const [query, setQuery] = useState("");
 
   /* Alphabetical, so paging through has an order the reader can predict. */
@@ -5566,7 +5568,7 @@ function FocusCarousel({
         const pos = Math.max(0, list.findIndex((x) => x.id === id));
         return list[(pos + 1) % list.length].id;
       });
-    }, 3200);
+    }, 4500);
     return () => clearInterval(t);
   }, [focus, paused, list]);
 
@@ -5727,8 +5729,6 @@ function FocusCarousel({
     );
   };
 
-  const prev = list[(((at - 1) % list.length) + list.length) % list.length];
-  const next = list[(at + 1) % list.length];
 
   return (
     <div
@@ -5804,10 +5804,20 @@ function FocusCarousel({
         </div>
       </div>
 
-      {/* The deck. Arrow keys step it, so a reader can run along the list
-          far faster than the card turns over by itself. */}
+      {/* The deck.
+
+          Five cards are on stage at once - the choice, its two neighbours,
+          and one more each side waiting in the wings - each keyed by id and
+          placed by how far it is from the centre. Because the key follows
+          the place rather than the slot, changing the choice hands each card
+          a new offset and CSS slides it there, instead of the contents
+          swapping under a card that never moves.
+
+          It takes a trackpad swipe, a touch drag and the arrow keys, since
+          the two side cards alone are a small target for something meant to
+          be paged through. */}
       <div
-        className="relative h-[190px] flex items-center justify-center outline-none"
+        className="relative h-[190px] flex items-center justify-center outline-none overflow-hidden touch-pan-y"
         tabIndex={0}
         role="group"
         aria-label={kind === "country" ? "Choose a country to follow" : "Choose a state to follow"}
@@ -5823,40 +5833,53 @@ function FocusCarousel({
             lockIn();
           }
         }}
+        onWheel={(e) => {
+          /* Trackpads report a sideways flick as deltaX. Only a clearly
+             horizontal gesture is taken, so an ordinary downward scroll
+             still scrolls the page rather than flicking through countries.
+             The accumulator makes one card per gesture, not one per event. */
+          if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+          swipe.current += e.deltaX;
+          if (Math.abs(swipe.current) < 60) return;
+          step(swipe.current > 0 ? 1 : -1);
+          swipe.current = 0;
+        }}
+        onTouchStart={(e) => {
+          touchX.current = e.touches[0].clientX;
+        }}
+        onTouchEnd={(e) => {
+          if (touchX.current === null) return;
+          const dx = e.changedTouches[0].clientX - touchX.current;
+          touchX.current = null;
+          if (Math.abs(dx) > 40) step(dx < 0 ? 1 : -1);
+        }}
       >
-        <button
-          type="button"
-          onClick={() => step(-1)}
-          aria-label={kind === "country" ? "Previous country" : "Previous state"}
-          className="absolute left-0 top-1/2 origin-center cursor-pointer"
-          style={{ transform: "translate(-18%, -50%) scale(0.82)", opacity: 0.45, zIndex: 0 }}
-        >
-          <Card entry={prev} role="prev" />
-        </button>
-
-        <button
-          type="button"
-          onClick={() => step(1)}
-          aria-label={kind === "country" ? "Next country" : "Next state"}
-          className="absolute right-0 top-1/2 origin-center cursor-pointer"
-          style={{ transform: "translate(18%, -50%) scale(0.82)", opacity: 0.45, zIndex: 0 }}
-        >
-          <Card entry={next} role="next" />
-        </button>
-
-        <div
-          className="relative cursor-pointer"
-          style={{ zIndex: 1 }}
-          onClick={(e) => {
-            /* The Follow button lives inside the card and stops here. */
-            if ((e.target as HTMLElement).closest("button")) return;
-            openItem();
-          }}
-        >
-          <Card entry={item} role="cur" />
-        </div>
+        {[-2, -1, 0, 1, 2].map((o) => {
+          const entry = list[(((at + o) % list.length) + list.length) % list.length];
+          const away = Math.abs(o);
+          return (
+            <button
+              key={entry.id}
+              type="button"
+              onClick={() => (o === 0 ? openItem() : step(o))}
+              aria-label={
+                o === 0 ? `Open ${entry.name}` : `Show ${entry.name}`
+              }
+              aria-hidden={away === 2}
+              tabIndex={away === 2 ? -1 : 0}
+              className="absolute cursor-pointer transition-[transform,opacity] duration-500 ease-out motion-reduce:transition-none"
+              style={{
+                transform: `translateX(${o * 172}px) scale(${o === 0 ? 1 : 0.82})`,
+                opacity: away === 0 ? 1 : away === 1 ? 0.45 : 0,
+                zIndex: 2 - away,
+                pointerEvents: away === 2 ? "none" : undefined,
+              }}
+            >
+              <Card entry={entry} role={o === 0 ? "cur" : o < 0 ? "prev" : "next"} />
+            </button>
+          );
+        })}
       </div>
-
 
       <p className="text-[10px] font-sans mt-2 text-center" style={{ color: mutedText }}>
         {focus
