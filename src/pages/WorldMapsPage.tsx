@@ -1525,6 +1525,22 @@ export function WorldMapsPage() {
      the mineral circle - so the three point layers never depend on colour. */
   const tri = (x: number, y: number, r: number) =>
     `M${x},${y - r}L${x + r},${y + r}L${x - r},${y + r}Z`;
+  /* Capitals get a five-point star - the mark cartographers use for a seat of
+     government - so it reads as "capital" at a glance rather than blending
+     into the plain dots of the cities layer. */
+  const star = (x: number, y: number, r: number) => {
+    const outer = r;
+    const inner = r * 0.42;
+    let d = "";
+    for (let i = 0; i < 10; i++) {
+      const rad = i % 2 === 0 ? outer : inner;
+      const angle = (Math.PI / 5) * i - Math.PI / 2;
+      const px = x + rad * Math.cos(angle);
+      const py = y + rad * Math.sin(angle);
+      d += (i === 0 ? "M" : "L") + px + "," + py;
+    }
+    return d + "Z";
+  };
 
   const portPoints = useMemo(() => {
     if (!ports.data) return null;
@@ -1563,6 +1579,36 @@ export function WorldMapsPage() {
       })
       .filter((p): p is { x: number; y: number; major: boolean } => p !== null);
   }, [infra.data, worldPath]);
+
+  const capitalPoints = useMemo(() => {
+    if (!capitals.data) return null;
+    return capitals.data.rows
+      .map((row) => {
+        const p = worldPath.projection([row[2], row[3]]);
+        return p ? { x: p[0], y: p[1] } : null;
+      })
+      .filter((p): p is { x: number; y: number } => p !== null);
+  }, [capitals.data, worldPath]);
+
+  const cityPoints = useMemo(() => {
+    if (!cities.data) return null;
+    return cities.data.rows
+      .map((row) => {
+        const p = worldPath.projection([row[3], row[4]]);
+        return p ? { x: p[0], y: p[1] } : null;
+      })
+      .filter((p): p is { x: number; y: number } => p !== null);
+  }, [cities.data, worldPath]);
+
+  const timezonePoints = useMemo(() => {
+    if (!timezones.data) return null;
+    return timezones.data.rows
+      .map((row) => {
+        const p = worldPath.projection([row[2], row[3]]);
+        return p ? { x: p[0], y: p[1] } : null;
+      })
+      .filter((p): p is { x: number; y: number } => p !== null);
+  }, [timezones.data, worldPath]);
 
   /* What the mineral layer actually holds, counted from the data rather than
      written by hand, so the note cannot drift from the file it describes. The
@@ -1708,28 +1754,22 @@ export function WorldMapsPage() {
   }, [minePoints, worldZoom.zoom]);
 
   const capitalsD = useMemo(() => {
-    if (!capitals.data) return undefined;
-    const r = 2.2 / worldZoom.zoom;
-    return capitals.data.rows
-      .map((row) => dot(row[2], row[3], r))
-      .join("");
-  }, [capitals.data, worldZoom.zoom]);
+    if (!capitalPoints) return undefined;
+    const r = 4.8 / worldZoom.zoom;
+    return capitalPoints.map((p) => star(p.x, p.y, r)).join("");
+  }, [capitalPoints, worldZoom.zoom]);
 
   const citiesD = useMemo(() => {
-    if (!cities.data) return undefined;
-    const r = 1.8 / worldZoom.zoom;
-    return cities.data.rows
-      .map((row) => dot(row[3], row[4], r))
-      .join("");
-  }, [cities.data, worldZoom.zoom]);
+    if (!cityPoints) return undefined;
+    const r = 3.2 / worldZoom.zoom;
+    return cityPoints.map((p) => dot(p.x, p.y, r)).join("");
+  }, [cityPoints, worldZoom.zoom]);
 
   const timezonesD = useMemo(() => {
-    if (!timezones.data) return undefined;
+    if (!timezonePoints) return undefined;
     const r = 1.2 / worldZoom.zoom;
-    return timezones.data.rows
-      .map((row) => dot(row[2], row[3], r))
-      .join("");
-  }, [timezones.data, worldZoom.zoom]);
+    return timezonePoints.map((p) => dot(p.x, p.y, r)).join("");
+  }, [timezonePoints, worldZoom.zoom]);
 
   const zoom = focusZoom.zoom;
 
@@ -2043,8 +2083,8 @@ export function WorldMapsPage() {
       /* Too small to read as a ring when zoomed out, so both kinds are solid
          until the distinction can actually be seen. */
       mineRinged: near,
-      capitals: join(focusOverlays.capitals, dot, 2.2 / z),
-      cities: join(focusOverlays.cities, dot, 1.8 / z),
+      capitals: join(focusOverlays.capitals, star, 4.8 / z),
+      cities: join(focusOverlays.cities, dot, 3.2 / z),
       timezones: join(focusOverlays.timezones, dot, 1.2 / z),
     };
   }, [focusOverlays, focusZoom.zoom]);
@@ -2319,7 +2359,7 @@ export function WorldMapsPage() {
     );
   };
 
-  const layerToggles = (layers: Record<OverlayId, boolean>, set: LayerSetter) => {
+  const layerToggles = (layers: Record<OverlayId, boolean>, set: LayerSetter, showMore = true) => {
     const mainLayers = OVERLAYS.filter(o => !["capitals", "cities", "timezones"].includes(o.id));
     const additionalLayers = OVERLAYS.filter(o => ["capitals", "cities", "timezones"].includes(o.id));
 
@@ -2332,20 +2372,22 @@ export function WorldMapsPage() {
           {mainLayers.map((o) => (
             <LayerButton key={o.id} o={o} layers={layers} set={set} />
           ))}
-          <button
-            onClick={() => setShowAdditionalLayers(!showAdditionalLayers)}
-            className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
-              showAdditionalLayers
-                ? "border-transparent bg-secondary/20 text-foreground"
-                : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
-            }`}
-            title="Show additional layers"
-          >
-            <CaretDown size={10} weight="bold" className={`transition-transform ${showAdditionalLayers ? "rotate-180" : ""}`} />
-            More
-          </button>
+          {showMore && (
+            <button
+              onClick={() => setShowAdditionalLayers(!showAdditionalLayers)}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
+                showAdditionalLayers
+                  ? "border-transparent bg-secondary/20 text-foreground"
+                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
+              title="Show additional layers"
+            >
+              <CaretDown size={10} weight="bold" className={`transition-transform ${showAdditionalLayers ? "rotate-180" : ""}`} />
+              More
+            </button>
+          )}
         </div>
-        {showAdditionalLayers && (
+        {showMore && showAdditionalLayers && (
           <div className="flex flex-wrap items-center gap-2 mb-3 pl-6">
             {additionalLayers.map((o) => (
               <LayerButton key={o.id} o={o} layers={layers} set={set} />
@@ -2635,9 +2677,10 @@ export function WorldMapsPage() {
               <path
                 d={capitalsD}
                 fill={overlayInk.capitals}
-                fillOpacity={0.85}
+                fillOpacity={1}
                 stroke={labelHalo}
-                strokeWidth={0.35 / worldZoom.zoom}
+                strokeWidth={0.8 / worldZoom.zoom}
+                strokeLinejoin="round"
                 pointerEvents="none"
               />
             )}
@@ -2646,9 +2689,9 @@ export function WorldMapsPage() {
               <path
                 d={citiesD}
                 fill={overlayInk.cities}
-                fillOpacity={0.75}
+                fillOpacity={0.9}
                 stroke={labelHalo}
-                strokeWidth={0.3 / worldZoom.zoom}
+                strokeWidth={0.6 / worldZoom.zoom}
                 pointerEvents="none"
               />
             )}
@@ -2945,7 +2988,7 @@ export function WorldMapsPage() {
 
           {focusCode === "US" ? (
           <>
-          {layerToggles(focusLayers, setFocusLayers)}
+          {layerToggles(focusLayers, setFocusLayers, false)}
 
           <ZoomControls
             zoom={zoom}
@@ -3152,7 +3195,7 @@ export function WorldMapsPage() {
                   invented one would be worse than none. */}
               <div>
                 <div>
-                  {layerToggles(focusLayers, setFocusLayers)}
+                  {layerToggles(focusLayers, setFocusLayers, false)}
 
                   <ZoomControls
                     zoom={zoom}
