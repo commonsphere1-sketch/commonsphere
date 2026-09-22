@@ -2072,7 +2072,7 @@ export function RankingsPage() {
               }
               className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
                 activeCategory === tab.id
-                  ? "bg-secondary/20 text-foreground border-secondary/40"
+                  ? "chip-selected"
                   : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
             >
@@ -2105,7 +2105,7 @@ export function RankingsPage() {
                       // at full brightness, looking enabled.
                       "bg-transparent border-border text-muted-foreground opacity-40 cursor-not-allowed"
                     : entityFilter === f
-                      ? "bg-secondary/20 text-foreground border-secondary/40 cursor-pointer"
+                      ? "chip-selected cursor-pointer"
                       : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
                 }`}
               >
@@ -2126,7 +2126,7 @@ export function RankingsPage() {
               setSortMetric(e.target.value as MetricId);
               setPage(0);
             }}
-            className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
+            className="bg-transparent px-3 py-1 rounded-full border border-border text-[11px] font-medium text-muted-foreground hover:text-foreground font-sans focus:outline-none cursor-pointer shrink-0"
           >
             {METRICS.map((m) => (
               <option key={m.id} value={m.id}>
@@ -2164,10 +2164,10 @@ export function RankingsPage() {
                   setContinentFilter(c);
                   setPage(0);
                 }}
-                className={`px-2 py-0.5 rounded-lg text-[11px] font-semibold transition-colors ${
+                className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer ${
                   continentFilter === c
-                    ? "bg-secondary text-secondary-foreground"
-                    : "bg-muted/50 border border-border text-muted-foreground hover:text-foreground"
+                    ? "chip-selected"
+                    : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 }`}
               >
                 {c === "all" ? "All" : c}
@@ -2427,7 +2427,7 @@ export function RankingsPage() {
                     onClick={() => setPage(pageNum)}
                     className={`w-7 h-7 rounded-lg text-xs font-semibold transition-colors ${
                       page === pageNum
-                        ? "bg-secondary text-secondary-foreground"
+                        ? "chip-selected"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }`}
                   >
