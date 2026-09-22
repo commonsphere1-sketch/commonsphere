@@ -374,7 +374,7 @@ function CurrencyConverter() {
         {/* SWAP */}
         <button
           onClick={swap}
-          className="flex items-center justify-center w-9 h-9 rounded-full border transition-all cursor-pointer self-center shrink-0"
+          className="flex items-center justify-center w-9 h-9 rounded-full border transition-all cursor-pointer self-center shrink-0 sm:mt-6"
           style={{
             background: `color-mix(in srgb, ${ACCENT} 12%, transparent)`,
             borderColor: `color-mix(in srgb, ${ACCENT} 38%, transparent)`,
