@@ -2895,6 +2895,34 @@ export function PlanetaryBoundariesPage() {
                   pct: 6,
                   color: "#22c55e",
                 },
+                {
+                  country: "Indonesia",
+                  total: 0.7,
+                  perCap: 2.5,
+                  pct: 2,
+                  color: "#f59e0b",
+                },
+                {
+                  country: "South Korea",
+                  total: 0.6,
+                  perCap: 11.8,
+                  pct: 2,
+                  color: "#f97316",
+                },
+                {
+                  country: "Brazil",
+                  total: 0.5,
+                  perCap: 2.3,
+                  pct: 1,
+                  color: "#84cc16",
+                },
+                {
+                  country: "Mexico",
+                  total: 0.4,
+                  perCap: 3.1,
+                  pct: 1,
+                  color: "#22c55e",
+                },
               ].map((row) => (
                 <div key={row.country} className="flex items-center gap-2">
                   <span
