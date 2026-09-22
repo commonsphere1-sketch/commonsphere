@@ -954,9 +954,9 @@ function BoundaryDetailPanel({
         </div>
       </div>
 
-      {/* Two columns, not three: beside the selector rail there is no room
-          for a third without every figure wrapping. */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
+      {/* Two columns: Key Variables and Geopolitical Dimensions side by side,
+          with Ecological Context below. */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
       {/* Key Variables */}
       <div>
@@ -1024,34 +1024,8 @@ function BoundaryDetailPanel({
         </div>
       </div>
 
-      {/* Ecological Facts */}
-      <div>
-        <p
-          className="text-[9px] font-mono uppercase tracking-widest mb-2"
-          style={{ color: mutedText }}
-        >
-          Ecological Context
-        </p>
-        <div className="flex flex-col gap-2">
-          {boundary.ecologicalFacts.map((fact, i) => (
-            <div key={i} className="flex gap-2.5">
-              <div
-                className="w-1 rounded-full shrink-0 mt-1"
-                style={{ background: boundary.color, minHeight: 14 }}
-              />
-              <p
-                className="text-[11px] font-sans leading-relaxed"
-                style={{ color: isLight ? "#475569" : "#94a3b8" }}
-              >
-                {fact}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Geopolitical Links */}
-      <div className="sm:col-span-2 lg:col-span-1">
+      <div>
         <p
           className="text-[9px] font-mono uppercase tracking-widest mb-2"
           style={{ color: mutedText }}
@@ -1085,6 +1059,32 @@ function BoundaryDetailPanel({
         </div>
       </div>
 
+      </div>
+
+      {/* Ecological Facts */}
+      <div>
+        <p
+          className="text-[9px] font-mono uppercase tracking-widest mb-2"
+          style={{ color: mutedText }}
+        >
+          Ecological Context
+        </p>
+        <div className="flex flex-col gap-2">
+          {boundary.ecologicalFacts.map((fact, i) => (
+            <div key={i} className="flex gap-2.5">
+              <div
+                className="w-1 rounded-full shrink-0 mt-1"
+                style={{ background: boundary.color, minHeight: 14 }}
+              />
+              <p
+                className="text-[11px] font-sans leading-relaxed"
+                style={{ color: isLight ? "#475569" : "#94a3b8" }}
+              >
+                {fact}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Source */}
