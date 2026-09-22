@@ -314,7 +314,7 @@ function CurrencyConverter() {
 
   const ACCENT = "#3fa9b5";
   return (
-    <div className="bg-card border border-border rounded-2xl p-5 mb-6">
+    <div className="border border-border rounded-2xl p-5 mb-6" style={{ background: `color-mix(in srgb, ${ACCENT} 6%, var(--color-card))` }}>
       <div className="flex items-center gap-2 mb-4">
         <div className="p-1.5 rounded-lg" style={{ background: `color-mix(in srgb, ${ACCENT} 12%, transparent)` }}>
           <ArrowsLeftRight size={16} weight="fill" style={{ color: ACCENT }} />
