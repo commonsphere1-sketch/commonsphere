@@ -14,7 +14,6 @@ import {
   ChartBar,
   SortAscending,
   SortDescending,
-  Star,
   CaretDown,
   CaretUp,
   X,
@@ -1850,39 +1849,6 @@ export function RankingsPage() {
     [categoryTableRows, page],
   );
 
-  /** Leaderboard ranking over the pool, before search — same reasoning. */
-  const leaderboardAll = useMemo(() => {
-    const nonComposite = activeCategoryMetrics.filter(
-      (m) => m.id !== "composite",
-    );
-    if (nonComposite.length === 0) return scopedRows;
-    const primary = nonComposite[0];
-    // Rows without a value for the primary metric sort last rather than
-    // competing. With a "lower is better" metric such as crime or education
-    // rank, missing data used to sort to the very top, so the Top 5 was a list
-    // of entities with no data shown as "N/A".
-    return [...scopedRows].sort((a, b) => {
-      const av = primary.accessor(a);
-      const bv = primary.accessor(b);
-      const aOk = isFinite(av);
-      const bOk = isFinite(bv);
-      if (aOk !== bOk) return aOk ? -1 : 1;
-      if (!aOk) return 0;
-      return primary.higherIsBetter ? bv - av : av - bv;
-    });
-  }, [scopedRows, activeCategoryMetrics]);
-
-  const leaderboardRankById = useMemo(() => {
-    const m = new Map<string, number>();
-    leaderboardAll.forEach((r, i) => m.set(r.id, i + 1));
-    return m;
-  }, [leaderboardAll]);
-
-  const categorySortedRows = useMemo(
-    () => leaderboardAll.filter(matchesSearch),
-    [leaderboardAll, matchesSearch],
-  );
-
   // The columns to show in the table = active category metrics
   const tableColumns = activeCategoryMetrics;
 
@@ -1920,18 +1886,6 @@ export function RankingsPage() {
     }
     setPage(0);
   }
-
-  // Top 3 for podium
-  const top3 = useMemo(
-    () =>
-      [...allRows]
-        .filter(
-          entityFilter === "all" ? () => true : (r) => r.type === entityFilter,
-        )
-        .sort((a, b) => b.composite - a.composite)
-        .slice(0, 3),
-    [allRows, entityFilter],
-  );
 
   const CONTINENTS: ContinentFilter[] = [
     "all",
@@ -2027,138 +1981,6 @@ export function RankingsPage() {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* ── Two-column row: Podium + Category ───────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Podium */}
-        <div className="bg-card border border-border rounded-2xl p-4">
-          <div className="flex items-center gap-2 mb-4">
-            <Star size={15} weight="fill" className="text-yellow-400" />
-            <span className="text-sm font-semibold text-foreground">
-              Top Performers
-            </span>
-            <span className="text-xs text-muted-foreground">
-              ({entityFilter === "all" ? "combined" : entityFilter + "s"})
-            </span>
-          </div>
-          <div className="flex items-end justify-center gap-3 sm:gap-6">
-            {[top3[1], top3[0], top3[2]].map((row, i) => {
-              if (!row) return null;
-              const podiumRank = i === 0 ? 2 : i === 1 ? 1 : 3;
-              const heights = ["h-16", "h-24", "h-12"];
-              const bgColors = [
-                "bg-slate-500/20 border-slate-500/30",
-                "bg-yellow-500/20 border-yellow-500/40",
-                "bg-amber-700/20 border-amber-700/30",
-              ];
-              return (
-                <div
-                  key={row.id}
-                  className="flex flex-col items-center gap-1.5 min-w-[70px] sm:min-w-[90px]"
-                >
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-lg">
-                      <span className={`font-mono font-bold ${rankColor(podiumRank)}`}>{podiumRank}</span>
-                    </span>
-                    <div className="w-14 h-14 rounded-full overflow-hidden border border-border shadow-sm bg-muted flex items-center justify-center">
-                      <EntityFlag
-                        row={row}
-                        imgClassName="w-full h-full object-cover"
-                        iconSize={12}
-                      />
-                    </div>
-                    <span className="text-[10px] font-semibold text-foreground text-center leading-tight max-w-[70px]">
-                      {row.name}
-                    </span>
-                    <span className="text-[10px] font-mono text-yellow-400 font-bold">
-                      {row.composite.toFixed(1)}
-                    </span>
-                  </div>
-                  <div
-                    className={`w-16 rounded-t-lg border ${bgColors[i]} ${heights[i]}`}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Category panel */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <ChartBar size={14} weight="fill" className="text-secondary" />
-            <span className="text-xs font-semibold text-foreground">
-              View by Category
-            </span>
-          </div>
-          {/* Tabs live in the sticky filter bar below, so they stay reachable
-              while scrolling the table they drive. */}
-
-          {/* Top 5 leaderboard */}
-          <p className="text-[10px] font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-            {/* While searching this is no longer the top of the table, it is
-                the matches with the ranks they actually hold — say so rather
-                than labelling rank #133 as "Top 5". */}
-            {searchTerm ? "Matches" : "Top 5"} —{" "}
-            {CATEGORY_TABS.find((t) => t.id === activeCategory)?.label}
-          </p>
-          <div className="flex flex-col gap-1">
-            {categorySortedRows.slice(0, 5).map((row) => {
-              const rank = leaderboardRankById.get(row.id) ?? 0;
-              const primary =
-                activeCategoryMetrics.find((m) => m.id !== "composite") ??
-                activeCategoryMetrics[0];
-              const val = primary.accessor(row);
-              // Scale the bar against the whole pool, not just the matches,
-              // so a searched row keeps the same bar it has in the full list.
-              const allVals = leaderboardAll.map((r) => primary.accessor(r));
-              const pct = percentile(val, allVals, primary.higherIsBetter);
-              const barColor =
-                pct >= 66
-                  ? "bg-success"
-                  : pct >= 33
-                    ? "bg-amber-500"
-                    : "bg-destructive";
-              return (
-                <div
-                  key={row.id}
-                  className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-                >
-                  <span className="text-sm w-5 text-center shrink-0">
-                    <span
-                      className={`font-mono text-xs ${rankColor(rank)} ${rank <= 3 ? "font-bold" : ""}`}
-                    >
-                      {rank}
-                    </span>
-                  </span>
-                  <div className="w-11 h-7 rounded overflow-hidden bg-muted border border-border shrink-0">
-                    <EntityFlag
-                      row={row}
-                      imgClassName="w-full h-full object-cover"
-                      iconSize={9}
-                      iconClassName="text-muted-foreground m-auto"
-                    />
-                  </div>
-                  <span className="text-xs font-medium text-foreground flex-1 truncate">
-                    {row.name}
-                  </span>
-                  <span
-                    className={`text-xs font-mono font-bold ${barColor.replace("bg-success", "text-success").replace("bg-amber-500", "text-amber-400").replace("bg-destructive", "text-destructive")} shrink-0`}
-                  >
-                    {fmtMetric(primary, val)}
-                  </span>
-                  <div className="w-14 h-1.5 bg-muted rounded-full overflow-hidden shrink-0">
-                    <div
-                      className={`h-full rounded-full ${barColor}`}
-                      style={{ width: `${Math.max(4, pct)}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
       </div>
 
       {/* ── Comparison ──────────────────────────────────────────────────── */}
