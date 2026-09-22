@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { ArrowUpRight } from "@phosphor-icons/react";
 import { RESOURCE_DETAILS } from "../data/resourceDetails";
 import { RESOURCE_PRODUCERS } from "../data/resourceProducers";
 import { ENERGY_PRODUCERS } from "../data/energyProducers";
@@ -230,13 +231,25 @@ export function ResourceModal({
                 </span>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
-              aria-label="Close"
-            >
-              <span className="text-xs font-sans font-medium">Close</span>
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => {
+                  window.open(`/dashboard/resources/${resource.name.toLowerCase()}`, "_blank");
+                }}
+                className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
+                title="Open in new tab"
+                aria-label="Expand"
+              >
+                <ArrowUpRight size={14} weight="bold" />
+              </button>
+              <button
+                onClick={onClose}
+                className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
+                aria-label="Close"
+              >
+                <span className="text-xs font-sans font-medium">Close</span>
+              </button>
+            </div>
           </div>
 
           {detail ? (
