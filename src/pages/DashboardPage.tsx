@@ -5921,8 +5921,10 @@ export function DashboardPage() {
             }}
           />
 
-          {/* Text row */}
-          <div className="relative px-5 py-5">
+          {/* Text row. The flags sit beside it on a wide screen and wrap
+              under it on a narrow one. */}
+          <div className="relative px-5 py-6 flex flex-col lg:flex-row lg:items-center gap-5 justify-between">
+            <div>
             <p
               className="text-[10px] font-mono uppercase tracking-widest mb-1"
               style={{ color: isLight ? "#4f46e5" : "#818cf8" }}
@@ -5933,19 +5935,83 @@ export function DashboardPage() {
               className="text-2xl sm:text-3xl font-bold font-sans"
               style={{ color: headText }}
             >
-              Dashboard
+              Welcome to CommonSphere
             </h1>
             <p
-              className="text-sm font-sans mt-1 max-w-md"
+              className="text-sm font-sans mt-1.5 max-w-xl"
               style={{ color: mutedText }}
             >
-              {/* The browser-side refresh is gone (see useLiveData): figures
-                  are built from named sources and carry the year they are
-                  for, and the feeds are curated and dated individually. */}
-              Country and state figures are built from named sources and show
-              the year they are for; event and policy entries are curated and
-              dated individually.
+              A free atlas of how the world is doing — countries, economies,
+              climate and conflict, side by side. Start anywhere below, or jump
+              straight in.
             </p>
+
+            {/* What is actually in here, counted from the data rather than
+                claimed, so the welcome cannot drift from the site. */}
+            <p
+              className="text-[11px] font-sans mt-3"
+              style={{ color: mutedText }}
+            >
+              {countriesData.length} countries · {usStatesData.length} US states ·{" "}
+              {economiesData.length} economies · every figure carries its source
+              and the year it refers to
+            </p>
+
+            <div className="flex flex-wrap gap-2 mt-4">
+              {[
+                { label: "Compare countries", to: "/dashboard/rankings", icon: Scales },
+                { label: "Explore the maps", to: "/dashboard/maps", icon: MapTrifold },
+                { label: "Browse economies", to: "/dashboard/economies", icon: Bank },
+              ].map(({ label, to, icon: Icon }) => (
+                <button
+                  key={to}
+                  onClick={() => navigate(to)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium font-sans transition-colors cursor-pointer"
+                  style={{
+                    background: isLight ? "rgba(255,255,255,0.72)" : "rgba(255,255,255,0.08)",
+                    border: `1px solid ${isLight ? "rgba(79,70,229,0.22)" : "rgba(129,140,248,0.28)"}`,
+                    color: headText,
+                  }}
+                >
+                  <Icon size={13} weight="bold" style={{ color: isLight ? "#4f46e5" : "#818cf8" }} />
+                  {label}
+                </button>
+              ))}
+            </div>
+            </div>
+
+            {/* A face for the catalogue: one flag from each inhabited
+                continent, so the welcome shows the community it covers rather
+                than only naming a count. Images from flagcdn, which the rest
+                of the site already uses - the regional-indicator emoji render
+                as bare letters on Windows. */}
+            <div className="shrink-0 lg:max-w-[300px]">
+              <div className="flex flex-wrap gap-1.5 lg:justify-end">
+                {["za", "br", "jp", "de", "in", "us", "ng", "au", "mx", "eg", "fr", "id"].map(
+                  (cc) => (
+                    <img
+                      key={cc}
+                      src={`https://flagcdn.com/w40/${cc}.png`}
+                      srcSet={`https://flagcdn.com/w80/${cc}.png 2x`}
+                      width={30}
+                      height={20}
+                      loading="lazy"
+                      decoding="async"
+                      alt=""
+                      aria-hidden
+                      className="h-5 w-auto rounded-[2px] shrink-0"
+                      style={{ border: "1px solid rgba(128,128,128,0.35)" }}
+                    />
+                  ),
+                )}
+              </div>
+              <p
+                className="text-[11px] font-sans mt-2 lg:text-right"
+                style={{ color: mutedText }}
+              >
+                One atlas for every country, free to read.
+              </p>
+            </div>
           </div>
         </div>
 
