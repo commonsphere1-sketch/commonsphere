@@ -314,7 +314,7 @@ function CurrencyConverter() {
 
   const ACCENT = "#3fa9b5";
   return (
-    <div className="border border-border rounded-2xl p-5 mb-6" style={{ background: `color-mix(in srgb, ${ACCENT} 6%, var(--color-card))` }}>
+    <div className="border rounded-2xl p-5 mb-6" style={{ background: `color-mix(in srgb, ${ACCENT} 12%, var(--color-card))`, borderColor: `color-mix(in srgb, ${ACCENT} 30%, var(--color-border))` }}>
       <div className="flex items-center gap-2 mb-4">
         <div className="p-1.5 rounded-lg" style={{ background: `color-mix(in srgb, ${ACCENT} 12%, transparent)` }}>
           <ArrowsLeftRight size={16} weight="fill" style={{ color: ACCENT }} />
@@ -335,8 +335,8 @@ function CurrencyConverter() {
                 setFromCur(p.from);
                 setToCur(p.to);
               }}
-              className={`text-[10px] font-mono px-2 py-0.5 rounded-full border transition-colors cursor-pointer ${fromCur === p.from && toCur === p.to ? "border-border text-foreground" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
-              style={fromCur === p.from && toCur === p.to ? { background: `color-mix(in srgb, ${ACCENT} 12%, transparent)`, borderColor: `color-mix(in srgb, ${ACCENT} 38%, transparent)` } : undefined}
+              className={`text-[10px] font-mono px-2 py-0.5 rounded-full border transition-colors cursor-pointer ${fromCur === p.from && toCur === p.to ? "border-border" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
+              style={fromCur === p.from && toCur === p.to ? { background: `color-mix(in srgb, ${ACCENT} 22%, transparent)`, borderColor: `color-mix(in srgb, ${ACCENT} 50%, transparent)`, color: ACCENT } : undefined}
             >
               {p.from}/{p.to}
             </button>
