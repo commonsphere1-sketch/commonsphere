@@ -5468,46 +5468,53 @@ const ROW_FIGURES: React.CSSProperties = {
  * what the site covers, so the images are aria-hidden.
  */
 function FlagOrbit({ mutedText }: { mutedText: string }) {
-  const FLAGS = ["za", "br", "jp", "de", "in", "us", "ng", "au", "mx", "eg", "fr", "id"];
-  const SIZE = 190;
-  const RADIUS = SIZE / 2 - 16;
+  /* Twenty flags at 24px each fill a circumference of about 500px, so the
+     band closes up without the flags overlapping. Ordered to spread the
+     continents around the ring rather than clump them. */
+  const FLAGS = [
+    "za", "br", "jp", "de", "in", "us", "ng", "au", "mx", "eg",
+    "fr", "id", "ca", "cn", "ar", "ke", "it", "kr", "sa", "gb",
+  ];
+  const SIZE = 200;
+  const RADIUS = SIZE / 2 - 14;
   const SPIN = "60s";
 
   return (
     <div className="shrink-0 self-center flex flex-col items-center gap-2">
-      <div
-        className="relative motion-reduce:[animation:none]"
-        style={{ width: SIZE, height: SIZE, animation: `spin ${SPIN} linear infinite` }}
-        aria-hidden
-      >
-        {FLAGS.map((cc, i) => {
-          const angle = (i / FLAGS.length) * 2 * Math.PI - Math.PI / 2;
-          return (
-            <img
-              key={cc}
-              src={`https://flagcdn.com/w40/${cc}.png`}
-              srcSet={`https://flagcdn.com/w80/${cc}.png 2x`}
-              width={28}
-              height={19}
-              loading="lazy"
-              decoding="async"
-              alt=""
-              className="absolute h-[19px] w-auto rounded-[2px] shadow-sm motion-reduce:[animation:none]"
-              style={{
-                left: SIZE / 2 + RADIUS * Math.cos(angle),
-                top: SIZE / 2 + RADIUS * Math.sin(angle),
-                transform: "translate(-50%, -50%)",
-                border: "1px solid rgba(128,128,128,0.35)",
-                animation: `spin ${SPIN} linear infinite reverse`,
-              }}
-            />
-          );
-        })}
-        {/* The globe at the centre holds still while the flags go round. */}
+      <div className="relative" style={{ width: SIZE, height: SIZE }} aria-hidden>
+        {/* The banner: flags sit shoulder to shoulder around the circle, each
+            turned tangent to it, and the whole band turns as one piece. */}
         <div
-          className="absolute left-1/2 top-1/2 w-14 h-14 -translate-x-1/2 -translate-y-1/2 rounded-full overflow-hidden motion-reduce:[animation:none]"
-          style={{ animation: `spin ${SPIN} linear infinite reverse` }}
+          className="absolute inset-0 motion-reduce:[animation:none]"
+          style={{ animation: `spin ${SPIN} linear infinite` }}
         >
+          {FLAGS.map((cc, i) => {
+            const deg = (i / FLAGS.length) * 360 - 90;
+            const angle = (deg * Math.PI) / 180;
+            return (
+              <img
+                key={cc}
+                src={`https://flagcdn.com/w40/${cc}.png`}
+                srcSet={`https://flagcdn.com/w80/${cc}.png 2x`}
+                width={24}
+                height={16}
+                loading="lazy"
+                decoding="async"
+                alt=""
+                className="absolute h-4 w-auto rounded-[1px] shadow-sm"
+                style={{
+                  left: SIZE / 2 + RADIUS * Math.cos(angle),
+                  top: SIZE / 2 + RADIUS * Math.sin(angle),
+                  transform: `translate(-50%, -50%) rotate(${deg + 90}deg)`,
+                  border: "1px solid rgba(128,128,128,0.35)",
+                }}
+              />
+            );
+          })}
+        </div>
+        {/* The globe sits outside the turning band, so it simply holds
+            still - nothing to undo. */}
+        <div className="absolute left-1/2 top-1/2 w-16 h-16 -translate-x-1/2 -translate-y-1/2 rounded-full overflow-hidden">
           <img
             src="https://c.animaapp.com/mnv7exnwOzX3vX/img/uploaded-asset-1776467236633-0.jpeg"
             alt=""
