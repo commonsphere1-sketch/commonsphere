@@ -2185,11 +2185,23 @@ export function WorldMapsPage() {
     return zone ?? null;
   }, [focusCode, focusCountry]);
 
+  /* Each country is fitted to the same canvas, so a country the size of
+     Saint Kitts is drawn hundreds of times larger than the US, yet its marks
+     stayed the size they are on the US map and read as specks on a big
+     coastline. Scale them with the fourth root of how small the country is:
+     1x from about 200,000 km² up, rising smoothly to 3x for microstates. */
+  const focusMarkScale = useMemo(() => {
+    if (focusCode === "US") return 1;
+    const area = focusCountry?.areaKm2;
+    if (!area || area <= 0) return 1;
+    return Math.min(3, Math.max(1, (200_000 / area) ** 0.25));
+  }, [focusCode, focusCountry]);
+
   const focusMarks = useMemo(() => {
     if (!focusOverlays) return null;
-    const z = focusZoom.zoom;
+    const z = focusZoom.zoom / focusMarkScale;
     const r = 2 / z;
-    const near = z > MINE_FULL_DETAIL_ABOVE;
+    const near = focusZoom.zoom > MINE_FULL_DETAIL_ABOVE;
     const mineR = (near ? MINE_DOT.near : MINE_DOT.far) / z;
     const join = (
       pts: { x: number; y: number }[] | null,
@@ -2213,7 +2225,7 @@ export function WorldMapsPage() {
         minor: join(focusOverlays.cities?.filter((p) => p.row[2] < MAJOR_CITY_POP) ?? null, dot, 2 / z),
       },
     };
-  }, [focusOverlays, focusZoom.zoom]);
+  }, [focusOverlays, focusZoom.zoom, focusMarkScale]);
 
   /**
    * Which names fit on the map at the current zoom, and which do not.
@@ -3312,17 +3324,6 @@ export function WorldMapsPage() {
                 />
               )}
 
-              {focusLayers.capitals && focusMarks?.capitals && (
-                <path
-                  d={focusMarks.capitals}
-                  fill={overlayInk.capitals}
-                  fillOpacity={0.85}
-                  stroke={labelHalo}
-                  strokeWidth={0.35 / focusZoom.zoom}
-                  pointerEvents="none"
-                />
-              )}
-
               {focusLayers.cities && focusMarks?.cities && (
                 <g fill={overlayInk.cities} stroke={labelHalo} pointerEvents="none">
                   {focusMarks.cities.minor && (
@@ -3332,6 +3333,17 @@ export function WorldMapsPage() {
                     <path d={focusMarks.cities.major} fillOpacity={0.9} strokeWidth={0.6 / focusZoom.zoom} />
                   )}
                 </g>
+              )}
+
+              {focusLayers.capitals && focusMarks?.capitals && (
+                <path
+                  d={focusMarks.capitals}
+                  fill={overlayInk.capitals}
+                  fillOpacity={1}
+                  stroke={labelHalo}
+                  strokeWidth={0.35 / focusZoom.zoom}
+                  pointerEvents="none"
+                />
               )}
 
             </g>
@@ -3565,17 +3577,6 @@ export function WorldMapsPage() {
                         />
                       )}
 
-                      {focusLayers.capitals && focusMarks?.capitals && (
-                        <path
-                          d={focusMarks.capitals}
-                          fill={overlayInk.capitals}
-                          fillOpacity={0.85}
-                          stroke={labelHalo}
-                          strokeWidth={0.35 / focusZoom.zoom}
-                          pointerEvents="none"
-                        />
-                      )}
-
                       {focusLayers.cities && focusMarks?.cities && (
                         <g fill={overlayInk.cities} stroke={labelHalo} pointerEvents="none">
                           {focusMarks.cities.minor && (
@@ -3585,6 +3586,17 @@ export function WorldMapsPage() {
                             <path d={focusMarks.cities.major} fillOpacity={0.9} strokeWidth={0.6 / focusZoom.zoom} />
                           )}
                         </g>
+                      )}
+
+                      {focusLayers.capitals && focusMarks?.capitals && (
+                        <path
+                          d={focusMarks.capitals}
+                          fill={overlayInk.capitals}
+                          fillOpacity={1}
+                          stroke={labelHalo}
+                          strokeWidth={0.35 / focusZoom.zoom}
+                          pointerEvents="none"
+                        />
                       )}
 
                     </g>
