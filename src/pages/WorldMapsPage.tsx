@@ -1426,6 +1426,9 @@ export function WorldMapsPage() {
     mines: false,
     infrastructure: false,
     pollution: false,
+    capitals: false,
+    cities: false,
+    timezones: false,
   });
   const [focusLayers, setFocusLayers] = useState<Record<OverlayId, boolean>>({
     rivers: false,
@@ -1434,7 +1437,11 @@ export function WorldMapsPage() {
     mines: false,
     infrastructure: false,
     pollution: false,
+    capitals: false,
+    cities: false,
+    timezones: false,
   });
+  const [showAdditionalLayers, setShowAdditionalLayers] = useState(false);
 
   type LayerSetter = React.Dispatch<React.SetStateAction<Record<OverlayId, boolean>>>;
   const toggleLayer = useCallback(
@@ -1990,8 +1997,11 @@ export function WorldMapsPage() {
       ports: ports.data ? place(ports.data.rows, (r) => r[1], (r) => r[2]) : null,
       airports: infra.data ? place(infra.data.airports, (r) => r[1], (r) => r[2]) : null,
       mines: mines.data ? place(mines.data.rows, (r) => r[5], (r) => r[6]) : null,
+      capitals: capitals.data ? place(capitals.data.rows, (r) => r[2], (r) => r[3]) : null,
+      cities: cities.data ? place(cities.data.rows, (r) => r[3], (r) => r[4]) : null,
+      timezones: timezones.data ? place(timezones.data.rows, (r) => r[2], (r) => r[3]) : null,
     };
-  }, [focusFrame, lineNear, inBounds, rivers.data, lakes.data, infra.data, ports.data, mines.data]);
+  }, [focusFrame, lineNear, inBounds, rivers.data, lakes.data, infra.data, ports.data, mines.data, capitals.data, cities.data, timezones.data]);
 
   /* Marks on the focus map keep the same shapes as on the world map, drawn a
      little larger because there is room for them on one country.
@@ -2033,6 +2043,9 @@ export function WorldMapsPage() {
       /* Too small to read as a ring when zoomed out, so both kinds are solid
          until the distinction can actually be seen. */
       mineRinged: near,
+      capitals: join(focusOverlays.capitals, dot, 2.2 / z),
+      cities: join(focusOverlays.cities, dot, 1.8 / z),
+      timezones: join(focusOverlays.timezones, dot, 1.2 / z),
     };
   }, [focusOverlays, focusZoom.zoom]);
 
@@ -2267,52 +2280,81 @@ export function WorldMapsPage() {
      Kept in a row of their own, apart from the scope and indicator chips,
      because these do not change what is shaded - they add a layer over it -
      and a reader who mistook one for the other would read the map wrongly. */
-  const layerToggles = (layers: Record<OverlayId, boolean>, set: LayerSetter) => (
-      <div className="flex flex-wrap items-center gap-2 mb-3">
-        <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
-          Layers
-        </span>
-        {OVERLAYS.map((o) => {
-          const state = overlayState[o.id];
-          return (
-            <button
-              key={o.id}
-              onClick={() => toggleLayer(set, o.id)}
-              aria-pressed={layers[o.id]}
-              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
-                layers[o.id]
-                  ? "border-transparent"
-                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
-              }`}
-              style={
-                layers[o.id]
-                  ? { background: `${overlayInk[o.id]}26`, borderColor: `${overlayInk[o.id]}66`, color: overlayInk[o.id] }
-                  : undefined
-              }
-              title={o.about}
-            >
-              <span
-                aria-hidden
-                className={`w-2 h-2 shrink-0 ${
-                  o.id === "ports" || o.id === "infrastructure" ? "" : "rounded-full"
-                }`}
-                style={{
-                  background: layers[o.id] ? overlayInk[o.id] : "currentColor",
-                  opacity: layers[o.id] ? 1 : 0.45,
-                  ...(o.id === "infrastructure"
-                    ? { clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }
-                    : {}),
-                }}
-              />
-              {o.label}
-              {state.loading && <span className="font-mono opacity-70">…</span>}
-              {state.failed && <span className="font-mono opacity-70">unavailable</span>}
-            </button>
-          );
-        })}
-      </div>
+  const LayerButton = ({ o, layers, set }: { o: (typeof OVERLAYS)[0]; layers: Record<OverlayId, boolean>; set: LayerSetter }) => {
+    const state = overlayState[o.id];
+    return (
+      <button
+        key={o.id}
+        onClick={() => toggleLayer(set, o.id)}
+        aria-pressed={layers[o.id]}
+        className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
+          layers[o.id]
+            ? "border-transparent"
+            : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+        }`}
+        style={
+          layers[o.id]
+            ? { background: `${overlayInk[o.id]}26`, borderColor: `${overlayInk[o.id]}66`, color: overlayInk[o.id] }
+            : undefined
+        }
+        title={o.about}
+      >
+        <span
+          aria-hidden
+          className={`w-2 h-2 shrink-0 ${
+            o.id === "ports" || o.id === "infrastructure" ? "" : "rounded-full"
+          }`}
+          style={{
+            background: layers[o.id] ? overlayInk[o.id] : "currentColor",
+            opacity: layers[o.id] ? 1 : 0.45,
+            ...(o.id === "infrastructure"
+              ? { clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }
+              : {}),
+          }}
+        />
+        {o.label}
+        {state.loading && <span className="font-mono opacity-70">…</span>}
+        {state.failed && <span className="font-mono opacity-70">unavailable</span>}
+      </button>
+    );
+  };
 
-  );
+  const layerToggles = (layers: Record<OverlayId, boolean>, set: LayerSetter) => {
+    const mainLayers = OVERLAYS.filter(o => !["capitals", "cities", "timezones"].includes(o.id));
+    const additionalLayers = OVERLAYS.filter(o => ["capitals", "cities", "timezones"].includes(o.id));
+
+    return (
+      <>
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
+            Layers
+          </span>
+          {mainLayers.map((o) => (
+            <LayerButton key={o.id} o={o} layers={layers} set={set} />
+          ))}
+          <button
+            onClick={() => setShowAdditionalLayers(!showAdditionalLayers)}
+            className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
+              showAdditionalLayers
+                ? "border-transparent bg-secondary/20 text-foreground"
+                : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+            }`}
+            title="Show additional layers"
+          >
+            <CaretDown size={10} weight="bold" className={`transition-transform ${showAdditionalLayers ? "rotate-180" : ""}`} />
+            More
+          </button>
+        </div>
+        {showAdditionalLayers && (
+          <div className="flex flex-wrap items-center gap-2 mb-3 pl-6">
+            {additionalLayers.map((o) => (
+              <LayerButton key={o.id} o={o} layers={layers} set={set} />
+            ))}
+          </div>
+        )}
+      </>
+    );
+  };
 
   const chip = (active: boolean) =>
     `px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
@@ -3064,6 +3106,39 @@ export function WorldMapsPage() {
                   pointerEvents="none"
                 />
               )}
+
+              {focusLayers.capitals && focusMarks?.capitals && (
+                <path
+                  d={focusMarks.capitals}
+                  fill={overlayInk.capitals}
+                  fillOpacity={0.85}
+                  stroke={labelHalo}
+                  strokeWidth={0.35 / focusZoom.zoom}
+                  pointerEvents="none"
+                />
+              )}
+
+              {focusLayers.cities && focusMarks?.cities && (
+                <path
+                  d={focusMarks.cities}
+                  fill={overlayInk.cities}
+                  fillOpacity={0.75}
+                  stroke={labelHalo}
+                  strokeWidth={0.3 / focusZoom.zoom}
+                  pointerEvents="none"
+                />
+              )}
+
+              {focusLayers.timezones && focusMarks?.timezones && (
+                <path
+                  d={focusMarks.timezones}
+                  fill={overlayInk.timezones}
+                  fillOpacity={0.65}
+                  stroke={labelHalo}
+                  strokeWidth={0.25 / focusZoom.zoom}
+                  pointerEvents="none"
+                />
+              )}
             </g>
           </svg>
 
@@ -3283,6 +3358,39 @@ export function WorldMapsPage() {
                           fillOpacity={0.9}
                           stroke={labelHalo}
                           strokeWidth={0.4 / focusZoom.zoom}
+                          pointerEvents="none"
+                        />
+                      )}
+
+                      {focusLayers.capitals && focusMarks?.capitals && (
+                        <path
+                          d={focusMarks.capitals}
+                          fill={overlayInk.capitals}
+                          fillOpacity={0.85}
+                          stroke={labelHalo}
+                          strokeWidth={0.35 / focusZoom.zoom}
+                          pointerEvents="none"
+                        />
+                      )}
+
+                      {focusLayers.cities && focusMarks?.cities && (
+                        <path
+                          d={focusMarks.cities}
+                          fill={overlayInk.cities}
+                          fillOpacity={0.75}
+                          stroke={labelHalo}
+                          strokeWidth={0.3 / focusZoom.zoom}
+                          pointerEvents="none"
+                        />
+                      )}
+
+                      {focusLayers.timezones && focusMarks?.timezones && (
+                        <path
+                          d={focusMarks.timezones}
+                          fill={overlayInk.timezones}
+                          fillOpacity={0.65}
+                          stroke={labelHalo}
+                          strokeWidth={0.25 / focusZoom.zoom}
                           pointerEvents="none"
                         />
                       )}
