@@ -1095,3 +1095,22 @@ html.light .avatar-glass {
 .chip-selected:hover {
   opacity: 0.9;
 }
+
+/* Drifting flags in the dashboard welcome card.
+
+   Two keyframes rather than one: a flag that bobs on exactly the same path
+   as its neighbour reads as a marching row, so each one is given whichever
+   of the two suits it plus its own duration and delay. The movement is a
+   few pixels - enough to feel alive, not enough to pull the eye off the
+   text beside it. */
+@keyframes cs-drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-2deg); }
+  50%      { transform: translate3d(4px, -10px, 0) rotate(2deg); }
+}
+@keyframes cs-drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(2deg); }
+  50%      { transform: translate3d(-5px, -7px, 0) rotate(-3deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cs-drift { animation: none !important; }
+}

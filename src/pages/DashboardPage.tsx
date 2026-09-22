@@ -5459,84 +5459,98 @@ const ROW_FIGURES: React.CSSProperties = {
 };
 
 /**
- * Flags from every inhabited continent, orbiting the site's globe.
+ * A drift of flags the reader can pick up: hover or focus one to see the
+ * country, click it to open that country's page.
  *
- * The ring is one rotating element; each flag counter-rotates at the same
- * rate so it stays upright rather than tumbling. Sizes are in the ring's own
- * pixels, so the whole thing scales by changing SIZE alone. Nothing here is
- * interactive or announced: it is decoration beside text that already says
- * what the site covers, so the images are aria-hidden.
+ * Positions are laid out on a jittered grid rather than at random, so the
+ * flags spread over the whole card instead of clumping, and the jitter comes
+ * from the index so it is the same on every render - a fresh Math.random()
+ * each pass would make them jump whenever the card re-renders. Each flag
+ * drifts on one of two paths with its own duration, so they do not bob in
+ * unison; prefers-reduced-motion stops them (see .cs-drift in index.css).
  */
-function FlagOrbit({ mutedText }: { mutedText: string }) {
-  /* Twenty-eight flags at 24px each fill a circumference of about 670px, so
-     the band closes up without the flags overlapping. Ordered to spread the
-     continents around the ring rather than clump them. */
+function FlagField({
+  mutedText,
+  headText,
+  isLight,
+  onOpen,
+}: {
+  mutedText: string;
+  headText: string;
+  isLight: boolean;
+  onOpen: (id: string) => void;
+}) {
+  const COLS = 7;
+  const ROWS = 4;
   const FLAGS = [
-    "za", "br", "jp", "de", "in", "us", "ng", "au", "mx", "eg",
-    "fr", "id", "ca", "cn", "ar", "ke", "it", "kr", "sa", "gb",
-    "pe", "vn", "pl", "et", "cl", "th", "es", "ma",
+    "za", "br", "jp", "de", "in", "us", "ng",
+    "au", "mx", "eg", "fr", "id", "ca", "cn",
+    "ar", "ke", "it", "kr", "sa", "gb", "pe",
+    "vn", "pl", "et", "cl", "th", "es", "ma",
   ];
-  const SIZE = 250;
-  const RADIUS = SIZE / 2 - 14;
-  const SPIN = "60s";
-  /* Each flag is a flat segment of a ring, so it has to be as wide as the
-     side of the polygon touching the band's OUTER edge - 2*(R+h/2)*tan(pi/n).
-     Sized to the centre line instead, the outer corners fall short and leave
-     a wedge of a gap between every pair. Half a pixel of overlap hides the
-     seam left by rounding, and object-fit crops rather than squashes. */
-  const BAND_H = 20;
-  const SEG_W = 2 * (RADIUS + BAND_H / 2) * Math.tan(Math.PI / FLAGS.length) + 0.5;
+  const byCode = useMemo(() => {
+    const m = new Map<string, (typeof countriesData)[number]>();
+    for (const c of countriesData) m.set(c.code.toLowerCase(), c);
+    return m;
+  }, []);
 
   return (
-    <div className="shrink-0 self-center flex flex-col items-center gap-2">
-      <div className="relative" style={{ width: SIZE, height: SIZE }} aria-hidden>
-        {/* The banner: flags sit shoulder to shoulder around the circle, each
-            turned tangent to it, and the whole band turns as one piece. */}
-        <div
-          className="absolute inset-0 motion-reduce:[animation:none]"
-          style={{ animation: `spin ${SPIN} linear infinite` }}
-        >
-          {FLAGS.map((cc, i) => {
-            const deg = (i / FLAGS.length) * 360 - 90;
-            const angle = (deg * Math.PI) / 180;
-            return (
+    <div className="shrink-0 self-center flex flex-col items-center gap-2 w-full lg:w-[430px]">
+      <div className="relative w-full h-[190px] sm:h-[210px]">
+        {FLAGS.map((cc, i) => {
+          const col = i % COLS;
+          const row = Math.floor(i / COLS);
+          /* Deterministic jitter: an irrational step mod 1 spreads evenly
+             without the short repeating cycle a rounder number would give. */
+          const jx = ((i * 0.6180339887) % 1) - 0.5;
+          const jy = ((i * 0.4142135624) % 1) - 0.5;
+          const left = ((col + 0.5) / COLS) * 100 + jx * 7;
+          const top = ((row + 0.5) / ROWS) * 100 + jy * 14;
+          const country = byCode.get(cc);
+          const name = country?.name ?? cc.toUpperCase();
+          const border = isLight ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.22)";
+          return (
+            <button
+              key={cc}
+              type="button"
+              onClick={() => country && onOpen(country.id)}
+              title={name}
+              aria-label={country ? `Open ${name}` : name}
+              className="cs-drift group absolute -translate-x-1/2 -translate-y-1/2 rounded-[2px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-current hover:z-10 focus-visible:z-10"
+              style={{
+                left: `${left}%`,
+                top: `${top}%`,
+                animation: `cs-drift-${i % 2 === 0 ? "a" : "b"} ${6 + (i % 5)}s ease-in-out ${(i % 7) * 0.4}s infinite`,
+              }}
+            >
               <img
-                key={cc}
                 src={`https://flagcdn.com/w40/${cc}.png`}
                 srcSet={`https://flagcdn.com/w80/${cc}.png 2x`}
+                width={34}
+                height={23}
                 loading="lazy"
                 decoding="async"
                 alt=""
-                className="absolute"
-                style={{
-                  left: SIZE / 2 + RADIUS * Math.cos(angle),
-                  top: SIZE / 2 + RADIUS * Math.sin(angle),
-                  width: SEG_W,
-                  height: BAND_H,
-                  objectFit: "cover",
-                  transform: `translate(-50%, -50%) rotate(${deg + 90}deg)`,
-                }}
+                className="h-[23px] w-auto rounded-[2px] shadow-sm transition-transform duration-200 group-hover:scale-[1.35] group-focus-visible:scale-[1.35]"
+                style={{ border: `1px solid ${border}` }}
               />
-            );
-          })}
-        </div>
-        {/* The globe sits outside the turning band, so it simply holds
-            still - nothing to undo. */}
-        <div className="absolute left-1/2 top-1/2 w-32 h-32 -translate-x-1/2 -translate-y-1/2 rounded-full overflow-hidden">
-          <img
-            src="https://c.animaapp.com/mnv7exnwOzX3vX/img/uploaded-asset-1776467236633-0.jpeg"
-            alt=""
-            className="logo-light absolute inset-0 w-full h-full object-contain scale-[1.28]"
-          />
-          <img
-            src="https://c.animaapp.com/mnv7exnwOzX3vX/img/uploaded-asset-1776467236635-1.jpeg"
-            alt=""
-            className="logo-dark absolute inset-0 w-full h-full object-contain scale-[1.28]"
-          />
-        </div>
+              {/* The name rides above the flag on hover or keyboard focus. */}
+              <span
+                className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1 whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-sans opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+                style={{
+                  background: isLight ? "rgba(255,255,255,0.96)" : "rgba(20,20,24,0.96)",
+                  border: `1px solid ${isLight ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.14)"}`,
+                  color: headText,
+                }}
+              >
+                {name}
+              </span>
+            </button>
+          );
+        })}
       </div>
       <p className="text-[11px] font-sans text-center" style={{ color: mutedText }}>
-        One atlas for every country, free to read.
+        Pick a flag to open that country.
       </p>
     </div>
   );
@@ -6051,7 +6065,7 @@ export function DashboardPage() {
                 the other way at the same rate, so they orbit without ever
                 tipping over; it holds still for a reader who has asked for
                 reduced motion. */}
-            <FlagOrbit mutedText={mutedText} />
+            <FlagField mutedText={mutedText} headText={headText} isLight={isLight} onOpen={(id) => navigate(`/dashboard/countries?open=${id}`)} />
           </div>
         </div>
 
