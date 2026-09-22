@@ -1438,7 +1438,7 @@ function ComparisonPanel({
   onClear: () => void;
 }) {
   return (
-    <div className="bg-card border border-border rounded-2xl overflow-hidden">
+    <div className="bg-card border border-border rounded-2xl">
       <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-3 flex-wrap">
         <div>
           <p className="text-sm font-bold font-sans text-foreground">Compare</p>
@@ -1490,7 +1490,7 @@ function ComparisonPanel({
           add it from there.
         </p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-b-2xl">
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-border">
