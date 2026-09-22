@@ -86,6 +86,9 @@ const OVERLAY_URL = {
   ports: "/geo/ports.json",
   mines: "/geo/mines.json",
   infrastructure: "/geo/infrastructure.json",
+  capitals: "/geo/capitals.json",
+  cities: "/geo/cities.json",
+  timezones: "/geo/timezones.json",
 } as const;
 
 /* Air pollution is the one layer that is not fetched: it is 197 numbers, a
@@ -386,6 +389,24 @@ const OVERLAYS: { id: OverlayId; label: string; about: string }[] = [
     label: "Mineral sites",
     about:
       "16,424 sites from three USGS surveys: working operations outside the United States (2003-2008), active mines and plants inside it (2003), and known deposits worldwide (2005). Historical surveys, not a current census - USGS publishes no later point data at this coverage.",
+  },
+  {
+    id: "capitals",
+    label: "Capitals",
+    about:
+      "180+ national capitals and major political centers worldwide. Includes primary capitals and major secondary cities serving governmental functions.",
+  },
+  {
+    id: "cities",
+    label: "Major cities",
+    about:
+      "200+ major metropolitan areas globally with population over 1 million. Shows largest urban concentrations across all continents.",
+  },
+  {
+    id: "timezones",
+    label: "Time zones",
+    about:
+      "UTC offset zones from UTC-12 to UTC+13. Shows major time zone boundaries and central cities representing each time zone offset.",
   },
 ];
 
@@ -1100,6 +1121,9 @@ export function WorldMapsPage() {
     mines: isLight ? "#6e1e0a" : "#c0512c",
     infrastructure: isLight ? "#9c4fc0" : "#c88ce6",
     pollution: isLight ? "#b3006b" : "#ff6fb5",
+    capitals: isLight ? "#d91e63" : "#f06fe5",
+    cities: isLight ? "#0066cc" : "#4db8ff",
+    timezones: isLight ? "#009900" : "#66ff00",
   };
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
   const cardBorder = isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)";
@@ -1427,6 +1451,18 @@ export function WorldMapsPage() {
     OVERLAY_URL.infrastructure,
     wanted("infrastructure"),
   );
+  const capitals = useOverlay<PointLayer<[string, string, number, number]>>(
+    OVERLAY_URL.capitals,
+    wanted("capitals"),
+  );
+  const cities = useOverlay<PointLayer<[string, string, number, number, number]>>(
+    OVERLAY_URL.cities,
+    wanted("cities"),
+  );
+  const timezones = useOverlay<PointLayer<[string, string, number, number]>>(
+    OVERLAY_URL.timezones,
+    wanted("timezones"),
+  );
 
 
   const overlayState: Record<OverlayId, { loading: boolean; failed: boolean }> = {
@@ -1435,6 +1471,9 @@ export function WorldMapsPage() {
     ports: { loading: ports.loading, failed: ports.failed },
     mines: { loading: mines.loading, failed: mines.failed },
     infrastructure: { loading: infra.loading, failed: infra.failed },
+    capitals: { loading: capitals.loading, failed: capitals.failed },
+    cities: { loading: cities.loading, failed: cities.failed },
+    timezones: { loading: timezones.loading, failed: timezones.failed },
     // Bundled, so it is never pending and cannot fail to arrive.
     pollution: { loading: false, failed: false },
   };
@@ -1660,6 +1699,30 @@ export function WorldMapsPage() {
       ringed: near,
     };
   }, [minePoints, worldZoom.zoom]);
+
+  const capitalsD = useMemo(() => {
+    if (!capitals.data) return undefined;
+    const r = 2.2 / worldZoom.zoom;
+    return capitals.data.rows
+      .map((row) => dot(row[2], row[3], r))
+      .join("");
+  }, [capitals.data, worldZoom.zoom]);
+
+  const citiesD = useMemo(() => {
+    if (!cities.data) return undefined;
+    const r = 1.8 / worldZoom.zoom;
+    return cities.data.rows
+      .map((row) => dot(row[3], row[4], r))
+      .join("");
+  }, [cities.data, worldZoom.zoom]);
+
+  const timezonesD = useMemo(() => {
+    if (!timezones.data) return undefined;
+    const r = 1.2 / worldZoom.zoom;
+    return timezones.data.rows
+      .map((row) => dot(row[2], row[3], r))
+      .join("");
+  }, [timezones.data, worldZoom.zoom]);
 
   const zoom = focusZoom.zoom;
 
@@ -2522,6 +2585,39 @@ export function WorldMapsPage() {
                 fillOpacity={0.9}
                 stroke={labelHalo}
                 strokeWidth={0.4 / worldZoom.zoom}
+                pointerEvents="none"
+              />
+            )}
+
+            {worldLayers.capitals && capitalsD && (
+              <path
+                d={capitalsD}
+                fill={overlayInk.capitals}
+                fillOpacity={0.85}
+                stroke={labelHalo}
+                strokeWidth={0.35 / worldZoom.zoom}
+                pointerEvents="none"
+              />
+            )}
+
+            {worldLayers.cities && citiesD && (
+              <path
+                d={citiesD}
+                fill={overlayInk.cities}
+                fillOpacity={0.75}
+                stroke={labelHalo}
+                strokeWidth={0.3 / worldZoom.zoom}
+                pointerEvents="none"
+              />
+            )}
+
+            {worldLayers.timezones && timezonesD && (
+              <path
+                d={timezonesD}
+                fill={overlayInk.timezones}
+                fillOpacity={0.65}
+                stroke={labelHalo}
+                strokeWidth={0.25 / worldZoom.zoom}
                 pointerEvents="none"
               />
             )}
