@@ -889,6 +889,25 @@ const PROFILE_BAR: Record<string, string> = {
   tradeBalance: "bg-sky-400",
 };
 
+/** Palette for the Compare-only measures in the detail panel, in turn. */
+const EXTRA_BARS = [
+  "bg-indigo-400", "bg-teal-400", "bg-amber-400", "bg-fuchsia-400", "bg-lime-400",
+  "bg-blue-400", "bg-violet-400", "bg-green-400", "bg-orange-300", "bg-sky-300",
+];
+
+/** Column labels for the Compare-only measures, as short as the ranked ones. */
+const COMPARE_SHORT: Record<string, string> = {
+  gdpTotal: "GDP", population: "Population", areaKm2: "Area", medianAge: "Median age", age65Pct: "Aged 65+",
+  urbanPct: "Urban", internetPct: "Internet", gini: "Gini", cpiScore: "CPI", physicians: "Doctors",
+  maternalMortality: "Maternal d.", electricityAccess: "Electricity", parliamentFemale: "Women MPs",
+  medianIncome: "Med. income", averageIncome: "Inc./person", povertyPct: "Poverty", medianHomeValue: "Home value",
+  medianRent: "Rent", homeOwnershipPct: "Ownership", rentBurdenPct: "Rent burden", meanCommuteMin: "Commute",
+  workFromHomePct: "WFH", transitPct: "Transit", walkBikePct: "Walk/bike", vehiclePct: "Vehicle",
+  vacancyPct: "Vacancy", highSchoolPct: "High sch.", medianDailyIncome: "Median/day", minimumWageMonthlyUSD: "Min. wage/mo",
+  stateTaxRate: "Income tax", salesTaxRate: "Sales tax", minimumWage: "Min. wage/hr", bachelorsPct: "Bachelor's",
+  energyOutputTWh: "Energy", energySelfSufficiency: "Energy self.",
+};
+
 function ProfileStrip({
   row,
   allValuesMap,
@@ -898,21 +917,28 @@ function ProfileStrip({
   allValuesMap: Partial<Record<string, number[]>>;
   bare?: boolean;
 }) {
-  const shown = METRICS.filter(
-    (m) => m.id !== "composite" && hasMetric(row, m.id),
-  );
+  // Every measure the Compare table carries, for whichever this entity
+  // publishes — in the list rows and the detail panel alike.
+  const shown: { id: string; label: string; shortLabel: string; higherIsBetter: boolean; format: (v: number) => string }[] =
+    COMPARE_ROWS.filter((m) => m.id !== "composite").map((m) => ({
+          id: m.id as string,
+          label: m.label,
+          shortLabel: METRICS.find((x) => x.id === m.id)?.shortLabel ?? COMPARE_SHORT[m.id as string] ?? m.label,
+          higherIsBetter: m.higherIsBetter,
+          format: m.format,
+        })).filter((m) => hasMetric(row, m.id as keyof RankRow));
   if (shown.length === 0) return null;
 
   return (
     <div
       className={
         bare
-          ? "flex items-end gap-1.5 h-9"
-          : "flex items-end gap-1 overflow-x-auto pb-1"
+          ? "flex items-end gap-1 h-9"
+          : "flex flex-wrap items-end gap-x-1 gap-y-3 pb-1"
       }
     >
       {shown.map((m) => {
-        const val = row[m.id] as number;
+        const val = row[m.id as keyof RankRow] as number;
         const allVals = allValuesMap[m.id] ?? [];
         const pct = percentile(val, allVals, m.higherIsBetter);
         const title = `${m.label} — ${fmtMetric(m, val)}, ${pct.toFixed(0)}th percentile of ${allVals.filter((v) => isFinite(v)).length}`;
@@ -929,7 +955,7 @@ function ProfileStrip({
               style={{ width: "4px" }}
             >
               <div
-                className={`w-full rounded-full ${PROFILE_BAR[m.id] ?? "bg-slate-400"}`}
+                className={`w-full rounded-full ${PROFILE_BAR[m.id] ?? EXTRA_BARS[shown.indexOf(m) % EXTRA_BARS.length]}`}
                 style={{ height: `${Math.max(8, pct)}%` }}
               />
             </div>
@@ -942,7 +968,7 @@ function ProfileStrip({
             // Fixed narrow columns, not flex-1: an entity with three measures
             // would otherwise stretch three bars across the whole panel, which
             // reads as a chart of something rather than a profile.
-            className="w-14 shrink-0 flex flex-col items-center gap-0.5"
+            className="w-[4.75rem] shrink-0 flex flex-col items-center gap-0.5"
           >
             <span className="text-[10px] font-mono font-bold text-foreground truncate max-w-full">
               {fmtMetric(m, val)}
@@ -953,7 +979,7 @@ function ProfileStrip({
               style={{ width: "4px" }}
             >
               <div
-                className={`w-full rounded-full transition-all duration-500 ${PROFILE_BAR[m.id] ?? "bg-slate-400"}`}
+                className={`w-full rounded-full transition-all duration-500 ${PROFILE_BAR[m.id] ?? EXTRA_BARS[shown.indexOf(m) % EXTRA_BARS.length]}`}
                 style={{ height: `${Math.max(4, pct)}%` }}
               />
             </div>
@@ -1708,6 +1734,8 @@ export function RankingsPage() {
     map["educationRank"] = allRows.map((r) => r.educationRank);
     map["healthcareRank"] = allRows.map((r) => r.healthcareRank);
     map["crimeIndex"] = allRows.map((r) => r.crimeIndex);
+    // And every Compare measure, for the detail panel's strip.
+    for (const m of COMPARE_ROWS) map[m.id as string] ??= allRows.map((r) => r[m.id] as number);
     return map;
   }, [allRows]);
 
