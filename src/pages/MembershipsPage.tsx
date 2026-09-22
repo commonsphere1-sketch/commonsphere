@@ -94,7 +94,7 @@ type PlanId = "free" | "supporter" | "professional" | "team";
  *
  * Priced on what ships, not the roadmap: no page gates anything by plan, so
  * paid tiers today are mostly support plus a claim on what is Planned. Pro
- * is $12 rather than the $25-30 its roadmap (API, bulk export, citations)
+ * is $15 rather than the $25-30 its roadmap (bulk export, citations, alerts)
  * would justify, and should rise when those land. Team is $10 a seat, below
  * Pro, because it includes Pro - a seat priced above the individual plan it
  * contains would make the five-seat floor a penalty rather than a discount.
@@ -159,9 +159,9 @@ const PLANS = [
   {
     id: "professional" as PlanId,
     name: "Professional",
-    price: "$12",
+    price: "$15",
     period: "per month",
-    priceAnnual: "$120 billed yearly — two months free",
+    priceAnnual: "$150 billed yearly — two months free",
     borderClass: "border-violet-500/40",
     badge: null,
     btnClass:
