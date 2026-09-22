@@ -2360,8 +2360,18 @@ export function WorldMapsPage() {
   };
 
   const layerToggles = (layers: Record<OverlayId, boolean>, set: LayerSetter, showMore = true) => {
-    const mainLayers = OVERLAYS.filter(o => !["capitals", "cities", "timezones"].includes(o.id));
-    const additionalLayers = OVERLAYS.filter(o => ["capitals", "cities", "timezones"].includes(o.id));
+    if (!showMore) {
+      return (
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
+            Layers
+          </span>
+          {OVERLAYS.filter(o => !["capitals", "cities", "timezones"].includes(o.id)).map((o) => (
+            <LayerButton key={o.id} o={o} layers={layers} set={set} />
+          ))}
+        </div>
+      );
+    }
 
     return (
       <>
@@ -2369,27 +2379,22 @@ export function WorldMapsPage() {
           <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
             Layers
           </span>
-          {mainLayers.map((o) => (
-            <LayerButton key={o.id} o={o} layers={layers} set={set} />
-          ))}
-          {showMore && (
-            <button
-              onClick={() => setShowAdditionalLayers(!showAdditionalLayers)}
-              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
-                showAdditionalLayers
-                  ? "border-transparent bg-secondary/20 text-foreground"
-                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
-              }`}
-              title="Show additional layers"
-            >
-              <CaretDown size={10} weight="bold" className={`transition-transform ${showAdditionalLayers ? "rotate-180" : ""}`} />
-              More
-            </button>
-          )}
+          <button
+            onClick={() => setShowAdditionalLayers(!showAdditionalLayers)}
+            className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
+              showAdditionalLayers
+                ? "border-transparent bg-secondary/20 text-foreground"
+                : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+            }`}
+            title="Show layers"
+          >
+            <CaretDown size={10} weight="bold" className={`transition-transform ${showAdditionalLayers ? "rotate-180" : ""}`} />
+            More
+          </button>
         </div>
-        {showMore && showAdditionalLayers && (
+        {showAdditionalLayers && (
           <div className="flex flex-wrap items-center gap-2 mb-3 pl-6">
-            {additionalLayers.map((o) => (
+            {OVERLAYS.map((o) => (
               <LayerButton key={o.id} o={o} layers={layers} set={set} />
             ))}
           </div>
