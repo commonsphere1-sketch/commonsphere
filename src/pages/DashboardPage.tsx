@@ -5575,20 +5575,129 @@ function FocusCarousel({
       on ? "chip-selected" : "hover:opacity-80"
     }`;
 
-  const figures =
-    kind === "country"
+  const fmtGDPShort = (b: number) =>
+    b >= 1000 ? `$${(b / 1000).toFixed(1)}T` : `$${Math.round(b)}B`;
+  const hdiColor = (h: number) =>
+    !has(h) ? "#9ca3af" : h >= 0.8 ? "#10b981" : h >= 0.65 ? "#f59e0b" : "#ef4444";
+
+  /* One card in the deck. The centre one is the choice; the two beside it
+     are the neighbours in the list, drawn smaller and behind so the deck
+     reads as a strip you can page through rather than three equal options. */
+  const Card = ({ entry, role }: { entry: typeof item; role: "prev" | "cur" | "next" }) => {
+    const isCountry = kind === "country";
+    const c = entry as (typeof countries)[number];
+    const st = entry as (typeof states)[number];
+    const growth = isCountry ? c.gdpGrowth : undefined;
+    const rows: [string, string, string?][] = isCountry
       ? [
-          { label: "Population", value: fmtPeople((item as (typeof countries)[number]).population) },
-          { label: "Capital", value: (item as (typeof countries)[number]).capital || "—" },
+          ["GDP", na(c.gdp, fmtGDPShort)],
+          [
+            "Growth",
+            `${has(growth) && growth > 0 ? "+" : ""}${na(growth, (v) => `${v}%`)}`,
+            has(growth) && growth >= 0 ? "#10b981" : "#ef4444",
+          ],
+          ["Population", fmtPeople(c.population)],
         ]
       : [
-          { label: "Population", value: fmtPeople((item as (typeof states)[number]).population) },
-          { label: "Capital", value: (item as (typeof states)[number]).capital },
+          ["GDP", fmtGDPShort(st.gdp)],
+          ["Capital", st.capital],
+          ["Population", fmtPeople(st.population)],
         ];
 
+    return (
+      <div
+        className="rounded-xl overflow-hidden w-[210px] shrink-0"
+        style={{
+          background: isLight ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.06)",
+          border: `1px solid ${line}`,
+          boxShadow: isLight ? "0 2px 8px rgba(0,0,0,0.07)" : "none",
+        }}
+      >
+        {/* Banner: the flag for a country, the abbreviation for a state. */}
+        <div className="relative h-20 overflow-hidden" style={{ background: isLight ? "#f3f4f6" : "#1a1a1f" }}>
+          {isCountry ? (
+            <img
+              src={`https://flagcdn.com/w320/${c.code.toLowerCase()}.png`}
+              alt=""
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+          ) : (
+            <div
+              className="w-full h-full flex items-center justify-center text-3xl font-bold font-mono"
+              style={{ color: isLight ? "#0f172a" : "#e5e7eb" }}
+            >
+              {st.abbreviation}
+            </div>
+          )}
+          <div
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55) 100%)" }}
+          />
+          <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between gap-2">
+            <span className="text-white text-xs font-bold font-sans leading-tight drop-shadow truncate">
+              {entry.name}
+            </span>
+            {isCountry && (
+              <span
+                className="text-[9px] font-mono px-1.5 py-0.5 rounded-full font-semibold shrink-0"
+                style={{
+                  background: hdiColor(c.humanDevelopmentIndex) + "33",
+                  color: hdiColor(c.humanDevelopmentIndex),
+                  border: `1px solid ${hdiColor(c.humanDevelopmentIndex)}44`,
+                }}
+              >
+                HDI {na(c.humanDevelopmentIndex, (v) => String(v))}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="px-3 py-2.5 flex flex-col gap-1.5">
+          {rows.map(([label, value, colour]) => (
+            <div key={label} className="flex items-center justify-between gap-2">
+              <span className="text-[10px] font-sans" style={{ color: mutedText }}>
+                {label}
+              </span>
+              <span
+                className="text-[11px] font-bold font-mono truncate"
+                style={{ color: colour ?? headText }}
+              >
+                {value}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {role === "cur" && (
+          <button
+            type="button"
+            onClick={lockIn}
+            disabled={isLocked}
+            className={`w-full py-1.5 text-[11px] font-semibold font-sans ${
+              isLocked ? "cursor-default" : "chip-selected cursor-pointer"
+            }`}
+            style={
+              isLocked
+                ? { borderTop: `1px solid ${line}`, color: mutedText }
+                : { borderRadius: 0 }
+            }
+          >
+            {isLocked ? "Following — you're set" : "Follow this one"}
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const prev = list[(((at - 1) % list.length) + list.length) % list.length];
+  const next = list[(at + 1) % list.length];
+
   return (
-    <div className="shrink-0 self-center w-full lg:w-[330px]">
-      <div className="flex items-center gap-1.5 mb-2 lg:justify-center">
+    <div className="shrink-0 self-center w-full lg:w-[400px]">
+      <div className="flex items-center gap-1.5 mb-2 justify-center">
         {(["country", "state"] as const).map((k) => (
           <button
             key={k}
@@ -5602,74 +5711,41 @@ function FocusCarousel({
         ))}
       </div>
 
-      <div
-        className="rounded-xl p-4 flex items-center gap-3"
-        style={{ border: `1px solid ${line}`, background: isLight ? "#fff" : "rgba(255,255,255,0.03)" }}
-      >
+      {/* The deck: neighbours sit behind the centre card and half under it,
+          so paging feels like moving along a strip. They are buttons, so a
+          click on either side steps the deck that way. */}
+      <div className="relative h-[190px] flex items-center justify-center">
         <button
           type="button"
           onClick={() => step(-1)}
           aria-label={kind === "country" ? "Previous country" : "Previous state"}
-          className="shrink-0 p-1.5 rounded-full hover:opacity-70 cursor-pointer"
-          style={{ border: `1px solid ${line}`, color: mutedText }}
+          className="absolute left-0 top-1/2 -translate-y-1/2 origin-center cursor-pointer"
+          style={{ transform: "translate(-18%, -50%) scale(0.82)", opacity: 0.45, zIndex: 0 }}
         >
-          <ArrowLeft size={13} weight="bold" />
+          <Card entry={prev} role="prev" />
         </button>
-
-        <div className="flex-1 min-w-0 text-center">
-          <button
-            type="button"
-            onClick={openItem}
-            className="w-full cursor-pointer"
-            aria-label={`Open ${item.name}`}
-          >
-            {kind === "country" ? (
-              <img
-                src={`https://flagcdn.com/w80/${(item as (typeof countries)[number]).code.toLowerCase()}.png`}
-                srcSet={`https://flagcdn.com/w160/${(item as (typeof countries)[number]).code.toLowerCase()}.png 2x`}
-                width={48}
-                height={32}
-                alt=""
-                className="h-8 w-auto mx-auto rounded-[2px] mb-1.5"
-                style={{ border: `1px solid ${line}` }}
-              />
-            ) : (
-              <div
-                className="h-8 mx-auto mb-1.5 px-2 inline-flex items-center rounded-[3px] text-sm font-bold font-mono"
-                style={{ border: `1px solid ${line}`, color: headText }}
-              >
-                {(item as (typeof states)[number]).abbreviation}
-              </div>
-            )}
-            <div className="text-sm font-bold font-sans truncate" style={{ color: headText }}>
-              {item.name}
-            </div>
-          </button>
-          <div className="text-[10px] font-sans mt-0.5 truncate" style={{ color: mutedText }}>
-            {figures.map((f) => `${f.label} ${f.value}`).join(" · ")}
-          </div>
-          <button
-            type="button"
-            onClick={lockIn}
-            disabled={isLocked}
-            className={`mt-2 w-full py-1.5 rounded-lg text-[11px] font-semibold font-sans transition-colors ${
-              isLocked ? "cursor-default" : "chip-selected cursor-pointer"
-            }`}
-            style={isLocked ? { border: `1px solid ${line}`, color: mutedText } : undefined}
-          >
-            {isLocked ? "Following — you're set" : "Follow this one"}
-          </button>
-        </div>
 
         <button
           type="button"
           onClick={() => step(1)}
           aria-label={kind === "country" ? "Next country" : "Next state"}
-          className="shrink-0 p-1.5 rounded-full hover:opacity-70 cursor-pointer"
-          style={{ border: `1px solid ${line}`, color: mutedText }}
+          className="absolute right-0 top-1/2 -translate-y-1/2 origin-center cursor-pointer"
+          style={{ transform: "translate(18%, -50%) scale(0.82)", opacity: 0.45, zIndex: 0 }}
         >
-          <ArrowRight size={13} weight="bold" />
+          <Card entry={next} role="next" />
         </button>
+
+        <div
+          className="relative cursor-pointer"
+          style={{ zIndex: 1 }}
+          onClick={(e) => {
+            /* The Follow button lives inside the card and stops here. */
+            if ((e.target as HTMLElement).closest("button")) return;
+            openItem();
+          }}
+        >
+          <Card entry={item} role="cur" />
+        </div>
       </div>
 
       <p className="text-[10px] font-sans mt-2 text-center" style={{ color: mutedText }}>
