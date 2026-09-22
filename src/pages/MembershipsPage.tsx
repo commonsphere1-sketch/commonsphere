@@ -743,7 +743,9 @@ export function MembershipsPage() {
               {PLANS.map((plan) => (
                 <div
                   key={plan.id}
-                  className={`relative rounded-xl border p-6 flex flex-col bg-card transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${plan.borderClass}`}
+                  className={`relative rounded-xl border p-6 flex flex-col bg-card transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${plan.borderClass} ${
+                    plan.id === "team" ? "md:col-span-3" : ""
+                  }`}
                 >
                   {plan.badge && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-secondary text-secondary-foreground text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
