@@ -21,6 +21,16 @@
  *                            around; Our World in Data republishes the index
  *                            with TI's scores unchanged.
  *   UN WUP 2025 (via OWID)   urban share, where the World Bank has none
+ *   World Bank PIP (via OWID) median income or consumption per person per
+ *                            day, 2021 PPP dollars. The PIP API refuses
+ *                            automated requests and is not worked around.
+ *   ILO ILOSTAT              statutory monthly minimum wage, US dollars
+ *                            (EAR_INEE_CUR_NB_A, currency USD)
+ *   OECD Affordable Housing  home ownership: households owning outright or
+ *     Database HM1.3         with a mortgage, the same basis as the US
+ *                            Census home-ownership rate (the OECD's own US
+ *                            figure is the ACS). Japan is left out: the file
+ *                            names no year or survey for it.
  *
  * Taiwan is not covered by the World Bank or UNDP. It gets the UN figures
  * above (the UN publishes Taiwan as TWN), plus two sources of its own: the
@@ -120,6 +130,9 @@ const SOURCES = {
   moi: { label: "Taiwan Ministry of the Interior — abridged life table", url: "https://www.moi.gov.tw/english/cl.aspx?n=7780" },
   dgbas: { label: "Taiwan DGBAS — HDI computed with UNDP's formula", url: "https://eng.stat.gov.tw/News_Content.aspx?n=4610&s=233232" },
   cpi: { label: "Transparency International — CPI (via Our World in Data)", url: "https://ourworldindata.org/grapher/ti-corruption-perception-index" },
+  pip: { label: "World Bank — Poverty and Inequality Platform (via Our World in Data)", url: "https://ourworldindata.org/grapher/incomes-across-distribution-wb" },
+  ilo: { label: "ILO — ILOSTAT, statutory monthly minimum wage", url: "https://ilostat.ilo.org/data/" },
+  oecdHousing: { label: "OECD — Affordable Housing Database, HM1.3 Housing tenures", url: "https://oe.cd/ahd" },
 };
 
 const round = (v, dp) => Number(v.toFixed(dp));
@@ -306,6 +319,87 @@ function loadCountries() {
   return require(bundle).countriesData;
 }
 
+/** Median income or consumption per person per day, 2021 PPP $ — World
+ *  Bank PIP as Our World in Data republishes it. iso3 → { v, y }. */
+async function pipMedian() {
+  const COL = "median__ppp_version_2021__welfare_type_income_or_consumption__period_day__table_income_or_consumption_consolidated__survey_comparability_no_spells";
+  const url = "https://ourworldindata.org/grapher/incomes-across-distribution-wb.csv?decile=nan&indicator=median&period=day&survey_comparability=no_spells&v=1&csvType=full&useColumnShortNames=true";
+  return cached("pip-median.csv", url, (t) => {
+    const rows = csvRows(t);
+    const head = rows[0];
+    const ci = head.indexOf("code"), yi = head.indexOf("year"), vi = head.indexOf(COL);
+    if (ci < 0 || yi < 0 || vi < 0) throw new Error("PIP median: column not found");
+    const out = {};
+    for (const r of rows.slice(1)) {
+      const code = r[ci], y = r[yi], v = Number(r[vi]);
+      if (!code || code.startsWith("OWID_") || r[vi] === "" || !Number.isFinite(v) || +y < OLDEST) continue;
+      if (!out[code] || +y > +out[code].y) out[code] = { v, y };
+    }
+    return out;
+  });
+}
+
+/** Statutory monthly minimum wage in US dollars, latest year. iso3 → { v, y }. */
+async function iloMinimumWage() {
+  const url = `https://rplumber.ilo.org/data/indicator/?id=EAR_INEE_CUR_NB_A&classif1=CUR_TYPE_USD&timefrom=${OLDEST}&type=code&format=.csv`;
+  return cached("ilo-minwage-usd.csv", url, (t) => {
+    const rows = csvRows(t.replace(/^﻿/, ""));
+    const head = rows[0];
+    const ai = head.indexOf("ref_area"), yi = head.indexOf("time"), vi = head.indexOf("obs_value");
+    if (ai < 0 || yi < 0 || vi < 0) throw new Error("ILO: columns not found");
+    const out = {};
+    for (const r of rows.slice(1)) {
+      const v = Number(r[vi]);
+      if (!r[ai] || r[vi] === "" || !Number.isFinite(v)) continue;
+      if (!out[r[ai]] || +r[yi] > +out[r[ai]].y) out[r[ai]] = { v, y: r[yi] };
+    }
+    return out;
+  });
+}
+
+/** OECD HM1.3: owner-occupied share of households. iso3 → { v, y }.
+ *  The sheet gives one year for most countries and names the exceptions in
+ *  its notes; those are copied here, and any country the notes do not date
+ *  is left out rather than guessed. */
+async function oecdHomeOwnership() {
+  const at = path.join(CACHE, "HM1-3-Housing-tenures.xlsx");
+  if (!fs.existsSync(at)) {
+    const res = await fetch("https://webfs.oecd.org/els-com/Affordable_Housing_Database/HM1-3-Housing-tenures.xlsx", { headers: { "User-Agent": UA } });
+    if (!res.ok) throw new Error(`OECD HM1.3: HTTP ${res.status}`);
+    fs.writeFileSync(at, Buffer.from(await res.arrayBuffer()));
+  }
+  const { readXlsx } = require("./xlsx-lite.cjs");
+  const rows = readXlsx(at, "xl/worksheets/sheet1.xml").rows;
+  const notes = rows.map((r) => (r && typeof r[0] === "string" ? r[0] : "")).join(" ");
+  // EU-SILC 2024 covers the EU members and Norway; the rest from the notes.
+  if (!/EU-SILC 2024/.test(notes) || !/United States \(2023\)/.test(notes)) throw new Error("OECD HM1.3: notes changed; recheck the years");
+  const ISO = {
+    "Slovak Republic": "SVK", Romania: "ROU", Croatia: "HRV", Lithuania: "LTU", Bulgaria: "BGR", Poland: "POL", Latvia: "LVA",
+    Italy: "ITA", Estonia: "EST", Slovenia: "SVN", Spain: "ESP", Norway: "NOR", Portugal: "PRT", Czechia: "CZE", Ireland: "IRL",
+    Greece: "GRC", Malta: "MLT", Belgium: "BEL", Cyprus: "CYP", Luxembourg: "LUX", Finland: "FIN", France: "FRA", Sweden: "SWE",
+    Netherlands: "NLD", Denmark: "DNK", Austria: "AUT", Germany: "DEU", Hungary: "HUN",
+    Iceland: "ISL", Switzerland: "CHE", Australia: "AUS", Canada: "CAN", Chile: "CHL", Colombia: "COL", "Costa Rica": "CRI",
+    Korea: "KOR", Mexico: "MEX", "New Zealand": "NZL", "Türkiye": "TUR", "United Kingdom": "GBR", "United States": "USA",
+  };
+  const YEAR = {
+    ISL: "2020", CHE: "2023", HUN: "2023", AUS: "2021", CAN: "2022", CHL: "2022", COL: "2024", CRI: "2024",
+    KOR: "2023", MEX: "2022", NZL: "2024", TUR: "2020", GBR: "2022", USA: "2023",
+  };
+  const out = {};
+  for (const r of rows) {
+    const name = r && r[13];
+    const i3 = ISO[name];
+    if (!i3) continue; // Japan (undated), and the EU and OECD averages
+    const own = Number(r[14]), mort = Number(r[15]);
+    if (!Number.isFinite(own)) continue;
+    // Korea and Türkiye report owners in one column ("Own outright").
+    const v = (own + (Number.isFinite(mort) ? mort : 0)) * 100;
+    out[i3] = { v, y: YEAR[i3] || "2024" };
+  }
+  if (!(out.USA && out.USA.v > 60 && out.USA.v < 70)) throw new Error("OECD HM1.3: US share out of range; layout changed?");
+  return out;
+}
+
 (async () => {
   // iso2 → iso3, from the World Bank's own country list.
   const iso3 = await cached("countries.json", "https://api.worldbank.org/v2/country?format=json&per_page=400", (t) => {
@@ -344,6 +438,9 @@ function loadCountries() {
   const undp = await hdr();
   const twHdi = await taiwanHdi();
   const twLife = await taiwanLifeTable();
+  const pip = await pipMedian();
+  const minWage = await iloMinimumWage();
+  const homeOwn = await oecdHomeOwnership();
 
   const countries = loadCountries();
   const rows = [];
@@ -364,6 +461,9 @@ function loadCountries() {
       note(f, hit.y);
     };
     for (const [f, spec] of Object.entries(WB)) put(f, series[f][i3], spec.dp);
+    put("medianDailyIncome", pip[i3], 2, "pip");
+    put("minimumWageMonthlyUSD", minWage[i3], 0, "ilo");
+    put("homeOwnershipPct", homeOwn[i3], 1, "oecdHousing");
     // UN fallbacks where the World Bank has nothing for this country.
     const has = (f) => parts.some((p) => p.startsWith(f + ":"));
     if (!has("birthRate")) put("birthRate", wppBirth[i3], 1, "wpp");
@@ -438,7 +538,7 @@ function loadCountries() {
   expect("cpiScore", 55, 80);
   expect("age65up", 14, 22);
 
-  const fields = [...Object.keys(WB), ...Object.keys(BANDS), "lifeExpectancy", "medianAge", "cpiScore", "evSalesShare", "hdi", "schoolingYears"];
+  const fields = [...Object.keys(WB), ...Object.keys(BANDS), "lifeExpectancy", "medianAge", "cpiScore", "evSalesShare", "hdi", "schoolingYears", "medianDailyIncome", "minimumWageMonthlyUSD", "homeOwnershipPct"];
   const today = new Date().toISOString().slice(0, 10);
   fs.writeFileSync(
     OUT,

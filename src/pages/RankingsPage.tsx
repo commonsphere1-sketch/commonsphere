@@ -459,6 +459,10 @@ interface RankRow {
   energyOutputTWh: number;
   /** Production as a share of consumption, %. Over 100 = net exporter. */
   energySelfSufficiency: number;
+  /** World Bank PIP median income or consumption per person per day, 2021 PPP $. Countries only. */
+  medianDailyIncome: number;
+  /** ILO statutory monthly minimum wage, US$. Countries only. */
+  minimumWageMonthlyUSD: number;
 }
 
 function buildCountryRows(): RankRow[] {
@@ -516,7 +520,11 @@ function buildCountryRows(): RankRow[] {
       medianIncome: NaN,
       medianHomeValue: NaN,
       medianRent: NaN,
-      homeOwnershipPct: NaN,
+      // OECD Affordable Housing Database: households owning their home,
+      // outright or with a mortgage — the Census basis for the state figure.
+      homeOwnershipPct: p?.homeOwnershipPct?.v ?? NaN,
+      medianDailyIncome: p?.medianDailyIncome?.v ?? NaN,
+      minimumWageMonthlyUSD: p?.minimumWageMonthlyUSD?.v ?? NaN,
       rentBurdenPct: NaN,
       meanCommuteMin: NaN,
       workFromHomePct: NaN,
@@ -615,6 +623,9 @@ function buildStateRows(): RankRow[] {
       // output, so there is nothing comparable to a country's TWh figure.
       energyOutputTWh: NaN,
       energySelfSufficiency: NaN,
+      // Country series (World Bank PIP, ILO); no state figures on that basis.
+      medianDailyIncome: NaN,
+      minimumWageMonthlyUSD: NaN,
     } as Omit<RankRow, "composite"> & { composite: 0 };
   }) as RankRow[];
 }
@@ -1271,9 +1282,23 @@ const COMPARE_EXTRAS: CompareRow[] = [
     format: (v) => `${v.toFixed(2)}%`,
     neutral: true,
   },
+  // Countries — the nearest official international series to the state
+  // rows around them, under their own names, since they measure differently.
+  {
+    id: "medianDailyIncome",
+    label: "Median income or consumption per person, per day (2021 PPP $)",
+    higherIsBetter: true,
+    format: (v) => `$${v.toFixed(2)}`,
+  },
+  {
+    id: "minimumWageMonthlyUSD",
+    label: "Minimum wage, monthly (US$, ILO)",
+    higherIsBetter: true,
+    format: usd0,
+  },
   {
     id: "minimumWage",
-    label: "Minimum wage",
+    label: "Minimum wage, hourly",
     higherIsBetter: true,
     format: (v) => (v === 0 ? "federal $7.25" : `$${v.toFixed(2)}/hr`),
   },
@@ -1492,8 +1517,14 @@ function ComparisonPanel({
               {/* A measure nobody in the pool publishes — homelessness, since
                   HUD's counts could not be fetched and there is no
                   comparable international series — would only ever be a
-                  row of N/A, so it is not drawn. */}
-              {COMPARE_ROWS.filter((m) => (rankByMetric.get(m.id)?.size ?? 0) > 0).map((m) => {
+                  row of N/A, so it is not drawn. Nor is one that none of the
+                  pinned entities publishes: pin only countries and the
+                  US-only state rows would be N/A all the way across. */}
+              {COMPARE_ROWS.filter(
+                (m) =>
+                  (rankByMetric.get(m.id)?.size ?? 0) > 0 &&
+                  selected.some((r) => hasMetric(r, m.id)),
+              ).map((m) => {
                 // Best of the pinned set, among those that publish it. Size,
                 // tax and total output have no better direction, so nothing is
                 // marked on those — a bigger country is not a better one.
