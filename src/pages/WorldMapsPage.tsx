@@ -19,6 +19,7 @@ import {
   CaretDown,
   MagnifyingGlassPlus,
   MagnifyingGlassMinus,
+  MagnifyingGlass,
 } from "@phosphor-icons/react";
 import { countriesData, type Country } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
@@ -444,6 +445,99 @@ const OVERLAYS: { id: OverlayId; label: string; about: string }[] = [
  * a new country starts with a fresh attempt rather than inheriting the last
  * one's failure.
  */
+/**
+ * Type-to-jump for the country map: filters as you type, Enter or a click
+ * picks. Matches names that start with the query first, then any that
+ * contain it, so "ger" reaches Germany before Algeria and Niger.
+ */
+function CountrySearch({
+  options,
+  onPick,
+}: {
+  options: { value: string; label: string }[];
+  onPick: (code: string) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    const starts = options.filter((o) => o.label.toLowerCase().startsWith(q));
+    const contains = options.filter(
+      (o) => !o.label.toLowerCase().startsWith(q) && o.label.toLowerCase().includes(q),
+    );
+    return [...starts, ...contains].slice(0, 8);
+  }, [query, options]);
+
+  const pick = (code: string) => {
+    onPick(code);
+    setQuery("");
+    setOpen(false);
+  };
+
+  return (
+    <div className="relative">
+      <div className="flex items-center gap-1.5 px-3 py-2 rounded-full border border-border bg-transparent focus-within:border-foreground/40 transition-colors">
+        <MagnifyingGlass size={13} className="text-muted-foreground shrink-0" aria-hidden />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setActive(0);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 120)}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setActive((i) => Math.min(i + 1, matches.length - 1));
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              setActive((i) => Math.max(i - 1, 0));
+            } else if (e.key === "Enter" && matches[active]) {
+              pick(matches[active].value);
+            } else if (e.key === "Escape") {
+              setQuery("");
+              setOpen(false);
+            }
+          }}
+          placeholder="Search countries"
+          aria-label="Search for a country to map"
+          className="w-28 sm:w-36 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none"
+        />
+      </div>
+      {open && matches.length > 0 && (
+        <ul
+          role="listbox"
+          className="dropdown-glass absolute right-0 top-full mt-1.5 z-50 min-w-full w-48 rounded-xl border overflow-hidden py-1"
+        >
+          {matches.map((m, i) => (
+            <li
+              key={m.value}
+              role="option"
+              aria-selected={i === active}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                pick(m.value);
+              }}
+              onMouseEnter={() => setActive(i)}
+              className={`px-3 py-1.5 text-sm font-sans cursor-pointer ${
+                i === active ? "bg-muted/70 text-foreground" : "text-muted-foreground"
+              }`}
+            >
+              {m.label}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function CountryFlag({ code, name }: { code?: string; name?: string }) {
   const [failed, setFailed] = useState(false);
   const cc = (code ?? "").toLowerCase();
@@ -3035,6 +3129,7 @@ export function WorldMapsPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <CountrySearch options={focusOptions} onPick={setFocusCode} />
               <StyledSelect
                 value={focusCode}
                 onValueChange={setFocusCode}
