@@ -878,7 +878,7 @@ function ProfileStrip({
     <div
       className={
         bare
-          ? "flex items-end gap-[3px]"
+          ? "flex items-end gap-[3px] h-8"
           : "flex items-end gap-1 overflow-x-auto pb-1"
       }
     >
@@ -897,17 +897,15 @@ function ProfileStrip({
         const title = `${m.label} — ${fmtMetric(m, val)}, ${pct.toFixed(0)}th percentile of ${allVals.filter((v) => isFinite(v)).length}`;
 
         if (bare) {
+          // As tall as the policy rows' domain bars (32px), but kept 3px wide;
+          // no track behind them.
           return (
             <div
               key={m.id}
               title={title}
-              className="w-[3px] h-5 bg-muted/60 rounded-full overflow-hidden flex items-end"
-            >
-              <div
-                className={`w-full rounded-full ${barColor}`}
-                style={{ height: `${Math.max(8, pct)}%` }}
-              />
-            </div>
+              className={`w-[3px] rounded-full ${barColor}`}
+              style={{ height: `${Math.max(8, pct)}%` }}
+            />
           );
         }
         return (
@@ -960,8 +958,6 @@ function MobileCard({
   const primaryVal = primary.accessor(row);
   const allPrimary = allValuesMap[primary.id] ?? [];
   const pct = percentile(primaryVal, allPrimary, primary.higherIsBetter);
-  const barColor =
-    pct >= 66 ? "bg-success" : pct >= 33 ? "bg-amber-500" : "bg-destructive";
   const textColor =
     pct >= 66
       ? "text-success"
@@ -1009,12 +1005,6 @@ function MobileCard({
           <span className={`text-xs font-mono font-bold ${textColor}`}>
             {fmtMetric(primary, primaryVal)}
           </span>
-          <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full ${barColor}`}
-              style={{ width: `${Math.max(4, pct)}%` }}
-            />
-          </div>
         </div>
         {/* Score */}
         <div className="flex flex-col items-end gap-0.5 shrink-0 w-10">
