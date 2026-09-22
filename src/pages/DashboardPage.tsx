@@ -5479,6 +5479,13 @@ function FlagOrbit({ mutedText }: { mutedText: string }) {
   const SIZE = 250;
   const RADIUS = SIZE / 2 - 14;
   const SPIN = "60s";
+  /* Each flag is a flat segment of a ring, so it has to be as wide as the
+     side of the polygon touching the band's OUTER edge - 2*(R+h/2)*tan(pi/n).
+     Sized to the centre line instead, the outer corners fall short and leave
+     a wedge of a gap between every pair. Half a pixel of overlap hides the
+     seam left by rounding, and object-fit crops rather than squashes. */
+  const BAND_H = 20;
+  const SEG_W = 2 * (RADIUS + BAND_H / 2) * Math.tan(Math.PI / FLAGS.length) + 0.5;
 
   return (
     <div className="shrink-0 self-center flex flex-col items-center gap-2">
@@ -5497,17 +5504,17 @@ function FlagOrbit({ mutedText }: { mutedText: string }) {
                 key={cc}
                 src={`https://flagcdn.com/w40/${cc}.png`}
                 srcSet={`https://flagcdn.com/w80/${cc}.png 2x`}
-                width={24}
-                height={16}
                 loading="lazy"
                 decoding="async"
                 alt=""
-                className="absolute h-4 w-auto rounded-[1px] shadow-sm"
+                className="absolute"
                 style={{
                   left: SIZE / 2 + RADIUS * Math.cos(angle),
                   top: SIZE / 2 + RADIUS * Math.sin(angle),
+                  width: SEG_W,
+                  height: BAND_H,
+                  objectFit: "cover",
                   transform: `translate(-50%, -50%) rotate(${deg + 90}deg)`,
-                  border: "1px solid rgba(128,128,128,0.35)",
                 }}
               />
             );
