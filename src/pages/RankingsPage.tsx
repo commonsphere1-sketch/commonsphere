@@ -904,14 +904,6 @@ function ProfileStrip({
         const val = row[m.id] as number;
         const allVals = allValuesMap[m.id] ?? [];
         const pct = percentile(val, allVals, m.higherIsBetter);
-        const barColor =
-          pct >= 66 ? "bg-success" : pct >= 33 ? "bg-amber-500" : "bg-destructive";
-        const textColor =
-          pct >= 66
-            ? "text-success"
-            : pct >= 33
-              ? "text-amber-400"
-              : "text-destructive";
         const title = `${m.label} — ${fmtMetric(m, val)}, ${pct.toFixed(0)}th percentile of ${allVals.filter((v) => isFinite(v)).length}`;
 
         if (bare) {
@@ -941,14 +933,16 @@ function ProfileStrip({
             // reads as a chart of something rather than a profile.
             className="w-14 shrink-0 flex flex-col items-center gap-0.5"
           >
-            <span
-              className={`text-[10px] font-mono font-bold ${textColor} truncate max-w-full`}
-            >
+            <span className="text-[10px] font-mono font-bold text-foreground truncate max-w-full">
               {fmtMetric(m, val)}
             </span>
-            <div className="w-1.5 h-10 bg-muted/60 rounded-full overflow-hidden flex items-end">
+            {/* The same bar as the list rows and the Public Policy page. */}
+            <div
+              className="h-9 bg-muted rounded-full overflow-hidden flex items-end"
+              style={{ width: "4px" }}
+            >
               <div
-                className={`w-full rounded-full transition-all duration-500 ${barColor}`}
+                className={`w-full rounded-full transition-all duration-500 ${PROFILE_BAR[m.id] ?? "bg-slate-400"}`}
                 style={{ height: `${Math.max(4, pct)}%` }}
               />
             </div>
