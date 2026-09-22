@@ -91,6 +91,13 @@ type PlanId = "free" | "supporter" | "professional" | "team";
  *             revenue comes from: newsrooms, NGOs and departments.
  * Annual is ten months for twelve, trading a modest discount for the
  * retention and cash flow that make the cheaper tiers viable.
+ *
+ * Priced on what ships, not the roadmap: no page gates anything by plan, so
+ * paid tiers today are mostly support plus a claim on what is Planned. Pro
+ * is $12 rather than the $25-30 its roadmap (API, bulk export, citations)
+ * would justify, and should rise when those land. Team is $10 a seat, below
+ * Pro, because it includes Pro - a seat priced above the individual plan it
+ * contains would make the five-seat floor a penalty rather than a discount.
  */
 const PLANS = [
   {
@@ -122,9 +129,9 @@ const PLANS = [
   {
     id: "supporter" as PlanId,
     name: "Supporter",
-    price: "$6",
+    price: "$5",
     period: "per month",
-    priceAnnual: "$60 billed yearly — two months free",
+    priceAnnual: "$50 billed yearly — two months free",
     borderClass: "border-secondary/50 ring-2 ring-secondary/20",
     badge: "Most Popular",
     btnClass:
@@ -152,9 +159,9 @@ const PLANS = [
   {
     id: "professional" as PlanId,
     name: "Professional",
-    price: "$28",
+    price: "$12",
     period: "per month",
-    priceAnnual: "$280 billed yearly — two months free",
+    priceAnnual: "$120 billed yearly — two months free",
     borderClass: "border-violet-500/40",
     badge: null,
     btnClass:
@@ -180,9 +187,9 @@ const PLANS = [
   {
     id: "team" as PlanId,
     name: "Team",
-    price: "$18",
+    price: "$10",
     period: "per seat / month",
-    priceAnnual: "Minimum 5 seats · annual invoicing available",
+    priceAnnual: "From $50/month for 5 seats · annual invoicing available",
     borderClass: "border-sky-500/40",
     badge: null,
     btnClass:
