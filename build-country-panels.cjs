@@ -81,6 +81,13 @@ const WB = {
   railKm: { code: "IS.RRS.TOTL.KM", dp: 0 },
   // Education
   literacy: { code: "SE.ADT.LITR.ZS", dp: 1 },
+  // Attainment of the population aged 25 and over — the same base the US
+  // Census uses for its state "high school graduate or higher" and
+  // "bachelor's degree or higher" shares, so the two compare directly.
+  upperSecondaryPct: { code: "SE.SEC.CUAT.UP.ZS", dp: 1 },
+  bachelorsPct: { code: "SE.TER.CUAT.BA.ZS", dp: 1 },
+  // Share below the country's own national poverty line.
+  povertyNationalPct: { code: "SI.POV.NAHC", dp: 1 },
   // Economy
   agriculturePct: { code: "NV.AGR.TOTL.ZS", dp: 1 },
   industryPct: { code: "NV.IND.TOTL.ZS", dp: 1 },

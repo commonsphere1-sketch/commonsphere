@@ -503,11 +503,17 @@ function buildCountryRows(): RankRow[] {
       maternalMortality: p?.maternalMortality?.v ?? NaN,
       electricityAccess: p?.electricityAccess?.v ?? NaN,
       parliamentFemale: p?.parliamentFemale?.v ?? NaN,
-      // State fiscal, housing, commute and education series with no
-      // country-level equivalent in this dataset. Left unavailable rather
-      // than approximated.
+      // World Bank WDI, on the same basis as the state figures: the share
+      // below the country's own national poverty line (a state's is the US
+      // official line), and attainment of the population aged 25 and over
+      // (upper secondary is the ISCED level of a US high-school diploma).
+      povertyPct: p?.povertyNationalPct?.v ?? NaN,
+      highSchoolPct: p?.upperSecondaryPct?.v ?? NaN,
+      bachelorsPct: p?.bachelorsPct?.v ?? NaN,
+      // State income, fiscal, housing and commute series with no
+      // country-level equivalent on the same definition. Left unavailable
+      // rather than approximated.
       medianIncome: NaN,
-      povertyPct: NaN,
       medianHomeValue: NaN,
       medianRent: NaN,
       homeOwnershipPct: NaN,
@@ -518,12 +524,10 @@ function buildCountryRows(): RankRow[] {
       walkBikePct: NaN,
       vehiclePct: NaN,
       vacancyPct: NaN,
-      highSchoolPct: NaN,
       averageIncome: NaN,
       stateTaxRate: NaN,
       salesTaxRate: NaN,
       minimumWage: NaN,
-      bachelorsPct: NaN,
       energyOutputTWh: c.energy?.totalProductionTWh ?? NaN,
       energySelfSufficiency:
         c.energy && c.energy.totalUseTWh > 0
@@ -860,6 +864,20 @@ function RowDetailPanel({
  * whether the measure counts up (life expectancy) or down (unemployment), so
  * the strip reads the same way across all of them.
  */
+/** One colour per measure in the profile strip, from the Public Policy
+ *  page's category palette. */
+const PROFILE_BAR: Record<string, string> = {
+  hdi: "bg-purple-400",
+  gdpPerCapita: "bg-emerald-400",
+  gdpGrowth: "bg-cyan-400",
+  unemployment: "bg-orange-400",
+  lifeExpectancy: "bg-pink-400",
+  inflation: "bg-yellow-400",
+  incarceration: "bg-red-400",
+  homelessness: "bg-rose-400",
+  tradeBalance: "bg-sky-400",
+};
+
 function ProfileStrip({
   row,
   allValuesMap,
@@ -878,7 +896,7 @@ function ProfileStrip({
     <div
       className={
         bare
-          ? "flex items-end gap-[3px] h-8"
+          ? "flex items-end gap-1.5 h-9"
           : "flex items-end gap-1 overflow-x-auto pb-1"
       }
     >
@@ -897,15 +915,21 @@ function ProfileStrip({
         const title = `${m.label} — ${fmtMetric(m, val)}, ${pct.toFixed(0)}th percentile of ${allVals.filter((v) => isFinite(v)).length}`;
 
         if (bare) {
-          // As tall as the policy rows' domain bars (32px), but kept 3px wide;
-          // no track behind them.
+          // The Public Policy page's category bars: 4px wide, 36px tall, on
+          // a full-height track, one colour per measure. Height is the
+          // percentile; the tooltip gives the figure and where it sits.
           return (
             <div
               key={m.id}
               title={title}
-              className={`w-[3px] rounded-full ${barColor}`}
-              style={{ height: `${Math.max(8, pct)}%` }}
-            />
+              className="rounded-full bg-muted overflow-hidden flex items-end h-full"
+              style={{ width: "4px" }}
+            >
+              <div
+                className={`w-full rounded-full ${PROFILE_BAR[m.id] ?? "bg-slate-400"}`}
+                style={{ height: `${Math.max(8, pct)}%` }}
+              />
+            </div>
           );
         }
         return (
@@ -1170,7 +1194,7 @@ const COMPARE_EXTRAS: CompareRow[] = [
   // US states — from stateIndicators.ts, Census ACS unless noted.
   { id: "medianIncome", label: "Median household income", higherIsBetter: true, format: usd0 },
   { id: "averageIncome", label: "Income per person", higherIsBetter: true, format: usd0 },
-  { id: "povertyPct", label: "Below the poverty line", higherIsBetter: false, format: pct1 },
+  { id: "povertyPct", label: "Below the national poverty line", higherIsBetter: false, format: pct1 },
   {
     id: "medianHomeValue",
     label: "Median home value",
