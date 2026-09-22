@@ -88,8 +88,21 @@ const OVERLAY_URL = {
   infrastructure: "/geo/infrastructure.json",
   capitals: "/geo/capitals.json",
   cities: "/geo/cities.json",
-  timezones: "/geo/timezones.json",
+  climate: "/geo/climate.json",
 } as const;
+
+/** Rough Köppen-style groupings - tropical, arid, temperate, continental,
+    polar - each with its own ink, since a single colour can't tell the zones
+    apart the way it does for every other point layer. */
+const CLIMATE_ZONES = ["tropical", "arid", "temperate", "continental", "polar"] as const;
+type ClimateZone = (typeof CLIMATE_ZONES)[number];
+const CLIMATE_COLORS: Record<ClimateZone, string> = {
+  tropical: "#1f9e5c",
+  arid: "#d19a3a",
+  temperate: "#5b9bd5",
+  continental: "#8b5fbf",
+  polar: "#4fb8c4",
+};
 
 /* Air pollution is the one layer that is not fetched: it is 197 numbers, a
    few kilobytes, so it rides in the bundle rather than costing a request. */
@@ -342,8 +355,8 @@ const POLLUTION_OPACITY = [0, 0.18, 0.3, 0.44, 0.6];
    transparent until the reader zooms in, where there is room for them at full
    size. Where mining concentrates still reads; what is under it survives. */
 const MINE_FULL_DETAIL_ABOVE = 2;
-const MINE_DOT = { far: 0.55, near: 1.5 };
-const MINE_OPACITY = { far: 0.5, near: 0.85 };
+const MINE_DOT = { far: 1.1, near: 2.6 };
+const MINE_OPACITY = { far: 0.75, near: 1 };
 
 /**
  * The overlay layers offered under the world map, in the order they are drawn:
@@ -403,10 +416,10 @@ const OVERLAYS: { id: OverlayId; label: string; about: string }[] = [
       "200+ major metropolitan areas globally with population over 1 million. Shows largest urban concentrations across all continents.",
   },
   {
-    id: "timezones",
-    label: "Time zones",
+    id: "climate",
+    label: "Climate",
     about:
-      "UTC offset zones from UTC-12 to UTC+13. Shows major time zone boundaries and central cities representing each time zone offset.",
+      "Broad climate zones - tropical, arid, temperate, continental and polar - at representative locations worldwide, in the tradition of the Köppen classification. A sample of points, not a shaded boundary map.",
   },
 ];
 
@@ -1123,7 +1136,7 @@ export function WorldMapsPage() {
     pollution: isLight ? "#b3006b" : "#ff6fb5",
     capitals: isLight ? "#d91e63" : "#f06fe5",
     cities: isLight ? "#0066cc" : "#4db8ff",
-    timezones: isLight ? "#009900" : "#66ff00",
+    climate: isLight ? "#2f8f6f" : "#5fd1a8",
   };
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
   const cardBorder = isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)";
@@ -1428,7 +1441,7 @@ export function WorldMapsPage() {
     pollution: false,
     capitals: false,
     cities: false,
-    timezones: false,
+    climate: false,
   });
   const [focusLayers, setFocusLayers] = useState<Record<OverlayId, boolean>>({
     rivers: false,
@@ -1439,7 +1452,7 @@ export function WorldMapsPage() {
     pollution: false,
     capitals: false,
     cities: false,
-    timezones: false,
+    climate: false,
   });
   const [showAdditionalLayers, setShowAdditionalLayers] = useState(false);
 
@@ -1466,9 +1479,9 @@ export function WorldMapsPage() {
     OVERLAY_URL.cities,
     wanted("cities"),
   );
-  const timezones = useOverlay<PointLayer<[string, string, number, number]>>(
-    OVERLAY_URL.timezones,
-    wanted("timezones"),
+  const climate = useOverlay<PointLayer<[string, ClimateZone, number, number]>>(
+    OVERLAY_URL.climate,
+    wanted("climate"),
   );
 
 
@@ -1480,7 +1493,7 @@ export function WorldMapsPage() {
     infrastructure: { loading: infra.loading, failed: infra.failed },
     capitals: { loading: capitals.loading, failed: capitals.failed },
     cities: { loading: cities.loading, failed: cities.failed },
-    timezones: { loading: timezones.loading, failed: timezones.failed },
+    climate: { loading: climate.loading, failed: climate.failed },
     // Bundled, so it is never pending and cannot fail to arrive.
     pollution: { loading: false, failed: false },
   };
@@ -1600,15 +1613,15 @@ export function WorldMapsPage() {
       .filter((p): p is { x: number; y: number } => p !== null);
   }, [cities.data, worldPath]);
 
-  const timezonePoints = useMemo(() => {
-    if (!timezones.data) return null;
-    return timezones.data.rows
+  const climatePoints = useMemo(() => {
+    if (!climate.data) return null;
+    return climate.data.rows
       .map((row) => {
         const p = worldPath.projection([row[2], row[3]]);
-        return p ? { x: p[0], y: p[1] } : null;
+        return p ? { x: p[0], y: p[1], zone: row[1] } : null;
       })
-      .filter((p): p is { x: number; y: number } => p !== null);
-  }, [timezones.data, worldPath]);
+      .filter((p): p is { x: number; y: number; zone: ClimateZone } => p !== null);
+  }, [climate.data, worldPath]);
 
   /* What the mineral layer actually holds, counted from the data rather than
      written by hand, so the note cannot drift from the file it describes. The
@@ -1765,11 +1778,16 @@ export function WorldMapsPage() {
     return cityPoints.map((p) => dot(p.x, p.y, r)).join("");
   }, [cityPoints, worldZoom.zoom]);
 
-  const timezonesD = useMemo(() => {
-    if (!timezonePoints) return undefined;
-    const r = 1.2 / worldZoom.zoom;
-    return timezonePoints.map((p) => dot(p.x, p.y, r)).join("");
-  }, [timezonePoints, worldZoom.zoom]);
+  const climateD = useMemo(() => {
+    if (!climatePoints) return undefined;
+    const r = 3.4 / worldZoom.zoom;
+    const byZone: Partial<Record<ClimateZone, string>> = {};
+    for (const zone of CLIMATE_ZONES) {
+      const d = climatePoints.filter((p) => p.zone === zone).map((p) => dot(p.x, p.y, r)).join("");
+      if (d) byZone[zone] = d;
+    }
+    return byZone;
+  }, [climatePoints, worldZoom.zoom]);
 
   const zoom = focusZoom.zoom;
 
@@ -2039,9 +2057,9 @@ export function WorldMapsPage() {
       mines: mines.data ? place(mines.data.rows, (r) => r[5], (r) => r[6]) : null,
       capitals: capitals.data ? place(capitals.data.rows, (r) => r[2], (r) => r[3]) : null,
       cities: cities.data ? place(cities.data.rows, (r) => r[3], (r) => r[4]) : null,
-      timezones: timezones.data ? place(timezones.data.rows, (r) => r[2], (r) => r[3]) : null,
+      climate: climate.data ? place(climate.data.rows, (r) => r[2], (r) => r[3]) : null,
     };
-  }, [focusFrame, lineNear, inBounds, rivers.data, lakes.data, infra.data, ports.data, mines.data, capitals.data, cities.data, timezones.data]);
+  }, [focusFrame, lineNear, inBounds, rivers.data, lakes.data, infra.data, ports.data, mines.data, capitals.data, cities.data, climate.data]);
 
   /* Marks on the focus map keep the same shapes as on the world map, drawn a
      little larger because there is room for them on one country.
@@ -2074,6 +2092,13 @@ export function WorldMapsPage() {
     ) => (pts && pts.length ? pts.map((p) => shape(p.x, p.y, radius)).join("") : undefined);
     const mineSolid = focusOverlays.mines?.filter((p) => p.row[4] === 0) ?? [];
     const mineHollow = focusOverlays.mines?.filter((p) => p.row[4] === 1) ?? [];
+    const climateR = 3.4 / z;
+    const climateByZone: Partial<Record<ClimateZone, string>> = {};
+    for (const zone of CLIMATE_ZONES) {
+      const pts = focusOverlays.climate?.filter((p) => p.row[1] === zone) ?? [];
+      const d = join(pts, dot, climateR);
+      if (d) climateByZone[zone] = d;
+    }
     return {
       ports: join(focusOverlays.ports, box, 3.2 / z),
       airports: join(focusOverlays.airports, tri),
@@ -2085,7 +2110,7 @@ export function WorldMapsPage() {
       mineRinged: near,
       capitals: join(focusOverlays.capitals, star, 4.8 / z),
       cities: join(focusOverlays.cities, dot, 3.2 / z),
-      timezones: join(focusOverlays.timezones, dot, 1.2 / z),
+      climate: climateByZone,
     };
   }, [focusOverlays, focusZoom.zoom]);
 
@@ -2361,15 +2386,24 @@ export function WorldMapsPage() {
 
   const layerToggles = (layers: Record<OverlayId, boolean>, set: LayerSetter, showMore = true) => {
     if (!showMore) {
+      const mainLayers = OVERLAYS.filter(o => !["capitals", "cities", "climate"].includes(o.id));
+      const additionalLayers = OVERLAYS.filter(o => ["capitals", "cities", "climate"].includes(o.id));
       return (
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
-            Layers
-          </span>
-          {OVERLAYS.filter(o => !["capitals", "cities", "timezones"].includes(o.id)).map((o) => (
-            <LayerButton key={o.id} o={o} layers={layers} set={set} />
-          ))}
-        </div>
+        <>
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
+              Layers
+            </span>
+            {mainLayers.map((o) => (
+              <LayerButton key={o.id} o={o} layers={layers} set={set} />
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            {additionalLayers.map((o) => (
+              <LayerButton key={o.id} o={o} layers={layers} set={set} />
+            ))}
+          </div>
+        </>
       );
     }
 
@@ -2701,16 +2735,20 @@ export function WorldMapsPage() {
               />
             )}
 
-            {worldLayers.timezones && timezonesD && (
-              <path
-                d={timezonesD}
-                fill={overlayInk.timezones}
-                fillOpacity={0.65}
-                stroke={labelHalo}
-                strokeWidth={0.25 / worldZoom.zoom}
-                pointerEvents="none"
-              />
-            )}
+            {worldLayers.climate && climateD &&
+              CLIMATE_ZONES.map((zone) =>
+                climateD[zone] ? (
+                  <path
+                    key={zone}
+                    d={climateD[zone]}
+                    fill={CLIMATE_COLORS[zone]}
+                    fillOpacity={0.85}
+                    stroke={labelHalo}
+                    strokeWidth={0.3 / worldZoom.zoom}
+                    pointerEvents="none"
+                  />
+                ) : null,
+              )}
 
             {/* The title under the cursor: the continent while the whole world
                 is in view, the country once zoomed in. Same ink and halo as the
@@ -3177,16 +3215,20 @@ export function WorldMapsPage() {
                 />
               )}
 
-              {focusLayers.timezones && focusMarks?.timezones && (
-                <path
-                  d={focusMarks.timezones}
-                  fill={overlayInk.timezones}
-                  fillOpacity={0.65}
-                  stroke={labelHalo}
-                  strokeWidth={0.25 / focusZoom.zoom}
-                  pointerEvents="none"
-                />
-              )}
+              {focusLayers.climate && focusMarks?.climate &&
+                CLIMATE_ZONES.map((zone) =>
+                  focusMarks.climate?.[zone] ? (
+                    <path
+                      key={zone}
+                      d={focusMarks.climate[zone]}
+                      fill={CLIMATE_COLORS[zone]}
+                      fillOpacity={0.85}
+                      stroke={labelHalo}
+                      strokeWidth={0.3 / focusZoom.zoom}
+                      pointerEvents="none"
+                    />
+                  ) : null,
+                )}
             </g>
           </svg>
 
@@ -3432,16 +3474,20 @@ export function WorldMapsPage() {
                         />
                       )}
 
-                      {focusLayers.timezones && focusMarks?.timezones && (
-                        <path
-                          d={focusMarks.timezones}
-                          fill={overlayInk.timezones}
-                          fillOpacity={0.65}
-                          stroke={labelHalo}
-                          strokeWidth={0.25 / focusZoom.zoom}
-                          pointerEvents="none"
-                        />
-                      )}
+                      {focusLayers.climate && focusMarks?.climate &&
+                        CLIMATE_ZONES.map((zone) =>
+                          focusMarks.climate?.[zone] ? (
+                            <path
+                              key={zone}
+                              d={focusMarks.climate[zone]}
+                              fill={CLIMATE_COLORS[zone]}
+                              fillOpacity={0.85}
+                              stroke={labelHalo}
+                              strokeWidth={0.3 / focusZoom.zoom}
+                              pointerEvents="none"
+                            />
+                          ) : null,
+                        )}
                     </g>
                   </svg>
 
