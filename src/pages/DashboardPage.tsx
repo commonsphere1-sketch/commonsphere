@@ -247,7 +247,7 @@ function CountryCarousel({
             className="absolute inset-y-0 left-0 pointer-events-none z-10"
             style={{
               width: 28,
-              background: `linear-gradient(to right, ${isLight ? "#ffffff" : "#0b0b14"}, transparent)`,
+              background: `linear-gradient(to right, var(--color-background), transparent)`,
             }}
           />
           {/* Right fade mask */}
@@ -255,7 +255,7 @@ function CountryCarousel({
             className="absolute inset-y-0 right-0 pointer-events-none z-10"
             style={{
               width: 28,
-              background: `linear-gradient(to left, ${isLight ? "#ffffff" : "#0b0b14"}, transparent)`,
+              background: `linear-gradient(to left, var(--color-background), transparent)`,
             }}
           />
 
@@ -529,7 +529,7 @@ function StatesCarousel({
             className="absolute inset-y-0 left-0 pointer-events-none z-10"
             style={{
               width: 28,
-              background: `linear-gradient(to right, ${isLight ? "#ffffff" : "#0b0b14"}, transparent)`,
+              background: `linear-gradient(to right, var(--color-background), transparent)`,
             }}
           />
           {/* Right fade */}
@@ -537,7 +537,7 @@ function StatesCarousel({
             className="absolute inset-y-0 right-0 pointer-events-none z-10"
             style={{
               width: 28,
-              background: `linear-gradient(to left, ${isLight ? "#ffffff" : "#0b0b14"}, transparent)`,
+              background: `linear-gradient(to left, var(--color-background), transparent)`,
             }}
           />
 
@@ -5895,7 +5895,7 @@ export function DashboardPage() {
   return (
     <div
       className="min-h-screen w-full animate-fade-in"
-      style={{ background: isLight ? "#ffffff" : "#0b0b14", color: bodyText }}
+      style={{ background: "var(--color-background)", color: bodyText }}
     >
       <div className="w-full px-4 sm:px-5 py-4 flex flex-col gap-4">
         {/* ── HERO ──────────────────────────────────────────────────────── */}

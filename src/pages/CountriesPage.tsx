@@ -16229,6 +16229,20 @@ function sourceYear(label: string): string | undefined {
   return /(\d{4})\s*$/.exec(label)?.[1];
 }
 
+/** One accent per snapshot tile, by theme of the measure: people, money,
+ *  growth, development, health, work, trade. Mixed toward the foreground for
+ *  text so it reads in both light and dark mode. */
+const SNAPSHOT_ACCENTS: Record<string, string> = {
+  "Most populous": "#6f8fe0",
+  "Largest economy": "#4fa37a",
+  "Highest GDP per capita": "#c79232",
+  "Fastest growth": "#3fa9b5",
+  "Highest HDI": "#9a7ad6",
+  "Longest life expectancy": "#d0677e",
+  "Lowest unemployment": "#c0773c",
+  "Largest trade surplus": "#5a9e4b",
+};
+
 function InternationalSnapshot({ countries }: { countries: Country[] }) {
   const picks = SNAPSHOT_SPECS.map((spec) => {
     // Only rows that both have the figure and say where it came from.
@@ -16272,13 +16286,20 @@ function InternationalSnapshot({ countries }: { countries: Country[] }) {
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
         {picks.map(({ spec, country, source }) => {
           const year = sourceYear(source.label);
+          const accent = SNAPSHOT_ACCENTS[spec.label] ?? "#8b8fa3";
+          const ink = `color-mix(in srgb, ${accent} 72%, var(--color-foreground))`;
           return (
             <div
               key={spec.label}
-              className="rounded-lg border border-border/60 bg-muted/30 px-2.5 py-2"
+              className="rounded-lg px-2.5 py-2"
+              style={{
+                background: `color-mix(in srgb, ${accent} 12%, transparent)`,
+                border: `1px solid color-mix(in srgb, ${accent} 38%, transparent)`,
+                borderLeft: `3px solid ${accent}`,
+              }}
             >
               <div className="flex items-baseline justify-between gap-1.5">
-                <span className="text-[10px] text-muted-foreground font-sans truncate">
+                <span className="text-[10px] font-sans font-medium truncate" style={{ color: ink }}>
                   {spec.label}
                 </span>
                 {year && (
@@ -16293,7 +16314,7 @@ function InternationalSnapshot({ countries }: { countries: Country[] }) {
                 <span className="text-[11px] font-semibold font-sans text-foreground leading-tight min-w-0 break-words">
                   {country.name}
                 </span>
-                <span className="text-xs font-bold font-mono text-foreground shrink-0">
+                <span className="text-xs font-bold font-mono shrink-0" style={{ color: ink }}>
                   {spec.fmt(spec.get(country))}
                 </span>
               </div>
