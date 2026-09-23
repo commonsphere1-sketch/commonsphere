@@ -1,3 +1,4 @@
+import { decodeEntities } from "../lib/security";
 import {
   Globe,
   Lightning,
@@ -309,9 +310,7 @@ export function AboutPage() {
                       {v.title}
                     </h3>
                     <p
-                      className="text-sm text-muted-foreground font-sans leading-relaxed"
-                      dangerouslySetInnerHTML={{ __html: v.desc }}
-                    />
+                      className="text-sm text-muted-foreground font-sans leading-relaxed">{decodeEntities(v.desc)}</p>
                   </div>
                 </div>
               ))}

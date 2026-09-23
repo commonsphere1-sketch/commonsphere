@@ -1,3 +1,4 @@
+import { decodeEntities } from "../lib/security";
 import { na, has, sortKey } from "../lib/na";
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -5077,11 +5078,7 @@ function InteractiveDataPanel({
                       </p>
                       <p
                         className="text-[11px] font-sans leading-relaxed"
-                        style={{ color: bodyText }}
-                        dangerouslySetInnerHTML={{
-                          __html: (p as any).description,
-                        }}
-                      />
+                        style={{ color: bodyText }}>{decodeEntities((p as any).description)}</p>
                     </div>
                   )}
                   <button
@@ -5487,7 +5484,12 @@ function readFocus(): Focus | null {
 function pinAlso(key: string, id: string) {
   try {
     const stored = localStorage.getItem(key);
-    const ids: string[] = stored ? JSON.parse(stored) : [];
+    const parsed: unknown = stored ? JSON.parse(stored) : [];
+    /* A stored string would pass .includes() and then be spread into
+       single characters, so anything but a list starts over. */
+    const ids = Array.isArray(parsed)
+      ? parsed.filter((x): x is string => typeof x === "string")
+      : [];
     if (!ids.includes(id)) localStorage.setItem(key, JSON.stringify([...ids, id]));
   } catch {
     /* A browser with storage blocked still gets the carousel; it just

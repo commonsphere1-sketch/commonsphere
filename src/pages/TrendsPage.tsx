@@ -1,3 +1,4 @@
+import { decodeEntities } from "../lib/security";
 import { useState } from "react";
 import { SourceLink } from "../components/SourceLink";
 import { useTheme } from "../contexts/ThemeContext";
@@ -1341,9 +1342,7 @@ export function TrendsPage() {
                       >
                         <p
                           className="text-[11px] font-sans leading-relaxed mb-2"
-                          style={{ color: isLight ? "#475569" : "#cbd5e1" }}
-                          dangerouslySetInnerHTML={{ __html: s.summary }}
-                        />
+                          style={{ color: isLight ? "#475569" : "#cbd5e1" }}>{decodeEntities(s.summary)}</p>
                         <p
                           className="text-[10px] font-mono uppercase tracking-widest mb-1.5"
                           style={{ color: mutedText }}

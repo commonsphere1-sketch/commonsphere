@@ -1,3 +1,4 @@
+import { decodeEntities } from "../lib/security";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -773,9 +774,7 @@ export function LandingPage() {
                   {title}
                 </h3>
                 <p
-                  className={`text-xs leading-relaxed ${subFg}`}
-                  dangerouslySetInnerHTML={{ __html: desc }}
-                />
+                  className={`text-xs leading-relaxed ${subFg}`}>{decodeEntities(desc)}</p>
               </div>
             ))}
           </div>

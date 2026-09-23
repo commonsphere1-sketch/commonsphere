@@ -30,6 +30,10 @@ export const isSupabaseConfigured = Boolean(url && publishableKey);
  * serious enough to refuse outright rather than quietly ship to the browser.
  */
 function looksLikeServiceRoleKey(key: string): boolean {
+  /* Supabase's newer API keys are not JWTs: the secret one is prefixed
+     sb_secret_ (the browser-safe one sb_publishable_), so the JWT check below
+     would wave it through. */
+  if (key.trim().startsWith("sb_secret_")) return true;
   try {
     const [, payload] = key.split(".");
     if (!payload) return false;
@@ -42,7 +46,7 @@ function looksLikeServiceRoleKey(key: string): boolean {
 
 if (publishableKey && looksLikeServiceRoleKey(publishableKey)) {
   throw new Error(
-    "VITE_SUPABASE_ANON_KEY holds a service_role key. That key bypasses every " +
+    "VITE_SUPABASE_ANON_KEY holds a secret (service_role / sb_secret_) key. That key bypasses every " +
       "RLS policy and would be readable by anyone loading this page. Use the " +
       "publishable (anon) key instead and rotate the exposed one.",
   );

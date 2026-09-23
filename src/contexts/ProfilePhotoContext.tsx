@@ -153,7 +153,14 @@ export function ProfilePhotoProvider({
 
   useEffect(() => {
     try {
-      setPhoto(localStorage.getItem(STORAGE_KEY));
+      /* Only what downscale() writes - a base64 image data URL - is used as
+         an <img> source; any other value in the slot is ignored. */
+      const saved = localStorage.getItem(STORAGE_KEY);
+      setPhoto(
+        saved && /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(saved)
+          ? saved
+          : null,
+      );
       const c = localStorage.getItem(COLOR_KEY);
       if (c && isValidAvatarColor(c)) setAvatarColorState(c);
     } catch {

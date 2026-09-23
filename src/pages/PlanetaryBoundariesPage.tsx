@@ -1,3 +1,4 @@
+import { decodeEntities } from "../lib/security";
 import React, { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import {
@@ -17,6 +18,7 @@ import {
   Tree,
   CloudSlash,
   Flask,
+  CaretDown,
 } from "@phosphor-icons/react";
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
@@ -1181,6 +1183,45 @@ export function PlanetaryBoundariesPage() {
   const { theme } = useTheme();
   const isLight = theme === "light";
   const [selectedId, setSelectedId] = useState<string>("climate");
+  const [expandedTreaties, setExpandedTreaties] = useState<Set<string>>(new Set());
+  const [expandedFlashpoints, setExpandedFlashpoints] = useState<Set<string>>(new Set());
+  const [expandedSeaLevel, setExpandedSeaLevel] = useState<Set<string>>(new Set());
+
+  const toggleTreaty = (key: string) => {
+    setExpandedTreaties((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleFlashpoint = (key: string) => {
+    setExpandedFlashpoints((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSeaLevel = (key: string) => {
+    setExpandedSeaLevel((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
+      return newSet;
+    });
+  };
 
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
   const mutedText = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.38)";
@@ -1532,26 +1573,36 @@ export function PlanetaryBoundariesPage() {
                   label: "Paris Agreement",
                   val: "196 parties — 16% on track for 2030",
                   color: "#f59e0b",
+                  summary: "The 2015 Paris Agreement commits parties to limit warming to 1.5–2°C. However, only 16% of G20 members are on track to meet 2030 Nationally Determined Contribution (NDC) targets. Current policies lead to ~2.7°C warming by 2100. The compliance gap creates sovereign liability risks and threatens the agreement's credibility.",
+                  id: "paris-agreement",
                 },
                 {
                   label: "Kunming-Montreal (30×30)",
                   val: "196 parties — financing gap ~$700B/yr",
                   color: "#10b981",
+                  summary: "Adopted in 2022, the 30×30 target aims to protect 30% of land and ocean by 2030. Biodiversity finance commitments total $30B by 2030, far short of the estimated $700B annual need. Developing nations lack resources; implementation remains contested between conservation and development priorities.",
+                  id: "kunming-montreal",
                 },
                 {
                   label: "Global Plastics Treaty",
                   val: "Negotiations ongoing — 175 nations",
                   color: "#f97316",
+                  summary: "The 2024 United Nations Plastics Treaty aims to set binding limits on plastic production and consumption. Negotiations face resistance from petrostate producers (Saudi Arabia, Russia) and divergence on whether to cap production or focus only on waste management. Political economy obstacles remain significant.",
+                  id: "plastics-treaty",
                 },
                 {
                   label: "High Seas Treaty (BBNJ)",
                   val: "88 signatures — not yet in force",
                   color: "#3b82f6",
+                  summary: "The Agreement on Biodiversity Beyond National Jurisdiction entered negotiations in 2018 and was adopted in 2023. It establishes marine protected areas and benefit-sharing frameworks for ocean genetic resources. Not yet in force; implementation mechanisms and funding remain underdeveloped.",
+                  id: "bbnj-treaty",
                 },
                 {
                   label: "Nagoya Protocol",
                   val: "137 parties — enforcement weak",
                   color: "#a855f7",
+                  summary: "The 2014 Nagoya Protocol regulates access to genetic resources and benefit-sharing from genetic data. Covers biopiracy prevention. However, enforcement is weak, particularly against illegal extraction from megadiverse nations (Brazil, Indonesia, India). Compliance reporting is voluntary and inconsistent.",
+                  id: "nagoya-protocol",
                 },
               ],
             },
@@ -1562,75 +1613,139 @@ export function PlanetaryBoundariesPage() {
                   label: "Nile Basin (Ethiopia–Egypt)",
                   val: "GERD dam — existential water conflict",
                   color: "#ef4444",
+                  summary: "The Grand Ethiopian Renaissance Dam (GERD) created a 74 km³ reservoir, fundamentally altering downstream water flows. Egypt, dependent on 95% of Nile water, faces existential threats to agriculture and urban water supply. No binding agreement exists; trilateral negotiations repeatedly stall. Risk of military escalation remains high.",
+                  id: "nile-basin",
                 },
                 {
                   label: "Lancang-Mekong Corridor",
                   val: "China upstream damming — SEA tensions",
                   color: "#f97316",
+                  summary: "China operates 11 dams on the Mekong headwaters (Lancang), controlling water release and hydropower generation. Downstream nations (Thailand, Laos, Vietnam, Cambodia) face altered monsoons and ecological collapse. China's dam operations during dry seasons exacerbate downstream water scarcity, fueling Southeast Asian resentment.",
+                  id: "mekong-corridor",
                 },
                 {
                   label: "Amazon Governance",
                   val: "Brazil sovereignty vs. EU EUDR pressure",
                   color: "#22c55e",
+                  summary: "Brazil asserts Amazonian sovereignty against EU deforestation regulations (EUDR) and international conservation pressure. Deforestation reached 11.5M hectares annually under prior administrations. The Amazon is approaching a 20–25% deforestation tipping point; governance collapse in parts of the DRC also threatens the Congo Basin's 300M hectares.",
+                  id: "amazon-governance",
                 },
                 {
                   label: "Arctic Resources",
                   val: "Melting opens new sovereignty/military disputes",
                   color: "#06b6d4",
+                  summary: "Arctic warming (3–4× global rate) triggers resource competition over newly accessible oil, gas, and minerals. Russia, Norway, Canada, and others claim extended continental shelves under UNCLOS Article 76. Military buildup; climate refugees from Inuit regions. Geopolitical fracture between NATO and Russia is redefining Arctic security.",
+                  id: "arctic-resources",
                 },
                 {
                   label: "Pacific SIDS Inundation",
                   val: "Nation-state extinction risk — legal precedents",
                   color: "#6366f1",
+                  summary: "Small Island Developing States (Tuvalu, Kiribati, Marshall Islands) face literal nation-state extinction from sea-level rise by 2050–2100. Kiribati is exploring sovereign territory purchases in Fiji. Legal precedents for 'climate refugee' status and 'ocean state' sovereignty are being tested, creating unprecedented geopolitical instability.",
+                  id: "pacific-sids",
                 },
               ],
             },
-          ].map((section) => (
-            <div
-              key={section.title}
-              className="bg-card border border-border rounded-2xl p-5"
-            >
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest mb-3"
-                style={{ color: mutedText }}
+          ].map((section) => {
+            const isTreeatiesSection = section.title === "International Treaties & Gaps";
+            const isFlashpointsSection = section.title === "Ecological Security Flashpoints";
+            const isSeaLevelSection = section.title === "Sea Level Rise / Global Mean Sea Level";
+
+            const getExpanded = (id: string) => {
+              if (isTreeatiesSection) return expandedTreaties.has(id);
+              if (isFlashpointsSection) return expandedFlashpoints.has(id);
+              return false; // Sea level handled separately below
+            };
+
+            const toggleExpanded = (id: string) => {
+              if (isTreeatiesSection) toggleTreaty(id);
+              if (isFlashpointsSection) toggleFlashpoint(id);
+            };
+
+            return (
+              <div
+                key={section.title}
+                className="bg-card border border-border rounded-2xl p-5"
               >
-                {section.title}
-              </p>
-              <div className="flex flex-col gap-0">
-                {section.items.map((item, i) => (
-                  <div
-                    key={item.label}
-                    className="flex items-start gap-2.5 py-2.5"
-                    style={{
-                      borderBottom:
-                        i < section.items.length - 1
-                          ? `1px solid ${gridLine}`
-                          : "none",
-                    }}
-                  >
-                    <div
-                      className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5"
-                      style={{ background: item.color }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="text-[11px] font-semibold font-sans"
-                        style={{ color: headText }}
+                <p
+                  className="text-[10px] font-mono uppercase tracking-widest mb-3"
+                  style={{ color: mutedText }}
+                >
+                  {section.title}
+                </p>
+                <div className="flex flex-col gap-0">
+                  {section.items.map((item, i) => {
+                    const isExpanded = getExpanded((item as any).id);
+                    return (
+                      <div
+                        key={item.label}
+                        className="py-2.5"
+                        style={{
+                          borderBottom:
+                            i < section.items.length - 1
+                              ? `1px solid ${gridLine}`
+                              : "none",
+                        }}
                       >
-                        {item.label}
-                      </p>
-                      <p
-                        className="text-[10px] font-sans"
-                        style={{ color: mutedText }}
-                      >
-                        {item.val}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                        <button
+                          onClick={() => toggleExpanded((item as any).id)}
+                          className="flex items-start gap-2.5 w-full text-left hover:opacity-80 transition-opacity"
+                        >
+                          <div
+                            className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5"
+                            style={{ background: item.color }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p
+                              className="text-[11px] font-semibold font-sans"
+                              style={{ color: headText }}
+                            >
+                              {item.label}
+                            </p>
+                            <p
+                              className="text-[10px] font-sans"
+                              style={{ color: mutedText }}
+                            >
+                              {item.val}
+                            </p>
+                          </div>
+                          {(item as any).summary && (
+                            <div className="shrink-0 mt-0.5">
+                              <CaretDown
+                                size={14}
+                                weight="fill"
+                                style={{
+                                  color: item.color,
+                                  transition: "transform 200ms ease",
+                                  transform: isExpanded
+                                    ? "rotate(180deg)"
+                                    : "rotate(0deg)",
+                                }}
+                              />
+                            </div>
+                          )}
+                        </button>
+                        {isExpanded && (item as any).summary && (
+                          <div
+                            className="mt-2.5 pl-4 text-[9.5px] font-sans leading-relaxed rounded-lg px-3 py-2.5 animate-fade-in"
+                            style={{
+                              background: isLight
+                                ? "rgba(0,0,0,0.02)"
+                                : "rgba(255,255,255,0.03)",
+                              borderLeft: `3px solid ${item.color}`,
+                              color: mutedText,
+                            }}
+                          >
+                            {(item as any).summary}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* ── PUBLIC ENVIRONMENTAL DATA ─────────────────────────────────── */}
@@ -1897,70 +2012,119 @@ export function PlanetaryBoundariesPage() {
                   value: "+115 mm",
                   color: "#3b82f6",
                   sub: "Measured by altimetry",
+                  id: "rise-since-1993",
+                  summary: "Satellite altimetry from TOPEX/Poseidon and successor missions has tracked sea level with millimeter precision since 1993. The 115 mm rise reflects both thermal expansion (warming water) and ice sheet/glacier melt. This is the most accurate measurement period in human history; pre-satellite estimates rely on tide gauges and are less precise.",
                 },
                 {
                   label: "Current rate (2026)",
                   value: "+4.8 mm/yr",
                   color: "#ef4444",
                   sub: "Accelerating from 3.1 mm/yr in 1990s",
+                  id: "current-rate",
+                  summary: "Sea level rise is accelerating. The rate increased from 3.1 mm/yr in the 1990s to 4.8 mm/yr in 2026, a 55% increase. This acceleration is driven by ice sheet melt in Greenland and Antarctica exceeding previous decades. If acceleration continues, projections for 2100 may be underestimated.",
                 },
                 {
                   label: "Projected rise by 2050 (RCP4.5)",
                   value: "+25–30 cm",
                   color: "#f97316",
                   sub: "Above 2000 baseline",
+                  id: "rise-2050",
+                  summary: "RCP4.5 (Representative Concentration Pathway) assumes moderate emissions reductions. A 25–30 cm rise by 2050 is already locked in by existing atmospheric CO₂. This threatens coastal infrastructure, agriculture in river deltas (Nile, Ganges, Mekong), and low-lying island nations. Southeast Asia faces disproportionate impacts.",
                 },
                 {
                   label: "Projected rise by 2100 (RCP8.5)",
                   value: "+0.6–1.1 m",
                   color: "#dc2626",
                   sub: "High-end scenario",
+                  id: "rise-2100",
+                  summary: "The RCP8.5 high-end scenario (continued high emissions) projects 0.6–1.1 m rise by 2100, though some ice-sheet collapse models suggest 1.5–2 m is possible. A 1 m rise inundates 1–4 million km² of low-lying land, displacing up to 1 billion people. Bangladesh, Vietnam, and the Pacific are most vulnerable.",
                 },
                 {
                   label: "Thermal expansion contribution",
                   value: "~43%",
                   color: "#6366f1",
                   sub: "Of total GMSL rise",
+                  id: "thermal-expansion",
+                  summary: "Thermal expansion (water warming and expanding) accounts for ~43% of current sea-level rise. It occurs on decadal timescales as ocean heat penetrates deeper. Even if CO₂ emissions ceased today, thermal expansion would continue for 100+ years due to ocean heat inertia, committing future generations to additional rise.",
                 },
                 {
                   label: "Ice sheet melt contribution",
                   value: "~36%",
                   color: "#06b6d4",
                   sub: "Greenland + Antarctica",
+                  id: "ice-melt",
+                  summary: "Ice sheet melt from Greenland (11M km²) and Antarctica (14M km²) contributes ~36% of current GMSL rise. Greenland's mass loss accelerated from 34 Gt/yr (1990s) to 280 Gt/yr (2023). Antarctica's melt is accelerating exponentially. If West Antarctic Ice Sheet collapses, sea level could rise 3–4 m over centuries.",
                 },
-              ].map((row) => (
-                <div
-                  key={row.label}
-                  className="rounded-lg px-3 py-2"
-                  style={{
-                    background: isLight
-                      ? "rgba(0,0,0,0.025)"
-                      : "rgba(255,255,255,0.04)",
-                    border: `1px solid ${gridLine}`,
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <p
-                      className="text-[10px] font-sans font-semibold"
-                      style={{ color: headText }}
-                    >
-                      {row.label}
-                    </p>
-                    <p
-                      className="text-sm font-bold font-mono"
-                      style={{ color: row.color }}
-                    >
-                      {row.value}
-                    </p>
-                  </div>
-                  <p
-                    className="text-[9px] font-sans"
-                    style={{ color: mutedText }}
+              ].map((row) => {
+                const isExpanded = expandedSeaLevel.has(row.id);
+                return (
+                  <div
+                    key={row.label}
+                    className="rounded-lg px-3 py-2"
+                    style={{
+                      background: isLight
+                        ? "rgba(0,0,0,0.025)"
+                        : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${gridLine}`,
+                    }}
                   >
-                    {row.sub}
-                  </p>
-                </div>
-              ))}
+                    <button
+                      onClick={() => toggleSeaLevel(row.id)}
+                      className="w-full text-left hover:opacity-80 transition-opacity"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p
+                            className="text-[10px] font-sans font-semibold"
+                            style={{ color: headText }}
+                          >
+                            {row.label}
+                          </p>
+                          <p
+                            className="text-[9px] font-sans"
+                            style={{ color: mutedText }}
+                          >
+                            {row.sub}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <p
+                            className="text-sm font-bold font-mono"
+                            style={{ color: row.color }}
+                          >
+                            {row.value}
+                          </p>
+                          <CaretDown
+                            size={12}
+                            weight="fill"
+                            style={{
+                              color: row.color,
+                              transition: "transform 200ms ease",
+                              transform: isExpanded
+                                ? "rotate(180deg)"
+                                : "rotate(0deg)",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </button>
+                    {isExpanded && (
+                      <div
+                        className="mt-2.5 text-[9px] font-sans leading-relaxed rounded-lg px-2.5 py-2 animate-fade-in"
+                        style={{
+                          background: isLight
+                            ? "rgba(0,0,0,0.03)"
+                            : "rgba(255,255,255,0.05)",
+                          borderLeft: `3px solid ${row.color}`,
+                          color: mutedText,
+                        }}
+                      >
+                        {row.summary}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             <div
               className="rounded-xl px-3 py-2.5"
@@ -2639,9 +2803,7 @@ export function PlanetaryBoundariesPage() {
                     </p>
                     <p
                       className="text-[9px] font-sans"
-                      style={{ color: mutedText }}
-                      dangerouslySetInnerHTML={{ __html: row.impact }}
-                    />
+                      style={{ color: mutedText }}>{decodeEntities(row.impact)}</p>
                   </div>
                 </div>
               ))}

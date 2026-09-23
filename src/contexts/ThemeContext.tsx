@@ -13,9 +13,17 @@ const ThemeContext = createContext<ThemeContextValue>({
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  /* Guarded because this provider wraps the whole app: where storage is
+     blocked (some private modes, sandboxed embeds) touching localStorage
+     throws, and an exception here is a white screen for the entire site.
+     Only the two real values are accepted from storage. */
   const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem("cs-theme");
-    return (saved as Theme) ?? "dark";
+    try {
+      const saved = localStorage.getItem("cs-theme");
+      return saved === "light" || saved === "dark" ? saved : "dark";
+    } catch {
+      return "dark";
+    }
   });
 
   useEffect(() => {
@@ -27,7 +35,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       root.classList.add("dark");
       root.classList.remove("light");
     }
-    localStorage.setItem("cs-theme", theme);
+    try {
+      localStorage.setItem("cs-theme", theme);
+    } catch {
+      /* Not remembered across visits, but the theme still applies now. */
+    }
   }, [theme]);
 
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));

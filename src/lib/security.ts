@@ -104,6 +104,37 @@ export function sanitizeUrl(input: string): string | null {
   }
 }
 
+/**
+ * Turns HTML character references ("&amp;", "&#39;", "&mdash;") into the
+ * characters they stand for, and returns plain text for React to render.
+ *
+ * The site's curated copy carries a few of these, and it used to be shown
+ * with dangerouslySetInnerHTML only so they would decode - which also meant
+ * any tag that ever reached those strings would run. This does the one job
+ * without parsing HTML at all: tags stay literal text, and React escapes the
+ * result like any other string.
+ */
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ",
+  mdash: "—", ndash: "–", hellip: "…", middot: "·",
+  lsquo: "‘", rsquo: "’", ldquo: "“", rdquo: "”",
+  deg: "°", times: "×", minus: "−", euro: "€", pound: "£",
+};
+
+export function decodeEntities(input: string | null | undefined): string {
+  if (!input) return "";
+  return input.replace(/&(#x[0-9a-f]+|#[0-9]+|[a-z]+);/gi, (whole, ref: string) => {
+    if (ref[0] === "#") {
+      const code = ref[1] === "x" || ref[1] === "X" ? parseInt(ref.slice(2), 16) : parseInt(ref.slice(1), 10);
+      // Out-of-range and surrogate code points would throw or produce garbage.
+      return Number.isFinite(code) && code > 0 && code <= 0x10ffff && (code < 0xd800 || code > 0xdfff)
+        ? String.fromCodePoint(code)
+        : whole;
+    }
+    return NAMED_ENTITIES[ref.toLowerCase()] ?? whole;
+  });
+}
+
 // ─── 3. Payload Validator ─────────────────────────────────────────────────────
 
 export const LIMITS = {

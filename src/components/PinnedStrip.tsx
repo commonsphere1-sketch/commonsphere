@@ -27,7 +27,14 @@ function usePinned(key: string, defaultIds: string[]) {
   const [ids, setIds] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem(key);
-      return stored ? JSON.parse(stored) : defaultIds;
+      if (!stored) return defaultIds;
+      /* Anything but a list of strings - a hand-edited value, another app on
+         the same origin - would make .includes() below throw and take the
+         strip down, so it is treated as no saved pins. */
+      const parsed: unknown = JSON.parse(stored);
+      return Array.isArray(parsed) && parsed.every((x) => typeof x === "string")
+        ? parsed
+        : defaultIds;
     } catch {
       return defaultIds;
     }
@@ -37,7 +44,12 @@ function usePinned(key: string, defaultIds: string[]) {
       const next = prev.includes(id)
         ? prev.filter((x) => x !== id)
         : [...prev, id];
-      localStorage.setItem(key, JSON.stringify(next));
+      try {
+        localStorage.setItem(key, JSON.stringify(next));
+      } catch {
+        /* Storage full or blocked (private mode): the pin still applies for
+           this visit, it just is not remembered. */
+      }
       return next;
     });
   return { ids, toggle };

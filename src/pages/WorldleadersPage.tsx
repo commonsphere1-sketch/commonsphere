@@ -1,3 +1,4 @@
+import { decodeEntities } from "../lib/security";
 import React, { useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -14258,9 +14259,7 @@ function LeaderDetail({
                             <div className="flex items-start gap-1.5">
                               {IMPACT_ICONS[e.impact]}
                               <p
-                                className="text-sm text-foreground leading-relaxed"
-                                dangerouslySetInnerHTML={{ __html: e.event }}
-                              />
+                                className="text-sm text-foreground leading-relaxed">{decodeEntities(e.event)}</p>
                             </div>
                           </div>
                         </div>
@@ -14588,7 +14587,7 @@ function MonarchDetail({
                       weight="fill"
                       className="text-yellow-400 mt-0.5 shrink-0"
                     />
-                    <span dangerouslySetInnerHTML={{ __html: f }} />
+                    <span>{decodeEntities(f)}</span>
                   </li>
                 ))}
               </ul>
@@ -14748,7 +14747,7 @@ function MonarchDetail({
                         weight="fill"
                         className="text-yellow-400 mt-0.5 shrink-0"
                       />
-                      <span dangerouslySetInnerHTML={{ __html: c }} />
+                      <span>{decodeEntities(c)}</span>
                     </li>
                   ))}
                 </ul>
@@ -15549,11 +15548,7 @@ function RichestFamiliesView() {
                   <BookOpen size={12} /> About
                 </h4>
                 <p
-                  className="text-sm text-foreground leading-relaxed"
-                  dangerouslySetInnerHTML={{
-                    __html: selectedFamily.description,
-                  }}
-                />
+                  className="text-sm text-foreground leading-relaxed">{decodeEntities(selectedFamily.description)}</p>
               </div>
 
               <div className="bg-muted/20 rounded-xl p-4 border border-border/40">
@@ -15571,7 +15566,7 @@ function RichestFamiliesView() {
                         weight="fill"
                         className="text-amber-400 mt-0.5 shrink-0"
                       />
-                      <span dangerouslySetInnerHTML={{ __html: a }} />
+                      <span>{decodeEntities(a)}</span>
                     </li>
                   ))}
                 </ul>
@@ -15588,7 +15583,7 @@ function RichestFamiliesView() {
                       className="flex items-center gap-2 text-sm text-foreground"
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-                      <span dangerouslySetInnerHTML={{ __html: m }} />
+                      <span>{decodeEntities(m)}</span>
                     </li>
                   ))}
                 </ul>
@@ -15599,9 +15594,7 @@ function RichestFamiliesView() {
                   <Flag size={12} /> Patriarch / Founder
                 </h4>
                 <p
-                  className="text-sm text-foreground"
-                  dangerouslySetInnerHTML={{ __html: selectedFamily.patriarch }}
-                />
+                  className="text-sm text-foreground">{decodeEntities(selectedFamily.patriarch)}</p>
               </div>
             </div>
           </div>

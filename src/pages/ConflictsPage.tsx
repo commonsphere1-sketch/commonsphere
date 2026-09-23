@@ -1,3 +1,4 @@
+import { decodeEntities } from "../lib/security";
 import React, { useState } from "react";
 import {
   Warning,
@@ -307,9 +308,7 @@ function ConflictModal({
                   {conflict.tags.map((t) => (
                     <span
                       key={t}
-                      className="text-xs bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-full font-sans"
-                      dangerouslySetInnerHTML={{ __html: t }}
-                    />
+                      className="text-xs bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-full font-sans">{decodeEntities(t)}</span>
                   ))}
                 </div>
               </div>
@@ -440,9 +439,7 @@ function ConflictModal({
                               {t.year}
                             </span>
                             <span
-                              className="text-xs text-foreground"
-                              dangerouslySetInnerHTML={{ __html: t.event }}
-                            />
+                              className="text-xs text-foreground">{decodeEntities(t.event)}</span>
                           </div>
                         ))}
                       </div>
@@ -999,9 +996,7 @@ export function ConflictsPage() {
                   {conflict.tags.slice(0, 2).map((t) => (
                     <span
                       key={t}
-                      className="text-xs bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-full font-sans"
-                      dangerouslySetInnerHTML={{ __html: t }}
-                    />
+                      className="text-xs bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-full font-sans">{decodeEntities(t)}</span>
                   ))}
                 </div>
               </article>
