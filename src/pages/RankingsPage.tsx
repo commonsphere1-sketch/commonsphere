@@ -5,13 +5,10 @@ import { PRISON_RATES } from "../data/prisonRates";
 import { STATE_INDICATORS as STATE_FIGURES } from "../data/stateIndicators";
 import { COUNTRY_PANELS } from "../data/countryPanels";
 import {
-  Globe,
   Buildings,
   ArrowUp,
   ArrowDown,
   Minus,
-  Trophy,
-  ChartBar,
   SortAscending,
   SortDescending,
   CaretDown,
@@ -1750,28 +1747,6 @@ export function RankingsPage() {
     [compareIds, allRows],
   );
 
-  // Summary stats
-  const summaryStats = useMemo(() => {
-    const countries = allRows.filter((r) => r.type === "country");
-    const states = allRows.filter((r) => r.type === "state");
-    const topCountry = [...countries].sort(
-      (a, b) => b.composite - a.composite,
-    )[0];
-    const topState = [...states].sort((a, b) => b.composite - a.composite)[0];
-    const avgComposite =
-      Math.round(
-        (allRows.reduce((s, r) => s + r.composite, 0) / allRows.length) * 10,
-      ) / 10;
-    const topHDI = [...allRows].sort((a, b) => b.hdi - a.hdi)[0];
-    return {
-      topCountry,
-      topState,
-      avgComposite,
-      topHDI,
-      total: allRows.length,
-    };
-  }, [allRows]);
-
   // Filter + sort
   // Active category metrics
   const activeCategoryMetrics = CATEGORY_METRICS[activeCategory];
@@ -1949,66 +1924,6 @@ export function RankingsPage() {
         <span className="text-xs text-muted-foreground font-mono bg-muted/50 border border-border rounded-lg px-2.5 py-1 shrink-0 self-start">
           {filteredRows.length} entities
         </span>
-      </div>
-
-      {/* ── Summary stat cards ──────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          {
-            label: "Total Entities",
-            value: summaryStats.total.toString(),
-            sub: `${countriesData.length} countries · ${usStatesData.length} states`,
-            icon: <Globe size={15} weight="fill" className="text-sky-400" />,
-            accent: "bg-sky-500/10",
-          },
-          {
-            label: "Top Country",
-            value: summaryStats.topCountry?.name ?? "—",
-            sub: `Score: ${summaryStats.topCountry?.composite.toFixed(1)}`,
-            icon: (
-              <Trophy size={15} weight="fill" className="text-yellow-400" />
-            ),
-            accent: "bg-yellow-500/10",
-          },
-          {
-            label: "Top US State",
-            value: summaryStats.topState?.name ?? "—",
-            sub: `Score: ${summaryStats.topState?.composite.toFixed(1)}`,
-            icon: (
-              <Buildings size={15} weight="fill" className="text-emerald-400" />
-            ),
-            accent: "bg-emerald-500/10",
-          },
-          {
-            label: "Avg Composite",
-            value: summaryStats.avgComposite.toString(),
-            sub: `Highest HDI: ${summaryStats.topHDI?.name}`,
-            icon: (
-              <ChartBar size={15} weight="fill" className="text-purple-400" />
-            ),
-            accent: "bg-purple-500/10",
-          },
-        ].map((card) => (
-          <div
-            key={card.label}
-            className="bg-card border border-border rounded-2xl p-3 sm:p-4 flex items-start gap-3"
-          >
-            <div className={`p-2 rounded-xl ${card.accent} shrink-0`}>
-              {card.icon}
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide mb-0.5">
-                {card.label}
-              </p>
-              <p className="text-xs sm:text-sm font-bold text-foreground truncate">
-                {card.value}
-              </p>
-              <p className="text-[10px] text-muted-foreground truncate">
-                {card.sub}
-              </p>
-            </div>
-          </div>
-        ))}
       </div>
 
       {/* ── Comparison ──────────────────────────────────────────────────── */}
