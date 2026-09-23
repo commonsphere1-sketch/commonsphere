@@ -6376,7 +6376,7 @@ export function DashboardPage() {
               className="text-[10px] font-mono uppercase tracking-widest mb-1"
               style={{ color: mutedText }}
             >
-              CommonSphere · Global Intelligence
+              CommonSphere · The World in Evidence
             </p>
             <h1
               className="text-2xl sm:text-3xl font-bold font-sans"
@@ -6388,8 +6388,9 @@ export function DashboardPage() {
               className="text-sm font-sans mt-1.5 max-w-xl"
               style={{ color: mutedText }}
             >
-              A free atlas of how the world is doing — countries, economies,
-              climate and conflict, side by side. Start anywhere below.
+              An atlas of the world as it stands. Nations, economies, climate
+              and conflict, drawn from primary sources and set side by side,
+              so the whole picture reads at a glance.
             </p>
 
             {/* What is actually in here, counted from the data rather than
@@ -6399,8 +6400,8 @@ export function DashboardPage() {
               style={{ color: mutedText }}
             >
               {countriesData.length} countries · {usStatesData.length} US states ·{" "}
-              {economiesData.length} economies · every figure carries its source
-              and the year it refers to
+              {economiesData.length} economies · every figure cited to its source
+              and the year it describes
             </p>
 
             </div>
