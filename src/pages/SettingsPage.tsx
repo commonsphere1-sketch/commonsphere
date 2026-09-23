@@ -127,7 +127,7 @@ function EntitySearch({
         )}
       </div>
       {open && (
-        <div className="absolute top-full mt-1.5 left-0 right-0 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden animate-fade-in">
+        <div className="search-dropdown-glass absolute top-full mt-1.5 left-0 right-0 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden animate-fade-in">
           {results.map((r) => (
             <button
               key={r.id}

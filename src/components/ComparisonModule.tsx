@@ -303,7 +303,7 @@ export function ComparisonModule() {
             {popupOpen && (
               <div
                 ref={popupRef}
-                className="absolute left-0 top-full mt-2 w-72 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden"
+                className="search-dropdown-glass absolute left-0 top-full mt-2 w-72 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden"
               >
                 <div className="flex flex-wrap gap-1.5 p-3 max-h-52 overflow-y-auto">
                   {(tab === "countries" ? filteredCountries : filteredStates)

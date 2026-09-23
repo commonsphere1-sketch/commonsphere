@@ -1412,7 +1412,7 @@ function ComparePicker({
         />
       </div>
       {open && matches.length > 0 && (
-        <div className="absolute z-40 mt-1 w-64 max-h-64 overflow-y-auto rounded-xl border border-border bg-card shadow-xl">
+        <div className="search-dropdown-glass absolute z-40 mt-1 w-64 max-h-64 overflow-y-auto rounded-xl border border-border bg-card shadow-xl">
           {matches.map((r) => (
             <button
               key={r.id}
