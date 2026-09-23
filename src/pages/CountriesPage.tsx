@@ -1,5 +1,6 @@
 import { na, has, orZero } from "../lib/na";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   MagnifyingGlass,
   MapPin,
@@ -293,6 +294,7 @@ function CountryModal({
     "overview" | "map" | "constitution"
   >("overview");
   const [isExpanded, setIsExpanded] = React.useState(false);
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     setActiveTab("overview");
@@ -365,6 +367,15 @@ function CountryModal({
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => navigate(`/dashboard/maps?country=${country.code}`)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer inline-flex items-center gap-1"
+                aria-label={`Show ${country.name} on the world map`}
+                title="Show on map"
+              >
+                <MapTrifold size={14} />
+                <span className="text-xs font-sans font-medium">Map</span>
+              </button>
               <button
                 onClick={() => setIsExpanded((v) => !v)}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"

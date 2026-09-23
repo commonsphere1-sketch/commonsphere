@@ -1197,7 +1197,13 @@ export function WorldMapsPage() {
   const [scope, setScope] = useState<ScopeId>("all");
   // The second map focuses on one country. The US is the default because it is
   // the only one with subdivision figures behind it.
-  const [focusCode, setFocusCode] = useState("US");
+  /* ?country=NU opens the country map on that country, so a link from its
+     profile lands on the place rather than on the United States. Read once,
+     at mount: after that the picker owns the choice. */
+  const [focusCode, setFocusCode] = useState(() => {
+    const want = new URLSearchParams(window.location.search).get("country");
+    return want && /^[A-Za-z]{2}$/.test(want) ? want.toUpperCase() : "US";
+  });
   const [factsOpen, setFactsOpen] = useState(true);
 
   const ramp = isLight ? RAMP_LIGHT : RAMP_DARK;
