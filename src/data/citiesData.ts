@@ -491,8 +491,11 @@ export const citiesData: City[] = [
   },
   {
     id: "mco", name: "Monaco", country: "Monaco", countryCode: "MC", region: "Western Europe",
-    population: 39244, metroPopulation: 39244, areaKm2: 2, populationDensity: 19622,
-    gdpBillions: 9, gdpPerCapita: 229430, costOfLivingIndex: 148, crimeIndex: 10, safetyIndex: 90,
+    // A city-state: population, GDP and GDP per capita are the World Bank's
+    // country figures (population 2025, GDP 2024), the same ones the
+    // Countries page shows. Density is population over the 2 km² area.
+    population: 38341, metroPopulation: 38341, areaKm2: 2, populationDensity: 19171,
+    gdpBillions: 11.13, gdpPerCapita: 288002, costOfLivingIndex: 148, crimeIndex: 10, safetyIndex: 90,
     airQualityIndex: 12, avgTemperatureC: 16.0, tourismRankGlobal: 22, fortuneHQs: 2, techHubs: 2, universities: 1,
     languages: ["French", "Monégasque", "English", "Italian"],
     landmarks: ["Prince\'s Palace", "Monte Carlo Casino", "Oceanographic Museum", "Formula 1 Circuit de Monaco", "Jardin Exotique"],

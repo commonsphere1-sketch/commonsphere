@@ -9567,7 +9567,7 @@ for (const c of countriesData) {
   if (wb) {
     for (const [field, m] of Object.entries(wb) as [
       keyof CountryIndicators,
-      { v: number; y: string; s?: "imf" | "wpp" | "factbook" },
+      { v: number; y: string; s?: "imf" | "wpp" | "spc" | "adb" | "factbook" },
     ][]) {
       if (!m) continue;
       (c as unknown as Record<string, number>)[field] = m.v;

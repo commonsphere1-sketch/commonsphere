@@ -28,6 +28,9 @@
  *                               population, as the sum of the UN's five-year
  *                               age groups for its latest estimate year, and
  *                               life expectancy at birth.
+ *   Pacific Community (SPC)     GDP, GDP per capita, real growth (ADB Key
+ *                               Indicators) and inflation, as the Pacific
+ *                               statistics offices publish them (see spcFigures).
  *   CIA World Factbook          GDP at the official exchange rate, real growth
  *                               and inflation, for the few places no
  *                               statistical agency covers (see FACTBOOK).
@@ -137,6 +140,90 @@ async function wppLifeExpectancy() {
   for (const r of lines.slice(1)) {
     if (!r[ci] || r[ci].startsWith("OWID_") || r[vi] === "") continue;
     if (!out[r[ci]] || +r[yi] > +out[r[ci]].year) out[r[ci]] = { v: Number(r[vi]), year: r[yi] };
+  }
+  return out;
+}
+
+/**
+ * The Pacific Community's Pacific Data Hub (SPC .Stat), for Pacific island
+ * states the World Bank and the IMF leave out - Niue, the Cook Islands.
+ *
+ * These are the national statistics offices' own figures, collected by SPC,
+ * so they rank above the Factbook's estimates. Only series that measure the
+ * same thing as the site's field are taken:
+ *   gdp, gdpPerCapita  DF_NATIONAL_ACCOUNTS GDPC / GDPCPC in current US$.
+ *   gdpGrowth          ADB Key Indicators NGDP_R_PTX_PS, "at constant prices,
+ *                      growth of output" - real growth, as the World Bank's
+ *                      series is. SPC's own GDPCVR is the change in
+ *                      current-price GDP, i.e. nominal, and in US$ it also
+ *                      moves with the exchange rate, so it is not used.
+ *   inflationRate      DF_CPI annual inflation, all items.
+ * The current year and later are skipped, as for the IMF.
+ */
+const SPC_BASE = "https://stats-sdmx-disseminate.pacificdata.org/rest/data/SPC,";
+
+function parseCsv(text) {
+  const rows = [];
+  for (const line of text.trim().split(/\r?\n/)) {
+    const cells = [];
+    let cur = "", quoted = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (quoted) {
+        if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+        else if (ch === '"') quoted = false;
+        else cur += ch;
+      } else if (ch === '"') quoted = true;
+      else if (ch === ",") { cells.push(cur); cur = ""; }
+      else cur += ch;
+    }
+    cells.push(cur);
+    rows.push(cells);
+  }
+  const head = rows.shift();
+  return rows.map((r) => Object.fromEntries(head.map((h, i) => [h, r[i] ?? ""])));
+}
+
+async function spcDataset(flow) {
+  const at = path.join(CACHE, `spc-${flow}.csv`);
+  if (!fs.existsSync(at)) {
+    const res = await fetch(`${SPC_BASE}${flow},/all`, {
+      /* Node's fetch sends "Accept-Language: *" unless told otherwise, and
+         the hub answers that with HTTP 500. A named language is accepted. */
+      headers: {
+        "User-Agent": UA,
+        Accept: "application/vnd.sdmx.data+csv;version=1.0.0",
+        "Accept-Language": "en",
+      },
+    });
+    if (!res.ok) throw new Error(`SPC ${flow}: HTTP ${res.status}`);
+    fs.writeFileSync(at, await res.text());
+  }
+  return parseCsv(fs.readFileSync(at, "utf8"));
+}
+
+/** iso2 → { field → { v, year, s } } from the Pacific Data Hub. */
+async function spcFigures() {
+  const thisYear = new Date().getFullYear();
+  const out = {};
+  const keep = (iso2, field, v, year, s) => {
+    if (!Number.isFinite(v) || !/^\d{4}$/.test(year) || +year >= thisYear || +year < thisYear - 10) return;
+    const cur = (out[iso2] ||= {})[field];
+    if (!cur || +year > +cur.year) out[iso2][field] = { v, year, s };
+  };
+  for (const r of await spcDataset("DF_NATIONAL_ACCOUNTS")) {
+    if (r.CURRENCY !== "USD") continue;
+    const scale = 10 ** Number(r.UNIT_MULT || 0);
+    const v = Number(r.OBS_VALUE) * scale;
+    if (r.INDICATOR === "GDPC") keep(r.GEO_PICT, "gdp", v / 1e9, r.TIME_PERIOD, "spc");
+    if (r.INDICATOR === "GDPCPC") keep(r.GEO_PICT, "gdpPerCapita", v, r.TIME_PERIOD, "spc");
+  }
+  for (const r of await spcDataset("DF_ADBKI")) {
+    if (r.INDICATOR === "NGDP_R_PTX_PS") keep(r.GEO_PICT, "gdpGrowth", Number(r.OBS_VALUE), r.TIME_PERIOD, "adb");
+  }
+  for (const r of await spcDataset("DF_CPI")) {
+    if (r.FREQ === "A" && r.INDICATOR === "INF" && r.COMMODITY === "_T")
+      keep(r.GEO_PICT, "inflationRate", Number(r.OBS_VALUE), r.TIME_PERIOD, "spc");
   }
   return out;
 }
@@ -263,6 +350,7 @@ async function latest(code) {
   for (const [field, spec] of Object.entries(IMF)) imfSeries[field] = await imf(spec.code);
   const wpp = await wppPopulation();
   const wppLife = await wppLifeExpectancy();
+  const spc = await spcFigures();
   const factbook = await factbookFigures();
   const iso3 = { ...EXTRA_ISO3 };
   {
@@ -324,6 +412,12 @@ async function latest(code) {
         fallbacks.push(`${c.code} lifeExpectancy WPP ${wppLife[i3].year}`);
       }
     }
+    /* National statistics offices via the Pacific Community, before the Factbook. */
+    for (const [field, hit] of Object.entries(spc[c.code] || {})) {
+      if (has(field)) continue;
+      parts.push(`${field}: { v: ${round(hit.v)}, y: "${hit.year}", s: "${hit.s}" }`);
+      fallbacks.push(`${c.code} ${field} ${hit.s.toUpperCase()} ${hit.year}`);
+    }
     /* Last resort, and only for the handful in FACTBOOK. */
     for (const [field, hit] of Object.entries(factbook[c.code] || {})) {
       if (has(field)) continue;
@@ -366,6 +460,8 @@ ${Object.entries(FIELDS)
 export const COUNTRY_INDICATOR_FALLBACKS = {
   imf: { label: "IMF — World Economic Outlook", url: "https://www.imf.org/external/datamapper/" },
   wpp: { label: "UN — World Population Prospects 2024 (via Our World in Data)", url: "https://population.un.org/wpp/" },
+  spc: { label: "Pacific Community (SPC) — Pacific Data Hub", url: "https://stats.pacificdata.org/" },
+  adb: { label: "Asian Development Bank — Key Indicators (via Pacific Data Hub)", url: "https://kidb.adb.org/" },
   factbook: { label: "CIA World Factbook (public domain)", url: "https://www.cia.gov/the-world-factbook/" },
 };
 
@@ -376,7 +472,7 @@ export const COUNTRY_INDICATORS_SOURCE = {
 };
 
 /** A figure and the year it is for. */
-export type Measured = { v: number; y: string; s?: "imf" | "wpp" | "factbook" };
+export type Measured = { v: number; y: string; s?: "imf" | "wpp" | "spc" | "adb" | "factbook" };
 
 export type CountryIndicators = Partial<{
 ${Object.keys(FIELDS)

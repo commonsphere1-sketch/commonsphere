@@ -973,6 +973,20 @@ const regionColors: Record<string, string> = {
   Africa: "text-amber-400 border-amber-500/40 bg-amber-500/10",
 };
 
+/* Population and GDP in whichever unit keeps the real number visible.
+   Fixed at millions, Monaco's 38,341 people read "0.0M" - a city that is
+   small, shown as a city that is empty. */
+function fmtPeople(n: number): string {
+  if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
+  if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+  return n.toLocaleString();
+}
+function fmtBillionsUSD(b: number): string {
+  if (b >= 1000) return `$${(b / 1000).toFixed(2)}T`;
+  if (b >= 1) return `$${Number(b.toFixed(1)).toLocaleString()}B`;
+  return `$${Math.round(b * 1000).toLocaleString()}M`;
+}
+
 function IndexBar({
   label,
   value,
@@ -2678,7 +2692,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
             <p key={e.name} style={{ color: e.color }}>
               {e.name}:{" "}
               {typeof e.value === "number" && e.value > 100000
-                ? `${(e.value / 1e6).toFixed(2)}M`
+                ? fmtPeople(e.value)
                 : e.value}
             </p>
           ))}
@@ -2778,13 +2792,13 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                 {[
                   {
                     label: "City Population",
-                    value: `${(city.population / 1e6).toFixed(1)}M`,
+                    value: fmtPeople(city.population),
                   },
                   {
                     label: "Metro Area",
-                    value: `${(city.metroPopulation / 1e6).toFixed(1)}M`,
+                    value: fmtPeople(city.metroPopulation),
                   },
-                  { label: "GDP", value: `$${city.gdpBillions}B` },
+                  { label: "GDP", value: fmtBillionsUSD(city.gdpBillions) },
                   {
                     label: "GDP Per Capita",
                     value: `$${city.gdpPerCapita.toLocaleString()}`,
@@ -2961,7 +2975,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                         axisLine={false}
                         tickLine={false}
                         width={52}
-                        tickFormatter={(v) => `${(v / 1e6).toFixed(1)}M`}
+                        tickFormatter={(v) => fmtPeople(v)}
                       />
                       <Tooltip content={<CustomTooltip />} />
                       <Area
@@ -3007,10 +3021,10 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                     Population
                   </p>
                   <p className={`font-mono font-bold text-sm ${regionText}`}>
-                    {(city.population / 1e6).toFixed(1)}M city
+                    {fmtPeople(city.population)} city
                   </p>
                   <p className={`font-mono text-xs ${regionText} opacity-80`}>
-                    {(city.metroPopulation / 1e6).toFixed(1)}M metro
+                    {fmtPeople(city.metroPopulation)} metro
                   </p>
                 </div>
               </div>
@@ -3343,13 +3357,13 @@ export function CitiesPage() {
                     City Pop.
                   </p>
                   <p className="text-sm font-bold font-mono text-foreground">
-                    {(city.population / 1e6).toFixed(1)}M
+                    {fmtPeople(city.population)}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground font-sans">GDP</p>
                   <p className="text-sm font-bold font-mono text-foreground">
-                    ${city.gdpBillions}B
+                    {fmtBillionsUSD(city.gdpBillions)}
                   </p>
                 </div>
                 <div>
