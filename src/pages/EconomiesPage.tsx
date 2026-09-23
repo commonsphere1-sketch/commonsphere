@@ -398,8 +398,8 @@ function CurrencyConverter() {
           <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
             Result
           </label>
-          <div className="flex items-center gap-2 border border-border rounded-xl px-3 py-2.5" style={{ background: `color-mix(in srgb, ${ACCENT} 8%, transparent)`, borderColor: `color-mix(in srgb, ${ACCENT} 25%, transparent)` }}>
-            <span className="text-sm font-bold font-mono shrink-0" style={{ color: ACCENT }}>
+          <div className="flex items-center gap-2 border border-border rounded-xl px-3 py-2.5">
+            <span className="text-sm font-bold font-mono shrink-0 text-muted-foreground">
               {toSym}
             </span>
             <span className="flex-1 text-sm font-mono font-bold text-foreground min-w-0 truncate">
