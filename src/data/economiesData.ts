@@ -3,11 +3,28 @@ import {
   ECONOMY_INDICATORS_SOURCE,
   type EconomyIndicators,
 } from "./economyIndicators";
+import { MORE_ECONOMIES } from "./economiesMore";
 
 export interface Economy {
   id: string;
   name: string;
-  entityType: "Country" | "Region" | "Bloc";
+  entityType: "Country" | "Territory" | "Region" | "Bloc";
+  /** ISO codes, set on the generated economies (economiesMore.ts). */
+  iso2?: string;
+  iso3?: string;
+  /**
+   * Built only from what international bodies publish (economiesMore.ts):
+   * NaN is "not published", an empty list "not reported", and there is no
+   * credit rating or maritime profile. The page says so and hides what is
+   * missing.
+   */
+  limitedData?: boolean;
+  /** "lending" when interestRate is the World Bank lending rate rather than a policy rate. */
+  interestRateBasis?: "policy" | "lending";
+  /** Year of the UN Comtrade report behind topExports, topImports and tradingPartners. */
+  tradeYear?: string | null;
+  /** Year each generated figure is for, keyed by field. */
+  figureYears?: Partial<Record<string, string>>;
   gdpTrillions: number;
   gdpGrowthRate: number;
   gdpPerCapita: number;
@@ -25,8 +42,9 @@ export interface Economy {
   topImports: string[];
   tradingPartners: string[];
   creditRating: string;
-  trends: { year: string; gdp: number; growth: number; inflation: number }[];
-  maritime: {
+  /** growth / inflation are null for a year no source reports. */
+  trends: { year: string; gdp: number; growth: number | null; inflation: number | null }[];
+  maritime?: {
     majorPorts: string[];
     annualCargoMT: number;
     containersTEU: number;
@@ -3012,7 +3030,7 @@ export const economiesData: Economy[] = [
     unemploymentRate: 7.0,
     debtToGDPRatio: 240,
     tradeVolumeTrillions: 0.07,
-    fdiInflowBillions: 0,
+    fdiInflowBillions: NaN, // was a placeholder 0; the World Bank figure replaces it
     stockMarketCap: 0.01,
     interestRate: 59.5,
     currencyCode: "VES",
@@ -3230,7 +3248,7 @@ export const economiesData: Economy[] = [
     unemploymentRate: 11.4,
     debtToGDPRatio: 43,
     tradeVolumeTrillions: 0.02,
-    fdiInflowBillions: 0,
+    fdiInflowBillions: NaN, // was a placeholder 0; the World Bank figure replaces it
     stockMarketCap: 0.02,
     interestRate: 5.0,
     currencyCode: "NPR",
@@ -3892,7 +3910,9 @@ export const economiesData: Economy[] = [
     cpi: 108.2,
     inflationRate: 1.8,
     unemploymentRate: 3.0,
-    debtToGDPRatio: 0,
+    // Replaced by the IMF figure in economyIndicators.ts; NaN rather than the
+    // placeholder 0 this was, so a missing figure never shows as a zero.
+    debtToGDPRatio: NaN,
     tradeVolumeTrillions: 1.1,
     fdiInflowBillions: 100,
     stockMarketCap: 4.4,
@@ -4023,7 +4043,26 @@ export const economiesData: Economy[] = [
         "Kazakhstan is landlocked but borders the Caspian Sea, giving it access to a key transit corridor. The Trans-Caspian International Transport Route (Middle Corridor) — through Azerbaijan and Turkey to Europe — has surged in importance post-2022 as a Russia-bypass route. Kazakhstan is the world\'s largest uranium producer (40% of global supply).",
     },
   },
+  // Every other country and territory on the site, from published figures only.
+  ...MORE_ECONOMIES,
 ];
+
+/** Hand-built economies whose name differs from the Countries page. */
+const ECONOMY_NAME_FOR_COUNTRY: Record<string, string> = {
+  Türkiye: "Turkey",
+  "Czech Republic": "Czechia",
+};
+
+/**
+ * The economy card for a country on the Countries page, matched exactly: by
+ * ISO code for the generated ones, by name for the hand-built ones. Matching
+ * ids by prefix, as the dashboard did, paired Switzerland ("ch") with China
+ * and Chile.
+ */
+export function economyForCountry(c: { code: string; name: string }): Economy | undefined {
+  const name = ECONOMY_NAME_FOR_COUNTRY[c.name] ?? c.name;
+  return economiesData.find((e) => e.iso2 === c.code || e.name === name);
+}
 
 /**
  * Headline figures refreshed from the World Bank and the IMF, each carrying

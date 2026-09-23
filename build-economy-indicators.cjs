@@ -34,11 +34,18 @@ const ALIAS = {
 };
 
 const WB = {
-  gdpTrillions: { code: "NY.GDP.MKTP.CD", conv: (v) => round(v / 1e12, 3) },
+  // Four significant figures rather than three decimals of a trillion: the
+  // smallest economies (Tuvalu, Nauru) are tens of millions of dollars, which
+  // three decimals would round to zero.
+  gdpTrillions: { code: "NY.GDP.MKTP.CD", conv: (v) => Number((v / 1e12).toPrecision(4)) },
   gdpPerCapita: { code: "NY.GDP.PCAP.CD", conv: (v) => Math.round(v) },
   gdpGrowthRate: { code: "NY.GDP.MKTP.KD.ZG", conv: (v) => round(v, 1) },
   inflationRate: { code: "FP.CPI.TOTL.ZG", conv: (v) => round(v, 1) },
   unemploymentRate: { code: "SL.UEM.TOTL.ZS", conv: (v) => round(v, 1) },
+  // FDI net inflows, in billions to three significant figures (a micro-state's
+  // is hundreds of thousands). Replaces hand-written figures, three of which
+  // were placeholder zeros.
+  fdiInflowBillions: { code: "BX.KLT.DINV.CD.WD", conv: (v) => Number((v / 1e9).toPrecision(3)) },
 };
 
 const round = (v, dp) => Number(v.toFixed(dp));
@@ -125,7 +132,8 @@ async function imfDebt() {
   const bigMoves = [];
 
   for (const e of economies) {
-    const code = ALIAS[e.name] !== undefined ? ALIAS[e.name] : byName.get(e.name.toLowerCase());
+    // Generated economies (economiesMore.ts) carry their own iso3.
+    const code = e.iso3 ?? (ALIAS[e.name] !== undefined ? ALIAS[e.name] : byName.get(e.name.toLowerCase()));
     if (!code) { uncovered.push(e.name); continue; }
     const parts = [];
     const add = (field, hit) => {

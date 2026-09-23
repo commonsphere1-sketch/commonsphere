@@ -81,13 +81,13 @@ const MINERALS = [
 /** USGS's name for a country, where it differs from the site's. */
 const USGS_ALIAS = {
   Burma: "Myanmar",
-  "Congo (Kinshasa)": "Democratic Republic of the Congo",
+  "Congo (Kinshasa)": "DR Congo",
   "Congo (Brazzaville)": "Republic of the Congo",
   "Korea, Republic of": "South Korea",
   "Korea, North": "North Korea",
   Russia: "Russia",
   "United States": "United States",
-  "Cote d'Ivoire": "Ivory Coast",
+  "Cote d'Ivoire": "Côte d'Ivoire",
 };
 
 function parseCsv(text) {
@@ -108,9 +108,15 @@ function parseCsv(text) {
   return rows.filter((r) => r.length === h.length).map((r) => Object.fromEntries(h.map((k, i) => [k, (r[i] ?? "").trim()])));
 }
 
+/* The release is Windows-1252, read here as Latin-1: the two agree except in
+   0x80-0x9F, where the file uses only curly quotes. Straightened, so
+   "Côte d’Ivoire" reads as the site spells it rather than with a control
+   character where the apostrophe was. */
+const cp1252Quotes = (t) => t.replace(/[\x91\x92]/g, "'").replace(/[\x93\x94]/g, "\"");
+
 async function releaseFile(name) {
   const at = path.join(CACHE, name);
-  if (fs.existsSync(at)) return fs.readFileSync(at, "latin1");
+  if (fs.existsSync(at)) return cp1252Quotes(fs.readFileSync(at, "latin1"));
   const meta = await (await fetch(`https://www.sciencebase.gov/catalog/item/${RELEASE_ID}?format=json`, { headers: { "User-Agent": UA } })).json();
   const file = (meta.files || []).find((x) => x.name === name);
   if (!file) throw new Error(`USGS release has no file named ${name}`);
@@ -118,7 +124,7 @@ async function releaseFile(name) {
   if (!res.ok) throw new Error(`${name}: HTTP ${res.status}`);
   const buf = Buffer.from(await res.arrayBuffer());
   fs.writeFileSync(at, buf);
-  return buf.toString("latin1");
+  return cp1252Quotes(buf.toString("latin1"));
 }
 
 /**

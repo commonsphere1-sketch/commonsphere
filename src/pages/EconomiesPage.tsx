@@ -1,4 +1,5 @@
-import { na } from "../lib/na";
+import { na, has, sortKey } from "../lib/na";
+import { usdFromBillions } from "../lib/money";
 import React, { useState, useCallback } from "react";
 import {
   CurrencyDollar,
@@ -7,6 +8,7 @@ import {
   MagnifyingGlass,
   ArrowsLeftRight,
   Tree,
+  Info,
 } from "@phosphor-icons/react";
 import {
   AreaChart,
@@ -22,7 +24,13 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { economiesData, type Economy } from "../data/economiesData";
+import {
+  economiesData,
+  ECONOMY_FIGURE_SOURCES,
+  type Economy,
+} from "../data/economiesData";
+import { MORE_ECONOMIES_SOURCE } from "../data/economiesMore";
+import { ECONOMY_INDICATORS_SOURCE } from "../data/economyIndicators";
 import { getUpcoming } from "../data/upcomingToWatch";
 import { ECONOMY_ISO3, type EconomyRents } from "../data/resourceRents";
 import { RESOURCE_PRODUCERS } from "../data/resourceProducers";
@@ -86,6 +94,111 @@ const SRC_MARITIME = [
     url: "https://unctad.org/topic/transport-and-trade-logistics/review-of-maritime-transport",
   },
 ];
+
+/** World GDP, the World Bank aggregate for 2025 — the figure the summary strip shows. */
+const WORLD_GDP_T = 118.4;
+
+/**
+ * A dollar amount given in billions, scaled so it always reads as a real
+ * figure: $30.77T, $259B, $66M, $420K. The smaller economies are tens of
+ * millions of dollars, which in trillions to two places would read "$0.00T".
+ */
+const fmtUsdB = (b: number) => usdFromBillions(b);
+const fmtUsdT = (t: number) => fmtUsdB(t * 1000);
+
+/**
+ * The unit a GDP series reads best in: trillions for the largest economies,
+ * billions or millions below that, so a chart of a small economy is not a
+ * row of 0.00s.
+ */
+function gdpScale(maxT: number): { mul: number; unit: string } {
+  if (maxT >= 1) return { mul: 1, unit: "$T" };
+  if (maxT >= 0.001) return { mul: 1000, unit: "$B" };
+  return { mul: 1e6, unit: "$M" };
+}
+
+/** Most cards carry a central-bank policy rate; the generated ones the World Bank lending rate. */
+const rateLabel = (e: Economy) =>
+  e.interestRateBasis === "lending" ? "Lending Rate" : "Interest Rate";
+
+/** Below this GDP ($10 billion) a generated economy is called small on its card. */
+const SMALL_ECONOMY_T = 0.01;
+
+/**
+ * What the card calls an economy built only from published figures. The
+ * entity-type chip already says "Territory", so a territory needs only the
+ * data note.
+ */
+function limitedLabel(e: Economy): string {
+  if (e.entityType !== "Territory" && has(e.gdpTrillions) && e.gdpTrillions < SMALL_ECONOMY_T)
+    return "Small economy · limited data";
+  return "Limited data";
+}
+
+/**
+ * The note at the top of a generated economy's modal: what it is, why there is
+ * less here than on the larger cards, and where what is here comes from.
+ */
+function LimitedDataNote({ economy }: { economy: Economy }) {
+  const kind =
+    economy.entityType === "Territory"
+      ? `${economy.name} is a territory rather than a sovereign state, and international bodies publish fewer figures for territories than for countries.`
+      : has(economy.gdpTrillions) && economy.gdpTrillions < SMALL_ECONOMY_T
+        ? `${economy.name} is a small economy, and international bodies publish fewer figures for small economies than for large ones.`
+        : `${economy.name} is covered here from international statistics alone.`;
+  return (
+    <div className="mt-4 rounded-xl border border-amber-600/30 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10 px-4 py-3 flex gap-3">
+      <Info size={16} weight="fill" className="text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold font-sans uppercase tracking-widest text-amber-700 dark:text-amber-400 mb-1">
+          Limited data
+        </p>
+        <p className="text-xs font-sans text-foreground leading-relaxed">
+          {kind} This card shows what the World Bank, the IMF and UN Comtrade
+          publish for it, each figure for the latest year available. There is
+          no credit rating or maritime profile, and a section with no published
+          figures is left out rather than estimated.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The year behind each figure on a generated card. They differ - a small
+ * economy's GDP may be 2024 and its unemployment 2023 - so they are listed
+ * rather than implied to be one year.
+ */
+const FIGURE_YEAR_LABELS: [string, string][] = [
+  ["gdpTrillions", "GDP"],
+  ["gdpPerCapita", "per capita"],
+  ["gdpGrowthRate", "growth"],
+  ["inflationRate", "inflation"],
+  ["unemploymentRate", "unemployment"],
+  ["debtToGDPRatio", "debt"],
+  ["interestRate", "lending rate"],
+  ["tradeVolumeTrillions", "trade"],
+  ["fdiInflowBillions", "FDI"],
+  ["stockMarketCap", "market cap"],
+];
+
+function FigureYears({ economy }: { economy: Economy }) {
+  const cited = ECONOMY_FIGURE_SOURCES[economy.id] ?? {};
+  const parts = FIGURE_YEAR_LABELS.flatMap(([field, label]) => {
+    const y =
+      (cited as Record<string, { year: string } | undefined>)[field]?.year ??
+      economy.figureYears?.[field];
+    const v = (economy as unknown as Record<string, number>)[field];
+    return y && has(v) ? [`${label} ${y}`] : [];
+  });
+  if (!parts.length) return null;
+  return (
+    <p className="text-[10px] font-sans text-muted-foreground mt-2 leading-snug">
+      Latest year published: {parts.join(" · ")}. "—" is a figure no source
+      publishes.
+    </p>
+  );
+}
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
@@ -867,9 +980,22 @@ function EconomyModal({
       : activeChart === "growth"
         ? "growth"
         : "inflation";
+  // GDP in the unit it reads best in, so a small economy's chart is not 0.00s.
+  const trendScale = gdpScale(
+    Math.max(0, ...economy.trends.map((t) => t.gdp).filter(has)),
+  );
+  const trendData = economy.trends.map((t) => ({
+    ...t,
+    gdp: Number((t.gdp * trendScale.mul).toPrecision(4)),
+  }));
+  const hasTrends = economy.trends.length >= 2;
+  const hasGrowthOrInflation = economy.trends.some(
+    (t) => has(t.growth) || has(t.inflation),
+  );
+
   const chartName =
     activeChart === "gdp"
-      ? "GDP ($T)"
+      ? `GDP (${trendScale.unit})`
       : activeChart === "growth"
         ? "Growth (%)"
         : "Inflation (%)";
@@ -894,6 +1020,12 @@ function EconomyModal({
         share: `World Bank ${r.year}`,
       }))
     : [];
+  // A generated card leaves the section out when neither rents nor minerals
+  // are published for it; the hand-built cards keep their explanatory notes.
+  const showResources =
+    !economy.limitedData ||
+    resources.length > 0 ||
+    (CRITICAL_MINERALS[economy.id]?.length ?? 0) > 0;
 
   return (
     <div
@@ -929,19 +1061,23 @@ function EconomyModal({
                   <span className="text-xs font-mono text-muted-foreground border border-border/60 px-2 py-0.5 rounded-full bg-background/40">
                     {economy.entityType}
                   </span>
-                  <span
-                    className={`text-xs border px-2 py-0.5 rounded-full font-mono font-semibold ${ratingColor(economy.creditRating)}`}
-                  >
-                    {economy.creditRating}
-                  </span>
+                  {economy.creditRating && (
+                    <span
+                      className={`text-xs border px-2 py-0.5 rounded-full font-mono font-semibold ${ratingColor(economy.creditRating)}`}
+                    >
+                      {economy.creditRating}
+                    </span>
+                  )}
                   <span className="text-xs text-muted-foreground font-sans">
                     {economy.currencyCode}
                   </span>
-                  <span
-                    className={`flex items-center gap-1 text-xs font-mono ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}
-                  >
-                    {economy.gdpGrowthRate}% growth
-                  </span>
+                  {has(economy.gdpGrowthRate) && (
+                    <span
+                      className={`flex items-center gap-1 text-xs font-mono ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}
+                    >
+                      {economy.gdpGrowthRate}% growth
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -970,6 +1106,8 @@ function EconomyModal({
             </div>
           </div>
 
+          {economy.limitedData && <LimitedDataNote economy={economy} />}
+
           {/* ── ALL SECTIONS ── */}
           <div className="mt-4 space-y-4 animate-fade-in">
             {/* ════════════════════════════════════════
@@ -988,17 +1126,17 @@ function EconomyModal({
                   {[
                     {
                       label: "GDP",
-                      value: `$${economy.gdpTrillions.toFixed(2)}T`,
+                      value: na(economy.gdpTrillions, fmtUsdT),
                       color: "text-secondary",
                     },
                     {
                       label: "Per Capita",
-                      value: `$${economy.gdpPerCapita.toLocaleString()}`,
+                      value: na(economy.gdpPerCapita, (v) => `$${v.toLocaleString()}`),
                       color: "text-foreground",
                     },
                     {
                       label: "Inflation",
-                      value: `${economy.inflationRate}%`,
+                      value: na(economy.inflationRate, (v) => `${v}%`),
                       color:
                         economy.inflationRate > 5
                           ? "text-destructive"
@@ -1006,7 +1144,7 @@ function EconomyModal({
                     },
                     {
                       label: "Unemployment",
-                      value: `${economy.unemploymentRate}%`,
+                      value: na(economy.unemploymentRate, (v) => `${v}%`),
                       color:
                         economy.unemploymentRate > 6
                           ? "text-warning"
@@ -1014,30 +1152,30 @@ function EconomyModal({
                     },
                     {
                       label: "Debt/GDP",
-                      value: `${economy.debtToGDPRatio}%`,
+                      value: na(economy.debtToGDPRatio, (v) => `${v}%`),
                       color:
                         economy.debtToGDPRatio > 100
                           ? "text-destructive"
                           : "text-warning",
                     },
                     {
-                      label: "Interest Rate",
-                      value: `${economy.interestRate}%`,
+                      label: rateLabel(economy),
+                      value: na(economy.interestRate, (v) => `${v}%`),
                       color: "text-foreground",
                     },
                     {
                       label: "Trade Volume",
-                      value: `$${economy.tradeVolumeTrillions}T`,
+                      value: na(economy.tradeVolumeTrillions, fmtUsdT),
                       color: "text-foreground",
                     },
                     {
-                      label: "FDI Inflow",
-                      value: `$${economy.fdiInflowBillions}B`,
-                      color: "text-secondary",
+                      label: "FDI Net Inflow",
+                      value: na(economy.fdiInflowBillions, fmtUsdB),
+                      color: economy.fdiInflowBillions < 0 ? "text-destructive" : "text-secondary",
                     },
                     {
                       label: "Mkt Cap",
-                      value: `$${economy.stockMarketCap}T`,
+                      value: na(economy.stockMarketCap, fmtUsdT),
                       color: "text-foreground",
                     },
                   ].map((s) => (
@@ -1049,18 +1187,34 @@ function EconomyModal({
                         {s.label}
                       </p>
                       <p
-                        className={`text-sm font-bold font-mono whitespace-nowrap ${s.color}`}
+                        className={`text-sm font-bold font-mono whitespace-nowrap ${s.value === "—" ? "text-muted-foreground" : s.color}`}
+                        title={
+                          s.value === "—"
+                            ? "Not published"
+                            : s.label === "FDI Net Inflow"
+                              ? "New foreign direct investment less disinvestment (World Bank). Negative in a year when more was withdrawn than invested."
+                              : undefined
+                        }
                       >
                         {s.value}
                       </p>
                     </div>
                   ))}
                 </div>
+                {economy.limitedData && <FigureYears economy={economy} />}
               </div>
 
-              <SourceLink sources={SRC_IMF} showIcon={false} />
+              <SourceLink
+                sources={
+                  economy.limitedData
+                    ? [MORE_ECONOMIES_SOURCE.worldBank, ECONOMY_INDICATORS_SOURCE.imf]
+                    : SRC_IMF
+                }
+                showIcon={false}
+              />
 
               {/* ── 5-YEAR TRENDS CHART ── */}
+              {hasTrends && (
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
@@ -1083,7 +1237,7 @@ function EconomyModal({
                   <div className="h-40">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
-                        data={economy.trends}
+                        data={trendData}
                         margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
                       >
                         <defs>
@@ -1148,8 +1302,10 @@ function EconomyModal({
                   </div>
                 </div>
               </div>
+              )}
 
               {/* ── GDP SECTOR COMPOSITION ── */}
+              {(ECONOMY_SECTORS[economy.id] || !economy.limitedData) && (
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
@@ -1241,9 +1397,12 @@ function EconomyModal({
                   })()}
                 </div>
               </div>
+              )}
 
               {/* ── NATIONAL BUDGET ── */}
-              {economy.entityType === "Country" && (
+              {economy.entityType === "Country" &&
+                (!economy.limitedData ||
+                  COUNTRY_BUDGET_BY_ISO3[ECONOMY_ISO3[economy.id] ?? ""]) && (
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
@@ -1272,6 +1431,8 @@ function EconomyModal({
               )}
 
               {/* ── TRADE & PARTNERS ── */}
+              {(economy.topExports.length > 0 ||
+                economy.tradingPartners.length > 0) && (
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
@@ -1281,39 +1442,53 @@ function EconomyModal({
                 </div>
                 <div className="modal-tile rounded-xl p-4">
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <p className="text-xs text-muted-foreground font-sans mb-1.5">
-                        Top Exports
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {economy.topExports.slice(0, 4).map((e) => (
-                          <span
-                            key={e}
-                            className="text-xs bg-secondary/10 text-secondary border border-secondary/20 px-2 py-0.5 rounded-full font-sans"
-                          >
-                            {e}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground font-sans mb-1.5">
-                        Top Partners
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {economy.tradingPartners.slice(0, 4).map((p) => (
-                          <span
-                            key={p}
-                            className="text-xs bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-full font-sans"
-                          >
-                            {p}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
+                    {[
+                      {
+                        label: "Top Exports",
+                        items: economy.topExports,
+                        pill: "bg-secondary/10 text-secondary border border-secondary/20",
+                      },
+                      {
+                        label: "Top Partners",
+                        items: economy.tradingPartners,
+                        pill: "bg-muted text-muted-foreground border border-border",
+                      },
+                    ]
+                      .filter((col) => col.items.length > 0)
+                      .map((col) => (
+                        <div key={col.label}>
+                          <p className="text-xs text-muted-foreground font-sans mb-1.5">
+                            {col.label}
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {col.items.slice(0, 4).map((x) => (
+                              <span
+                                key={x}
+                                className={`text-xs px-2 py-0.5 rounded-full font-sans ${col.pill}`}
+                              >
+                                {x}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                   </div>
+                  {economy.limitedData && economy.tradeYear && (
+                    <p className="text-[10px] font-sans text-muted-foreground mt-3 leading-snug">
+                      Goods trade reported to UN Comtrade for {economy.tradeYear}:
+                      exports by HS chapter, partners by exports plus imports.
+                    </p>
+                  )}
                 </div>
+                {economy.limitedData && (
+                  <SourceLink
+                    sources={[MORE_ECONOMIES_SOURCE.comtrade]}
+                    showIcon={false}
+                    className="mt-1"
+                  />
+                )}
               </div>
+              )}
             </div>
 
             {/* ════════════════════════════════════════
@@ -1341,22 +1516,22 @@ function EconomyModal({
                   {[
                     {
                       label: "Stock Market Cap",
-                      value: `$${economy.stockMarketCap}T`,
+                      value: na(economy.stockMarketCap, fmtUsdT),
                       color: "text-secondary",
                     },
                     {
-                      label: "FDI Inflow",
-                      value: `$${economy.fdiInflowBillions}B`,
-                      color: "text-green-400",
+                      label: "FDI Net Inflow",
+                      value: na(economy.fdiInflowBillions, fmtUsdB),
+                      color: economy.fdiInflowBillions < 0 ? "text-destructive" : "text-green-400",
                     },
                     {
                       label: "Trade Volume",
-                      value: `$${economy.tradeVolumeTrillions}T`,
+                      value: na(economy.tradeVolumeTrillions, fmtUsdT),
                       color: "text-blue-400",
                     },
                     {
-                      label: "Interest Rate",
-                      value: `${economy.interestRate}%`,
+                      label: rateLabel(economy),
+                      value: na(economy.interestRate, (v) => `${v}%`),
                       color:
                         economy.interestRate > 5
                           ? "text-warning"
@@ -1364,7 +1539,7 @@ function EconomyModal({
                     },
                     {
                       label: "Debt / GDP",
-                      value: `${economy.debtToGDPRatio}%`,
+                      value: na(economy.debtToGDPRatio, (v) => `${v}%`),
                       color:
                         economy.debtToGDPRatio > 100
                           ? "text-destructive"
@@ -1372,11 +1547,20 @@ function EconomyModal({
                             ? "text-warning"
                             : "text-success",
                     },
-                    {
-                      label: "Credit Rating",
-                      value: economy.creditRating,
-                      color: ratingColor(economy.creditRating).split(" ")[0],
-                    },
+                    /* A generated card has no rating to show, so the sixth
+                       tile is the consumer price index the World Bank does
+                       publish, keeping the grid whole. */
+                    economy.creditRating
+                      ? {
+                          label: "Credit Rating",
+                          value: economy.creditRating,
+                          color: ratingColor(economy.creditRating).split(" ")[0],
+                        }
+                      : {
+                          label: "Consumer Prices (2010 = 100)",
+                          value: na(economy.cpi, (v) => v.toLocaleString()),
+                          color: "text-foreground",
+                        },
                   ].map((s) => (
                     <div
                       key={s.label}
@@ -1387,7 +1571,14 @@ function EconomyModal({
                           {s.label}
                         </p>
                         <p
-                          className={`text-base font-bold font-mono ${s.color}`}
+                          className={`text-base font-bold font-mono ${s.value === "—" ? "text-muted-foreground" : s.color}`}
+                          title={
+                          s.value === "—"
+                            ? "Not published"
+                            : s.label === "FDI Net Inflow"
+                              ? "New foreign direct investment less disinvestment (World Bank). Negative in a year when more was withdrawn than invested."
+                              : undefined
+                        }
                         >
                           {s.value}
                         </p>
@@ -1398,6 +1589,7 @@ function EconomyModal({
               </div>
 
               {/* Inflation vs Growth trend */}
+              {hasTrends && hasGrowthOrInflation && (
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
@@ -1473,10 +1665,19 @@ function EconomyModal({
                   </div>
                 </div>
               </div>
+              )}
 
-              <SourceLink sources={SRC_OECD} showIcon={false} />
+              <SourceLink
+                sources={
+                  economy.limitedData
+                    ? [MORE_ECONOMIES_SOURCE.worldBank, ECONOMY_INDICATORS_SOURCE.imf]
+                    : SRC_OECD
+                }
+                showIcon={false}
+              />
             </div>
 
+            {showResources && (<>
             {/* ════════════════════════════════════════
                 SECTION DIVIDER: RESOURCES
             ════════════════════════════════════════ */}
@@ -1534,6 +1735,7 @@ function EconomyModal({
                 return (
                   <>
                     <div>
+                      {(resources.length > 0 || !economy.limitedData) && (
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
                           Natural Resources &amp; Commodities
@@ -1543,12 +1745,14 @@ function EconomyModal({
                           {resources.length} tracked
                         </span>
                       </div>
+                      )}
 
                       {/* Donut + resource rows in a single tile. The separate
                           "Production & Output" bar chart listed the same five
                           resources a second time, so its data is shown here as
                           inline bars instead. */}
                       {resources.length === 0 ? (
+                        economy.limitedData ? null : (
                         <div className="modal-tile rounded-xl p-4 mb-3">
                           <p className="text-[11px] font-sans text-muted-foreground">
                             The World Bank publishes no resource-rent figures
@@ -1557,6 +1761,7 @@ function EconomyModal({
                               " Its last reported oil rents were 11.3% of GDP in 2014; nothing has been published since, and a twelve-year-old figure is not a current one."}
                           </p>
                         </div>
+                        )
                       ) : (
                       <div className="modal-tile rounded-xl p-4 mb-3">
                         <div className="flex items-center gap-4 mb-4">
@@ -1715,6 +1920,7 @@ function EconomyModal({
                           handed to every economy that had no entry. */}
                       {(() => {
                         const minerals = CRITICAL_MINERALS[economy.id] ?? [];
+                        if (economy.limitedData && minerals.length === 0) return null;
                         const mined = minerals.filter((m) => m.production).length;
                         const heldOnly = minerals.length - mined;
                         return (
@@ -1813,7 +2019,9 @@ function EconomyModal({
                 );
               })()}
             </div>
+            </>)}
 
+            {economy.maritime && (<>
             {/* ════════════════════════════════════════
                 SECTION DIVIDER: MARITIME
             ════════════════════════════════════════ */}
@@ -1910,6 +2118,7 @@ function EconomyModal({
               </div>
               <SourceLink sources={SRC_MARITIME} showIcon={false} />
             </div>
+            </>)}
           </div>
         </div>
       </div>
@@ -2131,7 +2340,38 @@ export function EconomiesPage() {
       const matchType = typeFilter === "All" || e.entityType === typeFilter;
       return matchSearch && matchType;
     })
-    .sort((a, b) => b[sortBy] - a[sortBy]);
+    // Unpublished figures sort last rather than scrambling the order.
+    .sort((a, b) => sortKey(b[sortBy], "desc") - sortKey(a[sortBy], "desc"));
+
+  /* The summary strip, read from the data rather than written in. It used to
+     say "USA $27.4T" beside a card reading $30.77T. Median inflation, because
+     a handful of economies in the hundreds of percent drag a mean far from
+     anything typical. */
+  const summary = (() => {
+    const withGdp = economiesData.filter(
+      (e) => e.entityType !== "Bloc" && has(e.gdpTrillions),
+    );
+    const largest = withGdp.reduce((a, b) => (b.gdpTrillions > a.gdpTrillions ? b : a));
+    // Growth among economies above $10B, so a micro-state's swing from one
+    // hotel opening does not headline the page.
+    const fastest = withGdp
+      .filter((e) => has(e.gdpGrowthRate) && e.gdpTrillions >= SMALL_ECONOMY_T)
+      .reduce((a, b) => (b.gdpGrowthRate > a.gdpGrowthRate ? b : a));
+    const inflations = economiesData
+      .filter((e) => e.entityType !== "Bloc" && has(e.inflationRate))
+      .map((e) => e.inflationRate)
+      .sort((a, b) => a - b);
+    const mid = inflations.length >> 1;
+    const medianInflation =
+      inflations.length % 2
+        ? inflations[mid]
+        : (inflations[mid - 1] + inflations[mid]) / 2;
+    return { largest, fastest, medianInflation, count: inflations.length };
+  })();
+
+  const typeChips = (["All", "Country", "Territory", "Bloc"] as const).filter(
+    (t) => t === "All" || economiesData.some((e) => e.entityType === t),
+  );
 
 
   return (
@@ -2164,20 +2404,20 @@ export function EconomiesPage() {
             },
             {
               label: "Fastest Growing",
-              value: "India +6.3%",
-              sub: "tracked nations",
+              value: `${summary.fastest.name} ${summary.fastest.gdpGrowthRate >= 0 ? "+" : ""}${summary.fastest.gdpGrowthRate}%`,
+              sub: "real GDP growth · economies over $10B",
               color: "text-success",
             },
             {
               label: "Largest Market",
-              value: "USA $27.4T",
+              value: `${summary.largest.name} ${fmtUsdT(summary.largest.gdpTrillions)}`,
               sub: "by nominal GDP",
               color: "text-warning",
             },
             {
-              label: "Avg Inflation",
-              value: "4.2%",
-              sub: "tracked economies",
+              label: "Median Inflation",
+              value: `${summary.medianInflation.toFixed(1)}%`,
+              sub: `across ${summary.count} economies`,
               color: "text-destructive",
             },
           ].map((s) => (
@@ -2248,7 +2488,7 @@ export function EconomiesPage() {
               </button>
             ))}
             <div className="w-px h-4 bg-border shrink-0" />
-            {(["All", "Country", "Bloc"] as const).map((t) => (
+            {typeChips.map((t) => (
               <button
                 key={t}
                 onClick={() => setTypeFilter(t)}
@@ -2524,38 +2764,51 @@ export function EconomiesPage() {
                           <h3 className="text-sm font-semibold font-sans text-foreground leading-tight">
                             {economy.name}
                           </h3>
-                          <span
-                            className={`text-[10px] border px-1.5 py-px rounded-full font-mono font-semibold ${ratingColor(economy.creditRating)}`}
-                          >
-                            {economy.creditRating}
-                          </span>
+                          {economy.creditRating && (
+                            <span
+                              className={`text-[10px] border px-1.5 py-px rounded-full font-mono font-semibold ${ratingColor(economy.creditRating)}`}
+                            >
+                              {economy.creditRating}
+                            </span>
+                          )}
                           <span className="text-[10px] text-muted-foreground border border-border px-1.5 py-px rounded-full font-sans">
                             {economy.entityType}
                           </span>
+                          {economy.limitedData && (
+                            <span
+                              className="text-[10px] border border-amber-600/40 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300 px-1.5 py-px rounded-full font-sans"
+                              title="Built from what the World Bank, the IMF and UN Comtrade publish; no credit rating or maritime profile. Open the card for details."
+                            >
+                              {limitedLabel(economy)}
+                            </span>
+                          )}
                         </div>
                         <p className="text-[10px] text-muted-foreground font-sans leading-tight">
                           {getCurrencyDisplay(
                             economy.currencyCode,
                             economy.currencyName,
-                          )}{" "}
-                          · Interest Rate: {economy.interestRate}%
+                          )}
+                          {has(economy.interestRate) &&
+                            ` · ${rateLabel(economy)}: ${economy.interestRate}%`}
                         </p>
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-base font-bold font-mono text-secondary leading-tight">
-                          ${economy.gdpTrillions.toFixed(2)}T
+                          {na(economy.gdpTrillions, fmtUsdT)}
                         </p>
-                        <p
-                          className={`text-[10px] font-mono flex items-center gap-0.5 justify-end ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}
-                        >
-                          {economy.gdpGrowthRate >= 0 ? (
-                            <TrendUp size={10} weight="bold" />
-                          ) : (
-                            <TrendDown size={10} weight="bold" />
-                          )}
-                          {economy.gdpGrowthRate >= 0 ? "+" : ""}
-                          {economy.gdpGrowthRate}%
-                        </p>
+                        {has(economy.gdpGrowthRate) && (
+                          <p
+                            className={`text-[10px] font-mono flex items-center gap-0.5 justify-end ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}
+                          >
+                            {economy.gdpGrowthRate >= 0 ? (
+                              <TrendUp size={10} weight="bold" />
+                            ) : (
+                              <TrendDown size={10} weight="bold" />
+                            )}
+                            {economy.gdpGrowthRate >= 0 ? "+" : ""}
+                            {economy.gdpGrowthRate}%
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -2565,7 +2818,7 @@ export function EconomiesPage() {
                           GDP/Capita
                         </p>
                         <p className="text-xs font-bold font-mono text-foreground leading-tight">
-                          ${economy.gdpPerCapita.toLocaleString()}
+                          {na(economy.gdpPerCapita, (v) => `$${v.toLocaleString()}`)}
                         </p>
                       </div>
                       <div>
@@ -2573,9 +2826,9 @@ export function EconomiesPage() {
                           Inflation
                         </p>
                         <p
-                          className={`text-xs font-bold font-mono leading-tight ${economy.inflationRate > 6 ? "text-destructive" : economy.inflationRate > 3 ? "text-warning" : "text-success"}`}
+                          className={`text-xs font-bold font-mono leading-tight ${!has(economy.inflationRate) ? "text-muted-foreground" : economy.inflationRate > 6 ? "text-destructive" : economy.inflationRate > 3 ? "text-warning" : "text-success"}`}
                         >
-                          {economy.inflationRate}%
+                          {na(economy.inflationRate, (v) => `${v}%`)}
                         </p>
                       </div>
                       <div>
@@ -2583,7 +2836,7 @@ export function EconomiesPage() {
                           Unemployment
                         </p>
                         <p className="text-xs font-bold font-mono text-foreground leading-tight">
-                          {economy.unemploymentRate}%
+                          {na(economy.unemploymentRate, (v) => `${v}%`)}
                         </p>
                       </div>
                       <div>
@@ -2591,9 +2844,9 @@ export function EconomiesPage() {
                           Debt/GDP
                         </p>
                         <p
-                          className={`text-xs font-bold font-mono leading-tight ${economy.debtToGDPRatio > 120 ? "text-destructive" : economy.debtToGDPRatio > 80 ? "text-warning" : "text-success"}`}
+                          className={`text-xs font-bold font-mono leading-tight ${!has(economy.debtToGDPRatio) ? "text-muted-foreground" : economy.debtToGDPRatio > 120 ? "text-destructive" : economy.debtToGDPRatio > 80 ? "text-warning" : "text-success"}`}
                         >
-                          {economy.debtToGDPRatio}%
+                          {na(economy.debtToGDPRatio, (v) => `${v}%`)}
                         </p>
                       </div>
                     </div>
@@ -2605,14 +2858,18 @@ export function EconomiesPage() {
                           Share of Global GDP
                         </span>
                         <span className="font-mono text-muted-foreground">
-                          {((economy.gdpTrillions / 104.5) * 100).toFixed(1)}%
+                          {na(economy.gdpTrillions, (v) => {
+                            const pct = (v / WORLD_GDP_T) * 100;
+                            // A real share too small to show at one decimal.
+                            return pct < 0.1 ? "<0.1%" : `${pct.toFixed(1)}%`;
+                          })}
                         </span>
                       </div>
                       <div className="h-1 bg-muted rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full bg-sky-500 transition-all duration-500"
                           style={{
-                            width: `${Math.min(100, (economy.gdpTrillions / 104.5) * 100 * 4)}%`,
+                            width: `${has(economy.gdpTrillions) ? Math.min(100, (economy.gdpTrillions / WORLD_GDP_T) * 100 * 4) : 0}%`,
                           }}
                         />
                       </div>
@@ -2662,7 +2919,7 @@ export function EconomiesPage() {
                           {
                             label: "Trade Balance",
                             value: Number.isFinite(country.tradeBalance)
-                              ? `${country.tradeBalance >= 0 ? "+" : ""}$${country.tradeBalance}B`
+                              ? usdFromBillions(country.tradeBalance, true)
                               : "No data",
                             color: !Number.isFinite(country.tradeBalance)
                               ? "text-muted-foreground"
@@ -2707,9 +2964,16 @@ export function EconomiesPage() {
                           {exp}
                         </span>
                       ))}
-                      <span className="text-[10px] text-muted-foreground border border-border px-1.5 py-px rounded-full font-sans">
-                        +{economy.topExports.length - 3} more
-                      </span>
+                      {economy.topExports.length > 3 && (
+                        <span className="text-[10px] text-muted-foreground border border-border px-1.5 py-px rounded-full font-sans">
+                          +{economy.topExports.length - 3} more
+                        </span>
+                      )}
+                      {economy.topExports.length === 0 && (
+                        <span className="text-[10px] text-muted-foreground font-sans py-px">
+                          Exports not reported to UN Comtrade since 2020
+                        </span>
+                      )}
                     </div>
                   </article>
 
@@ -2719,7 +2983,27 @@ export function EconomiesPage() {
                     className="hidden sm:flex w-28 md:w-36 h-28 md:h-36 shrink-0 bg-card border border-border rounded-xl p-2 flex-col justify-between"
                   >
                     {(() => {
-                      const gdpVals = economy.trends.map((t) => t.gdp);
+                      if (economy.trends.length < 2) {
+                        // Same box, so the row stays even with the others.
+                        return (
+                          <div className="flex-1 flex items-center justify-center text-center px-1">
+                            <p className="text-[9px] font-sans text-muted-foreground leading-snug">
+                              No GDP history published
+                            </p>
+                          </div>
+                        );
+                      }
+                      // In the unit the series reads best in: $T, $B or $M.
+                      const scale = gdpScale(
+                        Math.max(...economy.trends.map((t) => t.gdp)),
+                      );
+                      const chartData = economy.trends.map((t) => ({
+                        ...t,
+                        gdp: Number((t.gdp * scale.mul).toPrecision(4)),
+                      }));
+                      const short = (v: number) =>
+                        v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
+                      const gdpVals = chartData.map((t) => t.gdp);
                       const minGdp = Math.min(...gdpVals);
                       const maxGdp = Math.max(...gdpVals);
                       const pad = (maxGdp - minGdp) * 0.12 || maxGdp * 0.05;
@@ -2729,21 +3013,21 @@ export function EconomiesPage() {
                         <>
                           <div className="flex items-center justify-between mb-0.5">
                             <p className="text-[9px] font-mono uppercase tracking-widest text-secondary leading-none">
-                              GDP $T
+                              GDP {scale.unit}
                             </p>
                             <div className="flex items-center gap-1.5">
                               <span className="text-[8px] font-mono text-emerald-400 leading-none">
-                                ▲{maxGdp.toFixed(2)}
+                                ▲{short(maxGdp)}
                               </span>
                               <span className="text-[8px] font-mono text-rose-400 leading-none">
-                                ▼{minGdp.toFixed(2)}
+                                ▼{short(minGdp)}
                               </span>
                             </div>
                           </div>
                           <div className="flex-1 min-h-0">
                             <ResponsiveContainer width="100%" height="100%">
                               <AreaChart
-                                data={economy.trends}
+                                data={chartData}
                                 margin={{
                                   top: 4,
                                   right: 2,
@@ -2810,7 +3094,10 @@ export function EconomiesPage() {
                                     fontSize: 10,
                                     fontFamily: "Figures, IBM Plex Mono",
                                   }}
-                                  formatter={(v: number) => [`$${v}T`, "GDP"]}
+                                  formatter={(v: number) => [
+                                    `$${v}${scale.unit.slice(1)}`,
+                                    "GDP",
+                                  ]}
                                   labelStyle={{ color: "hsl(0,0%,55%)" }}
                                 />
                                 <Area
@@ -2870,12 +3157,14 @@ export function EconomiesPage() {
                               {economy.trends[0]?.year}–
                               {economy.trends[economy.trends.length - 1]?.year}
                             </span>
-                            <span
-                              className={`text-[9px] font-mono font-bold shrink-0 ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}
-                            >
-                              {economy.gdpGrowthRate >= 0 ? "+" : ""}
-                              {economy.gdpGrowthRate}%
-                            </span>
+                            {has(economy.gdpGrowthRate) && (
+                              <span
+                                className={`text-[9px] font-mono font-bold shrink-0 ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}
+                              >
+                                {economy.gdpGrowthRate >= 0 ? "+" : ""}
+                                {economy.gdpGrowthRate}%
+                              </span>
+                            )}
                           </div>
                         </>
                       );

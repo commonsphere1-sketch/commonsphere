@@ -1,3 +1,4 @@
+import { usdFromBillions } from "../lib/money";
 import { na } from "../lib/na";
 import { useState, useMemo, useRef, useEffect } from "react";
 import {
@@ -86,11 +87,8 @@ function sharedAxes(sel: EntityItem[]): string[] {
 
 const money0 = (v: number) => `$${Math.round(v).toLocaleString()}`;
 /** Billions in, T or B out. The sign leads the currency: -$898B, not $-898B. */
-const bnUSD = (v: number) => {
-  const sign = v < 0 ? "-" : "";
-  const a = Math.abs(v);
-  return a >= 1000 ? `${sign}$${(a / 1000).toFixed(2)}T` : `${sign}$${Math.round(a)}B`;
-};
+// Scaled to T/B/M so a small economy is not "$0B".
+const bnUSD = (v: number) => usdFromBillions(v);
 const people = (v: number) =>
   v >= 1e9 ? `${(v / 1e9).toFixed(2)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : `${(v / 1e3).toFixed(0)}k`;
 const areaKm = (v: number) =>

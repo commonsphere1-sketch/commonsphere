@@ -363,7 +363,7 @@ async function fetchIndicator(code) {
   let fromDgbas = 0;
 
   for (const e of economies) {
-    const code = ALIAS[e.name] ?? byName.get(e.name.toLowerCase());
+    const code = e.iso3 ?? ALIAS[e.name] ?? byName.get(e.name.toLowerCase());
 
     /* The World Bank first, because it is the source the rest of the page
        already uses and its three shares are percentages of GDP. */

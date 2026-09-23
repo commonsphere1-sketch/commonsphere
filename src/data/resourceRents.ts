@@ -1,3 +1,4 @@
+import { MORE_ECONOMIES } from "./economiesMore";
 /**
  * resourceRents.ts
  *
@@ -134,6 +135,9 @@ export const ECONOMY_ISO3: Record<string, string> = {
   "uzbekistan-eco": "UZB",
   "kazakhstan-eco": "KAZ",
 };
+
+// The generated economies carry their own code.
+for (const e of MORE_ECONOMIES) if (e.iso3) ECONOMY_ISO3[e.id] = e.iso3;
 
 async function fetchJSON<T>(url: string): Promise<T | null> {
   try {

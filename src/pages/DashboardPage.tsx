@@ -1,5 +1,6 @@
 import { decodeEntities } from "../lib/security";
 import { na, has, sortKey } from "../lib/na";
+import { usdFromBillions } from "../lib/money";
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
@@ -55,7 +56,7 @@ import { countriesData } from "../data/countriesData";
 import { useLiveCountries } from "../contexts/LiveDataContext";
 import { usStatesData } from "../data/statesData";
 import { STATE_INDICATORS as STATE_FIGURES } from "../data/stateIndicators";
-import { economiesData } from "../data/economiesData";
+import { economiesData, economyForCountry } from "../data/economiesData";
 import { SourceLink } from "../components/SourceLink";
 import { Figures, COUNTER_FIGURES, COUNTER_UNIT } from "../components/Figures";
 import {
@@ -2477,7 +2478,7 @@ const COMPARE_METRICS = [
     unit: "B",
     get: (c: (typeof countriesData)[0]) =>
       Number.isFinite(c.tradeBalance)
-        ? `${c.tradeBalance >= 0 ? "+" : ""}$${c.tradeBalance}B`
+        ? usdFromBillions(c.tradeBalance, true)
         : "No data",
     raw: (c: (typeof countriesData)[0]) => c.tradeBalance,
     higherBetter: true,
@@ -4377,7 +4378,7 @@ function InteractiveDataPanel({
                       {
                         label: "Trade Balance",
                         value: Number.isFinite(c.tradeBalance)
-                          ? `${c.tradeBalance >= 0 ? "+" : ""}$${c.tradeBalance}B`
+                          ? usdFromBillions(c.tradeBalance, true)
                           : "No data",
                         icon: <Scales size={10} weight="fill" />,
                         color: !Number.isFinite(c.tradeBalance)
@@ -4746,20 +4747,10 @@ function InteractiveDataPanel({
                 .slice(0, 5);
 
               // Pull economies data for this region's countries to aggregate upcoming industries + funding
-              const ecoIds = topInRegion.map((c) => c.id);
-              const regionEconomies = economiesData.filter((e) =>
-                ecoIds.some(
-                  (id) =>
-                    e.id.startsWith(id.replace(/-/g, "").toLowerCase()) ||
-                    e.name
-                      .toLowerCase()
-                      .includes(
-                        topInRegion
-                          .find((x) => x.id === id)
-                          ?.name.toLowerCase() ?? "",
-                      ),
-                ),
-              );
+              const regionEconomies = topInRegion.flatMap((c) => {
+                const eco = economyForCountry(c);
+                return eco ? [eco] : [];
+              });
               // Collect all upcoming industries across region economies
               const allUpcoming = regionEconomies
                 .flatMap((e) => e.upcomingIndustries ?? [])
@@ -4927,11 +4918,7 @@ function InteractiveDataPanel({
                     Top economies in region
                   </p>
                   {topInRegion.map((c, i) => {
-                    const eco = economiesData.find(
-                      (e) =>
-                        e.name.toLowerCase() === c.name.toLowerCase() ||
-                        e.id.startsWith(c.id.replace(/-/g, "")),
-                    );
+                    const eco = economyForCountry(c);
                     return (
                       <div
                         key={c.id}
@@ -6399,7 +6386,9 @@ export function DashboardPage() {
               className="text-[11px] font-sans mt-3"
               style={{ color: mutedText }}
             >
-              {countriesData.length} countries · {usStatesData.length} US states ·{" "}
+              {countriesData.filter((c) => !c.territory).length} countries ·{" "}
+              {countriesData.filter((c) => c.territory).length} territories ·{" "}
+              {usStatesData.length} US states ·{" "}
               {economiesData.length} economies · every figure cited to its source
               and the year it describes
             </p>
