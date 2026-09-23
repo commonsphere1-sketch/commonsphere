@@ -374,7 +374,7 @@ function CountryModal({
                 title="Show on map"
               >
                 <MapTrifold size={14} />
-                <span className="text-xs font-sans font-medium">Map</span>
+                <span className="text-xs font-sans font-medium">Nav</span>
               </button>
               <button
                 onClick={() => setIsExpanded((v) => !v)}
