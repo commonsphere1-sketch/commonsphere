@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { X } from "lucide-react";
 import {
   GraduationCap,
   EnvelopeSimple,
@@ -25,6 +24,7 @@ export function AuthModal({ isOpen, onClose }: Props) {
   const { login, isPending } = useAuth();
   const navigate = useNavigate();
   const [showEdu, setShowEdu] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [eduEmail, setEduEmail] = useState("");
   const [eduSent, setEduSent] = useState(false);
   const [eduError, setEduError] = useState("");
@@ -82,19 +82,38 @@ export function AuthModal({ isOpen, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-[100] bg-black/60 backdrop-blur-sm">
-      <div className="rounded-2xl p-8 max-w-sm w-full mx-4 relative animate-fade-in modal-glass border">
-        <button
-          onClick={() => {
-            onClose();
-            setShowEdu(false);
-            setEduSent(false);
-            setEduEmail("");
-          }}
-          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <X size={20} />
-        </button>
+    <div className="fixed inset-0 flex items-center justify-center z-[100] p-4 sm:p-6 bg-black/60 backdrop-blur-sm">
+      <div
+        className={`rounded-2xl p-8 w-full relative animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 flex flex-col ${isExpanded ? "max-w-full h-full justify-center" : "max-w-sm max-h-[90vh]"}`}
+      >
+        {/* Expand and Close as text buttons, as on every other modal. */}
+        <div className="absolute top-3 right-3 flex items-center gap-1.5">
+          <button
+            onClick={() => setIsExpanded((v) => !v)}
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+            aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
+            title={isExpanded ? "Collapse" : "Expand to full screen"}
+          >
+            <span className="text-xs font-sans font-medium">
+              {isExpanded ? "Collapse" : "Expand"}
+            </span>
+          </button>
+          <button
+            onClick={() => {
+              onClose();
+              setShowEdu(false);
+              setEduSent(false);
+              setEduEmail("");
+            }}
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+            aria-label="Close"
+          >
+            <span className="text-xs font-sans font-medium">Close</span>
+          </button>
+        </div>
+
+        {/* The form keeps its width when the panel is expanded. */}
+        <div className="w-full max-w-sm mx-auto pt-6">
 
         {!showEdu ? (
           <>
@@ -218,6 +237,7 @@ export function AuthModal({ isOpen, onClose }: Props) {
             </form>
           </>
         )}
+        </div>
       </div>
     </div>
   );

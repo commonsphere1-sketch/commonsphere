@@ -19,7 +19,6 @@ import {
   Scales,
   ChartLine,
   Info,
-  X,
   Bank,
   ChartBar,
   Flag,
@@ -291,6 +290,7 @@ const FEATURES = [
 
 function AboutModal({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<"mission" | "features" | "sources">("mission");
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <div
@@ -306,7 +306,9 @@ function AboutModal({ onClose }: { onClose: () => void }) {
       />
 
       {/* Panel */}
-      <div className="relative w-full max-w-2xl max-h-[90vh] flex flex-col modal-glass border rounded-2xl overflow-hidden animate-fade-in">
+      <div
+        className={`relative w-full flex flex-col modal-glass border rounded-2xl overflow-hidden animate-fade-in transition-all duration-300 ${isExpanded ? "max-w-full h-full" : "max-w-2xl max-h-[90vh]"}`}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border/40 modal-tile shrink-0">
           <div className="flex items-center gap-2.5">
@@ -322,13 +324,25 @@ function AboutModal({ onClose }: { onClose: () => void }) {
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            aria-label="Close about dialog"
-          >
-            <X size={16} weight="bold" />
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => setIsExpanded((v) => !v)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
+              title={isExpanded ? "Collapse" : "Expand to full screen"}
+            >
+              <span className="text-xs font-sans font-medium">
+                {isExpanded ? "Collapse" : "Expand"}
+              </span>
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <span className="text-xs font-sans font-medium">Close</span>
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
