@@ -5657,7 +5657,10 @@ function FocusCarousel({
           boxShadow: isLight ? "0 2px 8px rgba(0,0,0,0.07)" : "none",
         }}
       >
-        {/* Banner: the flag for a country, the abbreviation for a state. */}
+        {/* Banner: the flag, for a state as for a country. flagcdn serves the
+            state flags as us-<code> (all fifty checked; see RankingsPage). A
+            state's abbreviation sits underneath and shows only if its image
+            fails to load. */}
         <div className="relative h-20 overflow-hidden" style={{ background: isLight ? "#f3f4f6" : "#1a1a1f" }}>
           {isCountry ? (
             <img
@@ -5669,12 +5672,22 @@ function FocusCarousel({
               }}
             />
           ) : (
-            <div
-              className="w-full h-full flex items-center justify-center text-3xl font-bold font-mono"
-              style={{ color: isLight ? "#0f172a" : "#e5e7eb" }}
-            >
-              {st.abbreviation}
-            </div>
+            <>
+              <div
+                className="absolute inset-0 flex items-center justify-center text-3xl font-bold font-mono"
+                style={{ color: isLight ? "#0f172a" : "#e5e7eb" }}
+              >
+                {st.abbreviation}
+              </div>
+              <img
+                src={`https://flagcdn.com/w320/us-${st.id}.png`}
+                alt=""
+                className="relative w-full h-full object-cover"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = "none";
+                }}
+              />
+            </>
           )}
           <div
             className="absolute inset-0"
