@@ -7,7 +7,11 @@ import path from "path";
 export default defineConfig({
   plugins: [react()],
   publicDir: "./static",
-  base: "./",
+  /* Root-absolute, not "./": the app uses BrowserRouter, so a page such as
+     /dashboard/countries loaded directly (a refresh, a shared link) would
+     resolve "./assets/…" to /dashboard/assets/… and come up blank. The map
+     data and fonts are already fetched from /geo and /fonts. */
+  base: "/",
   css: {
     postcss: {
       plugins: [tailwind()],

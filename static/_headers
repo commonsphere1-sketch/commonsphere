@@ -1,0 +1,21 @@
+# Response headers for every page and file, applied by Cloudflare's static
+# asset hosting (vite copies this file from static/ into dist/).
+#
+# - nosniff: a file is only ever run as the type it was served as.
+# - frame-ancestors / X-Frame-Options: no other site can load this one in a
+#   frame, which is what clickjacking needs.
+# - object-src / base-uri: no plugins, and injected markup cannot re-point
+#   relative URLs at another host.
+# - Permissions-Policy: the microphone stays available to this site for voice
+#   notes; camera, location, payment and USB are off for it and for every
+#   embed (the Google Maps frames need none of them).
+# - COOP same-origin-allow-popups: pages this site opens cannot reach back into
+#   it, while a sign-in popup still works.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'; object-src 'none'; base-uri 'self'; upgrade-insecure-requests
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(self), geolocation=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+  Strict-Transport-Security: max-age=31536000

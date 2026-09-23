@@ -234,7 +234,13 @@ export function ResourceModal({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => {
-                  window.open(`/dashboard/resources/${resource.name.toLowerCase()}`, "_blank");
+                  /* There is no per-resource route; the economies page reopens
+                     this modal from ?resource=. */
+                  window.open(
+                    `/dashboard/economies?resource=${encodeURIComponent(resource.name.toLowerCase())}`,
+                    "_blank",
+                    "noopener,noreferrer",
+                  );
                 }}
                 className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
                 title="Open in new tab"

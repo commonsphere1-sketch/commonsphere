@@ -2107,6 +2107,22 @@ export function EconomiesPage() {
       url.searchParams.delete("open");
       window.history.replaceState({}, "", url.toString());
     }
+    /* ?resource=<name> is what a resource modal's "open in new tab" button
+       links to: switch to the resources view with that commodity open. The
+       value is only ever matched against the list, never rendered. */
+    const resourceName = params.get("resource");
+    if (resourceName) {
+      const found = RESOURCES_DATA.find(
+        (r) => r.name.toLowerCase() === resourceName.toLowerCase(),
+      );
+      if (found) {
+        setViewMode("resources");
+        setSelectedResource(found);
+      }
+      const url = new URL(window.location.href);
+      url.searchParams.delete("resource");
+      window.history.replaceState({}, "", url.toString());
+    }
   }, []);
 
   const filtered = economiesData
