@@ -680,6 +680,26 @@ html.light .header-bar {
   -webkit-backdrop-filter: none !important;
 }
 
+/* The dark header's fill and blur sit on .header-bar-bg (see HeaderNav);
+   light mode has a plain white bar, so that layer stands down. */
+html.light .header-bar-bg {
+  display: none;
+}
+
+/* The global search results in dark mode: frosted glass that blurs the page
+   beneath into an unreadable wash, so the results read cleanly over any page.
+   A 10% white tint with a blur that never took effect (see HeaderNav) left
+   page headings legible straight through the list. */
+html:not(.light) .search-dropdown-glass {
+  background: rgba(24, 24, 32, 0.62);
+  border-color: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
 html.light .sidebar-bar {
   background: #ffffff !important;
   border-right-color: rgba(0, 0, 0, 0.08) !important;

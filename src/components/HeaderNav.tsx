@@ -162,14 +162,27 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
     <header
       className="fixed top-0 left-0 right-0 z-40 h-16 border-b border-border/40 flex items-center px-5 gap-5 header-bar"
       style={{
-        background:
-          "linear-gradient(180deg, rgba(5, 5, 12, 0.95) 0%, rgba(3, 3, 8, 0.92) 100%)",
-        backdropFilter: "blur(28px) saturate(180%)",
-        WebkitBackdropFilter: "blur(28px) saturate(180%)",
         boxShadow:
           "0 1px 0 rgba(255, 220, 120, 0.05), inset 0 -1px 0 rgba(255, 255, 255, 0.02), 0 4px 32px rgba(0,0,0,0.5)",
       }}
     >
+      {/* The header's fill and blur live on this layer, not on <header>.
+          An element with backdrop-filter becomes a backdrop root: anything
+          inside it can only blur what lies within its own box. The search
+          dropdown hangs below the 64px bar, so with the blur on <header> its
+          own frosting sampled nothing and the page read straight through it.
+          On a sibling layer the header looks the same and the dropdown can
+          blur the page. */}
+      <div
+        aria-hidden
+        className="header-bar-bg absolute inset-0 -z-10 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(5, 5, 12, 0.95) 0%, rgba(3, 3, 8, 0.92) 100%)",
+          backdropFilter: "blur(28px) saturate(180%)",
+          WebkitBackdropFilter: "blur(28px) saturate(180%)",
+        }}
+      />
       {/* Logo */}
       <Link
         to="/dashboard"
@@ -252,9 +265,8 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
 
           {open && (
             <div
-              className="absolute top-full mt-2 left-0 right-0 rounded-xl shadow-xl z-50 overflow-hidden animate-fade-in
-                bg-card border border-border
-                dark:bg-white/10 dark:border-white/15 dark:backdrop-blur-xl dark:shadow-2xl"
+              className="search-dropdown-glass absolute top-full mt-2 left-0 right-0 rounded-xl shadow-xl z-50 overflow-hidden animate-fade-in
+                bg-card border border-border"
               role="listbox"
             >
               {results.map((r) => (
