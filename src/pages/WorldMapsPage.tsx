@@ -7,6 +7,8 @@ import {
   geoGraticule10,
   geoBounds,
   geoArea,
+  geoCentroid,
+  geoDistance,
 } from "d3-geo";
 import { feature, mesh, merge } from "topojson-client";
 import type { Topology } from "topojson-specification";
@@ -28,6 +30,7 @@ import {
   stateForFeature,
   auditMapJoin,
 } from "../data/mapJoin";
+import { ADMIN1_SOURCES, GEOBOUNDARIES_URL } from "../data/admin1Sources";
 import { useTheme } from "../contexts/ThemeContext";
 import { isG20, g20Countries, G20_UNION_MEMBERS, G20_MEMBER_CODES } from "../data/g20";
 import { isG7, g7Countries, G7_PARTICIPANTS, G7_MEMBER_CODES } from "../data/g7";
@@ -275,6 +278,175 @@ function clusterDivisions(
     keep: keep.sort((a, b) => a - b),
     outliers: outliers.map((g) => g.idx),
   };
+}
+
+/**
+ * Island-level framing, for places whose land is scattered over open ocean.
+ *
+ * clusterDivisions works on whole divisions, and a division can itself be an
+ * ocean's worth of atolls: Tuvalu is one division of nine atolls across six
+ * degrees. Fitted to everything, the land of the Marshall Islands, Tuvalu,
+ * Kiribati and the Maldives came to 0.01% or less of the canvas, and 13
+ * places were under 1% - every one a scattered archipelago - so the map drew
+ * specks. Measured with the page's own pipeline across every country here.
+ *
+ * Below FRAME_MIN_LAND, the map is framed on one island group instead
+ * (islands within ISLAND_SLACK_DEG of each other are one group) and says how
+ * many groups lie outside the view. The group is the capital's where the
+ * capital is known - Kiribati's land is mostly Kiritimati, but its capital
+ * and most of its people are on Tarawa - and otherwise the one with the most
+ * land. Everything is still drawn;
+ * the rest is simply off the edge.
+ *
+ * The measure is land as a share of the canvas, and the threshold is low on
+ * purpose. Long, thin countries sit low for their shape alone - Chile 1.9%,
+ * Vietnam 4.6% - and no part of them is a better frame than the whole; and
+ * Equatorial Guinea's capital is on Bioko, so framing on it would drop the
+ * mainland. Both clear 1% comfortably.
+ */
+const FRAME_MIN_LAND = 0.01;
+const ISLAND_SLACK_DEG = 0.75;
+
+type PolygonGeo = { type: "Polygon"; coordinates: unknown[] };
+type AreaGeo = { type: string; coordinates?: unknown[]; geometry?: AreaGeo };
+
+/**
+ * The focus map's projection: Equal Earth turned to put the place at its
+ * centre. Unturned, anything across 180° - Fiji, Kiribati, Chukotka - was
+ * split to both edges of the world and fitted as one strip: Fiji drew
+ * 912 by 19 pixels.
+ */
+function focusProjection(geo: unknown, box: [[number, number], [number, number]]) {
+  const [lon] = geoCentroid(geo as never);
+  return geoEqualEarth()
+    .rotate([-(Number.isFinite(lon) ? lon : 0), 0])
+    .fitExtent(box, geo as never);
+}
+
+/**
+ * Puts right any polygon wound the wrong way round. d3 reads a ring on the
+ * sphere by its direction, and one wound backwards is "everything except
+ * this island": Kiribati's admin-1 file has such a ring where it meets the
+ * antimeridian, and it drew as a filled oval of the whole globe. A real
+ * polygon covers less than a hemisphere (2π steradians), so anything larger
+ * is reversed. Mutates and returns the geometry it is given.
+ */
+function rewindPolygons<T>(geo: T): T {
+  const fix = (rings: number[][][]) => {
+    if (geoArea({ type: "Polygon", coordinates: rings } as never) > 2 * Math.PI)
+      for (const ring of rings) ring.reverse();
+  };
+  const g = ((geo as unknown as AreaGeo).geometry ?? geo) as unknown as AreaGeo;
+  if (g.type === "Polygon") fix(g.coordinates as number[][][]);
+  else if (g.type === "MultiPolygon") for (const p of g.coordinates as number[][][][]) fix(p);
+  return geo;
+}
+
+/** Bounding boxes overlap within `m` degrees, allowing for the antimeridian. */
+function boxesNear(
+  [[ax0, ay0], [ax1r, ay1]]: [[number, number], [number, number]],
+  [[bx0, by0], [bx1r, by1]]: [[number, number], [number, number]],
+  m: number,
+): boolean {
+  if (ay0 - m > by1 || by0 - m > ay1) return false;
+  // geoBounds gives x1 < x0 for a box across 180°; unwrap it.
+  const ax1 = ax1r < ax0 ? ax1r + 360 : ax1r;
+  const bx1 = bx1r < bx0 ? bx1r + 360 : bx1r;
+  return [-360, 0, 360].some((s) => ax0 - m <= bx1 + s && bx0 + s - m <= ax1);
+}
+
+/**
+ * The geometry to fit the focus map to, and the island groups left outside
+ * it. `geo` is a Polygon, a MultiPolygon or a Feature holding one.
+ */
+function islandFrame(
+  geo: AreaGeo,
+  box: [[number, number], [number, number]],
+  capital?: [number, number],
+): { frame: AreaGeo; groups: AreaGeo[] } {
+  const g = geo.geometry ?? geo;
+  const polys: PolygonGeo[] =
+    g.type === "MultiPolygon"
+      ? (g.coordinates as unknown[][]).map((c) => ({ type: "Polygon", coordinates: c }))
+      : g.type === "Polygon"
+        ? [g as PolygonGeo]
+        : [];
+  if (polys.length < 2) return { frame: geo, groups: [] };
+
+  const asGeo = (idx: number[]): AreaGeo => ({
+    type: "MultiPolygon",
+    coordinates: idx.map((i) => polys[i].coordinates),
+  });
+  const [[bx0, by0], [bx1, by1]] = box;
+  const landOf = (idx: number[]) => {
+    const part = asGeo(idx);
+    return (
+      geoPath(focusProjection(part, box)).area(part as never) /
+      ((bx1 - bx0) * (by1 - by0))
+    );
+  };
+  const boxes = polys.map((p) => geoBounds(p as never));
+  const areas = polys.map((p) => geoArea(p as never));
+
+  // The island nearest the capital, measured to each island's centre; the
+  // capital itself can sit just off a 1:10m coastline.
+  let home = -1;
+  if (capital) {
+    let bestD = Infinity;
+    polys.forEach((p, i) => {
+      const d = geoDistance(capital, geoCentroid(p as never));
+      if (d < bestD) {
+        bestD = d;
+        home = i;
+      }
+    });
+  }
+
+  /* Narrow in steps: a group that is itself a chain of atolls - the Gilbert
+     Islands run 16 atolls about half a degree apart - is regrouped tighter,
+     keeping the capital's part, until its land reads or it is one atoll;
+     the last step is about 3 km, which joins an atoll's own islets and
+     nothing else. */
+  let current = polys.map((_, i) => i);
+  const outside: number[][] = [];
+  for (const slack of [ISLAND_SLACK_DEG, 0.25, 0.1, 0.03]) {
+    if (current.length < 2 || landOf(current) >= FRAME_MIN_LAND) break;
+    const parent = new Map(current.map((i) => [i, i]));
+    const find = (i: number): number => {
+      while (parent.get(i) !== i) {
+        const up = parent.get(parent.get(i)!)!;
+        parent.set(i, up);
+        i = up;
+      }
+      return i;
+    };
+    for (let a = 0; a < current.length; a++) {
+      for (let b = a + 1; b < current.length; b++) {
+        const i = current[a];
+        const j = current[b];
+        if (boxesNear(boxes[i], boxes[j], slack)) {
+          const ri = find(i);
+          const rj = find(j);
+          if (ri !== rj) parent.set(ri, rj);
+        }
+      }
+    }
+    const byRoot = new Map<number, { land: number; idx: number[] }>();
+    for (const i of current) {
+      const r = find(i);
+      const grp = byRoot.get(r) ?? { land: 0, idx: [] };
+      grp.land += areas[i];
+      grp.idx.push(i);
+      byRoot.set(r, grp);
+    }
+    const ranked = [...byRoot.values()].sort((a, b) => b.land - a.land);
+    const keepAt = Math.max(0, ranked.findIndex((grp) => grp.idx.includes(home)));
+    const [kept] = ranked.splice(keepAt, 1);
+    outside.push(...ranked.map((r) => r.idx));
+    current = kept.idx;
+  }
+  if (!outside.length) return { frame: geo, groups: [] };
+  return { frame: asGeo(current), groups: outside.map(asGeo) };
 }
 
 /* Drawing canvases, in viewBox units. The US and country-focus maps share one
@@ -1442,8 +1614,12 @@ export function WorldMapsPage() {
   }, []);
 
   /* One division is the country itself, so it draws no internal border. */
+  /* A place with a single division is fetched too: its admin-1 file is the
+     1:10m coastline, where the 1:50m atlas reduces a small territory - the
+     British Virgin Islands, Aruba, Gibraltar - to a few straight-edged
+     polygons, and has no shape at all for Tuvalu or Gibraltar. */
   const hasAdmin1 = useCallback(
-    (code: string) => (admin1Manifest?.[code] ?? 0) > 1,
+    (code: string) => (admin1Manifest?.[code] ?? 0) >= 1,
     [admin1Manifest],
   );
 
@@ -1598,6 +1774,13 @@ export function WorldMapsPage() {
   const capitals = useOverlay<PointLayer<[string, string, number, number]>>(
     OVERLAY_URL.capitals,
     wanted("capitals"),
+  );
+  /* Loaded whatever the layer toggle says: the focus map frames a scattered
+     archipelago on its capital's island group (see islandFrame). 8 KB, and
+     the same file the Capitals layer reads, so the browser fetches it once. */
+  const capitalsForFrame = useOverlay<PointLayer<[string, string, number, number]>>(
+    OVERLAY_URL.capitals,
+    true,
   );
   const cities = useOverlay<PointLayer<[string, string, number, number, number]>>(
     OVERLAY_URL.cities,
@@ -1835,14 +2018,15 @@ export function WorldMapsPage() {
   );
 
   // Only countries with geometry are offered; picking one with no outline would
-  // give an empty card.
+  // give an empty card. The 1:10m admin-1 files count, which is what makes
+  // Tuvalu and Gibraltar selectable: the 1:50m atlas has no shape for either.
   const focusOptions = useMemo(
     () =>
       countriesData
-        .filter((c) => featureByCode.has(c.code))
+        .filter((c) => featureByCode.has(c.code) || hasAdmin1(c.code))
         .map((c) => ({ value: c.code, label: c.name }))
         .sort((a, b) => a.label.localeCompare(b.label)),
-    [featureByCode],
+    [featureByCode, hasAdmin1],
   );
 
   /* ── Viewports ──
@@ -1913,6 +2097,14 @@ export function WorldMapsPage() {
 
   const zoom = focusZoom.zoom;
 
+  /** Where the focused country's capital is, for framing a scattered archipelago. */
+  const focusCapital = useMemo(() => {
+    const row = focusCountry
+      ? capitalsForFrame.data?.rows.find((r) => r[1] === focusCountry.name)
+      : undefined;
+    return row ? ([row[2], row[3]] as [number, number]) : undefined;
+  }, [capitalsForFrame.data, focusCountry]);
+
   /**
    * Everything geometric about the focused country, in one pass.
    *
@@ -1934,23 +2126,36 @@ export function WorldMapsPage() {
     const useAdmin1 = admin1 !== null && admin1.code === focusCode;
     const worldFeature = featureByCode.get(focusCode);
 
-    const fitTo = (geo: unknown, box: [[number, number], [number, number]]) =>
-      geoEqualEarth().fitExtent(box, geo as never);
+    const fitTo = focusProjection;
 
     const mainBox: [[number, number], [number, number]] = [
       [PAD, PAD],
       [US_W - PAD, US_H - PAD],
     ];
 
+    /* Island groups left outside the frame by islandFrame: counted by where
+       each lands once projected, so a group that happens to fall inside the
+       frame is not reported as missing. */
+    const outsideFrame = (
+      path: ReturnType<typeof geoPath>,
+      groups: AreaGeo[],
+    ) =>
+      groups.filter((g) => {
+        const [cx, cy] = path.centroid(g as never);
+        return !(cx >= 0 && cx <= US_W && cy >= 0 && cy <= US_H);
+      }).length;
+
     if (!useAdmin1) {
       if (!worldFeature) return null;
-      const path = geoPath(fitTo(worldFeature, mainBox));
+      const { frame, groups } = islandFrame(worldFeature as AreaGeo, mainBox, focusCapital);
+      const path = geoPath(fitTo(frame, mainBox));
       return {
         outline: path(worldFeature as never) ?? "",
         interior: "",
         parts: [] as Subdivision[],
         insets: [] as Inset[],
         offView: [] as string[],
+        islandsOutside: outsideFrame(path, groups),
         path,
         geo: worldFeature as unknown,
       };
@@ -1963,15 +2168,21 @@ export function WorldMapsPage() {
     const fc = feature(admin1.topo, obj as never) as unknown as {
       features: { properties: { n: string } }[];
     };
+    // Before clustering: a backwards ring measures as most of the globe.
+    fc.features.forEach(rewindPolygons);
 
     const { keep, outliers } = clusterDivisions(fc.features);
     const keptGeoms = keep.map((i) => obj.geometries[i]);
 
-    const outlineGeo = merge(
-      admin1.topo,
-      keptGeoms as Parameters<typeof merge>[1],
+    const outlineGeo = rewindPolygons(
+      merge(admin1.topo, keptGeoms as Parameters<typeof merge>[1]),
     );
-    const path = geoPath(fitTo(outlineGeo, mainBox));
+    const { frame, groups: islandGroups } = islandFrame(
+      outlineGeo as unknown as AreaGeo,
+      mainBox,
+      focusCapital,
+    );
+    const path = geoPath(fitTo(frame, mainBox));
 
     const interior =
       path(
@@ -2022,7 +2233,9 @@ export function WorldMapsPage() {
         type: "GeometryCollection",
         geometries: geoms,
       };
-      const merged = merge(admin1.topo, geoms as Parameters<typeof merge>[1]);
+      const merged = rewindPolygons(
+        merge(admin1.topo, geoms as Parameters<typeof merge>[1]),
+      );
       const ip = geoPath(fitTo(merged, insetBox));
       return {
         key: group.join("-"),
@@ -2048,10 +2261,11 @@ export function WorldMapsPage() {
       parts,
       insets,
       offView,
+      islandsOutside: outsideFrame(path, islandGroups),
       path,
       geo: outlineGeo as unknown,
     };
-  }, [focusCode, featureByCode, admin1]);
+  }, [focusCode, featureByCode, admin1, focusCapital]);
 
   /* ── The same overlays, on whichever country is in focus ──────────────
      The layers are lon/lat, so they can be drawn in any projection; what
@@ -2304,22 +2518,32 @@ export function WorldMapsPage() {
   /**
    * The sentence under the focus map, describing only what is actually drawn.
    *
-   * Natural Earth publishes first-order divisions for every country at 1:10m,
-   * but seven of the 204 countries in this dataset — Tuvalu, Puerto Rico,
-   * Guam, the Faroe Islands, Monaco, Western Sahara and Niue — have exactly
-   * one, so there is no internal border to draw. Six of them can be selected
-   * here; Tuvalu cannot, because the 1:50m atlas the selector draws from has
-   * no shape for it. Counted off the manifest and the atlas, not asserted.
+   * Every place draws from a 1:10m admin-1 file: Natural Earth's, or for the
+   * smallest places geoBoundaries' finer tracing (see admin1Sources.ts). A
+   * place with one division has no internal border to draw. Counted off the
+   * manifest and the files, not asserted.
    */
   const bordersNote = useMemo(() => {
     if (!admin1Manifest) return "Internal borders load with the country. ";
     const published = admin1Manifest[focusCode] ?? 0;
+    const hi = ADMIN1_SOURCES[focusCode];
+    const from = hi
+      ? `geoBoundaries (${[hi.sourceShort, hi.licenseShort].filter(Boolean).join("; ")})`
+      : "Natural Earth";
+    const islands = focusMap?.islandsOutside ?? 0;
+    const islandNote = islands
+      ? ` Its land is spread across open ocean, so the map is framed on ${
+          focusCapital ? "the island group around its capital" : "its largest island group"
+        }; ${islands} more island group${islands === 1 ? " lies" : "s lie"} outside this view.`
+      : "";
     if (published <= 1) {
-      return "Natural Earth records a single first-order division for this country, so it is drawn as one outline. ";
+      return hi
+        ? `Drawn as one outline from ${from}, which is sharper than Natural Earth's 1:10m coastline at this size.${islandNote} `
+        : `Natural Earth records a single first-order division for this country, so it is drawn as one outline, from the 1:10m coastline.${islandNote} `;
     }
     const drawn = focusMap?.parts.length ?? 0;
     if (drawn === 0) {
-      return `Loading ${published} first-order divisions from Natural Earth. `;
+      return `Loading ${published} first-order divisions from ${hi ? "geoBoundaries" : "Natural Earth"}. `;
     }
     const insets = focusMap?.insets.length ?? 0;
     const off = focusMap?.offView.length ?? 0;
@@ -2331,8 +2555,8 @@ export function WorldMapsPage() {
     const listed = off
       ? ` ${off} further division${off === 1 ? " is" : "s are"} named below.`
       : "";
-    return `Internal borders shown are ${drawn} first-order divisions from Natural Earth.${framed}${listed} `;
-  }, [admin1Manifest, focusCode, focusMap]);
+    return `Internal borders shown are ${drawn} first-order divisions from ${from}.${framed}${listed}${islandNote} `;
+  }, [admin1Manifest, focusCode, focusMap, focusCapital]);
 
   /** Cities the dataset happens to hold for the focused country. */
   const focusCities = useMemo(
@@ -3821,7 +4045,24 @@ export function WorldMapsPage() {
             first-order divisions across 241 countries. The world map draws the
             internal borders of all 194 countries that have any, simplified to
             within 0.02° — under half a pixel at the deepest zoom; the country
-            focus map fetches one country at full detail. US states: the US Census
+            focus map fetches one country at full detail. For the{" "}
+            {Object.keys(ADMIN1_SOURCES).length} smallest places, where 1:10m
+            detail shows at full frame, the focus map instead draws{" "}
+            <a
+              href={GEOBOUNDARIES_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              geoBoundaries
+            </a>{" "}
+            (Runfola et al., 2020) - traced from 10 m Sentinel-2 land cover,
+            OpenStreetMap or national mapping - simplified to half a pixel and
+            checked against each place's land area. Each carries its own
+            source's licence - CC BY, CC BY-SA, CC0, or the ODbL (© OpenStreetMap
+            contributors) - or is public domain;
+            the licence of the one in view is named under its map, and the
+            share-alike ones remain under those terms. US states: the US Census
             Bureau via us-atlas. Group scopes: G7 and G20 membership as those
             groups publish it; Global North and South follow the UN M49 developed /
             developing classification, which UNSD states is for statistical
