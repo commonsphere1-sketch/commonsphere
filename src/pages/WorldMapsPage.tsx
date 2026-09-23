@@ -1200,10 +1200,27 @@ export function WorldMapsPage() {
   /* ?country=NU opens the country map on that country, so a link from its
      profile lands on the place rather than on the United States. Read once,
      at mount: after that the picker owns the choice. */
+  const cameFromCountryLink = useRef(
+    /^[A-Za-z]{2}$/.test(new URLSearchParams(window.location.search).get("country") ?? ""),
+  );
   const [focusCode, setFocusCode] = useState(() => {
     const want = new URLSearchParams(window.location.search).get("country");
     return want && /^[A-Za-z]{2}$/.test(want) ? want.toUpperCase() : "US";
   });
+  /* The country card sits well down the page, under the world map and the
+     scope/indicator chips. Arriving from a country's own "Nav" button and
+     landing at the top of an unrelated page - not on the country it asked
+     for - is the bug this fixes: scroll straight to the card, once, the
+     first time the page paints with it already showing the right country. */
+  const focusCardRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!cameFromCountryLink.current) return;
+    cameFromCountryLink.current = false;
+    const id = requestAnimationFrame(() => {
+      focusCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
   const [factsOpen, setFactsOpen] = useState(true);
 
   const ramp = isLight ? RAMP_LIGHT : RAMP_DARK;
@@ -3124,6 +3141,7 @@ export function WorldMapsPage() {
 
         {/* ── US map ── */}
         <div
+          ref={focusCardRef}
           className="rounded-2xl p-5 mb-6"
           style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}
         >
