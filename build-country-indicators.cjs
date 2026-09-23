@@ -247,6 +247,10 @@ const FACTBOOK = {
   CK: { path: "australia-oceania/cw", name: "Cook Islands" },
   NU: { path: "australia-oceania/ne", name: "Niue" },
   KP: { path: "east-n-southeast-asia/kn", name: "North Korea" },
+  // The World Bank reports Jersey and Guernsey only as one "Channel Islands".
+  JE: { path: "europe/je", name: "Jersey" },
+  GG: { path: "europe/gk", name: "Guernsey" },
+  VA: { path: "europe/vt", name: "Holy See (Vatican City)" },
 };
 
 const money = (t) => {
@@ -287,6 +291,10 @@ async function factbookFigures() {
     if (got !== spec.name) throw new Error(`Factbook ${code}: file names "${got}", expected "${spec.name}"`);
     const E = j.Economy || {};
     const take = (node, parse) => {
+      /* A figure for more than this place - Jersey's and Guernsey's GDP
+         entries are both the Channel Islands total, noted "entry includes
+         Jersey and Guernsey" - is not this place's figure. */
+      if (/entry includes/i.test(JSON.stringify(node?.note ?? ""))) return null;
       const text = latestSub(node);
       if (!text) return null;
       const v = parse(text), y = yearOf(text);
@@ -303,7 +311,7 @@ async function factbookFigures() {
 }
 
 /** Codes the World Bank's country list does not carry, as the IMF and UN write them. */
-const EXTRA_ISO3 = { TW: "TWN", EH: "ESH", CK: "COK", NU: "NIU" };
+const EXTRA_ISO3 = { TW: "TWN", EH: "ESH", CK: "COK", NU: "NIU", JE: "JEY", GG: "GGY", VA: "VAT" };
 
 const round = (v) => {
   const a = Math.abs(v);

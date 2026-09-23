@@ -82,8 +82,15 @@ function loadCountries() {
     byCountry.get(name).set(ind, r.slice(3));
   }
 
-  // Only the countries the World Bank split leaves empty.
-  const countries = loadCountries().filter((c) => !(c.keyIndustries && c.keyIndustries.length));
+  // Only the countries the World Bank split leaves empty. countriesData fills
+  // keyIndustries from this script's own output, so a country whose split is
+  // already the UN's is still one of them - without that, every second run
+  // dropped the countries the one before had added.
+  const countries = loadCountries().filter(
+    (c) =>
+      !(c.keyIndustries && c.keyIndustries.length) ||
+      (c.sources?.keyIndustries?.label ?? "").startsWith("UN Statistics Division"),
+  );
   const out = [];
   const none = [];
   for (const c of countries.sort((a, b) => a.id.localeCompare(b.id))) {

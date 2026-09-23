@@ -115,7 +115,7 @@ const PLANS = [
     audience: "Anyone · Curious readers · Classroom use",
     note: "Students and educators: verify with an .edu address for Pro features at no cost.",
     features: [
-      `All ${COUNTS.countries} countries, ${COUNTS.states} US states and ${COUNTS.cities} city profiles`,
+      `All ${COUNTS.countries} countries and territories, ${COUNTS.states} US states and ${COUNTS.cities} city profiles`,
       `${COUNTS.economies} economies with figures refreshed from the World Bank`,
       `Composite rankings across ${COUNTS.ranked} entities and 7 categories`,
       `World leaders and ${COUNTS.royals} royal family profiles`,
@@ -236,7 +236,7 @@ const ADS_DISCLAIMER = {
 const FEATURE_GRID = [
   {
     icon: Globe,
-    label: `${COUNTS.countries} Countries`,
+    label: `${COUNTS.countries} Countries & Territories`,
     desc: "Refreshed from the World Bank",
   },
   {
@@ -293,7 +293,7 @@ const PLANNED = "Planned";
 
 const COMPARISON_ROWS: FeatureRow[] = [
   {
-    label: `${COUNTS.countries} countries, ${COUNTS.cities} cities, ${COUNTS.states} states`,
+    label: `${COUNTS.countries} countries and territories, ${COUNTS.cities} cities, ${COUNTS.states} states`,
     free: true,
     supporter: true,
     professional: true,

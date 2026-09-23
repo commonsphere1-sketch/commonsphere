@@ -1,4 +1,4 @@
-import { na, has, orZero } from "../lib/na";
+import { na, has, orZero, sortKey } from "../lib/na";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -107,7 +107,52 @@ function fmtArea(km2: number): string {
 }
 
 // Format population: show K for < 1M, M for >= 1M, B for >= 1B
+/** The headline figures a card shows; how many are unpublished decides the note. */
+const HEADLINE_FIELDS = [
+  "population",
+  "gdp",
+  "gdpGrowth",
+  "lifeExpectancy",
+  "unemploymentRate",
+  "inflationRate",
+  "humanDevelopmentIndex",
+] as const;
+
+const unpublishedCount = (c: Country) =>
+  HEADLINE_FIELDS.filter((f) => !has(c[f])).length;
+
+/**
+ * The badge for a place the site can say less about: a territory, one with
+ * several headline figures no source publishes, or both. Null for the rest.
+ */
+function coverageLabel(c: Country): string | null {
+  const limited = unpublishedCount(c) >= 3;
+  if (c.territory) return limited ? "Territory · limited data" : "Territory";
+  return limited ? "Limited data" : null;
+}
+
+/** The note at the top of the modal for the same places. */
+function CoverageNote({ country }: { country: Country }) {
+  const limited = unpublishedCount(country) >= 3;
+  if (!country.territory && !limited) return null;
+  return (
+    <div className="mb-4 rounded-xl border border-amber-600/30 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10 px-4 py-3">
+      <p className="text-[10px] font-bold font-sans uppercase tracking-widest text-amber-700 dark:text-amber-400 mb-1">
+        {coverageLabel(country)}
+      </p>
+      <p className="text-xs font-sans text-foreground leading-relaxed">
+        {country.territory &&
+          `${country.name} is a territory (${country.governmentType}) rather than a sovereign state. International bodies publish fewer figures for territories, and some report them only within a larger total. `}
+        {limited
+          ? `Figures shown as "—" are ones no source the site uses publishes for ${country.name}; they are left blank rather than estimated.`
+          : "Each figure shown carries its source and year."}
+      </p>
+    </div>
+  );
+}
+
 function fmtPop(n: number): string {
+  if (!has(n)) return "—";
   if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
   if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
   if (n >= 1000) return `${Math.round(n / 1000)}K`;
@@ -397,6 +442,8 @@ function CountryModal({
               </button>
             </div>
           </div>
+
+          <CoverageNote country={country} />
 
           {/* Tab bar */}
           <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60">
@@ -16392,11 +16439,12 @@ export function CountriesPage() {
         continentFilter === "All" || c.continent === continentFilter;
       return matchSearch && matchContinent;
     })
-    .sort((a, b) => b[sortBy] - a[sortBy]);
+    // Unpublished figures sort last rather than scrambling the order.
+    .sort((a, b) => sortKey(b[sortBy], "desc") - sortKey(a[sortBy], "desc"));
 
   // Summary stats
   const totalGDP = liveCountries.reduce((s, c) => s + orZero(c.gdp), 0);
-  const totalPop = liveCountries.reduce((s, c) => s + c.population, 0);
+  const totalPop = liveCountries.reduce((s, c) => s + orZero(c.population), 0);
   const highHDI = liveCountries.filter(
     (c) => c.humanDevelopmentIndex >= 0.8,
   ).length;
@@ -16439,8 +16487,8 @@ export function CountriesPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
             {
-              label: "Countries Tracked",
-              value: `${liveCountries.length}+`,
+              label: "Countries & Territories",
+              value: String(liveCountries.length),
             },
             {
               label: "Combined GDP",
@@ -16583,7 +16631,16 @@ export function CountriesPage() {
                       </p>
                     </div>
                   </div>
-                  <div />
+                  {coverageLabel(country) ? (
+                    <span
+                      className="relative shrink-0 text-[10px] font-sans px-2 py-0.5 rounded-full border border-amber-600/40 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300"
+                      title="International bodies publish fewer figures here; open the card for what is and is not available."
+                    >
+                      {coverageLabel(country)}
+                    </span>
+                  ) : (
+                    <div />
+                  )}
                 </div>
 
                 {/* Key stats */}

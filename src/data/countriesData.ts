@@ -97,6 +97,9 @@ export interface Country {
   name: string;
   code: string;
   continent: string;
+  /** A territory, dependency or special administrative region rather than a
+   *  sovereign state. Its economy card is typed "Territory". */
+  territory?: boolean;
   capital: string;
   /** High-level classification of economic system. Not yet populated for any
    *  country — optional like every other enrichment field on this interface. */
@@ -8106,6 +8109,7 @@ export const countriesData: Country[] = [
     name: "Puerto Rico",
     code: "PR",
     continent: "North America",
+    territory: true,
     energy: mkEnergy(22, 20, [
       ["Natural Gas", 48, "hsl(45,90%,55%)"],
       ["Oil", 28, "hsl(30,70%,45%)"],
@@ -8164,6 +8168,7 @@ export const countriesData: Country[] = [
     name: "Guam",
     code: "GU",
     continent: "Oceania",
+    territory: true,
     energy: mkEnergy(2, 2, [
       ["Oil/Diesel", 62, "hsl(30,70%,45%)"],
       ["Natural Gas", 26, "hsl(45,90%,55%)"],
@@ -8217,6 +8222,7 @@ export const countriesData: Country[] = [
     name: "Bermuda",
     code: "BM",
     continent: "North America",
+    territory: true,
     energy: mkEnergy(1, 1, [
       ["Oil/Diesel", 82, "hsl(30,70%,45%)"],
       ["Solar", 12, "hsl(50,95%,55%)"],
@@ -8276,6 +8282,7 @@ export const countriesData: Country[] = [
     name: "Faroe Islands",
     code: "FO",
     continent: "Europe",
+    territory: true,
     energy: mkEnergy(1, 1, [
       ["Hydro", 40, "hsl(190,70%,50%)"],
       ["Wind", 38, "hsl(200,85%,55%)"],
@@ -8340,6 +8347,7 @@ export const countriesData: Country[] = [
     name: "Greenland",
     code: "GL",
     continent: "North America",
+    territory: true,
     energy: mkEnergy(1, 1, [
       ["Hydro", 72, "hsl(190,70%,50%)"],
       ["Oil/Diesel", 22, "hsl(30,70%,45%)"],
@@ -9533,6 +9541,66 @@ export const countriesData: Country[] = [
     areaKm2: 17098242,
     trends: [],
   },
+
+  /* ── More territories, and the Holy See ──────────────────────────────────
+     Every economy the World Bank reports that the site did not yet hold, with
+     the Channel Islands as Jersey and Guernsey, the two jurisdictions behind
+     its combined figure. Capital, government, leader, official languages and
+     area are from the CIA World Factbook (September 2026); currency is the
+     ISO 4217 code in use - Curaçao and Sint Maarten have used the Caribbean
+     guilder (XCG) since 31 March 2025, which the Factbook has not caught up
+     with. Every figure starts unpublished (NaN) and is filled below from
+     COUNTRY_INDICATORS, GDP_HISTORY and the rest, each with its source;
+     whatever no source publishes stays blank. */
+  ...(
+    [
+      ["aw", "Aruba", "AW", "North America", "Oranjestad", "AWG", "Constituent Country of the Kingdom of the Netherlands", "Mike Eman (PM, since Mar 2025)", ["Papiamento", "Dutch"], 180],
+      ["as", "American Samoa", "AS", "Oceania", "Pago Pago", "USD", "Unincorporated US Territory", "Nikolao Pula (Governor, since Jan 2025)", ["Samoan", "English"], 224],
+      ["je", "Jersey", "JE", "Europe", "Saint Helier", "GBP", "British Crown Dependency", "Lyndon Farnham (Chief Minister, since Jan 2024)", ["English", "French"], 116],
+      ["gg", "Guernsey", "GG", "Europe", "Saint Peter Port", "GBP", "British Crown Dependency", "Lindsay de Sausmarez (Chief Minister, since Jul 2025)", ["English", "French"], 78],
+      ["cw", "Curaçao", "CW", "North America", "Willemstad", "XCG", "Constituent Country of the Kingdom of the Netherlands", "Gilmar Pisas (PM, since Jun 2021)", ["Papiamento", "Dutch", "English"], 444],
+      ["ky", "Cayman Islands", "KY", "North America", "George Town", "KYD", "British Overseas Territory", "André Ebanks (Premier, since May 2025)", ["English"], 264],
+      ["gi", "Gibraltar", "GI", "Europe", "Gibraltar", "GIP", "British Overseas Territory", "Fabian Picardo (Chief Minister, since Dec 2011)", ["English"], 7],
+      ["hk", "Hong Kong", "HK", "Asia", "Hong Kong", "HKD", "Special Administrative Region of China", "John Lee Ka-chiu (Chief Executive, since Jul 2022)", ["Chinese", "English"], 1108],
+      ["im", "Isle of Man", "IM", "Europe", "Douglas", "GBP", "British Crown Dependency", "Alfred Cannan (Chief Minister, since Oct 2021)", ["English", "Manx Gaelic"], 572],
+      ["mo", "Macau", "MO", "Asia", "Macau", "MOP", "Special Administrative Region of China", "Sam Hou Fai (Chief Executive, since Dec 2024)", ["Chinese", "Portuguese"], 28],
+      ["mf", "Saint Martin", "MF", "North America", "Marigot", "EUR", "Overseas Collectivity of France", "Louis Mussington (President of the Territorial Council, since Apr 2022)", ["French"], 50],
+      ["mp", "Northern Mariana Islands", "MP", "Oceania", "Saipan", "USD", "US Commonwealth", "David M. Apatang (Governor, since Jul 2025)", ["English", "Chamorro", "Carolinian"], 464],
+      ["nc", "New Caledonia", "NC", "Oceania", "Nouméa", "XPF", "Special Collectivity of France", "Alcide Ponga (President of the Government, since Jan 2025)", ["French"], 18575],
+      ["pf", "French Polynesia", "PF", "Oceania", "Papeete", "XPF", "Overseas Collectivity of France", "Moetai Brotherson (President, since May 2023)", ["French"], 4167],
+      ["sx", "Sint Maarten", "SX", "North America", "Philipsburg", "XCG", "Constituent Country of the Kingdom of the Netherlands", "Luc Mercelina (PM, since May 2024)", ["English", "Dutch"], 34],
+      ["tc", "Turks and Caicos Islands", "TC", "North America", "Cockburn Town", "USD", "British Overseas Territory", "Washington Misick (Premier, since Feb 2021)", ["English"], 948],
+      ["vg", "British Virgin Islands", "VG", "North America", "Road Town", "USD", "British Overseas Territory", "Natalio Wheatley (Premier, since May 2022)", ["English"], 151],
+      ["vi", "US Virgin Islands", "VI", "North America", "Charlotte Amalie", "USD", "Unincorporated US Territory", "Albert Bryan Jr. (Governor, since Jan 2019)", ["English"], 1910],
+      // Sovereign, so not flagged a territory. 0.44 km² (44 hectares); the
+      // Factbook rounds it to 0.
+      ["va", "Vatican City", "VA", "Europe", "Vatican City", "EUR", "Ecclesiastical Elective Monarchy", "Pope Leo XIV (Sovereign, since May 2025)", ["Italian", "Latin"], 0.44],
+    ] as [string, string, string, string, string, string, string, string, string[], number][]
+  ).map(
+    ([id, name, code, continent, capital, currency, governmentType, headOfState, officialLanguages, areaKm2]): Country => ({
+      id,
+      name,
+      code,
+      continent,
+      territory: code !== "VA" ? true : undefined,
+      capital,
+      population: NaN,
+      gdp: NaN,
+      gdpPerCapita: NaN,
+      gdpGrowth: NaN,
+      currency,
+      governmentType,
+      headOfState,
+      officialLanguages,
+      unemploymentRate: NaN,
+      lifeExpectancy: NaN,
+      humanDevelopmentIndex: NaN,
+      tradeBalance: NaN,
+      inflationRate: NaN,
+      areaKm2,
+      trends: [],
+    }),
+  ),
 ];
 
 /* ── Sourced reference data ─────────────────────────────────────────────────
@@ -9607,7 +9675,9 @@ for (const c of countriesData) {
     cite("humanDevelopmentIndex", p.hdi);
   }
   if (p?.tradeBalanceUSD) {
-    c.tradeBalance = Math.round(p.tradeBalanceUSD.v / 1e8) / 10;
+    // Three significant figures, not tenths of a billion: a small economy's
+    // balance is millions, which the old rounding turned into 0.
+    c.tradeBalance = Number((p.tradeBalanceUSD.v / 1e9).toPrecision(3));
     cite("tradeBalance", p.tradeBalanceUSD);
   }
   const ag = p?.agriculturePct, ind = p?.industryPct, mf = p?.manufacturingPct, sv = p?.servicesPct;
