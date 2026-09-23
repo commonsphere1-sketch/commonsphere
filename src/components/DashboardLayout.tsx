@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Outlet,} from "react-router-dom";
+import { useLayoutEffect, useState } from "react";
+import { Outlet, useLocation, useNavigationType } from "react-router-dom";
 import { HeaderNav } from "./HeaderNav";
 import { SidebarNav } from "./SidebarNav";
 import { NotesPopup } from "./NotesPopup";
@@ -7,6 +7,19 @@ import { NotesPopup } from "./NotesPopup";
 export function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  /* This layout stays mounted from page to page and the window is what
+     scrolls, so without this a new page opened as far down as the last one
+     had been scrolled. Only the path counts: a query change (?compare=,
+     ?open=) is the same page. Back/forward (POP) is left to the browser.
+     A page that scrolls itself on arrival (the maps page's ?country=) does
+     so a frame later, after this. */
+  const { pathname } = useLocation();
+  const navigationType = useNavigationType();
+  useLayoutEffect(() => {
+    if (navigationType === "POP") return;
+    window.scrollTo(0, 0);
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
