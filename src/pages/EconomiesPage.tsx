@@ -1400,7 +1400,7 @@ function EconomyModal({
               )}
 
               {/* ── NATIONAL BUDGET ── */}
-              {economy.entityType === "Country" &&
+              {(economy.entityType === "Country" || economy.entityType === "Territory") &&
                 (!economy.limitedData ||
                   COUNTRY_BUDGET_BY_ISO3[ECONOMY_ISO3[economy.id] ?? ""]) && (
                 <div>
@@ -2876,7 +2876,7 @@ export function EconomiesPage() {
                     </div>
 
                     {/* ── Inline country economic stats (for Country-type economies) ── */}
-                    {economy.entityType === "Country" &&
+                    {(economy.entityType === "Country" || economy.entityType === "Territory") &&
                       (() => {
                         const country = countriesData.find(
                           (c) => c.name === economy.name || c.id === economy.id,

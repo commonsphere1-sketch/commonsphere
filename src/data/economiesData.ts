@@ -3903,7 +3903,7 @@ export const economiesData: Economy[] = [
   {
     id: "hongkong-eco",
     name: "Hong Kong",
-    entityType: "Country",
+    entityType: "Territory", // a special administrative region of China
     gdpTrillions: 0.37,
     gdpGrowthRate: 2.5,
     gdpPerCapita: 49800,
