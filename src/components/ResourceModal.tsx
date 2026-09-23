@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { ArrowUpRight } from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
 import { RESOURCE_DETAILS } from "../data/resourceDetails";
 import { RESOURCE_PRODUCERS } from "../data/resourceProducers";
 import { ENERGY_PRODUCERS } from "../data/energyProducers";
@@ -184,6 +183,7 @@ export function ResourceModal({
   }, [onClose]);
 
   const up = resource.change >= 0;
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <div
@@ -195,7 +195,9 @@ export function ResourceModal({
       aria-modal="true"
       aria-label={`${resource.name} detail`}
     >
-      <div className="relative z-10 rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-2xl animate-fade-in modal-glass border overflow-y-auto">
+      <div
+        className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
+      >
         <div className="p-6">
           {/* ── Header ── */}
           <div className="relative flex items-start justify-between -mx-6 -mt-6 px-6 pt-6 pb-5 rounded-t-2xl overflow-hidden">
@@ -231,22 +233,16 @@ export function ResourceModal({
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="relative flex items-center gap-1.5 shrink-0">
               <button
-                onClick={() => {
-                  /* There is no per-resource route; the economies page reopens
-                     this modal from ?resource=. */
-                  window.open(
-                    `/dashboard/economies?resource=${encodeURIComponent(resource.name.toLowerCase())}`,
-                    "_blank",
-                    "noopener,noreferrer",
-                  );
-                }}
+                onClick={() => setIsExpanded((v) => !v)}
                 className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
-                title="Open in new tab"
-                aria-label="Expand"
+                aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
+                title={isExpanded ? "Collapse" : "Expand to full screen"}
               >
-                <ArrowUpRight size={14} weight="bold" />
+                <span className="text-xs font-sans font-medium">
+                  {isExpanded ? "Collapse" : "Expand"}
+                </span>
               </button>
               <button
                 onClick={onClose}

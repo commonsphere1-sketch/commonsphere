@@ -2107,9 +2107,9 @@ export function EconomiesPage() {
       url.searchParams.delete("open");
       window.history.replaceState({}, "", url.toString());
     }
-    /* ?resource=<name> is what a resource modal's "open in new tab" button
-       links to: switch to the resources view with that commodity open. The
-       value is only ever matched against the list, never rendered. */
+    /* ?resource=<name> is a direct link to one commodity: switch to the
+       resources view with it open. The value is only ever matched against
+       the list, never rendered. */
     const resourceName = params.get("resource");
     if (resourceName) {
       const found = RESOURCES_DATA.find(
