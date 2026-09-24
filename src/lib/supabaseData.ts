@@ -1,6 +1,6 @@
 import { supabase, isSupabaseConfigured } from "./supabase";
 import { sanitizeText, sanitizeUrl, LIMITS } from "./security";
-import type { Database } from "./database.types";
+import type { Database, Json } from "./database.types";
 
 /**
  * Typed reads and writes for the per-account tables and buckets.
@@ -42,7 +42,7 @@ export async function fetchProfile(uid: string): Promise<Profile | null> {
 }
 
 /**
- * The four columns an account may change. The row itself is created by the
+ * The columns an account may change. The row itself is created by the
  * database when the account is (see private.handle_new_user), so this is an
  * update, never an insert.
  */
@@ -53,6 +53,7 @@ export async function updateProfile(
     username?: string | null;
     avatarColor?: string;
     avatarUrl?: string | null;
+    emailDigest?: boolean;
   },
 ): Promise<Result> {
   if (!supabase) return NOT_CONFIGURED;
@@ -63,6 +64,7 @@ export async function updateProfile(
     patch.username = input.username ? input.username.trim().replace(/^@/, "").slice(0, 30) : null;
   if (input.avatarColor !== undefined) patch.avatar_color = input.avatarColor;
   if (input.avatarUrl !== undefined) patch.avatar_url = input.avatarUrl;
+  if (input.emailDigest !== undefined) patch.email_digest = input.emailDigest;
 
   const { data, error } = await supabase.from("profiles").update(patch).eq("id", uid).select("id");
   if (error) {
@@ -292,6 +294,72 @@ export async function removePins(uid: string, type: PinnedType, ids: string[]): 
   return !error;
 }
 
+/* ── Watch list ───────────────────────────────────────────────────────────── */
+
+export type WatchRow = {
+  id: string;
+  entityType: "country" | "state";
+  entityId: string;
+  topics: string[];
+  snapshot: unknown;
+  seenAt: string;
+};
+
+export async function fetchWatchlist(uid: string): Promise<WatchRow[]> {
+  const db = client();
+  const { data, error } = await db
+    .from("watchlist")
+    .select("id, entity_type, entity_id, topics, snapshot, seen_at")
+    .eq("user_id", uid)
+    .order("created_at");
+  if (error) throw new Error(error.message);
+  return (data ?? [])
+    .filter((r) => r.entity_type === "country" || r.entity_type === "state")
+    .map((r) => ({
+      id: r.id,
+      entityType: r.entity_type as "country" | "state",
+      entityId: r.entity_id,
+      topics: r.topics,
+      snapshot: r.snapshot,
+      seenAt: r.seen_at,
+    }));
+}
+
+export async function addWatch(
+  uid: string,
+  row: { entityType: "country" | "state"; entityId: string; topics: string[]; snapshot: Json },
+): Promise<Result> {
+  if (!supabase) return NOT_CONFIGURED;
+  const { error } = await supabase.from("watchlist").insert({
+    user_id: uid,
+    entity_type: row.entityType,
+    entity_id: row.entityId,
+    topics: row.topics,
+    snapshot: row.snapshot,
+  });
+  if (error) return { ok: false, message: error.code === "23505" ? "Already on your watch list." : error.message };
+  return { ok: true };
+}
+
+export async function updateWatch(
+  id: string,
+  patch: { topics?: string[]; snapshot?: Json; seen?: boolean },
+): Promise<Result> {
+  if (!supabase) return NOT_CONFIGURED;
+  const update: Database["public"]["Tables"]["watchlist"]["Update"] = {};
+  if (patch.topics) update.topics = patch.topics;
+  if (patch.snapshot !== undefined) update.snapshot = patch.snapshot;
+  if (patch.seen) update.seen_at = new Date().toISOString();
+  const { error } = await supabase.from("watchlist").update(update).eq("id", id);
+  return error ? { ok: false, message: error.message } : { ok: true };
+}
+
+export async function removeWatch(id: string): Promise<Result> {
+  if (!supabase) return NOT_CONFIGURED;
+  const { error } = await supabase.from("watchlist").delete().eq("id", id);
+  return error ? { ok: false, message: error.message } : { ok: true };
+}
+
 /* ── Account ──────────────────────────────────────────────────────────────── */
 
 /**
@@ -300,7 +368,12 @@ export async function removePins(uid: string, type: PinnedType, ids: string[]): 
  * the notes page, and they are left out of the file to keep it small.
  */
 export async function exportAccountData(uid: string, email: string): Promise<string> {
-  const [profile, notes, pins] = await Promise.all([fetchProfile(uid), fetchNotes(uid), fetchPins(uid)]);
+  const [profile, notes, pins, watching] = await Promise.all([
+    fetchProfile(uid),
+    fetchNotes(uid),
+    fetchPins(uid),
+    fetchWatchlist(uid),
+  ]);
   return JSON.stringify(
     {
       exportedAt: new Date().toISOString(),
@@ -310,6 +383,7 @@ export async function exportAccountData(uid: string, email: string): Promise<str
         username: profile.username,
         avatarColor: profile.avatar_color,
         avatarUrl: profile.avatar_url,
+        emailDigest: profile.email_digest,
         createdAt: profile.created_at,
         updatedAt: profile.updated_at,
       },
@@ -322,6 +396,13 @@ export async function exportAccountData(uid: string, email: string): Promise<str
         createdAt: n.createdAt,
       })),
       pinned: pins ?? { country: [], state: [] },
+      watchList: watching.map((w) => ({
+        type: w.entityType,
+        id: w.entityId,
+        topics: w.topics,
+        figuresLastSeen: w.snapshot,
+        seenAt: w.seenAt,
+      })),
     },
     null,
     2,

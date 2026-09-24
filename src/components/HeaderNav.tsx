@@ -10,6 +10,7 @@ import {
   Flag,
   Buildings,
   ChartLine,
+  Bell,
 } from "@phosphor-icons/react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,7 @@ import { citiesData } from "@/data/citiesData";
 import { economiesData } from "@/data/economiesData";
 import { LIMITS } from "@/lib/security";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWatchlist } from "@/contexts/WatchlistContext";
 
 interface HeaderNavProps {
   onMenuToggle: () => void;
@@ -111,6 +113,7 @@ const SEARCH_INDEX = buildSearchIndex();
 export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
   const { theme, toggleTheme } = useTheme();
   const { user, logout, isConfigured, openAuth } = useAuth();
+  const { items: watched, changeCount } = useWatchlist();
   const { photo, avatarColor } = useProfilePhoto();
   const { displayName: savedName } = useProfile();
   const [searchValue, setSearchValue] = useState("");
@@ -317,6 +320,28 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
             <Moon size={22} weight="regular" />
           )}
         </button>
+
+        {/* Watch-list alerts: shown once something is watched, with the
+            number of figures that changed since the reader last looked. */}
+        {watched.length > 0 && (
+          <button
+            onClick={() => navigate("/dashboard/settings#alert-subscriptions")}
+            className="header-action-icon relative p-2 text-primary-foreground hover:text-secondary transition-colors duration-150 rounded-md"
+            aria-label={
+              changeCount
+                ? `${changeCount} change${changeCount === 1 ? "" : "s"} in places you watch`
+                : "Watch list: no changes"
+            }
+            title={changeCount ? `${changeCount} new` : "Watch list"}
+          >
+            <Bell size={22} weight={changeCount ? "fill" : "regular"} />
+            {changeCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold leading-[18px] text-center">
+                {changeCount > 99 ? "99+" : changeCount}
+              </span>
+            )}
+          </button>
+        )}
 
         {/* Signed out, on a site with accounts: a way in instead of a menu
             for an account that does not exist. While the stored session is

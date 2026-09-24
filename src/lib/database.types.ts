@@ -1,14 +1,13 @@
 /**
- * Database types for the schema in supabase/migrations.
+ * Database types, generated from the live project (diplptvvvibnrrntyrap).
  *
- * Hand-written to match that migration, because generating them needs a live
- * project and this session could not authenticate. Once the project is linked,
- * regenerate rather than edit:
+ * Regenerate rather than edit, after any migration:
  *
  *   npx supabase gen types typescript --linked > src/lib/database.types.ts
  *
- * Regenerating is what keeps these honest: hand-written types drift from the
- * schema silently, and a wrong type here compiles fine and fails at runtime.
+ * (then put this comment back). The conversations, conversation_members,
+ * messages and thread_summaries tables belong to another app in the same
+ * project; this site does not use them.
  */
 
 export type Json =
@@ -17,132 +16,426 @@ export type Json =
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[];
+  | Json[]
 
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   public: {
     Tables: {
-      profiles: {
+      conversation_members: {
         Row: {
-          id: string;
-          username: string | null;
-          display_name: string | null;
-          email: string | null;
-          avatar_color: string;
-          avatar_url: string | null;
-          created_at: string;
-          updated_at: string;
-        };
+          conversation_id: string
+          joined_at: string
+          user_id: string
+        }
         Insert: {
-          id: string;
-          username?: string | null;
-          display_name?: string | null;
-          email?: string | null;
-          avatar_color?: string;
-          avatar_url?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
+          conversation_id: string
+          joined_at?: string
+          user_id: string
+        }
         Update: {
-          id?: string;
-          username?: string | null;
-          display_name?: string | null;
-          email?: string | null;
-          avatar_color?: string;
-          avatar_url?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      notes: {
+          conversation_id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_members_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
         Row: {
-          id: string;
-          user_id: string;
-          title: string;
-          content: string;
-          entity_type: string | null;
-          entity_name: string | null;
-          voice_path: string | null;
-          created_at: string;
-          updated_at: string;
-        };
+          created_at: string
+          created_by: string
+          id: string
+          title: string
+          updated_at: string
+        }
         Insert: {
-          id?: string;
-          user_id: string;
-          title?: string;
-          content?: string;
-          entity_type?: string | null;
-          entity_name?: string | null;
-          voice_path?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
+          created_at?: string
+          created_by: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
         Update: {
-          id?: string;
-          user_id?: string;
-          title?: string;
-          content?: string;
-          entity_type?: string | null;
-          entity_name?: string | null;
-          voice_path?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
+          created_at?: string
+          created_by?: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       note_links: {
         Row: {
-          id: string;
-          note_id: string;
-          user_id: string;
-          url: string;
-          created_at: string;
-        };
+          created_at: string
+          id: string
+          note_id: string
+          url: string
+          user_id: string
+        }
         Insert: {
-          id?: string;
-          note_id: string;
-          user_id: string;
-          url: string;
-          created_at?: string;
-        };
+          created_at?: string
+          id?: string
+          note_id: string
+          url: string
+          user_id: string
+        }
         Update: {
-          id?: string;
-          note_id?: string;
-          user_id?: string;
-          url?: string;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
+          created_at?: string
+          id?: string
+          note_id?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_links_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notes: {
+        Row: {
+          content: string
+          created_at: string
+          entity_name: string | null
+          entity_type: string | null
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+          voice_path: string | null
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          entity_name?: string | null
+          entity_type?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+          voice_path?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          entity_name?: string | null
+          entity_type?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          voice_path?: string | null
+        }
+        Relationships: []
+      }
       pinned_items: {
         Row: {
-          id: string;
-          user_id: string;
-          entity_type: string;
-          entity_id: string;
-          created_at: string;
-        };
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          user_id: string
+        }
         Insert: {
-          id?: string;
-          user_id: string;
-          entity_type: string;
-          entity_id: string;
-          created_at?: string;
-        };
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          user_id: string
+        }
         Update: {
-          id?: string;
-          user_id?: string;
-          entity_type?: string;
-          entity_id?: string;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
-    };
-    Views: Record<never, never>;
-    Functions: Record<never, never>;
-    Enums: Record<never, never>;
-    CompositeTypes: Record<never, never>;
-  };
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_color: string
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          email: string | null
+          email_digest: boolean
+          id: string
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_color?: string
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          email_digest?: boolean
+          id: string
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_color?: string
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          email_digest?: boolean
+          id?: string
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      thread_summaries: {
+        Row: {
+          conversation_id: string
+          generated_at: string
+          generated_by: string
+          message_count: number
+          summary: string
+        }
+        Insert: {
+          conversation_id: string
+          generated_at?: string
+          generated_by: string
+          message_count: number
+          summary: string
+        }
+        Update: {
+          conversation_id?: string
+          generated_at?: string
+          generated_by?: string
+          message_count?: number
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_summaries_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: true
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      watchlist: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          seen_at: string
+          snapshot: Json
+          topics: string[]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          seen_at?: string
+          snapshot?: Json
+          topics?: string[]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          seen_at?: string
+          snapshot?: Json
+          topics?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

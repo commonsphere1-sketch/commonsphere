@@ -371,22 +371,35 @@ function fmtPop(n: number): string {
   return `${n.toLocaleString()}`;
 }
 
+/* One hue per continent, each with a light and a dark pairing: dark text on
+   a pale fill in light mode, pale text on a deeper fill in dark mode. The
+   old set used the -400 shades in both, which vanished on the light glass,
+   and North America used the theme's grey accent, so it read as plain text. */
 const continentColors: Record<string, string> = {
-  "North America": "text-secondary border-secondary bg-secondary/10",
-  Asia: "text-yellow-400 border-yellow-500/40 bg-yellow-500/10",
-  Europe: "text-purple-400 border-purple-500/40 bg-purple-500/10",
-  "South America": "text-green-400 border-green-500/40 bg-green-500/10",
-  Africa: "text-orange-400 border-orange-500/40 bg-orange-500/10",
-  Oceania: "text-cyan-400 border-cyan-500/40 bg-cyan-500/10",
-  Antarctica: "text-sky-300 border-sky-400/40 bg-sky-400/10",
+  "North America":
+    "text-blue-800 border-blue-600/40 bg-blue-100 dark:text-blue-200 dark:border-blue-400/40 dark:bg-blue-500/20",
+  Asia: "text-amber-900 border-amber-600/40 bg-amber-100 dark:text-amber-200 dark:border-amber-400/40 dark:bg-amber-500/20",
+  Europe:
+    "text-violet-800 border-violet-600/40 bg-violet-100 dark:text-violet-200 dark:border-violet-400/40 dark:bg-violet-500/20",
+  "South America":
+    "text-emerald-800 border-emerald-600/40 bg-emerald-100 dark:text-emerald-200 dark:border-emerald-400/40 dark:bg-emerald-500/20",
+  Africa:
+    "text-orange-800 border-orange-600/40 bg-orange-100 dark:text-orange-200 dark:border-orange-400/40 dark:bg-orange-500/20",
+  Oceania: "text-teal-800 border-teal-600/40 bg-teal-100 dark:text-teal-200 dark:border-teal-400/40 dark:bg-teal-500/20",
+  Antarctica: "text-sky-800 border-sky-600/40 bg-sky-100 dark:text-sky-200 dark:border-sky-400/40 dark:bg-sky-500/20",
 };
 
+/* The same pairing for the HDI bands, each its own colour and bordered so
+   the chip holds its shape on glass in either mode. */
 const hdiBadge = (hdi: number) => {
-  if (!has(hdi)) return "bg-muted text-muted-foreground"; // not published
-  if (hdi >= 0.9) return "bg-green-500/20 text-green-400";
-  if (hdi >= 0.8) return "bg-secondary/20 text-secondary";
-  if (hdi >= 0.7) return "bg-yellow-500/20 text-yellow-400";
-  return "bg-orange-500/20 text-orange-400";
+  if (!has(hdi)) return "border border-border bg-muted text-muted-foreground"; // not published
+  if (hdi >= 0.9)
+    return "border border-green-600/40 bg-green-100 text-green-800 dark:border-green-400/40 dark:bg-green-500/20 dark:text-green-200";
+  if (hdi >= 0.8)
+    return "border border-teal-600/40 bg-teal-100 text-teal-800 dark:border-teal-400/40 dark:bg-teal-500/20 dark:text-teal-200";
+  if (hdi >= 0.7)
+    return "border border-yellow-600/50 bg-yellow-100 text-yellow-900 dark:border-yellow-400/40 dark:bg-yellow-500/20 dark:text-yellow-200";
+  return "border border-orange-600/40 bg-orange-100 text-orange-800 dark:border-orange-400/40 dark:bg-orange-500/20 dark:text-orange-200";
 };
 
 /** FAO land use as donut slices, or null where FAO/World Bank publish none. */
@@ -617,8 +630,8 @@ function CountryModal({
                   {country.name}
                 </h2>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <MapPin size={12} /> {capitalLabel(country)}
+                  <span className="flex items-center gap-1 text-xs font-medium text-foreground/80">
+                    <MapPin size={12} weight="fill" /> {capitalLabel(country)}
                   </span>
                   <span
                     className={`text-xs border px-2 py-0.5 rounded-full font-sans ${continentColors[country.continent] ?? "text-muted-foreground border-border bg-muted"}`}
@@ -636,16 +649,15 @@ function CountryModal({
             <div className="flex items-center gap-1.5 shrink-0">
               <button
                 onClick={() => navigate(`/dashboard/maps?country=${country.code}`)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer inline-flex items-center gap-1"
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-label={`Show ${country.name} on the world map`}
                 title="Show on map"
               >
-                <MapTrifold size={14} />
                 <span className="text-xs font-sans font-medium">Nav</span>
               </button>
               <button
                 onClick={() => setIsExpanded((v) => !v)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-label={
                   isExpanded ? "Collapse modal" : "Expand modal to full screen"
                 }
@@ -657,7 +669,7 @@ function CountryModal({
               </button>
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-label="Close"
               >
                 <span className="text-xs font-sans font-medium">Close</span>
@@ -16884,23 +16896,38 @@ export function CountriesPage() {
                     no GDP, growth or life expectancy to show, so its card
                     says what it is instead, in the same four slots. */}
                 {country.uninhabited ? (
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                  {[
-                    ["Area", fmtArea(country.areaKm2)],
-                    ["Population", "Uninhabited"],
-                    [
-                      country.sovereign ? "Administered by" : "Governed by",
-                      country.sovereign ? nameOfCode(country.sovereign) : "Antarctic Treaty",
-                    ],
-                    ["Status", country.governmentType],
-                  ].map(([label, value]) => (
-                    <div key={label} className="min-w-0">
-                      <p className="text-xs text-muted-foreground font-sans">{label}</p>
-                      <p className="text-xs font-bold font-mono text-foreground leading-snug break-words">
-                        {value}
-                      </p>
+                /* Words in the site's text face, numbers in mono, as on
+                   every other card. The two longer values take the full
+                   width, so they wrap between words instead of inside them;
+                   the full status is in the title and in the card itself. */
+                <div className="mb-3 space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground font-sans">Area</p>
+                      <p className="text-sm font-bold font-mono text-foreground">{fmtArea(country.areaKm2)}</p>
                     </div>
-                  ))}
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground font-sans">Population</p>
+                      <p className="text-sm font-semibold font-sans text-foreground">None</p>
+                    </div>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground font-sans">
+                      {country.sovereign ? "Administered by" : "Governed by"}
+                    </p>
+                    <p className="text-sm font-semibold font-sans text-foreground leading-snug">
+                      {country.sovereign ? nameOfCode(country.sovereign) : "Antarctic Treaty"}
+                    </p>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground font-sans">Status</p>
+                    <p
+                      className="text-xs font-sans text-foreground leading-snug line-clamp-2"
+                      title={country.governmentType}
+                    >
+                      {country.governmentType}
+                    </p>
+                  </div>
                 </div>
                 ) : (
                 <div className="grid grid-cols-2 gap-2 mb-3">

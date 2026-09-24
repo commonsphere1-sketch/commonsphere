@@ -28,24 +28,17 @@ import {
 import { useProfile } from "@/contexts/ProfileContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { passwordProblem } from "@/components/AuthModal";
 import { exportAccountData } from "@/lib/supabaseData";
+import { useWatchlist, type WatchItem } from "@/contexts/WatchlistContext";
+import { TOPICS } from "@/lib/watchlist";
 
-// ─── Topic config ────────────────────────────────────────────────────────────
-const ALERT_TOPICS = [
-  { id: "policy", label: "Policy Changes" },
-  { id: "leadership", label: "Leadership / Elections" },
-  { id: "economy", label: "Economic Updates" },
-  { id: "conflicts", label: "Conflicts & Security" },
-  { id: "legislation", label: "New Legislation" },
-];
-
+/** A search result: "country-ke" / "state-ca" plus what to show. */
 interface WatchedEntity {
   id: string;
   name: string;
   type: "Country" | "State";
-  topics: string[];
 }
 
 // ─── Searchable add-row ───────────────────────────────────────────────────────
@@ -74,7 +67,6 @@ function EntitySearch({
         id: `country-${c.id}`,
         name: c.name,
         type: "Country" as const,
-        topics: ["policy", "leadership"],
       }));
     const states = usStatesData
       .filter(
@@ -87,7 +79,6 @@ function EntitySearch({
         id: `state-${s.id}`,
         name: s.name,
         type: "State" as const,
-        topics: ["policy", "leadership"],
       }));
     return [...countries, ...states];
   }, [q, existingIds]);
@@ -170,54 +161,44 @@ function EntitySearch({
 }
 
 // ─── Single watched entity row ────────────────────────────────────────────────
-function WatchedRow({
-  entity,
-  onToggleTopic,
-  onRemove,
-}: {
-  entity: WatchedEntity;
-  onToggleTopic: (entityId: string, topicId: string) => void;
-  onRemove: (entityId: string) => void;
-}) {
+function WatchedRow({ item }: { item: WatchItem }) {
+  const { toggleTopic, remove, markSeen } = useWatchlist();
+  const topics = TOPICS.filter((t) => t.for.includes(item.type));
   return (
     <div className="bg-muted/50 border border-border/60 rounded-xl p-3 space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          {entity.type === "Country" ? (
-            <Globe
-              size={14}
-              weight="fill"
-              className="text-secondary shrink-0"
-            />
+          {item.type === "country" ? (
+            <Globe size={14} weight="fill" className="text-secondary shrink-0" />
           ) : (
-            <MapPin
-              size={14}
-              weight="fill"
-              className="text-secondary shrink-0"
-            />
+            <MapPin size={14} weight="fill" className="text-secondary shrink-0" />
           )}
-          <span className="text-[13px] font-semibold text-foreground truncate">
-            {entity.name}
-          </span>
+          <span className="text-[13px] font-semibold text-foreground truncate">{item.name}</span>
           <span className="text-[10px] font-mono text-muted-foreground px-1.5 py-0.5 rounded bg-card border border-border shrink-0">
-            {entity.type}
+            {item.type === "country" ? "Country" : "State"}
           </span>
+          {item.changes.length > 0 && (
+            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-secondary text-secondary-foreground shrink-0">
+              {item.changes.length} new
+            </span>
+          )}
         </div>
         <button
-          onClick={() => onRemove(entity.id)}
+          onClick={() => void remove(item)}
           className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded shrink-0"
-          aria-label={`Remove ${entity.name}`}
+          aria-label={`Stop watching ${item.name}`}
         >
           <Trash size={13} weight="bold" />
         </button>
       </div>
       <div className="flex flex-wrap gap-1.5">
-        {ALERT_TOPICS.map((t) => {
-          const active = entity.topics.includes(t.id);
+        {topics.map((t) => {
+          const active = item.topics.includes(t.id);
           return (
             <button
               key={t.id}
-              onClick={() => onToggleTopic(entity.id, t.id)}
+              onClick={() => void toggleTopic(item, t.id)}
+              aria-pressed={active}
               className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium border transition-colors ${
                 active
                   ? "chip-selected"
@@ -230,6 +211,22 @@ function WatchedRow({
           );
         })}
       </div>
+      {item.changes.length > 0 && (
+        <div className="rounded-lg border border-secondary/30 bg-card px-3 py-2 space-y-1">
+          {item.changes.map((c) => (
+            <p key={c.key} className="text-[11px] font-sans text-foreground leading-snug">
+              <span className="text-muted-foreground">{c.label}:</span> {c.from}{" "}
+              <span className="text-muted-foreground">→</span> <span className="font-semibold">{c.to}</span>
+            </p>
+          ))}
+          <button
+            onClick={() => void markSeen(item)}
+            className="text-[11px] font-semibold text-secondary hover:underline pt-0.5"
+          >
+            Mark as seen
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -252,7 +249,6 @@ export function SettingsPage() {
   // stayed put — and it claimed "Dark" even when the app was in light mode.
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
-  const [emailAlerts, setEmailAlerts] = useState(true);
   const {
     displayName: savedName,
     email: savedEmail,
@@ -281,24 +277,23 @@ export function SettingsPage() {
   }, [savedUsername]);
   const [profileError, setProfileError] = useState("");
   const [profileSaved, setProfileSaved] = useState(false);
-  const [watched, setWatched] = useState<WatchedEntity[]>([
-    {
-      id: "country-us",
-      name: "United States",
-      type: "Country",
-      topics: ["policy", "leadership", "economy"],
-    },
-    {
-      id: "state-ca",
-      name: "California",
-      type: "State",
-      topics: ["policy", "legislation"],
-    },
-  ]);
-
+  const watch = useWatchlist();
+  /* Arriving from the header bell (#alert-subscriptions) or the reset page
+     (#security-settings): go to that section. After a tick, because the
+     layout scrolls every newly opened page to the top first. */
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (!/^#[a-z-]+$/.test(hash)) return;
+    const t = setTimeout(
+      () => document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      60,
+    );
+    return () => clearTimeout(t);
+  }, [hash]);
+  const { isConfigured: accountsOn, openAuth } = useAuth();
   const existingIds = React.useMemo(
-    () => new Set(watched.map((w) => w.id)),
-    [watched],
+    () => new Set(watch.items.map((w) => `${w.type}-${w.id}`)),
+    [watch.items],
   );
 
   async function handleProfileSave() {
@@ -343,23 +338,8 @@ export function SettingsPage() {
   }
 
   function addEntity(e: WatchedEntity) {
-    setWatched((prev) => [...prev, e]);
-  }
-
-  function removeEntity(id: string) {
-    setWatched((prev) => prev.filter((w) => w.id !== id));
-  }
-
-  function toggleTopic(entityId: string, topicId: string) {
-    setWatched((prev) =>
-      prev.map((w) => {
-        if (w.id !== entityId) return w;
-        const topics = w.topics.includes(topicId)
-          ? w.topics.filter((t) => t !== topicId)
-          : [...w.topics, topicId];
-        return { ...w, topics };
-      }),
-    );
+    const [type, ...rest] = e.id.split("-");
+    void watch.add(type === "state" ? "state" : "country", rest.join("-"));
   }
 
   return (
@@ -624,57 +604,100 @@ export function SettingsPage() {
               id="alert-subscriptions"
               className="text-base font-semibold font-sans text-foreground"
             >
-              Alert Subscriptions
+              Watch list &amp; alerts
             </h2>
           </div>
-          <p className="text-xs text-muted-foreground font-sans mb-4">
-            Get email &amp; in-app notifications when updates occur for tracked
-            countries and states.
+          <p className="text-xs text-muted-foreground font-sans mb-4 leading-relaxed">
+            Watch countries and states. When a data update changes a figure you
+            follow — a new head of state, a revised inflation rate, a new
+            minimum wage — it is listed here and counted on the bell at the top
+            of every page, until you mark it seen.
           </p>
 
-          {/* Master email toggle */}
-          <div className="flex items-center justify-between mb-4 pb-4 border-b border-border/60">
+          {/* Email digest: an honest opt-in. Nothing sends email yet. */}
+          <div className="flex items-center justify-between gap-4 mb-4 pb-4 border-b border-border/60">
             <div>
-              <p className="text-sm font-sans text-foreground">Email Digest</p>
-              <p className="text-xs text-muted-foreground font-sans">
-                Receive a daily summary for your watched locations
+              <p className="text-sm font-sans text-foreground">Email digest</p>
+              <p className="text-xs text-muted-foreground font-sans leading-snug">
+                {watch.mode === "account"
+                  ? "Not sent yet. Turn this on to be emailed these changes once digests start; nothing is sent until then."
+                  : accountsOn
+                    ? "Needs an account, so there is an address to send to."
+                    : "Needs an account, which this site does not offer yet."}
               </p>
             </div>
-            <button
-              role="switch"
-              aria-checked={emailAlerts}
-              onClick={() => setEmailAlerts((v) => !v)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring ${emailAlerts ? "bg-secondary" : "bg-muted"}`}
-              aria-label="Toggle email alerts"
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-foreground transition-transform duration-200 ${emailAlerts ? "translate-x-6" : "translate-x-1"}`}
-              />
-            </button>
+            {watch.mode === "account" ? (
+              <button
+                role="switch"
+                aria-checked={watch.emailDigest}
+                onClick={() => void watch.setEmailDigest(!watch.emailDigest)}
+                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring ${watch.emailDigest ? "bg-secondary" : "bg-muted"}`}
+                aria-label="Email me a digest once digests start"
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-foreground transition-transform duration-200 ${watch.emailDigest ? "translate-x-6" : "translate-x-1"}`}
+                />
+              </button>
+            ) : accountsOn ? (
+              <button
+                onClick={() => openAuth("signin")}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/80 shrink-0"
+              >
+                Sign in
+              </button>
+            ) : null}
           </div>
 
-          {/* Watched entities */}
+          {watch.deviceCount > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3 rounded-lg border border-border px-3 py-2">
+              <p className="text-xs text-muted-foreground">
+                {watch.deviceCount} place{watch.deviceCount === 1 ? " was" : "s were"} watched in this browser before you signed in.
+              </p>
+              <button
+                onClick={() => void watch.importDevice()}
+                className="px-3 py-1 rounded-lg text-xs font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              >
+                Add to my account
+              </button>
+            </div>
+          )}
+
+          {watch.changeCount > 0 && (
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <p className="text-xs font-semibold text-foreground">
+                {watch.changeCount} change{watch.changeCount === 1 ? "" : "s"} since you last looked
+              </p>
+              <button
+                onClick={() => void watch.markAllSeen()}
+                className="text-xs font-semibold text-secondary hover:underline"
+              >
+                Mark all as seen
+              </button>
+            </div>
+          )}
+
+          {watch.error && <p className="text-xs text-destructive mb-3">{watch.error}</p>}
+
+          {/* Watched places */}
           <div className="space-y-2 mb-3">
-            {watched.length === 0 && (
+            {!watch.isPending && watch.items.length === 0 && (
               <p className="text-xs text-muted-foreground text-center py-4">
-                No locations tracked yet. Search below to add one.
+                Nothing watched yet. Search below to add a country or state.
               </p>
             )}
-            {watched.map((w) => (
-              <WatchedRow
-                key={w.id}
-                entity={w}
-                onToggleTopic={toggleTopic}
-                onRemove={removeEntity}
-              />
+            {watch.items.map((w) => (
+              <WatchedRow key={w.key} item={w} />
             ))}
           </div>
 
           {/* Search to add */}
           <EntitySearch onAdd={addEntity} existingIds={existingIds} />
-          <p className="text-[11px] text-muted-foreground mt-2">
-            Toggle individual topics on each location to control what alerts you
-            receive.
+          <p className="text-[11px] text-muted-foreground mt-2 leading-snug">
+            {watch.mode === "account"
+              ? "Saved to your account. "
+              : "Saved in this browser. "}
+            Choose topics per place: figures change only when the site's data is
+            updated, and each figure's source and year are on the place's card.
           </p>
         </section>
 
@@ -915,7 +938,7 @@ function SecurityPanel() {
       <div className="space-y-2 pt-4 border-t border-border/60">
         <p className="text-sm font-sans text-foreground">Download your data</p>
         <p className="text-xs text-muted-foreground font-sans leading-snug">
-          A file with your profile, notes, links and pins, as JSON.
+          A file with your profile, notes, links, pins and watch list, as JSON.
         </p>
         {exportMsg && <p className="text-xs text-destructive">{exportMsg}</p>}
         <Button
@@ -948,7 +971,7 @@ function SecurityPanel() {
         <p className="text-sm font-sans text-destructive font-semibold">Delete account</p>
         <p className="text-xs text-muted-foreground font-sans leading-snug">
           Permanently deletes your account, profile, photo, notes, links, voice
-          recordings and pins. This cannot be undone. Type DELETE to confirm.
+          recordings, pins and watch list. This cannot be undone. Type DELETE to confirm.
         </p>
         <Input
           value={confirmDelete}

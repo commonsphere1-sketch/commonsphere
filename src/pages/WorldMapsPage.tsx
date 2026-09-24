@@ -3658,50 +3658,84 @@ export function WorldMapsPage() {
                           className="grid gap-2 mt-2"
                           style={{ gridTemplateColumns: "repeat(auto-fill, minmax(14rem, 1fr))" }}
                         >
-                          {[
-                            ["Capital", focusCountry.capital === "None" ? "No capital" : focusCountry.capital],
-                            ["Government", focusCountry.governmentType],
-                            [
-                              "Population",
-                              focusCountry.uninhabited
-                                ? "Uninhabited"
-                                : na(focusCountry.population, (v) =>
-                                    v >= 1e9 ? `${(v / 1e9).toFixed(2)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v.toLocaleString(),
-                                  ),
-                            ],
-                            // In billions of dollars, scaled: Montenegro read 0.01T.
-                            ["GDP", na(focusCountry.gdp, (v) => usdFromBillions(v))],
-                            ["GDP per capita", na(focusCountry.gdpPerCapita, (v) => "$" + Math.round(v).toLocaleString())],
-                            ["GDP growth", na(focusCountry.gdpGrowth, (v) => `${v > 0 ? "+" : ""}${v}%`)],
-                            ["Life expectancy", na(focusCountry.lifeExpectancy, (v) => `${v} yrs`)],
-                            ["Human development", na(focusCountry.humanDevelopmentIndex, (v) => v.toFixed(3))],
-                            ["Unemployment", na(focusCountry.unemploymentRate, (v) => `${v}%`)],
-                            ["Inflation", na(focusCountry.inflationRate, (v) => `${v}%`)],
-                            // km² in full below a million: it read 0.01M km².
-                            [
-                              "Area",
-                              na(focusCountry.areaKm2, (v) =>
-                                v >= 1e6 ? `${(v / 1e6).toFixed(2)}M km²` : v < 10 ? `${v < 1 ? v.toFixed(2) : v.toFixed(1)} km²` : `${Math.round(v).toLocaleString()} km²`,
-                              ),
-                            ],
-                            ["Currency", focusCountry.currency],
-                          ].map(([k, v]) => (
-                            <div
-                              key={k}
-                              className="flex items-baseline justify-between gap-3 rounded-lg px-3 py-1.5"
-                              style={{
-                                background: isLight ? "rgba(0,0,0,0.025)" : "rgba(255,255,255,0.04)",
-                                border: isLight
-                                  ? "1px solid rgba(0,0,0,0.06)"
-                                  : "1px solid rgba(255,255,255,0.06)",
-                              }}
-                            >
-                              <span className="text-[10px] font-sans text-muted-foreground shrink-0">{k}</span>
-                              <span className="text-[12px] font-mono font-semibold text-foreground text-right min-w-0 break-words">
-                                {v}
-                              </span>
-                            </div>
-                          ))}
+                          {(() => {
+                            const c = focusCountry;
+                            type Row = { k: string; v: string; mono: boolean };
+                            const area = na(c.areaKm2, (v) =>
+                              // km² in full below a million: it read 0.01M km².
+                              v >= 1e6 ? `${(v / 1e6).toFixed(2)}M km²` : v < 10 ? `${v < 1 ? v.toFixed(2) : v.toFixed(1)} km²` : `${Math.round(v).toLocaleString()} km²`,
+                            );
+                            const sovereign = c.sovereign
+                              ? countriesData.find((x) => x.code === c.sovereign)?.name ?? c.sovereign
+                              : null;
+                            /* Words in the site's text face, figures in mono.
+                               A place with no permanent population gets only
+                               the rows that apply to it. */
+                            const rows: Row[] = c.uninhabited
+                              ? [
+                                  { k: "Status", v: c.governmentType, mono: false },
+                                  ...(sovereign ? [{ k: "Administered by", v: sovereign, mono: false }] : []),
+                                  { k: "Population", v: "None", mono: false },
+                                  { k: "Area", v: area, mono: true },
+                                  ...(c.currency && c.currency !== "None" ? [{ k: "Currency", v: c.currency, mono: false }] : []),
+                                ]
+                              : [
+                                  { k: "Capital", v: c.capital === "None" ? "No capital" : c.capital, mono: false },
+                                  { k: "Government", v: c.governmentType, mono: false },
+                                  ...(sovereign ? [{ k: "Administered by", v: sovereign, mono: false }] : []),
+                                  {
+                                    k: "Population",
+                                    v: na(c.population, (v) =>
+                                      v >= 1e9 ? `${(v / 1e9).toFixed(2)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v.toLocaleString(),
+                                    ),
+                                    mono: true,
+                                  },
+                                  // In billions of dollars, scaled: Montenegro read 0.01T.
+                                  { k: "GDP", v: na(c.gdp, (v) => usdFromBillions(v)), mono: true },
+                                  { k: "GDP per capita", v: na(c.gdpPerCapita, (v) => "$" + Math.round(v).toLocaleString()), mono: true },
+                                  { k: "GDP growth", v: na(c.gdpGrowth, (v) => `${v > 0 ? "+" : ""}${v}%`), mono: true },
+                                  { k: "Life expectancy", v: na(c.lifeExpectancy, (v) => `${v} yrs`), mono: true },
+                                  { k: "Human development", v: na(c.humanDevelopmentIndex, (v) => v.toFixed(3)), mono: true },
+                                  { k: "Unemployment", v: na(c.unemploymentRate, (v) => `${v}%`), mono: true },
+                                  { k: "Inflation", v: na(c.inflationRate, (v) => `${v}%`), mono: true },
+                                  { k: "Area", v: area, mono: true },
+                                  { k: "Currency", v: c.currency, mono: false },
+                                ];
+                            // Figures no source publishes are named once
+                            // rather than listed as a column of dashes.
+                            const shown = rows.filter((r) => r.v && r.v !== "—");
+                            const missing = rows.filter((r) => !r.v || r.v === "—").map((r) => r.k);
+                            return (
+                              <>
+                                {shown.map(({ k, v, mono }) => (
+                                  <div
+                                    key={k}
+                                    className="flex items-baseline justify-between gap-3 rounded-lg px-3 py-1.5"
+                                    style={{
+                                      background: isLight ? "rgba(0,0,0,0.025)" : "rgba(255,255,255,0.04)",
+                                      border: isLight
+                                        ? "1px solid rgba(0,0,0,0.06)"
+                                        : "1px solid rgba(255,255,255,0.06)",
+                                    }}
+                                  >
+                                    <span className="text-[10px] font-sans text-muted-foreground shrink-0">{k}</span>
+                                    <span
+                                      className={`text-[12px] font-semibold text-foreground text-right min-w-0 break-words ${mono ? "font-mono" : "font-sans"}`}
+                                    >
+                                      {v}
+                                    </span>
+                                  </div>
+                                ))}
+                                {(c.uninhabited || missing.length > 0) && (
+                                  <p className="text-[10px] font-sans text-muted-foreground leading-snug px-1">
+                                    {c.uninhabited
+                                      ? "No permanent population, so there are no economic or social figures."
+                                      : `Not published for ${c.name}: ${missing.join(", ").toLowerCase()}. Left blank rather than estimated.`}
+                                  </p>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       )}
                     </aside>

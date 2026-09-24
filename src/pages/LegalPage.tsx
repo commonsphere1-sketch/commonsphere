@@ -63,6 +63,7 @@ const STORED_KEYS = [
   ["cs_pinned_states", "States pinned to the dashboard strip"],
   ["cs_focus", "The country or state you follow on the dashboard"],
   ["cs-notes", "Notes written while signed out"],
+  ["cs-watchlist", "Places watched while signed out, and their figures as last seen"],
   ["cs-plan-interest", "A plan you registered interest in"],
   ["cs_pins_synced_for", "Which account this browser last synced pins with"],
   ["sb-…-auth-token", "Your sign-in session, while you are signed in"],
@@ -225,9 +226,11 @@ export function LegalPage() {
               (held only as a one-way hash by our authentication service),
               your display name, username and avatar colour, a profile photo
               if you upload one, your notes and the links attached to them,
-              voice recordings you attach to notes, and the countries and
-              states you pin. Searches, pages visited and data you look at are
-              not recorded.
+              voice recordings you attach to notes, the countries and states
+              you pin or watch (with the figures as you last saw them, which
+              is how alerts are worked out), and whether you want an email
+              digest. Searches, pages visited and data you look at are not
+              recorded.
             </P>
             <P>
               This is held in a Supabase project (Supabase, Inc. provides the
@@ -307,7 +310,7 @@ export function LegalPage() {
               Settings shows and edits everything in your profile, and lets
               you download a copy of your account's data or delete the
               account. Deleting it removes your profile, photo, notes, links,
-              recordings and pins at once. What is kept in your browser you
+              recordings, pins and watch list at once. What is kept in your browser you
               erase by clearing site data.
             </P>
           </Section>
@@ -440,7 +443,8 @@ export function LegalPage() {
               Without an account: none by us — what you enter stays in your
               browser. With an account: your email address, password hash,
               display name, username, avatar colour and photo, notes, note
-              links, voice recordings and pins, plus the technical records the
+              links, voice recordings, pins, watch list and email-digest
+              choice, plus the technical records the
               sign-in service keeps to run sessions (such as the time of your
               last sign-in and the IP address a session came from).
             </P>

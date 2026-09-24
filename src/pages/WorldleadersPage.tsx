@@ -13886,7 +13886,7 @@ function LeaderDetail({
             <div className="flex items-center gap-1.5 shrink-0">
               <button
                 onClick={() => setIsExpanded((v) => !v)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-label={
                   isExpanded ? "Collapse modal" : "Expand modal to full screen"
                 }
@@ -13898,7 +13898,7 @@ function LeaderDetail({
               </button>
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-sans cursor-pointer"
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-label="Close"
               >
                 <span className="text-xs font-sans font-medium">Close</span>
@@ -14481,7 +14481,7 @@ function MonarchDetail({
             <div className="flex items-center gap-1.5 shrink-0">
               <button
                 onClick={() => setIsExpanded((v) => !v)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-label={
                   isExpanded ? "Collapse modal" : "Expand modal to full screen"
                 }
@@ -14493,7 +14493,7 @@ function MonarchDetail({
               </button>
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-sans cursor-pointer"
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-label="Close"
               >
                 <span className="text-xs font-sans font-medium">Close</span>
@@ -15477,7 +15477,7 @@ function RichestFamiliesView() {
                 <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     onClick={() => setFamilyExpanded((v) => !v)}
-                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                     aria-label={
                       familyExpanded
                         ? "Collapse modal"
@@ -15493,7 +15493,7 @@ function RichestFamiliesView() {
                   </button>
                   <button
                     onClick={closeFamily}
-                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-sans cursor-pointer"
+                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                     aria-label="Close"
                   >
                     <span className="text-xs font-sans font-medium">Close</span>
@@ -15654,7 +15654,7 @@ function AllianceModal({
             <div className="flex items-center gap-1.5 shrink-0">
               <button
                 onClick={() => setIsExpanded((v) => !v)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
                 title={isExpanded ? "Collapse" : "Expand to full screen"}
               >
@@ -15664,7 +15664,7 @@ function AllianceModal({
               </button>
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-label="Close"
               >
                 <span className="text-xs font-sans font-medium">Close</span>

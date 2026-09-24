@@ -5606,7 +5606,22 @@ function FocusCarousel({
   /* One card in the deck. The centre one is the choice; the two beside it
      are the neighbours in the list, drawn smaller and behind so the deck
      reads as a strip you can page through rather than three equal options. */
-  const Card = ({ entry, role }: { entry: typeof item; role: "prev" | "cur" | "next" }) => {
+  /* The card's body and its Follow button are siblings, not one inside the
+     other: a button inside a button is invalid, and a click on Follow also
+     reached the card's own handler and opened the place. */
+  const Card = ({
+    entry,
+    role,
+    onActivate,
+    label,
+    tabIndex,
+  }: {
+    entry: typeof item;
+    role: "prev" | "cur" | "next";
+    onActivate: () => void;
+    label: string;
+    tabIndex: number;
+  }) => {
     const isCountry = kind === "country";
     const c = entry as (typeof countries)[number];
     const st = entry as (typeof states)[number];
@@ -5636,6 +5651,13 @@ function FocusCarousel({
           boxShadow: isLight ? "0 2px 8px rgba(0,0,0,0.07)" : "none",
         }}
       >
+        <button
+          type="button"
+          onClick={onActivate}
+          aria-label={label}
+          tabIndex={tabIndex}
+          className="block w-full text-left cursor-pointer"
+        >
         {/* Banner: the flag, for a state as for a country. flagcdn serves the
             state flags as us-<code> (all fifty checked; see RankingsPage). A
             state's abbreviation sits underneath and shows only if its image
@@ -5706,6 +5728,7 @@ function FocusCarousel({
             </div>
           ))}
         </div>
+        </button>
 
         {role === "cur" && (
           <button
@@ -5852,16 +5875,10 @@ function FocusCarousel({
           const entry = list[(((at + o) % list.length) + list.length) % list.length];
           const away = Math.abs(o);
           return (
-            <button
+            <div
               key={entry.id}
-              type="button"
-              onClick={() => (o === 0 ? openItem() : step(o))}
-              aria-label={
-                o === 0 ? `Open ${entry.name}` : `Show ${entry.name}`
-              }
               aria-hidden={away === 2}
-              tabIndex={away === 2 ? -1 : 0}
-              className="absolute cursor-pointer transition-[transform,opacity] duration-500 ease-out motion-reduce:transition-none"
+              className="absolute transition-[transform,opacity] duration-500 ease-out motion-reduce:transition-none"
               style={{
                 transform: `translateX(${o * 172}px) scale(${o === 0 ? 1 : 0.82})`,
                 opacity: away === 0 ? 1 : away === 1 ? 0.45 : 0,
@@ -5869,8 +5886,14 @@ function FocusCarousel({
                 pointerEvents: away === 2 ? "none" : undefined,
               }}
             >
-              <Card entry={entry} role={o === 0 ? "cur" : o < 0 ? "prev" : "next"} />
-            </button>
+              <Card
+                entry={entry}
+                role={o === 0 ? "cur" : o < 0 ? "prev" : "next"}
+                onActivate={() => (o === 0 ? openItem() : step(o))}
+                label={o === 0 ? `Open ${entry.name}` : `Show ${entry.name}`}
+                tabIndex={away === 2 ? -1 : 0}
+              />
+            </div>
           );
         })}
       </div>

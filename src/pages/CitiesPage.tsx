@@ -2736,7 +2736,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
             <div className="flex items-center gap-1.5 shrink-0">
               <button
                 onClick={() => setIsExpanded((v) => !v)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-label={
                   isExpanded ? "Collapse modal" : "Expand modal to full screen"
                 }
@@ -2748,7 +2748,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
               </button>
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-label="Close"
               >
                 <span className="text-xs font-sans font-medium">Close</span>

@@ -842,7 +842,7 @@ function PolicyModal({
             </div>
             <button
               onClick={() => setIsExpanded((v) => !v)}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer shrink-0"
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
               aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
               title={isExpanded ? "Collapse" : "Expand to full screen"}
             >
@@ -852,7 +852,7 @@ function PolicyModal({
             </button>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer shrink-0"
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
               aria-label="Close"
             >
               <span className="text-xs font-sans font-medium">Close</span>
