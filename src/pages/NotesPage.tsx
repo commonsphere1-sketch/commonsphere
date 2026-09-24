@@ -15,6 +15,8 @@ import {
   Pause,
 } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
+import { FollowedPlaces } from "@/components/FollowedPlaces";
+import type { EntityType } from "@/lib/watchlist";
 
 export function NotesPage() {
   const [search, setSearch] = useState("");
@@ -27,6 +29,8 @@ export function NotesPage() {
   const [importResult, setImportResult] = useState("");
 
   const entityTypes = ["All", "Country", "State", "City", "Economy"];
+  const followTypes: EntityType[] =
+    filterType === "All" ? ["country", "state"] : filterType === "Country" ? ["country"] : filterType === "State" ? ["state"] : [];
 
   const filtered = notes.filter((n: Note) => {
     const matchSearch =
@@ -127,6 +131,29 @@ export function NotesPage() {
             ))}
           </div>
         </div>
+
+        {/* The countries and states you follow, kept here beside your notes.
+            The type buttons and the search narrow these too; a city or an
+            economy cannot be followed, so those filters hide this. */}
+        {followTypes.length > 0 && (
+          <FollowedPlaces
+            types={followTypes}
+            title={
+              followTypes.length === 2
+                ? "Places you follow"
+                : followTypes[0] === "country"
+                  ? "Countries you follow"
+                  : "States you follow"
+            }
+            match={search ? (name) => name.toLowerCase().includes(search.toLowerCase()) : undefined}
+            emptyText={
+              <>
+                Follow a country or a US state with the ☆ on its card or in its pop-up and its card is kept
+                here, with its key figures and anything that changes in a data update since you last looked.
+              </>
+            }
+          />
+        )}
 
         {isPending && (
           <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">

@@ -47,7 +47,8 @@ import { SourceLink } from "../components/SourceLink";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 import { useWatchlist } from "@/contexts/WatchlistContext";
-import { useAuth } from "@/contexts/AuthContext";
+import { FollowedPlaces } from "@/components/FollowedPlaces";
+import { fmtArea, fmtGDP, fmtPop } from "@/lib/placeFormat";
 
 // ── Source citation constants ────────────────────────────────────────────
 // ── Extended per-country data ────────────────────────────────────────────────
@@ -98,30 +99,6 @@ const SRC_CONSTITUTION = [
   { label: "Constitute Project", url: "https://www.constituteproject.org/" },
 ];
 
-/* Format GDP: trillions, billions, or millions.
-   Small economies are the reason for the last case - the Cook Islands'
-   $0.409bn rounded to "$0B" and Niue's to nothing at all, which reads as no
-   economy rather than a small one. */
-function fmtGDP(billionsUSD: number): string {
-  if (billionsUSD >= 1000)
-    return `$${(billionsUSD / 1000).toFixed(2).replace(/\.?0+$/, "")}T`;
-  if (billionsUSD >= 1) return `$${Math.round(billionsUSD)}B`;
-  if (billionsUSD >= 0.001) return `$${Math.round(billionsUSD * 1000)}M`;
-  return `$${Math.round(billionsUSD * 1e9).toLocaleString()}`;
-}
-
-/* Area in whichever unit keeps it readable. Fixed at millions, every small
-   country read "0.00M km²": the Cook Islands' 236 km² and Monaco's 2 are not
-   the same as nothing. */
-function fmtArea(km2: number): string {
-  if (!has(km2)) return "—";
-  if (km2 >= 1e6) return `${(km2 / 1e6).toFixed(2)}M km²`;
-  // Vatican City is 0.44 km²: whole numbers would call it 0.
-  if (km2 < 10) return `${km2 < 1 ? km2.toFixed(2) : km2.toFixed(1)} km²`;
-  return `${Math.round(km2).toLocaleString()} km²`;
-}
-
-// Format population: show K for < 1M, M for >= 1M, B for >= 1B
 /** The headline figures a card shows; how many are unpublished decides the note. */
 const HEADLINE_FIELDS = [
   "population",
@@ -367,14 +344,6 @@ function GeographySection({ country }: { country: Country }) {
       {src && <SourceLink sources={[src]} className="mt-2" />}
     </div>
   );
-}
-
-function fmtPop(n: number): string {
-  if (!has(n)) return "—";
-  if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
-  if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
-  if (n >= 1000) return `${Math.round(n / 1000)}K`;
-  return `${n.toLocaleString()}`;
 }
 
 /* One hue per continent and per HDI band, from the shared chip palette
@@ -16661,140 +16630,6 @@ function InternationalSnapshot({ countries }: { countries: Country[] }) {
   );
 }
 
-/**
- * The countries the reader follows, at the top of the page, so they can be
- * checked at a glance: each with its key published figures and anything
- * that has changed since it was last looked at. Following is the watch list
- * (account when signed in, this browser otherwise), so the same places
- * light the bell in the header and appear in Settings.
- */
-function FollowedCountries({
-  countries,
-  onOpen,
-}: {
-  countries: Country[];
-  onOpen: (c: Country) => void;
-}) {
-  const watch = useWatchlist();
-  const { isConfigured, openAuth } = useAuth();
-  const followed = watch.items.filter((i) => i.type === "country");
-  const figures = (c: Country) => {
-    const out: [string, string][] = [];
-    if (has(c.gdp)) out.push(["GDP", fmtGDP(c.gdp)]);
-    if (has(c.population)) out.push(["Population", fmtPop(c.population)]);
-    if (has(c.gdpGrowth)) out.push(["Growth", `${c.gdpGrowth > 0 ? "+" : ""}${Number(c.gdpGrowth.toFixed(2))}%`]);
-    if (has(c.humanDevelopmentIndex)) out.push(["HDI", String(c.humanDevelopmentIndex)]);
-    if (has(c.lifeExpectancy)) out.push(["Life expect.", `${c.lifeExpectancy} yrs`]);
-    if (has(c.areaKm2)) out.push(["Area", fmtArea(c.areaKm2)]);
-    return out.slice(0, 3);
-  };
-  return (
-    <section aria-labelledby="followed-countries" className="bg-card border border-border rounded-2xl p-4 mb-6">
-      <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
-        <h2
-          id="followed-countries"
-          className="flex items-center gap-2 text-xs font-bold font-sans uppercase tracking-widest text-foreground"
-        >
-          <Star size={13} weight="fill" className="text-amber-500" />
-          Countries you follow
-          {followed.length > 0 && (
-            <span className="text-[10px] font-mono font-normal normal-case tracking-normal text-muted-foreground">
-              {followed.length}
-            </span>
-          )}
-        </h2>
-        <p className="text-[11px] font-sans text-muted-foreground">
-          {watch.mode === "account" ? (
-            "Saved to your account"
-          ) : isConfigured ? (
-            <>
-              Saved in this browser ·{" "}
-              <button onClick={() => openAuth("signin")} className="underline hover:text-foreground">
-                sign in
-              </button>{" "}
-              to keep them on every device
-            </>
-          ) : (
-            "Saved in this browser"
-          )}
-        </p>
-      </div>
-      {followed.length === 0 ? (
-        <p className="text-xs font-sans text-muted-foreground leading-relaxed">
-          Follow a country with the ☆ on its card or in its pop-up and it stays here, with its key
-          figures and anything that changes in a data update since you last looked.
-        </p>
-      ) : (
-        <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1">
-          {followed.map((item) => {
-            const c = countries.find((x) => x.id === item.id);
-            if (!c) return null;
-            return (
-              <div
-                key={item.key}
-                className="modal-tile rounded-xl p-3 w-56 shrink-0 flex flex-col gap-2"
-              >
-                <div className="flex items-center gap-2">
-                  <img
-                    src={`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`}
-                    alt=""
-                    className="w-7 h-5 rounded-[3px] object-cover border border-border shrink-0"
-                    onError={(e) => {
-                      e.currentTarget.style.visibility = "hidden";
-                    }}
-                  />
-                  <button
-                    onClick={() => onOpen(c)}
-                    className="text-sm font-semibold font-sans text-foreground truncate text-left hover:underline flex-1 min-w-0"
-                  >
-                    {c.name}
-                  </button>
-                  <button
-                    onClick={() => void watch.toggle("country", c.id)}
-                    className="p-1 rounded text-amber-500 hover:text-amber-600 shrink-0"
-                    aria-label={`Unfollow ${c.name}`}
-                    title="Unfollow"
-                  >
-                    <Star size={14} weight="fill" />
-                  </button>
-                </div>
-                <div className="space-y-1">
-                  {figures(c).map(([k, v]) => (
-                    <div key={k} className="flex items-baseline justify-between gap-2">
-                      <span className="text-[10px] font-sans text-muted-foreground">{k}</span>
-                      <span className="text-xs font-mono font-semibold text-foreground">{v}</span>
-                    </div>
-                  ))}
-                </div>
-                {item.changes.length > 0 ? (
-                  <div className="rounded-lg border border-secondary/30 px-2 py-1.5 space-y-0.5">
-                    {item.changes.slice(0, 2).map((ch) => (
-                      <p key={ch.key} className="text-[10px] font-sans text-foreground leading-snug">
-                        <span className="text-muted-foreground">{ch.label}:</span> {ch.from} → <b>{ch.to}</b>
-                      </p>
-                    ))}
-                    {item.changes.length > 2 && (
-                      <p className="text-[10px] font-sans text-muted-foreground">+{item.changes.length - 2} more</p>
-                    )}
-                    <button
-                      onClick={() => void watch.markSeen(item)}
-                      className="text-[10px] font-semibold text-secondary hover:underline"
-                    >
-                      Mark as seen
-                    </button>
-                  </div>
-                ) : (
-                  <p className="text-[10px] font-sans text-muted-foreground">No changes since you last looked</p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </section>
-  );
-}
-
 export function CountriesPage() {
   const { countries: liveCountries } = useLiveData();
   const watch = useWatchlist();
@@ -16918,7 +16753,15 @@ export function CountriesPage() {
         </div>
 
         {/* ── COUNTRIES YOU FOLLOW ── */}
-        <FollowedCountries countries={liveCountries} onOpen={setModalCountry} />
+        <FollowedPlaces
+          types={["country"]}
+          title="Countries you follow"
+          emptyText="Follow a country with the ☆ on its card or in its pop-up and it stays here, with its key figures and anything that changes in a data update since you last looked. The same list is in My Notes."
+          onOpen={(_, id) => {
+            const c = liveCountries.find((x) => x.id === id);
+            if (c) setModalCountry(c);
+          }}
+        />
 
         {/* ── INTERNATIONAL SNAPSHOT ── */}
         <InternationalSnapshot countries={liveCountries} />
