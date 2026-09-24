@@ -8,19 +8,24 @@ import {
   Users,
   ArrowUp,
   ArrowDown,
-  MagnifyingGlass,  Info,
+  MagnifyingGlass,
+  Info,
   CheckCircle,
   Clock,
   XCircle,
   Globe,
   Buildings,
-  MapPin,  Heart,
+  MapPin,
+  Heart,
   BookOpen,
   Wrench,
   ShieldChevron,
   TrendUp,
   HandHeart,
   DeviceMobile,
+  ArrowsIn,
+  ArrowsOut,
+  X,
 } from "@phosphor-icons/react";
 import { SourceLink } from "../components/SourceLink";
 import {
@@ -847,16 +852,14 @@ function PolicyModal({
               aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
               title={isExpanded ? "Collapse" : "Expand to full screen"}
             >
-              <span className="text-xs font-sans font-medium">
-                  {isExpanded ? "Collapse" : "Expand"}
-                </span>
+              {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
             </button>
             <button
               onClick={onClose}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
               aria-label="Close"
             >
-              <span className="text-xs font-sans font-medium">Close</span>
+              <X size={18} />
             </button>
           </div>
 

@@ -19,6 +19,9 @@ import {
   Money,
   XCircle,
   CheckCircle,
+  ArrowsIn,
+  ArrowsOut,
+  X,
 } from "@phosphor-icons/react";
 import {
   conflictsData,
@@ -202,16 +205,14 @@ function ConflictModal({
               }
               title={isExpanded ? "Collapse" : "Expand to full screen"}
             >
-              <span className="text-xs font-sans font-medium">
-                  {isExpanded ? "Collapse" : "Expand"}
-                </span>
+              {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
             </button>
             <button
               onClick={onClose}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
               aria-label="Close"
             >
-              <span className="text-xs font-sans font-medium">Close</span>
+              <X size={18} />
             </button>
           </div>
 

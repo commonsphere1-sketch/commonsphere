@@ -10,6 +10,9 @@ import {
   ListBullets,
   Scales,
   Star,
+  ArrowsIn,
+  ArrowsOut,
+  X,
 } from "@phosphor-icons/react";
 // Bookmark feature removed
 import {
@@ -6416,11 +6419,14 @@ function StateModal({
                 onClick={() => void watch.toggle("state", state.id)}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-pressed={watch.isWatched("state", state.id)}
+                aria-label={watch.isWatched("state", state.id) ? `Unfollow ${state.name}` : `Follow ${state.name}`}
                 title={watch.isWatched("state", state.id) ? "Stop following" : "Keep this state at the top of the page"}
               >
-                <span className="text-xs font-sans font-medium">
-                  {watch.isWatched("state", state.id) ? "★ Following" : "☆ Follow"}
-                </span>
+                <Star
+                  size={18}
+                  weight={watch.isWatched("state", state.id) ? "fill" : "regular"}
+                  className={watch.isWatched("state", state.id) ? "text-amber-500" : undefined}
+                />
               </button>
               <button
                 onClick={() => setIsExpanded((v) => !v)}
@@ -6430,16 +6436,14 @@ function StateModal({
                 }
                 title={isExpanded ? "Collapse" : "Expand to full screen"}
               >
-                <span className="text-xs font-sans font-medium">
-                  {isExpanded ? "Collapse" : "Expand"}
-                </span>
+                {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
               </button>
               <button
                 onClick={onClose}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-label="Close"
               >
-                <span className="text-xs font-sans font-medium">Close</span>
+                <X size={18} />
               </button>
             </div>
           </div>

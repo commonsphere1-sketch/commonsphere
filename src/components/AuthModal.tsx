@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Eye, EyeSlash, Spinner } from "@phosphor-icons/react";
+import { Eye, EyeSlash, Spinner, ArrowsIn, ArrowsOut, X } from "@phosphor-icons/react";
 import { useAuth, type AuthResult } from "../contexts/AuthContext";
 import { oauthProviders, type OAuthProvider } from "../lib/supabase";
 import {
@@ -175,7 +175,7 @@ export function AuthModal({
         aria-labelledby="auth-title"
         className={`rounded-2xl p-8 w-full relative animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 flex flex-col ${isExpanded ? "max-w-full h-full justify-center" : "max-w-sm max-h-[90vh]"}`}
       >
-        {/* Expand and Close as text buttons, as on every other modal. */}
+        {/* Expand and Close as icon buttons, as on every other modal. */}
         <div className="absolute top-3 right-3 flex items-center gap-1.5">
           <button
             onClick={() => setIsExpanded((v) => !v)}
@@ -183,14 +183,14 @@ export function AuthModal({
             aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
             title={isExpanded ? "Collapse" : "Expand to full screen"}
           >
-            <span className="text-xs font-sans font-medium">{isExpanded ? "Collapse" : "Expand"}</span>
+            {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
           </button>
           <button
             onClick={onClose}
             className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
             aria-label="Close"
           >
-            <span className="text-xs font-sans font-medium">Close</span>
+            <X size={18} />
           </button>
         </div>
 

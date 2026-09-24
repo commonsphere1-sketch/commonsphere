@@ -18,6 +18,9 @@ import {
   Star,
   DownloadSimple,
   ChartPie,
+  ArrowsIn,
+  ArrowsOut,
+  X,
 } from "@phosphor-icons/react";
 import { MILITARY_BRANCHES, fmtPers } from "../data/militaryData";
 import { MILITARY_MEASURED, MILITARY_SOURCES, type MilitaryFigure, type MilitaryMeasured } from "../data/militarySpending";
@@ -646,11 +649,14 @@ function CountryModal({
                 onClick={() => void watch.toggle("country", country.id)}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-pressed={watch.isWatched("country", country.id)}
+                aria-label={watch.isWatched("country", country.id) ? `Unfollow ${country.name}` : `Follow ${country.name}`}
                 title={watch.isWatched("country", country.id) ? "Stop following" : "Keep this country at the top of the page"}
               >
-                <span className="text-xs font-sans font-medium">
-                  {watch.isWatched("country", country.id) ? "★ Following" : "☆ Follow"}
-                </span>
+                <Star
+                  size={18}
+                  weight={watch.isWatched("country", country.id) ? "fill" : "regular"}
+                  className={watch.isWatched("country", country.id) ? "text-amber-500" : undefined}
+                />
               </button>
               <button
                 onClick={() => navigate(`/dashboard/maps?country=${country.code}`)}
@@ -658,7 +664,7 @@ function CountryModal({
                 aria-label={`Show ${country.name} on the world map`}
                 title="Show on map"
               >
-                <span className="text-xs font-sans font-medium">Nav</span>
+                <MapTrifold size={18} />
               </button>
               <button
                 onClick={() => setIsExpanded((v) => !v)}
@@ -668,16 +674,14 @@ function CountryModal({
                 }
                 title={isExpanded ? "Collapse" : "Expand to full screen"}
               >
-                <span className="text-xs font-sans font-medium">
-                  {isExpanded ? "Collapse" : "Expand"}
-                </span>
+                {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
               </button>
               <button
                 onClick={onClose}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
                 aria-label="Close"
               >
-                <span className="text-xs font-sans font-medium">Close</span>
+                <X size={18} />
               </button>
             </div>
           </div>
