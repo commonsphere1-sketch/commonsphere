@@ -61,8 +61,9 @@ export interface Database {
           user_id: string;
           title: string;
           content: string;
-          context_type: string | null;
-          context_id: string | null;
+          entity_type: string | null;
+          entity_name: string | null;
+          voice_path: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -71,8 +72,9 @@ export interface Database {
           user_id: string;
           title?: string;
           content?: string;
-          context_type?: string | null;
-          context_id?: string | null;
+          entity_type?: string | null;
+          entity_name?: string | null;
+          voice_path?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -81,8 +83,9 @@ export interface Database {
           user_id?: string;
           title?: string;
           content?: string;
-          context_type?: string | null;
-          context_id?: string | null;
+          entity_type?: string | null;
+          entity_name?: string | null;
+          voice_path?: string | null;
           created_at?: string;
           updated_at?: string;
         };

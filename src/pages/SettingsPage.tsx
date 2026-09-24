@@ -27,6 +27,10 @@ import {
 } from "@/contexts/ProfilePhotoContext";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { passwordProblem } from "@/components/AuthModal";
+import { exportAccountData } from "@/lib/supabaseData";
 
 // ─── Topic config ────────────────────────────────────────────────────────────
 const ALERT_TOPICS = [
@@ -239,6 +243,7 @@ export function SettingsPage() {
     isSaving: isSavingPhoto,
     avatarColor,
     setAvatarColor,
+    stored: photoStored,
   } = useProfilePhoto();
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [photoError, setPhotoError] = useState("");
@@ -251,10 +256,16 @@ export function SettingsPage() {
   const {
     displayName: savedName,
     email: savedEmail,
+    username: savedUsername,
+    source: profileSource,
     save: saveProfile,
   } = useProfile();
+  const { user, isConfigured } = useAuth();
   const [displayName, setDisplayName] = useState("Jane Doe");
   const [email, setEmail] = useState("jane.doe@commonsphere.io");
+  const [username, setUsername] = useState("");
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileNotice, setProfileNotice] = useState("");
 
   // The context reads localStorage in an effect, so the saved values arrive on
   // the render after mount. Adopt them once they land, rather than seeding
@@ -265,6 +276,9 @@ export function SettingsPage() {
   useEffect(() => {
     if (savedEmail) setEmail(savedEmail);
   }, [savedEmail]);
+  useEffect(() => {
+    setUsername(savedUsername);
+  }, [savedUsername]);
   const [profileError, setProfileError] = useState("");
   const [profileSaved, setProfileSaved] = useState(false);
   const [watched, setWatched] = useState<WatchedEntity[]>([
@@ -287,9 +301,10 @@ export function SettingsPage() {
     [watched],
   );
 
-  function handleProfileSave() {
+  async function handleProfileSave() {
     const cleanName = sanitizeText(displayName);
     const cleanEmail = sanitizeText(email).toLowerCase();
+    const cleanUsername = username.trim().replace(/^@/, "");
     if (!cleanName.trim()) {
       setProfileError("Display name cannot be empty.");
       return;
@@ -303,15 +318,26 @@ export function SettingsPage() {
       setProfileError(ev.message);
       return;
     }
-    if (!saveProfile(cleanName, cleanEmail)) {
-      setProfileError("Could not save — this browser's storage is full.");
+    if (cleanUsername && !/^[a-zA-Z0-9_.]{3,30}$/.test(cleanUsername)) {
+      setProfileError("Usernames are 3–30 letters, numbers, underscores or dots.");
+      return;
+    }
+    setProfileSaving(true);
+    const result = await saveProfile(cleanName, cleanEmail, cleanUsername);
+    setProfileSaving(false);
+    if (!result.ok) {
+      setProfileError(result.message ?? "Could not save your changes.");
       return;
     }
     // Show what was actually stored. Sanitizing can strip characters, and
     // leaving the raw text in the field would misreport what was saved.
     setDisplayName(cleanName);
-    setEmail(cleanEmail);
+    setUsername(cleanUsername);
+    // An email change on an account waits for confirmation, so the field
+    // goes back to the address still in effect.
+    setEmail(profileSource === "account" ? savedEmail : cleanEmail);
     setProfileError("");
+    setProfileNotice(result.message ?? "");
     setProfileSaved(true);
     setTimeout(() => setProfileSaved(false), 2000);
   }
@@ -491,9 +517,9 @@ export function SettingsPage() {
                     </div>
                   )}
                   <p className="text-[11px] text-muted-foreground font-sans leading-snug">
-                    Stored on this device only — the photo is resized to 256px
-                    and never uploaded, so neither it nor the colour will follow
-                    you to another browser.
+                    {photoStored === "account"
+                      ? "Resized to 256px and saved to your account, so it follows you to any device. The photo is public to anyone with its link, like a profile picture on most sites."
+                      : "Stored on this device only — the photo is resized to 256px and never uploaded, so neither it nor the colour will follow you to another browser."}
                   </p>
                   {photoError && (
                     <p className="text-xs text-destructive">{photoError}</p>
@@ -522,6 +548,26 @@ export function SettingsPage() {
             </div>
             <div>
               <label
+                htmlFor="username"
+                className="block text-xs text-muted-foreground font-sans mb-1"
+              >
+                Username
+              </label>
+              <Input
+                id="username"
+                value={username}
+                maxLength={31}
+                placeholder="letters, numbers, _ or ."
+                autoComplete="username"
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  setProfileError("");
+                }}
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground h-9 text-sm"
+              />
+            </div>
+            <div>
+              <label
                 htmlFor="email"
                 className="block text-xs text-muted-foreground font-sans mb-1"
               >
@@ -542,14 +588,27 @@ export function SettingsPage() {
             {profileError && (
               <p className="text-xs text-destructive">{profileError}</p>
             )}
-            {profileSaved && (
-              <p className="text-xs text-success">Changes saved.</p>
+            {user?.pendingEmail && (
+              <p className="text-xs text-muted-foreground">
+                Waiting for you to confirm {user.pendingEmail} from the links we emailed.
+              </p>
             )}
+            {profileSaved && (
+              <p className="text-xs text-success">{profileNotice || "Changes saved."}</p>
+            )}
+            <p className="text-[11px] text-muted-foreground font-sans leading-snug">
+              {profileSource === "account"
+                ? "Saved to your account. Changing your email sends a confirmation link to both the old and the new address."
+                : isConfigured
+                  ? "Saved in this browser only. Sign in to keep your profile on every device."
+                  : "Saved in this browser only."}
+            </p>
             <Button
               onClick={handleProfileSave}
+              disabled={profileSaving}
               className="bg-secondary text-secondary-foreground hover:bg-tertiary text-sm font-normal h-9 px-4"
             >
-              Save Changes
+              {profileSaving ? "Saving…" : "Save Changes"}
             </Button>
           </div>
         </section>
@@ -676,25 +735,243 @@ export function SettingsPage() {
               Security
             </h2>
           </div>
-          {/*
-            No password form here on purpose. CommonSphere has no backend and
-            the SDK exposes only login/logout — there is nothing to change a
-            password against. The form that used to sit here validated input,
-            cleared the fields and reported "Password updated." while changing
-            nothing, which on a security panel could convince someone they had
-            rotated a compromised password when they had not.
-          */}
-          <div className="space-y-3">
-            <p className="text-sm font-sans text-foreground">
-              Your password is managed by your sign-in provider
-            </p>
-            <p className="text-xs text-muted-foreground font-sans leading-snug">
-              CommonSphere never receives or stores your password. Signing in is
-              handled by the account you authenticate with, so password changes
-              happen there rather than here.
-            </p>
-          </div>
+          <SecurityPanel />
         </section>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Password, sessions and account deletion, for a signed-in account.
+ *
+ * Every action here does what it says against Supabase Auth and reports what
+ * came back. Supabase checks that a password change comes from a recent
+ * sign-in; when it does not, it emails a code, and the change goes through
+ * once that code is entered.
+ */
+function SecurityPanel() {
+  const {
+    user,
+    isConfigured,
+    openAuth,
+    updatePassword,
+    requestReauthentication,
+    signOutEverywhere,
+    deleteAccount,
+  } = useAuth();
+  const navigate = useNavigate();
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [nonce, setNonce] = useState("");
+  const [needsCode, setNeedsCode] = useState(false);
+  const [pwBusy, setPwBusy] = useState(false);
+  const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [sessMsg, setSessMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState("");
+  const [delBusy, setDelBusy] = useState(false);
+  const [delMsg, setDelMsg] = useState("");
+  const [exporting, setExporting] = useState(false);
+  const [exportMsg, setExportMsg] = useState("");
+
+  if (!isConfigured) {
+    return (
+      <div className="space-y-2">
+        <p className="text-sm font-sans text-foreground">No account on this device</p>
+        <p className="text-xs text-muted-foreground font-sans leading-snug">
+          This site is not set up for accounts yet, so there is no password to
+          manage. Everything you save stays in this browser.
+        </p>
+      </div>
+    );
+  }
+  if (!user) {
+    return (
+      <div className="space-y-3">
+        <p className="text-xs text-muted-foreground font-sans leading-snug">
+          Sign in to change your password, sign out other devices, or delete your account.
+        </p>
+        <Button
+          onClick={() => openAuth("signin")}
+          className="bg-secondary text-secondary-foreground hover:bg-tertiary text-sm font-normal h-9 px-4"
+        >
+          Sign in
+        </Button>
+      </div>
+    );
+  }
+
+  const field = "bg-muted border-border text-foreground placeholder:text-muted-foreground h-9 text-sm";
+
+  async function changePassword() {
+    const problem = passwordProblem(pw);
+    if (problem) return setPwMsg({ ok: false, text: problem });
+    if (pw !== pw2) return setPwMsg({ ok: false, text: "The two passwords do not match." });
+    if (needsCode && !/^\d{6}$/.test(nonce.trim()))
+      return setPwMsg({ ok: false, text: "Enter the 6-digit code from the email." });
+    setPwBusy(true);
+    setPwMsg(null);
+    const r = await updatePassword(pw, needsCode ? nonce.trim() : undefined);
+    if (!r.ok && r.code === "reauthentication_needed") {
+      const sent = await requestReauthentication();
+      setNeedsCode(sent.ok);
+      setPwMsg({
+        ok: sent.ok,
+        text: sent.ok
+          ? `To confirm it is you, enter the code we just sent to ${user!.email}.`
+          : sent.message,
+      });
+    } else if (r.ok) {
+      setPw("");
+      setPw2("");
+      setNonce("");
+      setNeedsCode(false);
+      setPwMsg({ ok: true, text: r.message ?? "Your password has been changed." });
+    } else {
+      setPwMsg({ ok: false, text: r.message });
+    }
+    setPwBusy(false);
+  }
+
+  return (
+    <div className="space-y-6">
+      <p className="text-xs text-muted-foreground font-sans">
+        Signed in as <span className="font-semibold text-foreground">{user.email}</span>
+      </p>
+
+      {/* Password */}
+      <div className="space-y-2">
+        <p className="text-sm font-sans text-foreground">Change password</p>
+        <Input
+          type="password"
+          value={pw}
+          maxLength={72}
+          placeholder="New password"
+          autoComplete="new-password"
+          aria-label="New password"
+          onChange={(e) => setPw(e.target.value)}
+          className={field}
+        />
+        <Input
+          type="password"
+          value={pw2}
+          maxLength={72}
+          placeholder="Type it again"
+          autoComplete="new-password"
+          aria-label="Type the new password again"
+          onChange={(e) => setPw2(e.target.value)}
+          className={field}
+        />
+        {needsCode && (
+          <Input
+            value={nonce}
+            inputMode="numeric"
+            maxLength={6}
+            placeholder="6-digit code from the email"
+            autoComplete="one-time-code"
+            aria-label="Confirmation code"
+            onChange={(e) => setNonce(e.target.value)}
+            className={field}
+          />
+        )}
+        <p className="text-[11px] text-muted-foreground font-sans">
+          At least 10 characters, with letters and numbers.
+        </p>
+        {pwMsg && (
+          <p className={`text-xs ${pwMsg.ok ? "text-success" : "text-destructive"}`}>{pwMsg.text}</p>
+        )}
+        <Button
+          onClick={changePassword}
+          disabled={pwBusy || !pw}
+          className="bg-secondary text-secondary-foreground hover:bg-tertiary text-sm font-normal h-9 px-4"
+        >
+          {pwBusy ? "Saving…" : needsCode ? "Confirm and change" : "Change password"}
+        </Button>
+      </div>
+
+      {/* Sessions */}
+      <div className="space-y-2 pt-4 border-t border-border/60">
+        <p className="text-sm font-sans text-foreground">Sign out everywhere</p>
+        <p className="text-xs text-muted-foreground font-sans leading-snug">
+          Ends every session on every device, including this one — use it if you
+          signed in on a computer that is not yours.
+        </p>
+        {sessMsg && (
+          <p className={`text-xs ${sessMsg.ok ? "text-success" : "text-destructive"}`}>{sessMsg.text}</p>
+        )}
+        <Button
+          onClick={async () => {
+            const r = await signOutEverywhere();
+            if (r.ok) navigate("/dashboard");
+            else setSessMsg({ ok: false, text: r.message });
+          }}
+          className="bg-transparent border border-border text-foreground hover:bg-muted text-sm font-normal h-9 px-4"
+        >
+          Sign out of all devices
+        </Button>
+      </div>
+
+      {/* Export */}
+      <div className="space-y-2 pt-4 border-t border-border/60">
+        <p className="text-sm font-sans text-foreground">Download your data</p>
+        <p className="text-xs text-muted-foreground font-sans leading-snug">
+          A file with your profile, notes, links and pins, as JSON.
+        </p>
+        {exportMsg && <p className="text-xs text-destructive">{exportMsg}</p>}
+        <Button
+          disabled={exporting}
+          onClick={async () => {
+            setExporting(true);
+            setExportMsg("");
+            try {
+              const json = await exportAccountData(user.id, user.email);
+              const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `commonsphere-data-${new Date().toISOString().slice(0, 10)}.json`;
+              a.click();
+              setTimeout(() => URL.revokeObjectURL(url), 1000);
+            } catch (e) {
+              setExportMsg(e instanceof Error ? e.message : "Your data could not be exported.");
+            } finally {
+              setExporting(false);
+            }
+          }}
+          className="bg-transparent border border-border text-foreground hover:bg-muted text-sm font-normal h-9 px-4"
+        >
+          {exporting ? "Preparing…" : "Download my data"}
+        </Button>
+      </div>
+
+      {/* Delete */}
+      <div className="space-y-2 pt-4 border-t border-border/60">
+        <p className="text-sm font-sans text-destructive font-semibold">Delete account</p>
+        <p className="text-xs text-muted-foreground font-sans leading-snug">
+          Permanently deletes your account, profile, photo, notes, links, voice
+          recordings and pins. This cannot be undone. Type DELETE to confirm.
+        </p>
+        <Input
+          value={confirmDelete}
+          onChange={(e) => setConfirmDelete(e.target.value)}
+          placeholder="DELETE"
+          aria-label="Type DELETE to confirm"
+          className={field}
+        />
+        {delMsg && <p className="text-xs text-destructive">{delMsg}</p>}
+        <Button
+          disabled={confirmDelete !== "DELETE" || delBusy}
+          onClick={async () => {
+            setDelBusy(true);
+            setDelMsg("");
+            const r = await deleteAccount();
+            setDelBusy(false);
+            if (r.ok) navigate("/dashboard");
+            else setDelMsg(r.message);
+          }}
+          className="bg-destructive text-destructive-foreground hover:bg-destructive/85 text-sm font-normal h-9 px-4 disabled:opacity-50"
+        >
+          {delBusy ? "Deleting…" : "Delete my account"}
+        </Button>
       </div>
     </div>
   );

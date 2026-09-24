@@ -1,4 +1,5 @@
 import { decodeEntities } from "../lib/security";
+import { readPins, writePins } from "../lib/pins";
 import { na, has, sortKey } from "../lib/na";
 import { usdFromBillions } from "../lib/money";
 import React, { useMemo, useState, useEffect, useRef } from "react";
@@ -12,7 +13,6 @@ import {
   Scales,
   Crosshair,
   ArrowRight,
-  ArrowLeft,
   TrendUp,
   TrendDown,
   ArrowUp,
@@ -5450,8 +5450,6 @@ const ROW_FIGURES: React.CSSProperties = {
    site (the pinned strip) reflects the choice rather than holding a second,
    private idea of what the reader follows. */
 const LS_FOCUS = "cs_focus";
-const LS_PINNED_COUNTRIES = "cs_pinned_countries";
-const LS_PINNED_STATES = "cs_pinned_states";
 
 type Focus = { kind: "country" | "state"; id: string };
 
@@ -5468,20 +5466,12 @@ function readFocus(): Focus | null {
   }
 }
 
-function pinAlso(key: string, id: string) {
-  try {
-    const stored = localStorage.getItem(key);
-    const parsed: unknown = stored ? JSON.parse(stored) : [];
-    /* A stored string would pass .includes() and then be spread into
-       single characters, so anything but a list starts over. */
-    const ids = Array.isArray(parsed)
-      ? parsed.filter((x): x is string => typeof x === "string")
-      : [];
-    if (!ids.includes(id)) localStorage.setItem(key, JSON.stringify([...ids, id]));
-  } catch {
-    /* A browser with storage blocked still gets the carousel; it just
-       cannot remember the choice. */
-  }
+/* Through the pins module, so a signed-in reader's account gets the pin
+   too. A browser with storage blocked still gets the carousel; it just
+   cannot remember the choice. */
+function pinAlso(type: "country" | "state", id: string) {
+  const ids = readPins(type) ?? [];
+  if (!ids.includes(id)) writePins(type, [...ids, id]);
 }
 
 /**
@@ -5573,7 +5563,7 @@ function FocusCarousel({
     } catch {
       /* ignored: see pinAlso */
     }
-    pinAlso(kind === "country" ? LS_PINNED_COUNTRIES : LS_PINNED_STATES, item.id);
+    pinAlso(kind, item.id);
   };
 
   const unlock = () => {
@@ -5607,8 +5597,6 @@ function FocusCarousel({
     `px-2.5 py-1 rounded-full text-[11px] font-sans transition-colors cursor-pointer ${
       on ? "chip-selected" : "hover:opacity-80"
     }`;
-  const field =
-    "w-full rounded-lg px-2.5 py-1.5 text-[11px] font-sans bg-transparent focus:outline-none";
 
   const fmtGDPShort = (b: number) =>
     b >= 1000 ? `${(b / 1000).toFixed(1)}T` : b >= 1 ? `${Math.round(b)}B` : `${Math.round(b * 1000)}M`;

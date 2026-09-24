@@ -1649,7 +1649,6 @@ export function PlanetaryBoundariesPage() {
           ].map((section) => {
             const isTreeatiesSection = section.title === "International Treaties & Gaps";
             const isFlashpointsSection = section.title === "Ecological Security Flashpoints";
-            const isSeaLevelSection = section.title === "Sea Level Rise / Global Mean Sea Level";
 
             const getExpanded = (id: string) => {
               if (isTreeatiesSection) return expandedTreaties.has(id);

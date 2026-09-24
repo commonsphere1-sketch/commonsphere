@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { useMutation } from "@animaapp/playground-react-sdk";
+import { useAuth } from "../contexts/AuthContext";
+import { useNoteActions } from "../lib/notesStore";
+import { VOICE_MAX_BYTES } from "../lib/supabaseData";
 import {
   sanitizeText,
   sanitizeUrl,
@@ -74,6 +76,9 @@ export function NotesPopup() {
   // Voice recording
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  /* The recording itself, uploaded with the note. audioUrl is only a local
+     object URL for playing it back here, and dies with the page. */
+  const audioBlobRef = useRef<Blob | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -81,7 +86,9 @@ export function NotesPopup() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const { create, isPending: isMutating } = useMutation("Note");
+  const { isConfigured, openAuth } = useAuth();
+  const { create, mode } = useNoteActions();
+  const canRecord = mode === "account";
   const [inputError, setInputError] = useState("");
 
   // Listen for open-notes-popup events dispatched by entity modals
@@ -127,7 +134,16 @@ export function NotesPopup() {
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
       mr.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        /* The type the browser actually recorded in: WebM in Chrome, Ogg in
+           Firefox, MP4 in Safari. Labelling them all WebM made Safari's
+           unplayable elsewhere. */
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType || "audio/webm" });
+        if (blob.size > VOICE_MAX_BYTES) {
+          setInputError("That recording is over 10 MB. Record a shorter one.");
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        audioBlobRef.current = blob;
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
         stream.getTracks().forEach((t) => t.stop());
@@ -164,6 +180,7 @@ export function NotesPopup() {
 
   const clearRecording = () => {
     if (audioUrl) URL.revokeObjectURL(audioUrl);
+    audioBlobRef.current = null;
     setAudioUrl(null);
     setIsPlaying(false);
   };
@@ -189,14 +206,18 @@ export function NotesPopup() {
     setInputError("");
     setSaving(true);
     try {
-      await create({
-        title: cleanTitle || undefined,
+      const result = await create({
+        title: cleanTitle,
         content: cleanContent,
-        links: links.length > 0 ? JSON.stringify(links) : undefined,
-        voiceRecordingUrl: audioUrl ?? undefined,
+        links,
+        voice: audioBlobRef.current,
         entityName: entityName || undefined,
         entityType: entityType || undefined,
       });
+      if (!result.ok) {
+        setInputError(result.message ?? "The note could not be saved.");
+        return;
+      }
       setTitle("");
       setContent("");
       setLinks([]);
@@ -206,8 +227,8 @@ export function NotesPopup() {
       clearRecording();
       setSavedMsg(true);
       setTimeout(() => setSavedMsg(false), 2000);
-    } catch (err) {
-      console.error("Failed to save note:", err);
+    } catch {
+      setInputError("The note could not be saved. Check your connection and try again.");
     } finally {
       setSaving(false);
     }
@@ -397,7 +418,23 @@ export function NotesPopup() {
             <p className="text-xs font-semibold font-sans text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1">
               <Microphone size={11} weight="bold" /> Voice Recording
             </p>
-            {!audioUrl ? (
+            {!canRecord ? (
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug">
+                {isConfigured ? (
+                  <>
+                    <button
+                      onClick={() => openAuth("signin")}
+                      className="text-secondary font-semibold hover:underline"
+                    >
+                      Sign in
+                    </button>{" "}
+                    to keep voice recordings with your notes.
+                  </>
+                ) : (
+                  "Voice recordings need an account, which this site does not offer yet."
+                )}
+              </p>
+            ) : !audioUrl ? (
               <div className="flex items-center gap-1.5">
                 {isRecording ? (
                   <>
@@ -467,15 +504,15 @@ export function NotesPopup() {
               </span>
             ) : (
               <span className="text-xs text-muted-foreground font-sans">
-                Saves to My Notes
+                {mode === "account" ? "Saves to your account" : "Saves in this browser"}
               </span>
             )}
             <button
               onClick={handleSave}
-              disabled={!content.trim() || saving || isMutating}
+              disabled={!content.trim() || saving}
               className="flex items-center gap-1.5 bg-secondary text-secondary-foreground px-3 py-1.5 rounded text-xs font-sans font-normal hover:bg-secondary/80 disabled:opacity-50 transition-colors duration-150"
             >
-              {saving || isMutating ? (
+              {saving ? (
                 <Spinner size={13} className="animate-spin" />
               ) : (
                 <FloppyDisk size={13} weight="fill" />

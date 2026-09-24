@@ -1,5 +1,6 @@
 # Response headers for every page and file, applied by Cloudflare's static
-# asset hosting (vite copies this file from static/ into dist/).
+# asset hosting (vite copies this file from static/ into dist/). Vercel does
+# not read this file: vercel.json carries the same headers, so change both.
 #
 # - nosniff: a file is only ever run as the type it was served as.
 # - frame-ancestors / X-Frame-Options: no other site can load this one in a

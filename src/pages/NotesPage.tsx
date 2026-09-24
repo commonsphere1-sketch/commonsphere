@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
-import { useQuery, useMutation } from "@animaapp/playground-react-sdk";
-import { sanitizeUrl } from "@/lib/security";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNotesStore, type Note } from "@/lib/notesStore";
+import { voiceNoteUrl } from "@/lib/supabaseData";
 import {
   NotePencil,
   Trash,
@@ -15,28 +16,19 @@ import {
 } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 
-/** Shape of a "Note" record as this page consumes it. The SDK's useQuery
- *  returns `data: any`, so the fields are declared here for type safety. */
-type Note = {
-  id: string;
-  title?: string;
-  content: string;
-  entityName?: string;
-  entityType?: string;
-  createdAt?: string;
-  links?: string;
-  voiceRecordingUrl?: string;
-};
 export function NotesPage() {
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<string>("All");
-
-  const { data: notes, isPending, error } = useQuery("Note", { orderBy: { createdAt: "desc" } });
-  const { remove, isPending: isMutating } = useMutation("Note");
+  const { isConfigured, openAuth } = useAuth();
+  const { notes, isPending, error, mode, deviceCount, remove, importDeviceNotes } = useNotesStore();
+  const [isMutating, setIsMutating] = useState(false);
+  const [actionError, setActionError] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState("");
 
   const entityTypes = ["All", "Country", "State", "City", "Economy"];
 
-  const filtered = ((notes ?? []) as Note[]).filter((n: Note) => {
+  const filtered = notes.filter((n: Note) => {
     const matchSearch =
       !search ||
       n.title?.toLowerCase().includes(search.toLowerCase()) ||
@@ -46,25 +38,27 @@ export function NotesPage() {
     return matchSearch && matchType;
   });
 
-  const handleDelete = async (id: string) => {
-    try { await remove(id); } catch (err) { console.error("Failed to delete note:", err); }
+  const handleDelete = async (note: Note) => {
+    setIsMutating(true);
+    setActionError("");
+    const r = await remove(note);
+    if (!r.ok) setActionError(r.message ?? "The note could not be deleted.");
+    setIsMutating(false);
   };
 
-  const formatDate = (d: Date) =>
+  const handleImport = async () => {
+    setImporting(true);
+    const { moved, failed } = await importDeviceNotes();
+    setImporting(false);
+    setImportResult(
+      failed
+        ? `Moved ${moved}; ${failed} could not be moved and are still in this browser.`
+        : `Moved ${moved} note${moved === 1 ? "" : "s"} into your account.`,
+    );
+  };
+
+  const formatDate = (d: string) =>
     new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
-
-  const parseLinks = (raw?: string | null): string[] => {
-    if (!raw) return [];
-    let parsed: string[];
-    try { parsed = JSON.parse(raw); } catch { parsed = raw.split(/[\n,]/).map((s) => s.trim()).filter(Boolean); }
-    // Re-validate every stored URL — reject anything non-http/https, and
-    // keep the normalised form. Filtering on sanitizeUrl but returning the
-    // raw string let a scheme-less "example.com" through as a relative href,
-    // which navigated to /example.com inside the app instead of off-site.
-    return parsed
-      .map((u) => sanitizeUrl(u))
-      .filter((u): u is string => u !== null);
-  };
 
   return (
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
@@ -76,6 +70,47 @@ export function NotesPage() {
             <p className="text-muted-foreground text-sm font-sans">Notes taken while examining data</p>
           </div>
         </div>
+
+        {/* Where these notes live, and how to move them. */}
+        {mode === "device" ? (
+          <div className="mb-6 rounded-xl border border-border bg-card px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs font-sans text-muted-foreground leading-relaxed max-w-2xl">
+              {isConfigured
+                ? "These notes are saved in this browser only. Sign in to keep them in your account, on every device, and to add voice recordings."
+                : "These notes are saved in this browser only, and clearing its data removes them."}
+            </p>
+            {isConfigured && (
+              <button
+                onClick={() => openAuth("signin")}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              >
+                Sign in
+              </button>
+            )}
+          </div>
+        ) : deviceCount > 0 || importResult ? (
+          <div className="mb-6 rounded-xl border border-border bg-card px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs font-sans text-muted-foreground">
+              {importResult ||
+                `${deviceCount} note${deviceCount === 1 ? " was" : "s were"} written in this browser before you signed in.`}
+            </p>
+            {deviceCount > 0 && (
+              <button
+                onClick={handleImport}
+                disabled={importing}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50"
+              >
+                {importing ? "Moving…" : "Move them into my account"}
+              </button>
+            )}
+          </div>
+        ) : null}
+
+        {actionError && (
+          <p className="mb-4 text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
+            {actionError}
+          </p>
+        )}
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -102,7 +137,7 @@ export function NotesPage() {
 
         {error && (
           <div className="text-center py-20 text-destructive text-sm font-sans">
-            Error loading notes: {error.message}
+            Your notes could not be loaded: {error}
           </div>
         )}
 
@@ -115,19 +150,15 @@ export function NotesPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filtered.map((note: Note) => {
-                  const noteLinks = parseLinks(note.links);
-                  return (
-                    <NoteCard
-                      key={note.id}
-                      note={note}
-                      noteLinks={noteLinks}
-                      formatDate={formatDate}
-                      onDelete={handleDelete}
-                      isMutating={isMutating}
-                    />
-                  );
-                })}
+                {filtered.map((note: Note) => (
+                  <NoteCard
+                    key={note.id}
+                    note={note}
+                    formatDate={formatDate}
+                    onDelete={handleDelete}
+                    isMutating={isMutating}
+                  />
+                ))}
               </div>
             )}
           </>
@@ -137,20 +168,32 @@ export function NotesPage() {
   );
 }
 
-function NoteCard({ note, noteLinks, formatDate, onDelete, isMutating }: {
-  note: any;
-  noteLinks: string[];
-  formatDate: (d: Date) => string;
-  onDelete: (id: string) => void;
+function NoteCard({ note, formatDate, onDelete, isMutating }: {
+  note: Note;
+  formatDate: (d: string) => string;
+  onDelete: (note: Note) => void;
   isMutating: boolean;
 }) {
+  const noteLinks = note.links;
   const [isPlaying, setIsPlaying] = useState(false);
+  const [audioSrc, setAudioSrc] = useState<string | null>(null);
+  const [audioError, setAudioError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const togglePlay = () => {
-    if (!audioRef.current) return;
-    if (isPlaying) { audioRef.current.pause(); setIsPlaying(false); }
-    else { audioRef.current.play(); setIsPlaying(true); }
+  // Recordings are private, so the playable URL is signed on demand and
+  // lasts an hour, rather than being fetched for every card on the page.
+  const togglePlay = async () => {
+    if (isPlaying) { audioRef.current?.pause(); setIsPlaying(false); return; }
+    let src = audioSrc;
+    if (!src && note.voicePath) {
+      src = await voiceNoteUrl(note.voicePath);
+      if (!src) { setAudioError(true); return; }
+      setAudioSrc(src);
+    }
+    const el = audioRef.current;
+    if (!el || !src) return;
+    if (el.src !== src) el.src = src;
+    try { await el.play(); setIsPlaying(true); } catch { setAudioError(true); }
   };
 
   return (
@@ -171,7 +214,7 @@ function NoteCard({ note, noteLinks, formatDate, onDelete, isMutating }: {
           </h3>
         </div>
         <button
-          onClick={() => onDelete(note.id)}
+          onClick={() => onDelete(note)}
           disabled={isMutating}
           className="shrink-0 p-1 text-muted-foreground hover:text-destructive transition-colors duration-150 disabled:opacity-40"
           aria-label={`Delete note: ${note.title || "Untitled"}`}
@@ -202,20 +245,13 @@ function NoteCard({ note, noteLinks, formatDate, onDelete, isMutating }: {
       )}
 
       {/* Voice recording */}
-      {note.voiceRecordingUrl && (() => {
-        // Only render audio if the stored URL uses a safe scheme (blob: or https:)
-        const safeAudioSrc = (() => {
-          const u = note.voiceRecordingUrl as string;
-          if (u.startsWith("blob:")) return u;
-          const clean = sanitizeUrl(u);
-          return clean ?? null;
-        })();
-        if (!safeAudioSrc) return null;
-        return (
+      {note.voicePath && (
         <div className="flex items-center gap-2 bg-muted rounded-md px-3 py-2 border-t border-border mt-auto">
-          <audio ref={audioRef} src={safeAudioSrc} onEnded={() => setIsPlaying(false)} />
+          <audio ref={audioRef} onEnded={() => setIsPlaying(false)} />
           <Microphone size={12} weight="fill" className="text-secondary shrink-0" />
-          <span className="text-xs font-mono text-muted-foreground flex-1">Voice note</span>
+          <span className="text-xs font-mono text-muted-foreground flex-1">
+            {audioError ? "Recording unavailable" : "Voice note"}
+          </span>
           <button
             onClick={togglePlay}
             className="text-secondary hover:text-secondary/80 transition-colors"
@@ -224,8 +260,7 @@ function NoteCard({ note, noteLinks, formatDate, onDelete, isMutating }: {
             {isPlaying ? <Pause size={14} weight="fill" /> : <Play size={14} weight="fill" />}
           </button>
         </div>
-        );
-      })()}
+      )}
 
       {/* Footer date */}
       <div className="flex items-center gap-1 text-xs font-mono text-muted-foreground pt-2 border-t border-border mt-auto">

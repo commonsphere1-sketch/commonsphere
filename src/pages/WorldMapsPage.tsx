@@ -2155,7 +2155,7 @@ export function WorldMapsPage() {
 
     if (!useAdmin1) {
       if (!worldFeature) return null;
-      const { frame, groups } = islandFrame(worldFeature as AreaGeo, mainBox, focusCapital);
+      const { frame, groups } = islandFrame(worldFeature as unknown as AreaGeo, mainBox, focusCapital);
       const path = geoPath(fitTo(frame, mainBox));
       return {
         outline: path(worldFeature as never) ?? "",

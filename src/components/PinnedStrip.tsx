@@ -1,5 +1,5 @@
 import { na } from "../lib/na";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   PushPin,
@@ -11,9 +11,8 @@ import {
 import { useTheme } from "../contexts/ThemeContext";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
+import { PINS_CHANGED, readPins, writePins } from "../lib/pins";
 
-const LS_KEY_COUNTRIES = "cs_pinned_countries";
-const LS_KEY_STATES = "cs_pinned_states";
 /** Country has no `flag` field — derive the emoji from its ISO alpha-2 code
  *  by mapping each letter to its regional-indicator symbol. */
 function flagEmoji(code: string): string {
@@ -23,35 +22,18 @@ function flagEmoji(code: string): string {
   );
 }
 
-function usePinned(key: string, defaultIds: string[]) {
-  const [ids, setIds] = useState<string[]>(() => {
-    try {
-      const stored = localStorage.getItem(key);
-      if (!stored) return defaultIds;
-      /* Anything but a list of strings - a hand-edited value, another app on
-         the same origin - would make .includes() below throw and take the
-         strip down, so it is treated as no saved pins. */
-      const parsed: unknown = JSON.parse(stored);
-      return Array.isArray(parsed) && parsed.every((x) => typeof x === "string")
-        ? parsed
-        : defaultIds;
-    } catch {
-      return defaultIds;
-    }
-  });
+/* Read and written through the pins module, which keeps a signed-in
+   reader's account in step and re-announces changes made elsewhere. */
+function usePinned(type: "country" | "state", defaultIds: string[]) {
+  const [ids, setIds] = useState<string[]>(() => readPins(type) ?? defaultIds);
+  useEffect(() => {
+    const onChange = () => setIds(readPins(type) ?? defaultIds);
+    window.addEventListener(PINS_CHANGED, onChange);
+    return () => window.removeEventListener(PINS_CHANGED, onChange);
+    // defaultIds is a literal at each call site, so type alone keys this.
+  }, [type]);
   const toggle = (id: string) =>
-    setIds((prev) => {
-      const next = prev.includes(id)
-        ? prev.filter((x) => x !== id)
-        : [...prev, id];
-      try {
-        localStorage.setItem(key, JSON.stringify(next));
-      } catch {
-        /* Storage full or blocked (private mode): the pin still applies for
-           this visit, it just is not remembered. */
-      }
-      return next;
-    });
+    writePins(type, ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]);
   return { ids, toggle };
 }
 
@@ -63,11 +45,11 @@ export function PinnedStrip() {
   const [hovered, setHovered] = useState<string | null>(null);
 
   const { ids: pinnedCountryIds, toggle: toggleCountry } = usePinned(
-    LS_KEY_COUNTRIES,
+    "country",
     ["us", "cn", "de", "gb", "jp"],
   );
   const { ids: pinnedStateIds, toggle: toggleState } = usePinned(
-    LS_KEY_STATES,
+    "state",
     ["ca", "tx", "ny", "fl", "wa"],
   );
 

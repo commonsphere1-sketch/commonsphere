@@ -6,9 +6,9 @@
  *   2. Input sanitizer         — strips dangerous HTML / control characters
  *   3. Payload validator       — enforces max field lengths / rejects oversized data
  *
- * NOTE: This is a frontend-only app (React + Vite, no custom backend).
- * All SDK calls (auth, DB mutations) go through @animaapp/playground-react-sdk
- * whose server enforces its own server-side rate limits and auth controls.
+ * NOTE: This is a static front end (React + Vite). Accounts and saved data
+ * go to Supabase, whose Auth server enforces its own rate limits and whose
+ * database enforces the RLS policies and constraints in supabase/migrations.
  * These utilities add a UX-layer defence-in-depth on top of that.
  * ─────────────────────────────────────────────────────────────────────────────
  */

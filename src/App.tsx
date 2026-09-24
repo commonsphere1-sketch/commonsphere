@@ -33,6 +33,12 @@ const MembershipsPage = lazy(() =>
     default: m.MembershipsPage,
   })),
 );
+const AuthCallbackPage = lazy(() =>
+  import("./pages/AuthPages").then((m) => ({ default: m.AuthCallbackPage })),
+);
+const ResetPasswordPage = lazy(() =>
+  import("./pages/AuthPages").then((m) => ({ default: m.ResetPasswordPage })),
+);
 const EduSignInPage = lazy(() =>
   import("./pages/EduSignInPage").then((m) => ({ default: m.EduSignInPage })),
 );
@@ -95,6 +101,11 @@ export default function App() {
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/membership" element={<MembershipsPage />} />
             <Route path="/edu" element={<EduSignInPage />} />
+            {/* Where auth emails link back to, inside the usual chrome. */}
+            <Route element={<DashboardLayout />}>
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <Route path="/auth/reset" element={<ResetPasswordPage />} />
+            </Route>
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<DashboardPage />} />
               <Route path="notes" element={<NotesPage />} />

@@ -11,13 +11,14 @@ import {
  * Terms, privacy and the other policies, in one page with anchored sections.
  *
  * The privacy text describes what this build actually does rather than the
- * usual boilerplate: there is no backend, the only outbound request is to the
- * World Bank, and everything a person types is held in their own browser. Each
- * claim here was checked against the source, so if the app gains a server or
- * an analytics script this page has to be revisited.
+ * usual boilerplate: signed out, everything a person types stays in their own
+ * browser; signed in, their profile, notes, pins and recordings are kept in
+ * the site's Supabase project; the only other outbound request is to the
+ * World Bank. Each claim here was checked against the source, so if the app
+ * gains another server or an analytics script this page has to be revisited.
  */
 
-const EFFECTIVE = "8 September 2026";
+const EFFECTIVE = "23 September 2026";
 
 /** How the accessibility claim below was arrived at. */
 const AUDIT = { tool: "4.10.2", date: "8 September 2026" };
@@ -60,6 +61,11 @@ const STORED_KEYS = [
   ["cs-filters-open", "Whether the filter row is folded away"],
   ["cs_pinned_countries", "Countries pinned to the dashboard strip"],
   ["cs_pinned_states", "States pinned to the dashboard strip"],
+  ["cs_focus", "The country or state you follow on the dashboard"],
+  ["cs-notes", "Notes written while signed out"],
+  ["cs-plan-interest", "A plan you registered interest in"],
+  ["cs_pins_synced_for", "Which account this browser last synced pins with"],
+  ["sb-…-auth-token", "Your sign-in session, while you are signed in"],
 ] as const;
 
 function Section({
@@ -204,20 +210,39 @@ export function LegalPage() {
               reserving rights it does not exercise.
             </P>
 
-            <H>There is no server collecting anything</H>
+            <H>Without an account, nothing leaves your browser</H>
             <P>
-              CommonSphere is a static site. It has no backend, no database and
-              no API of its own. Nothing you type — a note, a display name, an
-              email, a search — is transmitted anywhere, because there is
-              nowhere for it to go.
+              You can use all of CommonSphere without signing in. Then nothing
+              you type — a note, a display name, an email, a search — is sent
+              to us: it is kept in your own browser, on the device you are
+              using, and clearing your browser data removes it permanently.
             </P>
 
-            <H>What is kept, and where</H>
+            <H>With an account, we keep what you save</H>
             <P>
-              Preferences and profile details are stored in your own browser
-              using localStorage, on the device you are using. They are not
-              synced, not backed up and not visible to anyone else. Clearing
-              your browser data removes them permanently.
+              If you create an account, we store what you give us so it can
+              follow you between devices: your email address and a password
+              (held only as a one-way hash by our authentication service),
+              your display name, username and avatar colour, a profile photo
+              if you upload one, your notes and the links attached to them,
+              voice recordings you attach to notes, and the countries and
+              states you pin. Searches, pages visited and data you look at are
+              not recorded.
+            </P>
+            <P>
+              This is held in a Supabase project (Supabase, Inc. provides the
+              database, file storage and sign-in service). Every table and
+              file is locked to its owner: the database itself refuses to show
+              one account's data to any other, and voice recordings are
+              private files that only their owner can open. A profile photo is
+              the exception — like a profile picture on most sites, anyone who
+              has its link can view it.
+            </P>
+
+            <H>What your browser keeps</H>
+            <P>
+              These are the keys this site writes to your browser's
+              localStorage. None of them is a tracking identifier.
             </P>
             <div className="rounded-xl border border-border overflow-hidden mt-1">
               {STORED_KEYS.map(([key, what], i) => (
@@ -237,10 +262,12 @@ export function LegalPage() {
               ))}
             </div>
 
-            <H>Profile photos never leave the device</H>
+            <H>Profile photos</H>
             <P>
-              A photo you add is resized in the browser and written to
-              localStorage as image data. It is never uploaded.
+              A photo is resized to 256 pixels in your browser first. Signed
+              out, it is kept in localStorage and never uploaded. Signed in,
+              it is uploaded to your account's own folder, replacing any
+              earlier one.
             </P>
 
             <H>No analytics, no advertising, no third-party tracking</H>
@@ -260,9 +287,13 @@ export function LegalPage() {
 
             <H>Signing in</H>
             <P>
-              Account sign-in is handled by an external authentication provider.
-              Credentials are entered with that provider and are never stored by
-              this site — the app never sees or keeps a password.
+              Sign-in is handled by Supabase Auth. Your password goes straight
+              to it over an encrypted connection and is stored only as a hash;
+              nobody at CommonSphere can read it. Emails for confirming an
+              address, resetting a password or signing in with a link are sent
+              by the same service. If you choose to sign in with another
+              provider, such as Google, that provider shares your name and
+              email with us under its own privacy policy.
             </P>
 
             <H>Children</H>
@@ -273,10 +304,11 @@ export function LegalPage() {
 
             <H>Your control</H>
             <P>
-              Because everything is local, you hold it all. Editing your profile
-              overwrites it; clearing site data in your browser erases it. There
-              is no request to make of us, because there is no copy on our side
-              to delete.
+              Settings shows and edits everything in your profile, and lets
+              you download a copy of your account's data or delete the
+              account. Deleting it removes your profile, photo, notes, links,
+              recordings and pins at once. What is kept in your browser you
+              erase by clearing site data.
             </P>
           </Section>
 
@@ -405,56 +437,59 @@ export function LegalPage() {
 
             <H>What personal data is processed</H>
             <P>
-              A display name, email address, username and avatar image, if you
-              enter them. All of it is written to your own browser's storage and
-              none of it is sent anywhere — this site has no server to receive
-              it. In GDPR terms almost nothing is processed by the operator at
-              all, because the data never leaves your device.
+              Without an account: none by us — what you enter stays in your
+              browser. With an account: your email address, password hash,
+              display name, username, avatar colour and photo, notes, note
+              links, voice recordings and pins, plus the technical records the
+              sign-in service keeps to run sessions (such as the time of your
+              last sign-in and the IP address a session came from).
             </P>
 
             <H>Legal basis</H>
             <P>
-              The profile details you enter are stored to provide the feature
-              you asked for, on the basis of your consent, which you give by
-              entering them and withdraw by clearing them. Preferences such as
-              theme are strictly necessary for the interface you requested. No
-              processing is carried out for marketing, profiling or automated
+              Account data is processed to provide the account you asked for
+              (performance of a contract), and you can end that at any time
+              by deleting the account. Preferences such as theme are strictly
+              necessary for the interface you requested. No processing is
+              carried out for marketing, profiling or automated
               decision-making — none of those happen here.
             </P>
 
             <H>Who else is involved</H>
             <P>
-              Two third parties can see something. The World Bank receives your
-              IP address when the site fetches indicator data from its public
-              API, as any web request implies. The authentication provider
-              handles sign-in and processes the credentials you give it
-              directly; this site never receives them. Each operates under its
-              own privacy notice.
+              Supabase processes account data on our behalf, as the provider
+              of the database, file storage, sign-in and email service. The
+              World Bank receives your IP address when the site fetches
+              indicator data from its public API, as any web request implies.
+              If you sign in through another provider, it handles that step
+              under its own privacy notice.
             </P>
 
             <H>Retention</H>
             <P>
-              Data stays in your browser until you remove it. There is no
-              server-side copy, so there is no retention schedule to run and
-              nothing to expire.
+              Account data is kept until you delete it or the account.
+              Deleting a note removes it and its recording; deleting the
+              account removes everything tied to it. Data kept in your
+              browser stays there until you clear it.
             </P>
 
             <H>Your rights</H>
             <P>
               You have the right to access your data, correct it, erase it,
               restrict or object to its processing, and to data portability.
-              Because everything is held locally, you exercise most of these
-              directly: the settings screen shows and edits what is stored, and
-              clearing site data in your browser erases it completely and
-              immediately. You also have the right to lodge a complaint with
-              your national supervisory authority.
+              You can exercise most of these yourself: Settings shows and
+              edits your profile, downloads a copy of your account's data as a
+              file, and deletes the account; clearing site data in your
+              browser erases what is kept there. You also have the right to
+              lodge a complaint with your national supervisory authority.
             </P>
 
             <H>Transfers outside the EEA</H>
             <P>
-              No personal data is transferred by this site, because none is
-              collected by it. Requests to the World Bank's API reach servers
-              outside the EEA and carry your IP address.
+              Account data is stored in the region chosen for the site's
+              Supabase project, which may be outside the EEA. Requests to the
+              World Bank's API reach servers outside the EEA and carry your IP
+              address.
             </P>
 
             {/* Unmissable on the page, because shipping this section with the

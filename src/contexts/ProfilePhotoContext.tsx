@@ -1,19 +1,19 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { useAuth } from "./AuthContext";
+import { useProfile } from "./ProfileContext";
+import { isOwnAvatarUrl, removeAvatar, updateProfile, uploadAvatar } from "@/lib/supabaseData";
 
 /**
  * ProfilePhotoContext
  *
- * There is no backend to upload an avatar to — the app is a static front end
- * talking to public data APIs — so the photo is kept as a downscaled data URL
- * in localStorage. That means it persists across reloads on this device and is
- * never uploaded anywhere, which is also the reason it does not follow the user
- * to another browser. If a real profile service is added later, only
- * setPhotoFromFile and the initial read need to change.
+ * Signed in, the photo is uploaded to the account's own folder in the
+ * Supabase "avatars" bucket and the colour is saved on the profile, so both
+ * follow the person to any device. Signed out, the photo is kept as a
+ * downscaled data URL in localStorage and never leaves the browser.
  *
- * Images are resized to 256px and re-encoded as JPEG before storage. A raw
- * phone photo is several megabytes, and localStorage caps out around 5MB per
- * origin, so storing the original would fail — often silently — and could evict
- * the theme and pinned-entity keys alongside it.
+ * Either way images are resized to 256px and re-encoded as JPEG first. A raw
+ * phone photo is several megabytes: localStorage caps out around 5MB per
+ * origin, and there is no reason to upload more than the header will draw.
  */
 
 const STORAGE_KEY = "cs-profile-photo";
@@ -102,6 +102,8 @@ interface ProfilePhotoContextValue {
   /** Background for the initials fallback when no photo is set. */
   avatarColor: string;
   setAvatarColor: (hex: string) => void;
+  /** Where the photo and colour are kept: the account, or this browser. */
+  stored: "account" | "device";
 }
 
 const ProfilePhotoContext = createContext<ProfilePhotoContextValue>({
@@ -111,10 +113,11 @@ const ProfilePhotoContext = createContext<ProfilePhotoContextValue>({
   isSaving: false,
   avatarColor: DEFAULT_AVATAR_COLOR,
   setAvatarColor: () => {},
+  stored: "device",
 });
 
 /** Draws the image onto a canvas at most MAX_EDGE on its longest side. */
-function downscale(file: File): Promise<string> {
+function downscale(file: File): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
@@ -132,7 +135,7 @@ function downscale(file: File): Promise<string> {
         return;
       }
       ctx.drawImage(img, 0, 0, w, h);
-      resolve(canvas.toDataURL("image/jpeg", 0.85));
+      resolve(canvas);
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
@@ -147,9 +150,21 @@ export function ProfilePhotoProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const { user, isConfigured } = useAuth();
+  const { profile, refresh } = useProfile();
+  const uid = isConfigured && user ? user.id : null;
   const [photo, setPhoto] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [avatarColor, setAvatarColorState] = useState(DEFAULT_AVATAR_COLOR);
+  const [accountColor, setAccountColor] = useState<string | null>(null);
+
+  // The account's colour, once its profile has loaded. Held apart from the
+  // device's so signing out shows the guest colour again.
+  useEffect(() => {
+    const c = profile?.avatar_color;
+    setAccountColor(c && isValidAvatarColor(c) ? c : null);
+  }, [profile?.avatar_color]);
+  const accountPhoto = isOwnAvatarUrl(profile?.avatar_url) ? profile!.avatar_url : null;
 
   useEffect(() => {
     try {
@@ -177,7 +192,18 @@ export function ProfilePhotoProvider({
     }
     setIsSaving(true);
     try {
-      const dataUrl = await downscale(file);
+      const canvas = await downscale(file);
+      if (uid) {
+        const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", 0.85));
+        if (!blob) return "That image could not be converted.";
+        const up = await uploadAvatar(uid, blob);
+        if ("error" in up) return `The photo could not be uploaded: ${up.error}`;
+        const saved = await updateProfile(uid, { avatarUrl: up.url });
+        if (!saved.ok) return saved.message;
+        await refresh();
+        return null;
+      }
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
       try {
         localStorage.setItem(STORAGE_KEY, dataUrl);
       } catch {
@@ -194,6 +220,13 @@ export function ProfilePhotoProvider({
 
   const setAvatarColor = (hex: string) => {
     if (!isValidAvatarColor(hex)) return;
+    if (uid) {
+      setAccountColor(hex);
+      void updateProfile(uid, { avatarColor: hex }).then((r) => {
+        if (!r.ok) console.warn("[profile] colour not saved:", r.message);
+      });
+      return;
+    }
     setAvatarColorState(hex);
     try {
       localStorage.setItem(COLOR_KEY, hex);
@@ -203,6 +236,10 @@ export function ProfilePhotoProvider({
   };
 
   const removePhoto = () => {
+    if (uid) {
+      void removeAvatar(uid).then(() => refresh());
+      return;
+    }
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {
@@ -214,12 +251,13 @@ export function ProfilePhotoProvider({
   return (
     <ProfilePhotoContext.Provider
       value={{
-        photo,
+        photo: uid ? accountPhoto : photo,
         setPhotoFromFile,
         removePhoto,
         isSaving,
-        avatarColor,
+        avatarColor: uid ? (accountColor ?? DEFAULT_AVATAR_COLOR) : avatarColor,
         setAvatarColor,
+        stored: uid ? "account" : "device",
       }}
     >
       {children}

@@ -7,7 +7,6 @@ import {
   EnvelopeSimple,
   CheckCircle,
   ArrowRight,
-  Sparkle,
 } from "@phosphor-icons/react";
 import {
   checkRateLimit,
@@ -17,24 +16,31 @@ import {
   validateEmail,
   LIMITS,
 } from "../lib/security";
+import { useAuth } from "../contexts/AuthContext";
+import { oauthProviders } from "../lib/supabase";
 
 const RATE_KEY_EDU_PAGE = "auth:edu:page";
 
+/* Only what the site does today. An earlier list promised API calls,
+   shared workspaces, PDF and BibTeX export and archives, none of which
+   exist, and credited "200+ universities" with no record behind it. */
 const EDU_PERKS = [
-  "Full Professional plan — free for verified students & faculty",
-  "Unlimited API calls during enrollment",
-  "Collaborative research workspaces",
-  "Export to CSV, PDF, and BibTeX",
-  "Priority data refresh & historical archives",
+  "Every module and dataset, free",
+  "Notes, links and voice recordings saved to your account",
+  "Pinned countries and states on every device",
+  "CSV export on the countries and cities pages",
+  "No password to remember: sign in from a link we email you",
 ];
 
 export function EduSignInPage() {
   const navigate = useNavigate();
+  const { isConfigured, sendMagicLink, signInWithProvider, user } = useAuth();
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Rate limiting: 5 attempts per 15 min
@@ -59,7 +65,21 @@ export function EduSignInPage() {
       return;
     }
 
+    if (!isConfigured) {
+      setError("Accounts are not open on this site yet, so no link can be sent.");
+      return;
+    }
+    /* The link is the verification: only someone who can read mail at the
+       .edu address can open it. Supabase sends it and creates the account
+       on first use. */
     setError("");
+    setSending(true);
+    const r = await sendMagicLink(sanitized);
+    setSending(false);
+    if (!r.ok) {
+      setError(r.message);
+      return;
+    }
     resetRateLimit(RATE_KEY_EDU_PAGE);
     setSubmitted(true);
   };
@@ -115,10 +135,7 @@ export function EduSignInPage() {
                 </li>
               ))}
             </ul>
-            <div className="mt-6 flex items-center gap-2 text-xs text-slate-500">
-              <Sparkle size={12} className="text-yellow-400" />
-              Used by researchers at 200+ universities worldwide
-            </div>
+
           </div>
 
           {/* Right: form */}
@@ -132,11 +149,12 @@ export function EduSignInPage() {
                 />
                 <h2 className="text-xl font-bold mb-2">Check your inbox</h2>
                 <p className="text-slate-400 text-sm">
-                  We&#39;ve sent a verification link to{" "}
+                  We&#39;ve sent a sign-in link to{" "}
                   <span className="text-emerald-300 font-mono text-xs">
                     {email}
                   </span>
-                  . Click it to activate your free Student plan.
+                  . Open it to verify the address and sign in. It works once,
+                  within the hour.
                 </p>
                 <button
                   onClick={() => {
@@ -157,8 +175,9 @@ export function EduSignInPage() {
                   </h2>
                 </div>
                 <p className="text-slate-400 text-xs mb-6">
-                  Enter your institutional email address below. We&#39;ll send
-                  you a magic link to verify your enrollment.
+                  {user
+                    ? `You are signed in as ${user.email}.`
+                    : "Enter your institutional email address. We\u2019ll send a link that verifies it and signs you in."}
                 </p>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
@@ -185,27 +204,49 @@ export function EduSignInPage() {
                   </div>
                   <button
                     type="submit"
-                    className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg shadow-emerald-500/20"
+                    disabled={sending}
+                    className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-60"
                   >
-                    Send Verification Link <ArrowRight size={14} />
+                    {sending ? "Sending…" : "Send Verification Link"} <ArrowRight size={14} />
                   </button>
                 </form>
                 <p className="text-slate-500 text-[11px] mt-5 text-center">
-                  By continuing you agree to our Terms of Service. Verified
-                  annually.
+                  By continuing you agree to our{" "}
+                  <a href="/dashboard/legal#terms" className="underline hover:text-slate-300">
+                    Terms
+                  </a>{" "}
+                  and{" "}
+                  <a href="/dashboard/legal#privacy" className="underline hover:text-slate-300">
+                    Privacy notice
+                  </a>
+                  .
                 </p>
 
-                <div className="border-t border-slate-700/60 mt-5 pt-5 text-center">
-                  <p className="text-slate-400 text-xs mb-3">Or sign in with</p>
-                  <div className="flex gap-3">
-                    <button className="flex-1 border border-slate-700 hover:border-slate-500 rounded-lg py-2 text-xs font-semibold text-slate-300 hover:text-white transition-all">
-                      Google
-                    </button>
-                    <button className="flex-1 border border-slate-700 hover:border-slate-500 rounded-lg py-2 text-xs font-semibold text-slate-300 hover:text-white transition-all">
-                      Microsoft
-                    </button>
+                {/* Only providers switched on for this deployment. The two
+                    buttons that used to sit here did nothing. */}
+                {isConfigured && oauthProviders.some((p) => p === "google" || p === "azure") && (
+                  <div className="border-t border-slate-700/60 mt-5 pt-5 text-center">
+                    <p className="text-slate-400 text-xs mb-3">Or sign in with</p>
+                    <div className="flex gap-3">
+                      {oauthProviders.includes("google") && (
+                        <button
+                          onClick={() => void signInWithProvider("google")}
+                          className="flex-1 border border-slate-700 hover:border-slate-500 rounded-lg py-2 text-xs font-semibold text-slate-300 hover:text-white transition-all"
+                        >
+                          Google
+                        </button>
+                      )}
+                      {oauthProviders.includes("azure") && (
+                        <button
+                          onClick={() => void signInWithProvider("azure")}
+                          className="flex-1 border border-slate-700 hover:border-slate-500 rounded-lg py-2 text-xs font-semibold text-slate-300 hover:text-white transition-all"
+                        >
+                          Microsoft
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </>
             )}
           </div>

@@ -110,7 +110,7 @@ const SEARCH_INDEX = buildSearchIndex();
 
 export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
   const { theme, toggleTheme } = useTheme();
-  const { user, logout } = useAuth();
+  const { user, logout, isConfigured, openAuth } = useAuth();
   const { photo, avatarColor } = useProfilePhoto();
   const { displayName: savedName } = useProfile();
   const [searchValue, setSearchValue] = useState("");
@@ -318,6 +318,20 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
           )}
         </button>
 
+        {/* Signed out, on a site with accounts: a way in instead of a menu
+            for an account that does not exist. While the stored session is
+            still being read (user undefined) nothing shows, so the button
+            does not flash for someone who is signed in. */}
+        {isConfigured && user === null ? (
+          <button
+            onClick={() => openAuth("signin")}
+            className="px-3.5 py-1.5 rounded-full text-sm font-sans font-medium bg-secondary text-secondary-foreground hover:bg-secondary/85 transition-colors"
+          >
+            Sign in
+          </button>
+        ) : isConfigured && user === undefined ? (
+          <span className="w-8 h-8" aria-hidden />
+        ) : (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
@@ -329,7 +343,7 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
               </span>
               <Avatar className="h-8 w-8">
                 <AvatarImage
-                  src={photo || (user as any)?.profilePictureUrl || ""}
+                  src={photo || ""}
                   alt="User avatar"
                 />
                 <AvatarFallback
@@ -368,31 +382,43 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
             align="end"
             className="bg-card border-border text-card-foreground w-48"
           >
+            {user?.email && (
+              <>
+                <p className="px-2 py-1.5 text-[11px] font-sans text-muted-foreground truncate">
+                  {user.email}
+                </p>
+                <DropdownMenuSeparator className="bg-border" />
+              </>
+            )}
             <DropdownMenuItem
               className="cursor-pointer hover:bg-muted text-card-foreground"
               onClick={() => navigate("/dashboard/settings")}
             >
               Profile Settings
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-border" />
             <DropdownMenuItem
-              className="cursor-pointer hover:bg-muted text-destructive"
-              onClick={() => {
-                // Deliberately not awaited. The SDK's logout first waits for
-                // its playground bridge (window.anima), polling for a full 5s
-                // before rejecting when the app runs outside the playground —
-                // so awaiting it leaves this item looking dead for five
-                // seconds. Logout invalidates the user query on success, and
-                // the header reads that reactively, so navigating first costs
-                // nothing and keeps the click responsive either way.
-                void logout().catch(() => {});
-                navigate("/dashboard");
-              }}
+              className="cursor-pointer hover:bg-muted text-card-foreground"
+              onClick={() => navigate("/dashboard/notes")}
             >
-              Sign Out
+              My Notes
             </DropdownMenuItem>
+            {user && (
+              <>
+                <DropdownMenuSeparator className="bg-border" />
+                <DropdownMenuItem
+                  className="cursor-pointer hover:bg-muted text-destructive"
+                  onClick={() => {
+                    void logout().catch(() => {});
+                    navigate("/dashboard");
+                  }}
+                >
+                  Sign Out
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
+        )}
 
         {/* Mobile hamburger */}
         <button

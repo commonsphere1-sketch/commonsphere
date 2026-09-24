@@ -75,7 +75,8 @@ type PlanId = "free" | "supporter" | "professional" | "team";
  *
  * Checked against the code before it was written here. Ships: the whole
  * catalogue and every module; CSV export on countries and cities; notes and
- * pins held on the device; a source and reporting year beside the figures;
+ * pins, in the browser or in a Supabase account once signed in; a source
+ * and reporting year beside the figures;
  * World Bank series from 2018. Does not ship, and is marked Planned:
  * advertising, chart PNG export (src/lib/exportImage.ts exists but no page
  * calls it), print stylesheets, alerts, an API, citation export, team seats
@@ -542,7 +543,7 @@ export function MembershipsPage() {
 
   // ── Create-account form ──────────────────────────────────────────────
   const { displayName, email: savedEmail, username, save } = useProfile();
-  const { login } = useAuth();
+  const { user, isConfigured, openAuth } = useAuth();
   const [accountName, setAccountName] = useState("");
   const [accountUsername, setAccountUsername] = useState("");
   const [accountEmail, setAccountEmail] = useState("");
@@ -556,7 +557,7 @@ export function MembershipsPage() {
     if (username) setAccountUsername((v) => v || username);
   }, [displayName, savedEmail, username]);
 
-  function handleCreateAccount() {
+  async function handleCreateAccount() {
     const name = sanitizeText(accountName);
     // Usernames are the one field with a shape worth enforcing: it is meant to
     // be a stable handle, so restrict it rather than sanitising silently.
@@ -582,8 +583,9 @@ export function MembershipsPage() {
       setAccountError(ev.message);
       return;
     }
-    if (!save(name, mail, handle)) {
-      setAccountError("Could not save — this browser's storage is full.");
+    const saved = await save(name, mail, handle);
+    if (!saved.ok) {
+      setAccountError(saved.message ?? "Could not save your details.");
       return;
     }
     setAccountName(name);
@@ -856,12 +858,11 @@ export function MembershipsPage() {
             </div>
 
             {/* ── Create an account ──────────────────────────────────────
-                Profile details are collected here and stored with the rest of
-                the profile. Credentials deliberately are not: there is no
-                backend to create an account against, and the SDK hands sign-in
-                to its own provider, so a password box here would either go
-                nowhere or keep a password in browser storage. The button hands
-                off to that provider instead. */}
+                Profile details are collected here first; the password is set
+                in the sign-in dialog, which sends it straight to Supabase Auth
+                and never keeps it in the page or in browser storage. The
+                details travel with the sign-up, so the new account starts
+                with them. */}
             <div
               id="create-account"
               className="rounded-xl border border-border bg-card p-5 mt-6"
@@ -871,9 +872,11 @@ export function MembershipsPage() {
                 account
               </h3>
               <p className="text-xs text-muted-foreground mb-4 max-w-lg">
-                Choose how you appear on CommonSphere. Your password is set with
-                our sign-in provider on the next step — we never ask for it
-                here.
+                {user
+                  ? `You are signed in as ${user.email}. Change how you appear in Settings.`
+                  : isConfigured
+                    ? "Choose how you appear on CommonSphere. You set your password in the secure sign-in window on the next step."
+                    : "Choose how you appear on CommonSphere. Accounts are not open on this site yet, so these details are kept on this device."}
               </p>
               {interest && (
                 <p className="text-xs text-secondary mb-4 max-w-lg">
@@ -898,9 +901,13 @@ export function MembershipsPage() {
                   </p>
                   <div className="flex flex-wrap gap-2 mt-3">
                     <button
-                      onClick={() => {
-                        void login().catch(() => {});
-                      }}
+                      onClick={() =>
+                        openAuth("signup", {
+                          email: accountEmail,
+                          displayName: accountName,
+                          username: accountUsername.trim().replace(/^@/, ""),
+                        })
+                      }
                       className="px-3 py-2 rounded-lg text-xs font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
                     >
                       Continue to secure sign-in
