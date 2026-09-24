@@ -38,6 +38,7 @@ import { SourceLink } from "../components/SourceLink";
 import { ALLIANCES, ALLIANCES_CHECKED, type Alliance, type AllianceKind } from "../data/alliances";
 import { countriesData, type Country } from "../data/countriesData";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
+import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 // Globe is used in LeaderDetail tabs — do not remove
 
 // ── Types ──────────────────────────────────────────────────────────────────── v3
@@ -13638,18 +13639,18 @@ const LEADERS: Leader[] = [
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const IDEOLOGY_COLORS: Record<Ideology, string> = {
-  Conservative: "bg-blue-500/15 text-blue-400 border-blue-500/30",
-  Liberal: "bg-sky-500/15 text-sky-400 border-sky-500/30",
-  "Social Democrat": "bg-rose-500/15 text-rose-400 border-rose-500/30",
-  Nationalist: "bg-orange-500/15 text-orange-400 border-orange-500/30",
-  Communist: "bg-red-600/15 text-red-400 border-red-600/30",
-  Authoritarian: "bg-zinc-500/15 text-zinc-400 border-zinc-500/30",
-  Centrist: "bg-purple-500/15 text-purple-400 border-purple-500/30",
-  Populist: "bg-amber-500/15 text-amber-400 border-amber-500/30",
-  Theocrat: "bg-emerald-700/15 text-emerald-400 border-emerald-700/30",
-  Progressive: "bg-teal-500/15 text-teal-400 border-teal-500/30",
-  "Military Junta": "bg-stone-600/15 text-stone-400 border-stone-600/30",
-  Monarchy: "bg-yellow-700/15 text-yellow-400 border-yellow-700/30",
+  Conservative: TONE.blue,
+  Liberal: TONE.sky,
+  "Social Democrat": TONE.rose,
+  Nationalist: TONE.orange,
+  Communist: TONE.red,
+  Authoritarian: TONE.zinc,
+  Centrist: TONE.purple,
+  Populist: TONE.amber,
+  Theocrat: TONE.emerald,
+  Progressive: TONE.teal,
+  "Military Junta": TONE.stone,
+  Monarchy: TONE.yellow,
 };
 
 
@@ -13868,11 +13869,11 @@ function LeaderDetail({
                   {leader.name}
                 </h2>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="text-xs text-muted-foreground font-sans">
+                  <span className={CHIP_TEXT}>
                     {leader.title}
                   </span>
                   <span className="text-muted-foreground">·</span>
-                  <span className="text-xs text-muted-foreground font-sans">
+                  <span className={CHIP_TEXT}>
                     {leader.country}
                   </span>
                   <span
@@ -14329,9 +14330,9 @@ function LeaderDetail({
 
 // ── MonarchCard ───────────────────────────────────────────────────────────────
 const SYSTEM_COLORS: Record<string, string> = {
-  Absolute: "bg-red-500/15 text-red-400 border-red-500/30",
-  Constitutional: "bg-green-500/15 text-green-400 border-green-500/30",
-  "Semi-Constitutional": "bg-amber-500/15 text-amber-400 border-amber-500/30",
+  Absolute: TONE.red,
+  Constitutional: TONE.green,
+  "Semi-Constitutional": TONE.amber,
 };
 
 function MonarchCard({
@@ -14463,11 +14464,11 @@ function MonarchDetail({
                   {monarch.name}
                 </h2>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="text-xs text-muted-foreground font-sans">
+                  <span className={CHIP_TEXT}>
                     {monarch.title}
                   </span>
                   <span className="text-muted-foreground">·</span>
-                  <span className="text-xs text-muted-foreground font-sans">
+                  <span className={CHIP_TEXT}>
                     {monarch.country}
                   </span>
                   <span
@@ -14790,14 +14791,14 @@ interface RichFamily {
 
 
 const SECTOR_COLOR: Record<RichFamily["sector"], string> = {
-  Tech: "bg-sky-500/15 text-sky-400 border-sky-500/30",
-  Finance: "bg-green-500/15 text-green-400 border-green-500/30",
-  Energy: "bg-orange-500/15 text-orange-400 border-orange-500/30",
-  Retail: "bg-pink-500/15 text-pink-400 border-pink-500/30",
-  Media: "bg-purple-500/15 text-purple-400 border-purple-500/30",
-  Diversified: "bg-amber-500/15 text-amber-400 border-amber-500/30",
-  "Real Estate": "bg-teal-500/15 text-teal-400 border-teal-500/30",
-  Manufacturing: "bg-zinc-500/15 text-zinc-400 border-zinc-500/30",
+  Tech: TONE.sky,
+  Finance: TONE.green,
+  Energy: TONE.orange,
+  Retail: TONE.pink,
+  Media: TONE.purple,
+  Diversified: TONE.amber,
+  "Real Estate": TONE.teal,
+  Manufacturing: TONE.zinc,
 };
 
 const RICHEST_FAMILIES: RichFamily[] = [
@@ -15459,11 +15460,11 @@ function RichestFamiliesView() {
                       {selectedFamily.family}
                     </h2>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <span className="text-xs text-muted-foreground font-sans">
+                      <span className={CHIP_TEXT}>
                         {selectedFamily.source}
                       </span>
                       <span className="text-muted-foreground">·</span>
-                      <span className="text-xs text-muted-foreground font-sans">
+                      <span className={CHIP_TEXT}>
                         Est. {selectedFamily.founded}
                       </span>
                       <span
@@ -15639,13 +15640,13 @@ function AllianceModal({
                   {alliance.short}
                 </h2>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="text-xs text-muted-foreground font-sans">
+                  <span className={CHIP_TEXT}>
                     {alliance.name}
                   </span>
-                  <span className="text-xs border px-2 py-0.5 rounded-full font-sans text-secondary border-secondary/40 bg-secondary/10">
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-sans ${TONE.indigo}`}>
                     {alliance.kind}
                   </span>
-                  <span className="text-xs px-2 py-0.5 rounded-full font-mono font-semibold bg-muted text-foreground">
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-semibold ${TONE.slate}`}>
                     {alliance.memberCount} members
                   </span>
                 </div>

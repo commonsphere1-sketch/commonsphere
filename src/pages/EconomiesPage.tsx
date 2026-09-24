@@ -64,6 +64,7 @@ import {
   type Amount,
   type Share,
 } from "../data/criticalMinerals";
+import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 
 
 // Default for economies without specific data
@@ -565,13 +566,18 @@ const getCurrencyDisplay = (code: string, name: string) => {
 };
 
 const ratingColor = (r: string) => {
-  if (r.startsWith("AAA"))
-    return "text-success bg-success/10 border-success/30";
-  if (r.startsWith("AA"))
-    return "text-secondary bg-secondary/10 border-secondary/30";
-  if (r.startsWith("A"))
-    return "text-yellow-400 bg-yellow-500/10 border-yellow-500/30";
-  return "text-orange-400 bg-orange-500/10 border-orange-500/30";
+  if (r.startsWith("AAA")) return TONE.green;
+  if (r.startsWith("AA")) return TONE.teal;
+  if (r.startsWith("A")) return TONE.yellow;
+  return TONE.orange;
+};
+
+/** The economy's kind, each its own colour. */
+const ENTITY_TONE: Record<string, string> = {
+  Country: TONE.slate,
+  Territory: TONE.amber,
+  Region: TONE.sky,
+  Bloc: TONE.indigo,
 };
 
 const SECTOR_COLORS: Record<string, string> = {
@@ -1058,7 +1064,7 @@ function EconomyModal({
                   {economy.name}
                 </h2>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="text-xs font-mono text-muted-foreground border border-border/60 px-2 py-0.5 rounded-full bg-background/40">
+                  <span className={`text-xs font-sans px-2 py-0.5 rounded-full ${ENTITY_TONE[economy.entityType] ?? TONE.slate}`}>
                     {economy.entityType}
                   </span>
                   {economy.creditRating && (
@@ -1068,9 +1074,7 @@ function EconomyModal({
                       {economy.creditRating}
                     </span>
                   )}
-                  <span className="text-xs text-muted-foreground font-sans">
-                    {economy.currencyCode}
-                  </span>
+                  <span className={CHIP_TEXT}>{economy.currencyCode}</span>
                   {has(economy.gdpGrowthRate) && (
                     <span
                       className={`flex items-center gap-1 text-xs font-mono ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}

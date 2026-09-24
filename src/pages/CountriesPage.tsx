@@ -42,6 +42,7 @@ import { COUNTRY_PANELS, panelSource, type PanelField, type PanelFigure } from "
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
+import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 
 // ── Source citation constants ────────────────────────────────────────────
 // ── Extended per-country data ────────────────────────────────────────────────
@@ -371,35 +372,24 @@ function fmtPop(n: number): string {
   return `${n.toLocaleString()}`;
 }
 
-/* One hue per continent, each with a light and a dark pairing: dark text on
-   a pale fill in light mode, pale text on a deeper fill in dark mode. The
-   old set used the -400 shades in both, which vanished on the light glass,
-   and North America used the theme's grey accent, so it read as plain text. */
+/* One hue per continent and per HDI band, from the shared chip palette
+   (src/lib/chipTone.ts), which pairs each for light and dark mode. */
 const continentColors: Record<string, string> = {
-  "North America":
-    "text-blue-800 border-blue-600/40 bg-blue-100 dark:text-blue-200 dark:border-blue-400/40 dark:bg-blue-500/20",
-  Asia: "text-amber-900 border-amber-600/40 bg-amber-100 dark:text-amber-200 dark:border-amber-400/40 dark:bg-amber-500/20",
-  Europe:
-    "text-violet-800 border-violet-600/40 bg-violet-100 dark:text-violet-200 dark:border-violet-400/40 dark:bg-violet-500/20",
-  "South America":
-    "text-emerald-800 border-emerald-600/40 bg-emerald-100 dark:text-emerald-200 dark:border-emerald-400/40 dark:bg-emerald-500/20",
-  Africa:
-    "text-orange-800 border-orange-600/40 bg-orange-100 dark:text-orange-200 dark:border-orange-400/40 dark:bg-orange-500/20",
-  Oceania: "text-teal-800 border-teal-600/40 bg-teal-100 dark:text-teal-200 dark:border-teal-400/40 dark:bg-teal-500/20",
-  Antarctica: "text-sky-800 border-sky-600/40 bg-sky-100 dark:text-sky-200 dark:border-sky-400/40 dark:bg-sky-500/20",
+  "North America": TONE.blue,
+  Asia: TONE.amber,
+  Europe: TONE.violet,
+  "South America": TONE.emerald,
+  Africa: TONE.orange,
+  Oceania: TONE.teal,
+  Antarctica: TONE.sky,
 };
 
-/* The same pairing for the HDI bands, each its own colour and bordered so
-   the chip holds its shape on glass in either mode. */
 const hdiBadge = (hdi: number) => {
   if (!has(hdi)) return "border border-border bg-muted text-muted-foreground"; // not published
-  if (hdi >= 0.9)
-    return "border border-green-600/40 bg-green-100 text-green-800 dark:border-green-400/40 dark:bg-green-500/20 dark:text-green-200";
-  if (hdi >= 0.8)
-    return "border border-teal-600/40 bg-teal-100 text-teal-800 dark:border-teal-400/40 dark:bg-teal-500/20 dark:text-teal-200";
-  if (hdi >= 0.7)
-    return "border border-yellow-600/50 bg-yellow-100 text-yellow-900 dark:border-yellow-400/40 dark:bg-yellow-500/20 dark:text-yellow-200";
-  return "border border-orange-600/40 bg-orange-100 text-orange-800 dark:border-orange-400/40 dark:bg-orange-500/20 dark:text-orange-200";
+  if (hdi >= 0.9) return TONE.green;
+  if (hdi >= 0.8) return TONE.teal;
+  if (hdi >= 0.7) return TONE.yellow;
+  return TONE.orange;
 };
 
 /** FAO land use as donut slices, or null where FAO/World Bank publish none. */
@@ -630,7 +620,7 @@ function CountryModal({
                   {country.name}
                 </h2>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="flex items-center gap-1 text-xs font-medium text-foreground/80">
+                  <span className={`flex items-center gap-1 ${CHIP_TEXT}`}>
                     <MapPin size={12} weight="fill" /> {capitalLabel(country)}
                   </span>
                   <span

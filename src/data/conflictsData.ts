@@ -1,3 +1,4 @@
+import { TONE } from "../lib/chipTone";
 export type ConflictType =
   | "War"
   | "Proxy War"
@@ -1525,27 +1526,26 @@ export const conflictsData: Conflict[] = [
 ];
 
 export const conflictTypeColors: Record<ConflictType, string> = {
-  War: "text-red-400 bg-red-500/10 border-red-500/30",
-  "Proxy War": "text-orange-400 bg-orange-500/10 border-orange-500/30",
-  "Civil War": "text-rose-400 bg-rose-500/10 border-rose-500/30",
-  Protest: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
-  Riot: "text-amber-400 bg-amber-500/10 border-amber-500/30",
-  "Natural Disaster": "text-sky-400 bg-sky-500/10 border-sky-500/30",
-  "Economic Crisis": "text-purple-400 bg-purple-500/10 border-purple-500/30",
-  "Political Instability":
-    "text-orange-300 bg-orange-400/10 border-orange-400/20",
-  Terrorism: "text-red-300 bg-red-600/10 border-red-600/20",
+  War: TONE.red,
+  "Proxy War": TONE.orange,
+  "Civil War": TONE.rose,
+  Protest: TONE.yellow,
+  Riot: TONE.amber,
+  "Natural Disaster": TONE.sky,
+  "Economic Crisis": TONE.purple,
+  "Political Instability": TONE.fuchsia,
+  Terrorism: TONE.stone,
 };
 
 export const intensityColors: Record<IntensityLevel, string> = {
-  Critical: "text-red-400 bg-red-500/15 border-red-500/40",
-  High: "text-orange-400 bg-orange-500/15 border-orange-500/40",
-  Medium: "text-yellow-400 bg-yellow-500/15 border-yellow-500/40",
-  Low: "text-green-400 bg-green-500/15 border-green-500/40",
+  Critical: TONE.red,
+  High: TONE.orange,
+  Medium: TONE.yellow,
+  Low: TONE.green,
 };
 
 export const trendColors = {
-  Escalating: "text-red-400",
-  Stable: "text-yellow-400",
-  "De-escalating": "text-green-400",
+  Escalating: "text-red-700 dark:text-red-300",
+  Stable: "text-yellow-800 dark:text-yellow-300",
+  "De-escalating": "text-green-700 dark:text-green-300",
 };

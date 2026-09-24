@@ -29,6 +29,7 @@ import {
   type ConflictType,
   type IntensityLevel,
 } from "../data/conflictsData";
+import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 
 // ── Summary strip ─────────────────────────────────────────────────────────────
 function SummaryStrip() {
@@ -178,7 +179,7 @@ function ConflictModal({
                   {conflict.trend}
                 </span>
                 {!conflict.active && (
-                  <span className="text-xs border border-border px-2 py-0.5 rounded-full font-sans text-muted-foreground">
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-sans ${TONE.slate}`}>
                     Resolved / Inactive
                   </span>
                 )}
@@ -187,8 +188,8 @@ function ConflictModal({
                 {conflict.name}
               </h2>
               <div className="flex items-center gap-2 mt-1.5">
-                <MapPin size={13} className="text-muted-foreground shrink-0" />
-                <span className="text-xs text-muted-foreground font-sans">
+                <MapPin size={13} weight="fill" className="text-foreground/70 shrink-0" />
+                <span className={CHIP_TEXT}>
                   {conflict.region}
                 </span>
               </div>
@@ -910,7 +911,7 @@ export function ConflictsPage() {
                         {conflict.intensity}
                       </span>
                       {!conflict.active && (
-                        <span className="text-xs border border-border px-2 py-0.5 rounded-full font-sans text-muted-foreground">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-sans ${TONE.slate}`}>
                           Inactive
                         </span>
                       )}

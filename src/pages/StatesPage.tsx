@@ -31,6 +31,7 @@ import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
 import { Figures, COUNTER_FIGURES } from "../components/Figures";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
+import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 
 // ─── Housing and commuting, from the American Community Survey ───────────
 // These panels used to read STATE_HOUSING and STATE_TRANSPORT, hand-written
@@ -200,9 +201,9 @@ const SRC_CENSUS = [STATE_SOURCES.acs, STATE_SOURCES.population];
 const SRC_CONGRESS = [STATE_SOURCES.congress, STATE_SOURCES.apportionment, STATE_SOURCES.governors];
 
 const partyColor = {
-  Democrat: "text-secondary border-secondary bg-secondary/10",
-  Republican: "text-red-400 border-red-500/40 bg-red-500/10",
-  Independent: "text-yellow-400 border-yellow-500/40 bg-yellow-500/10",
+  Democrat: TONE.blue,
+  Republican: TONE.red,
+  Independent: TONE.violet,
 };
 
 // ─── Color palettes ──────────────────────────────────────────────────────────
@@ -6391,13 +6392,11 @@ function StateModal({
                   {state.name}
                 </h2>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground font-sans">
-                    <MapPin size={12} /> {state.capital}
+                  <span className={`flex items-center gap-1 ${CHIP_TEXT}`}>
+                    <MapPin size={12} weight="fill" /> {state.capital}
                   </span>
                   <span className="text-muted-foreground">·</span>
-                  <span className="text-xs text-muted-foreground font-sans">
-                    {state.region} Region
-                  </span>
+                  <span className={CHIP_TEXT}>{state.region} Region</span>
                   <span
                     className={`text-xs border px-2 py-0.5 rounded-full font-sans ${partyColor[state.party]}`}
                   >

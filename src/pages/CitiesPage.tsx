@@ -27,6 +27,7 @@ import { citiesData, type City } from "../data/citiesData";
 import { getUpcoming } from "../data/upcomingToWatch";
 import { SourceLink } from "../components/SourceLink";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
+import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 
 const SRC_CITIES = [
   {
@@ -959,18 +960,18 @@ const SRC_CITY_LAWS = [
 ];
 
 const regionColors: Record<string, string> = {
-  "North America": "text-secondary border-secondary bg-secondary/10",
-  "Western Europe": "text-purple-400 border-purple-500/40 bg-purple-500/10",
-  "East Asia": "text-yellow-400 border-yellow-500/40 bg-yellow-500/10",
-  "Southeast Asia": "text-green-400 border-green-500/40 bg-green-500/10",
-  "Middle East": "text-orange-400 border-orange-500/40 bg-orange-500/10",
-  "Central Europe": "text-pink-400 border-pink-500/40 bg-pink-500/10",
-  Oceania: "text-cyan-400 border-cyan-500/40 bg-cyan-500/10",
-  "South Asia": "text-red-400 border-red-500/40 bg-red-500/10",
-  "South America": "text-lime-400 border-lime-500/40 bg-lime-500/10",
-  "Eastern Europe": "text-indigo-400 border-indigo-500/40 bg-indigo-500/10",
-  "Northern Europe": "text-teal-400 border-teal-500/40 bg-teal-500/10",
-  Africa: "text-amber-400 border-amber-500/40 bg-amber-500/10",
+  "North America": TONE.blue,
+  "Western Europe": TONE.purple,
+  "East Asia": TONE.yellow,
+  "Southeast Asia": TONE.green,
+  "Middle East": TONE.orange,
+  "Central Europe": TONE.pink,
+  Oceania: TONE.cyan,
+  "South Asia": TONE.red,
+  "South America": TONE.lime,
+  "Eastern Europe": TONE.indigo,
+  "Northern Europe": TONE.teal,
+  Africa: TONE.amber,
 };
 
 /* Population and GDP in whichever unit keeps the real number visible.
@@ -2720,15 +2721,15 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                 {city.name}
               </h2>
               <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span className="flex items-center gap-1 text-xs text-muted-foreground font-sans">
-                  <MapPin size={12} /> {city.country}
+                <span className={`flex items-center gap-1 ${CHIP_TEXT}`}>
+                  <MapPin size={12} weight="fill" /> {city.country}
                 </span>
                 <span
                   className={`text-xs border px-2 py-0.5 rounded-full font-sans ${regionColors[city.region] ?? "text-muted-foreground border-border bg-muted"}`}
                 >
                   {city.region}
                 </span>
-                <span className="text-xs text-muted-foreground font-sans">
+                <span className={CHIP_TEXT}>
                   Tourism #{city.tourismRankGlobal} globally
                 </span>
               </div>

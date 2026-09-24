@@ -31,6 +31,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,} from "recharts";
+import { TONE } from "@/lib/chipTone";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -624,14 +625,14 @@ const policies: Policy[] = [
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const DOMAIN_COLOR: Record<PolicyDomain, string> = {
-  Climate: "bg-emerald-500/15 text-emerald-400",
-  Healthcare: "bg-blue-500/15 text-blue-400",
-  Education: "bg-yellow-500/15 text-yellow-400",
-  Infrastructure: "bg-orange-500/15 text-orange-400",
-  Defense: "bg-red-500/15 text-red-400",
-  Economy: "bg-purple-500/15 text-purple-400",
-  Social: "bg-pink-500/15 text-pink-400",
-  Technology: "bg-cyan-500/15 text-cyan-400",
+  Climate: TONE.emerald,
+  Healthcare: TONE.blue,
+  Education: TONE.yellow,
+  Infrastructure: TONE.orange,
+  Defense: TONE.red,
+  Economy: TONE.purple,
+  Social: TONE.pink,
+  Technology: TONE.cyan,
 };
 
 const SCOPE_ICON: Record<PolicyScope, React.ReactNode> = {
@@ -642,11 +643,11 @@ const SCOPE_ICON: Record<PolicyScope, React.ReactNode> = {
 };
 
 const STATUS_STYLE: Record<PolicyStatus, string> = {
-  Active: "bg-success/15 text-success",
-  Enacted: "bg-blue-500/15 text-blue-400",
-  Proposed: "bg-yellow-500/15 text-yellow-400",
-  Pending: "bg-orange-500/15 text-orange-400",
-  Expired: "bg-muted text-muted-foreground",
+  Active: TONE.green,
+  Enacted: TONE.blue,
+  Proposed: TONE.yellow,
+  Pending: TONE.orange,
+  Expired: TONE.zinc,
 };
 
 const STATUS_ICON: Record<PolicyStatus, React.ReactNode> = {
@@ -828,7 +829,7 @@ function PolicyModal({
                 >
                   {policy.domain}
                 </span>
-                <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-foreground/80">
                   {SCOPE_ICON[policy.scope]}
                   {policy.scope}
                 </span>
