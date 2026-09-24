@@ -706,6 +706,16 @@ function SectorBar({ name, share }: { name: string; share: number }) {
  * gas", so manufacturing is inside the industry slice and is quoted underneath
  * as an "of which" figure instead.
  */
+/** A share with one decimal always, so a column of them lines up: 25.0%, not 25%. */
+const pct1 = (v: number) => `${v.toFixed(1)}%`;
+
+/**
+ * A slice colour as text: mixed a quarter of the way towards the page's text
+ * colour, so it stays the same hue but reads on both backgrounds - darker on
+ * the light theme (yellow on white was near invisible), lighter on the dark.
+ */
+const inkOf = (c: string) => `color-mix(in srgb, ${c} 75%, var(--color-foreground))`;
+
 function SectorPie({ sectors }: { sectors: EconomySectors }) {
   const dominant = [...sectors.slices].sort((a, b) => b.pct - a.pct)[0];
   const pieData = sectors.slices.map((x) => ({ name: x.name, value: x.pct }));
@@ -720,7 +730,7 @@ function SectorPie({ sectors }: { sectors: EconomySectors }) {
           {entry.name}
         </p>
         <p className="text-foreground">
-          {entry.value}% {basisLabel}
+          {pct1(entry.value)} {basisLabel}
         </p>
       </div>
     );
@@ -768,9 +778,9 @@ function SectorPie({ sectors }: { sectors: EconomySectors }) {
           <div className="flex items-baseline gap-1.5 mb-1">
             <span
               className="text-xl font-bold font-mono"
-              style={{ color: getSectorColor(dominant.name) }}
+              style={{ color: inkOf(getSectorColor(dominant.name)) }}
             >
-              {dominant.pct}%
+              {pct1(dominant.pct)}
             </span>
             <span className="text-xs font-sans text-muted-foreground">
               {dominant.name}
@@ -787,9 +797,9 @@ function SectorPie({ sectors }: { sectors: EconomySectors }) {
               </span>
               <span
                 className="text-[11px] font-mono shrink-0"
-                style={{ color: getSectorColor(x.name) }}
+                style={{ color: inkOf(getSectorColor(x.name)) }}
               >
-                {x.pct}%
+                {pct1(x.pct)}
               </span>
             </div>
           ))}
@@ -858,6 +868,10 @@ function BudgetPie({ budget }: { budget: CountryBudget }) {
       ? [{ key: "unclassified" as const, name: "Not classified by function", pct: budget.unclassified }]
       : []),
   ].filter((s) => s.pct > 0);
+  /* Largest first, both in the list and round the pie (clockwise from twelve
+     o'clock), so the slices read in the same order as the list beside them.
+     They were drawn in COFOG's numbering while the list was ranked, so the
+     first slice was rarely the first line. */
   const ranked = [...slices].sort((a, b) => b.pct - a.pct);
   const top = ranked[0];
 
@@ -869,7 +883,7 @@ function BudgetPie({ budget }: { budget: CountryBudget }) {
         <p style={{ color: BUDGET_COLORS[e.key as keyof typeof BUDGET_COLORS] }} className="font-semibold">
           {e.name}
         </p>
-        <p className="text-foreground">{e.pct}% of government spending</p>
+        <p className="text-foreground">{pct1(e.pct)} of government spending</p>
       </div>
     );
   };
@@ -881,16 +895,18 @@ function BudgetPie({ budget }: { budget: CountryBudget }) {
           Spending by function · {budget.y}
         </p>
       </div>
-      <div className="flex items-start gap-4">
-        <div className="shrink-0" style={{ width: 110, height: 110 }}>
+      {/* The pie is sized to the ten-line list and centred on it, rather than
+          a small disc at the top with empty space beneath. */}
+      <div className="flex flex-col sm:flex-row items-center gap-4">
+        <div className="shrink-0" style={{ width: 160, height: 160 }}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={slices}
+                data={ranked}
                 cx="50%"
                 cy="50%"
                 innerRadius={0}
-                outerRadius={52}
+                outerRadius={76}
                 paddingAngle={0}
                 dataKey="pct"
                 startAngle={90}
@@ -898,7 +914,7 @@ function BudgetPie({ budget }: { budget: CountryBudget }) {
                 isAnimationActive
                 animationDuration={600}
               >
-                {slices.map((s) => (
+                {ranked.map((s) => (
                   <Cell key={s.key} fill={BUDGET_COLORS[s.key]} stroke="transparent" />
                 ))}
               </Pie>
@@ -906,10 +922,10 @@ function BudgetPie({ budget }: { budget: CountryBudget }) {
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+        <div className="flex flex-col gap-1.5 flex-1 min-w-0 w-full">
           <div className="flex items-baseline gap-1.5 mb-1">
-            <span className="text-xl font-bold font-mono" style={{ color: BUDGET_COLORS[top.key] }}>
-              {top.pct}%
+            <span className="text-xl font-bold font-mono" style={{ color: inkOf(BUDGET_COLORS[top.key]) }}>
+              {pct1(top.pct)}
             </span>
             <span className="text-xs font-sans text-muted-foreground">{top.name}</span>
           </div>
@@ -918,8 +934,8 @@ function BudgetPie({ budget }: { budget: CountryBudget }) {
             <div key={s.key} className="flex items-center gap-2 min-w-0">
               <div className="w-2 h-2 rounded-sm shrink-0" style={{ background: BUDGET_COLORS[s.key] }} />
               <span className="text-[11px] font-sans text-foreground truncate flex-1">{s.name}</span>
-              <span className="text-[11px] font-mono shrink-0" style={{ color: BUDGET_COLORS[s.key] }}>
-                {s.pct}%
+              <span className="text-[11px] font-mono shrink-0" style={{ color: inkOf(BUDGET_COLORS[s.key]) }}>
+                {pct1(s.pct)}
               </span>
             </div>
           ))}

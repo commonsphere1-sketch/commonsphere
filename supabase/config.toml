@@ -155,8 +155,10 @@ max_indexes = 5
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
-# The Vite dev server. Production values (https://commonsphere-commonsphere.vercel.app) are set in
-# Dashboard > Authentication > URL Configuration, which this file does not reach.
+# The Vite dev server. Production (https://commonsphere.vercel.app/**) is added to the Redirect
+# URLs in Dashboard > Authentication > URL Configuration, which this file does not reach. Every
+# auth call passes its own redirect, so the hosted Site URL, shared with the project's other app,
+# does not need to change.
 site_url = "http://localhost:5173"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
