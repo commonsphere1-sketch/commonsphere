@@ -9,6 +9,7 @@ import {
   MapTrifold,
   ListBullets,
   Scales,
+  Star,
 } from "@phosphor-icons/react";
 // Bookmark feature removed
 import {
@@ -32,6 +33,10 @@ import { SourceLink } from "../components/SourceLink";
 import { Figures, COUNTER_FIGURES } from "../components/Figures";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
+import { useWatchlist } from "@/contexts/WatchlistContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { usdFromBillions } from "@/lib/money";
+import { has } from "@/lib/na";
 
 // ─── Housing and commuting, from the American Community Survey ───────────
 // These panels used to read STATE_HOUSING and STATE_TRANSPORT, hand-written
@@ -6327,6 +6332,7 @@ function StateModal({
 }) {
   const [activeTab, setActiveTab] = useState<ModalTab>("overview");
   const [isExpanded, setIsExpanded] = useState(false);
+  const watch = useWatchlist();
 
   React.useEffect(() => {
     setActiveTab("overview");
@@ -6406,6 +6412,16 @@ function StateModal({
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => void watch.toggle("state", state.id)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                aria-pressed={watch.isWatched("state", state.id)}
+                title={watch.isWatched("state", state.id) ? "Stop following" : "Keep this state at the top of the page"}
+              >
+                <span className="text-xs font-sans font-medium">
+                  {watch.isWatched("state", state.id) ? "★ Following" : "☆ Follow"}
+                </span>
+              </button>
               <button
                 onClick={() => setIsExpanded((v) => !v)}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
@@ -7286,6 +7302,138 @@ function USNationalBanner() {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
+/**
+ * The states the reader follows, at the top of the page: key published
+ * figures and anything that changed since they last looked. Following is the
+ * watch list (account when signed in, this browser otherwise), shared with
+ * the Countries page, Settings and the bell in the header.
+ */
+function FollowedStates({ states, onOpen }: { states: USState[]; onOpen: (s: USState) => void }) {
+  const watch = useWatchlist();
+  const { isConfigured, openAuth } = useAuth();
+  const followed = watch.items.filter((i) => i.type === "state");
+  const figures = (st: USState) => {
+    const out: [string, string][] = [];
+    if (has(st.gdp)) out.push(["GDP", usdFromBillions(st.gdp)]);
+    if (has(st.population)) out.push(["Population", fmtStatePop(st.population)]);
+    if (has(st.unemploymentRate)) out.push(["Unemployment", `${st.unemploymentRate}%`]);
+    if (has(st.medianIncome)) out.push(["Median income", `${Math.round(st.medianIncome).toLocaleString()}`]);
+    return out.slice(0, 3);
+  };
+  return (
+    <section aria-labelledby="followed-states" className="bg-card border border-border rounded-2xl p-4 mb-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+        <h2
+          id="followed-states"
+          className="flex items-center gap-2 text-xs font-bold font-sans uppercase tracking-widest text-foreground"
+        >
+          <Star size={13} weight="fill" className="text-amber-500" />
+          States you follow
+          {followed.length > 0 && (
+            <span className="text-[10px] font-mono font-normal normal-case tracking-normal text-muted-foreground">
+              {followed.length}
+            </span>
+          )}
+        </h2>
+        <p className="text-[11px] font-sans text-muted-foreground">
+          {watch.mode === "account" ? (
+            "Saved to your account"
+          ) : isConfigured ? (
+            <>
+              Saved in this browser ·{" "}
+              <button onClick={() => openAuth("signin")} className="underline hover:text-foreground">
+                sign in
+              </button>{" "}
+              to keep them on every device
+            </>
+          ) : (
+            "Saved in this browser"
+          )}
+        </p>
+      </div>
+      {followed.length === 0 ? (
+        <p className="text-xs font-sans text-muted-foreground leading-relaxed">
+          Follow a state with the ☆ on its card or in its pop-up and it stays here, with its key
+          figures and anything that changes in a data update since you last looked - a new
+          governor, a new minimum wage, a revised unemployment rate.
+        </p>
+      ) : (
+        <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1">
+          {followed.map((item) => {
+            const st = states.find((x) => x.id === item.id);
+            if (!st) return null;
+            return (
+              <div key={item.key} className="modal-tile rounded-xl p-3 w-56 shrink-0 flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <img
+                    src={`https://flagcdn.com/w40/us-${st.id}.png`}
+                    alt=""
+                    className="w-7 h-5 rounded-[3px] object-cover border border-border shrink-0"
+                    onError={(e) => {
+                      e.currentTarget.style.visibility = "hidden";
+                    }}
+                  />
+                  <button
+                    onClick={() => onOpen(st)}
+                    className="text-sm font-semibold font-sans text-foreground truncate text-left hover:underline flex-1 min-w-0"
+                  >
+                    {st.name}
+                  </button>
+                  <button
+                    onClick={() => void watch.toggle("state", st.id)}
+                    className="p-1 rounded text-amber-500 hover:text-amber-600 shrink-0"
+                    aria-label={`Unfollow ${st.name}`}
+                    title="Unfollow"
+                  >
+                    <Star size={14} weight="fill" />
+                  </button>
+                </div>
+                <div className="space-y-1">
+                  {figures(st).map(([k, v]) => (
+                    <div key={k} className="flex items-baseline justify-between gap-2">
+                      <span className="text-[10px] font-sans text-muted-foreground">{k}</span>
+                      <span className="text-xs font-mono font-semibold text-foreground">{v}</span>
+                    </div>
+                  ))}
+                  {st.governor && (
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="text-[10px] font-sans text-muted-foreground">Governor</span>
+                      <span className="text-xs font-sans font-semibold text-foreground truncate">{st.governor}</span>
+                    </div>
+                  )}
+                </div>
+                {item.changes.length > 0 ? (
+                  <div className="rounded-lg border border-secondary/30 px-2 py-1.5 space-y-0.5">
+                    {item.changes.slice(0, 2).map((ch) => (
+                      <p key={ch.key} className="text-[10px] font-sans text-foreground leading-snug">
+                        <span className="text-muted-foreground">{ch.label}:</span> {ch.from} → <b>{ch.to}</b>
+                      </p>
+                    ))}
+                    {item.changes.length > 2 && (
+                      <p className="text-[10px] font-sans text-muted-foreground">+{item.changes.length - 2} more</p>
+                    )}
+                    <button
+                      onClick={() => void watch.markSeen(item)}
+                      className="text-[10px] font-semibold text-secondary hover:underline"
+                    >
+                      Mark as seen
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-[10px] font-sans text-muted-foreground">No changes since you last looked</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
+const fmtStatePop = (n: number) =>
+  n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${Math.round(n / 1e3)}K` : n.toLocaleString();
+
 export function StatesPage() {
   const [search, setSearch] = useState("");
   const [regionFilter, setRegionFilter] = useState("All");
@@ -7298,6 +7446,24 @@ export function StatesPage() {
   const {
     states: liveStates,
   } = useLiveData();
+  const watch = useWatchlist();
+
+  /* The summary figures, worked out from the state data rather than typed
+     in: they had read "335M+", "CA · $4.1T" and "3.8%", which no longer
+     matched the figures on the cards below them. */
+  const summary = React.useMemo(() => {
+    const pops = liveStates.filter((st) => has(st.population));
+    const totalPop = pops.reduce((t, st) => t + st.population, 0);
+    const biggest = liveStates.filter((st) => has(st.gdp)).sort((a, b) => b.gdp - a.gdp)[0];
+    const rates = liveStates.filter((st) => has(st.unemploymentRate)).map((st) => st.unemploymentRate);
+    const avg = rates.length ? rates.reduce((t, r) => t + r, 0) / rates.length : NaN;
+    return {
+      count: liveStates.length,
+      totalPop,
+      biggest,
+      avgUnemployment: avg,
+    };
+  }, [liveStates]);
 
   // Deep-link: open entity from search bar via ?open=<id>
   React.useEffect(() => {
@@ -7338,19 +7504,21 @@ export function StatesPage() {
           {[
             {
               label: "States Tracked",
-              value: "50",
+              value: String(summary.count),
             },
             {
-              label: "Total Population",
-              value: "335M+",
+              label: "Population (50 states)",
+              value: `${(summary.totalPop / 1e6).toFixed(1)}M`,
             },
             {
               label: "Largest Economy",
-              value: "CA · $4.1T",
+              value: summary.biggest
+                ? `${summary.biggest.abbreviation} · ${usdFromBillions(summary.biggest.gdp)}`
+                : "—",
             },
             {
               label: "Avg Unemployment",
-              value: "3.8%",
+              value: has(summary.avgUnemployment) ? `${summary.avgUnemployment.toFixed(1)}%` : "—",
             },
           ].map((s) => (
             <div
@@ -7366,6 +7534,9 @@ export function StatesPage() {
             </div>
           ))}
         </div>
+
+        {/* States you follow */}
+        <FollowedStates states={liveStates} onOpen={setModalState} />
 
         {/* Unified Search + Filter Bar */}
         <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
@@ -7509,22 +7680,42 @@ export function StatesPage() {
                     </p>
                   </div>
                 </div>
-                <span
-                  className={`relative text-xs border px-2 py-0.5 rounded-full font-sans ${partyColor[state.party]}`}
-                >
-                  {state.party === "Democrat"
-                    ? "D"
-                    : state.party === "Republican"
-                      ? "R"
-                      : "I"}
-                </span>
+                <div className="relative flex items-center gap-1.5 shrink-0">
+                  <span
+                    className={`text-xs border px-2 py-0.5 rounded-full font-sans ${partyColor[state.party]}`}
+                  >
+                    {state.party === "Democrat"
+                      ? "D"
+                      : state.party === "Republican"
+                        ? "R"
+                        : "I"}
+                  </span>
+                  {/* Follow: kept to its own click, so it does not open the card. */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void watch.toggle("state", state.id);
+                    }}
+                    aria-pressed={watch.isWatched("state", state.id)}
+                    aria-label={watch.isWatched("state", state.id) ? `Unfollow ${state.name}` : `Follow ${state.name}`}
+                    title={watch.isWatched("state", state.id) ? "Following" : "Follow"}
+                    className="p-1.5 rounded-full bg-background/60 hover:bg-background/90 transition-colors cursor-pointer"
+                  >
+                    <Star
+                      size={16}
+                      weight={watch.isWatched("state", state.id) ? "fill" : "regular"}
+                      className={watch.isWatched("state", state.id) ? "text-amber-500" : "text-foreground/70"}
+                    />
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <div>
                   <p className="text-xs text-muted-foreground font-sans">GDP</p>
                   <p className="text-sm font-bold font-mono text-foreground">
-                    ${state.gdp}B
+                    {usdFromBillions(state.gdp)}
                   </p>
                 </div>
                 <div>
