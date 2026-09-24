@@ -1,4 +1,5 @@
 import { na, has, orZero } from "../lib/na";
+import { usdFromBillions } from "../lib/money";
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import {
   geoEqualEarth,
@@ -3631,11 +3632,86 @@ export function WorldMapsPage() {
 
                   {/* Map and territories side by side on a wide screen, the
                       territories dropping underneath when there is no room. */}
-                  <div className="flex flex-col md:flex-row md:items-start gap-3">
+                  <div className="flex flex-wrap items-start gap-3">
+                  {/* The country's figures, to the right of the map in the
+                      room its width cap leaves there. The map keeps exactly
+                      its size: it never shrinks for this column, which wraps
+                      under it instead when the card is too narrow for both. */}
+                  {focusCountry && (
+                    <aside className="order-last flex-1 basis-52 min-w-[13rem]">
+                      <button
+                        onClick={() => setFactsOpen((v) => !v)}
+                        aria-expanded={factsOpen}
+                        aria-controls="focus-country-details"
+                        className="flex items-center gap-1.5 w-full text-left px-1 py-1 rounded text-[11px] font-medium font-sans text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                      >
+                        <CaretDown
+                          size={11}
+                          weight="bold"
+                          className={`transition-transform duration-200 ${factsOpen ? "" : "-rotate-90"}`}
+                        />
+                        {focusCountry.name} details
+                      </button>
+                      {factsOpen && (
+                        <div
+                          id="focus-country-details"
+                          className="grid gap-1 mt-1"
+                          style={{ gridTemplateColumns: "repeat(auto-fill, minmax(12.5rem, 1fr))" }}
+                        >
+                          {[
+                            ["Capital", focusCountry.capital === "None" ? "No capital" : focusCountry.capital],
+                            ["Government", focusCountry.governmentType],
+                            [
+                              "Population",
+                              focusCountry.uninhabited
+                                ? "Uninhabited"
+                                : na(focusCountry.population, (v) =>
+                                    v >= 1e9 ? `${(v / 1e9).toFixed(2)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v.toLocaleString(),
+                                  ),
+                            ],
+                            // In billions of dollars, scaled: Montenegro read 0.01T.
+                            ["GDP", na(focusCountry.gdp, (v) => usdFromBillions(v))],
+                            ["GDP per capita", na(focusCountry.gdpPerCapita, (v) => "$" + Math.round(v).toLocaleString())],
+                            ["GDP growth", na(focusCountry.gdpGrowth, (v) => `${v > 0 ? "+" : ""}${v}%`)],
+                            ["Life expectancy", na(focusCountry.lifeExpectancy, (v) => `${v} yrs`)],
+                            ["Human development", na(focusCountry.humanDevelopmentIndex, (v) => v.toFixed(3))],
+                            ["Unemployment", na(focusCountry.unemploymentRate, (v) => `${v}%`)],
+                            ["Inflation", na(focusCountry.inflationRate, (v) => `${v}%`)],
+                            // km² in full below a million: it read 0.01M km².
+                            [
+                              "Area",
+                              na(focusCountry.areaKm2, (v) =>
+                                v >= 1e6 ? `${(v / 1e6).toFixed(2)}M km²` : v < 10 ? `${v < 1 ? v.toFixed(2) : v.toFixed(1)} km²` : `${Math.round(v).toLocaleString()} km²`,
+                              ),
+                            ],
+                            ["Currency", focusCountry.currency],
+                          ].map(([k, v]) => (
+                            <div
+                              key={k}
+                              className="flex items-baseline justify-between gap-2 rounded-md px-2.5 py-1"
+                              style={{
+                                background: isLight ? "rgba(0,0,0,0.025)" : "rgba(255,255,255,0.04)",
+                                border: isLight
+                                  ? "1px solid rgba(0,0,0,0.06)"
+                                  : "1px solid rgba(255,255,255,0.06)",
+                              }}
+                            >
+                              <span className="text-[10px] font-sans text-muted-foreground shrink-0">{k}</span>
+                              <span className="text-[11px] font-mono font-semibold text-foreground text-right min-w-0 break-words">
+                                {v}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </aside>
+                  )}
                   <svg
                     viewBox={focusZoom.viewBox}
-                    className="w-full h-auto mx-auto md:mx-0 md:flex-1 md:min-w-0"
-                    style={focusZoom.style}
+                    className="w-full h-auto min-w-0"
+                    /* Its own capped width, neither grown nor shrunk for the
+                       details beside it. */
+                    style={{ ...focusZoom.style, flex: `0 1 ${focusZoom.style.maxWidth}` }}
                     {...focusZoom.panProps}
                     {...focusZoom.a11yProps}
                     role="img"
@@ -3908,58 +3984,10 @@ export function WorldMapsPage() {
 
                 {layerNotes(focusLayers)}
 
-                {/* Attached to the map: same panel, directly beneath it. */}
-                <div className="mt-3 border-t border-border/60 pt-3">
-                  <button
-                    onClick={() => setFactsOpen((v) => !v)}
-                    aria-expanded={factsOpen}
-                    aria-controls="focus-country-details"
-                    className="flex items-center gap-1.5 w-full text-left px-1 py-1 rounded text-[11px] font-medium font-sans text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                  >
-                    <CaretDown
-                      size={11}
-                      weight="bold"
-                      className={`transition-transform duration-200 ${factsOpen ? "" : "-rotate-90"}`}
-                    />
-                    {focusCountry?.name ?? "Country"} details
-                  </button>
-
-                  {factsOpen && (
-                    <div id="focus-country-details">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
-                  {focusCountry &&
-                    [
-                      ["Capital", focusCountry.capital],
-                      ["Government", focusCountry.governmentType],
-                      ["Population", `${(focusCountry.population / 1e6).toFixed(1)}M`],
-                      ["GDP", na(focusCountry.gdp, (v) => `${(v / 1000).toFixed(2)}T`)],
-                      ["GDP per capita", na(focusCountry.gdpPerCapita, (v) => `${Math.round(v).toLocaleString()}`)],
-                      ["GDP growth", na(focusCountry.gdpGrowth, (v) => `${v > 0 ? "+" : ""}${v}%`)],
-                      ["Life expectancy", na(focusCountry.lifeExpectancy, (v) => `${v} yrs`)],
-                      ["Human development", na(focusCountry.humanDevelopmentIndex, (v) => v.toFixed(3))],
-                      ["Unemployment", na(focusCountry.unemploymentRate, (v) => `${v}%`)],
-                      ["Inflation", na(focusCountry.inflationRate, (v) => `${v}%`)],
-                      ["Area", `${(focusCountry.areaKm2 / 1e6).toFixed(2)}M km²`],
-                      ["Currency", focusCountry.currency],
-                    ].map(([k, v]) => (
-                      <div
-                        key={k}
-                        className="flex items-baseline justify-between gap-3 rounded-lg px-3 py-1.5"
-                        style={{
-                          background: isLight ? "rgba(0,0,0,0.025)" : "rgba(255,255,255,0.04)",
-                          border: isLight
-                            ? "1px solid rgba(0,0,0,0.06)"
-                            : "1px solid rgba(255,255,255,0.06)",
-                        }}
-                      >
-                        <span className="text-[10px] font-sans text-muted-foreground">{k}</span>
-                        <span className="text-[12px] font-mono font-semibold text-foreground text-right">
-                          {v}
-                        </span>
-                      </div>
-                    ))}
-                      </div>
-
+                {/* Division names the map could not place, under it. */}
+                <div>
+                  {(focusLabels.unlabelled.length > 0 || (focusMap?.offView.length ?? 0) > 0) && (
+                    <div>
                       {/* Names the map could not carry legibly. They are listed
                           rather than dragged out on leader lines: a column of
                           86 of them ran off the bottom of the canvas, and every
