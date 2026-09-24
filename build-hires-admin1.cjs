@@ -58,6 +58,36 @@ const MAX_SPAN_DEG = 1.0;
 /** The drawn width of the focus map, in canvas units. */
 const CANVAS = 900;
 
+/**
+ * Places whose Natural Earth divisions leave out land the place has, taken
+ * from geoBoundaries instead whatever their span. Found by comparing the
+ * land each file draws with the area the site lists for the place.
+ *
+ * Åland: Natural Earth has 11 of its 16 municipalities - Finström, Geta,
+ * Hammarland, Saltvik and Sund, most of the main island, are not in it.
+ * geoBoundaries has no Åland file of its own; Finland's municipalities
+ * (ADM3) include all sixteen, traced to the shore. With `names`, every one
+ * must be found, or the place keeps Natural Earth.
+ *
+ * Cyprus and Somalia: Natural Earth draws Northern Cyprus and Somaliland as
+ * places of their own, so the Cyprus map stopped at the Green Line and the
+ * Somalia map at Somaliland. The site lists both at their full, recognised
+ * extent (9,251 km² and 637,657 km²), and geoBoundaries' districts and
+ * regions cover it (8,983 km² without the British base areas; 638,082 km²).
+ */
+const SUBSETS = {
+  AX: {
+    iso3: "FIN",
+    level: "ADM3",
+    names: [
+      "Brändö", "Eckerö", "Finström", "Föglö", "Geta", "Hammarland", "Jomala", "Kumlinge",
+      "Kökar", "Lemland", "Lumparland", "Mariehamn", "Saltvik", "Sottunga", "Sund", "Vårdö",
+    ],
+  },
+  CY: { iso3: "CYP", level: "ADM1" },
+  SO: { iso3: "SOM", level: "ADM1" },
+};
+
 /** Codes the World Bank country list does not carry. */
 const EXTRA_ISO3 = {
   TW: "TWN", EH: "ESH", CK: "COK", NU: "NIU", JE: "JEY", GG: "GGY", VA: "VAT", XK: "XKX", PS: "PSE",
@@ -204,16 +234,17 @@ function loadCountries() {
     });
     const neMerged = merge(neTopo, neTopo.objects.a.geometries);
     rewind(neMerged);
-    const span = mainSpan(neMerged);
-    if (!(span < MAX_SPAN_DEG)) continue;
+    const subset = SUBSETS[c.code];
+    let span = mainSpan(neMerged);
+    if (!subset && !(span < MAX_SPAN_DEG)) continue;
     const neArea = areaKm2(neGeoms);
 
-    const iso3 = iso3Of.get(c.code);
+    const iso3 = subset ? subset.iso3 : iso3Of.get(c.code);
     if (!iso3) { skipped.push(`${c.name} (no ISO3)`); continue; }
 
     // From Natural Earth's source, not the manifest a previous run changed.
     const neDivisions = ne.length;
-    let level = neDivisions > 1 ? "ADM1" : "ADM0";
+    let level = subset ? subset.level : neDivisions > 1 ? "ADM1" : "ADM0";
     let meta = await gbMeta(iso3, level);
     /* No divisions published: the whole-territory outline instead. For a
        place this small the coastline is what reads; Natural Earth's internal
@@ -229,6 +260,8 @@ function loadCountries() {
       const gj = JSON.parse(await getText(m.gjDownloadURL, `${iso3}-${lvl}.geojson`));
       const fs2 = gj.features
         .filter((f) => f.geometry && (f.geometry.type === "Polygon" || f.geometry.type === "MultiPolygon"))
+        // A subset keeps only its own divisions out of the country's file.
+        .filter((f) => !subset?.names || subset.names.includes(f.properties.shapeName))
         .map((f) => ({
           type: "Feature",
           properties: { n: lvl === "ADM0" ? c.name : f.properties.shapeName || "" },
@@ -254,6 +287,20 @@ function loadCountries() {
       continue;
     }
     const features = got.features;
+    if (subset) {
+      const found = new Set(features.map((f) => f.properties.n));
+      const missing = (subset.names ?? []).filter((n) => !found.has(n));
+      if (missing.length) {
+        refused.push(`${c.name} (not in ${iso3} ${level}: ${missing.join(", ")})`);
+        continue;
+      }
+      /* Natural Earth's span is of the land it has, which for these places
+         is the wrong land. Frame on the subset's own main landmass. */
+      const t = topology({ a: { type: "FeatureCollection", features: JSON.parse(JSON.stringify(features)) } });
+      const m = merge(t, t.objects.a.geometries);
+      rewind(m);
+      span = mainSpan(m);
+    }
 
     /* Across 180° (Kiribati), longitudes west of it are moved up by 360° so
        quantisation spans the place, not the globe: across the globe each
@@ -344,7 +391,8 @@ export const GEOBOUNDARIES_URL = "https://www.geoboundaries.org/";
 export const ADMIN1_SOURCES: Record<
   string,
   {
-    level: "ADM0" | "ADM1";
+    /** ADM3 where the place is a subset of its country's file (see SUBSETS in the script). */
+    level: "ADM0" | "ADM1" | "ADM3";
     source: string;
     license: string;
     year: string;

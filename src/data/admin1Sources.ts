@@ -16,7 +16,8 @@ export const GEOBOUNDARIES_URL = "https://www.geoboundaries.org/";
 export const ADMIN1_SOURCES: Record<
   string,
   {
-    level: "ADM0" | "ADM1";
+    /** ADM3 where the place is a subset of its country's file (see SUBSETS in the script). */
+    level: "ADM0" | "ADM1" | "ADM3";
     source: string;
     license: string;
     year: string;
@@ -25,6 +26,14 @@ export const ADMIN1_SOURCES: Record<
     licenseShort: string;
   }
 > = {
+  "CY": {
+    "level": "ADM1",
+    "source": "OpenStreetMap, Wambacher",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2017",
+    "sourceShort": "OpenStreetMap",
+    "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
+  },
   "MT": {
     "level": "ADM1",
     "source": "geoBoundaries, d-maps.com",
@@ -46,6 +55,14 @@ export const ADMIN1_SOURCES: Record<
     "source": "OpenStreetMap, Wambacher",
     "license": "Open Data Commons Open Database License 1.0",
     "year": "2017",
+    "sourceShort": "OpenStreetMap",
+    "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
+  },
+  "SO": {
+    "level": "ADM1",
+    "source": "OpenStreetMap, Wambacher",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2015",
     "sourceShort": "OpenStreetMap",
     "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
   },
@@ -432,6 +449,14 @@ export const ADMIN1_SOURCES: Record<
     "year": "2021",
     "sourceShort": "Sentinel-2 10 m land cover, 2021",
     "licenseShort": "CC BY 4.0"
+  },
+  "AX": {
+    "level": "ADM3",
+    "source": "OpenStreetMap, Wambacher",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2017",
+    "sourceShort": "OpenStreetMap",
+    "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
   },
   "GP": {
     "level": "ADM0",

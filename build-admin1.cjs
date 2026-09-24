@@ -31,6 +31,54 @@ for (const f of src.features) {
   }
 }
 
+/* Morocco and Western Sahara. The site lists them as two places (446,550 km²
+   and 266,000 km²), as ISO 3166 and the UN do. Natural Earth draws the de
+   facto line instead: three Moroccan regions run south into Western Sahara,
+   and the feature it files as Western Sahara is only the strip east of the
+   berm, so Morocco's map drew about 592,000 km² and Western Sahara's about
+   91,000. The boundary between the two is the parallel 27°40′N, from the
+   Atlantic to Algeria - the old northern border of Spanish Sahara - and all
+   of Morocco lies north of it. So Morocco's regions are cut at that line,
+   and everything south of it, with the strip, is Western Sahara: one
+   outline, without divisions, since the divisions are what is disputed. */
+const polygonClipping = require("polygon-clipping");
+const coordsOf = (g) => (g.type === "Polygon" ? [g.coordinates] : g.coordinates);
+/* polygon-clipping winds outer rings counter-clockwise (the GeoJSON rule);
+   d3 reads a ring by its direction on the sphere and takes that as "the rest
+   of the world", so each polygon is turned to run clockwise, as Natural
+   Earth's own rings do. Its holes turn with it and stay opposite. */
+const clockwise = (multi) =>
+  multi.map((poly) => {
+    const ring = poly[0];
+    let twice = 0;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++)
+      twice += (ring[i][0] - ring[j][0]) * (ring[i][1] + ring[j][1]);
+    // twice > 0 is clockwise with longitude east and latitude north.
+    return twice > 0 ? poly : poly.map((r) => [...r].reverse());
+  });
+const LAT_27_40 = 27 + 40 / 60;
+const NORTH = [[[[-20, LAT_27_40], [0, LAT_27_40], [0, 37], [-20, 37], [-20, LAT_27_40]]]];
+const SOUTH = [[[[-20, 20], [0, 20], [0, LAT_27_40], [-20, LAT_27_40], [-20, 20]]]];
+{
+  const morocco = [];
+  const sahara = (groups.get("EH") ?? []).map((f) => coordsOf(f.geometry));
+  for (const f of groups.get("MA") ?? []) {
+    const north = polygonClipping.intersection(coordsOf(f.geometry), NORTH);
+    const south = polygonClipping.intersection(coordsOf(f.geometry), SOUTH);
+    if (north.length) morocco.push({ ...f, geometry: { type: "MultiPolygon", coordinates: clockwise(north) } });
+    if (south.length) sahara.push(south);
+  }
+  if (!morocco.length || !sahara.length) throw new Error("Morocco / Western Sahara split found nothing");
+  groups.set("MA", morocco);
+  groups.set("EH", [
+    {
+      type: "Feature",
+      properties: { n: "Western Sahara" },
+      geometry: { type: "MultiPolygon", coordinates: clockwise(polygonClipping.union(...sahara)) },
+    },
+  ]);
+}
+
 /* Codes given on the command line rebuild just those files and leave every
    other file, and its manifest entry, as it is:
      node build-admin1.cjs FJ KI NZ RU */
