@@ -3632,13 +3632,13 @@ export function WorldMapsPage() {
 
                   {/* Map and territories side by side on a wide screen, the
                       territories dropping underneath when there is no room. */}
-                  <div className="flex flex-wrap items-start gap-3">
-                  {/* The country's figures, to the right of the map in the
-                      room its width cap leaves there. The map keeps exactly
-                      its size: it never shrinks for this column, which wraps
-                      under it instead when the card is too narrow for both. */}
+                  <div className="flex flex-wrap lg:flex-nowrap items-start gap-3">
+                  {/* The country's figures, on the left of the map. Where the
+                      map's width cap leaves room, it keeps its full size; on a
+                      smaller desktop it gives up only what this column needs,
+                      and below lg the column goes under it. */}
                   {focusCountry && (
-                    <aside className="order-last flex-1 basis-52 min-w-[13rem]">
+                    <aside className="order-last lg:order-first flex-1 lg:flex-none basis-56 min-w-[14rem] lg:w-64">
                       <button
                         onClick={() => setFactsOpen((v) => !v)}
                         aria-expanded={factsOpen}
@@ -3655,8 +3655,8 @@ export function WorldMapsPage() {
                       {factsOpen && (
                         <div
                           id="focus-country-details"
-                          className="grid gap-1 mt-1"
-                          style={{ gridTemplateColumns: "repeat(auto-fill, minmax(12.5rem, 1fr))" }}
+                          className="grid gap-2 mt-2"
+                          style={{ gridTemplateColumns: "repeat(auto-fill, minmax(14rem, 1fr))" }}
                         >
                           {[
                             ["Capital", focusCountry.capital === "None" ? "No capital" : focusCountry.capital],
@@ -3688,7 +3688,7 @@ export function WorldMapsPage() {
                           ].map(([k, v]) => (
                             <div
                               key={k}
-                              className="flex items-baseline justify-between gap-2 rounded-md px-2.5 py-1"
+                              className="flex items-baseline justify-between gap-3 rounded-lg px-3 py-1.5"
                               style={{
                                 background: isLight ? "rgba(0,0,0,0.025)" : "rgba(255,255,255,0.04)",
                                 border: isLight
@@ -3697,7 +3697,7 @@ export function WorldMapsPage() {
                               }}
                             >
                               <span className="text-[10px] font-sans text-muted-foreground shrink-0">{k}</span>
-                              <span className="text-[11px] font-mono font-semibold text-foreground text-right min-w-0 break-words">
+                              <span className="text-[12px] font-mono font-semibold text-foreground text-right min-w-0 break-words">
                                 {v}
                               </span>
                             </div>
