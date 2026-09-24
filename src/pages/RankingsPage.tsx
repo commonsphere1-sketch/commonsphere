@@ -463,7 +463,8 @@ interface RankRow {
 }
 
 function buildCountryRows(): RankRow[] {
-  return countriesData.map((c) => {
+  // A place with no permanent population has no figure to rank.
+  return countriesData.filter((c) => !c.uninhabited).map((c) => {
     const p = COUNTRY_PANELS[c.id];
     return {
       id: `country-${c.id}`,

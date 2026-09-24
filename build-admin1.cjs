@@ -13,19 +13,22 @@ const { topology } = require("topojson-server");
 const OUT = path.join(__dirname, "static/geo/admin1");
 const src = JSON.parse(fs.readFileSync(path.join(__dirname, "admin1-10m-raw.geojson"), "utf8"));
 
-// Group by ISO alpha-2, which is the key the app already joins on.
+// Group by ISO alpha-2, which is the key the app already joins on; a
+// feature carved out for a territory (see admin1-carve.cjs) is in both.
+const { codesOf } = require("./admin1-carve.cjs");
 const groups = new Map();
 for (const f of src.features) {
   const p = f.properties;
-  const code = p.iso_a2 && p.iso_a2 !== "-99" ? p.iso_a2 : null;
-  if (!code) continue;
   const name = p.name || p.name_en || p.woe_name || p.gn_name || "";
-  if (!groups.has(code)) groups.set(code, []);
-  groups.get(code).push({
-    type: "Feature",
-    properties: { n: name },   // the country code is the filename
-    geometry: f.geometry,
-  });
+  for (const code of codesOf(p)) {
+    if (!groups.has(code)) groups.set(code, []);
+    groups.get(code).push({
+      type: "Feature",
+      properties: { n: name },   // the country code is the filename
+      // Its own copy: the antimeridian unwrap below edits coordinates.
+      geometry: JSON.parse(JSON.stringify(f.geometry)),
+    });
+  }
 }
 
 /* Codes given on the command line rebuild just those files and leave every

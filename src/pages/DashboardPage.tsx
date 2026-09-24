@@ -5524,7 +5524,11 @@ function FocusCarousel({
 
   /* Alphabetical, so paging through has an order the reader can predict. */
   const countries = useMemo(
-    () => [...countriesData].sort((a, b) => a.name.localeCompare(b.name)),
+    // Places with no permanent population have nothing to follow.
+    () =>
+      countriesData
+        .filter((c) => !c.uninhabited)
+        .sort((a, b) => a.name.localeCompare(b.name)),
     [],
   );
   const states = useMemo(
@@ -6387,7 +6391,7 @@ export function DashboardPage() {
               style={{ color: mutedText }}
             >
               {countriesData.filter((c) => !c.territory).length} countries ·{" "}
-              {countriesData.filter((c) => c.territory).length} territories ·{" "}
+              {countriesData.filter((c) => c.territory).length} territories &amp; regions ·{" "}
               {usStatesData.length} US states ·{" "}
               {economiesData.length} economies · every figure cited to its source
               and the year it describes

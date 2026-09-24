@@ -11,12 +11,14 @@ import { usStatesData, type USState } from "./statesData";
  * The alias table below exists because Natural Earth abbreviates ("Dem. Rep.
  * Congo") where the dataset spells out ("DR Congo"). Every pair was read off
  * both files rather than recalled. The join was measured before any of this was
- * drawn: 172 of 177 country features match at 1:110m, and the five that do not
- * are listed in UNMATCHED_BY_DESIGN — territories, Antarctica, and two entities
- * the dataset does not treat as sovereign states. The 1:50m file draws 221 of
- * the dataset's 223 countries and territories; Tuvalu and Gibraltar are the two
- * it has no shape for, and its extra unmatched features are territories the
- * dataset does not hold, listed alongside the rest. All 50
+ * drawn: 175 of 177 country features match at 1:110m; the two that do not,
+ * Northern Cyprus and Somaliland, are entities the dataset does not treat as
+ * states. The 1:50m file draws 236 of the dataset's 250 places. The other 14
+ * have no shape of their own in it: France's overseas regions, Svalbard and
+ * the Caribbean Netherlands are drawn inside France, Norway and the
+ * Netherlands; Christmas and Cocos share one "Indian Ocean Ter." shape; and
+ * Tuvalu, Gibraltar, Tokelau, Bouvet and the US minor islands are absent.
+ * Each still has its own 1:10m file for the focus map. All 50
  * states match; the atlas additionally carries DC and five territories the
  * state dataset omits.
  *
@@ -58,30 +60,26 @@ const ALIASES: Record<string, string> = {
   "St-Martin": "Saint Martin",
   "Fr. Polynesia": "French Polynesia",
   Macao: "Macau",
+  // The rest of the ISO 3166 list, added with the territories.
+  "Falkland Is.": "Falkland Islands",
+  "Fr. S. Antarctic Lands": "French Southern and Antarctic Lands",
+  "S. Geo. and the Is.": "South Georgia and the South Sandwich Islands",
+  "Br. Indian Ocean Ter.": "British Indian Ocean Territory",
+  "Saint Helena": "Saint Helena, Ascension and Tristan da Cunha",
+  "Pitcairn Is.": "Pitcairn Islands",
+  "St. Pierre and Miquelon": "Saint Pierre and Miquelon",
+  "Wallis and Futuna Is.": "Wallis and Futuna",
+  "St-Barthélemy": "Saint Barthélemy",
+  "Heard I. and McDonald Is.": "Heard Island and McDonald Islands",
 };
 
 /** Atlas features with no counterpart in the dataset, on purpose. */
 export const UNMATCHED_BY_DESIGN = new Set([
-  "Falkland Is.",
-  "Fr. S. Antarctic Lands",
-  "Antarctica",
   "N. Cyprus",
   "Somaliland",
-  // 1:50m only: territories and dependencies the dataset does not hold as
-  // countries, plus one disputed glacier.
-  "S. Geo. and the Is.",
-  "Br. Indian Ocean Ter.",
-  "Saint Helena",
-  "Pitcairn Is.",
-  "Anguilla",
-  "Montserrat",
-  "St. Pierre and Miquelon",
-  "Wallis and Futuna Is.",
-  "St-Barthélemy",
-  "Åland",
+  // 1:50m only. Christmas and Cocos are one shape here, so it cannot be
+  // either; the other two belong to no place in the dataset.
   "Indian Ocean Ter.",
-  "Heard I. and McDonald Is.",
-  "Norfolk Island",
   "Ashmore and Cartier Is.",
   "Siachen Glacier",
 ]);

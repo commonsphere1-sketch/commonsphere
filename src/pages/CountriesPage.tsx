@@ -29,7 +29,13 @@ import {
   PieChart,
   Pie,
 } from "recharts";
-import { type Country, type EnergyStats, type ReferenceField } from "../data/countriesData";
+import {
+  countriesData,
+  type Country,
+  type EnergyStats,
+  type ReferenceField,
+} from "../data/countriesData";
+import type { Geography } from "../data/countryGeography";
 import { PRISON_RATES, PRISON_RATES_SOURCE } from "../data/prisonRates";
 import { COUNTRY_CRIME, CRIME_SOURCE, type CrimeFigure } from "../data/countryCrime";
 import { COUNTRY_PANELS, panelSource, type PanelField, type PanelFigure } from "../data/countryPanels";
@@ -102,7 +108,10 @@ function fmtGDP(billionsUSD: number): string {
    country read "0.00M km²": the Cook Islands' 236 km² and Monaco's 2 are not
    the same as nothing. */
 function fmtArea(km2: number): string {
+  if (!has(km2)) return "—";
   if (km2 >= 1e6) return `${(km2 / 1e6).toFixed(2)}M km²`;
+  // Vatican City is 0.44 km²: whole numbers would call it 0.
+  if (km2 < 10) return `${km2 < 1 ? km2.toFixed(2) : km2.toFixed(1)} km²`;
   return `${Math.round(km2).toLocaleString()} km²`;
 }
 
@@ -121,32 +130,235 @@ const HEADLINE_FIELDS = [
 const unpublishedCount = (c: Country) =>
   HEADLINE_FIELDS.filter((f) => !has(c[f])).length;
 
+/** "None" alone reads as a missing value; say what it means. */
+const capitalLabel = (c: Country) => (c.capital === "None" ? "No capital" : c.capital);
+
+/** A place's name from its ISO code, for the administering state. */
+const nameOfCode = (code: string) => countriesData.find((c) => c.code === code)?.name ?? code;
+
+/** Every place a state administers (or is in free association with), A–Z. */
+const territoriesOf = (code: string) =>
+  countriesData
+    .filter((c) => c.sovereign === code)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+/** How the administering state's card describes the relationship. */
+const relationOf = (c: Country) => c.sovereignStatus ?? c.governmentType;
+
 /**
- * The badge for a place the site can say less about: a territory, one with
- * several headline figures no source publishes, or both. Null for the rest.
+ * The badge for a place the site can say less about: one with no permanent
+ * population, a territory, one with several headline figures no source
+ * publishes, or a combination. Null for the rest.
  */
 function coverageLabel(c: Country): string | null {
+  if (c.uninhabited) return c.sovereign ? "Uninhabited · territory" : "Uninhabited";
   const limited = unpublishedCount(c) >= 3;
   if (c.territory) return limited ? "Territory · limited data" : "Territory";
   return limited ? "Limited data" : null;
 }
 
-/** The note at the top of the modal for the same places. */
-function CoverageNote({ country }: { country: Country }) {
+/**
+ * The note at the top of the modal for the same places, with the state that
+ * administers it as a link to that state's card.
+ */
+function CoverageNote({
+  country,
+  onOpenCode,
+}: {
+  country: Country;
+  onOpenCode?: (code: string) => void;
+}) {
   const limited = unpublishedCount(country) >= 3;
-  if (!country.territory && !limited) return null;
+  if (!country.territory && !limited && !country.uninhabited && !country.sovereign) return null;
+  const sov = country.sovereign;
+  const freeAssociation = /free association/i.test(country.sovereignStatus ?? "");
   return (
     <div className="mb-4 rounded-xl border border-amber-600/30 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10 px-4 py-3">
       <p className="text-[10px] font-bold font-sans uppercase tracking-widest text-amber-700 dark:text-amber-400 mb-1">
-        {coverageLabel(country)}
+        {coverageLabel(country) ?? "Self-governing"}
       </p>
       <p className="text-xs font-sans text-foreground leading-relaxed">
-        {country.territory &&
-          `${country.name} is a territory (${country.governmentType}) rather than a sovereign state. International bodies publish fewer figures for territories, and some report them only within a larger total. `}
-        {limited
-          ? `Figures shown as "—" are ones no source the site uses publishes for ${country.name}; they are left blank rather than estimated.`
-          : "Each figure shown carries its source and year."}
+        {country.uninhabited
+          ? `${country.name} has no permanent population, so there are no population, economic or social figures for it. Its geography and location are below. `
+          : country.territory
+            ? `${country.name} is not a sovereign state (${country.governmentType}). International bodies publish fewer figures for places like it, and some report them only within a larger total. `
+            : ""}
+        {!country.uninhabited &&
+          (limited
+            ? `Figures shown as "—" are ones no source the site uses publishes for ${country.name}; they are left blank rather than estimated. `
+            : "Each figure shown carries its source and year. ")}
+        {sov && (
+          <>
+            {freeAssociation ? "In free association with " : "Administered by "}
+            {onOpenCode ? (
+              <button
+                type="button"
+                onClick={() => onOpenCode(sov)}
+                className="font-semibold underline underline-offset-2 hover:text-secondary cursor-pointer"
+              >
+                {nameOfCode(sov)}
+              </button>
+            ) : (
+              <span className="font-semibold">{nameOfCode(sov)}</span>
+            )}
+            .
+          </>
+        )}
       </p>
+    </div>
+  );
+}
+
+/**
+ * The territories and dependencies a state administers, on that state's
+ * card, each labelled with its status and opening its own card.
+ */
+function TerritoriesSection({
+  country,
+  onOpenCode,
+}: {
+  country: Country;
+  onOpenCode?: (code: string) => void;
+}) {
+  const list = territoriesOf(country.code);
+  if (!list.length) return null;
+  return (
+    <div className="mt-6">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+          🏝️ Territories &amp; Dependencies
+        </span>
+        <div className="flex-1 h-px bg-border/60" />
+        <span className="text-[10px] font-mono text-muted-foreground border border-border px-2 py-0.5 rounded-full">
+          {list.length}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {list.map((t) => (
+          <button
+            key={t.code}
+            type="button"
+            onClick={() => onOpenCode?.(t.code)}
+            disabled={!onOpenCode}
+            className="modal-tile rounded-xl p-3 flex items-center gap-3 text-left transition-colors hover:border-secondary/40 cursor-pointer disabled:cursor-default"
+          >
+            <img
+              src={`https://flagcdn.com/w40/${t.code.toLowerCase()}.png`}
+              alt=""
+              className="w-7 h-5 rounded-[3px] object-cover border border-border shrink-0"
+              onError={(e) => {
+                e.currentTarget.style.visibility = "hidden";
+              }}
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold font-sans text-foreground truncate">{t.name}</p>
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug">{relationOf(t)}</p>
+            </div>
+            <span
+              className={`text-[10px] font-mono shrink-0 ${t.uninhabited ? "px-1.5 py-0.5 rounded-full border border-amber-600/40 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300" : "text-muted-foreground"}`}
+            >
+              {t.uninhabited ? "Uninhabited" : fmtPop(t.population)}
+            </span>
+          </button>
+        ))}
+      </div>
+      <p className="text-[9px] font-sans text-muted-foreground mt-2 leading-snug">
+        Status as the CIA World Factbook describes it. Places also claimed by
+        another state say so; claims to Antarctica are held in abeyance by the
+        Antarctic Treaty and are not listed.
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Where a place is and what it is like, from the Factbook (Wikidata for the
+ * few it folds into another country). The data is imported when a card is
+ * opened, not with the page.
+ */
+function GeographySection({ country }: { country: Country }) {
+  const [geo, setGeo] = React.useState<Geography | null | undefined>(undefined);
+  const [sources, setSources] = React.useState<Record<string, { label: string; url: string }> | null>(null);
+  React.useEffect(() => {
+    let live = true;
+    setGeo(undefined);
+    import("../data/countryGeography")
+      .then((m) => {
+        if (!live) return;
+        setGeo(m.COUNTRY_GEOGRAPHY[country.code] ?? null);
+        setSources(m.GEOGRAPHY_SOURCES);
+      })
+      .catch(() => live && setGeo(null));
+    return () => {
+      live = false;
+    };
+  }, [country.code]);
+
+  if (geo === undefined)
+    return <p className="mt-6 text-[11px] font-sans text-muted-foreground">Loading geography…</p>;
+  if (!geo) return null;
+
+  const coords = geo.coordinates
+    ? `${Math.abs(geo.coordinates[0]).toFixed(2)}° ${geo.coordinates[0] < 0 ? "S" : "N"}, ${Math.abs(geo.coordinates[1]).toFixed(2)}° ${geo.coordinates[1] < 0 ? "W" : "E"}`
+    : undefined;
+  const area = [geo.areaTotal, geo.areaLand && `land ${geo.areaLand}`, geo.areaWater && `water ${geo.areaWater}`]
+    .filter(Boolean)
+    .join(" · ");
+  const tiles: [string, string | undefined][] = [
+    ["Coordinates", coords],
+    ["Area", geo.areaTotal],
+    ["Coastline", geo.coastline],
+    ["Highest point", geo.highestPoint],
+  ];
+  const rows: [string, string | undefined][] = [
+    ["Who is there", geo.population],
+    ["Location", geo.location],
+    ["Area", area || undefined],
+    ["Compared", geo.areaComparative],
+    ["Land borders", geo.landBoundaries],
+    ["Climate", geo.climate],
+    ["Terrain", geo.terrain],
+    ["Lowest point", geo.lowestPoint],
+    ["Mean elevation", geo.meanElevation],
+    ["Natural resources", geo.naturalResources],
+    ["Natural hazards", geo.naturalHazards],
+    ["Note", geo.note],
+  ];
+  const src = sources?.[geo.src];
+  return (
+    <div className="mt-6">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+          🌍 Geography &amp; Location
+        </span>
+        <div className="flex-1 h-px bg-border/60" />
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+        {tiles
+          .filter(([, v]) => v)
+          .map(([label, value]) => (
+            <div key={label} className="modal-tile rounded-lg px-3 py-2.5">
+              <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5">{label}</p>
+              <p className="text-xs font-bold font-mono text-foreground leading-snug">{value}</p>
+            </div>
+          ))}
+      </div>
+      <dl className="modal-tile rounded-xl p-4 space-y-2.5">
+        {rows
+          .filter(([, v]) => v)
+          .map(([label, value]) => (
+            <div key={label} className="grid grid-cols-[7rem_1fr] gap-3">
+              <dt className="text-[10px] font-semibold font-sans text-muted-foreground uppercase tracking-wider pt-0.5">
+                {label}
+              </dt>
+              <dd className="text-xs font-sans text-foreground leading-relaxed">
+                {/* The Factbook writes these lower-case. */}
+                {value!.charAt(0).toUpperCase() + value!.slice(1)}
+              </dd>
+            </div>
+          ))}
+      </dl>
+      {src && <SourceLink sources={[src]} className="mt-2" />}
     </div>
   );
 }
@@ -166,6 +378,7 @@ const continentColors: Record<string, string> = {
   "South America": "text-green-400 border-green-500/40 bg-green-500/10",
   Africa: "text-orange-400 border-orange-500/40 bg-orange-500/10",
   Oceania: "text-cyan-400 border-cyan-500/40 bg-cyan-500/10",
+  Antarctica: "text-sky-300 border-sky-400/40 bg-sky-400/10",
 };
 
 const hdiBadge = (hdi: number) => {
@@ -331,10 +544,18 @@ function MilitarySection({
 function CountryModal({
   country,
   onClose,
+  onOpenCode,
 }: {
   country: Country;
   onClose: () => void;
+  /** Open another place's card - a territory from its state, or back. */
+  onOpenCode?: (code: string) => void;
 }) {
+  // Switching card in place (territory to state) starts at the top.
+  const scrollRef = React.useRef<HTMLDivElement | null>(null);
+  React.useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [country.id]);
   const [activeTab, setActiveTab] = React.useState<
     "overview" | "map" | "constitution"
   >("overview");
@@ -366,6 +587,7 @@ function CountryModal({
       }}
     >
       <div
+        ref={scrollRef}
         className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
       >
         <div className="p-6">
@@ -396,7 +618,7 @@ function CountryModal({
                 </h2>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <MapPin size={12} /> {country.capital}
+                    <MapPin size={12} /> {capitalLabel(country)}
                   </span>
                   <span
                     className={`text-xs border px-2 py-0.5 rounded-full font-sans ${continentColors[country.continent] ?? "text-muted-foreground border-border bg-muted"}`}
@@ -443,7 +665,7 @@ function CountryModal({
             </div>
           </div>
 
-          <CoverageNote country={country} />
+          <CoverageNote country={country} onOpenCode={onOpenCode} />
 
           {/* Tab bar */}
           <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60">
@@ -509,7 +731,7 @@ function CountryModal({
                     />
                     <span className="text-muted-foreground">Capital:</span>
                     <span className="font-semibold text-foreground">
-                      {country.capital}
+                      {capitalLabel(country)}
                     </span>
                   </div>
                   <div className="w-px h-4 bg-border shrink-0" />
@@ -530,7 +752,7 @@ function CountryModal({
                   <div className="flex items-center gap-2">
                     <span className="text-muted-foreground">Population:</span>
                     <span className="font-semibold text-foreground font-mono">
-                      {fmtPop(country.population)}
+                      {country.uninhabited ? "Uninhabited" : fmtPop(country.population)}
                     </span>
                   </div>
                 </div>
@@ -589,7 +811,9 @@ function CountryModal({
 
           {/* ── OVERVIEW TAB ── */}
           {
-            activeTab === "overview" && (
+            /* A place with no permanent population has none of these
+               figures; its card goes straight to its geography below. */
+            activeTab === "overview" && !country.uninhabited && (
               <>
                 {/* ── SOCIAL & HUMAN DEVELOPMENT CATEGORY ── */}
                 <div className="mb-4">
@@ -1127,6 +1351,13 @@ function CountryModal({
               </>
             ) /* end overview tab */
           }
+
+          {activeTab === "overview" && (
+            <>
+              <TerritoriesSection country={country} onOpenCode={onOpenCode} />
+              <GeographySection country={country} />
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -1412,7 +1643,7 @@ function CountryDemographicsChart({ country }: { country: Country }) {
             Population
           </p>
           <p className="text-sm font-bold font-mono text-foreground">
-            {fmtPop(country.population)}
+            {country.uninhabited ? "Uninhabited" : fmtPop(country.population)}
           </p>
         </div>
         {ext?.medianAge != null && (
@@ -16427,6 +16658,7 @@ export function CountriesPage() {
     "Asia",
     "Africa",
     "Oceania",
+    "Antarctica",
   ];
 
   const filtered = liveCountries
@@ -16571,6 +16803,10 @@ export function CountriesPage() {
           <CountryModal
             country={modalCountry}
             onClose={() => setModalCountry(null)}
+            onOpenCode={(code) => {
+              const next = liveCountries.find((c) => c.code === code);
+              if (next) setModalCountry(next);
+            }}
           />
         )}
 
@@ -16627,23 +16863,46 @@ export function CountriesPage() {
                       </h3>
                       <p className="text-xs text-muted-foreground font-sans flex items-center gap-1">
                         <MapPin size={10} />
-                        {country.capital} · {country.continent}
+                        {capitalLabel(country)} · {country.continent}
                       </p>
+                      {/* Under the name, where it has room at any width;
+                          beside it, it was squeezed to a sliver. */}
+                      {coverageLabel(country) && (
+                        <span
+                          className="inline-block mt-1 text-[10px] font-sans px-2 py-0.5 rounded-full border border-amber-600/40 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300"
+                          title="International bodies publish fewer figures here; open the card for what is and is not available."
+                        >
+                          {coverageLabel(country)}
+                        </span>
+                      )}
                     </div>
                   </div>
-                  {coverageLabel(country) ? (
-                    <span
-                      className="relative shrink-0 text-[10px] font-sans px-2 py-0.5 rounded-full border border-amber-600/40 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300"
-                      title="International bodies publish fewer figures here; open the card for what is and is not available."
-                    >
-                      {coverageLabel(country)}
-                    </span>
-                  ) : (
-                    <div />
-                  )}
+                  <div />
                 </div>
 
-                {/* Key stats */}
+                {/* Key stats. A place with no permanent population has
+                    no GDP, growth or life expectancy to show, so its card
+                    says what it is instead, in the same four slots. */}
+                {country.uninhabited ? (
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  {[
+                    ["Area", fmtArea(country.areaKm2)],
+                    ["Population", "Uninhabited"],
+                    [
+                      country.sovereign ? "Administered by" : "Governed by",
+                      country.sovereign ? nameOfCode(country.sovereign) : "Antarctic Treaty",
+                    ],
+                    ["Status", country.governmentType],
+                  ].map(([label, value]) => (
+                    <div key={label} className="min-w-0">
+                      <p className="text-xs text-muted-foreground font-sans">{label}</p>
+                      <p className="text-xs font-bold font-mono text-foreground leading-snug break-words">
+                        {value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                ) : (
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   <div>
                     <p className="text-xs text-muted-foreground font-sans">
@@ -16658,7 +16917,7 @@ export function CountriesPage() {
                       Population
                     </p>
                     <p className="text-sm font-bold font-mono text-foreground">
-                      {fmtPop(country.population)}
+                      {country.uninhabited ? "Uninhabited" : fmtPop(country.population)}
                     </p>
                   </div>
                   <div>
@@ -16680,6 +16939,7 @@ export function CountriesPage() {
                     </p>
                   </div>
                 </div>
+                )}
 
                 {/* HDI progress bar */}
                 <div className="mb-2">

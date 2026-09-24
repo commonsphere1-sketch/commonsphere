@@ -100,6 +100,15 @@ export interface Country {
   /** A territory, dependency or special administrative region rather than a
    *  sovereign state. Its economy card is typed "Territory". */
   territory?: boolean;
+  /** No permanent population. The page says so rather than show blanks. */
+  uninhabited?: boolean;
+  /** ISO code of the state that administers it (or, for the Cook Islands
+   *  and Niue, the one it is in free association with). That state's card
+   *  lists it. */
+  sovereign?: string;
+  /** How that state's card describes the relationship, where governmentType
+   *  does not already say it. */
+  sovereignStatus?: string;
   capital: string;
   /** High-level classification of economic system. Not yet populated for any
    *  country — optional like every other enrichment field on this interface. */
@@ -173,6 +182,10 @@ function mkEnergy(
     mix: mix.map(([source, pct, color]) => ({ source, pct, color })),
   };
 }
+
+/** Places with no permanent population (CIA World Factbook, "People and
+ *  Society"): research, military or wildlife staff at most. */
+const UNINHABITED = new Set(["AQ", "BV", "HM", "GS", "TF", "IO", "UM"]);
 
 export const countriesData: Country[] = [
   // ── NORTH AMERICA ──
@@ -8110,6 +8123,7 @@ export const countriesData: Country[] = [
     code: "PR",
     continent: "North America",
     territory: true,
+    sovereign: "US",
     energy: mkEnergy(22, 20, [
       ["Natural Gas", 48, "hsl(45,90%,55%)"],
       ["Oil", 28, "hsl(30,70%,45%)"],
@@ -8169,6 +8183,7 @@ export const countriesData: Country[] = [
     code: "GU",
     continent: "Oceania",
     territory: true,
+    sovereign: "US",
     energy: mkEnergy(2, 2, [
       ["Oil/Diesel", 62, "hsl(30,70%,45%)"],
       ["Natural Gas", 26, "hsl(45,90%,55%)"],
@@ -8223,6 +8238,7 @@ export const countriesData: Country[] = [
     code: "BM",
     continent: "North America",
     territory: true,
+    sovereign: "GB",
     energy: mkEnergy(1, 1, [
       ["Oil/Diesel", 82, "hsl(30,70%,45%)"],
       ["Solar", 12, "hsl(50,95%,55%)"],
@@ -8283,6 +8299,7 @@ export const countriesData: Country[] = [
     code: "FO",
     continent: "Europe",
     territory: true,
+    sovereign: "DK",
     energy: mkEnergy(1, 1, [
       ["Hydro", 40, "hsl(190,70%,50%)"],
       ["Wind", 38, "hsl(200,85%,55%)"],
@@ -8348,6 +8365,7 @@ export const countriesData: Country[] = [
     code: "GL",
     continent: "North America",
     territory: true,
+    sovereign: "DK",
     energy: mkEnergy(1, 1, [
       ["Hydro", 72, "hsl(190,70%,50%)"],
       ["Oil/Diesel", 22, "hsl(30,70%,45%)"],
@@ -9417,6 +9435,8 @@ export const countriesData: Country[] = [
     name: "Cook Islands",
     code: "CK",
     continent: "Oceania",
+    sovereign: "NZ",
+    sovereignStatus: "Self-governing, in free association with New Zealand",
     energy: mkEnergy(1, 1, [
       ["Oil/Diesel", 58, "hsl(30,70%,45%)"],
       ["Solar", 34, "hsl(50,95%,55%)"],
@@ -9461,6 +9481,8 @@ export const countriesData: Country[] = [
     name: "Niue",
     code: "NU",
     continent: "Oceania",
+    sovereign: "NZ",
+    sovereignStatus: "Self-governing, in free association with New Zealand",
     energy: mkEnergy(1, 1, [
       ["Oil/Diesel", 64, "hsl(30,70%,45%)"],
       ["Solar", 36, "hsl(50,95%,55%)"],
@@ -9542,47 +9564,94 @@ export const countriesData: Country[] = [
     trends: [],
   },
 
-  /* ── More territories, and the Holy See ──────────────────────────────────
-     Every economy the World Bank reports that the site did not yet hold, with
-     the Channel Islands as Jersey and Guernsey, the two jurisdictions behind
-     its combined figure. Capital, government, leader, official languages and
-     area are from the CIA World Factbook (September 2026); currency is the
-     ISO 4217 code in use - Curaçao and Sint Maarten have used the Caribbean
-     guilder (XCG) since 31 March 2025, which the Factbook has not caught up
-     with. Every figure starts unpublished (NaN) and is filled below from
-     COUNTRY_INDICATORS, GDP_HISTORY and the rest, each with its source;
-     whatever no source publishes stays blank. */
+  /* ── Territories, dependencies and the Holy See ──────────────────────────
+     Every place on the ISO 3166 list the site did not otherwise hold. The
+     first group is every economy the World Bank reports, with the Channel
+     Islands as Jersey and Guernsey; the second is the rest - territories the
+     World Bank does not report, France's five overseas regions, and seven
+     places with no permanent population.
+
+     Capital, government, leader, official languages and area are from the
+     CIA World Factbook (September 2026), and for the seven it has no entry
+     for (Åland, the Caribbean Netherlands, the French overseas regions) from
+     Wikidata, keeping only a leader it marks current. Two corrections: the
+     Factbook still lists Montserrat's premier from the 2019 election, a term
+     that ran out in 2024, so its governor is named instead; and French
+     Guiana has been led by Gabriel Serville since July 2021, where Wikidata
+     still holds his predecessor. Curaçao and Sint Maarten have used the
+     Caribbean guilder (XCG) since 31 March 2025.
+
+     The eleventh column is the state that administers the place; its card
+     lists it. Every figure starts unpublished (NaN) and is filled below from
+     COUNTRY_INDICATORS and the rest, each with its source; whatever no
+     source publishes stays blank. */
   ...(
     [
-      ["aw", "Aruba", "AW", "North America", "Oranjestad", "AWG", "Constituent Country of the Kingdom of the Netherlands", "Mike Eman (PM, since Mar 2025)", ["Papiamento", "Dutch"], 180],
-      ["as", "American Samoa", "AS", "Oceania", "Pago Pago", "USD", "Unincorporated US Territory", "Nikolao Pula (Governor, since Jan 2025)", ["Samoan", "English"], 224],
-      ["je", "Jersey", "JE", "Europe", "Saint Helier", "GBP", "British Crown Dependency", "Lyndon Farnham (Chief Minister, since Jan 2024)", ["English", "French"], 116],
-      ["gg", "Guernsey", "GG", "Europe", "Saint Peter Port", "GBP", "British Crown Dependency", "Lindsay de Sausmarez (Chief Minister, since Jul 2025)", ["English", "French"], 78],
-      ["cw", "Curaçao", "CW", "North America", "Willemstad", "XCG", "Constituent Country of the Kingdom of the Netherlands", "Gilmar Pisas (PM, since Jun 2021)", ["Papiamento", "Dutch", "English"], 444],
-      ["ky", "Cayman Islands", "KY", "North America", "George Town", "KYD", "British Overseas Territory", "André Ebanks (Premier, since May 2025)", ["English"], 264],
-      ["gi", "Gibraltar", "GI", "Europe", "Gibraltar", "GIP", "British Overseas Territory", "Fabian Picardo (Chief Minister, since Dec 2011)", ["English"], 7],
-      ["hk", "Hong Kong", "HK", "Asia", "Hong Kong", "HKD", "Special Administrative Region of China", "John Lee Ka-chiu (Chief Executive, since Jul 2022)", ["Chinese", "English"], 1108],
-      ["im", "Isle of Man", "IM", "Europe", "Douglas", "GBP", "British Crown Dependency", "Alfred Cannan (Chief Minister, since Oct 2021)", ["English", "Manx Gaelic"], 572],
-      ["mo", "Macau", "MO", "Asia", "Macau", "MOP", "Special Administrative Region of China", "Sam Hou Fai (Chief Executive, since Dec 2024)", ["Chinese", "Portuguese"], 28],
-      ["mf", "Saint Martin", "MF", "North America", "Marigot", "EUR", "Overseas Collectivity of France", "Louis Mussington (President of the Territorial Council, since Apr 2022)", ["French"], 50],
-      ["mp", "Northern Mariana Islands", "MP", "Oceania", "Saipan", "USD", "US Commonwealth", "David M. Apatang (Governor, since Jul 2025)", ["English", "Chamorro", "Carolinian"], 464],
-      ["nc", "New Caledonia", "NC", "Oceania", "Nouméa", "XPF", "Special Collectivity of France", "Alcide Ponga (President of the Government, since Jan 2025)", ["French"], 18575],
-      ["pf", "French Polynesia", "PF", "Oceania", "Papeete", "XPF", "Overseas Collectivity of France", "Moetai Brotherson (President, since May 2023)", ["French"], 4167],
-      ["sx", "Sint Maarten", "SX", "North America", "Philipsburg", "XCG", "Constituent Country of the Kingdom of the Netherlands", "Luc Mercelina (PM, since May 2024)", ["English", "Dutch"], 34],
-      ["tc", "Turks and Caicos Islands", "TC", "North America", "Cockburn Town", "USD", "British Overseas Territory", "Washington Misick (Premier, since Feb 2021)", ["English"], 948],
-      ["vg", "British Virgin Islands", "VG", "North America", "Road Town", "USD", "British Overseas Territory", "Natalio Wheatley (Premier, since May 2022)", ["English"], 151],
-      ["vi", "US Virgin Islands", "VI", "North America", "Charlotte Amalie", "USD", "Unincorporated US Territory", "Albert Bryan Jr. (Governor, since Jan 2019)", ["English"], 1910],
-      // Sovereign, so not flagged a territory. 0.44 km² (44 hectares); the
+      ["aw", "Aruba", "AW", "North America", "Oranjestad", "AWG", "Constituent Country of the Kingdom of the Netherlands", "Mike Eman (PM, since Mar 2025)", ["Papiamento", "Dutch"], 180, "NL"],
+      ["as", "American Samoa", "AS", "Oceania", "Pago Pago", "USD", "Unincorporated US Territory", "Nikolao Pula (Governor, since Jan 2025)", ["Samoan", "English"], 224, "US"],
+      ["je", "Jersey", "JE", "Europe", "Saint Helier", "GBP", "British Crown Dependency", "Lyndon Farnham (Chief Minister, since Jan 2024)", ["English", "French"], 116, "GB"],
+      ["gg", "Guernsey", "GG", "Europe", "Saint Peter Port", "GBP", "British Crown Dependency", "Lindsay de Sausmarez (Chief Minister, since Jul 2025)", ["English", "French"], 78, "GB"],
+      ["cw", "Curaçao", "CW", "North America", "Willemstad", "XCG", "Constituent Country of the Kingdom of the Netherlands", "Gilmar Pisas (PM, since Jun 2021)", ["Papiamento", "Dutch", "English"], 444, "NL"],
+      ["ky", "Cayman Islands", "KY", "North America", "George Town", "KYD", "British Overseas Territory", "André Ebanks (Premier, since May 2025)", ["English"], 264, "GB"],
+      ["gi", "Gibraltar", "GI", "Europe", "Gibraltar", "GIP", "British Overseas Territory", "Fabian Picardo (Chief Minister, since Dec 2011)", ["English"], 7, "GB"],
+      ["hk", "Hong Kong", "HK", "Asia", "Hong Kong", "HKD", "Special Administrative Region of China", "John Lee Ka-chiu (Chief Executive, since Jul 2022)", ["Chinese", "English"], 1108, "CN"],
+      ["im", "Isle of Man", "IM", "Europe", "Douglas", "GBP", "British Crown Dependency", "Alfred Cannan (Chief Minister, since Oct 2021)", ["English", "Manx Gaelic"], 572, "GB"],
+      ["mo", "Macau", "MO", "Asia", "Macau", "MOP", "Special Administrative Region of China", "Sam Hou Fai (Chief Executive, since Dec 2024)", ["Chinese", "Portuguese"], 28, "CN"],
+      ["mf", "Saint Martin", "MF", "North America", "Marigot", "EUR", "Overseas Collectivity of France", "Louis Mussington (President of the Territorial Council, since Apr 2022)", ["French"], 50, "FR"],
+      ["mp", "Northern Mariana Islands", "MP", "Oceania", "Saipan", "USD", "US Commonwealth", "David M. Apatang (Governor, since Jul 2025)", ["English", "Chamorro", "Carolinian"], 464, "US"],
+      ["nc", "New Caledonia", "NC", "Oceania", "Nouméa", "XPF", "Special Collectivity of France", "Alcide Ponga (President of the Government, since Jan 2025)", ["French"], 18575, "FR"],
+      ["pf", "French Polynesia", "PF", "Oceania", "Papeete", "XPF", "Overseas Collectivity of France", "Moetai Brotherson (President, since May 2023)", ["French"], 4167, "FR"],
+      ["sx", "Sint Maarten", "SX", "North America", "Philipsburg", "XCG", "Constituent Country of the Kingdom of the Netherlands", "Luc Mercelina (PM, since May 2024)", ["English", "Dutch"], 34, "NL"],
+      ["tc", "Turks and Caicos Islands", "TC", "North America", "Cockburn Town", "USD", "British Overseas Territory", "Washington Misick (Premier, since Feb 2021)", ["English"], 948, "GB"],
+      ["vg", "British Virgin Islands", "VG", "North America", "Road Town", "USD", "British Overseas Territory", "Natalio Wheatley (Premier, since May 2022)", ["English"], 151, "GB"],
+      ["vi", "US Virgin Islands", "VI", "North America", "Charlotte Amalie", "USD", "Unincorporated US Territory", "Albert Bryan Jr. (Governor, since Jan 2019)", ["English"], 1910, "US"],
+      // Sovereign, so no administering state. 0.44 km² (44 hectares); the
       // Factbook rounds it to 0.
-      ["va", "Vatican City", "VA", "Europe", "Vatican City", "EUR", "Ecclesiastical Elective Monarchy", "Pope Leo XIV (Sovereign, since May 2025)", ["Italian", "Latin"], 0.44],
-    ] as [string, string, string, string, string, string, string, string, string[], number][]
+      ["va", "Vatican City", "VA", "Europe", "Vatican City", "EUR", "Ecclesiastical Elective Monarchy", "Pope Leo XIV (Sovereign, since May 2025)", ["Italian", "Latin"], 0.44, ""],
+
+      // Territories the World Bank does not report.
+      ["ai", "Anguilla", "AI", "North America", "The Valley", "XCD", "British Overseas Territory", "Cora Richardson-Hodge (Premier, since Feb 2025)", ["English"], 91, "GB"],
+      ["ms", "Montserrat", "MS", "North America", "Plymouth (abandoned 1997; government at Brades)", "XCD", "British Overseas Territory", "Sarah Tucker (Governor, since Apr 2023)", ["English"], 102, "GB"],
+      ["fk", "Falkland Islands", "FK", "South America", "Stanley", "FKP", "British Overseas Territory (also claimed by Argentina)", "Andrea Clausen (Chief Executive, since Apr 2025)", ["English"], 12173, "GB"],
+      ["sh", "Saint Helena, Ascension and Tristan da Cunha", "SH", "Africa", "Jamestown", "SHP", "British Overseas Territory", "Nigel Phillips (Governor, since Aug 2022)", ["English"], 394, "GB"],
+      ["pn", "Pitcairn Islands", "PN", "Oceania", "Adamstown", "NZD", "British Overseas Territory", "Shawn Christian (Mayor, since Nov 2025)", ["English", "Pitkern"], 47, "GB"],
+      ["tk", "Tokelau", "TK", "Oceania", "None (the seat rotates among the three atolls)", "NZD", "Non-Self-Governing Territory of New Zealand", "Esera Fofō Filipo Tuisano (Ulu o Tokelau, since Mar 2025)", ["Tokelauan", "English"], 12, "NZ"],
+      ["wf", "Wallis and Futuna", "WF", "Oceania", "Mata-Utu", "XPF", "Overseas Collectivity of France", "Munipoese Muli'aka'aka (President of the Territorial Assembly, since Mar 2022)", ["French"], 142, "FR"],
+      ["pm", "Saint Pierre and Miquelon", "PM", "North America", "Saint-Pierre", "EUR", "Overseas Collectivity of France", "Marc Didio (President of the Territorial Council, since Jan 2026)", ["French"], 242, "FR"],
+      ["bl", "Saint Barthélemy", "BL", "North America", "Gustavia", "EUR", "Overseas Collectivity of France", "Xavier Lédée (President of the Territorial Council, since Apr 2022)", ["French"], 25, "FR"],
+      ["bq", "Caribbean Netherlands", "BQ", "North America", "Kralendijk (Bonaire)", "USD", "Special Municipalities of the Netherlands (Bonaire, Sint Eustatius, Saba)", "King Willem-Alexander (Head of State)", ["Dutch", "Papiamento", "English"], 322, "NL"],
+      ["ax", "Åland", "AX", "Europe", "Mariehamn", "EUR", "Autonomous Region of Finland", "Katrin Sjögren (Premier)", ["Swedish"], 1583, "FI"],
+      ["sj", "Svalbard and Jan Mayen", "SJ", "Europe", "Longyearbyen", "NOK", "Territory of Norway", "Lars Fause (Governor of Svalbard, since Jun 2021)", ["Norwegian"], 62045, "NO"],
+      ["nf", "Norfolk Island", "NF", "Oceania", "Kingston", "AUD", "External Territory of Australia", "George Plant (Administrator, since Jun 2023)", ["English", "Norfuk"], 36, "AU"],
+      ["cx", "Christmas Island", "CX", "Oceania", "Flying Fish Cove", "AUD", "External Territory of Australia", "Farzian Zainal (Administrator, since May 2023)", ["English"], 135, "AU"],
+      ["cc", "Cocos (Keeling) Islands", "CC", "Oceania", "West Island", "AUD", "External Territory of Australia", "Farzian Zainal (Administrator, since May 2023)", ["English"], 14, "AU"],
+
+      // France's overseas regions: part of France and of the EU, not
+      // territories in law. territory marks them as not sovereign states.
+      ["gf", "French Guiana", "GF", "South America", "Cayenne", "EUR", "Overseas Region of France", "Gabriel Serville (President of the Territorial Collectivity, since Jul 2021)", ["French"], 83534, "FR"],
+      ["gp", "Guadeloupe", "GP", "North America", "Basse-Terre", "EUR", "Overseas Region of France", "Ary Chalus (President of the Regional Council, since Dec 2015)", ["French"], 1628, "FR"],
+      ["mq", "Martinique", "MQ", "North America", "Fort-de-France", "EUR", "Overseas Region of France", "Serge Letchimy (President of the Executive Council, since Jul 2021)", ["French"], 1128, "FR"],
+      ["re", "Réunion", "RE", "Africa", "Saint-Denis", "EUR", "Overseas Region of France", "Huguette Bello (President of the Regional Council, since 2021)", ["French"], 2512, "FR"],
+      ["yt", "Mayotte", "YT", "Africa", "Mamoudzou", "EUR", "Overseas Region of France", "Ben Issa Ousseni (President of the Departmental Council, since Jul 2021)", ["French"], 374, "FR"],
+
+      // No permanent population.
+      ["aq", "Antarctica", "AQ", "Antarctica", "None", "None", "Governed under the Antarctic Treaty System", "None (no government)", [], 14200000, ""],
+      ["bv", "Bouvet Island", "BV", "Antarctica", "None", "NOK", "Dependency of Norway", "None (administered from Oslo)", [], 49, "NO"],
+      ["hm", "Heard Island and McDonald Islands", "HM", "Antarctica", "None", "AUD", "External Territory of Australia", "None (Australian Antarctic Division)", [], 412, "AU"],
+      ["gs", "South Georgia and the South Sandwich Islands", "GS", "South America", "None (station at King Edward Point)", "GBP", "British Overseas Territory (also claimed by Argentina)", "Colin Martin-Reynolds (Commissioner, since Jul 2025)", [], 3903, "GB"],
+      ["tf", "French Southern and Antarctic Lands", "TF", "Antarctica", "None (administered from Saint-Pierre, Réunion)", "EUR", "Overseas Territory of France", "Florence Jeanblanc-Risler (Prefect, since Oct 2022)", [], 7829, "FR"],
+      ["io", "British Indian Ocean Territory", "IO", "Asia", "None (administered from London)", "USD", "British Overseas Territory (transfer to Mauritius agreed May 2025)", "Nishi Dholakia (Commissioner, since Dec 2024)", [], 60, "GB"],
+      ["um", "United States Minor Outlying Islands", "UM", "Oceania", "None", "USD", "Unincorporated US Territories", "None (US Fish and Wildlife Service and US military)", [], 34.2, "US"],
+    ] as [string, string, string, string, string, string, string, string, string[], number, string][]
   ).map(
-    ([id, name, code, continent, capital, currency, governmentType, headOfState, officialLanguages, areaKm2]): Country => ({
+    ([id, name, code, continent, capital, currency, governmentType, headOfState, officialLanguages, areaKm2, sovereign]): Country => ({
       id,
       name,
       code,
       continent,
       territory: code !== "VA" ? true : undefined,
+      uninhabited: UNINHABITED.has(code) ? true : undefined,
+      sovereign: sovereign || undefined,
       capital,
       population: NaN,
       gdp: NaN,
@@ -9602,7 +9671,6 @@ export const countriesData: Country[] = [
     }),
   ),
 ];
-
 /* ── Sourced reference data ─────────────────────────────────────────────────
    Religions, spoken languages and landmarks for countries that have none
    above, from countryReference.ts (generated by build-country-reference.cjs).
@@ -9635,7 +9703,7 @@ for (const c of countriesData) {
   if (wb) {
     for (const [field, m] of Object.entries(wb) as [
       keyof CountryIndicators,
-      { v: number; y: string; s?: "imf" | "wpp" | "spc" | "adb" | "factbook" },
+      { v: number; y: string; s?: "imf" | "wpp" | "spc" | "adb" | "factbook" | "wikidata" },
     ][]) {
       if (!m) continue;
       (c as unknown as Record<string, number>)[field] = m.v;

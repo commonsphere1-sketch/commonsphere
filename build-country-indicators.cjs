@@ -251,6 +251,21 @@ const FACTBOOK = {
   JE: { path: "europe/je", name: "Jersey" },
   GG: { path: "europe/gk", name: "Guernsey" },
   VA: { path: "europe/vt", name: "Holy See (Vatican City)" },
+  // Territories the World Bank does not report. "none" is the Factbook's own
+  // short form for Saint Helena, Ascension and Tristan da Cunha.
+  AI: { path: "central-america-n-caribbean/av", name: "Anguilla" },
+  MS: { path: "central-america-n-caribbean/mh", name: "Montserrat" },
+  FK: { path: "south-america/fk", name: "Falkland Islands (Islas Malvinas)" },
+  SH: { path: "africa/sh", name: "none" },
+  PN: { path: "australia-oceania/pc", name: "Pitcairn Islands" },
+  TK: { path: "australia-oceania/tl", name: "Tokelau" },
+  WF: { path: "australia-oceania/wf", name: "Wallis and Futuna" },
+  PM: { path: "north-america/sb", name: "Saint Pierre and Miquelon" },
+  BL: { path: "central-america-n-caribbean/tb", name: "Saint Barthelemy" },
+  SJ: { path: "europe/sv", name: "Svalbard (sometimes referred to as Spitsbergen, the largest island in the archipelago)" },
+  NF: { path: "australia-oceania/nf", name: "Norfolk Island" },
+  CX: { path: "australia-oceania/kt", name: "Christmas Island" },
+  CC: { path: "australia-oceania/ck", name: "Cocos (Keeling) Islands" },
 };
 
 const money = (t) => {
@@ -300,7 +315,14 @@ async function factbookFigures() {
       const v = parse(text), y = yearOf(text);
       return v !== null && y ? { v, year: y } : null;
     };
+    const P = j["People and Society"] || {};
+    const people = (t) => {
+      const m = /^\s*([\d,]+)/.exec(t);
+      const n = m ? Number(m[1].replace(/,/g, "")) : NaN;
+      return Number.isFinite(n) && n > 0 ? n : null;
+    };
     const fig = {
+      population: take(P.Population?.total ?? P.Population, people),
       gdp: take(E["GDP (official exchange rate)"], money),
       gdpGrowth: take(E["Real GDP growth rate"], pct),
       inflationRate: take(E["Inflation rate (consumer prices)"], pct),
@@ -310,8 +332,42 @@ async function factbookFigures() {
   return out;
 }
 
+/**
+ * Latest dated population Wikidata holds for each ISO code, { code: { v, year } }.
+ * Only dated statements are used, so the year shown is the figure's own.
+ */
+async function wikidataPopulation(codes) {
+  const at = path.join(CACHE, "wikidata-population.json");
+  let rows;
+  if (fs.existsSync(at)) rows = JSON.parse(fs.readFileSync(at, "utf8"));
+  else {
+    const q = `SELECT ?code ?pop ?date WHERE {
+      VALUES ?code { ${codes.map((c) => `"${c}"`).join(" ")} }
+      ?item wdt:P297 ?code; p:P1082 ?s. ?s ps:P1082 ?pop; pq:P585 ?date.
+    }`;
+    const res = await fetch("https://query.wikidata.org/sparql?format=json&query=" + encodeURIComponent(q), {
+      headers: { "User-Agent": UA, Accept: "application/sparql-results+json" },
+    });
+    if (!res.ok) throw new Error("Wikidata: HTTP " + res.status);
+    rows = (await res.json()).results.bindings.map((b) => [b.code.value, Number(b.pop.value), b.date.value.slice(0, 10)]);
+    fs.writeFileSync(at, JSON.stringify(rows));
+  }
+  const out = {};
+  for (const [code, v, date] of rows) {
+    // An "unknown value" date comes back as a URL rather than a date.
+    if (!(v > 0) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+    if (!out[code] || date > out[code].date) out[code] = { v, date, year: date.slice(0, 4) };
+  }
+  return out;
+}
+
 /** Codes the World Bank's country list does not carry, as the IMF and UN write them. */
-const EXTRA_ISO3 = { TW: "TWN", EH: "ESH", CK: "COK", NU: "NIU", JE: "JEY", GG: "GGY", VA: "VAT" };
+const EXTRA_ISO3 = {
+  TW: "TWN", EH: "ESH", CK: "COK", NU: "NIU", JE: "JEY", GG: "GGY", VA: "VAT",
+  AI: "AIA", MS: "MSR", FK: "FLK", SH: "SHN", PN: "PCN", TK: "TKL", WF: "WLF", PM: "SPM", BL: "BLM",
+  BQ: "BES", AX: "ALA", SJ: "SJM", NF: "NFK", CX: "CXR", CC: "CCK", GF: "GUF", GP: "GLP", MQ: "MTQ",
+  RE: "REU", YT: "MYT", AQ: "ATA", BV: "BVT", HM: "HMD", GS: "SGS", TF: "ATF", IO: "IOT", UM: "UMI",
+};
 
 const round = (v) => {
   const a = Math.abs(v);
@@ -360,6 +416,7 @@ async function latest(code) {
   const wppLife = await wppLifeExpectancy();
   const spc = await spcFigures();
   const factbook = await factbookFigures();
+  const wikidataPop = await wikidataPopulation(Object.keys(EXTRA_ISO3));
   const iso3 = { ...EXTRA_ISO3 };
   {
     const at = path.join(CACHE, "wb-countries.json");
@@ -432,6 +489,16 @@ async function latest(code) {
       parts.push(`${field}: { v: ${round(hit.v)}, y: "${hit.year}", s: "factbook" }`);
       fallbacks.push(`${c.code} ${field} Factbook ${hit.year}`);
     }
+    /* Population only, for a place none of the above covers (Åland is part of
+       Finland to the UN and has no Factbook entry): the latest dated figure
+       Wikidata holds, which it takes from the statistics office it cites. */
+    // Not for a place with no permanent population: what Wikidata holds there
+    // is a count of research or military staff, not of residents.
+    if (!has("population") && !c.uninhabited && wikidataPop[c.code]) {
+      const hit = wikidataPop[c.code];
+      parts.push(`population: { v: ${Math.round(hit.v)}, y: "${hit.year}", s: "wikidata" }`);
+      fallbacks.push(`${c.code} population Wikidata ${hit.year}`);
+    }
     if (parts.length) rows.push(`  ${c.code}: { ${parts.join(", ")} },`);
   }
 
@@ -471,6 +538,7 @@ export const COUNTRY_INDICATOR_FALLBACKS = {
   spc: { label: "Pacific Community (SPC) — Pacific Data Hub", url: "https://stats.pacificdata.org/" },
   adb: { label: "Asian Development Bank — Key Indicators (via Pacific Data Hub)", url: "https://kidb.adb.org/" },
   factbook: { label: "CIA World Factbook (public domain)", url: "https://www.cia.gov/the-world-factbook/" },
+  wikidata: { label: "Wikidata (CC0), from the statistics office it cites", url: "https://www.wikidata.org/" },
 };
 
 export const COUNTRY_INDICATORS_SOURCE = {
@@ -480,7 +548,7 @@ export const COUNTRY_INDICATORS_SOURCE = {
 };
 
 /** A figure and the year it is for. */
-export type Measured = { v: number; y: string; s?: "imf" | "wpp" | "spc" | "adb" | "factbook" };
+export type Measured = { v: number; y: string; s?: "imf" | "wpp" | "spc" | "adb" | "factbook" | "wikidata" };
 
 export type CountryIndicators = Partial<{
 ${Object.keys(FIELDS)

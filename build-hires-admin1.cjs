@@ -36,7 +36,14 @@ const os = require("os");
 const path = require("path");
 const { execSync } = require("child_process");
 const { topology } = require("topojson-server");
-const { presimplify, simplify, planarTriangleArea } = require("topojson-simplify");
+const {
+  presimplify,
+  simplify,
+  planarTriangleArea,
+  planarRingArea,
+  filter,
+  filterWeight,
+} = require("topojson-simplify");
 const { quantize, feature, merge } = require("topojson-client");
 const RAW_NE = path.join(__dirname, "admin1-10m-raw.geojson");
 
@@ -52,7 +59,12 @@ const MAX_SPAN_DEG = 1.0;
 const CANVAS = 900;
 
 /** Codes the World Bank country list does not carry. */
-const EXTRA_ISO3 = { TW: "TWN", EH: "ESH", CK: "COK", NU: "NIU", JE: "JEY", GG: "GGY", VA: "VAT", XK: "XKX", PS: "PSE" };
+const EXTRA_ISO3 = {
+  TW: "TWN", EH: "ESH", CK: "COK", NU: "NIU", JE: "JEY", GG: "GGY", VA: "VAT", XK: "XKX", PS: "PSE",
+  AI: "AIA", MS: "MSR", FK: "FLK", SH: "SHN", PN: "PCN", TK: "TKL", WF: "WLF", PM: "SPM", BL: "BLM",
+  BQ: "BES", AX: "ALA", SJ: "SJM", NF: "NFK", CX: "CXR", CC: "CCK", GF: "GUF", GP: "GLP", MQ: "MTQ",
+  RE: "REU", YT: "MYT", AQ: "ATA", BV: "BVT", HM: "HMD", GS: "SGS", TF: "ATF", IO: "IOT", UM: "UMI",
+};
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -155,11 +167,12 @@ function loadCountries() {
      not on whatever file is there now, so a re-run picks the same places. */
   if (!fs.existsSync(RAW_NE)) throw new Error("admin1-10m-raw.geojson is missing: see build-admin1.cjs");
   const neByCode = new Map();
+  const { codesOf } = require("./admin1-carve.cjs");
   for (const f of JSON.parse(fs.readFileSync(RAW_NE, "utf8")).features) {
-    const code = f.properties.iso_a2 && f.properties.iso_a2 !== "-99" ? f.properties.iso_a2 : null;
-    if (!code) continue;
-    if (!neByCode.has(code)) neByCode.set(code, []);
-    neByCode.get(code).push(f.geometry);
+    for (const code of codesOf(f.properties)) {
+      if (!neByCode.has(code)) neByCode.set(code, []);
+      neByCode.get(code).push(f.geometry);
+    }
   }
   const previous = new Set(
     fs.existsSync(path.join(OUT, "hires.json")) ? JSON.parse(fs.readFileSync(path.join(OUT, "hires.json"), "utf8")) : [],
@@ -267,14 +280,22 @@ function loadCountries() {
     let topo = topology({ a: { type: "FeatureCollection", features } });
     topo = presimplify(topo, planarTriangleArea);
     topo = simplify(topo, tol * tol);
+    /* Islets smaller than about two pixels are dropped: simplifying can
+       collapse one to a sliver wound the wrong way (Saint Helena's did), and
+       at this size nothing that small can be drawn anyway. */
+    topo = filter(topo, filterWeight(topo, (2 * tol) * (2 * tol), planarRingArea));
     topo = quantize(topo, 1e5);
 
-    // The rewind has to survive simplification: check the result.
+    // The rewind has to survive simplification: check the result, and keep
+    // Natural Earth rather than ship a ring that draws inside out.
     const check = feature(topo, topo.objects.a);
-    for (const f of check.features)
-      for (const poly of polysOf(f.geometry))
-        if (geoArea({ type: "Polygon", coordinates: poly }) > 2 * Math.PI)
-          throw new Error(`${c.code}: a ring is still backwards after simplifying`);
+    const backwards = check.features.some((f) =>
+      polysOf(f.geometry).some((poly) => geoArea({ type: "Polygon", coordinates: poly }) > 2 * Math.PI),
+    );
+    if (backwards) {
+      refused.push(`${c.name} (a ring still backwards after simplifying)`);
+      continue;
+    }
 
     const json = JSON.stringify(topo);
     fs.writeFileSync(path.join(OUT, `${c.code}.json`), json);

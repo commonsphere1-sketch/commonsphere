@@ -9,6 +9,7 @@ import {
   geoArea,
   geoCentroid,
   geoDistance,
+  geoAzimuthalEqualArea,
 } from "d3-geo";
 import { feature, mesh, merge } from "topojson-client";
 import type { Topology } from "topojson-specification";
@@ -317,11 +318,17 @@ type AreaGeo = { type: string; coordinates?: unknown[]; geometry?: AreaGeo };
  * 912 by 19 pixels.
  */
 function focusProjection(geo: unknown, box: [[number, number], [number, number]]) {
-  const [lon] = geoCentroid(geo as never);
-  return geoEqualEarth()
-    .rotate([-(Number.isFinite(lon) ? lon : 0), 0])
-    .fitExtent(box, geo as never);
+  const [lon, lat] = geoCentroid(geo as never);
+  const l = Number.isFinite(lon) ? lon : 0;
+  /* Near a pole Equal Earth flattens the land into a strip along the edge:
+     Antarctica drew as a band 4% of the canvas deep. Centred beyond
+     POLAR_LAT, the place is drawn azimuthal equal-area about its own
+     centre instead - Antarctica, Svalbard, Greenland. */
+  if (Number.isFinite(lat) && Math.abs(lat) >= POLAR_LAT)
+    return geoAzimuthalEqualArea().rotate([-l, -lat]).fitExtent(box, geo as never);
+  return geoEqualEarth().rotate([-l, 0]).fitExtent(box, geo as never);
 }
+const POLAR_LAT = 70;
 
 /**
  * Puts right any polygon wound the wrong way round. d3 reads a ring on the
@@ -2615,7 +2622,10 @@ export function WorldMapsPage() {
   /* ── Continental aggregates ── */
   const continents = useMemo(() => {
     const groups = new Map<string, Country[]>();
+    // Places with no permanent population add nothing to a sum or a median;
+    // left in, Antarctica's four came to a row of zeros.
     for (const c of countriesData) {
+      if (c.uninhabited) continue;
       if (!groups.has(c.continent)) groups.set(c.continent, []);
       groups.get(c.continent)!.push(c);
     }
