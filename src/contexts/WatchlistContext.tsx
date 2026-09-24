@@ -61,6 +61,9 @@ type Ctx = {
   importDevice: () => Promise<number>;
   emailDigest: boolean;
   setEmailDigest: (on: boolean) => Promise<void>;
+  /** Whether a place is followed, and a one-call follow / unfollow. */
+  isWatched: (type: EntityType, id: string) => boolean;
+  toggle: (type: EntityType, id: string) => Promise<void>;
 };
 
 const WatchlistContext = createContext<Ctx | null>(null);
@@ -228,6 +231,13 @@ export function WatchlistProvider({ children }: { children: React.ReactNode }) {
     await refreshProfile();
   };
 
+  const isWatched = (type: EntityType, id: string) => stored.some((s) => s.type === type && s.id === id);
+  const toggle = async (type: EntityType, id: string) => {
+    const item = items.find((i) => i.type === type && i.id === id);
+    if (item) await remove(item);
+    else await add(type, id);
+  };
+
   const value: Ctx = {
     items,
     mode: uid ? "account" : "device",
@@ -243,6 +253,8 @@ export function WatchlistProvider({ children }: { children: React.ReactNode }) {
     importDevice,
     emailDigest: !!profile?.email_digest,
     setEmailDigest,
+    isWatched,
+    toggle,
   };
 
   return <WatchlistContext.Provider value={value}>{children}</WatchlistContext.Provider>;

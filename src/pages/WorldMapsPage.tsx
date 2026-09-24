@@ -409,6 +409,12 @@ function islandFrame(
       }
     });
   }
+  /* No capital - an uninhabited scatter such as the Minor Outlying Islands:
+     the largest island anchors the frame instead. Without an anchor the
+     group kept was four islands 14° apart, the view zoomed to one of them,
+     and the other three were drawn off the canvas and left out of the
+     insets as well. */
+  if (home < 0 && areas.length) home = areas.indexOf(Math.max(...areas));
 
   /* Narrow in steps: a group that is itself a chain of atolls - the Gilbert
      Islands run 16 atolls about half a degree apart - is regrouped tighter,
@@ -2107,7 +2113,12 @@ export function WorldMapsPage() {
 
   /** Where the focused country's capital is, for framing a scattered archipelago. */
   const focusCapital = useMemo(() => {
-    const row = focusCountry
+    /* A place the site lists with no capital ("None", "None (administered
+       from London)") is framed on its largest island instead; the capitals
+       file still carries a point for some of them, which anchored the Minor
+       Outlying Islands on Howland Island. */
+    const hasCapital = focusCountry && !/^none\b/i.test(focusCountry.capital.trim());
+    const row = hasCapital
       ? capitalsForFrame.data?.rows.find((r) => r[1] === focusCountry.name)
       : undefined;
     return row ? ([row[2], row[3]] as [number, number]) : undefined;
@@ -2201,7 +2212,27 @@ export function WorldMapsPage() {
         ) as never,
       ) ?? "";
 
-    const parts: Subdivision[] = keep
+    /* Divisions the frame leaves off the canvas - islands of the main
+       cluster too far from the one it frames - get insets of their own,
+       like the outlying groups. Before, they were counted as names shown,
+       drawn thousands of units off the canvas, and had no inset. Only pieces
+       within about 20 km share one: two atolls further apart, fitted to one
+       small box together, shrink below a pixel (Kingman Reef's islets are
+       0.02 km²). */
+    const onCanvas = (i: number) => {
+      const [cx, cy] = path.centroid(fc.features[i] as never);
+      return cx >= 0 && cx <= US_W && cy >= 0 && cy <= US_H;
+    };
+    const visible = keep.filter(onCanvas);
+    const offCanvasGroups: number[][] = [];
+    for (const i of keep.filter((k) => !onCanvas(k))) {
+      const c = geoCentroid(fc.features[i] as never);
+      const near = offCanvasGroups.find((g) => geoDistance(c, geoCentroid(fc.features[g[0]] as never)) < 0.003);
+      if (near) near.push(i);
+      else offCanvasGroups.push([i]);
+    }
+
+    const parts: Subdivision[] = visible
       .map((i) => {
         const f = fc.features[i];
         const [cx, cy] = path.centroid(f as never);
@@ -2235,7 +2266,8 @@ export function WorldMapsPage() {
       [INSET_SIZE - INSET_PAD, INSET_SIZE - INSET_PAD],
     ];
 
-    const insets: Inset[] = outliers.slice(0, MAX_INSETS).map((group) => {
+    const insetGroups = [...outliers, ...offCanvasGroups];
+    const insets: Inset[] = insetGroups.slice(0, MAX_INSETS).map((group) => {
       const geoms = group.map((i) => obj.geometries[i]);
       const collection = {
         type: "GeometryCollection",
@@ -2257,7 +2289,7 @@ export function WorldMapsPage() {
     });
 
     /* Anything past the inset cap is still named, never silently dropped. */
-    const offView = outliers
+    const offView = insetGroups
       .slice(MAX_INSETS)
       .flatMap((group) => group.map((i) => fc.features[i].properties.n ?? ""))
       .filter((n) => n.trim().length > 0)
@@ -2269,7 +2301,8 @@ export function WorldMapsPage() {
       parts,
       insets,
       offView,
-      islandsOutside: outsideFrame(path, islandGroups),
+      // Everything off the canvas now has an inset, so none is only mentioned.
+      islandsOutside: offCanvasGroups.length ? 0 : outsideFrame(path, islandGroups),
       path,
       geo: outlineGeo as unknown,
     };
@@ -2535,8 +2568,12 @@ export function WorldMapsPage() {
     if (!admin1Manifest) return "Internal borders load with the country. ";
     const published = admin1Manifest[focusCode] ?? 0;
     const hi = ADMIN1_SOURCES[focusCode];
+    // Island outlines built from the OpenStreetMap coastline name it, not
+    // geoBoundaries, which does not publish those places.
     const from = hi
-      ? `geoBoundaries (${[hi.sourceShort, hi.licenseShort].filter(Boolean).join("; ")})`
+      ? hi.level === "OSM"
+        ? `the OpenStreetMap coastline (${hi.licenseShort})`
+        : `geoBoundaries (${[hi.sourceShort, hi.licenseShort].filter(Boolean).join("; ")})`
       : "Natural Earth";
     const islands = focusMap?.islandsOutside ?? 0;
     const islandNote = islands
@@ -2551,7 +2588,7 @@ export function WorldMapsPage() {
     }
     const drawn = focusMap?.parts.length ?? 0;
     if (drawn === 0) {
-      return `Loading ${published} first-order divisions from ${hi ? "geoBoundaries" : "Natural Earth"}. `;
+      return `Loading ${published} first-order divisions from ${hi ? (hi.level === "OSM" ? "OpenStreetMap" : "geoBoundaries") : "Natural Earth"}. `;
     }
     const insets = focusMap?.insets.length ?? 0;
     const off = focusMap?.offView.length ?? 0;
@@ -2563,7 +2600,7 @@ export function WorldMapsPage() {
     const listed = off
       ? ` ${off} further division${off === 1 ? " is" : "s are"} named below.`
       : "";
-    return `Internal borders shown are ${drawn} first-order divisions from ${from}.${framed}${listed}${islandNote} `;
+    return `Internal borders shown are ${drawn} first-order division${drawn === 1 ? "" : "s"} from ${from}.${framed}${listed}${islandNote} `;
   }, [admin1Manifest, focusCode, focusMap, focusCapital]);
 
   /** Cities the dataset happens to hold for the focused country. */
@@ -4118,7 +4155,7 @@ export function WorldMapsPage() {
             internal borders of all 194 countries that have any, simplified to
             within 0.02° — under half a pixel at the deepest zoom; the country
             focus map fetches one country at full detail. For the{" "}
-            {Object.keys(ADMIN1_SOURCES).length} smallest places, where 1:10m
+            {Object.values(ADMIN1_SOURCES).filter((x) => x.level !== "OSM").length} smallest places, where 1:10m
             detail shows at full frame, the focus map instead draws{" "}
             <a
               href={GEOBOUNDARIES_URL}
@@ -4134,7 +4171,13 @@ export function WorldMapsPage() {
             source's licence - CC BY, CC BY-SA, CC0, or the ODbL (© OpenStreetMap
             contributors) - or is public domain;
             the licence of the one in view is named under its map, and the
-            share-alike ones remain under those terms. US states: the US Census
+            share-alike ones remain under those terms. For{" "}
+            {Object.values(ADMIN1_SOURCES).filter((x) => x.level === "OSM").length} island places
+            geoBoundaries does not publish - among them the US Minor Outlying
+            Islands, Jersey and the British Indian Ocean Territory - the outline
+            is the coastline mapped in OpenStreetMap (ODbL, © OpenStreetMap
+            contributors), fetched through the Overpass API and checked against
+            the same land areas. US states: the US Census
             Bureau via us-atlas. Group scopes: G7 and G20 membership as those
             groups publish it; Global North and South follow the UN M49 developed /
             developing classification, which UNSD states is for statistical

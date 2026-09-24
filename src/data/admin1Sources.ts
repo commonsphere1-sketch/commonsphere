@@ -17,7 +17,7 @@ export const ADMIN1_SOURCES: Record<
   string,
   {
     /** ADM3 where the place is a subset of its country's file (see SUBSETS in the script). */
-    level: "ADM0" | "ADM1" | "ADM3";
+    level: "ADM0" | "ADM1" | "ADM3" | "OSM";
     source: string;
     license: string;
     year: string;
@@ -314,6 +314,14 @@ export const ADMIN1_SOURCES: Record<
     "sourceShort": "Sentinel-2 10 m land cover, 2021",
     "licenseShort": "CC BY 4.0"
   },
+  "JE": {
+    "level": "OSM",
+    "source": "OpenStreetMap coastline",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2026-09-23",
+    "sourceShort": "OpenStreetMap",
+    "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
+  },
   "GG": {
     "level": "ADM0",
     "source": "raster2polygon from Sentinel-2 10m Land Cover where Image Year = 2021 / exclude gridcode = 1 (water) / dissolve / processed by IMB",
@@ -354,6 +362,22 @@ export const ADMIN1_SOURCES: Record<
     "sourceShort": "Sentinel-2 10 m land cover, 2021",
     "licenseShort": "CC BY 4.0"
   },
+  "MF": {
+    "level": "OSM",
+    "source": "OpenStreetMap coastline",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2026-09-23",
+    "sourceShort": "OpenStreetMap",
+    "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
+  },
+  "MP": {
+    "level": "OSM",
+    "source": "OpenStreetMap coastline",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2026-07-24",
+    "sourceShort": "OpenStreetMap",
+    "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
+  },
   "PF": {
     "level": "ADM0",
     "source": "raster2polygon from Sentinel-2 10m Land Cover where Image Year = 2021 / exclude gridcode = 1 (water) / dissolve / processed by IMB",
@@ -361,6 +385,14 @@ export const ADMIN1_SOURCES: Record<
     "year": "2021",
     "sourceShort": "Sentinel-2 10 m land cover, 2021",
     "licenseShort": "CC BY 4.0"
+  },
+  "SX": {
+    "level": "OSM",
+    "source": "OpenStreetMap coastline",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2026-09-24",
+    "sourceShort": "OpenStreetMap",
+    "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
   },
   "TC": {
     "level": "ADM0",
@@ -377,6 +409,14 @@ export const ADMIN1_SOURCES: Record<
     "year": "2021",
     "sourceShort": "Sentinel-2 10 m land cover, 2021",
     "licenseShort": "CC BY 4.0"
+  },
+  "VI": {
+    "level": "OSM",
+    "source": "OpenStreetMap coastline",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2026-09-24",
+    "sourceShort": "OpenStreetMap",
+    "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
   },
   "VA": {
     "level": "ADM0",
@@ -434,6 +474,14 @@ export const ADMIN1_SOURCES: Record<
     "sourceShort": "Sentinel-2 10 m land cover, 2021",
     "licenseShort": "CC BY 4.0"
   },
+  "PM": {
+    "level": "OSM",
+    "source": "OpenStreetMap coastline",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2026-07-15",
+    "sourceShort": "OpenStreetMap",
+    "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
+  },
   "BL": {
     "level": "ADM0",
     "source": "raster2polygon from Sentinel-2 10m Land Cover where Image Year = 2021 / exclude gridcode = 1 (water) / dissolve / processed by IMB",
@@ -455,6 +503,30 @@ export const ADMIN1_SOURCES: Record<
     "source": "OpenStreetMap, Wambacher",
     "license": "Open Data Commons Open Database License 1.0",
     "year": "2017",
+    "sourceShort": "OpenStreetMap",
+    "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
+  },
+  "NF": {
+    "level": "OSM",
+    "source": "OpenStreetMap coastline",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2026-09-24",
+    "sourceShort": "OpenStreetMap",
+    "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
+  },
+  "CX": {
+    "level": "OSM",
+    "source": "OpenStreetMap coastline",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2026-09-24",
+    "sourceShort": "OpenStreetMap",
+    "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
+  },
+  "CC": {
+    "level": "OSM",
+    "source": "OpenStreetMap coastline",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2026-09-24",
     "sourceShort": "OpenStreetMap",
     "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
   },
@@ -489,5 +561,37 @@ export const ADMIN1_SOURCES: Record<
     "year": "2021",
     "sourceShort": "Sentinel-2 10 m land cover, 2021",
     "licenseShort": "CC BY 4.0"
+  },
+  "BV": {
+    "level": "OSM",
+    "source": "OpenStreetMap coastline",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2026-09-24",
+    "sourceShort": "OpenStreetMap",
+    "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
+  },
+  "HM": {
+    "level": "OSM",
+    "source": "OpenStreetMap coastline",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2026-09-24",
+    "sourceShort": "OpenStreetMap",
+    "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
+  },
+  "IO": {
+    "level": "OSM",
+    "source": "OpenStreetMap coastline",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2026-09-24",
+    "sourceShort": "OpenStreetMap",
+    "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
+  },
+  "UM": {
+    "level": "OSM",
+    "source": "OpenStreetMap coastline",
+    "license": "Open Data Commons Open Database License 1.0",
+    "year": "2026-09-24",
+    "sourceShort": "OpenStreetMap",
+    "licenseShort": "ODbL 1.0 (© OpenStreetMap contributors)"
   }
 };

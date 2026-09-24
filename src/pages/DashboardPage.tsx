@@ -5626,21 +5626,28 @@ function FocusCarousel({
     const c = entry as (typeof countries)[number];
     const st = entry as (typeof states)[number];
     const growth = isCountry ? c.gdpGrowth : undefined;
-    const rows: [string, string, string?][] = isCountry
-      ? [
-          ["GDP", na(c.gdp, fmtGDPShort)],
-          [
-            "Growth",
-            `${has(growth) && growth > 0 ? "+" : ""}${na(growth, (v) => `${v}%`)}`,
-            has(growth) && growth >= 0 ? "#10b981" : "#ef4444",
-          ],
-          ["Population", fmtPeople(c.population)],
-        ]
-      : [
-          ["GDP", fmtGDPShort(st.gdp)],
-          ["Capital", st.capital],
-          ["Population", fmtPeople(st.population)],
-        ];
+    /* Three rows from the figures the place has: GDP, growth and population
+       where published, then life expectancy, GDP per capita, area or
+       currency in place of any that are not, so a territory's card is not
+       a column of dashes. Growth to two places: it read +0.7524%. */
+    const rows: [string, string, string?][] = [];
+    const add = (ok: boolean, label: string, value: () => string, colour?: string) => {
+      if (ok && rows.length < 3) rows.push([label, value(), colour]);
+    };
+    if (isCountry) {
+      add(has(c.gdp), "GDP", () => fmtGDPShort(c.gdp));
+      add(has(growth), "Growth", () => `${growth! > 0 ? "+" : ""}${Number(growth!.toFixed(2))}%`, growth! >= 0 ? "#10b981" : "#ef4444");
+      add(has(c.population), "Population", () => fmtPeople(c.population));
+      add(has(c.lifeExpectancy), "Life expect.", () => `${c.lifeExpectancy} yrs`);
+      add(has(c.gdpPerCapita), "Per capita", () => `${Math.round(c.gdpPerCapita).toLocaleString()}`);
+      add(has(c.areaKm2), "Area", () => `${Math.round(c.areaKm2).toLocaleString()} km²`);
+      add(!!c.currency && c.currency !== "None", "Currency", () => c.currency);
+    } else {
+      add(has(st.gdp), "GDP", () => fmtGDPShort(st.gdp));
+      add(!!st.capital, "Capital", () => st.capital);
+      add(has(st.population), "Population", () => fmtPeople(st.population));
+      add(has(st.medianIncome), "Median income", () => `${Math.round(st.medianIncome).toLocaleString()}`);
+    }
 
     return (
       <div
@@ -5698,7 +5705,7 @@ function FocusCarousel({
             <span className="text-white text-xs font-bold font-sans leading-tight drop-shadow truncate">
               {entry.name}
             </span>
-            {isCountry && (
+            {isCountry && has(c.humanDevelopmentIndex) && (
               <span
                 className="text-[9px] font-mono px-1.5 py-0.5 rounded-full font-semibold shrink-0"
                 style={{

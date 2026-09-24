@@ -43,6 +43,8 @@ import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
+import { useWatchlist } from "@/contexts/WatchlistContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 // ── Source citation constants ────────────────────────────────────────────
 // ── Extended per-country data ────────────────────────────────────────────────
@@ -564,6 +566,7 @@ function CountryModal({
   >("overview");
   const [isExpanded, setIsExpanded] = React.useState(false);
   const navigate = useNavigate();
+  const watch = useWatchlist();
 
   React.useEffect(() => {
     setActiveTab("overview");
@@ -639,6 +642,16 @@ function CountryModal({
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => void watch.toggle("country", country.id)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                aria-pressed={watch.isWatched("country", country.id)}
+                title={watch.isWatched("country", country.id) ? "Stop following" : "Keep this country at the top of the page"}
+              >
+                <span className="text-xs font-sans font-medium">
+                  {watch.isWatched("country", country.id) ? "★ Following" : "☆ Follow"}
+                </span>
+              </button>
               <button
                 onClick={() => navigate(`/dashboard/maps?country=${country.code}`)}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
@@ -16644,8 +16657,143 @@ function InternationalSnapshot({ countries }: { countries: Country[] }) {
   );
 }
 
+/**
+ * The countries the reader follows, at the top of the page, so they can be
+ * checked at a glance: each with its key published figures and anything
+ * that has changed since it was last looked at. Following is the watch list
+ * (account when signed in, this browser otherwise), so the same places
+ * light the bell in the header and appear in Settings.
+ */
+function FollowedCountries({
+  countries,
+  onOpen,
+}: {
+  countries: Country[];
+  onOpen: (c: Country) => void;
+}) {
+  const watch = useWatchlist();
+  const { isConfigured, openAuth } = useAuth();
+  const followed = watch.items.filter((i) => i.type === "country");
+  const figures = (c: Country) => {
+    const out: [string, string][] = [];
+    if (has(c.gdp)) out.push(["GDP", fmtGDP(c.gdp)]);
+    if (has(c.population)) out.push(["Population", fmtPop(c.population)]);
+    if (has(c.gdpGrowth)) out.push(["Growth", `${c.gdpGrowth > 0 ? "+" : ""}${Number(c.gdpGrowth.toFixed(2))}%`]);
+    if (has(c.humanDevelopmentIndex)) out.push(["HDI", String(c.humanDevelopmentIndex)]);
+    if (has(c.lifeExpectancy)) out.push(["Life expect.", `${c.lifeExpectancy} yrs`]);
+    if (has(c.areaKm2)) out.push(["Area", fmtArea(c.areaKm2)]);
+    return out.slice(0, 3);
+  };
+  return (
+    <section aria-labelledby="followed-countries" className="bg-card border border-border rounded-2xl p-4 mb-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+        <h2
+          id="followed-countries"
+          className="flex items-center gap-2 text-xs font-bold font-sans uppercase tracking-widest text-foreground"
+        >
+          <Star size={13} weight="fill" className="text-amber-500" />
+          Countries you follow
+          {followed.length > 0 && (
+            <span className="text-[10px] font-mono font-normal normal-case tracking-normal text-muted-foreground">
+              {followed.length}
+            </span>
+          )}
+        </h2>
+        <p className="text-[11px] font-sans text-muted-foreground">
+          {watch.mode === "account" ? (
+            "Saved to your account"
+          ) : isConfigured ? (
+            <>
+              Saved in this browser ·{" "}
+              <button onClick={() => openAuth("signin")} className="underline hover:text-foreground">
+                sign in
+              </button>{" "}
+              to keep them on every device
+            </>
+          ) : (
+            "Saved in this browser"
+          )}
+        </p>
+      </div>
+      {followed.length === 0 ? (
+        <p className="text-xs font-sans text-muted-foreground leading-relaxed">
+          Follow a country with the ☆ on its card or in its pop-up and it stays here, with its key
+          figures and anything that changes in a data update since you last looked.
+        </p>
+      ) : (
+        <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1">
+          {followed.map((item) => {
+            const c = countries.find((x) => x.id === item.id);
+            if (!c) return null;
+            return (
+              <div
+                key={item.key}
+                className="modal-tile rounded-xl p-3 w-56 shrink-0 flex flex-col gap-2"
+              >
+                <div className="flex items-center gap-2">
+                  <img
+                    src={`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`}
+                    alt=""
+                    className="w-7 h-5 rounded-[3px] object-cover border border-border shrink-0"
+                    onError={(e) => {
+                      e.currentTarget.style.visibility = "hidden";
+                    }}
+                  />
+                  <button
+                    onClick={() => onOpen(c)}
+                    className="text-sm font-semibold font-sans text-foreground truncate text-left hover:underline flex-1 min-w-0"
+                  >
+                    {c.name}
+                  </button>
+                  <button
+                    onClick={() => void watch.toggle("country", c.id)}
+                    className="p-1 rounded text-amber-500 hover:text-amber-600 shrink-0"
+                    aria-label={`Unfollow ${c.name}`}
+                    title="Unfollow"
+                  >
+                    <Star size={14} weight="fill" />
+                  </button>
+                </div>
+                <div className="space-y-1">
+                  {figures(c).map(([k, v]) => (
+                    <div key={k} className="flex items-baseline justify-between gap-2">
+                      <span className="text-[10px] font-sans text-muted-foreground">{k}</span>
+                      <span className="text-xs font-mono font-semibold text-foreground">{v}</span>
+                    </div>
+                  ))}
+                </div>
+                {item.changes.length > 0 ? (
+                  <div className="rounded-lg border border-secondary/30 px-2 py-1.5 space-y-0.5">
+                    {item.changes.slice(0, 2).map((ch) => (
+                      <p key={ch.key} className="text-[10px] font-sans text-foreground leading-snug">
+                        <span className="text-muted-foreground">{ch.label}:</span> {ch.from} → <b>{ch.to}</b>
+                      </p>
+                    ))}
+                    {item.changes.length > 2 && (
+                      <p className="text-[10px] font-sans text-muted-foreground">+{item.changes.length - 2} more</p>
+                    )}
+                    <button
+                      onClick={() => void watch.markSeen(item)}
+                      className="text-[10px] font-semibold text-secondary hover:underline"
+                    >
+                      Mark as seen
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-[10px] font-sans text-muted-foreground">No changes since you last looked</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function CountriesPage() {
   const { countries: liveCountries } = useLiveData();
+  const watch = useWatchlist();
   const [search, setSearch] = useState("");
   const [continentFilter, setContinentFilter] = useState("All");
   const [sortBy, setSortBy] = useState<
@@ -16764,6 +16912,9 @@ export function CountriesPage() {
             </div>
           ))}
         </div>
+
+        {/* ── COUNTRIES YOU FOLLOW ── */}
+        <FollowedCountries countries={liveCountries} onOpen={setModalCountry} />
 
         {/* ── INTERNATIONAL SNAPSHOT ── */}
         <InternationalSnapshot countries={liveCountries} />
@@ -16893,7 +17044,26 @@ export function CountriesPage() {
                       )}
                     </div>
                   </div>
-                  <div />
+                  {/* Follow: kept to its own click, so it does not open the card. */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void watch.toggle("country", country.id);
+                    }}
+                    aria-pressed={watch.isWatched("country", country.id)}
+                    aria-label={
+                      watch.isWatched("country", country.id) ? `Unfollow ${country.name}` : `Follow ${country.name}`
+                    }
+                    title={watch.isWatched("country", country.id) ? "Following" : "Follow"}
+                    className="relative shrink-0 p-1.5 rounded-full bg-background/60 hover:bg-background/90 transition-colors cursor-pointer"
+                  >
+                    <Star
+                      size={16}
+                      weight={watch.isWatched("country", country.id) ? "fill" : "regular"}
+                      className={watch.isWatched("country", country.id) ? "text-amber-500" : "text-foreground/70"}
+                    />
+                  </button>
                 </div>
 
                 {/* Key stats. A place with no permanent population has
