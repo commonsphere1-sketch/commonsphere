@@ -186,7 +186,7 @@ function CoverageNote({
             : ""}
         {!country.uninhabited &&
           (limited
-            ? `Figures shown as "—" are ones no source the site uses publishes for ${country.name}; they are left blank rather than estimated. `
+            ? `Figures no source the site uses publishes for ${country.name} are left out rather than estimated, and the card shows what is published instead. `
             : "Each figure shown carries its source and year. ")}
         {sov && (
           <>
@@ -628,11 +628,13 @@ function CountryModal({
                   >
                     {country.continent}
                   </span>
+                  {has(country.humanDevelopmentIndex) && (
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full font-mono font-semibold ${hdiBadge(country.humanDevelopmentIndex)}`}
                   >
-                    HDI {na(country.humanDevelopmentIndex, (v) => String(v))}
+                    HDI {country.humanDevelopmentIndex}
                   </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -925,6 +927,9 @@ function CountryModal({
                           return extras;
                         })(),
                       )
+                      // A figure no source publishes is left out, not
+                      // shown as a dash; the note at the top says why.
+                      .filter((s) => s.value && s.value !== "—")
                       .map((s) => (
                         <div
                           key={s.label}
@@ -992,7 +997,9 @@ function CountryModal({
                         sub: "country code",
                         color: "text-muted-foreground",
                       },
-                    ].map((s) => (
+                    ]
+                      .filter((s) => s.value && s.value !== "—")
+                      .map((s) => (
                       <div key={s.label} className="modal-tile rounded-lg p-3">
                         <p className="text-xs text-muted-foreground font-sans">
                           {s.label}
@@ -1743,8 +1750,11 @@ function CountryDemographicsChart({ country }: { country: Country }) {
       </>
       )}
 
-      {/* HDI + Life Expectancy */}
+      {/* HDI + Life Expectancy, each only where it is published: an empty
+          bar under a dash read as a score of zero. */}
+      {(has(country.humanDevelopmentIndex) || has(country.lifeExpectancy)) && (
       <div className="mt-2 pt-3 border-t border-border/50 space-y-2">
+        {has(country.humanDevelopmentIndex) && (
         <div>
           <div className="flex justify-between text-[10px] mb-1">
             <span className="text-muted-foreground font-sans">HDI Score</span>
@@ -1773,15 +1783,19 @@ function CountryDemographicsChart({ country }: { country: Country }) {
             <span>Very High</span>
           </div>
         </div>
+        )}
+        {has(country.lifeExpectancy) && (
         <div className="flex items-center justify-between">
           <span className="text-[10px] text-muted-foreground font-sans">
             Life Expectancy
           </span>
           <span className="text-xs font-mono font-bold text-foreground">
-            {na(country.lifeExpectancy, (v) => `${v} yrs`)}
+            {`${country.lifeExpectancy} yrs`}
           </span>
         </div>
+        )}
       </div>
+      )}
       <SourceLink
         sources={[
           ...(COUNTRY_PANELS[country.id]?.medianAge
@@ -16920,45 +16934,52 @@ export function CountriesPage() {
                   </div>
                 </div>
                 ) : (
+                /* Four slots, filled from the figures the place has: GDP,
+                   population, growth and life expectancy where published,
+                   and GDP per capita, area, unemployment or inflation in
+                   place of any that are not, so a territory's card is not a
+                   row of dashes. Nothing is estimated to fill a gap. */
                 <div className="grid grid-cols-2 gap-2 mb-3">
-                  <div>
-                    <p className="text-xs text-muted-foreground font-sans">
-                      GDP
-                    </p>
-                    <p className="text-sm font-bold font-mono text-foreground">
-                      {na(country.gdp, fmtGDP)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground font-sans">
-                      Population
-                    </p>
-                    <p className="text-sm font-bold font-mono text-foreground">
-                      {country.uninhabited ? "Uninhabited" : fmtPop(country.population)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground font-sans">
-                      GDP Growth
-                    </p>
-                    <p
-                      className={`text-sm font-bold font-mono ${country.gdpGrowth >= 0 ? "text-success" : "text-destructive"}`}
-                    >
-                      {na(country.gdpGrowth, (v) => `${v >= 0 ? "+" : ""}${v}%`)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground font-sans">
-                      Life Expect.
-                    </p>
-                    <p className="text-sm font-bold font-mono text-foreground">
-                      {na(country.lifeExpectancy, (v) => `${v} yrs`)}
-                    </p>
-                  </div>
+                  {(() => {
+                    const g = country.gdpGrowth;
+                    const pool: { label: string; value: string; color?: string; text?: boolean }[] = [];
+                    const add = (ok: boolean, label: string, value: () => string, color?: string) => {
+                      if (ok) pool.push({ label, value: value(), color });
+                    };
+                    const addText = (value: string | undefined, label: string) => {
+                      if (value && value !== "None") pool.push({ label, value, text: true });
+                    };
+                    add(has(country.gdp), "GDP", () => fmtGDP(country.gdp));
+                    add(has(country.population), "Population", () => fmtPop(country.population));
+                    add(has(g), "GDP Growth", () => `${g >= 0 ? "+" : ""}${g}%`, g >= 0 ? "text-success" : "text-destructive");
+                    add(has(country.lifeExpectancy), "Life Expect.", () => `${country.lifeExpectancy} yrs`);
+                    add(has(country.gdpPerCapita), "GDP per capita", () => `$${Math.round(country.gdpPerCapita).toLocaleString()}`);
+                    add(has(country.areaKm2), "Area", () => fmtArea(country.areaKm2));
+                    add(has(country.unemploymentRate), "Unemployment", () => `${country.unemploymentRate}%`);
+                    add(has(country.inflationRate), "Inflation", () => `${country.inflationRate}%`);
+                    add(ext?.medianAge != null, "Median age", () => `${ext!.medianAge} yrs`);
+                    add(ext?.urbanPct != null, "Urban", () => `${ext!.urbanPct}%`);
+                    add(ext?.internetPct != null, "Online", () => `${ext!.internetPct}%`);
+                    // Last, facts every place has, in words rather than figures.
+                    addText(country.currency, "Currency");
+                    addText(country.officialLanguages[0], "Language");
+                    const slots = pool.slice(0, 4);
+                    return slots.map(({ label, value, color, text }) => (
+                      <div key={label} className="min-w-0">
+                        <p className="text-xs text-muted-foreground font-sans">{label}</p>
+                        <p
+                          className={`text-sm font-bold ${text ? "font-sans leading-snug" : "font-mono"} ${color ?? "text-foreground"}`}
+                        >
+                          {value}
+                        </p>
+                      </div>
+                    ));
+                  })()}
                 </div>
                 )}
 
-                {/* HDI progress bar */}
+                {/* HDI progress bar, where an HDI is published */}
+                {has(country.humanDevelopmentIndex) && (
                 <div className="mb-2">
                   <div className="flex justify-between text-[10px] mb-1">
                     <span className="text-muted-foreground font-sans">
@@ -16983,6 +17004,7 @@ export function CountriesPage() {
                     />
                   </div>
                 </div>
+                )}
 
                 {/* Continent + government tag row */}
                 <div className="flex items-center gap-2 flex-wrap">
@@ -16997,11 +17019,13 @@ export function CountriesPage() {
                       : country.governmentType}
                   </span>
                   <div className="flex items-center gap-1.5 ml-auto">
+                    {has(country.humanDevelopmentIndex) && (
                     <span
                       className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full ${hdiBg}`}
                     >
-                      HDI {na(country.humanDevelopmentIndex, (v) => String(v))}
+                      HDI {country.humanDevelopmentIndex}
                     </span>
+                    )}
                     {ext?.cpiScore != null && (
                       <span
                         className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${ext.cpiScore >= 60 ? "text-success border-success/30 bg-success/10" : ext.cpiScore >= 40 ? "text-warning border-warning/30 bg-warning/10" : "text-destructive border-destructive/30 bg-destructive/10"}`}
