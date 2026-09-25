@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useLayoutEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotesStore, type Note } from "@/lib/notesStore";
 import { voiceNoteUrl } from "@/lib/supabaseData";
@@ -176,7 +176,7 @@ export function NotesPage() {
                 <p className="text-sm">No notes yet. Use the popup button to write your first note.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
                 {filtered.map((note: Note) => (
                   <NoteCard
                     key={note.id}
@@ -207,6 +207,22 @@ function NoteCard({ note, formatDate, onDelete, isMutating }: {
   const [audioError, setAudioError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  /* A note grows with what is written in it, line breaks kept. A very long
+     one stops at twelve lines with "Show more" rather than stretching the
+     page; whether it needs that is measured, not guessed from its length. */
+  const bodyRef = useRef<HTMLParagraphElement | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  useLayoutEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const check = () => setOverflows(el.scrollHeight > el.clientHeight + 1);
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [note.content, expanded]);
+
   // Recordings are private, so the playable URL is signed on demand and
   // lasts an hour, rather than being fetched for every card on the page.
   const togglePlay = async () => {
@@ -236,7 +252,9 @@ function NoteCard({ note, formatDate, onDelete, isMutating }: {
               </span>
             </div>
           )}
-          <h3 className="text-sm font-semibold font-sans text-foreground line-clamp-2 leading-snug">
+          <h3
+            className={`text-sm font-semibold font-sans text-foreground leading-snug break-words ${expanded ? "" : "line-clamp-2"}`}
+          >
             {note.title || "Untitled Note"}
           </h3>
         </div>
@@ -250,10 +268,25 @@ function NoteCard({ note, formatDate, onDelete, isMutating }: {
         </button>
       </div>
 
-      {/* Content preview */}
-      <p className="text-xs text-muted-foreground font-sans leading-relaxed line-clamp-4 flex-1">
-        {note.content}
-      </p>
+      {/* Content */}
+      <div>
+        <p
+          ref={bodyRef}
+          className={`text-xs text-muted-foreground font-sans leading-relaxed whitespace-pre-wrap break-words ${expanded ? "" : "line-clamp-[12]"}`}
+        >
+          {note.content}
+        </p>
+        {(overflows || expanded) && (
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className="mt-1.5 text-xs font-semibold font-sans text-secondary hover:underline"
+            aria-expanded={expanded}
+          >
+            {expanded ? "Show less" : "Show more"}
+          </button>
+        )}
+      </div>
 
       {/* Links */}
       {noteLinks.length > 0 && (
