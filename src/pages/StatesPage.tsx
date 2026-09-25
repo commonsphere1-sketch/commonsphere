@@ -7,6 +7,7 @@ import {
   Gavel,
   UsersThree,
   MapTrifold,
+  Newspaper,
   ListBullets,
   Scales,
   Star,
@@ -38,6 +39,7 @@ import { CollapsibleFilters } from "../components/CollapsibleFilters";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 import { useWatchlist } from "@/contexts/WatchlistContext";
 import { FollowedPlaces } from "@/components/FollowedPlaces";
+import { NewsPanel, newsAvailable } from "@/components/NewsPanel";
 import { usdFromBillions } from "@/lib/money";
 import { has } from "@/lib/na";
 
@@ -6324,7 +6326,7 @@ function StateMapTab({ state }: { state: USState }) {
 }
 
 // ─── Modal ───────────────────────────────────────────────────────────────────
-type ModalTab = "overview" | "map" | "laws";
+type ModalTab = "overview" | "map" | "laws" | "news";
 
 function StateModal({
   state,
@@ -6361,6 +6363,9 @@ function StateModal({
     },
     { id: "map", label: "Map", icon: <MapTrifold size={13} weight="fill" /> },
     { id: "laws", label: "Laws", icon: <Scales size={13} weight="fill" /> },
+    ...(newsAvailable
+      ? [{ id: "news" as const, label: "News", icon: <Newspaper size={13} weight="fill" /> }]
+      : []),
   ];
 
   return (
@@ -6471,6 +6476,9 @@ function StateModal({
 
           {/* Tab: Laws */}
           {activeTab === "laws" && <StateLawsTab state={state} />}
+
+          {/* Tab: News */}
+          {activeTab === "news" && <NewsPanel place={`s:${state.id}`} name={state.name} />}
 
           {/* Tab: Overview */}
           {

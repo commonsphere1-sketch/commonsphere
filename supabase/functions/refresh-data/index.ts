@@ -2,10 +2,10 @@
  * Refreshes the site's published figures and upcoming events from their
  * sources, on a schedule (pg_cron, twice a day; see the schedule migration).
  *
- * One job per call - wb, bls, governors, elections, bea - so a slow or
- * failing source cannot hold up the others. The call is answered at once
- * (202) and the job runs in the background; each run is recorded in
- * data_refresh_runs with its outcome.
+ * One job per call - wb, bls, governors, elections and bea twice a day,
+ * news every half hour - so a slow or failing source cannot hold up the
+ * others. The call is answered at once (202) and the job runs in the
+ * background; each run is recorded in data_refresh_runs with its outcome.
  *
  * Who may call it: whoever holds the token the cron job sends. It is random,
  * generated inside the database and kept in Vault, and checked here through
@@ -28,6 +28,7 @@ import {
   type EventRow,
   type FigureRow,
 } from "./sources.ts";
+import { KEEP_DAYS, newsHeadlines } from "./news.ts";
 
 declare const EdgeRuntime: { waitUntil(p: Promise<unknown>): void };
 
@@ -36,12 +37,38 @@ type Admin = {
   rpc: (fn: string, args: Record<string, unknown>) => any;
 };
 
-const JOBS: Record<string, { figures?: () => Promise<FigureRow[]>; events?: () => Promise<EventRow[]>; source?: string }> = {
+type Job = {
+  figures?: () => Promise<FigureRow[]>;
+  events?: () => Promise<EventRow[]>;
+  source?: string;
+  /** A job that writes its own table; returns rows written and a note. */
+  custom?: (admin: Admin) => Promise<{ written: number; note: string }>;
+};
+
+/** Headlines: new ones added, a headline seen again updated, old ones gone. */
+async function runNews(admin: Admin): Promise<{ written: number; note: string }> {
+  const { rows, failed } = await newsHeadlines();
+  const now = new Date().toISOString();
+  let written = 0;
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    const chunk = rows.slice(i, i + CHUNK).map((r) => ({ ...r, fetched_at: now }));
+    const { error } = await admin.from("news_items").upsert(chunk, { onConflict: "url" });
+    if (error) throw new Error(`news_items: ${error.message}`);
+    written += chunk.length;
+  }
+  const cutoff = new Date(Date.now() - KEEP_DAYS * 86_400_000).toISOString();
+  const { error } = await admin.from("news_items").delete().lt("published_at", cutoff);
+  if (error) throw new Error(`news_items prune: ${error.message}`);
+  return { written, note: failed.length ? `${written} rows; feeds not read: ${failed.join("; ")}` : `${written} rows` };
+}
+
+const JOBS: Record<string, Job> = {
   wb: { figures: worldBank },
   bls: { figures: blsUnemployment },
   governors: { figures: governors },
   elections: { events: stateElections, source: "wikidata" },
   bea: { events: beaStateReleases, source: "bea" },
+  news: { custom: runNews },
 };
 
 /** A job still running from under ten minutes ago is not started again. */
@@ -78,6 +105,11 @@ async function runJob(admin: Admin, job: string): Promise<void> {
 
   try {
     let written = 0;
+    if (spec.custom) {
+      const r = await spec.custom(admin);
+      await finish("ok", r.written, r.note);
+      return;
+    }
     if (spec.figures) {
       const rows = await spec.figures();
       const now = new Date().toISOString();

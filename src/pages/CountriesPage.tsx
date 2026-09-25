@@ -11,6 +11,7 @@ import {
   Flag,
   CurrencyDollar,
   MapTrifold,
+  Newspaper,
   Scroll,
   ListBullets,
   BookOpen,
@@ -48,6 +49,7 @@ import { CollapsibleFilters } from "../components/CollapsibleFilters";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 import { useWatchlist } from "@/contexts/WatchlistContext";
 import { FollowedPlaces } from "@/components/FollowedPlaces";
+import { NewsPanel, newsAvailable } from "@/components/NewsPanel";
 import { fmtArea, fmtGDP, fmtPop } from "@/lib/placeFormat";
 
 // ── Source citation constants ────────────────────────────────────────────
@@ -534,7 +536,7 @@ function CountryModal({
     scrollRef.current?.scrollTo({ top: 0 });
   }, [country.id]);
   const [activeTab, setActiveTab] = React.useState<
-    "overview" | "map" | "constitution"
+    "overview" | "map" | "constitution" | "news"
   >("overview");
   const [isExpanded, setIsExpanded] = React.useState(false);
   const navigate = useNavigate();
@@ -676,6 +678,15 @@ function CountryModal({
                   label: "Governance",
                   icon: <Scales size={13} weight="fill" />,
                 },
+                ...(newsAvailable
+                  ? [
+                      {
+                        id: "news" as const,
+                        label: "News",
+                        icon: <Newspaper size={13} weight="fill" />,
+                      },
+                    ]
+                  : []),
               ] as const
             ).map((tab) => (
               <button
@@ -798,6 +809,9 @@ function CountryModal({
           {activeTab === "constitution" && (
             <ConstitutionTab country={country} />
           )}
+
+          {/* ── NEWS TAB ── */}
+          {activeTab === "news" && <NewsPanel place={`c:${country.code}`} name={country.name} />}
 
           {/* ── OVERVIEW TAB ── */}
           {

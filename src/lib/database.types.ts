@@ -171,6 +171,33 @@ export type Database = {
           },
         ]
       }
+      news_items: {
+        Row: {
+          fetched_at: string
+          outlet: string
+          places: string[]
+          published_at: string
+          title: string
+          url: string
+        }
+        Insert: {
+          fetched_at?: string
+          outlet: string
+          places: string[]
+          published_at: string
+          title: string
+          url: string
+        }
+        Update: {
+          fetched_at?: string
+          outlet?: string
+          places?: string[]
+          published_at?: string
+          title?: string
+          url?: string
+        }
+        Relationships: []
+      }
       note_links: {
         Row: {
           created_at: string
