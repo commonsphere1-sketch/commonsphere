@@ -1,49 +1,49 @@
 /**
  * useLiveData.ts
  *
- * The countries and states the pages read. It no longer fetches anything.
+ * The countries and states the pages read, brought up to date by the
+ * scheduled refresh (see lib/liveFigures.ts).
  *
  * It used to pull World Bank indicators from the browser on every page load
- * and patch them over the bundled data. Two things are wrong with that now:
+ * and patch them over the bundled data, which went wrong twice over: the
+ * World Bank stopped answering this origin (CORS), and the patch replaced
+ * dated figures with undated ones. The refresh now runs on the server, on a
+ * schedule, and a refreshed figure is used only when it is for the same or
+ * a later period than the built one, with its period on it.
  *
- *  - The request is blocked. The World Bank API no longer sends an
- *    Access-Control-Allow-Origin header to this origin, so every page load
- *    produced a row of CORS errors in the console and the fetch always failed.
- *  - Even when it worked, it defeated the point of the data build. Every
- *    figure on the site is now built from a named source and carries the year
- *    it is for (countryIndicators.ts, stateIndicators.ts and the rest). A
- *    silent patch replaced those with undated numbers, so a country could show
- *    a 2025 GDP labelled as a 2021 one.
- *
- * Refreshing from upstream belongs in the build scripts, which record the
- * source and year with each figure; run those and commit the result.
- *
- * The hook keeps its shape so callers need no changes: `isRefreshing` is
- * always false, `lastUpdated` always null, and `refresh` does nothing.
+ * `countries` and `states` are new arrays whenever the data changes, so
+ * memoised views recompute; the objects in them are the shared ones.
  */
+import { useMemo } from "react";
 import { countriesData, type Country } from "../data/countriesData";
 import { usStatesData, type USState } from "../data/statesData";
+import { refreshLive, useLiveStatus } from "../lib/liveFigures";
 
 export interface UseLiveDataReturn {
   countries: Country[];
   states: USState[];
   isRefreshing: boolean;
+  /** When the sources were last checked for new figures. */
   lastUpdated: Date | null;
+  /** How many figures differ from the ones the site was built with. */
   patchedCount: number;
   source: string;
   refresh: () => void;
 }
 
-const STATIC: UseLiveDataReturn = {
-  countries: countriesData,
-  states: usStatesData,
-  isRefreshing: false,
-  lastUpdated: null,
-  patchedCount: 0,
-  source: "Built-in data, each figure dated",
-  refresh: () => {},
-};
-
 export function useLiveData(): UseLiveDataReturn {
-  return STATIC;
+  const status = useLiveStatus();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const countries = useMemo(() => [...countriesData], [status.version]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const states = useMemo(() => [...usStatesData], [status.version]);
+  return {
+    countries,
+    states,
+    isRefreshing: status.refreshing,
+    lastUpdated: status.lastChecked,
+    patchedCount: status.patched,
+    source: "Built-in data, each figure dated, refreshed from its source twice a day",
+    refresh: () => void refreshLive(true),
+  };
 }

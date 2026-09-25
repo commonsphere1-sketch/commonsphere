@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "./AuthContext";
 import { useProfile } from "./ProfileContext";
+import { useLiveStatus } from "@/lib/liveFigures";
 import {
   addWatch,
   fetchWatchlist,
@@ -108,6 +109,8 @@ export function WatchlistProvider({ children }: { children: React.ReactNode }) {
   const [deviceCount, setDeviceCount] = useState(0);
   const [isPending, setIsPending] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Refreshed figures change what counts as a change since last seen.
+  const { version: liveVersion } = useLiveStatus();
 
   const load = useCallback(async () => {
     const device = readDevice();
@@ -153,7 +156,8 @@ export function WatchlistProvider({ children }: { children: React.ReactNode }) {
             : null;
         })
         .filter((x): x is WatchItem => x !== null),
-    [stored],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [stored, liveVersion],
   );
 
   const saveDevice = (next: Stored[]) => {

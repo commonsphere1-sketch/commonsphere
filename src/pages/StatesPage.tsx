@@ -30,7 +30,7 @@ import {
 } from "recharts";
 import { usStatesData, type USState } from "../data/statesData";
 import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
-import { getUpcoming } from "../data/upcomingToWatch";
+import { UpcomingStates } from "@/components/UpcomingStates";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
 import { Figures, COUNTER_FIGURES } from "../components/Figures";
@@ -7489,24 +7489,8 @@ export function StatesPage() {
           </CollapsibleFilters>
         </div>
 
-        {/* ── Upcoming to Watch ── */}
-        <div className="mb-6 bg-card border border-border rounded-2xl p-5">
-          <div>
-            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-              🔥 Upcoming to Watch
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {getUpcoming("states").map((e) => (
-                <span
-                  key={e.id}
-                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.className}`}
-                >
-                  {e.label}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
+        {/* ── Upcoming to Watch: elections and data releases, kept current ── */}
+        <UpcomingStates />
 
         {modalState && (
           <StateModal state={modalState} onClose={() => setModalState(null)} />

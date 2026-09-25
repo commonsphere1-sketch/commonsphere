@@ -10,6 +10,7 @@ import { usdFromBillions } from "@/lib/money";
 import type { Country } from "@/data/countriesData";
 import type { USState } from "@/data/statesData";
 import { TONE } from "@/lib/chipTone";
+import { useLiveStatus } from "@/lib/liveFigures";
 
 /**
  * The countries and states the reader follows, as cards: each with its key
@@ -201,6 +202,7 @@ export function FollowedPlaces({
   const watch = useWatchlist();
   const { isConfigured, openAuth } = useAuth();
   const navigate = useNavigate();
+  const { lastChecked } = useLiveStatus();
   const all = watch.items.filter((i) => types.includes(i.type));
   const shown = match ? all.filter((i) => match(i.name)) : all;
   const headingId = `followed-${types.join("-")}`;
@@ -248,6 +250,12 @@ export function FollowedPlaces({
             <FollowedCard key={item.key} item={item} showType={types.length > 1} onOpen={open} />
           ))}
         </div>
+      )}
+      {all.length > 0 && lastChecked && (
+        <p className="mt-2 text-[10px] font-sans text-muted-foreground">
+          Figures are checked against their sources twice a day - last checked{" "}
+          {lastChecked.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}.
+        </p>
       )}
     </section>
   );

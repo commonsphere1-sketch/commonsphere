@@ -76,6 +76,69 @@ export type Database = {
         }
         Relationships: []
       }
+      data_refresh_runs: {
+        Row: {
+          finished_at: string | null
+          id: number
+          job: string
+          message: string | null
+          rows_written: number
+          started_at: string
+          status: string
+        }
+        Insert: {
+          finished_at?: string | null
+          id?: never
+          job: string
+          message?: string | null
+          rows_written?: number
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          finished_at?: string | null
+          id?: never
+          job?: string
+          message?: string | null
+          rows_written?: number
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      live_figures: {
+        Row: {
+          area: string
+          detail: Json | null
+          fetched_at: string
+          period: string
+          series: string
+          source: string
+          text_value: string | null
+          value: number | null
+        }
+        Insert: {
+          area: string
+          detail?: Json | null
+          fetched_at?: string
+          period: string
+          series: string
+          source: string
+          text_value?: string | null
+          value?: number | null
+        }
+        Update: {
+          area?: string
+          detail?: Json | null
+          fetched_at?: string
+          period?: string
+          series?: string
+          source?: string
+          text_value?: string | null
+          value?: number | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           body: string
@@ -268,6 +331,42 @@ export type Database = {
           },
         ]
       }
+      upcoming_events: {
+        Row: {
+          area: string | null
+          event_date: string
+          fetched_at: string
+          id: string
+          kind: string
+          scope: string
+          source: string
+          source_url: string
+          title: string
+        }
+        Insert: {
+          area?: string | null
+          event_date: string
+          fetched_at?: string
+          id: string
+          kind: string
+          scope: string
+          source: string
+          source_url: string
+          title: string
+        }
+        Update: {
+          area?: string | null
+          event_date?: string
+          fetched_at?: string
+          id?: string
+          kind?: string
+          scope?: string
+          source?: string
+          source_url?: string
+          title?: string
+        }
+        Relationships: []
+      }
       watchlist: {
         Row: {
           created_at: string
@@ -306,7 +405,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      data_refresh_token_ok: { Args: { token: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

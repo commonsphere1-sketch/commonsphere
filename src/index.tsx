@@ -1,3 +1,6 @@
+// First, so the last refresh this browser saw is applied to the data before
+// any page reads it (see lib/liveFigures.ts).
+import "@/lib/liveFigures";
 import ReactDOM from "react-dom/client";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";

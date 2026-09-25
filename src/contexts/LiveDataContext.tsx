@@ -1,21 +1,19 @@
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 import { useLiveData, type UseLiveDataReturn } from "@/hooks/useLiveData";
+import { refreshLive } from "@/lib/liveFigures";
 import { countriesData, type Country } from "@/data/countriesData";
 import { usStatesData, type USState } from "@/data/statesData";
 
 /**
  * LiveDataContext
  *
- * One World Bank fetch shared across the app.
+ * The site's countries and states, with the scheduled refresh applied (see
+ * lib/liveFigures.ts). The provider fetches the latest refresh once when the
+ * app starts; pages reading through this context re-render when it lands.
  *
- * The dashboard imported the static data files directly, so its figures were
- * frozen at whatever was authored into the repo while the countries and states
- * pages refreshed themselves. Anything reading through this context follows the
- * live values instead, and pages that already call useLiveData keep working
- * unchanged.
- *
- * The static files remain the floor: if the fetch fails or has not returned
- * yet, consumers get the authored data rather than an empty page.
+ * The built data stays the floor: if the fetch fails or has not returned
+ * yet, consumers get the figures the site was built with (or the last
+ * refresh this browser saw) rather than an empty page.
  */
 const LiveDataContext = createContext<UseLiveDataReturn>({
   countries: countriesData,
@@ -29,6 +27,9 @@ const LiveDataContext = createContext<UseLiveDataReturn>({
 
 export function LiveDataProvider({ children }: { children: React.ReactNode }) {
   const live = useLiveData();
+  useEffect(() => {
+    void refreshLive();
+  }, []);
   return (
     <LiveDataContext.Provider value={live}>{children}</LiveDataContext.Provider>
   );

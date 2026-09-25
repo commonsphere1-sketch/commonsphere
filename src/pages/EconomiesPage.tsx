@@ -40,6 +40,7 @@ import { RESOURCE_PRODUCERS } from "../data/resourceProducers";
 import { ENERGY_PRODUCERS } from "../data/energyProducers";
 import { OTHER_PRODUCERS } from "../data/otherProducers";
 import { useResourceRents } from "../hooks/useResourceRents";
+import { useLiveStatus } from "../lib/liveFigures";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
@@ -2315,6 +2316,8 @@ const RESOURCES_DATA = [
 ].map(producerHeadline);
 
 export function EconomiesPage() {
+  // Re-render when the scheduled refresh updates the figures.
+  useLiveStatus();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [sortBy, setSortBy] = useState<

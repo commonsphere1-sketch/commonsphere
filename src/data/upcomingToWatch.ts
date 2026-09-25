@@ -1,8 +1,10 @@
 /**
  * upcomingToWatch.ts
  *
- * Backs the "Upcoming to Watch" strip on the economies, cities and states
- * pages. Previously each page carried its own hardcoded JSX array, so the
+ * Backs the "Upcoming to Watch" strip on the economies and cities pages.
+ * The states page no longer uses it: its strip comes from published
+ * calendars (Wikidata elections, BEA's release schedule), refreshed twice a
+ * day - see components/UpcomingStates.tsx. Previously each page carried its own hardcoded JSX array, so the
  * lists went stale silently — an item stayed on the page forever, even
  * years after the event it pointed at had happened.
  *
@@ -133,42 +135,6 @@ export const UPCOMING_ITEMS: UpcomingItem[] = [
     tone: "orange",
   },
 
-  // ── States ──
-  {
-    id: "st-texas-ev",
-    scope: "states",
-    label: "Texas EV manufacturing boom — 2026 Tesla & Toyota expansions",
-    until: "2026-12-31",
-    tone: "amber",
-  },
-  {
-    id: "st-ca-budget",
-    scope: "states",
-    label: "California budget gap $45B — fiscal reckoning 2026",
-    until: "2026-12-31",
-    tone: "red",
-  },
-  {
-    id: "st-fl-gambling",
-    scope: "states",
-    label: "Florida gambling expansion ballot · Nov 2026",
-    until: "2026-11-30",
-    tone: "purple",
-  },
-  {
-    id: "st-ny-congestion",
-    scope: "states",
-    label: "NY congestion pricing impact data · mid-2026",
-    until: "2026-07-31",
-    tone: "secondary",
-  },
-  {
-    id: "st-ai-jobs",
-    scope: "states",
-    label: "AI job market shift hitting tech states — 2026 BLS report",
-    until: "2026-12-31",
-    tone: "green",
-  },
 ];
 
 export interface ResolvedUpcoming {
