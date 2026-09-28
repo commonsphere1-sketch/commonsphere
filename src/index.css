@@ -1134,3 +1134,34 @@ html.light .avatar-glass {
 @media (prefers-reduced-motion: reduce) {
   .cs-drift { animation: none !important; }
 }
+
+/* The scrolling "Upcoming to Watch" banner on the States page.
+
+   The track holds the items twice and moves left by half its width, so the
+   second copy lands exactly where the first began and the loop has no seam.
+   It stops while the pointer or keyboard focus is on it (so a headline can
+   be read and clicked) and when paused with its button; for anyone who asks
+   for reduced motion it does not move at all and scrolls by hand instead. */
+@keyframes cs-ticker {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+.cs-ticker-viewport {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+}
+.cs-ticker-track {
+  animation: cs-ticker var(--cs-ticker-duration, 120s) linear infinite;
+  will-change: transform;
+}
+.cs-ticker-viewport:hover .cs-ticker-track,
+.cs-ticker-viewport:focus-within .cs-ticker-track,
+.cs-ticker-viewport[data-paused="true"] .cs-ticker-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cs-ticker-track { animation: none; }
+  .cs-ticker-viewport { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
+  .cs-ticker-copy { display: none; }
+}
