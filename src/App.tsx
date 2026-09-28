@@ -61,6 +61,9 @@ const PlanetaryBoundariesPage = lazy(() =>
     default: m.PlanetaryBoundariesPage,
   })),
 );
+const WorldviewPage = lazy(() =>
+  import("./pages/WorldviewPage").then((m) => ({ default: m.WorldviewPage })),
+);
 const CrimeStatsPage = lazy(() =>
   import("./pages/CrimeStatsPage").then((m) => ({ default: m.CrimeStatsPage })),
 );
@@ -131,6 +134,7 @@ export default function App() {
                 path="planetary-boundaries"
                 element={<PlanetaryBoundariesPage />}
               />
+              <Route path="worldview" element={<WorldviewPage />} />
               <Route path="crime" element={<CrimeStatsPage />} />
               <Route path="humanitarian" element={<HumanitarianPage />} />
               <Route path="rankings" element={<RankingsPage />} />

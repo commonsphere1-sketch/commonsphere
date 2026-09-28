@@ -28,6 +28,7 @@ import {
   Lightning,
   ArrowSquareOut,
   Leaf,
+  GlobeStand,
   ArrowsLeftRight,
   ArrowsIn,
   ArrowsOut,
@@ -54,6 +55,8 @@ const mainNav = [
 ];
 
 const analysisNav = [
+  // The world as a whole: peace, debt, climate, development, food, technology.
+  { to: "/dashboard/worldview", label: "Worldview", icon: GlobeStand, end: false },
   // The route keeps its /rankings path so existing links still resolve; the
   // page itself is the comparison now, with the ranked list as its picker.
   {
