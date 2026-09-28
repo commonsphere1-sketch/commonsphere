@@ -20,6 +20,11 @@
  *   UNHCR                   refugees, asylum-seekers, internally displaced
  *                           people and others it counts, and Palestine
  *                           refugees under UNRWA's mandate
+ *   World Bank income       the four income groups (high, upper-middle,
+ *     groups                lower-middle, low) as the Bank aggregates them,
+ *                           and which group each economy is in now - the
+ *                           page's comparison of developed and developing
+ *                           economies
  *   UN World Population     the medium-variant projection, for the page's
  *     Prospects 2024 (OWID) population clock - the one place the page shows
  *                           a projection, and it says so
@@ -336,6 +341,47 @@ function indicator(id, o) {
   const deaths = Number(bd?.[col(bd, "deaths__sex_all__age_all__variant_medium__projected")]);
   if (wppPop.length < 3 || !(births > 0) || !(deaths > 0)) throw new Error("WPP: projections missing");
 
+  // Income groups: the Bank's own aggregates for each group, and the
+  // current classification of every economy.
+  const GROUPS = [
+    ["HIC", "High income"],
+    ["UMC", "Upper-middle income"],
+    ["LMC", "Lower-middle income"],
+    ["LIC", "Low income"],
+  ];
+  const countryList = JSON.parse(await get("https://api.worldbank.org/v2/country?format=json&per_page=400", "wb-countries.json"))[1];
+  const incomeOf = {};
+  for (const c of countryList) if (GROUPS.some(([g]) => g === c.incomeLevel?.id)) incomeOf[c.iso2Code] = c.incomeLevel.id;
+  const groupCount = Object.fromEntries(GROUPS.map(([g]) => [g, Object.values(incomeOf).filter((x) => x === g).length]));
+  if (Object.values(groupCount).some((n) => n < 10)) throw new Error("income groups: a group has fewer than 10 economies");
+  const COMPARE = [
+    ["population", "People", "SP.POP.TOTL", "count", 0, null],
+    ["gdp", "GDP", "NY.GDP.MKTP.CD", "usd", 0, null],
+    ["gdpPerCapita", "GDP per person", "NY.GDP.PCAP.CD", "usd", 0, true],
+    ["lifeExpectancy", "Life expectancy (years)", "SP.DYN.LE00.IN", "num", 1, true],
+    ["childMortality", "Deaths before age 5, per 1,000 births", "SH.DYN.MORT", "num", 1, false],
+    ["extremePoverty", "In extreme poverty (under $3 a day)", "SI.POV.DDAY", "pct", 1, false],
+    ["undernourished", "Undernourished", "SN.ITK.DEFC.ZS", "pct", 1, false],
+    ["water", "Safely managed drinking water", "SH.H2O.SMDW.ZS", "pct", 1, true],
+    ["electricity", "Have electricity", "EG.ELC.ACCS.ZS", "pct", 1, true],
+    ["internet", "Use the internet", "IT.NET.USER.ZS", "pct", 1, true],
+    ["primaryCompletion", "Finish primary school", "SE.PRM.CMPT.ZS", "pct", 1, true],
+    ["fertility", "Births per woman", "SP.DYN.TFRT.IN", "num", 2, null],
+    ["co2PerPerson", "CO₂ per person (tonnes a year)", "EN.GHG.CO2.PC.CE.AR5", "num", 2, null],
+  ];
+  const byIncome = [];
+  for (const [id, label, code, format, dp, upIsGood] of COMPARE) {
+    const values = {};
+    for (const area of ["WLD", ...GROUPS.map(([g]) => g)]) {
+      const series = await wbSeries(code, area).catch(() => null);
+      const last = series?.at(-1);
+      // A group aggregate the Bank stopped computing years ago is not shown
+      // beside current ones.
+      values[area] = last && last[0] >= THIS_YEAR - 6 ? [last[0], Number(last[1].toFixed(format === "usd" || format === "count" ? 0 : dp))] : null;
+    }
+    byIncome.push({ id, label, format, dp, upIsGood, values, source: WB(code, "XD") });
+  }
+
   const today = new Date().toISOString().slice(0, 10);
   const lines = Object.values(W).map((o) => `  ${JSON.stringify(o.id)}: ${JSON.stringify(o)},`);
   fs.writeFileSync(
@@ -386,6 +432,32 @@ export const POPULATION_PROJECTION = {
   births: ${Math.round(births)},
   deaths: ${Math.round(deaths)},
 };
+
+export type IncomeGroup = "HIC" | "UMC" | "LMC" | "LIC";
+
+/** The World Bank's four income groups, richest first, and how many economies each has now. */
+export const INCOME_GROUPS: { id: IncomeGroup; label: string; economies: number }[] = ${JSON.stringify(
+    GROUPS.map(([id, label]) => ({ id, label, economies: groupCount[id] })),
+  )};
+
+export const INCOME_SOURCE = {
+  label: "World Bank — income classification and group aggregates",
+  url: "https://datahelpdesk.worldbank.org/knowledgebase/articles/906519-world-bank-country-and-lending-groups",
+};
+
+/** Each economy's current income group, by ISO 3166 alpha-2 code. */
+export const INCOME_OF: Record<string, IncomeGroup> = ${JSON.stringify(incomeOf)};
+
+/** The same measures for the world and each income group, from the Bank's own aggregates. */
+export const BY_INCOME: {
+  id: string;
+  label: string;
+  format: "pct" | "num" | "usd" | "count";
+  dp: number;
+  upIsGood: boolean | null;
+  values: Record<"WLD" | IncomeGroup, [year: number, value: number] | null>;
+  source: { label: string; url: string };
+}[] = ${JSON.stringify(byIncome)};
 `,
   );
   console.log(`wrote ${path.relative(__dirname, OUT)}: ${Object.keys(W).length} indicators`);
@@ -393,6 +465,8 @@ export const POPULATION_PROJECTION = {
     const last = o.series.at(-1);
     console.log(`  ${o.id.padEnd(18)} ${String(last[1]).padStart(16)} (${last[0]})  ${o.series.length} pts`);
   }
+  console.log(`  income groups: ${JSON.stringify(groupCount)}`);
+  for (const r of byIncome) console.log(`    ${r.id.padEnd(18)} ${["WLD", "HIC", "UMC", "LMC", "LIC"].map((a) => (r.values[a] ? r.values[a][1] : "-")).join(" | ")}`);
   console.log(`  population clock: ${wppPop.map(([y, v]) => `${y}:${v}`).join(" ")}; births ${births}, deaths ${deaths} (${THIS_YEAR})`);
 })().catch((e) => {
   console.error(e);
