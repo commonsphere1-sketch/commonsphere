@@ -1,4 +1,5 @@
 import { na, has, orZero } from "../lib/na";
+import { LAND_USE, LAND_USE_SOURCE } from "@/data/landUse";
 import { usdFromBillions } from "../lib/money";
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import {
@@ -1297,6 +1298,8 @@ type CountryIndicator = {
   higherIsBetter: boolean;
   get: (c: Country) => number | null;
   format: (v: number) => string;
+  /** Named under the map when the figure does not come with the country record. */
+  source?: { label: string; url: string; note: string };
 };
 
 const COUNTRY_INDICATORS: CountryIndicator[] = [
@@ -1344,6 +1347,24 @@ const COUNTRY_INDICATORS: CountryIndicator[] = [
     higherIsBetter: false,
     get: (c) => (has(c.unemploymentRate) ? c.unemploymentRate : null),
     format: (v) => `${v.toFixed(1)}%`,
+  },
+  {
+    id: "forest",
+    label: "Forest Cover",
+    group: "Environment",
+    unit: "% of land",
+    // More forest ranks first; the shading follows the value.
+    higherIsBetter: true,
+    get: (c) => {
+      const f = LAND_USE[c.id]?.forest;
+      return typeof f === "number" && Number.isFinite(f) ? f : null;
+    },
+    format: (v) => `${v.toFixed(1)}%`,
+    source: {
+      label: LAND_USE_SOURCE.label,
+      url: LAND_USE_SOURCE.url,
+      note: "Forest as a share of each country's land area, for the latest year FAO reports (mostly 2023).",
+    },
   },
   {
     id: "population",
@@ -2949,6 +2970,21 @@ export function WorldMapsPage() {
               </button>
             ))}
           </div>
+
+          {activeCountry.source && (
+            <p className="text-[10px] font-sans text-muted-foreground mb-3 leading-snug">
+              {activeCountry.source.note} Source:{" "}
+              <a
+                href={activeCountry.source.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline decoration-dotted underline-offset-2 hover:text-foreground"
+              >
+                {activeCountry.source.label}
+              </a>
+              .
+            </p>
+          )}
 
           {layerToggles(worldLayers, setWorldLayers)}
 
