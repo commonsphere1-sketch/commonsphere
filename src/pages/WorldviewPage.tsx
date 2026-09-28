@@ -10,7 +10,11 @@ import {
   CloudSun,
   Coins,
   GlobeStand,
+  GraduationCap,
   Lightbulb,
+  Airplane,
+  ShieldWarning,
+  HandFist,
   Peace,
   Ranking,
   Scales,
@@ -23,6 +27,8 @@ import {
   INCOME_GROUPS,
   INCOME_SOURCE,
   BY_INCOME,
+  COUNTRY_FIGURES,
+  COUNTRY_FIGURE_SOURCES,
   type IncomeGroup,
   type WorldIndicator,
   type WorldPoint,
@@ -67,6 +73,7 @@ const ORD4: { fill: string; ink: string }[] = [
   { fill: "bg-[#86b6ef] dark:bg-[#184f95]", ink: "text-[#0b0b0b] dark:text-white" },
 ];
 const ORD2 = [ORD4[1], ORD4[3]];
+const ORD3 = [ORD4[0], ORD4[2], ORD4[3]];
 
 // ── The dashboard's card look ───────────────────────────────────────────────
 
@@ -718,6 +725,54 @@ function DevelopmentPanel() {
   );
 }
 
+// ── Rights and liberties ────────────────────────────────────────────────────
+
+const FREEDOM_CLASSES = [
+  { key: "F", label: "Free" },
+  { key: "PF", label: "Partly Free" },
+  { key: "NF", label: "Not Free" },
+];
+
+/** Countries and people by Freedom House status, with the site's population figures. */
+function freedomSplit() {
+  const counts: Record<string, number> = { F: 0, PF: 0, NF: 0 };
+  const people: Record<string, number> = { F: 0, PF: 0, NF: 0 };
+  let year = 0;
+  for (const c of countriesData) {
+    const f = COUNTRY_FIGURES.freedom[c.code];
+    if (!f) continue;
+    year = f[0];
+    counts[f[4]]++;
+    people[f[4]] += has(c.population) ? c.population : 0;
+  }
+  const total = people.F + people.PF + people.NF;
+  return { year, counts, people, freeShare: total ? (100 * people.F) / total : NaN };
+}
+
+function FreedomBars() {
+  const f = useMemo(freedomSplit, []);
+  return (
+    <div className="rounded-xl p-4 modal-tile mb-2">
+      <p className="text-xs font-semibold font-sans text-foreground">Freedom House status, {f.year}</p>
+      <p className="text-[10px] font-sans text-muted-foreground mb-3 leading-snug">
+        Political rights and civil liberties scored for {f.counts.F + f.counts.PF + f.counts.NF} countries and territories; the status follows
+        Freedom House's published rules from the two scores. People are each country's latest population on this site.
+      </p>
+      <SplitBars
+        classes={FREEDOM_CLASSES}
+        ramp={ORD3}
+        rows={[
+          { label: "Countries", parts: FREEDOM_CLASSES.map((c) => ({ key: c.key, value: f.counts[c.key] })) },
+          { label: "The world's people", parts: FREEDOM_CLASSES.map((c) => ({ key: c.key, value: f.people[c.key] })) },
+        ]}
+      />
+      <div className="mt-2">
+        <SourceLink source={COUNTRY_FIGURE_SOURCES.freedom} />
+      </div>
+    </div>
+  );
+}
+
 // ── Of every 100 people, and the blocs ──────────────────────────────────────
 
 const OUT_OF_100: [id: string, text: string][] = [
@@ -733,13 +788,20 @@ const OUT_OF_100: [id: string, text: string][] = [
 ];
 
 function OutOf100() {
+  const free = useMemo(freedomSplit, []);
+  const rows: { key: string; text: string; year: number; v: number; url: string }[] = [
+    ...OUT_OF_100.map(([id, text]) => {
+      const [year, v] = lastOf(id);
+      return { key: id, text, year, v, url: WORLD[id].source.url };
+    }),
+    { key: "free", text: "live in a country Freedom House rates Free", year: free.year, v: free.freeShare, url: COUNTRY_FIGURE_SOURCES.freedom.url },
+    { key: "migrants", text: "live outside the country they were born in", year: lastOf("migrantShare")[0], v: lastOf("migrantShare")[1], url: WORLD.migrantShare.source.url },
+  ].sort((a, b) => b.v - a.v);
   return (
     <Card>
       <CardHeader icon={<UsersThree size={16} weight="fill" />} title="Of every 100 people" badge="latest year" color="#0ea5e9" />
       <ul className="space-y-3">
-        {OUT_OF_100.map(([id, text]) => {
-          const ind = WORLD[id];
-          const [year, v] = ind.series[ind.series.length - 1];
+        {rows.map(({ key: id, text, year, v, url }) => {
           return (
             <li key={id}>
               <div className="flex flex-wrap items-baseline justify-between gap-x-3">
@@ -747,7 +809,7 @@ function OutOf100() {
                   <span className="font-mono font-bold">{Math.round(v)}</span> {text}
                 </p>
                 <p className="text-[10px] font-mono text-muted-foreground">
-                  {v.toFixed(1)}% · {year} · <SourceLink source={{ label: "source", url: ind.source.url }} />
+                  {v.toFixed(1)}% · {year} · <SourceLink source={{ label: "source", url }} />
                 </p>
               </div>
               <div className={`mt-1 h-2 rounded-full ${ACCENT_TRACK}`} aria-hidden>
@@ -855,6 +917,42 @@ const RANKINGS: Ranking[] = [
   { id: "hdi", top: "Most developed (HDI)", bottom: "Least developed (HDI)", value: hdiOf, format: (v) => v.toFixed(3), year: (c) => COUNTRY_PANELS[c.id]?.hdi?.y ?? "", source: "UNDP Human Development Index" },
   { id: "area", top: "Largest by area", bottom: "Smallest by area", value: (c) => c.areaKm2, format: (v) => (v >= 1e6 ? `${(v / 1e6).toFixed(2)}M km²` : `${Math.round(v).toLocaleString("en-US")} km²`), year: () => "", source: "Total area, CIA World Factbook" },
   { id: "growth", top: "Fastest-growing economies", bottom: "Shrinking or slowest", value: (c) => c.gdpGrowth, format: (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}%`, year: (c) => yearOfSource(c, "gdpGrowth"), source: "Real GDP growth, World Bank / IMF" },
+  {
+    id: "visited",
+    top: "Most visited",
+    bottom: "Least visited",
+    value: (c) => COUNTRY_FIGURES.arrivals[c.code]?.[1] ?? NaN,
+    format: (v) => compact(v),
+    year: (c) => String(COUNTRY_FIGURES.arrivals[c.code]?.[0] ?? ""),
+    source: "International overnight tourist arrivals, UN Tourism, 2019 for every country - the last year before the pandemic that most reported",
+  },
+  {
+    id: "traveled",
+    top: "Most traveled people",
+    bottom: "Least traveled people",
+    value: (c) => COUNTRY_FIGURES.tripsAbroad[c.code]?.[1] ?? NaN,
+    format: (v) => `${v.toFixed(2)} trips each`,
+    year: (c) => String(COUNTRY_FIGURES.tripsAbroad[c.code]?.[0] ?? ""),
+    source: "Residents' overnight trips abroad per person, 2019 for every country (UN Tourism; World Bank population)",
+  },
+  {
+    id: "free",
+    top: "Most free",
+    bottom: "Least free",
+    value: (c) => COUNTRY_FIGURES.freedom[c.code]?.[1] ?? NaN,
+    format: (v) => `${v} / 100`,
+    year: (c) => String(COUNTRY_FIGURES.freedom[c.code]?.[0] ?? ""),
+    source: "Freedom House total score (political rights and civil liberties)",
+  },
+  {
+    id: "migrants",
+    top: "Most migrants",
+    bottom: "Fewest migrants",
+    value: (c) => COUNTRY_FIGURES.migrantShare[c.code]?.[1] ?? NaN,
+    format: (v) => `${v.toFixed(1)}%`,
+    year: (c) => String(COUNTRY_FIGURES.migrantShare[c.code]?.[0] ?? ""),
+    source: "Born abroad, % of the population, UN DESA via World Bank",
+  },
   { id: "infl", top: "Highest inflation", bottom: "Lowest inflation", value: (c) => c.inflationRate, format: (v) => `${v.toFixed(1)}%`, year: (c) => yearOfSource(c, "inflationRate"), source: "Consumer prices, World Bank / IMF" },
 ];
 
@@ -927,7 +1025,8 @@ function RankCard({ r }: { r: Ranking }) {
         })}
       </ol>
       <p className="mt-2 text-[10px] font-sans" style={{ color: muted }}>
-        {r.source}; each country's latest year. Countries only, not territories.
+        {r.source}
+        {r.id === "visited" || r.id === "traveled" ? "" : "; each country's latest year"}. Countries only, not territories.
       </p>
     </div>
   );
@@ -1021,7 +1120,7 @@ function ClimateRow({ c, last = false }: { c: ClimateIndicator; last?: boolean }
   );
 }
 
-function ThemeCard({ id, icon, title, color, intro, ids, extras = {}, climate = [] }: {
+function ThemeCard({ id, icon, title, color, intro, ids, extras = {}, climate = [], children }: {
   id: string;
   icon: ReactNode;
   title: string;
@@ -1030,6 +1129,7 @@ function ThemeCard({ id, icon, title, color, intro, ids, extras = {}, climate = 
   ids: string[];
   extras?: Record<string, string>;
   climate?: ClimateIndicator[];
+  children?: ReactNode;
 }) {
   const count = ids.length + climate.length;
   return (
@@ -1037,6 +1137,7 @@ function ThemeCard({ id, icon, title, color, intro, ids, extras = {}, climate = 
       <Card>
         <CardHeader icon={icon} title={title} badge={`${count} figures`} color={color} />
         <p className="text-[11px] font-sans text-muted-foreground -mt-2 mb-2 leading-relaxed">{intro}</p>
+        {children}
         <ul>
           {climate.map((c) => (
             <ClimateRow key={c.id} c={c} />
@@ -1087,8 +1188,26 @@ export function WorldviewPage() {
             title="Peace & war"
             color="#f43f5e"
             intro="Armed conflict (Uppsala Conflict Data Program), the people it drives from home (UNHCR), and what the world spends on arms."
-            ids={["conflicts", "conflictDeaths", "displaced", "militaryGdp", "homicide", "democracyShare"]}
+            ids={["conflicts", "conflictDeaths", "displaced", "militaryGdp", "homicide"]}
             extras={{ militaryGdp: `${usd("militaryUsd")} in ${lastOf("militaryUsd")[0]}` }}
+          />
+          <ThemeCard
+            id="rights"
+            icon={<HandFist size={16} weight="fill" />}
+            title="Rights & liberties"
+            color="#8b5cf6"
+            intro="How free people are to speak, organise and choose their governments: Freedom House's status for every country, and V-Dem's measures averaged across the world's people."
+            ids={["civilLiberties", "freeExpression", "democracyShare"]}
+          >
+            <FreedomBars />
+          </ThemeCard>
+          <ThemeCard
+            id="terrorism"
+            icon={<ShieldWarning size={16} weight="fill" />}
+            title="Terrorism"
+            color="#dc2626"
+            intro="Attacks and deaths recorded by the Global Terrorism Database, whose public release ends in 2021; later years are not published openly."
+            ids={["terrorAttacks", "terrorDeaths"]}
           />
           <ThemeCard
             id="economy"
@@ -1096,7 +1215,7 @@ export function WorldviewPage() {
             title="Economy & debt"
             color="#10b981"
             intro="The world economy, and what governments (IMF) and developing countries (World Bank) owe."
-            ids={["gdp", "gdpGrowth", "inflation", "unemployment", "govDebt", "extDebt", "trade"]}
+            ids={["gdp", "gdpGrowth", "inflation", "unemployment", "govDebt", "extDebt"]}
             extras={{ extDebt: `${usd("extDebtUsd")} in ${lastOf("extDebtUsd")[0]}` }}
           />
           <ThemeCard
@@ -1114,7 +1233,23 @@ export function WorldviewPage() {
             title="Development & equality"
             color="#6366f1"
             intro="How long people live, how many children survive, poverty, schooling, and women's place in parliaments and paid work."
-            ids={["lifeExpectancy", "childMortality", "extremePoverty", "poverty830", "literacy", "primaryCompletion", "womenParliament", "workGap", "water"]}
+            ids={["lifeExpectancy", "childMortality", "extremePoverty", "poverty830", "womenParliament", "workGap", "water"]}
+          />
+          <ThemeCard
+            id="education"
+            icon={<GraduationCap size={16} weight="fill" />}
+            title="Education"
+            color="#3b82f6"
+            intro="Who can read, who finishes school, who goes on to university, how many years of schooling adults have had, and what governments spend."
+            ids={["literacy", "primaryCompletion", "lowerSecondary", "secondaryEnrol", "tertiaryEnrol", "schoolingYears", "eduSpend"]}
+          />
+          <ThemeCard
+            id="cosmopolitanism"
+            icon={<Airplane size={16} weight="fill" />}
+            title="Cosmopolitanism"
+            color="#0891b2"
+            intro="How mixed and connected the world is: people living outside the country they were born in, and trade and investment across borders. The most and least visited and traveled countries are in the rankings."
+            ids={["migrantShare", "migrants", "trade", "fdi"]}
           />
           <ThemeCard
             id="food"

@@ -17,6 +17,19 @@
  *     in Data)
  *   V-Dem Regimes of the    how many people live under each kind of regime
  *     World (via OWID)
+ *   V-Dem indices (OWID)    civil liberties and freedom of expression, as
+ *                           OWID's population-weighted world average (its
+ *                           plain "World" is an unweighted mean of countries)
+ *   Freedom House (OWID)    each country's political rights and civil
+ *                           liberties scores; Free / Partly Free / Not Free
+ *                           assigned by Freedom House's published rules
+ *   Global Terrorism        attacks and deaths; the public release ends in
+ *     Database (OWID)       2021, and the page says so
+ *   UN Tourism (OWID)       each country's international arrivals and its
+ *                           residents' trips abroad (per resident, with the
+ *                           World Bank's population for the same year), all
+ *                           for one year so the rankings compare like with
+ *                           like - see TOURISM_YEAR
  *   UNHCR                   refugees, asylum-seekers, internally displaced
  *                           people and others it counts, and Palestine
  *                           refugees under UNRWA's mandate
@@ -67,6 +80,13 @@ const SRC = {
   ucdpDeaths: { label: "Uppsala Conflict Data Program (via Our World in Data)", url: "https://ourworldindata.org/grapher/deaths-in-armed-conflicts-by-type" },
   vdem: { label: "V-Dem Regimes of the World (via Our World in Data)", url: "https://ourworldindata.org/grapher/people-living-in-democracies-autocracies" },
   unhcr: { label: "UNHCR Refugee Data Finder", url: "https://www.unhcr.org/refugee-statistics/" },
+  vdemCivil: { label: "V-Dem civil liberties index (via Our World in Data)", url: "https://ourworldindata.org/grapher/human-rights-index-vdem" },
+  vdemExpr: { label: "V-Dem freedom of expression index (via Our World in Data)", url: "https://ourworldindata.org/grapher/freedom-of-expression-index" },
+  gtd: { label: "Global Terrorism Database, START (via Our World in Data)", url: "https://ourworldindata.org/grapher/terrorist-attacks" },
+  schooling: { label: "UNDP Human Development Report, mean years of schooling (via Our World in Data)", url: "https://ourworldindata.org/grapher/average-years-of-schooling" },
+  fh: { label: "Freedom House — Freedom in the World (scores via Our World in Data)", url: "https://freedomhouse.org/report/freedom-world" },
+  arrivals: { label: "UN Tourism — international overnight arrivals (via Our World in Data)", url: "https://ourworldindata.org/grapher/international-tourist-trips" },
+  departures: { label: "UN Tourism — trips abroad by residents (via Our World in Data), per resident with World Bank population", url: "https://ourworldindata.org/grapher/international-tourist-departures" },
   wpp: { label: "UN World Population Prospects 2024, medium variant (via Our World in Data)", url: "https://population.un.org/wpp/" },
 };
 
@@ -103,29 +123,122 @@ async function imfWorldDebt() {
 
 // ── Our World in Data ─────────────────────────────────────────────────────
 
+function splitCsvLine(line) {
+  const cells = [];
+  let cur = "";
+  let quoted = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (quoted) {
+      if (ch === '"' && line[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else if (ch === '"') quoted = false;
+      else cur += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === ",") {
+      cells.push(cur);
+      cur = "";
+    } else cur += ch;
+  }
+  cells.push(cur);
+  return cells;
+}
+
 function csvRows(text) {
   const lines = text.trim().split(/\r?\n/);
-  const head = lines[0].split(",");
+  const head = splitCsvLine(lines[0]);
   return lines.slice(1).map((l) => {
-    // OWID's entity names can contain commas in quotes; World never does.
-    const cells = l.split(",");
+    const cells = splitCsvLine(l);
     return Object.fromEntries(head.map((h, i) => [h, cells[i] ?? ""]));
   });
 }
 
-async function owidWorld(slug) {
-  const t = await get(`https://ourworldindata.org/grapher/${slug}.csv?v=1&csvType=full&useColumnShortNames=true`, `owid-${slug}.csv`);
-  const rows = csvRows(t).filter((r) => r.entity === "World");
-  if (!rows.length) throw new Error(`OWID ${slug}: no World rows`);
+const owidCsv = async (slug) =>
+  csvRows(await get(`https://ourworldindata.org/grapher/${slug}.csv?v=1&csvType=full&useColumnShortNames=true`, `owid-${slug}.csv`));
+
+async function owidWorld(slug, entity = "World") {
+  const rows = (await owidCsv(slug)).filter((r) => r.entity === entity);
+  if (!rows.length) throw new Error(`OWID ${slug}: no "${entity}" rows`);
   return rows.map((r) => ({ ...r, year: Number(r.year) })).sort((a, b) => a.year - b.year);
 }
 
-/** The column whose name ends with a given conflict type. */
-const col = (row, suffix) => {
+/** A single-value OWID series for the world, as [year, value] points from FROM on. */
+async function owidWorldSeries(slug, column, entity = "World") {
+  const rows = await owidWorld(slug, entity);
+  const k = col(rows[0], column);
+  return rows.filter((r) => r.year >= FROM && r[k] !== "" && Number.isFinite(Number(r[k]))).map((r) => [r.year, Number(r[k])]);
+}
+
+/** Each country's latest value of an OWID series, by ISO2 (OWID codes are ISO3). */
+async function owidByCountry(slug, column, iso2Of) {
+  const rows = await owidCsv(slug);
+  const k = col(rows[0], column);
+  const out = {};
+  for (const r of rows) {
+    const iso2 = iso2Of[r.code];
+    const v = Number(r[k]);
+    const y = Number(r.year);
+    if (!iso2 || r[k] === "" || !Number.isFinite(v) || y > THIS_YEAR || y < THIS_YEAR - 8) continue;
+    if (!out[iso2] || y > out[iso2][0]) out[iso2] = [y, v];
+  }
+  return out;
+}
+
+/**
+ * Tourism rankings compare every country in the same year. Countries report
+ * to UN Tourism late and unevenly - 174 reported arrivals for 2019, 69 for
+ * 2023 - and 2020-21 were shut by the pandemic, so a "latest year each"
+ * ranking would set one country's 2024 against another's 2021 lockdown.
+ * 2019 is the last year before the pandemic that most countries reported.
+ */
+const TOURISM_YEAR = 2019;
+
+/** Each country's value of an OWID series in one year, by ISO2. */
+async function owidByCountryInYear(slug, column, iso2Of, year) {
+  const rows = await owidCsv(slug);
+  const k = col(rows[0], column);
+  const out = {};
+  for (const r of rows) {
+    const iso2 = iso2Of[r.code];
+    const v = Number(r[k]);
+    if (!iso2 || Number(r.year) !== year || r[k] === "" || !Number.isFinite(v)) continue;
+    out[iso2] = [year, v];
+  }
+  return out;
+}
+
+/** Every country's value of a World Bank series by year: { ISO2: { year: value } }. */
+async function wbAllCountries(code, from = THIS_YEAR - 10) {
+  const t = await get(`https://api.worldbank.org/v2/country/all/indicator/${code}?format=json&per_page=20000&date=${from}:${THIS_YEAR}`, `wb-all-${code}-${from}.json`);
+  const j = JSON.parse(t);
+  if (!Array.isArray(j) || !j[1]) throw new Error(`World Bank ${code} (all countries): no data`);
+  const out = {};
+  for (const r of j[1]) {
+    if (r.value === null || !Number.isFinite(r.value)) continue;
+    (out[r.country.id] ||= {})[Number(r.date)] = r.value;
+  }
+  return out;
+}
+
+/**
+ * Freedom House's published rules: each score becomes a 1-7 rating, and the
+ * average of the two ratings decides the status - 1.0 to 2.5 Free, 3.0 to
+ * 5.0 Partly Free, 5.5 to 7.0 Not Free.
+ */
+function freedomStatus(pr, cl) {
+  const prRating = pr >= 36 ? 1 : pr >= 30 ? 2 : pr >= 24 ? 3 : pr >= 18 ? 4 : pr >= 12 ? 5 : pr >= 6 ? 6 : 7;
+  const clRating = cl >= 53 ? 1 : cl >= 44 ? 2 : cl >= 35 ? 3 : cl >= 26 ? 4 : cl >= 17 ? 5 : cl >= 8 ? 6 : 7;
+  const avg = (prRating + clRating) / 2;
+  return avg <= 2.5 ? "F" : avg <= 5 ? "PF" : "NF";
+}
+
+/** The column whose name ends with a given suffix. */
+function col(row, suffix) {
   const k = Object.keys(row).find((c) => c.endsWith(suffix));
   if (!k) throw new Error(`OWID: no column ending ${suffix} in ${Object.keys(row).join(",")}`);
   return k;
-};
+}
 
 // ── UNHCR ─────────────────────────────────────────────────────────────────
 
@@ -331,6 +444,78 @@ function indicator(id, o) {
   add("research", { label: "Research and development", unit: "% of world GDP", format: "pct", dp: 2, upIsGood: true, series: pts(await wbSeries("GB.XPD.RSDV.GD.ZS"), 2), source: WB("GB.XPD.RSDV.GD.ZS") });
   add("patents", { label: "Patent applications", unit: "a year, by residents", format: "count", dp: 0, upIsGood: null, series: pts(await wbSeries("IP.PAT.RESD"), 0), source: WB("IP.PAT.RESD") });
 
+  // Rights and liberties: V-Dem, weighted by population.
+  add("civilLiberties", {
+    label: "Civil liberties", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null,
+    series: pts(await owidWorldSeries("human-rights-index-vdem", "estimate_best", "World (population-weighted)"), 2),
+    source: SRC.vdemCivil,
+    note: "V-Dem's civil liberties index - freedom from government violence, private liberties and political liberties - averaged across the world's people (population-weighted). 1 is most free.",
+  });
+  add("freeExpression", {
+    label: "Freedom of expression", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null,
+    series: pts(await owidWorldSeries("freedom-of-expression-index", "estimate_best", "World (population-weighted)"), 2),
+    source: SRC.vdemExpr,
+    note: "V-Dem's index of free speech, a free press and alternative sources of information, averaged across the world's people (population-weighted). 1 is most free.",
+  });
+
+  // Terrorism: the Global Terrorism Database's public release ends in 2021.
+  add("terrorAttacks", {
+    label: "Terrorist attacks", unit: "attacks", format: "count", dp: 0, upIsGood: false,
+    series: await owidWorldSeries("terrorist-attacks", "total_incident_counts"),
+    source: SRC.gtd,
+    note: "The Global Terrorism Database's public release ends in 2021, so this is its latest year.",
+  });
+  add("terrorDeaths", {
+    label: "Deaths from terrorism", unit: "deaths", format: "count", dp: 0, upIsGood: false,
+    series: await owidWorldSeries("fatalities-from-terrorism", "total_killed"),
+    source: { ...SRC.gtd, url: "https://ourworldindata.org/grapher/fatalities-from-terrorism" },
+    note: "Including perpetrators. The Global Terrorism Database's public release ends in 2021.",
+  });
+
+  // Education.
+  add("schoolingYears", { label: "Years of schooling", unit: "average, adults 25+", format: "num", dp: 1, upIsGood: true, series: pts(await owidWorldSeries("average-years-of-schooling", "mys__sex_total"), 1), source: SRC.schooling });
+  add("lowerSecondary", { label: "Finishing lower secondary school", unit: "% of the age group", format: "pct", dp: 1, upIsGood: true, series: pts(await wbSeries("SE.SEC.CMPT.LO.ZS"), 1), source: WB("SE.SEC.CMPT.LO.ZS") });
+  add("secondaryEnrol", { label: "Enrolled in secondary school", unit: "gross, % of the age group", format: "pct", dp: 1, upIsGood: true, series: pts(await wbSeries("SE.SEC.ENRR"), 1), source: WB("SE.SEC.ENRR") });
+  add("tertiaryEnrol", { label: "Enrolled in university or college", unit: "gross, % of the age group", format: "pct", dp: 1, upIsGood: true, series: pts(await wbSeries("SE.TER.ENRR"), 1), source: WB("SE.TER.ENRR") });
+  add("eduSpend", { label: "Public spending on education", unit: "% of world GDP", format: "pct", dp: 2, upIsGood: null, series: pts(await wbSeries("SE.XPD.TOTL.GD.ZS"), 2), source: WB("SE.XPD.TOTL.GD.ZS") });
+
+  // Cosmopolitanism: people and money across borders.
+  add("migrantShare", { label: "International migrants", unit: "% of world population", format: "pct", dp: 2, upIsGood: null, series: pts(await wbSeries("SM.POP.TOTL.ZS"), 2), source: WB("SM.POP.TOTL.ZS"), note: "People living in a country other than the one they were born in (UN DESA estimates, every five years)." });
+  add("migrants", { label: "International migrants", unit: "people", format: "count", dp: 0, upIsGood: null, series: pts(await wbSeries("SM.POP.TOTL"), 0), source: WB("SM.POP.TOTL") });
+  add("fdi", { label: "Foreign direct investment", unit: "% of world GDP, net inflows", format: "pct", dp: 2, upIsGood: null, series: pts(await wbSeries("BX.KLT.DINV.WD.GD.ZS"), 2), source: WB("BX.KLT.DINV.WD.GD.ZS") });
+
+  // Per-country figures for the rankings.
+  const wbList = JSON.parse(await get("https://api.worldbank.org/v2/country?format=json&per_page=400", "wb-countries.json"))[1];
+  const iso2Of = Object.fromEntries(wbList.map((c) => [c.id, c.iso2Code]));
+  // Codes the World Bank's list does not carry, as OWID writes them.
+  Object.assign(iso2Of, { TWN: "TW", OWID_KOS: "XK", XKX: "XK" });
+  delete iso2Of[""];
+
+  const arrivals = await owidByCountryInYear("international-tourist-trips", "in_tour_arrivals_trips_total_overnight_vis_tourists", iso2Of, TOURISM_YEAR);
+  const departuresRaw = await owidByCountryInYear("international-tourist-departures", "out_tour_departures_trips_total_overnight_vis_tourists", iso2Of, TOURISM_YEAR);
+  const popAll = await wbAllCountries("SP.POP.TOTL", TOURISM_YEAR);
+  const tripsAbroad = {};
+  for (const [iso2, [y, trips]] of Object.entries(departuresRaw)) {
+    const pop = popAll[iso2]?.[y];
+    if (pop > 50000 && trips > 0) tripsAbroad[iso2] = [y, Number((trips / pop).toFixed(3))];
+  }
+  const migAll = await wbAllCountries("SM.POP.TOTL.ZS");
+  const migrantShareBy = {};
+  for (const [iso2, byYear] of Object.entries(migAll)) {
+    const y = Math.max(...Object.keys(byYear).map(Number));
+    migrantShareBy[iso2] = [y, Number(byYear[y].toFixed(1))];
+  }
+  const pr = await owidByCountry("political-rights-score-fh", "polrights_score", iso2Of);
+  const cl = await owidByCountry("civil-liberties-score-fh", "civlibs_score", iso2Of);
+  const freedom = {};
+  for (const [iso2, [y, p]] of Object.entries(pr)) {
+    const c = cl[iso2];
+    if (!c || c[0] !== y) continue;
+    freedom[iso2] = [y, p + c[1], p, c[1], freedomStatus(p, c[1])];
+  }
+  if (Object.keys(arrivals).length < 100 || Object.keys(tripsAbroad).length < 50 || Object.keys(freedom).length < 150)
+    throw new Error("per-country figures: too few countries");
+
   // The population clock: the UN's medium projection for this year and the
   // next few, and births and deaths projected for this year.
   const wppPop = (await owidWorld("population-with-un-projections"))
@@ -448,6 +633,22 @@ export const INCOME_SOURCE = {
 /** Each economy's current income group, by ISO 3166 alpha-2 code. */
 export const INCOME_OF: Record<string, IncomeGroup> = ${JSON.stringify(incomeOf)};
 
+/** Per-country figures the rankings use, by ISO2: [year, value]. */
+export const COUNTRY_FIGURES: {
+  arrivals: Record<string, [year: number, value: number]>;
+  tripsAbroad: Record<string, [year: number, value: number]>;
+  migrantShare: Record<string, [year: number, value: number]>;
+  /** [year, total 0-100, political rights 0-40, civil liberties 0-60, status] */
+  freedom: Record<string, [year: number, total: number, pr: number, cl: number, status: "F" | "PF" | "NF"]>;
+} = ${JSON.stringify({ arrivals, tripsAbroad, migrantShare: migrantShareBy, freedom })};
+
+export const COUNTRY_FIGURE_SOURCES = ${JSON.stringify({
+    arrivals: SRC.arrivals,
+    tripsAbroad: SRC.departures,
+    migrantShare: WB("SM.POP.TOTL.ZS", "1W"),
+    freedom: SRC.fh,
+  })};
+
 /** The same measures for the world and each income group, from the Bank's own aggregates. */
 export const BY_INCOME: {
   id: string;
@@ -466,6 +667,9 @@ export const BY_INCOME: {
     console.log(`  ${o.id.padEnd(18)} ${String(last[1]).padStart(16)} (${last[0]})  ${o.series.length} pts`);
   }
   console.log(`  income groups: ${JSON.stringify(groupCount)}`);
+  const tally = { F: 0, PF: 0, NF: 0 };
+  for (const f of Object.values(freedom)) tally[f[4]]++;
+  console.log(`  per country: arrivals ${Object.keys(arrivals).length}, trips abroad ${Object.keys(tripsAbroad).length}, migrants ${Object.keys(migrantShareBy).length}, freedom ${Object.keys(freedom).length} ${JSON.stringify(tally)}`);
   for (const r of byIncome) console.log(`    ${r.id.padEnd(18)} ${["WLD", "HIC", "UMC", "LMC", "LIC"].map((a) => (r.values[a] ? r.values[a][1] : "-")).join(" | ")}`);
   console.log(`  population clock: ${wppPop.map(([y, v]) => `${y}:${v}`).join(" ")}; births ${births}, deaths ${deaths} (${THIS_YEAR})`);
 })().catch((e) => {
