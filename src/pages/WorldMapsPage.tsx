@@ -187,11 +187,16 @@ const CLUSTER_SLACK_DEG = 2;
 
 /* Inset maps for the outlying groups. Each is square and drawn at its own
    scale, so a territory is legible next to a mainland thousands of times its
-   size. Eight is well past what any country needs — the most any one has is
-   six — and the remainder is still named. */
+   size. Eight fit beside the map; the scattered island places drawn atoll by
+   atoll - the Cook Islands, the Marshall Islands, the Maldives - have more,
+   and the smallest of those are named under the map instead. */
 const INSET_SIZE = 100;
 const INSET_PAD = 8;
 const MAX_INSETS = 8;
+
+/** "a", "a and b", "a, b and c". */
+const andList = (xs: string[]) =>
+  xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 
 /** One outlying group, drawn beside the map at its own scale. */
 type Inset = {
@@ -199,7 +204,23 @@ type Inset = {
   name: string;
   d: string;
   interior: string;
+  /** A dot on each island that draws smaller than INSET_DOT_BELOW. */
+  dots: string;
 };
+/* An island covering less than this, in square inset units, is also marked
+   with a dot: at an ocean's scale an atoll draws as a speck, and a reef's
+   rubble islets as slivers a third of a unit wide - Kingman Reef's inset,
+   and several others, were blank squares with a name under them. */
+const INSET_DOT_BELOW = 2;
+const INSET_DOT_R = 1.6;
+/* A group whose main island group would draw narrower than INSET_MIN in a
+   single inset, because the rest of its land lies far off - Gough Island is
+   400 km from Tristan da Cunha, Niulakita 530 km from Niutao - is shown as
+   up to INSET_SPLIT insets, one per island group, instead. More groups than
+   that (an archipelago such as the Tuamotus) stay one inset, marked with
+   dots. */
+const INSET_MIN = 12;
+const INSET_SPLIT = 3;
 const CLUSTER_MIN_COUNT = 0.15;
 const CLUSTER_MIN_AREA = 0.05;
 
@@ -2287,32 +2308,117 @@ export function WorldMapsPage() {
       [INSET_SIZE - INSET_PAD, INSET_SIZE - INSET_PAD],
     ];
 
-    const insetGroups = [...outliers, ...offCanvasGroups];
-    const insets: Inset[] = insetGroups.slice(0, MAX_INSETS).map((group) => {
+    /* Largest land first, so what the cap leaves to the list below is the
+       smallest: in file order the Cook Islands gave uninhabited Takutea an
+       inset and left Aitutaki to the list. */
+    const landOf = (group: number[]) => group.reduce((t, i) => t + geoArea(fc.features[i] as never), 0);
+    const insetGroups = [...outliers, ...offCanvasGroups]
+      .map((g) => [landOf(g), g] as const)
+      .sort((a, b) => b[0] - a[0])
+      .map(([, g]) => g);
+    const polysOfGeo = (g: AreaGeo): PolygonGeo[] =>
+      g.type === "MultiPolygon"
+        ? (g.coordinates as unknown[][]).map((c) => ({ type: "Polygon", coordinates: c }))
+        : g.type === "Polygon"
+          ? [g as PolygonGeo]
+          : [];
+    const dotsFor = (ip: ReturnType<typeof geoPath>, g: AreaGeo) => {
+      let out = "";
+      for (const poly of polysOfGeo(g)) {
+        if (ip.area(poly as never) >= INSET_DOT_BELOW) continue;
+        const [cx, cy] = ip.centroid(poly as never);
+        if (!(cx >= 0 && cx <= INSET_SIZE && cy >= 0 && cy <= INSET_SIZE)) continue;
+        out += `M${(cx - INSET_DOT_R).toFixed(1)},${cy.toFixed(1)}a${INSET_DOT_R},${INSET_DOT_R} 0 1,0 ${2 * INSET_DOT_R},0a${INSET_DOT_R},${INSET_DOT_R} 0 1,0 -${2 * INSET_DOT_R},0`;
+      }
+      return out;
+    };
+    /* What to call one island group of a division, from the islands the
+       build found named there (`i`): the division's own name where its
+       namesake is in the group, else the atoll's name, else the island
+       nearest the group's middle. Utirik's largest land is Bokak, whose
+       inset had been titled "Utirik". */
+    const islandName = (group: number[], g: AreaGeo, division: string) => {
+      const named = group.flatMap(
+        (i) => (fc.features[i].properties as { i?: [number, number, string, number][] }).i ?? [],
+      );
+      const [[x0, y0], [x1, y1]] = geoBounds(g as never);
+      const here = named.filter(([x, y]) => boxesNear([[x, y], [x, y]], [[x0, y0], [x1, y1]], 0.05));
+      if (!here.length) return undefined;
+      if (here.some(([, , n]) => n.toLowerCase().includes(division.toLowerCase()))) return division;
+      const atoll = here.find(([, , n]) => /\batoll\b/i.test(n));
+      if (atoll) return atoll[2];
+      const c = geoCentroid(g as never);
+      const byNear = (list: typeof here) =>
+        [...list].sort((a, b) => geoDistance([a[0], a[1]], c) - geoDistance([b[0], b[1]], c))[0]?.[2];
+      // Islands before islets; an islet named as an island ("Bikar Island") before one not.
+      return byNear(here.filter((x) => x[3] === 1)) ?? byNear(here.filter((x) => / island$/i.test(x[2]))) ?? byNear(here);
+    };
+
+    type Candidate = { key: string; names: string[]; land: number; draw: () => Inset };
+    const candidates: Candidate[] = [];
+    for (const group of insetGroups) {
       const geoms = group.map((i) => obj.geometries[i]);
-      const collection = {
-        type: "GeometryCollection",
-        geometries: geoms,
-      };
+      const collection = { type: "GeometryCollection", geometries: geoms };
       const merged = rewindPolygons(
         merge(admin1.topo, geoms as Parameters<typeof merge>[1]),
-      );
-      const ip = geoPath(fitTo(merged, insetBox));
-      return {
-        key: group.join("-"),
-        name: nameOf(group),
-        d: ip(merged as never) ?? "",
-        interior:
-          group.length > 1
-            ? (ip(mesh(admin1.topo, collection as never, (a, b) => a !== b) as never) ?? "")
-            : "",
+      ) as unknown as AreaGeo;
+      const name = nameOf(group);
+      const key = group.join("-");
+      const draw = (k: string, n: string, fit: AreaGeo, geo: AreaGeo, borders: boolean): Inset => {
+        const ip = geoPath(fitTo(fit, insetBox));
+        return {
+          key: k,
+          name: n,
+          d: ip(geo as never) ?? "",
+          interior:
+            borders && group.length > 1
+              ? (ip(mesh(admin1.topo, collection as never, (a, b) => a !== b) as never) ?? "")
+              : "",
+          dots: dotsFor(ip, geo),
+        };
       };
-    });
+      // Island groups ISLAND_SLACK_DEG apart, largest land first.
+      const polys = polysOfGeo(merged);
+      const pBoxes = polys.map((q) => geoBounds(q as never));
+      const root = polys.map((_, i) => i);
+      const find = (i: number): number => (root[i] === i ? i : (root[i] = find(root[i])));
+      for (let a = 0; a < polys.length; a++)
+        for (let b = a + 1; b < polys.length; b++)
+          if (boxesNear(pBoxes[a], pBoxes[b], ISLAND_SLACK_DEG)) root[find(a)] = find(b);
+      const clusters = [...new Set(polys.map((_, i) => find(i)))]
+        .map((r) => ({ type: "MultiPolygon", coordinates: polys.filter((_, i) => find(i) === r).map((q) => q.coordinates) }) as AreaGeo)
+        .sort((a, b) => geoArea(b as never) - geoArea(a as never));
+      const [frame, ...apart] = clusters;
+      let split = false;
+      if (apart.length > 0 && clusters.length <= INSET_SPLIT) {
+        const [[x0, y0], [x1, y1]] = geoPath(fitTo(merged, insetBox)).bounds(frame as never);
+        split = Math.max(x1 - x0, y1 - y0) < INSET_MIN;
+      }
+      if (!split) {
+        candidates.push({
+          key,
+          names: group.map((i) => fc.features[i].properties.n ?? ""),
+          land: landOf(group),
+          draw: () => draw(key, name, merged, merged, true),
+        });
+        continue;
+      }
+      // The main group, its division's borders and all; the rest are off
+      // the edge of this one, each in its own.
+      const main = islandName(group, frame, name) ?? name;
+      candidates.push({ key, names: [main], land: geoArea(frame as never), draw: () => draw(key, main, frame, merged, true) });
+      apart.forEach((g, k) => {
+        const n = islandName(group, g, name) ?? `${name} (outlying)`;
+        candidates.push({ key: `${key}~${k}`, names: [n], land: geoArea(g as never), draw: () => draw(`${key}~${k}`, n, g, g, false) });
+      });
+    }
+    candidates.sort((a, b) => b.land - a.land);
+    const insets: Inset[] = candidates.slice(0, MAX_INSETS).map((c) => c.draw());
 
     /* Anything past the inset cap is still named, never silently dropped. */
-    const offView = insetGroups
+    const offView = candidates
       .slice(MAX_INSETS)
-      .flatMap((group) => group.map((i) => fc.features[i].properties.n ?? ""))
+      .flatMap((c) => c.names)
       .filter((n) => n.trim().length > 0)
       .sort((a, b) => a.localeCompare(b));
 
@@ -2537,6 +2643,9 @@ export function WorldMapsPage() {
    * dragged out on a leader line, which is what used to run off the canvas:
    * Russia's 86 divisions stacked to y=1315 in a 560-tall viewBox.
    */
+  /** What the focus map's parts are: divisions, or for a few places islands. */
+  const partNoun = ADMIN1_SOURCES[focusCode]?.parts === "islands" ? "island" : "division";
+
   const focusLabels = useMemo(() => {
     const parts = focusMap?.parts ?? [];
     const named = parts.filter((f) => f.n.trim().length > 0);
@@ -2590,12 +2699,17 @@ export function WorldMapsPage() {
     const published = admin1Manifest[focusCode] ?? 0;
     const hi = ADMIN1_SOURCES[focusCode];
     // Island outlines built from the OpenStreetMap coastline name it, not
-    // geoBoundaries, which does not publish those places.
+    // geoBoundaries, which does not publish those places or leaves islands
+    // out; Natural Earth places with islands redrawn name both.
     const from = hi
       ? hi.level === "OSM"
         ? `the OpenStreetMap coastline (${hi.licenseShort})`
-        : `geoBoundaries (${[hi.sourceShort, hi.licenseShort].filter(Boolean).join("; ")})`
+        : hi.level === "NE"
+          ? `Natural Earth, with ${andList((hi.islands ?? "").split(", "))} from the OpenStreetMap coastline (${hi.licenseShort})`
+          : `geoBoundaries (${[hi.sourceShort, hi.licenseShort].filter(Boolean).join("; ")})`
       : "Natural Earth";
+    // A few places are drawn island by island, not by division.
+    const unit = hi?.parts === "islands" ? "island" : "first-order division";
     const islands = focusMap?.islandsOutside ?? 0;
     const islandNote = islands
       ? ` Its land is spread across open ocean, so the map is framed on ${
@@ -2608,19 +2722,29 @@ export function WorldMapsPage() {
         : `Natural Earth records a single first-order division for this country, so it is drawn as one outline, from the 1:10m coastline.${islandNote} `;
     }
     const drawn = focusMap?.parts.length ?? 0;
-    if (drawn === 0) {
-      return `Loading ${published} first-order divisions from ${hi ? (hi.level === "OSM" ? "OpenStreetMap" : "geoBoundaries") : "Natural Earth"}. `;
+    if (drawn === 0 && !focusMap?.insets.length) {
+      return `Loading ${published} ${unit}s from ${
+        hi ? (hi.level === "OSM" ? "OpenStreetMap" : hi.level === "NE" ? "Natural Earth" : "geoBoundaries") : "Natural Earth"
+      }. `;
     }
     const insets = focusMap?.insets.length ?? 0;
     const off = focusMap?.offView.length ?? 0;
     const framed = insets
-      ? ` The map is framed on the main landmass; ${insets} outlying territor${
-          insets === 1 ? "y is" : "ies are"
+      ? ` The map is framed on the main landmass; ${insets} outlying ${
+          unit === "island" ? `island${insets === 1 ? " is" : "s are"}` : `territor${insets === 1 ? "y is" : "ies are"}`
         } drawn beside it, each at its own scale.`
       : "";
     const listed = off
-      ? ` ${off} further division${off === 1 ? " is" : "s are"} named below.`
+      ? ` ${off} further ${unit === "island" ? "island" : "division"}${off === 1 ? " is" : "s are"} named below.`
       : "";
+    // With some of them beside or below the map, say how many are in view.
+    // Kiribati: the view is Tarawa, and each of its three groups is inset.
+    if (drawn === 0)
+      return `Its ${published} ${unit}s are drawn from ${from}. The map is framed on ${
+        focusCapital ? "the island group around its capital" : "its largest island group"
+      }, and each ${unit} is drawn beside it at its own scale.${listed} `;
+    if (unit === "island" || insets || off)
+      return `Its ${published} ${unit}s are drawn from ${from}; ${drawn} ${drawn === 1 ? "is" : "are"} in this view.${framed}${listed}${islandNote} `;
     return `Internal borders shown are ${drawn} first-order division${drawn === 1 ? "" : "s"} from ${from}.${framed}${listed}${islandNote} `;
   }, [admin1Manifest, focusCode, focusMap, focusCapital]);
 
@@ -4078,6 +4202,9 @@ export function WorldMapsPage() {
                                 strokeOpacity={0.75}
                               />
                             )}
+                            {ins.dots && (
+                              <path d={ins.dots} fill={ramp[3]} stroke={stroke} strokeWidth={0.6} />
+                            )}
                           </svg>
                           <p className="mt-0.5 text-[9px] font-sans leading-tight text-muted-foreground text-center">
                             {ins.name}
@@ -4102,7 +4229,7 @@ export function WorldMapsPage() {
                       {focusLabels.unlabelled.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-border/40">
                           <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
-                            {focusLabels.unlabelled.length} more division
+                            {focusLabels.unlabelled.length} more {partNoun}
                             {focusLabels.unlabelled.length === 1 ? "" : "s"} — too
                             small to label at {zoom.toFixed(1)}×
                             {zoom < ZOOM_MAX ? "; zoom in to place more" : ""}
@@ -4123,7 +4250,7 @@ export function WorldMapsPage() {
                       {focusMap && focusMap.offView.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-border/40">
                           <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
-                            {focusMap.offView.length} division
+                            {focusMap.offView.length} {partNoun}
                             {focusMap.offView.length === 1 ? "" : "s"} outside
                             this view
                           </p>
@@ -4191,7 +4318,7 @@ export function WorldMapsPage() {
             internal borders of all 194 countries that have any, simplified to
             within 0.02° — under half a pixel at the deepest zoom; the country
             focus map fetches one country at full detail. For the{" "}
-            {Object.values(ADMIN1_SOURCES).filter((x) => x.level !== "OSM").length} smallest places, where 1:10m
+            {Object.values(ADMIN1_SOURCES).filter((x) => x.level !== "OSM" && x.level !== "NE").length} smallest places, where 1:10m
             detail shows at full frame, the focus map instead draws{" "}
             <a
               href={GEOBOUNDARIES_URL}
@@ -4209,11 +4336,17 @@ export function WorldMapsPage() {
             the licence of the one in view is named under its map, and the
             share-alike ones remain under those terms. For{" "}
             {Object.values(ADMIN1_SOURCES).filter((x) => x.level === "OSM").length} island places
-            geoBoundaries does not publish - among them the US Minor Outlying
-            Islands, Jersey and the British Indian Ocean Territory - the outline
-            is the coastline mapped in OpenStreetMap (ODbL, © OpenStreetMap
-            contributors), fetched through the Overpass API and checked against
-            the same land areas. US states: the US Census
+            geoBoundaries does not publish, or publishes with islands missing -
+            among them the US Minor Outlying Islands, the British Indian Ocean
+            Territory, Kiribati and the Cook Islands - the outline is the
+            coastline mapped in OpenStreetMap (ODbL, © OpenStreetMap
+            contributors), fetched through the Overpass API, cut into divisions
+            along OpenStreetMap's own boundaries where it maps them, and checked
+            against the same land areas. The same coastline redraws{" "}
+            {andList(
+              Object.values(ADMIN1_SOURCES).flatMap((x) => (x.level === "NE" && x.islands ? x.islands.split(", ") : [])),
+            )}
+            , which Natural Earth draws many times too large or leaves out. US states: the US Census
             Bureau via us-atlas. Group scopes: G7 and G20 membership as those
             groups publish it; Global North and South follow the UN M49 developed /
             developing classification, which UNSD states is for statistical

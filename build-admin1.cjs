@@ -16,10 +16,22 @@ const src = JSON.parse(fs.readFileSync(path.join(__dirname, "admin1-10m-raw.geoj
 // Group by ISO alpha-2, which is the key the app already joins on; a
 // feature carved out for a territory (see admin1-carve.cjs) is in both.
 const { codesOf } = require("./admin1-carve.cjs");
+/* Natural Earth's "minor island" features carry no name, and a nameless
+   division far enough offshore gets an inset of its own labelled
+   "Unnamed" (Colombia's and Venezuela's did). Named from where each lies,
+   checked against OpenStreetMap; Antarctica's is left as it is. */
+const MINOR_ISLANDS = {
+  "AIA+99?": "Sombrero", // 18.60°N 63.43°W
+  "COL+99?": "Malpelo Island", // 3.98°N 81.59°W, Valle del Cauca
+  "KIR+99?": "Nikumaroro", // 4.69°S 174.51°W, Phoenix Islands
+  "MEX+99?": "Arrecife Alacranes", // 22.39°N 89.66°W, Yucatán
+  "RUS+99?": "Levdiev Island", // 68.80°N 67.26°E, Baydaratskaya Bay
+  "VEN+99?": "Isla de Aves", // 15.70°N 63.64°W, Dependencias Federales
+};
 const groups = new Map();
 for (const f of src.features) {
   const p = f.properties;
-  const name = p.name || p.name_en || p.woe_name || p.gn_name || "";
+  const name = p.name || p.name_en || p.woe_name || p.gn_name || MINOR_ISLANDS[p.adm1_code] || "";
   for (const code of codesOf(p)) {
     if (!groups.has(code)) groups.set(code, []);
     groups.get(code).push({
