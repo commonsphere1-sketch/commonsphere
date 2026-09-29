@@ -4,6 +4,7 @@ import {
   type EconomyIndicators,
 } from "./economyIndicators";
 import { MORE_ECONOMIES } from "./economiesMore";
+import { REMAINING_ECONOMIES } from "./economiesRemaining";
 
 export interface Economy {
   id: string;
@@ -25,6 +26,16 @@ export interface Economy {
   tradeYear?: string | null;
   /** Year each generated figure is for, keyed by field. */
   figureYears?: Partial<Record<string, string>>;
+  /**
+   * Where a card's figures come from when it is not the World Bank and the
+   * IMF (economiesRemaining.ts): the UN, a regional body or the place's own
+   * statistics office.
+   */
+  dataSources?: { label: string; url: string }[];
+  /** What the figures on such a card are, and how they were converted. */
+  figureNote?: string;
+  /** A place no source publishes figures for, and why. */
+  noFiguresReason?: string;
   gdpTrillions: number;
   gdpGrowthRate: number;
   gdpPerCapita: number;
@@ -4045,6 +4056,8 @@ export const economiesData: Economy[] = [
   },
   // Every other country and territory on the site, from published figures only.
   ...MORE_ECONOMIES,
+  // And those the World Bank publishes no GDP for (economiesRemaining.ts).
+  ...REMAINING_ECONOMIES,
 ];
 
 /** Hand-built economies whose name differs from the Countries page. */

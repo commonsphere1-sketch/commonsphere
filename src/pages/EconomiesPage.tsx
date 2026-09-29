@@ -126,6 +126,9 @@ function gdpScale(maxT: number): { mul: number; unit: string } {
 const rateLabel = (e: Economy) =>
   e.interestRateBasis === "lending" ? "Lending Rate" : "Interest Rate";
 
+/** Cards shown on one page of the economies list. */
+const ECONOMIES_PER_PAGE = 50;
+
 /** Below this GDP ($10 billion) a generated economy is called small on its card. */
 const SMALL_ECONOMY_T = 0.01;
 
@@ -135,6 +138,7 @@ const SMALL_ECONOMY_T = 0.01;
  * data note.
  */
 function limitedLabel(e: Economy): string {
+  if (e.noFiguresReason) return "No published figures";
   if (e.entityType !== "Territory" && has(e.gdpTrillions) && e.gdpTrillions < SMALL_ECONOMY_T)
     return "Small economy · limited data";
   return "Limited data";
@@ -151,19 +155,35 @@ function LimitedDataNote({ economy }: { economy: Economy }) {
       : has(economy.gdpTrillions) && economy.gdpTrillions < SMALL_ECONOMY_T
         ? `${economy.name} is a small economy, and international bodies publish fewer figures for small economies than for large ones.`
         : `${economy.name} is covered here from international statistics alone.`;
+  // Cards built from the UN, a regional body or the place's own statistics
+  // office (economiesRemaining.ts) name those instead.
+  const publishers = (economy.dataSources ?? [])
+    .filter((x) => !/exchange rate/i.test(x.label))
+    .map((x) => x.label.split(" — ")[0]);
+  const from = publishers.length
+    ? `${publishers.join(" and ")} ${publishers.length > 1 ? "publish" : "publishes"}`
+    : "the World Bank, the IMF and UN Comtrade publish";
   return (
     <div className="mt-4 rounded-xl border border-amber-600/30 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10 px-4 py-3 flex gap-3">
       <Info size={16} weight="fill" className="text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
       <div className="min-w-0">
         <p className="text-[10px] font-bold font-sans uppercase tracking-widest text-amber-700 dark:text-amber-400 mb-1">
-          Limited data
+          {economy.noFiguresReason ? "No published figures" : "Limited data"}
         </p>
-        <p className="text-xs font-sans text-foreground leading-relaxed">
-          {kind} This card shows what the World Bank, the IMF and UN Comtrade
-          publish for it, each figure for the latest year available. There is
-          no credit rating or maritime profile, and a section with no published
-          figures is left out rather than estimated.
-        </p>
+        {economy.noFiguresReason ? (
+          <p className="text-xs font-sans text-foreground leading-relaxed">
+            {economy.noFiguresReason} It has a card so that every place on the
+            site is here; nothing on it is estimated.
+          </p>
+        ) : (
+          <p className="text-xs font-sans text-foreground leading-relaxed">
+            {kind} This card shows what {from} for it, each figure for the
+            latest year available. There is no credit rating or maritime
+            profile, and a section with no published figures is left out rather
+            than estimated.
+            {economy.figureNote ? ` ${economy.figureNote}` : ""}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -199,8 +219,10 @@ function FigureYears({ economy }: { economy: Economy }) {
   if (!parts.length) return null;
   return (
     <p className="text-[10px] font-sans text-muted-foreground mt-2 leading-snug">
-      Latest year published: {parts.join(" · ")}. "—" is a figure no source
-      publishes.
+      Latest year published: {parts.join(" · ")}.{" "}
+      {economy.dataSources
+        ? '"—" is a figure these sources do not publish.'
+        : '"—" is a figure no source publishes.'}
     </p>
   );
 }
@@ -1052,6 +1074,19 @@ function EconomyModal({
     !economy.limitedData ||
     resources.length > 0 ||
     (CRITICAL_MINERALS[economy.id]?.length ?? 0) > 0;
+  // Likewise the markets tiles, which on a card with none of these published
+  // were six dashes (Jersey, the French overseas departments).
+  const showMarketTiles =
+    !economy.limitedData ||
+    !!economy.creditRating ||
+    [
+      economy.stockMarketCap,
+      economy.fdiInflowBillions,
+      economy.tradeVolumeTrillions,
+      economy.interestRate,
+      economy.debtToGDPRatio,
+      economy.cpi ?? NaN,
+    ].some(has);
 
   return (
     <div
@@ -1136,7 +1171,8 @@ function EconomyModal({
                 SECTION: OVERVIEW
             ════════════════════════════════════════ */}
             <div className="space-y-4">
-              {/* ── ECONOMIC CATEGORY ── */}
+              {/* ── ECONOMIC CATEGORY ── (a card with no figures says why instead) */}
+              {!economy.noFiguresReason && (
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
@@ -1225,15 +1261,19 @@ function EconomyModal({
                 </div>
                 {economy.limitedData && <FigureYears economy={economy} />}
               </div>
+              )}
 
-              <SourceLink
-                sources={
-                  economy.limitedData
-                    ? [MORE_ECONOMIES_SOURCE.worldBank, ECONOMY_INDICATORS_SOURCE.imf]
-                    : SRC_IMF
-                }
-                showIcon={false}
-              />
+              {!economy.noFiguresReason && (
+                <SourceLink
+                  sources={
+                    economy.dataSources ??
+                    (economy.limitedData
+                      ? [MORE_ECONOMIES_SOURCE.worldBank, ECONOMY_INDICATORS_SOURCE.imf]
+                      : SRC_IMF)
+                  }
+                  showIcon={false}
+                />
+              )}
 
               {/* ── 5-YEAR TRENDS CHART ── */}
               {hasTrends && (
@@ -1513,6 +1553,7 @@ function EconomyModal({
               )}
             </div>
 
+            {(showMarketTiles || (hasTrends && hasGrowthOrInflation)) && (<>
             {/* ════════════════════════════════════════
                 SECTION DIVIDER: MARKETS
             ════════════════════════════════════════ */}
@@ -1527,6 +1568,7 @@ function EconomyModal({
 
             <div className="space-y-4">
               {/* Quick KPI tiles */}
+              {showMarketTiles && (
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
@@ -1609,6 +1651,7 @@ function EconomyModal({
                   ))}
                 </div>
               </div>
+              )}
 
               {/* Inflation vs Growth trend */}
               {hasTrends && hasGrowthOrInflation && (
@@ -1689,15 +1732,19 @@ function EconomyModal({
               </div>
               )}
 
-              <SourceLink
-                sources={
-                  economy.limitedData
-                    ? [MORE_ECONOMIES_SOURCE.worldBank, ECONOMY_INDICATORS_SOURCE.imf]
-                    : SRC_OECD
-                }
-                showIcon={false}
-              />
+              {!economy.noFiguresReason && (
+                <SourceLink
+                  sources={
+                    economy.dataSources ??
+                    (economy.limitedData
+                      ? [MORE_ECONOMIES_SOURCE.worldBank, ECONOMY_INDICATORS_SOURCE.imf]
+                      : SRC_OECD)
+                  }
+                  showIcon={false}
+                />
+              )}
             </div>
+            </>)}
 
             {showResources && (<>
             {/* ════════════════════════════════════════
@@ -2328,6 +2375,10 @@ export function EconomiesPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("economies");
   const [selectedResource, setSelectedResource] =
     useState<ResourceSummary | null>(null);
+  // Fifty cards a page; a new search, filter or sort starts again at page 1.
+  const [page, setPage] = useState(0);
+  const listTop = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => setPage(0), [search, typeFilter, sortBy]);
 
   // Deep-link: open entity from search bar via ?open=<id>
   React.useEffect(() => {
@@ -2366,6 +2417,18 @@ export function EconomiesPage() {
     })
     // Unpublished figures sort last rather than scrambling the order.
     .sort((a, b) => sortKey(b[sortBy], "desc") - sortKey(a[sortBy], "desc"));
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ECONOMIES_PER_PAGE));
+  const currentPage = Math.min(page, totalPages - 1);
+  const pageItems = filtered.slice(
+    currentPage * ECONOMIES_PER_PAGE,
+    (currentPage + 1) * ECONOMIES_PER_PAGE,
+  );
+  const goToPage = (n: number) => {
+    setPage(n);
+    // Back to the first card of the new page, below the sticky search bar.
+    listTop.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   /* The summary strip, read from the data rather than written in. It used to
      say "USA $27.4T" beside a card reading $30.77T. Median inflation, because
@@ -2771,8 +2834,14 @@ export function EconomiesPage() {
         {viewMode === "economies" && (
           <div className="min-w-0">
             {/* Economy Cards */}
+            <div ref={listTop} className="scroll-mt-40" />
+            <p className="text-[11px] text-muted-foreground font-sans mb-2">
+              {filtered.length === 0
+                ? "No economies match."
+                : `Showing ${currentPage * ECONOMIES_PER_PAGE + 1}–${Math.min((currentPage + 1) * ECONOMIES_PER_PAGE, filtered.length)} of ${filtered.length} economies`}
+            </p>
             <div className="space-y-4 min-w-0">
-              {filtered.map((economy) => (
+              {pageItems.map((economy) => (
                 <div
                   key={economy.id}
                   className="flex gap-3 items-stretch min-w-0 overflow-hidden"
@@ -2995,7 +3064,10 @@ export function EconomiesPage() {
                       )}
                       {economy.topExports.length === 0 && (
                         <span className="text-[10px] text-muted-foreground font-sans py-px">
-                          Exports not reported to UN Comtrade since 2020
+                          {economy.noFiguresReason ??
+                            (economy.dataSources
+                              ? `Figures from ${economy.dataSources[0].label.split(" — ")[0]}; no trade by product`
+                              : "Exports not reported to UN Comtrade since 2020")}
                         </span>
                       )}
                     </div>
@@ -3012,7 +3084,11 @@ export function EconomiesPage() {
                         return (
                           <div className="flex-1 flex items-center justify-center text-center px-1">
                             <p className="text-[9px] font-sans text-muted-foreground leading-snug">
-                              No GDP history published
+                              {economy.trends.length === 1
+                                ? `GDP for ${economy.trends[0].year} only`
+                                : has(economy.gdpTrillions)
+                                  ? "No GDP history published"
+                                  : "No GDP published"}
                             </p>
                           </div>
                         );
@@ -3197,6 +3273,64 @@ export function EconomiesPage() {
                 </div>
               ))}
             </div>
+
+            {/* Pagination, as on the Rankings page */}
+            {totalPages > 1 && (
+              <nav
+                aria-label="Economy pages"
+                className="mt-6 flex items-center justify-between gap-2 flex-wrap border-t border-border pt-4"
+              >
+                <span className="text-[11px] text-muted-foreground font-sans">
+                  {currentPage * ECONOMIES_PER_PAGE + 1}–
+                  {Math.min((currentPage + 1) * ECONOMIES_PER_PAGE, filtered.length)} of{" "}
+                  {filtered.length}
+                </span>
+                <div className="flex items-center gap-1 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => goToPage(Math.max(0, currentPage - 1))}
+                    disabled={currentPage === 0}
+                    className="px-2.5 py-1 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  >
+                    ← Prev
+                  </button>
+                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                    const n =
+                      totalPages <= 7
+                        ? i
+                        : currentPage < 4
+                          ? i
+                          : currentPage > totalPages - 4
+                            ? totalPages - 7 + i
+                            : currentPage - 3 + i;
+                    return (
+                      <button
+                        type="button"
+                        key={n}
+                        onClick={() => goToPage(n)}
+                        aria-label={`Page ${n + 1}`}
+                        aria-current={currentPage === n ? "page" : undefined}
+                        className={`w-7 h-7 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                          currentPage === n
+                            ? "chip-selected"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {n + 1}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => goToPage(Math.min(totalPages - 1, currentPage + 1))}
+                    disabled={currentPage === totalPages - 1}
+                    className="px-2.5 py-1 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  >
+                    Next →
+                  </button>
+                </div>
+              </nav>
+            )}
           </div>
         )}
       </div>
