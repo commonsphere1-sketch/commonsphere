@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowDownRight,
@@ -11,8 +11,6 @@ import {
   GlobeStand,
   Leaf,
   Minus,
-  Pause,
-  Play,
   Ranking,
   Scales,
   UsersThree,
@@ -37,8 +35,7 @@ import { COUNTRY_PANELS, PANEL_SOURCES } from "@/data/countryPanels";
 import { GLOBAL_NORTH_CODES, GLOBAL_SOUTH_CODES, DEVELOPMENT_STATUS_SOURCE } from "@/data/developmentStatus";
 import { LAND_USE, LAND_USE_SOURCE } from "@/data/landUse";
 import { useTheme } from "@/contexts/ThemeContext";
-import { supabase } from "@/lib/supabase";
-import { TONE } from "@/lib/chipTone";
+import { HeadlinesBanner, placeName, placeTag, type Headline, type Shown } from "@/components/HeadlinesBanner";
 import { has } from "@/lib/na";
 
 /**
@@ -582,135 +579,17 @@ function PillarNav() {
 
 // ── World headlines ─────────────────────────────────────────────────────────
 
-type Headline = { url: string; title: string; outlet: string; published_at: string; places: string[] };
-const COUNTRY_NAME = new Map(countriesData.map((c) => [`c:${c.code}`, c.name]));
-
-function ago(iso: string): string {
-  const mins = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60_000));
-  if (mins < 60) return `${mins} min ago`;
-  const h = Math.round(mins / 60);
-  if (h < 24) return `${h} h ago`;
-  const d = Math.round(h / 24);
-  return d === 1 ? "yesterday" : `${d} days ago`;
-}
-
 /**
- * The latest headlines naming a country other than the United States,
- * fetched once per ten minutes. US desks tag every story with the US, so
- * a US-only story is domestic news - it has its own banner on the States
- * page - and a world banner of them was obituaries and state politics.
+ * The world desks' latest headlines naming a country other than the United
+ * States. A US-only story is domestic news - it has its own banner on the
+ * States page - and a world banner of them was obituaries and state
+ * politics. The chip names the countries.
  */
-let worldHeadlineCache: { at: number; rows: Headline[] } | null = null;
-function useWorldHeadlines(): Headline[] {
-  const [rows, setRows] = useState<Headline[]>(worldHeadlineCache?.rows ?? []);
-  useEffect(() => {
-    if (!supabase || (worldHeadlineCache && Date.now() - worldHeadlineCache.at < 10 * 60_000)) return;
-    let live = true;
-    supabase
-      .from("news_items")
-      .select("url, title, outlet, published_at, places")
-      .gte("published_at", new Date(Date.now() - 2 * 86_400_000).toISOString())
-      .order("published_at", { ascending: false })
-      .limit(80)
-      .then(({ data }) => {
-        if (!live || !data) return;
-        const clean = data
-          .filter((r): r is Headline => typeof r.title === "string" && /^https:\/\//.test(r.url) && Array.isArray(r.places))
-          .filter((r) => r.places.some((p) => p !== "c:US" && COUNTRY_NAME.has(p)))
-          .slice(0, 30);
-        worldHeadlineCache = { at: Date.now(), rows: clean };
-        setRows(clean);
-      });
-    return () => {
-      live = false;
-    };
-  }, []);
-  return rows;
-}
-
-/**
- * The day's world news as a moving banner, like the States page's: headlines
- * from established outlets' public feeds naming a country, newest first,
- * refreshed on the server every half hour. It stops under the pointer or
- * keyboard focus and has a pause button; with reduced motion it stands still
- * and scrolls by hand. Without the news store it is left out.
- */
-function WorldHeadlines() {
-  const headlines = useWorldHeadlines();
-  const [paused, setPaused] = useState(false);
-  const trackRef = useRef<HTMLDivElement | null>(null);
-  const [duration, setDuration] = useState(120);
-  useLayoutEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
-    // A steady reading speed, whatever the length: about 40 px a second.
-    const measure = () => setDuration(Math.max(30, el.scrollWidth / 2 / 40));
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [headlines.length]);
-  if (!headlines.length) return null;
-
-  const renderItems = (copy: boolean): ReactNode =>
-    headlines.map((h) => {
-      const names = h.places.map((p) => COUNTRY_NAME.get(p)).filter((n): n is string => !!n);
-      const tag = names.length > 2 ? `${names.slice(0, 2).join(" · ")} +${names.length - 2}` : names.join(" · ");
-      return (
-        <a
-          key={`${copy ? "b" : "a"}-${h.url}`}
-          href={h.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          title={`${h.title} - ${h.outlet}`}
-          tabIndex={copy ? -1 : undefined}
-          className="group inline-flex items-center gap-2 shrink-0 whitespace-nowrap pr-6 text-xs font-sans text-foreground/90"
-        >
-          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${names.length > 1 ? TONE.violet : TONE.blue}`}>{tag}</span>
-          <span className="group-hover:underline">{h.title}</span>
-          <span className="text-[10px] text-muted-foreground">
-            {h.outlet} · {ago(h.published_at)}
-          </span>
-          <span aria-hidden className="text-muted-foreground/60 pl-4">
-            •
-          </span>
-        </a>
-      );
-    });
-
-  return (
-    <section aria-label="World headlines" className="bg-card border border-border rounded-2xl p-4">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <div className="flex items-center justify-between sm:justify-start gap-2 shrink-0">
-          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">World headlines</p>
-          <button
-            type="button"
-            onClick={() => setPaused((v) => !v)}
-            aria-pressed={paused}
-            aria-label={paused ? "Play the banner" : "Pause the banner"}
-            title={paused ? "Play" : "Pause"}
-            className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-          >
-            {paused ? <Play size={12} weight="fill" /> : <Pause size={12} weight="fill" />}
-          </button>
-        </div>
-        <div className="cs-ticker-viewport flex-1 min-w-0 py-1" data-paused={paused}>
-          <div ref={trackRef} className="cs-ticker-track flex w-max" style={{ ["--cs-ticker-duration" as string]: `${duration}s` }}>
-            <div className="flex">{renderItems(false)}</div>
-            {/* The second copy, for a seamless loop; hidden from screen readers. */}
-            <div className="cs-ticker-copy flex" aria-hidden>
-              {renderItems(true)}
-            </div>
-          </div>
-        </div>
-      </div>
-      <p className="mt-2 text-[10px] font-sans text-muted-foreground leading-snug">
-        The last two days' headlines naming a country outside the United States (US news is on the States page), from established outlets'
-        public news feeds, refreshed every half hour. A violet tag is a story naming more than one country. Each links to the outlet.
-      </p>
-    </section>
-  );
-}
+const pickWorld = (rows: Headline[]): Shown[] =>
+  rows
+    .filter((h) => h.places.some((p) => p !== "c:US" && p.startsWith("c:") && placeName(p)))
+    .slice(0, 30)
+    .map((h) => ({ h, tag: placeTag(h.places.filter((p) => p.startsWith("c:"))) }));
 
 // ── Headline figures ────────────────────────────────────────────────────────
 
@@ -1899,7 +1778,19 @@ export function WorldviewPage() {
       <div className="w-full px-4 sm:px-5 py-4 flex flex-col gap-4">
         <Hero />
         <PillarNav />
-        <WorldHeadlines />
+        <HeadlinesBanner
+          label="World headlines"
+          topics={["world"]}
+          days={2}
+          untagged
+          pick={pickWorld}
+          note={(outlets) => (
+            <>
+              The last two days' headlines naming a country outside the United States (US news is on the States page), from {outlets},
+              refreshed every half hour. A violet tag is a story naming more than one country. Each links to the outlet.
+            </>
+          )}
+        />
 
         {/* ── Overview ── */}
         <section id="overview" className="scroll-mt-36 flex flex-col gap-4">

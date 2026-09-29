@@ -41,6 +41,7 @@ import { SourceLink } from "../components/SourceLink";
 import { ALLIANCES, ALLIANCES_CHECKED, type Alliance, type AllianceKind } from "../data/alliances";
 import { countriesData, type Country } from "../data/countriesData";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
+import { HeadlinesBanner, namesTag, type Headline, type Shown } from "../components/HeadlinesBanner";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 // Globe is used in LeaderDetail tabs — do not remove
 
@@ -15913,6 +15914,152 @@ function AlliancesView() {
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
+// ── Leaders in the news ─────────────────────────────────────────────────────
+
+/**
+ * How headlines name a leader, where it is not the full name or the surname
+ * (the name's last word): the names headlines use instead (Lula, Xi, bin
+ * Salman), and the full name alone where the surname would catch someone
+ * else - Montenegro is also a country, Ortega and Sánchez are common names,
+ * Boko is Boko Haram, Manet was a painter. An empty list is a name too
+ * common to find in a headline. Accents are ignored; case is not.
+ */
+const HEADLINE_NAMES: Record<string, string[]> = {
+  xi: ["Xi Jinping", "Xi"],
+  zelensky: ["Volodymyr Zelensky", "Zelensky", "Zelenskyy", "Zelenskiy"],
+  mbs: ["Mohammed bin Salman", "bin Salman"],
+  lula: ["Lula"],
+  kim: ["Kim Jong-un", "Kim Jong Un"],
+  khan: ["Shehbaz Sharif", "Shehbaz"],
+  sanchez: ["Pedro Sánchez"],
+  prabowo: ["Prabowo Subianto", "Prabowo"],
+  han: ["Han Duck-soo", "Han Duck Soo"],
+  mbz: ["Mohammed bin Zayed", "bin Zayed"],
+  abiy: ["Abiy Ahmed", "Abiy"],
+  sisi: ["el-Sisi", "al-Sisi", "Sisi"],
+  marcos: ["Ferdinand Marcos Jr", "Marcos"],
+  paetongtarn: ["Paetongtarn Shinawatra", "Paetongtarn"],
+  anwar: ["Anwar Ibrahim", "Anwar"],
+  frederik: ["King Frederik"],
+  alsharaa: ["al-Sharaa", "Sharaa"],
+  barzani: ["Masrour Barzani"],
+  traore: ["Ibrahim Traoré"],
+  phamminchinh: ["Pham Minh Chinh"],
+  hunmanet: ["Hun Manet"],
+  lee: ["Lawrence Wong"],
+  "lee-jm": ["Lee Jae-myung", "Lee Jae Myung"],
+  abdullah2: ["King Abdullah"],
+  tamim: ["Tamim bin Hamad", "Sheikh Tamim", "Emir Tamim"],
+  faye: ["Bassirou Diomaye Faye", "Diomaye Faye"],
+  minaungHlaing: ["Min Aung Hlaing"],
+  "montenegro-lu": ["Luís Montenegro"],
+  rama: ["Edi Rama"],
+  frieden: ["Luc Frieden"],
+  karis: ["Alar Karis"],
+  hassan: ["Samia Suluhu Hassan", "Samia Suluhu"],
+  decroo: ["Alexander De Croo", "De Croo"],
+  stoere: ["Jonas Gahr Støre", "Gahr Støre", "Gahr Store", "Støre"],
+  martin: ["Micheál Martin"],
+  lai: ["Lai Ching-te", "William Lai"],
+  ortega: ["Daniel Ortega"],
+  yoon: ["Yoon Suk-yeol", "Yoon Suk Yeol", "Yoon"],
+  chaves: ["Rodrigo Chaves"],
+  barrow: ["Adama Barrow"],
+  sassou: ["Denis Sassou Nguesso", "Sassou Nguesso", "Sassou-Nguesso"],
+  boko: ["Duma Boko"],
+  ali: ["Irfaan Ali"],
+  chapo: ["Daniel Chapo"],
+  berdymukhamedov: ["Serdar Berdimuhamedow", "Berdimuhamedow", "Berdymukhamedov"],
+  meleshanu: [],
+  fiame: ["Fiamē Naomi Mataʻafa", "Mataʻafa"],
+  rowley: ["Keith Rowley"],
+  "castro-z": ["Xiomara Castro"],
+  dabaiba: ["Abdul Hamid Dbeibah", "Dbeibah", "Dbeiba", "Dabaiba"],
+  kiir: ["Salva Kiir", "Kiir"],
+  mswati: ["King Mswati", "Mswati"],
+  sudani: ["Mohammed Shia al-Sudani", "al-Sudani", "Al-Sudani", "Sudani"],
+  talon: ["Patrice Talon"],
+  nguema: ["Oligui Nguema", "Oligui"],
+  francis: ["Pope Francis"],
+  imrankhan: ["Imran Khan"],
+  "suu-kyi": ["Aung San Suu Kyi", "Suu Kyi"],
+  sen: ["Hun Sen"],
+  haitham: ["Sultan Haitham", "Haitham bin Tariq"],
+  marin: ["Sanna Marin"],
+  "to-lam": ["Tô Lâm"],
+  tsai: ["Tsai Ing-wen"],
+  amlo: ["Andrés Manuel López Obrador", "López Obrador", "AMLO"],
+  charles3: ["King Charles"],
+  borisjohnson: ["Boris Johnson"],
+  jokowi: ["Joko Widodo", "Jokowi", "Widodo"],
+  obiang: ["Teodoro Obiang", "Obiang"],
+  mbr: ["Mohammed bin Rashid", "bin Rashid"],
+  arce: ["Luis Arce"],
+  leo14: ["Pope Leo"],
+  mohamud: ["Hassan Sheikh Mohamud", "Hassan Sheikh"],
+  burhan: ["al-Burhan", "Burhan"],
+};
+
+/** People a headline may mean by a leader's surname: read first and set aside. */
+const NOT_LEADERS = [
+  "Melania Trump", "Ivanka Trump", "Eric Trump", "Lara Trump", "Barron Trump", "Donald Trump Jr", "Trump Jr",
+  "Brigitte Macron", "Sara Netanyahu", "Yair Netanyahu", "Francesca Albanese", "John Carney", "Jay Carney",
+  "Imee Marcos", "Marcos Sr", "Michel Aoun", "Petro Poroshenko", "Abbas Araghchi", "Mojtaba Khamenei",
+];
+
+/** Without accents, and with one kind of apostrophe. */
+const plain = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").replace(/[ʻʼ‘’`]/g, "'");
+
+type NamePattern = { form: string; re: RegExp; leader: Leader | null };
+const NAME_PATTERNS: NamePattern[] = (() => {
+  // Whole words: "Xi" but not "Xi'an", while "Putin's" is still Putin. The
+  // word before is captured rather than looked behind, which older Safari
+  // cannot read.
+  const pattern = (name: string, leader: Leader | null): NamePattern => {
+    const form = plain(name);
+    const esc = form.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return { form, re: new RegExp(`(^|[^\\p{L}\\p{N}])(${esc})(?![\\p{L}\\p{N}]|'\\p{Ll}{2})`, "gu"), leader };
+  };
+  const out = NOT_LEADERS.map((n) => pattern(n, null));
+  for (const l of LEADERS)
+    for (const n of HEADLINE_NAMES[l.id] ?? [l.name, l.name.split(" ").pop() ?? l.name]) out.push(pattern(n, l));
+  // The people set aside first, then the longest names, so "Donald Trump Jr"
+  // is not Trump and "Kim Jong Un" is one name.
+  return out.sort((a, b) => Number(!!a.leader) - Number(!!b.leader) || b.form.length - a.form.length);
+})();
+
+/** The leaders a headline names, in the order found. */
+function leadersIn(title: string): Leader[] {
+  let text = plain(title);
+  const found: Leader[] = [];
+  for (const p of NAME_PATTERNS) {
+    if (!text.includes(p.form)) continue;
+    p.re.lastIndex = 0;
+    if (!p.re.test(text)) continue;
+    text = text.replace(p.re, (_m, before: string, name: string) => before + " ".repeat(name.length));
+    if (p.leader && !found.includes(p.leader)) found.push(p.leader);
+  }
+  return found;
+}
+
+/**
+ * The newest headlines naming a profiled leader, at most three a leader so
+ * the most-covered do not crowd out the rest. The chip is the leader's
+ * country; violet when a story names leaders of more than one.
+ */
+const pickLeaders = (rows: Headline[]): Shown[] => {
+  const n = new Map<string, number>();
+  const out: Shown[] = [];
+  for (const h of rows) {
+    const named = leadersIn(h.title);
+    if (!named.length || named.every((l) => (n.get(l.id) ?? 0) >= 3)) continue;
+    for (const l of named) n.set(l.id, (n.get(l.id) ?? 0) + 1);
+    out.push({ h, tag: namesTag([...new Set(named.map((l) => l.country))]) });
+    if (out.length === 30) break;
+  }
+  return out;
+};
+
 export function WorldLeadersPage() {
   const [region, setRegion] = useState("All Regions");
   const [ideology, setIdeology] = useState("All");
@@ -16057,6 +16204,24 @@ export function WorldLeadersPage() {
             </select>
           </CollapsibleFilters>
         </div>
+
+        {/* Leaders in the news: headlines naming a leader profiled here */}
+        <HeadlinesBanner
+          label="Leaders in the news"
+          topics={["world", "policy"]}
+          days={2}
+          read={400}
+          untagged
+          pick={pickLeaders}
+          className="mb-6"
+          note={(outlets) => (
+            <>
+              The last two days' headlines naming a leader profiled here, from {outlets}, refreshed every half hour - three at most a
+              leader, so the most-covered do not crowd out the rest. The tag is the leader's country, violet when a story names leaders of
+              more than one. Each links to the outlet.
+            </>
+          )}
+        />
 
         {/* View Mode Toggle */}
         <div className="flex flex-wrap items-center gap-2 mb-4">

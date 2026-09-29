@@ -28,6 +28,7 @@ import {
 } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
+import { HeadlinesBanner } from "../components/HeadlinesBanner";
 import { DONOR_AID, DONOR_AID_SOURCE, DAC_TOTAL } from "../data/donorAid";
 
 /* ─── Data ──────────────────────────────────────────────────────────────── */
@@ -471,6 +472,20 @@ export function HumanitarianPage() {
             ))}
           </div>
         </div>
+
+        {/* ── Humanitarian headlines: the agencies' newsrooms and crisis desks ── */}
+        <HeadlinesBanner
+          label="Humanitarian headlines"
+          topics={["humanitarian"]}
+          days={7}
+          note={(outlets) => (
+            <>
+              The last week's humanitarian news from aid agencies' own newsrooms and the outlets that cover crises - {outlets}, five at
+              most from each - refreshed every half hour. The tag is the place a story is about, violet for more than one. Each links to
+              its source.
+            </>
+          )}
+        />
 
         {/* ══════════════════════════════════════════════════════════════ */}
         {/* OVERVIEW                                                       */}

@@ -19,6 +19,7 @@ import {
 } from "@phosphor-icons/react";
 import { usStatesData } from "../data/statesData";
 import { CollapsibleFilters } from "../components/CollapsibleFilters";
+import { HeadlinesBanner } from "../components/HeadlinesBanner";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -11092,6 +11093,21 @@ export function PolicyPage() {
           })}
         </CollapsibleFilters>
       </div>
+
+      {/* Policy headlines: national politics desks and US statehouse coverage */}
+      <HeadlinesBanner
+        label="Policy headlines"
+        topics={["policy"]}
+        days={2}
+        read={150}
+        note={(outlets) => (
+          <>
+            The last two days' politics and policy headlines from national politics desks and US statehouse coverage - {outlets}, five
+            at most from each - refreshed every half hour. The tag is the country or state a story is about, violet for more than one.
+            Each links to the outlet.
+          </>
+        )}
+      />
 
       {/* Entity rows */}
       {paginatedGroups.length === 0 ? (

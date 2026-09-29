@@ -69,6 +69,7 @@ import {
   type Share,
 } from "../data/criticalMinerals";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
+import { HeadlinesBanner } from "@/components/HeadlinesBanner";
 
 
 // Default for economies without specific data
@@ -2602,6 +2603,21 @@ export function EconomiesPage() {
             </select>
           </CollapsibleFilters>
         </div>
+
+        {/* ── Economy headlines: the business desks' news, kept current ── */}
+        <HeadlinesBanner
+          label="Economy headlines"
+          topics={["economy"]}
+          days={3}
+          read={120}
+          className="mb-6"
+          note={(outlets) => (
+            <>
+              The last three days' economy and business headlines from {outlets} (five at most from each), refreshed every half hour.
+              The tag is the place a story is about, violet for more than one. Each links to the outlet.
+            </>
+          )}
+        />
 
         {/* ── Upcoming to Watch ── */}
         <div className="mb-6 bg-card border border-border rounded-2xl p-5">

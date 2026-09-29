@@ -178,6 +178,7 @@ export type Database = {
           places: string[]
           published_at: string
           title: string
+          topics: string[]
           url: string
         }
         Insert: {
@@ -186,6 +187,7 @@ export type Database = {
           places: string[]
           published_at: string
           title: string
+          topics?: string[]
           url: string
         }
         Update: {
@@ -194,6 +196,7 @@ export type Database = {
           places?: string[]
           published_at?: string
           title?: string
+          topics?: string[]
           url?: string
         }
         Relationships: []

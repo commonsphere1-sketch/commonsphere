@@ -1135,7 +1135,8 @@ html.light .avatar-glass {
   .cs-drift { animation: none !important; }
 }
 
-/* The scrolling "Upcoming to Watch" banner on the States page.
+/* The scrolling news banners: "Upcoming to Watch" on the States page and the
+   headlines on the Worldview and topic pages (components/HeadlinesBanner).
 
    The track holds the items twice and moves left by half its width, so the
    second copy lands exactly where the first began and the loop has no seam.
@@ -1160,6 +1161,14 @@ html.light .avatar-glass {
 .cs-ticker-viewport[data-paused="true"] .cs-ticker-track {
   animation-play-state: paused;
 }
+/* A banner whose items fit its width stands still: looping them would leave
+   a gap sliding across it. */
+.cs-ticker-viewport[data-still="true"] {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.cs-ticker-viewport[data-still="true"] .cs-ticker-track { animation: none; }
+.cs-ticker-viewport[data-still="true"] .cs-ticker-copy { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .cs-ticker-track { animation: none; }
   .cs-ticker-viewport { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }

@@ -1,6 +1,7 @@
 import { decodeEntities } from "../lib/security";
 import React, { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
+import { HeadlinesBanner } from "../components/HeadlinesBanner";
 import {
   CLIMATE_INDICATORS,
   CLIMATE_RETRIEVED,
@@ -1247,6 +1248,20 @@ export function PlanetaryBoundariesPage() {
             </p>
           </div>
         </div>
+
+        {/* ── CLIMATE HEADLINES: the climate desks' news, kept current ── */}
+        <HeadlinesBanner
+          label="Climate headlines"
+          topics={["climate"]}
+          days={5}
+          className="mb-6"
+          note={(outlets) => (
+            <>
+              The last five days' climate headlines from {outlets} (five at most from each), refreshed every half hour. The tag is the
+              place a story is about, violet for more than one. Each links to the outlet.
+            </>
+          )}
+        />
 
         {/* ── KPI STRIP ─────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">

@@ -3,8 +3,11 @@
  * states they are about.
  *
  * Sources: the outlets' own public RSS feeds - wire-quality international
- * desks, public broadcasters, the UN's news service, and US politics and
- * statehouse desks for the states. (GDELT, the open news index, was the
+ * desks, public broadcasters, the UN's news service, US politics and
+ * statehouse desks for the states, national politics desks, business desks,
+ * the humanitarian agencies' own newsrooms (ICRC, IFRC, MSF) and climate
+ * desks. ReliefWeb's feed answers servers with a bot check, so it is not
+ * among them. (GDELT, the open news index, was the
  * first choice, but its API refuses more than one request every few
  * seconds per address, which a scheduled job on shared servers cannot rely
  * on.)
@@ -16,10 +19,22 @@
  * names it, and about the relation between places when it names more than
  * one. Longer names are matched first and consume their text, so "New
  * Mexico" is not also Mexico and "South Sudan" is not also Sudan. A few
- * names need rules (Georgia, Washington, Jordan, Chad); see below.
+ * names need rules (Georgia, Washington, Jordan, Chad); see below. A desk
+ * that covers one country or state (UK politics, CalMatters) gives its own
+ * place to a headline that names none: that is what its stories are about.
+ *
+ * Each feed also carries the topics of the site's pages it serves - world
+ * affairs, US news, the economy, public policy, humanitarian crises, the
+ * climate - so each page's banner draws on the desks that cover its subject.
+ * A world-affairs headline is kept only when it names a place; a topical
+ * one is kept either way, since "Carbon dioxide hits a new high" is climate
+ * news without naming a country.
  */
 import { COUNTRY_NAMES } from "./places.ts";
 import { STATES, UA } from "./sources.ts";
+
+/** The pages a feed serves, as the site's banners ask for them. */
+export type Topic = "world" | "us" | "economy" | "policy" | "humanitarian" | "climate";
 
 export type NewsRow = {
   url: string;
@@ -28,44 +43,83 @@ export type NewsRow = {
   published_at: string;
   /** "c:JP" for a country, "s:tx" for a US state. */
   places: string[];
+  topics: Topic[];
 };
 
-type Feed = { url: string; outlet: string; us?: boolean };
+type Feed = {
+  url: string;
+  outlet: string;
+  topics: Topic[];
+  /** A US desk, where "Georgia" is the state rather than the country. */
+  us?: boolean;
+  /** The one country or state a desk covers, for headlines that name no place. */
+  home?: string;
+};
 
-/** us: a US desk, where "Georgia" is the state rather than the country. */
 export const FEEDS: Feed[] = [
-  { url: "https://feeds.bbci.co.uk/news/world/rss.xml", outlet: "BBC News" },
-  { url: "https://feeds.bbci.co.uk/news/world/africa/rss.xml", outlet: "BBC News" },
-  { url: "https://feeds.bbci.co.uk/news/world/asia/rss.xml", outlet: "BBC News" },
-  { url: "https://feeds.bbci.co.uk/news/world/europe/rss.xml", outlet: "BBC News" },
-  { url: "https://feeds.bbci.co.uk/news/world/latin_america/rss.xml", outlet: "BBC News" },
-  { url: "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml", outlet: "BBC News" },
-  { url: "https://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml", outlet: "BBC News", us: true },
-  { url: "https://www.aljazeera.com/xml/rss/all.xml", outlet: "Al Jazeera" },
-  { url: "https://feeds.npr.org/1004/rss.xml", outlet: "NPR" },
-  { url: "https://feeds.npr.org/1014/rss.xml", outlet: "NPR", us: true },
-  { url: "https://rss.dw.com/rdf/rss-en-world", outlet: "DW" },
-  { url: "https://www.france24.com/en/rss", outlet: "France 24" },
-  { url: "https://www.theguardian.com/world/rss", outlet: "The Guardian" },
-  { url: "https://www.theguardian.com/us-news/rss", outlet: "The Guardian", us: true },
-  { url: "https://news.un.org/feed/subscribe/en/news/all/rss.xml", outlet: "UN News" },
-  { url: "https://www.pbs.org/newshour/feeds/rss/world", outlet: "PBS NewsHour" },
-  { url: "https://www.pbs.org/newshour/feeds/rss/politics", outlet: "PBS NewsHour", us: true },
-  { url: "https://foreignpolicy.com/feed/", outlet: "Foreign Policy" },
-  { url: "https://thediplomat.com/feed/", outlet: "The Diplomat" },
-  { url: "https://www.abc.net.au/news/feed/51120/rss.xml", outlet: "ABC News (Australia)" },
-  { url: "https://www.euronews.com/rss?level=theme&name=news", outlet: "Euronews" },
-  { url: "https://www.scmp.com/rss/91/feed", outlet: "South China Morning Post" },
-  { url: "https://www.japantimes.co.jp/feed/", outlet: "The Japan Times" },
-  { url: "https://www.straitstimes.com/news/world/rss.xml", outlet: "The Straits Times" },
-  { url: "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml&category=6511", outlet: "CNA" },
-  { url: "https://www.africanews.com/feed/rss", outlet: "Africanews" },
-  { url: "https://www.thehindu.com/news/international/feeder/default.rss", outlet: "The Hindu" },
-  { url: "https://mercopress.com/rss/", outlet: "MercoPress" },
-  { url: "https://rss.politico.com/politics-news.xml", outlet: "Politico", us: true },
-  { url: "https://thehill.com/homenews/state-watch/feed/", outlet: "The Hill", us: true },
-  { url: "https://stateline.org/feed/", outlet: "Stateline", us: true },
-  { url: "https://calmatters.org/feed/", outlet: "CalMatters", us: true },
+  // World affairs.
+  { url: "https://feeds.bbci.co.uk/news/world/rss.xml", outlet: "BBC News", topics: ["world"] },
+  { url: "https://feeds.bbci.co.uk/news/world/africa/rss.xml", outlet: "BBC News", topics: ["world"] },
+  { url: "https://feeds.bbci.co.uk/news/world/asia/rss.xml", outlet: "BBC News", topics: ["world"] },
+  { url: "https://feeds.bbci.co.uk/news/world/europe/rss.xml", outlet: "BBC News", topics: ["world"] },
+  { url: "https://feeds.bbci.co.uk/news/world/latin_america/rss.xml", outlet: "BBC News", topics: ["world"] },
+  { url: "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml", outlet: "BBC News", topics: ["world"] },
+  { url: "https://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml", outlet: "BBC News", topics: ["world", "us"], us: true },
+  { url: "https://www.aljazeera.com/xml/rss/all.xml", outlet: "Al Jazeera", topics: ["world"] },
+  { url: "https://feeds.npr.org/1004/rss.xml", outlet: "NPR", topics: ["world"] },
+  { url: "https://rss.dw.com/rdf/rss-en-world", outlet: "DW", topics: ["world"] },
+  { url: "https://www.france24.com/en/rss", outlet: "France 24", topics: ["world"] },
+  { url: "https://www.theguardian.com/world/rss", outlet: "The Guardian", topics: ["world"] },
+  { url: "https://news.un.org/feed/subscribe/en/news/all/rss.xml", outlet: "UN News", topics: ["world"] },
+  { url: "https://www.pbs.org/newshour/feeds/rss/world", outlet: "PBS NewsHour", topics: ["world"] },
+  { url: "https://foreignpolicy.com/feed/", outlet: "Foreign Policy", topics: ["world", "policy"] },
+  { url: "https://thediplomat.com/feed/", outlet: "The Diplomat", topics: ["world", "policy"] },
+  { url: "https://www.abc.net.au/news/feed/51120/rss.xml", outlet: "ABC News (Australia)", topics: ["world"] },
+  { url: "https://www.euronews.com/rss?level=theme&name=news", outlet: "Euronews", topics: ["world"] },
+  { url: "https://www.scmp.com/rss/91/feed", outlet: "South China Morning Post", topics: ["world"] },
+  { url: "https://www.japantimes.co.jp/feed/", outlet: "The Japan Times", topics: ["world"] },
+  { url: "https://www.straitstimes.com/news/world/rss.xml", outlet: "The Straits Times", topics: ["world"] },
+  { url: "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml&category=6511", outlet: "CNA", topics: ["world"] },
+  { url: "https://www.africanews.com/feed/rss", outlet: "Africanews", topics: ["world"] },
+  { url: "https://www.thehindu.com/news/international/feeder/default.rss", outlet: "The Hindu", topics: ["world"] },
+  { url: "https://mercopress.com/rss/", outlet: "MercoPress", topics: ["world"] },
+  // US national and state desks.
+  { url: "https://feeds.npr.org/1014/rss.xml", outlet: "NPR", topics: ["us", "policy"], us: true, home: "c:US" },
+  { url: "https://www.theguardian.com/us-news/rss", outlet: "The Guardian", topics: ["us"], us: true, home: "c:US" },
+  { url: "https://www.pbs.org/newshour/feeds/rss/politics", outlet: "PBS NewsHour", topics: ["us", "policy"], us: true, home: "c:US" },
+  { url: "https://rss.politico.com/politics-news.xml", outlet: "Politico", topics: ["us", "policy"], us: true, home: "c:US" },
+  { url: "https://thehill.com/homenews/state-watch/feed/", outlet: "The Hill", topics: ["us", "policy"], us: true, home: "c:US" },
+  { url: "https://stateline.org/feed/", outlet: "Stateline", topics: ["us", "policy"], us: true, home: "c:US" },
+  { url: "https://calmatters.org/feed/", outlet: "CalMatters", topics: ["us", "policy"], us: true, home: "s:ca" },
+  // Politics and public policy beyond the US.
+  { url: "https://feeds.bbci.co.uk/news/politics/rss.xml", outlet: "BBC News", topics: ["policy"], home: "c:GB" },
+  { url: "https://www.theguardian.com/politics/rss", outlet: "The Guardian", topics: ["policy"], home: "c:GB" },
+  { url: "https://www.politico.eu/feed/", outlet: "Politico Europe", topics: ["policy"] },
+  { url: "https://www.cbc.ca/webfeed/rss/rss-politics", outlet: "CBC News", topics: ["policy"], home: "c:CA" },
+  { url: "https://www.abc.net.au/news/feed/1534/rss.xml", outlet: "ABC News (Australia)", topics: ["policy"], home: "c:AU" },
+  { url: "https://www.rnz.co.nz/rss/political.xml", outlet: "RNZ", topics: ["policy"], home: "c:NZ" },
+  // The economy.
+  { url: "https://feeds.bbci.co.uk/news/business/rss.xml", outlet: "BBC News", topics: ["economy"] },
+  { url: "https://www.theguardian.com/business/economics/rss", outlet: "The Guardian", topics: ["economy"] },
+  { url: "https://feeds.npr.org/1017/rss.xml", outlet: "NPR", topics: ["economy", "us"], us: true, home: "c:US" },
+  { url: "https://rss.dw.com/rdf/rss-en-bus", outlet: "DW", topics: ["economy"] },
+  { url: "https://www.france24.com/en/business-tech/rss", outlet: "France 24", topics: ["economy"] },
+  { url: "https://news.un.org/feed/subscribe/en/news/topic/economic-development/feed/rss.xml", outlet: "UN News", topics: ["economy"] },
+  { url: "https://www.thehindu.com/business/Economy/feeder/default.rss", outlet: "The Hindu", topics: ["economy"], home: "c:IN" },
+  // Humanitarian crises.
+  { url: "https://news.un.org/feed/subscribe/en/news/topic/humanitarian-aid/feed/rss.xml", outlet: "UN News", topics: ["humanitarian"] },
+  { url: "https://news.un.org/feed/subscribe/en/news/topic/migrants-and-refugees/feed/rss.xml", outlet: "UN News", topics: ["humanitarian"] },
+  { url: "https://www.thenewhumanitarian.org/rss/all.xml", outlet: "The New Humanitarian", topics: ["humanitarian"] },
+  { url: "https://www.icrc.org/en/rss/news", outlet: "ICRC", topics: ["humanitarian"] },
+  { url: "https://www.ifrc.org/rss.xml", outlet: "IFRC", topics: ["humanitarian"] },
+  { url: "https://www.msf.org/rss/all", outlet: "MSF", topics: ["humanitarian"] },
+  // The climate.
+  { url: "https://news.un.org/feed/subscribe/en/news/topic/climate-change/feed/rss.xml", outlet: "UN News", topics: ["climate"] },
+  { url: "https://www.theguardian.com/environment/climate-crisis/rss", outlet: "The Guardian", topics: ["climate"] },
+  { url: "https://www.carbonbrief.org/feed", outlet: "Carbon Brief", topics: ["climate"] },
+  { url: "https://insideclimatenews.org/feed/", outlet: "Inside Climate News", topics: ["climate"] },
+  { url: "https://www.climatechangenews.com/feed/", outlet: "Climate Home News", topics: ["climate"] },
+  { url: "https://rss.dw.com/rdf/rss-en-environment", outlet: "DW", topics: ["climate"] },
 ];
 
 /** Sections that are not national or international affairs. */
@@ -303,11 +357,17 @@ function cleanUrl(raw: string): string | null {
   }
 }
 
-/** RSS 2.0, RDF (RSS 1.0) and Atom items: title, link and date. */
+/**
+ * RSS 2.0, RDF (RSS 1.0) and Atom items: title, link and date. An item that
+ * declares a language other than English is left out - Politico Europe's
+ * feed carries its French and German stories among the English ones.
+ */
 export function parseFeed(xml: string): { title: string; link: string; date: Date }[] {
   const out: { title: string; link: string; date: Date }[] = [];
   const blocks = xml.match(/<(item|entry)[\s>][\s\S]*?<\/\1>/gi) ?? [];
   for (const b of blocks) {
+    const lang = decode(tag(b, "language") ?? tag(b, "dc:language") ?? "").toLowerCase();
+    if (lang && !lang.startsWith("en")) continue;
     const title = decode(tag(b, "title") ?? "");
     const link =
       decode(tag(b, "link") ?? "") ||
@@ -333,7 +393,8 @@ export async function newsHeadlines(): Promise<{ rows: NewsRow[]; failed: string
   const results = await Promise.all(
     FEEDS.map(async (f) => {
       try {
-        const res = await fetch(f.url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(20_000) });
+        // CBC's feed can take over 20 seconds; the feeds are fetched side by side, so the wait is shared.
+        const res = await fetch(f.url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(30_000) });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return { f, items: parseFeed(await res.text()) };
       } catch (e) {
@@ -350,10 +411,14 @@ export async function newsHeadlines(): Promise<{ rows: NewsRow[]; failed: string
       if (it.date.getTime() < since || it.date.getTime() > Date.now() + 86_400_000) continue;
       if (it.title.length < 15 || it.title.length > 400) continue;
       const places = placesIn(it.title, !!f.us);
-      if (!places.length) continue;
+      if (!places.length && f.home) places.push(f.home);
+      // A world-affairs headline is only useful here when it names a place.
+      if (!places.length && !f.topics.some((t) => t !== "world")) continue;
       const prev = byUrl.get(url);
       if (prev) {
+        // The same story from two desks: every place, and every page it serves.
         for (const p of places) if (!prev.places.includes(p)) prev.places.push(p);
+        for (const t of f.topics) if (!prev.topics.includes(t)) prev.topics.push(t);
         continue;
       }
       byUrl.set(url, {
@@ -362,6 +427,7 @@ export async function newsHeadlines(): Promise<{ rows: NewsRow[]; failed: string
         outlet: f.outlet,
         published_at: it.date.toISOString(),
         places: places.slice(0, 20),
+        topics: [...f.topics],
       });
     }
   }
