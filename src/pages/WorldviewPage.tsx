@@ -541,27 +541,23 @@ const SECTIONS: { id: string; label: string }[] = [
 function PillarNav() {
   const [active, setActive] = useState("overview");
   useEffect(() => {
-    // The section whose top has passed just under the sticky bars is the one
-    // being read; checked once a frame while scrolling.
-    let frame = 0;
+    // The section being read is the last whose top has come a third of the
+    // way down the screen - or, at the foot of the page, the last section,
+    // whose top may never get that high. Checked on every scroll: six
+    // positions read, and setting the same section again does not re-render.
     const check = () => {
-      frame = 0;
+      const line = Math.max(180, window.innerHeight / 3);
+      const atFoot = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
       let current = SECTIONS[0].id;
       for (const s of SECTIONS) {
         const el = document.getElementById(s.id);
-        if (el && el.getBoundingClientRect().top <= 180) current = s.id;
+        if (el && (el.getBoundingClientRect().top <= line || atFoot)) current = s.id;
       }
       setActive(current);
     };
-    const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(check);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true, capture: true });
+    window.addEventListener("scroll", check, { passive: true, capture: true });
     check();
-    return () => {
-      window.removeEventListener("scroll", onScroll, { capture: true } as EventListenerOptions);
-      if (frame) cancelAnimationFrame(frame);
-    };
+    return () => window.removeEventListener("scroll", check, { capture: true } as EventListenerOptions);
   }, []);
   return (
     <nav aria-label="Worldview sections" className="search-sticky sticky top-16 z-30 border border-border/60 rounded-2xl px-3 py-2">
@@ -1686,11 +1682,20 @@ const yearOfSource = (c: Country, field: string) => {
   return /, (\d{4})$/.exec(label)?.[1] ?? "";
 };
 const hdiOf = (c: Country) => COUNTRY_PANELS[c.id]?.hdi?.v ?? NaN;
+/** 1.46B, $30.8T, 342M: the rankings' short units, so three lists fit a row with the names whole. */
+function short(v: number): string {
+  const a = Math.abs(v);
+  if (a >= 1e12) return `${Number((v / 1e12).toPrecision(3))}T`;
+  if (a >= 1e9) return `${Number((v / 1e9).toPrecision(3))}B`;
+  if (a >= 1e6) return `${Number((v / 1e6).toPrecision(3))}M`;
+  if (a >= 1e3) return `${Number((v / 1e3).toPrecision(3))}K`;
+  return Math.round(v).toLocaleString("en-US");
+}
 /** As on the Economies page: below $10 billion a year's growth is one project or one bad harvest. */
 const GROWTH_FLOOR_BN = 10;
 
 const RANKINGS: RankingDef[] = [
-  { id: "pop", pillar: "society", top: "Most people", bottom: "Fewest people", value: (c) => c.population, format: (v) => compact(v), year: (c) => yearOfSource(c, "population"), source: "World Bank / UN WPP" },
+  { id: "pop", pillar: "society", top: "Most people", bottom: "Fewest people", value: (c) => c.population, format: (v) => short(v), year: (c) => yearOfSource(c, "population"), source: "World Bank / UN WPP" },
   { id: "life", pillar: "society", top: "Longest lives", bottom: "Shortest lives", value: (c) => c.lifeExpectancy, format: (v) => `${v.toFixed(1)} yrs`, year: (c) => yearOfSource(c, "lifeExpectancy"), source: "Life expectancy at birth, World Bank / UN" },
   { id: "hdi", pillar: "society", top: "Most developed (HDI)", bottom: "Least developed (HDI)", value: hdiOf, format: (v) => v.toFixed(3), year: (c) => COUNTRY_PANELS[c.id]?.hdi?.y ?? "", source: "UNDP Human Development Index" },
   {
@@ -1709,7 +1714,7 @@ const RANKINGS: RankingDef[] = [
     top: "Most visited",
     bottom: "Least visited",
     value: (c) => COUNTRY_FIGURES.arrivals[c.code]?.[1] ?? NaN,
-    format: (v) => compact(v),
+    format: (v) => short(v),
     year: (c) => String(COUNTRY_FIGURES.arrivals[c.code]?.[0] ?? ""),
     source: "International overnight tourist arrivals, UN Tourism, 2019 for every country - the last year before the pandemic that most reported",
     oneYear: true,
@@ -1720,12 +1725,12 @@ const RANKINGS: RankingDef[] = [
     top: "Most traveled people",
     bottom: "Least traveled people",
     value: (c) => COUNTRY_FIGURES.tripsAbroad[c.code]?.[1] ?? NaN,
-    format: (v) => `${v.toFixed(2)} trips each`,
+    format: (v) => `${v.toFixed(2)} trips`,
     year: (c) => String(COUNTRY_FIGURES.tripsAbroad[c.code]?.[0] ?? ""),
     source: "Residents' overnight trips abroad per person, 2019 for every country (UN Tourism; World Bank population)",
     oneYear: true,
   },
-  { id: "gdp", pillar: "economy", top: "Largest economies", bottom: "Smallest economies", value: (c) => c.gdp * 1e9, format: (v) => `$${compact(v)}`, year: (c) => yearOfSource(c, "gdp"), source: "World Bank / IMF" },
+  { id: "gdp", pillar: "economy", top: "Largest economies", bottom: "Smallest economies", value: (c) => c.gdp * 1e9, format: (v) => `$${short(v)}`, year: (c) => yearOfSource(c, "gdp"), source: "World Bank / IMF" },
   { id: "pc", pillar: "economy", top: "Richest per person", bottom: "Poorest per person", value: (c) => c.gdpPerCapita, format: (v) => `$${Math.round(v).toLocaleString("en-US")}`, year: (c) => yearOfSource(c, "gdpPerCapita"), source: "GDP per person, World Bank / IMF" },
   {
     id: "growth",
@@ -1755,7 +1760,7 @@ const RANKINGS: RankingDef[] = [
     top: "Most forested",
     bottom: "Least forested",
     value: (c) => LAND_USE[c.id]?.forest ?? NaN,
-    format: (v) => `${v.toFixed(1)}% of land`,
+    format: (v) => `${v.toFixed(1)}%`,
     year: (c) => LAND_USE[c.id]?.y ?? "",
     source: `Forest as a share of land area, ${LAND_USE_SOURCE.label}`,
   },
@@ -1765,7 +1770,7 @@ const RANKINGS: RankingDef[] = [
     top: "Largest by area",
     bottom: "Smallest by area",
     value: (c) => c.areaKm2,
-    format: (v) => (v >= 1e6 ? `${(v / 1e6).toFixed(2)}M km²` : `${Math.round(v).toLocaleString("en-US")} km²`),
+    format: (v) => `${short(v)} km²`,
     year: () => "",
     source: "Total area, CIA World Factbook",
     oneYear: true,
@@ -1829,10 +1834,10 @@ function RankCard({ r }: { r: RankingDef }) {
                 <span className="flex-1 min-w-0 truncate text-xs font-sans" style={{ color: head }}>
                   {c.name}
                 </span>
-                <span className={`hidden sm:block w-12 h-1 rounded-full shrink-0 ${ACCENT_TRACK}`} aria-hidden>
+                <span className={`hidden sm:block w-10 h-1 rounded-full shrink-0 ${ACCENT_TRACK}`} aria-hidden>
                   <span className={`block h-1 rounded-full ${ACCENT_BG}`} style={{ width: `${(100 * Math.abs(v)) / max}%` }} />
                 </span>
-                <span className="w-24 text-right text-[11px] font-mono shrink-0" style={{ color: head }}>
+                <span className="w-20 text-right text-[11px] font-mono shrink-0 whitespace-nowrap" style={{ color: head }}>
                   {r.format(v)}
                 </span>
               </button>
@@ -1873,7 +1878,8 @@ function Rankings() {
             </button>
           ))}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3">
+        {/* Three lists to a row on a desktop, two on a tablet, one on a phone. */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {shown.map((r) => (
             <RankCard key={r.id} r={r} />
           ))}
