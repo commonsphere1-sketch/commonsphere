@@ -33,7 +33,6 @@ import {
 } from "../data/economiesData";
 import { MORE_ECONOMIES_SOURCE } from "../data/economiesMore";
 import { ECONOMY_INDICATORS_SOURCE } from "../data/economyIndicators";
-import { getUpcoming } from "../data/upcomingToWatch";
 import { ECONOMY_ISO3, type EconomyRents } from "../data/resourceRents";
 import { RESOURCE_PRODUCERS } from "../data/resourceProducers";
 import { ENERGY_PRODUCERS } from "../data/energyProducers";
@@ -2608,25 +2607,6 @@ export function EconomiesPage() {
             </>
           )}
         />
-
-        {/* ── Upcoming to Watch ── */}
-        <div className="mb-6 bg-card border border-border rounded-2xl p-5">
-          <div>
-            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-              🔥 Upcoming to Watch
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {getUpcoming("economies").map((e) => (
-                <span
-                  key={e.id}
-                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.className}`}
-                >
-                  {e.label}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
 
         {modalEconomy && (
           <EconomyModal

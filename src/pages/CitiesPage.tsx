@@ -26,7 +26,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { citiesData, type City } from "../data/citiesData";
-import { getUpcoming } from "../data/upcomingToWatch";
+import { HeadlinesBanner, namesTag, type Headline, type Shown } from "../components/HeadlinesBanner";
+import { nameMatcher } from "../lib/namesInText";
 import { SourceLink } from "../components/SourceLink";
 import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
@@ -3138,6 +3139,54 @@ function exportCitiesToCSV(cities: City[]) {
   URL.revokeObjectURL(url);
 }
 
+// ── Cities in the news ─────────────────────────────────────────────────────
+
+/** How headlines name a city, where it is not the city's own name on the page. */
+const HEADLINE_NAMES: Record<string, string[]> = {
+  "San Francisco Bay Area": ["San Francisco", "Bay Area"],
+  "New York City": ["New York City", "New York", "NYC", "Manhattan", "Brooklyn"],
+  Johannesburg: ["Johannesburg", "Joburg"],
+};
+
+/**
+ * Phrases that name a city without being news about it - a treaty, a
+ * newspaper, a team, a person, the state of New York - read first and set
+ * aside.
+ */
+const NOT_CITIES = [
+  "Paris Agreement", "Paris climate", "Paris accord", "Paris Accord", "Paris Hilton", "Paris Saint-Germain", "Paris St-Germain",
+  "New York Times", "New York Post", "New York Magazine", "New York state", "New York State", "New York governor",
+  "New York Governor", "New York Gov", "New York lawmakers", "New York legislature", "New York Legislature",
+  "New York attorney general", "New York Attorney General", "New York Rangers", "New York Knicks", "New York Yankees",
+  "New York Mets", "New York Giants", "New York Jets", "New York Liberty", "New York Islanders",
+  "Shanghai Cooperation Organisation", "Shanghai Cooperation Organization", "Istanbul Convention", "Vienna Convention",
+  "Zurich Insurance", "London, Ontario", "Jack London", "Sydney Sweeney", "Sydney McLaughlin", "Mumbai Indians",
+  "FC Barcelona", "Toronto Raptors", "Toronto Maple Leafs", "Toronto Blue Jays", "Monaco Grand Prix", "Tokyo Electric",
+];
+
+const citiesIn = nameMatcher(
+  citiesData.map((c): [City, string[]] => [c, HEADLINE_NAMES[c.name] ?? [c.name]]),
+  NOT_CITIES,
+);
+
+/**
+ * The newest headlines naming a profiled city, at most three a city so the
+ * most-covered do not crowd out the rest. The chip is the city; violet when
+ * a story names more than one.
+ */
+const pickCities = (rows: Headline[]): Shown[] => {
+  const n = new Map<string, number>();
+  const out: Shown[] = [];
+  for (const h of rows) {
+    const named = citiesIn(h.title);
+    if (!named.length || named.every((c) => (n.get(c.id) ?? 0) >= 3)) continue;
+    for (const c of named) n.set(c.id, (n.get(c.id) ?? 0) + 1);
+    out.push({ h, tag: namesTag(named.map((c) => c.name)) });
+    if (out.length === 30) break;
+  }
+  return out;
+};
+
 export function CitiesPage() {
   const [search, setSearch] = useState("");
   const [regionFilter, setRegionFilter] = useState("All");
@@ -3277,24 +3326,23 @@ export function CitiesPage() {
           </select>
         </FilterBar>
 
-        {/* ── Upcoming to Watch ── */}
-        <div className="mb-6 bg-card border border-border rounded-2xl p-5">
-          <div>
-            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-              🔥 Upcoming to Watch
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {getUpcoming("cities").map((e) => (
-                <span
-                  key={e.id}
-                  className={`text-[10px] font-sans px-2.5 py-1 rounded-full border ${e.className}`}
-                >
-                  {e.label}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
+        {/* ── City headlines: news naming a city profiled here ── */}
+        <HeadlinesBanner
+          label="City headlines"
+          topics={["world", "economy", "policy", "us"]}
+          days={2}
+          read={400}
+          untagged
+          pick={pickCities}
+          className="mb-6"
+          note={(outlets) => (
+            <>
+              The last two days' headlines naming a city profiled here, from {outlets}, refreshed every half hour - three at most a
+              city, so the most-covered do not crowd out the rest. The tag is the city, violet when a story names more than one. Each
+              links to the outlet.
+            </>
+          )}
+        />
 
         {modalCity && (
           <CityModal city={modalCity} onClose={() => setModalCity(null)} />
