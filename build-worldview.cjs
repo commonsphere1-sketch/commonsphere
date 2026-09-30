@@ -41,6 +41,21 @@
  *   UN World Population     the medium-variant projection, for the page's
  *     Prospects 2024 (OWID) population clock - the one place the page shows
  *                           a projection, and it says so
+ *   V-Dem indices (OWID)    electoral democracy, rule of law, the courts'
+ *                           and legislature's checks on the executive,
+ *                           academic freedom and political polarization, as
+ *                           population-weighted world averages
+ *   Federation of American  the world's nuclear warheads, as estimated from
+ *     Scientists (OWID)     public information
+ *   World Bank WDI, from    broadband (ITU), secure servers (Netcraft),
+ *     other bodies          researchers (UNESCO), scientific articles (NSF),
+ *                           high-tech exports (UN Comtrade), payments for
+ *                           intellectual property and government revenue
+ *                           (IMF), armed forces (IISS), arms transfers
+ *                           (SIPRI), sanitation (WHO/UNICEF)
+ *   Pew Research Center     the world's religious makeup in 2020 and its
+ *                           change from 2010, recorded from the report (see
+ *                           PEW), since its site does not serve scripts
  *
  * A series that fails to download stops the build rather than being left
  * out quietly.
@@ -88,7 +103,45 @@ const SRC = {
   arrivals: { label: "UN Tourism — international overnight arrivals (via Our World in Data)", url: "https://ourworldindata.org/grapher/international-tourist-trips" },
   departures: { label: "UN Tourism — trips abroad by residents (via Our World in Data), per resident with World Bank population", url: "https://ourworldindata.org/grapher/international-tourist-departures" },
   wpp: { label: "UN World Population Prospects 2024, medium variant (via Our World in Data)", url: "https://population.un.org/wpp/" },
+  vdemElect: { label: "V-Dem electoral democracy index (via Our World in Data)", url: "https://ourworldindata.org/grapher/electoral-democracy-index" },
+  vdemLaw: { label: "V-Dem rule of law index (via Our World in Data)", url: "https://ourworldindata.org/grapher/rule-of-law-index" },
+  vdemJudicial: { label: "V-Dem judicial constraints on the executive index (via Our World in Data)", url: "https://ourworldindata.org/grapher/judicial-constraints-on-the-executive-index" },
+  vdemLegis: { label: "V-Dem legislative constraints on the executive index (via Our World in Data)", url: "https://ourworldindata.org/grapher/legislative-constraints-on-the-executive-index" },
+  vdemAcademic: { label: "V-Dem academic freedom index (via Our World in Data)", url: "https://ourworldindata.org/grapher/academic-freedom-index" },
+  vdemPolar: { label: "V-Dem political polarization (via Our World in Data)", url: "https://ourworldindata.org/grapher/political-polarization-score" },
+  fas: { label: "Federation of American Scientists — estimated nuclear warhead inventories (via Our World in Data)", url: "https://ourworldindata.org/grapher/nuclear-warhead-stockpiles" },
+  pew: { label: "Pew Research Center — How the Global Religious Landscape Changed From 2010 to 2020 (2025)", url: "https://www.pewresearch.org/religion/2025/06/09/how-the-global-religious-landscape-changed-from-2010-to-2020/" },
 };
+
+/**
+ * Religion, as Pew Research Center's report "How the Global Religious
+ * Landscape Changed From 2010 to 2020" (9 June 2025) states it: each
+ * group's share of the world's people in 2020, and the change from 2010 in
+ * the report's own words. Recorded here rather than fetched, because Pew's
+ * site answers scripts with a browser check; read from the report's text on
+ * PEW_CHECKED, and each line quotes it. A 2010 share is kept only where the
+ * report gives one (the unaffiliated, "from 23.3%"); a change it gives only
+ * in words stays in words, rather than being turned into a 2010 figure.
+ */
+const PEW_CHECKED = "2026-09-30";
+const PEW_NOTE =
+  "Pew Research Center's estimates for 201 countries and territories, home to 99.98% of the world's people, from more than 2,700 censuses and surveys, with 2010 and 2020 estimated the same way.";
+const PEW = [
+  // "Christians fell 1.8 percentage points, to 28.8%."
+  ["christians", "Christians", [[2020, 28.8]], { text: "-1.8 points since 2010", dir: "down" }],
+  // "The share of the world's population that is Muslim rose by 1.8 points, to 25.6%."
+  ["muslims", "Muslims", [[2020, 25.6]], { text: "+1.8 points since 2010", dir: "up" }],
+  // "The share of 'nones' climbed nearly a full percentage point, to 24.2%." ... "(from 23.3%)"
+  ["unaffiliated", "No religion", [[2010, 23.3], [2020, 24.2]], null],
+  // "Hindus held steady at 14.9%."
+  ["hindus", "Hindus", [[2020, 14.9]], { text: "held steady since 2010", dir: "flat" }],
+  // "Buddhists slipped by 0.8 points, to 4.1%."
+  ["buddhists", "Buddhists", [[2020, 4.1]], { text: "-0.8 points since 2010", dir: "down" }],
+  // "Jews also held steady as a share of the world's population." ... "about 0.2%"
+  ["jews", "Jews", [[2020, 0.2]], { text: "held steady since 2010", dir: "flat" }],
+  // "All other religions combined ... Their share of the global population held steady at 2.2%."
+  ["otherReligions", "Other religions", [[2020, 2.2]], { text: "held steady since 2010", dir: "flat" }],
+];
 
 // ── World Bank ────────────────────────────────────────────────────────────
 
@@ -444,6 +497,59 @@ function indicator(id, o) {
   add("research", { label: "Research and development", unit: "% of world GDP", format: "pct", dp: 2, upIsGood: true, series: pts(await wbSeries("GB.XPD.RSDV.GD.ZS"), 2), source: WB("GB.XPD.RSDV.GD.ZS") });
   add("patents", { label: "Patent applications", unit: "a year, by residents", format: "count", dp: 0, upIsGood: null, series: pts(await wbSeries("IP.PAT.RESD"), 0), source: WB("IP.PAT.RESD") });
 
+  // Technology: connection, research and invention, and the trade in both.
+  add("broadband", { label: "Fixed broadband", unit: "subscriptions per 100 people", format: "num", dp: 1, upIsGood: true, series: pts(await wbSeries("IT.NET.BBND.P2"), 1), source: WB("IT.NET.BBND.P2"), note: "ITU: fixed connections to the internet at 256 kbit/s or faster - cable, DSL, fibre, satellite and fixed wireless. Mobile data is not counted." });
+  add("secureServers", { label: "Secure internet servers", unit: "per million people", format: "num", dp: 0, upIsGood: null, series: pts(await wbSeries("IT.NET.SECR.P6"), 0), source: WB("IT.NET.SECR.P6"), note: "Netcraft's Secure Server Survey: distinct, publicly trusted TLS/SSL certificates, by the country that hosts them." });
+  add("researchers", { label: "Researchers", unit: "per million people", format: "num", dp: 0, upIsGood: true, series: pts(await wbSeries("SP.POP.SCIE.RD.P6"), 0), source: WB("SP.POP.SCIE.RD.P6"), note: "UNESCO Institute for Statistics: people working in basic research, applied research and experimental development. The world figure is published only every few years." });
+  add("sciArticles", { label: "Scientific articles", unit: "published in the year", format: "count", dp: 0, upIsGood: null, series: pts(await wbSeries("IP.JRN.ARTC.SC"), 0), source: WB("IP.JRN.ARTC.SC"), note: "US National Science Foundation, from Scopus: peer-reviewed journal articles and selected conference papers in science and engineering." });
+  add("highTechExports", { label: "High-tech exports", unit: "% of manufactured exports", format: "pct", dp: 1, upIsGood: null, series: pts(await wbSeries("TX.VAL.TECH.MF.ZS"), 1), source: WB("TX.VAL.TECH.MF.ZS"), note: "UN Comtrade: products with high research and development intensity, such as aircraft, computers, medicines, scientific instruments and electrical machinery." });
+  add("ipReceipts", { label: "Paid for intellectual property", unit: "US$ a year", format: "usd", dp: 0, upIsGood: null, series: pts(await wbSeries("BX.GSR.ROYL.CD"), 0), source: WB("BX.GSR.ROYL.CD"), note: "IMF balance of payments: what countries receive from abroad for the use of patents, trademarks, copyrights, designs and franchises, and for licences to copy or distribute software, films and recordings." });
+
+  // Security: armed forces, the arms trade and nuclear weapons.
+  add("armedForces", { label: "Armed forces", unit: "active personnel", format: "count", dp: 0, upIsGood: null, series: pts(await wbSeries("MS.MIL.TOTL.P1"), 0), source: WB("MS.MIL.TOTL.P1"), note: "IISS, The Military Balance: active-duty personnel, including paramilitary forces trained, equipped and controlled so that they could support or replace the regular military." });
+  add("armedForcesShare", { label: "Armed forces", unit: "% of the labour force", format: "pct", dp: 2, upIsGood: null, series: pts(await wbSeries("MS.MIL.TOTL.TF.ZS"), 2), source: WB("MS.MIL.TOTL.TF.ZS") });
+  add("armsTransfers", { label: "Arms transfers", unit: "SIPRI trend-indicator value", format: "count", dp: 0, upIsGood: null, series: pts(await wbSeries("MS.MIL.XPRT.KD"), 0), source: WB("MS.MIL.XPRT.KD"), note: "SIPRI: the volume of major conventional weapons - aircraft, armoured vehicles, artillery, radar, missiles and ships - sold, given or built under licence across borders, counted by exporters. A trend-indicator value stands for the military resources transferred, not the price paid." });
+  add("nuclearWarheads", { label: "Nuclear warheads", unit: "warheads", format: "count", dp: 0, upIsGood: null, series: await owidWorldSeries("nuclear-warhead-stockpiles", "number_of_warheads"), source: SRC.fas, note: "The Federation of American Scientists' estimate from public information: warheads in the nuclear powers' stockpiles, and retired ones awaiting dismantlement. The exact numbers are secret." });
+
+  // Institutions: the law, the checks on power, and what states raise.
+  const vdemWorld = async (slug) => pts(await owidWorldSeries(slug, "estimate_best", "World (population-weighted)"), 2);
+  add("electoralDemocracy", { label: "Electoral democracy", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("electoral-democracy-index"), source: SRC.vdemElect, note: "V-Dem's index of how far leaders are chosen in free and fair elections with universal suffrage, and people can organise and speak freely, averaged across the world's people (population-weighted). 1 is most democratic." });
+  add("ruleOfLaw", { label: "Rule of law", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("rule-of-law-index"), source: SRC.vdemLaw, note: "V-Dem's index of how far government complies with the law, the courts are independent, laws are clear, justice is accessible, corruption is absent and officials are impartial, averaged across the world's people (population-weighted). 1 is the strongest rule of law." });
+  add("judicialConstraints", { label: "Courts' check on the executive", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("judicial-constraints-on-the-executive-index"), source: SRC.vdemJudicial, note: "V-Dem's index of how far the executive respects the constitution and obeys the courts, and the courts are independent, averaged across the world's people (population-weighted). 1 is the strongest check." });
+  add("legislativeConstraints", { label: "Legislature's check on the executive", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("legislative-constraints-on-the-executive-index"), source: SRC.vdemLegis, note: "V-Dem's index of how far the legislature, the opposition included, questions, oversees and investigates the executive, averaged across the world's people (population-weighted). 1 is the strongest check." });
+  add("taxRevenue", { label: "Tax revenue", unit: "% of GDP", format: "pct", dp: 1, upIsGood: null, series: pts(await wbSeries("GC.TAX.TOTL.GD.ZS"), 1), source: WB("GC.TAX.TOTL.GD.ZS"), note: "IMF Government Finance Statistics: compulsory payments to government, in cash or in kind." });
+  add("govRevenue", { label: "Government revenue", unit: "% of GDP, excluding grants", format: "pct", dp: 1, upIsGood: null, series: pts(await wbSeries("GC.REV.XGRT.GD.ZS"), 1), source: WB("GC.REV.XGRT.GD.ZS"), note: "IMF Government Finance Statistics: taxes, social contributions and other revenue, not counting grants." });
+
+  // Ideas and belief: freedom of thought, political division, religion.
+  add("academicFreedom", { label: "Academic freedom", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("academic-freedom-index"), source: SRC.vdemAcademic, note: "V-Dem's index of how freely academics can research, teach, publish and speak, and how far universities govern themselves, averaged across the world's people (population-weighted). 1 is most free." });
+  {
+    // V-Dem's polarization is on its model's open scale, not 0 to 1, so the
+    // note gives the range countries span in the latest year to read it by.
+    const rows = await owidCsv("political-polarization-score");
+    const k = col(rows[0], "estimate_best");
+    const series = rows
+      .filter((r) => r.entity === "World (population-weighted)" && Number(r.year) >= FROM && r[k] !== "")
+      .map((r) => [Number(r.year), round(Number(r[k]), 2)])
+      .sort((a, b) => a[0] - b[0]);
+    const lastYear = series.at(-1)[0];
+    const countries = rows
+      .filter((r) => /^[A-Z]{3}$/.test(r.code) && Number(r.year) === lastYear && r[k] !== "")
+      .map((r) => [r.entity, Number(r[k])])
+      .sort((a, b) => a[1] - b[1]);
+    if (series.length < 5 || countries.length < 100) throw new Error("V-Dem polarization: too little data");
+    const [lo, hi] = [countries[0], countries.at(-1)];
+    add("polarization", {
+      label: "Political polarization", unit: "V-Dem score, higher is more divided", format: "num", dp: 2, upIsGood: null, series, source: SRC.vdemPolar,
+      note: `V-Dem's experts' estimate of how far society is split into hostile political camps, averaged across the world's people (population-weighted). It is on V-Dem's own scale rather than 0 to 1: in ${lastYear} countries ran from ${lo[1].toFixed(1)} (${lo[0]}) to ${hi[1].toFixed(1)} (${hi[0]}).`,
+    });
+  }
+  for (const [id, label, series, stated] of PEW) {
+    add(id, { label, unit: "% of people", format: "pct", dp: 1, upIsGood: null, series, source: SRC.pew, note: PEW_NOTE, ...(stated ? { stated } : {}) });
+  }
+
+  // Sanitation, beside water and electricity.
+  add("sanitation", { label: "Safely managed sanitation", unit: "% of people", format: "pct", dp: 1, upIsGood: true, series: pts(await wbSeries("SH.STA.SMSS.ZS"), 1), source: WB("SH.STA.SMSS.ZS"), note: "WHO/UNICEF: a toilet or latrine not shared with other households, from which waste is safely disposed of on site or taken away and treated." });
+
   // Rights and liberties: V-Dem, weighted by population.
   add("civilLiberties", {
     label: "Civil liberties", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null,
@@ -603,11 +709,16 @@ export interface WorldIndicator {
   breakdownYear?: number;
   breakdown?: [label: string, value: number][];
   breakdownUnit?: string;
+  /** A change as the source states it in words, where it publishes no earlier figure to set beside the latest. */
+  stated?: { text: string; dir: "up" | "down" | "flat" };
 }
 
 export const WORLD: Record<string, WorldIndicator> = {
 ${lines.join("\n")}
 };
+
+/** When Pew's religion figures, recorded in build-worldview.cjs, were last read from the report. */
+export const PEW_CHECKED = "${PEW_CHECKED}";
 
 /** The UN's projection of world population on 1 July each year, medium variant. */
 export const POPULATION_PROJECTION = {

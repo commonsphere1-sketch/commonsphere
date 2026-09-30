@@ -7,12 +7,15 @@ import {
   Bank,
   CaretDown,
   Coins,
+  Cpu,
   GlobeHemisphereWest,
   GlobeStand,
   Leaf,
+  Lightbulb,
   Minus,
   Ranking,
   Scales,
+  ShieldWarning,
   UsersThree,
   X,
 } from "@phosphor-icons/react";
@@ -25,6 +28,7 @@ import {
   BY_INCOME,
   COUNTRY_FIGURES,
   COUNTRY_FIGURE_SOURCES,
+  PEW_CHECKED,
   type IncomeGroup,
   type WorldIndicator,
   type WorldPoint,
@@ -41,9 +45,10 @@ import { SectionNav, type NavSection } from "@/components/SectionNav";
 import { has } from "@/lib/na";
 
 /**
- * Worldview: where the world stands, as a global dashboard in four pillars -
- * society, the economy, politics and the planet - after an overview with the
- * population clock, the headline figures and the day's world headlines.
+ * Worldview: where the world stands, as a global dashboard in eight pillars -
+ * society, the economy, technology, politics, institutions, ideology,
+ * security and the planet - after an overview with the population clock, the
+ * headline figures and the day's world headlines.
  *
  * Each pillar opens with its status: headline percentages, and how many of
  * its measures have improved or worsened over about ten years, counted only
@@ -168,6 +173,8 @@ function decadeBefore(series: WorldPoint[]): WorldPoint | null {
 type Delta = { text: string; dir: "up" | "down" | "flat"; verdict: "better" | "worse" | null };
 
 function delta(ind: WorldIndicator): Delta | null {
+  // A change the source gives only in words is shown in its words.
+  if (ind.stated) return { ...ind.stated, verdict: null };
   const last = ind.series[ind.series.length - 1];
   const prev = decadeBefore(ind.series);
   if (!prev) return null;
@@ -283,6 +290,31 @@ const DESCRIBE: Record<string, string> = {
   ghg: "All the greenhouse gases people release - carbon dioxide, methane, nitrous oxide and fluorinated gases - counted in CO₂ equivalents.",
   renewables: "The share of the energy people finally use that comes from renewable sources: water, wind, sun, biofuels and others.",
   forest: "Land covered by trees at least 5 metres tall, as a share of all land.",
+  sanitation: "People using a toilet or latrine not shared with other households, from which waste is safely disposed of or treated.",
+  broadband: "Fixed connections to the internet - cable, DSL, fibre, satellite or fixed wireless - for every 100 people.",
+  secureServers: "Web servers with publicly trusted encryption certificates, for every million people.",
+  researchers: "People working in research and development, for every million people.",
+  sciArticles: "Articles published in peer-reviewed science and engineering journals, and selected conference papers, in the year.",
+  highTechExports: "Exports of products that take intensive research to make - aircraft, computers, medicines, scientific instruments, electrical machinery - as a share of all manufactured exports.",
+  ipReceipts: "What countries are paid from abroad for the use of patents, trademarks, copyrights and designs, and for licences to copy software, films and recordings.",
+  armedForces: "Active-duty military personnel, including paramilitary forces that could support or replace the regular military.",
+  armsTransfers: "The volume of major weapons - aircraft, armoured vehicles, artillery, radar, missiles and ships - delivered from one country to another in the year.",
+  nuclearWarheads: "Nuclear warheads in the world's stockpiles, including retired ones not yet dismantled.",
+  electoralDemocracy: "How far leaders are chosen in free and fair elections with universal suffrage, and people are free to organise and speak, averaged across the world's people.",
+  ruleOfLaw: "How far government obeys the law, the courts are independent, justice is accessible, and officials are impartial and free of corruption, averaged across the world's people.",
+  judicialConstraints: "How far the executive respects the constitution and obeys the courts, and the courts are independent, averaged across the world's people.",
+  legislativeConstraints: "How far the legislature, the opposition included, questions, oversees and investigates the executive, averaged across the world's people.",
+  taxRevenue: "The taxes governments collect, as a share of the economy's output.",
+  govRevenue: "Everything governments take in - taxes, social contributions and other revenue - apart from grants, as a share of output.",
+  academicFreedom: "How freely academics can research, teach, publish and speak, and how far universities govern themselves, averaged across the world's people.",
+  polarization: "How far society is divided into hostile political camps, with political differences souring relationships and discouraging contact across ideological lines, averaged across the world's people.",
+  christians: "People who identify as Christians, as a share of everyone.",
+  muslims: "People who identify as Muslims, as a share of everyone.",
+  unaffiliated: "People who identify with no religion - atheists, agnostics and those who say they are nothing in particular.",
+  hindus: "People who identify as Hindus, as a share of everyone.",
+  buddhists: "People who identify as Buddhists, as a share of everyone.",
+  jews: "Jews as a share of everyone; outside Israel, Pew counts people who identify with Judaism as their religion.",
+  otherReligions: "Everyone who identifies with another religion - Baha'is, Daoists, Jains, Sikhs, followers of folk religions and many smaller groups - together.",
 };
 
 const DESCRIBE_CLIMATE: Record<string, string> = {
@@ -489,8 +521,9 @@ function Hero() {
             Where the world stands
           </h1>
           <p className="text-sm font-sans mt-1.5" style={{ color: muted }}>
-            A dashboard of the whole world in four pillars - how people live, what the economy is doing, how the world is governed and at
-            peace or war, and the state of the planet - each figure with what it measures, its trend and its source.
+            A dashboard of the whole world in {inWords(PILLARS.length)} pillars - how people live, what the economy is doing, technology,
+            how the world is governed, its institutions, what people believe, war and peace, and the state of the planet - each figure with
+            what it measures, its trend and its source.
           </p>
           <p className="text-sm font-sans mt-3" style={{ color: head }}>
             Of the {all.better + all.worse} measures here whose direction is not a matter of opinion,{" "}
@@ -538,7 +571,11 @@ const SECTIONS: NavSection[] = [
   { id: "overview", label: "Overview" },
   { id: "society", label: "Society" },
   { id: "economy", label: "Economy" },
+  { id: "technology", label: "Technology" },
   { id: "politics", label: "Politics" },
+  { id: "institutions", label: "Institutions" },
+  { id: "ideology", label: "Ideology" },
+  { id: "security", label: "Security" },
   { id: "ecology", label: "Ecology" },
   { id: "rankings", label: "Rankings" },
 ];
@@ -639,12 +676,14 @@ function displacedShare(): WorldIndicator {
   };
 }
 
-// ── The four pillars ────────────────────────────────────────────────────────
+// ── The pillars ─────────────────────────────────────────────────────────────
+
+const inWords = (n: number) => ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"][n] ?? String(n);
 
 type Tile = { label: string; value: string; sub: string; d: Delta | null };
 type Group = { title: string; intro: string; ids: string[]; climate?: string[]; extras?: Record<string, string>; freedom?: boolean };
 type Pillar = {
-  id: "society" | "economy" | "politics" | "ecology";
+  id: "society" | "economy" | "technology" | "politics" | "institutions" | "ideology" | "security" | "ecology";
   title: string;
   kicker: string;
   color: string;
@@ -675,13 +714,13 @@ const PILLARS: Pillar[] = [
     color: "#6366f1",
     icon: <UsersThree size={18} weight="fill" />,
     description:
-      "Who we are and how we live: population and where people live, health and food, schooling, and access to the basics - electricity, clean water, the internet - with the gaps between women and men and the level of violent crime.",
+      "Who we are and how we live: population and where people live, health and food, schooling, and the basics of modern life at home - electricity, clean water and sanitation - with the gap between women and men in paid work.",
     summary: () =>
-      `${pctOf("urban")} of people live in cities and ${pctOf("internet")} use the internet (${lastOf("internet")[0]}). ${pctOf("literacy")} of adults can read, a newborn can expect to live ${lastOf("lifeExpectancy")[1]} years, and ${pctOf("undernourished")} of people do not get enough to eat (${lastOf("undernourished")[0]}).`,
+      `${pctOf("urban")} of people live in cities and ${pctOf("literacy")} of adults can read (${lastOf("literacy")[0]}). A newborn can expect to live ${lastOf("lifeExpectancy")[1]} years (${lastOf("lifeExpectancy")[0]}), and ${pctOf("undernourished")} of people do not get enough to eat (${lastOf("undernourished")[0]}).`,
     tiles: () => [
       worldTile("urban", "Live in cities"),
-      worldTile("internet", "Use the internet"),
       worldTile("literacy", "Adults who can read"),
+      worldTile("lifeExpectancy", "Life expectancy"),
       worldTile("undernourished", "Undernourished"),
     ],
     groups: [
@@ -702,8 +741,8 @@ const PILLARS: Pillar[] = [
       },
       {
         title: "Access & equality",
-        intro: "The basics of modern life, the gap between women and men in paid work, and violent crime.",
-        ids: ["electricity", "water", "internet", "mobile", "workGap", "homicide"],
+        intro: "The basics of modern life at home, and the gap between women and men in paid work.",
+        ids: ["electricity", "water", "sanitation", "workGap"],
       },
     ],
   },
@@ -714,7 +753,7 @@ const PILLARS: Pillar[] = [
     color: "#0ea5e9",
     icon: <Coins size={18} weight="fill" />,
     description:
-      "The world economy: its size and growth, prices and jobs, what governments and developing countries owe, how open it is to trade and investment, poverty, and what it puts into new knowledge - and how it divides between developed and developing countries.",
+      "The world economy: its size and growth, prices and jobs, what governments and developing countries owe, how open it is to trade and investment, and poverty - and how it divides between developed and developing countries.",
     summary: () =>
       `The world produced ${usd("gdp")} in ${lastOf("gdp")[0]}, growing ${pctOf("gdpGrowth", 2)} after inflation, while prices rose ${pctOf("inflation", 2)} and ${pctOf("unemployment", 2)} of the labour force was out of work. Governments owe ${pctOf("govDebt")} of world GDP, and ${pctOf("extremePoverty")} of people live on less than $3 a day (${lastOf("extremePoverty")[0]}).`,
     tiles: () => [
@@ -740,55 +779,181 @@ const PILLARS: Pillar[] = [
         intro: "The World Bank's two main lines: extreme poverty, and the line typical of upper-middle-income countries.",
         ids: ["extremePoverty", "poverty830"],
       },
+    ],
+  },
+  {
+    id: "technology",
+    title: "Technology",
+    kicker: "How connected and inventive the world is",
+    color: "#f59e0b",
+    icon: <Cpu size={18} weight="fill" />,
+    description:
+      "How far the world is online and how it invents: internet use, mobile and broadband connections and secure servers; what it spends on research, the researchers it has, the science it publishes and the patents it files; and its trade in high-tech goods and in the use of ideas.",
+    summary: () =>
+      `${pctOf("internet")} of people use the internet, and there are ${lastOf("broadband")[1]} fixed broadband connections for every 100 people (${lastOf("broadband")[0]}). The world puts ${pctOf("research", 2)} of its output into research and development (${lastOf("research")[0]}), and ${compact(lastOf("sciArticles")[1])} scientific articles were published in ${lastOf("sciArticles")[0]}.`,
+    tiles: () => [
+      worldTile("internet", "Use the internet"),
+      worldTile("broadband", "Fixed broadband"),
+      worldTile("research", "Research spending"),
+      worldTile("sciArticles", "Scientific articles"),
+    ],
+    groups: [
       {
-        title: "Knowledge & innovation",
-        intro: "What the world invests in research, and the inventions it files for protection.",
-        ids: ["research", "patents"],
+        title: "Connection",
+        intro: "Who is online, and the subscriptions and secure servers that carry it (ITU and Netcraft).",
+        ids: ["internet", "mobile", "broadband", "secureServers"],
+      },
+      {
+        title: "Research & invention",
+        intro: "What the world invests in research, the people who do it, the science it publishes and the inventions it files for protection.",
+        ids: ["research", "researchers", "sciArticles", "patents"],
+      },
+      {
+        title: "Technology trade",
+        intro: "How much of what the world makes and sells takes intensive research, and what countries are paid for the use of their ideas.",
+        ids: ["highTechExports", "ipReceipts"],
       },
     ],
   },
   {
     id: "politics",
     title: "Politics",
-    kicker: "How the world is governed, at peace and at war",
+    kicker: "How the world is governed",
     color: "#8b5cf6",
     icon: <Bank size={18} weight="fill" />,
     description:
-      "How the world is governed and how safe it is: democracy and civil liberties, women in parliament, armed conflict and the people it drives from home, military spending, terrorism, and the blocs countries belong to.",
+      "How the world is governed: democracy and elections, civil liberties, women in parliament, and the blocs countries have joined.",
     summary: () => {
       const f = freedomSplit();
-      const ds = displacedShare();
-      return `${pctOf("democracyShare")} of people live in a democracy (V-Dem, ${lastOf("democracyShare")[0]}) and ${f.freeShare.toFixed(1)}% in a country Freedom House rates Free (${f.year}). ${lastOf("conflicts")[1]} armed conflicts involved a government in ${lastOf("conflicts")[0]}, and ${compact(lastOf("displaced")[1])} people - ${ds.series[ds.series.length - 1][1].toFixed(2)}% of everyone - were forcibly displaced.`;
+      return `${pctOf("democracyShare")} of people live in a democracy (V-Dem, ${lastOf("democracyShare")[0]}) and ${f.freeShare.toFixed(1)}% in a country Freedom House rates Free (${f.year}). Women hold ${pctOf("womenParliament")} of the seats in national parliaments (${lastOf("womenParliament")[0]}).`;
     },
     tiles: () => {
       const f = freedomSplit();
-      const ds = displacedShare();
-      const [dy, dv] = ds.series[ds.series.length - 1];
       return [
         worldTile("democracyShare", "Live in a democracy"),
         { label: "Live in a Free country", value: `${f.freeShare.toFixed(1)}%`, sub: `Freedom House · ${f.year}`, d: null },
+        worldTile("electoralDemocracy", "Electoral democracy"),
         worldTile("womenParliament", "Women in parliament"),
-        { label: "Forcibly displaced", value: `${dv.toFixed(2)}%`, sub: `of all people · ${dy}`, d: delta(ds) },
       ];
     },
     groups: [
       {
-        title: "Democracy & rights",
+        title: "Democracy",
         intro:
-          "How free people are to speak, organise and choose their governments: Freedom House's status for every country, and V-Dem's measures averaged across the world's people.",
-        ids: ["democracyShare", "civilLiberties", "freeExpression", "womenParliament"],
+          "How free people are to choose their governments: Freedom House's status for every country, and V-Dem's measures averaged across the world's people.",
+        ids: ["democracyShare", "electoralDemocracy"],
         freedom: true,
       },
       {
-        title: "War & peace",
-        intro: "Armed conflict (Uppsala Conflict Data Program), the people it drives from home (UNHCR), and what the world spends on arms.",
-        ids: ["conflicts", "conflictDeaths", "displaced", "militaryGdp"],
-        extras: { militaryGdp: `${usd("militaryUsd")} in ${lastOf("militaryUsd")[0]}` },
+        title: "Rights & representation",
+        intro: "How free people are from government violence and to live their lives as they choose, and who holds the seats in parliament.",
+        ids: ["civilLiberties", "womenParliament"],
+      },
+    ],
+  },
+  {
+    id: "institutions",
+    title: "Institutions",
+    kicker: "How states work and answer for power",
+    color: "#ec4899",
+    icon: <Scales size={18} weight="fill" />,
+    description:
+      "Whether power answers to the law: the rule of law, and how far courts and legislatures check the executive, as V-Dem measures them across the world's people - and what states raise to govern with.",
+    summary: () =>
+      `Averaged across the world's people, V-Dem scores the rule of law at ${fmt(WORLD.ruleOfLaw, lastOf("ruleOfLaw")[1])} out of 1, the courts' check on the executive at ${fmt(WORLD.judicialConstraints, lastOf("judicialConstraints")[1])} and the legislature's at ${fmt(WORLD.legislativeConstraints, lastOf("legislativeConstraints")[1])} (${lastOf("ruleOfLaw")[0]}). Tax revenue comes to ${pctOf("taxRevenue")} of GDP (${lastOf("taxRevenue")[0]}).`,
+    tiles: () => [
+      worldTile("ruleOfLaw", "Rule of law"),
+      worldTile("judicialConstraints", "Courts' check"),
+      worldTile("legislativeConstraints", "Legislature's check"),
+      worldTile("taxRevenue", "Tax revenue"),
+    ],
+    groups: [
+      {
+        title: "Law & checks on power",
+        intro: "Whether government obeys the law and answers to courts and legislatures (V-Dem, averaged across the world's people; 1 is strongest).",
+        ids: ["ruleOfLaw", "judicialConstraints", "legislativeConstraints"],
       },
       {
-        title: "Terrorism",
-        intro: "Attacks and deaths recorded by the Global Terrorism Database, whose public release ends in 2021; later years are not published openly.",
-        ids: ["terrorAttacks", "terrorDeaths"],
+        title: "What states raise",
+        intro: "What governments collect to pay for what they do (IMF Government Finance Statistics).",
+        ids: ["taxRevenue", "govRevenue"],
+      },
+    ],
+  },
+  {
+    id: "ideology",
+    title: "Ideology",
+    kicker: "What people believe, and how freely they think",
+    color: "#f97316",
+    icon: <Lightbulb size={18} weight="fill" />,
+    description:
+      "What the world believes and how freely it can say so: its religions, as Pew Research Center counts them; how freely people speak and scholars work; and how far societies are split into hostile political camps.",
+    summary: () => {
+      const p = delta(WORLD.polarization);
+      return `In 2020, ${pctOf("christians")} of people were Christian, ${pctOf("muslims")} Muslim and ${pctOf("unaffiliated")} had no religion (Pew). Averaged across the world's people, freedom of expression scores ${fmt(WORLD.freeExpression, lastOf("freeExpression")[1])} out of 1 (${lastOf("freeExpression")[0]})${
+        p && p.dir !== "flat" ? `, and the average person lives in a society ${p.dir === "up" ? "more" : "less"} split into hostile political camps than ten years before (V-Dem)` : ""
+      }.`;
+    },
+    tiles: () => [
+      worldTile("christians", "Christians"),
+      worldTile("muslims", "Muslims"),
+      worldTile("unaffiliated", "No religion"),
+      worldTile("polarization", "Polarization"),
+    ],
+    groups: [
+      {
+        title: "Religion",
+        intro: "The world's religious makeup in 2020, and how each group's share changed from 2010, as Pew Research Center puts it.",
+        ids: ["christians", "muslims", "unaffiliated", "hindus", "buddhists", "jews", "otherReligions"],
+      },
+      {
+        title: "Ideas & division",
+        intro: "How freely people speak and scholars work, and how far societies split into hostile political camps (V-Dem, averaged across the world's people).",
+        ids: ["freeExpression", "academicFreedom", "polarization"],
+      },
+    ],
+  },
+  {
+    id: "security",
+    title: "Security",
+    kicker: "War, weapons, terror and crime",
+    color: "#94a3b8",
+    icon: <ShieldWarning size={18} weight="fill" />,
+    description:
+      "How safe the world is: armed conflict, the people it kills and drives from home, the armed forces and weapons countries keep and trade, nuclear arsenals, terrorism and murder.",
+    summary: () => {
+      const ds = displacedShare();
+      return `${lastOf("conflicts")[1]} armed conflicts involved a government in ${lastOf("conflicts")[0]}, and ${compact(lastOf("conflictDeaths")[1])} people died in armed conflict; ${compact(lastOf("displaced")[1])} people - ${ds.series[ds.series.length - 1][1].toFixed(2)}% of everyone - were forcibly displaced (${lastOf("displaced")[0]}). Countries spent ${pctOf("militaryGdp", 2)} of world GDP on their armed forces (${lastOf("militaryGdp")[0]}), and an estimated ${lastOf("nuclearWarheads")[1].toLocaleString("en-US")} nuclear warheads existed in ${lastOf("nuclearWarheads")[0]}.`;
+    },
+    tiles: () => {
+      const ds = displacedShare();
+      const [dy, dv] = ds.series[ds.series.length - 1];
+      return [
+        worldTile("conflicts", "Armed conflicts"),
+        { label: "Forcibly displaced", value: `${dv.toFixed(2)}%`, sub: `of all people · ${dy}`, d: delta(ds) },
+        worldTile("militaryGdp", "Military spending"),
+        worldTile("nuclearWarheads", "Nuclear warheads"),
+      ];
+    },
+    groups: [
+      {
+        title: "War & peace",
+        intro: "Armed conflict (Uppsala Conflict Data Program), and the people it drives from home (UNHCR).",
+        ids: ["conflicts", "conflictDeaths", "displaced"],
+      },
+      {
+        title: "Arms",
+        intro: "What the world spends on its armed forces and how many serve (IISS), the weapons it trades (SIPRI), and its nuclear warheads (Federation of American Scientists).",
+        ids: ["militaryGdp", "armedForces", "armsTransfers", "nuclearWarheads"],
+        extras: {
+          militaryGdp: `${usd("militaryUsd")} in ${lastOf("militaryUsd")[0]}`,
+          armedForces: `${pctOf("armedForcesShare", 2)} of the labour force`,
+        },
+      },
+      {
+        title: "Terrorism & crime",
+        intro: "Attacks and deaths recorded by the Global Terrorism Database, whose public release ends in 2021, and the murder rate.",
+        ids: ["terrorAttacks", "terrorDeaths", "homicide"],
       },
     ],
   },
@@ -1729,7 +1894,11 @@ function Rankings() {
           The comparisons people most often look up, from the figures on each country's page, by pillar. Pick a country to open it.
         </p>
         <div className="flex flex-wrap gap-1.5 mb-4" role="group" aria-label="Rankings by pillar">
-          {[{ id: "all" as const, label: "All" }, ...PILLARS.map((p) => ({ id: p.id, label: p.title }))].map((x) => (
+          {[
+            { id: "all" as const, label: "All" },
+            // Only the pillars that have rankings.
+            ...PILLARS.filter((p) => RANKINGS.some((r) => r.pillar === p.id)).map((p) => ({ id: p.id, label: p.title })),
+          ].map((x) => (
             <button
               key={x.id}
               type="button"
@@ -1758,7 +1927,8 @@ function Rankings() {
 
 export function WorldviewPage() {
   const { head } = useLook();
-  const pillar = (id: Pillar["id"]) => PILLARS.find((p) => p.id === id)!;
+  // The panels that open a pillar's section, where it has one.
+  const lead: Partial<Record<Pillar["id"], ReactNode>> = { society: <OutOf100 />, economy: <DevelopmentPanel />, politics: <BlocShares /> };
   return (
     <div className="min-h-screen w-full animate-fade-in" style={{ background: "var(--color-background)" }}>
       <div className="w-full px-4 sm:px-5 py-4 flex flex-col gap-4">
@@ -1784,7 +1954,7 @@ export function WorldviewPage() {
           <div className="px-1 pt-2 flex items-center gap-2">
             <GlobeHemisphereWest size={18} weight="fill" className="text-[#2a78d6] dark:text-[#3987e5]" />
             <h2 className="text-xl font-bold font-sans" style={{ color: head }}>
-              The four pillars
+              The {inWords(PILLARS.length)} pillars
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4 items-stretch">
@@ -1794,20 +1964,21 @@ export function WorldviewPage() {
           </div>
         </section>
 
-        <PillarSection p={pillar("society")} lead={<OutOf100 />} />
-        <PillarSection p={pillar("economy")} lead={<DevelopmentPanel />} />
-        <PillarSection p={pillar("politics")} lead={<BlocShares />} />
-        <PillarSection p={pillar("ecology")} />
+        {PILLARS.map((p) => (
+          <PillarSection key={p.id} p={p} lead={lead[p.id]} />
+        ))}
         <Rankings />
 
         <p className="text-[10px] font-sans text-muted-foreground leading-relaxed max-w-4xl px-1">
-          Figures retrieved {WORLDVIEW_RETRIEVED} by build-worldview.cjs: the World Bank's world and income-group aggregates, the IMF's World
-          Economic Outlook, UCDP and V-Dem via Our World in Data, UNHCR, and the UN's World Population Prospects; climate readings from NASA and
-          NOAA, retrieved {CLIMATE_RETRIEVED}; rankings and the developed / developing split use the figures on each country's page. Arrows
-          compare with about ten years earlier; "better" and "worse" - and the counts of them - are only given where the direction is not a
-          matter of opinion. The share of people displaced is UNHCR's count over the World Bank's population for the same year, and the share in
-          Free countries sums the site's population figures by Freedom House status. Open any figure for its trend, its full series and its
-          source.
+          Figures retrieved {WORLDVIEW_RETRIEVED} by build-worldview.cjs: the World Bank's world and income-group aggregates (carrying figures
+          from the ITU, UNESCO, the US National Science Foundation, UN Comtrade, the IMF, the IISS, SIPRI and WHO/UNICEF), the IMF's World
+          Economic Outlook, UCDP, V-Dem and the Federation of American Scientists via Our World in Data, UNHCR, and the UN's World Population
+          Prospects; climate readings from NASA and NOAA, retrieved {CLIMATE_RETRIEVED}; religion from Pew Research Center's 2025 report, read
+          from it on {PEW_CHECKED}; rankings and the developed / developing split use the figures on each country's page. Arrows compare with
+          about ten years earlier - for religion, with 2010, in Pew's own words; "better" and "worse" - and the counts of them - are only given
+          where the direction is not a matter of opinion. The share of people displaced is UNHCR's count over the World Bank's population for
+          the same year, and the share in Free countries sums the site's population figures by Freedom House status. Open any figure for its
+          trend, its full series and its source.
         </p>
       </div>
     </div>
