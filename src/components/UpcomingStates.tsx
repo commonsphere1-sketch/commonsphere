@@ -1,29 +1,45 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { Pause, Play, Star } from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
+import { Star } from "@phosphor-icons/react";
 import { useLiveStatus, type UpcomingEvent } from "@/lib/liveFigures";
 import { useWatchlist } from "@/contexts/WatchlistContext";
 import { supabase } from "@/lib/supabase";
 import { usStatesData } from "@/data/statesData";
 import { TONE } from "@/lib/chipTone";
+import {
+  ListToggle,
+  SourcesList,
+  Ticker,
+  allSourcesLabel,
+  bannerSources,
+  headlineItem,
+  namesTag,
+  outletList,
+  placeTag,
+  spread,
+  useHeadlines,
+  type Headline,
+  type TickerItem,
+} from "@/components/HeadlinesBanner";
 
 /**
- * "Upcoming to Watch" on the States page, as a moving news banner: the
- * latest state headlines from established outlets and what is coming up -
- * the elections Wikidata lists for each state and the BEA releases that
+ * The States page's news banner: the US desks' latest national headlines,
+ * stories naming a state from any desk the site reads, and what is coming
+ * up - the elections Wikidata lists for each state and the BEA releases that
  * carry state GDP and income. All of it is refreshed on the server (news
  * every half hour, calendars twice a day), so the banner keeps itself
  * current; nothing in it is written by hand.
  *
- * States the reader follows come first. Every item links to its source.
- * The banner stops under the pointer or keyboard focus and has a pause
- * button; with reduced motion it stands still and scrolls by hand. "All"
- * opens the full list as plain chips.
+ * States the reader follows come first, starred; then a story naming a
+ * state, a national headline and a date in turn, so none crowds the others
+ * out. Every item links to its source. Under it, "All … upcoming dates"
+ * opens the full calendar and "All … news sources" the outlets read.
  */
 
-type Headline = { url: string; title: string; outlet: string; published_at: string; places: string[] };
-
 const STATE_KEYS = usStatesData.map((s) => `s:${s.id}`);
-const stateName = (id: string | null) => (id ? (usStatesData.find((s) => s.id === id)?.name ?? id.toUpperCase()) : "");
+const STATE_NAME = new Map(usStatesData.map((s) => [s.id, s.name]));
+const stateName = (id: string | null) => (id ? (STATE_NAME.get(id) ?? id.toUpperCase()) : "");
+/** The states a headline names: "tx" for Texas. */
+const statesOf = (h: Headline) => h.places.filter((p) => p.startsWith("s:")).map((p) => p.slice(2));
 
 const KIND_ORDER = [
   "Governor",
@@ -60,15 +76,6 @@ const fmtDate = (iso: string, year = true) =>
     timeZone: "UTC",
   });
 
-function ago(iso: string): string {
-  const mins = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60_000));
-  if (mins < 60) return `${mins} min ago`;
-  const h = Math.round(mins / 60);
-  if (h < 24) return `${h} h ago`;
-  const d = Math.round(h / 24);
-  return d === 1 ? "yesterday" : `${d} days ago`;
-}
-
 /** BEA's release names are long; the part about the states, with its period. */
 function shortRelease(title: string): string {
   const t = title.replace(/^BEA: /, "");
@@ -78,7 +85,7 @@ function shortRelease(title: string): string {
   return t.length > 70 ? `${t.slice(0, 68)}…` : t;
 }
 
-/** Latest headlines naming a US state, fetched once per ten minutes. */
+/** The latest headlines naming a US state, from any desk, fetched once per ten minutes. */
 let headlineCache: { at: number; rows: Headline[] } | null = null;
 function useStateHeadlines(): Headline[] {
   const [rows, setRows] = useState<Headline[]>(headlineCache?.rows ?? []);
@@ -91,7 +98,7 @@ function useStateHeadlines(): Headline[] {
       .overlaps("places", STATE_KEYS)
       .gte("published_at", new Date(Date.now() - 3 * 86_400_000).toISOString())
       .order("published_at", { ascending: false })
-      .limit(20)
+      .limit(30)
       .then(({ data }) => {
         if (!live || !data) return;
         const clean = data.filter(
@@ -107,16 +114,16 @@ function useStateHeadlines(): Headline[] {
   return rows;
 }
 
-type Item = { key: string; href: string; tag: string; tone: string; text: string; meta: string; followed: boolean; title: string };
+/** Of each kind - stories naming a state, national headlines, dates - at most this many in the moving row. */
+const EACH = 15;
 
 export function UpcomingStates() {
   const { events, lastChecked } = useLiveStatus();
-  const headlines = useStateHeadlines();
+  const nationalRows = useHeadlines(["us"], 2, 150, false);
+  const stateRows = useStateHeadlines();
   const watch = useWatchlist();
-  const [paused, setPaused] = useState(false);
-  const [showAll, setShowAll] = useState(false);
-  const trackRef = useRef<HTMLDivElement | null>(null);
-  const [duration, setDuration] = useState(120);
+  const [showDates, setShowDates] = useState(false);
+  const [showSources, setShowSources] = useState(false);
 
   const followed = new Set(watch.items.filter((i) => i.type === "state").map((i) => i.id));
   const rank = (k: string) => {
@@ -133,110 +140,58 @@ export function UpcomingStates() {
         stateName(a.area).localeCompare(stateName(b.area)),
     );
 
-  const eventItem = (e: UpcomingEvent): Item => ({
+  const eventItem = (e: UpcomingEvent): TickerItem => ({
     key: e.id,
     href: e.source_url,
-    tag: e.kind === "Data release" ? `BEA · ${fmtDate(e.event_date, false)}` : fmtDate(e.event_date, false),
-    tone: KIND_TONE[e.kind] ?? TONE.zinc,
-    text: e.kind === "Data release" ? shortRelease(e.title) : `${stateName(e.area)} · ${e.kind} election`,
-    meta: "",
-    followed: followed.has(e.area ?? ""),
     title: `${e.title} - ${fmtDate(e.event_date)} (source: ${e.source === "bea" ? "BEA release schedule" : "Wikidata"})`,
+    tag: {
+      text: e.kind === "Data release" ? `BEA · ${fmtDate(e.event_date, false)}` : fmtDate(e.event_date, false),
+      tone: KIND_TONE[e.kind] ?? TONE.zinc,
+    },
+    text: e.kind === "Data release" ? shortRelease(e.title) : `${stateName(e.area)} · ${e.kind} election`,
+    star: followed.has(e.area ?? ""),
   });
-  const newsItem = (h: Headline): Item => {
-    const states = h.places.filter((p) => p.startsWith("s:")).map((p) => p.slice(2));
-    return {
-      key: h.url,
-      href: h.url,
-      tag: "News",
-      tone: TONE.red,
-      text: h.title,
-      meta: `${h.outlet} · ${ago(h.published_at)}`,
-      followed: states.some((s) => followed.has(s)),
-      title: `${h.title} - ${h.outlet}`,
-    };
+
+  // A wire story runs under the same headline at several outlets: the newest copy is enough.
+  const seen = new Set<string>();
+  const firstCopy = (h: Headline) => {
+    const t = h.title.toLowerCase().replace(/\s+/g, " ").trim();
+    if (seen.has(t)) return false;
+    seen.add(t);
+    return true;
   };
+  const mine = (h: Headline) => statesOf(h).some((s) => followed.has(s));
+  // Stories naming a state, the followed states' first; then the US desks'
+  // other headlines, the ones naming no state. Five at most from one outlet.
+  const stateNews = spread([...stateRows.filter(mine), ...stateRows.filter((h) => !mine(h))].filter(firstCopy), 5, EACH);
+  const nationalNews = spread(
+    nationalRows.filter((h) => !h.places.some((p) => p.startsWith("s:")) && firstCopy(h)),
+    5,
+    EACH,
+  );
+  const headlines = [...stateNews, ...nationalNews];
+  const sources = bannerSources(["us"], headlines.map((h) => h.outlet));
 
-  // Followed states first; then headlines and dates in turn, one headline to
-  // two dates, so neither crowds the other out.
-  const news = headlines.map(newsItem);
-  const dates = upcoming.slice(0, 40).map(eventItem);
-  const first = [...news.filter((i) => i.followed), ...dates.filter((i) => i.followed)];
-  const restNews = news.filter((i) => !i.followed);
-  const restDates = dates.filter((i) => !i.followed);
-  const items: Item[] = [...first];
-  for (let n = 0, d = 0; n < restNews.length || d < restDates.length; ) {
-    if (n < restNews.length) items.push(restNews[n++]);
-    if (d < restDates.length) items.push(restDates[d++]);
-    if (d < restDates.length) items.push(restDates[d++]);
-  }
+  // A story naming a state is tagged with its states; a national one "National",
+  // or with the countries it names when it names another.
+  const stateItems = stateNews.map((h) => {
+    const states = statesOf(h);
+    return headlineItem({ h, tag: namesTag(states.map(stateName)), star: states.some((s) => followed.has(s)) });
+  });
+  const nationalItems = nationalNews.map((h) =>
+    headlineItem({ h, tag: h.places.some((p) => p !== "c:US") ? placeTag(h.places) : { text: "National", tone: TONE.blue } }),
+  );
+  const dates = upcoming.map(eventItem);
 
-  // A steady reading speed, whatever the length: about 40 px a second.
-  useLayoutEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
-    const measure = () => setDuration(Math.max(30, el.scrollWidth / 2 / 40));
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [items.length]);
+  // Followed states first; then a story naming a state, a national headline and a date in turn.
+  const items: TickerItem[] = [...stateItems.filter((i) => i.star), ...dates.filter((i) => i.star).slice(0, EACH)];
+  const streams = [stateItems.filter((i) => !i.star), nationalItems, dates.filter((i) => !i.star).slice(0, EACH)];
+  for (let k = 0; streams.some((s) => k < s.length); k++) for (const s of streams) if (k < s.length) items.push(s[k]);
 
-  if (!items.length) return null;
-
-  const renderItems = (copy: boolean): ReactNode =>
-    items.map((it) => (
-      <a
-        key={`${copy ? "b" : "a"}-${it.key}`}
-        href={it.href}
-        target="_blank"
-        rel="noopener noreferrer"
-        title={it.title}
-        tabIndex={copy ? -1 : undefined}
-        className="group inline-flex items-center gap-2 shrink-0 whitespace-nowrap pr-6 text-xs font-sans text-foreground/90"
-      >
-        {it.followed && <Star size={11} weight="fill" className="text-amber-500 shrink-0" />}
-        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${it.tone}`}>{it.tag}</span>
-        <span className="group-hover:underline">{it.text}</span>
-        {it.meta && <span className="text-[10px] text-muted-foreground">{it.meta}</span>}
-        <span aria-hidden className="text-muted-foreground/60 pl-4">•</span>
-      </a>
-    ));
-
+  const link = "underline hover:text-foreground";
   return (
-    <section aria-label="Upcoming to watch" className="mb-6 bg-card border border-border rounded-2xl p-4">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <div className="flex items-center justify-between sm:justify-start gap-2 shrink-0">
-          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-            🔥 Upcoming to Watch
-          </p>
-          <button
-            type="button"
-            onClick={() => setPaused((v) => !v)}
-            aria-pressed={paused}
-            aria-label={paused ? "Play the banner" : "Pause the banner"}
-            title={paused ? "Play" : "Pause"}
-            className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-          >
-            {paused ? <Play size={12} weight="fill" /> : <Pause size={12} weight="fill" />}
-          </button>
-        </div>
-        <div className="cs-ticker-viewport flex-1 min-w-0 py-1" data-paused={paused}>
-          <div
-            ref={trackRef}
-            className="cs-ticker-track flex w-max"
-            style={{ ["--cs-ticker-duration" as string]: `${duration}s` }}
-          >
-            <div className="flex">{renderItems(false)}</div>
-            {/* The second copy, for a seamless loop; hidden from screen readers. */}
-            <div className="cs-ticker-copy flex" aria-hidden>
-              {renderItems(true)}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {showAll && (
+    <Ticker label="US headlines and dates to watch" items={items} className="mb-6">
+      {showDates && (
         <div className="mt-3 flex flex-wrap gap-2">
           {upcoming.map((e) => {
             const it = eventItem(e);
@@ -247,9 +202,9 @@ export function UpcomingStates() {
                 target="_blank"
                 rel="noopener noreferrer"
                 title={it.title}
-                className={`inline-flex items-center gap-1 max-w-full text-[10px] font-sans px-2.5 py-1 rounded-full hover:underline ${it.tone}`}
+                className={`inline-flex items-center gap-1 max-w-full text-[10px] font-sans px-2.5 py-1 rounded-full hover:underline ${it.tag?.tone ?? ""}`}
               >
-                {it.followed && <Star size={10} weight="fill" className="text-amber-500 shrink-0" />}
+                {it.star && <Star size={10} weight="fill" className="text-amber-500 shrink-0" />}
                 <span className="truncate">
                   {it.text} · {fmtDate(e.event_date)}
                 </span>
@@ -258,29 +213,46 @@ export function UpcomingStates() {
           })}
         </div>
       )}
+      {showSources && <SourcesList {...sources} othersLabel="Also in the banner now, with stories naming a state:" />}
 
       <p className="mt-2 text-[10px] font-sans text-muted-foreground leading-snug">
-        <button
-          type="button"
-          onClick={() => setShowAll((v) => !v)}
-          className="font-semibold text-foreground/80 underline hover:text-foreground cursor-pointer"
-          aria-expanded={showAll}
-        >
-          {showAll ? "Hide the list" : `All ${upcoming.length} upcoming dates`}
-        </button>
-        {" · "}Headlines from established outlets' public feeds, every half hour; elections as{" "}
-        <a href="https://www.wikidata.org/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+        {upcoming.length > 0 && (
+          <>
+            <ListToggle
+              open={showDates}
+              onToggle={() => setShowDates((v) => !v)}
+              show={upcoming.length === 1 ? "The upcoming date" : `All ${upcoming.length} upcoming dates`}
+              hide="Hide the dates"
+            />
+            {" · "}
+          </>
+        )}
+        {headlines.length > 0 && (
+          <>
+            <ListToggle
+              open={showSources}
+              onToggle={() => setShowSources((v) => !v)}
+              show={allSourcesLabel(sources)}
+              hide="Hide the sources"
+            />
+            {" · "}The last two days' national headlines and three days' stories naming a state, from {outletList(headlines)} (five at
+            most from each), refreshed every half hour.{" "}
+          </>
+        )}
+        Elections as{" "}
+        <a href="https://www.wikidata.org/" target="_blank" rel="noopener noreferrer" className={link}>
           Wikidata
         </a>{" "}
-        lists them (most contests, not every one) and{" "}
-        <a href="https://www.bea.gov/news/schedule" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+        lists them (most contests, not every one) and state data releases on{" "}
+        <a href="https://www.bea.gov/news/schedule" target="_blank" rel="noopener noreferrer" className={link}>
           BEA's release schedule
         </a>
-        , twice a day
+        , read twice a day
         {lastChecked &&
           ` - last checked ${lastChecked.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`}
-        .
+        .{headlines.length > 0 && ` A headline's tag is the state or country it names, violet for more than one, or "National" for the country as a whole.`}{" "}
+        Each links to its source.
       </p>
-    </section>
+    </Ticker>
   );
 }

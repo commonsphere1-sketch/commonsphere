@@ -5,6 +5,7 @@ import { TONE } from "@/lib/chipTone";
 import { countriesData } from "@/data/countriesData";
 import { usStatesData } from "@/data/statesData";
 import { useWatchlist } from "@/contexts/WatchlistContext";
+import { NEWS_SOURCES } from "@/data/newsSources";
 
 /**
  * A page's news as a moving banner: the latest headlines from the desks of
@@ -13,7 +14,8 @@ import { useWatchlist } from "@/contexts/WatchlistContext";
  * every half hour and tags each headline with the places it names and the
  * pages its desk serves (supabase/functions/refresh-data/news.ts); only the
  * headline, link, outlet and time are kept, and each item links to the
- * outlet.
+ * outlet. "All … news sources" under it lists the outlets it reads, each
+ * linking to the outlet's site.
  *
  * The banner stops under the pointer or keyboard focus and has a pause
  * button; with reduced motion it stands still and scrolls by hand. When its
@@ -61,7 +63,7 @@ export function namesTag(names: string[]): HeadlineTag | null {
 export const placeTag = (places: string[]): HeadlineTag | null =>
   namesTag(places.map(placeName).filter((n): n is string => !!n));
 
-function ago(iso: string): string {
+export function ago(iso: string): string {
   const mins = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60_000));
   if (mins < 60) return `${mins} min ago`;
   const h = Math.round(mins / 60);
@@ -70,10 +72,10 @@ function ago(iso: string): string {
   return d === 1 ? "yesterday" : `${d} days ago`;
 }
 
-/** "BBC News, DW and The Guardian": the outlets in the banner, the most-shown first. */
-function outletList(shown: Shown[], max = 5): string {
+/** "BBC News, DW and The Guardian": the outlets of these headlines, the most frequent first. */
+export function outletList(rows: { outlet: string }[], max = 5): string {
   const count = new Map<string, number>();
-  for (const { h } of shown) count.set(h.outlet, (count.get(h.outlet) ?? 0) + 1);
+  for (const { outlet } of rows) count.set(outlet, (count.get(outlet) ?? 0) + 1);
   const names = [...count.keys()].sort((a, b) => (count.get(b) ?? 0) - (count.get(a) ?? 0) || a.localeCompare(b));
   const others = names.length - max;
   if (others > 0) return `${names.slice(0, max).join(", ")} and ${others} other outlet${others === 1 ? "" : "s"}`;
@@ -86,7 +88,7 @@ const cache = new Map<string, { at: number; rows: Headline[] }>();
 /** Fewer than this from a page's own desks, and a banner with a subject tops itself up. */
 const TOP_UP_BELOW = 12;
 
-function useHeadlines(topics: Topic[], days: number, read: number, untagged: boolean, subject?: RegExp): Headline[] {
+export function useHeadlines(topics: Topic[], days: number, read: number, untagged: boolean, subject?: RegExp): Headline[] {
   const key = `${topics.join(",")}|${days}|${read}|${untagged}|${subject?.source ?? ""}`;
   const [rows, setRows] = useState<Headline[]>(() => cache.get(key)?.rows ?? []);
   useEffect(() => {
@@ -188,42 +190,139 @@ export function useFollowedTags(): Set<string> {
   );
 }
 
-export function HeadlinesBanner({
+// ─── Sources ──────────────────────────────────────────────────────────────────
+
+/** An outlet the news job reads: its site, and the feeds - one to a desk - read from it. */
+export type OutletSource = { outlet: string; site: string; feeds: string[] };
+/** A banner's sources: the outlets whose desks serve its pages, then any other outlet it is showing now. */
+export type BannerSources = { own: OutletSource[]; others: OutletSource[] };
+
+const addFeed = (by: Map<string, OutletSource>, s: { outlet: string; site: string; feed: string }) => {
+  const e = by.get(s.outlet) ?? { outlet: s.outlet, site: s.site, feeds: [] };
+  e.feeds.push(s.feed);
+  by.set(s.outlet, e);
+};
+/** Every outlet, with all its desks. */
+const OUTLETS = new Map<string, OutletSource>();
+for (const s of NEWS_SOURCES) addFeed(OUTLETS, s);
+const byName = (a: OutletSource, b: OutletSource) => a.outlet.localeCompare(b.outlet);
+
+/**
+ * The outlets with desks serving these pages, with those desks' feeds; and
+ * apart from them any other outlet among `showing` - a headline taken from
+ * another desk (a subject top-up, a story naming a state, one kept from
+ * before the desks were sorted by page) - with all its desks.
+ */
+export function bannerSources(topics: readonly string[], showing: string[]): BannerSources {
+  const own = new Map<string, OutletSource>();
+  for (const s of NEWS_SOURCES) if (s.topics.some((t) => topics.includes(t))) addFeed(own, s);
+  const others = [...new Set(showing)]
+    .filter((o) => !own.has(o))
+    .map((o) => OUTLETS.get(o) ?? { outlet: o, site: "", feeds: [] });
+  return { own: [...own.values()].sort(byName), others: others.sort(byName) };
+}
+
+/** "All 23 news sources". */
+export function allSourcesLabel({ own, others }: BannerSources): string {
+  const n = own.length + others.length;
+  return n === 1 ? "The news source" : `All ${n} news sources`;
+}
+
+const feedName = (url: string) => url.replace(/^https?:\/\//, "");
+
+function SourceChip({ s }: { s: OutletSource }) {
+  const cls = "inline-flex items-center gap-1 text-[10px] font-sans px-2.5 py-1 rounded-full border border-border text-foreground/80";
+  const body = (
+    <>
+      {s.outlet}
+      {s.feeds.length > 1 && <span className="text-muted-foreground"> · {s.feeds.length} desks</span>}
+    </>
+  );
+  if (!s.site) return <span className={cls}>{body}</span>;
+  return (
+    <a
+      href={s.site}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={`Feeds read: ${s.feeds.map(feedName).join(", ")}`}
+      className={`${cls} hover:text-foreground hover:bg-muted/60 transition-colors`}
+    >
+      {body}
+    </a>
+  );
+}
+
+/** A banner's sources as chips, each linking to the outlet's site and naming on hover the feeds read. */
+export function SourcesList({
+  own,
+  others,
+  othersLabel = "Also in the banner now, from other desks:",
+}: BannerSources & { othersLabel?: string }) {
+  return (
+    <div className="mt-3 space-y-2">
+      <div className="flex flex-wrap gap-1.5">
+        {own.map((s) => (
+          <SourceChip key={s.outlet} s={s} />
+        ))}
+      </div>
+      {others.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[10px] font-sans text-muted-foreground mr-0.5">{othersLabel}</span>
+          {others.map((s) => (
+            <SourceChip key={s.outlet} s={s} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** The switch in a banner's note that opens one of its lists above it: "All 23 news sources". */
+export function ListToggle({ open, onToggle, show, hide }: { open: boolean; onToggle: () => void; show: string; hide: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={open}
+      className="font-semibold text-foreground/80 underline hover:text-foreground cursor-pointer"
+    >
+      {open ? hide : show}
+    </button>
+  );
+}
+
+// ─── The moving banner ────────────────────────────────────────────────────────
+
+/** One item of a moving banner: its chip, its words and a line of detail, linking to its source. */
+export type TickerItem = { key: string; href: string; title: string; tag: HeadlineTag | null; text: string; meta?: string; star?: boolean };
+
+/** A headline as a banner item. */
+export const headlineItem = ({ h, tag, star }: Shown): TickerItem => ({
+  key: h.url,
+  href: h.url,
+  title: `${h.title} - ${h.outlet}`,
+  tag,
+  text: h.title,
+  meta: `${h.outlet} · ${ago(h.published_at)}`,
+  star,
+});
+
+/**
+ * The banner itself: its label and pause button, the items looping round at
+ * a steady reading speed, and whatever goes under it (`children`). With no
+ * items it is left out.
+ */
+export function Ticker({
   label,
-  topics,
-  days,
-  read = 80,
-  untagged = false,
-  pick = newestSpread,
-  subject,
-  note,
+  items,
   className = "",
+  children,
 }: {
-  /** The heading: "World headlines". */
   label: string;
-  /** The desks to read, by the pages they serve. */
-  topics: Topic[];
-  /** How many days back to look. */
-  days: number;
-  /** How many of the newest to read before picking. */
-  read?: number;
-  /** Also headlines stored before desks were tagged with topics. */
-  untagged?: boolean;
-  /**
-   * Which to show, with their chips: a module-level function, so it is not
-   * rerun on every render. By default the newest, five at most from one
-   * outlet, tagged with their places.
-   */
-  pick?: (rows: Headline[]) => Shown[];
-  /** The page's subject (see SUBJECT), for topping up when its own desks give fewer than a dozen. */
-  subject?: RegExp;
-  /** The line under the banner, given the outlets it is showing. */
-  note: (outlets: string) => ReactNode;
+  items: TickerItem[];
   className?: string;
+  children?: ReactNode;
 }) {
-  const rows = useHeadlines(topics, days, read, untagged, subject);
-  const shown = useMemo(() => pick(rows), [pick, rows]);
-  const toppedUp = shown.some((s) => s.h.viaSubject);
   const [paused, setPaused] = useState(false);
   const [still, setStill] = useState(false);
   const [duration, setDuration] = useState(120);
@@ -243,26 +342,24 @@ export function HeadlinesBanner({
     ro.observe(view);
     ro.observe(copy);
     return () => ro.disconnect();
-  }, [shown.length]);
-  if (!shown.length) return null;
+  }, [items.length]);
+  if (!items.length) return null;
 
   const renderItems = (copy: boolean): ReactNode =>
-    shown.map(({ h, tag, star }) => (
+    items.map((it) => (
       <a
-        key={`${copy ? "b" : "a"}-${h.url}`}
-        href={h.url}
+        key={`${copy ? "b" : "a"}-${it.key}`}
+        href={it.href}
         target="_blank"
         rel="noopener noreferrer"
-        title={`${h.title} - ${h.outlet}`}
+        title={it.title}
         tabIndex={copy ? -1 : undefined}
         className="group inline-flex items-center gap-2 shrink-0 whitespace-nowrap pr-6 text-xs font-sans text-foreground/90"
       >
-        {star && <Star size={11} weight="fill" className="text-amber-500 shrink-0" aria-label="A place you follow" />}
-        {tag && <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${tag.tone}`}>{tag.text}</span>}
-        <span className="group-hover:underline">{h.title}</span>
-        <span className="text-[10px] text-muted-foreground">
-          {h.outlet} · {ago(h.published_at)}
-        </span>
+        {it.star && <Star size={11} weight="fill" className="text-amber-500 shrink-0" aria-label="A place you follow" />}
+        {it.tag && <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${it.tag.tone}`}>{it.tag.text}</span>}
+        <span className="group-hover:underline">{it.text}</span>
+        {it.meta && <span className="text-[10px] text-muted-foreground">{it.meta}</span>}
         <span aria-hidden className="text-muted-foreground/60 pl-4">
           •
         </span>
@@ -299,10 +396,70 @@ export function HeadlinesBanner({
           </div>
         </div>
       </div>
+      {children}
+    </section>
+  );
+}
+
+export function HeadlinesBanner({
+  label,
+  topics,
+  days,
+  read = 80,
+  untagged = false,
+  pick = newestSpread,
+  subject,
+  note,
+  className = "",
+}: {
+  /** The heading: "World headlines". */
+  label: string;
+  /** The desks to read, by the pages they serve. */
+  topics: Topic[];
+  /** How many days back to look. */
+  days: number;
+  /** How many of the newest to read before picking. */
+  read?: number;
+  /** Also headlines stored before desks were tagged with topics. */
+  untagged?: boolean;
+  /**
+   * Which to show, with their chips: a module-level function, so it is not
+   * rerun on every render. By default the newest, five at most from one
+   * outlet, tagged with their places.
+   */
+  pick?: (rows: Headline[]) => Shown[];
+  /** The page's subject (see SUBJECT), for topping up when its own desks give fewer than a dozen. */
+  subject?: RegExp;
+  /** The line under the banner, given the outlets it is showing. */
+  note: (outlets: string) => ReactNode;
+  className?: string;
+}) {
+  const rows = useHeadlines(topics, days, read, untagged, subject);
+  const shown = useMemo(() => pick(rows), [pick, rows]);
+  const toppedUp = shown.some((s) => s.h.viaSubject);
+  const topicKey = topics.join(",");
+  const sources = useMemo(
+    () => bannerSources(topics, shown.map((s) => s.h.outlet)),
+    // topicKey spells out the topics, which a page may pass as a new array on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [topicKey, shown],
+  );
+  const [showSources, setShowSources] = useState(false);
+
+  return (
+    <Ticker label={label} items={shown.map(headlineItem)} className={className}>
+      {showSources && <SourcesList {...sources} />}
       <p className="mt-2 text-[10px] font-sans text-muted-foreground leading-snug">
-        {note(outletList(shown))}
+        <ListToggle
+          open={showSources}
+          onToggle={() => setShowSources((v) => !v)}
+          show={allSourcesLabel(sources)}
+          hide="Hide the sources"
+        />
+        {" · "}
+        {note(outletList(shown.map((s) => s.h)))}
         {toppedUp && " These desks have been quiet, so headlines from other desks that are about the same subject fill in."}
       </p>
-    </section>
+    </Ticker>
   );
 }

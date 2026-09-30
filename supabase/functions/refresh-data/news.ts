@@ -57,6 +57,7 @@ type Feed = {
   home?: string;
 };
 
+/** The banners list these as their sources: after changing them, run `node build-news-sources.cjs`. */
 export const FEEDS: Feed[] = [
   // World affairs.
   { url: "https://feeds.bbci.co.uk/news/world/rss.xml", outlet: "BBC News", topics: ["world"] },

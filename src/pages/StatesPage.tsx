@@ -31,7 +31,6 @@ import {
 import { usStatesData, type USState } from "../data/statesData";
 import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
 import { UpcomingStates } from "@/components/UpcomingStates";
-import { HeadlinesBanner, placeTag, spread, type Headline, type Shown } from "@/components/HeadlinesBanner";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
 import { Figures, COUNTER_FIGURES } from "../components/Figures";
@@ -7312,17 +7311,6 @@ function USNationalBanner() {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-/**
- * The US desks' national headlines: those naming no state, since a state's
- * own are in Upcoming to Watch. "National" is a story about the country as
- * a whole; a story naming another country is tagged with it.
- */
-const pickNational = (rows: Headline[]): Shown[] =>
-  spread(rows.filter((h) => !h.places.some((p) => p.startsWith("s:")))).map((h) => ({
-    h,
-    tag: h.places.some((p) => p !== "c:US") ? placeTag(h.places) : { text: "National", tone: TONE.blue },
-  }));
-
 export function StatesPage() {
   const [search, setSearch] = useState("");
   const [regionFilter, setRegionFilter] = useState("All");
@@ -7486,24 +7474,7 @@ export function StatesPage() {
           </select>
         </FilterBar>
 
-        {/* ── US headlines: the national desks' news, kept current ── */}
-        <HeadlinesBanner
-          label="US headlines"
-          topics={["us"]}
-          days={2}
-          read={150}
-          pick={pickNational}
-          className="mb-6"
-          note={(outlets) => (
-            <>
-              The last two days' national headlines from {outlets} (five at most from each), refreshed every half hour; stories naming a
-              state are in Upcoming to Watch below. A place tag is a story naming another country, violet for more than one. Each links
-              to the outlet.
-            </>
-          )}
-        />
-
-        {/* ── Upcoming to Watch: elections and data releases, kept current ── */}
+        {/* ── US headlines and dates to watch: national news, stories naming a state, elections, data releases ── */}
         <UpcomingStates />
 
         {modalState && (

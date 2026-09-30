@@ -1144,8 +1144,8 @@ html.light .avatar-glass {
   .cs-drift { animation: none !important; }
 }
 
-/* The scrolling news banners: "Upcoming to Watch" on the States page and the
-   headlines on the Worldview and topic pages (components/HeadlinesBanner).
+/* The scrolling news banners: the headlines on every page, and the States
+   page's headlines and dates to watch (components/HeadlinesBanner's Ticker).
 
    The track holds the items twice and moves left by half its width, so the
    second copy lands exactly where the first began and the loop has no seam.
