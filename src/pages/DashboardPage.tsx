@@ -6431,6 +6431,16 @@ export function DashboardPage() {
           </div>
         </div>
 
+        {/* ── QUARTER TRACKER ────────────────────────────────────────────── */}
+        <QuarterTracker
+          isLight={isLight}
+          cardBg={cardBg}
+          cardBorder={cardBorder}
+          headText={headText}
+          mutedText={mutedText}
+          gridLine={gridLine}
+        />
+
         {/* ── LATEST HEADLINES: every desk the site reads ── */}
         <HeadlinesBanner
           label="Latest headlines"
@@ -6445,16 +6455,6 @@ export function DashboardPage() {
               half hour. The tag is the place a story is about, violet for more than one. Each links to the outlet.
             </>
           )}
-        />
-
-        {/* ── QUARTER TRACKER ────────────────────────────────────────────── */}
-        <QuarterTracker
-          isLight={isLight}
-          cardBg={cardBg}
-          cardBorder={cardBorder}
-          headText={headText}
-          mutedText={mutedText}
-          gridLine={gridLine}
         />
 
         {/* ── COUNTRIES CAROUSEL ─────────────────────────────────────────── */}
