@@ -8,9 +8,17 @@ import {
   type ClimateIndicator,
 } from "../data/climateIndicators";
 import {
+  BOUNDARIES,
+  PHC_2026,
+  TRANSGRESSED,
+  position,
+  type ControlVariable,
+  type PlanetaryBoundary,
+  type Zone,
+} from "../data/planetaryBoundaries";
+import {
   Leaf,
   Info,
-  ArrowRight,
   Globe,
   Drop,
   Wind,
@@ -22,665 +30,98 @@ import {
   CaretDown,
 } from "@phosphor-icons/react";
 
-/* ─── Types ─────────────────────────────────────────────────────────────── */
-type BoundaryStatus = "safe" | "increasing_risk" | "high_risk" | "unknown";
-
-interface Boundary {
-  id: string;
-  name: string;
-  shortName: string;
-  angleStart: number; // degrees, clockwise from top
-  angleSpan: number;
-  status: BoundaryStatus;
-  value: number; // 0–1 where 1 = safe operating space boundary
-  variables: { name: string; value: string; safe: string; unit: string }[];
-  geopoliticalLinks: { title: string; detail: string; color: string }[];
-  ecologicalFacts: string[];
-  icon: React.ReactNode;
-  color: string;
-  summary: string;
-  source: string;
-}
-
-/* ─── Data ──────────────────────────────────────────────────────────────── */
-const BOUNDARIES: Boundary[] = [
-  {
-    id: "climate",
-    name: "Climate Change",
-    shortName: "Climate",
-    angleStart: 320,
-    angleSpan: 40,
-    status: "high_risk",
-    value: 1.45,
-    icon: <CloudSlash size={16} weight="fill" />,
-    color: "#ef4444",
-    summary:
-      "CO₂ concentration and radiative forcing have breached safe limits. The 2°C threshold is at serious risk by 2040 under current trajectories.",
-    source: "IPCC AR6 / Rockström et al. 2023",
-    variables: [
-      {
-        name: "CO₂ Concentration",
-        // Was 424 ppm here while the summary card said 428 — the same page
-        // carried two different figures. Both now use the NOAA Mauna Loa
-        // monthly mean for July 2026.
-        value: "429 ppm",
-        safe: "350 ppm",
-        unit: "ppm",
-      },
-      {
-        name: "Radiative Forcing",
-        value: "+2.91 W/m²",
-        safe: "+1.0 W/m²",
-        unit: "W/m²",
-      },
-      {
-        name: "Global Mean Temp Rise",
-        value: "+1.45°C",
-        safe: "<1.5°C",
-        unit: "°C",
-      },
-    ],
-    geopoliticalLinks: [
-      {
-        title: "Paris Agreement Compliance",
-        detail:
-          "Only 16% of G20 members are on track to meet 2030 NDC targets, creating sovereign liability risks.",
-        color: "#ef4444",
-      },
-      {
-        title: "Climate Finance Gap",
-        detail:
-          "Developing nations face a $2.4T annual gap in climate adaptation funding, fuelling migration and instability.",
-        color: "#f97316",
-      },
-      {
-        title: "Carbon Border Mechanisms",
-        detail:
-          "EU CBAM and US IRA are restructuring global trade flows and geopolitical alignments around carbon intensity.",
-        color: "#f59e0b",
-      },
-    ],
-    ecologicalFacts: [
-      "Ocean heat content hit a record high in 2023 for the 14th consecutive year.",
-      "Arctic sea ice minimum extent fell to 4.23M km² in Sept 2023 — lowest on record.",
-      "Permafrost thaw is releasing methane at accelerating rates, creating a feedback loop beyond human control.",
-    ],
-  },
-  {
-    id: "novel_entities",
-    name: "Novel Entities",
-    shortName: "Novel Entities",
-    angleStart: 0,
-    angleSpan: 40,
-    status: "high_risk",
-    value: 1.8,
-    icon: <Flask size={16} weight="fill" />,
-    color: "#dc2626",
-    summary:
-      "Plastics, synthetic chemicals, and radioactive materials have no safe operating limit yet defined — but evidence of transgression is strong.",
-    source: "Persson et al. Science 2022",
-    variables: [
-      {
-        name: "Plastic Production",
-        value: "430 MT/yr",
-        safe: "Undefined",
-        unit: "MT/yr",
-      },
-      {
-        name: "PFAS Chemicals",
-        value: ">10,000 types",
-        safe: "0 target",
-        unit: "types",
-      },
-      {
-        name: "Industrial Substances",
-        value: "350,000+",
-        safe: "Undefined",
-        unit: "registered",
-      },
-    ],
-    geopoliticalLinks: [
-      {
-        title: "UN Plastics Treaty",
-        detail:
-          "175 nations negotiating a legally binding global plastics treaty — petrostate opposition threatens progress.",
-        color: "#ef4444",
-      },
-      {
-        title: "Chemical Supply Chains",
-        detail:
-          "PFAS contamination traced to NATO military bases across 27 countries, creating diplomatic liability.",
-        color: "#f97316",
-      },
-      {
-        title: "Hazardous Export Flows",
-        detail:
-          "75% of global e-waste is illegally exported to developing nations, violating Basel Convention.",
-        color: "#f59e0b",
-      },
-    ],
-    ecologicalFacts: [
-      "Microplastics have been found in human blood, breast milk, and placentas globally.",
-      "Over 10,000 synthetic chemicals flow into natural systems with unknown ecological effects.",
-      "PFAS 'forever chemicals' persist for thousands of years and are now detected in Antarctic ice.",
-    ],
-  },
-  {
-    id: "ozone",
-    name: "Stratospheric Ozone Depletion",
-    shortName: "Ozone Depletion",
-    angleStart: 40,
-    angleSpan: 40,
-    status: "increasing_risk",
-    value: 0.82,
-    icon: <Atom size={16} weight="fill" />,
-    color: "#f59e0b",
-    summary:
-      "The Montreal Protocol achieved major reductions in ozone-depleting substances, but recovery is incomplete and new threats from nitrous oxide are emerging.",
-    source: "UNEP / WMO 2022 Assessment",
-    variables: [
-      {
-        name: "Stratospheric Ozone",
-        value: "283 DU",
-        safe: ">276 DU",
-        unit: "Dobson Units",
-      },
-      {
-        name: "Antarctic Ozone Hole",
-        value: "26.4M km²",
-        safe: "<10M km²",
-        unit: "km²",
-      },
-      {
-        name: "N₂O Concentration",
-        value: "336 ppb",
-        safe: "272 ppb",
-        unit: "ppb",
-      },
-    ],
-    geopoliticalLinks: [
-      {
-        title: "Montreal Protocol Success",
-        detail:
-          "Widely regarded as the most successful multilateral environmental agreement — a model for climate governance.",
-        color: "#10b981",
-      },
-      {
-        title: "Illegal CFC Production",
-        detail:
-          "China faced diplomatic pressure over illegal CFC-11 emissions 2012–2019, showing detection/enforcement gaps.",
-        color: "#f97316",
-      },
-      {
-        title: "Nitrous Oxide Surge",
-        detail:
-          "Agricultural N₂O emissions from Brazil, India, and China are the fastest-growing ozone threat.",
-        color: "#f59e0b",
-      },
-    ],
-    ecologicalFacts: [
-      "Full ozone layer recovery is not expected until 2060–2080 even with current policies.",
-      "Each 1% decrease in ozone increases UV-B radiation by ~2%, raising cancer and cataract rates.",
-      "The Antarctic ozone hole in 2023 was the largest ever recorded at 26.4 million km².",
-    ],
-  },
-  {
-    id: "aerosol",
-    name: "Atmospheric Aerosol Loading",
-    shortName: "Aerosol Loading",
-    angleStart: 80,
-    angleSpan: 40,
-    status: "increasing_risk",
-    value: 0.7,
-    icon: <Wind size={16} weight="fill" />,
-    color: "#f59e0b",
-    summary:
-      "Regional aerosol loading from fossil fuel combustion and biomass burning disrupts monsoon systems and precipitation patterns, with severe humanitarian consequences.",
-    source: "Andreae et al. / Stockholm Resilience Centre",
-    variables: [
-      {
-        name: "Global AOD (Aerosol Optical Depth)",
-        value: "0.22",
-        safe: "<0.25",
-        unit: "dimensionless",
-      },
-      {
-        name: "S. Asian Regional AOD",
-        value: "0.48",
-        safe: "<0.30",
-        unit: "dimensionless",
-      },
-      {
-        name: "PM2.5 Global Mean",
-        value: "32 μg/m³",
-        safe: "<10 μg/m³",
-        unit: "μg/m³",
-      },
-    ],
-    geopoliticalLinks: [
-      {
-        title: "India-Pakistan Smog Diplomacy",
-        detail:
-          "Transboundary air pollution from crop burning in Punjab creates bilateral health crises each winter.",
-        color: "#f97316",
-      },
-      {
-        title: "China's Clean Air Progress",
-        detail:
-          "China cut PM2.5 levels 57% (2013–2023) — the most ambitious air quality programme in history.",
-        color: "#10b981",
-      },
-      {
-        title: "Monsoon Disruption Risks",
-        detail:
-          "Aerosol forcing is altering South Asian monsoons, threatening food security for 1.5B people.",
-        color: "#ef4444",
-      },
-    ],
-    ecologicalFacts: [
-      "Aerosols from biomass burning in the Amazon travel 10,000+ km, affecting West African rainfall.",
-      "Black carbon deposition on Himalayan glaciers accelerates melt by 24%, threatening river flows.",
-      "Air pollution kills 7 million people annually — making it the world's largest environmental health risk.",
-    ],
-  },
-  {
-    id: "ocean",
-    name: "Ocean Acidification",
-    shortName: "Ocean Acidification",
-    angleStart: 120,
-    angleSpan: 40,
-    status: "increasing_risk",
-    value: 0.75,
-    icon: <Drop size={16} weight="fill" />,
-    color: "#f59e0b",
-    summary:
-      "Ocean pH has decreased by 0.11 units since pre-industrial times — a 30% increase in acidity. Coral reef ecosystems face existential threat.",
-    source: "IPCC SROCC / Orr et al.",
-    variables: [
-      {
-        name: "Mean Ocean pH",
-        value: "8.08",
-        safe: "≥8.17 (≤80% saturation)",
-        unit: "pH units",
-      },
-      {
-        name: "Aragonite Saturation",
-        value: "2.73 Ω",
-        safe: "≥2.75 Ω",
-        unit: "Ω",
-      },
-      {
-        name: "Absorption Rate",
-        value: "26% of CO₂",
-        safe: "Historical baseline",
-        unit: "% atmospheric CO₂",
-      },
-    ],
-    geopoliticalLinks: [
-      {
-        title: "Small Island States",
-        detail:
-          "Pacific SIDS (Small Island Developing States) face dual existential threats of sea-level rise and reef collapse.",
-        color: "#ef4444",
-      },
-      {
-        title: "Fisheries Conflicts",
-        detail:
-          "Acidification-driven fish stock collapses are intensifying EEZ disputes in the South China Sea and Arctic.",
-        color: "#f97316",
-      },
-      {
-        title: "Blue Carbon Diplomacy",
-        detail:
-          "Coastal nations are increasingly asserting mangrove and seagrass carbon sequestration as sovereign assets.",
-        color: "#3b82f6",
-      },
-    ],
-    ecologicalFacts: [
-      "At current rates, 90% of coral reefs will experience bleaching-level stress annually by 2050.",
-      "Pteropods (sea butterflies), base of the Arctic food web, are dissolving in increasingly acidic polar waters.",
-      "Oyster larvae survival dropped 40% in Pacific Northwest hatcheries directly attributable to pH change.",
-    ],
-  },
-  {
-    id: "biogeochemical",
-    name: "Biogeochemical Flows",
-    shortName: "Biogeochem. Flows",
-    angleStart: 160,
-    angleSpan: 40,
-    status: "high_risk",
-    value: 2.1,
-    icon: <Leaf size={16} weight="fill" />,
-    color: "#ef4444",
-    summary:
-      "Nitrogen and phosphorus cycles are severely disrupted by industrial agriculture. Reactive nitrogen loading is ~4x the safe boundary.",
-    source: "Steffen et al. Science 2015 / Rockström 2023",
-    variables: [
-      {
-        name: "Reactive Nitrogen Flow",
-        value: "150 Tg N/yr",
-        safe: "62 Tg N/yr",
-        unit: "Tg N/yr",
-      },
-      {
-        name: "Phosphorus Flow to Ocean",
-        value: "22 Tg P/yr",
-        safe: "11 Tg P/yr",
-        unit: "Tg P/yr",
-      },
-      {
-        name: "Fertiliser N lost to environment",
-        value: "~80%",
-        safe: "<30%",
-        unit: "%",
-      },
-    ],
-    geopoliticalLinks: [
-      {
-        title: "Dead Zone Proliferation",
-        detail:
-          "Over 500 oceanic dead zones (hypoxic areas) have been documented, threatening fisheries in sovereign EEZs worldwide.",
-        color: "#ef4444",
-      },
-      {
-        title: "Phosphorus Geopolitics",
-        detail:
-          "Morocco controls 70%+ of global phosphate rock reserves — making it a strategic food security chokepoint.",
-        color: "#f97316",
-      },
-      {
-        title: "Nitrogen Policy Failures",
-        detail:
-          "EU Nitrates Directive compliance remains below 50% in key agricultural states; enforcement is politically contentious.",
-        color: "#f59e0b",
-      },
-    ],
-    ecologicalFacts: [
-      "The Gulf of Mexico dead zone covers ~6,000–7,000 mi² annually from Mississippi River nitrogen runoff.",
-      "Biological nitrogen fixation capacity is being overwhelmed by synthetic fertiliser inputs by a ratio of 5:1.",
-      "Phosphorus reserves at current extraction rates will be depleted in 50–100 years — no substitute exists.",
-    ],
-  },
-  {
-    id: "freshwater",
-    name: "Freshwater Change",
-    shortName: "Freshwater",
-    angleStart: 200,
-    angleSpan: 40,
-    status: "high_risk",
-    value: 1.3,
-    icon: <Drop size={16} weight="fill" />,
-    color: "#ef4444",
-    summary:
-      "Blue water (rivers/lakes) and green water (soil moisture) boundaries are both transgressed. 3.6 billion people already face water scarcity.",
-    source: "Wang-Erlandsson et al. Nature Reviews 2022",
-    variables: [
-      {
-        name: "Blue Water Consumption",
-        value: "2,600 km³/yr",
-        safe: "1,000–4,000 km³/yr",
-        unit: "km³/yr",
-      },
-      {
-        name: "Green Water (soil moisture dev.)",
-        value: "+11.3%",
-        safe: "<±10%",
-        unit: "% deviation",
-      },
-      {
-        name: "River flow alteration",
-        value: ">50% of major rivers",
-        safe: "<25%",
-        unit: "% affected",
-      },
-    ],
-    geopoliticalLinks: [
-      {
-        title: "Transboundary River Disputes",
-        detail:
-          "The Nile, Mekong, and Indus basins are active flashpoints as upstream damming reduces downstream flows.",
-        color: "#ef4444",
-      },
-      {
-        title: "Aquifer Depletion Crises",
-        detail:
-          "The Arabian Aquifer (shared by Saudi Arabia, Yemen, Oman) is non-renewable and projected to be exhausted by 2100.",
-        color: "#f97316",
-      },
-      {
-        title: "Water-Food-Energy Nexus",
-        detail:
-          "Pakistan, India, and Egypt face cascading water-agriculture failures that Western risk models systematically underestimate.",
-        color: "#f59e0b",
-      },
-    ],
-    ecologicalFacts: [
-      "Lake Chad shrank by 90% between 1960 and 2000, contributing to Boko Haram insurgency dynamics.",
-      "The Colorado River no longer reaches the sea — for the first time in recorded history — due to agricultural extraction.",
-      "Groundwater depletion is now detectable from space via GRACE satellite gravity measurements.",
-    ],
-  },
-  {
-    id: "land",
-    name: "Land System Change",
-    shortName: "Land System",
-    angleStart: 240,
-    angleSpan: 40,
-    status: "high_risk",
-    value: 1.2,
-    icon: <Tree size={16} weight="fill" />,
-    color: "#ef4444",
-    summary:
-      "Global forest cover loss, driven by agriculture and urbanisation, has crossed the boundary. Tropical deforestation remains the critical concern.",
-    source: "Hansen et al. / Global Forest Watch 2023",
-    variables: [
-      {
-        name: "Forest Area (% of original)",
-        value: "67%",
-        safe: ">75%",
-        unit: "%",
-      },
-      {
-        name: "Tropical Forest Loss (2023)",
-        value: "3.7M ha",
-        safe: "<2M ha/yr",
-        unit: "ha/yr",
-      },
-      {
-        name: "Land converted to agriculture",
-        value: "50% of ice-free land",
-        safe: "<40%",
-        unit: "% land",
-      },
-    ],
-    geopoliticalLinks: [
-      {
-        title: "Amazon Sovereignty Tensions",
-        detail:
-          "Brazil's assertion of sovereignty over Amazonian land use clashes directly with EU deforestation regulations.",
-        color: "#ef4444",
-      },
-      {
-        title: "Congo Basin Politics",
-        detail:
-          "The DRC holds the world's second-largest tropical forest. Governance collapse is the primary deforestation driver.",
-        color: "#f97316",
-      },
-      {
-        title: "Land Grabbing",
-        detail:
-          "Foreign land acquisitions ('land grabs') in Sub-Saharan Africa and SE Asia disproportionately target Indigenous territories.",
-        color: "#f59e0b",
-      },
-    ],
-    ecologicalFacts: [
-      "Deforestation contributes ~10% of global annual CO₂ emissions — equivalent to all global transport combined.",
-      "The Amazon is approaching a 'tipping point' at 20–25% deforestation where dieback becomes self-sustaining.",
-      "50% of all terrestrial biodiversity depends on forests; habitat loss drives 68% of vertebrate population declines.",
-    ],
-  },
-  {
-    id: "biosphere",
-    name: "Biosphere Integrity",
-    shortName: "Biosphere Integrity",
-    angleStart: 280,
-    angleSpan: 40,
-    status: "high_risk",
-    value: 2.3,
-    icon: <Fish size={16} weight="fill" />,
-    color: "#dc2626",
-    summary:
-      "Biodiversity loss is accelerating at 10–100x natural background rates. Functional biosphere integrity — the loss of ecological roles — may be the most dangerous boundary crossed.",
-    source: "Leclère et al. Nature 2020 / IPBES 2022",
-    variables: [
-      {
-        name: "Species Extinction Rate",
-        value: ">100/million species·yr",
-        safe: "<10/million species·yr",
-        unit: "E/MSY",
-      },
-      {
-        name: "Mean Species Abundance",
-        value: "68% of 1970 baseline",
-        safe: ">90%",
-        unit: "%",
-      },
-      {
-        name: "Functional Diversity Loss",
-        value: "High transgression",
-        safe: "Undefined",
-        unit: "qualitative",
-      },
-    ],
-    geopoliticalLinks: [
-      {
-        title: "Kunming-Montreal Agreement",
-        detail:
-          "196 governments adopted the 30×30 target (30% land/ocean protected by 2030) — but implementation financing gaps persist.",
-        color: "#10b981",
-      },
-      {
-        title: "Biopiracy & IP",
-        detail:
-          "Genetic resources from megadiverse nations (Brazil, Indonesia, India) are extracted without benefit-sharing under Nagoya Protocol.",
-        color: "#f97316",
-      },
-      {
-        title: "Sixth Mass Extinction",
-        detail:
-          "Wildlife population declines tracked since 1970 show 69% average reduction — the signature of anthropogenic mass extinction.",
-        color: "#ef4444",
-      },
-    ],
-    ecologicalFacts: [
-      "1 million species currently face extinction — more than at any point in human history.",
-      "Insect populations have declined by 45% globally since 1974, threatening agricultural pollination services worth $577B/yr.",
-      "The ocean has lost 50% of its coral coverage and 90% of large predatory fish since industrialisation.",
-    ],
-  },
-];
-
-/* ─── Status helpers ─────────────────────────────────────────────────────── */
-const STATUS_CONFIG: Record<
-  BoundaryStatus,
-  { label: string; color: string; ring: string; bg: string }
-> = {
-  safe: {
-    label: "Safe Zone",
-    color: "#22c55e",
-    ring: "#22c55e40",
-    bg: "#22c55e10",
-  },
-  increasing_risk: {
-    label: "Zone of Uncertainty",
-    color: "#f59e0b",
-    ring: "#f59e0b40",
-    bg: "#f59e0b10",
-  },
-  high_risk: {
-    label: "High Risk / Transgressed",
-    color: "#ef4444",
-    ring: "#ef444440",
-    bg: "#ef444410",
-  },
-  unknown: {
-    label: "Not Quantified",
-    color: "#6366f1",
-    ring: "#6366f140",
-    bg: "#6366f110",
-  },
+/* ─── Zones, as the Planetary Health Check names them ───────────────────── */
+const ZONE: Record<Zone, { label: string; color: string }> = {
+  safe: { label: "Within the boundary", color: "#22c55e" },
+  increasing: { label: "Zone of increasing risk", color: "#f59e0b" },
+  high: { label: "High-risk zone", color: "#ef4444" },
 };
 
-/* ─── Radial Chart Component ─────────────────────────────────────────────── */
+const ICON: Record<string, React.ReactNode> = {
+  climate: <CloudSlash size={16} weight="fill" />,
+  novel_entities: <Flask size={16} weight="fill" />,
+  ozone: <Atom size={16} weight="fill" />,
+  aerosol: <Wind size={16} weight="fill" />,
+  ocean: <Drop size={16} weight="fill" />,
+  biogeochemical: <Leaf size={16} weight="fill" />,
+  freshwater: <Drop size={16} weight="fill" />,
+  land: <Tree size={16} weight="fill" />,
+  biosphere: <Fish size={16} weight="fill" />,
+};
+
+/** "426 ppm", "64% of potential", "0.07". */
+const withUnit = (n: string, unit: string) => (!unit ? n : unit.startsWith("%") ? `${n}${unit}` : `${n} ${unit}`);
+
+/** Decimal places the report writes a unit's figures to: "+1.0 W/m²", "0.10", "2.50 Ω". */
+const DECIMALS: Record<string, number> = { "W/m²": 1, "": 2, "Ω": 2 };
+
+/** Shows a boundary or high-risk figure the way the report writes it; `unit` overrides the variable's own. */
+const fmt = (n: number, v: ControlVariable, unit = v.unit) =>
+  withUnit(
+    `${v.unit === "W/m²" && n > 0 ? "+" : ""}${n.toLocaleString("en-US", {
+      minimumFractionDigits: DECIMALS[v.unit] ?? 0,
+      maximumFractionDigits: 2,
+    })}`,
+    unit,
+  );
+
+/** In the narrow list, "% of ice-free land" is just "%". */
+const shortUnit = (unit: string) => (unit.startsWith("%") ? "%" : unit);
+
+/**
+ * The global control variable furthest past its boundary: the one a wedge
+ * reaches to and the list shows. Novel entities has no number; the report
+ * places it in the high-risk zone, so it counts as sitting on that line.
+ */
+function headline(b: PlanetaryBoundary): ControlVariable {
+  const vs = b.variables.filter((v) => !v.regional);
+  return vs.reduce((m, v) => ((position(v) ?? 2) > (position(m) ?? 2) ? v : m), vs[0]);
+}
+
+/* ─── The wheel ─────────────────────────────────────────────────────────── */
+
+/** Clockwise from the top, as the Planetary Health Check draws it. */
+const ORDER = ["novel_entities", "ozone", "aerosol", "ocean", "biogeochemical", "freshwater", "land", "biosphere", "climate"];
+const WHEEL = { cx: 260, cy: 260, core: 72, boundary: 128, highRisk: 176, edge: 204 };
+
+/** Radius for a position: the core's edge at 0, the boundary ring at 1, the high-risk ring at 2, the chart's edge from 3 on. */
+function radius(p: number): number {
+  if (p <= 1) return WHEEL.core + (WHEEL.boundary - WHEEL.core) * Math.max(0, p);
+  if (p <= 2) return WHEEL.boundary + (WHEEL.highRisk - WHEEL.boundary) * (p - 1);
+  return WHEEL.highRisk + (WHEEL.edge - WHEEL.highRisk) * Math.min(1, p - 2);
+}
+
 function PlanetaryBoundariesRadialChart({
-  boundaries,
   selected,
   onSelect,
   isLight,
 }: {
-  boundaries: Boundary[];
-  selected: string | null;
+  selected: string;
   onSelect: (id: string) => void;
   isLight: boolean;
 }) {
-  const cx = 260;
-  const cy = 260;
-  const innerR = 72; // safe operating space boundary
-  const outerMaxR = 200; // max visual outer radius (fully transgressed)
-  const outerBoundaryR = 130; // the safe operating space edge visually
-
-  function polarToXY(angleDeg: number, r: number) {
-    const rad = ((angleDeg - 90) * Math.PI) / 180;
-    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-  }
-
-  function describeArc(
-    startAngle: number,
-    endAngle: number,
-    inner: number,
-    outer: number,
-  ): string {
-    const gap = 1.5; // degrees gap between segments
-    const s = startAngle + gap / 2;
-    const e = endAngle - gap / 2;
-
-    const p1 = polarToXY(s, inner);
-    const p2 = polarToXY(s, outer);
-    const p3 = polarToXY(e, outer);
-    const p4 = polarToXY(e, inner);
-
-    const largeArc = e - s > 180 ? 1 : 0;
-    return [
-      `M ${p1.x} ${p1.y}`,
-      `L ${p2.x} ${p2.y}`,
-      `A ${outer} ${outer} 0 ${largeArc} 1 ${p3.x} ${p3.y}`,
-      `L ${p4.x} ${p4.y}`,
-      `A ${inner} ${inner} 0 ${largeArc} 0 ${p1.x} ${p1.y}`,
-      "Z",
-    ].join(" ");
-  }
-
-  function labelPosition(b: Boundary) {
-    const midAngle = b.angleStart + b.angleSpan / 2;
-    const r = outerMaxR + 30;
-    return polarToXY(midAngle, r);
-  }
-
-
-  const safeColor = "#22c55e";
-  const warnColor = "#f59e0b";
+  const { cx, cy } = WHEEL;
+  const polar = (deg: number, r: number) => {
+    const a = ((deg - 90) * Math.PI) / 180;
+    return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+  };
+  const wedge = (start: number, end: number, inner: number, outer: number) => {
+    const gap = 1.5; // degrees between wedges
+    const s = start + gap / 2;
+    const e = end - gap / 2;
+    const [p1, p2, p3, p4] = [polar(s, inner), polar(s, outer), polar(e, outer), polar(e, inner)];
+    return `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} A ${outer} ${outer} 0 0 1 ${p3.x} ${p3.y} L ${p4.x} ${p4.y} A ${inner} ${inner} 0 0 0 ${p1.x} ${p1.y} Z`;
+  };
+  const coreText = isLight ? "#166534" : "#86efac";
 
   return (
     <div className="relative flex items-center justify-center">
       <svg
         viewBox="0 0 520 520"
         width="100%"
-        // 680 made the chart taller than a laptop viewport on its own, so the
-        // whole of it was never on screen at once. It is a nine-segment dial
-        // read at a glance, not a figure to study, and every label still fits
-        // at this size.
         style={{ maxWidth: 400, overflow: "visible" }}
-        aria-label="Planetary Boundaries radial chart"
+        role="img"
+        aria-label={`Planetary boundaries wheel: ${TRANSGRESSED} of 9 transgressed`}
       >
         <defs>
           <radialGradient id="pbCoreGrad" cx="50%" cy="50%" r="50%">
@@ -688,201 +129,79 @@ function PlanetaryBoundariesRadialChart({
             <stop offset="60%" stopColor="#16a34a" stopOpacity={0.7} />
             <stop offset="100%" stopColor="#14532d" stopOpacity={0.5} />
           </radialGradient>
-          <filter id="glowFilter">
-            <feGaussianBlur stdDeviation="4" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
         </defs>
 
-        {/* Background ring zones */}
-        {/* Safe zone fill */}
-        <circle
-          cx={cx}
-          cy={cy}
-          r={outerBoundaryR}
-          fill={isLight ? "#f0fdf4" : "#052e16"}
-          opacity={0.4}
-        />
-        {/* Uncertainty zone ring */}
-        <circle
-          cx={cx}
-          cy={cy}
-          r={outerMaxR}
-          fill="none"
-          stroke={warnColor}
-          strokeWidth={1}
-          strokeDasharray="4 4"
-          opacity={0.25}
-        />
-        {/* Safe boundary ring */}
-        <circle
-          cx={cx}
-          cy={cy}
-          r={outerBoundaryR}
-          fill="none"
-          stroke={safeColor}
-          strokeWidth={1.5}
-          strokeDasharray="3 3"
-          opacity={0.4}
-        />
+        {/* The safe operating space, out to the boundary ring. */}
+        <circle cx={cx} cy={cy} r={WHEEL.boundary} fill={isLight ? "#f0fdf4" : "#052e16"} opacity={0.4} />
+        <circle cx={cx} cy={cy} r={WHEEL.highRisk} fill="none" stroke="#ef4444" strokeWidth={1} strokeDasharray="4 4" opacity={0.45} />
+        <circle cx={cx} cy={cy} r={WHEEL.boundary} fill="none" stroke="#22c55e" strokeWidth={1.5} strokeDasharray="3 3" opacity={0.6} />
 
-        {/* Segment fills */}
-        {boundaries.map((b) => {
-          const endAngle = b.angleStart + b.angleSpan;
-
-          // Background segment (full extent)
-          const bgPath = describeArc(b.angleStart, endAngle, innerR, outerMaxR);
-          // Value segment (proportional to how deep into the boundary it is)
-          const clampedVal = Math.min(b.value, 1.8);
-          const segOuter =
-            innerR + (outerMaxR - innerR) * Math.min(clampedVal / 1.8, 1);
-          const valPath = describeArc(b.angleStart, endAngle, innerR, segOuter);
+        {ORDER.map((id, i) => {
+          const b = BOUNDARIES.find((x) => x.id === id);
+          if (!b) return null;
+          const start = i * 40;
+          const p = position(headline(b));
+          const outer = radius(p ?? 2);
+          const color = ZONE[b.zone].color;
           const isSelected = selected === b.id;
-
           return (
-            <g key={b.id}>
-              {/* Background */}
+            <g key={b.id} onClick={() => onSelect(b.id)} className="cursor-pointer">
+              <path d={wedge(start, start + 40, WHEEL.core, WHEEL.edge)} fill={color} opacity={0.06} />
               <path
-                d={bgPath}
-                fill={b.color}
-                opacity={0.06}
+                d={wedge(start, start + 40, WHEEL.core, outer)}
+                fill={color}
+                opacity={isSelected ? 0.85 : p === null ? 0.3 : 0.55}
+                stroke={p === null ? color : "none"}
+                strokeDasharray={p === null ? "4 3" : undefined}
+                strokeWidth={p === null ? 1.5 : 0}
                 className="transition-all duration-300"
+                style={{ filter: isSelected ? `drop-shadow(0 0 8px ${color}80)` : undefined }}
               />
-              {/* Value fill */}
               <path
-                d={valPath}
-                fill={b.color}
-                opacity={isSelected ? 0.85 : 0.55}
-                className="cursor-pointer transition-all duration-300"
-                onClick={() => onSelect(b.id)}
-                style={{
-                  filter: isSelected
-                    ? `drop-shadow(0 0 8px ${b.color}80)`
-                    : undefined,
-                }}
-              />
-              {/* Hover/select outline */}
-              <path
-                d={describeArc(b.angleStart, endAngle, innerR, outerMaxR)}
-                fill="none"
-                stroke={isSelected ? b.color : "transparent"}
-                strokeWidth={isSelected ? 2 : 0}
-                className="pointer-events-none transition-all duration-300"
-              />
-              {/* Clickable overlay */}
-              <path
-                d={describeArc(b.angleStart, endAngle, innerR, outerMaxR)}
+                d={wedge(start, start + 40, WHEEL.core, WHEEL.edge)}
                 fill="transparent"
-                className="cursor-pointer"
-                onClick={() => onSelect(b.id)}
+                stroke={isSelected ? color : "transparent"}
+                strokeWidth={isSelected ? 2 : 0}
               />
             </g>
           );
         })}
 
-        {/* Safe zone inner circle (the "Earth" core) */}
-        <circle cx={cx} cy={cy} r={innerR} fill="url(#pbCoreGrad)" />
-        <circle
-          cx={cx}
-          cy={cy}
-          r={innerR}
-          fill="none"
-          stroke="#22c55e"
-          strokeWidth={2}
-          opacity={0.6}
-        />
-
-        {/* Center text */}
-        <text
-          x={cx}
-          y={cy - 12}
-          textAnchor="middle"
-          fontSize="9"
-          fontFamily="monospace"
-          fill={isLight ? "#166534" : "#86efac"}
-          opacity={0.85}
-          letterSpacing="1"
-        >
-          SAFE
-        </text>
-        <text
-          x={cx}
-          y={cy + 2}
-          textAnchor="middle"
-          fontSize="9"
-          fontFamily="monospace"
-          fill={isLight ? "#166534" : "#86efac"}
-          opacity={0.85}
-          letterSpacing="1"
-        >
-          OPERATING
-        </text>
-        <text
-          x={cx}
-          y={cy + 15}
-          textAnchor="middle"
-          fontSize="9"
-          fontFamily="monospace"
-          fill={isLight ? "#166534" : "#86efac"}
-          opacity={0.85}
-          letterSpacing="1"
-        >
-          SPACE
-        </text>
-
-        {/* Boundary ring label */}
-        <text
-          x={cx + outerBoundaryR + 4}
-          y={cy - 2}
-          fontSize="7"
-          fontFamily="monospace"
-          fill={safeColor}
-          opacity={0.7}
-        >
+        <circle cx={cx} cy={cy} r={WHEEL.core} fill="url(#pbCoreGrad)" />
+        {["SAFE", "OPERATING", "SPACE"].map((w, i) => (
+          <text key={w} x={cx} y={cy - 12 + i * 14} textAnchor="middle" fontSize="9" fontFamily="monospace" fill={coreText} opacity={0.85} letterSpacing="1">
+            {w}
+          </text>
+        ))}
+        <text x={cx + WHEEL.boundary + 4} y={cy - 2} fontSize="7" fontFamily="monospace" fill="#22c55e" opacity={0.8}>
           boundary
         </text>
+        <text x={cx + WHEEL.highRisk + 4} y={cy - 2} fontSize="7" fontFamily="monospace" fill="#ef4444" opacity={0.8}>
+          high risk
+        </text>
 
-        {/* Outer labels */}
-        {boundaries.map((b) => {
-          const midAngle = b.angleStart + b.angleSpan / 2;
-          const lp = labelPosition(b);
-          const isSelected = selected === b.id;
-          // Text anchor based on angle
-          const anchor =
-            midAngle > 315 || midAngle < 45
-              ? "middle"
-              : midAngle < 180
-                ? "start"
-                : midAngle > 180
-                  ? "end"
-                  : "middle";
-
-          // Short label lines
+        {ORDER.map((id, i) => {
+          const b = BOUNDARIES.find((x) => x.id === id);
+          if (!b) return null;
+          const mid = i * 40 + 20;
+          const lp = polar(mid, WHEEL.edge + 28);
+          const anchor = mid > 315 || mid < 45 ? "middle" : mid < 180 ? "start" : mid > 180 ? "end" : "middle";
           const words = b.shortName.split(" ");
-          const lineHeight = 11;
-          const startY = lp.y - ((words.length - 1) * lineHeight) / 2;
-
+          const isSelected = selected === b.id;
           return (
-            <g
-              key={`lbl-${b.id}`}
-              onClick={() => onSelect(b.id)}
-              className="cursor-pointer"
-            >
+            <g key={`lbl-${b.id}`} onClick={() => onSelect(b.id)} className="cursor-pointer">
               {words.map((word, wi) => (
                 <text
                   key={wi}
                   x={lp.x}
-                  y={startY + wi * lineHeight}
+                  y={lp.y - ((words.length - 1) * 11) / 2 + wi * 11}
                   textAnchor={anchor}
                   fontSize="8.5"
                   fontFamily="sans-serif"
                   fontWeight={isSelected ? "700" : "600"}
-                  fill={isSelected ? b.color : isLight ? "#334155" : "#cbd5e1"}
-                  opacity={isSelected ? 1.0 : 0.8}
-                  className="transition-all duration-200 select-none"
+                  fill={isSelected ? ZONE[b.zone].color : isLight ? "#334155" : "#cbd5e1"}
+                  opacity={isSelected ? 1 : 0.8}
+                  className="select-none"
                 >
                   {word}
                 </text>
@@ -895,7 +214,7 @@ function PlanetaryBoundariesRadialChart({
   );
 }
 
-/* ─── Detail Panel ───────────────────────────────────────────────────────── */
+/* ─── Detail panel ──────────────────────────────────────────────────────── */
 function BoundaryDetailPanel({
   boundary,
   isLight,
@@ -903,205 +222,125 @@ function BoundaryDetailPanel({
   mutedText,
   gridLine,
 }: {
-  boundary: Boundary;
+  boundary: PlanetaryBoundary;
   isLight: boolean;
   headText: string;
   mutedText: string;
   gridLine: string;
-  cardBg: string;
 }) {
-  const sc = STATUS_CONFIG[boundary.status];
-
+  const z = ZONE[boundary.zone];
+  const body = isLight ? "#475569" : "#94a3b8";
+  const label = "text-[9px] font-mono uppercase tracking-widest mb-2";
   return (
     <div className="animate-fade-in">
-      {/* Header — a full-width bar carrying identity and summary together, so
-          the three data columns beneath it all start on one baseline. */}
-      <div
-        className="flex items-start gap-4 pb-4 mb-4 border-b"
-        style={{ borderColor: gridLine }}
-      >
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: boundary.color + "18", color: boundary.color }}
-        >
-          {boundary.icon}
+      <div className="flex items-start gap-4 pb-4 mb-4 border-b" style={{ borderColor: gridLine }}>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: z.color + "18", color: z.color }}>
+          {ICON[boundary.id]}
         </div>
-        {/* The name and the summary sat side by side, the summary taking a
-            fixed 16rem off the left for the title. That was fine while the
-            panel had the page's full width; beside the selector it squeezed
-            the summary into a four-word-wide ribbon. The summary now runs
-            under the title and uses the panel's whole width. */}
         <div className="flex-1 min-w-0">
-          <h3
-            className="text-sm font-bold font-sans leading-snug"
-            style={{ color: headText }}
-          >
+          <h3 className="text-sm font-bold font-sans leading-snug" style={{ color: headText }}>
             {boundary.name}
           </h3>
-          <span
-            className="inline-flex items-center gap-1 mt-1 text-[9px] font-mono px-2 py-0.5 rounded-full"
-            style={{ background: sc.bg, color: sc.color }}
-          >
-            <span
-              className="w-1.5 h-1.5 rounded-full inline-block"
-              style={{ background: sc.color }}
-            />
-            {sc.label}
+          <span className="inline-flex items-center gap-1 mt-1 text-[9px] font-mono px-2 py-0.5 rounded-full" style={{ background: z.color + "10", color: z.color }}>
+            <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: z.color }} />
+            {z.label} · {boundary.verdict}
           </span>
-          <p
-            className="mt-2 text-[11px] font-sans leading-relaxed"
-            style={{ color: isLight ? "#475569" : "#94a3b8" }}
-          >
+          <p className="mt-2 text-[11px] font-sans leading-relaxed" style={{ color: body }}>
             {boundary.summary}
           </p>
         </div>
       </div>
 
-      {/* Two columns: Key Variables and Geopolitical Dimensions side by side,
-          with Ecological Context below. */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
-      {/* Key Variables */}
-      <div>
-        <p
-          className="text-[9px] font-mono uppercase tracking-widest mb-2"
-          style={{ color: mutedText }}
-        >
-          Key Variables
-        </p>
-        <div className="flex flex-col gap-2">
-          {boundary.variables.map((v) => {
-            return (
+        <div>
+          <p className={label} style={{ color: mutedText }}>
+            Control variables
+          </p>
+          <div className="flex flex-col gap-2">
+            {boundary.variables.map((v) => (
               <div
                 key={v.name}
                 className="rounded-lg px-3 py-2.5"
-                style={{
-                  background: isLight
-                    ? "rgba(0,0,0,0.025)"
-                    : "rgba(255,255,255,0.04)",
-                  border: `1px solid ${gridLine}`,
-                }}
+                style={{ background: isLight ? "rgba(0,0,0,0.025)" : "rgba(255,255,255,0.04)", border: `1px solid ${gridLine}` }}
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span
-                    className="text-[10px] font-sans font-semibold"
-                    style={{ color: headText }}
-                  >
-                    {v.name}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between gap-2 mt-1 max-w-sm">
-                  <div>
-                    <p
-                      className="text-[9px] font-mono"
-                      style={{ color: mutedText }}
-                    >
-                      Current
-                    </p>
-                    <p
-                      className="text-sm font-bold font-mono"
-                      style={{ color: boundary.color }}
-                    >
-                      {v.value}
-                    </p>
-                  </div>
-                  <ArrowRight size={10} style={{ color: mutedText }} />
-                  <div className="text-right">
-                    <p
-                      className="text-[9px] font-mono"
-                      style={{ color: mutedText }}
-                    >
-                      Safe level
-                    </p>
-                    <p
-                      className="text-sm font-bold font-mono"
-                      style={{ color: "#22c55e" }}
-                    >
-                      {v.safe}
-                    </p>
-                  </div>
+                <p className="text-[10px] font-sans font-semibold leading-snug" style={{ color: headText }}>
+                  {v.name}
+                  {v.regional && (
+                    <span className="ml-1.5 text-[8px] font-mono uppercase tracking-wider" style={{ color: mutedText }}>
+                      regional
+                    </span>
+                  )}
+                </p>
+                <div className="grid grid-cols-3 gap-2 mt-1.5">
+                  {[
+                    { k: "Now", v: withUnit(v.current, v.value === null ? "" : v.unit), c: ZONE[v.zone].color },
+                    { k: "Boundary", v: fmt(v.boundary, v), c: "#22c55e" },
+                    {
+                      k: v.highRiskProvisional ? "High risk (provisional)" : "High risk",
+                      v: v.highRisk === null ? "Not defined" : fmt(v.highRisk, v),
+                      c: v.highRisk === null ? mutedText : "#ef4444",
+                    },
+                  ].map((cell) => (
+                    <div key={cell.k} className="min-w-0">
+                      <p className="text-[8px] font-mono leading-tight" style={{ color: mutedText }}>
+                        {cell.k}
+                      </p>
+                      <p className="text-[12px] font-bold font-mono leading-snug break-words" style={{ color: cell.c }}>
+                        {cell.v}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
-            );
-          })}
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <p className={label} style={{ color: mutedText }}>
+            What drives it
+          </p>
+          <ul className="flex flex-col gap-2">
+            {boundary.drivers.map((d) => (
+              <li key={d} className="flex gap-2.5">
+                <span className="w-1 rounded-full shrink-0 mt-1" style={{ background: z.color, minHeight: 14 }} />
+                <span className="text-[11px] font-sans leading-relaxed" style={{ color: body }}>
+                  {d}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 
-      {/* Geopolitical Links */}
-      <div>
-        <p
-          className="text-[9px] font-mono uppercase tracking-widest mb-2"
-          style={{ color: mutedText }}
-        >
-          Geopolitical Dimensions
+      <div className="mt-5">
+        <p className={label} style={{ color: mutedText }}>
+          What it is doing
         </p>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
-          {boundary.geopoliticalLinks.map((link, i) => (
-            <div
-              key={i}
-              className="rounded-xl p-3"
-              style={{
-                background: link.color + "08",
-                border: `1px solid ${link.color}20`,
-              }}
-            >
-              <p
-                className="text-[11px] font-bold font-sans mb-1"
-                style={{ color: headText }}
-              >
-                {link.title}
-              </p>
-              <p
-                className="text-[10px] font-sans leading-relaxed"
-                style={{ color: isLight ? "#475569" : "#94a3b8" }}
-              >
-                {link.detail}
-              </p>
-            </div>
+        <ul className="flex flex-col gap-2">
+          {boundary.impacts.map((d) => (
+            <li key={d} className="flex gap-2.5">
+              <span className="w-1 rounded-full shrink-0 mt-1" style={{ background: z.color, minHeight: 14 }} />
+              <span className="text-[11px] font-sans leading-relaxed" style={{ color: body }}>
+                {d}
+              </span>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
 
-      </div>
-
-      {/* Ecological Facts */}
-      <div>
-        <p
-          className="text-[9px] font-mono uppercase tracking-widest mb-2"
-          style={{ color: mutedText }}
-        >
-          Ecological Context
-        </p>
-        <div className="flex flex-col gap-2">
-          {boundary.ecologicalFacts.map((fact, i) => (
-            <div key={i} className="flex gap-2.5">
-              <div
-                className="w-1 rounded-full shrink-0 mt-1"
-                style={{ background: boundary.color, minHeight: 14 }}
-              />
-              <p
-                className="text-[11px] font-sans leading-relaxed"
-                style={{ color: isLight ? "#475569" : "#94a3b8" }}
-              >
-                {fact}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Source */}
-      <p
-        className="text-[9px] font-sans mt-4 pt-3 border-t"
-        style={{ color: mutedText, borderColor: gridLine }}
-      >
-        Source: {boundary.source}
+      <p className="text-[9px] font-sans mt-4 pt-3 border-t" style={{ color: mutedText, borderColor: gridLine }}>
+        Source:{" "}
+        <a href={PHC_2026.summaryUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:opacity-80">
+          {PHC_2026.title}
+        </a>
+        , summary p. {boundary.page} ({PHC_2026.publisher}).
       </p>
     </div>
   );
 }
 
-/* ─── Summary Card ───────────────────────────────────────────────────────── */
+/* ─── Summary card ──────────────────────────────────────────────────────── */
 function BoundarySummaryCard({
   boundary,
   selected,
@@ -1110,69 +349,43 @@ function BoundarySummaryCard({
   mutedText,
   gridLine,
 }: {
-  boundary: Boundary;
+  boundary: PlanetaryBoundary;
   selected: boolean;
   onSelect: () => void;
-  isLight: boolean;
   headText: string;
   mutedText: string;
   gridLine: string;
 }) {
-  const sc = STATUS_CONFIG[boundary.status];
+  const z = ZONE[boundary.zone];
+  const h = headline(boundary);
   return (
     <button
       onClick={onSelect}
+      aria-pressed={selected}
       className="flex items-center gap-3 py-2.5 px-3 rounded-xl text-left w-full transition-all hover:opacity-90"
-      onMouseEnter={(e) => {
-        if (!selected) {
-          (e.currentTarget as HTMLButtonElement).style.background =
-            boundary.color + "0d";
-          (e.currentTarget as HTMLButtonElement).style.border =
-            `1px solid ${boundary.color}30`;
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!selected) {
-          (e.currentTarget as HTMLButtonElement).style.background =
-            "transparent";
-          (e.currentTarget as HTMLButtonElement).style.border =
-            `1px solid ${gridLine}`;
-        }
-      }}
       style={{
-        background: selected ? boundary.color + "12" : "transparent",
-        border: `1px solid ${selected ? boundary.color + "35" : gridLine}`,
+        background: selected ? z.color + "12" : "transparent",
+        border: `1px solid ${selected ? z.color + "35" : gridLine}`,
         outline: "none",
       }}
     >
-      <div
-        className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-        style={{ background: boundary.color + "18", color: boundary.color }}
-      >
-        {boundary.icon}
+      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: z.color + "18", color: z.color }}>
+        {ICON[boundary.id]}
       </div>
       <div className="flex-1 min-w-0">
-        <p
-          className="text-[11px] font-semibold font-sans truncate"
-          style={{ color: headText }}
-        >
+        <p className="text-[11px] font-semibold font-sans truncate" style={{ color: headText }}>
           {boundary.shortName}
         </p>
-        <p className="text-[9px] font-mono" style={{ color: sc.color }}>
-          {sc.label}
+        <p className="text-[9px] font-mono" style={{ color: z.color }}>
+          {z.label}
         </p>
       </div>
-      <div className="shrink-0 text-right">
-        <span
-          className="text-[10px] font-mono font-bold"
-          style={{ color: boundary.value > 1 ? boundary.color : "#22c55e" }}
-        >
-          {boundary.value > 1
-            ? `×${boundary.value.toFixed(1)}`
-            : `${Math.round(boundary.value * 100)}%`}
-        </span>
-        <p className="text-[8px] font-mono" style={{ color: mutedText }}>
-          {boundary.value > 1 ? "of limit" : "of limit"}
+      <div className="shrink-0 text-right max-w-[45%]">
+        <p className="text-[10px] font-mono font-bold truncate" style={{ color: z.color }}>
+          {h.value === null ? "Not quantified" : withUnit(h.current, shortUnit(h.unit))}
+        </p>
+        <p className="text-[8px] font-mono truncate" style={{ color: mutedText }}>
+          boundary {fmt(h.boundary, h, shortUnit(h.unit))}
         </p>
       </div>
     </button>
@@ -1224,14 +437,15 @@ export function PlanetaryBoundariesPage() {
     });
   };
 
-  const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
   const mutedText = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.38)";
   const headText = isLight ? "#0f172a" : "#f1f0ff";
   const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
 
   const selected = BOUNDARIES.find((b) => b.id === selectedId) ?? BOUNDARIES[0];
-
-  const highRisk = BOUNDARIES.filter((b) => b.status === "high_risk").length;
+  const co2 = CLIMATE_INDICATORS.find((i) => i.id === "co2-global");
+  const byId = (id: string) => BOUNDARIES.find((b) => b.id === id);
+  const extinction = byId("biosphere")?.variables[0];
+  const nitrogen = byId("biogeochemical")?.variables[1];
 
   return (
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
@@ -1264,73 +478,69 @@ export function PlanetaryBoundariesPage() {
         />
 
         {/* ── KPI STRIP ─────────────────────────────────────────────────── */}
+        {/* Each figure is the source's own: the boundary count and the two
+            boundary measures from the Planetary Health Check 2026, carbon
+            dioxide from NOAA's latest global mean (the same reading as the
+            "Measured now" table below). */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
             {
-              label: "Boundaries Transgressed",
-              value: `${highRisk} / 9`,
+              label: "Boundaries transgressed",
+              value: `${TRANSGRESSED} / 9`,
               color: "text-red-500",
-              sub: "As of 2026",
+              sub: "Planetary Health Check 2026",
+              href: PHC_2026.summaryUrl,
             },
-            {
-              label: "CO₂ Concentration",
-              // NOAA Mauna Loa monthly mean, July 2026 (429.12 ppm), from
-              // gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.txt. Was 428
-              // with no date. The series is not fetchable from the browser —
-              // NOAA sends no CORS header — so it is cited rather than live.
-              value: "429 ppm",
+            co2 && {
+              label: "Carbon dioxide, global mean",
+              value: `${co2.value.toFixed(1)} ppm`,
               color: "text-orange-500",
-              sub: "Safe: 350 ppm · Jul 2026",
+              sub: `Boundary 350 ppm · NOAA, ${co2.period}`,
+              href: co2.url,
             },
-            {
-              label: "Species Loss Rate",
-              value: "100×",
+            extinction && {
+              label: "Extinction rate",
+              value: extinction.current,
               color: "text-red-600",
-              sub: "Natural background",
+              sub: "per million species-years · boundary 10",
+              href: PHC_2026.summaryUrl,
             },
-            {
-              label: "Reactive N Loading",
-              value: "152 Tg/yr",
-              color: "text-amber-500",
-              sub: "Limit: 62 Tg/yr",
+            nitrogen && {
+              label: "Nitrogen fixed for farming",
+              value: `${nitrogen.current} Tg/yr`,
+              color: "text-red-500",
+              sub: "Boundary 62 Tg/yr · PHC 2026",
+              href: PHC_2026.summaryUrl,
             },
-          ].map((k) => (
-            <div
-              key={k.label}
-              className="bg-card border border-border rounded-lg p-4"
-            >
-              <p className="text-xs text-muted-foreground font-sans">
-                {k.label}
-              </p>
-              <p className={`text-xl font-bold font-mono ${k.color}`}>
-                {k.value}
-              </p>
-              <p className="text-xs text-muted-foreground font-sans mt-0.5">
-                {k.sub}
-              </p>
-            </div>
-          ))}
+          ]
+            .filter((k): k is { label: string; value: string; color: string; sub: string; href: string } => !!k)
+            .map((k) => (
+              <div key={k.label} className="bg-card border border-border rounded-lg p-4">
+                <p className="text-xs text-muted-foreground font-sans">{k.label}</p>
+                <p className={`text-xl font-bold font-mono ${k.color}`}>{k.value}</p>
+                <a
+                  href={k.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-xs text-muted-foreground font-sans mt-0.5 underline decoration-dotted hover:text-foreground"
+                >
+                  {k.sub}
+                </a>
+              </div>
+            ))}
         </div>
 
         {/* ── MAIN CONTENT GRID ─────────────────────────────────────────── */}
-        {/* The nine boundaries and the one being read, side by side.
-            They were two stacked cards: nine buttons in a three-wide grid,
-            then the detail underneath. Picking a boundary scrolled the thing
-            you picked off the top of the screen, and you could not see which
-            of the nine was selected while reading it. As a list beside the
-            panel, the choice stays in view next to what it opened — the same
-            shape the dashboard's trends section uses. */}
+        {/* The nine boundaries and the one being read, side by side, so the
+            choice stays in view next to what it opened. */}
         <div className="bg-card border border-border rounded-2xl p-4 mb-6">
           {/* Splits at md, not lg: the app's own chrome eats ~230px of the
-              window, so a 1024px breakpoint never fired on a laptop and the
-              two halves stayed stacked. */}
+              window, so a 1024px breakpoint never fired on a laptop. */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
             <div className="md:col-span-5 lg:col-span-4 md:border-r md:border-border md:pr-4">
               <p className="text-[10px] font-mono uppercase tracking-widest mb-2 text-muted-foreground">
                 All Nine Boundaries
               </p>
-              {/* One column once the panel is beside it; two on a narrow
-                  screen, where a single column would be a long thin strip. */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-2">
                 {BOUNDARIES.map((b) => (
                   <BoundarySummaryCard
@@ -1338,7 +548,6 @@ export function PlanetaryBoundariesPage() {
                     boundary={b}
                     selected={selectedId === b.id}
                     onSelect={() => setSelectedId(b.id)}
-                    isLight={isLight}
                     headText={headText}
                     mutedText={mutedText}
                     gridLine={gridLine}
@@ -1354,14 +563,13 @@ export function PlanetaryBoundariesPage() {
                 headText={headText}
                 mutedText={mutedText}
                 gridLine={gridLine}
-                cardBg={cardBg}
               />
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
-          {/* CENTER: Radial Chart */}
+          {/* The wheel */}
           <div className="lg:col-span-7 flex flex-col gap-4">
             <div className="bg-card border border-border rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
@@ -1374,176 +582,66 @@ export function PlanetaryBoundariesPage() {
                   </h2>
                 </div>
                 <span className="text-[9px] font-mono px-2 py-1 rounded-full bg-red-500/10 text-red-500">
-                  {highRisk} of 9 exceeded
+                  {TRANSGRESSED} of 9 transgressed
                 </span>
               </div>
-
-              {/* Legend — a strip under the header rather than a separate
-                  card, so the key sits with the chart it explains. */}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-3 pb-3 border-b border-border">
-                {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                  <div key={key} className="flex items-center gap-1.5">
-                    <div
-                      className="w-2.5 h-2.5 rounded-full shrink-0"
-                      style={{ background: cfg.color }}
-                    />
-                    <span className="text-[10px] font-sans text-muted-foreground">
-                      {cfg.label}
-                    </span>
+                {Object.values(ZONE).map((cfg) => (
+                  <div key={cfg.label} className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: cfg.color }} />
+                    <span className="text-[10px] font-sans text-muted-foreground">{cfg.label}</span>
                   </div>
                 ))}
               </div>
-              {/* One line, not two paragraphs. The legend above already names
-                  the three colours, so repeating them under the chart only
-                  pushed the chart itself off the screen. */}
               <p className="text-[10px] font-sans text-muted-foreground mb-2">
-                The green core is the safe operating space; a segment past the
-                dashed ring has been transgressed. Click one to open it.
+                Each wedge reaches as far as its most transgressed measure: the
+                green ring is the boundary, the red ring the high-risk line.
+                Click one to open it.
               </p>
-              <PlanetaryBoundariesRadialChart
-                boundaries={BOUNDARIES}
-                selected={selectedId}
-                onSelect={setSelectedId}
-                isLight={isLight}
-              />
+              <PlanetaryBoundariesRadialChart selected={selectedId} onSelect={setSelectedId} isLight={isLight} />
             </div>
-
           </div>
 
-          {/* RIGHT: Risk matrix + framework note */}
+          {/* About the framework and the wheel */}
           <div className="lg:col-span-5 flex flex-col gap-4">
-            {/* Geopolitical Matrix */}
-            <div className="bg-card border border-border rounded-2xl p-5 flex-1">
-              <p className="text-[10px] font-mono uppercase tracking-widest mb-1 text-green-500">
-                Geopolitical Risk Matrix
-              </p>
-              <h2 className="text-sm font-bold font-sans mb-4 text-foreground">
-                Boundaries ↔ Global Security Linkages
-              </h2>
-              <div className="flex flex-col gap-0">
-                {[
-                  {
-                    boundary: "Climate Change",
-                    risk: "Migration, resource wars, coastal state inundation",
-                    severity: 95,
-                    color: "#ef4444",
-                  },
-                  {
-                    boundary: "Biosphere Integrity",
-                    risk: "Food system collapse, zoonotic pandemic risk",
-                    severity: 88,
-                    color: "#dc2626",
-                  },
-                  {
-                    boundary: "Biogeochemical Flows",
-                    risk: "Agricultural failure, water disputes, famine",
-                    severity: 82,
-                    color: "#ef4444",
-                  },
-                  {
-                    boundary: "Freshwater Change",
-                    risk: "Transboundary conflict, state fragility",
-                    severity: 79,
-                    color: "#f97316",
-                  },
-                  {
-                    boundary: "Land System Change",
-                    risk: "Sovereignty disputes, deforestation diplomacy",
-                    severity: 73,
-                    color: "#f97316",
-                  },
-                  {
-                    boundary: "Novel Entities",
-                    risk: "Chemical weapons precedents, regulatory failures",
-                    severity: 68,
-                    color: "#f59e0b",
-                  },
-                  {
-                    boundary: "Ocean Acidification",
-                    risk: "Fisheries EEZ conflicts, SIDS existential threat",
-                    severity: 64,
-                    color: "#f59e0b",
-                  },
-                  {
-                    boundary: "Ozone Depletion",
-                    risk: "Moderate — Montreal Protocol partially effective",
-                    severity: 42,
-                    color: "#22c55e",
-                  },
-                  {
-                    boundary: "Aerosol Loading",
-                    risk: "Transboundary air pollution disputes",
-                    severity: 55,
-                    color: "#f59e0b",
-                  },
-                ].map((row, i) => (
-                  <div
-                    key={row.boundary}
-                    className="flex items-center gap-3 py-2.5"
-                    style={{
-                      borderBottom: i < 8 ? `1px solid ${gridLine}` : "none",
-                    }}
-                  >
-                    <div
-                      className="w-1.5 h-1.5 rounded-full shrink-0"
-                      style={{ background: row.color }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-semibold font-sans text-foreground">
-                        {row.boundary}
-                      </p>
-                      <p className="text-[9px] font-sans text-muted-foreground">
-                        {row.risk}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <div className="w-14 h-1.5 rounded-full overflow-hidden bg-muted">
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${row.severity}%`,
-                            background: row.color,
-                          }}
-                        />
-                      </div>
-                      <span
-                        className="text-[9px] font-mono w-6 text-right"
-                        style={{ color: row.color }}
-                      >
-                        {row.severity}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+            <div className="bg-green-500/5 border border-green-500/20 rounded-2xl p-5 flex-1">
+              <div className="flex items-start gap-2.5">
+                <Info size={14} weight="fill" className="text-green-500 shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-3 text-[11px] font-sans leading-relaxed text-muted-foreground">
+                  <p className="text-[11px] font-bold text-green-600 dark:text-green-400">About the planetary boundaries</p>
+                  <p>
+                    The framework was introduced by Johan Rockström and colleagues in{" "}
+                    <a href="https://doi.org/10.1038/461472a" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-foreground">
+                      2009
+                    </a>{" "}
+                    and updated in{" "}
+                    <a href="https://doi.org/10.1126/science.1259855" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-foreground">
+                      2015
+                    </a>{" "}
+                    and{" "}
+                    <a href="https://doi.org/10.1126/sciadv.adh2458" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-foreground">
+                      2023
+                    </a>
+                    . Each boundary is a level of a control variable - carbon dioxide, forest cover, nitrogen use - beyond which the risk of
+                    destabilising the Earth system rises. Past it lies a zone of increasing risk, then a high-risk zone.
+                  </p>
+                  <p>
+                    The{" "}
+                    <a href={PHC_2026.summaryUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-foreground">
+                      Planetary Health Check 2026
+                    </a>
+                    , the third annual assessment from the Potsdam Institute for Climate Impact Research, finds seven of the nine
+                    transgressed. Only stratospheric ozone and, taken globally, aerosol loading are within their boundaries, and aerosols are
+                    past a proposed regional boundary over South Asia.
+                  </p>
+                  <p>
+                    How the wheel is drawn: a wedge starts at the pre-human baseline (the edge of the core) and runs to its measure's value,
+                    reaching the green ring at the boundary and the red ring at the high-risk line. Nitrogen, phosphorus and radiative
+                    forcing lie beyond the chart's edge. Novel entities has no single measure; it is drawn to the high-risk line, where the
+                    report places it, with a dashed edge.
+                  </p>
+                </div>
               </div>
-              <p className="text-[10px] font-sans mt-3 text-muted-foreground">
-                Security index reflects geopolitical instability risk per
-                boundary. Composite of expert consensus and conflict literature.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Framework note — spans the page beneath the dashboard, where it
-            reads as a footnote to the whole board rather than to the
-            risk matrix it happened to sit under. */}
-        <div className="bg-green-500/5 border border-green-500/20 rounded-2xl p-4 mb-6">
-          <div className="flex items-start gap-2.5">
-            <Info
-              size={14}
-              weight="fill"
-              className="text-green-500 shrink-0 mt-0.5"
-            />
-            <div>
-              <p className="text-[11px] font-bold font-sans mb-1 text-green-600 dark:text-green-400">
-                About Planetary Boundaries
-              </p>
-              <p className="text-[10px] font-sans leading-relaxed text-muted-foreground">
-                Framework introduced by Johan Rockström and colleagues in
-                2009 (Nature). Updated in 2015 (Science) and 2023. As of
-                2026, six of nine boundaries are transgressed. Biosphere
-                integrity and novel entities are most severely exceeded.
-              </p>
             </div>
           </div>
         </div>
