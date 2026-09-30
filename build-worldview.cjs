@@ -634,7 +634,6 @@ function indicator(id, o) {
   await wb("protectedSea", "ER.MRN.PTMR.ZS", { label: "Protected waters", unit: "% of territorial waters", format: "pct", dp: 1, upIsGood: true, note: "UNEP-WCMC Protected Planet: marine areas reserved by law or other effective means." });
   await wb("pm25", "EN.ATM.PM25.MC.M3", { label: "Fine-particle air pollution", unit: "µg/m³, average exposure", format: "num", dp: 1, upIsGood: false, note: "Global Burden of Disease: the PM2.5 concentration the average person breathes over the year." });
   await wb("waterWithdrawals", "ER.H2O.FWTL.ZS", { label: "Freshwater withdrawn", unit: "% of internal resources", format: "pct", dp: 1, upIsGood: null, note: "FAO AQUASTAT: water taken from rivers, lakes and aquifers, including desalinated water where it matters, against the renewable water that arises within countries." });
-  await wb("renewableElectricity", "EG.ELC.RNEW.ZS", { label: "Renewable electricity", unit: "% of electricity generated", format: "pct", dp: 1, upIsGood: true, note: "IEA: electricity from renewable power plants." });
   await wb("farmland", "AG.LND.AGRI.ZS", { label: "Farmland", unit: "% of land", format: "pct", dp: 1, upIsGood: null, note: "FAO: land that is arable, under permanent crops, or permanent pasture." });
   await wb("disasterDisplacement", "VC.IDP.NWDS", { label: "Displaced by disasters", unit: "new displacements a year", format: "count", dp: 0, upIsGood: null, note: "Internal Displacement Monitoring Centre: people forced from their homes by disasters within their own country, counted each time they are displaced." });
   {
@@ -663,6 +662,68 @@ function indicator(id, o) {
       breakdown: types.map(([label, suffix]) => [label, Number(last[k(suffix)]) || 0]),
     });
   }
+  // Industry: what industry and manufacturing add and export, what the
+  // world earns from its resources, and its grain harvest.
+  await wb("industryVA", "NV.IND.TOTL.ZS", { label: "Industry's share of output", unit: "% of GDP", format: "pct", dp: 1, upIsGood: null, note: "Value added by mining, manufacturing, construction, and electricity, water and gas." });
+  await wb("manufacturingUsd", "NV.IND.MANF.CD", { label: "Manufacturing value added", unit: "US$ a year", format: "usd", dp: 0, upIsGood: null, note: "What manufacturing adds to the world's output - turning materials or components into new products - in current US dollars." });
+  await wb("manufacturesExports", "TX.VAL.MANF.ZS.UN", { label: "Manufactured exports", unit: "% of goods exported", format: "pct", dp: 1, upIsGood: null, note: "UN Comtrade: chemicals, basic manufactures, machinery and transport equipment, and other manufactured goods." });
+  const rent = "World Bank, The Changing Wealth of Nations: the value of what is extracted less the cost of extracting it. The world figure was last published for 2021.";
+  await wb("resourceRents", "NY.GDP.TOTL.RT.ZS", { label: "Natural resource rents", unit: "% of GDP", format: "pct", dp: 2, upIsGood: null, note: `Oil, gas, coal, mineral and forest rents together. ${rent}` });
+  await wb("oilRents", "NY.GDP.PETR.RT.ZS", { label: "Oil rents", unit: "% of GDP", format: "pct", dp: 2, upIsGood: null, note: rent });
+  await wb("gasRents", "NY.GDP.NGAS.RT.ZS", { label: "Gas rents", unit: "% of GDP", format: "pct", dp: 2, upIsGood: null, note: rent });
+  await wb("coalRents", "NY.GDP.COAL.RT.ZS", { label: "Coal rents", unit: "% of GDP", format: "pct", dp: 2, upIsGood: null, note: rent });
+  await wb("mineralRents", "NY.GDP.MINR.RT.ZS", { label: "Mineral rents", unit: "% of GDP", format: "pct", dp: 2, upIsGood: null, note: `Tin, gold, lead, zinc, iron, copper, nickel, silver, bauxite and phosphate. ${rent}` });
+  // Cereals from FAO's own world totals: the World Bank's world aggregate for
+  // the latest year covers only part of the world (it halves the 2024 harvest).
+  const FAO = (slug) => ({ label: "FAO (via Our World in Data)", url: `https://ourworldindata.org/grapher/${slug}` });
+  add("cerealProduction", { label: "Cereal harvest", unit: "tonnes a year", format: "count", dp: 0, upIsGood: null, series: pts(await owidWorldSeries("cereal-production", "production__005510__tonnes"), 0), source: FAO("cereal-production"), note: "FAO: wheat, rice, maize, barley, oats, rye, millet, sorghum, buckwheat and mixed grains." });
+  add("cerealYield", { label: "Cereal yield", unit: "tonnes per hectare", format: "num", dp: 2, upIsGood: null, series: pts(await owidWorldSeries("cereal-yield", "yield__005412__tonnes_per_hectare"), 2), source: FAO("cereal-yield"), note: "FAO: grain harvested for each hectare under cereals." });
+  await wb("fertilizer", "AG.CON.FERT.ZS", { label: "Fertilizer use", unit: "kg per hectare of arable land", format: "num", dp: 1, upIsGood: null, note: "FAO: nitrogen, potash and phosphate fertilizers; manure is not counted." });
+
+  // Energy: supply, efficiency, the mix, electricity and fossil fuel
+  // production. The World Bank's world figures for the electricity mix are
+  // not used: they do not add up to the world (they put coal at 15%).
+  const EI = (slug) => ({ label: "Energy Institute — Statistical Review of World Energy (via Our World in Data)", url: `https://ourworldindata.org/grapher/${slug}` });
+  const EMBER = (slug) => ({ label: "Ember (via Our World in Data)", url: `https://ourworldindata.org/grapher/${slug}` });
+  const owidPts = async (slug, column, dp) => pts(await owidWorldSeries(slug, column), dp);
+  add("energySupply", { label: "Energy supply", unit: "TWh a year", format: "num", dp: 0, upIsGood: null, series: await owidPts("primary-energy-cons", "total_energy_supply_twh", 0), source: EI("primary-energy-cons"), note: "The Energy Institute's total energy supply: all the energy the world uses, before it is turned into electricity, fuels and heat." });
+  await wb("energyIntensity", "EG.EGY.PRIM.PP.KD", { label: "Energy intensity", unit: "MJ per $ of GDP (2021 PPP)", format: "num", dp: 2, upIsGood: false, note: "Tracking SDG 7 (IEA): energy supplied for each dollar of output at purchasing power; lower means less energy for the same output." });
+  {
+    const rows = (await owidWorld("share-energy-source-sub")).filter((r) => r.year >= FROM);
+    const last = rows.at(-1);
+    const v = (suffix) => round(Number(last[col(rows[0], suffix)]) || 0, 1);
+    add("fossilShare", {
+      label: "Fossil fuels' share of energy", unit: "% of energy supply", format: "pct", dp: 1, upIsGood: false,
+      series: await owidPts("fossil-fuels-share-energy", "fossil_fuels_share_pct", 1), source: EI("fossil-fuels-share-energy"),
+      note: "Oil, coal and gas together, as a share of the world's total energy supply.",
+      breakdownYear: last.year,
+      breakdown: [["Oil", v("oil_share_pct")], ["Coal", v("coal_share_pct")], ["Gas", v("gas_share_pct")], ["Nuclear", v("nuclear_share_pct")], ["Hydropower", v("hydro_share_pct")], ["Solar", v("solar_share_pct")], ["Wind", v("wind_share_pct")], ["Other renewables", v("other_renewables_share_pct")], ["Biofuels", v("biofuels_share_pct")]],
+      breakdownUnit: "%",
+    });
+  }
+  add("electricityGeneration", { label: "Electricity generated", unit: "TWh a year", format: "num", dp: 0, upIsGood: null, series: await owidPts("electricity-generation", "total_generation__twh", 0), source: EMBER("electricity-generation"), note: "Ember: all the electricity generated in the world in the year." });
+  {
+    const rows = (await owidWorld("share-elec-by-source")).filter((r) => r.year >= FROM);
+    const last = rows.at(-1);
+    // Exact names: "other_renewables_excluding_bioenergy_share..." also ends in "bioenergy_share...".
+    const v = (name) => {
+      if (!(name in last)) throw new Error(`OWID share-elec-by-source: no column ${name}`);
+      return round(Number(last[name]) || 0, 1);
+    };
+    add("fossilElectricity", {
+      label: "Electricity from fossil fuels", unit: "% of electricity generated", format: "pct", dp: 1, upIsGood: false,
+      series: await owidPts("share-electricity-fossil-fuels", "fossil_share_of_electricity__pct", 1), source: EMBER("share-electricity-fossil-fuels"),
+      note: "Ember: coal, gas and oil together.",
+      breakdownYear: last.year,
+      breakdown: [["Coal", v("coal_share_of_electricity__pct")], ["Gas", v("gas_share_of_electricity__pct")], ["Oil", v("oil_share_of_electricity__pct")], ["Nuclear", v("nuclear_share_of_electricity__pct")], ["Hydropower", v("hydro_share_of_electricity__pct")], ["Solar", v("solar_share_of_electricity__pct")], ["Wind", v("wind_share_of_electricity__pct")], ["Bioenergy", v("bioenergy_share_of_electricity__pct")], ["Other renewables", v("other_renewables_excluding_bioenergy_share_of_electricity__pct")]],
+      breakdownUnit: "%",
+    });
+  }
+  add("renewableElectricity", { label: "Renewable electricity", unit: "% of electricity generated", format: "pct", dp: 1, upIsGood: true, series: await owidPts("share-electricity-renewables", "renewable_share_of_electricity__pct", 1), source: EMBER("share-electricity-renewables"), note: "Ember: solar, wind, hydropower, bioenergy, geothermal, wave and tidal." });
+  add("oilProduction", { label: "Oil production", unit: "TWh a year", format: "num", dp: 0, upIsGood: null, series: await owidPts("oil-production-by-country", "oil_production_twh", 0), source: EI("oil-production-by-country"), note: "Energy Institute: crude oil, condensates, natural gas liquids and other liquid fuels, as energy." });
+  add("gasProduction", { label: "Gas production", unit: "TWh a year", format: "num", dp: 0, upIsGood: null, series: await owidPts("gas-production-by-country", "gas_production_twh", 0), source: EI("gas-production-by-country"), note: "Energy Institute: natural gas, as energy." });
+  add("coalProduction", { label: "Coal production", unit: "TWh a year", format: "num", dp: 0, upIsGood: null, series: await owidPts("coal-production-by-country", "coal_production_twh", 0), source: EI("coal-production-by-country"), note: "Energy Institute: coal, as energy." });
+
   // Politics and civic life: V-Dem's other measures of democracy, political
   // liberties and civil society.
   add("liberalDemocracy", { label: "Liberal democracy", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("liberal-democracy-index"), source: SRC.vdemLiberal, note: "V-Dem's index of electoral democracy with the rule of law, checks on the executive and protected liberties, averaged across the world's people (population-weighted). 1 is most democratic." });

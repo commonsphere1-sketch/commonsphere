@@ -13,10 +13,12 @@ import {
   Buildings,
   Coins,
   Cpu,
+  Factory,
   GlobeHemisphereWest,
   GlobeStand,
   Leaf,
   Lightbulb,
+  Lightning,
   Minus,
   Ranking,
   Scales,
@@ -51,9 +53,10 @@ import { SectionNav, type NavSection } from "@/components/SectionNav";
 import { has } from "@/lib/na";
 
 /**
- * Worldview: where the world stands, as a global dashboard in ten pillars -
- * society, the economy, development, technology, politics, civic rights and
- * freedoms, institutions, ideology, security and the planet - after an
+ * Worldview: where the world stands, as a global dashboard in twelve pillars -
+ * society, the economy, development, industry, energy, technology, politics,
+ * civic rights and freedoms, institutions, ideology, security and the
+ * planet - after an
  * overview with the population clock, the headline figures and the day's
  * world headlines.
  *
@@ -372,7 +375,6 @@ const DESCRIBE: Record<string, string> = {
   protectedSea: "Territorial waters in marine protected areas, as a share of all territorial waters.",
   pm25: "The average concentration of fine particles (PM2.5) in the air people breathe, in micrograms per cubic metre.",
   waterWithdrawals: "Fresh water taken from rivers, lakes and aquifers each year, against the renewable water that arises within countries.",
-  renewableElectricity: "Electricity from renewable sources - water, wind, sun and others - as a share of all electricity generated.",
   farmland: "Land that is cropped or grazed, as a share of all land.",
   disasterDisplacement: "Times people were forced from their homes by disasters within their own country in the year.",
   disasterDeaths: "People killed or missing in natural disasters in the year.",
@@ -382,6 +384,26 @@ const DESCRIBE: Record<string, string> = {
   egalitarianDemocracy: "How equally rights, freedoms and power are spread across social groups, averaged across the world's people.",
   politicalLiberties: "How free people are to speak and to associate, averaged across the world's people.",
   civilSociety: "How far civil society groups are consulted by policymakers and people take part in them, averaged across the world's people.",
+  industryVA: "The share of the world's output that comes from industry: mining, manufacturing, construction, and electricity, water and gas.",
+  manufacturingUsd: "What manufacturing adds to the world's output in the year, in current US dollars.",
+  manufacturesExports: "Manufactured goods - chemicals, basic manufactures, machinery and transport equipment, and others - as a share of all goods exported.",
+  resourceRents: "What the world earns from its oil, gas, coal, minerals and forests above the cost of extracting them, as a share of output.",
+  oilRents: "What oil earns above the cost of producing it, as a share of the world's output.",
+  gasRents: "What natural gas earns above the cost of producing it, as a share of the world's output.",
+  coalRents: "What coal earns above the cost of mining it, as a share of the world's output.",
+  mineralRents: "What ten minerals, from iron and copper to gold, earn above the cost of mining them, as a share of the world's output.",
+  cerealProduction: "The wheat, rice, maize and other grain harvested in the year.",
+  cerealYield: "The grain harvested from each hectare of land under cereals.",
+  fertilizer: "Nitrogen, potash and phosphate fertilizer used on each hectare of arable land.",
+  energySupply: "All the energy the world uses in the year, before it is turned into electricity, fuels and heat, in terawatt-hours.",
+  energyIntensity: "How much energy the world uses for each dollar of output; lower means more output from the same energy.",
+  fossilShare: "Oil, coal and gas, as a share of all the energy the world uses.",
+  electricityGeneration: "All the electricity generated in the world in the year, in terawatt-hours.",
+  fossilElectricity: "The share of the world's electricity generated from coal, gas and oil.",
+  renewableElectricity: "The share of the world's electricity generated from renewable sources - hydropower, wind, sun, bioenergy and others.",
+  oilProduction: "The oil the world produces - crude, condensates and natural gas liquids - measured as energy.",
+  gasProduction: "The natural gas the world produces, measured as energy.",
+  coalProduction: "The coal the world produces, measured as energy.",
 };
 
 const DESCRIBE_CLIMATE: Record<string, string> = {
@@ -585,8 +607,9 @@ function Hero() {
           </h1>
           <p className="text-sm font-sans mt-1.5" style={{ color: muted }}>
             A dashboard of the whole world in {inWords(PILLARS.length)} pillars - how people live, what the economy is doing, how far the
-            world has developed, technology, how it is governed, the rights and freedoms people have, its institutions, what people believe,
-            war and peace, and the state of the planet - each figure with what it measures, its trend and its source.
+            world has developed, what it makes and how it is powered, technology, how it is governed, the rights and freedoms people have,
+            its institutions, what people believe, war and peace, and the state of the planet - each figure with what it measures, its
+            trend and its source.
           </p>
           <p className="text-sm font-sans mt-3" style={{ color: head }}>
             Of the {all.better + all.worse} measures here whose direction is not a matter of opinion,{" "}
@@ -627,14 +650,6 @@ function Hero() {
     </div>
   );
 }
-
-// ── Pillar navigation ───────────────────────────────────────────────────────
-
-const SECTIONS: NavSection[] = [
-  { id: "overview", label: "Overview" },
-  { id: "pillars", label: "Pillars" },
-  { id: "rankings", label: "Rankings" },
-];
 
 // ── World headlines ─────────────────────────────────────────────────────────
 
@@ -740,7 +755,8 @@ function displacedShare(): WorldIndicator {
 
 // ── The pillars ─────────────────────────────────────────────────────────────
 
-const inWords = (n: number) => ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"][n] ?? String(n);
+const inWords = (n: number) =>
+  ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen"][n] ?? String(n);
 
 /** "Five of its seven measures are lower than about ten years before." */
 function howManyLower(lower: number, n: number): string {
@@ -808,7 +824,7 @@ function publishers(figures: Figure[]): string[] {
 type Tile = { label: string; value: string; sub: string; d: Delta | null; fig?: Figure; summary?: string };
 type Group = { title: string; intro: string; ids: string[]; climate?: string[]; extras?: Record<string, string>; freedom?: boolean };
 type Pillar = {
-  id: "society" | "economy" | "development" | "technology" | "politics" | "civic" | "institutions" | "ideology" | "security" | "ecology";
+  id: "society" | "economy" | "development" | "industry" | "energy" | "technology" | "politics" | "civic" | "institutions" | "ideology" | "security" | "ecology";
   title: string;
   kicker: string;
   color: string;
@@ -845,7 +861,7 @@ const PILLARS: Pillar[] = [
     color: "#6366f1",
     icon: <UsersThree size={18} weight="fill" />,
     description:
-      "Who we are and how we live: how many of us there are, how old and where; health, from birth to old age; food; schooling; and the basics of modern life at home - electricity, clean water, sanitation and hygiene - with the gap between women and men in paid work.",
+      "Who we are and how we live: how many of us there are, how old and where; health, from birth to old age; food; schooling; and the basics of modern life at home - clean water, sanitation and hygiene - with the gap between women and men in paid work.",
     summary: () =>
       `${pctOf("urban")} of people live in cities and ${pctOf("literacy")} of adults can read (${lastOf("literacy")[0]}). A newborn can expect to live ${lastOf("lifeExpectancy")[1]} years (${lastOf("lifeExpectancy")[0]}), and ${pctOf("undernourished")} of people do not get enough to eat (${lastOf("undernourished")[0]}).`,
     tiles: () => [
@@ -879,8 +895,8 @@ const PILLARS: Pillar[] = [
       },
       {
         title: "Access & equality",
-        intro: "The basics of modern life at home - power, safe water, sanitation, somewhere to wash hands - and the gap between women and men in paid work.",
-        ids: ["electricity", "water", "sanitation", "handwashing", "workGap"],
+        intro: "The basics of modern life at home - safe water, sanitation, somewhere to wash hands - and the gap between women and men in paid work.",
+        ids: ["water", "sanitation", "handwashing", "workGap"],
       },
     ],
   },
@@ -938,16 +954,16 @@ const PILLARS: Pillar[] = [
     color: "#84cc16",
     icon: <TrendUp size={18} weight="fill" />,
     description:
-      "Development and modernisation: human development and output per person; the shift of work and output from the land to industry and services, and from vulnerable work to wages; bank accounts and air travel; how people cook and how much energy they use - and how the world divides between developed and developing countries.",
+      "Development and modernisation: human development and output per person; the shift of work and output from the land to services, and from vulnerable work to wages; bank accounts and air travel - and how the world divides between developed and developing countries. Industry and energy have pillars of their own.",
     summary: () =>
-      `The world's Human Development Index was ${fmt(WORLD.hdi, lastOf("hdi")[1])} in ${lastOf("hdi")[0]} (UNDP), and output per person came to ${fmt(WORLD.gdpPerCapitaPpp, lastOf("gdpPerCapitaPpp")[1])} in ${lastOf("gdpPerCapitaPpp")[0]}, at 2021 prices and purchasing power. ${pctOf("agEmployment")} of workers are in farming and ${pctOf("wageWorkers")} are paid a wage or salary (${lastOf("wageWorkers")[0]}), and ${pctOf("cleanCooking")} of people cook with clean fuels (${lastOf("cleanCooking")[0]}).`,
+      `The world's Human Development Index was ${fmt(WORLD.hdi, lastOf("hdi")[1])} in ${lastOf("hdi")[0]} (UNDP), and output per person came to ${fmt(WORLD.gdpPerCapitaPpp, lastOf("gdpPerCapitaPpp")[1])} in ${lastOf("gdpPerCapitaPpp")[0]}, at 2021 prices and purchasing power. ${pctOf("agEmployment")} of workers are in farming and ${pctOf("wageWorkers")} are paid a wage or salary (${lastOf("wageWorkers")[0]}), and ${pctOf("accounts")} of adults have a bank or mobile-money account (${lastOf("accounts")[0]}).`,
     tiles: () => [
       worldTile("hdi", "Human development"),
       worldTile("gdpPerCapitaPpp", "Output per person"),
       worldTile("agEmployment", "Working in farming"),
       worldTile("wageWorkers", "Wage and salary work"),
-      worldTile("manufacturingVA", "Manufacturing share"),
-      worldTile("cleanCooking", "Clean cooking"),
+      worldTile("vulnerableWork", "In vulnerable work"),
+      worldTile("accounts", "Have an account"),
     ],
     groups: [
       {
@@ -957,8 +973,8 @@ const PILLARS: Pillar[] = [
       },
       {
         title: "Work",
-        intro: "How the world's workers divide between farming, industry and services, how many are paid a wage or salary, and how many are in vulnerable work (ILO modelled estimates).",
-        ids: ["agEmployment", "industryEmployment", "servicesEmployment", "wageWorkers", "vulnerableWork"],
+        intro: "How many of the world's workers are in farming and in services (industry's share is under Industry), how many are paid a wage or salary, and how many are in vulnerable work (ILO modelled estimates).",
+        ids: ["agEmployment", "servicesEmployment", "wageWorkers", "vulnerableWork"],
       },
       {
         title: "Money & mobility",
@@ -967,13 +983,85 @@ const PILLARS: Pillar[] = [
       },
       {
         title: "Output",
-        intro: "How much of what the world produces comes from farming, manufacturing and services.",
-        ids: ["agricultureVA", "manufacturingVA", "servicesVA"],
+        intro: "How much of what the world produces comes from farming and from services (industry's share is under Industry).",
+        ids: ["agricultureVA", "servicesVA"],
+      },
+    ],
+  },
+  {
+    id: "industry",
+    title: "Industry",
+    kicker: "What the world makes, mines and grows",
+    color: "#b45309",
+    icon: <Factory size={18} weight="fill" />,
+    description:
+      "The world's industry: what industry and manufacturing add to output and how many people they employ; how much of what the world exports is manufactured; what it earns from oil, gas, coal and minerals; and the grain it harvests, how much from each hectare, and the fertilizer it uses.",
+    summary: () =>
+      `Manufacturing added ${usd("manufacturingUsd")} to the world's output in ${lastOf("manufacturingUsd")[0]} - ${pctOf("manufacturingVA")} of GDP - and industry as a whole, construction and utilities included, ${pctOf("industryVA")} (${lastOf("industryVA")[0]}). ${pctOf("industryEmployment")} of the world's workers are in industry (${lastOf("industryEmployment")[0]}), and manufactured goods make up ${pctOf("manufacturesExports")} of goods exported (${lastOf("manufacturesExports")[0]}). The world harvested ${compact(lastOf("cerealProduction")[1])} tonnes of cereals in ${lastOf("cerealProduction")[0]}.`,
+    tiles: () => [
+      worldTile("manufacturingUsd", "Manufacturing value"),
+      worldTile("manufacturingVA", "Manufacturing share"),
+      worldTile("industryVA", "Industry's share"),
+      worldTile("industryEmployment", "Working in industry"),
+      worldTile("manufacturesExports", "Manufactured exports"),
+      worldTile("cerealProduction", "Cereal harvest"),
+    ],
+    groups: [
+      {
+        title: "Industry & manufacturing",
+        intro: "What industry and manufacturing add to the world's output, how many people work in industry (ILO), and how much of what the world exports is manufactured (UN Comtrade).",
+        ids: ["manufacturingUsd", "manufacturingVA", "industryVA", "industryEmployment", "manufacturesExports"],
       },
       {
-        title: "Energy",
-        intro: "How people cook, and how much energy and electricity the world uses per person (Tracking SDG 7 and the IEA).",
-        ids: ["cleanCooking", "energyPerPerson", "electricityPerPerson"],
+        title: "Mining & resources",
+        intro: "What the world earns from its oil, gas, coal and minerals above the cost of extracting them, as a share of output (World Bank; last published for 2021).",
+        ids: ["resourceRents", "oilRents", "gasRents", "coalRents", "mineralRents"],
+      },
+      {
+        title: "Farm output",
+        intro: "The grain the world harvests, how much from each hectare, and the fertilizer it uses (FAO).",
+        ids: ["cerealProduction", "cerealYield", "fertilizer"],
+      },
+    ],
+  },
+  {
+    id: "energy",
+    title: "Energy",
+    kicker: "How the world is powered",
+    color: "#eab308",
+    icon: <Lightning size={18} weight="fill" />,
+    description:
+      "How the world is powered: who has electricity and cooks with clean fuels; how much energy and electricity the world uses, and how much energy each dollar of output takes; where its energy and electricity come from - fossil fuels, nuclear and renewables; and how much oil, gas and coal it produces.",
+    summary: () =>
+      `${pctOf("electricity")} of people have electricity and ${pctOf("cleanCooking")} cook with clean fuels (${lastOf("cleanCooking")[0]}). The world used ${lastOf("energySupply")[1].toLocaleString("en-US")} TWh of energy in ${lastOf("energySupply")[0]}, ${pctOf("fossilShare")} of it from oil, coal and gas; ${pctOf("renewableElectricity")} of its electricity came from renewables and ${pctOf("fossilElectricity")} from fossil fuels (${lastOf("fossilElectricity")[0]}).`,
+    tiles: () => [
+      worldTile("electricity", "Have electricity"),
+      worldTile("cleanCooking", "Clean cooking"),
+      worldTile("energySupply", "Energy supply"),
+      worldTile("fossilShare", "Fossil fuels' share"),
+      worldTile("renewableElectricity", "Renewable electricity"),
+      worldTile("energyIntensity", "Energy intensity"),
+    ],
+    groups: [
+      {
+        title: "Access",
+        intro: "Who has electricity, and who cooks with clean fuels rather than wood, charcoal, dung, coal or kerosene (Tracking SDG 7).",
+        ids: ["electricity", "cleanCooking"],
+      },
+      {
+        title: "Use & efficiency",
+        intro: "How much energy and electricity the world uses, in all and per person, and how much energy each dollar of output takes (Energy Institute, Ember, IEA).",
+        ids: ["energySupply", "energyPerPerson", "electricityGeneration", "electricityPerPerson", "energyIntensity"],
+      },
+      {
+        title: "The mix",
+        intro: "Where the world's energy and electricity come from - each opens to its sources - and how much of its final energy is renewable (Energy Institute, Ember, IEA).",
+        ids: ["fossilShare", "renewables", "fossilElectricity", "renewableElectricity"],
+      },
+      {
+        title: "Fossil fuel production",
+        intro: "The oil, gas and coal the world produces, as energy (Energy Institute).",
+        ids: ["oilProduction", "gasProduction", "coalProduction"],
       },
     ],
   },
@@ -981,7 +1069,7 @@ const PILLARS: Pillar[] = [
     id: "technology",
     title: "Technology",
     kicker: "How connected and inventive the world is",
-    color: "#f59e0b",
+    color: "#06b6d4",
     icon: <Cpu size={18} weight="fill" />,
     description:
       "How far the world is online and how it invents: internet use, mobile, broadband and landline connections and secure servers; what it spends on research, the researchers it has, the science it publishes and the patents it files; and its trade in high-tech and digital goods and services, and in the use of ideas.",
@@ -1218,18 +1306,18 @@ const PILLARS: Pillar[] = [
     kicker: "The state of the planet",
     color: "#14b8a6",
     icon: <Leaf size={18} weight="fill" />,
-    description: `The planet as the agencies that measure it last read it (retrieved ${CLIMATE_RETRIEVED}) - temperature and the gases that drive it, Arctic ice - then what people emit, in all and each, how much of their energy and electricity is renewable, the air they breathe and the water they draw, how the land and sea are used and protected, and the toll of natural disasters.`,
+    description: `The planet as the agencies that measure it last read it (retrieved ${CLIMATE_RETRIEVED}) - temperature and the gases that drive it, Arctic ice - then what people emit, in all and each, the air they breathe and the water they draw, how the land and sea are used and protected, and the toll of natural disasters. Renewable energy is under Energy.`,
     summary: () => {
       const w = climateOf("warming");
       const c = climateOf("co2");
-      return `${w ? `The surface was ${w.value} °C warmer than its 1951-1980 average in ${w.period}` : "Surface temperature is shown below"}${c ? `, with carbon dioxide at ${c.value} ppm (${c.period})` : ""}. People released ${compact(lastOf("ghg")[1] * 1e6)} tonnes of greenhouse gases in ${lastOf("ghg")[0]}; renewables supplied ${pctOf("renewables")} of final energy (${lastOf("renewables")[0]}), and forests cover ${lastOf("forest")[1].toFixed(1)}% of the land (${lastOf("forest")[0]}).`;
+      return `${w ? `The surface was ${w.value} °C warmer than its 1951-1980 average in ${w.period}` : "Surface temperature is shown below"}${c ? `, with carbon dioxide at ${c.value} ppm (${c.period})` : ""}. People released ${compact(lastOf("ghg")[1] * 1e6)} tonnes of greenhouse gases in ${lastOf("ghg")[0]}. Forests cover ${lastOf("forest")[1].toFixed(1)}% of the land (${lastOf("forest")[0]}), and ${pctOf("protectedLand")} of it is protected (${lastOf("protectedLand")[0]}).`;
     },
     tiles: () =>
       [
         climateTile("warming", "Warming"),
         climateTile("co2", "Carbon dioxide"),
         worldTile("ghg", "Greenhouse gases"),
-        worldTile("renewables", "Renewable energy"),
+        worldTile("pm25", "Air pollution"),
         worldTile("forest", "Forest cover"),
         climateTile("sea-ice", "Arctic sea ice"),
       ].filter((t): t is Tile => t !== null),
@@ -1241,9 +1329,9 @@ const PILLARS: Pillar[] = [
         climate: ["warming", "co2", "ch4", "n2o", "aggi"],
       },
       {
-        title: "Emissions & energy",
-        intro: "What people release into the air each year, in all and per person, and how much of their energy and electricity is renewable.",
-        ids: ["co2", "co2PerPerson", "methane", "ghg", "renewables", "renewableElectricity"],
+        title: "Emissions",
+        intro: "What people release into the air each year, in all and per person.",
+        ids: ["co2", "co2PerPerson", "methane", "ghg"],
       },
       {
         title: "Air & water",
@@ -1263,6 +1351,13 @@ const PILLARS: Pillar[] = [
       },
     ],
   },
+];
+
+/** The page's nav: the overview, each pillar - each its own section, one to a row - and the rankings. */
+const SECTIONS: NavSection[] = [
+  { id: "overview", label: "Overview" },
+  ...PILLARS.map((p) => ({ id: p.id, label: p.title })),
+  { id: "rankings", label: "Rankings" },
 ];
 
 /** How many of a pillar's measures improved, worsened, or have no verdict, over about ten years. */
@@ -1372,10 +1467,10 @@ function ChangeLists({ figures, onPick, max, onMore }: { figures: Figure[]; onPi
 }
 
 /**
- * A pillar at a glance: what it covers, six of its figures as tiles (each
- * opening its window), what the figures say together, which measures got
- * better or worse, and where the figures come from. "Open" shows every
- * figure of the pillar in a window; the link below goes to its section.
+ * A pillar, as its own section of the page: what it covers, six of its
+ * figures as tiles (each opening its window), what the figures say
+ * together, which measures got better or worse, and where the figures come
+ * from. "Open" shows every figure of the pillar in a window.
  */
 function PillarCard({ p }: { p: Pillar }) {
   const { card, head, muted } = useLook();
@@ -1384,7 +1479,12 @@ function PillarCard({ p }: { p: Pillar }) {
   const figures = p.groups.flatMap(groupFigures);
   const sources = [...publishers(figures), ...(p.groups.some((g) => g.freedom) ? ["Freedom House"] : [])];
   return (
-    <div className="rounded-2xl p-5 flex flex-col gap-4" style={{ ...card, boxShadow: `inset 3px 0 0 0 ${p.color}, ${card.boxShadow}` }}>
+    <section
+      id={p.id}
+      aria-labelledby={`${p.id}-title`}
+      className="scroll-mt-36 rounded-2xl p-5 flex flex-col gap-4"
+      style={{ ...card, boxShadow: `inset 3px 0 0 0 ${p.color}, ${card.boxShadow}` }}
+    >
       <div className="flex items-start gap-3">
         <div
           className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
@@ -1393,7 +1493,7 @@ function PillarCard({ p }: { p: Pillar }) {
           {p.icon}
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="text-base font-bold font-sans" style={{ color: head }}>
+          <h3 id={`${p.id}-title`} className="text-base font-bold font-sans" style={{ color: head }}>
             {p.title}
           </h3>
           <p className="text-[11px] font-sans" style={{ color: muted }}>
@@ -1404,11 +1504,11 @@ function PillarCard({ p }: { p: Pillar }) {
           {figures.length} figures · {latestSpan(figures)}
         </span>
       </div>
-      <p className="text-[11px] font-sans leading-relaxed -mt-1" style={{ color: muted }}>
+      <p className="text-[11px] font-sans leading-relaxed -mt-1 max-w-4xl" style={{ color: muted }}>
         {p.description}
       </p>
-      {/* One figure to a row, each as wide as the card, its trend running across it. */}
-      <div className="grid grid-cols-1 gap-2">
+      {/* The pillar runs the page's width, so its figures sit up to three to a row, each wide, its trend running across it. */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
         {tiles.map((t) => {
           return t.fig ? (
             <FigureTile key={t.label} f={t.fig} label={t.label} onClick={() => open(p, t.fig)} />
@@ -1429,9 +1529,11 @@ function PillarCard({ p }: { p: Pillar }) {
           );
         })}
       </div>
-      <p className="text-xs font-sans leading-relaxed text-foreground/85">{p.summary()}</p>
-      <DirectionBar p={p} />
-      <ChangeLists figures={figures} onPick={(f) => open(p, f)} max={4} onMore={() => open(p)} />
+      <p className="text-xs font-sans leading-relaxed text-foreground/85 max-w-4xl">{p.summary()}</p>
+      <div className="max-w-xl">
+        <DirectionBar p={p} />
+      </div>
+      <ChangeLists figures={figures} onPick={(f) => open(p, f)} max={6} onMore={() => open(p)} />
       <p className="text-[10px] font-sans leading-snug" style={{ color: muted }}>
         Sources: {sources.join(" · ")}.
       </p>
@@ -1446,7 +1548,7 @@ function PillarCard({ p }: { p: Pillar }) {
           <ArrowsOut size={12} weight="bold" /> Open {p.title.toLowerCase()}
         </button>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -2535,28 +2637,25 @@ export function WorldviewPage() {
           <HeadlinePills />
         </section>
 
-        {/* ── The pillars: each card opens its window ── */}
-        <section id="pillars" className="scroll-mt-36 flex flex-col gap-4">
-          <div className="px-1 pt-2 flex items-center gap-2">
-            <GlobeHemisphereWest size={18} weight="fill" className="text-[#2a78d6] dark:text-[#3987e5]" />
-            <h2 className="text-xl font-bold font-sans" style={{ color: head }}>
-              The {inWords(PILLARS.length)} pillars
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4 items-stretch">
-            {PILLARS.map((p) => (
-              <PillarCard key={p.id} p={p} />
-            ))}
-          </div>
-        </section>
+        {/* ── The pillars: each its own section, one to a row; each card opens its window ── */}
+        <div className="px-1 pt-2 flex items-center gap-2">
+          <GlobeHemisphereWest size={18} weight="fill" className="text-[#2a78d6] dark:text-[#3987e5]" />
+          <h2 className="text-xl font-bold font-sans" style={{ color: head }}>
+            The {inWords(PILLARS.length)} pillars
+          </h2>
+        </div>
+        {PILLARS.map((p) => (
+          <PillarCard key={p.id} p={p} />
+        ))}
 
         <Rankings />
 
         <p className="text-[10px] font-sans text-muted-foreground leading-relaxed max-w-4xl px-1">
           Figures retrieved {WORLDVIEW_RETRIEVED} by build-worldview.cjs: the World Bank's world and income-group aggregates (carrying figures
-          from the ILO, the IEA, the ITU, UNESCO, the US National Science Foundation, UN Comtrade, the IMF, the IISS, SIPRI and WHO/UNICEF),
-          the IMF's World Economic Outlook, UCDP, V-Dem, UNDP's Human Development Report and the Federation of American Scientists via Our
-          World in Data, UNHCR, and the UN's World Population Prospects; climate readings from NASA and NOAA, retrieved {CLIMATE_RETRIEVED}; religion from Pew Research Center's 2025 report, read
+          from the ILO, the IEA, the FAO, the ITU, UNESCO, the US National Science Foundation, UN Comtrade, the IMF, the IISS, SIPRI and
+          WHO/UNICEF), the IMF's World Economic Outlook, UCDP, V-Dem, UNDP's Human Development Report, the Energy Institute's Statistical
+          Review of World Energy, Ember, EM-DAT and the Federation of American Scientists via Our World in Data, UNHCR, and the UN's World
+          Population Prospects; climate readings from NASA and NOAA, retrieved {CLIMATE_RETRIEVED}; religion from Pew Research Center's 2025 report, read
           from it on {PEW_CHECKED}; rankings and the developed / developing split use the figures on each country's page. Arrows compare with
           about ten years earlier - for religion, with 2010, in Pew's own words; "better" and "worse" - and the counts of them - are only given
           where the direction is not a matter of opinion. The share of people displaced is UNHCR's count over the World Bank's population for
