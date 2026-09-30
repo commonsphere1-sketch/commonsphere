@@ -5,6 +5,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   Bank,
+  Buildings,
   CaretDown,
   Coins,
   Cpu,
@@ -16,6 +17,7 @@ import {
   Ranking,
   Scales,
   ShieldWarning,
+  TrendUp,
   UsersThree,
   X,
 } from "@phosphor-icons/react";
@@ -45,10 +47,11 @@ import { SectionNav, type NavSection } from "@/components/SectionNav";
 import { has } from "@/lib/na";
 
 /**
- * Worldview: where the world stands, as a global dashboard in eight pillars -
- * society, the economy, technology, politics, institutions, ideology,
- * security and the planet - after an overview with the population clock, the
- * headline figures and the day's world headlines.
+ * Worldview: where the world stands, as a global dashboard in ten pillars -
+ * society, the economy, development, technology, politics, civic rights and
+ * freedoms, institutions, ideology, security and the planet - after an
+ * overview with the population clock, the headline figures and the day's
+ * world headlines.
  *
  * Each pillar opens with its status: headline percentages, and how many of
  * its measures have improved or worsened over about ten years, counted only
@@ -315,6 +318,24 @@ const DESCRIBE: Record<string, string> = {
   buddhists: "People who identify as Buddhists, as a share of everyone.",
   jews: "Jews as a share of everyone; outside Israel, Pew counts people who identify with Judaism as their religion.",
   otherReligions: "Everyone who identifies with another religion - Baha'is, Daoists, Jains, Sikhs, followers of folk religions and many smaller groups - together.",
+  physicalIntegrity: "How far people are free from torture and political killings by the government, averaged across the world's people.",
+  womenCivilLiberties: "How far women are free from forced labour, have property rights and access to the courts, and can move freely, averaged across the world's people.",
+  equalityBeforeLaw: "How far laws are transparent and enforced alike, administration is impartial, and people have access to justice and are free from torture, forced labour and limits on their religion and movement, averaged across the world's people.",
+  privateLiberties: "How far people are free from forced labour, own property securely, and can move and worship freely, averaged across the world's people.",
+  freeAssociation: "How far parties, the opposition included, can form and take part in elections, and civil society groups can form and operate freely, averaged across the world's people.",
+  womenEmpowerment: "How far women enjoy civil liberties, take part in civil society and are represented in politics, averaged across the world's people.",
+  hdi: "UNDP's summary of three things: a long and healthy life, a good education, and a decent standard of living. 1 is the highest.",
+  gdpPerCapitaPpp: "What the world produces per person, in dollars adjusted for what money buys in each country and for inflation.",
+  agEmployment: "Workers in agriculture, forestry and fishing, as a share of everyone employed.",
+  industryEmployment: "Workers in mining, manufacturing, construction and utilities, as a share of everyone employed.",
+  servicesEmployment: "Workers in trade, transport, finance, government, education, health and other services, as a share of everyone employed.",
+  wageWorkers: "Employees paid a wage or salary, as against the self-employed, as a share of everyone employed.",
+  agricultureVA: "The share of the world's output that comes from agriculture, forestry and fishing.",
+  manufacturingVA: "The share of the world's output that comes from manufacturing.",
+  servicesVA: "The share of the world's output that comes from services.",
+  cleanCooking: "People who mainly cook with clean fuels and technologies, such as electricity, gas or solar, rather than wood, charcoal, dung, coal or kerosene.",
+  energyPerPerson: "The primary energy the world uses per person, in kilograms of oil equivalent.",
+  electricityPerPerson: "The electricity the world uses per person, in kilowatt-hours.",
 };
 
 const DESCRIBE_CLIMATE: Record<string, string> = {
@@ -521,9 +542,9 @@ function Hero() {
             Where the world stands
           </h1>
           <p className="text-sm font-sans mt-1.5" style={{ color: muted }}>
-            A dashboard of the whole world in {inWords(PILLARS.length)} pillars - how people live, what the economy is doing, technology,
-            how the world is governed, its institutions, what people believe, war and peace, and the state of the planet - each figure with
-            what it measures, its trend and its source.
+            A dashboard of the whole world in {inWords(PILLARS.length)} pillars - how people live, what the economy is doing, how far the
+            world has developed, technology, how it is governed, the rights and freedoms people have, its institutions, what people believe,
+            war and peace, and the state of the planet - each figure with what it measures, its trend and its source.
           </p>
           <p className="text-sm font-sans mt-3" style={{ color: head }}>
             Of the {all.better + all.worse} measures here whose direction is not a matter of opinion,{" "}
@@ -571,8 +592,10 @@ const SECTIONS: NavSection[] = [
   { id: "overview", label: "Overview" },
   { id: "society", label: "Society" },
   { id: "economy", label: "Economy" },
+  { id: "development", label: "Development" },
   { id: "technology", label: "Technology" },
   { id: "politics", label: "Politics" },
+  { id: "civic", label: "Civic" },
   { id: "institutions", label: "Institutions" },
   { id: "ideology", label: "Ideology" },
   { id: "security", label: "Security" },
@@ -680,10 +703,18 @@ function displacedShare(): WorldIndicator {
 
 const inWords = (n: number) => ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"][n] ?? String(n);
 
+/** "Five of its seven measures are lower than about ten years before." */
+function howManyLower(lower: number, n: number): string {
+  if (lower === 0) return `None of its ${inWords(n)} measures is lower than about ten years before.`;
+  if (lower === n) return `All ${inWords(n)} of its measures are lower than about ten years before.`;
+  const w = inWords(lower);
+  return `${w[0].toUpperCase()}${w.slice(1)} of its ${inWords(n)} measures ${lower === 1 ? "is" : "are"} lower than about ten years before.`;
+}
+
 type Tile = { label: string; value: string; sub: string; d: Delta | null };
 type Group = { title: string; intro: string; ids: string[]; climate?: string[]; extras?: Record<string, string>; freedom?: boolean };
 type Pillar = {
-  id: "society" | "economy" | "technology" | "politics" | "institutions" | "ideology" | "security" | "ecology";
+  id: "society" | "economy" | "development" | "technology" | "politics" | "civic" | "institutions" | "ideology" | "security" | "ecology";
   title: string;
   kicker: string;
   color: string;
@@ -753,7 +784,7 @@ const PILLARS: Pillar[] = [
     color: "#0ea5e9",
     icon: <Coins size={18} weight="fill" />,
     description:
-      "The world economy: its size and growth, prices and jobs, what governments and developing countries owe, how open it is to trade and investment, and poverty - and how it divides between developed and developing countries.",
+      "The world economy: its size and growth, prices and jobs, what governments and developing countries owe, how open it is to trade and investment, and poverty.",
     summary: () =>
       `The world produced ${usd("gdp")} in ${lastOf("gdp")[0]}, growing ${pctOf("gdpGrowth", 2)} after inflation, while prices rose ${pctOf("inflation", 2)} and ${pctOf("unemployment", 2)} of the labour force was out of work. Governments owe ${pctOf("govDebt")} of world GDP, and ${pctOf("extremePoverty")} of people live on less than $3 a day (${lastOf("extremePoverty")[0]}).`,
     tiles: () => [
@@ -778,6 +809,45 @@ const PILLARS: Pillar[] = [
         title: "Poverty",
         intro: "The World Bank's two main lines: extreme poverty, and the line typical of upper-middle-income countries.",
         ids: ["extremePoverty", "poverty830"],
+      },
+    ],
+  },
+  {
+    id: "development",
+    title: "Development",
+    kicker: "How far the world has modernised",
+    color: "#84cc16",
+    icon: <TrendUp size={18} weight="fill" />,
+    description:
+      "Development and modernisation: human development and output per person, the shift of work and output from the land to industry and services, how people cook and how much energy they use - and how the world divides between developed and developing countries.",
+    summary: () =>
+      `The world's Human Development Index was ${fmt(WORLD.hdi, lastOf("hdi")[1])} in ${lastOf("hdi")[0]} (UNDP), and output per person came to ${fmt(WORLD.gdpPerCapitaPpp, lastOf("gdpPerCapitaPpp")[1])} in ${lastOf("gdpPerCapitaPpp")[0]}, at 2021 prices and purchasing power. ${pctOf("agEmployment")} of workers are in farming and ${pctOf("wageWorkers")} are paid a wage or salary (${lastOf("wageWorkers")[0]}), and ${pctOf("cleanCooking")} of people cook with clean fuels (${lastOf("cleanCooking")[0]}).`,
+    tiles: () => [
+      worldTile("hdi", "Human development"),
+      worldTile("gdpPerCapitaPpp", "Output per person"),
+      worldTile("agEmployment", "Working in farming"),
+      worldTile("cleanCooking", "Clean cooking"),
+    ],
+    groups: [
+      {
+        title: "Human development",
+        intro: "UNDP's index of health, education and living standards, and what the world produces per person at purchasing power.",
+        ids: ["hdi", "gdpPerCapitaPpp"],
+      },
+      {
+        title: "Work",
+        intro: "How the world's workers divide between farming, industry and services, and how many are paid a wage or salary (ILO modelled estimates).",
+        ids: ["agEmployment", "industryEmployment", "servicesEmployment", "wageWorkers"],
+      },
+      {
+        title: "Output",
+        intro: "How much of what the world produces comes from farming, manufacturing and services.",
+        ids: ["agricultureVA", "manufacturingVA", "servicesVA"],
+      },
+      {
+        title: "Energy",
+        intro: "How people cook, and how much energy and electricity the world uses per person (Tracking SDG 7 and the IEA).",
+        ids: ["cleanCooking", "energyPerPerson", "electricityPerPerson"],
       },
     ],
   },
@@ -821,8 +891,7 @@ const PILLARS: Pillar[] = [
     kicker: "How the world is governed",
     color: "#8b5cf6",
     icon: <Bank size={18} weight="fill" />,
-    description:
-      "How the world is governed: democracy and elections, civil liberties, women in parliament, and the blocs countries have joined.",
+    description: "How the world is governed: democracy and elections, women's place in politics, and the blocs countries have joined.",
     summary: () => {
       const f = freedomSplit();
       return `${pctOf("democracyShare")} of people live in a democracy (V-Dem, ${lastOf("democracyShare")[0]}) and ${f.freeShare.toFixed(1)}% in a country Freedom House rates Free (${f.year}). Women hold ${pctOf("womenParliament")} of the seats in national parliaments (${lastOf("womenParliament")[0]}).`;
@@ -845,9 +914,46 @@ const PILLARS: Pillar[] = [
         freedom: true,
       },
       {
-        title: "Rights & representation",
-        intro: "How free people are from government violence and to live their lives as they choose, and who holds the seats in parliament.",
-        ids: ["civilLiberties", "womenParliament"],
+        title: "Representation",
+        intro: "Whether women are represented in politics: their share of the seats in parliament, and V-Dem's measure of their political empowerment.",
+        ids: ["womenParliament", "womenEmpowerment"],
+      },
+    ],
+  },
+  {
+    id: "civic",
+    title: "Civic",
+    kicker: "Rights, justice and freedom",
+    color: "#3b82f6",
+    icon: <Scales size={18} weight="fill" />,
+    description:
+      "The rights and freedoms people have in practice: freedom from torture and political killing, civil liberties for everyone and for women, equality before the law and access to justice, and the freedom to speak and organise - as V-Dem's experts rate them, averaged across the world's people.",
+    summary: () => {
+      const ids = PILLARS.find((p) => p.id === "civic")!.groups.flatMap((g) => g.ids);
+      const lower = ids.filter((id) => delta(WORLD[id])?.dir === "down").length;
+      return `Averaged across the world's people, V-Dem scores civil liberties at ${fmt(WORLD.civilLiberties, lastOf("civilLiberties")[1])} out of 1, freedom from torture and political killing at ${fmt(WORLD.physicalIntegrity, lastOf("physicalIntegrity")[1])}, equality before the law at ${fmt(WORLD.equalityBeforeLaw, lastOf("equalityBeforeLaw")[1])} and freedom of expression at ${fmt(WORLD.freeExpression, lastOf("freeExpression")[1])} (${lastOf("civilLiberties")[0]}). ${howManyLower(lower, ids.length)}`;
+    },
+    tiles: () => [
+      worldTile("civilLiberties", "Civil liberties"),
+      worldTile("physicalIntegrity", "Free from torture"),
+      worldTile("equalityBeforeLaw", "Equality before law"),
+      worldTile("freeExpression", "Free expression"),
+    ],
+    groups: [
+      {
+        title: "Rights",
+        intro: "Whether people are safe from the state and free to live their lives - women included (V-Dem, averaged across the world's people; 1 is most free).",
+        ids: ["civilLiberties", "physicalIntegrity", "womenCivilLiberties"],
+      },
+      {
+        title: "Justice",
+        intro: "Whether laws are clear and applied alike, people can get justice and own property, and are free to move and worship and from forced labour.",
+        ids: ["equalityBeforeLaw", "privateLiberties"],
+      },
+      {
+        title: "Freedom to speak & organise",
+        intro: "Whether people can speak and publish freely, and parties, the opposition and civil society groups can form and work.",
+        ids: ["freeExpression", "freeAssociation"],
       },
     ],
   },
@@ -856,7 +962,7 @@ const PILLARS: Pillar[] = [
     title: "Institutions",
     kicker: "How states work and answer for power",
     color: "#ec4899",
-    icon: <Scales size={18} weight="fill" />,
+    icon: <Buildings size={18} weight="fill" />,
     description:
       "Whether power answers to the law: the rule of law, and how far courts and legislatures check the executive, as V-Dem measures them across the world's people - and what states raise to govern with.",
     summary: () =>
@@ -887,10 +993,10 @@ const PILLARS: Pillar[] = [
     color: "#f97316",
     icon: <Lightbulb size={18} weight="fill" />,
     description:
-      "What the world believes and how freely it can say so: its religions, as Pew Research Center counts them; how freely people speak and scholars work; and how far societies are split into hostile political camps.",
+      "What the world believes and how it thinks: its religions, as Pew Research Center counts them; how freely scholars can work; and how far societies are split into hostile political camps.",
     summary: () => {
       const p = delta(WORLD.polarization);
-      return `In 2020, ${pctOf("christians")} of people were Christian, ${pctOf("muslims")} Muslim and ${pctOf("unaffiliated")} had no religion (Pew). Averaged across the world's people, freedom of expression scores ${fmt(WORLD.freeExpression, lastOf("freeExpression")[1])} out of 1 (${lastOf("freeExpression")[0]})${
+      return `In 2020, ${pctOf("christians")} of people were Christian, ${pctOf("muslims")} Muslim and ${pctOf("unaffiliated")} had no religion (Pew). Averaged across the world's people, academic freedom scores ${fmt(WORLD.academicFreedom, lastOf("academicFreedom")[1])} out of 1 (${lastOf("academicFreedom")[0]})${
         p && p.dir !== "flat" ? `, and the average person lives in a society ${p.dir === "up" ? "more" : "less"} split into hostile political camps than ten years before (V-Dem)` : ""
       }.`;
     },
@@ -908,8 +1014,8 @@ const PILLARS: Pillar[] = [
       },
       {
         title: "Ideas & division",
-        intro: "How freely people speak and scholars work, and how far societies split into hostile political camps (V-Dem, averaged across the world's people).",
-        ids: ["freeExpression", "academicFreedom", "polarization"],
+        intro: "How freely scholars can research, teach and speak, and how far societies split into hostile political camps (V-Dem, averaged across the world's people).",
+        ids: ["academicFreedom", "polarization"],
       },
     ],
   },
@@ -1370,7 +1476,7 @@ function DevelopmentPanel() {
 
   return (
     <Card>
-      <CardHeader icon={<Scales size={16} weight="fill" />} title="Developed & developing" badge="three classifications" color="#6366f1" />
+      <CardHeader icon={<TrendUp size={16} weight="fill" />} title="Developed & developing" badge="three classifications" color="#84cc16" />
       <p className="text-xs font-sans text-muted-foreground max-w-4xl -mt-2 mb-4 leading-relaxed">
         There is no single official list of developed countries. The three bodies that classify countries do it differently - by income
         (World Bank), by a statistical convention (UN M49), and by health, education and income together (UNDP) - so all three are
@@ -1727,7 +1833,7 @@ const GROWTH_FLOOR_BN = 10;
 const RANKINGS: RankingDef[] = [
   { id: "pop", pillar: "society", top: "Most people", bottom: "Fewest people", value: (c) => c.population, format: (v) => short(v), year: (c) => yearOfSource(c, "population"), source: "World Bank / UN WPP" },
   { id: "life", pillar: "society", top: "Longest lives", bottom: "Shortest lives", value: (c) => c.lifeExpectancy, format: (v) => `${v.toFixed(1)} yrs`, year: (c) => yearOfSource(c, "lifeExpectancy"), source: "Life expectancy at birth, World Bank / UN" },
-  { id: "hdi", pillar: "society", top: "Most developed (HDI)", bottom: "Least developed (HDI)", value: hdiOf, format: (v) => v.toFixed(3), year: (c) => COUNTRY_PANELS[c.id]?.hdi?.y ?? "", source: "UNDP Human Development Index" },
+  { id: "hdi", pillar: "development", top: "Most developed (HDI)", bottom: "Least developed (HDI)", value: hdiOf, format: (v) => v.toFixed(3), year: (c) => COUNTRY_PANELS[c.id]?.hdi?.y ?? "", source: "UNDP Human Development Index" },
   {
     id: "migrants",
     pillar: "society",
@@ -1928,7 +2034,7 @@ function Rankings() {
 export function WorldviewPage() {
   const { head } = useLook();
   // The panels that open a pillar's section, where it has one.
-  const lead: Partial<Record<Pillar["id"], ReactNode>> = { society: <OutOf100 />, economy: <DevelopmentPanel />, politics: <BlocShares /> };
+  const lead: Partial<Record<Pillar["id"], ReactNode>> = { society: <OutOf100 />, development: <DevelopmentPanel />, politics: <BlocShares /> };
   return (
     <div className="min-h-screen w-full animate-fade-in" style={{ background: "var(--color-background)" }}>
       <div className="w-full px-4 sm:px-5 py-4 flex flex-col gap-4">
@@ -1971,9 +2077,9 @@ export function WorldviewPage() {
 
         <p className="text-[10px] font-sans text-muted-foreground leading-relaxed max-w-4xl px-1">
           Figures retrieved {WORLDVIEW_RETRIEVED} by build-worldview.cjs: the World Bank's world and income-group aggregates (carrying figures
-          from the ITU, UNESCO, the US National Science Foundation, UN Comtrade, the IMF, the IISS, SIPRI and WHO/UNICEF), the IMF's World
-          Economic Outlook, UCDP, V-Dem and the Federation of American Scientists via Our World in Data, UNHCR, and the UN's World Population
-          Prospects; climate readings from NASA and NOAA, retrieved {CLIMATE_RETRIEVED}; religion from Pew Research Center's 2025 report, read
+          from the ILO, the IEA, the ITU, UNESCO, the US National Science Foundation, UN Comtrade, the IMF, the IISS, SIPRI and WHO/UNICEF),
+          the IMF's World Economic Outlook, UCDP, V-Dem, UNDP's Human Development Report and the Federation of American Scientists via Our
+          World in Data, UNHCR, and the UN's World Population Prospects; climate readings from NASA and NOAA, retrieved {CLIMATE_RETRIEVED}; religion from Pew Research Center's 2025 report, read
           from it on {PEW_CHECKED}; rankings and the developed / developing split use the figures on each country's page. Arrows compare with
           about ten years earlier - for religion, with 2010, in Pew's own words; "better" and "worse" - and the counts of them - are only given
           where the direction is not a matter of opinion. The share of people displaced is UNHCR's count over the World Bank's population for

@@ -43,8 +43,14 @@
  *                           a projection, and it says so
  *   V-Dem indices (OWID)    electoral democracy, rule of law, the courts'
  *                           and legislature's checks on the executive,
- *                           academic freedom and political polarization, as
+ *                           academic freedom, political polarization,
+ *                           freedom from torture and political killing,
+ *                           equality before the law, private liberties,
+ *                           freedom of association, and women's civil
+ *                           liberties and political empowerment, as
  *                           population-weighted world averages
+ *   UNDP Human Development  the world's Human Development Index
+ *     Report (OWID)
  *   Federation of American  the world's nuclear warheads, as estimated from
  *     Scientists (OWID)     public information
  *   World Bank WDI, from    broadband (ITU), secure servers (Netcraft),
@@ -52,7 +58,11 @@
  *                           high-tech exports (UN Comtrade), payments for
  *                           intellectual property and government revenue
  *                           (IMF), armed forces (IISS), arms transfers
- *                           (SIPRI), sanitation (WHO/UNICEF)
+ *                           (SIPRI), sanitation (WHO/UNICEF), jobs by
+ *                           sector and wage work (ILO), output by sector,
+ *                           output per person at purchasing power (ICP),
+ *                           clean cooking (Tracking SDG 7), energy and
+ *                           electricity use (IEA)
  *   Pew Research Center     the world's religious makeup in 2020 and its
  *                           change from 2010, recorded from the report (see
  *                           PEW), since its site does not serve scripts
@@ -109,6 +119,13 @@ const SRC = {
   vdemLegis: { label: "V-Dem legislative constraints on the executive index (via Our World in Data)", url: "https://ourworldindata.org/grapher/legislative-constraints-on-the-executive-index" },
   vdemAcademic: { label: "V-Dem academic freedom index (via Our World in Data)", url: "https://ourworldindata.org/grapher/academic-freedom-index" },
   vdemPolar: { label: "V-Dem political polarization (via Our World in Data)", url: "https://ourworldindata.org/grapher/political-polarization-score" },
+  vdemPhys: { label: "V-Dem physical violence index (via Our World in Data)", url: "https://ourworldindata.org/grapher/physical-integrity-rights-index-vdem" },
+  vdemWomenCiv: { label: "V-Dem women's civil liberties index (via Our World in Data)", url: "https://ourworldindata.org/grapher/women-civil-liberties-index" },
+  vdemEquality: { label: "V-Dem equality before the law and individual liberty index (via Our World in Data)", url: "https://ourworldindata.org/grapher/individual-liberties-and-equality-before-the-law-index" },
+  vdemPrivate: { label: "V-Dem private civil liberties index (via Our World in Data)", url: "https://ourworldindata.org/grapher/private-civil-liberties-index" },
+  vdemAssoc: { label: "V-Dem freedom of association index (via Our World in Data)", url: "https://ourworldindata.org/grapher/freedom-of-association-index" },
+  vdemWomenEmp: { label: "V-Dem women's political empowerment index (via Our World in Data)", url: "https://ourworldindata.org/grapher/women-political-empowerment-index" },
+  hdi: { label: "UNDP Human Development Report (via Our World in Data)", url: "https://ourworldindata.org/grapher/human-development-index" },
   fas: { label: "Federation of American Scientists — estimated nuclear warhead inventories (via Our World in Data)", url: "https://ourworldindata.org/grapher/nuclear-warhead-stockpiles" },
   pew: { label: "Pew Research Center — How the Global Religious Landscape Changed From 2010 to 2020 (2025)", url: "https://www.pewresearch.org/religion/2025/06/09/how-the-global-religious-landscape-changed-from-2010-to-2020/" },
 };
@@ -546,6 +563,29 @@ function indicator(id, o) {
   for (const [id, label, series, stated] of PEW) {
     add(id, { label, unit: "% of people", format: "pct", dp: 1, upIsGood: null, series, source: SRC.pew, note: PEW_NOTE, ...(stated ? { stated } : {}) });
   }
+
+  // Civic: rights, justice and freedom, as V-Dem's experts rate them.
+  add("physicalIntegrity", { label: "Freedom from torture and political killing", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("physical-integrity-rights-index-vdem"), source: SRC.vdemPhys, note: "V-Dem's physical violence index: how far people are free from torture and political killings by the government, averaged across the world's people (population-weighted). 1 is most free." });
+  add("womenCivilLiberties", { label: "Women's civil liberties", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("women-civil-liberties-index"), source: SRC.vdemWomenCiv, note: "V-Dem's index of how far women are free from forced labour, have property rights and access to the courts, and can move freely, averaged across the world's people (population-weighted). 1 is most free." });
+  add("equalityBeforeLaw", { label: "Equality before the law", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("individual-liberties-and-equality-before-the-law-index"), source: SRC.vdemEquality, note: "V-Dem's index of equality before the law and individual liberty: freedom from torture and political killing, freedom of religion and movement, freedom from forced labour, access to justice, transparent laws and impartial administration, averaged across the world's people (population-weighted). 1 is the strongest." });
+  add("privateLiberties", { label: "Private liberties", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("private-civil-liberties-index"), source: SRC.vdemPrivate, note: "V-Dem's index of freedom from forced labour, property rights, and freedom of movement and religion, averaged across the world's people (population-weighted). 1 is most free." });
+  add("freeAssociation", { label: "Freedom of association", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("freedom-of-association-index"), source: SRC.vdemAssoc, note: "V-Dem's index of how far parties, the opposition included, can form and take part in elections, and civil society groups can form and operate freely, averaged across the world's people (population-weighted). 1 is most free." });
+  add("womenEmpowerment", { label: "Women's political empowerment", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("women-political-empowerment-index"), source: SRC.vdemWomenEmp, note: "V-Dem's index of how far women enjoy civil liberties, take part in civil society and are represented in politics, averaged across the world's people (population-weighted). 1 is the most empowered." });
+
+  // Development: human development, the shift of work and output from the
+  // land, and the energy people use.
+  add("hdi", { label: "Human Development Index", unit: "index, 0 to 1", format: "num", dp: 3, upIsGood: true, series: pts(await owidWorldSeries("human-development-index", "hdi__sex_total"), 3), source: SRC.hdi, note: "UNDP's summary of a long and healthy life, a good education and a decent standard of living, for the world as a whole." });
+  add("gdpPerCapitaPpp", { label: "Output per person", unit: "2021 international $, at purchasing power", format: "usd", dp: 0, upIsGood: true, series: pts(await wbSeries("NY.GDP.PCAP.PP.KD"), 0), source: WB("NY.GDP.PCAP.PP.KD"), note: "GDP per person in constant 2021 international dollars, converted at purchasing power parities, which allow for different price levels across countries (World Bank International Comparison Program)." });
+  add("agEmployment", { label: "Working in farming", unit: "% of employment", format: "pct", dp: 1, upIsGood: null, series: pts(await wbSeries("SL.AGR.EMPL.ZS"), 1), source: WB("SL.AGR.EMPL.ZS"), note: "ILO modelled estimate: agriculture, hunting, forestry and fishing." });
+  add("industryEmployment", { label: "Working in industry", unit: "% of employment", format: "pct", dp: 1, upIsGood: null, series: pts(await wbSeries("SL.IND.EMPL.ZS"), 1), source: WB("SL.IND.EMPL.ZS"), note: "ILO modelled estimate: mining and quarrying, manufacturing, construction and public utilities." });
+  add("servicesEmployment", { label: "Working in services", unit: "% of employment", format: "pct", dp: 1, upIsGood: null, series: pts(await wbSeries("SL.SRV.EMPL.ZS"), 1), source: WB("SL.SRV.EMPL.ZS"), note: "ILO modelled estimate: trade, restaurants and hotels, transport and communications, finance, real estate and business services, and community, social and personal services." });
+  add("wageWorkers", { label: "Paid a wage or salary", unit: "% of employment", format: "pct", dp: 1, upIsGood: null, series: pts(await wbSeries("SL.EMP.WORK.ZS"), 1), source: WB("SL.EMP.WORK.ZS"), note: "ILO modelled estimate: employees, whose basic pay does not depend directly on the revenue of the business they work for." });
+  add("agricultureVA", { label: "Farming's share of output", unit: "% of GDP", format: "pct", dp: 1, upIsGood: null, series: pts(await wbSeries("NV.AGR.TOTL.ZS"), 1), source: WB("NV.AGR.TOTL.ZS"), note: "Value added by agriculture, forestry and fishing." });
+  add("manufacturingVA", { label: "Manufacturing's share of output", unit: "% of GDP", format: "pct", dp: 1, upIsGood: null, series: pts(await wbSeries("NV.IND.MANF.ZS"), 1), source: WB("NV.IND.MANF.ZS"), note: "Value added by manufacturing: turning materials or components into new products." });
+  add("servicesVA", { label: "Services' share of output", unit: "% of GDP", format: "pct", dp: 1, upIsGood: null, series: pts(await wbSeries("NV.SRV.TOTL.ZS"), 1), source: WB("NV.SRV.TOTL.ZS"), note: "Value added by services: trade, hotels and restaurants, transport and communication, finance, real estate, business services, public administration, education, health and other services." });
+  add("cleanCooking", { label: "Cooking with clean fuels", unit: "% of people", format: "pct", dp: 1, upIsGood: true, series: pts(await wbSeries("EG.CFT.ACCS.ZS"), 1), source: WB("EG.CFT.ACCS.ZS"), note: "Tracking SDG 7: people who mainly cook with clean fuels and technologies; under WHO guidelines kerosene does not count as clean." });
+  add("energyPerPerson", { label: "Energy use", unit: "kg of oil equivalent per person", format: "num", dp: 0, upIsGood: null, series: pts(await wbSeries("EG.USE.PCAP.KG.OE"), 0), source: WB("EG.USE.PCAP.KG.OE"), note: "IEA: primary energy - what is produced, plus imports and stock changes, minus exports and fuel for international shipping and aviation." });
+  add("electricityPerPerson", { label: "Electricity use", unit: "kWh per person", format: "num", dp: 0, upIsGood: null, series: pts(await wbSeries("EG.USE.ELEC.KH.PC"), 0), source: WB("EG.USE.ELEC.KH.PC"), note: "IEA: what power plants produce, less the losses in transmission, distribution and transformation and the plants' own use." });
 
   // Sanitation, beside water and electricity.
   add("sanitation", { label: "Safely managed sanitation", unit: "% of people", format: "pct", dp: 1, upIsGood: true, series: pts(await wbSeries("SH.STA.SMSS.ZS"), 1), source: WB("SH.STA.SMSS.ZS"), note: "WHO/UNICEF: a toilet or latrine not shared with other households, from which waste is safely disposed of on site or taken away and treated." });
