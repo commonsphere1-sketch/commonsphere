@@ -42,6 +42,7 @@ import {
   type WorldPoint,
 } from "@/data/worldview";
 import { CLIMATE_INDICATORS, CLIMATE_RETRIEVED, type ClimateIndicator } from "@/data/climateIndicators";
+import { EXPLAIN, EXPLAIN_CLIMATE, aboutSource } from "@/data/worldviewExplain";
 import { ALLIANCES, ALLIANCES_CHECKED } from "@/data/alliances";
 import { countriesData, type Country } from "@/data/countriesData";
 import { COUNTRY_PANELS, PANEL_SOURCES } from "@/data/countryPanels";
@@ -423,6 +424,9 @@ const DESCRIBE: Record<string, string> = {
   evSalesShare: "Battery-electric and plug-in hybrid cars as a share of all new cars sold in the year.",
   voterTurnout: "Votes cast at each country's latest national election as a share of its voting-age population, averaged across countries.",
   engagedSociety: "How far ordinary people debate important policies - among themselves, in the media, in associations and neighbourhoods, and in the streets - averaged across the world's people.",
+  lifeSatisfaction: "How people rate their own lives, from 0 - the worst possible life for them - to 10, the best, averaged across the world's people.",
+  healthyLifeExpectancy: "The years a newborn could expect to live in full health, free of illness and disability.",
+  ihdi: "Human development - health, education and income - discounted for how unequally it is shared.",
 };
 
 const DESCRIBE_CLIMATE: Record<string, string> = {
@@ -625,7 +629,7 @@ function Hero() {
             Where the world stands
           </h1>
           <p className="text-sm font-sans mt-1.5" style={{ color: muted }}>
-            A dashboard of the whole world in {inWords(PILLARS.length)} pillars - how people live, what the economy is doing, how far the
+            A dashboard of the whole world in {inWords(PILLARS.length)} pillars - the human condition and quality of life, what the economy is doing, how far the
             world has developed, what it makes and how it is powered, technology, how democratic it is, the rights and freedoms people have
             and how far they take part, how well it is governed, whether democracy or autocracy is gaining and what people believe, war and
             peace, and the state of the planet - each figure with what it measures, its trend and its source.
@@ -699,7 +703,7 @@ const areaRadius = (f: number) => {
 
 /** Which way counts as better, in words, wherever better and worse are counted. */
 const VERDICT_RULE =
-  "A rise counts as better for measures such as longer, healthier and richer lives, schooling and research, access to the basics, renewables and protected nature, women's representation, democracy, rights and taking part in public life (on V-Dem's scales, 1 is most free), and what the world makes - industrial output, robots, AI investment, electric cars and harvests. It counts as worse for measures such as poverty, hunger, disease and early death, joblessness, debt, violence, pollution, reliance on fossil fuels, autocracy and polarization. Where neither way is plainly better - as with population, religion, the size and make-up of economies, taxes and public spending, military strength, and the use of energy and resources - there is no verdict.";
+  "A rise counts as better for measures such as longer, healthier and richer lives and how people rate them, schooling and research, access to the basics, renewables and protected nature, women's representation, democracy, rights and taking part in public life (on V-Dem's scales, 1 is most free), and what the world makes - industrial output, robots, AI investment, electric cars and harvests. It counts as worse for measures such as poverty, hunger, disease and early death, joblessness, debt, violence, pollution, reliance on fossil fuels, autocracy and polarization. Where neither way is plainly better - as with population, religion, the size and make-up of economies, taxes and public spending, military strength, and the use of energy and resources - there is no verdict.";
 
 /**
  * The world as a wheel of its pillars, in the manner of the Climate page's
@@ -1112,22 +1116,32 @@ const PILLARS: Pillar[] = [
   {
     id: "society",
     title: "Society",
-    kicker: "How people live",
+    kicker: "The human condition and quality of life",
     color: "#6366f1",
     icon: <UsersThree size={18} weight="fill" />,
     description:
-      "Who we are and how we live: how many of us there are, how old and where; health, from birth to old age; food; schooling; and the basics of modern life at home - clean water, sanitation and hygiene - with the gap between women and men in paid work.",
-    summary: () =>
-      `${pctOf("urban")} of people live in cities and ${pctOf("literacy")} of adults can read (${lastOf("literacy")[0]}). A newborn can expect to live ${lastOf("lifeExpectancy")[1]} years (${lastOf("lifeExpectancy")[0]}), and ${pctOf("undernourished")} of people do not get enough to eat (${lastOf("undernourished")[0]}).`,
+      "The human condition and the quality of people's lives: how people rate their own lives, how long they live and how much of it in good health, and how unequally the gains of human development are shared; how many of us there are, how old and where; health from birth to old age; whether people have enough to eat; schooling; and the basics of modern life at home - clean water, sanitation and hygiene - with the gap between women and men in paid work.",
+    summary: () => {
+      const [iy, iv] = lastOf("ihdi");
+      const hdiThen = WORLD.hdi.series.find(([y]) => y === iy);
+      return `People rate their lives ${fmt(WORLD.lifeSatisfaction, lastOf("lifeSatisfaction")[1])} out of 10 on average (${lastOf("lifeSatisfaction")[0]}). A newborn can expect to live ${lastOf("lifeExpectancy")[1]} years (${lastOf("lifeExpectancy")[0]}); by the WHO's latest estimate, for ${lastOf("healthyLifeExpectancy")[0]}, ${lastOf("healthyLifeExpectancy")[1]} of them in full health. ${
+        hdiThen ? `Counting how unequally it is shared, human development scores ${fmt(WORLD.ihdi, iv)} out of 1 rather than ${fmt(WORLD.hdi, hdiThen[1])} (${iy}). ` : ""
+      }${pctOf("undernourished")} of people do not get enough to eat (${lastOf("undernourished")[0]}), and ${pctOf("literacy")} of adults can read (${lastOf("literacy")[0]}).`;
+    },
     tiles: () => [
-      worldTile("urban", "Live in cities"),
-      worldTile("literacy", "Adults who can read"),
+      worldTile("lifeSatisfaction", "Life satisfaction"),
       worldTile("lifeExpectancy", "Life expectancy"),
+      worldTile("healthyLifeExpectancy", "Years in good health"),
+      worldTile("ihdi", "Development, for inequality"),
       worldTile("childMortality", "Deaths before age 5"),
       worldTile("undernourished", "Undernourished"),
-      worldTile("water", "Safe drinking water"),
     ],
     groups: [
+      {
+        title: "Quality of life",
+        intro: "How people rate their own lives (the Gallup World Poll, via the World Happiness Report), how many years they can expect in full health (WHO), and human development once its unequal sharing is counted (UNDP).",
+        ids: ["lifeSatisfaction", "healthyLifeExpectancy", "ihdi"],
+      },
       {
         title: "People",
         intro: "How many of us there are, how fast that is changing, how young and old we are, and where people live.",
@@ -2014,10 +2028,351 @@ function factsOf(f: Figure): { label: string; value: string; sub?: string }[] {
   return out;
 }
 
-/** One figure in full: what it measures, its key facts, its trend, its parts, its note, every year, and its source. */
+// ── A figure in detail ──────────────────────────────────────────────────────
+
+/** A move between two readings in the figure's own terms: points for shares, percent for counts and money, its units otherwise. */
+function moveText(ind: WorldIndicator, from: number, to: number): string {
+  const diff = to - from;
+  if (Math.abs(diff) < 10 ** -ind.dp / 2) return "no change";
+  const sign = diff > 0 ? "+" : "-";
+  if ((ind.format === "count" || ind.format === "usd" || (ind.format === "num" && Math.abs(from) >= 1000)) && from !== 0) {
+    const pct = Math.abs((100 * diff) / from);
+    return `${sign}${pct >= 10 ? Math.round(pct).toLocaleString("en-US") : pct.toFixed(1)}%`;
+  }
+  const size = Math.abs(diff).toLocaleString("en-US", { minimumFractionDigits: ind.dp, maximumFractionDigits: ind.dp });
+  return `${sign}${size}${ind.format === "pct" ? " points" : ind.unit === "years" ? " years" : ""}`;
+}
+
+const ORDINAL = ["", "", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth"];
+const ordinal = (n: number) => ORDINAL[n] ?? `${n}${n % 10 === 1 && n % 100 !== 11 ? "st" : n % 10 === 2 && n % 100 !== 12 ? "nd" : n % 10 === 3 && n % 100 !== 13 ? "rd" : "th"}`;
+const times = (n: number) => (n === 1 ? "once" : n === 2 ? "twice" : `${n} times`);
+
+type MoveRow = { label: string; from: WorldPoint; to: WorldPoint; text: string; verdict: "better" | "worse" | null };
+
+/**
+ * What a figure's series shows, worked out from the series alone: the path
+ * it took between its first reading, its high and low, and its latest; where
+ * the latest stands among all of them; its moves over one, five and ten
+ * years and the whole run; how often it rose and fell, its largest moves
+ * from one reading to the next and any run it is on; its average pace; and
+ * its average in each decade. Nothing is said that its numbers do not show.
+ */
+function seriesFacts(ind: WorldIndicator) {
+  const s = ind.series;
+  const n = s.length;
+  const first = s[0];
+  const last = s[n - 1];
+  const eps = 10 ** -ind.dp / 2;
+  const yearly = s.every(([y], i) => i === 0 || y - s[i - 1][0] === 1);
+  const readings = yearly ? "years" : "readings";
+  const verdictOf = (a: number, b: number) => (ind.upIsGood === null || Math.abs(b - a) < eps ? null : (b > a) === ind.upIsGood ? "better" : "worse");
+
+  // The path: from the first reading through its high and low to the latest.
+  let story = "";
+  if (n >= 3) {
+    const hi = s.reduce((a, b) => (b[1] > a[1] ? b : a));
+    const lo = s.reduce((a, b) => (b[1] < a[1] ? b : a));
+    const turns = [hi, lo].filter((p) => p !== first && p !== last).sort((a, b) => a[0] - b[0]);
+    const stops = [first, ...turns, last];
+    const legs = stops.slice(1).map((b, i) => {
+      const a = stops[i];
+      const move = moveText(ind, a[1], b[1]);
+      if (move === "no change") return `was back at ${fmt(ind, b[1])} in ${b[0]}`;
+      const what = b === last ? "" : b === hi ? "a peak of " : "a low of ";
+      return `${b[1] > a[1] ? "rose" : "fell"} ${move.slice(1)} to ${what}${fmt(ind, b[1])} in ${b[0]}`;
+    });
+    const higher = s.filter(([, v]) => v > last[1]).length;
+    const lower = s.filter(([, v]) => v < last[1]).length;
+    const level = n - 1 - higher - lower > 0;
+    const place =
+      higher === 0
+        ? `${level ? "level with the highest" : "the highest"}`
+        : lower === 0
+          ? `${level ? "level with the lowest" : "the lowest"}`
+          : higher <= lower
+            ? `the ${ordinal(higher + 1)} highest`
+            : `the ${ordinal(lower + 1)} lowest`;
+    story =
+      `From ${fmt(ind, first[1])} in ${first[0]}, it ${legs.join(", then ")}. ` +
+      `The ${last[0]} figure is ${place} of the ${n} ${readings} from ${first[0]} to ${last[0]}.`;
+  }
+
+  // Its moves to the latest: from the reading before, about five and ten years back, and the first.
+  const rows: MoveRow[] = [];
+  const seen = new Set<number>();
+  const push = (p: WorldPoint | null | undefined) => {
+    if (!p || p === last || seen.has(p[0])) return;
+    seen.add(p[0]);
+    const span = last[0] - p[0];
+    rows.push({ label: `${span} year${span === 1 ? "" : "s"}`, from: p, to: last, text: moveText(ind, p[1], last[1]), verdict: verdictOf(p[1], last[1]) });
+  };
+  const near = (years: number) => {
+    const before = s.filter(([y]) => y <= last[0] - years);
+    const p = before[before.length - 1];
+    return p && last[0] - years - p[0] <= 1 ? p : null;
+  };
+  push(s[n - 2]);
+  push(near(5));
+  push(decadeBefore(s));
+  push(first);
+
+  // Rises and falls from one reading to the next.
+  const facts: string[] = [];
+  const steps = s.slice(1).map((b, i) => ({ a: s[i], b, d: b[1] - s[i][1] }));
+  const when = (x: { a: WorldPoint; b: WorldPoint }) => (x.b[0] - x.a[0] === 1 ? `in ${x.b[0]}` : `between ${x.a[0]} and ${x.b[0]}`);
+  if (steps.length >= 3) {
+    const up = steps.filter((x) => x.d >= eps);
+    const down = steps.filter((x) => x.d <= -eps);
+    const held = steps.length - up.length - down.length;
+    facts.push(
+      `From one ${yearly ? "year" : "reading"} to the next it rose ${times(up.length)} and fell ${times(down.length)}${held ? `, and held level ${times(held)}` : ""}.`,
+    );
+    const biggest = (xs: typeof steps, pick: (a: number, b: number) => boolean) => xs.reduce((m, x) => (pick(x.d, m.d) ? x : m));
+    const rise = up.length ? biggest(up, (a, b) => a > b) : null;
+    const fall = down.length ? biggest(down, (a, b) => a < b) : null;
+    const said = [
+      rise && `its largest rise was ${moveText(ind, rise.a[1], rise.b[1])}, ${when(rise)}`,
+      fall && `its largest fall ${moveText(ind, fall.a[1], fall.b[1])}, ${when(fall)}`,
+    ].filter(Boolean) as string[];
+    if (said.length) facts.push(`${said.join("; ")[0].toUpperCase()}${said.join("; ").slice(1)}.`);
+    const sign = (d: number) => (d >= eps ? 1 : d <= -eps ? -1 : 0);
+    const dir = sign(steps[steps.length - 1].d);
+    let run = 0;
+    for (let i = steps.length - 1; i >= 0 && dir !== 0 && sign(steps[i].d) === dir; i--) run++;
+    const byYear = steps.slice(steps.length - run).every((x) => x.b[0] - x.a[0] === 1);
+    if (run >= 3) facts.push(`It has ${dir > 0 ? "risen" : "fallen"} ${byYear ? `in each of the last ${inWords(run)} years` : `at each of the last ${inWords(run)} readings`}.`);
+  }
+
+  // The average pace: compound growth for counts and money, a steady step otherwise.
+  const grows = (ind.format === "count" || ind.format === "usd" || (ind.format === "num" && Math.abs(first[1]) >= 1000)) && first[1] > 0 && last[1] > 0;
+  const pace = (a: WorldPoint) => {
+    const years = last[0] - a[0];
+    if (years <= 0 || (grows && a[1] <= 0)) return null;
+    if (grows) {
+      const g = (Math.pow(last[1] / a[1], 1 / years) - 1) * 100;
+      return `${g >= 0 ? "+" : "-"}${Math.abs(g).toFixed(Math.abs(g) < 10 ? 1 : 0)}% a year`;
+    }
+    const per = (last[1] - a[1]) / years;
+    const size = Math.abs(per).toLocaleString("en-US", { maximumFractionDigits: ind.dp + 1, minimumFractionDigits: ind.dp + 1 });
+    return `${per >= 0 ? "+" : "-"}${size}${ind.format === "pct" ? " points" : ind.unit === "years" ? " years" : ""} a year`;
+  };
+  const ten = decadeBefore(s);
+  if (last[0] - first[0] >= 5) {
+    const whole = pace(first);
+    const recent = ten && ten !== first ? pace(ten) : null;
+    if (whole)
+      facts.push(`On average it changed by ${whole} from ${first[0]} to ${last[0]}${recent ? `, and by ${recent} over the last ${last[0] - ten![0]} years` : ""}.`);
+  }
+
+  // The average in each decade with at least three readings.
+  const decades: [string, number][] = [];
+  for (const d of [...new Set(s.map(([y]) => Math.floor(y / 10) * 10))]) {
+    const inDecade = s.filter(([y]) => y >= d && y < d + 10);
+    if (inDecade.length < 3) continue;
+    const [y0, y1] = [inDecade[0][0], inDecade[inDecade.length - 1][0]];
+    const label = y0 === d && y1 === d + 9 ? `${d}s` : `${d}s (${y0}–${y1})`;
+    decades.push([label, inDecade.reduce((t, [, v]) => t + v, 0) / inDecade.length]);
+  }
+  return { story, rows, facts, decades };
+}
+
+/** A figure's series in words and numbers: its path, its moves, its pace and its decades. */
+function SeriesDetails({ ind }: { ind: WorldIndicator }) {
+  const d = useMemo(() => seriesFacts(ind), [ind]);
+  const tone = (v: MoveRow["verdict"]) => (v === "better" ? BETTER : v === "worse" ? WORSE : "text-foreground");
+  return (
+    <>
+      <SectionLabel>What the numbers show</SectionLabel>
+      <div className="modal-tile rounded-xl p-3 space-y-3">
+        {d.story && <p className="text-[12px] font-sans leading-relaxed text-foreground/85">{d.story}</p>}
+        {d.rows.length > 0 && (
+          <table className="w-full text-[11px] font-mono">
+            <caption className="sr-only">How {ind.label.toLowerCase()} has moved to its latest reading</caption>
+            <thead>
+              <tr className="text-[9px] uppercase tracking-widest text-muted-foreground">
+                <th scope="col" className="font-normal text-left pb-1">Over</th>
+                <th scope="col" className="font-normal text-right pb-1">From</th>
+                <th scope="col" className="font-normal text-right pb-1">To</th>
+                <th scope="col" className="font-normal text-right pb-1">Change</th>
+              </tr>
+            </thead>
+            <tbody>
+              {d.rows.map((r) => (
+                <tr key={r.from[0]} className="border-t border-border/30">
+                  <th scope="row" className="py-1 text-left font-sans font-normal text-muted-foreground">{r.label}</th>
+                  <td className="py-1 text-right tabular-nums text-muted-foreground">
+                    {fmt(ind, r.from[1])} <span className="text-[9px]">{r.from[0]}</span>
+                  </td>
+                  <td className="py-1 text-right tabular-nums text-foreground">
+                    {fmt(ind, r.to[1])} <span className="text-[9px] text-muted-foreground">{r.to[0]}</span>
+                  </td>
+                  <td className={`py-1 text-right tabular-nums ${tone(r.verdict)}`}>
+                    {r.text}
+                    {r.verdict && <span className="sr-only"> ({r.verdict})</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {d.facts.length > 0 && (
+          <ul className="space-y-1">
+            {d.facts.map((x) => (
+              <li key={x} className="text-[11px] font-sans leading-relaxed text-muted-foreground">
+                {x}
+              </li>
+            ))}
+          </ul>
+        )}
+        {d.decades.length > 1 && (
+          <div>
+            <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1">Average by decade</p>
+            <div className="flex flex-wrap gap-1.5">
+              {d.decades.map(([label, v]) => (
+                <span key={label} className="modal-tile rounded-lg px-2 py-1 text-[11px] font-mono">
+                  <span className="text-muted-foreground">{label}</span> <span className="text-foreground">{fmt(ind, v)}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+/** Which of a figure's country groups is the one it counts, to set it apart in the lists. */
+const MEMBER_FOCUS: Record<string, string[]> = {
+  democracyShare: ["Liberal democracy", "Electoral democracy"],
+  democracies: ["Liberal democracy", "Electoral democracy"],
+  liberalDemocracyShare: ["Liberal democracy"],
+  electoralAutocracyShare: ["Electoral autocracy"],
+  closedAutocracyShare: ["Closed autocracy"],
+  autocratizing: ["Autocratizing"],
+  autocratizingShare: ["Autocratizing"],
+  democratizing: ["Democratizing"],
+  democratizingShare: ["Democratizing"],
+};
+
+/** The countries behind a figure that sorts them into groups, and those that moved between groups in the latest year. */
+function Members({ ind }: { ind: WorldIndicator }) {
+  const m = ind.members;
+  if (!m) return null;
+  const focus = MEMBER_FOCUS[ind.id] ?? [];
+  return (
+    <>
+      <SectionLabel>Country by country · {m.year}</SectionLabel>
+      <div className="modal-tile rounded-xl p-3 space-y-3">
+        {m.groups.map(([label, countries]) => (
+          <div key={label}>
+            <p className={`text-[11px] font-sans font-semibold ${focus.includes(label) ? "text-foreground" : "text-muted-foreground"}`}>
+              {label} · {countries.length} {countries.length === 1 ? "country" : "countries"}
+            </p>
+            <p className="text-[11px] font-sans leading-relaxed text-muted-foreground mt-0.5">{countries.join(", ")}</p>
+          </div>
+        ))}
+        {m.others.map(([label, count]) => (
+          <p key={label} className="text-[11px] font-sans text-muted-foreground">
+            {label}: {count} countries.
+          </p>
+        ))}
+        <div>
+          <p className="text-[11px] font-sans font-semibold text-foreground">What changed since {m.year - 1}</p>
+          {m.moves.length ? (
+            <ul className="mt-1 space-y-0.5">
+              {m.moves.map(([country, from, to]) => (
+                <li key={country} className="text-[11px] font-sans text-muted-foreground">
+                  <span className="text-foreground/85">{country}</span>: {from} → {to}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-[11px] font-sans text-muted-foreground mt-0.5">No country moved between groups.</p>
+          )}
+        </div>
+        <SourceLink source={m.source} />
+      </div>
+    </>
+  );
+}
+
+const RETRIEVED_YEAR = Number(WORLDVIEW_RETRIEVED.slice(0, 4));
+
+/** How to read a figure: its scale, how the world figure is formed, which way counts as better, what the arrow compares, and its gaps. */
+function readingOf(f: Figure): string[] {
+  if (f.kind === "climate") {
+    const c = f.c;
+    return [
+      c.unit.startsWith("×") ? `An index for ${c.period}, where 1 is the level in ${c.unit.replace(/^× /, "")}.` : `Measured in ${c.unit}, for ${c.period}.`,
+      c.decadeAgo !== null ? `The change compares it with the same ${/^\d{4}$/.test(c.period) ? "year" : "month"} ten years before.` : "",
+      c.id === "sea-ice" ? "More Arctic ice counts as better, less as worse." : "A rise counts as worse: more of a greenhouse gas in the air, or more warming.",
+    ].filter(Boolean);
+  }
+  const ind = f.ind;
+  const note = ind.note ?? "";
+  const out: string[] = [];
+  const vdem = /^V-Dem/.test(ind.source.label);
+  if (/^index, 0 to 1/.test(ind.unit))
+    out.push(
+      vdem
+        ? "An index from 0 to 1, where 1 is the most the measure allows. V-Dem's scores are estimates with a margin of uncertainty, so small changes from one year to the next may lie within it."
+        : "An index from 0 to 1, where 1 is the most the measure allows.",
+    );
+  else if (/V-Dem score/.test(ind.unit))
+    out.push("On V-Dem's own scale rather than 0 to 1, so the direction and size of its changes say more than its level. V-Dem's scores are estimates with a margin of uncertainty.");
+  else if (ind.format === "pct")
+    out.push(`A percentage (${unitOf(ind)}). Its changes are in percentage points - the difference between two percentages - so a move from 10% to 12% is +2 points, not +20%.`);
+  else if (ind.format === "usd")
+    out.push(
+      /prices/.test(ind.unit)
+        ? `In US dollars at constant prices (${ind.unit}) - adjusted for inflation - so its changes are real, not rising prices. Its changes are in percent.`
+        : "In current US dollars, not adjusted for inflation, so part of any rise over time is rising prices, and exchange-rate swings move it too. Its changes are in percent.",
+    );
+  else if (ind.format === "count") out.push(`A count (${unitOf(ind)}). Its changes are in percent.`);
+  else if (/^score, 0 to 10/.test(ind.unit)) out.push("A score from 0 to 10, averaged across people's answers; its changes are in points of that score.");
+  else out.push(`Its unit is "${unitOf(ind)}", and its changes are in the same units${Math.abs(ind.series[0][1]) >= 1000 ? ", or in percent where the figure is large" : ""}.`);
+  if (/population-weighted|weighted by population/.test(note))
+    out.push("The world figure averages countries weighted by their populations, so it reflects the average person's experience, and the most populous countries move it most.");
+  else if (/each counting equally/.test(note))
+    out.push("The world figure averages countries with each counting equally, so it reflects the typical country rather than the typical person.");
+  else if (/^World Bank/.test(ind.source.label)) out.push("It is the World Bank's figure for the world as a whole, which it builds from countries' own figures.");
+  out.push(
+    ind.upIsGood === null
+      ? "The page gives it no verdict: neither a rise nor a fall is plainly better."
+      : `On this page a rise counts as ${ind.upIsGood ? "better" : "worse"} and a fall as ${ind.upIsGood ? "worse" : "better"}.`,
+  );
+  const [ly] = ind.series[ind.series.length - 1];
+  const prev = ind.stated ? null : decadeBefore(ind.series);
+  if (ind.stated) out.push("The change shown is the source's own, in its words: it publishes no earlier figure made the same way to set beside the latest.");
+  else if (prev) out.push(`The arrow compares ${ly} with ${prev[0]}, about ten years before.`);
+  else out.push("The series does not reach back about ten years, so no ten-year change is shown.");
+  if (ind.series.some(([y], i) => i > 0 && y - ind.series[i - 1][0] > 1)) out.push("The source does not publish it every year; the table lists the years it does.");
+  if (RETRIEVED_YEAR - ly >= 3) out.push(`Its latest year is ${ly}: the source had published nothing newer when the figures were retrieved on ${WORLDVIEW_RETRIEVED}.`);
+  return out;
+}
+
+/** One of a figure's explanations - what it measures, or why it matters - as a tile. */
+function ExplainTile({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="modal-tile rounded-xl p-3">
+      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1.5">{title}</p>
+      <p className="text-[12px] font-sans leading-relaxed text-foreground/85">{text}</p>
+    </div>
+  );
+}
+
+/**
+ * One figure in full: what it is; its key facts; what it measures and why it
+ * matters; what its numbers show; its trend and parts; the countries behind
+ * it, where it sorts them; how to read it; the source's notes; every year;
+ * and its source, with who that is.
+ */
 function FigureView({ f }: { f: Figure }) {
   const about = aboutOf(f);
   const note = f.kind === "world" ? f.ind.note : f.c.note;
+  const explain = f.kind === "world" ? EXPLAIN[f.ind.id] : EXPLAIN_CLIMATE[f.c.id];
+  const source = sourceOf(f);
+  const publisher = aboutSource(source.label);
   return (
     <>
       {about && <p className="text-[13px] font-sans leading-relaxed text-muted-foreground mt-5">{about}</p>}
@@ -2031,6 +2386,13 @@ function FigureView({ f }: { f: Figure }) {
           </div>
         ))}
       </div>
+      {explain && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-6">
+          <ExplainTile title="What it measures" text={explain.what} />
+          <ExplainTile title="Why it matters" text={explain.why} />
+        </div>
+      )}
+      {f.kind === "world" && f.ind.series.length > 1 && <SeriesDetails ind={f.ind} />}
       {f.kind === "world" && f.ind.series.length > 2 && (
         <>
           <SectionLabel>The trend</SectionLabel>
@@ -2044,9 +2406,18 @@ function FigureView({ f }: { f: Figure }) {
           <Breakdown ind={f.ind} />
         </div>
       )}
+      {f.kind === "world" && <Members ind={f.ind} />}
+      <SectionLabel>How to read it</SectionLabel>
+      <ul className="modal-tile rounded-xl p-3 space-y-1.5">
+        {readingOf(f).map((x) => (
+          <li key={x} className="text-[11px] font-sans leading-relaxed text-muted-foreground">
+            {x}
+          </li>
+        ))}
+      </ul>
       {note && (
         <>
-          <SectionLabel>About the figure</SectionLabel>
+          <SectionLabel>Notes on the data</SectionLabel>
           <p className="modal-tile rounded-xl p-3 text-[11px] font-sans leading-relaxed text-muted-foreground">{note}</p>
         </>
       )}
@@ -2059,7 +2430,8 @@ function FigureView({ f }: { f: Figure }) {
         </>
       )}
       <SectionLabel>Source</SectionLabel>
-      <SourceLink source={sourceOf(f)} />
+      <SourceLink source={source} />
+      {publisher && <p className="text-[11px] font-sans leading-relaxed text-muted-foreground mt-1.5">{publisher}</p>}
     </>
   );
 }

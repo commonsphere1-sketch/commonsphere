@@ -599,6 +599,26 @@ function indicator(id, o) {
   // Development: human development, the shift of work and output from the
   // land, and the energy people use.
   add("hdi", { label: "Human Development Index", unit: "index, 0 to 1", format: "num", dp: 3, upIsGood: true, series: pts(await owidWorldSeries("human-development-index", "hdi__sex_total"), 3), source: SRC.hdi, note: "UNDP's summary of a long and healthy life, a good education and a decent standard of living, for the world as a whole." });
+  // Quality of life: how people rate their own lives, how long they live in
+  // good health, and human development once inequality is counted.
+  add("lifeSatisfaction", {
+    label: "Life satisfaction", unit: "score, 0 to 10", format: "num", dp: 2, upIsGood: true,
+    series: pts(await owidWorldSeries("happiness-cantril-ladder", "cantril_ladder_score"), 2),
+    source: { label: "World Happiness Report, from the Gallup World Poll (via Our World in Data)", url: "https://ourworldindata.org/grapher/happiness-cantril-ladder" },
+    note: "Gallup asks people to rate their lives on a ladder from 0, the worst possible life for them, to 10, the best. Each year is the average of that year's surveys and the two years' before; the world figure is Our World in Data's average of the countries surveyed, weighted by population, and which countries are surveyed varies from year to year.",
+  });
+  add("healthyLifeExpectancy", {
+    label: "Healthy life expectancy", unit: "years", format: "num", dp: 1, upIsGood: true,
+    series: pts(await owidWorldSeries("healthy-life-expectancy-at-birth", "healthy_life_expectancy__hale__at_birth__years__sex_both_sexes"), 1),
+    source: { label: "World Health Organization, Global Health Observatory (via Our World in Data)", url: "https://ourworldindata.org/grapher/healthy-life-expectancy-at-birth" },
+    note: "WHO: the years a newborn could expect to live in full health, at the year's rates of death, illness and disability.",
+  });
+  add("ihdi", {
+    label: "Inequality-adjusted human development", unit: "index, 0 to 1", format: "num", dp: 3, upIsGood: true,
+    series: pts(await owidWorldSeries("inequality-adjusted-human-development-index", "ihdi"), 3),
+    source: { label: "UNDP Human Development Report, inequality-adjusted HDI (via Our World in Data)", url: "https://ourworldindata.org/grapher/inequality-adjusted-human-development-index" },
+    note: "UNDP: the Human Development Index discounted for how unequally health, education and income are shared. It equals the HDI where everyone is equal and falls further below it the more unequal things are.",
+  });
   add("gdpPerCapitaPpp", { label: "Output per person", unit: "2021 international $, at purchasing power", format: "usd", dp: 0, upIsGood: true, series: pts(await wbSeries("NY.GDP.PCAP.PP.KD"), 0), source: WB("NY.GDP.PCAP.PP.KD"), note: "GDP per person in constant 2021 international dollars, converted at purchasing power parities, which allow for different price levels across countries (World Bank International Comparison Program)." });
   add("agEmployment", { label: "Working in farming", unit: "% of employment", format: "pct", dp: 1, upIsGood: null, series: pts(await wbSeries("SL.AGR.EMPL.ZS"), 1), source: WB("SL.AGR.EMPL.ZS"), note: "ILO modelled estimate: agriculture, hunting, forestry and fishing." });
   add("industryEmployment", { label: "Working in industry", unit: "% of employment", format: "pct", dp: 1, upIsGood: null, series: pts(await wbSeries("SL.IND.EMPL.ZS"), 1), source: WB("SL.IND.EMPL.ZS"), note: "ILO modelled estimate: mining and quarrying, manufacturing, construction and public utilities." });
@@ -794,6 +814,51 @@ function indicator(id, o) {
     const part = (r, key) => round((100 * Number(r[key])) / Object.values(p).reduce((t, c) => t + Number(r[c]), 0), 1);
     add("autocratizingShare", { label: "Living in an autocratizing country", unit: "% of people", format: "pct", dp: 1, upIsGood: false, series: people.map((r) => [r.year, part(r, p.aut)]), source: ERT(peopleSlug), note: `Share of the world's people in countries in ${autocratization}. Countries V-Dem does not classify are left out.` });
     add("democratizingShare", { label: "Living in a democratizing country", unit: "% of people", format: "pct", dp: 1, upIsGood: true, series: people.map((r) => [r.year, part(r, p.dem)]), source: ERT(peopleSlug), note: `Share of the world's people in countries in ${democratization}. Countries V-Dem does not classify are left out.` });
+  }
+  // The countries behind the regime figures, from the same classifications
+  // country by country: who is in each group in the latest year, and who
+  // moved between groups since the year before. The counts must match the
+  // world figures', or the build stops.
+  {
+    const membersOf = async (slug, column, labels, order) => {
+      const rows = await owidCsv(slug);
+      const kk = col(rows[0], column);
+      // Every row is a country or territory V-Dem codes - Palestine/Gaza and
+      // Palestine/West Bank among them, which have no ISO code - and the check
+      // below stops the build if a region ever slips in.
+      const has = (r) => r[kk] !== "";
+      const year = Math.max(...rows.filter(has).map((r) => Number(r.year)));
+      const at = (y) => new Map(rows.filter((r) => has(r) && Number(r.year) === y).map((r) => [r.entity, Number(r[kk])]));
+      const now = at(year);
+      const before = at(year - 1);
+      const byName = (a, b) => a.localeCompare(b, "en");
+      const inGroup = (i) => [...now].filter(([, v]) => v === i).map(([c]) => c).sort(byName);
+      return {
+        year,
+        groups: order.map((i) => [labels[i], inGroup(i)]),
+        others: labels.map((label, i) => [label, inGroup(i).length]).filter((_, i) => !order.includes(i)),
+        moves: [...now]
+          .filter(([c, v]) => before.has(c) && before.get(c) !== v)
+          .map(([c, v]) => [c, labels[before.get(c)], labels[v]])
+          .sort((a, b) => byName(a[0], b[0])),
+        source: { label: `${slug === "political-regime" ? "V-Dem Regimes of the World" : "V-Dem Episodes of Regime Transformation"}, country by country (via Our World in Data)`, url: `https://ourworldindata.org/grapher/${slug}` },
+      };
+    };
+    const check = (m, id) => {
+      const want = new Map(W[id].breakdown);
+      for (const [label, countries] of m.groups) {
+        // "Liberal democracy" is counted in the world figure as "Liberal democracies".
+        const n = want.get(label) ?? want.get(label.replace(/y$/, "ies"));
+        if (n !== countries.length) throw new Error(`${id}: ${label} has ${countries.length} countries by country, ${n} in the world figure`);
+      }
+      if (m.year !== W[id].breakdownYear) throw new Error(`${id}: countries for ${m.year}, world figure for ${W[id].breakdownYear}`);
+    };
+    const regimes = await membersOf("political-regime", "regime_row_owid", ["Closed autocracy", "Electoral autocracy", "Electoral democracy", "Liberal democracy"], [3, 2, 1, 0]);
+    check(regimes, "democracies");
+    for (const id of ["democracyShare", "liberalDemocracyShare", "electoralAutocracyShare", "closedAutocracyShare", "democracies"]) W[id].members = regimes;
+    const episodes = await membersOf("political-regime-ert", "regime_trich_ert", ["Autocratizing", "Neither autocratizing nor democratizing", "Democratizing"], [0, 2]);
+    check(episodes, "autocratizing");
+    for (const id of ["autocratizing", "democratizing", "autocratizingShare", "democratizingShare"]) W[id].members = episodes;
   }
 
   // Industry: the industries of the day - robots and AI - and real output.
@@ -1048,6 +1113,15 @@ export interface WorldIndicator {
   breakdownUnit?: string;
   /** A change as the source states it in words, where it publishes no earlier figure to set beside the latest. */
   stated?: { text: string; dir: "up" | "down" | "flat" };
+  /** Where the figure sorts countries into groups: which countries are in each, and which moved between them in the latest year. */
+  members?: {
+    year: number;
+    groups: [label: string, countries: string[]][];
+    /** Groups too large to list, with how many countries are in them. */
+    others: [label: string, count: number][];
+    moves: [country: string, from: string, to: string][];
+    source: { label: string; url: string };
+  };
 }
 
 export const WORLD: Record<string, WorldIndicator> = {
