@@ -1,7 +1,6 @@
-import { Fragment, createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ArrowDown,
   ArrowDownRight,
   ArrowLeft,
   ArrowRight,
@@ -12,7 +11,6 @@ import {
   CaretRight,
   Bank,
   Buildings,
-  CaretDown,
   Coins,
   Cpu,
   GlobeHemisphereWest,
@@ -457,24 +455,6 @@ function Sparkline({ ind, tall = false }: { ind: WorldIndicator; tall?: boolean 
   );
 }
 
-function YearTable({ ind }: { ind: WorldIndicator }) {
-  return (
-    <details className="text-[10px] font-sans text-muted-foreground">
-      <summary className="cursor-pointer hover:text-foreground">Data by year</summary>
-      <table className="mt-1.5 w-full font-mono">
-        <tbody>
-          {[...ind.series].reverse().map(([y, v]) => (
-            <tr key={y} className="border-b border-border/40 last:border-0">
-              <td className="py-0.5 pr-3 tabular-nums">{y}</td>
-              <td className="py-0.5 text-right tabular-nums text-foreground">{fmt(ind, v)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </details>
-  );
-}
-
 /** Every year of a series, newest first, in columns: the window's full table. */
 function YearGrid({ ind }: { ind: WorldIndicator }) {
   return (
@@ -610,16 +590,7 @@ function Hero() {
 
 const SECTIONS: NavSection[] = [
   { id: "overview", label: "Overview" },
-  { id: "society", label: "Society" },
-  { id: "economy", label: "Economy" },
-  { id: "development", label: "Development" },
-  { id: "technology", label: "Technology" },
-  { id: "politics", label: "Politics" },
-  { id: "civic", label: "Civic" },
-  { id: "institutions", label: "Institutions" },
-  { id: "ideology", label: "Ideology" },
-  { id: "security", label: "Security" },
-  { id: "ecology", label: "Ecology" },
+  { id: "pillars", label: "Pillars" },
   { id: "rankings", label: "Rankings" },
 ];
 
@@ -1351,13 +1322,13 @@ function PillarCard({ p }: { p: Pillar }) {
       <p className="text-[11px] font-sans leading-relaxed -mt-1" style={{ color: muted }}>
         {p.description}
       </p>
-      <div className="grid grid-cols-2 gap-2">
-        {tiles.map((t, i) => {
-          const wide = tiles.length % 2 === 1 && i === tiles.length - 1;
+      {/* One figure to a row, each as wide as the card, its trend running across it. */}
+      <div className="grid grid-cols-1 gap-2">
+        {tiles.map((t) => {
           return t.fig ? (
-            <FigureTile key={t.label} f={t.fig} label={t.label} color={p.color} wide={wide} onClick={() => open(p, t.fig)} />
+            <FigureTile key={t.label} f={t.fig} label={t.label} onClick={() => open(p, t.fig)} />
           ) : (
-            <div key={t.label} className={`rounded-xl modal-tile px-3 py-2.5 flex flex-col gap-0.5 ${wide ? "col-span-2" : ""}`}>
+            <div key={t.label} className="rounded-xl modal-tile px-3 py-2.5 flex flex-col gap-0.5">
               <p className="text-[10px] font-sans uppercase tracking-wider leading-snug" style={{ color: muted }}>
                 {t.label}
               </p>
@@ -1388,14 +1359,6 @@ function PillarCard({ p }: { p: Pillar }) {
         >
           <ArrowsOut size={12} weight="bold" /> Open {p.title.toLowerCase()}
         </button>
-        <button
-          type="button"
-          onClick={() => document.getElementById(p.id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
-          className="inline-flex items-center gap-1 text-[11px] font-semibold font-sans hover:opacity-75 cursor-pointer"
-          style={{ color: p.color }}
-        >
-          Its section <ArrowDown size={11} weight="bold" />
-        </button>
       </div>
     </div>
   );
@@ -1415,54 +1378,35 @@ function subOf(f: Figure): string {
 }
 
 /**
- * A figure as a tile, as the pillar cards and the site's other pages show
- * figures: what it is, its value, its unit and year, its direction over
- * about ten years and its trend. In a group card (with `detailId`) picking
- * it opens its detail under its row; anywhere else it opens its window.
+ * A figure as a tile, as the site's other pages show figures: what it is,
+ * its value, its unit and year, its direction over about ten years and its
+ * trend. Picking it opens its window.
  */
 function FigureTile({
   f,
   onClick,
-  color,
   label,
-  open = false,
-  detailId,
-  wide = false,
 }: {
   f: Figure;
   onClick: () => void;
-  color: string;
-  /** A shorter name, where the tile is narrow. */
+  /** A shorter name, for a pillar's card. */
   label?: string;
-  open?: boolean;
-  detailId?: string;
-  /** Across both columns: the last of an odd number. */
-  wide?: boolean;
 }) {
   const { head, muted } = useLook();
-  const inPlace = detailId !== undefined;
   const d = deltaOf(f);
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-expanded={inPlace ? open : undefined}
-      aria-controls={inPlace && open ? detailId : undefined}
-      aria-haspopup={inPlace ? undefined : "dialog"}
+      aria-haspopup="dialog"
       title={aboutOf(f)}
-      className={`h-full w-full rounded-xl px-3 py-2.5 flex flex-col gap-0.5 text-left cursor-pointer transition-colors ${open ? "" : "modal-tile"} ${wide ? "col-span-2" : ""}`}
-      // Picked: the pillar's colour in place of the glass, as the Climate page marks its picked boundary.
-      style={open ? { background: color + "14", border: `1px solid ${color}90` } : undefined}
+      className="modal-tile h-full w-full rounded-xl px-3 py-2.5 flex flex-col gap-0.5 text-left cursor-pointer transition-colors"
     >
       <span className="flex items-start justify-between gap-2">
         <span className="text-[10px] font-sans uppercase tracking-wider leading-snug" style={{ color: muted }}>
           {label ?? labelOf(f)}
         </span>
-        {inPlace ? (
-          <CaretDown size={10} weight="bold" className={`shrink-0 mt-0.5 transition-transform ${open ? "rotate-180" : ""}`} style={{ color: muted }} aria-hidden />
-        ) : (
-          <ArrowsOut size={10} weight="bold" className="shrink-0 mt-0.5" style={{ color: muted }} aria-hidden />
-        )}
+        <ArrowsOut size={10} weight="bold" className="shrink-0 mt-0.5" style={{ color: muted }} aria-hidden />
       </span>
       <span className="text-lg sm:text-xl font-bold font-mono leading-tight" style={{ color: head }}>
         {valueOf(f)}
@@ -1477,64 +1421,6 @@ function FigureTile({
         </span>
       )}
     </button>
-  );
-}
-
-/** What a picked figure opens to: what it measures, its full trend, its parts, its note, its data by year and its source. */
-function FigureDetail({ f, id, color, onClose, onExpand }: { f: Figure; id: string; color: string; onClose: () => void; onExpand: () => void }) {
-  const { head } = useLook();
-  const about = aboutOf(f);
-  return (
-    <div id={id} className="col-span-2 rounded-xl p-3.5 space-y-3 animate-fade-in" style={{ background: color + "0d", border: `1px solid ${color}40` }}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold font-sans" style={{ color: head }}>
-            {labelOf(f)}
-          </p>
-          {about && <p className="mt-0.5 text-[11px] font-sans text-foreground/85 leading-snug">{about}</p>}
-        </div>
-        <div className="shrink-0 flex items-center gap-1 -m-1">
-          <button
-            type="button"
-            onClick={onExpand}
-            aria-haspopup="dialog"
-            aria-label={`Open ${labelOf(f)} in a larger window`}
-            title="Open in a larger window"
-            className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
-          >
-            <ArrowsOut size={12} weight="bold" />
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={`Close ${labelOf(f)}`}
-            className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
-          >
-            <X size={12} weight="bold" />
-          </button>
-        </div>
-      </div>
-      {f.kind === "world" ? (
-        <>
-          {f.ind.series.length > 2 && <Sparkline ind={f.ind} />}
-          <Breakdown ind={f.ind} />
-          {f.ind.note && <p className="text-[10px] font-sans text-muted-foreground leading-snug">{f.ind.note}</p>}
-        </>
-      ) : (
-        <>
-          {f.c.note && <p className="text-[10px] font-sans text-muted-foreground leading-snug">{f.c.note}</p>}
-          {f.c.decadeAgo !== null && (
-            <p className="text-[10px] font-mono text-muted-foreground">
-              Ten years before: {f.c.decadeAgo} {f.c.unit}
-            </p>
-          )}
-        </>
-      )}
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <SourceLink source={sourceOf(f)} />
-        {f.kind === "world" && <YearTable ind={f.ind} />}
-      </div>
-    </div>
   );
 }
 
@@ -1630,7 +1516,13 @@ function FigureView({ f }: { f: Figure }) {
   );
 }
 
-/** A pillar in full: what it covers and what its figures say, then every figure by group, and every figure's source. */
+/** The panel a pillar's window opens with, where it has one. */
+function PillarLead({ id }: { id: Pillar["id"] }) {
+  const panel = id === "society" ? <OutOf100 /> : id === "development" ? <DevelopmentPanel /> : id === "politics" ? <BlocShares /> : null;
+  return panel && <div className="mt-4">{panel}</div>;
+}
+
+/** A pillar in full: what it covers and what its figures say, its panel, then every figure by group, and every figure's source. */
 function PillarView({ p, onPick }: { p: Pillar; onPick: (f: Figure) => void }) {
   const all = p.groups.flatMap(groupFigures);
   return (
@@ -1641,6 +1533,7 @@ function PillarView({ p, onPick }: { p: Pillar; onPick: (f: Figure) => void }) {
         <DirectionBar p={p} />
         <ChangeLists figures={all} onPick={onPick} />
       </div>
+      <PillarLead id={p.id} />
       {p.groups.map((g) => {
         const figs = groupFigures(g);
         return (
@@ -1650,9 +1543,9 @@ function PillarView({ p, onPick }: { p: Pillar; onPick: (f: Figure) => void }) {
             </SectionLabel>
             <p className="text-[11px] font-sans text-muted-foreground -mt-1 mb-2 leading-relaxed">{g.intro}</p>
             {g.freedom && <FreedomBars />}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {figs.map((f) => (
-                <FigureTile key={f.key} f={f} color={p.color} onClick={() => onPick(f)} />
+                <FigureTile key={f.key} f={f} onClick={() => onPick(f)} />
               ))}
             </div>
           </div>
@@ -2217,94 +2110,6 @@ function BlocShares() {
   );
 }
 
-// ── A pillar's section ──────────────────────────────────────────────────────
-
-/**
- * A group of figures as the site's figure cards are laid out: a kicker with
- * how many and how recent, the title and what the group covers, the figures
- * as tiles two to a row, and the sources at the foot.
- */
-function GroupCard({ g, p }: { g: Group; p: Pillar }) {
-  const { head, muted } = useLook();
-  const openWindow = useContext(OpenWorldview);
-  const detailId = useId();
-  const [open, setOpen] = useState<string | null>(null);
-  const color = p.color;
-  const figures = groupFigures(g);
-  const span = latestSpan(figures);
-  const sources = [...new Set(figures.map((f) => sourceOf(f).label))];
-  // The detail opens under the row of the tile picked, across both columns.
-  const at = figures.findIndex((f) => f.key === open);
-  const after = at < 0 ? -1 : Math.min(at - (at % 2) + 1, figures.length - 1);
-  return (
-    <Card className="flex flex-col">
-      <p className="text-[10px] font-mono uppercase tracking-widest mb-0.5" style={{ color }}>
-        {figures.length} figure{figures.length === 1 ? "" : "s"}
-        {span && ` · latest ${span}`}
-      </p>
-      <h3 className="text-sm font-bold font-sans" style={{ color: head }}>
-        {g.title}
-      </h3>
-      <p className="text-[11px] font-sans text-muted-foreground mt-0.5 mb-3 leading-relaxed">{g.intro}</p>
-      {g.freedom && <FreedomBars />}
-      <div className="grid grid-cols-2 gap-2">
-        {figures.map((f, i) => (
-          <Fragment key={f.key}>
-            <FigureTile f={f} open={open === f.key} onClick={() => setOpen((o) => (o === f.key ? null : f.key))} color={color} detailId={detailId} />
-            {i === after && (
-              <FigureDetail
-                f={figures[at]}
-                id={detailId}
-                color={color}
-                onClose={() => setOpen(null)}
-                onExpand={() => openWindow(p, figures[at])}
-              />
-            )}
-          </Fragment>
-        ))}
-      </div>
-      <p className="mt-3 text-[10px] font-sans leading-snug" style={{ color: muted }}>
-        Source{sources.length === 1 ? "" : "s"}: {sources.join(" · ")}. Pick a figure for its trend, its data by year and a link to its source.
-      </p>
-    </Card>
-  );
-}
-
-function PillarSection({ p, lead }: { p: Pillar; lead?: ReactNode }) {
-  const { head, muted } = useLook();
-  const count = p.groups.reduce((t, g) => t + g.ids.length + (g.climate?.length ?? 0), 0);
-  return (
-    <section id={p.id} className="scroll-mt-36 flex flex-col gap-4" aria-labelledby={`${p.id}-title`}>
-      <div className="px-1 pt-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <span style={{ color: p.color }}>{p.icon}</span>
-          <h2 id={`${p.id}-title`} className="text-xl font-bold font-sans" style={{ color: head }}>
-            {p.title}
-          </h2>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full" style={{ background: p.color + "18", color: p.color }}>
-            {count} figures
-          </span>
-          <span className="text-[11px] font-sans" style={{ color: muted }}>
-            {p.kicker}
-          </span>
-        </div>
-        <p className="text-xs font-sans leading-relaxed mt-1.5 max-w-4xl" style={{ color: muted }}>
-          {p.description}
-        </p>
-        <div className="mt-2 max-w-xl">
-          <DirectionBar p={p} />
-        </div>
-      </div>
-      {lead}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-        {p.groups.map((g) => (
-          <GroupCard key={g.title} g={g} p={p} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
 // ── Rankings ────────────────────────────────────────────────────────────────
 
 type RankingDef = {
@@ -2542,8 +2347,6 @@ function Rankings() {
 
 export function WorldviewPage() {
   const { head } = useLook();
-  // The panels that open a pillar's section, where it has one.
-  const lead: Partial<Record<Pillar["id"], ReactNode>> = { society: <OutOf100 />, development: <DevelopmentPanel />, politics: <BlocShares /> };
   const [modal, setModal] = useState<ModalState | null>(null);
   const openWindow = useCallback((pillar: Pillar, figure?: Figure) => setModal({ pillar, figure: figure ?? null }), []);
   const closeWindow = useCallback(() => setModal(null), []);
@@ -2568,8 +2371,12 @@ export function WorldviewPage() {
         />
 
         {/* ── Overview ── */}
-        <section id="overview" className="scroll-mt-36 flex flex-col gap-4">
+        <section id="overview" className="scroll-mt-36">
           <HeadlinePills />
+        </section>
+
+        {/* ── The pillars: each card opens its window ── */}
+        <section id="pillars" className="scroll-mt-36 flex flex-col gap-4">
           <div className="px-1 pt-2 flex items-center gap-2">
             <GlobeHemisphereWest size={18} weight="fill" className="text-[#2a78d6] dark:text-[#3987e5]" />
             <h2 className="text-xl font-bold font-sans" style={{ color: head }}>
@@ -2583,9 +2390,6 @@ export function WorldviewPage() {
           </div>
         </section>
 
-        {PILLARS.map((p) => (
-          <PillarSection key={p.id} p={p} lead={lead[p.id]} />
-        ))}
         <Rankings />
 
         <p className="text-[10px] font-sans text-muted-foreground leading-relaxed max-w-4xl px-1">
