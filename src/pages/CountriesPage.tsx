@@ -1,5 +1,5 @@
 import { na, has, orZero, sortKey } from "../lib/na";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   MapPin,
@@ -44,6 +44,7 @@ import { COUNTRY_CRIME, CRIME_SOURCE, type CrimeFigure } from "../data/countryCr
 import { COUNTRY_PANELS, panelSource, type PanelField, type PanelFigure } from "../data/countryPanels";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
+import { HeadlinesBanner, ALL_TOPICS, followedFirst, namesAbroad, useFollowedTags } from "../components/HeadlinesBanner";
 import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 import { useWatchlist } from "@/contexts/WatchlistContext";
@@ -16644,6 +16645,9 @@ function InternationalSnapshot({ countries }: { countries: Country[] }) {
 }
 
 export function CountriesPage() {
+  // The banner leads with the countries the reader follows.
+  const followedTags = useFollowedTags();
+  const countryPick = useMemo(() => followedFirst(followedTags, namesAbroad), [followedTags]);
   const { countries: liveCountries } = useLiveData();
   const watch = useWatchlist();
   const [search, setSearch] = useState("");
@@ -16815,6 +16819,24 @@ export function CountriesPage() {
             <option value="humanDevelopmentIndex">Sort: HDI</option>
           </select>
         </FilterBar>
+
+        {/* ── Country headlines: the countries you follow first ── */}
+        <HeadlinesBanner
+          label="Country headlines"
+          topics={ALL_TOPICS}
+          days={2}
+          read={200}
+          untagged
+          pick={countryPick}
+          className="mb-6"
+          note={(outlets) => (
+            <>
+              The last two days' headlines naming a country, from {outlets} (five at most from each), refreshed every half
+              hour; countries you follow come first, starred. US news that names no other country is on the States page. The
+              tag is the place a story is about, violet for more than one. Each links to the outlet.
+            </>
+          )}
+        />
 
         {/* ── MODAL ── */}
         {modalCountry && (

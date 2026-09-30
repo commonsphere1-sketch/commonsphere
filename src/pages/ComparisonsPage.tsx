@@ -1,4 +1,8 @@
 import { ComparisonModule } from "../components/ComparisonModule";
+import { HeadlinesBanner, ALL_TOPICS, namesTwo, pickWhere } from "../components/HeadlinesBanner";
+
+/** Stories naming two places or more: the news that sets them side by side. */
+const pickRelations = pickWhere(namesTwo);
 
 export function ComparisonsPage() {
   return (
@@ -12,6 +16,22 @@ export function ComparisonsPage() {
             </p>
           </div>
         </div>
+        <HeadlinesBanner
+          label="Relations in the news"
+          topics={ALL_TOPICS}
+          days={2}
+          read={300}
+          untagged
+          pick={pickRelations}
+          className="mb-6"
+          note={(outlets) => (
+            <>
+              The last two days' headlines naming two places or more - the stories that set countries and states side by
+              side - from {outlets} (five at most from each), refreshed every half hour. The tag names the places. Each
+              links to the outlet.
+            </>
+          )}
+        />
         <ComparisonModule />
       </div>
     </div>

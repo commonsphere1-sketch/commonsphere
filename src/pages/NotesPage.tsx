@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect } from "react";
+import { useMemo, useState, useRef, useLayoutEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotesStore, type Note } from "@/lib/notesStore";
 import { voiceNoteUrl } from "@/lib/supabaseData";
@@ -16,9 +16,13 @@ import {
 } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { FollowedPlaces } from "@/components/FollowedPlaces";
+import { HeadlinesBanner, ALL_TOPICS, followedFirst, namesPlace, useFollowedTags } from "@/components/HeadlinesBanner";
 import type { EntityType } from "@/lib/watchlist";
 
 export function NotesPage() {
+  // The banner leads with the places the reader follows.
+  const followedTags = useFollowedTags();
+  const notesPick = useMemo(() => followedFirst(followedTags, namesPlace), [followedTags]);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<string>("All");
   const { isConfigured, openAuth } = useAuth();
@@ -74,6 +78,24 @@ export function NotesPage() {
             <p className="text-muted-foreground text-sm font-sans">Notes taken while examining data</p>
           </div>
         </div>
+
+        {/* The news about the places you follow */}
+        <HeadlinesBanner
+          label="Your places in the news"
+          topics={ALL_TOPICS}
+          days={2}
+          read={300}
+          untagged
+          pick={notesPick}
+          className="mb-6"
+          note={(outlets) => (
+            <>
+              The last two days' headlines about the countries and states you follow, starred and first, then the latest
+              naming any place - from {outlets} (five at most from each), refreshed every half hour. Follow a place with the
+              ☆ on its card. Each links to the outlet.
+            </>
+          )}
+        />
 
         {/* Where these notes live, and how to move them. */}
         {mode === "device" ? (

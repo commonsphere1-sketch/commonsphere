@@ -30,6 +30,7 @@ import {
   SlidersHorizontal,
 } from "@phosphor-icons/react";
 import { FilterBar } from "../components/FilterBar";
+import { HeadlinesBanner } from "../components/HeadlinesBanner";
 
 // ─── Icon map ─────────────────────────────────────────────────────────────────
 
@@ -612,6 +613,21 @@ export function GlobalIndexesPage() {
           </span>
         )}
       </FilterBar>
+
+      {/* Policy and society headlines */}
+      <HeadlinesBanner
+        label="Policy and society headlines"
+        topics={["policy", "humanitarian"]}
+        days={2}
+        read={120}
+        note={(outlets) => (
+          <>
+            The last two days' politics, policy and humanitarian headlines - the news behind what these indexes measure -
+            from {outlets} (five at most from each), refreshed every half hour. The tag is the place a story is about,
+            violet for more than one. Each links to the outlet.
+          </>
+        )}
+      />
 
       {/* Domain sections */}
       {visibleDomains.length === 0 ? (

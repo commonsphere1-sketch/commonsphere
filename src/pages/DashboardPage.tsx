@@ -5,6 +5,7 @@ import { usdFromBillions } from "../lib/money";
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
+import { HeadlinesBanner, ALL_TOPICS } from "../components/HeadlinesBanner";
 import {
   Globe,
   Buildings,
@@ -6429,6 +6430,22 @@ export function DashboardPage() {
             <FocusCarousel mutedText={mutedText} headText={headText} isLight={isLight} onOpen={(p) => navigate(p)} />
           </div>
         </div>
+
+        {/* ── LATEST HEADLINES: every desk the site reads ── */}
+        <HeadlinesBanner
+          label="Latest headlines"
+          topics={ALL_TOPICS}
+          days={2}
+          read={150}
+          untagged
+          note={(outlets) => (
+            <>
+              The last two days' headlines from every desk the site reads - world affairs, US news, the economy, policy,
+              humanitarian crises, the climate, crime and justice - from {outlets} (five at most from each), refreshed every
+              half hour. The tag is the place a story is about, violet for more than one. Each links to the outlet.
+            </>
+          )}
+        />
 
         {/* ── QUARTER TRACKER ────────────────────────────────────────────── */}
         <QuarterTracker

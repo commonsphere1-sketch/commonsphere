@@ -25,7 +25,8 @@
  *
  * Each feed also carries the topics of the site's pages it serves - world
  * affairs, US news, the economy, public policy, humanitarian crises, the
- * climate - so each page's banner draws on the desks that cover its subject.
+ * climate, crime and justice - so each page's banner draws on the desks
+ * that cover its subject.
  * A world-affairs headline is kept only when it names a place; a topical
  * one is kept either way, since "Carbon dioxide hits a new high" is climate
  * news without naming a country.
@@ -34,7 +35,7 @@ import { COUNTRY_NAMES } from "./places.ts";
 import { STATES, UA } from "./sources.ts";
 
 /** The pages a feed serves, as the site's banners ask for them. */
-export type Topic = "world" | "us" | "economy" | "policy" | "humanitarian" | "climate";
+export type Topic = "world" | "us" | "economy" | "policy" | "humanitarian" | "climate" | "crime";
 
 export type NewsRow = {
   url: string;
@@ -120,6 +121,14 @@ export const FEEDS: Feed[] = [
   { url: "https://insideclimatenews.org/feed/", outlet: "Inside Climate News", topics: ["climate"] },
   { url: "https://www.climatechangenews.com/feed/", outlet: "Climate Home News", topics: ["climate"] },
   { url: "https://rss.dw.com/rdf/rss-en-environment", outlet: "DW", topics: ["climate"] },
+  // Crime and justice: organized crime and corruption worldwide, and the US and UK crime desks.
+  { url: "https://www.occrp.org/en/feed", outlet: "OCCRP", topics: ["crime"] },
+  { url: "https://insightcrime.org/feed/", outlet: "InSight Crime", topics: ["crime"] },
+  { url: "https://globalinitiative.net/feed/", outlet: "Global Initiative", topics: ["crime"] },
+  { url: "https://www.themarshallproject.org/rss/recent", outlet: "The Marshall Project", topics: ["crime", "us"], us: true, home: "c:US" },
+  { url: "https://www.thetrace.org/feed/", outlet: "The Trace", topics: ["crime", "us"], us: true, home: "c:US" },
+  { url: "https://www.theguardian.com/us-news/us-crime/rss", outlet: "The Guardian", topics: ["crime", "us"], us: true, home: "c:US" },
+  { url: "https://www.theguardian.com/uk/ukcrime/rss", outlet: "The Guardian", topics: ["crime"], home: "c:GB" },
 ];
 
 /** Sections that are not national or international affairs. */

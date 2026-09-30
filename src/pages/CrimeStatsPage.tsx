@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
+import { HeadlinesBanner } from "../components/HeadlinesBanner";
 import {
   ShieldCheck,
   TrendUp,
@@ -756,6 +757,21 @@ export function CrimeStatsPage() {
             ))}
           </div>
         </div>
+
+        {/* ── CRIME AND JUSTICE HEADLINES ── */}
+        <HeadlinesBanner
+          label="Crime and justice headlines"
+          topics={["crime"]}
+          days={5}
+          read={100}
+          note={(outlets) => (
+            <>
+              The last five days' crime and justice news - organised crime and corruption reporting worldwide, and US and UK
+              crime desks - from {outlets} (five at most from each), refreshed every half hour. The tag is the place a story
+              is about, violet for more than one. Each links to the outlet.
+            </>
+          )}
+        />
 
         {/* ── KPI PILLS ──────────────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

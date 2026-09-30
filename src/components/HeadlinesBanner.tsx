@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Pause, Play } from "@phosphor-icons/react";
+import { Pause, Play, Star } from "@phosphor-icons/react";
 import { supabase } from "@/lib/supabase";
 import { TONE } from "@/lib/chipTone";
 import { countriesData } from "@/data/countriesData";
 import { usStatesData } from "@/data/statesData";
+import { useWatchlist } from "@/contexts/WatchlistContext";
 
 /**
  * A page's news as a moving banner: the latest headlines from the desks of
@@ -21,10 +22,13 @@ import { usStatesData } from "@/data/statesData";
  */
 
 /** The pages a desk serves, as news.ts tags them. */
-export type Topic = "world" | "us" | "economy" | "policy" | "humanitarian" | "climate";
+export type Topic = "world" | "us" | "economy" | "policy" | "humanitarian" | "climate" | "crime";
+/** Every desk, for a banner that draws on all of them. */
+export const ALL_TOPICS: Topic[] = ["world", "us", "economy", "policy", "humanitarian", "climate", "crime"];
 export type Headline = { url: string; title: string; outlet: string; published_at: string; places: string[] };
 export type HeadlineTag = { text: string; tone: string };
-export type Shown = { h: Headline; tag: HeadlineTag | null };
+/** A headline as the banner shows it; `star` marks one about a place the reader follows. */
+export type Shown = { h: Headline; tag: HeadlineTag | null; star?: boolean };
 
 const COUNTRY_NAME = new Map(countriesData.map((c) => [`c:${c.code}`, c.name]));
 const STATE_NAME = new Map(usStatesData.map((s) => [`s:${s.id}`, s.name]));
@@ -119,6 +123,41 @@ export function spread(rows: Headline[], each = 5, max = 30): Headline[] {
 
 const newestSpread = (rows: Headline[]): Shown[] => spread(rows).map((h) => ({ h, tag: placeTag(h.places) }));
 
+/** Names a country or US state the site knows. */
+export const namesPlace = (h: Headline) => h.places.some((p) => placeName(p) !== null);
+/** Names a country other than the United States - the US desks tag every story with the US. */
+export const namesAbroad = (h: Headline) => h.places.some((p) => p.startsWith("c:") && p !== "c:US" && placeName(p) !== null);
+/** Names two places or more: a story about their relations. */
+export const namesTwo = (h: Headline) => h.places.filter((p) => placeName(p) !== null).length >= 2;
+
+/** The newest thirty that pass `keep`, five at most from one outlet, tagged with their places. */
+export const pickWhere =
+  (keep: (h: Headline) => boolean) =>
+  (rows: Headline[]): Shown[] =>
+    spread(rows.filter(keep)).map((h) => ({ h, tag: placeTag(h.places) }));
+
+/** As pickWhere, with the headlines about a place the reader follows first, starred. */
+export const followedFirst =
+  (followed: Set<string>, keep: (h: Headline) => boolean) =>
+  (rows: Headline[]): Shown[] => {
+    const mine = (h: Headline) => h.places.some((p) => followed.has(p));
+    return spread([...rows.filter(mine), ...rows.filter((h) => !mine(h) && keep(h))]).map((h) => ({
+      h,
+      tag: placeTag(h.places),
+      star: mine(h),
+    }));
+  };
+
+const CODE_OF = new Map(countriesData.map((c) => [c.id, c.code]));
+/** The places the reader follows, as headlines tag them: "c:JP", "s:tx". */
+export function useFollowedTags(): Set<string> {
+  const { items } = useWatchlist();
+  return useMemo(
+    () => new Set(items.map((i) => (i.type === "state" ? `s:${i.id}` : `c:${CODE_OF.get(i.id) ?? i.id.toUpperCase()}`))),
+    [items],
+  );
+}
+
 export function HeadlinesBanner({
   label,
   topics,
@@ -174,7 +213,7 @@ export function HeadlinesBanner({
   if (!shown.length) return null;
 
   const renderItems = (copy: boolean): ReactNode =>
-    shown.map(({ h, tag }) => (
+    shown.map(({ h, tag, star }) => (
       <a
         key={`${copy ? "b" : "a"}-${h.url}`}
         href={h.url}
@@ -184,6 +223,7 @@ export function HeadlinesBanner({
         tabIndex={copy ? -1 : undefined}
         className="group inline-flex items-center gap-2 shrink-0 whitespace-nowrap pr-6 text-xs font-sans text-foreground/90"
       >
+        {star && <Star size={11} weight="fill" className="text-amber-500 shrink-0" aria-label="A place you follow" />}
         {tag && <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${tag.tone}`}>{tag.text}</span>}
         <span className="group-hover:underline">{h.title}</span>
         <span className="text-[10px] text-muted-foreground">

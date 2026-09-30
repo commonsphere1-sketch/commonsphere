@@ -35,6 +35,7 @@ import {
 } from "../data/mapJoin";
 import { ADMIN1_SOURCES, GEOBOUNDARIES_URL } from "../data/admin1Sources";
 import { useTheme } from "../contexts/ThemeContext";
+import { HeadlinesBanner, ALL_TOPICS, namesPlace, pickWhere } from "../components/HeadlinesBanner";
 import { isG20, g20Countries, G20_UNION_MEMBERS, G20_MEMBER_CODES } from "../data/g20";
 import { isG7, g7Countries, G7_PARTICIPANTS, G7_MEMBER_CODES } from "../data/g7";
 import {
@@ -1408,6 +1409,9 @@ function quantileBreaks(values: number[], buckets: number): number[] {
   }
   return breaks;
 }
+
+/** Headlines naming a country or US state: the places on these maps. */
+const pickPlaced = pickWhere(namesPlace);
 
 export function WorldMapsPage() {
   const { theme } = useTheme();
@@ -3030,6 +3034,24 @@ export function WorldMapsPage() {
             economy and society indicators
           </p>
         </div>
+
+        {/* ── Headlines by place ── */}
+        <HeadlinesBanner
+          label="Headlines by place"
+          topics={ALL_TOPICS}
+          days={2}
+          read={150}
+          untagged
+          pick={pickPlaced}
+          className="mb-5"
+          note={(outlets) => (
+            <>
+              The last two days' headlines naming a country or US state - the places on these maps - from {outlets} (five at
+              most from each), refreshed every half hour. The tag is the place, violet for more than one. Each links to the
+              outlet.
+            </>
+          )}
+        />
 
         {/* ── Why these projections ── */}
         <div className="bg-secondary/5 border border-secondary/20 rounded-2xl p-4 mb-5">

@@ -18,6 +18,7 @@ import {
   ArrowsLeftRight,
 } from "@phosphor-icons/react";
 import { FilterBar } from "../components/FilterBar";
+import { HeadlinesBanner, ALL_TOPICS, namesPlace, pickWhere } from "../components/HeadlinesBanner";
 
 // ─── Metric definitions ──────────────────────────────────────────────────────
 
@@ -1668,6 +1669,9 @@ function ComparisonPanel({
   );
 }
 
+/** Headlines naming a country or US state: the places ranked here. */
+const pickPlaced = pickWhere(namesPlace);
+
 export function RankingsPage() {
   const [activeCategory, setActiveCategory] = useState<CategoryTab>("economy");
   const [entityFilter, setEntityFilter] = useState<EntityFilter>("all");
@@ -2069,6 +2073,23 @@ export function RankingsPage() {
           </div>
         </div>
       )}
+
+      {/* ── Country and state headlines ── */}
+      <HeadlinesBanner
+        label="Country and state headlines"
+        topics={ALL_TOPICS}
+        days={2}
+        read={150}
+        untagged
+        pick={pickPlaced}
+        note={(outlets) => (
+          <>
+            The last two days' headlines naming a country or US state - the places ranked here - from {outlets} (five at
+            most from each), refreshed every half hour. The tag is the place, violet for more than one. Each links to the
+            outlet.
+          </>
+        )}
+      />
 
       {/* ── Table / Card list ──────────────────────────────────────────── */}
       <div className="bg-card border border-border rounded-2xl overflow-hidden">
