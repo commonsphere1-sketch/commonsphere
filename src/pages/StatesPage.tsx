@@ -6,7 +6,7 @@ import {
   Gavel,
   UsersThree,
   MapTrifold,
-  Newspaper,
+  Scroll,
   ListBullets,
   Scales,
   Star,
@@ -39,7 +39,7 @@ import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 import { useWatchlist } from "@/contexts/WatchlistContext";
 import { FollowedPlaces } from "@/components/FollowedPlaces";
-import { NewsPanel, newsAvailable } from "@/components/NewsPanel";
+import { HistoryPanel } from "@/components/HistoryPanel";
 import { usdFromBillions } from "@/lib/money";
 import { has } from "@/lib/na";
 
@@ -6326,7 +6326,7 @@ function StateMapTab({ state }: { state: USState }) {
 }
 
 // ─── Modal ───────────────────────────────────────────────────────────────────
-type ModalTab = "overview" | "map" | "laws" | "news";
+type ModalTab = "overview" | "map" | "laws" | "history";
 
 function StateModal({
   state,
@@ -6363,9 +6363,7 @@ function StateModal({
     },
     { id: "map", label: "Map", icon: <MapTrifold size={13} weight="fill" /> },
     { id: "laws", label: "Laws", icon: <Scales size={13} weight="fill" /> },
-    ...(newsAvailable
-      ? [{ id: "news" as const, label: "News", icon: <Newspaper size={13} weight="fill" /> }]
-      : []),
+    { id: "history", label: "History", icon: <Scroll size={13} weight="fill" /> },
   ];
 
   return (
@@ -6478,7 +6476,7 @@ function StateModal({
           {activeTab === "laws" && <StateLawsTab state={state} />}
 
           {/* Tab: News */}
-          {activeTab === "news" && <NewsPanel place={`s:${state.id}`} name={state.name} />}
+          {activeTab === "history" && <HistoryPanel code={`US-${state.id.toUpperCase()}`} name={state.name} />}
 
           {/* Tab: Overview */}
           {

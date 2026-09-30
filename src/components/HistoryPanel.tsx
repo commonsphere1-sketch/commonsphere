@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { ArrowSquareOut, Spinner } from "@phosphor-icons/react";
 
 /**
- * A country's history, in Wikipedia's words: its "History of …" article,
- * found through Wikidata's link from the country (property P2184, "history
- * of topic", looked up by ISO code) so no article name is guessed; or, for a
- * place with no such article (Bouvet Island, Tokelau), the History section of
- * its own article. Shown: the article's opening, then each era with its
- * first paragraph, each linking to the full section.
+ * A country's or US state's history, in Wikipedia's words: its "History of
+ * …" article, found through Wikidata's link from the place (property P2184,
+ * "history of topic"), looked up by ISO code - "FR" for a country (ISO
+ * 3166-1), "US-TX" for a state (ISO 3166-2) - so no article name is guessed
+ * ("History of Georgia (U.S. state)" is not the country's). For a place with
+ * no such article (Bouvet Island, Tokelau), the History section of its own
+ * article. Shown: the article's opening, then each era with its first
+ * paragraph, each linking to the full section.
  *
  * Fetched when the tab opens, and kept for the visit. The text is
  * Wikipedia's, under CC BY-SA 4.0, and says so with a link to the article.
@@ -65,9 +67,11 @@ function eras(sections: Section[], level: number): Era[] {
 }
 
 async function loadHistory(code: string): Promise<History | null> {
-  if (!/^[A-Z]{2}$/.test(code)) return null;
+  // ISO 3166-1 alpha-2 for a country, ISO 3166-2 for a state; nothing else reaches the query.
+  const prop = /^[A-Z]{2}$/.test(code) ? "P297" : /^[A-Z]{2}-[A-Z0-9]{1,3}$/.test(code) ? "P300" : null;
+  if (!prop) return null;
   const q = `SELECT ?hist ?main WHERE {
-    ?item wdt:P297 "${code}" .
+    ?item wdt:${prop} "${code}" .
     OPTIONAL { ?item wdt:P2184 ?h . ?hist schema:about ?h ; schema:isPartOf <https://en.wikipedia.org/> . }
     OPTIONAL { ?main schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> . }
   }`;
