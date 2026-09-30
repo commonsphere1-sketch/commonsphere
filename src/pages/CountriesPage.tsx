@@ -10,7 +10,6 @@ import {
   Flag,
   CurrencyDollar,
   MapTrifold,
-  Newspaper,
   Scroll,
   ListBullets,
   BookOpen,
@@ -49,7 +48,7 @@ import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 import { useWatchlist } from "@/contexts/WatchlistContext";
 import { FollowedPlaces } from "@/components/FollowedPlaces";
-import { NewsPanel, newsAvailable } from "@/components/NewsPanel";
+import { HistoryPanel } from "@/components/HistoryPanel";
 import { fmtArea, fmtGDP, fmtPop } from "@/lib/placeFormat";
 
 // ── Source citation constants ────────────────────────────────────────────
@@ -536,7 +535,7 @@ function CountryModal({
     scrollRef.current?.scrollTo({ top: 0 });
   }, [country.id]);
   const [activeTab, setActiveTab] = React.useState<
-    "overview" | "map" | "constitution" | "news"
+    "overview" | "map" | "constitution" | "history"
   >("overview");
   const [isExpanded, setIsExpanded] = React.useState(false);
   const navigate = useNavigate();
@@ -678,15 +677,11 @@ function CountryModal({
                   label: "Governance",
                   icon: <Scales size={13} weight="fill" />,
                 },
-                ...(newsAvailable
-                  ? [
-                      {
-                        id: "news" as const,
-                        label: "News",
-                        icon: <Newspaper size={13} weight="fill" />,
-                      },
-                    ]
-                  : []),
+                {
+                  id: "history" as const,
+                  label: "History",
+                  icon: <Scroll size={13} weight="fill" />,
+                },
               ] as const
             ).map((tab) => (
               <button
@@ -810,8 +805,8 @@ function CountryModal({
             <ConstitutionTab country={country} />
           )}
 
-          {/* ── NEWS TAB ── */}
-          {activeTab === "news" && <NewsPanel place={`c:${country.code}`} name={country.name} />}
+          {/* ── HISTORY TAB: Wikipedia's history of the place, found through Wikidata ── */}
+          {activeTab === "history" && <HistoryPanel code={country.code} name={country.name} />}
 
           {/* ── OVERVIEW TAB ── */}
           {

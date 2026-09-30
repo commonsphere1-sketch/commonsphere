@@ -36,8 +36,13 @@ function ago(iso: string): string {
   return d === 1 ? "yesterday" : `${d} days ago`;
 }
 
-const OUTLETS =
-  "BBC News, Al Jazeera, NPR, DW, France 24, The Guardian, UN News, PBS NewsHour, Foreign Policy, The Diplomat, ABC News (Australia), Euronews, the South China Morning Post, The Japan Times, The Straits Times, CNA, Africanews, The Hindu, MercoPress, Politico, The Hill, Stateline and CalMatters";
+/** "BBC News, NPR and Stateline": the outlets of the headlines listed, the most frequent first. */
+function outletList(rows: Headline[]): string {
+  const n = new Map<string, number>();
+  for (const r of rows) n.set(r.outlet, (n.get(r.outlet) ?? 0) + 1);
+  const names = [...n.keys()].sort((a, b) => (n.get(b) ?? 0) - (n.get(a) ?? 0) || a.localeCompare(b));
+  return names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}` : (names[0] ?? "");
+}
 
 /** Whether the News tab has anything to read from. */
 export const newsAvailable = !!supabase;
@@ -173,8 +178,8 @@ export function NewsPanel({ place, name }: { place: string; name: string }) {
       )}
 
       <p className="text-[10px] font-sans text-muted-foreground leading-snug">
-        Headlines from the public news feeds of {OUTLETS}, matched to the places they name and updated every half
-        hour. Only the headline is shown here; each links to the publisher.
+        Headlines from established outlets' public news feeds{shown.length > 0 && <> - here {outletList(shown)} -</>} matched to
+        the places they name and updated every half hour. Only the headline is shown here; each links to the publisher.
       </p>
     </div>
   );
