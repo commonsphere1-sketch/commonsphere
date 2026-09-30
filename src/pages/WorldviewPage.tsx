@@ -665,6 +665,239 @@ const pickWorld = (rows: Headline[]): Shown[] =>
     .slice(0, 30)
     .map((h) => ({ h, tag: placeTag(h.places.filter((p) => p.startsWith("c:"))) }));
 
+// ── The world wheel ─────────────────────────────────────────────────────────
+
+const WORLD_WHEEL = { cx: 260, cy: 260, core: 70, edge: 198 };
+/**
+ * The radius that encloses a share `f` of a wedge, from the core out, by
+ * area: so each part of a wedge takes the room its count deserves, however
+ * far out it lies.
+ */
+const areaRadius = (f: number) => {
+  const { core, edge } = WORLD_WHEEL;
+  return Math.sqrt(core ** 2 + Math.max(0, Math.min(1, f)) * (edge ** 2 - core ** 2));
+};
+
+/**
+ * The world as a wheel of its pillars, in the manner of the Climate page's
+ * planetary boundaries: each pillar a wedge, filled from the centre with its
+ * measures that improved over about ten years (green), then those that
+ * worsened (red); the grey that remains is its measures with no verdict,
+ * where the direction is a matter of opinion. Every wedge holds all of its
+ * pillar's measures, and each part's area matches its count, so a pillar
+ * with few judged measures is not drawn as all good or all bad. Hovering a
+ * pillar, here or in the list beside, reads it out in the centre; picking
+ * one opens its window.
+ */
+function WorldWheel() {
+  const { isLight, card, head, muted } = useLook();
+  const open = useContext(OpenWorldview);
+  const [hover, setHover] = useState<Pillar["id"] | null>(null);
+  const rows = PILLARS.map((p) => {
+    const d = pillarDirection(p);
+    return { p, ...d, total: d.better + d.worse + d.none };
+  });
+  const all = rows.reduce((t, r) => ({ better: t.better + r.better, worse: t.worse + r.worse, none: t.none + r.none }), { better: 0, worse: 0, none: 0 });
+  const colors = {
+    better: isLight ? "#059669" : "#10b981",
+    worse: isLight ? "#dc2626" : "#ef4444",
+    none: isLight ? "#d4d4d8" : "#52525b",
+  };
+  const { cx, cy, core, edge } = WORLD_WHEEL;
+  const step = 360 / rows.length;
+  const polar = (deg: number, r: number) => {
+    const a = ((deg - 90) * Math.PI) / 180;
+    return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+  };
+  const wedge = (start: number, end: number, inner: number, outer: number) => {
+    if (outer - inner < 0.25) return "";
+    const s = start + 0.9;
+    const e = end - 0.9;
+    const [p1, p2, p3, p4] = [polar(s, inner), polar(s, outer), polar(e, outer), polar(e, inner)];
+    return `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} A ${outer} ${outer} 0 0 1 ${p3.x} ${p3.y} L ${p4.x} ${p4.y} A ${inner} ${inner} 0 0 0 ${p1.x} ${p1.y} Z`;
+  };
+  const shown = rows.find((r) => r.p.id === hover) ?? null;
+  const read = shown ?? { ...all, total: all.better + all.worse + all.none };
+  const describe = (r: (typeof rows)[number]) =>
+    `${r.p.title}: of ${r.total} measures, ${r.better} improved and ${r.worse} worsened over about ten years; ${r.none} have no verdict. Opens the pillar.`;
+
+  return (
+    <div className="rounded-2xl p-5" style={card}>
+      <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
+        <div>
+          <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: muted }}>
+            {rows.length} pillars · {all.better + all.worse + all.none} measures
+          </p>
+          <h2 className="text-lg font-bold font-sans" style={{ color: head }}>
+            The world at a glance
+          </h2>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-1 rounded-full bg-muted/60 text-foreground/80">
+          {all.better} better · {all.worse} worse · {all.none} no verdict
+        </span>
+      </div>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 pb-3 mb-3 border-b border-border">
+        {[
+          { key: "better", label: "Improved over about ten years", Icon: ArrowUpRight },
+          { key: "worse", label: "Worsened", Icon: ArrowDownRight },
+          { key: "none", label: "No verdict - the direction is a matter of opinion", Icon: Minus },
+        ].map((x) => (
+          <span key={x.key} className="inline-flex items-center gap-1.5 text-[10px] font-sans text-muted-foreground">
+            <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: colors[x.key as keyof typeof colors] }} aria-hidden />
+            <x.Icon size={10} weight="bold" aria-hidden />
+            {x.label}
+          </span>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+        <div className="lg:col-span-7 flex items-center justify-center">
+          <svg
+            viewBox="0 0 520 520"
+            width="100%"
+            style={{ maxWidth: 440, overflow: "visible" }}
+            role="img"
+            aria-label={`The world's ${rows.length} pillars: of ${all.better + all.worse + all.none} measures, ${all.better} improved and ${all.worse} worsened over about ten years, and ${all.none} have no verdict.`}
+          >
+            <defs>
+              <radialGradient id="wwCoreGrad" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor={isLight ? "#ffffff" : "#27272a"} />
+                <stop offset="100%" stopColor={isLight ? "#e4e4e7" : "#18181b"} />
+              </radialGradient>
+            </defs>
+            {/* Half of a pillar's measures, by area. */}
+            <circle cx={cx} cy={cy} r={areaRadius(0.5)} fill="none" stroke={isLight ? "#71717a" : "#a1a1aa"} strokeWidth={1} strokeDasharray="3 4" opacity={0.5} />
+
+            {rows.map((r, i) => {
+              const start = i * step;
+              const f1 = r.total ? r.better / r.total : 0;
+              const f2 = r.total ? (r.better + r.worse) / r.total : 0;
+              const lit = hover === null || hover === r.p.id;
+              return (
+                <g
+                  key={r.p.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={describe(r)}
+                  aria-haspopup="dialog"
+                  className="cursor-pointer focus:outline-none"
+                  onClick={() => open(r.p)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      open(r.p);
+                    }
+                  }}
+                  onMouseEnter={() => setHover(r.p.id)}
+                  onMouseLeave={() => setHover(null)}
+                  onFocus={() => setHover(r.p.id)}
+                  onBlur={() => setHover(null)}
+                  opacity={lit ? 1 : 0.4}
+                  style={{ transition: "opacity 150ms" }}
+                >
+                  {/* The whole pillar: its measures with no verdict show as this grey. */}
+                  <path d={wedge(start, start + step, core, edge)} fill={colors.none} opacity={0.55} />
+                  <path d={wedge(start, start + step, core, areaRadius(f1))} fill={colors.better} opacity={0.9} />
+                  <path d={wedge(start, start + step, areaRadius(f1), areaRadius(f2))} fill={colors.worse} opacity={0.85} />
+                  {/* The pillar's own colour, as a band round the rim. */}
+                  <path d={wedge(start, start + step, edge + 4, edge + 9)} fill={r.p.color} opacity={0.9} />
+                  {hover === r.p.id && (
+                    <path d={wedge(start, start + step, core, edge + 9)} fill="none" stroke={r.p.color} strokeWidth={2} />
+                  )}
+                </g>
+              );
+            })}
+
+            <circle cx={cx} cy={cy} r={core} fill="url(#wwCoreGrad)" stroke={isLight ? "#d4d4d8" : "#3f3f46"} />
+            <text x={cx} y={cy - 22} textAnchor="middle" fontSize="9" fontFamily="monospace" letterSpacing="1" fill={shown ? shown.p.color : muted}>
+              {(shown ? shown.p.title : "The world").toUpperCase()}
+            </text>
+            <text x={cx} y={cy - 3} textAnchor="middle" fontSize="13" fontFamily="monospace" fontWeight="700" fill={colors.better}>
+              {read.better} better
+            </text>
+            <text x={cx} y={cy + 14} textAnchor="middle" fontSize="13" fontFamily="monospace" fontWeight="700" fill={colors.worse}>
+              {read.worse} worse
+            </text>
+            <text x={cx} y={cy + 30} textAnchor="middle" fontSize="8.5" fontFamily="monospace" fill={muted}>
+              {read.none} no verdict
+            </text>
+            <text x={cx + areaRadius(0.5) + 3} y={cy - 3} fontSize="7" fontFamily="monospace" fill={muted}>
+              half
+            </text>
+
+            {rows.map((r, i) => {
+              const mid = i * step + step / 2;
+              const lp = polar(mid, edge + 26);
+              const anchor = mid > 345 || mid < 15 || (mid > 165 && mid < 195) ? "middle" : mid < 180 ? "start" : "end";
+              const lit = hover === r.p.id;
+              return (
+                <text
+                  key={`lbl-${r.p.id}`}
+                  x={lp.x}
+                  y={lp.y + 3}
+                  textAnchor={anchor}
+                  fontSize="10"
+                  fontFamily="sans-serif"
+                  fontWeight={lit ? "700" : "600"}
+                  fill={lit ? r.p.color : isLight ? "#334155" : "#cbd5e1"}
+                  className="select-none cursor-pointer"
+                  onClick={() => open(r.p)}
+                  onMouseEnter={() => setHover(r.p.id)}
+                  onMouseLeave={() => setHover(null)}
+                  aria-hidden
+                >
+                  {r.p.title}
+                </text>
+              );
+            })}
+          </svg>
+        </div>
+
+        <ul className="lg:col-span-5 flex flex-col gap-1">
+          {rows.map((r) => (
+            <li key={r.p.id}>
+              <button
+                type="button"
+                onClick={() => open(r.p)}
+                onMouseEnter={() => setHover(r.p.id)}
+                onMouseLeave={() => setHover(null)}
+                onFocus={() => setHover(r.p.id)}
+                onBlur={() => setHover(null)}
+                aria-haspopup="dialog"
+                aria-label={describe(r)}
+                className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-left cursor-pointer transition-colors hover:bg-muted/60"
+                style={hover === r.p.id ? { background: r.p.color + "14" } : undefined}
+              >
+                <span className="w-6 h-6 rounded-md flex items-center justify-center shrink-0" style={{ background: r.p.color + "18", color: r.p.color }} aria-hidden>
+                  {r.p.icon}
+                </span>
+                <span className="w-24 shrink-0 text-[11px] font-semibold font-sans truncate" style={{ color: head }}>
+                  {r.p.title}
+                </span>
+                <span className="flex-1 flex h-1.5 gap-[2px] min-w-0" aria-hidden>
+                  {(["better", "worse", "none"] as const).map((k) =>
+                    r[k] ? <span key={k} className="h-full first:rounded-l-full last:rounded-r-full" style={{ width: `${(100 * r[k]) / r.total}%`, background: colors[k] }} /> : null,
+                  )}
+                </span>
+                <span className="shrink-0 w-24 text-right text-[10px] font-mono tabular-nums" style={{ color: muted }} aria-hidden>
+                  <span style={{ color: colors.better }}>↗{r.better}</span> <span style={{ color: colors.worse }}>↘{r.worse}</span> —{r.none}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <p className="mt-4 text-[10px] font-sans leading-relaxed max-w-4xl" style={{ color: muted }}>
+        Each wedge is a pillar and holds all its measures: from the centre, those that improved over about ten years, then those that
+        worsened; the grey beyond is those with no verdict, where whether up or down is better is a matter of opinion - most of the
+        governance and belief measures. Each part's area matches its number of measures, and the dashed ring marks half. Hover a pillar to
+        read it in the centre; pick one to open it.
+      </p>
+    </div>
+  );
+}
+
 // ── Headline figures ────────────────────────────────────────────────────────
 
 function Pill({ label, value, sub, d }: { label: string; value: string; sub: string; d: Delta | null }) {
@@ -2618,6 +2851,13 @@ export function WorldviewPage() {
       <div className="w-full px-4 sm:px-5 py-4 flex flex-col gap-4">
         <Hero />
         <SectionNav label="Worldview sections" sections={SECTIONS} />
+
+        {/* ── Overview: the wheel of the pillars, then the headline figures ── */}
+        <section id="overview" className="scroll-mt-36 flex flex-col gap-4">
+          <WorldWheel />
+          <HeadlinePills />
+        </section>
+
         <HeadlinesBanner
           label="World headlines"
           topics={["world"]}
@@ -2631,11 +2871,6 @@ export function WorldviewPage() {
             </>
           )}
         />
-
-        {/* ── Overview ── */}
-        <section id="overview" className="scroll-mt-36">
-          <HeadlinePills />
-        </section>
 
         {/* ── The pillars: each its own section, one to a row; each card opens its window ── */}
         <div className="px-1 pt-2 flex items-center gap-2">
