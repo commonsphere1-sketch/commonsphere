@@ -36,6 +36,7 @@ import { GLOBAL_NORTH_CODES, GLOBAL_SOUTH_CODES, DEVELOPMENT_STATUS_SOURCE } fro
 import { LAND_USE, LAND_USE_SOURCE } from "@/data/landUse";
 import { useTheme } from "@/contexts/ThemeContext";
 import { HeadlinesBanner, placeName, placeTag, type Headline, type Shown } from "@/components/HeadlinesBanner";
+import { SectionNav, type NavSection } from "@/components/SectionNav";
 import { has } from "@/lib/na";
 
 /**
@@ -525,7 +526,7 @@ function Hero() {
 
 // ── Pillar navigation ───────────────────────────────────────────────────────
 
-const SECTIONS: { id: string; label: string }[] = [
+const SECTIONS: NavSection[] = [
   { id: "overview", label: "Overview" },
   { id: "society", label: "Society" },
   { id: "economy", label: "Economy" },
@@ -533,49 +534,6 @@ const SECTIONS: { id: string; label: string }[] = [
   { id: "ecology", label: "Ecology" },
   { id: "rankings", label: "Rankings" },
 ];
-
-/** Sticky chips to each section, the one in view marked, as the other pages' filter bars. */
-function PillarNav() {
-  const [active, setActive] = useState("overview");
-  useEffect(() => {
-    // The section being read is the last whose top has come a third of the
-    // way down the screen - or, at the foot of the page, the last section,
-    // whose top may never get that high. Checked on every scroll: six
-    // positions read, and setting the same section again does not re-render.
-    const check = () => {
-      const line = Math.max(180, window.innerHeight / 3);
-      const atFoot = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
-      let current = SECTIONS[0].id;
-      for (const s of SECTIONS) {
-        const el = document.getElementById(s.id);
-        if (el && (el.getBoundingClientRect().top <= line || atFoot)) current = s.id;
-      }
-      setActive(current);
-    };
-    window.addEventListener("scroll", check, { passive: true, capture: true });
-    check();
-    return () => window.removeEventListener("scroll", check, { capture: true } as EventListenerOptions);
-  }, []);
-  return (
-    <nav aria-label="Worldview sections" className="search-sticky sticky top-16 z-30 border border-border/60 rounded-2xl px-3 py-2">
-      <div className="flex items-center gap-1.5 overflow-x-auto">
-        {SECTIONS.map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
-            aria-current={active === s.id ? "true" : undefined}
-            className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
-              active === s.id ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
-            }`}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
-    </nav>
-  );
-}
 
 // ── World headlines ─────────────────────────────────────────────────────────
 
@@ -1777,7 +1735,7 @@ export function WorldviewPage() {
     <div className="min-h-screen w-full animate-fade-in" style={{ background: "var(--color-background)" }}>
       <div className="w-full px-4 sm:px-5 py-4 flex flex-col gap-4">
         <Hero />
-        <PillarNav />
+        <SectionNav label="Worldview sections" sections={SECTIONS} />
         <HeadlinesBanner
           label="World headlines"
           topics={["world"]}

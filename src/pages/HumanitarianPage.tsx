@@ -29,6 +29,7 @@ import {
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
+import { SectionNav, type NavSection } from "../components/SectionNav";
 import { DONOR_AID, DONOR_AID_SOURCE, DAC_TOTAL } from "../data/donorAid";
 
 /* ─── Data ──────────────────────────────────────────────────────────────── */
@@ -378,6 +379,13 @@ function StatCard({
 }
 
 /* ─── Page ───────────────────────────────────────────────────────────────── */
+const SECTIONS: NavSection[] = [
+  { id: "overview", label: "Overview" },
+  { id: "displacement", label: "Displacement" },
+  { id: "food", label: "Food & hunger" },
+  { id: "health", label: "Health & water" },
+];
+
 export function HumanitarianPage() {
   const { theme } = useTheme();
   const isLight = theme === "light";
@@ -473,6 +481,8 @@ export function HumanitarianPage() {
           </div>
         </div>
 
+        <SectionNav label="Humanitarian sections" sections={SECTIONS} />
+
         {/* ── Humanitarian headlines: the agencies' newsrooms and crisis desks ── */}
         <HeadlinesBanner
           label="Humanitarian headlines"
@@ -490,7 +500,7 @@ export function HumanitarianPage() {
         {/* ══════════════════════════════════════════════════════════════ */}
         {/* OVERVIEW                                                       */}
         {/* ══════════════════════════════════════════════════════════════ */}
-        <div className="flex flex-col gap-6">
+        <div id="overview" className="scroll-mt-36 flex flex-col gap-6">
           {/* KPI cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             <StatCard
@@ -896,7 +906,7 @@ export function HumanitarianPage() {
         {/* ══════════════════════════════════════════════════════════════ */}
         {/* DISPLACEMENT                                                   */}
         {/* ══════════════════════════════════════════════════════════════ */}
-        <div className="flex flex-col gap-6">
+        <div id="displacement" className="scroll-mt-36 flex flex-col gap-6">
           <div
             className="rounded-xl px-4 py-2 flex items-center gap-2"
             style={{
@@ -1210,7 +1220,7 @@ export function HumanitarianPage() {
         {/* ══════════════════════════════════════════════════════════════ */}
         {/* FOOD & HUNGER                                                  */}
         {/* ══════════════════════════════════════════════════════════════ */}
-        <div className="flex flex-col gap-6">
+        <div id="food" className="scroll-mt-36 flex flex-col gap-6">
           <div
             className="rounded-xl px-4 py-2 flex items-center gap-2"
             style={{
@@ -1441,7 +1451,7 @@ export function HumanitarianPage() {
         {/* ══════════════════════════════════════════════════════════════ */}
         {/* HEALTH & WATER                                                 */}
         {/* ══════════════════════════════════════════════════════════════ */}
-        <div className="flex flex-col gap-6">
+        <div id="health" className="scroll-mt-36 flex flex-col gap-6">
           <div
             className="rounded-xl px-4 py-2 flex items-center gap-2"
             style={{
