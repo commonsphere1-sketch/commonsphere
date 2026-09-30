@@ -16,6 +16,7 @@ import {
   type PlanetaryBoundary,
   type Zone,
 } from "../data/planetaryBoundaries";
+import { FLASHPOINTS, TIPPING_POINTS, TREATIES, TREATIES_CHECKED, type ContextItem } from "../data/climateContext";
 import {
   Leaf,
   Info,
@@ -397,33 +398,16 @@ export function PlanetaryBoundariesPage() {
   const { theme } = useTheme();
   const isLight = theme === "light";
   const [selectedId, setSelectedId] = useState<string>("climate");
-  const [expandedTreaties, setExpandedTreaties] = useState<Set<string>>(new Set());
-  const [expandedFlashpoints, setExpandedFlashpoints] = useState<Set<string>>(new Set());
+  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const [expandedSeaLevel, setExpandedSeaLevel] = useState<Set<string>>(new Set());
 
-  const toggleTreaty = (key: string) => {
-    setExpandedTreaties((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(key)) {
-        newSet.delete(key);
-      } else {
-        newSet.add(key);
-      }
-      return newSet;
+  const toggleNote = (key: string) =>
+    setExpandedNotes((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
     });
-  };
-
-  const toggleFlashpoint = (key: string) => {
-    setExpandedFlashpoints((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(key)) {
-        newSet.delete(key);
-      } else {
-        newSet.add(key);
-      }
-      return newSet;
-    });
-  };
 
   const toggleSeaLevel = (key: string) => {
     setExpandedSeaLevel((prev) => {
@@ -646,218 +630,84 @@ export function PlanetaryBoundariesPage() {
           </div>
         </div>
 
-        {/* ── ECOLOGICAL TRENDS SECTION ─────────────────────────────────── */}
+        {/* ── CONTEXT: tipping points, treaties, flashpoints ──────────────
+            Each item says what its source says; open it for the detail and
+            the links. See data/climateContext.ts for what was removed. */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {[
-            {
-              title: "Tipping Points & Cascades",
-              items: [
-                {
-                  label: "Amazon Dieback",
-                  val: "~20–25% deforestation threshold",
-                  color: "#ef4444",
-                },
-                {
-                  label: "West Antarctic Ice Sheet",
-                  val: "Potential 3.3m sea-level rise",
-                  color: "#3b82f6",
-                },
-                {
-                  label: "Atlantic AMOC Slowdown",
-                  val: "Increased 15% slowing since 1950",
-                  color: "#6366f1",
-                },
-                {
-                  label: "Greenland Ice Sheet",
-                  val: "1.5–2°C tipping point suspected",
-                  color: "#06b6d4",
-                },
-                {
-                  label: "Coral Reef Collapse",
-                  val: "90% reefs stressed by 2050 at 1.5°C",
-                  color: "#f97316",
-                },
-              ],
-            },
-            {
-              title: "International Treaties & Gaps",
-              items: [
-                {
-                  label: "Paris Agreement",
-                  val: "196 parties — 16% on track for 2030",
-                  color: "#f59e0b",
-                  summary: "The 2015 Paris Agreement commits parties to limit warming to 1.5–2°C. However, only 16% of G20 members are on track to meet 2030 Nationally Determined Contribution (NDC) targets. Current policies lead to ~2.7°C warming by 2100. The compliance gap creates sovereign liability risks and threatens the agreement's credibility.",
-                  id: "paris-agreement",
-                },
-                {
-                  label: "Kunming-Montreal (30×30)",
-                  val: "196 parties — financing gap ~$700B/yr",
-                  color: "#10b981",
-                  summary: "Adopted in 2022, the 30×30 target aims to protect 30% of land and ocean by 2030. Biodiversity finance commitments total $30B by 2030, far short of the estimated $700B annual need. Developing nations lack resources; implementation remains contested between conservation and development priorities.",
-                  id: "kunming-montreal",
-                },
-                {
-                  label: "Global Plastics Treaty",
-                  val: "Negotiations ongoing — 175 nations",
-                  color: "#f97316",
-                  summary: "The 2024 United Nations Plastics Treaty aims to set binding limits on plastic production and consumption. Negotiations face resistance from petrostate producers (Saudi Arabia, Russia) and divergence on whether to cap production or focus only on waste management. Political economy obstacles remain significant.",
-                  id: "plastics-treaty",
-                },
-                {
-                  label: "High Seas Treaty (BBNJ)",
-                  val: "88 signatures — not yet in force",
-                  color: "#3b82f6",
-                  summary: "The Agreement on Biodiversity Beyond National Jurisdiction entered negotiations in 2018 and was adopted in 2023. It establishes marine protected areas and benefit-sharing frameworks for ocean genetic resources. Not yet in force; implementation mechanisms and funding remain underdeveloped.",
-                  id: "bbnj-treaty",
-                },
-                {
-                  label: "Nagoya Protocol",
-                  val: "137 parties — enforcement weak",
-                  color: "#a855f7",
-                  summary: "The 2014 Nagoya Protocol regulates access to genetic resources and benefit-sharing from genetic data. Covers biopiracy prevention. However, enforcement is weak, particularly against illegal extraction from megadiverse nations (Brazil, Indonesia, India). Compliance reporting is voluntary and inconsistent.",
-                  id: "nagoya-protocol",
-                },
-              ],
-            },
-            {
-              title: "Ecological Security Flashpoints",
-              items: [
-                {
-                  label: "Nile Basin (Ethiopia–Egypt)",
-                  val: "GERD dam — existential water conflict",
-                  color: "#ef4444",
-                  summary: "The Grand Ethiopian Renaissance Dam (GERD) created a 74 km³ reservoir, fundamentally altering downstream water flows. Egypt, dependent on 95% of Nile water, faces existential threats to agriculture and urban water supply. No binding agreement exists; trilateral negotiations repeatedly stall. Risk of military escalation remains high.",
-                  id: "nile-basin",
-                },
-                {
-                  label: "Lancang-Mekong Corridor",
-                  val: "China upstream damming — SEA tensions",
-                  color: "#f97316",
-                  summary: "China operates 11 dams on the Mekong headwaters (Lancang), controlling water release and hydropower generation. Downstream nations (Thailand, Laos, Vietnam, Cambodia) face altered monsoons and ecological collapse. China's dam operations during dry seasons exacerbate downstream water scarcity, fueling Southeast Asian resentment.",
-                  id: "mekong-corridor",
-                },
-                {
-                  label: "Amazon Governance",
-                  val: "Brazil sovereignty vs. EU EUDR pressure",
-                  color: "#22c55e",
-                  summary: "Brazil asserts Amazonian sovereignty against EU deforestation regulations (EUDR) and international conservation pressure. Deforestation reached 11.5M hectares annually under prior administrations. The Amazon is approaching a 20–25% deforestation tipping point; governance collapse in parts of the DRC also threatens the Congo Basin's 300M hectares.",
-                  id: "amazon-governance",
-                },
-                {
-                  label: "Arctic Resources",
-                  val: "Melting opens new sovereignty/military disputes",
-                  color: "#06b6d4",
-                  summary: "Arctic warming (3–4× global rate) triggers resource competition over newly accessible oil, gas, and minerals. Russia, Norway, Canada, and others claim extended continental shelves under UNCLOS Article 76. Military buildup; climate refugees from Inuit regions. Geopolitical fracture between NATO and Russia is redefining Arctic security.",
-                  id: "arctic-resources",
-                },
-                {
-                  label: "Pacific SIDS Inundation",
-                  val: "Nation-state extinction risk — legal precedents",
-                  color: "#6366f1",
-                  summary: "Small Island Developing States (Tuvalu, Kiribati, Marshall Islands) face literal nation-state extinction from sea-level rise by 2050–2100. Kiribati is exploring sovereign territory purchases in Fiji. Legal precedents for 'climate refugee' status and 'ocean state' sovereignty are being tested, creating unprecedented geopolitical instability.",
-                  id: "pacific-sids",
-                },
-              ],
-            },
-          ].map((section) => {
-            const isTreeatiesSection = section.title === "International Treaties & Gaps";
-            const isFlashpointsSection = section.title === "Ecological Security Flashpoints";
-
-            const getExpanded = (id: string) => {
-              if (isTreeatiesSection) return expandedTreaties.has(id);
-              if (isFlashpointsSection) return expandedFlashpoints.has(id);
-              return false; // Sea level handled separately below
-            };
-
-            const toggleExpanded = (id: string) => {
-              if (isTreeatiesSection) toggleTreaty(id);
-              if (isFlashpointsSection) toggleFlashpoint(id);
-            };
-
-            return (
-              <div
-                key={section.title}
-                className="bg-card border border-border rounded-2xl p-5"
-              >
-                <p
-                  className="text-[10px] font-mono uppercase tracking-widest mb-3"
-                  style={{ color: mutedText }}
-                >
-                  {section.title}
-                </p>
-                <div className="flex flex-col gap-0">
-                  {section.items.map((item, i) => {
-                    const isExpanded = getExpanded((item as any).id);
-                    return (
-                      <div
-                        key={item.label}
-                        className="py-2.5"
-                        style={{
-                          borderBottom:
-                            i < section.items.length - 1
-                              ? `1px solid ${gridLine}`
-                              : "none",
-                        }}
+          {(
+            [
+              { title: "Tipping Points & Cascades", items: TIPPING_POINTS, note: null },
+              { title: "International Treaties & Gaps", items: TREATIES, note: `Party counts: UN Treaty Collection, ${TREATIES_CHECKED}` },
+              { title: "Ecological Security Flashpoints", items: FLASHPOINTS, note: null },
+            ] as { title: string; items: ContextItem[]; note: string | null }[]
+          ).map((section) => (
+            <div key={section.title} className="bg-card border border-border rounded-2xl p-5">
+              <p className="text-[10px] font-mono uppercase tracking-widest mb-3" style={{ color: mutedText }}>
+                {section.title}
+              </p>
+              <div className="flex flex-col gap-0">
+                {section.items.map((item, i) => {
+                  const open = expandedNotes.has(item.id);
+                  return (
+                    <div
+                      key={item.id}
+                      className="py-2.5"
+                      style={{ borderBottom: i < section.items.length - 1 ? `1px solid ${gridLine}` : "none" }}
+                    >
+                      <button
+                        onClick={() => toggleNote(item.id)}
+                        aria-expanded={open}
+                        className="flex items-start gap-2.5 w-full text-left hover:opacity-80 transition-opacity"
                       >
-                        <button
-                          onClick={() => toggleExpanded((item as any).id)}
-                          className="flex items-start gap-2.5 w-full text-left hover:opacity-80 transition-opacity"
+                        <div className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5" style={{ background: item.color }} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[11px] font-semibold font-sans" style={{ color: headText }}>
+                            {item.label}
+                          </p>
+                          <p className="text-[10px] font-sans" style={{ color: mutedText }}>
+                            {item.val}
+                          </p>
+                        </div>
+                        <CaretDown
+                          size={14}
+                          weight="fill"
+                          className="shrink-0 mt-0.5"
+                          style={{ color: item.color, transition: "transform 200ms ease", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+                        />
+                      </button>
+                      {open && (
+                        <div
+                          className="mt-2.5 text-[10px] font-sans leading-relaxed rounded-lg px-3 py-2.5 animate-fade-in"
+                          style={{
+                            background: isLight ? "rgba(0,0,0,0.02)" : "rgba(255,255,255,0.03)",
+                            borderLeft: `3px solid ${item.color}`,
+                            color: mutedText,
+                          }}
                         >
-                          <div
-                            className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5"
-                            style={{ background: item.color }}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p
-                              className="text-[11px] font-semibold font-sans"
-                              style={{ color: headText }}
-                            >
-                              {item.label}
-                            </p>
-                            <p
-                              className="text-[10px] font-sans"
-                              style={{ color: mutedText }}
-                            >
-                              {item.val}
-                            </p>
-                          </div>
-                          {(item as any).summary && (
-                            <div className="shrink-0 mt-0.5">
-                              <CaretDown
-                                size={14}
-                                weight="fill"
-                                style={{
-                                  color: item.color,
-                                  transition: "transform 200ms ease",
-                                  transform: isExpanded
-                                    ? "rotate(180deg)"
-                                    : "rotate(0deg)",
-                                }}
-                              />
-                            </div>
-                          )}
-                        </button>
-                        {isExpanded && (item as any).summary && (
-                          <div
-                            className="mt-2.5 pl-4 text-[9.5px] font-sans leading-relaxed rounded-lg px-3 py-2.5 animate-fade-in"
-                            style={{
-                              background: isLight
-                                ? "rgba(0,0,0,0.02)"
-                                : "rgba(255,255,255,0.03)",
-                              borderLeft: `3px solid ${item.color}`,
-                              color: mutedText,
-                            }}
-                          >
-                            {(item as any).summary}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                          <p>{item.summary}</p>
+                          <p className="mt-1.5">
+                            {item.sources.map((src, k) => (
+                              <span key={src.url}>
+                                {k > 0 && " · "}
+                                <a href={src.url} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:opacity-80">
+                                  {src.label}
+                                </a>
+                              </span>
+                            ))}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+              {section.note && (
+                <p className="text-[9px] font-sans mt-3" style={{ color: mutedText }}>
+                  {section.note}
+                </p>
+              )}
+            </div>
+          ))}
         </div>
 
         {/* ── PUBLIC ENVIRONMENTAL DATA ─────────────────────────────────── */}
