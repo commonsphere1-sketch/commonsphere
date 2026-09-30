@@ -28,7 +28,7 @@ import {
 } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
-import { HeadlinesBanner } from "../components/HeadlinesBanner";
+import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "../components/SectionNav";
 import { DONOR_AID, DONOR_AID_SOURCE, DAC_TOTAL } from "../data/donorAid";
 
@@ -487,6 +487,7 @@ export function HumanitarianPage() {
         <HeadlinesBanner
           label="Humanitarian headlines"
           topics={["humanitarian"]}
+          subject={SUBJECT.humanitarian}
           days={7}
           note={(outlets) => (
             <>

@@ -67,7 +67,7 @@ import {
   type Share,
 } from "../data/criticalMinerals";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
-import { HeadlinesBanner } from "@/components/HeadlinesBanner";
+import { HeadlinesBanner, SUBJECT } from "@/components/HeadlinesBanner";
 
 
 // Default for economies without specific data
@@ -2597,6 +2597,7 @@ export function EconomiesPage() {
         <HeadlinesBanner
           label="Economy headlines"
           topics={["economy"]}
+          subject={SUBJECT.economy}
           days={3}
           read={120}
           className="mb-6"

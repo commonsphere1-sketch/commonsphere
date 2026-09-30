@@ -25,7 +25,22 @@ import { useWatchlist } from "@/contexts/WatchlistContext";
 export type Topic = "world" | "us" | "economy" | "policy" | "humanitarian" | "climate" | "crime";
 /** Every desk, for a banner that draws on all of them. */
 export const ALL_TOPICS: Topic[] = ["world", "us", "economy", "policy", "humanitarian", "climate", "crime"];
-export type Headline = { url: string; title: string; outlet: string; published_at: string; places: string[] };
+/** `viaSubject` marks a headline from another desk, taken because its words are about the page's subject. */
+export type Headline = { url: string; title: string; outlet: string; published_at: string; places: string[]; viaSubject?: boolean };
+
+/**
+ * The words that make a headline about a page's subject, for topping up a
+ * banner whose own desks are quiet. Whole words, any case; the ambiguous are
+ * left out ("relief" is also tax relief, "shares" also a verb).
+ */
+export const SUBJECT = {
+  humanitarian:
+    /\b(humanitarian|refugees?|asylum|displaced|displacement|famine|starvation|hunger|malnutrition|aid (workers?|convoys?|agencies)|food aid|evacuat(e|ed|ion|ions)|cholera|UNHCR|UNICEF|WFP|OCHA|Red Cross|Red Crescent|MSF|civilians?)\b/i,
+  economy:
+    /\b(econom(y|ic|ies|ists?)|inflation|recession|GDP|tariffs?|trade (war|deal|talks|deficit|surplus)|stock markets?|stocks|central bank|interest rates?|Federal Reserve|ECB|budget|debt|unemployment|jobs report|wages?|oil prices?|currency|exports?|imports?|investment|bonds?|markets)\b/i,
+  climate:
+    /\b(climate|emissions?|carbon|CO2|greenhouse|heatwaves?|heat wave|wildfires?|bushfires?|droughts?|floods?|flooding|glaciers?|sea[- ]level|global warming|renewables?|solar (power|energy|farms?)|wind (power|farms?|energy)|fossil fuels?|coal|net[- ]zero|COP\d+|El Niño|La Niña|hurricanes?|typhoons?|cyclones?)\b/i,
+} as const;
 export type HeadlineTag = { text: string; tone: string };
 /** A headline as the banner shows it; `star` marks one about a place the reader follows. */
 export type Shown = { h: Headline; tag: HeadlineTag | null; star?: boolean };
@@ -60,15 +75,19 @@ function outletList(shown: Shown[], max = 5): string {
   const count = new Map<string, number>();
   for (const { h } of shown) count.set(h.outlet, (count.get(h.outlet) ?? 0) + 1);
   const names = [...count.keys()].sort((a, b) => (count.get(b) ?? 0) - (count.get(a) ?? 0) || a.localeCompare(b));
-  if (names.length > max) return `${names.slice(0, max).join(", ")} and ${names.length - max} other outlets`;
+  const others = names.length - max;
+  if (others > 0) return `${names.slice(0, max).join(", ")} and ${others} other outlet${others === 1 ? "" : "s"}`;
   return names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}` : (names[0] ?? "");
 }
 
 /** Headlines read per query, kept ten minutes, so moving between pages does not refetch. */
 const cache = new Map<string, { at: number; rows: Headline[] }>();
 
-function useHeadlines(topics: Topic[], days: number, read: number, untagged: boolean): Headline[] {
-  const key = `${topics.join(",")}|${days}|${read}|${untagged}`;
+/** Fewer than this from a page's own desks, and a banner with a subject tops itself up. */
+const TOP_UP_BELOW = 12;
+
+function useHeadlines(topics: Topic[], days: number, read: number, untagged: boolean, subject?: RegExp): Headline[] {
+  const key = `${topics.join(",")}|${days}|${read}|${untagged}|${subject?.source ?? ""}`;
   const [rows, setRows] = useState<Headline[]>(() => cache.get(key)?.rows ?? []);
   useEffect(() => {
     const db = supabase;
@@ -76,19 +95,30 @@ function useHeadlines(topics: Topic[], days: number, read: number, untagged: boo
     if (!db || (hit && Date.now() - hit.at < 10 * 60_000)) return;
     let live = true;
     const since = new Date(Date.now() - days * 86_400_000).toISOString();
-    const query = (byTopic: boolean) => {
+    const query = (byTopic: boolean, limit = read) => {
       let q = db.from("news_items").select("url, title, outlet, published_at, places").gte("published_at", since);
       if (byTopic) q = untagged ? q.or(`topics.ov.{${topics.join(",")}},topics.eq.{}`) : q.overlaps("topics", topics);
-      return q.order("published_at", { ascending: false }).limit(read);
+      return q.order("published_at", { ascending: false }).limit(limit);
     };
     (async () => {
       let { data, error } = await query(true);
       // A store from before headlines carried topics holds only the world and US desks' headlines.
       if (error && untagged) ({ data, error } = await query(false));
-      if (error || !data) return;
+      let found: Headline[] = error || !data ? [] : (data as Headline[]);
+      // Too few from the page's own desks - they are quiet, or not read yet:
+      // headlines from any desk whose words are about the subject fill in.
+      if (subject && found.length < TOP_UP_BELOW) {
+        const { data: more } = await query(false, 300);
+        const have = new Set(found.map((r) => r.url));
+        const extra = ((more ?? []) as Headline[])
+          .filter((r) => !have.has(r.url) && typeof r.title === "string" && subject.test(r.title))
+          .map((r) => ({ ...r, viaSubject: true }));
+        found = [...found, ...extra].sort((a, b) => b.published_at.localeCompare(a.published_at));
+      }
+      if (!found.length && (error || !data)) return;
       // A wire story runs under the same headline at several outlets: the newest copy is enough.
       const titles = new Set<string>();
-      const clean = data.filter((r): r is Headline => {
+      const clean = found.filter((r): r is Headline => {
         if (typeof r.title !== "string" || !/^https:\/\//.test(r.url) || !Array.isArray(r.places)) return false;
         const t = r.title.toLowerCase().replace(/\s+/g, " ").trim();
         if (titles.has(t)) return false;
@@ -101,7 +131,7 @@ function useHeadlines(topics: Topic[], days: number, read: number, untagged: boo
     return () => {
       live = false;
     };
-    // The key spells out topics, days, read and untagged.
+    // The key spells out topics, days, read, untagged and subject.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
   return rows;
@@ -165,6 +195,7 @@ export function HeadlinesBanner({
   read = 80,
   untagged = false,
   pick = newestSpread,
+  subject,
   note,
   className = "",
 }: {
@@ -184,12 +215,15 @@ export function HeadlinesBanner({
    * outlet, tagged with their places.
    */
   pick?: (rows: Headline[]) => Shown[];
+  /** The page's subject (see SUBJECT), for topping up when its own desks give fewer than a dozen. */
+  subject?: RegExp;
   /** The line under the banner, given the outlets it is showing. */
   note: (outlets: string) => ReactNode;
   className?: string;
 }) {
-  const rows = useHeadlines(topics, days, read, untagged);
+  const rows = useHeadlines(topics, days, read, untagged, subject);
   const shown = useMemo(() => pick(rows), [pick, rows]);
+  const toppedUp = shown.some((s) => s.h.viaSubject);
   const [paused, setPaused] = useState(false);
   const [still, setStill] = useState(false);
   const [duration, setDuration] = useState(120);
@@ -265,7 +299,10 @@ export function HeadlinesBanner({
           </div>
         </div>
       </div>
-      <p className="mt-2 text-[10px] font-sans text-muted-foreground leading-snug">{note(outletList(shown))}</p>
+      <p className="mt-2 text-[10px] font-sans text-muted-foreground leading-snug">
+        {note(outletList(shown))}
+        {toppedUp && " These desks have been quiet, so headlines from other desks that are about the same subject fill in."}
+      </p>
     </section>
   );
 }

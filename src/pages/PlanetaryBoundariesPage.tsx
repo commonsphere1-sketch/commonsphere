@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
-import { HeadlinesBanner } from "../components/HeadlinesBanner";
+import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
 import {
   CLIMATE_INDICATORS,
   CLIMATE_RETRIEVED,
@@ -546,6 +546,7 @@ export function PlanetaryBoundariesPage() {
         <HeadlinesBanner
           label="Climate headlines"
           topics={["climate"]}
+          subject={SUBJECT.climate}
           days={5}
           className="mb-6"
           note={(outlets) => (

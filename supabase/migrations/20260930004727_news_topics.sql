@@ -5,8 +5,8 @@
 -- A topical headline need not name a place ("Carbon dioxide hits a new
 -- high" is climate news), so a row now needs a place or a topic.
 --
--- Apply before deploying the refresh-data version that writes topics: the
--- news job's upsert names the column.
+-- Applied 30 September 2026, before refresh-data version 4, which writes
+-- topics: the news job's upsert names the column.
 alter table public.news_items
   add column topics text[] not null default '{}'
     check (topics <@ array['world', 'us', 'economy', 'policy', 'humanitarian', 'climate', 'crime']::text[]);

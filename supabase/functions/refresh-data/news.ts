@@ -440,7 +440,8 @@ export async function newsHeadlines(): Promise<{ rows: NewsRow[]; failed: string
       });
     }
   }
-  const rows = [...byUrl.values()];
+  // A story merged from several desks can gather more places than the table takes.
+  const rows = [...byUrl.values()].map((r) => ({ ...r, places: r.places.slice(0, 20) }));
   // Most feeds failing means something is wrong here, not with the news.
   if (failed.length > FEEDS.length / 2) throw new Error(`news: ${failed.length} of ${FEEDS.length} feeds failed (${failed.slice(0, 3).join("; ")})`);
   return { rows, failed };
