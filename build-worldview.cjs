@@ -126,6 +126,13 @@ const SRC = {
   vdemAssoc: { label: "V-Dem freedom of association index (via Our World in Data)", url: "https://ourworldindata.org/grapher/freedom-of-association-index" },
   vdemWomenEmp: { label: "V-Dem women's political empowerment index (via Our World in Data)", url: "https://ourworldindata.org/grapher/women-political-empowerment-index" },
   hdi: { label: "UNDP Human Development Report (via Our World in Data)", url: "https://ourworldindata.org/grapher/human-development-index" },
+  vdemLiberal: { label: "V-Dem liberal democracy index (via Our World in Data)", url: "https://ourworldindata.org/grapher/liberal-democracy-index" },
+  vdemParticip: { label: "V-Dem participatory democracy index (via Our World in Data)", url: "https://ourworldindata.org/grapher/participatory-democracy-index" },
+  vdemDelib: { label: "V-Dem deliberative democracy index (via Our World in Data)", url: "https://ourworldindata.org/grapher/deliberative-democracy-index-vdem" },
+  vdemEgal: { label: "V-Dem egalitarian democracy index (via Our World in Data)", url: "https://ourworldindata.org/grapher/egalitarian-democracy-index-vdem" },
+  vdemPolLib: { label: "V-Dem political civil liberties index (via Our World in Data)", url: "https://ourworldindata.org/grapher/political-civil-liberties-index" },
+  vdemCivSoc: { label: "V-Dem civil society participation index (via Our World in Data)", url: "https://ourworldindata.org/grapher/civil-society-participation-index" },
+  emdat: { label: "EM-DAT, CRED / UCLouvain (via Our World in Data)", url: "https://ourworldindata.org/grapher/number-of-deaths-from-natural-disasters" },
   fas: { label: "Federation of American Scientists — estimated nuclear warhead inventories (via Our World in Data)", url: "https://ourworldindata.org/grapher/nuclear-warhead-stockpiles" },
   pew: { label: "Pew Research Center — How the Global Religious Landscape Changed From 2010 to 2020 (2025)", url: "https://www.pewresearch.org/religion/2025/06/09/how-the-global-religious-landscape-changed-from-2010-to-2020/" },
 };
@@ -586,6 +593,84 @@ function indicator(id, o) {
   add("cleanCooking", { label: "Cooking with clean fuels", unit: "% of people", format: "pct", dp: 1, upIsGood: true, series: pts(await wbSeries("EG.CFT.ACCS.ZS"), 1), source: WB("EG.CFT.ACCS.ZS"), note: "Tracking SDG 7: people who mainly cook with clean fuels and technologies; under WHO guidelines kerosene does not count as clean." });
   add("energyPerPerson", { label: "Energy use", unit: "kg of oil equivalent per person", format: "num", dp: 0, upIsGood: null, series: pts(await wbSeries("EG.USE.PCAP.KG.OE"), 0), source: WB("EG.USE.PCAP.KG.OE"), note: "IEA: primary energy - what is produced, plus imports and stock changes, minus exports and fuel for international shipping and aviation." });
   add("electricityPerPerson", { label: "Electricity use", unit: "kWh per person", format: "num", dp: 0, upIsGood: null, series: pts(await wbSeries("EG.USE.ELEC.KH.PC"), 0), source: WB("EG.USE.ELEC.KH.PC"), note: "IEA: what power plants produce, less the losses in transmission, distribution and transformation and the plants' own use." });
+
+  // The fuller picture: more of what each pillar covers, where a body
+  // publishes the world figure.
+  const wb = async (id, code, o) => add(id, { ...o, series: pts(await wbSeries(code), o.dp), source: WB(code) });
+  // Society: age, health, hygiene.
+  await wb("aged65", "SP.POP.65UP.TO.ZS", { label: "Aged 65 and over", unit: "% of people", format: "pct", dp: 1, upIsGood: null, note: "UN World Population Prospects." });
+  await wb("under15", "SP.POP.0014.TO.ZS", { label: "Aged under 15", unit: "% of people", format: "pct", dp: 1, upIsGood: null, note: "UN World Population Prospects." });
+  await wb("maternalMortality", "SH.STA.MMRT", { label: "Maternal deaths", unit: "per 100,000 live births", format: "num", dp: 0, upIsGood: false, note: "WHO modelled estimate: women who die from pregnancy-related causes while pregnant or within 42 days of the pregnancy's end." });
+  await wb("measles", "SH.IMM.MEAS", { label: "Vaccinated against measles", unit: "% of children aged 1", format: "pct", dp: 1, upIsGood: true, note: "WHO and UNICEF: children aged 12-23 months who had a measles vaccination before their first birthday or before the survey." });
+  await wb("stunting", "SH.STA.STNT.ME.ZS", { label: "Stunted children", unit: "% of children under 5", format: "pct", dp: 1, upIsGood: false, note: "UNICEF, WHO and World Bank joint estimates: children under five whose height for their age is more than two standard deviations below the international reference." });
+  await wb("healthSpend", "SH.XPD.CHEX.GD.ZS", { label: "Health spending", unit: "% of GDP", format: "pct", dp: 2, upIsGood: null, note: "WHO Global Health Expenditure Database: the health goods and services consumed in the year, not buildings or equipment." });
+  await wb("hiv", "SH.DYN.AIDS.ZS", { label: "Living with HIV", unit: "% of people aged 15-49", format: "pct", dp: 1, upIsGood: false, note: "UNAIDS estimates." });
+  await wb("suicide", "SH.STA.SUIC.P5", { label: "Suicides", unit: "per 100,000 people", format: "num", dp: 1, upIsGood: false, note: "WHO: suicide deaths in the year, not adjusted for age." });
+  await wb("roadDeaths", "SH.STA.TRAF.P5", { label: "Road deaths", unit: "per 100,000 people", format: "num", dp: 1, upIsGood: false, note: "WHO estimate of deaths from road traffic injuries; the world figure was last published for 2019." });
+  await wb("handwashing", "SH.STA.HYGN.ZS", { label: "Can wash hands with soap", unit: "% of people", format: "pct", dp: 1, upIsGood: true, note: "WHO/UNICEF: people whose home has a handwashing facility with soap and water." });
+  // Economy: work, investment, money flows, poverty.
+  await wb("youthUnemployment", "SL.UEM.1524.ZS", { label: "Youth unemployment", unit: "% of the labour force aged 15-24", format: "pct", dp: 1, upIsGood: false, note: "ILO modelled estimate: young people without work who are available for it and looking." });
+  await wb("labourForce", "SL.TLF.CACT.ZS", { label: "In the labour force", unit: "% of people aged 15+", format: "pct", dp: 1, upIsGood: null, note: "ILO modelled estimate: people working or looking for work." });
+  await wb("investment", "NE.GDI.TOTL.ZS", { label: "Investment", unit: "% of GDP", format: "pct", dp: 1, upIsGood: null, note: "Gross capital formation: what is spent on buildings, machinery, infrastructure and other lasting assets, and on stocks." });
+  await wb("savings", "NY.GNS.ICTR.ZS", { label: "Savings", unit: "% of GDP", format: "pct", dp: 1, upIsGood: null, note: "Gross savings: national income less consumption, plus net transfers." });
+  await wb("remittances", "BX.TRF.PWKR.CD.DT", { label: "Remittances", unit: "US$ received a year", format: "usd", dp: 0, upIsGood: null, note: "IMF balance of payments: money people working abroad send home, and the pay of people working across a border." });
+  await wb("poverty420", "SI.POV.LMIC", { label: "Below $4.20 a day", unit: "% of people", format: "pct", dp: 1, upIsGood: false, note: "The World Bank's poverty line for lower-middle-income countries (2021 purchasing power)." });
+  await wb("marketCap", "CM.MKT.LCAP.GD.ZS", { label: "Stock market value", unit: "% of GDP", format: "pct", dp: 1, upIsGood: null, note: "World Federation of Exchanges: listed domestic companies' shares times their price, at the end of the year." });
+  // Development: money and mobility, and the kind of work.
+  await wb("accounts", "FX.OWN.TOTL.ZS", { label: "Have a bank or mobile-money account", unit: "% of people aged 15+", format: "pct", dp: 1, upIsGood: true, note: "World Bank Global Findex: surveyed every few years." });
+  await wb("vulnerableWork", "SL.EMP.VULN.ZS", { label: "In vulnerable work", unit: "% of employment", format: "pct", dp: 1, upIsGood: false, note: "ILO modelled estimate: people working for themselves without employees, or unpaid in a family business - work the ILO counts as vulnerable." });
+  await wb("airPassengers", "IS.AIR.PSGR", { label: "Air passengers", unit: "carried a year", format: "count", dp: 0, upIsGood: null, note: "ICAO: passengers carried by the world's airlines, domestic and international." });
+  // Technology: the trade in digital goods and services, and the landline.
+  await wb("ictServiceExports", "BX.GSR.CCIS.ZS", { label: "Digital service exports", unit: "% of service exports", format: "pct", dp: 1, upIsGood: null, note: "IMF balance of payments: computer, telecommunications and information services." });
+  await wb("ictGoodsExports", "TX.VAL.ICTG.ZS.UN", { label: "Digital goods exports", unit: "% of goods exports", format: "pct", dp: 1, upIsGood: null, note: "UNCTAD: computers, communication and consumer electronics, electronic components and other information technology goods." });
+  await wb("landlines", "IT.MLT.MAIN.P2", { label: "Landline subscriptions", unit: "per 100 people", format: "num", dp: 1, upIsGood: null, note: "ITU: fixed telephone lines." });
+  // Institutions and security: what governments spend, and the share on arms.
+  await wb("govExpense", "GC.XPN.TOTL.GD.ZS", { label: "Government spending", unit: "% of GDP", format: "pct", dp: 1, upIsGood: null, note: "IMF Government Finance Statistics: government expense, not counting the purchase of lasting assets." });
+  await wb("militaryShare", "MS.MIL.XPND.ZS", { label: "Military share of government spending", unit: "% of government spending", format: "pct", dp: 2, upIsGood: null, note: "SIPRI Military Expenditure Database." });
+  // Ecology: emissions per person and methane, protection, air, water, land, disasters.
+  await wb("methane", "EN.GHG.CH4.MT.CE.AR5", { label: "Methane emissions", unit: "Mt CO₂e a year", format: "num", dp: 0, upIsGood: false, note: "EDGAR (European Commission): methane from farming, energy, waste and industry, in CO₂ equivalents (IPCC AR5), excluding land use, land-use change and forestry." });
+  await wb("co2PerPerson", "EN.GHG.CO2.PC.CE.AR5", { label: "CO₂ per person", unit: "tonnes a year", format: "num", dp: 2, upIsGood: false, note: "Excluding land use, land-use change and forestry." });
+  await wb("protectedLand", "ER.LND.PTLD.ZS", { label: "Protected land", unit: "% of land", format: "pct", dp: 1, upIsGood: true, note: "UNEP-WCMC Protected Planet: land in protected areas and other effective area-based conservation." });
+  await wb("protectedSea", "ER.MRN.PTMR.ZS", { label: "Protected waters", unit: "% of territorial waters", format: "pct", dp: 1, upIsGood: true, note: "UNEP-WCMC Protected Planet: marine areas reserved by law or other effective means." });
+  await wb("pm25", "EN.ATM.PM25.MC.M3", { label: "Fine-particle air pollution", unit: "µg/m³, average exposure", format: "num", dp: 1, upIsGood: false, note: "Global Burden of Disease: the PM2.5 concentration the average person breathes over the year." });
+  await wb("waterWithdrawals", "ER.H2O.FWTL.ZS", { label: "Freshwater withdrawn", unit: "% of internal resources", format: "pct", dp: 1, upIsGood: null, note: "FAO AQUASTAT: water taken from rivers, lakes and aquifers, including desalinated water where it matters, against the renewable water that arises within countries." });
+  await wb("renewableElectricity", "EG.ELC.RNEW.ZS", { label: "Renewable electricity", unit: "% of electricity generated", format: "pct", dp: 1, upIsGood: true, note: "IEA: electricity from renewable power plants." });
+  await wb("farmland", "AG.LND.AGRI.ZS", { label: "Farmland", unit: "% of land", format: "pct", dp: 1, upIsGood: null, note: "FAO: land that is arable, under permanent crops, or permanent pasture." });
+  await wb("disasterDisplacement", "VC.IDP.NWDS", { label: "Displaced by disasters", unit: "new displacements a year", format: "count", dp: 0, upIsGood: null, note: "Internal Displacement Monitoring Centre: people forced from their homes by disasters within their own country, counted each time they are displaced." });
+  {
+    // Disaster deaths swing with single great events, so no better or worse
+    // is drawn; the note says what the latest year records.
+    const rows = (await owidWorld("number-of-deaths-from-natural-disasters")).filter((r) => r.year >= FROM);
+    const k = (suffix) => col(rows[0], suffix);
+    const total = k("total_dead_all_disasters_yearly");
+    const types = [
+      ["Earthquakes", "total_dead_earthquake_yearly"],
+      ["Floods", "total_dead_flood_yearly"],
+      ["Storms and other extreme weather", "total_dead_extreme_weather_yearly"],
+      ["Extreme temperatures", "total_dead_extreme_temperature_yearly"],
+      ["Landslides", "total_dead_landslide_yearly"],
+      ["Droughts", "total_dead_drought_yearly"],
+      ["Wildfires", "total_dead_wildfire_yearly"],
+      ["Volcanoes", "total_dead_volcanic_activity_yearly"],
+    ];
+    const last = rows.at(-1);
+    add("disasterDeaths", {
+      label: "Deaths in natural disasters", unit: "dead and missing", format: "count", dp: 0, upIsGood: null,
+      series: rows.filter((r) => r[total] !== "").map((r) => [r.year, Number(r[total])]),
+      source: SRC.emdat,
+      note: `EM-DAT counts confirmed deaths and missing people in disasters that overwhelm local capacity. The toll swings from year to year with single great events, so no better or worse is drawn. Its ${last.year} figures record ${(Number(last[k("total_dead_extreme_temperature_yearly")]) || 0).toLocaleString("en-US")} deaths from extreme temperatures.`,
+      breakdownYear: last.year,
+      breakdown: types.map(([label, suffix]) => [label, Number(last[k(suffix)]) || 0]),
+    });
+  }
+  // Politics and civic life: V-Dem's other measures of democracy, political
+  // liberties and civil society.
+  add("liberalDemocracy", { label: "Liberal democracy", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("liberal-democracy-index"), source: SRC.vdemLiberal, note: "V-Dem's index of electoral democracy with the rule of law, checks on the executive and protected liberties, averaged across the world's people (population-weighted). 1 is most democratic." });
+  add("participatoryDemocracy", { label: "Participatory democracy", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("participatory-democracy-index"), source: SRC.vdemParticip, note: "V-Dem's index of electoral democracy with citizens taking part beyond elections - in civil society, direct democracy and local government - averaged across the world's people (population-weighted). 1 is most democratic." });
+  add("deliberativeDemocracy", { label: "Deliberative democracy", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("deliberative-democracy-index-vdem"), source: SRC.vdemDelib, note: "V-Dem's index of electoral democracy with decisions reached by reasoned public debate rather than by emotional appeals, bargaining or coercion, averaged across the world's people (population-weighted). 1 is most democratic." });
+  add("egalitarianDemocracy", { label: "Egalitarian democracy", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("egalitarian-democracy-index-vdem"), source: SRC.vdemEgal, note: "V-Dem's index of electoral democracy with rights, freedoms and power spread equally across social groups, averaged across the world's people (population-weighted). 1 is most democratic." });
+  add("politicalLiberties", { label: "Political liberties", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("political-civil-liberties-index"), source: SRC.vdemPolLib, note: "V-Dem's index of freedom of expression and of association, averaged across the world's people (population-weighted). 1 is most free." });
+  add("civilSociety", { label: "Civil society participation", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("civil-society-participation-index"), source: SRC.vdemCivSoc, note: "V-Dem's index of how far major civil society groups are consulted by policymakers and people take part in civil society, averaged across the world's people (population-weighted). 1 is the most participation." });
 
   // Sanitation, beside water and electricity.
   add("sanitation", { label: "Safely managed sanitation", unit: "% of people", format: "pct", dp: 1, upIsGood: true, series: pts(await wbSeries("SH.STA.SMSS.ZS"), 1), source: WB("SH.STA.SMSS.ZS"), note: "WHO/UNICEF: a toilet or latrine not shared with other households, from which waste is safely disposed of on site or taken away and treated." });

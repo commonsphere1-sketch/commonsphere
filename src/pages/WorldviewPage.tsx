@@ -340,6 +340,48 @@ const DESCRIBE: Record<string, string> = {
   cleanCooking: "People who mainly cook with clean fuels and technologies, such as electricity, gas or solar, rather than wood, charcoal, dung, coal or kerosene.",
   energyPerPerson: "The primary energy the world uses per person, in kilograms of oil equivalent.",
   electricityPerPerson: "The electricity the world uses per person, in kilowatt-hours.",
+  displacedShare: "People forced from their homes, as a share of everyone alive: UNHCR's count over the World Bank's population for the same year.",
+  aged65: "People aged 65 and over, as a share of everyone.",
+  under15: "Children under 15, as a share of everyone.",
+  maternalMortality: "Women who die from pregnancy-related causes while pregnant or within six weeks of the pregnancy's end, for every 100,000 live births.",
+  measles: "Children aged 12-23 months who have had a measles vaccination.",
+  stunting: "Children under five who are too short for their age - a sign of long-term undernourishment.",
+  healthSpend: "What is spent on health care each year, public and private, as a share of the world's output.",
+  hiv: "People aged 15 to 49 living with HIV.",
+  suicide: "Deaths by suicide in the year, for every 100,000 people.",
+  roadDeaths: "Deaths from road traffic injuries in the year, for every 100,000 people.",
+  handwashing: "People whose home has somewhere to wash hands with soap and water.",
+  youthUnemployment: "Young people aged 15 to 24 without work who are available for work and looking for it, as a share of that age group's labour force.",
+  labourForce: "People aged 15 and over who are working or looking for work.",
+  investment: "What is spent on new buildings, machinery, infrastructure and other lasting assets, and added to stocks, as a share of output.",
+  savings: "The part of the world's income that is not spent on consumption, as a share of output.",
+  remittances: "Money people working abroad send home, with the pay of people who work across a border.",
+  poverty420: "People living on less than $4.20 a day, the poverty line typical of lower-middle-income countries.",
+  marketCap: "The market value of companies listed on the world's stock exchanges, as a share of output.",
+  accounts: "Adults with an account at a bank or other financial institution, or who use mobile money.",
+  vulnerableWork: "Workers who work for themselves without employees, or unpaid in a family business, as a share of everyone employed.",
+  airPassengers: "Passengers carried by the world's airlines in the year, on domestic and international flights.",
+  ictServiceExports: "Computer, telecommunications and information services, as a share of all services exported.",
+  ictGoodsExports: "Computers, phones and other electronic and information technology goods, as a share of all goods exported.",
+  landlines: "Fixed telephone lines for every 100 people.",
+  govExpense: "What governments spend on running their services, wages, interest and transfers, as a share of output.",
+  militaryShare: "What governments spend on their armed forces, as a share of all government spending.",
+  methane: "Methane released by farming, energy, waste and industry, in CO₂ equivalents.",
+  co2PerPerson: "Carbon dioxide from fossil fuels and industry, per person in the world.",
+  protectedLand: "Land in protected areas or conserved by other effective means, as a share of all land.",
+  protectedSea: "Territorial waters in marine protected areas, as a share of all territorial waters.",
+  pm25: "The average concentration of fine particles (PM2.5) in the air people breathe, in micrograms per cubic metre.",
+  waterWithdrawals: "Fresh water taken from rivers, lakes and aquifers each year, against the renewable water that arises within countries.",
+  renewableElectricity: "Electricity from renewable sources - water, wind, sun and others - as a share of all electricity generated.",
+  farmland: "Land that is cropped or grazed, as a share of all land.",
+  disasterDisplacement: "Times people were forced from their homes by disasters within their own country in the year.",
+  disasterDeaths: "People killed or missing in natural disasters in the year.",
+  liberalDemocracy: "How far electoral democracy is joined by the rule of law, checks on the executive and protected liberties, averaged across the world's people.",
+  participatoryDemocracy: "How far citizens take part beyond elections - in civil society, direct democracy and local government - averaged across the world's people.",
+  deliberativeDemocracy: "How far decisions come from reasoned public debate rather than emotional appeals, bargaining or coercion, averaged across the world's people.",
+  egalitarianDemocracy: "How equally rights, freedoms and power are spread across social groups, averaged across the world's people.",
+  politicalLiberties: "How free people are to speak and to associate, averaged across the world's people.",
+  civilSociety: "How far civil society groups are consulted by policymakers and people take part in them, averaged across the world's people.",
 };
 
 const DESCRIBE_CLIMATE: Record<string, string> = {
@@ -762,7 +804,8 @@ function publishers(figures: Figure[]): string[] {
   return [...new Set(names)];
 }
 
-type Tile = { label: string; value: string; sub: string; d: Delta | null; fig?: Figure };
+/** A card's tile: a figure (which opens its window), or a share worked out on the page, with its own summary. */
+type Tile = { label: string; value: string; sub: string; d: Delta | null; fig?: Figure; summary?: string };
 type Group = { title: string; intro: string; ids: string[]; climate?: string[]; extras?: Record<string, string>; freedom?: boolean };
 type Pillar = {
   id: "society" | "economy" | "development" | "technology" | "politics" | "civic" | "institutions" | "ideology" | "security" | "ecology";
@@ -802,7 +845,7 @@ const PILLARS: Pillar[] = [
     color: "#6366f1",
     icon: <UsersThree size={18} weight="fill" />,
     description:
-      "Who we are and how we live: population and where people live, health and food, schooling, and the basics of modern life at home - electricity, clean water and sanitation - with the gap between women and men in paid work.",
+      "Who we are and how we live: how many of us there are, how old and where; health, from birth to old age; food; schooling; and the basics of modern life at home - electricity, clean water, sanitation and hygiene - with the gap between women and men in paid work.",
     summary: () =>
       `${pctOf("urban")} of people live in cities and ${pctOf("literacy")} of adults can read (${lastOf("literacy")[0]}). A newborn can expect to live ${lastOf("lifeExpectancy")[1]} years (${lastOf("lifeExpectancy")[0]}), and ${pctOf("undernourished")} of people do not get enough to eat (${lastOf("undernourished")[0]}).`,
     tiles: () => [
@@ -816,13 +859,18 @@ const PILLARS: Pillar[] = [
     groups: [
       {
         title: "People",
-        intro: "How many of us there are, how fast that is changing, and where people live.",
-        ids: ["population", "popGrowth", "fertility", "urban", "migrantShare"],
+        intro: "How many of us there are, how fast that is changing, how young and old we are, and where people live.",
+        ids: ["population", "popGrowth", "fertility", "under15", "aged65", "urban", "migrantShare"],
       },
       {
-        title: "Health & food",
-        intro: "How long people live, how many children survive, and whether people have enough to eat.",
-        ids: ["lifeExpectancy", "childMortality", "undernourished", "foodInsecure"],
+        title: "Health",
+        intro: "How long people live, how many mothers and children survive, vaccination and HIV, deaths by suicide and on the roads, and what is spent on care (WHO, UNICEF, UNAIDS).",
+        ids: ["lifeExpectancy", "childMortality", "maternalMortality", "measles", "hiv", "suicide", "roadDeaths", "healthSpend"],
+      },
+      {
+        title: "Food",
+        intro: "Whether people have enough to eat, and how many children are stunted by undernourishment (FAO, UNICEF, WHO).",
+        ids: ["undernourished", "foodInsecure", "stunting"],
       },
       {
         title: "Education",
@@ -831,8 +879,8 @@ const PILLARS: Pillar[] = [
       },
       {
         title: "Access & equality",
-        intro: "The basics of modern life at home, and the gap between women and men in paid work.",
-        ids: ["electricity", "water", "sanitation", "workGap"],
+        intro: "The basics of modern life at home - power, safe water, sanitation, somewhere to wash hands - and the gap between women and men in paid work.",
+        ids: ["electricity", "water", "sanitation", "handwashing", "workGap"],
       },
     ],
   },
@@ -843,7 +891,7 @@ const PILLARS: Pillar[] = [
     color: "#0ea5e9",
     icon: <Coins size={18} weight="fill" />,
     description:
-      "The world economy: its size and growth, prices and jobs, what governments and developing countries owe, how open it is to trade and investment, and poverty.",
+      "The world economy: its size, growth and prices; who works and who cannot find work; what it saves and invests, and what migrants send home; what governments and developing countries owe and how open it is to trade; and poverty at the World Bank's three lines.",
     summary: () =>
       `The world produced ${usd("gdp")} in ${lastOf("gdp")[0]}, growing ${pctOf("gdpGrowth", 2)} after inflation, while prices rose ${pctOf("inflation", 2)} and ${pctOf("unemployment", 2)} of the labour force was out of work. Governments owe ${pctOf("govDebt")} of world GDP, and ${pctOf("extremePoverty")} of people live on less than $3 a day (${lastOf("extremePoverty")[0]}).`,
     tiles: () => [
@@ -856,9 +904,19 @@ const PILLARS: Pillar[] = [
     ],
     groups: [
       {
-        title: "Output, prices & jobs",
-        intro: "The size of the world economy, how fast it grows, and what is happening to prices and work.",
-        ids: ["gdp", "gdpGrowth", "inflation", "unemployment"],
+        title: "Output & prices",
+        intro: "The size of the world economy, how fast it grows, and what is happening to prices.",
+        ids: ["gdp", "gdpGrowth", "inflation"],
+      },
+      {
+        title: "Jobs",
+        intro: "Who is working or looking for work, and how many - young people above all - cannot find it (ILO modelled estimates).",
+        ids: ["unemployment", "youthUnemployment", "labourForce"],
+      },
+      {
+        title: "Saving, investment & money",
+        intro: "What the world saves and invests, what its listed companies are worth, and what people working abroad send home.",
+        ids: ["savings", "investment", "marketCap", "remittances"],
       },
       {
         title: "Debt & openness",
@@ -868,8 +926,8 @@ const PILLARS: Pillar[] = [
       },
       {
         title: "Poverty",
-        intro: "The World Bank's two main lines: extreme poverty, and the line typical of upper-middle-income countries.",
-        ids: ["extremePoverty", "poverty830"],
+        intro: "The World Bank's three lines: extreme poverty at $3.00 a day, and the lines typical of lower-middle ($4.20) and upper-middle-income ($8.30) countries.",
+        ids: ["extremePoverty", "poverty420", "poverty830"],
       },
     ],
   },
@@ -880,7 +938,7 @@ const PILLARS: Pillar[] = [
     color: "#84cc16",
     icon: <TrendUp size={18} weight="fill" />,
     description:
-      "Development and modernisation: human development and output per person, the shift of work and output from the land to industry and services, how people cook and how much energy they use - and how the world divides between developed and developing countries.",
+      "Development and modernisation: human development and output per person; the shift of work and output from the land to industry and services, and from vulnerable work to wages; bank accounts and air travel; how people cook and how much energy they use - and how the world divides between developed and developing countries.",
     summary: () =>
       `The world's Human Development Index was ${fmt(WORLD.hdi, lastOf("hdi")[1])} in ${lastOf("hdi")[0]} (UNDP), and output per person came to ${fmt(WORLD.gdpPerCapitaPpp, lastOf("gdpPerCapitaPpp")[1])} in ${lastOf("gdpPerCapitaPpp")[0]}, at 2021 prices and purchasing power. ${pctOf("agEmployment")} of workers are in farming and ${pctOf("wageWorkers")} are paid a wage or salary (${lastOf("wageWorkers")[0]}), and ${pctOf("cleanCooking")} of people cook with clean fuels (${lastOf("cleanCooking")[0]}).`,
     tiles: () => [
@@ -899,8 +957,13 @@ const PILLARS: Pillar[] = [
       },
       {
         title: "Work",
-        intro: "How the world's workers divide between farming, industry and services, and how many are paid a wage or salary (ILO modelled estimates).",
-        ids: ["agEmployment", "industryEmployment", "servicesEmployment", "wageWorkers"],
+        intro: "How the world's workers divide between farming, industry and services, how many are paid a wage or salary, and how many are in vulnerable work (ILO modelled estimates).",
+        ids: ["agEmployment", "industryEmployment", "servicesEmployment", "wageWorkers", "vulnerableWork"],
+      },
+      {
+        title: "Money & mobility",
+        intro: "Who has a bank or mobile-money account (World Bank Global Findex), and how many people fly (ICAO).",
+        ids: ["accounts", "airPassengers"],
       },
       {
         title: "Output",
@@ -921,7 +984,7 @@ const PILLARS: Pillar[] = [
     color: "#f59e0b",
     icon: <Cpu size={18} weight="fill" />,
     description:
-      "How far the world is online and how it invents: internet use, mobile and broadband connections and secure servers; what it spends on research, the researchers it has, the science it publishes and the patents it files; and its trade in high-tech goods and in the use of ideas.",
+      "How far the world is online and how it invents: internet use, mobile, broadband and landline connections and secure servers; what it spends on research, the researchers it has, the science it publishes and the patents it files; and its trade in high-tech and digital goods and services, and in the use of ideas.",
     summary: () =>
       `${pctOf("internet")} of people use the internet, and there are ${lastOf("broadband")[1]} fixed broadband connections for every 100 people (${lastOf("broadband")[0]}). The world puts ${pctOf("research", 2)} of its output into research and development (${lastOf("research")[0]}), and ${compact(lastOf("sciArticles")[1])} scientific articles were published in ${lastOf("sciArticles")[0]}.`,
     tiles: () => [
@@ -936,7 +999,7 @@ const PILLARS: Pillar[] = [
       {
         title: "Connection",
         intro: "Who is online, and the subscriptions and secure servers that carry it (ITU and Netcraft).",
-        ids: ["internet", "mobile", "broadband", "secureServers"],
+        ids: ["internet", "mobile", "broadband", "landlines", "secureServers"],
       },
       {
         title: "Research & invention",
@@ -945,8 +1008,8 @@ const PILLARS: Pillar[] = [
       },
       {
         title: "Technology trade",
-        intro: "How much of what the world makes and sells takes intensive research, and what countries are paid for the use of their ideas.",
-        ids: ["highTechExports", "ipReceipts"],
+        intro: "How much of what the world sells is high-tech or digital, and what countries are paid for the use of their ideas.",
+        ids: ["highTechExports", "ictGoodsExports", "ictServiceExports", "ipReceipts"],
       },
     ],
   },
@@ -956,7 +1019,7 @@ const PILLARS: Pillar[] = [
     kicker: "How the world is governed",
     color: "#8b5cf6",
     icon: <Bank size={18} weight="fill" />,
-    description: "How the world is governed: democracy and elections, women's place in politics, and the blocs countries have joined.",
+    description: "How the world is governed: how many people live in democracies, the five kinds of democracy V-Dem measures - electoral, liberal, participatory, deliberative and egalitarian - women's place in politics, and the blocs countries have joined.",
     summary: () => {
       const f = freedomSplit();
       return `${pctOf("democracyShare")} of people live in a democracy (V-Dem, ${lastOf("democracyShare")[0]}) and ${f.freeShare.toFixed(1)}% in a country Freedom House rates Free (${f.year}). Women hold ${pctOf("womenParliament")} of the seats in national parliaments (${lastOf("womenParliament")[0]}).`;
@@ -965,8 +1028,20 @@ const PILLARS: Pillar[] = [
       const f = freedomSplit();
       return [
         worldTile("democracyShare", "Live in a democracy"),
-        { label: "Live in a Free country", value: `${f.freeShare.toFixed(1)}%`, sub: `Freedom House · ${f.year}`, d: null },
-        { label: "Live in a Not Free country", value: `${f.notFreeShare.toFixed(1)}%`, sub: `Freedom House · ${f.year}`, d: null },
+        {
+          label: "Live in a Free country",
+          value: `${f.freeShare.toFixed(1)}%`,
+          sub: `Freedom House · ${f.year}`,
+          d: null,
+          summary: `Freedom House rates ${f.counts.F} of the ${f.counts.F + f.counts.PF + f.counts.NF} countries and territories it scores Free. With each one's latest population on this site, they hold ${f.freeShare.toFixed(1)}% of the people in all of them.`,
+        },
+        {
+          label: "Live in a Not Free country",
+          value: `${f.notFreeShare.toFixed(1)}%`,
+          sub: `Freedom House · ${f.year}`,
+          d: null,
+          summary: `${f.counts.NF} are rated Not Free, holding ${f.notFreeShare.toFixed(1)}% of those people; the other ${f.counts.PF} are Partly Free.`,
+        },
         worldTile("electoralDemocracy", "Electoral democracy"),
         worldTile("womenParliament", "Women in parliament"),
         worldTile("womenEmpowerment", "Women's empowerment"),
@@ -976,8 +1051,8 @@ const PILLARS: Pillar[] = [
       {
         title: "Democracy",
         intro:
-          "How free people are to choose their governments: Freedom House's status for every country, and V-Dem's measures averaged across the world's people.",
-        ids: ["democracyShare", "electoralDemocracy"],
+          "How free people are to choose their governments: Freedom House's status for every country, and V-Dem's five kinds of democracy, averaged across the world's people.",
+        ids: ["democracyShare", "electoralDemocracy", "liberalDemocracy", "participatoryDemocracy", "deliberativeDemocracy", "egalitarianDemocracy"],
         freedom: true,
       },
       {
@@ -994,7 +1069,7 @@ const PILLARS: Pillar[] = [
     color: "#3b82f6",
     icon: <Scales size={18} weight="fill" />,
     description:
-      "The rights and freedoms people have in practice: freedom from torture and political killing, civil liberties for everyone and for women, equality before the law and access to justice, and the freedom to speak and organise - as V-Dem's experts rate them, averaged across the world's people.",
+      "The rights and freedoms people have in practice: freedom from torture and political killing, civil liberties for everyone and for women, equality before the law and access to justice, and the freedom to speak, organise and be heard through civil society - as V-Dem's experts rate them, averaged across the world's people.",
     summary: () => {
       const ids = PILLARS.find((p) => p.id === "civic")!.groups.flatMap((g) => g.ids);
       const lower = ids.filter((id) => delta(WORLD[id])?.dir === "down").length;
@@ -1021,8 +1096,8 @@ const PILLARS: Pillar[] = [
       },
       {
         title: "Freedom to speak & organise",
-        intro: "Whether people can speak and publish freely, and parties, the opposition and civil society groups can form and work.",
-        ids: ["freeExpression", "freeAssociation"],
+        intro: "Whether people can speak and publish freely, parties, the opposition and civil society groups can form and work, and civil society is heard.",
+        ids: ["freeExpression", "freeAssociation", "politicalLiberties", "civilSociety"],
       },
     ],
   },
@@ -1033,7 +1108,7 @@ const PILLARS: Pillar[] = [
     color: "#ec4899",
     icon: <Buildings size={18} weight="fill" />,
     description:
-      "Whether power answers to the law: the rule of law, and how far courts and legislatures check the executive, as V-Dem measures them across the world's people - and what states raise to govern with.",
+      "Whether power answers to the law: the rule of law, and how far courts and legislatures check the executive, as V-Dem measures them across the world's people - and what states raise and spend.",
     summary: () =>
       `Averaged across the world's people, V-Dem scores the rule of law at ${fmt(WORLD.ruleOfLaw, lastOf("ruleOfLaw")[1])} out of 1, the courts' check on the executive at ${fmt(WORLD.judicialConstraints, lastOf("judicialConstraints")[1])} and the legislature's at ${fmt(WORLD.legislativeConstraints, lastOf("legislativeConstraints")[1])} (${lastOf("ruleOfLaw")[0]}). Tax revenue comes to ${pctOf("taxRevenue")} of GDP (${lastOf("taxRevenue")[0]}).`,
     tiles: () => [
@@ -1050,9 +1125,9 @@ const PILLARS: Pillar[] = [
         ids: ["ruleOfLaw", "judicialConstraints", "legislativeConstraints"],
       },
       {
-        title: "What states raise",
-        intro: "What governments collect to pay for what they do (IMF Government Finance Statistics).",
-        ids: ["taxRevenue", "govRevenue"],
+        title: "What states raise & spend",
+        intro: "What governments collect and what they spend (IMF Government Finance Statistics).",
+        ids: ["taxRevenue", "govRevenue", "govExpense"],
       },
     ],
   },
@@ -1098,7 +1173,7 @@ const PILLARS: Pillar[] = [
     color: "#94a3b8",
     icon: <ShieldWarning size={18} weight="fill" />,
     description:
-      "How safe the world is: armed conflict, the people it kills and drives from home, the armed forces and weapons countries keep and trade, nuclear arsenals, terrorism and murder.",
+      "How safe the world is: armed conflict, the people it kills and drives from home, what countries spend on arms and how much of their budgets it takes, the forces and weapons they keep and trade, nuclear arsenals, terrorism and murder.",
     summary: () => {
       const ds = displacedShare();
       return `${lastOf("conflicts")[1]} armed conflicts involved a government in ${lastOf("conflicts")[0]}, and ${compact(lastOf("conflictDeaths")[1])} people died in armed conflict; ${compact(lastOf("displaced")[1])} people - ${ds.series[ds.series.length - 1][1].toFixed(2)}% of everyone - were forcibly displaced (${lastOf("displaced")[0]}). Countries spent ${pctOf("militaryGdp", 2)} of world GDP on their armed forces (${lastOf("militaryGdp")[0]}), and an estimated ${lastOf("nuclearWarheads")[1].toLocaleString("en-US")} nuclear warheads existed in ${lastOf("nuclearWarheads")[0]}.`;
@@ -1124,7 +1199,7 @@ const PILLARS: Pillar[] = [
       {
         title: "Arms",
         intro: "What the world spends on its armed forces and how many serve (IISS), the weapons it trades (SIPRI), and its nuclear warheads (Federation of American Scientists).",
-        ids: ["militaryGdp", "armedForces", "armsTransfers", "nuclearWarheads"],
+        ids: ["militaryGdp", "militaryShare", "armedForces", "armsTransfers", "nuclearWarheads"],
         extras: {
           militaryGdp: `${usd("militaryUsd")} in ${lastOf("militaryUsd")[0]}`,
           armedForces: `${pctOf("armedForcesShare", 2)} of the labour force`,
@@ -1143,7 +1218,7 @@ const PILLARS: Pillar[] = [
     kicker: "The state of the planet",
     color: "#14b8a6",
     icon: <Leaf size={18} weight="fill" />,
-    description: `The planet as the agencies that measure it last read it (retrieved ${CLIMATE_RETRIEVED}) - temperature and the gases that drive it, Arctic ice - then what people emit, how much of their energy is renewable, and how much of the land is forest.`,
+    description: `The planet as the agencies that measure it last read it (retrieved ${CLIMATE_RETRIEVED}) - temperature and the gases that drive it, Arctic ice - then what people emit, in all and each, how much of their energy and electricity is renewable, the air they breathe and the water they draw, how the land and sea are used and protected, and the toll of natural disasters.`,
     summary: () => {
       const w = climateOf("warming");
       const c = climateOf("co2");
@@ -1167,14 +1242,24 @@ const PILLARS: Pillar[] = [
       },
       {
         title: "Emissions & energy",
-        intro: "What people release into the air each year, and how much of the energy they use is renewable.",
-        ids: ["co2", "ghg", "renewables"],
+        intro: "What people release into the air each year, in all and per person, and how much of their energy and electricity is renewable.",
+        ids: ["co2", "co2PerPerson", "methane", "ghg", "renewables", "renewableElectricity"],
       },
       {
-        title: "Land & ice",
-        intro: "How much of the land is forest, and how much of the Arctic Ocean stays frozen at summer's end.",
-        ids: ["forest"],
+        title: "Air & water",
+        intro: "The fine-particle pollution the average person breathes, and how much fresh water the world draws.",
+        ids: ["pm25", "waterWithdrawals"],
+      },
+      {
+        title: "Land, sea & ice",
+        intro: "How much of the land is forest and farmland, how much land and sea is protected, and how much of the Arctic Ocean stays frozen at summer's end.",
+        ids: ["forest", "farmland", "protectedLand", "protectedSea"],
         climate: ["sea-ice"],
+      },
+      {
+        title: "Disasters",
+        intro: "The people natural disasters kill (EM-DAT) and drive from their homes (Internal Displacement Monitoring Centre).",
+        ids: ["disasterDeaths", "disasterDisplacement"],
       },
     ],
   },
@@ -1339,6 +1424,7 @@ function PillarCard({ p }: { p: Pillar }) {
                 {t.sub}
               </p>
               {t.d && <DeltaLine d={t.d} small />}
+              <TileSummary story={t.summary} />
             </div>
           );
         })}
@@ -1377,10 +1463,83 @@ function subOf(f: Figure): string {
   return `${f.c.unit} · ${f.c.period}`;
 }
 
+/** A tile's summary: what the figure measures, then what its numbers show. */
+function TileSummary({ about, story }: { about?: string; story?: string }) {
+  const { muted } = useLook();
+  if (!about && !story) return null;
+  return (
+    <span className="block mt-1.5 text-[11px] font-sans leading-snug">
+      {about && <span style={{ color: muted }}>{about} </span>}
+      {story && <span className="text-foreground/85">{story}</span>}
+    </span>
+  );
+}
+
+/** "Up 16 since 1990, when it was 49.": the move across a whole series, in its own terms. */
+function changeSince(ind: WorldIndicator): string {
+  const s = ind.series;
+  const [y0, v0] = s[0];
+  const v1 = s[s.length - 1][1];
+  if (v1 === v0) return `The same as in ${y0}.`;
+  const diff = Math.abs(v1 - v0);
+  let amount: string;
+  // Counts, money and large numbers move in percent; shares in points; the rest in their own units.
+  if ((ind.format === "count" || ind.format === "usd" || (ind.format === "num" && Math.abs(v0) >= 1000)) && v0 !== 0) {
+    const pct = (100 * diff) / Math.abs(v0);
+    amount = `${pct >= 10 ? Math.round(pct) : pct.toFixed(1)}%`;
+  } else if (ind.format === "pct") amount = `${diff.toFixed(ind.dp)} points`;
+  else amount = `${diff.toLocaleString("en-US", { maximumFractionDigits: ind.dp })}${ind.unit === "years" ? " years" : ""}`;
+  return `${v1 > v0 ? "Up" : "Down"} ${amount} since ${y0}, when it was ${fmt(ind, v0)}.`;
+}
+
+/**
+ * A figure's story in a sentence or two, worked out from its own series:
+ * how far it has moved since the series begins, and where it stands against
+ * its highest and lowest. Nothing is said that its numbers do not show.
+ */
+function storyOf(f: Figure): string {
+  if (f.kind === "climate") {
+    const c = f.c;
+    return c.decadeAgo !== null
+      ? `${valueOf(f)} ${c.unit} in ${c.period}, against ${c.decadeAgo} ${c.unit} ten years before.`
+      : `${valueOf(f)} ${c.unit} in ${c.period}.`;
+  }
+  const ind = f.ind;
+  const s = ind.series;
+  if (ind.stated)
+    return `Pew Research Center's estimate for ${s[s.length - 1][0]}, from censuses and surveys${ind.stated.dir === "flat" ? "; the share held steady from 2010" : ""}.`;
+  if (s.length < 2) return "";
+  const since = changeSince(ind);
+  if (s.length < 3) return since;
+  const [y0, v0] = s[0];
+  const [y1, v1] = s[s.length - 1];
+  const hi = s.reduce((a, b) => (b[1] > a[1] ? b : a));
+  const lo = s.reduce((a, b) => (b[1] < a[1] ? b : a));
+  if (hi[1] === lo[1]) return since;
+  // An earlier year with the same value: the latest is level with it, not beyond it.
+  const tie = (v: number) => s.find(([y, x]) => x === v && y !== y1)?.[0];
+  const extreme = (word: "highest" | "lowest") => {
+    const t = tie(v1);
+    if (t === undefined) return `the ${word} of any year since ${y0}`;
+    // "The same as in 1990" has already said so.
+    return t === y0 && v1 === v0 ? null : `level with its ${word}, in ${t}`;
+  };
+  const parts: string[] = [];
+  if (v1 >= hi[1]) parts.push(extreme("highest") ?? "");
+  else if (hi[0] !== y0) parts.push(`it peaked at ${fmt(ind, hi[1])} in ${hi[0]}`);
+  if (v1 <= lo[1]) parts.push(extreme("lowest") ?? "");
+  else if (lo[0] !== y0) parts.push(`its low was ${fmt(ind, lo[1])} in ${lo[0]}`);
+  parts.splice(0, parts.length, ...parts.filter(Boolean));
+  if (!parts.length) return since;
+  const tail = parts.join("; ");
+  return `${since} ${tail[0].toUpperCase()}${tail.slice(1)}.`;
+}
+
 /**
  * A figure as a tile, as the site's other pages show figures: what it is,
- * its value, its unit and year, its direction over about ten years and its
- * trend. Picking it opens its window.
+ * its value, its unit and year, its direction over about ten years, a
+ * summary - what it measures and what its series shows - and its trend.
+ * Picking it opens its window.
  */
 function FigureTile({
   f,
@@ -1415,6 +1574,7 @@ function FigureTile({
         {subOf(f)}
       </span>
       {d && <DeltaLine d={d} small />}
+      <TileSummary about={aboutOf(f)} story={storyOf(f)} />
       {f.kind === "world" && f.ind.series.length > 2 && (
         <span className="mt-auto block w-full pt-2">
           <TileTrend series={f.ind.series} />
