@@ -62,7 +62,7 @@ import { has } from "@/lib/na";
  *
  * Each pillar opens with its status: headline percentages, and how many of
  * its measures have improved or worsened over about ten years, counted only
- * where the direction is not a matter of opinion. Every figure then has a
+ * where one way is plainly better (VERDICT_RULE). Every figure then has a
  * plain description of what it measures, its trend, its year-by-year table
  * and its source.
  *
@@ -406,6 +406,23 @@ const DESCRIBE: Record<string, string> = {
   coalProduction: "The coal the world produces, measured as energy.",
   womenMinisters: "Women's share of ministerial posts in the world's governments.",
   interestPayments: "The interest governments pay on their debts, as a share of all they take in.",
+  liberalDemocracyShare: "The share of the world's people living in countries V-Dem classes as liberal democracies - free and fair elections, with the rule of law and checks on the executive.",
+  electoralAutocracyShare: "The share of the world's people living in countries that hold multiparty elections that are not free and fair.",
+  closedAutocracyShare: "The share of the world's people living in countries with no multiparty elections for the chief executive or the legislature.",
+  democracies: "How many countries V-Dem classes as democracies, electoral or liberal.",
+  autocratizing: "How many countries are in a substantial, sustained decline in democracy, as V-Dem's Episodes of Regime Transformation track it.",
+  democratizing: "How many countries are in a substantial, sustained rise in democracy, as V-Dem's Episodes of Regime Transformation track it.",
+  autocratizingShare: "The share of the world's people living in countries that are autocratizing.",
+  democratizingShare: "The share of the world's people living in countries that are democratizing.",
+  industryReal: "What mining, manufacturing, construction and utilities add to the world's output, at constant 2015 prices, so it shows the change in volume.",
+  robotInstalls: "Industrial robots - reprogrammable machines that move in three or more directions - installed in the year.",
+  robotStock: "Industrial robots in use, as the International Federation of Robotics estimates them.",
+  aiInvestment: "Money private investors put into privately held AI companies in the year, adjusted for inflation.",
+  genAiInvestment: "Money private investors put into privately held generative-AI companies in the year, adjusted for inflation.",
+  aiPublications: "Scholarly publications on AI - journal articles, conference papers, working papers and preprints - in the year.",
+  evSalesShare: "Battery-electric and plug-in hybrid cars as a share of all new cars sold in the year.",
+  voterTurnout: "Votes cast at each country's latest national election as a share of its voting-age population, averaged across countries.",
+  engagedSociety: "How far ordinary people debate important policies - among themselves, in the media, in associations and neighbourhoods, and in the streets - averaged across the world's people.",
 };
 
 const DESCRIBE_CLIMATE: Record<string, string> = {
@@ -609,12 +626,12 @@ function Hero() {
           </h1>
           <p className="text-sm font-sans mt-1.5" style={{ color: muted }}>
             A dashboard of the whole world in {inWords(PILLARS.length)} pillars - how people live, what the economy is doing, how far the
-            world has developed, what it makes and how it is powered, technology, how it is governed, the rights and freedoms people have,
-            how well it is governed, what people believe, war and peace, and the state of the planet - each figure with what it measures, its
-            trend and its source.
+            world has developed, what it makes and how it is powered, technology, how democratic it is, the rights and freedoms people have
+            and how far they take part, how well it is governed, whether democracy or autocracy is gaining and what people believe, war and
+            peace, and the state of the planet - each figure with what it measures, its trend and its source.
           </p>
           <p className="text-sm font-sans mt-3" style={{ color: head }}>
-            Of the {all.better + all.worse} measures here whose direction is not a matter of opinion,{" "}
+            Of the {all.better + all.worse} measures here where one way is plainly better,{" "}
             <span className={`font-semibold ${BETTER}`}>{all.better} improved</span> over about ten years and{" "}
             <span className={`font-semibold ${WORSE}`}>{all.worse} worsened</span>.
           </p>
@@ -680,12 +697,16 @@ const areaRadius = (f: number) => {
   return Math.sqrt(core ** 2 + Math.max(0, Math.min(1, f)) * (edge ** 2 - core ** 2));
 };
 
+/** Which way counts as better, in words, wherever better and worse are counted. */
+const VERDICT_RULE =
+  "A rise counts as better for measures such as longer, healthier and richer lives, schooling and research, access to the basics, renewables and protected nature, women's representation, democracy, rights and taking part in public life (on V-Dem's scales, 1 is most free), and what the world makes - industrial output, robots, AI investment, electric cars and harvests. It counts as worse for measures such as poverty, hunger, disease and early death, joblessness, debt, violence, pollution, reliance on fossil fuels, autocracy and polarization. Where neither way is plainly better - as with population, religion, the size and make-up of economies, taxes and public spending, military strength, and the use of energy and resources - there is no verdict.";
+
 /**
  * The world as a wheel of its pillars, in the manner of the Climate page's
  * planetary boundaries: each pillar a wedge, filled from the centre with its
  * measures that improved over about ten years (green), then those that
  * worsened (red); the grey that remains is its measures with no verdict,
- * where the direction is a matter of opinion. Every wedge holds all of its
+ * where neither way is plainly better. Every wedge holds all of its
  * pillar's measures, and each part's area matches its count, so a pillar
  * with few judged measures is not drawn as all good or all bad. Hovering a
  * pillar, here or in the list beside, reads it out in the centre; picking
@@ -742,7 +763,7 @@ function WorldWheel() {
         {[
           { key: "better", label: "Improved over about ten years", Icon: ArrowUpRight },
           { key: "worse", label: "Worsened", Icon: ArrowDownRight },
-          { key: "none", label: "No verdict - the direction is a matter of opinion", Icon: Minus },
+          { key: "none", label: "No verdict - neither way is plainly better", Icon: Minus },
         ].map((x) => (
           <span key={x.key} className="inline-flex items-center gap-1.5 text-[10px] font-sans text-muted-foreground">
             <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: colors[x.key as keyof typeof colors] }} aria-hidden />
@@ -892,9 +913,8 @@ function WorldWheel() {
 
       <p className="mt-4 text-[10px] font-sans leading-relaxed max-w-4xl" style={{ color: muted }}>
         Each wedge is a pillar and holds all its measures: from the centre, those that improved over about ten years, then those that
-        worsened; the grey beyond is those with no verdict, where whether up or down is better is a matter of opinion - most of the
-        governance and belief measures. Each part's area matches its number of measures, and the dashed ring marks half. Hover a pillar to
-        read it in the centre; pick one to open it.
+        worsened; the grey beyond is those with no verdict. {VERDICT_RULE} Each part's area matches its number of measures, and the dashed
+        ring marks half. Hover a pillar to read it in the centre; pick one to open it.
       </p>
     </div>
   );
@@ -1230,22 +1250,27 @@ const PILLARS: Pillar[] = [
     color: "#b45309",
     icon: <Factory size={18} weight="fill" />,
     description:
-      "The world's industry: what industry and manufacturing add to output and how many people they employ; how much of what the world exports is manufactured; what it earns from oil, gas, coal and minerals; and the grain it harvests, how much from each hectare, and the fertilizer it uses.",
+      "The world's industry: its real output, what industry and manufacturing add to GDP, how many people they employ and how much of what the world exports is manufactured; the industries of the day - industrial robots, investment in AI and generative AI, and electric cars; what the world earns from oil, gas, coal and minerals; and the grain it harvests, how much from each hectare, and the fertilizer it uses.",
     summary: () =>
-      `Manufacturing added ${usd("manufacturingUsd")} to the world's output in ${lastOf("manufacturingUsd")[0]} - ${pctOf("manufacturingVA")} of GDP - and industry as a whole, construction and utilities included, ${pctOf("industryVA")} (${lastOf("industryVA")[0]}). ${pctOf("industryEmployment")} of the world's workers are in industry (${lastOf("industryEmployment")[0]}), and manufactured goods make up ${pctOf("manufacturesExports")} of goods exported (${lastOf("manufacturesExports")[0]}). The world harvested ${compact(lastOf("cerealProduction")[1])} tonnes of cereals in ${lastOf("cerealProduction")[0]}.`,
+      `Industry - mining, manufacturing, construction and utilities - added ${usd("industryReal")} to the world's output in ${lastOf("industryReal")[0]} at 2015 prices, and manufacturing makes up ${pctOf("manufacturingVA")} of GDP (${lastOf("manufacturingVA")[0]}). ${compact(lastOf("robotInstalls")[1])} industrial robots were installed in ${lastOf("robotInstalls")[0]}, bringing those at work to ${compact(lastOf("robotStock")[1])}. Private investors put ${usd("aiInvestment")} into AI companies in ${lastOf("aiInvestment")[0]}, at 2021 prices, and ${pctOf("evSalesShare")} of new cars sold were electric (${lastOf("evSalesShare")[0]}).`,
     tiles: () => [
-      worldTile("manufacturingUsd", "Manufacturing value"),
+      worldTile("industryReal", "Industrial output"),
       worldTile("manufacturingVA", "Manufacturing share"),
-      worldTile("industryVA", "Industry's share"),
-      worldTile("industryEmployment", "Working in industry"),
-      worldTile("manufacturesExports", "Manufactured exports"),
-      worldTile("cerealProduction", "Cereal harvest"),
+      worldTile("robotInstalls", "Robots installed"),
+      worldTile("aiInvestment", "AI investment"),
+      worldTile("genAiInvestment", "Generative AI investment"),
+      worldTile("evSalesShare", "Electric car sales"),
     ],
     groups: [
       {
         title: "Industry & manufacturing",
-        intro: "What industry and manufacturing add to the world's output, how many people work in industry (ILO), and how much of what the world exports is manufactured (UN Comtrade).",
-        ids: ["manufacturingUsd", "manufacturingVA", "industryVA", "industryEmployment", "manufacturesExports"],
+        intro: "What industry and manufacturing add to the world's output - in volume, at constant prices, and as a share of GDP - how many people work in industry (ILO), and how much of what the world exports is manufactured (UN Comtrade).",
+        ids: ["industryReal", "manufacturingUsd", "manufacturingVA", "industryVA", "industryEmployment", "manufacturesExports"],
+      },
+      {
+        title: "The industries of the day",
+        intro: "The industries now reshaping the world: the industrial robots installed each year and at work (International Federation of Robotics), what private investors put into AI and generative-AI companies (Quid, via the AI Index Report), and how many new cars sold are electric (IEA).",
+        ids: ["robotInstalls", "robotStock", "aiInvestment", "genAiInvestment", "evSalesShare"],
       },
       {
         title: "Mining & resources",
@@ -1307,7 +1332,7 @@ const PILLARS: Pillar[] = [
     color: "#06b6d4",
     icon: <Cpu size={18} weight="fill" />,
     description:
-      "How far the world is online and how it invents: internet use, mobile, broadband and landline connections and secure servers; what it spends on research, the researchers it has, the science it publishes and the patents it files; and its trade in high-tech and digital goods and services, and in the use of ideas.",
+      "How far the world is online and how it invents: internet use, mobile, broadband and landline connections and secure servers; what it spends on research, the researchers it has, the science it publishes - AI research among it - and the patents it files; and its trade in high-tech and digital goods and services, and in the use of ideas.",
     summary: () =>
       `${pctOf("internet")} of people use the internet, and there are ${lastOf("broadband")[1]} fixed broadband connections for every 100 people (${lastOf("broadband")[0]}). The world puts ${pctOf("research", 2)} of its output into research and development (${lastOf("research")[0]}), and ${compact(lastOf("sciArticles")[1])} scientific articles were published in ${lastOf("sciArticles")[0]}.`,
     tiles: () => [
@@ -1326,8 +1351,8 @@ const PILLARS: Pillar[] = [
       },
       {
         title: "Research & invention",
-        intro: "What the world invests in research, the people who do it, the science it publishes and the inventions it files for protection.",
-        ids: ["research", "researchers", "sciArticles", "patents"],
+        intro: "What the world invests in research, the people who do it, the science it publishes - AI research among it - and the inventions it files for protection.",
+        ids: ["research", "researchers", "sciArticles", "aiPublications", "patents"],
       },
       {
         title: "Technology trade",
@@ -1342,15 +1367,17 @@ const PILLARS: Pillar[] = [
     kicker: "Democracy, representation and blocs",
     color: "#8b5cf6",
     icon: <Bank size={18} weight="fill" />,
-    description: "How the world is governed: how many people live in democracies, the five kinds of democracy V-Dem measures - electoral, liberal, participatory, deliberative and egalitarian - women's place in politics, and the blocs countries have joined.",
+    description:
+      "How democratic the world is: the status Freedom House gives every country, and the five kinds of democracy V-Dem measures - electoral, liberal, participatory, deliberative and egalitarian - averaged across the world's people; women's place in politics; and the blocs countries have joined. How many people live under each kind of regime is under Ideology.",
     summary: () => {
       const f = freedomSplit();
-      return `${pctOf("democracyShare")} of people live in a democracy (V-Dem, ${lastOf("democracyShare")[0]}) and ${f.freeShare.toFixed(1)}% in a country Freedom House rates Free (${f.year}). Women hold ${pctOf("womenParliament")} of the seats in national parliaments (${lastOf("womenParliament")[0]}).`;
+      return `Averaged across the world's people, V-Dem scores electoral democracy at ${fmt(WORLD.electoralDemocracy, lastOf("electoralDemocracy")[1])} out of 1 and liberal democracy at ${fmt(WORLD.liberalDemocracy, lastOf("liberalDemocracy")[1])} (${lastOf("electoralDemocracy")[0]}). ${f.freeShare.toFixed(1)}% of people live in a country Freedom House rates Free and ${f.notFreeShare.toFixed(1)}% in one it rates Not Free (${f.year}). Women hold ${pctOf("womenParliament")} of the seats in national parliaments (${lastOf("womenParliament")[0]}).`;
     },
     tiles: () => {
       const f = freedomSplit();
       return [
-        worldTile("democracyShare", "Live in a democracy"),
+        worldTile("electoralDemocracy", "Electoral democracy"),
+        worldTile("liberalDemocracy", "Liberal democracy"),
         {
           label: "Live in a Free country",
           value: `${f.freeShare.toFixed(1)}%`,
@@ -1365,7 +1392,6 @@ const PILLARS: Pillar[] = [
           d: null,
           summary: `${f.counts.NF} are rated Not Free, holding ${f.notFreeShare.toFixed(1)}% of those people; the other ${f.counts.PF} are Partly Free.`,
         },
-        worldTile("electoralDemocracy", "Electoral democracy"),
         worldTile("womenParliament", "Women in parliament"),
         worldTile("womenEmpowerment", "Women's empowerment"),
       ];
@@ -1374,8 +1400,8 @@ const PILLARS: Pillar[] = [
       {
         title: "Democracy",
         intro:
-          "How free people are to choose their governments: Freedom House's status for every country, and V-Dem's five kinds of democracy, averaged across the world's people.",
-        ids: ["democracyShare", "electoralDemocracy", "liberalDemocracy", "participatoryDemocracy", "deliberativeDemocracy", "egalitarianDemocracy"],
+          "How free people are to choose their governments: Freedom House's status for every country, and V-Dem's five kinds of democracy, averaged across the world's people (1 is most democratic).",
+        ids: ["electoralDemocracy", "liberalDemocracy", "participatoryDemocracy", "deliberativeDemocracy", "egalitarianDemocracy"],
         freedom: true,
       },
       {
@@ -1388,23 +1414,23 @@ const PILLARS: Pillar[] = [
   {
     id: "civic",
     title: "Civic",
-    kicker: "Rights, justice and freedom",
+    kicker: "Rights, justice, freedom and taking part",
     color: "#3b82f6",
     icon: <Scales size={18} weight="fill" />,
     description:
-      "The rights and freedoms people have in practice: freedom from torture and political killing, civil liberties for everyone and for women, equality before the law and access to justice, and the freedom to speak, organise and be heard through civil society - as V-Dem's experts rate them, averaged across the world's people.",
+      "The rights and freedoms people have in practice, and how far they take part in public life: freedom from torture and political killing, civil liberties for everyone and for women, equality before the law and access to justice; the freedom to speak, organise and be heard; and voting, civil society and public debate - mostly as V-Dem's experts rate them, averaged across the world's people. Literacy and schooling are under Society.",
     summary: () => {
       const ids = PILLARS.find((p) => p.id === "civic")!.groups.flatMap((g) => g.ids);
       const lower = ids.filter((id) => delta(WORLD[id])?.dir === "down").length;
-      return `Averaged across the world's people, V-Dem scores civil liberties at ${fmt(WORLD.civilLiberties, lastOf("civilLiberties")[1])} out of 1, freedom from torture and political killing at ${fmt(WORLD.physicalIntegrity, lastOf("physicalIntegrity")[1])}, equality before the law at ${fmt(WORLD.equalityBeforeLaw, lastOf("equalityBeforeLaw")[1])} and freedom of expression at ${fmt(WORLD.freeExpression, lastOf("freeExpression")[1])} (${lastOf("civilLiberties")[0]}). ${howManyLower(lower, ids.length)}`;
+      return `Averaged across the world's people, V-Dem scores civil liberties at ${fmt(WORLD.civilLiberties, lastOf("civilLiberties")[1])} out of 1, freedom from torture and political killing at ${fmt(WORLD.physicalIntegrity, lastOf("physicalIntegrity")[1])}, equality before the law at ${fmt(WORLD.equalityBeforeLaw, lastOf("equalityBeforeLaw")[1])} and freedom of expression at ${fmt(WORLD.freeExpression, lastOf("freeExpression")[1])} (${lastOf("civilLiberties")[0]}). On average across countries, ${pctOf("voterTurnout")} of the voting-age population voted at the latest national election (${lastOf("voterTurnout")[0]}). ${howManyLower(lower, ids.length)}`;
     },
     tiles: () => [
       worldTile("civilLiberties", "Civil liberties"),
       worldTile("physicalIntegrity", "Free from torture"),
       worldTile("equalityBeforeLaw", "Equality before law"),
-      worldTile("womenCivilLiberties", "Women's liberties"),
       worldTile("freeExpression", "Free expression"),
-      worldTile("freeAssociation", "Free association"),
+      worldTile("voterTurnout", "Voter turnout"),
+      worldTile("civilSociety", "Civil society"),
     ],
     groups: [
       {
@@ -1419,8 +1445,13 @@ const PILLARS: Pillar[] = [
       },
       {
         title: "Freedom to speak & organise",
-        intro: "Whether people can speak and publish freely, parties, the opposition and civil society groups can form and work, and civil society is heard.",
-        ids: ["freeExpression", "freeAssociation", "politicalLiberties", "civilSociety"],
+        intro: "Whether people can speak and publish freely, and parties, the opposition and civil society groups can form and work.",
+        ids: ["freeExpression", "freeAssociation", "politicalLiberties"],
+      },
+      {
+        title: "Taking part",
+        intro: "How far people take part in public life: voting at national elections (official results, compiled by V-Dem), taking part in civil society and being heard through it, and debating public affairs - among themselves, in the media, in associations and in the streets (V-Dem).",
+        ids: ["voterTurnout", "civilSociety", "engagedSociety"],
       },
     ],
   },
@@ -1463,26 +1494,36 @@ const PILLARS: Pillar[] = [
   {
     id: "ideology",
     title: "Ideology",
-    kicker: "What people believe, and how freely they think",
+    kicker: "Democracy or autocracy, and what people believe",
     color: "#f97316",
     icon: <Lightbulb size={18} weight="fill" />,
     description:
-      "What the world believes and how it thinks: its religions, as Pew Research Center counts them; how freely scholars can work; and how far societies are split into hostile political camps.",
+      "Which way the world leans: how its people and countries divide between democracy and autocracy, as V-Dem classes them - liberal and electoral democracies, electoral and closed autocracies - and how many countries are turning towards one or the other; what people believe, as Pew Research Center counts the world's religions; how freely scholars can work; and how far societies are split into hostile political camps.",
     summary: () => {
       const p = delta(WORLD.polarization);
-      return `In 2020, ${pctOf("christians")} of people were Christian, ${pctOf("muslims")} Muslim and ${pctOf("unaffiliated")} had no religion (Pew). Averaged across the world's people, academic freedom scores ${fmt(WORLD.academicFreedom, lastOf("academicFreedom")[1])} out of 1 (${lastOf("academicFreedom")[0]})${
-        p && p.dir !== "flat" ? `, and the average person lives in a society ${p.dir === "up" ? "more" : "less"} split into hostile political camps than ten years before (V-Dem)` : ""
-      }.`;
+      return `${pctOf("democracyShare")} of the world's people live in a democracy, ${pctOf("liberalDemocracyShare")} in a liberal one; ${pctOf("electoralAutocracyShare")} live in an electoral autocracy and ${pctOf("closedAutocracyShare")} in a closed one (V-Dem, ${lastOf("democracyShare")[0]}). ${lastOf("autocratizing")[1]} countries, home to ${pctOf("autocratizingShare")} of people, are growing more autocratic and ${lastOf("democratizing")[1]} more democratic (${lastOf("autocratizing")[0]})${
+        p && p.dir !== "flat" ? `, and the average person lives in a society ${p.dir === "up" ? "more" : "less"} split into hostile political camps than ten years before` : ""
+      }. In 2020, ${pctOf("christians")} of people were Christian, ${pctOf("muslims")} Muslim and ${pctOf("unaffiliated")} had no religion (Pew).`;
     },
     tiles: () => [
-      worldTile("christians", "Christians"),
-      worldTile("muslims", "Muslims"),
-      worldTile("unaffiliated", "No religion"),
-      worldTile("hindus", "Hindus"),
-      worldTile("academicFreedom", "Academic freedom"),
-      worldTile("polarization", "Polarization"),
+      worldTile("democracyShare", "Live in a democracy"),
+      worldTile("liberalDemocracyShare", "In a liberal democracy"),
+      worldTile("electoralAutocracyShare", "In an electoral autocracy"),
+      worldTile("closedAutocracyShare", "In a closed autocracy"),
+      worldTile("autocratizing", "Countries autocratizing"),
+      worldTile("democratizing", "Countries democratizing"),
     ],
     groups: [
+      {
+        title: "Democracy & autocracy",
+        intro: "How the world's people and countries divide between V-Dem's four kinds of regime: liberal and electoral democracies, electoral and closed autocracies (Regimes of the World).",
+        ids: ["democracyShare", "liberalDemocracyShare", "electoralAutocracyShare", "closedAutocracyShare", "democracies"],
+      },
+      {
+        title: "Which way countries are turning",
+        intro: "Countries in an episode of autocratization or democratization - a substantial, sustained fall or rise in V-Dem's electoral democracy index - and the share of the world's people who live in them (V-Dem's Episodes of Regime Transformation).",
+        ids: ["autocratizing", "democratizing", "autocratizingShare", "democratizingShare"],
+      },
       {
         title: "Religion",
         intro: "The world's religious makeup in 2020, and how each group's share changed from 2010, as Pew Research Center puts it.",
@@ -1655,7 +1696,7 @@ function DirectionBar({ p }: { p: Pillar }) {
 
 /**
  * The measures that improved and worsened over about ten years, by name,
- * where the direction is not a matter of opinion; each opens its figure.
+ * where one way is plainly better; each opens its figure.
  * With `max`, each list shows that many and a "+N more" that opens the rest.
  */
 function ChangeLists({ figures, onPick, max, onMore }: { figures: Figure[]; onPick: (f: Figure) => void; max?: number; onMore?: () => void }) {
@@ -2901,11 +2942,12 @@ export function WorldviewPage() {
           Figures retrieved {WORLDVIEW_RETRIEVED} by build-worldview.cjs: the World Bank's world and income-group aggregates (carrying figures
           from the ILO, the IEA, the FAO, the ITU, UNESCO, the US National Science Foundation, UN Comtrade, the IMF, the IISS, SIPRI and
           WHO/UNICEF), the IMF's World Economic Outlook, UCDP, V-Dem, UNDP's Human Development Report, the Energy Institute's Statistical
-          Review of World Energy, Ember, EM-DAT and the Federation of American Scientists via Our World in Data, UNHCR, and the UN's World
+          Review of World Energy, Ember, the IEA's Global EV Outlook, EM-DAT, the Federation of American Scientists, the International
+          Federation of Robotics and Quid (from the AI Index Report) and CSET via Our World in Data, UNHCR, and the UN's World
           Population Prospects; climate readings from NASA and NOAA, retrieved {CLIMATE_RETRIEVED}; religion from Pew Research Center's 2025 report, read
           from it on {PEW_CHECKED}; rankings and the developed / developing split use the figures on each country's page. Arrows compare with
-          about ten years earlier - for religion, with 2010, in Pew's own words; "better" and "worse" - and the counts of them - are only given
-          where the direction is not a matter of opinion. The share of people displaced is UNHCR's count over the World Bank's population for
+          about ten years earlier - for religion, with 2010, in Pew's own words; "better" and "worse" - and the counts of them - follow one rule:{" "}
+          {VERDICT_RULE} The share of people displaced is UNHCR's count over the World Bank's population for
           the same year, and the shares in Free and Not Free countries sum the site's population figures by Freedom House status. Open any
           figure for its trend, its full series and its source.
         </p>

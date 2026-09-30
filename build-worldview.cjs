@@ -15,8 +15,20 @@
  *                           kept may still be an IMF estimate.
  *   UCDP (via Our World     armed conflicts and the deaths in them, by type
  *     in Data)
- *   V-Dem Regimes of the    how many people live under each kind of regime
- *     World (via OWID)
+ *   V-Dem Regimes of the    how many people live under each kind of regime,
+ *     World (via OWID)      and how many countries are democracies
+ *   V-Dem Episodes of       how many countries are democratizing and
+ *     Regime Transformation autocratizing, and the share of people in them
+ *     (via OWID)
+ *   V-Dem voter turnout     turnout at each country's latest national
+ *     (via OWID)            election in the five years to date, averaged
+ *                           across countries
+ *   AI Index Report (OWID)  industrial robots installed and at work (IFR)
+ *                           and private investment in AI and generative AI
+ *                           (Quid); AI research publications (CSET)
+ *   IEA Global EV Outlook   electric cars' share of new car sales, for the
+ *     (via OWID)            years before the edition's own, whose figure
+ *                           is a projection
  *   V-Dem indices (OWID)    civil liberties and freedom of expression, as
  *                           OWID's population-weighted world average (its
  *                           plain "World" is an unweighted mean of countries)
@@ -47,7 +59,8 @@
  *                           freedom from torture and political killing,
  *                           equality before the law, private liberties,
  *                           freedom of association, and women's civil
- *                           liberties and political empowerment, as
+ *                           liberties and political empowerment, civil
+ *                           society participation and engaged society, as
  *                           population-weighted world averages
  *   UNDP Human Development  the world's Human Development Index
  *     Report (OWID)
@@ -454,7 +467,7 @@ function indicator(id, o) {
     };
     const last = rows.at(-1);
     add("democracyShare", {
-      label: "Living in a democracy", unit: "% of people", format: "pct", dp: 1, upIsGood: null,
+      label: "Living in a democracy", unit: "% of people", format: "pct", dp: 1, upIsGood: true,
       series: rows.map((r) => [r.year, round(share(r), 1)]),
       source: SRC.vdem,
       note: "Share of the world's people in countries V-Dem classes as electoral or liberal democracies; the rest live in electoral or closed autocracies. Countries V-Dem does not classify are left out of both.",
@@ -466,6 +479,10 @@ function indicator(id, o) {
         ["Closed autocracy", Number(last[k.closed])],
       ],
     });
+    const part = (r, key) => round((100 * Number(r[key])) / Object.values(k).reduce((t, c) => t + Number(r[c]), 0), 1);
+    add("liberalDemocracyShare", { label: "Living in a liberal democracy", unit: "% of people", format: "pct", dp: 1, upIsGood: true, series: rows.map((r) => [r.year, part(r, k.liberal)]), source: SRC.vdem, note: "Share of the world's people in countries V-Dem classes as liberal democracies: free and fair multiparty elections, with the rule of law and courts and legislatures that check the executive. Countries V-Dem does not classify are left out." });
+    add("electoralAutocracyShare", { label: "Living in an electoral autocracy", unit: "% of people", format: "pct", dp: 1, upIsGood: null, series: rows.map((r) => [r.year, part(r, k.electoralAut)]), source: SRC.vdem, note: "Share of the world's people in countries V-Dem classes as electoral autocracies: multiparty elections that are not free and fair, or without the freedoms democracy needs. Not judged better or worse: it grows both when democracies slide into it and when closed autocracies open up to it." });
+    add("closedAutocracyShare", { label: "Living in a closed autocracy", unit: "% of people", format: "pct", dp: 1, upIsGood: false, series: rows.map((r) => [r.year, part(r, k.closed)]), source: SRC.vdem, note: "Share of the world's people in countries V-Dem classes as closed autocracies: no multiparty elections for the chief executive or the legislature." });
   }
 
   // Economy and debt.
@@ -537,15 +554,15 @@ function indicator(id, o) {
 
   // Institutions: the law, the checks on power, and what states raise.
   const vdemWorld = async (slug) => pts(await owidWorldSeries(slug, "estimate_best", "World (population-weighted)"), 2);
-  add("electoralDemocracy", { label: "Electoral democracy", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("electoral-democracy-index"), source: SRC.vdemElect, note: "V-Dem's index of how far leaders are chosen in free and fair elections with universal suffrage, and people can organise and speak freely, averaged across the world's people (population-weighted). 1 is most democratic." });
-  add("ruleOfLaw", { label: "Rule of law", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("rule-of-law-index"), source: SRC.vdemLaw, note: "V-Dem's index of how far government complies with the law, the courts are independent, laws are clear, justice is accessible, corruption is absent and officials are impartial, averaged across the world's people (population-weighted). 1 is the strongest rule of law." });
-  add("judicialConstraints", { label: "Courts' check on the executive", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("judicial-constraints-on-the-executive-index"), source: SRC.vdemJudicial, note: "V-Dem's index of how far the executive respects the constitution and obeys the courts, and the courts are independent, averaged across the world's people (population-weighted). 1 is the strongest check." });
-  add("legislativeConstraints", { label: "Legislature's check on the executive", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("legislative-constraints-on-the-executive-index"), source: SRC.vdemLegis, note: "V-Dem's index of how far the legislature, the opposition included, questions, oversees and investigates the executive, averaged across the world's people (population-weighted). 1 is the strongest check." });
+  add("electoralDemocracy", { label: "Electoral democracy", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("electoral-democracy-index"), source: SRC.vdemElect, note: "V-Dem's index of how far leaders are chosen in free and fair elections with universal suffrage, and people can organise and speak freely, averaged across the world's people (population-weighted). 1 is most democratic." });
+  add("ruleOfLaw", { label: "Rule of law", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("rule-of-law-index"), source: SRC.vdemLaw, note: "V-Dem's index of how far government complies with the law, the courts are independent, laws are clear, justice is accessible, corruption is absent and officials are impartial, averaged across the world's people (population-weighted). 1 is the strongest rule of law." });
+  add("judicialConstraints", { label: "Courts' check on the executive", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("judicial-constraints-on-the-executive-index"), source: SRC.vdemJudicial, note: "V-Dem's index of how far the executive respects the constitution and obeys the courts, and the courts are independent, averaged across the world's people (population-weighted). 1 is the strongest check." });
+  add("legislativeConstraints", { label: "Legislature's check on the executive", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("legislative-constraints-on-the-executive-index"), source: SRC.vdemLegis, note: "V-Dem's index of how far the legislature, the opposition included, questions, oversees and investigates the executive, averaged across the world's people (population-weighted). 1 is the strongest check." });
   add("taxRevenue", { label: "Tax revenue", unit: "% of GDP", format: "pct", dp: 1, upIsGood: null, series: pts(await wbSeries("GC.TAX.TOTL.GD.ZS"), 1), source: WB("GC.TAX.TOTL.GD.ZS"), note: "IMF Government Finance Statistics: compulsory payments to government, in cash or in kind." });
   add("govRevenue", { label: "Government revenue", unit: "% of GDP, excluding grants", format: "pct", dp: 1, upIsGood: null, series: pts(await wbSeries("GC.REV.XGRT.GD.ZS"), 1), source: WB("GC.REV.XGRT.GD.ZS"), note: "IMF Government Finance Statistics: taxes, social contributions and other revenue, not counting grants." });
 
   // Ideas and belief: freedom of thought, political division, religion.
-  add("academicFreedom", { label: "Academic freedom", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("academic-freedom-index"), source: SRC.vdemAcademic, note: "V-Dem's index of how freely academics can research, teach, publish and speak, and how far universities govern themselves, averaged across the world's people (population-weighted). 1 is most free." });
+  add("academicFreedom", { label: "Academic freedom", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("academic-freedom-index"), source: SRC.vdemAcademic, note: "V-Dem's index of how freely academics can research, teach, publish and speak, and how far universities govern themselves, averaged across the world's people (population-weighted). 1 is most free." });
   {
     // V-Dem's polarization is on its model's open scale, not 0 to 1, so the
     // note gives the range countries span in the latest year to read it by.
@@ -563,7 +580,7 @@ function indicator(id, o) {
     if (series.length < 5 || countries.length < 100) throw new Error("V-Dem polarization: too little data");
     const [lo, hi] = [countries[0], countries.at(-1)];
     add("polarization", {
-      label: "Political polarization", unit: "V-Dem score, higher is more divided", format: "num", dp: 2, upIsGood: null, series, source: SRC.vdemPolar,
+      label: "Political polarization", unit: "V-Dem score, higher is more divided", format: "num", dp: 2, upIsGood: false, series, source: SRC.vdemPolar,
       note: `V-Dem's experts' estimate of how far society is split into hostile political camps, averaged across the world's people (population-weighted). It is on V-Dem's own scale rather than 0 to 1: in ${lastYear} countries ran from ${lo[1].toFixed(1)} (${lo[0]}) to ${hi[1].toFixed(1)} (${hi[0]}).`,
     });
   }
@@ -572,12 +589,12 @@ function indicator(id, o) {
   }
 
   // Civic: rights, justice and freedom, as V-Dem's experts rate them.
-  add("physicalIntegrity", { label: "Freedom from torture and political killing", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("physical-integrity-rights-index-vdem"), source: SRC.vdemPhys, note: "V-Dem's physical violence index: how far people are free from torture and political killings by the government, averaged across the world's people (population-weighted). 1 is most free." });
-  add("womenCivilLiberties", { label: "Women's civil liberties", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("women-civil-liberties-index"), source: SRC.vdemWomenCiv, note: "V-Dem's index of how far women are free from forced labour, have property rights and access to the courts, and can move freely, averaged across the world's people (population-weighted). 1 is most free." });
-  add("equalityBeforeLaw", { label: "Equality before the law", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("individual-liberties-and-equality-before-the-law-index"), source: SRC.vdemEquality, note: "V-Dem's index of equality before the law and individual liberty: freedom from torture and political killing, freedom of religion and movement, freedom from forced labour, access to justice, transparent laws and impartial administration, averaged across the world's people (population-weighted). 1 is the strongest." });
-  add("privateLiberties", { label: "Private liberties", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("private-civil-liberties-index"), source: SRC.vdemPrivate, note: "V-Dem's index of freedom from forced labour, property rights, and freedom of movement and religion, averaged across the world's people (population-weighted). 1 is most free." });
-  add("freeAssociation", { label: "Freedom of association", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("freedom-of-association-index"), source: SRC.vdemAssoc, note: "V-Dem's index of how far parties, the opposition included, can form and take part in elections, and civil society groups can form and operate freely, averaged across the world's people (population-weighted). 1 is most free." });
-  add("womenEmpowerment", { label: "Women's political empowerment", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("women-political-empowerment-index"), source: SRC.vdemWomenEmp, note: "V-Dem's index of how far women enjoy civil liberties, take part in civil society and are represented in politics, averaged across the world's people (population-weighted). 1 is the most empowered." });
+  add("physicalIntegrity", { label: "Freedom from torture and political killing", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("physical-integrity-rights-index-vdem"), source: SRC.vdemPhys, note: "V-Dem's physical violence index: how far people are free from torture and political killings by the government, averaged across the world's people (population-weighted). 1 is most free." });
+  add("womenCivilLiberties", { label: "Women's civil liberties", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("women-civil-liberties-index"), source: SRC.vdemWomenCiv, note: "V-Dem's index of how far women are free from forced labour, have property rights and access to the courts, and can move freely, averaged across the world's people (population-weighted). 1 is most free." });
+  add("equalityBeforeLaw", { label: "Equality before the law", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("individual-liberties-and-equality-before-the-law-index"), source: SRC.vdemEquality, note: "V-Dem's index of equality before the law and individual liberty: freedom from torture and political killing, freedom of religion and movement, freedom from forced labour, access to justice, transparent laws and impartial administration, averaged across the world's people (population-weighted). 1 is the strongest." });
+  add("privateLiberties", { label: "Private liberties", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("private-civil-liberties-index"), source: SRC.vdemPrivate, note: "V-Dem's index of freedom from forced labour, property rights, and freedom of movement and religion, averaged across the world's people (population-weighted). 1 is most free." });
+  add("freeAssociation", { label: "Freedom of association", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("freedom-of-association-index"), source: SRC.vdemAssoc, note: "V-Dem's index of how far parties, the opposition included, can form and take part in elections, and civil society groups can form and operate freely, averaged across the world's people (population-weighted). 1 is most free." });
+  add("womenEmpowerment", { label: "Women's political empowerment", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("women-political-empowerment-index"), source: SRC.vdemWomenEmp, note: "V-Dem's index of how far women enjoy civil liberties, take part in civil society and are represented in politics, averaged across the world's people (population-weighted). 1 is the most empowered." });
 
   // Development: human development, the shift of work and output from the
   // land, and the energy people use.
@@ -679,8 +696,8 @@ function indicator(id, o) {
   // Cereals from FAO's own world totals: the World Bank's world aggregate for
   // the latest year covers only part of the world (it halves the 2024 harvest).
   const FAO = (slug) => ({ label: "FAO (via Our World in Data)", url: `https://ourworldindata.org/grapher/${slug}` });
-  add("cerealProduction", { label: "Cereal harvest", unit: "tonnes a year", format: "count", dp: 0, upIsGood: null, series: pts(await owidWorldSeries("cereal-production", "production__005510__tonnes"), 0), source: FAO("cereal-production"), note: "FAO: wheat, rice, maize, barley, oats, rye, millet, sorghum, buckwheat and mixed grains." });
-  add("cerealYield", { label: "Cereal yield", unit: "tonnes per hectare", format: "num", dp: 2, upIsGood: null, series: pts(await owidWorldSeries("cereal-yield", "yield__005412__tonnes_per_hectare"), 2), source: FAO("cereal-yield"), note: "FAO: grain harvested for each hectare under cereals." });
+  add("cerealProduction", { label: "Cereal harvest", unit: "tonnes a year", format: "count", dp: 0, upIsGood: true, series: pts(await owidWorldSeries("cereal-production", "production__005510__tonnes"), 0), source: FAO("cereal-production"), note: "FAO: wheat, rice, maize, barley, oats, rye, millet, sorghum, buckwheat and mixed grains." });
+  add("cerealYield", { label: "Cereal yield", unit: "tonnes per hectare", format: "num", dp: 2, upIsGood: true, series: pts(await owidWorldSeries("cereal-yield", "yield__005412__tonnes_per_hectare"), 2), source: FAO("cereal-yield"), note: "FAO: grain harvested for each hectare under cereals." });
   await wb("fertilizer", "AG.CON.FERT.ZS", { label: "Fertilizer use", unit: "kg per hectare of arable land", format: "num", dp: 1, upIsGood: null, note: "FAO: nitrogen, potash and phosphate fertilizers; manure is not counted." });
 
   // Energy: supply, efficiency, the mix, electricity and fossil fuel
@@ -727,27 +744,158 @@ function indicator(id, o) {
   add("gasProduction", { label: "Gas production", unit: "TWh a year", format: "num", dp: 0, upIsGood: null, series: await owidPts("gas-production-by-country", "gas_production_twh", 0), source: EI("gas-production-by-country"), note: "Energy Institute: natural gas, as energy." });
   add("coalProduction", { label: "Coal production", unit: "TWh a year", format: "num", dp: 0, upIsGood: null, series: await owidPts("coal-production-by-country", "coal_production_twh", 0), source: EI("coal-production-by-country"), note: "Energy Institute: coal, as energy." });
 
+  // Ideology: how many countries are democracies, and which way countries
+  // are moving (V-Dem's Regimes of the World and Episodes of Regime
+  // Transformation).
+  {
+    const rows = (await owidWorld("countries-democracies-autocracies-row")).filter((r) => r.year >= FROM);
+    const n = (r, suffix) => Number(r[col(rows[0], suffix)]) || 0;
+    const last = rows.at(-1);
+    add("democracies", {
+      label: "Countries that are democracies", unit: "countries", format: "num", dp: 0, upIsGood: true,
+      series: rows.map((r) => [r.year, n(r, "category_electoral_democracy") + n(r, "category_liberal_democracy")]),
+      source: { label: "V-Dem Regimes of the World (via Our World in Data)", url: "https://ourworldindata.org/grapher/countries-democracies-autocracies-row" },
+      note: "Countries V-Dem classes as electoral or liberal democracies; the rest are electoral or closed autocracies.",
+      breakdownYear: last.year,
+      breakdown: [
+        ["Liberal democracies", n(last, "category_liberal_democracy")],
+        ["Electoral democracies", n(last, "category_electoral_democracy")],
+        ["Electoral autocracies", n(last, "category_electoral_autocracy")],
+        ["Closed autocracies", n(last, "category_closed_autocracy")],
+      ],
+    });
+  }
+  {
+    const ERT = (slug) => ({ label: "V-Dem Episodes of Regime Transformation (via Our World in Data)", url: `https://ourworldindata.org/grapher/${slug}` });
+    const autocratization = "an episode of autocratization - a substantial, sustained decline in V-Dem's electoral democracy index, whether a democracy eroding or an autocracy hardening";
+    const democratization = "an episode of democratization - a substantial, sustained rise in V-Dem's electoral democracy index, whether an autocracy opening up or a democracy deepening";
+    const slug = "countries-that-are-democratizing-and-autocratizing";
+    const rows = (await owidWorld(slug)).filter((r) => r.year >= FROM);
+    const n = (r, suffix) => Number(r[col(rows[0], suffix)]) || 0;
+    const last = rows.at(-1);
+    const byEpisode = {
+      breakdownYear: last.year,
+      breakdown: [
+        ["Autocratizing", n(last, "category_autocratizing_regime")],
+        ["Stable", n(last, "category_stable_regime")],
+        ["Democratizing", n(last, "category_democratizing_regime")],
+      ],
+    };
+    add("autocratizing", { label: "Countries autocratizing", unit: "countries", format: "num", dp: 0, upIsGood: false, series: rows.map((r) => [r.year, n(r, "category_autocratizing_regime")]), source: ERT(slug), note: `Countries in ${autocratization}.`, ...byEpisode });
+    add("democratizing", { label: "Countries democratizing", unit: "countries", format: "num", dp: 0, upIsGood: true, series: rows.map((r) => [r.year, n(r, "category_democratizing_regime")]), source: ERT(slug), note: `Countries in ${democratization}.`, ...byEpisode });
+
+    const peopleSlug = "people-living-in-democratizing-autocratizing-countries-ert";
+    const people = (await owidWorld(peopleSlug)).filter((r) => r.year >= FROM);
+    const p = {
+      aut: col(people[0], "category_autocratizing_regime"),
+      stable: col(people[0], "category_stable_regime"),
+      dem: col(people[0], "category_democratizing_regime"),
+    };
+    const part = (r, key) => round((100 * Number(r[key])) / Object.values(p).reduce((t, c) => t + Number(r[c]), 0), 1);
+    add("autocratizingShare", { label: "Living in an autocratizing country", unit: "% of people", format: "pct", dp: 1, upIsGood: false, series: people.map((r) => [r.year, part(r, p.aut)]), source: ERT(peopleSlug), note: `Share of the world's people in countries in ${autocratization}. Countries V-Dem does not classify are left out.` });
+    add("democratizingShare", { label: "Living in a democratizing country", unit: "% of people", format: "pct", dp: 1, upIsGood: true, series: people.map((r) => [r.year, part(r, p.dem)]), source: ERT(peopleSlug), note: `Share of the world's people in countries in ${democratization}. Countries V-Dem does not classify are left out.` });
+  }
+
+  // Industry: the industries of the day - robots and AI - and real output.
+  await wb("industryReal", "NV.IND.TOTL.KD", { label: "Industrial output", unit: "US$ a year (2015 prices)", format: "usd", dp: 0, upIsGood: true, note: "Value added by mining, manufacturing, construction and utilities, in constant 2015 US dollars, so the change is in volume, not prices." });
+  {
+    const slug = "industrial-robots-annual-installations-total-operational";
+    const src = { label: "International Federation of Robotics, via the AI Index Report (via Our World in Data)", url: `https://ourworldindata.org/grapher/${slug}` };
+    add("robotInstalls", { label: "Industrial robots installed", unit: "robots a year", format: "count", dp: 0, upIsGood: true, series: await owidWorldSeries(slug, "industrial_robot_installations"), source: src, note: "IFR: automatically controlled, reprogrammable machines that move in three or more directions and do a range of industrial tasks." });
+    add("robotStock", { label: "Industrial robots at work", unit: "robots in operation", format: "count", dp: 0, upIsGood: true, series: await owidWorldSeries(slug, "industrial_robot_stock"), source: src, note: "IFR's estimate, which assumes a robot is retired after 12 years of service - an estimate, not a count." });
+  }
+  const aiNote = "privately held companies raising more than $1.5 million; not the spending of listed companies such as the largest technology firms, nor companies' own research. In constant 2021 US dollars.";
+  add("aiInvestment", { label: "Private investment in AI", unit: "US$ a year (2021 prices)", format: "usd", dp: 0, upIsGood: true, series: pts(await owidWorldSeries("private-investment-in-artificial-intelligence", "private_investment"), 0), source: { label: "Quid, via the AI Index Report (via Our World in Data)", url: "https://ourworldindata.org/grapher/private-investment-in-artificial-intelligence" }, note: `Money put into AI ${aiNote}` });
+  add("genAiInvestment", { label: "Private investment in generative AI", unit: "US$ a year (2021 prices)", format: "usd", dp: 0, upIsGood: true, series: pts(await owidWorldSeries("global-investment-in-generative-ai", "generative_ai"), 0), source: { label: "Quid, via the AI Index Report (via Our World in Data)", url: "https://ourworldindata.org/grapher/global-investment-in-generative-ai" }, note: `Money put into generative-AI ${aiNote}` });
+  add("aiPublications", { label: "AI research publications", unit: "a year", format: "count", dp: 0, upIsGood: null, series: await owidWorldSeries("annual-scholarly-publications-on-artificial-intelligence", "num_articles__field_all"), source: { label: "Center for Security and Emerging Technology (via Our World in Data)", url: "https://ourworldindata.org/grapher/annual-scholarly-publications-on-artificial-intelligence" }, note: "CSET: journal articles, conference papers, working papers and preprints on AI with an English title or abstract. The world figure adds up the countries, and an article counts once for each country its authors work in, so papers written across borders count more than once." });
+  {
+    // The IEA's Global EV Outlook ends with an outlook for its own year; only
+    // the years before its edition are recorded sales.
+    const slug = "electric-car-sales-share";
+    const meta = JSON.parse(await get(`https://ourworldindata.org/grapher/${slug}.metadata.json`, `owid-${slug}.metadata.json`));
+    const edition = Number(Object.values(meta.columns).map((c) => /Global EV Outlook (\d{4})/.exec(c.citationShort ?? "")?.[1]).find(Boolean));
+    if (!edition) throw new Error("IEA Global EV Outlook: edition year not found");
+    add("evSalesShare", {
+      label: "Electric cars' share of new car sales", unit: "% of new cars sold", format: "pct", dp: 1, upIsGood: true,
+      series: pts((await owidWorldSeries(slug, "ev_sales_share")).filter(([y]) => y < edition), 1),
+      source: { label: `IEA Global EV Outlook ${edition} (via Our World in Data)`, url: `https://ourworldindata.org/grapher/${slug}` },
+      note: `IEA: battery-electric and plug-in hybrid cars, as a share of all new cars sold. The Outlook's figure for ${edition} is a projection and is not shown.`,
+    });
+  }
+
+  // Civic participation: who votes, and how far people discuss public affairs.
+  {
+    // V-Dem records turnout in election years only, so OWID's world figure
+    // averages whichever countries voted that year. Each country's latest
+    // national election in the five years to date compares like with like.
+    const slug = "voter-turnout-of-voting-age-population";
+    const rows = await owidCsv(slug);
+    const kk = col(rows[0], "turnout_total_vdem");
+    const byCountry = new Map();
+    for (const r of rows) {
+      if (!/^[A-Z]{3}$/.test(r.code) || r[kk] === "") continue;
+      if (!byCountry.has(r.code)) byCountry.set(r.code, []);
+      byCountry.get(r.code).push([Number(r.year), Number(r[kk])]);
+    }
+    const lastYear = Math.max(...[...byCountry.values()].flat().map(([y]) => y));
+    const series = [];
+    let counted = 0;
+    for (let y = FROM; y <= lastYear; y++) {
+      const latest = [...byCountry.values()]
+        .map((v) => v.filter(([yy]) => yy <= y && yy > y - 5).sort((a, b) => a[0] - b[0]).at(-1))
+        .filter(Boolean);
+      counted = latest.length;
+      series.push([y, round(latest.reduce((t, [, v]) => t + v, 0) / counted, 1)]);
+    }
+    if (counted < 100) throw new Error(`V-Dem voter turnout: only ${counted} countries`);
+    add("voterTurnout", {
+      label: "Voter turnout", unit: "% of the voting-age population", format: "pct", dp: 1, upIsGood: true, series,
+      source: { label: "V-Dem voter turnout (via Our World in Data)", url: `https://ourworldindata.org/grapher/${slug}` },
+      note: `V-Dem: votes cast as a share of the voting-age population, by official results, at each country's latest national election in the five years to date, averaged across countries with each counting equally (${counted} countries in ${lastYear}). Countries with no national election in those five years are left out.`,
+    });
+  }
+  {
+    const rows = await owidCsv("engaged-society-score");
+    const kk = col(rows[0], "estimate_best");
+    const series = rows
+      .filter((r) => r.entity === "World (population-weighted)" && Number(r.year) >= FROM && r[kk] !== "")
+      .map((r) => [Number(r.year), round(Number(r[kk]), 2)])
+      .sort((a, b) => a[0] - b[0]);
+    const lastYear = series.at(-1)[0];
+    const countries = rows
+      .filter((r) => /^[A-Z]{3}$/.test(r.code) && Number(r.year) === lastYear && r[kk] !== "")
+      .map((r) => [r.entity, Number(r[kk])])
+      .sort((a, b) => a[1] - b[1]);
+    if (series.length < 5 || countries.length < 100) throw new Error("V-Dem engaged society: too little data");
+    const [lo, hi] = [countries[0], countries.at(-1)];
+    add("engagedSociety", {
+      label: "Engaged society", unit: "V-Dem score, higher is more engaged", format: "num", dp: 2, upIsGood: true, series,
+      source: { label: "V-Dem engaged society (via Our World in Data)", url: "https://ourworldindata.org/grapher/engaged-society-score" },
+      note: `V-Dem's experts' estimate of how far ordinary people discuss important policy changes among themselves, in the media, in associations and neighbourhoods, or in the streets, averaged across the world's people (population-weighted). It is on V-Dem's own scale rather than 0 to 1: in ${lastYear} countries ran from ${lo[1].toFixed(1)} (${lo[0]}) to ${hi[1].toFixed(1)} (${hi[0]}).`,
+    });
+  }
+
   // Politics and civic life: V-Dem's other measures of democracy, political
   // liberties and civil society.
-  add("liberalDemocracy", { label: "Liberal democracy", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("liberal-democracy-index"), source: SRC.vdemLiberal, note: "V-Dem's index of electoral democracy with the rule of law, checks on the executive and protected liberties, averaged across the world's people (population-weighted). 1 is most democratic." });
-  add("participatoryDemocracy", { label: "Participatory democracy", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("participatory-democracy-index"), source: SRC.vdemParticip, note: "V-Dem's index of electoral democracy with citizens taking part beyond elections - in civil society, direct democracy and local government - averaged across the world's people (population-weighted). 1 is most democratic." });
-  add("deliberativeDemocracy", { label: "Deliberative democracy", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("deliberative-democracy-index-vdem"), source: SRC.vdemDelib, note: "V-Dem's index of electoral democracy with decisions reached by reasoned public debate rather than by emotional appeals, bargaining or coercion, averaged across the world's people (population-weighted). 1 is most democratic." });
-  add("egalitarianDemocracy", { label: "Egalitarian democracy", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("egalitarian-democracy-index-vdem"), source: SRC.vdemEgal, note: "V-Dem's index of electoral democracy with rights, freedoms and power spread equally across social groups, averaged across the world's people (population-weighted). 1 is most democratic." });
-  add("politicalLiberties", { label: "Political liberties", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("political-civil-liberties-index"), source: SRC.vdemPolLib, note: "V-Dem's index of freedom of expression and of association, averaged across the world's people (population-weighted). 1 is most free." });
-  add("civilSociety", { label: "Civil society participation", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null, series: await vdemWorld("civil-society-participation-index"), source: SRC.vdemCivSoc, note: "V-Dem's index of how far major civil society groups are consulted by policymakers and people take part in civil society, averaged across the world's people (population-weighted). 1 is the most participation." });
+  add("liberalDemocracy", { label: "Liberal democracy", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("liberal-democracy-index"), source: SRC.vdemLiberal, note: "V-Dem's index of electoral democracy with the rule of law, checks on the executive and protected liberties, averaged across the world's people (population-weighted). 1 is most democratic." });
+  add("participatoryDemocracy", { label: "Participatory democracy", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("participatory-democracy-index"), source: SRC.vdemParticip, note: "V-Dem's index of electoral democracy with citizens taking part beyond elections - in civil society, direct democracy and local government - averaged across the world's people (population-weighted). 1 is most democratic." });
+  add("deliberativeDemocracy", { label: "Deliberative democracy", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("deliberative-democracy-index-vdem"), source: SRC.vdemDelib, note: "V-Dem's index of electoral democracy with decisions reached by reasoned public debate rather than by emotional appeals, bargaining or coercion, averaged across the world's people (population-weighted). 1 is most democratic." });
+  add("egalitarianDemocracy", { label: "Egalitarian democracy", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("egalitarian-democracy-index-vdem"), source: SRC.vdemEgal, note: "V-Dem's index of electoral democracy with rights, freedoms and power spread equally across social groups, averaged across the world's people (population-weighted). 1 is most democratic." });
+  add("politicalLiberties", { label: "Political liberties", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("political-civil-liberties-index"), source: SRC.vdemPolLib, note: "V-Dem's index of freedom of expression and of association, averaged across the world's people (population-weighted). 1 is most free." });
+  add("civilSociety", { label: "Civil society participation", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true, series: await vdemWorld("civil-society-participation-index"), source: SRC.vdemCivSoc, note: "V-Dem's index of how far major civil society groups are consulted by policymakers and people take part in civil society, averaged across the world's people (population-weighted). 1 is the most participation." });
 
   // Sanitation, beside water and electricity.
   add("sanitation", { label: "Safely managed sanitation", unit: "% of people", format: "pct", dp: 1, upIsGood: true, series: pts(await wbSeries("SH.STA.SMSS.ZS"), 1), source: WB("SH.STA.SMSS.ZS"), note: "WHO/UNICEF: a toilet or latrine not shared with other households, from which waste is safely disposed of on site or taken away and treated." });
 
   // Rights and liberties: V-Dem, weighted by population.
   add("civilLiberties", {
-    label: "Civil liberties", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null,
+    label: "Civil liberties", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true,
     series: pts(await owidWorldSeries("human-rights-index-vdem", "estimate_best", "World (population-weighted)"), 2),
     source: SRC.vdemCivil,
     note: "V-Dem's civil liberties index - freedom from government violence, private liberties and political liberties - averaged across the world's people (population-weighted). 1 is most free.",
   });
   add("freeExpression", {
-    label: "Freedom of expression", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: null,
+    label: "Freedom of expression", unit: "index, 0 to 1", format: "num", dp: 2, upIsGood: true,
     series: pts(await owidWorldSeries("freedom-of-expression-index", "estimate_best", "World (population-weighted)"), 2),
     source: SRC.vdemExpr,
     note: "V-Dem's index of free speech, a free press and alternative sources of information, averaged across the world's people (population-weighted). 1 is most free.",
