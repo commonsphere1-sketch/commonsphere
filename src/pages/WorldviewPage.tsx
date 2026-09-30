@@ -1,9 +1,15 @@
-import { Fragment, useEffect, useId, useMemo, useState, type ReactNode } from "react";
+import { Fragment, createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  ArrowDown,
   ArrowDownRight,
+  ArrowLeft,
   ArrowRight,
   ArrowUpRight,
+  ArrowsIn,
+  ArrowsOut,
+  CaretLeft,
+  CaretRight,
   Bank,
   Buildings,
   CaretDown,
@@ -383,7 +389,7 @@ function TileTrend({ series }: { series: WorldPoint[] }) {
  * accent. The pointer, or the arrow keys once focused, moves a crosshair and
  * reads out that year.
  */
-function Sparkline({ ind }: { ind: WorldIndicator }) {
+function Sparkline({ ind, tall = false }: { ind: WorldIndicator; tall?: boolean }) {
   const s = ind.series;
   const [at, setAt] = useState<number | null>(null);
   const W = 240;
@@ -423,7 +429,7 @@ function Sparkline({ ind }: { ind: WorldIndicator }) {
         )}
       </p>
       <div
-        className="relative mt-1 h-11 cursor-crosshair rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className={`relative mt-1 ${tall ? "h-36" : "h-11"} cursor-crosshair rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
         tabIndex={0}
         role="img"
         aria-label={`${ind.label}, ${x0} to ${x1}: from ${fmt(ind, s[0][1])} to ${fmt(ind, last[1])}. Use the arrow keys to read each year; every year is also in the table.`}
@@ -466,6 +472,20 @@ function YearTable({ ind }: { ind: WorldIndicator }) {
         </tbody>
       </table>
     </details>
+  );
+}
+
+/** Every year of a series, newest first, in columns: the window's full table. */
+function YearGrid({ ind }: { ind: WorldIndicator }) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-5 font-mono text-[11px]">
+      {[...ind.series].reverse().map(([y, v]) => (
+        <div key={y} className="flex justify-between gap-2 border-b border-border/30 py-0.5">
+          <span className="text-muted-foreground tabular-nums">{y}</span>
+          <span className="text-foreground tabular-nums">{fmt(ind, v)}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -678,7 +698,13 @@ function freedomSplit() {
     people[f[4]] += has(c.population) ? c.population : 0;
   }
   const total = people.F + people.PF + people.NF;
-  return { year, counts, people, freeShare: total ? (100 * people.F) / total : NaN };
+  return {
+    year,
+    counts,
+    people,
+    freeShare: total ? (100 * people.F) / total : NaN,
+    notFreeShare: total ? (100 * people.NF) / total : NaN,
+  };
 }
 
 /** The forcibly displaced as a share of the world's people, year by year: UNHCR's count over the World Bank's. */
@@ -711,7 +737,61 @@ function howManyLower(lower: number, n: number): string {
   return `${w[0].toUpperCase()}${w.slice(1)} of its ${inWords(n)} measures ${lower === 1 ? "is" : "are"} lower than about ten years before.`;
 }
 
-type Tile = { label: string; value: string; sub: string; d: Delta | null };
+/** A figure in a group: a world series, or a climate reading. */
+type Figure = { kind: "world"; key: string; ind: WorldIndicator; extra?: string } | { kind: "climate"; key: string; c: ClimateIndicator };
+
+const labelOf = (f: Figure) => (f.kind === "world" ? f.ind.label : f.c.label);
+const aboutOf = (f: Figure): string | undefined => (f.kind === "world" ? DESCRIBE[f.ind.id] : DESCRIBE_CLIMATE[f.c.id]);
+const sourceOf = (f: Figure) => (f.kind === "world" ? f.ind.source : { label: f.c.source, url: f.c.url });
+const deltaOf = (f: Figure) => (f.kind === "world" ? delta(f.ind) : climateDelta(f.c));
+/** The year a figure is for: its series' last, or the year in a reading's period ("August 2026"). */
+const yearOf = (f: Figure) => (f.kind === "world" ? f.ind.series[f.ind.series.length - 1][0] : Number(/\d{4}/.exec(f.c.period)?.[0] ?? NaN));
+
+/** A group's figures as its tiles show them: the climate readings, then the world series. */
+function groupFigures(g: Group): Figure[] {
+  return [
+    ...(g.climate ?? [])
+      .map(climateOf)
+      .filter((c): c is ClimateIndicator => !!c)
+      .map((c): Figure => ({ kind: "climate", key: `c:${c.id}`, c })),
+    ...g.ids.map((id): Figure => ({ kind: "world", key: `w:${id}`, ind: WORLD[id], extra: g.extras?.[id] })),
+  ];
+}
+
+/** "2020–2026": the span of the latest years a set of figures is for. */
+function latestSpan(figures: Figure[]): string {
+  const years = figures.map(yearOf).filter((y) => Number.isFinite(y));
+  if (!years.length) return "";
+  const [first, last] = [Math.min(...years), Math.max(...years)];
+  return first === last ? `${first}` : `${first}–${last}`;
+}
+
+/** The bodies behind a set of figures, by the short names they go by. */
+const PUBLISHER: [RegExp, string][] = [
+  [/^World Bank/, "World Bank"],
+  [/^IMF/, "IMF"],
+  [/^Uppsala/, "UCDP"],
+  [/^UNHCR/, "UNHCR"],
+  [/^V-Dem/, "V-Dem"],
+  [/^Global Terrorism Database/, "Global Terrorism Database"],
+  [/^Federation of American Scientists/, "Federation of American Scientists"],
+  [/^Pew/, "Pew Research Center"],
+  [/^UNDP/, "UNDP"],
+  [/^UN World Population/, "UN"],
+  [/^Freedom House/, "Freedom House"],
+  [/^NASA/, "NASA"],
+  [/^NOAA/, "NOAA"],
+  [/^NSIDC/, "NSIDC"],
+];
+function publishers(figures: Figure[]): string[] {
+  const names = figures.map((f) => {
+    const label = sourceOf(f).label;
+    return PUBLISHER.find(([r]) => r.test(label))?.[1] ?? label.split(/ — | \(|, /)[0];
+  });
+  return [...new Set(names)];
+}
+
+type Tile = { label: string; value: string; sub: string; d: Delta | null; fig?: Figure };
 type Group = { title: string; intro: string; ids: string[]; climate?: string[]; extras?: Record<string, string>; freedom?: boolean };
 type Pillar = {
   id: "society" | "economy" | "development" | "technology" | "politics" | "civic" | "institutions" | "ideology" | "security" | "ecology";
@@ -728,12 +808,18 @@ type Pillar = {
 const worldTile = (id: string, label: string): Tile => {
   const ind = WORLD[id];
   const [y, v] = lastOf(id);
-  return { label, value: fmt(ind, v), sub: `${unitOf(ind)} · ${y}`, d: delta(ind) };
+  return { label, value: fmt(ind, v), sub: `${unitOf(ind)} · ${y}`, d: delta(ind), fig: { kind: "world", key: `w:${id}`, ind } };
 };
 const climateTile = (id: string, label: string): Tile | null => {
   const c = climateOf(id);
   if (!c) return null;
-  return { label, value: `${c.id === "warming" && c.value > 0 ? "+" : ""}${c.value}${c.unit.startsWith("°") ? "" : " "}${c.unit}`, sub: c.period, d: climateDelta(c) };
+  return {
+    label,
+    value: `${c.id === "warming" && c.value > 0 ? "+" : ""}${c.value}${c.unit.startsWith("°") ? "" : " "}${c.unit}`,
+    sub: c.period,
+    d: climateDelta(c),
+    fig: { kind: "climate", key: `c:${id}`, c },
+  };
 };
 const pctOf = (id: string, dp = 1) => `${lastOf(id)[1].toFixed(dp)}%`;
 
@@ -752,7 +838,9 @@ const PILLARS: Pillar[] = [
       worldTile("urban", "Live in cities"),
       worldTile("literacy", "Adults who can read"),
       worldTile("lifeExpectancy", "Life expectancy"),
+      worldTile("childMortality", "Deaths before age 5"),
       worldTile("undernourished", "Undernourished"),
+      worldTile("water", "Safe drinking water"),
     ],
     groups: [
       {
@@ -788,8 +876,10 @@ const PILLARS: Pillar[] = [
     summary: () =>
       `The world produced ${usd("gdp")} in ${lastOf("gdp")[0]}, growing ${pctOf("gdpGrowth", 2)} after inflation, while prices rose ${pctOf("inflation", 2)} and ${pctOf("unemployment", 2)} of the labour force was out of work. Governments owe ${pctOf("govDebt")} of world GDP, and ${pctOf("extremePoverty")} of people live on less than $3 a day (${lastOf("extremePoverty")[0]}).`,
     tiles: () => [
+      worldTile("gdp", "World GDP"),
       worldTile("gdpGrowth", "Real growth"),
       worldTile("inflation", "Inflation"),
+      worldTile("unemployment", "Unemployment"),
       worldTile("govDebt", "Government debt"),
       worldTile("extremePoverty", "Extreme poverty"),
     ],
@@ -826,6 +916,8 @@ const PILLARS: Pillar[] = [
       worldTile("hdi", "Human development"),
       worldTile("gdpPerCapitaPpp", "Output per person"),
       worldTile("agEmployment", "Working in farming"),
+      worldTile("wageWorkers", "Wage and salary work"),
+      worldTile("manufacturingVA", "Manufacturing share"),
       worldTile("cleanCooking", "Clean cooking"),
     ],
     groups: [
@@ -863,8 +955,10 @@ const PILLARS: Pillar[] = [
       `${pctOf("internet")} of people use the internet, and there are ${lastOf("broadband")[1]} fixed broadband connections for every 100 people (${lastOf("broadband")[0]}). The world puts ${pctOf("research", 2)} of its output into research and development (${lastOf("research")[0]}), and ${compact(lastOf("sciArticles")[1])} scientific articles were published in ${lastOf("sciArticles")[0]}.`,
     tiles: () => [
       worldTile("internet", "Use the internet"),
+      worldTile("mobile", "Mobile subscriptions"),
       worldTile("broadband", "Fixed broadband"),
       worldTile("research", "Research spending"),
+      worldTile("researchers", "Researchers"),
       worldTile("sciArticles", "Scientific articles"),
     ],
     groups: [
@@ -901,8 +995,10 @@ const PILLARS: Pillar[] = [
       return [
         worldTile("democracyShare", "Live in a democracy"),
         { label: "Live in a Free country", value: `${f.freeShare.toFixed(1)}%`, sub: `Freedom House · ${f.year}`, d: null },
+        { label: "Live in a Not Free country", value: `${f.notFreeShare.toFixed(1)}%`, sub: `Freedom House · ${f.year}`, d: null },
         worldTile("electoralDemocracy", "Electoral democracy"),
         worldTile("womenParliament", "Women in parliament"),
+        worldTile("womenEmpowerment", "Women's empowerment"),
       ];
     },
     groups: [
@@ -937,7 +1033,9 @@ const PILLARS: Pillar[] = [
       worldTile("civilLiberties", "Civil liberties"),
       worldTile("physicalIntegrity", "Free from torture"),
       worldTile("equalityBeforeLaw", "Equality before law"),
+      worldTile("womenCivilLiberties", "Women's liberties"),
       worldTile("freeExpression", "Free expression"),
+      worldTile("freeAssociation", "Free association"),
     ],
     groups: [
       {
@@ -972,6 +1070,7 @@ const PILLARS: Pillar[] = [
       worldTile("judicialConstraints", "Courts' check"),
       worldTile("legislativeConstraints", "Legislature's check"),
       worldTile("taxRevenue", "Tax revenue"),
+      worldTile("govRevenue", "Government revenue"),
     ],
     groups: [
       {
@@ -1004,6 +1103,8 @@ const PILLARS: Pillar[] = [
       worldTile("christians", "Christians"),
       worldTile("muslims", "Muslims"),
       worldTile("unaffiliated", "No religion"),
+      worldTile("hindus", "Hindus"),
+      worldTile("academicFreedom", "Academic freedom"),
       worldTile("polarization", "Polarization"),
     ],
     groups: [
@@ -1036,9 +1137,11 @@ const PILLARS: Pillar[] = [
       const [dy, dv] = ds.series[ds.series.length - 1];
       return [
         worldTile("conflicts", "Armed conflicts"),
-        { label: "Forcibly displaced", value: `${dv.toFixed(2)}%`, sub: `of all people · ${dy}`, d: delta(ds) },
+        worldTile("conflictDeaths", "Conflict deaths"),
+        { label: "Forcibly displaced", value: `${dv.toFixed(2)}%`, sub: `of all people · ${dy}`, d: delta(ds), fig: { kind: "world", key: "w:displacedShare", ind: ds } },
         worldTile("militaryGdp", "Military spending"),
         worldTile("nuclearWarheads", "Nuclear warheads"),
+        worldTile("homicide", "Homicide rate"),
       ];
     },
     groups: [
@@ -1079,8 +1182,10 @@ const PILLARS: Pillar[] = [
       [
         climateTile("warming", "Warming"),
         climateTile("co2", "Carbon dioxide"),
+        worldTile("ghg", "Greenhouse gases"),
         worldTile("renewables", "Renewable energy"),
         worldTile("forest", "Forest cover"),
+        climateTile("sea-ice", "Arctic sea ice"),
       ].filter((t): t is Tile => t !== null),
     groups: [
       {
@@ -1156,9 +1261,72 @@ function DirectionBar({ p }: { p: Pillar }) {
   );
 }
 
+/**
+ * The measures that improved and worsened over about ten years, by name,
+ * where the direction is not a matter of opinion; each opens its figure.
+ * With `max`, each list shows that many and a "+N more" that opens the rest.
+ */
+function ChangeLists({ figures, onPick, max, onMore }: { figures: Figure[]; onPick: (f: Figure) => void; max?: number; onMore?: () => void }) {
+  const judged = figures.map((f) => ({ f, v: deltaOf(f)?.verdict ?? null }));
+  const rows = [
+    { key: "better", title: "Improved", Icon: ArrowUpRight, tone: BETTER, list: judged.filter((x) => x.v === "better").map((x) => x.f) },
+    { key: "worse", title: "Worsened", Icon: ArrowDownRight, tone: WORSE, list: judged.filter((x) => x.v === "worse").map((x) => x.f) },
+  ].filter((r) => r.list.length);
+  if (!rows.length) return null;
+  return (
+    <div className="space-y-2.5">
+      {rows.map((r) => {
+        const shown = max ? r.list.slice(0, max) : r.list;
+        const rest = r.list.length - shown.length;
+        return (
+          <div key={r.key}>
+            <p className={`flex items-center gap-1 text-[9px] font-mono uppercase tracking-widest mb-1.5 ${r.tone}`}>
+              <r.Icon size={10} weight="bold" aria-hidden />
+              {r.title} over about ten years · {r.list.length}
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {shown.map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => onPick(f)}
+                  aria-haspopup="dialog"
+                  title={deltaOf(f)?.text}
+                  className="text-[10px] font-sans px-2 py-0.5 rounded-full border border-border text-foreground/85 hover:text-foreground hover:bg-muted/60 cursor-pointer transition-colors"
+                >
+                  {labelOf(f)}
+                </button>
+              ))}
+              {rest > 0 && onMore && (
+                <button
+                  type="button"
+                  onClick={onMore}
+                  aria-haspopup="dialog"
+                  className="text-[10px] font-sans px-2 py-0.5 rounded-full border border-dashed border-border text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+                >
+                  +{rest} more
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * A pillar at a glance: what it covers, six of its figures as tiles (each
+ * opening its window), what the figures say together, which measures got
+ * better or worse, and where the figures come from. "Open" shows every
+ * figure of the pillar in a window; the link below goes to its section.
+ */
 function PillarCard({ p }: { p: Pillar }) {
   const { card, head, muted } = useLook();
+  const open = useContext(OpenWorldview);
   const tiles = p.tiles();
+  const figures = p.groups.flatMap(groupFigures);
+  const sources = [...publishers(figures), ...(p.groups.some((g) => g.freedom) ? ["Freedom House"] : [])];
   return (
     <div className="rounded-2xl p-5 flex flex-col gap-4" style={{ ...card, boxShadow: `inset 3px 0 0 0 ${p.color}, ${card.boxShadow}` }}>
       <div className="flex items-start gap-3">
@@ -1168,7 +1336,7 @@ function PillarCard({ p }: { p: Pillar }) {
         >
           {p.icon}
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h3 className="text-base font-bold font-sans" style={{ color: head }}>
             {p.title}
           </h3>
@@ -1176,90 +1344,131 @@ function PillarCard({ p }: { p: Pillar }) {
             {p.kicker}
           </p>
         </div>
+        <span className="shrink-0 text-[10px] font-mono px-2 py-0.5 rounded-full" style={{ background: p.color + "18", color: p.color }}>
+          {figures.length} figures · {latestSpan(figures)}
+        </span>
       </div>
+      <p className="text-[11px] font-sans leading-relaxed -mt-1" style={{ color: muted }}>
+        {p.description}
+      </p>
       <div className="grid grid-cols-2 gap-2">
-        {tiles.map((t) => (
-          <div key={t.label} className="rounded-xl modal-tile px-3 py-2.5">
-            <p className="text-[10px] font-sans uppercase tracking-wider" style={{ color: muted }}>
-              {t.label}
-            </p>
-            <p className="text-xl font-bold font-mono leading-tight" style={{ color: head }}>
-              {t.value}
-            </p>
-            <p className="text-[10px] font-sans" style={{ color: muted }}>
-              {t.sub}
-            </p>
-            {t.d && <DeltaLine d={t.d} small />}
-          </div>
-        ))}
+        {tiles.map((t, i) => {
+          const wide = tiles.length % 2 === 1 && i === tiles.length - 1;
+          return t.fig ? (
+            <FigureTile key={t.label} f={t.fig} label={t.label} color={p.color} wide={wide} onClick={() => open(p, t.fig)} />
+          ) : (
+            <div key={t.label} className={`rounded-xl modal-tile px-3 py-2.5 flex flex-col gap-0.5 ${wide ? "col-span-2" : ""}`}>
+              <p className="text-[10px] font-sans uppercase tracking-wider leading-snug" style={{ color: muted }}>
+                {t.label}
+              </p>
+              <p className="text-lg sm:text-xl font-bold font-mono leading-tight" style={{ color: head }}>
+                {t.value}
+              </p>
+              <p className="text-[10px] font-mono leading-snug" style={{ color: muted }}>
+                {t.sub}
+              </p>
+              {t.d && <DeltaLine d={t.d} small />}
+            </div>
+          );
+        })}
       </div>
       <p className="text-xs font-sans leading-relaxed text-foreground/85">{p.summary()}</p>
       <DirectionBar p={p} />
-      <button
-        type="button"
-        onClick={() => document.getElementById(p.id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
-        className="mt-auto self-start inline-flex items-center gap-1 text-[11px] font-semibold font-sans hover:opacity-75 cursor-pointer"
-        style={{ color: p.color }}
-      >
-        All {p.title.toLowerCase()} figures <ArrowRight size={11} weight="bold" />
-      </button>
+      <ChangeLists figures={figures} onPick={(f) => open(p, f)} max={4} onMore={() => open(p)} />
+      <p className="text-[10px] font-sans leading-snug" style={{ color: muted }}>
+        Sources: {sources.join(" · ")}.
+      </p>
+      <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2">
+        <button
+          type="button"
+          onClick={() => open(p)}
+          aria-haspopup="dialog"
+          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold font-sans cursor-pointer transition-opacity hover:opacity-80"
+          style={{ background: p.color + "1f", color: p.color, border: `1px solid ${p.color}55` }}
+        >
+          <ArrowsOut size={12} weight="bold" /> Open {p.title.toLowerCase()}
+        </button>
+        <button
+          type="button"
+          onClick={() => document.getElementById(p.id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          className="inline-flex items-center gap-1 text-[11px] font-semibold font-sans hover:opacity-75 cursor-pointer"
+          style={{ color: p.color }}
+        >
+          Its section <ArrowDown size={11} weight="bold" />
+        </button>
+      </div>
     </div>
   );
 }
 
 // ── One figure, as a tile ───────────────────────────────────────────────────
 
-/** A figure in a group: a world series, or a climate reading. */
-type Figure = { kind: "world"; key: string; ind: WorldIndicator; extra?: string } | { kind: "climate"; key: string; c: ClimateIndicator };
-
-const labelOf = (f: Figure) => (f.kind === "world" ? f.ind.label : f.c.label);
-const aboutOf = (f: Figure): string | undefined => (f.kind === "world" ? DESCRIBE[f.ind.id] : DESCRIBE_CLIMATE[f.c.id]);
-const sourceOf = (f: Figure) => (f.kind === "world" ? f.ind.source : { label: f.c.source, url: f.c.url });
-/** The year a figure is for: its series' last, or the year in a reading's period ("August 2026"). */
-const yearOf = (f: Figure) => (f.kind === "world" ? f.ind.series[f.ind.series.length - 1][0] : Number(/\d{4}/.exec(f.c.period)?.[0] ?? NaN));
+/** A figure's latest value, as its tile shows it. */
+function valueOf(f: Figure): string {
+  if (f.kind === "world") return fmt(f.ind, f.ind.series[f.ind.series.length - 1][1]);
+  return `${f.c.id === "warming" && f.c.value > 0 ? "+" : ""}${f.c.value}`;
+}
+/** Its unit and year, and anything the group adds ("$2.65 trillion in 2024"). */
+function subOf(f: Figure): string {
+  if (f.kind === "world") return `${unitOf(f.ind)} · ${f.ind.series[f.ind.series.length - 1][0]}${f.extra ? ` · ${f.extra}` : ""}`;
+  return `${f.c.unit} · ${f.c.period}`;
+}
 
 /**
  * A figure as a tile, as the pillar cards and the site's other pages show
  * figures: what it is, its value, its unit and year, its direction over
- * about ten years and its trend. Picking it opens its detail under its row.
+ * about ten years and its trend. In a group card (with `detailId`) picking
+ * it opens its detail under its row; anywhere else it opens its window.
  */
-function FigureTile({ f, open, onToggle, color, detailId }: { f: Figure; open: boolean; onToggle: () => void; color: string; detailId: string }) {
+function FigureTile({
+  f,
+  onClick,
+  color,
+  label,
+  open = false,
+  detailId,
+  wide = false,
+}: {
+  f: Figure;
+  onClick: () => void;
+  color: string;
+  /** A shorter name, where the tile is narrow. */
+  label?: string;
+  open?: boolean;
+  detailId?: string;
+  /** Across both columns: the last of an odd number. */
+  wide?: boolean;
+}) {
   const { head, muted } = useLook();
-  let value: string;
-  let sub: string;
-  let d: Delta | null;
-  if (f.kind === "world") {
-    const [y, v] = f.ind.series[f.ind.series.length - 1];
-    value = fmt(f.ind, v);
-    sub = `${unitOf(f.ind)} · ${y}${f.extra ? ` · ${f.extra}` : ""}`;
-    d = delta(f.ind);
-  } else {
-    value = `${f.c.id === "warming" && f.c.value > 0 ? "+" : ""}${f.c.value}`;
-    sub = `${f.c.unit} · ${f.c.period}`;
-    d = climateDelta(f.c);
-  }
+  const inPlace = detailId !== undefined;
+  const d = deltaOf(f);
   return (
     <button
       type="button"
-      onClick={onToggle}
-      aria-expanded={open}
-      aria-controls={open ? detailId : undefined}
+      onClick={onClick}
+      aria-expanded={inPlace ? open : undefined}
+      aria-controls={inPlace && open ? detailId : undefined}
+      aria-haspopup={inPlace ? undefined : "dialog"}
       title={aboutOf(f)}
-      className={`h-full w-full rounded-xl px-3 py-2.5 flex flex-col gap-0.5 text-left cursor-pointer transition-colors ${open ? "" : "modal-tile"}`}
+      className={`h-full w-full rounded-xl px-3 py-2.5 flex flex-col gap-0.5 text-left cursor-pointer transition-colors ${open ? "" : "modal-tile"} ${wide ? "col-span-2" : ""}`}
       // Picked: the pillar's colour in place of the glass, as the Climate page marks its picked boundary.
       style={open ? { background: color + "14", border: `1px solid ${color}90` } : undefined}
     >
       <span className="flex items-start justify-between gap-2">
         <span className="text-[10px] font-sans uppercase tracking-wider leading-snug" style={{ color: muted }}>
-          {labelOf(f)}
+          {label ?? labelOf(f)}
         </span>
-        <CaretDown size={10} weight="bold" className={`shrink-0 mt-0.5 transition-transform ${open ? "rotate-180" : ""}`} style={{ color: muted }} aria-hidden />
+        {inPlace ? (
+          <CaretDown size={10} weight="bold" className={`shrink-0 mt-0.5 transition-transform ${open ? "rotate-180" : ""}`} style={{ color: muted }} aria-hidden />
+        ) : (
+          <ArrowsOut size={10} weight="bold" className="shrink-0 mt-0.5" style={{ color: muted }} aria-hidden />
+        )}
       </span>
       <span className="text-lg sm:text-xl font-bold font-mono leading-tight" style={{ color: head }}>
-        {value}
+        {valueOf(f)}
       </span>
       <span className="text-[10px] font-mono leading-snug" style={{ color: muted }}>
-        {sub}
+        {subOf(f)}
       </span>
       {d && <DeltaLine d={d} small />}
       {f.kind === "world" && f.ind.series.length > 2 && (
@@ -1272,7 +1481,7 @@ function FigureTile({ f, open, onToggle, color, detailId }: { f: Figure; open: b
 }
 
 /** What a picked figure opens to: what it measures, its full trend, its parts, its note, its data by year and its source. */
-function FigureDetail({ f, id, color, onClose }: { f: Figure; id: string; color: string; onClose: () => void }) {
+function FigureDetail({ f, id, color, onClose, onExpand }: { f: Figure; id: string; color: string; onClose: () => void; onExpand: () => void }) {
   const { head } = useLook();
   const about = aboutOf(f);
   return (
@@ -1284,14 +1493,26 @@ function FigureDetail({ f, id, color, onClose }: { f: Figure; id: string; color:
           </p>
           {about && <p className="mt-0.5 text-[11px] font-sans text-foreground/85 leading-snug">{about}</p>}
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={`Close ${labelOf(f)}`}
-          className="shrink-0 p-1 -m-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
-        >
-          <X size={12} weight="bold" />
-        </button>
+        <div className="shrink-0 flex items-center gap-1 -m-1">
+          <button
+            type="button"
+            onClick={onExpand}
+            aria-haspopup="dialog"
+            aria-label={`Open ${labelOf(f)} in a larger window`}
+            title="Open in a larger window"
+            className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
+          >
+            <ArrowsOut size={12} weight="bold" />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={`Close ${labelOf(f)}`}
+            className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
+          >
+            <X size={12} weight="bold" />
+          </button>
+        </div>
       </div>
       {f.kind === "world" ? (
         <>
@@ -1312,6 +1533,291 @@ function FigureDetail({ f, id, color, onClose }: { f: Figure; id: string; color:
       <div className="flex flex-wrap items-start justify-between gap-2">
         <SourceLink source={sourceOf(f)} />
         {f.kind === "world" && <YearTable ind={f.ind} />}
+      </div>
+    </div>
+  );
+}
+
+// ── The pop-up window ───────────────────────────────────────────────────────
+
+/** What the window shows: a pillar's figures, or one figure of it. */
+type ModalState = { pillar: Pillar; figure: Figure | null };
+/** Opens the window at a pillar, or at one of its figures. */
+const OpenWorldview = createContext<(pillar: Pillar, figure?: Figure) => void>(() => {});
+
+function SectionLabel({ children }: { children: ReactNode }) {
+  return <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mt-6 mb-2">{children}</p>;
+}
+
+/**
+ * A figure's key facts, worked out from its own series: the latest, ten
+ * years before, the change, the highest and lowest, and the years covered.
+ */
+function factsOf(f: Figure): { label: string; value: string; sub?: string }[] {
+  const d = deltaOf(f);
+  const change = d ? [{ label: f.kind === "world" && f.ind.stated ? "Change, in the source's words" : "Change", value: d.text, sub: d.verdict ?? undefined }] : [];
+  if (f.kind === "climate") {
+    const c = f.c;
+    return [
+      { label: "Latest", value: `${valueOf(f)} ${c.unit}`, sub: c.period },
+      ...(c.decadeAgo !== null ? [{ label: "Ten years before", value: `${c.decadeAgo} ${c.unit}` }] : []),
+      ...change,
+    ];
+  }
+  const ind = f.ind;
+  const s = ind.series;
+  const [ly, lv] = s[s.length - 1];
+  const prev = ind.stated ? null : decadeBefore(s);
+  const out: { label: string; value: string; sub?: string }[] = [{ label: "Latest", value: fmt(ind, lv), sub: `${unitOf(ind)} · ${ly}` }];
+  if (prev) out.push({ label: "Ten years before", value: fmt(ind, prev[1]), sub: `${prev[0]}` });
+  out.push(...change);
+  if (s.length > 2) {
+    const hi = s.reduce((a, b) => (b[1] > a[1] ? b : a));
+    const lo = s.reduce((a, b) => (b[1] < a[1] ? b : a));
+    out.push({ label: "Highest", value: fmt(ind, hi[1]), sub: `${hi[0]}` }, { label: "Lowest", value: fmt(ind, lo[1]), sub: `${lo[0]}` });
+  }
+  if (s.length > 1) out.push({ label: "Years covered", value: `${s[0][0]}–${ly}`, sub: `${s.length} data points` });
+  return out;
+}
+
+/** One figure in full: what it measures, its key facts, its trend, its parts, its note, every year, and its source. */
+function FigureView({ f }: { f: Figure }) {
+  const about = aboutOf(f);
+  const note = f.kind === "world" ? f.ind.note : f.c.note;
+  return (
+    <>
+      {about && <p className="text-[13px] font-sans leading-relaxed text-muted-foreground mt-5">{about}</p>}
+      <SectionLabel>At a glance</SectionLabel>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {factsOf(f).map((x) => (
+          <div key={x.label} className="modal-tile rounded-xl p-3">
+            <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1">{x.label}</p>
+            <p className="text-sm font-bold font-mono text-foreground leading-tight">{x.value}</p>
+            {x.sub && <p className="text-[10px] font-sans text-muted-foreground mt-0.5">{x.sub}</p>}
+          </div>
+        ))}
+      </div>
+      {f.kind === "world" && f.ind.series.length > 2 && (
+        <>
+          <SectionLabel>The trend</SectionLabel>
+          <div className="modal-tile rounded-xl p-3">
+            <Sparkline ind={f.ind} tall />
+          </div>
+        </>
+      )}
+      {f.kind === "world" && !!f.ind.breakdown?.length && (
+        <div className="modal-tile rounded-xl p-3 mt-6">
+          <Breakdown ind={f.ind} />
+        </div>
+      )}
+      {note && (
+        <>
+          <SectionLabel>About the figure</SectionLabel>
+          <p className="modal-tile rounded-xl p-3 text-[11px] font-sans leading-relaxed text-muted-foreground">{note}</p>
+        </>
+      )}
+      {f.kind === "world" && f.ind.series.length > 1 && (
+        <>
+          <SectionLabel>Every year</SectionLabel>
+          <div className="modal-tile rounded-xl p-3">
+            <YearGrid ind={f.ind} />
+          </div>
+        </>
+      )}
+      <SectionLabel>Source</SectionLabel>
+      <SourceLink source={sourceOf(f)} />
+    </>
+  );
+}
+
+/** A pillar in full: what it covers and what its figures say, then every figure by group, and every figure's source. */
+function PillarView({ p, onPick }: { p: Pillar; onPick: (f: Figure) => void }) {
+  const all = p.groups.flatMap(groupFigures);
+  return (
+    <>
+      <p className="text-[13px] font-sans leading-relaxed text-muted-foreground mt-5">{p.description}</p>
+      <div className="modal-tile rounded-xl p-3 mt-4 space-y-3">
+        <p className="text-xs font-sans leading-relaxed text-foreground/90">{p.summary()}</p>
+        <DirectionBar p={p} />
+        <ChangeLists figures={all} onPick={onPick} />
+      </div>
+      {p.groups.map((g) => {
+        const figs = groupFigures(g);
+        return (
+          <div key={g.title}>
+            <SectionLabel>
+              {g.title} · {figs.length} figure{figs.length === 1 ? "" : "s"} · latest {latestSpan(figs)}
+            </SectionLabel>
+            <p className="text-[11px] font-sans text-muted-foreground -mt-1 mb-2 leading-relaxed">{g.intro}</p>
+            {g.freedom && <FreedomBars />}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {figs.map((f) => (
+                <FigureTile key={f.key} f={f} color={p.color} onClick={() => onPick(f)} />
+              ))}
+            </div>
+          </div>
+        );
+      })}
+      <SectionLabel>Every figure's source</SectionLabel>
+      <ul className="space-y-1">
+        {all.map((f) => (
+          <li key={f.key} className="text-[10px] font-sans text-muted-foreground leading-snug">
+            <span className="text-foreground/85">{labelOf(f)}</span> · <SourceLink source={sourceOf(f)} />
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+/**
+ * The window: a pillar with every figure, or one figure with its detail,
+ * moving between them - back to the pillar, and to the figure before or
+ * after. The same shape as the site's other windows (scrim, glass panel,
+ * a header washed in the pillar's colour, expand and close); Escape closes
+ * it, the page behind stays put, and focus returns to what opened it.
+ */
+function WorldviewModal({ state, onChange, onClose }: { state: ModalState; onChange: (s: ModalState) => void; onClose: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const closeRef = useRef<HTMLButtonElement | null>(null);
+  const { pillar: p, figure: f } = state;
+
+  useEffect(() => {
+    const back = document.activeElement as HTMLElement | null;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflow;
+      back?.focus?.();
+    };
+  }, [onClose]);
+  // Each view opens at its top.
+  useEffect(() => {
+    panelRef.current?.scrollTo({ top: 0 });
+  }, [p.id, f?.key]);
+
+  const entries = p.groups.flatMap((g) => groupFigures(g).map((fig) => ({ fig, group: g })));
+  const all = entries.map((e) => e.fig);
+  const at = f ? entries.findIndex((e) => e.fig.key === f.key) : -1;
+  const group = at >= 0 ? entries[at].group : null;
+  const prev = at > 0 ? entries[at - 1].fig : null;
+  const next = at >= 0 && at < entries.length - 1 ? entries[at + 1].fig : null;
+  const d = f ? deltaOf(f) : null;
+  const go = (figure: Figure | null) => onChange({ pillar: p, figure });
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={f ? `${labelOf(f)} - ${p.title}` : `${p.title}: every figure`}
+    >
+      <div
+        ref={panelRef}
+        className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${expanded ? "max-w-full max-h-full m-0" : "max-w-3xl max-h-[90vh]"}`}
+      >
+        <div className="p-6">
+          <div className="relative flex items-start justify-between gap-3 -mx-6 -mt-6 px-6 pt-6 pb-5 rounded-t-2xl overflow-hidden">
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: `linear-gradient(90deg, ${p.color}33, ${p.color}14, ${p.color}26)` }}
+            />
+            <div className="relative min-w-0">
+              {f ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => go(null)}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold font-sans hover:opacity-75 cursor-pointer"
+                    style={{ color: p.color }}
+                  >
+                    <ArrowLeft size={11} weight="bold" /> {p.title}
+                    {group ? ` · ${group.title}` : ""}
+                  </button>
+                  <h2 className="text-xl font-bold font-sans text-foreground leading-tight mt-1">{labelOf(f)}</h2>
+                  <div className="flex items-baseline gap-2 mt-1 flex-wrap">
+                    <span className="text-lg font-bold font-mono text-foreground">{valueOf(f)}</span>
+                    <span className="text-xs font-mono text-muted-foreground">{subOf(f)}</span>
+                  </div>
+                  {d && (
+                    <div className="mt-1">
+                      <DeltaLine d={d} />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <span style={{ color: p.color }}>{p.icon}</span>
+                    <h2 className="text-xl font-bold font-sans text-foreground leading-tight">{p.title}</h2>
+                  </div>
+                  <p className="text-xs font-sans text-muted-foreground mt-1">
+                    {p.kicker} · {all.length} figures · latest {latestSpan(all)}
+                  </p>
+                </>
+              )}
+            </div>
+            <div className="relative flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => setExpanded((v) => !v)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                aria-label={expanded ? "Collapse the window" : "Expand the window to full screen"}
+                title={expanded ? "Collapse" : "Expand to full screen"}
+              >
+                {expanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+              </button>
+              <button
+                ref={closeRef}
+                type="button"
+                onClick={onClose}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          {f ? <FigureView f={f} /> : <PillarView p={p} onPick={go} />}
+
+          {f && (prev || next) && (
+            <div className="mt-6 pt-3 border-t border-border/40 flex items-start justify-between gap-3">
+              {prev ? (
+                <button
+                  type="button"
+                  onClick={() => go(prev)}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold font-sans text-muted-foreground hover:text-foreground cursor-pointer text-left"
+                >
+                  <CaretLeft size={12} weight="bold" className="shrink-0" /> {labelOf(prev)}
+                </button>
+              ) : (
+                <span />
+              )}
+              {next ? (
+                <button
+                  type="button"
+                  onClick={() => go(next)}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold font-sans text-muted-foreground hover:text-foreground cursor-pointer text-right"
+                >
+                  {labelOf(next)} <CaretRight size={12} weight="bold" className="shrink-0" />
+                </button>
+              ) : (
+                <span />
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1718,19 +2224,14 @@ function BlocShares() {
  * how many and how recent, the title and what the group covers, the figures
  * as tiles two to a row, and the sources at the foot.
  */
-function GroupCard({ g, color }: { g: Group; color: string }) {
+function GroupCard({ g, p }: { g: Group; p: Pillar }) {
   const { head, muted } = useLook();
+  const openWindow = useContext(OpenWorldview);
   const detailId = useId();
   const [open, setOpen] = useState<string | null>(null);
-  const figures: Figure[] = [
-    ...(g.climate ?? [])
-      .map(climateOf)
-      .filter((c): c is ClimateIndicator => !!c)
-      .map((c): Figure => ({ kind: "climate", key: `c:${c.id}`, c })),
-    ...g.ids.map((id): Figure => ({ kind: "world", key: `w:${id}`, ind: WORLD[id], extra: g.extras?.[id] })),
-  ];
-  const years = figures.map(yearOf).filter((y) => Number.isFinite(y));
-  const [first, last] = [Math.min(...years), Math.max(...years)];
+  const color = p.color;
+  const figures = groupFigures(g);
+  const span = latestSpan(figures);
   const sources = [...new Set(figures.map((f) => sourceOf(f).label))];
   // The detail opens under the row of the tile picked, across both columns.
   const at = figures.findIndex((f) => f.key === open);
@@ -1739,7 +2240,7 @@ function GroupCard({ g, color }: { g: Group; color: string }) {
     <Card className="flex flex-col">
       <p className="text-[10px] font-mono uppercase tracking-widest mb-0.5" style={{ color }}>
         {figures.length} figure{figures.length === 1 ? "" : "s"}
-        {years.length > 0 && ` · latest ${first === last ? first : `${first}–${last}`}`}
+        {span && ` · latest ${span}`}
       </p>
       <h3 className="text-sm font-bold font-sans" style={{ color: head }}>
         {g.title}
@@ -1749,8 +2250,16 @@ function GroupCard({ g, color }: { g: Group; color: string }) {
       <div className="grid grid-cols-2 gap-2">
         {figures.map((f, i) => (
           <Fragment key={f.key}>
-            <FigureTile f={f} open={open === f.key} onToggle={() => setOpen((o) => (o === f.key ? null : f.key))} color={color} detailId={detailId} />
-            {i === after && <FigureDetail f={figures[at]} id={detailId} color={color} onClose={() => setOpen(null)} />}
+            <FigureTile f={f} open={open === f.key} onClick={() => setOpen((o) => (o === f.key ? null : f.key))} color={color} detailId={detailId} />
+            {i === after && (
+              <FigureDetail
+                f={figures[at]}
+                id={detailId}
+                color={color}
+                onClose={() => setOpen(null)}
+                onExpand={() => openWindow(p, figures[at])}
+              />
+            )}
           </Fragment>
         ))}
       </div>
@@ -1789,7 +2298,7 @@ function PillarSection({ p, lead }: { p: Pillar; lead?: ReactNode }) {
       {lead}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         {p.groups.map((g) => (
-          <GroupCard key={g.title} g={g} color={p.color} />
+          <GroupCard key={g.title} g={g} p={p} />
         ))}
       </div>
     </section>
@@ -2035,7 +2544,11 @@ export function WorldviewPage() {
   const { head } = useLook();
   // The panels that open a pillar's section, where it has one.
   const lead: Partial<Record<Pillar["id"], ReactNode>> = { society: <OutOf100 />, development: <DevelopmentPanel />, politics: <BlocShares /> };
+  const [modal, setModal] = useState<ModalState | null>(null);
+  const openWindow = useCallback((pillar: Pillar, figure?: Figure) => setModal({ pillar, figure: figure ?? null }), []);
+  const closeWindow = useCallback(() => setModal(null), []);
   return (
+    <OpenWorldview.Provider value={openWindow}>
     <div className="min-h-screen w-full animate-fade-in" style={{ background: "var(--color-background)" }}>
       <div className="w-full px-4 sm:px-5 py-4 flex flex-col gap-4">
         <Hero />
@@ -2083,10 +2596,12 @@ export function WorldviewPage() {
           from it on {PEW_CHECKED}; rankings and the developed / developing split use the figures on each country's page. Arrows compare with
           about ten years earlier - for religion, with 2010, in Pew's own words; "better" and "worse" - and the counts of them - are only given
           where the direction is not a matter of opinion. The share of people displaced is UNHCR's count over the World Bank's population for
-          the same year, and the share in Free countries sums the site's population figures by Freedom House status. Open any figure for its
-          trend, its full series and its source.
+          the same year, and the shares in Free and Not Free countries sum the site's population figures by Freedom House status. Open any
+          figure for its trend, its full series and its source.
         </p>
       </div>
     </div>
+    {modal && <WorldviewModal state={modal} onChange={setModal} onClose={closeWindow} />}
+    </OpenWorldview.Provider>
   );
 }
