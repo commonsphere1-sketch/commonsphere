@@ -819,6 +819,14 @@ function CasedLine({
   );
 }
 
+/** What a key does to a map: + and - on the main row or the number pad, and 0 to reset. */
+function zoomKeyOf(e: { key: string; code: string }): "in" | "out" | "reset" | null {
+  if (e.key === "+" || e.key === "=" || e.code === "NumpadAdd") return "in";
+  if (e.key === "-" || e.key === "_" || e.code === "NumpadSubtract") return "out";
+  if (e.key === "0" || e.code === "Numpad0") return "reset";
+  return null;
+}
+
 /**
  * Zoom and pan for one map canvas.
  *
@@ -978,30 +986,49 @@ function useMapZoom(
     return () => el.removeEventListener("wheel", onWheel);
   }, [onWheel]);
 
-  /* Keyboard, for anyone not using a mouse. +/- zoom about the middle, the
-     arrows pan by a fifth of the viewport, 0 resets. The map is focusable, so
-     these only fire once the reader has tabbed to it - they cannot steal the
-     arrow keys from the page. */
+  /** Where the pointer is while it is over the map, so a key can zoom there. */
+  const pointer = useRef<{ x: number; y: number } | null>(null);
+
+  /** A zoom key: about the point under the pointer when it is over the map, as the wheel does; otherwise about the middle. */
+  const zoomFromKey = useCallback(
+    (z: "in" | "out" | "reset") => {
+      if (z === "reset") {
+        reset();
+        return;
+      }
+      const el = svgRef.current;
+      const at = pointer.current;
+      const f = el && at ? frame(el.getBoundingClientRect(), 1) : null;
+      zoomBy(
+        z === "in" ? ZOOM_STEP : 1 / ZOOM_STEP,
+        f && at ? Math.min(1, Math.max(0, (at.x - f.left) / f.drawnW)) : 0.5,
+        f && at ? Math.min(1, Math.max(0, (at.y - f.top) / f.drawnH)) : 0.5,
+      );
+    },
+    [frame, reset, zoomBy],
+  );
+
+  /* Keyboard, for anyone not using a mouse. +/- zoom, the arrows pan by a
+     fifth of the viewport, 0 resets. The map is focusable, so these only fire
+     once the reader has tabbed to it or clicked it - they cannot steal the
+     arrow keys from the page. With Ctrl or Cmd held, + and - are the
+     browser's own zoom, and are left to it. */
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<SVGSVGElement>) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
       const step = 0.2;
       const pan = (dx: number, dy: number) =>
         setView((v) => ({
           zoom: v.zoom,
           ...clamp(v.x + (dx * width) / v.zoom, v.y + (dy * height) / v.zoom, v.zoom),
         }));
+      const z = zoomKeyOf(e);
+      if (z) {
+        zoomFromKey(z);
+        e.preventDefault();
+        return;
+      }
       switch (e.key) {
-        case "+":
-        case "=":
-          zoomBy(ZOOM_STEP, 0.5, 0.5);
-          break;
-        case "-":
-        case "_":
-          zoomBy(1 / ZOOM_STEP, 0.5, 0.5);
-          break;
-        case "0":
-          reset();
-          break;
         case "ArrowLeft":
           pan(-step, 0);
           break;
@@ -1019,16 +1046,44 @@ function useMapZoom(
       }
       e.preventDefault();
     },
-    [clamp, reset, width, height, zoomBy],
+    [clamp, width, height, zoomFromKey],
   );
 
+  /* The zoom keys also reach a map the pointer is over, so + and - - on the
+     main row or the number pad - work without clicking or tabbing to it
+     first. Nothing else on the page uses them; the arrows, which scroll the
+     page, stay with the focused map, and typing in a field is left alone. A
+     focused map has already handled the key, so it is not applied twice. */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!pointer.current || e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target;
+      if (t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      const z = zoomKeyOf(e);
+      if (!z) return;
+      e.preventDefault();
+      zoomFromKey(z);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [zoomFromKey]);
+
   const panProps = {
+    onPointerEnter: (e: React.PointerEvent<SVGSVGElement>) => {
+      pointer.current = { x: e.clientX, y: e.clientY };
+    },
+    onPointerLeave: () => {
+      pointer.current = null;
+    },
     onPointerDown: (e: React.PointerEvent<SVGSVGElement>) => {
+      // A click puts the keys on this map, arrows included, in every browser.
+      e.currentTarget.focus({ preventScroll: true });
       if (zoom === 1) return;
       e.currentTarget.setPointerCapture(e.pointerId);
       drag.current = { px: e.clientX, py: e.clientY, cx: center.x, cy: center.y };
     },
     onPointerMove: (e: React.PointerEvent<SVGSVGElement>) => {
+      pointer.current = { x: e.clientX, y: e.clientY };
       const d = drag.current;
       if (!d) return;
       /* Canvas units travelled per device pixel, from the same frame helper
@@ -3846,7 +3901,7 @@ export function WorldMapsPage() {
                     label={`${focusCountry?.name ?? "country"} map`}
                   >
                     {" "}· {focusLabels.inside.length} of {focusLabels.total} names
-                    shown · scroll or +/- to zoom
+                    shown · scroll or +/- to zoom, drag or arrows to pan
                   </ZoomControls>
 
                   {/* Map and territories side by side on a wide screen, the
