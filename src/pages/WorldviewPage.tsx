@@ -55,7 +55,7 @@ import { has } from "@/lib/na";
 /**
  * Worldview: where the world stands, as a global dashboard in twelve pillars -
  * society, the economy, development, industry, energy, technology, politics,
- * civic rights and freedoms, institutions, ideology, security and the
+ * civic rights and freedoms, governance, ideology, security and the
  * planet - after an
  * overview with the population clock, the headline figures and the day's
  * world headlines.
@@ -404,6 +404,8 @@ const DESCRIBE: Record<string, string> = {
   oilProduction: "The oil the world produces - crude, condensates and natural gas liquids - measured as energy.",
   gasProduction: "The natural gas the world produces, measured as energy.",
   coalProduction: "The coal the world produces, measured as energy.",
+  womenMinisters: "Women's share of ministerial posts in the world's governments.",
+  interestPayments: "The interest governments pay on their debts, as a share of all they take in.",
 };
 
 const DESCRIBE_CLIMATE: Record<string, string> = {
@@ -608,7 +610,7 @@ function Hero() {
           <p className="text-sm font-sans mt-1.5" style={{ color: muted }}>
             A dashboard of the whole world in {inWords(PILLARS.length)} pillars - how people live, what the economy is doing, how far the
             world has developed, what it makes and how it is powered, technology, how it is governed, the rights and freedoms people have,
-            its institutions, what people believe, war and peace, and the state of the planet - each figure with what it measures, its
+            how well it is governed, what people believe, war and peace, and the state of the planet - each figure with what it measures, its
             trend and its source.
           </p>
           <p className="text-sm font-sans mt-3" style={{ color: head }}>
@@ -1057,7 +1059,7 @@ function publishers(figures: Figure[]): string[] {
 type Tile = { label: string; value: string; sub: string; d: Delta | null; fig?: Figure; summary?: string };
 type Group = { title: string; intro: string; ids: string[]; climate?: string[]; extras?: Record<string, string>; freedom?: boolean };
 type Pillar = {
-  id: "society" | "economy" | "development" | "industry" | "energy" | "technology" | "politics" | "civic" | "institutions" | "ideology" | "security" | "ecology";
+  id: "society" | "economy" | "development" | "industry" | "energy" | "technology" | "politics" | "civic" | "governance" | "ideology" | "security" | "ecology";
   title: string;
   kicker: string;
   color: string;
@@ -1337,7 +1339,7 @@ const PILLARS: Pillar[] = [
   {
     id: "politics",
     title: "Politics",
-    kicker: "How the world is governed",
+    kicker: "Democracy, representation and blocs",
     color: "#8b5cf6",
     icon: <Bank size={18} weight="fill" />,
     description: "How the world is governed: how many people live in democracies, the five kinds of democracy V-Dem measures - electoral, liberal, participatory, deliberative and egalitarian - women's place in politics, and the blocs countries have joined.",
@@ -1423,32 +1425,38 @@ const PILLARS: Pillar[] = [
     ],
   },
   {
-    id: "institutions",
-    title: "Institutions",
-    kicker: "How states work and answer for power",
+    id: "governance",
+    title: "Governance",
+    kicker: "How states govern and answer for power",
     color: "#ec4899",
     icon: <Buildings size={18} weight="fill" />,
     description:
-      "Whether power answers to the law: the rule of law, and how far courts and legislatures check the executive, as V-Dem measures them across the world's people - and what states raise and spend.",
+      "How well the world is governed: whether governments obey the law and answer to courts and legislatures, as V-Dem's experts rate them across the world's people; what states raise in taxes and revenue, what they spend and what their debts cost them; and who holds the ministries.",
     summary: () =>
-      `Averaged across the world's people, V-Dem scores the rule of law at ${fmt(WORLD.ruleOfLaw, lastOf("ruleOfLaw")[1])} out of 1, the courts' check on the executive at ${fmt(WORLD.judicialConstraints, lastOf("judicialConstraints")[1])} and the legislature's at ${fmt(WORLD.legislativeConstraints, lastOf("legislativeConstraints")[1])} (${lastOf("ruleOfLaw")[0]}). Tax revenue comes to ${pctOf("taxRevenue")} of GDP (${lastOf("taxRevenue")[0]}).`,
+      `Averaged across the world's people, V-Dem scores the rule of law at ${fmt(WORLD.ruleOfLaw, lastOf("ruleOfLaw")[1])} out of 1, the courts' check on the executive at ${fmt(WORLD.judicialConstraints, lastOf("judicialConstraints")[1])} and the legislature's at ${fmt(WORLD.legislativeConstraints, lastOf("legislativeConstraints")[1])} (${lastOf("ruleOfLaw")[0]}). Governments collect ${pctOf("taxRevenue")} of GDP in tax (${lastOf("taxRevenue")[0]}) and spend ${pctOf("govExpense")} (${lastOf("govExpense")[0]}), and interest takes ${pctOf("interestPayments")} of their revenue (${lastOf("interestPayments")[0]}); women hold ${pctOf("womenMinisters")} of ministerial posts (${lastOf("womenMinisters")[0]}).`,
     tiles: () => [
       worldTile("ruleOfLaw", "Rule of law"),
       worldTile("judicialConstraints", "Courts' check"),
       worldTile("legislativeConstraints", "Legislature's check"),
       worldTile("taxRevenue", "Tax revenue"),
-      worldTile("govRevenue", "Government revenue"),
+      worldTile("interestPayments", "Interest on debt"),
+      worldTile("womenMinisters", "Women ministers"),
     ],
     groups: [
       {
-        title: "Law & checks on power",
+        title: "Rule of law & accountability",
         intro: "Whether government obeys the law and answers to courts and legislatures (V-Dem, averaged across the world's people; 1 is strongest).",
         ids: ["ruleOfLaw", "judicialConstraints", "legislativeConstraints"],
       },
       {
-        title: "What states raise & spend",
-        intro: "What governments collect and what they spend (IMF Government Finance Statistics).",
-        ids: ["taxRevenue", "govRevenue", "govExpense"],
+        title: "Public finances",
+        intro: "What governments collect and spend, and how much of their revenue their debts' interest takes (IMF Government Finance Statistics).",
+        ids: ["taxRevenue", "govRevenue", "govExpense", "interestPayments"],
+      },
+      {
+        title: "Who governs",
+        intro: "Who holds the ministries: women's share of ministerial posts (Inter-Parliamentary Union and UN Women).",
+        ids: ["womenMinisters"],
       },
     ],
   },
@@ -1740,8 +1748,12 @@ function PillarCard({ p }: { p: Pillar }) {
       <p className="text-[11px] font-sans leading-relaxed -mt-1 max-w-4xl" style={{ color: muted }}>
         {p.description}
       </p>
-      {/* The pillar runs the page's width, so its figures sit up to three to a row, each wide, its trend running across it. */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+      {/*
+        Three to a row, each with its trend running across it - by the card's own width rather than the screen's,
+        since the sidebar takes part of it: a column is at least 200px and at least 30% wide, so there are never
+        more than three, and fewer only where three would not fit; in a card narrower than 200px, one full-width column.
+      */}
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,max(200px,30%)),1fr))] gap-2">
         {tiles.map((t) => {
           return t.fig ? (
             <FigureTile key={t.label} f={t.fig} label={t.label} onClick={() => open(p, t.fig)} />
@@ -2038,7 +2050,7 @@ function PillarView({ p, onPick }: { p: Pillar; onPick: (f: Figure) => void }) {
             </SectionLabel>
             <p className="text-[11px] font-sans text-muted-foreground -mt-1 mb-2 leading-relaxed">{g.intro}</p>
             {g.freedom && <FreedomBars />}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
               {figs.map((f) => (
                 <FigureTile key={f.key} f={f} onClick={() => onPick(f)} />
               ))}

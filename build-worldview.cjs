@@ -624,6 +624,9 @@ function indicator(id, o) {
   await wb("ictServiceExports", "BX.GSR.CCIS.ZS", { label: "Digital service exports", unit: "% of service exports", format: "pct", dp: 1, upIsGood: null, note: "IMF balance of payments: computer, telecommunications and information services." });
   await wb("ictGoodsExports", "TX.VAL.ICTG.ZS.UN", { label: "Digital goods exports", unit: "% of goods exports", format: "pct", dp: 1, upIsGood: null, note: "UNCTAD: computers, communication and consumer electronics, electronic components and other information technology goods." });
   await wb("landlines", "IT.MLT.MAIN.P2", { label: "Landline subscriptions", unit: "per 100 people", format: "num", dp: 1, upIsGood: null, note: "ITU: fixed telephone lines." });
+  // Governance: who holds ministries, and what governments pay on their debts.
+  await wb("womenMinisters", "SG.GEN.MNST.ZS", { label: "Women in ministerial posts", unit: "% of ministers", format: "pct", dp: 1, upIsGood: true, note: "Inter-Parliamentary Union and UN Women: ministers and their equivalents, deputy prime ministers included; heads of government only where they hold a ministry." });
+  await wb("interestPayments", "GC.XPN.INTP.RV.ZS", { label: "Interest on government debt", unit: "% of government revenue", format: "pct", dp: 1, upIsGood: null, note: "IMF Government Finance Statistics: interest governments pay on their debts at home and abroad." });
   // Institutions and security: what governments spend, and the share on arms.
   await wb("govExpense", "GC.XPN.TOTL.GD.ZS", { label: "Government spending", unit: "% of GDP", format: "pct", dp: 1, upIsGood: null, note: "IMF Government Finance Statistics: government expense, not counting the purchase of lasting assets." });
   await wb("militaryShare", "MS.MIL.XPND.ZS", { label: "Military share of government spending", unit: "% of government spending", format: "pct", dp: 2, upIsGood: null, note: "SIPRI Military Expenditure Database." });
