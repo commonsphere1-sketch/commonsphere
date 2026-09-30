@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  MagnifyingGlass,
   MapPin,
   Timer,
   UserCircle,
@@ -36,7 +35,7 @@ import { HeadlinesBanner, placeTag, spread, type Headline, type Shown } from "@/
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
 import { Figures, COUNTER_FIGURES } from "../components/Figures";
-import { CollapsibleFilters } from "../components/CollapsibleFilters";
+import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 import { useWatchlist } from "@/contexts/WatchlistContext";
 import { FollowedPlaces } from "@/components/FollowedPlaces";
@@ -7439,75 +7438,66 @@ export function StatesPage() {
         />
 
         {/* Unified Search + Filter Bar */}
-        <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
-          {/* Row 1: Search */}
-          <div className="flex items-center gap-2">
-            <MagnifyingGlass
-              size={16}
-              className="text-muted-foreground shrink-0"
-            />
-            <input
-              type="text"
-              placeholder="Search states…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
-            />
-          </div>
-          {/* Row 2: Pills + Sort */}
-          <CollapsibleFilters id="states">
-            {regions.map((r) => (
+        <FilterBar
+          label="State filters"
+          className="mb-5"
+          search={{
+            value: search,
+            onChange: setSearch,
+            placeholder: "Search states…",
+          }}
+        >
+          {regions.map((r) => (
+            <button
+              key={r}
+              onClick={() => setRegionFilter(r)}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
+                regionFilter === r
+                  ? "chip-selected"
+                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
+            >
+              {r}
+            </button>
+          ))}
+          <div className="w-px h-5 bg-border shrink-0" />
+          {parties.map((p) => {
+            const isActive = partyFilter === p;
+            const activeStyle =
+              p === "Democrat"
+                ? "chip-selected"
+                : p === "Republican"
+                  ? "bg-red-500/15 text-red-400 border-red-500/40"
+                  : p === "Independent"
+                    ? "bg-yellow-500/15 text-yellow-400 border-yellow-500/40"
+                    : "chip-selected";
+            return (
               <button
-                key={r}
-                onClick={() => setRegionFilter(r)}
+                key={p}
+                onClick={() => setPartyFilter(p)}
                 className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
-                  regionFilter === r
-                    ? "chip-selected"
+                  isActive
+                    ? activeStyle
                     : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 }`}
               >
-                {r}
+                {p}
               </button>
-            ))}
-            <div className="w-px h-5 bg-border shrink-0" />
-            {parties.map((p) => {
-              const isActive = partyFilter === p;
-              const activeStyle =
-                p === "Democrat"
-                  ? "chip-selected"
-                  : p === "Republican"
-                    ? "bg-red-500/15 text-red-400 border-red-500/40"
-                    : p === "Independent"
-                      ? "bg-yellow-500/15 text-yellow-400 border-yellow-500/40"
-                      : "chip-selected";
-              return (
-                <button
-                  key={p}
-                  onClick={() => setPartyFilter(p)}
-                  className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
-                    isActive
-                      ? activeStyle
-                      : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                  }`}
-                >
-                  {p}
-                </button>
-              );
-            })}
-            <div className="w-px h-5 bg-border shrink-0" />
-            <select
-              aria-label="Sort results"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
-            >
-              <option value="gdp">Sort: GDP</option>
-              <option value="population">Sort: Population</option>
-              <option value="medianIncome">Sort: Median Income</option>
-              <option value="unemploymentRate">Sort: Unemployment</option>
-            </select>
-          </CollapsibleFilters>
-        </div>
+            );
+          })}
+          <div className="w-px h-5 bg-border shrink-0" />
+          <select
+            aria-label="Sort results"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
+          >
+            <option value="gdp">Sort: GDP</option>
+            <option value="population">Sort: Population</option>
+            <option value="medianIncome">Sort: Median Income</option>
+            <option value="unemploymentRate">Sort: Unemployment</option>
+          </select>
+        </FilterBar>
 
         {/* ── US headlines: the national desks' news, kept current ── */}
         <HeadlinesBanner

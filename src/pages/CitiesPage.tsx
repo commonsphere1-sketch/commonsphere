@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  MagnifyingGlass,
   MapPin,
   ListBullets,
   MapTrifold,
@@ -29,7 +28,7 @@ import {
 import { citiesData, type City } from "../data/citiesData";
 import { getUpcoming } from "../data/upcomingToWatch";
 import { SourceLink } from "../components/SourceLink";
-import { CollapsibleFilters } from "../components/CollapsibleFilters";
+import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 
 const SRC_CITIES = [
@@ -3242,50 +3241,41 @@ export function CitiesPage() {
         </div>
 
         {/* Unified Search + Filter Bar */}
-        <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
-          {/* Row 1: Search */}
-          <div className="flex items-center gap-2">
-            <MagnifyingGlass
-              size={16}
-              className="text-muted-foreground shrink-0"
-            />
-            <input
-              type="text"
-              placeholder="Search cities or countries…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
-            />
-          </div>
-          {/* Row 2: Filters */}
-          <CollapsibleFilters id="cities">
-            {allRegions.map((r) => (
-              <button
-                key={r}
-                onClick={() => setRegionFilter(r)}
-                className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
-                  regionFilter === r
-                    ? "chip-selected"
-                    : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                }`}
-              >
-                {r}
-              </button>
-            ))}
-            <div className="w-px h-4 bg-border shrink-0" />
-            <select
-              aria-label="Sort results"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
+        <FilterBar
+          label="City filters"
+          className="mb-5"
+          search={{
+            value: search,
+            onChange: setSearch,
+            placeholder: "Search cities or countries…",
+          }}
+        >
+          {allRegions.map((r) => (
+            <button
+              key={r}
+              onClick={() => setRegionFilter(r)}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
+                regionFilter === r
+                  ? "chip-selected"
+                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
             >
-              <option value="gdpBillions">Sort: GDP</option>
-              <option value="population">Sort: Population</option>
-              <option value="safetyIndex">Sort: Safety</option>
-              <option value="costOfLivingIndex">Sort: Cost of Living</option>
-            </select>
-          </CollapsibleFilters>
-        </div>
+              {r}
+            </button>
+          ))}
+          <div className="w-px h-4 bg-border shrink-0" />
+          <select
+            aria-label="Sort results"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
+          >
+            <option value="gdpBillions">Sort: GDP</option>
+            <option value="population">Sort: Population</option>
+            <option value="safetyIndex">Sort: Safety</option>
+            <option value="costOfLivingIndex">Sort: Cost of Living</option>
+          </select>
+        </FilterBar>
 
         {/* ── Upcoming to Watch ── */}
         <div className="mb-6 bg-card border border-border rounded-2xl p-5">

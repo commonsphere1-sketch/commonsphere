@@ -10,7 +10,6 @@ import {
   Users,
   Buildings,
   Globe,
-  MagnifyingGlass,
   ArrowUp,
   ArrowDown,
   ArrowRight,
@@ -18,7 +17,7 @@ import {
   CaretRight,
 } from "@phosphor-icons/react";
 import { usStatesData } from "../data/statesData";
-import { CollapsibleFilters } from "../components/CollapsibleFilters";
+import { FilterBar } from "../components/FilterBar";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -11023,76 +11022,63 @@ export function PolicyPage() {
       </div>
 
       {/* Controls — unified filter bar (EconomiesPage style) */}
-      <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 w-full">
-        {/* Row 1: Search */}
-        <div className="flex items-center gap-2">
-          <MagnifyingGlass
-            size={16}
-            className="text-muted-foreground shrink-0"
-          />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search countries, states, or policies…"
-            className="flex-1 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
-          />
-          <span className="text-[10px] text-muted-foreground shrink-0 hidden sm:block">
-            {groups.length.toLocaleString()} entities ·{" "}
-            {filteredPolicies.length.toLocaleString()} policies
-          </span>
-        </div>
-        {/* Row 2: Tab pills + divider + category pills */}
-        <CollapsibleFilters id="policy">
-          {/* Entity-type tabs */}
-          {TABS.map((t) => (
+      <FilterBar
+        label="Policy filters"
+        search={{
+          value: search,
+          onChange: handleSearch,
+          placeholder: "Search countries, states, or policies…",
+        }}
+        status={<>{groups.length.toLocaleString()} entities · {filteredPolicies.length.toLocaleString()} policies</>}
+      >
+        {/* Entity-type tabs */}
+        {TABS.map((t) => (
+          <button
+            key={t}
+            onClick={() => handleTabChange(t)}
+            className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 flex items-center gap-1 ${
+              tab === t
+                ? "chip-selected"
+                : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+            }`}
+          >
+            {t === "All" ? (
+              <Globe size={11} />
+            ) : t === "US States" ? (
+              <Buildings size={11} />
+            ) : (
+              <Globe size={11} />
+            )}
+            {t}
+          </button>
+        ))}
+        <div className="w-px h-4 bg-border shrink-0" />
+        {/* Category pills */}
+        {CATEGORY_FILTERS.map((c) => {
+          if (c === "All") return null;
+          const isActive = categoryFilter === c;
+          const cfg = CATEGORY_CONFIG[c];
+          const Icon = cfg.icon;
+          return (
             <button
-              key={t}
-              onClick={() => handleTabChange(t)}
-              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 flex items-center gap-1 ${
-                tab === t
-                  ? "chip-selected"
+              key={c}
+              onClick={() => handleCatChange(isActive ? "All" : c)}
+              className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
+                isActive
+                  ? `${cfg.bg} ${cfg.color} border-transparent`
                   : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
             >
-              {t === "All" ? (
-                <Globe size={11} />
-              ) : t === "US States" ? (
-                <Buildings size={11} />
-              ) : (
-                <Globe size={11} />
-              )}
-              {t}
+              <Icon
+                size={11}
+                weight="fill"
+                className={isActive ? cfg.color : "text-muted-foreground"}
+              />
+              {c === "Infrastructure" ? "Infra" : c}
             </button>
-          ))}
-          <div className="w-px h-4 bg-border shrink-0" />
-          {/* Category pills */}
-          {CATEGORY_FILTERS.map((c) => {
-            if (c === "All") return null;
-            const isActive = categoryFilter === c;
-            const cfg = CATEGORY_CONFIG[c];
-            const Icon = cfg.icon;
-            return (
-              <button
-                key={c}
-                onClick={() => handleCatChange(isActive ? "All" : c)}
-                className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
-                  isActive
-                    ? `${cfg.bg} ${cfg.color} border-transparent`
-                    : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                }`}
-              >
-                <Icon
-                  size={11}
-                  weight="fill"
-                  className={isActive ? cfg.color : "text-muted-foreground"}
-                />
-                {c === "Infrastructure" ? "Infra" : c}
-              </button>
-            );
-          })}
-        </CollapsibleFilters>
-      </div>
+          );
+        })}
+      </FilterBar>
 
       {/* Policy headlines: national politics desks and US statehouse coverage */}
       <HeadlinesBanner

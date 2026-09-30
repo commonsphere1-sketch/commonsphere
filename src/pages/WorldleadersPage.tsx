@@ -20,7 +20,6 @@ import {
   Buildings,
   Handshake,
   Scales,
-  MagnifyingGlass,
   ListBullets,
   Clock,
   Crown,
@@ -40,7 +39,7 @@ import { ROYAL_FAMILIES, type RoyalMember } from "../data/royalFamiliesData";
 import { SourceLink } from "../components/SourceLink";
 import { ALLIANCES, ALLIANCES_CHECKED, type Alliance, type AllianceKind } from "../data/alliances";
 import { countriesData, type Country } from "../data/countriesData";
-import { CollapsibleFilters } from "../components/CollapsibleFilters";
+import { FilterBar } from "../components/FilterBar";
 import { HeadlinesBanner, namesTag, type Headline, type Shown } from "../components/HeadlinesBanner";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 // Globe is used in LeaderDetail tabs — do not remove
@@ -16159,51 +16158,42 @@ export function WorldLeadersPage() {
           ))}
         </div>
 
-        {/* Unified Search + Filter Bar — two-row, matches CountriesPage layout */}
-        <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 mb-6 w-full">
-          {/* Row 1: Search */}
-          <div className="flex items-center gap-2">
-            <MagnifyingGlass
-              size={16}
-              className="text-muted-foreground shrink-0"
-            />
-            <input
-              type="text"
-              placeholder="Search leaders..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
-            />
-          </div>
-          {/* Row 2: Region pills + divider + ideology select */}
-          <CollapsibleFilters id="world-leaders">
-            {REGIONS.map((r) => (
-              <button
-                key={r}
-                onClick={() => setRegion(r)}
-                className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
-                  region === r
-                    ? "chip-selected"
-                    : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                }`}
-              >
-                {r === "All Regions" ? "All" : r}
-              </button>
-            ))}
-            <div className="w-px h-4 bg-border shrink-0" />
-            <select
-              value={ideology}
-              onChange={(e) => setIdeology(e.target.value)}
-              className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
+        {/* Search and filters: one sticky row, like the section bars */}
+        <FilterBar
+          label="Leader filters"
+          className="mb-6"
+          search={{
+            value: search,
+            onChange: setSearch,
+            placeholder: "Search leaders…",
+          }}
+        >
+          {REGIONS.map((r) => (
+            <button
+              key={r}
+              onClick={() => setRegion(r)}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
+                region === r
+                  ? "chip-selected"
+                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
             >
-              {ideologies.map((i) => (
-                <option key={i} value={i}>
-                  {i === "All" ? "Filter: Ideology" : i}
-                </option>
-              ))}
-            </select>
-          </CollapsibleFilters>
-        </div>
+              {r === "All Regions" ? "All" : r}
+            </button>
+          ))}
+          <div className="w-px h-4 bg-border shrink-0" />
+          <select
+            value={ideology}
+            onChange={(e) => setIdeology(e.target.value)}
+            className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
+          >
+            {ideologies.map((i) => (
+              <option key={i} value={i}>
+                {i === "All" ? "Filter: Ideology" : i}
+              </option>
+            ))}
+          </select>
+        </FilterBar>
 
         {/* Leaders in the news: headlines naming a leader profiled here */}
         <HeadlinesBanner

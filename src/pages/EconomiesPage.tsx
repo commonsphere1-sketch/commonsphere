@@ -5,7 +5,6 @@ import {
   CurrencyDollar,
   TrendUp,
   TrendDown,
-  MagnifyingGlass,
   ArrowsLeftRight,
   Tree,
   Info,
@@ -43,7 +42,7 @@ import { useResourceRents } from "../hooks/useResourceRents";
 import { useLiveStatus } from "../lib/liveFigures";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
-import { CollapsibleFilters } from "../components/CollapsibleFilters";
+import { FilterBar } from "../components/FilterBar";
 import { StyledSelect } from "../components/StyledSelect";
 import {
   ECONOMY_SECTORS,
@@ -2531,78 +2530,69 @@ export function EconomiesPage() {
         <SourceLink sources={SRC_IMF} className="mb-4 -mt-2" />
 
         {/* Unified Search + Filter Bar */}
-        <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
-          {/* Row 1: Search */}
-          <div className="flex items-center gap-2">
-            <MagnifyingGlass
-              size={16}
-              className="text-muted-foreground shrink-0"
-            />
-            <input
-              type="text"
-              placeholder="Search economies..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
-            />
-          </div>
-          {/* Row 2: View tabs + filters + sort */}
-          <CollapsibleFilters id="economies">
-            {(
-              [
-                {
-                  id: "economies",
-                  label: "Economies",
-                  icon: <CurrencyDollar size={13} weight="fill" />,
-                },
-                {
-                  id: "resources",
-                  label: "Resources",
-                  icon: <Tree size={13} weight="fill" />,
-                },
-              ] as const
-            ).map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setViewMode(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
-                  viewMode === tab.id
-                    ? "chip-selected"
-                    : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                }`}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
-            <div className="w-px h-4 bg-border shrink-0" />
-            {typeChips.map((t) => (
-              <button
-                key={t}
-                onClick={() => setTypeFilter(t)}
-                className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
-                  typeFilter === t
-                    ? "chip-selected"
-                    : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-            <div className="w-px h-4 bg-border shrink-0" />
-            <select
-              aria-label="Sort results"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
+        <FilterBar
+          label="Economy filters"
+          className="mb-5"
+          search={{
+            value: search,
+            onChange: setSearch,
+            placeholder: "Search economies…",
+          }}
+        >
+          {(
+            [
+              {
+                id: "economies",
+                label: "Economies",
+                icon: <CurrencyDollar size={13} weight="fill" />,
+              },
+              {
+                id: "resources",
+                label: "Resources",
+                icon: <Tree size={13} weight="fill" />,
+              },
+            ] as const
+          ).map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setViewMode(tab.id)}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
+                viewMode === tab.id
+                  ? "chip-selected"
+                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
             >
-              <option value="gdpTrillions">Sort: GDP</option>
-              <option value="gdpGrowthRate">Sort: GDP Growth</option>
-              <option value="inflationRate">Sort: Inflation</option>
-              <option value="stockMarketCap">Sort: Mkt Cap</option>
-            </select>
-          </CollapsibleFilters>
-        </div>
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+          <div className="w-px h-4 bg-border shrink-0" />
+          {typeChips.map((t) => (
+            <button
+              key={t}
+              onClick={() => setTypeFilter(t)}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
+                typeFilter === t
+                  ? "chip-selected"
+                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+          <div className="w-px h-4 bg-border shrink-0" />
+          <select
+            aria-label="Sort results"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
+          >
+            <option value="gdpTrillions">Sort: GDP</option>
+            <option value="gdpGrowthRate">Sort: GDP Growth</option>
+            <option value="inflationRate">Sort: Inflation</option>
+            <option value="stockMarketCap">Sort: Mkt Cap</option>
+          </select>
+        </FilterBar>
 
         {/* ── Economy headlines: the business desks' news, kept current ── */}
         <HeadlinesBanner

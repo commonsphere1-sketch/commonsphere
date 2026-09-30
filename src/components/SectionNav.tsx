@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ChipRow } from "./ChipRow";
 
 export type NavSection = { id: string; label: string };
 
@@ -10,6 +11,7 @@ export type NavSection = { id: string; label: string };
  */
 export function SectionNav({ label, sections }: { label: string; sections: NavSection[] }) {
   const [active, setActive] = useState(sections[0]?.id ?? "");
+  const rowRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     // The section being read is the last whose top has come a third of the
     // way down the screen - or, at the foot of the page, the last section,
@@ -29,9 +31,20 @@ export function SectionNav({ label, sections }: { label: string; sections: NavSe
     check();
     return () => window.removeEventListener("scroll", check, { capture: true } as EventListenerOptions);
   }, [sections]);
+  useEffect(() => {
+    // On a narrow screen the marked chip can be scrolled out of the row:
+    // bring it back, sideways only, so the page itself does not move.
+    const row = rowRef.current;
+    const chip = row?.querySelector<HTMLElement>('[aria-current="true"]');
+    if (!row || !chip) return;
+    const r = row.getBoundingClientRect();
+    const c = chip.getBoundingClientRect();
+    if (c.left < r.left) row.scrollBy({ left: c.left - r.left - 32, behavior: "smooth" });
+    else if (c.right > r.right) row.scrollBy({ left: c.right - r.right + 32, behavior: "smooth" });
+  }, [active]);
   return (
     <nav aria-label={label} className="search-sticky sticky top-16 z-30 border border-border/60 rounded-2xl px-3 py-2">
-      <div className="flex items-center gap-1.5 overflow-x-auto">
+      <ChipRow rowRef={rowRef}>
         {sections.map((s) => (
           <button
             key={s.id}
@@ -45,7 +58,7 @@ export function SectionNav({ label, sections }: { label: string; sections: NavSe
             {s.label}
           </button>
         ))}
-      </div>
+      </ChipRow>
     </nav>
   );
 }

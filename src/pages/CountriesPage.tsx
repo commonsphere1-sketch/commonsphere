@@ -2,7 +2,6 @@ import { na, has, orZero, sortKey } from "../lib/na";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  MagnifyingGlass,
   MapPin,
   Shield,
   Users,
@@ -45,7 +44,7 @@ import { COUNTRY_CRIME, CRIME_SOURCE, type CrimeFigure } from "../data/countryCr
 import { COUNTRY_PANELS, panelSource, type PanelField, type PanelFigure } from "../data/countryPanels";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
-import { CollapsibleFilters } from "../components/CollapsibleFilters";
+import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 import { useWatchlist } from "@/contexts/WatchlistContext";
 import { FollowedPlaces } from "@/components/FollowedPlaces";
@@ -16781,50 +16780,41 @@ export function CountriesPage() {
         <InternationalSnapshot countries={liveCountries} />
 
         {/* ── SEARCH + FILTER BAR ── */}
-        <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
-          {/* Row 1: Search */}
-          <div className="flex items-center gap-2">
-            <MagnifyingGlass
-              size={16}
-              className="text-muted-foreground shrink-0"
-            />
-            <input
-              type="text"
-              placeholder="Search countries, capitals…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
-            />
-          </div>
-          {/* Row 2: Continent pills + sort */}
-          <CollapsibleFilters id="countries">
-            {continents.map((c) => (
-              <button
-                key={c}
-                onClick={() => setContinentFilter(c)}
-                className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
-                  continentFilter === c
-                    ? "chip-selected"
-                    : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-            <div className="w-px h-5 bg-border shrink-0" />
-            <select
-              aria-label="Sort results"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
+        <FilterBar
+          label="Country filters"
+          className="mb-5"
+          search={{
+            value: search,
+            onChange: setSearch,
+            placeholder: "Search countries, capitals…",
+          }}
+        >
+          {continents.map((c) => (
+            <button
+              key={c}
+              onClick={() => setContinentFilter(c)}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
+                continentFilter === c
+                  ? "chip-selected"
+                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
             >
-              <option value="gdp">Sort: GDP</option>
-              <option value="population">Sort: Population</option>
-              <option value="gdpGrowth">Sort: GDP Growth</option>
-              <option value="humanDevelopmentIndex">Sort: HDI</option>
-            </select>
-          </CollapsibleFilters>
-        </div>
+              {c}
+            </button>
+          ))}
+          <div className="w-px h-5 bg-border shrink-0" />
+          <select
+            aria-label="Sort results"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
+          >
+            <option value="gdp">Sort: GDP</option>
+            <option value="population">Sort: Population</option>
+            <option value="gdpGrowth">Sort: GDP Growth</option>
+            <option value="humanDevelopmentIndex">Sort: HDI</option>
+          </select>
+        </FilterBar>
 
         {/* ── MODAL ── */}
         {modalCountry && (

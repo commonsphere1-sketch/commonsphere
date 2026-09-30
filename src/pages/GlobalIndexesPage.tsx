@@ -26,10 +26,10 @@ import {
   Star,
   CaretDown,
   CaretUp,
-  X,
   Funnel,
   SlidersHorizontal,
 } from "@phosphor-icons/react";
+import { FilterBar } from "../components/FilterBar";
 
 // ─── Icon map ─────────────────────────────────────────────────────────────────
 
@@ -552,64 +552,47 @@ export function GlobalIndexesPage() {
         })}
       </div>
 
-      {/* Filters bar */}
-      <div className="search-sticky sticky top-16 z-30 flex items-center gap-3 flex-wrap rounded-2xl px-4 py-2.5">
-        {/* Search */}
-        <div className="flex items-center gap-2 bg-muted/50 border border-border rounded-xl px-3 py-1.5 flex-1 min-w-[200px] max-w-sm">
-          <MagnifyingGlass
-            size={13}
-            className="text-muted-foreground shrink-0"
-          />
-          <input
-            type="text"
-            placeholder="Search indexes, sources…"
-            value={searchQ}
-            onChange={(e) => setSearchQ(e.target.value)}
-            className="bg-transparent text-xs text-foreground placeholder:text-muted-foreground outline-none flex-1"
-          />
-          {searchQ && (
-            <button
-              onClick={() => setSearchQ("")}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X size={12} />
-            </button>
-          )}
-        </div>
-
+      {/* Filters bar: one sticky row, like the section bars */}
+      <FilterBar
+        label="Index filters"
+        search={{
+          value: searchQ,
+          onChange: setSearchQ,
+          placeholder: "Search indexes, sources…",
+        }}
+      >
         {/* Tier filter */}
-        <div className="flex items-center gap-1 bg-muted/50 border border-border rounded-xl p-0.5">
-          {(["all", "primary", "secondary"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTierFilter(t)}
-              className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-colors ${
-                tierFilter === t
-                  ? "bg-secondary text-secondary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {t === "all"
-                ? "All"
-                : t === "primary"
-                  ? "Core Only"
-                  : "Extended Only"}
-            </button>
-          ))}
-        </div>
+        {(["all", "primary", "secondary"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTierFilter(t)}
+            className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
+              tierFilter === t
+                ? "chip-selected"
+                : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+            }`}
+          >
+            {t === "all"
+              ? "All"
+              : t === "primary"
+                ? "Core Only"
+                : "Extended Only"}
+          </button>
+        ))}
+        <div className="w-px h-4 bg-border shrink-0" />
 
         {/* Expand / Collapse all */}
         <button
           onClick={handleExpandAll}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold bg-muted/50 border border-border text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
         >
-          <Funnel size={12} />
+          <Funnel size={11} />
           {expandAll ? "Collapse All" : "Expand All"}
         </button>
 
         {/* Result count */}
         {(searchQ || tierFilter !== "all") && (
-          <span className="text-[11px] text-muted-foreground font-mono">
+          <span className="text-[11px] text-muted-foreground font-mono shrink-0 whitespace-nowrap">
             {visibleDomains.reduce((s, d) => {
               let inds = d.indicators;
               if (tierFilter !== "all")
@@ -628,7 +611,7 @@ export function GlobalIndexesPage() {
             results
           </span>
         )}
-      </div>
+      </FilterBar>
 
       {/* Domain sections */}
       {visibleDomains.length === 0 ? (

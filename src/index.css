@@ -840,6 +840,15 @@ html.light .search-sticky {
     inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
+/* The chip rows in the sticky bars (components/ChipRow): no scrollbar, so the
+   row is the height of its chips; faded edges and arrows show there is more. */
+.cs-chip-row {
+  scrollbar-width: none;
+}
+.cs-chip-row::-webkit-scrollbar {
+  display: none;
+}
+
 @media (prefers-reduced-transparency: reduce) {
   .search-sticky {
     backdrop-filter: none;

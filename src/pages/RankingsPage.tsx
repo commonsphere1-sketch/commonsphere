@@ -17,7 +17,7 @@ import {
   MagnifyingGlass,
   ArrowsLeftRight,
 } from "@phosphor-icons/react";
-import { CollapsibleFilters } from "../components/CollapsibleFilters";
+import { FilterBar } from "../components/FilterBar";
 
 // ─── Metric definitions ──────────────────────────────────────────────────────
 
@@ -1939,132 +1939,109 @@ export function RankingsPage() {
       />
 
       {/* ── Filters ─────────────────────────────────────────────────────── */}
-      {/* Search + filters. Same two-row shell the countries and states pages
-          use: a full-width search row, then a rule and a row of pill filters
-          ending in a bare sort select. */}
-      <div className="search-sticky sticky top-16 z-30 flex flex-col border border-border/60 rounded-2xl px-4 py-2.5 mb-5 w-full">
-        {/* Row 1: Search */}
-        <div className="flex items-center gap-2">
-          <MagnifyingGlass
-            size={16}
-            className="text-muted-foreground shrink-0"
-          />
-          <input
-            type="text"
-            placeholder="Search countries or states…"
-            value={searchQ}
-            onChange={(e) => {
-              setSearchQ(e.target.value);
-              setPage(0);
-            }}
-            className="flex-1 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
-          />
-          {searchQ && (
-            <button
-              onClick={() => {
-                setSearchQ("");
-                setPage(0);
-              }}
-              className="text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
-              aria-label="Clear search"
-            >
-              <X size={13} />
-            </button>
-          )}
-        </div>
+      {/* Search and filters: the same one-row sticky bar as the countries and
+          states pages, pill filters ending in a bare sort select. */}
+      <FilterBar
+        label="Ranking filters"
+        className="mb-5"
+        search={{
+          value: searchQ,
+          onChange: (v) => {
+            setSearchQ(v);
+            setPage(0);
+          },
+          placeholder: "Search countries or states…",
+        }}
+      >
+        {CATEGORY_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => selectCategory(tab.id)}
+            title={
+              tab.pool === "country"
+                ? "Ranks countries — the underlying data is country-level"
+                : tab.pool === "state"
+                  ? "Ranks US states — the underlying data is state-level"
+                  : undefined
+            }
+            className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
+              activeCategory === tab.id
+                ? "chip-selected"
+                : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
 
-        {/* Row 2: category pills, entity pills, sort */}
-        <CollapsibleFilters id="rankings">
-          {CATEGORY_TABS.map((tab) => (
+        <div className="w-px h-5 bg-border shrink-0" />
+
+        {(["all", "country", "state"] as EntityFilter[]).map((f) => {
+          // A pool-locked category fixes the entity filter, so offering the
+          // other two here would be a control that silently does nothing.
+          const locked = activePool !== "all";
+          const disabled = locked && f !== activePool;
+          return (
             <button
-              key={tab.id}
-              onClick={() => selectCategory(tab.id)}
+              key={f}
+              onClick={() => !disabled && handleFilterChange(f)}
+              disabled={disabled}
               title={
-                tab.pool === "country"
-                  ? "Ranks countries — the underlying data is country-level"
-                  : tab.pool === "state"
-                    ? "Ranks US states — the underlying data is state-level"
-                    : undefined
+                disabled
+                  ? `${CATEGORY_TABS.find((t) => t.id === activeCategory)?.label} is ranked over ${activePool === "country" ? "countries" : "US states"} only`
+                  : undefined
               }
-              className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
-                activeCategory === tab.id
-                  ? "chip-selected"
-                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors shrink-0 ${
+                disabled
+                  ? // opacity-40 rather than text-muted-foreground/40: the
+                    // token is already declared with an alpha channel, so the
+                    // slash modifier does not compose and the pill rendered
+                    // at full brightness, looking enabled.
+                    "bg-transparent border-border text-muted-foreground opacity-40 cursor-not-allowed"
+                  : entityFilter === f
+                    ? "chip-selected cursor-pointer"
+                    : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
               }`}
             >
-              {tab.label}
+              {f === "all"
+                ? "All"
+                : f === "country"
+                  ? "Countries"
+                  : "US States"}
             </button>
+          );
+        })}
+
+        <div className="w-px h-5 bg-border shrink-0" />
+
+        <select
+          value={sortMetric}
+          onChange={(e) => {
+            setSortMetric(e.target.value as MetricId);
+            setPage(0);
+          }}
+          className="bg-transparent px-3 py-1 rounded-full border border-border text-[11px] font-medium text-muted-foreground hover:text-foreground font-sans focus:outline-none cursor-pointer shrink-0"
+        >
+          {METRICS.map((m) => (
+            <option key={m.id} value={m.id}>
+              Sort: {m.shortLabel}
+            </option>
           ))}
-
-          <div className="w-px h-5 bg-border shrink-0" />
-
-          {(["all", "country", "state"] as EntityFilter[]).map((f) => {
-            // A pool-locked category fixes the entity filter, so offering the
-            // other two here would be a control that silently does nothing.
-            const locked = activePool !== "all";
-            const disabled = locked && f !== activePool;
-            return (
-              <button
-                key={f}
-                onClick={() => !disabled && handleFilterChange(f)}
-                disabled={disabled}
-                title={
-                  disabled
-                    ? `${CATEGORY_TABS.find((t) => t.id === activeCategory)?.label} is ranked over ${activePool === "country" ? "countries" : "US states"} only`
-                    : undefined
-                }
-                className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors shrink-0 ${
-                  disabled
-                    ? // opacity-40 rather than text-muted-foreground/40: the
-                      // token is already declared with an alpha channel, so the
-                      // slash modifier does not compose and the pill rendered
-                      // at full brightness, looking enabled.
-                      "bg-transparent border-border text-muted-foreground opacity-40 cursor-not-allowed"
-                    : entityFilter === f
-                      ? "chip-selected cursor-pointer"
-                      : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
-                }`}
-              >
-                {f === "all"
-                  ? "All"
-                  : f === "country"
-                    ? "Countries"
-                    : "US States"}
-              </button>
-            );
-          })}
-
-          <div className="w-px h-5 bg-border shrink-0" />
-
-          <select
-            value={sortMetric}
-            onChange={(e) => {
-              setSortMetric(e.target.value as MetricId);
-              setPage(0);
-            }}
-            className="bg-transparent px-3 py-1 rounded-full border border-border text-[11px] font-medium text-muted-foreground hover:text-foreground font-sans focus:outline-none cursor-pointer shrink-0"
-          >
-            {METRICS.map((m) => (
-              <option key={m.id} value={m.id}>
-                Sort: {m.shortLabel}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={() => setSortDir((d) => (d === "desc" ? "asc" : "desc"))}
-            className="text-muted-foreground hover:text-foreground transition-colors shrink-0 cursor-pointer"
-            aria-label={
-              sortDir === "desc" ? "Sort ascending" : "Sort descending"
-            }
-          >
-            {sortDir === "desc" ? (
-              <SortDescending size={13} />
-            ) : (
-              <SortAscending size={13} />
-            )}
-          </button>
-        </CollapsibleFilters>
-      </div>
+        </select>
+        <button
+          onClick={() => setSortDir((d) => (d === "desc" ? "asc" : "desc"))}
+          className="text-muted-foreground hover:text-foreground transition-colors shrink-0 cursor-pointer"
+          aria-label={
+            sortDir === "desc" ? "Sort ascending" : "Sort descending"
+          }
+        >
+          {sortDir === "desc" ? (
+            <SortDescending size={13} />
+          ) : (
+            <SortAscending size={13} />
+          )}
+        </button>
+      </FilterBar>
 
       {/* Continent filter */}
       {entityFilter !== "state" && (
