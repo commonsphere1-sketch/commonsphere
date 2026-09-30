@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useId, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowDownRight,
@@ -14,6 +14,7 @@ import {
   Ranking,
   Scales,
   UsersThree,
+  X,
 } from "@phosphor-icons/react";
 import {
   WORLD,
@@ -295,25 +296,32 @@ const DESCRIBE_CLIMATE: Record<string, string> = {
 
 // ── Trend lines ────────────────────────────────────────────────────────────
 
-/** A small, static trend for a row: grey line, the latest point in the accent. */
-function MiniTrend({ series }: { series: WorldPoint[] }) {
+/**
+ * A figure's trend across the foot of its tile, as wide as the tile: grey
+ * line, the latest point in the accent. Drawn in percent of the strip, so it
+ * stretches with the tile; the stroke and the point keep their size.
+ */
+function TileTrend({ series }: { series: WorldPoint[] }) {
   if (series.length < 3) return null;
-  const W = 64;
-  const H = 20;
   const x0 = series[0][0];
   const x1 = series[series.length - 1][0];
   const ys = series.map(([, v]) => v);
   const lo = Math.min(...ys);
   const hi = Math.max(...ys);
-  const px = (x: number) => 2 + ((x - x0) / (x1 - x0 || 1)) * (W - 4);
-  const py = (y: number) => H - 3 - ((y - lo) / (hi - lo || 1)) * (H - 6);
+  const px = (x: number) => 3 + ((x - x0) / (x1 - x0 || 1)) * 94;
+  const py = (y: number) => 86 - ((y - lo) / (hi - lo || 1)) * 72;
   const d = series.map(([x, y], i) => `${i ? "L" : "M"}${px(x).toFixed(1)},${py(y).toFixed(1)}`).join("");
   const [lx, ly] = series[series.length - 1];
   return (
-    <svg width={W} height={H} className="shrink-0 text-muted-foreground hidden sm:block" aria-hidden>
-      <path d={d} fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" />
-      <circle cx={px(lx)} cy={py(ly)} r={3} className="fill-[#2a78d6] dark:fill-[#3987e5]" />
-    </svg>
+    <span className="relative block h-6 w-full text-muted-foreground" aria-hidden>
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
+        <path d={d} fill="none" stroke="currentColor" strokeWidth={1.5} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
+      </svg>
+      <span
+        className={`absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full ${ACCENT_BG}`}
+        style={{ left: `${px(lx)}%`, top: `${py(ly)}%` }}
+      />
+    </span>
   );
 }
 
@@ -928,113 +936,113 @@ function PillarCard({ p }: { p: Pillar }) {
   );
 }
 
-// ── One figure, as a dashboard row ──────────────────────────────────────────
+// ── One figure, as a tile ───────────────────────────────────────────────────
 
-/** One figure as a row: what it measures, its value and direction; opens to its trend, parts, note, table and source. */
-function MetricRow({ ind, extra, last = false }: { ind: WorldIndicator; extra?: string; last?: boolean }) {
-  const { head, muted, grid } = useLook();
-  const [open, setOpen] = useState(false);
-  const [y, v] = ind.series[ind.series.length - 1];
-  const d = delta(ind);
-  const about = DESCRIBE[ind.id];
+/** A figure in a group: a world series, or a climate reading. */
+type Figure = { kind: "world"; key: string; ind: WorldIndicator; extra?: string } | { kind: "climate"; key: string; c: ClimateIndicator };
+
+const labelOf = (f: Figure) => (f.kind === "world" ? f.ind.label : f.c.label);
+const aboutOf = (f: Figure): string | undefined => (f.kind === "world" ? DESCRIBE[f.ind.id] : DESCRIBE_CLIMATE[f.c.id]);
+const sourceOf = (f: Figure) => (f.kind === "world" ? f.ind.source : { label: f.c.source, url: f.c.url });
+/** The year a figure is for: its series' last, or the year in a reading's period ("August 2026"). */
+const yearOf = (f: Figure) => (f.kind === "world" ? f.ind.series[f.ind.series.length - 1][0] : Number(/\d{4}/.exec(f.c.period)?.[0] ?? NaN));
+
+/**
+ * A figure as a tile, as the pillar cards and the site's other pages show
+ * figures: what it is, its value, its unit and year, its direction over
+ * about ten years and its trend. Picking it opens its detail under its row.
+ */
+function FigureTile({ f, open, onToggle, color, detailId }: { f: Figure; open: boolean; onToggle: () => void; color: string; detailId: string }) {
+  const { head, muted } = useLook();
+  let value: string;
+  let sub: string;
+  let d: Delta | null;
+  if (f.kind === "world") {
+    const [y, v] = f.ind.series[f.ind.series.length - 1];
+    value = fmt(f.ind, v);
+    sub = `${unitOf(f.ind)} · ${y}${f.extra ? ` · ${f.extra}` : ""}`;
+    d = delta(f.ind);
+  } else {
+    value = `${f.c.id === "warming" && f.c.value > 0 ? "+" : ""}${f.c.value}`;
+    sub = `${f.c.unit} · ${f.c.period}`;
+    d = climateDelta(f.c);
+  }
   return (
-    <li style={{ borderBottom: last ? "none" : `1px solid ${grid}` }}>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        className="w-full flex items-center gap-3 py-2.5 text-left hover:opacity-90 cursor-pointer"
-      >
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold font-sans" style={{ color: head }}>
-            {ind.label}
-          </p>
-          {about && (
-            <p className="text-[10px] font-sans leading-snug line-clamp-2" style={{ color: muted }}>
-              {about}
-            </p>
-          )}
-          <p className="text-[10px] font-mono mt-0.5" style={{ color: muted }}>
-            {unitOf(ind)} · {y}
-            {extra ? ` · ${extra}` : ""}
-          </p>
-          {d && (
-            <div className="mt-0.5">
-              <DeltaLine d={d} small />
-            </div>
-          )}
-        </div>
-        <MiniTrend series={ind.series} />
-        <span className="w-24 text-right text-sm font-bold font-mono shrink-0" style={{ color: head }}>
-          {fmt(ind, v)}
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={open}
+      aria-controls={open ? detailId : undefined}
+      title={aboutOf(f)}
+      className={`h-full w-full rounded-xl px-3 py-2.5 flex flex-col gap-0.5 text-left cursor-pointer transition-colors ${open ? "" : "modal-tile"}`}
+      // Picked: the pillar's colour in place of the glass, as the Climate page marks its picked boundary.
+      style={open ? { background: color + "14", border: `1px solid ${color}90` } : undefined}
+    >
+      <span className="flex items-start justify-between gap-2">
+        <span className="text-[10px] font-sans uppercase tracking-wider leading-snug" style={{ color: muted }}>
+          {labelOf(f)}
         </span>
-        <CaretDown size={12} className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`} style={{ color: muted }} aria-hidden />
-      </button>
-      {open && (
-        <div className="pb-3 pl-1 space-y-3 animate-fade-in">
-          {about && <p className="text-[11px] font-sans text-foreground/85 leading-snug">{about}</p>}
-          {ind.series.length > 2 && <Sparkline ind={ind} />}
-          <Breakdown ind={ind} />
-          {ind.note && <p className="text-[10px] font-sans text-muted-foreground leading-snug">{ind.note}</p>}
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <SourceLink source={ind.source} />
-            <YearTable ind={ind} />
-          </div>
-        </div>
+        <CaretDown size={10} weight="bold" className={`shrink-0 mt-0.5 transition-transform ${open ? "rotate-180" : ""}`} style={{ color: muted }} aria-hidden />
+      </span>
+      <span className="text-lg sm:text-xl font-bold font-mono leading-tight" style={{ color: head }}>
+        {value}
+      </span>
+      <span className="text-[10px] font-mono leading-snug" style={{ color: muted }}>
+        {sub}
+      </span>
+      {d && <DeltaLine d={d} small />}
+      {f.kind === "world" && f.ind.series.length > 2 && (
+        <span className="mt-auto block w-full pt-2">
+          <TileTrend series={f.ind.series} />
+        </span>
       )}
-    </li>
+    </button>
   );
 }
 
-function ClimateRow({ c, last = false }: { c: ClimateIndicator; last?: boolean }) {
-  const { head, muted, grid } = useLook();
-  const [open, setOpen] = useState(false);
-  const d = climateDelta(c);
-  const about = DESCRIBE_CLIMATE[c.id];
+/** What a picked figure opens to: what it measures, its full trend, its parts, its note, its data by year and its source. */
+function FigureDetail({ f, id, color, onClose }: { f: Figure; id: string; color: string; onClose: () => void }) {
+  const { head } = useLook();
+  const about = aboutOf(f);
   return (
-    <li style={{ borderBottom: last ? "none" : `1px solid ${grid}` }}>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        className="w-full py-2.5 flex items-center gap-3 text-left hover:opacity-90 cursor-pointer"
-      >
-        <div className="flex-1 min-w-0">
+    <div id={id} className="col-span-2 rounded-xl p-3.5 space-y-3 animate-fade-in" style={{ background: color + "0d", border: `1px solid ${color}40` }}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
           <p className="text-xs font-semibold font-sans" style={{ color: head }}>
-            {c.label}
+            {labelOf(f)}
           </p>
-          {about && (
-            <p className="text-[10px] font-sans leading-snug line-clamp-2" style={{ color: muted }}>
-              {about}
-            </p>
-          )}
-          <p className="text-[10px] font-mono mt-0.5" style={{ color: muted }}>
-            {c.unit} · {c.period}
-          </p>
-          {d && (
-            <div className="mt-0.5">
-              <DeltaLine small d={d} />
-            </div>
-          )}
+          {about && <p className="mt-0.5 text-[11px] font-sans text-foreground/85 leading-snug">{about}</p>}
         </div>
-        <span className="w-24 text-right text-sm font-bold font-mono shrink-0" style={{ color: head }}>
-          {c.value}
-        </span>
-        <CaretDown size={12} className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`} style={{ color: muted }} aria-hidden />
-      </button>
-      {open && (
-        <div className="pb-3 pl-1 space-y-2 animate-fade-in">
-          {about && <p className="text-[11px] font-sans text-foreground/85 leading-snug">{about}</p>}
-          {c.note && <p className="text-[10px] font-sans text-muted-foreground leading-snug">{c.note}</p>}
-          {c.decadeAgo !== null && (
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={`Close ${labelOf(f)}`}
+          className="shrink-0 p-1 -m-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
+        >
+          <X size={12} weight="bold" />
+        </button>
+      </div>
+      {f.kind === "world" ? (
+        <>
+          {f.ind.series.length > 2 && <Sparkline ind={f.ind} />}
+          <Breakdown ind={f.ind} />
+          {f.ind.note && <p className="text-[10px] font-sans text-muted-foreground leading-snug">{f.ind.note}</p>}
+        </>
+      ) : (
+        <>
+          {f.c.note && <p className="text-[10px] font-sans text-muted-foreground leading-snug">{f.c.note}</p>}
+          {f.c.decadeAgo !== null && (
             <p className="text-[10px] font-mono text-muted-foreground">
-              Ten years before: {c.decadeAgo} {c.unit}
+              Ten years before: {f.c.decadeAgo} {f.c.unit}
             </p>
           )}
-          <SourceLink source={{ label: c.source, url: c.url }} />
-        </div>
+        </>
       )}
-    </li>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <SourceLink source={sourceOf(f)} />
+        {f.kind === "world" && <YearTable ind={f.ind} />}
+      </div>
+    </div>
   );
 }
 
@@ -1434,30 +1442,50 @@ function BlocShares() {
 
 // ── A pillar's section ──────────────────────────────────────────────────────
 
+/**
+ * A group of figures as the site's figure cards are laid out: a kicker with
+ * how many and how recent, the title and what the group covers, the figures
+ * as tiles two to a row, and the sources at the foot.
+ */
 function GroupCard({ g, color }: { g: Group; color: string }) {
-  const { head } = useLook();
-  const climate = (g.climate ?? []).map(climateOf).filter((c): c is ClimateIndicator => !!c);
-  const count = g.ids.length + climate.length;
+  const { head, muted } = useLook();
+  const detailId = useId();
+  const [open, setOpen] = useState<string | null>(null);
+  const figures: Figure[] = [
+    ...(g.climate ?? [])
+      .map(climateOf)
+      .filter((c): c is ClimateIndicator => !!c)
+      .map((c): Figure => ({ kind: "climate", key: `c:${c.id}`, c })),
+    ...g.ids.map((id): Figure => ({ kind: "world", key: `w:${id}`, ind: WORLD[id], extra: g.extras?.[id] })),
+  ];
+  const years = figures.map(yearOf).filter((y) => Number.isFinite(y));
+  const [first, last] = [Math.min(...years), Math.max(...years)];
+  const sources = [...new Set(figures.map((f) => sourceOf(f).label))];
+  // The detail opens under the row of the tile picked, across both columns.
+  const at = figures.findIndex((f) => f.key === open);
+  const after = at < 0 ? -1 : Math.min(at - (at % 2) + 1, figures.length - 1);
   return (
-    <Card>
-      <div className="flex items-center justify-between gap-2 mb-1">
-        <h3 className="text-sm font-bold font-sans" style={{ color: head }}>
-          {g.title}
-        </h3>
-        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full" style={{ background: color + "18", color }}>
-          {count} figure{count === 1 ? "" : "s"}
-        </span>
-      </div>
-      <p className="text-[11px] font-sans text-muted-foreground mb-2 leading-relaxed">{g.intro}</p>
+    <Card className="flex flex-col">
+      <p className="text-[10px] font-mono uppercase tracking-widest mb-0.5" style={{ color }}>
+        {figures.length} figure{figures.length === 1 ? "" : "s"}
+        {years.length > 0 && ` · latest ${first === last ? first : `${first}–${last}`}`}
+      </p>
+      <h3 className="text-sm font-bold font-sans" style={{ color: head }}>
+        {g.title}
+      </h3>
+      <p className="text-[11px] font-sans text-muted-foreground mt-0.5 mb-3 leading-relaxed">{g.intro}</p>
       {g.freedom && <FreedomBars />}
-      <ul>
-        {climate.map((c, i) => (
-          <ClimateRow key={c.id} c={c} last={!g.ids.length && i === climate.length - 1} />
+      <div className="grid grid-cols-2 gap-2">
+        {figures.map((f, i) => (
+          <Fragment key={f.key}>
+            <FigureTile f={f} open={open === f.key} onToggle={() => setOpen((o) => (o === f.key ? null : f.key))} color={color} detailId={detailId} />
+            {i === after && <FigureDetail f={figures[at]} id={detailId} color={color} onClose={() => setOpen(null)} />}
+          </Fragment>
         ))}
-        {g.ids.map((k, i) => (
-          <MetricRow key={k} ind={WORLD[k]} extra={g.extras?.[k]} last={i === g.ids.length - 1} />
-        ))}
-      </ul>
+      </div>
+      <p className="mt-3 text-[10px] font-sans leading-snug" style={{ color: muted }}>
+        Source{sources.length === 1 ? "" : "s"}: {sources.join(" · ")}. Pick a figure for its trend, its data by year and a link to its source.
+      </p>
     </Card>
   );
 }
