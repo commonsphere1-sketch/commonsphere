@@ -16321,9 +16321,9 @@ export function WorldLeadersPage() {
                 <button
                   key={r}
                   onClick={() => setMonarchyRegion(r)}
-                  className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                  className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer ${
                     monarchyRegion === r
-                      ? "bg-yellow-500/15 text-yellow-400 border-yellow-500/40"
+                      ? "chip-selected"
                       : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
                   }`}
                 >

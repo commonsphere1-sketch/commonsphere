@@ -7461,30 +7461,19 @@ export function StatesPage() {
             </button>
           ))}
           <div className="w-px h-5 bg-border shrink-0" />
-          {parties.map((p) => {
-            const isActive = partyFilter === p;
-            const activeStyle =
-              p === "Democrat"
-                ? "chip-selected"
-                : p === "Republican"
-                  ? "bg-red-500/15 text-red-400 border-red-500/40"
-                  : p === "Independent"
-                    ? "bg-yellow-500/15 text-yellow-400 border-yellow-500/40"
-                    : "chip-selected";
-            return (
-              <button
-                key={p}
-                onClick={() => setPartyFilter(p)}
-                className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
-                  isActive
-                    ? activeStyle
-                    : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                }`}
-              >
-                {p}
-              </button>
-            );
-          })}
+          {parties.map((p) => (
+            <button
+              key={p}
+              onClick={() => setPartyFilter(p)}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
+                partyFilter === p
+                  ? "chip-selected"
+                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
+            >
+              {p}
+            </button>
+          ))}
           <div className="w-px h-5 bg-border shrink-0" />
           <select
             aria-label="Sort results"

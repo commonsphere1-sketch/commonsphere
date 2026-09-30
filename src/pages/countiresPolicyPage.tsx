@@ -11065,15 +11065,12 @@ export function PolicyPage() {
               onClick={() => handleCatChange(isActive ? "All" : c)}
               className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${
                 isActive
-                  ? `${cfg.bg} ${cfg.color} border-transparent`
+                  ? "chip-selected"
                   : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
             >
-              <Icon
-                size={11}
-                weight="fill"
-                className={isActive ? cfg.color : "text-muted-foreground"}
-              />
+              {/* Black and white like every other filter chip: the icon takes the chip's own ink. */}
+              <Icon size={11} weight="fill" className={isActive ? "" : "text-muted-foreground"} />
               {c === "Infrastructure" ? "Infra" : c}
             </button>
           );
