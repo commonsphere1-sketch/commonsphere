@@ -10,7 +10,10 @@
  * year by year (UNHCR), undernourishment, food insecurity and stunting
  * (FAO, UNICEF/WHO), child and maternal mortality (UN estimates), water and
  * sanitation (WHO/UNICEF), each country's child mortality and water access
- * (World Bank), and official aid by donor (OECD).
+ * (World Bank), official aid by donor (OECD), armed conflicts and the deaths
+ * in them (Uppsala Conflict Data Program), deaths in natural disasters
+ * (EM-DAT), displacement by disasters (IDMC), and extreme poverty, HIV, hand
+ * washing and life expectancy (World Bank).
  *
  * Recorded from the agencies' reports, with the report and year shown on
  * each: people in need by crisis and appeals against funding (UN OCHA),
@@ -256,7 +259,15 @@ type Stat = {
  * ten years before, and its trend. `agency` is who produces the figure - the
  * World Bank republishes most of these, and the tile names the body behind it.
  */
-function worldStat(id: string, label: string, agency: string, about: string, upIsGood: boolean, o: { complement?: boolean } = {}): Stat {
+function worldStat(
+  id: string,
+  label: string,
+  agency: string,
+  about: string,
+  upIsGood: boolean,
+  /** `whole` prints the number in full; `neutral` gives the change without calling it better or worse. */
+  o: { complement?: boolean; whole?: boolean; unit?: string; neutral?: boolean } = {},
+): Stat {
   const ind = WORLD[id];
   const series: WorldPoint[] = o.complement ? ind.series.map(([y, v]) => [y, Number((100 - v).toFixed(ind.dp))]) : ind.series;
   const [year, v] = lastOf(series);
@@ -264,15 +275,28 @@ function worldStat(id: string, label: string, agency: string, about: string, upI
   return {
     key: id,
     label,
-    value: kind === "count" ? millions(v) : kind === "pct" ? `${v.toFixed(ind.dp)}%` : v.toFixed(ind.dp),
-    unit: kind === "count" ? "people" : ind.unit,
+    value: o.whole ? v.toLocaleString("en-US") : kind === "count" ? millions(v) : kind === "pct" ? `${v.toFixed(ind.dp)}%` : v.toFixed(ind.dp),
+    unit: o.unit ?? (kind === "count" ? "people" : ind.unit),
     sub: `${agency} · ${year}`,
     about,
-    change: changeOf(series, kind, ind.dp, upIsGood),
+    change: o.neutral ? unjudged(changeOf(series, kind, ind.dp, upIsGood)) : changeOf(series, kind, ind.dp, upIsGood),
     series,
     source: ind.source,
   };
 }
+const unjudged = (c: Change | null): Change | null => (c ? { ...c, verdict: null } : null);
+
+/** The latest year of a world series split into its parts, as bars; a part of zero is named by `noneOf`, not drawn. */
+function partsOf(id: string, text: (v: number) => string): BarRow[] {
+  return (WORLD[id].breakdown ?? [])
+    .filter(([, v]) => v > 0)
+    .map(([label, v]) => {
+      const apart = label.startsWith("Also: ");
+      const name = apart ? label.slice(6, 7).toUpperCase() + label.slice(7) : label;
+      return { key: label, name, value: v, text: text(v), note: apart ? "counted apart" : undefined };
+    });
+}
+const noneOf = (id: string) => (WORLD[id].breakdown ?? []).filter(([, v]) => v === 0).map(([label]) => label.toLowerCase());
 
 /** The displaced by kind, year by year, in millions; "refugees" as UNHCR's headline counts them. */
 const DISPLACED = DISPLACED_BY_KIND.map((d) => ({
@@ -401,17 +425,17 @@ type BarRow = { key: string; name: string; code?: string; value: number | null; 
  * longest in the row's own colour, and its figure in ink. A row with no
  * published figure says so.
  */
-function BarList({ rows, max, label }: { rows: BarRow[]; max?: number; label: string }) {
+function BarList({ rows, max, label, wide = false }: { rows: BarRow[]; max?: number; label: string; wide?: boolean }) {
   const { head, muted, track } = useLook();
   const top = max ?? Math.max(...rows.map((r) => r.value ?? 0), 1);
   return (
     <ul className="flex flex-col gap-2.5" aria-label={label}>
       {rows.map((r, i) => (
-        <li key={r.key} className="grid grid-cols-[minmax(7rem,11rem)_1fr_auto] items-center gap-x-3">
+        <li key={r.key} className={`grid ${wide ? "grid-cols-[minmax(7rem,45%)_1fr_auto]" : "grid-cols-[minmax(7rem,11rem)_1fr_auto]"} items-center gap-x-3`}>
           <span className="flex items-center gap-2 min-w-0">
             {r.code && <img src={flagUrl(r.code)} alt="" width={18} height={13} loading="lazy" className="rounded-[2px] shrink-0" />}
             <span className="min-w-0">
-              <span className="block text-[11px] font-sans truncate" style={{ color: head }}>
+              <span className="block text-[11px] font-sans truncate" style={{ color: head }} title={r.name}>
                 {r.name}
               </span>
               {r.note && (
@@ -530,7 +554,7 @@ function HungerChart() {
 }
 
 /** One world series as a line, with its latest reading in the legend. */
-function TrendChart({ id, name, unit, color, height = 190 }: { id: string; name: string; unit: (v: number) => string; color: string; height?: number }) {
+function TrendChart({ id, name, unit, color, height = 190, tick }: { id: string; name: string; unit: (v: number) => string; color: string; height?: number; tick?: (v: number) => string }) {
   const look = useLook();
   const s = WORLD[id].series;
   const data = s.map(([y, v]) => ({ year: String(y), v }));
@@ -542,7 +566,7 @@ function TrendChart({ id, name, unit, color, height = 190 }: { id: string; name:
           <LineChart data={data} margin={{ top: 4, right: 4, left: -14, bottom: 0 }}>
             <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="year" {...axis(look)} minTickGap={18} />
-            <YAxis {...axis(look)} domain={[0, "auto"]} />
+            <YAxis {...axis(look)} domain={[0, "auto"]} tickFormatter={tick} />
             <Tooltip {...look.tooltip} formatter={(v: number) => [unit(v), name]} />
             <Line type="monotone" dataKey="v" stroke={color} strokeWidth={2} dot={false} isAnimationActive={false} />
           </LineChart>
@@ -595,6 +619,7 @@ function AidChart() {
 
 const SECTIONS: NavSection[] = [
   { id: "overview", label: "Overview" },
+  { id: "conflict", label: "Conflict & disaster" },
   { id: "displacement", label: "Displacement" },
   { id: "food", label: "Food & hunger" },
   { id: "health", label: "Health & water" },
@@ -662,11 +687,30 @@ export function HumanitarianPage() {
     worldStat("maternalMortality", "Maternal deaths", "WHO", "Women who die from causes related to pregnancy, for every 100,000 live births.", false),
     worldStat("measles", "Vaccinated against measles", "WHO/UNICEF", "One-year-olds who have had a measles vaccination.", true),
     worldStat("sanitation", "Safely managed sanitation", "WHO/UNICEF", "People with a toilet not shared with other households, whose waste is safely dealt with.", true),
+    worldStat("handwashing", "Can wash hands with soap", "WHO/UNICEF", "People whose home has a place to wash hands with soap and water.", true),
+    // More people living with HIV is also what longer survival on treatment looks like, so no better or worse is drawn.
+    worldStat("hiv", "Living with HIV", "UNAIDS", "People aged 15 to 49 who are living with HIV.", false, { neutral: true }),
+    worldStat("lifeExpectancy", "Life expectancy", "World Bank", "The years a newborn would live if the death rates of the year of birth held for life.", true),
   ];
   const food = [
     worldStat("foodInsecure", "Food insecure", "FAO", "People who at times in the year ate worse or less, or went without, for lack of money.", false),
     worldStat("stunting", "Stunted children", "UNICEF/WHO", "Children under five too short for their age - the mark of long-term undernutrition.", false),
+    worldStat("extremePoverty", "In extreme poverty", "World Bank", "People living on less than $3.00 a day, at 2021 purchasing power.", false),
   ];
+  const drivers = [
+    worldStat("conflicts", "Armed conflicts", "UCDP", "Conflicts in which at least one side is a government and at least 25 people die in battle in the year.", false),
+    worldStat("conflictDeaths", "Deaths in armed conflicts", "UCDP", "The best estimate of deaths in fighting involving states, fighting between non-state groups, and violence against civilians.", false, { whole: true, unit: "deaths" }),
+    worldStat("disasterDeaths", "Deaths in natural disasters", "EM-DAT", "Confirmed deaths and missing people in disasters that overwhelm local capacity. One great event moves a year's toll, so no better or worse is drawn.", false, {
+      whole: true,
+      unit: "dead and missing",
+      neutral: true,
+    }),
+    worldStat("disasterDisplacement", "Displaced by disasters", "IDMC", "People forced from home by a disaster within their own country, counted each time they are displaced.", false, { unit: "displacements", neutral: true }),
+  ];
+  const span = (id: string) => `${WORLD[id].series[0][0]}–${lastOf(WORLD[id].series)[0]}`;
+  const whole = (v: number) => v.toLocaleString("en-US");
+  const thousands = (v: number) => (v === 0 ? "0" : v >= 1e6 ? `${v / 1e6}M` : `${Math.round(v / 1000)}k`);
+  const noDisasterDeaths = noneOf("disasterDeaths");
 
   return (
     <div className="min-h-screen w-full animate-fade-in" style={{ background: "var(--color-background)" }}>
@@ -693,7 +737,7 @@ export function HumanitarianPage() {
                 the aid that is asked for and given. Each figure with its source and its year.
               </p>
               <p className="text-[11px] font-sans mt-2" style={{ color: muted }}>
-                UNHCR · FAO · UNICEF · WHO · UN OCHA · OECD · World Bank · figures retrieved {WORLDVIEW_RETRIEVED}
+                UNHCR · FAO · UNICEF · WHO · UN OCHA · OECD · World Bank · UCDP · EM-DAT · IDMC · figures retrieved {WORLDVIEW_RETRIEVED}
               </p>
             </div>
             <div className="lg:text-right">
@@ -755,6 +799,69 @@ export function HumanitarianPage() {
             </p>
             <SourceLink sources={[SRC.ocha]} className="mt-3" />
           </Card>
+        </section>
+
+        {/* ══ Conflict & disaster ══ */}
+        <section id="conflict" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="conflict-title">
+          <SectionHead icon={<Warning size={18} weight="fill" />} color="#ef4444" title="Conflict & disaster" kicker="What drives people from home and into need: wars, and floods, storms and earthquakes" />
+          <h2 id="conflict-title" className="sr-only">
+            Conflict and disaster
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {drivers.map((s) => (
+              <StatTile key={s.key} s={s} />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHead title="Armed conflicts, year by year" kicker={`Conflicts involving a state · Uppsala Conflict Data Program · ${span("conflicts")}`} />
+              <TrendChart id="conflicts" name="State-based armed conflicts" unit={(v) => `${v} conflicts`} color="#8b5cf6" height={210} />
+              <p className="text-[10px] font-mono uppercase tracking-widest mt-4 mb-2.5" style={{ color: muted }}>
+                By kind · {WORLD.conflicts.breakdownYear}
+              </p>
+              <BarList wide label="Armed conflicts by kind" rows={partsOf("conflicts", (v) => String(v))} />
+              <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
+                {WORLD.conflicts.note} The kinds marked "counted apart" are ones the programme counts separately from those {lastOf(WORLD.conflicts.series)[1]}.
+              </p>
+              <SourceLink sources={[WORLD.conflicts.source]} className="mt-3" />
+            </Card>
+            <Card>
+              <CardHead title="Deaths in armed conflicts" kicker={`Deaths a year · Uppsala Conflict Data Program · ${span("conflictDeaths")}`} />
+              <TrendChart id="conflictDeaths" name="Deaths in armed conflicts" unit={(v) => `${whole(v)} deaths`} color="#ef4444" height={210} tick={thousands} />
+              <p className="text-[10px] font-mono uppercase tracking-widest mt-4 mb-2.5" style={{ color: muted }}>
+                By kind of violence · {WORLD.conflictDeaths.breakdownYear}
+              </p>
+              <BarList wide label="Deaths in armed conflicts by kind of violence" rows={partsOf("conflictDeaths", whole)} />
+              <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
+                {WORLD.conflictDeaths.note}
+              </p>
+              <SourceLink sources={[WORLD.conflictDeaths.source]} className="mt-3" />
+            </Card>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHead title="Deaths in natural disasters" kicker={`Dead and missing a year · EM-DAT · ${span("disasterDeaths")}`} />
+              <TrendChart id="disasterDeaths" name="Dead and missing in natural disasters" unit={(v) => whole(v)} color="#f59e0b" height={210} tick={thousands} />
+              <p className="text-[10px] font-mono uppercase tracking-widest mt-4 mb-2.5" style={{ color: muted }}>
+                By kind of disaster · {WORLD.disasterDeaths.breakdownYear}
+              </p>
+              <BarList wide label="Deaths in natural disasters by kind" rows={partsOf("disasterDeaths", whole).sort((a, b) => (b.value ?? 0) - (a.value ?? 0))} />
+              <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
+                EM-DAT counts confirmed deaths and missing people in disasters that overwhelm local capacity. The toll swings from year to year with single great events.
+                {noDisasterDeaths.length > 0 && ` For ${WORLD.disasterDeaths.breakdownYear} it records no deaths from ${noDisasterDeaths.join(" or ")}.`}
+              </p>
+              <SourceLink sources={[WORLD.disasterDeaths.source]} className="mt-3" />
+            </Card>
+            <Card>
+              <CardHead title="Displaced by disasters" kicker={`New displacements a year · IDMC, via the World Bank · ${span("disasterDisplacement")}`} />
+              <TrendChart id="disasterDisplacement" name="New displacements by disasters" unit={(v) => millions(v)} color="#06b6d4" height={210} tick={(v) => (v === 0 ? "0" : `${Math.round(v / 1e6)}M`)} />
+              <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
+                {WORLD.disasterDisplacement.note} These are movements, not people: someone displaced twice in a year is counted twice. The figures of the Displacement section below count people displaced by
+                conflict and persecution, and are a different measure.
+              </p>
+              <SourceLink sources={[WORLD.disasterDisplacement.source]} className="mt-3" />
+            </Card>
+          </div>
         </section>
 
         {/* ══ Displacement ══ */}
@@ -880,7 +987,8 @@ export function HumanitarianPage() {
           Two kinds of figure are on this page. Built from source and refreshed with it ({WORLDVIEW_RETRIEVED}): the displaced and their
           make-up year by year (UNHCR), undernourishment, food insecurity and stunting (FAO, UNICEF and the WHO), child and maternal
           mortality (the UN's estimates), water and sanitation (WHO/UNICEF), each country's child mortality and water access (World Bank),
-          and aid by donor (OECD). Recorded from the agencies' reports, for the year shown on each: people in need by crisis and appeals
+          aid by donor (OECD), armed conflicts and the deaths in them (Uppsala Conflict Data Program), deaths in natural disasters
+          (EM-DAT), displacement by disasters (IDMC), and extreme poverty, HIV, hand washing and life expectancy (World Bank). Recorded from the agencies' reports, for the year shown on each: people in need by crisis and appeals
           against funding (UN OCHA), the countries hosting and producing the most refugees (UNHCR, 2023), hunger by region (FAO, 2023),
           deaths from six diseases and people without essential health care (WHO). Arrows compare with about ten years earlier; "better"
           and "worse" are given where one way plainly is.
