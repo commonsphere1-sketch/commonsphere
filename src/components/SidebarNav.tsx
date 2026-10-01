@@ -639,7 +639,8 @@ function SectionLabel({
   mobile: boolean;
 }) {
   if (collapsed && !mobile)
-    return <div className="my-3 mx-2 border-t border-border" />;
+    // At tablet widths the list is spread evenly, and the rule takes its place in the spread without margins of its own.
+    return <li aria-hidden="true" className="my-3 md:max-lg:my-0 mx-2 border-t border-border list-none" />;
   return (
     <li className="px-3 pt-5 pb-1.5">
       <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/50 font-sans">
@@ -662,8 +663,12 @@ export function SidebarNav({
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       aria-label="Sidebar navigation"
     >
-      {/* Main nav — fills available height */}
-      <ul className="flex flex-col px-1.5 flex-1">
+      {/* Main nav — fills available height. At tablet widths the bar is tall
+          and the list short, so it sat bunched at the top with the account
+          links stranded at the foot; there the items are spread evenly down
+          the bar instead (and the spacer that pushes the account links down
+          is not needed). */}
+      <ul className="flex flex-col px-1.5 flex-1 md:max-lg:justify-between">
         {mainNav.map((item) => (
           <NavItem
             key={item.to}
@@ -685,7 +690,7 @@ export function SidebarNav({
         ))}
 
         {/* Spacer pushes bottom items down */}
-        <li className="flex-1 min-h-0" aria-hidden="true" />
+        <li className="flex-1 min-h-0 md:max-lg:hidden" aria-hidden="true" />
 
         <SectionLabel label="Account" collapsed={collapsed} mobile={mobile} />
 

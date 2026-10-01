@@ -149,7 +149,10 @@ export function DataExplorer({ only }: { /** Show this category alone, without t
         : `${policies.length} of the ${capped ? `newest ${headlines.length}` : headlines.length} policy headlines from the last week`;
 
   return (
-    <div className="flex flex-col rounded-2xl overflow-hidden" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
+    /* Capped and centred: on a wide or full-screen window the list's rows and
+       the detail's charts stretched across the whole page, a name at one edge
+       and its figure at the other. */
+    <div className="flex flex-col rounded-2xl overflow-hidden w-full max-w-6xl mx-auto" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
       {/* One category alone is headed by its name; all three are tabs. */}
       {only ? (
         <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: cur.color }}>

@@ -1,11 +1,24 @@
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { CaretLeft, CaretRight } from "@phosphor-icons/react";
 import { Outlet, useLocation, useNavigationType } from "react-router-dom";
 import { HeaderNav } from "./HeaderNav";
 import { SidebarNav } from "./SidebarNav";
 import { NotesPopup } from "./NotesPopup";
 
+/** Tablet widths: where the desktop sidebar shows (768px up) but the page is not yet desktop-wide. */
+const TABLET = "(max-width: 1023px)";
+
 export function DashboardLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  /* On a tablet the full sidebar takes nearly a quarter of the width, so it
+     starts as the icon rail there and opens out on a desktop. Crossing between
+     the two sets it again; in between, the reader's own choice stands. */
+  const [sidebarOpen, setSidebarOpen] = useState(() => !window.matchMedia(TABLET).matches);
+  useEffect(() => {
+    const tablet = window.matchMedia(TABLET);
+    const onChange = () => setSidebarOpen(!tablet.matches);
+    tablet.addEventListener("change", onChange);
+    return () => tablet.removeEventListener("change", onChange);
+  }, []);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   /* This layout stays mounted from page to page and the window is what
@@ -41,6 +54,19 @@ export function DashboardLayout() {
             collapsed={!sidebarOpen}
             onToggle={() => setSidebarOpen((v) => !v)}
           />
+          {/* A handle half-way down the bar's edge: opens and closes the
+              sidebar from wherever the page is, without scrolling the bar to
+              the toggle at its foot - which is still there. */}
+          <button
+            type="button"
+            onClick={() => setSidebarOpen((v) => !v)}
+            className="absolute top-1/2 -right-3 -translate-y-1/2 z-10 w-6 h-11 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground shadow-md flex items-center justify-center cursor-pointer transition-colors"
+            aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            aria-expanded={sidebarOpen}
+            title={sidebarOpen ? "Collapse the menu" : "Expand the menu"}
+          >
+            {sidebarOpen ? <CaretLeft size={12} weight="bold" /> : <CaretRight size={12} weight="bold" />}
+          </button>
         </aside>
 
         {/* Mobile Sidebar Overlay */}
