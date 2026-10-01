@@ -241,7 +241,7 @@ async function wbSeries(code, area = "WLD") {
   const [ly] = pts[pts.length - 1];
   if (area === "WLD" && ly >= THIS_YEAR - 1) {
     const all = JSON.parse(
-      await get(`https://api.worldbank.org/v2/country/all/indicator/${code}?format=json&per_page=600&date=${ly - 1}:${ly}`, `wb-all-${code}-${ly}.json`),
+      await get(`https://api.worldbank.org/v2/country/all/indicator/${code}?format=json&per_page=600&date=${ly - 1}:${ly}`, `wb-coverage-${code}-${ly}.json`),
     );
     const eco = await economies();
     const n = { [ly - 1]: 0, [ly]: 0 };
@@ -485,8 +485,9 @@ function indicator(id, o) {
       ],
     });
   }
+  const displacedRows = await unhcr();
   {
-    const rows = (await unhcr());
+    const rows = displacedRows;
     const total = (r) => r.refugees + r.asylumSeekers + r.idps + r.oip + r.unrwa;
     const last = rows.at(-1);
     add("displaced", {
@@ -1070,6 +1071,13 @@ function indicator(id, o) {
     const y = Math.max(...Object.keys(byYear).map(Number));
     migrantShareBy[iso2] = [y, Number(byYear[y].toFixed(1))];
   }
+  // Deaths before age five, per 1,000 births, for each country's latest year.
+  const u5All = await wbAllCountries("SH.DYN.MORT");
+  const childMortalityBy = {};
+  for (const [iso2, byYear] of Object.entries(u5All)) {
+    const y = Math.max(...Object.keys(byYear).map(Number));
+    childMortalityBy[iso2] = [y, Number(byYear[y].toFixed(1))];
+  }
   const pr = await owidByCountry("political-rights-score-fh", "polrights_score", iso2Of);
   const cl = await owidByCountry("civil-liberties-score-fh", "civlibs_score", iso2Of);
   const freedom = {};
@@ -1267,14 +1275,17 @@ export const COUNTRY_FIGURES: {
   arrivals: Record<string, [year: number, value: number]>;
   tripsAbroad: Record<string, [year: number, value: number]>;
   migrantShare: Record<string, [year: number, value: number]>;
+  /** Deaths before age five per 1,000 live births. */
+  childMortality: Record<string, [year: number, value: number]>;
   /** [year, total 0-100, political rights 0-40, civil liberties 0-60, status] */
   freedom: Record<string, [year: number, total: number, pr: number, cl: number, status: "F" | "PF" | "NF"]>;
-} = ${JSON.stringify({ arrivals, tripsAbroad, migrantShare: migrantShareBy, freedom })};
+} = ${JSON.stringify({ arrivals, tripsAbroad, migrantShare: migrantShareBy, childMortality: childMortalityBy, freedom })};
 
 export const COUNTRY_FIGURE_SOURCES = ${JSON.stringify({
     arrivals: SRC.arrivals,
     tripsAbroad: SRC.departures,
     migrantShare: WB("SM.POP.TOTL.ZS", "1W"),
+    childMortality: WB("SH.DYN.MORT", "1W"),
     freedom: SRC.fh,
   })};
 
@@ -1292,6 +1303,14 @@ export const REGIONS: {
   growth: WorldPoint[];
   source: { label: string; url: string };
 }[] = ${JSON.stringify(regionStats)};
+
+/**
+ * The forcibly displaced, year by year, by kind - the parts that add up to
+ * WORLD.displaced - from UNHCR's Refugee Data Finder and UNRWA.
+ */
+export const DISPLACED_BY_KIND: { year: number; idps: number; refugees: number; asylumSeekers: number; others: number; unrwa: number }[] = ${JSON.stringify(
+    displacedRows.map((r) => ({ year: r.year, idps: r.idps, refugees: r.refugees, asylumSeekers: r.asylumSeekers, others: r.oip, unrwa: r.unrwa })),
+  )};
 
 /** Each economy's World Bank region, by ISO2. */
 export const REGION_OF: Record<string, string> = ${JSON.stringify(regionOf)};
