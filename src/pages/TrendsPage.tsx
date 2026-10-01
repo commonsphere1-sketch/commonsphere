@@ -388,18 +388,20 @@ function CountryOutlookCard() {
  * The measures the Trends section follows, by the part of the world they
  * describe. Each is a world series in worldview.ts, with its own source.
  */
-const TREND_GROUPS: { title: string; kicker: string; color: string; ids: string[] }[] = [
-  { title: "Energy", kicker: "What the world runs on", color: "#10b981", ids: ["renewableElectricity", "fossilShare", "evSalesShare", "co2"] },
-  { title: "Technology", kicker: "What people and firms are taking up", color: "#8b5cf6", ids: ["internet", "broadband", "mobile", "secureServers", "aiInvestment", "genAiInvestment", "robotInstalls", "robotStock"] },
-  { title: "Research and development", kicker: "What is spent on finding things out, and what comes of it", color: "#06b6d4", ids: ["research", "researchers", "sciArticles", "aiPublications", "patents", "ipReceipts"] },
+const TREND_GROUPS: { id: string; nav: string; title: string; kicker: string; color: string; ids: string[] }[] = [
+  { id: "trend-energy", nav: "Energy", title: "Energy", kicker: "What the world runs on", color: "#10b981", ids: ["renewableElectricity", "fossilShare", "evSalesShare", "co2"] },
+  { id: "trend-technology", nav: "Technology", title: "Technology", kicker: "What people and firms are taking up", color: "#8b5cf6", ids: ["internet", "broadband", "mobile", "secureServers", "aiInvestment", "genAiInvestment", "robotInstalls", "robotStock"] },
+  { id: "trend-research", nav: "Research & development", title: "Research and development", kicker: "What is spent on finding things out, and what comes of it", color: "#06b6d4", ids: ["research", "researchers", "sciArticles", "aiPublications", "patents", "ipReceipts"] },
   {
+    id: "trend-relations",
+    nav: "International relations",
     title: "International relations",
     kicker: "War and peace, arms, movement and money between countries",
     color: "#ef4444",
     ids: ["conflicts", "conflictDeaths", "militaryUsd", "militaryGdp", "armsTransfers", "nuclearWarheads", "displaced", "remittances"],
   },
-  { title: "Industry and trade", kicker: "What the world makes and sells", color: "#f59e0b", ids: ["trade", "manufacturingVA", "servicesVA", "highTechExports"] },
-  { title: "People", kicker: "How long people live, where, and on what", color: "#3b82f6", ids: ["lifeExpectancy", "extremePoverty", "urban", "aged65"] },
+  { id: "trend-industry", nav: "Industry & trade", title: "Industry and trade", kicker: "What the world makes and sells", color: "#f59e0b", ids: ["trade", "manufacturingVA", "servicesVA", "highTechExports"] },
+  { id: "trend-people", nav: "People", title: "People", kicker: "How long people live, where, and on what", color: "#3b82f6", ids: ["lifeExpectancy", "extremePoverty", "urban", "aged65"] },
 ];
 
 const usdShort = (v: number) => (v >= 1e12 ? `$${(v / 1e12).toFixed(2)}T` : v >= 1e9 ? `$${(v / 1e9).toFixed(1)}B` : `$${Math.round(v / 1e6).toLocaleString("en-US")}M`);
@@ -545,7 +547,8 @@ const SECTIONS: NavSection[] = [
   { id: "countries", label: "Countries" },
   { id: "population", label: "Population" },
   { id: "scenarios", label: "Scenarios" },
-  { id: "trends", label: "Trends" },
+  // The trends, a chip to each group of them; the first group sits under the section's heading, so its chip goes there.
+  ...TREND_GROUPS.map((g, i) => ({ id: i === 0 ? "trends" : g.id, label: g.nav })),
 ];
 
 export function TrendsPage() {
@@ -1079,7 +1082,7 @@ export function TrendsPage() {
             Trends
           </h2>
           {TREND_GROUPS.map((g) => (
-            <div key={g.title} className="flex flex-col gap-3">
+            <div key={g.title} id={g.id} className="scroll-mt-36 flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full" style={{ background: g.color }} aria-hidden />
                 <span className="text-[10px] font-bold font-sans uppercase tracking-widest" style={{ color: head }}>
