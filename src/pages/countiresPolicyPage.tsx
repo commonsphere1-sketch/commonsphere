@@ -12,6 +12,7 @@ import {
   Globe,
   CaretDown,
   CaretRight,
+  X,
 } from "@phosphor-icons/react";
 import { usStatesData } from "../data/statesData";
 import { countryPolicyFigures, policyCountry, statePolicyFigures, type PolicyFigures } from "../data/policyFigures";
@@ -10377,15 +10378,26 @@ const CATEGORY_FILTERS: ("All" | PolicyCategory)[] = [
  * dropdown with the whole description, what the figure covers, every figure
  * held for the area with its year, and their sources.
  */
-function PolicyCardItem({ card }: { card: PolicyCard }) {
+/**
+ * A policy area's card. Every card in a row is the same height and lays its
+ * parts out on the same lines - the name and the description each keep room
+ * for two lines whether they fill them or not, and "Details" sits at the foot
+ * - so the cards read across as a row. The details themselves open under the
+ * row of cards (PolicyDetails), not inside the card: the row scrolls sideways,
+ * and a card that grew inside it was cut off at the row's edge.
+ */
+function PolicyCardItem({ card, open, onToggle, panelId }: { card: PolicyCard; open: boolean; onToggle: () => void; panelId: string }) {
   const cfg = CATEGORY_CONFIG[card.category];
   const Icon = cfg.icon;
   const fig = figuresOf(card);
   const head = fig.head;
-  const sources = [...(fig.covers ? [fig.covers.source] : []), ...fig.figures.map((x) => x.source)];
 
   return (
-    <div className="bg-card rounded-2xl border border-border/50 p-4 flex flex-col gap-2.5 hover:border-border/80 hover:shadow-sm transition-all duration-150 w-64 shrink-0 snap-start self-start">
+    <div
+      className={`bg-card rounded-2xl border p-4 flex flex-col gap-2.5 hover:shadow-sm transition-all duration-150 w-64 shrink-0 snap-start ${
+        open ? "border-foreground shadow-sm" : "border-border/50 hover:border-border/80"
+      }`}
+    >
       {/* Top row: the area | its published figure */}
       <div className="flex items-center gap-2">
         <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${cfg.bg} flex-shrink-0`}>
@@ -10396,13 +10408,16 @@ function PolicyCardItem({ card }: { card: PolicyCard }) {
       </div>
 
       {/* The figure as a bar, where it is a share */}
-      <div className="relative h-1.5 rounded-full bg-muted overflow-hidden">
+      <div className="relative h-1.5 rounded-full bg-muted overflow-hidden shrink-0">
         {head?.share !== undefined && <div className={`absolute inset-y-0 left-0 rounded-full ${cfg.bar}`} style={{ width: `${Math.min(100, Math.max(1, head.share))}%` }} />}
       </div>
 
-      {/* The policy the page has written for the place, or the area's name */}
-      <p className={`text-[12px] font-semibold leading-snug line-clamp-2 ${cfg.color}`}>{card.policyName}</p>
-      {card.description && <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2">{card.description}</p>}
+      {/* The policy the page has written for the place, or the area's name: room for two lines */}
+      <p className={`text-[12px] font-semibold leading-snug line-clamp-2 min-h-[2.0625rem] ${cfg.color}`} title={card.policyName}>
+        {card.policyName}
+      </p>
+      {/* Its description, or the same room left empty, so the lines below stay level across the row */}
+      <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2 min-h-[1.875rem]">{card.description}</p>
 
       {/* The figure in words, with its year; or why there is none */}
       <p className="text-[11px] text-muted-foreground leading-snug">
@@ -10416,44 +10431,87 @@ function PolicyCardItem({ card }: { card: PolicyCard }) {
         )}
       </p>
 
-      <details className="group/details">
-        <summary className="flex items-center gap-1 text-[11px] font-semibold text-foreground cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
-          <CaretRight size={11} weight="bold" className="transition-transform group-open/details:rotate-90" />
-          Details
-        </summary>
-        <div className="mt-2 pt-2 border-t border-border/50 flex flex-col gap-2.5">
-          {card.description && <p className="text-[11px] text-foreground/90 leading-snug">{card.description}</p>}
-          {fig.covers && (
-            <p className="text-[11px] text-muted-foreground leading-snug">
-              <span className="font-semibold text-foreground">What the figure covers.</span> {fig.covers.text}
-            </p>
-          )}
-          {fig.figures.length > 0 ? (
-            <dl className="flex flex-col">
-              {fig.figures.map((x, i) => (
-                <div key={i} className="py-1.5 border-t border-border/40 first:border-t-0">
-                  <dt className="text-[10px] text-muted-foreground leading-snug">{x.label}</dt>
-                  <dd className="text-[11px] font-semibold text-foreground leading-snug">
-                    {x.value}
-                    <span className="font-normal text-muted-foreground">
-                      {" "}
-                      · {x.when}
-                      {x.note ? ` · ${x.note}` : ""}
-                    </span>
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          ) : (
-            <p className="text-[11px] text-muted-foreground leading-snug">No published figure is held for this area here.</p>
-          )}
-          <SourceLink sources={sources} className="!mt-0" />
-          <p className="text-[10px] text-muted-foreground leading-snug">
-            The figures are {card.entityName}'s for the whole area, not for one programme.
-            {card.written ? " The policy named above and its description are CommonSphere's own summary, not taken from a source." : ""}
-          </p>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-controls={panelId}
+        className="mt-auto pt-1 flex items-center gap-1 text-[11px] font-semibold text-foreground cursor-pointer select-none self-start"
+      >
+        <CaretDown size={11} weight="bold" className={`transition-transform ${open ? "rotate-180" : ""}`} />
+        {open ? "Hide details" : "Details"}
+      </button>
+    </div>
+  );
+}
+
+/**
+ * A card's details, under the row of cards and the full width of it: the
+ * whole description, what the figure covers, every figure held for the area
+ * with its year, and the sources.
+ */
+function PolicyDetails({ card, id, onClose }: { card: PolicyCard; id: string; onClose: () => void }) {
+  const cfg = CATEGORY_CONFIG[card.category];
+  const Icon = cfg.icon;
+  const fig = figuresOf(card);
+  const sources = [...(fig.covers ? [fig.covers.source] : []), ...fig.figures.map((x) => x.source)];
+  return (
+    <div id={id} role="region" aria-label={`${card.category} details for ${card.entityName}`} className="mt-3 bg-card rounded-2xl border border-border/50 overflow-hidden animate-fade-in">
+      <div className={`h-1 ${cfg.bar}`} aria-hidden />
+      <div className="p-4">
+        <div className="flex items-start gap-3">
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${cfg.bg} flex-shrink-0`}>
+            <Icon size={12} weight="fill" className={cfg.color} />
+            <span className={`text-[11px] font-semibold ${cfg.color}`}>{card.category}</span>
+          </div>
+          <p className={`text-[13px] font-semibold leading-snug flex-1 min-w-0 ${cfg.color}`}>{card.policyName}</p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 -m-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
+            aria-label="Hide details"
+          >
+            <X size={14} />
+          </button>
         </div>
-      </details>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-3 mt-3">
+          <div className="flex flex-col gap-2.5 min-w-0">
+            {card.description && <p className="text-[12px] text-foreground/90 leading-relaxed">{card.description}</p>}
+            {fig.covers && (
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                <span className="font-semibold text-foreground">What the figure covers.</span> {fig.covers.text}
+              </p>
+            )}
+            <p className="text-[10px] text-muted-foreground leading-snug">
+              The figures are {card.entityName}'s for the whole area, not for one programme.
+              {card.written ? " The policy named above and its description are CommonSphere's own summary, not taken from a source." : ""}
+            </p>
+          </div>
+          <div className="min-w-0">
+            {fig.figures.length > 0 ? (
+              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+                {fig.figures.map((x, i) => (
+                  <div key={i} className="py-1.5 border-t border-border/40">
+                    <dt className="text-[10px] text-muted-foreground leading-snug">{x.label}</dt>
+                    <dd className="text-[12px] font-semibold text-foreground leading-snug">
+                      {x.value}
+                      <span className="font-normal text-muted-foreground">
+                        {" "}
+                        · {x.when}
+                        {x.note ? ` · ${x.note}` : ""}
+                      </span>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <p className="text-[11px] text-muted-foreground leading-snug">No published figure is held for this area here.</p>
+            )}
+            <SourceLink sources={sources} className="mt-2" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -10490,6 +10548,11 @@ function EntityFlag({ group }: { group: EntityGroup }) {
 
 function EntityRow({ group }: { group: EntityGroup }) {
   const [open, setOpen] = useState(false);
+  /* The card whose details are open under the row of cards: one at a time. */
+  const [detail, setDetail] = useState<string | null>(null);
+  const detailCard = group.policies.find((p) => p.id === detail) ?? null;
+  // A state and a country can share an id ("ca"), so the panel's is made from both.
+  const panelId = `policy-details-${group.entityType}-${group.entityId}`;
 
   // Each area's share of what the government spends, where its figure is one: the only shares that sit on one scale.
   const shares = useMemo(
@@ -10611,16 +10674,19 @@ function EntityRow({ group }: { group: EntityGroup }) {
 
       {open && (
         <div className="px-5 pb-5 pt-1 border-t border-border/40 min-w-0">
+          {/* Stretched, so every card is as tall as the tallest. */}
           <div
-            className="flex items-start gap-3 mt-3 overflow-x-auto pb-1 snap-x"
+            className="flex items-stretch gap-3 mt-3 overflow-x-auto pb-1 snap-x"
             tabIndex={0}
             role="group"
             aria-label="Policy areas — scrolls sideways"
           >
             {group.policies.map((card) => (
-              <PolicyCardItem key={card.id} card={card} />
+              <PolicyCardItem key={card.id} card={card} open={detail === card.id} onToggle={() => setDetail((d) => (d === card.id ? null : card.id))} panelId={panelId} />
             ))}
           </div>
+          {/* Outside the sideways-scrolling row, so nothing cuts it off. */}
+          {detailCard && <PolicyDetails card={detailCard} id={panelId} onClose={() => setDetail(null)} />}
         </div>
       )}
     </div>
