@@ -59,6 +59,7 @@ import {
 } from "../data/airQuality";
 import { StyledSelect } from "../components/StyledSelect";
 import { citiesData } from "../data/citiesData";
+import { CITY_PLACES } from "../data/cityPlaces";
 import { COUNTRY_CLIMATE, type ClimateZone } from "../data/climateZones";
 
 /**
@@ -1275,14 +1276,23 @@ function NoDataHatch({
   );
 }
 
-/** What a link asked for: ?country=FR from a country's window, ?state=CA from a US state's. */
-function linkedPlace(): { country: string; state: string | null } | null {
+/** What a link asked for: ?country=FR from a country's window, ?state=CA from a US state's, ?city=<id> from a city's. */
+function linkedPlace(): { country: string; state: string | null; city: string | null } | null {
   const q = new URLSearchParams(window.location.search);
+  const city = citiesData.find((c) => c.id === q.get("city"));
+  if (city && CITY_PLACES[city.id]) return { country: city.countryCode, state: null, city: city.id };
   const state = (q.get("state") ?? "").toUpperCase();
-  if (usStatesData.some((s) => s.abbreviation === state)) return { country: "US", state };
+  if (usStatesData.some((s) => s.abbreviation === state)) return { country: "US", state, city: null };
   const country = q.get("country") ?? "";
-  return /^[A-Za-z]{2}$/.test(country) ? { country: country.toUpperCase(), state: null } : null;
+  return /^[A-Za-z]{2}$/.test(country) ? { country: country.toUpperCase(), state: null, city: null } : null;
 }
+
+/** A country's name as it reads in a sentence: "the United States", "the Netherlands", "France". */
+const inSentence = (name: string) => (/^(United |Netherlands$|Philippines$|Bahamas$|Maldives$|Czech Republic$|Dominican Republic$|Central African Republic$)/.test(name) ? `the ${name}` : name);
+
+/** People, at a glance: 8.32B, 39.4M, 624,000. */
+const peopleShort = (n: number) =>
+  n >= 1e9 ? `${(n / 1e9).toFixed(2)}B` : n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : Math.round(n).toLocaleString("en-US");
 
 type ScopeId = "all" | "g20" | "g7" | "brics" | "north" | "south";
 
@@ -1517,10 +1527,20 @@ export function WorldMapsPage() {
      until another country is picked. */
   const [markOn, setMarkOn] = useState(linked !== null);
   const [markState, setMarkState] = useState<string | null>(linked?.state ?? null);
+  const [markCity, setMarkCity] = useState<string | null>(linked?.city ?? null);
   const setFocusCode = useCallback((code: string) => {
     setFocusCodeOnly(code);
     setMarkState(null);
+    setMarkCity(null);
   }, []);
+  /* Where the pointer came onto the picked-out place: its card opens there. */
+  const [markTip, setMarkTip] = useState<{ x: number; y: number } | null>(null);
+  const tipAt = useCallback((e: React.MouseEvent | React.FocusEvent) => {
+    if ("clientX" in e) return setMarkTip({ x: e.clientX, y: e.clientY });
+    const r = e.currentTarget.getBoundingClientRect();
+    setMarkTip({ x: r.left, y: r.bottom });
+  }, []);
+  const tipOff = useCallback(() => setMarkTip(null), []);
   /* The country card sits well down the page, under the world map and the
      scope/indicator chips. Arriving from a country's own "Nav" button and
      landing at the top of an unrelated page - not on the country it asked
@@ -3011,13 +3031,92 @@ export function WorldMapsPage() {
      focus and hover as it went. */
   /* ── The place picked out ── */
   const markedState = markState ? (usStatesData.find((s) => s.abbreviation === markState) ?? null) : null;
-  const markName = markedState?.name ?? (focusCode === "US" ? "United States" : (focusCountry?.name ?? focusCode));
+  const markedCity = markCity ? (citiesData.find((c) => c.id === markCity) ?? null) : null;
+  const markName = markedCity?.name ?? markedState?.name ?? (focusCode === "US" ? "United States" : (focusCountry?.name ?? focusCode));
+  /* A city is a point, not a shape: where it stands on each map. Albers USA
+     returns nothing for a point outside the United States, so each is checked. */
+  const cityAt = useMemo(() => {
+    const at = markOn && markedCity ? CITY_PLACES[markedCity.id] : undefined;
+    if (!at) return null;
+    const on = (p: unknown) => {
+      const xy = (p as ((c: [number, number]) => [number, number] | null) | null | undefined)?.([at.lon, at.lat]);
+      return xy && Number.isFinite(xy[0]) && Number.isFinite(xy[1]) ? { x: xy[0], y: xy[1] } : null;
+    };
+    return { world: on(worldPath.projection), focus: on((focusCode === "US" ? statePath : focusMap?.path)?.projection()) };
+  }, [markOn, markedCity, worldPath, focusCode, statePath, focusMap]);
+
+  /* What the card says about the picked-out place: what kind of place it is,
+     a line describing it, and its figures - all from the site's own records
+     for it, the same ones its window shows. */
+  const markInfo = useMemo(() => {
+    if (!markOn) return null;
+    const rows = (list: [string, string | null | undefined][]) => list.filter((r): r is [string, string] => Boolean(r[1]));
+    if (markedCity) {
+      const c = markedCity;
+      return {
+        kind: "City",
+        name: c.name,
+        flag: c.countryCode,
+        about: `A city in ${inSentence(c.country)} (${c.region}), home to ${peopleShort(c.population)} people, ${peopleShort(c.metroPopulation)} in its wider metropolitan area.`,
+        stats: rows([
+          ["City population", peopleShort(c.population)],
+          ["Metro population", peopleShort(c.metroPopulation)],
+          ["GDP", usdFromBillions(c.gdpBillions)],
+          ["GDP per person", `$${c.gdpPerCapita.toLocaleString("en-US")}`],
+          ["Area", `${c.areaKm2.toLocaleString("en-US")} km²`],
+          ["Density", `${c.populationDensity.toLocaleString("en-US")}/km²`],
+        ]),
+        more: "Open the city on the Cities page for the rest.",
+      };
+    }
+    if (markedState) {
+      const s = markedState;
+      return {
+        kind: "US state",
+        name: s.name,
+        flag: "US",
+        about: `A state in the ${s.region} of the United States, admitted in ${s.statehood}. Its capital is ${s.capital}; its governor is ${s.governor} (${s.party}).`,
+        stats: rows([
+          ["Population", peopleShort(s.population)],
+          ["GDP", usdFromBillions(s.gdp)],
+          ["Median household income", `$${s.medianIncome.toLocaleString("en-US")}`],
+          ["Unemployment", `${s.unemploymentRate}%`],
+          ["Area", `${Math.round(s.areaKm2).toLocaleString("en-US")} km²`],
+          ["House seats", String(s.houseSeats)],
+        ]),
+        more: "Open the state on the US States page for the rest.",
+      };
+    }
+    const c = countriesData.find((x) => x.code === focusCode);
+    if (!c) return null;
+    const of = c.sovereign ? countriesData.find((x) => x.code === c.sovereign)?.name : undefined;
+    const shown = activeCountry.get(c);
+    return {
+      kind: c.territory ? "Territory" : "Country",
+      name: c.name,
+      flag: c.code,
+      about: c.territory
+        ? `A territory in ${c.continent}${of ? ` of ${inSentence(of)}` : ""}${c.capital && c.capital !== "None" ? `; its capital is ${c.capital}` : ""}.`
+        : `A country in ${c.continent}${c.governmentType ? `, governed as a ${c.governmentType.toLowerCase()}` : ""}${c.capital && c.capital !== "None" ? `; its capital is ${c.capital}` : ""}.`,
+      stats: rows([
+        ["Population", c.population ? peopleShort(c.population) : null],
+        ["GDP", has(c.gdp) ? usdFromBillions(c.gdp) : null],
+        ["GDP per person", has(c.gdpPerCapita) ? `$${Math.round(c.gdpPerCapita).toLocaleString("en-US")}` : null],
+        ["Life expectancy", has(c.lifeExpectancy) ? `${c.lifeExpectancy.toFixed(1)} years` : null],
+        ["Human development", has(c.humanDevelopmentIndex) ? String(c.humanDevelopmentIndex) : null],
+        ["Area", c.areaKm2 ? `${Math.round(c.areaKm2).toLocaleString("en-US")} km²` : null],
+        // What the world map is shaded by, where that is not already above.
+        [activeCountry.label, ["hdi", "life", "gdppc", "population"].includes(activeCountry.id) || shown === null ? null : activeCountry.format(shown)],
+      ]),
+      more: "Open the country on the Countries page for the rest.",
+    };
+  }, [markOn, markedCity, markedState, focusCode, activeCountry]);
   /* On the world map: the state itself where a link named one - the state
      shapes are in longitude and latitude, so the world's projection draws them
      too - and the country otherwise. `size` is its longer side on the map, so
      a place too small to see can be ringed. */
   const worldMark = useMemo(() => {
-    if (!markOn) return [];
+    if (!markOn || markedCity) return [];
     const drawn = (f: unknown) => {
       const [[x0, y0], [x1, y1]] = worldPath.path.bounds(f as never);
       const [cx, cy] = worldPath.path.centroid(f as never);
@@ -3027,7 +3126,17 @@ export function WorldMapsPage() {
       return states.features.filter((f) => stateForFeature(f.properties.name)?.abbreviation === markedState.abbreviation).map(drawn);
     }
     return worldDrawn.features.filter((f) => countryForFeature(f.properties.name)?.code === focusCode).map(drawn);
-  }, [markOn, markedState, focusCode, states, worldDrawn, worldPath]);
+  }, [markOn, markedCity, markedState, focusCode, states, worldDrawn, worldPath]);
+
+  /** A city's mark: a ring and a dot in the picked-out colour, cased, and the same size on screen at any zoom. */
+  const cityMark = (at: { x: number; y: number } | null, z: number) =>
+    at && (
+      <g onMouseEnter={tipAt} onMouseLeave={tipOff} style={{ cursor: "help" }}>
+        <circle cx={at.x} cy={at.y} r={13 / z} fill={markInk} fillOpacity={0.18} stroke={labelHalo} strokeOpacity={0.55} strokeWidth={3.6 / z} />
+        <circle cx={at.x} cy={at.y} r={13 / z} fill="none" stroke={markInk} strokeWidth={2 / z} />
+        <circle cx={at.x} cy={at.y} r={4 / z} fill={markInk} stroke={labelHalo} strokeWidth={1.2 / z} />
+      </g>
+    );
 
   /** The picked-out place's switch, drawn as a layer's is. */
   const markChip = (
@@ -3039,7 +3148,11 @@ export function WorldMapsPage() {
         markOn ? "border-transparent" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
       }`}
       style={markOn ? { background: `${markInk}26`, borderColor: `${markInk}66`, color: markInk } : undefined}
-      title={`Fill ${markName} in on both maps`}
+      title={`Pick ${markName} out on both maps`}
+      onMouseEnter={markOn ? tipAt : undefined}
+      onMouseLeave={tipOff}
+      onFocus={markOn ? tipAt : undefined}
+      onBlur={tipOff}
     >
       <span aria-hidden className="w-2 h-2 shrink-0 rounded-[2px]" style={{ background: markOn ? markInk : "currentColor", opacity: markOn ? 1 : 0.45 }} />
       {markName}
@@ -3149,6 +3262,38 @@ export function WorldMapsPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
+      {/* The picked-out place's card: what it is, a line about it, and its
+          figures, opened where the pointer came onto it (or under its chip).
+          It takes no pointer events, so it cannot get between the pointer and
+          the map. */}
+      {markTip && markInfo && (
+        <div
+          role="tooltip"
+          className="fixed z-50 w-72 max-w-[calc(100vw-1.5rem)] rounded-xl border modal-glass shadow-2xl p-3 pointer-events-none"
+          style={{
+            left: Math.max(12, Math.min(markTip.x + 14, window.innerWidth - 300)),
+            top: Math.max(12, Math.min(markTip.y + 14, window.innerHeight - 290)),
+          }}
+        >
+          <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: markInk }}>
+            {markInfo.kind}
+          </p>
+          <p className="flex items-center gap-2 mt-0.5">
+            <img src={`https://flagcdn.com/w40/${markInfo.flag.toLowerCase()}.png`} alt="" width={20} height={14} className="rounded-[2px] shrink-0" />
+            <span className="text-sm font-bold font-sans text-foreground leading-tight">{markInfo.name}</span>
+          </p>
+          <p className="text-[11px] font-sans text-muted-foreground leading-snug mt-1.5">{markInfo.about}</p>
+          <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-2.5 pt-2.5 border-t border-border/50">
+            {markInfo.stats.map(([k, v]) => (
+              <div key={k} className="min-w-0">
+                <dt className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground truncate">{k}</dt>
+                <dd className="text-[12px] font-mono font-bold text-foreground">{v}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="text-[9px] font-sans text-muted-foreground mt-2">{markInfo.more}</p>
+        </div>
+      )}
       {/* Wider than the usual 2xl cap: at 2560 the maps stopped growing at
           1488px and sat in ~890px of empty space. Height is capped per map
           below, so the extra width cannot push a card past the viewport. */}
@@ -3344,10 +3489,10 @@ export function WorldMapsPage() {
             {/* The place picked out: filled in its own colour over the shading
                 and under the overlays, as a layer is, with a casing so its edge
                 reads on any fill. A place too small to see at this zoom gets a
-                ring round it. No pointer events, so a hover still reports the
-                country underneath. */}
+                ring round it, and a city its own mark. Pointing at it opens
+                its card. */}
             {worldMark.map((m, i) => (
-              <g key={`mark-${i}`} pointerEvents="none">
+              <g key={`mark-${i}`} onMouseEnter={tipAt} onMouseLeave={tipOff} style={{ cursor: "help" }}>
                 <path d={m.d} fill={markInk} fillOpacity={0.62} stroke={labelHalo} strokeOpacity={0.55} strokeWidth={2.6 / worldZoom.zoom} strokeLinejoin="round" />
                 <path d={m.d} fill="none" stroke={markInk} strokeWidth={1.3 / worldZoom.zoom} strokeLinejoin="round" />
                 {m.size * worldZoom.zoom < 18 && Number.isFinite(m.cx) && Number.isFinite(m.cy) && (
@@ -3358,6 +3503,7 @@ export function WorldMapsPage() {
                 )}
               </g>
             ))}
+            {cityMark(cityAt?.world ?? null, worldZoom.zoom)}
 
             {/* ── Overlays ──────────────────────────────────────────────
                 Drawn over the fills and the internal borders, under the hover
@@ -3815,14 +3961,26 @@ export function WorldMapsPage() {
                 ? stateShapes
                     .filter((s) => s.state?.abbreviation === markState)
                     .map((s, i) => (
-                      <g key={`mark-${i}`} pointerEvents="none">
+                      <g key={`mark-${i}`} onMouseEnter={tipAt} onMouseLeave={tipOff} style={{ cursor: "help" }}>
                         <path d={s.d} fill={markInk} fillOpacity={0.62} stroke={labelHalo} strokeOpacity={0.55} strokeWidth={3 / zoom} strokeLinejoin="round" />
                         <path d={s.d} fill="none" stroke={markInk} strokeWidth={1.5 / zoom} strokeLinejoin="round" />
                       </g>
                     ))
-                : usOutlineD && (
-                    <path d={usOutlineD} fill={markInk} fillOpacity={0.45} stroke={markInk} strokeWidth={1.5 / zoom} strokeLinejoin="round" pointerEvents="none" />
+                : !markedCity &&
+                  usOutlineD && (
+                    <path
+                      d={usOutlineD}
+                      fill={markInk}
+                      fillOpacity={0.45}
+                      stroke={markInk}
+                      strokeWidth={1.5 / zoom}
+                      strokeLinejoin="round"
+                      onMouseEnter={tipAt}
+                      onMouseLeave={tipOff}
+                      style={{ cursor: "help" }}
+                    />
                   ))}
+            {focusCode === "US" && cityMark(cityAt?.focus ?? null, zoom)}
 
             {/* Labels last, so nothing is drawn over them. */}
             {stateLabels.map((l) => (
@@ -4130,6 +4288,8 @@ export function WorldMapsPage() {
                     style={{ ...focusZoom.style, flex: `0 1 ${focusZoom.style.maxWidth}` }}
                     {...focusZoom.panProps}
                     {...focusZoom.a11yProps}
+                    onMouseEnter={markOn && !markedCity ? tipAt : undefined}
+                    onMouseLeave={tipOff}
                     role="img"
                     aria-label={`Outline map of ${focusCountry?.name ?? "the selected country"}${
                       focusMap && focusMap.parts.length > 1
@@ -4148,7 +4308,7 @@ export function WorldMapsPage() {
                           strokeLinejoin="round"
                         />
                         {/* The place picked out: this map is all of it, so the whole of it is filled. */}
-                        {markOn && (
+                        {markOn && !markedCity && (
                           <path d={focusMap.outline} fill={markInk} fillOpacity={0.45} stroke={markInk} strokeWidth={1.5 / zoom} strokeLinejoin="round" pointerEvents="none" />
                         )}
 

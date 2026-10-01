@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { CITY_PLACES } from "../data/cityPlaces";
 import {
   MapPin,
   ListBullets,
@@ -2666,6 +2668,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
     "overview",
   );
   const [isExpanded, setIsExpanded] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -2738,6 +2741,17 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
+              {/* As in a country's and a state's window: to the maps page, with this city marked on both maps. */}
+              {CITY_PLACES[city.id] && (
+                <button
+                  onClick={() => navigate(`/dashboard/maps?city=${city.id}`)}
+                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                  aria-label={`Show ${city.name} on the map`}
+                  title="Show on map"
+                >
+                  <MapTrifold size={18} />
+                </button>
+              )}
               <button
                 onClick={() => setIsExpanded((v) => !v)}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
