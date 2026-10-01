@@ -10,7 +10,9 @@ import { SourceLink } from "./SourceLink";
  * is, the figure, how it has moved (as a chip, with an arrow), a line or two
  * saying what it measures, its series as a filled line in the card's own
  * colour, two or three facts read off that series, and - where there is a
- * series - a window behind it with the full chart and the facts in full.
+ * series - a window behind it with the full chart and the facts in full:
+ * what the figure measures and why it matters, the figure by region, group,
+ * country and type where the page has those, and the figures beside it.
  *
  * Shared by the Trends, Humanitarian and Worldview pages, whose tiles were
  * three copies of one plainer design. Nothing here computes a figure the page
@@ -24,6 +26,28 @@ export interface StatFact {
   label: string;
   value: string;
   sub?: string;
+}
+
+/** A row of a breakdown: a region, a group, a country or a type, with its figure as printed and the length of its bar. */
+export interface StatTableRow {
+  name: string;
+  /** What the bar is drawn from; the longest row fills the track. */
+  value: number;
+  text: string;
+  /** Its share of the total, its reading ten years before, or what sets it apart. */
+  note?: string;
+  /** ISO2, for a country's flag. */
+  code?: string;
+}
+
+/** The figure broken down one way: by region, by income group, by country, by type. */
+export interface StatTable {
+  key: string;
+  title: string;
+  kicker?: string;
+  rows: StatTableRow[];
+  note?: string;
+  source?: { label: string; url: string };
 }
 
 /** How a figure has moved: the amount for the chip, what it is measured against, and whether that is for the better. */
@@ -54,6 +78,18 @@ export interface StatCardData {
   /** Facts to show in place of those read off the series. */
   facts?: StatFact[];
   source?: { label: string; url: string } | { label: string; url: string }[];
+  // ── For the window only ──
+  /** What the figure counts and how it is measured, at length. */
+  what?: string;
+  /** Why it matters. */
+  why?: string;
+  /** Facts beside those read off the series. */
+  moreFacts?: StatFact[];
+  /** The figure broken down: by region, group, country, type. */
+  tables?: StatTable[];
+  /** The figures that sit beside this one on the page. */
+  related?: { title: string; rows: StatFact[] };
+  notes?: string[];
 }
 
 const DEFAULT_COLOR = "#3987e5";
@@ -143,6 +179,45 @@ export function StatSparkline({ series, color, split, height = "h-9" }: { series
   );
 }
 
+const flagUrl = (code: string) => `https://flagcdn.com/w40/${code.toLowerCase()}.png`;
+
+/**
+ * A breakdown as bars: each row's name and its figure in ink, a bar against
+ * the longest row in the card's colour, and under it the row's share or its
+ * reading ten years before. One colour throughout - the bars show size, and
+ * the names say which is which.
+ */
+function TableCard({ t, color, wide }: { t: StatTable; color: string; wide: boolean }) {
+  const top = Math.max(...t.rows.map((r) => r.value), 0) || 1;
+  return (
+    <div className={`modal-tile rounded-xl p-3 min-w-0 flex flex-col ${wide ? "md:col-span-2" : ""}`}>
+      <p className="text-[12px] font-bold font-sans text-foreground leading-snug">{t.title}</p>
+      {t.kicker && <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground mt-0.5 leading-snug">{t.kicker}</p>}
+      <ul className={`mt-2.5 grid gap-x-5 gap-y-2 ${wide ? "sm:grid-cols-2" : ""}`} aria-label={t.title}>
+        {t.rows.map((r) => (
+          <li key={r.name} className="min-w-0">
+            <span className="flex items-baseline justify-between gap-2">
+              <span className="flex items-center gap-1.5 min-w-0">
+                {r.code && <img src={flagUrl(r.code)} alt="" width={16} height={12} loading="lazy" className="rounded-[2px] shrink-0 self-center" />}
+                <span className="text-[11px] font-sans text-foreground truncate" title={r.name}>
+                  {r.name}
+                </span>
+              </span>
+              <span className="text-[11px] font-mono font-semibold text-foreground shrink-0">{r.text}</span>
+            </span>
+            <span className="block h-1.5 rounded-full bg-muted overflow-hidden mt-1" aria-hidden>
+              <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, (100 * Math.max(0, r.value)) / top)}%`, background: color }} />
+            </span>
+            {r.note && <span className="block text-[9px] font-mono text-muted-foreground mt-0.5 leading-snug">{r.note}</span>}
+          </li>
+        ))}
+      </ul>
+      {t.note && <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2.5">{t.note}</p>}
+      {t.source && <SourceLink sources={t.source} className="mt-auto pt-2" />}
+    </div>
+  );
+}
+
 function FactRow({ f }: { f: StatFact }) {
   return (
     <span className="flex justify-between items-baseline gap-2">
@@ -225,7 +300,12 @@ export function StatCard({ s, onOpen, more }: { s: StatCardData; onOpen?: () => 
   );
 }
 
-/** The window behind a card: the figure, its series as a chart with its axes, the facts in full, what it measures, and its source. */
+/**
+ * The window behind a card: the figure, what it measures and why it matters,
+ * its series as a chart with its axes, the facts in full, the figure broken
+ * down by region, group, country and type, the figures beside it, and its
+ * sources.
+ */
 function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => void }) {
   const { theme } = useTheme();
   const isLight = theme === "light";
@@ -252,8 +332,14 @@ function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => void }) {
   const muted = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.5)";
   const ink = isLight ? "#0f172a" : "#f1f0ff";
   const data = series.map(([y, v]) => ({ year: String(y), a: !split || y < split ? v : null, p: split && y >= split - 1 ? v : null }));
-  const facts = s.facts && s.facts.length > 3 ? s.facts : [...(s.facts ?? []), ...seriesFacts(s, true).filter((f) => !(s.facts ?? []).some((x) => x.label === f.label))];
-  const sources = s.source ? (Array.isArray(s.source) ? s.source : [s.source]) : [];
+  const given = [...(s.facts ?? []), ...(s.moreFacts ?? [])];
+  const facts = s.facts && s.facts.length > 3 ? given : [...(s.facts ?? []), ...seriesFacts(s, true).filter((f) => !given.some((x) => x.label === f.label)), ...(s.moreFacts ?? [])];
+  const tables = s.tables ?? [];
+  // The figure's own source, then each breakdown's, once each.
+  const sources = [...(s.source ? (Array.isArray(s.source) ? s.source : [s.source]) : []), ...tables.flatMap((t) => (t.source ? [t.source] : []))].filter(
+    (x, i, all) => all.findIndex((o) => o.label === x.label && o.url === x.url) === i,
+  );
+  const worked = tables.some((t) => t.rows.some((r) => r.note?.includes("% of")));
 
   return (
     <div
@@ -265,7 +351,7 @@ function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => void }) {
       aria-modal="true"
       aria-label={`${s.label} in detail`}
     >
-      <div className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}>
+      <div className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : `${tables.length ? "max-w-4xl" : "max-w-2xl"} max-h-[90vh]`}`}>
         <div className="p-6">
           <div className="relative flex items-start justify-between -mx-6 -mt-6 px-6 pt-6 pb-5 rounded-t-2xl overflow-hidden">
             <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(90deg, ${color}33, ${color}14, ${color}26)` }} />
@@ -300,6 +386,23 @@ function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => void }) {
               {s.about && <span className="text-muted-foreground">{s.about} </span>}
               {s.story && <span className="text-foreground/90">{s.story}</span>}
             </p>
+          )}
+
+          {(s.what || s.why) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+              {s.what && (
+                <div className="modal-tile rounded-xl p-3">
+                  <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1.5">What it measures</p>
+                  <p className="text-[12px] font-sans leading-relaxed text-foreground/90">{s.what}</p>
+                </div>
+              )}
+              {s.why && (
+                <div className="modal-tile rounded-xl p-3">
+                  <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1.5">Why it matters</p>
+                  <p className="text-[12px] font-sans leading-relaxed text-foreground/90">{s.why}</p>
+                </div>
+              )}
+            </div>
           )}
 
           {series.length > 2 && (
@@ -338,7 +441,7 @@ function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => void }) {
           {facts.length > 0 && (
             <>
               <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mt-6 mb-2">In figures</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className={`grid grid-cols-2 sm:grid-cols-3 gap-2 ${tables.length ? "md:grid-cols-4" : ""}`}>
                 {facts.map((f) => (
                   <div key={f.label} className="modal-tile rounded-xl p-3 min-w-0">
                     <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1">{f.label}</p>
@@ -350,9 +453,40 @@ function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => void }) {
             </>
           )}
 
-          <p className="text-[9px] font-sans text-muted-foreground mt-5 pt-3 border-t border-border/40">
-            The highest, the lowest and the reading ten years back are read off the series shown; nothing else here is worked out.
-          </p>
+          {tables.length > 0 && (
+            <>
+              <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mt-6 mb-2">
+                Broken down · {tables.map((t) => t.title.toLowerCase()).join(" · ")}
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {tables.map((t, i) => (
+                  // An odd one out takes the full width, its rows in two columns.
+                  <TableCard key={t.key} t={t} color={color} wide={tables.length % 2 === 1 && i === 0} />
+                ))}
+              </div>
+            </>
+          )}
+
+          {s.related && s.related.rows.length > 0 && (
+            <>
+              <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mt-6 mb-2">{s.related.title}</p>
+              <div className="modal-tile rounded-xl px-3 py-2.5 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+                {s.related.rows.map((f) => (
+                  <FactRow key={f.label} f={f} />
+                ))}
+              </div>
+            </>
+          )}
+
+          <div className="text-[9px] font-sans text-muted-foreground mt-5 pt-3 border-t border-border/40 space-y-1 leading-relaxed">
+            {(s.notes ?? []).map((n) => (
+              <p key={n}>{n}</p>
+            ))}
+            <p>
+              The highest, the lowest and the reading ten years back are read off the series shown
+              {worked ? "; a share is a part over its source's total for the same year" : ""}. Nothing else here is worked out.
+            </p>
+          </div>
           {sources.length > 0 && <SourceLink sources={sources} className="mt-1" />}
         </div>
       </div>

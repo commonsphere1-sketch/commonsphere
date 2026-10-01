@@ -25,9 +25,11 @@ import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "../components/SectionNav";
 import { StyledSelect } from "../components/StyledSelect";
-import { StatCard, splitChange, type StatCardData } from "../components/StatCard";
+import { StatCard, splitChange, type StatCardData, type StatFact, type StatTable } from "../components/StatCard";
 import { usdFromBillions } from "../lib/money";
 import { WORLD, WORLDVIEW_RETRIEVED, type WorldIndicator } from "../data/worldview";
+import { EXPLAIN } from "../data/worldviewExplain";
+import { TREND_DETAILS, type DetailTable } from "../data/trendDetails";
 import {
   POPULATION_OUTLOOK,
   POPULATION_VARIANTS,
@@ -400,8 +402,87 @@ const TREND_GROUPS: { title: string; kicker: string; color: string; ids: string[
   { title: "People", kicker: "How long people live, where, and on what", color: "#3b82f6", ids: ["lifeExpectancy", "extremePoverty", "urban", "aged65"] },
 ];
 
-/** A world series as a card: its latest reading, its move on about ten years before in its own terms, what it measures, and its line. */
-function TrendTile({ id, color }: { id: string; color: string }) {
+const usdShort = (v: number) => (v >= 1e12 ? `$${(v / 1e12).toFixed(2)}T` : v >= 1e9 ? `$${(v / 1e9).toFixed(1)}B` : `$${Math.round(v / 1e6).toLocaleString("en-US")}M`);
+/** A value of a breakdown, printed as its table says: as the figure itself is, or as a percentage, a count or dollars. */
+const printAs = (ind: WorldIndicator, as: DetailTable["as"], v: number) =>
+  as === "figure" ? fmtWorld(ind, v) : as === "pct" ? `${v.toFixed(1)}%` : as === "usd" ? usdShort(v) : v.toLocaleString("en-US");
+const shareText = (part: number, total: number) => {
+  const p = (100 * part) / total;
+  return p > 0 && p < 0.1 ? "under 0.1%" : `${p.toFixed(p < 10 ? 1 : 0)}%`;
+};
+/** Tables whose rows are parts of a total that is not the world figure on the card. */
+const OF_THE_TOTAL = new Set(["types", "investment", "origins", "hosts"]);
+
+/**
+ * A trend's breakdowns for its window: its make-up by kind, where
+ * worldview.ts has it, then the tables build-trend-details.cjs wrote - by
+ * region, income group and country, by type, and the investment behind it.
+ * A row says its share of the total where its table has one, and its reading
+ * ten years before where the source has that.
+ */
+function tablesOf(ind: WorldIndicator): StatTable[] {
+  const out: StatTable[] = [];
+  if (ind.breakdown?.length) {
+    const shares = ind.breakdownUnit === "%";
+    const [, total] = last(ind.series);
+    // Parts that add up to the figure are given their share of it; kinds counted apart from it are not.
+    const parts = ind.breakdown.filter(([label]) => !label.startsWith("Also: "));
+    const whole = !shares && Math.abs(parts.reduce((t, [, v]) => t + v, 0) - total) <= Math.abs(total) * 0.005;
+    out.push({
+      key: "kinds",
+      title: shares ? "By source" : "By kind",
+      kicker: `${shares ? "Share of the whole" : ind.unit} · ${ind.breakdownYear}`,
+      rows: ind.breakdown
+        .filter(([, v]) => v > 0)
+        .map(([label, v]) => {
+          const apart = label.startsWith("Also: ");
+          return {
+            name: apart ? label.slice(6, 7).toUpperCase() + label.slice(7) : label,
+            value: v,
+            text: shares ? `${v.toFixed(1)}%` : fmtWorld(ind, v),
+            note: apart ? "counted apart from the figure" : whole ? `${shareText(v, total)} of the total` : undefined,
+          };
+        }),
+      source: ind.source,
+    });
+  }
+  for (const t of TREND_DETAILS[ind.id]?.tables ?? []) {
+    const of = OF_THE_TOTAL.has(t.key) ? "of the total" : "of the world's";
+    out.push({
+      key: t.key,
+      title: t.title,
+      kicker: t.kicker,
+      rows: t.rows.map((r) => ({
+        name: r.n,
+        value: r.v,
+        text: printAs(ind, t.as, r.v),
+        code: r.c,
+        note: [t.kind === "share" && t.total ? `${shareText(r.v, t.total)} ${of}` : "", r.was ? `${printAs(ind, t.as, r.was[1])} in ${r.was[0]}` : ""].filter(Boolean).join(" · ") || undefined,
+      })),
+      note: t.note,
+      source: t.source,
+    });
+  }
+  return out;
+}
+
+/** A world series' latest reading as a line for another card's window. */
+function relatedFact(id: string, beside: string[]): StatFact | null {
+  const ind = WORLD[id];
+  if (!ind || !ind.series.length) return null;
+  const [year, v] = last(ind.series);
+  // Two figures of a group can share a name (military spending, in dollars and as a share of GDP): the unit tells them apart.
+  const twin = beside.some((x) => x !== id && WORLD[x]?.label === ind.label);
+  return { label: twin ? `${ind.label}, ${ind.unit}` : ind.label, value: fmtWorld(ind, v), sub: twin ? `${year}` : `${ind.unit} · ${year}` };
+}
+
+/**
+ * A world series as a card: its latest reading, its move on about ten years
+ * before in its own terms, what it measures, and its line. Its window adds
+ * what it measures and why it matters, its move over the whole series, its
+ * breakdowns, and the other figures of its group.
+ */
+function TrendTile({ id, color, group, beside }: { id: string; color: string; group: string; beside: string[] }) {
   const ind = WORLD[id];
   if (!ind || ind.series.length < 2) return null;
   const [year, v] = last(ind.series);
@@ -420,6 +501,18 @@ function TrendTile({ id, color }: { id: string; color: string }) {
         // Better or worse only where the series itself says which way is which.
         flat || ind.upIsGood === null ? null : diff > 0 === ind.upIsGood ? "better" : "worse",
       );
+  const detail = TREND_DETAILS[id];
+  const explain = EXPLAIN[id];
+  const [y0, v0] = ind.series[0];
+  const moved = v - v0;
+  const moreFacts: StatFact[] = [
+    ...(change ? [{ label: "Change in ten years", value: change.chip, sub: change.caption }] : []),
+    ...(ind.series.length > 2 && Math.abs(moved) >= 10 ** -ind.dp / 2 && (ind.format === "pct" || v0 !== 0)
+      ? [{ label: `Change since ${y0}`, value: ind.format === "pct" ? `${signed(moved, ind.dp)} pts` : `${signed((100 * moved) / Math.abs(v0), Math.abs((100 * moved) / v0) < 10 ? 1 : 0)}%`, sub: `from ${fmtWorld(ind, v0)}` }]
+      : []),
+    ...(detail?.facts ?? []).map((f) => ({ label: f.label, value: printAs(ind, f.as, f.v), sub: f.sub })),
+  ];
+  const related = beside.filter((x) => x !== id).flatMap((x) => relatedFact(x, beside) ?? []);
   return (
     <StatCard
       s={{
@@ -432,7 +525,14 @@ function TrendTile({ id, color }: { id: string; color: string }) {
         color,
         fmt: (x) => fmtWorld(ind, x),
         source: ind.source,
+        what: explain?.what,
+        why: explain?.why,
+        moreFacts,
+        tables: tablesOf(ind),
+        related: { title: `Beside it · ${group.toLowerCase()}`, rows: related },
+        notes: detail?.notes,
       }}
+      more="Regions, types, facts and the full series"
     />
   );
 }
@@ -460,9 +560,47 @@ export function TrendsPage() {
 
   const stats = useMemo<StatCardData[]>(() => {
     const w = WEO_GROUPS.world;
+    /* The ten largest economies by the IMF's latest estimate of their GDP:
+       the countries a world figure is mostly made of. */
+    const largest = [...WEO_COUNTRIES].sort((a, b) => (at(b.gdp, first - 1) ?? 0) - (at(a.gdp, first - 1) ?? 0)).slice(0, 10);
+    const halves: [string, typeof w][] = [
+      ["Advanced economies", WEO_GROUPS.advanced],
+      ["Emerging and developing economies", WEO_GROUPS.emerging],
+    ];
+    /* One of the IMF's measures for its two halves of the world and for the
+       ten largest economies, in the year named, each with the year before's. */
+    const weoTables = (key: "growth" | "inflation" | "debt", fmt: (v: number) => string, year: number): StatTable[] => {
+      const row = (name: string, o: { growth?: Point[]; inflation?: Point[]; debt?: Point[] }, code?: string | null) => {
+        const v = at(o[key], year);
+        const was = at(o[key], year - 1);
+        return v === undefined ? [] : [{ name, value: v, text: fmt(v), code: code ?? undefined, note: was === undefined ? undefined : `${fmt(was)} in ${year - 1}` }];
+      };
+      return [
+        { key: "halves", title: "Advanced and emerging", kicker: `The IMF's two groups of economies · ${year}`, rows: halves.flatMap(([name, o]) => row(name, o)), source: WEO },
+        {
+          key: "largest",
+          title: "In the ten largest economies",
+          kicker: `By the size of their economy in ${first - 1} · ${year}`,
+          rows: largest.flatMap((c) => row(c.name, c, c.code)).sort((a, b) => b.value - a.value),
+          source: WEO,
+        },
+      ].filter((t) => t.rows.length > 1);
+    };
+    /* One of the UN's measures by region in a year, each with this year's. */
+    const regionTable = (key: "population" | "medianAge" | "lifeExpectancy", fmt: (v: number) => string, year: number, total?: number): StatTable[] => {
+      const rows = POPULATION_OUTLOOK.slice(1).flatMap((r) => {
+        const v = at(r[key], year);
+        const now = at(r[key], THIS_YEAR);
+        if (v === undefined) return [];
+        const share = total ? `${((100 * v) / total).toFixed(1)}% of the world's` : "";
+        return [{ name: r.name, value: v, text: fmt(v), note: [share, now === undefined ? "" : `${fmt(now)} in ${THIS_YEAR}`].filter(Boolean).join(" · ") || undefined }];
+      });
+      return rows.length > 1 ? [{ key: `regions-${year}`, title: `By region in ${year}`, kicker: `The UN's regions, medium variant · ${year}`, rows: rows.sort((a, b) => b.value - a.value), source: WPP }] : [];
+    };
     /* One of the IMF's world series as a card: this year's projection, its
        move on last year's estimate, and where it stands at the end. */
-    const line = (series: Point[] | undefined, label: string, fmt: (v: number) => string, about: string, color: string, upIsGood: boolean): StatCardData => {
+    const line = (key: "growth" | "inflation" | "debt", label: string, fmt: (v: number) => string, about: string, color: string, upIsGood: boolean): StatCardData => {
+      const series = w[key];
       const now = at(series, first) ?? 0;
       const before = at(series, first - 1) ?? 0;
       const diff = now - before;
@@ -482,6 +620,9 @@ export function TrendsPage() {
         color,
         fmt,
         source: WEO,
+        moreFacts: [{ label: `Projected for ${end}`, value: fmt(at(series, end) ?? 0), sub: `${end}` }],
+        tables: weoTables(key, fmt, first),
+        notes: [`A projection, not a forecast with a probability: the IMF's central case in its ${WEO.edition} edition, which it revises twice a year.`],
       };
     };
     const pop = WORLD_POP.population;
@@ -503,10 +644,38 @@ export function TrendsPage() {
         color: SERIES.world,
         fmt: (v) => usdFromBillions(v),
         source: WEO,
+        tables: [
+          {
+            key: "halves",
+            title: "Advanced and emerging",
+            kicker: `The IMF's two groups of economies · ${end}`,
+            rows: halves.flatMap(([name, o]) => {
+              const v = at(o.gdp, end);
+              const was = at(o.gdp, first - 1);
+              return v === undefined ? [] : [{ name, value: v, text: usdFromBillions(v), note: `${((100 * v) / (gdpThen || 1)).toFixed(1)}% of the world's${was === undefined ? "" : ` · ${usdFromBillions(was)} in ${first - 1}`}` }];
+            }),
+            source: WEO,
+          },
+          {
+            key: "largest",
+            title: `The largest economies in ${end}`,
+            kicker: `GDP in current US dollars · IMF projection · ${end}`,
+            rows: [...WEO_COUNTRIES]
+              .flatMap((c) => {
+                const v = at(c.gdp, end);
+                const was = at(c.gdp, first - 1);
+                return v === undefined ? [] : [{ name: c.name, value: v, text: usdFromBillions(v), code: c.code ?? undefined, note: `${((100 * v) / (gdpThen || 1)).toFixed(1)}% of the world's${was === undefined ? "" : ` · ${usdFromBillions(was)} in ${first - 1}`}` }];
+              })
+              .sort((a, b) => b.value - a.value)
+              .slice(0, 10),
+            source: WEO,
+          },
+        ],
+        notes: [`A projection, not a forecast with a probability: the IMF's central case in its ${WEO.edition} edition, which it revises twice a year. Current dollars include price rises.`],
       },
-      line(w.growth, "Real growth", (v) => pct(v), "How much more the world produces than the year before, with price rises taken out.", "#10b981", true),
-      line(w.inflation, "Inflation", (v) => pct(v), "The rise in consumer prices over the year, averaged across the world's economies.", "#f59e0b", false),
-      line(w.debt, "Government debt, % of GDP", (v) => pct(v), "What the world's governments owe, against the size of the world economy.", "#ef4444", false),
+      line("growth", "Real growth", (v) => pct(v), "How much more the world produces than the year before, with price rises taken out.", "#10b981", true),
+      line("inflation", "Inflation", (v) => pct(v), "The rise in consumer prices over the year, averaged across the world's economies.", "#f59e0b", false),
+      line("debt", "Government debt, % of GDP", (v) => pct(v), "What the world's governments owe, against the size of the world economy.", "#ef4444", false),
       {
         label: "World population in 2050",
         value: people(at(pop, 2050) ?? 0),
@@ -520,9 +689,10 @@ export function TrendsPage() {
         facts: [
           { label: "Now", value: people(popNow), sub: `${THIS_YEAR}` },
           { label: "Projected", value: people(at(pop, 2050) ?? 0), sub: "2050" },
-          { label: "Projected", value: people(at(pop, 2100) ?? 0), sub: "2100" },
-        ].map((x, i) => ({ ...x, label: i === 2 ? "By the century's end" : x.label })),
+          { label: "By the century's end", value: people(at(pop, 2100) ?? 0), sub: "2100" },
+        ],
         source: WPP,
+        tables: regionTable("population", people, 2050, at(pop, 2050)),
       },
       {
         label: "Population peaks",
@@ -540,6 +710,7 @@ export function TrendsPage() {
           { label: "By the century's end", value: people(at(pop, 2100) ?? 0), sub: "2100" },
         ],
         source: WPP,
+        tables: regionTable("population", people, 2100, at(pop, 2100)),
       },
       {
         label: "Median age in 2050",
@@ -557,6 +728,7 @@ export function TrendsPage() {
           { label: "By the century's end", value: years(at(age, 2100) ?? 0), sub: "2100" },
         ],
         source: WPP,
+        tables: regionTable("medianAge", years, 2050),
       },
       {
         label: "Life expectancy in 2050",
@@ -574,6 +746,7 @@ export function TrendsPage() {
           { label: "By the century's end", value: years(at(lex, 2100) ?? 0), sub: "2100" },
         ],
         source: WPP,
+        tables: regionTable("lifeExpectancy", years, 2050),
       },
     ];
   }, [first, end]);
@@ -919,7 +1092,7 @@ export function TrendsPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {g.ids.map((id) => (
-                  <TrendTile key={id} id={id} color={g.color} />
+                  <TrendTile key={id} id={id} color={g.color} group={g.title} beside={g.ids} />
                 ))}
               </div>
               <SourceLink sources={g.ids.flatMap((id) => (WORLD[id] ? [WORLD[id].source] : []))} />
