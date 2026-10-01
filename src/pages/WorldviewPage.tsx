@@ -580,15 +580,21 @@ function Breakdown({ ind }: { ind: WorldIndicator }) {
 
 // ── Hero and population clock ───────────────────────────────────────────────
 
-function projectedPopulation(now: number): number | null {
-  const pts = POPULATION_PROJECTION.midYear;
-  const t = (y: number) => Date.UTC(y, 6, 1);
-  for (let i = 0; i < pts.length - 1; i++) {
-    const [y0, p0] = pts[i];
-    const [y1, p1] = pts[i + 1];
-    if (now >= t(y0) && now < t(y1)) return p0 + ((p1 - p0) * (now - t(y0))) / (t(y1) - t(y0));
-  }
-  return null;
+/**
+ * The UN's projection at an instant. The UN publishes the world's population
+ * for 1 January of each year and gets from one to the next by adding the
+ * year's births and taking away its deaths, so the clock runs evenly between
+ * the two Januaries either side of now: on the UN's figure at each 1 January,
+ * and on its 1 July figure at mid-year, which the UN sets midway between them.
+ */
+function projectedPopulation(now: number): { people: number; year: number; onJan1: number; births: number; deaths: number; yearMs: number } | null {
+  const year = new Date(now).getUTCFullYear();
+  const a = POPULATION_PROJECTION.years.find((r) => r[0] === year);
+  const b = POPULATION_PROJECTION.years.find((r) => r[0] === year + 1);
+  if (!a || !b) return null;
+  const start = Date.UTC(year, 0, 1);
+  const yearMs = Date.UTC(year + 1, 0, 1) - start;
+  return { people: a[1] + ((b[1] - a[1]) * (now - start)) / yearMs, year, onJan1: a[1], births: a[2], deaths: a[3], yearMs };
 }
 
 function Hero() {
@@ -598,14 +604,14 @@ function Hero() {
     const id = window.setInterval(() => setNow(Date.now()), 500);
     return () => window.clearInterval(id);
   }, []);
-  const pop = projectedPopulation(now);
-  const yearMs = Date.UTC(POPULATION_PROJECTION.year + 1, 0, 1) - Date.UTC(POPULATION_PROJECTION.year, 0, 1);
+  const clock = projectedPopulation(now);
+  const pop = clock ? clock.people : null;
   const midnight = new Date(now);
   midnight.setHours(0, 0, 0, 0);
   const todayMs = now - midnight.getTime();
-  const born = Math.floor((POPULATION_PROJECTION.births * todayMs) / yearMs);
-  const died = Math.floor((POPULATION_PROJECTION.deaths * todayMs) / yearMs);
-  const perDay = (n: number) => Math.round((n * 86_400_000) / yearMs).toLocaleString("en-US");
+  // The year's births and deaths, spread evenly over it: so many by this time of day, so many a day.
+  const soFarToday = (n: number) => (clock ? Math.floor((n * todayMs) / clock.yearMs).toLocaleString("en-US") : "");
+  const perDay = (n: number) => (clock ? Math.round((n * 86_400_000) / clock.yearMs).toLocaleString("en-US") : "");
   const all = PILLARS.map(pillarDirection).reduce(
     (t, d) => ({ better: t.better + d.better, worse: t.worse + d.worse, none: t.none + d.none }),
     { better: 0, worse: 0, none: 0 },
@@ -645,7 +651,7 @@ function Hero() {
           </p>
         </div>
 
-        {pop !== null && (
+        {clock && pop !== null && (
           <div className="lg:text-right">
             <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: muted }}>
               People alive now · UN projection
@@ -656,16 +662,17 @@ function Hero() {
             <p className="sr-only">About {compact(pop)} people, on the UN's medium-variant projection.</p>
             <div className="mt-3 flex flex-wrap lg:justify-end gap-x-5 gap-y-1 text-[11px] font-mono" style={{ color: muted }}>
               <span>
-                <span style={{ color: head }}>{born.toLocaleString("en-US")}</span> born today · {perDay(POPULATION_PROJECTION.births)} a day
+                <span style={{ color: head }}>{soFarToday(clock.births)}</span> born today · {perDay(clock.births)} a day
               </span>
               <span>
-                <span style={{ color: head }}>{died.toLocaleString("en-US")}</span> died today · {perDay(POPULATION_PROJECTION.deaths)} a day
+                <span style={{ color: head }}>{soFarToday(clock.deaths)}</span> died today · {perDay(clock.deaths)} a day
               </span>
             </div>
             <p className="mt-2 text-[10px] font-sans max-w-sm lg:ml-auto" style={{ color: muted }}>
-              A projection, not a count: it moves between the UN's figures for each 1 July (
-              <SourceLink source={POPULATION_PROJECTION.source} label="World Population Prospects 2024" />
-              ). The World Bank counted {compact(lastOf("population")[1])} in mid-{lastOf("population")[0]}.
+              A projection, not a count: the UN's figure for 1 January {clock.year}, {clock.onJan1.toLocaleString("en-US")}, and since then the
+              year's projected births less its deaths, as the UN itself carries one year to the next (
+              <SourceLink source={POPULATION_PROJECTION.source} label={`World Population Prospects ${POPULATION_PROJECTION.revision}`} />, its latest
+              revision). The World Bank counted {compact(lastOf("population")[1])} in mid-{lastOf("population")[0]}.
             </p>
           </div>
         )}

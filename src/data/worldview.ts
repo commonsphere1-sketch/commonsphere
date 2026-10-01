@@ -226,13 +226,19 @@ export const WORLD: Record<string, WorldIndicator> = {
 /** When Pew's religion figures, recorded in build-worldview.cjs, were last read from the report. */
 export const PEW_CHECKED = "2026-09-30";
 
-/** The UN's projection of world population on 1 July each year, medium variant. */
+/**
+ * The UN's medium projection of the world's population, for the page's clock,
+ * from the UN's own file: for each year, the people alive on 1 January and
+ * the births and deaths projected in the year. The UN gets from one year to
+ * the next by adding the births and taking away the deaths, so a clock that
+ * runs evenly from one 1 January to the next is on the UN's own line.
+ */
 export const POPULATION_PROJECTION = {
-  source: {"label":"UN World Population Prospects 2024, medium variant (via Our World in Data)","url":"https://population.un.org/wpp/"},
-  midYear: [[2025,8231613067],[2026,8300678396],[2027,8369094344],[2028,8436618881],[2029,8503285316],[2030,8569124917],[2031,8634119328]] as WorldPoint[],
-  year: 2026,
-  births: 132503470,
-  deaths: 63637310,
+  source: {"label":"UN World Population Prospects 2024, medium variant","url":"https://population.un.org/wpp/"},
+  /** The year of the revision: the newest the UN had published when this was built. */
+  revision: 2024,
+  /** [year, people alive on 1 January, births in the year, deaths in the year] */
+  years: [[2025,8196980849,132399173,63135984],[2026,8266245291,132503469,63637314],[2027,8335111500,132590971,64625684],[2028,8403077189,132761183,65677933],[2029,8470160584,132988654,66739327],[2030,8536410062,133256397,67826883],[2031,8601839760,133513402,68954190]] as [year: number, onJan1: number, births: number, deaths: number][],
 };
 
 export type IncomeGroup = "HIC" | "UMC" | "LMC" | "LIC";

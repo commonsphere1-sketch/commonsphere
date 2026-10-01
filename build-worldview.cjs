@@ -51,8 +51,11 @@
  *                           page's comparison of developed and developing
  *                           economies
  *   UN World Population     the medium-variant projection, for the page's
- *     Prospects 2024 (OWID) population clock - the one place the page shows
- *                           a projection, and it says so
+ *     Prospects             population clock - the one place the page shows
+ *                           a projection, and it says so. Read from the UN's
+ *                           own file, in its newest revision: the people
+ *                           alive on 1 January of each year and the births
+ *                           and deaths projected in it - see wppWorld
  *   V-Dem indices (OWID)    electoral democracy, rule of law, the courts'
  *                           and legislature's checks on the executive,
  *                           academic freedom, political polarization,
@@ -149,7 +152,8 @@ const SRC = {
   fh: { label: "Freedom House — Freedom in the World (scores via Our World in Data)", url: "https://freedomhouse.org/report/freedom-world" },
   arrivals: { label: "UN Tourism — international overnight arrivals (via Our World in Data)", url: "https://ourworldindata.org/grapher/international-tourist-trips" },
   departures: { label: "UN Tourism — trips abroad by residents (via Our World in Data), per resident with World Bank population", url: "https://ourworldindata.org/grapher/international-tourist-departures" },
-  wpp: { label: "UN World Population Prospects 2024, medium variant (via Our World in Data)", url: "https://population.un.org/wpp/" },
+  // The revision's year is put in when the file is found - see wppWorld.
+  wpp: { label: "UN World Population Prospects, medium variant", url: "https://population.un.org/wpp/" },
   vdemElect: { label: "V-Dem electoral democracy index (via Our World in Data)", url: "https://ourworldindata.org/grapher/electoral-democracy-index" },
   vdemLaw: { label: "V-Dem rule of law index (via Our World in Data)", url: "https://ourworldindata.org/grapher/rule-of-law-index" },
   vdemJudicial: { label: "V-Dem judicial constraints on the executive index (via Our World in Data)", url: "https://ourworldindata.org/grapher/judicial-constraints-on-the-executive-index" },
@@ -388,6 +392,74 @@ function col(row, suffix) {
 }
 
 // ── UNHCR ─────────────────────────────────────────────────────────────────
+
+/**
+ * The UN's medium projection of the world's population, for the page's clock,
+ * from the UN's own file rather than a copy of it: for last year to five years
+ * on, the people alive on 1 January and the births and deaths projected in
+ * the year.
+ *
+ * The clock is as close to the projection as the projection allows. The UN
+ * publishes two figures a year, for 1 January and 1 July, and gets from one
+ * year to the next by adding births and taking away deaths (the world has no
+ * migration); its 1 July figure is the mean of the two Januaries either side.
+ * So a clock that runs evenly from one 1 January to the next is on the UN's
+ * own line at every date the UN gives. Both facts are checked here, and the
+ * build stops if the file ever ceases to bear them out. The file is in
+ * thousands to three places - to the person.
+ *
+ * Revisions come out every two years or so. The newest is looked for first,
+ * from this year back, so a new one is picked up by the next build.
+ */
+const WPP_FIRST = 2024;
+const wppFile = (rev) => `https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/CSV_FILES/WPP${rev}_Demographic_Indicators_Medium.csv.gz`;
+
+async function wppWorld() {
+  let revision = 0, gz = null;
+  for (let rev = THIS_YEAR; rev >= WPP_FIRST && !gz; rev--) {
+    const at = path.join(CACHE, `WPP${rev}_Demographic_Indicators_Medium.csv.gz`);
+    if (!fs.existsSync(at)) {
+      try {
+        // -f: a revision that does not exist answers 404 with a web page, which must not be kept as the file.
+        execFileSync("curl", ["-sSfL", "-m", "300", "-A", UA, "-o", at, wppFile(rev)], { stdio: ["ignore", "ignore", "pipe"] });
+      } catch {
+        fs.rmSync(at, { force: true });
+        continue;
+      }
+    }
+    gz = fs.readFileSync(at);
+    revision = rev;
+  }
+  if (!gz) throw new Error("WPP: no revision's file could be read");
+  const lines = require("zlib").gunzipSync(gz).toString("utf8").replace(/^\uFEFF/, "").split(/\r?\n/);
+  const H = splitCsvLine(lines[0]);
+  const ix = (k) => {
+    const i = H.indexOf(k);
+    if (i < 0) throw new Error(`WPP${revision}: no column ${k}`);
+    return i;
+  };
+  const c = { loc: ix("LocID"), variant: ix("Variant"), year: ix("Time"), jan: ix("TPopulation1Jan"), july: ix("TPopulation1July"), births: ix("Births"), deaths: ix("Deaths") };
+  const people = (v) => Math.round(Number(v) * 1000);
+  const rows = [];
+  for (const l of lines) {
+    if (!l.includes(",900,")) continue; // 900 is the world
+    const r = splitCsvLine(l);
+    if (r[c.loc] !== "900" || r[c.variant] !== "Medium") continue;
+    const y = Number(r[c.year]);
+    if (y < THIS_YEAR - 1 || y > THIS_YEAR + 5) continue;
+    rows.push({ y, jan: people(r[c.jan]), july: people(r[c.july]), births: people(r[c.births]), deaths: people(r[c.deaths]) });
+  }
+  rows.sort((a, b) => a.y - b.y);
+  if (rows.length !== 7 || rows.some((r, i) => r.y !== THIS_YEAR - 1 + i || !(r.jan > 7e9) || !(r.births > 0) || !(r.deaths > 0))) throw new Error(`WPP${revision}: the world's rows are not as expected`);
+  for (let i = 0; i < rows.length - 1; i++) {
+    const a = rows[i], b = rows[i + 1];
+    // To within a few thousand people in eight billion: the file's own rounding
+    // (2025 is out by 1,253). The clock itself runs between the January figures.
+    if (Math.abs(b.jan - a.jan - (a.births - a.deaths)) > 5000) throw new Error(`WPP${revision} ${a.y}: the year's change is not its births less its deaths`);
+    if (Math.abs(a.july - (a.jan + b.jan) / 2) > 1000) throw new Error(`WPP${revision} ${a.y}: 1 July is not midway between the Januaries`);
+  }
+  return { revision, years: rows.map((r) => [r.y, r.jan, r.births, r.deaths]) };
+}
 
 async function unhcr() {
   const j = JSON.parse(await get(`https://api.unhcr.org/population/v1/population/?yearFrom=2000&yearTo=${THIS_YEAR}&limit=100`, "unhcr.json"));
@@ -1089,15 +1161,9 @@ function indicator(id, o) {
   if (Object.keys(arrivals).length < 100 || Object.keys(tripsAbroad).length < 50 || Object.keys(freedom).length < 150)
     throw new Error("per-country figures: too few countries");
 
-  // The population clock: the UN's medium projection for this year and the
-  // next few, and births and deaths projected for this year.
-  const wppPop = (await owidWorld("population-with-un-projections"))
-    .map((r) => [r.year, Number(r[col(r, "variant_medium__projected")])])
-    .filter(([y, v]) => y >= THIS_YEAR - 1 && y <= THIS_YEAR + 5 && Number.isFinite(v));
-  const bd = (await owidWorld("births-and-deaths-projected-to-2100")).find((r) => r.year === THIS_YEAR);
-  const births = Number(bd?.[col(bd, "births__sex_all__age_all__variant_medium__projected")]);
-  const deaths = Number(bd?.[col(bd, "deaths__sex_all__age_all__variant_medium__projected")]);
-  if (wppPop.length < 3 || !(births > 0) || !(deaths > 0)) throw new Error("WPP: projections missing");
+  // The population clock: the UN's medium projection, from its own file.
+  const wpp = await wppWorld();
+  SRC.wpp.label = `UN World Population Prospects ${wpp.revision}, medium variant`;
 
   // Income groups: the Bank's own aggregates for each group, and the
   // current classification of every economy.
@@ -1246,13 +1312,19 @@ ${lines.join("\n")}
 /** When Pew's religion figures, recorded in build-worldview.cjs, were last read from the report. */
 export const PEW_CHECKED = "${PEW_CHECKED}";
 
-/** The UN's projection of world population on 1 July each year, medium variant. */
+/**
+ * The UN's medium projection of the world's population, for the page's clock,
+ * from the UN's own file: for each year, the people alive on 1 January and
+ * the births and deaths projected in the year. The UN gets from one year to
+ * the next by adding the births and taking away the deaths, so a clock that
+ * runs evenly from one 1 January to the next is on the UN's own line.
+ */
 export const POPULATION_PROJECTION = {
   source: ${JSON.stringify(SRC.wpp)},
-  midYear: ${JSON.stringify(wppPop)} as WorldPoint[],
-  year: ${THIS_YEAR},
-  births: ${Math.round(births)},
-  deaths: ${Math.round(deaths)},
+  /** The year of the revision: the newest the UN had published when this was built. */
+  revision: ${wpp.revision},
+  /** [year, people alive on 1 January, births in the year, deaths in the year] */
+  years: ${JSON.stringify(wpp.years)} as [year: number, onJan1: number, births: number, deaths: number][],
 };
 
 export type IncomeGroup = "HIC" | "UMC" | "LMC" | "LIC";
@@ -1344,7 +1416,7 @@ export const BY_INCOME: {
   for (const f of Object.values(freedom)) tally[f[4]]++;
   console.log(`  per country: arrivals ${Object.keys(arrivals).length}, trips abroad ${Object.keys(tripsAbroad).length}, migrants ${Object.keys(migrantShareBy).length}, freedom ${Object.keys(freedom).length} ${JSON.stringify(tally)}`);
   for (const r of byIncome) console.log(`    ${r.id.padEnd(18)} ${["WLD", "HIC", "UMC", "LMC", "LIC"].map((a) => (r.values[a] ? r.values[a][1] : "-")).join(" | ")}`);
-  console.log(`  population clock: ${wppPop.map(([y, v]) => `${y}:${v}`).join(" ")}; births ${births}, deaths ${deaths} (${THIS_YEAR})`);
+  console.log(`  population clock: WPP ${wpp.revision}; 1 Jan ${wpp.years.map(([y, v]) => `${y}:${v}`).join(" ")}`);
 })().catch((e) => {
   console.error(e);
   process.exit(1);
