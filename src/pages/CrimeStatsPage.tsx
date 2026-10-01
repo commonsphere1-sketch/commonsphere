@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
+import { RecordedCrime } from "../components/RecordedCrime";
 import {
   ShieldCheck,
   TrendUp,
@@ -1553,6 +1554,9 @@ export function CrimeStatsPage() {
             </div>
           </div>
         </div>
+
+        {/* ── OFFENCES REPORTED TO UNODC ─────────────────────────── */}
+        <RecordedCrime isLight={isLight} />
 
         {/* ── TERRORISM SECTION ──────────────────────────────────── */}
         <div
