@@ -2973,7 +2973,11 @@ export function WorldMapsPage() {
      Kept in a row of their own, apart from the scope and indicator chips,
      because these do not change what is shaded - they add a layer over it -
      and a reader who mistook one for the other would read the map wrongly. */
-  const LayerButton = ({ o, layers, set }: { o: (typeof OVERLAYS)[0]; layers: Record<OverlayId, boolean>; set: LayerSetter }) => {
+  /* A plain function called for its markup, not a component: as a component
+     defined in here it was a new type on every render, so each button was
+     thrown away and rebuilt on every step of a zoom or a pan, losing its
+     focus and hover as it went. */
+  const layerButton = (o: (typeof OVERLAYS)[0], layers: Record<OverlayId, boolean>, set: LayerSetter) => {
     const state = overlayState[o.id];
     return (
       <button
@@ -3023,12 +3027,12 @@ export function WorldMapsPage() {
               Layers
             </span>
             {mainLayers.map((o) => (
-              <LayerButton key={o.id} o={o} layers={layers} set={set} />
+              layerButton(o, layers, set)
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2 mb-3">
             {additionalLayers.map((o) => (
-              <LayerButton key={o.id} o={o} layers={layers} set={set} />
+              layerButton(o, layers, set)
             ))}
           </div>
         </>
@@ -3057,7 +3061,7 @@ export function WorldMapsPage() {
         {showAdditionalLayers && (
           <div className="flex flex-wrap items-center gap-2 mb-3 pl-6">
             {OVERLAYS.map((o) => (
-              <LayerButton key={o.id} o={o} layers={layers} set={set} />
+              layerButton(o, layers, set)
             ))}
           </div>
         )}

@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigationType } from "react-router-dom";
 import { HeaderNav } from "./HeaderNav";
 import { SidebarNav } from "./SidebarNav";
 import { NotesPopup } from "./NotesPopup";
+import { ScrollEndGlow } from "./ScrollEndGlow";
 
 export function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -89,6 +90,7 @@ export function DashboardLayout() {
           <Outlet />
         </main>
       </div>
+      <ScrollEndGlow />
       <NotesPopup />
     </div>
   );

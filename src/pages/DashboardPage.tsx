@@ -96,6 +96,61 @@ const SRC_DASH_POLICIES = [
   },
 ];
 
+/**
+ * Slides a doubled track leftwards for ever, wrapping at its halfway point.
+ *
+ * It runs on elapsed time, so it moves at the same speed on any screen - it
+ * used to move a fixed distance each frame, and so ran twice as fast at
+ * 120 Hz - and it steps in whole device pixels, so the cards' text and flags
+ * do not shimmer between pixels. It rests while paused, off screen or in a
+ * hidden tab. For readers who ask for reduced motion it does not move at
+ * all, and the strip scrolls by hand instead.
+ */
+function useMarquee(
+  trackRef: React.RefObject<HTMLDivElement | null>,
+  pausedRef: React.MutableRefObject<boolean>,
+  pxPerSecond: number,
+) {
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (track.parentElement) track.parentElement.style.overflowX = "auto";
+      return;
+    }
+    let raf = 0;
+    let last = 0;
+    let pos = 0;
+    let onScreen = true;
+    let half = track.scrollWidth / 2;
+    const io = new IntersectionObserver(([e]) => {
+      onScreen = e.isIntersecting;
+    });
+    io.observe(track);
+    const ro = new ResizeObserver(() => {
+      half = track.scrollWidth / 2;
+    });
+    ro.observe(track);
+    const step = (now: number) => {
+      // A long gap - a hidden tab, a stalled frame - is not made up in one jump.
+      const dt = last ? Math.min(100, now - last) : 0;
+      last = now;
+      if (!pausedRef.current && onScreen && !document.hidden && half > 0) {
+        pos = (pos + (pxPerSecond * dt) / 1000) % half;
+        const dpr = window.devicePixelRatio || 1;
+        track.style.transform = `translate3d(${-Math.round(pos * dpr) / dpr}px,0,0)`;
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => {
+      cancelAnimationFrame(raf);
+      io.disconnect();
+      ro.disconnect();
+    };
+  }, [trackRef, pausedRef, pxPerSecond]);
+}
+
 /* ─── Country Carousel ──────────────────────────────────────────────────── */
 function CountryCarousel({
   isLight,
@@ -124,33 +179,11 @@ function CountryCarousel({
   const items = [...sorted, ...sorted];
 
   const trackRef = useRef<HTMLDivElement>(null);
-  const animRef = useRef<number>(0);
-  const posRef = useRef(0);
   const pausedRef = useRef(false);
   const [cardWidth, setCardWidth] = useState(0);
   const GAP = 12; // gap-3 = 12px
   const VISIBLE = 5;
-  const SPEED = 0.9; // px per frame
-
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-
-    const step = () => {
-      if (!pausedRef.current) {
-        posRef.current += SPEED;
-        const halfWidth = track.scrollWidth / 2;
-        if (posRef.current >= halfWidth) {
-          posRef.current -= halfWidth;
-        }
-        track.style.transform = `translateX(-${posRef.current}px)`;
-      }
-      animRef.current = requestAnimationFrame(step);
-    };
-
-    animRef.current = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(animRef.current);
-  }, []);
+  useMarquee(trackRef, pausedRef, 54);
 
   // Measure actual rendered card width
   useEffect(() => {
@@ -409,29 +442,11 @@ function StatesCarousel({
   const items = [...sorted, ...sorted];
 
   const trackRef = useRef<HTMLDivElement>(null);
-  const animRef = useRef<number>(0);
-  const posRef = useRef(0);
   const pausedRef = useRef(false);
   const [cardWidth, setCardWidth] = useState(0);
   const GAP = 12;
   const VISIBLE = 5;
-  const SPEED = 0.7;
-
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const step = () => {
-      if (!pausedRef.current) {
-        posRef.current += SPEED;
-        const halfWidth = track.scrollWidth / 2;
-        if (posRef.current >= halfWidth) posRef.current -= halfWidth;
-        track.style.transform = `translateX(-${posRef.current}px)`;
-      }
-      animRef.current = requestAnimationFrame(step);
-    };
-    animRef.current = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(animRef.current);
-  }, []);
+  useMarquee(trackRef, pausedRef, 42);
 
   useEffect(() => {
     const measure = () => {
@@ -5610,7 +5625,11 @@ function FocusCarousel({
   /* The card's body and its Follow button are siblings, not one inside the
      other: a button inside a button is invalid, and a click on Follow also
      reached the card's own handler and opened the place. */
-  const Card = ({
+  /* A plain function, called for its markup - not a component. Defined in
+     here as a component it was a new type on every render, so React threw
+     away all five cards and built them again each time the deck turned or
+     the pointer came or went, and their flags flashed as they reloaded. */
+  const renderCard = ({
     entry,
     role,
     onActivate,
@@ -5894,13 +5913,13 @@ function FocusCarousel({
                 pointerEvents: away === 2 ? "none" : undefined,
               }}
             >
-              <Card
-                entry={entry}
-                role={o === 0 ? "cur" : o < 0 ? "prev" : "next"}
-                onActivate={() => (o === 0 ? openItem() : step(o))}
-                label={o === 0 ? `Open ${entry.name}` : `Show ${entry.name}`}
-                tabIndex={away === 2 ? -1 : 0}
-              />
+              {renderCard({
+                entry,
+                role: o === 0 ? "cur" : o < 0 ? "prev" : "next",
+                onActivate: () => (o === 0 ? openItem() : step(o)),
+                label: o === 0 ? `Open ${entry.name}` : `Show ${entry.name}`,
+                tabIndex: away === 2 ? -1 : 0,
+              })}
             </div>
           );
         })}

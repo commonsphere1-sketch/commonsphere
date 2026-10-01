@@ -342,23 +342,37 @@ html.light .fixed.inset-0:has(.modal-glass) {
   box-shadow: none !important;
 }
 
-/* Inner section tiles inside modals — a sheen, not a fill.
-   No brightness() here: these sit inside .modal-glass, whose own
-   backdrop-filter has already shifted the backdrop, and nested
-   backdrop-filters compound. */
+/* Inner section tiles, in modals and on the pages — a sheen, not a fill.
+
+   No backdrop-filter. These carried a blur of their own, and it drew
+   nothing: on a page a tile sits on the flat page colour, and blurring a
+   flat colour returns the same colour; inside .modal-glass the browser
+   lets a nested backdrop-filter see only the panel's own faint fill, not
+   the page behind it. With and without, the tiles are the same pixels -
+   but each blur was a separate pass for the graphics card, hundreds to a
+   page (every country card, every figure tile), and that many is what
+   makes a page flash as it scrolls or a card grows under the pointer. */
 .modal-tile {
   background: rgba(255, 255, 255, 0.06) !important;
-  backdrop-filter: blur(10px) saturate(130%);
-  -webkit-backdrop-filter: blur(10px) saturate(130%);
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
 }
 html.light .modal-tile {
   background: rgba(255, 255, 255, 0.58) !important;
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
   border: 1px solid rgba(120, 100, 70, 0.16) !important;
   box-shadow: inset 0 1px 0 rgba(15, 23, 42, 0.26) !important;
+}
+
+/* A full-screen scrim fades in where it is. The shared fade-in also slides
+   up 6px, which is right for a panel but on a scrim bared a strip along
+   the top of the screen for its first frames and then covered it - a
+   flicker at the header each time a window opened. */
+@keyframes cs-scrim-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.fixed.inset-0.animate-fade-in {
+  animation: cs-scrim-in 0.2s ease-out;
 }
 
 /* ── Sidebar nav items: frosted glass ────────────────────
@@ -495,9 +509,9 @@ html.light .notes-fab:hover {
     [class^="bg-secondary/"],
     [class*=" bg-secondary/"]
   ):not([class*="rounded-full"]) {
+  /* The frosting is the fill, the edge and the shadow: a blur here could
+     only see the panel's own fill (see .modal-tile), so there is none. */
   background: rgba(255, 255, 255, 0.06) !important;
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
   border-color: rgba(255, 255, 255, 0.1) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.07),
@@ -517,31 +531,10 @@ html.light
     [class*=" bg-secondary/"]
   ):not([class*="rounded-full"]) {
   background: rgba(255, 255, 255, 0.60) !important;
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
   border-color: rgba(200, 180, 130, 0.22) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     0 2px 12px rgba(120, 100, 60, 0.07);
-}
-
-/* The blur is decorative; drop it when the viewer asks for less
-   transparency, and keep a readable solid fill instead. */
-@media (prefers-reduced-transparency: reduce) {
-  .modal-glass
-    :is(
-      .bg-card,
-      .bg-muted,
-      [class^="bg-muted/"],
-      [class*=" bg-muted/"],
-      [class^="bg-background/"],
-      [class*=" bg-background/"],
-      [class^="bg-secondary/"],
-      [class*=" bg-secondary/"]
-    ) {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
 }
 
 /* ── Luxury card polish ───────────────────────────── */
@@ -1182,4 +1175,67 @@ html.light .avatar-glass {
   .cs-ticker-track { animation: none; }
   .cs-ticker-viewport { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
   .cs-ticker-copy { display: none; }
+}
+
+/* ── The light at the end of a page ──────────────────────
+   components/ScrollEndGlow: a glow rising from the bottom edge of the
+   screen as a page is scrolled to its end, and a bright line along the
+   edge itself. Dark mode lights it in the site's silver; on a white page
+   a white light is invisible, so light mode draws it in warm ink, as it
+   does the cards' edges.
+
+   Above the page and the sidebar, below any open window. Only its opacity
+   changes, which the compositor handles without repainting the page. */
+.cs-end-glow {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 180px;
+  z-index: 40;
+  pointer-events: none;
+  will-change: opacity;
+  transition: opacity 0.2s ease-out;
+  background:
+    linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.75) 28%,
+        rgba(255, 255, 255, 0.95) 50%,
+        rgba(255, 255, 255, 0.75) 72%,
+        transparent 100%
+      )
+      bottom / 100% 1px no-repeat,
+    /* A bright core just above the line, then the wide, soft light. */
+    radial-gradient(ellipse 46% 26px at 50% 100%, rgba(255, 255, 255, 0.55) 0%, transparent 100%),
+    radial-gradient(
+      ellipse 66% 100% at 50% 100%,
+      rgba(255, 255, 255, 0.3) 0%,
+      rgba(255, 255, 255, 0.11) 40%,
+      transparent 74%
+    );
+}
+html.light .cs-end-glow {
+  background:
+    linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(120, 100, 70, 0.55) 28%,
+        rgba(120, 100, 70, 0.75) 50%,
+        rgba(120, 100, 70, 0.55) 72%,
+        transparent 100%
+      )
+      bottom / 100% 1px no-repeat,
+    radial-gradient(ellipse 46% 26px at 50% 100%, rgba(120, 100, 70, 0.4) 0%, transparent 100%),
+    radial-gradient(
+      ellipse 66% 100% at 50% 100%,
+      rgba(120, 100, 70, 0.26) 0%,
+      rgba(120, 100, 70, 0.09) 40%,
+      transparent 74%
+    );
+}
+@media (prefers-reduced-motion: reduce) {
+  .cs-end-glow {
+    transition: none;
+  }
 }
