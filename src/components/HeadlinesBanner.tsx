@@ -1,7 +1,8 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Pause, Play, Star } from "@phosphor-icons/react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { CaretDown, MagnifyingGlass, Pause, Play, Star, X } from "@phosphor-icons/react";
 import { supabase } from "@/lib/supabase";
 import { TONE } from "@/lib/chipTone";
+import { BLUE_HUE } from "@/lib/blueHue";
 import { countriesData } from "@/data/countriesData";
 import { usStatesData } from "@/data/statesData";
 import { useWatchlist } from "@/contexts/WatchlistContext";
@@ -17,10 +18,16 @@ import { NEWS_SOURCES } from "@/data/newsSources";
  * outlet. "All … news sources" under it lists the outlets it reads, each
  * linking to the outlet's site.
  *
+ * The banner carries the site's blue hue (lib/blueHue.ts) and opens: "All
+ * headlines" shows, under the moving row, every headline that belongs to the
+ * page in the banner's window - not only the thirty the row carries - by
+ * day, newest first, with a filter. They are read when the list is opened.
+ *
  * The banner stops under the pointer or keyboard focus and has a pause
  * button; with reduced motion it stands still and scrolls by hand. When its
  * headlines fit the width it stands still anyway, rather than loop round a
- * gap. Without the news store, or with nothing to show, it is left out.
+ * gap, and it stands still while its list is open. Without the news store,
+ * or with nothing to show, it is left out.
  */
 
 /** The pages a desk serves, as news.ts tags them. */
@@ -46,6 +53,12 @@ export const SUBJECT = {
 export type HeadlineTag = { text: string; tone: string };
 /** A headline as the banner shows it; `star` marks one about a place the reader follows. */
 export type Shown = { h: Headline; tag: HeadlineTag | null; star?: boolean };
+/**
+ * Which of the headlines read a banner shows, with their chips. Asked for
+ * `all`, it gives every headline that belongs to the page, newest first,
+ * with none of the caps that keep the moving row short and varied.
+ */
+export type HeadlinePick = (rows: Headline[], all?: boolean) => Shown[];
 
 const COUNTRY_NAME = new Map(countriesData.map((c) => [`c:${c.code}`, c.name]));
 const STATE_NAME = new Map(usStatesData.map((s) => [`s:${s.id}`, s.name]));
@@ -83,53 +96,115 @@ export function outletList(rows: { outlet: string }[], max = 5): string {
 }
 
 /** Headlines read per query, kept ten minutes, so moving between pages does not refetch. */
-const cache = new Map<string, { at: number; rows: Headline[] }>();
+const cache = new Map<string, { at: number; rows: Headline[]; capped: boolean }>();
+
+/** The most one request to the news store carries. */
+const PAGE = 1000;
 
 /** Fewer than this from a page's own desks, and a banner with a subject tops itself up. */
 const TOP_UP_BELOW = 12;
 
-/** `enabled` false reads nothing: for a caller that shows headlines only some of the time. */
-export function useHeadlines(topics: Topic[], days: number, read: number, untagged: boolean, subject?: RegExp, enabled = true): Headline[] {
+/**
+ * The most headlines read for a banner's full list: three requests' worth,
+ * which is more than any page's window holds today. A list that reaches it
+ * says so, and how far back it goes, since older headlines of the window
+ * are then left out.
+ */
+export const ALL_READ = 3000;
+
+/**
+ * A read of the headlines: the rows; whether the read has come back (with or
+ * without any); and whether it was `capped` - it reached `read`, or failed
+ * part of the way, so the window may hold older ones it did not take.
+ * `enabled` false reads nothing: for a caller that shows headlines only some
+ * of the time.
+ */
+export function useHeadlineRead(
+  topics: Topic[],
+  days: number,
+  read: number,
+  untagged: boolean,
+  subject?: RegExp,
+  enabled = true,
+): { rows: Headline[]; done: boolean; capped: boolean } {
   const key = `${topics.join(",")}|${days}|${read}|${untagged}|${subject?.source ?? ""}`;
   const [rows, setRows] = useState<Headline[]>(() => cache.get(key)?.rows ?? []);
+  const [done, setDone] = useState(() => cache.has(key));
+  const [capped, setCapped] = useState(() => cache.get(key)?.capped ?? false);
   useEffect(() => {
+    if (!enabled) return;
     const db = supabase;
     const hit = cache.get(key);
-    if (!enabled || !db || (hit && Date.now() - hit.at < 10 * 60_000)) return;
+    if (!db || (hit && Date.now() - hit.at < 10 * 60_000)) {
+      if (hit) {
+        setRows(hit.rows);
+        setCapped(hit.capped);
+      }
+      setDone(true);
+      return;
+    }
     let live = true;
     const since = new Date(Date.now() - days * 86_400_000).toISOString();
-    const query = (byTopic: boolean, limit = read) => {
+    const page = (byTopic: boolean, from: number, to: number) => {
       let q = db.from("news_items").select("url, title, outlet, published_at, places").gte("published_at", since);
       if (byTopic) q = untagged ? q.or(`topics.ov.{${topics.join(",")}},topics.eq.{}`) : q.overlaps("topics", topics);
-      return q.order("published_at", { ascending: false }).limit(limit);
+      // The link breaks ties, so the pages of a long read do not overlap.
+      return q.order("published_at", { ascending: false }).order("url").range(from, to);
+    };
+    /**
+     * The newest `n`, a request at a time, and whether they are the `whole`
+     * window - the store ran out before `n` did. Null when the first request
+     * fails.
+     */
+    const newest = async (byTopic: boolean, n: number): Promise<{ rows: Headline[]; whole: boolean } | null> => {
+      const out: Headline[] = [];
+      for (let from = 0; from < n; from += PAGE) {
+        const want = Math.min(PAGE, n - from);
+        const { data, error } = await page(byTopic, from, from + want - 1);
+        if (error || !data) return from === 0 ? null : { rows: out, whole: false };
+        out.push(...(data as Headline[]));
+        if (data.length < want) return { rows: out, whole: true };
+      }
+      return { rows: out, whole: false };
     };
     (async () => {
-      let { data, error } = await query(true);
+      let got = await newest(true, read);
       // A store from before headlines carried topics holds only the world and US desks' headlines.
-      if (error && untagged) ({ data, error } = await query(false));
-      let found: Headline[] = error || !data ? [] : (data as Headline[]);
+      if (!got && untagged) got = await newest(false, read);
+      let found: Headline[] = got?.rows ?? [];
+      const full = !!got && !got.whole;
       // Too few from the page's own desks - they are quiet, or not read yet:
       // headlines from any desk whose words are about the subject fill in.
       if (subject && found.length < TOP_UP_BELOW) {
-        const { data: more } = await query(false, 300);
+        const more = await newest(false, 300);
         const have = new Set(found.map((r) => r.url));
-        const extra = ((more ?? []) as Headline[])
+        const extra = (more?.rows ?? [])
           .filter((r) => !have.has(r.url) && typeof r.title === "string" && subject.test(r.title))
           .map((r) => ({ ...r, viaSubject: true }));
         found = [...found, ...extra].sort((a, b) => b.published_at.localeCompare(a.published_at));
       }
-      if (!found.length && (error || !data)) return;
+      if (!found.length && !got) {
+        if (live) setDone(true);
+        return;
+      }
       // A wire story runs under the same headline at several outlets: the newest copy is enough.
+      // A headline that arrives while a long read is under way can come in two of its pages: once is enough.
       const titles = new Set<string>();
+      const urls = new Set<string>();
       const clean = found.filter((r): r is Headline => {
         if (typeof r.title !== "string" || !/^https:\/\//.test(r.url) || !Array.isArray(r.places)) return false;
         const t = r.title.toLowerCase().replace(/\s+/g, " ").trim();
-        if (titles.has(t)) return false;
+        if (titles.has(t) || urls.has(r.url)) return false;
         titles.add(t);
+        urls.add(r.url);
         return true;
       });
-      cache.set(key, { at: Date.now(), rows: clean });
-      if (live) setRows(clean);
+      cache.set(key, { at: Date.now(), rows: clean, capped: full });
+      if (live) {
+        setRows(clean);
+        setCapped(full);
+        setDone(true);
+      }
     })();
     return () => {
       live = false;
@@ -137,7 +212,12 @@ export function useHeadlines(topics: Topic[], days: number, read: number, untagg
     // The key spells out topics, days, read, untagged and subject.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, enabled]);
-  return rows;
+  return { rows, done, capped };
+}
+
+/** The headlines of a read; see useHeadlineRead. */
+export function useHeadlines(topics: Topic[], days: number, read: number, untagged: boolean, subject?: RegExp, enabled = true): Headline[] {
+  return useHeadlineRead(topics, days, read, untagged, subject, enabled).rows;
 }
 
 /** The newest thirty, at most `each` from one outlet, so the busiest desks do not fill the banner. */
@@ -154,7 +234,7 @@ export function spread(rows: Headline[], each = 5, max = 30): Headline[] {
   return out;
 }
 
-const newestSpread = (rows: Headline[]): Shown[] => spread(rows).map((h) => ({ h, tag: placeTag(h.places) }));
+const newestSpread: HeadlinePick = (rows, all) => (all ? rows : spread(rows)).map((h) => ({ h, tag: placeTag(h.places) }));
 
 /** Names a country or US state the site knows. */
 export const namesPlace = (h: Headline) => h.places.some((p) => placeName(p) !== null);
@@ -163,22 +243,25 @@ export const namesAbroad = (h: Headline) => h.places.some((p) => p.startsWith("c
 /** Names two places or more: a story about their relations. */
 export const namesTwo = (h: Headline) => h.places.filter((p) => placeName(p) !== null).length >= 2;
 
-/** The newest thirty that pass `keep`, five at most from one outlet, tagged with their places. */
+/** The newest thirty that pass `keep`, five at most from one outlet, tagged with their places; or all that pass. */
 export const pickWhere =
-  (keep: (h: Headline) => boolean) =>
-  (rows: Headline[]): Shown[] =>
-    spread(rows.filter(keep)).map((h) => ({ h, tag: placeTag(h.places) }));
+  (keep: (h: Headline) => boolean): HeadlinePick =>
+  (rows, all) =>
+    (all ? rows.filter(keep) : spread(rows.filter(keep))).map((h) => ({ h, tag: placeTag(h.places) }));
 
-/** As pickWhere, with the headlines about a place the reader follows first, starred. */
+/**
+ * As pickWhere, with the headlines about a place the reader follows first,
+ * starred. All of them come newest first, the followed among the rest, still
+ * starred.
+ */
 export const followedFirst =
-  (followed: Set<string>, keep: (h: Headline) => boolean) =>
-  (rows: Headline[]): Shown[] => {
+  (followed: Set<string>, keep: (h: Headline) => boolean): HeadlinePick =>
+  (rows, all) => {
     const mine = (h: Headline) => h.places.some((p) => followed.has(p));
-    return spread([...rows.filter(mine), ...rows.filter((h) => !mine(h) && keep(h))]).map((h) => ({
-      h,
-      tag: placeTag(h.places),
-      star: mine(h),
-    }));
+    const list = all
+      ? rows.filter((h) => mine(h) || keep(h))
+      : spread([...rows.filter(mine), ...rows.filter((h) => !mine(h) && keep(h))]);
+    return list.map((h) => ({ h, tag: placeTag(h.places), star: mine(h) }));
   };
 
 const CODE_OF = new Map(countriesData.map((c) => [c.id, c.code]));
@@ -294,8 +377,12 @@ export function ListToggle({ open, onToggle, show, hide }: { open: boolean; onTo
 
 // ─── The moving banner ────────────────────────────────────────────────────────
 
-/** One item of a moving banner: its chip, its words and a line of detail, linking to its source. */
-export type TickerItem = { key: string; href: string; title: string; tag: HeadlineTag | null; text: string; meta?: string; star?: boolean };
+/**
+ * One item of a moving banner: its chip, its words and a line of detail,
+ * linking to its source. `at` is when a headline was published, for the full
+ * list to set it under its day.
+ */
+export type TickerItem = { key: string; href: string; title: string; tag: HeadlineTag | null; text: string; meta?: string; star?: boolean; at?: string };
 
 /** A headline as a banner item. */
 export const headlineItem = ({ h, tag, star }: Shown): TickerItem => ({
@@ -306,22 +393,28 @@ export const headlineItem = ({ h, tag, star }: Shown): TickerItem => ({
   text: h.title,
   meta: `${h.outlet} · ${ago(h.published_at)}`,
   star,
+  at: h.published_at,
 });
 
 /**
- * The banner itself: its label and pause button, the items looping round at
- * a steady reading speed, and whatever goes under it (`children`). With no
- * items it is left out.
+ * The banner itself, in the site's blue hue: its label and pause button, the
+ * items looping round at a steady reading speed, and whatever goes under it
+ * (`children`). With `expand` it has an "All headlines" switch for a full
+ * list the caller puts among the children, and stands still while that list
+ * is open. With no items it is left out.
  */
 export function Ticker({
   label,
   items,
   className = "",
+  expand,
   children,
 }: {
   label: string;
   items: TickerItem[];
   className?: string;
+  /** The full list: whether it is open, what opens and shuts it, and its id. */
+  expand?: { open: boolean; onToggle: () => void; controls: string };
   children?: ReactNode;
 }) {
   const [paused, setPaused] = useState(false);
@@ -345,6 +438,7 @@ export function Ticker({
     return () => ro.disconnect();
   }, [items.length]);
   if (!items.length) return null;
+  const open = !!expand?.open;
 
   const renderItems = (copy: boolean): ReactNode =>
     items.map((it) => (
@@ -368,11 +462,13 @@ export function Ticker({
     ));
 
   return (
-    <section aria-label={label} className={`bg-card border border-border rounded-2xl p-4 ${className}`}>
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <div className="flex items-center justify-between sm:justify-start gap-2 shrink-0">
+    <section aria-label={label} className={`cs-on-hue bg-card ${BLUE_HUE} border border-border rounded-2xl p-4 ${className}`}>
+      {/* In the page's order the switch comes before the moving row, so the keyboard reaches it without passing every
+          headline; on a wide screen it is set after the row, at the banner's end. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <div className="order-1 flex items-center gap-2 shrink-0">
           <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">{label}</p>
-          {!still && (
+          {!still && !open && (
             <button
               type="button"
               onClick={() => setPaused((v) => !v)}
@@ -385,7 +481,19 @@ export function Ticker({
             </button>
           )}
         </div>
-        <div ref={viewRef} className="cs-ticker-viewport flex-1 min-w-0 py-1" data-paused={paused} data-still={still}>
+        {expand && (
+          <button
+            type="button"
+            onClick={expand.onToggle}
+            aria-expanded={open}
+            aria-controls={expand.controls}
+            className="order-2 ml-auto sm:order-3 sm:ml-0 inline-flex items-center gap-1 shrink-0 text-[10px] font-semibold font-sans px-2.5 py-1 rounded-full border border-border text-foreground hover:bg-muted transition-colors cursor-pointer"
+          >
+            {open ? "Hide the list" : "All headlines"}
+            <CaretDown size={10} weight="bold" className={`transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
+          </button>
+        )}
+        <div ref={viewRef} className="cs-ticker-viewport order-3 basis-full sm:order-2 sm:flex-1 min-w-0 py-1" data-paused={paused || open} data-still={still}>
           <div className="cs-ticker-track flex w-max" style={{ ["--cs-ticker-duration" as string]: `${duration}s` }}>
             <div ref={copyRef} className="flex">
               {renderItems(false)}
@@ -399,6 +507,147 @@ export function Ticker({
       </div>
       {children}
     </section>
+  );
+}
+
+// ─── The full list ────────────────────────────────────────────────────────────
+
+/** "Today", "Yesterday", "Mon 28 Sept": the reader's own day. */
+function dayLabel(d: Date): string {
+  const now = new Date();
+  const days = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() - new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()) / 86_400_000);
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+}
+
+/** How many headlines the full list draws at a time: a list can run past a thousand. */
+const LIST_STEP = 100;
+
+/**
+ * A banner's full list, under its moving row: every headline, set under its
+ * day, each with its chip, outlet and age and linking to the outlet. A long
+ * list can be narrowed by typing, and is drawn a hundred at a time - each
+ * day's count is of the whole list, not of what is drawn. It scrolls within
+ * itself, so opening it does not push the page away.
+ */
+export function HeadlineList({
+  id,
+  label,
+  items,
+  summary,
+}: {
+  /** The id the banner's switch points at. */
+  id: string;
+  /** The banner's label: "City headlines". */
+  label: string;
+  items: TickerItem[];
+  /** The line above the list: how many, and from when. */
+  summary: ReactNode;
+}) {
+  const [q, setQ] = useState("");
+  const [drawn, setDrawn] = useState(LIST_STEP);
+  const filter = (text: string) => {
+    setQ(text);
+    setDrawn(LIST_STEP);
+  };
+  const needle = q.trim().toLowerCase();
+  const shown = needle ? items.filter((it) => `${it.text} ${it.tag?.text ?? ""} ${it.meta ?? ""}`.toLowerCase().includes(needle)) : items;
+  // The days in order, each with the count of all its headlines and those of them drawn so far.
+  const groups: { key: string; label: string; count: number; items: TickerItem[] }[] = [];
+  shown.forEach((it, i) => {
+    const d = it.at ? new Date(it.at) : null;
+    const key = d ? `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}` : "";
+    let g = groups[groups.length - 1];
+    if (!g || g.key !== key) groups.push((g = { key, label: d ? dayLabel(d) : "", count: 0, items: [] }));
+    g.count++;
+    if (i < drawn) g.items.push(it);
+  });
+  const left = shown.length - Math.min(drawn, shown.length);
+  return (
+    <div id={id} role="region" aria-label={`All ${label.toLowerCase()}`} className="mt-3 rounded-xl overflow-hidden border border-border bg-background dark:bg-black/40">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 py-2 border-b border-border">
+        <p className="text-[10px] font-sans text-muted-foreground leading-snug">
+          {summary}
+          {needle && ` ${shown.length.toLocaleString("en-US")} match.`}
+        </p>
+        {items.length > 12 && (
+          <label className="flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1">
+            <MagnifyingGlass size={11} className="text-muted-foreground shrink-0" aria-hidden />
+            <input
+              type="text"
+              value={q}
+              onChange={(e) => filter(e.target.value)}
+              aria-label={`Filter ${label.toLowerCase()}`}
+              placeholder="Filter by word, place or outlet…"
+              className="w-44 bg-transparent text-[10px] font-sans text-foreground outline-none border-none placeholder:text-muted-foreground"
+            />
+            {q && (
+              <button type="button" onClick={() => filter("")} aria-label="Clear the filter" className="text-muted-foreground hover:text-foreground cursor-pointer">
+                <X size={10} weight="bold" />
+              </button>
+            )}
+          </label>
+        )}
+      </div>
+      <div className="max-h-[min(26rem,60vh)] overflow-y-auto">
+        {groups
+          .filter((g) => g.items.length > 0)
+          .map((g) => (
+            <div key={g.key}>
+              {g.label && (
+                <p className="px-3 pt-2.5 pb-1 text-[9px] font-mono uppercase tracking-widest text-muted-foreground">
+                  {g.label} · {g.count.toLocaleString("en-US")}
+                </p>
+              )}
+              <ul>
+                {g.items.map((it) => (
+                  <li key={it.key} className="border-b border-border last:border-b-0">
+                    <a href={it.href} target="_blank" rel="noopener noreferrer" title={it.title} className="group flex flex-col gap-1 px-3 py-2 hover:bg-muted transition-colors">
+                      <span className="text-xs font-sans text-foreground leading-snug group-hover:underline">{it.text}</span>
+                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        {it.star && <Star size={11} weight="fill" className="text-amber-500 shrink-0" aria-label="A place you follow" />}
+                        {it.tag && <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${it.tag.tone}`}>{it.tag.text}</span>}
+                        {it.meta && <span className="text-[10px] text-muted-foreground">{it.meta}</span>}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        {left > 0 && (
+          <button
+            type="button"
+            onClick={() => setDrawn((n) => n + LIST_STEP)}
+            className="w-full px-3 py-2.5 border-t border-border text-[11px] font-semibold font-sans text-foreground hover:bg-muted transition-colors cursor-pointer"
+          >
+            Show {Math.min(LIST_STEP, left)} more · {left.toLocaleString("en-US")} still to show
+          </button>
+        )}
+        {shown.length === 0 && <p className="px-3 py-6 text-center text-[11px] font-sans text-muted-foreground">{needle ? "No headline matches." : "No headlines to list."}</p>}
+      </div>
+    </div>
+  );
+}
+
+const NUMBER_WORD = ["no", "one", "two", "three", "four", "five", "six", "seven"];
+/** "the last two days". */
+export const windowWords = (days: number) => (days === 1 ? "the last day" : `the last ${NUMBER_WORD[days] ?? days} days`);
+
+/** "yesterday, 09:40" or "Mon 28 Sept, 09:40": how far back a list goes, in the reader's own time. */
+export function backTo(iso: string): string {
+  const d = new Date(iso);
+  const day = dayLabel(d);
+  return `${day === "Today" || day === "Yesterday" ? day.toLowerCase() : day}, ${d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
+}
+
+/** "86 headlines", in the list's summary. */
+export function HeadlineCount({ n }: { n: number }) {
+  return (
+    <strong className="font-semibold text-foreground">
+      {n.toLocaleString("en-US")} headline{n === 1 ? "" : "s"}
+    </strong>
   );
 }
 
@@ -426,16 +675,17 @@ export function HeadlinesBanner({
   /**
    * Which to show, with their chips: a module-level function, so it is not
    * rerun on every render. By default the newest, five at most from one
-   * outlet, tagged with their places.
+   * outlet, tagged with their places. Asked for all, every one that belongs.
    */
-  pick?: (rows: Headline[]) => Shown[];
+  pick?: HeadlinePick;
   /** The page's subject (see SUBJECT), for topping up when its own desks give fewer than a dozen. */
   subject?: RegExp;
   /** The line under the banner, given the outlets it is showing. */
   note: (outlets: string) => ReactNode;
   className?: string;
 }) {
-  const rows = useHeadlines(topics, days, read, untagged, subject);
+  const own = useHeadlineRead(topics, days, read, untagged, subject);
+  const rows = own.rows;
   const shown = useMemo(() => pick(rows), [pick, rows]);
   const toppedUp = shown.some((s) => s.h.viaSubject);
   const topicKey = topics.join(",");
@@ -447,8 +697,38 @@ export function HeadlinesBanner({
   );
   const [showSources, setShowSources] = useState(false);
 
+  // The full list: everything the page's desks carry in the window, read when
+  // the list is opened. Until that read lands the banner's own stands in.
+  const [showAll, setShowAll] = useState(false);
+  const listId = useId();
+  const deep = useHeadlineRead(topics, days, ALL_READ, untagged, subject, showAll);
+  const from = deep.rows.length ? deep : own;
+  const pool = from.rows;
+  const all = useMemo(() => (showAll ? pick(pool, true).map(headlineItem) : []), [showAll, pick, pool]);
+  // A read that stopped short does not reach the start of the window: the list says how far back it goes.
+  const reach = from.capped && pool.length ? backTo(pool[pool.length - 1].published_at) : null;
+
   return (
-    <Ticker label={label} items={shown.map(headlineItem)} className={className}>
+    <Ticker
+      label={label}
+      items={shown.map(headlineItem)}
+      className={className}
+      expand={{ open: showAll, onToggle: () => setShowAll((v) => !v), controls: listId }}
+    >
+      {showAll && (
+        <HeadlineList
+          id={listId}
+          label={label}
+          items={all}
+          summary={
+            <>
+              <HeadlineCount n={all.length} />{" "}
+              {reach ? `among the newest ${pool.length.toLocaleString("en-US")} read, which go back to ${reach}` : `from ${windowWords(days)}`}, newest first.
+              {!deep.done && " Reading the rest…"}
+            </>
+          }
+        />
+      )}
       {showSources && <SourcesList {...sources} />}
       <p className="mt-2 text-[10px] font-sans text-muted-foreground leading-snug">
         <ListToggle

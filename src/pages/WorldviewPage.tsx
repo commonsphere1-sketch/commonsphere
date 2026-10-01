@@ -680,12 +680,12 @@ function Hero() {
  * The world desks' latest headlines naming a country other than the United
  * States. A US-only story is domestic news - it has its own banner on the
  * States page - and a world banner of them was obituaries and state
- * politics. The chip names the countries.
+ * politics. The chip names the countries. The newest thirty, or all of them.
  */
-const pickWorld = (rows: Headline[]): Shown[] =>
+const pickWorld = (rows: Headline[], all = false): Shown[] =>
   rows
     .filter((h) => h.places.some((p) => p !== "c:US" && p.startsWith("c:") && placeName(p)))
-    .slice(0, 30)
+    .slice(0, all ? undefined : 30)
     .map((h) => ({ h, tag: placeTag(h.places.filter((p) => p.startsWith("c:"))) }));
 
 // ── The world wheel ─────────────────────────────────────────────────────────

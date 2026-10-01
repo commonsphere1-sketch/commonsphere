@@ -16044,17 +16044,18 @@ function leadersIn(title: string): Leader[] {
 /**
  * The newest headlines naming a profiled leader, at most three a leader so
  * the most-covered do not crowd out the rest. The chip is the leader's
- * country; violet when a story names leaders of more than one.
+ * country; violet when a story names leaders of more than one. Asked for
+ * all, every headline naming one.
  */
-const pickLeaders = (rows: Headline[]): Shown[] => {
+const pickLeaders = (rows: Headline[], all = false): Shown[] => {
   const n = new Map<string, number>();
   const out: Shown[] = [];
   for (const h of rows) {
     const named = leadersIn(h.title);
-    if (!named.length || named.every((l) => (n.get(l.id) ?? 0) >= 3)) continue;
+    if (!named.length || (!all && named.every((l) => (n.get(l.id) ?? 0) >= 3))) continue;
     for (const l of named) n.set(l.id, (n.get(l.id) ?? 0) + 1);
     out.push({ h, tag: namesTag([...new Set(named.map((l) => l.country))]) });
-    if (out.length === 30) break;
+    if (!all && out.length === 30) break;
   }
   return out;
 };

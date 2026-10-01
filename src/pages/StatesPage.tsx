@@ -36,6 +36,7 @@ import { SourceLink } from "../components/SourceLink";
 import { Figures, COUNTER_FIGURES } from "../components/Figures";
 import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
+import { BLUE_HUE } from "@/lib/blueHue";
 import { useWatchlist } from "@/contexts/WatchlistContext";
 import { FollowedPlaces } from "@/components/FollowedPlaces";
 import { HistoryPanel } from "@/components/HistoryPanel";
@@ -7223,8 +7224,8 @@ function USNationalBanner() {
     <div className="bg-card border border-border rounded-2xl overflow-hidden mb-8 shadow-lg">
       {/* Header */}
       <div className="relative overflow-hidden px-6 py-6 flex flex-wrap items-center justify-between gap-5 border-b border-border">
-        {/* Background gradient — vivid in dark, softer in light */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-cyan-500/10 to-blue-700/20 dark:from-blue-900/70 dark:via-cyan-800/50 dark:to-blue-900/70 pointer-events-none" />
+        {/* The site's blue hue — vivid in dark, softer in light; the headline banners carry the same */}
+        <div className={`absolute inset-0 ${BLUE_HUE} pointer-events-none`} />
         {/* Subtle star/shine overlay */}
         <div
           className="absolute inset-0 opacity-[0.04] dark:opacity-[0.07] pointer-events-none"

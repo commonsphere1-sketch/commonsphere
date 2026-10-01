@@ -1176,3 +1176,16 @@ html.light .avatar-glass {
   .cs-ticker-viewport { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
   .cs-ticker-copy { display: none; }
 }
+
+/* A panel carrying the blue hue (lib/blueHue.ts): the headline banners.
+   The wash is lighter than the page in dark mode and darker than it in
+   light, so the site's muted grey and its hairline border lose contrast on
+   it; inside such a panel both are set a step stronger. */
+.cs-on-hue {
+  --color-muted-foreground: rgba(255, 255, 255, 0.68);
+  --color-border: rgba(255, 255, 255, 0.14);
+}
+html.light .cs-on-hue {
+  --color-muted-foreground: hsl(38, 12%, 30%);
+  --color-border: hsl(214, 30%, 74%);
+}

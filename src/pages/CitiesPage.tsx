@@ -3172,17 +3172,17 @@ const citiesIn = nameMatcher(
 /**
  * The newest headlines naming a profiled city, at most three a city so the
  * most-covered do not crowd out the rest. The chip is the city; violet when
- * a story names more than one.
+ * a story names more than one. Asked for all, every headline naming one.
  */
-const pickCities = (rows: Headline[]): Shown[] => {
+const pickCities = (rows: Headline[], all = false): Shown[] => {
   const n = new Map<string, number>();
   const out: Shown[] = [];
   for (const h of rows) {
     const named = citiesIn(h.title);
-    if (!named.length || named.every((c) => (n.get(c.id) ?? 0) >= 3)) continue;
+    if (!named.length || (!all && named.every((c) => (n.get(c.id) ?? 0) >= 3))) continue;
     for (const c of named) n.set(c.id, (n.get(c.id) ?? 0) + 1);
     out.push({ h, tag: namesTag(named.map((c) => c.name)) });
-    if (out.length === 30) break;
+    if (!all && out.length === 30) break;
   }
   return out;
 };

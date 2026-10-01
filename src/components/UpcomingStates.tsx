@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Star } from "@phosphor-icons/react";
 import { useLiveStatus, type UpcomingEvent } from "@/lib/liveFigures";
 import { useWatchlist } from "@/contexts/WatchlistContext";
@@ -6,6 +6,9 @@ import { supabase } from "@/lib/supabase";
 import { usStatesData } from "@/data/statesData";
 import { TONE } from "@/lib/chipTone";
 import {
+  ALL_READ,
+  HeadlineCount,
+  HeadlineList,
   ListToggle,
   SourcesList,
   Ticker,
@@ -16,7 +19,7 @@ import {
   outletList,
   placeTag,
   spread,
-  useHeadlines,
+  useHeadlineRead,
   type Headline,
   type TickerItem,
 } from "@/components/HeadlinesBanner";
@@ -31,8 +34,10 @@ import {
  *
  * States the reader follows come first, starred; then a story naming a
  * state, a national headline and a date in turn, so none crowds the others
- * out. Every item links to its source. Under it, "All … upcoming dates"
- * opens the full calendar and "All … news sources" the outlets read.
+ * out. Every item links to its source. "All headlines" opens every story
+ * naming a state and every national headline of the banner's window, read
+ * when it is opened; under the banner, "All … upcoming dates" opens the full
+ * calendar and "All … news sources" the outlets read.
  */
 
 const STATE_KEYS = usStatesData.map((s) => `s:${s.id}`);
@@ -85,12 +90,32 @@ function shortRelease(title: string): string {
   return t.length > 70 ? `${t.slice(0, 68)}…` : t;
 }
 
-/** The latest headlines naming a US state, from any desk, fetched once per ten minutes. */
-let headlineCache: { at: number; rows: Headline[] } | null = null;
-function useStateHeadlines(): Headline[] {
-  const [rows, setRows] = useState<Headline[]>(headlineCache?.rows ?? []);
+/** The stories naming a state read for the moving row. */
+const BANNER_STATE_READ = 30;
+/** The most read for the full list: one request's worth, several times what three days hold. */
+const STATE_READ = 1000;
+
+type Read = { at: number; rows: Headline[] };
+/** Each read of the headlines naming a state is kept ten minutes. */
+const headlineCache: { banner: Read | null; all: Read | null } = { banner: null, all: null };
+
+/**
+ * The last three days' headlines naming a US state, from any desk: the
+ * newest thirty for the banner, or with `all` as many as one request
+ * carries, for its full list. `enabled` false reads nothing.
+ */
+function useStateHeadlines(all = false, enabled = true): { rows: Headline[]; done: boolean } {
+  const slot = all ? "all" : "banner";
+  const [rows, setRows] = useState<Headline[]>(headlineCache[slot]?.rows ?? []);
+  const [done, setDone] = useState(!!headlineCache[slot]);
   useEffect(() => {
-    if (!supabase || (headlineCache && Date.now() - headlineCache.at < 10 * 60_000)) return;
+    if (!enabled) return;
+    const hit = headlineCache[slot];
+    if (!supabase || (hit && Date.now() - hit.at < 10 * 60_000)) {
+      if (hit) setRows(hit.rows);
+      setDone(true);
+      return;
+    }
     let live = true;
     supabase
       .from("news_items")
@@ -98,20 +123,23 @@ function useStateHeadlines(): Headline[] {
       .overlaps("places", STATE_KEYS)
       .gte("published_at", new Date(Date.now() - 3 * 86_400_000).toISOString())
       .order("published_at", { ascending: false })
-      .limit(30)
+      .limit(all ? STATE_READ : BANNER_STATE_READ)
       .then(({ data }) => {
-        if (!live || !data) return;
-        const clean = data.filter(
-          (r): r is Headline => typeof r.title === "string" && /^https:\/\//.test(r.url) && Array.isArray(r.places),
-        );
-        headlineCache = { at: Date.now(), rows: clean };
-        setRows(clean);
+        if (!live) return;
+        if (data) {
+          const clean = data.filter(
+            (r): r is Headline => typeof r.title === "string" && /^https:\/\//.test(r.url) && Array.isArray(r.places),
+          );
+          headlineCache[slot] = { at: Date.now(), rows: clean };
+          setRows(clean);
+        }
+        setDone(true);
       });
     return () => {
       live = false;
     };
-  }, []);
-  return rows;
+  }, [slot, enabled]);
+  return { rows, done };
 }
 
 /** Of each kind - stories naming a state, national headlines, dates - at most this many in the moving row. */
@@ -119,11 +147,17 @@ const EACH = 15;
 
 export function UpcomingStates() {
   const { events, lastChecked } = useLiveStatus();
-  const nationalRows = useHeadlines(["us"], 2, 150, false);
-  const stateRows = useStateHeadlines();
+  const national = useHeadlineRead(["us"], 2, 150, false);
+  const nationalRows = national.rows;
+  const stateRows = useStateHeadlines().rows;
   const watch = useWatchlist();
   const [showDates, setShowDates] = useState(false);
   const [showSources, setShowSources] = useState(false);
+  // The full list: the same two reads without the banner's caps, made when the list is opened.
+  const [showAll, setShowAll] = useState(false);
+  const listId = useId();
+  const stateAll = useStateHeadlines(true, showAll);
+  const nationalAll = useHeadlineRead(["us"], 2, ALL_READ, false, undefined, showAll);
 
   const followed = new Set(watch.items.filter((i) => i.type === "state").map((i) => i.id));
   const rank = (k: string) => {
@@ -183,6 +217,34 @@ export function UpcomingStates() {
   );
   const dates = upcoming.map(eventItem);
 
+  // Every story naming a state and every national headline of the window, newest first, tagged as in the moving row.
+  // Until the fuller reads land, the banner's own stand in.
+  const allItems: TickerItem[] = [];
+  // Whether a read the list stands on stopped at its limit, short of its window.
+  const short =
+    (stateAll.rows.length ? stateAll.rows.length >= STATE_READ : stateRows.length >= BANNER_STATE_READ) ||
+    (nationalAll.rows.length ? nationalAll.capped : national.capped);
+  if (showAll) {
+    const pool = [
+      ...(stateAll.rows.length ? stateAll.rows : stateRows),
+      ...(nationalAll.rows.length ? nationalAll.rows : nationalRows).filter((h) => !h.places.some((p) => p.startsWith("s:"))),
+    ].sort((a, b) => b.published_at.localeCompare(a.published_at));
+    const urls = new Set<string>();
+    const titles = new Set<string>();
+    for (const h of pool) {
+      const t = h.title.toLowerCase().replace(/\s+/g, " ").trim();
+      if (urls.has(h.url) || titles.has(t)) continue;
+      urls.add(h.url);
+      titles.add(t);
+      const states = statesOf(h);
+      allItems.push(
+        states.length
+          ? headlineItem({ h, tag: namesTag(states.map(stateName)), star: states.some((x) => followed.has(x)) })
+          : headlineItem({ h, tag: h.places.some((p) => p !== "c:US") ? placeTag(h.places) : { text: "National", tone: TONE.blue } }),
+      );
+    }
+  }
+
   // Followed states first; then a story naming a state, a national headline and a date in turn.
   const items: TickerItem[] = [...stateItems.filter((i) => i.star), ...dates.filter((i) => i.star).slice(0, EACH)];
   const streams = [stateItems.filter((i) => !i.star), nationalItems, dates.filter((i) => !i.star).slice(0, EACH)];
@@ -190,7 +252,26 @@ export function UpcomingStates() {
 
   const link = "underline hover:text-foreground";
   return (
-    <Ticker label="US headlines and dates to watch" items={items} className="mb-6">
+    <Ticker
+      label="US headlines and dates to watch"
+      items={items}
+      className="mb-6"
+      expand={headlines.length > 0 ? { open: showAll, onToggle: () => setShowAll((v) => !v), controls: listId } : undefined}
+    >
+      {showAll && (
+        <HeadlineList
+          id={listId}
+          label="US headlines"
+          items={allItems}
+          summary={
+            <>
+              <HeadlineCount n={allItems.length} />: three days' stories naming a state and two days' national headlines, newest first.
+              {short && " A read reached its limit, so the oldest of its window are left out."}
+              {(!stateAll.done || !nationalAll.done) && " Reading the rest…"}
+            </>
+          }
+        />
+      )}
       {showDates && (
         <div className="mt-3 flex flex-wrap gap-2">
           {upcoming.map((e) => {
