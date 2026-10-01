@@ -18,6 +18,7 @@ import {
   ArrowsLeftRight,
 } from "@phosphor-icons/react";
 import { FilterBar } from "../components/FilterBar";
+import { STATE_ENERGY } from "../data/stateEnergy";
 import { HeadlinesBanner, ALL_TOPICS, namesPlace, pickWhere } from "../components/HeadlinesBanner";
 
 // ─── Metric definitions ──────────────────────────────────────────────────────
@@ -120,12 +121,8 @@ const CATEGORY_TABS: {
   { id: "hdi", label: "Development", icon: "🌐", pool: "country" },
   { id: "justice", label: "Justice", icon: "⚖️", pool: "all" },
   { id: "health", label: "Health", icon: "❤️", pool: "country" },
-  {
-    id: "infrastructure",
-    label: "Infrastructure",
-    icon: "🏗️",
-    pool: "country",
-  },
+  // Countries and US states alike: both have EIA's energy figures.
+  { id: "infrastructure", label: "Infrastructure", icon: "🏗️", pool: "all" },
 ];
 
 const M_GDP_PER_CAPITA: CategoryMetric = {
@@ -232,10 +229,13 @@ const M_HEALTHCARE_RANK: CategoryMetric = {
 };
 
 /**
- * Countries only. This is the dataset's one infrastructure signal — there is
- * no roads, rail, broadband or utilities measure for either pool — so the
- * category is built on generation capacity and labelled as energy output
- * rather than implying a broader infrastructure index.
+ * Countries and US states, both from the US Energy Information
+ * Administration - its international data for countries (build-energy.cjs),
+ * its State Energy Data System for states (build-state-energy.cjs) - in TWh
+ * at the same conversion, so the two compare. This is the dataset's one
+ * infrastructure signal - there is no roads, rail, broadband or utilities
+ * measure for either pool - so the category is built on energy production
+ * and labelled as such rather than implying a broader infrastructure index.
  */
 const M_ENERGY_OUTPUT: CategoryMetric = {
   id: "energyOutputTWh",
@@ -453,7 +453,7 @@ interface RankRow {
   salesTaxRate: number;
   minimumWage: number;
   bachelorsPct: number;
-  /** Annual electricity/primary energy output, TWh. Countries only. */
+  /** Annual primary energy production, TWh (EIA): countries and US states. */
   energyOutputTWh: number;
   /** Production as a share of consumption, %. Over 100 = net exporter. */
   energySelfSufficiency: number;
@@ -618,10 +618,13 @@ function buildStateRows(): RankRow[] {
       // which is a real answer, not a gap.
       minimumWage: s.minimumWage,
       bachelorsPct: STATE_FIGURES[s.id]?.education.bachelorsOrHigherPct ?? NaN,
-      // statesData carries an energy mix as percentages only, with no absolute
-      // output, so there is nothing comparable to a country's TWh figure.
-      energyOutputTWh: NaN,
-      energySelfSufficiency: NaN,
+      // EIA's State Energy Data System, on the same basis as the countries'
+      // EIA figures: primary production, and production over consumption.
+      energyOutputTWh: STATE_ENERGY[s.id]?.totalProductionTWh ?? NaN,
+      energySelfSufficiency:
+        STATE_ENERGY[s.id] && STATE_ENERGY[s.id].totalUseTWh > 0
+          ? (STATE_ENERGY[s.id].totalProductionTWh / STATE_ENERGY[s.id].totalUseTWh) * 100
+          : NaN,
       // Country series (World Bank PIP, ILO); no state figures on that basis.
       medianDailyIncome: NaN,
       minimumWageMonthlyUSD: NaN,
