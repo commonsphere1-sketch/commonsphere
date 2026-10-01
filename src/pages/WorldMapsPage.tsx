@@ -1241,6 +1241,13 @@ function ZoomControls({
 const RAMP_LIGHT = ["#000000", "#303030", "#4f4f4f", "#6e6e6e", "#909090", "#b7b7b7"];
 const RAMP_DARK = ["#464646", "#5f5f5f", "#7a7a7a", "#989898", "#b9b9b9", "#e0e0e0"];
 
+/* Greens, for forest cover: one hue, lowest bucket first, and more forest is
+   more green in both themes - deeper on the light card, brighter on the dark
+   one. Built the same way as the greys: every adjacent pair 1.45:1 apart, and
+   the step nearest the card held at 2:1 against it (#ffffff, #0f0f13). */
+const FOREST_LIGHT = ["#59ce79", "#33ad5a", "#048f41", "#077133", "#005624", "#003c17"];
+const FOREST_DARK = ["#005021", "#076b30", "#05883e", "#04a84d", "#2bc964", "#5cef87"];
+
 /** The "no figure" fill: a 45 degree hatch that keeps its spacing on screen at any zoom. */
 function NoDataHatch({
   id,
@@ -1377,6 +1384,8 @@ type CountryIndicator = {
   format: (v: number) => string;
   /** Named under the map when the figure does not come with the country record. */
   source?: { label: string; url: string; note: string };
+  /** A ramp of its own in place of the greys, lowest bucket first, as many steps as theirs, and what the legend calls its two ends. */
+  ramp?: { light: string[]; dark: string[]; low: string; high: string };
 };
 
 const COUNTRY_INDICATORS: CountryIndicator[] = [
@@ -1437,6 +1446,7 @@ const COUNTRY_INDICATORS: CountryIndicator[] = [
       return typeof f === "number" && Number.isFinite(f) ? f : null;
     },
     format: (v) => `${v.toFixed(1)}%`,
+    ramp: { light: FOREST_LIGHT, dark: FOREST_DARK, low: "Less forest", high: "More forest" },
     source: {
       label: LAND_USE_SOURCE.label,
       url: LAND_USE_SOURCE.url,
@@ -1620,6 +1630,9 @@ export function WorldMapsPage() {
 
   /* ── Country shading ── */
   const activeCountry = COUNTRY_INDICATORS.find((i) => i.id === countryMetric)!;
+  /* The world map's ramp: the indicator's own where it has one (forest cover
+     is green), the greys otherwise. The other maps on the page keep the greys. */
+  const worldRamp = activeCountry.ramp ? (isLight ? activeCountry.ramp.light : activeCountry.ramp.dark) : ramp;
   const activeScope = SCOPES.find((s) => s.id === scope)!;
   const inScope = activeScope.members;
   /* M49 classifies neither Kosovo nor Taiwan, so they belong to no scope and
@@ -1664,15 +1677,15 @@ export function WorldMapsPage() {
   );
 
   /* The ramp colour for a value, or null when there is no figure. Colour
-     follows the value itself for every indicator — low is black, high is
-     light grey — so the legend's "Lower" end is always the dark one. It used
-     to flip where less is better, which put black at the "Higher" end for
-     unemployment and the US ranks. */
-  const colourFor = (value: number | null, breaks: number[]): string | null => {
+     follows the value itself for every indicator — on the greys low is black
+     and high is light grey — so the legend's "Lower" end is always the ramp's
+     first step. It used to flip where less is better, which put black at the
+     "Higher" end for unemployment and the US ranks. */
+  const colourFor = (value: number | null, breaks: number[], from: string[] = ramp): string | null => {
     if (value === null || !Number.isFinite(value)) return null;
     let idx = 0;
     while (idx < breaks.length && value >= breaks[idx]) idx++;
-    return ramp[idx];
+    return from[idx];
   };
 
   /* ── Focus map ── */
@@ -3233,7 +3246,7 @@ export function WorldMapsPage() {
                   fill={
                     outside
                       ? outOfScope
-                      : (colourFor(value, countryShading.breaks) ?? "url(#nodata-world)")
+                      : (colourFor(value, countryShading.breaks, worldRamp) ?? "url(#nodata-world)")
                   }
                   stroke={stroke}
                   strokeWidth={0.3 / worldZoom.zoom}
@@ -3442,11 +3455,11 @@ export function WorldMapsPage() {
           </svg>
 
           <Legend
-            ramp={ramp}
+            ramp={worldRamp}
             noData={noData}
             noDataHatch={noDataHatch}
-            lowLabel="Lower"
-            highLabel="Higher"
+            lowLabel={activeCountry.ramp?.low ?? "Lower"}
+            highLabel={activeCountry.ramp?.high ?? "Higher"}
             extra={
               activeScope.outsideLabel
                 ? { colour: outOfScope, label: activeScope.outsideLabel }
