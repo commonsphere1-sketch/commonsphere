@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   Leaf,
   Heart,
@@ -10563,7 +10564,28 @@ function EntityRow({ group }: { group: EntityGroup }) {
       }),
     [group.policies],
   );
-  const most = Math.max(0, ...shares.map((x) => x.share ?? 0));
+  /* The mini-bars in the row's heading are the cards' own bars stood on end:
+     one for each card, in the cards' order and colours, as full as the card's
+     bar is - and empty where the card's is - with the card's figure, in
+     words, shown on hover. */
+  const bars = useMemo(
+    () =>
+      group.policies.map((p) => {
+        const fig = figuresOf(p);
+        const head = fig.head;
+        return {
+          cat: p.category,
+          cfg: CATEGORY_CONFIG[p.category],
+          fill: head?.share !== undefined ? Math.min(100, Math.max(1, head.share)) : null,
+          says: head
+            ? `${head.value} ${head.label}${head.share !== undefined && !/%$/.test(head.value) ? ` - ${head.share.toFixed(1)}% of its spending` : ""} · ${head.when}`
+            : (fig.none ?? "No published figure is held for this area."),
+        };
+      }),
+    [group.policies],
+  );
+  /* The bar the pointer is on, and where: its description is drawn there. */
+  const [tip, setTip] = useState<{ i: number; x: number; y: number } | null>(null);
   // The largest is named only where there are several to be the largest of.
   const shared = shares.filter((x) => x.share !== null).sort((a, b) => (b.share ?? 0) - (a.share ?? 0));
   const largest = shared.length >= 3 ? shared[0] : undefined;
@@ -10637,17 +10659,26 @@ function EntityRow({ group }: { group: EntityGroup }) {
           )}
         </div>
 
-        {/* Each area's share of spending, as mini-bars on one scale */}
-        {most > 0 && (
-          <div className="items-end gap-1.5 mx-3 hidden md:flex" style={{ height: "36px" }}>
-            {shares.map(({ cat, share, cfg }) => (
+        {/* The cards' bars, one each and in their order: see `bars`. Each
+            answers the pointer over a wider strip than the bar itself. */}
+        {bars.some((b) => b.fill !== null) && (
+          <div className="items-end mx-3 hidden md:flex" style={{ height: "36px" }} onMouseLeave={() => setTip(null)}>
+            {bars.map(({ cat, fill, cfg, says }, i) => (
               <div
                 key={cat}
-                className="flex flex-col items-center justify-end h-full"
-                title={share === null ? `${cat}: no share of spending published` : `${cat}: ${share.toFixed(1)}% of ${whose} spending`}
+                role="img"
+                aria-label={`${cat}: ${says}`}
+                className="flex flex-col items-center justify-end h-full px-[3px]"
+                onMouseEnter={(e) => {
+                  const r = e.currentTarget.getBoundingClientRect();
+                  setTip({ i, x: r.left + r.width / 2, y: r.top });
+                }}
               >
-                <div className="rounded-full bg-muted overflow-hidden flex items-end" style={{ width: "4px", height: "100%" }}>
-                  {share !== null && <div className={`w-full rounded-full ${cfg.bar} transition-all`} style={{ height: `${Math.max(4, (100 * share) / most)}%` }} />}
+                <div
+                  className={`rounded-full bg-muted overflow-hidden flex items-end transition-all ${tip?.i === i ? "ring-1 ring-foreground" : ""}`}
+                  style={{ width: "4px", height: "100%" }}
+                >
+                  {fill !== null && <div className={`w-full rounded-full ${cfg.bar} transition-all`} style={{ height: `${fill}%` }} />}
                 </div>
               </div>
             ))}
@@ -10671,6 +10702,23 @@ function EntityRow({ group }: { group: EntityGroup }) {
           )}
         </div>
       </button>
+
+      {tip &&
+        bars[tip.i] &&
+        createPortal(
+          <div
+            role="tooltip"
+            className="fixed z-[60] pointer-events-none max-w-[16rem] rounded-lg border border-border bg-card shadow-lg px-2.5 py-1.5"
+            style={{ left: Math.min(window.innerWidth - 140, Math.max(140, tip.x)), top: tip.y - 8, transform: "translate(-50%, -100%)" }}
+          >
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground">
+              <span className={`w-2 h-2 rounded-full shrink-0 ${bars[tip.i].cfg.bar}`} aria-hidden />
+              {bars[tip.i].cat}
+            </p>
+            <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">{bars[tip.i].says}</p>
+          </div>,
+          document.body,
+        )}
 
       {open && (
         <div className="px-5 pb-5 pt-1 border-t border-border/40 min-w-0">
