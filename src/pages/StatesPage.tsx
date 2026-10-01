@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   MapPin,
   Timer,
@@ -6338,6 +6339,7 @@ function StateModal({
   const [activeTab, setActiveTab] = useState<ModalTab>("overview");
   const [isExpanded, setIsExpanded] = useState(false);
   const watch = useWatchlist();
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     setActiveTab("overview");
@@ -6430,6 +6432,15 @@ function StateModal({
                   weight={watch.isWatched("state", state.id) ? "fill" : "regular"}
                   className={watch.isWatched("state", state.id) ? "text-amber-500" : undefined}
                 />
+              </button>
+              {/* As in a country's window: to the maps page, with this state filled in on both maps. */}
+              <button
+                onClick={() => navigate(`/dashboard/maps?state=${state.abbreviation}`)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                aria-label={`Show ${state.name} on the map`}
+                title="Show on map"
+              >
+                <MapTrifold size={18} />
               </button>
               <button
                 onClick={() => setIsExpanded((v) => !v)}

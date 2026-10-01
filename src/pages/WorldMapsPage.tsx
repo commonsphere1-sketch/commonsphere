@@ -1275,6 +1275,15 @@ function NoDataHatch({
   );
 }
 
+/** What a link asked for: ?country=FR from a country's window, ?state=CA from a US state's. */
+function linkedPlace(): { country: string; state: string | null } | null {
+  const q = new URLSearchParams(window.location.search);
+  const state = (q.get("state") ?? "").toUpperCase();
+  if (usStatesData.some((s) => s.abbreviation === state)) return { country: "US", state };
+  const country = q.get("country") ?? "";
+  return /^[A-Za-z]{2}$/.test(country) ? { country: country.toUpperCase(), state: null } : null;
+}
+
 type ScopeId = "all" | "g20" | "g7" | "brics" | "north" | "south";
 
 /**
@@ -1495,15 +1504,23 @@ export function WorldMapsPage() {
   // The second map focuses on one country. The US is the default because it is
   // the only one with subdivision figures behind it.
   /* ?country=NU opens the country map on that country, so a link from its
-     profile lands on the place rather than on the United States. Read once,
-     at mount: after that the picker owns the choice. */
-  const cameFromCountryLink = useRef(
-    /^[A-Za-z]{2}$/.test(new URLSearchParams(window.location.search).get("country") ?? ""),
-  );
-  const [focusCode, setFocusCode] = useState(() => {
-    const want = new URLSearchParams(window.location.search).get("country");
-    return want && /^[A-Za-z]{2}$/.test(want) ? want.toUpperCase() : "US";
-  });
+     profile lands on the place rather than on the United States; ?state=CA,
+     from a state's, opens the United States with that state picked out. Read
+     once, at mount: after that the picker owns the choice. */
+  const [linked] = useState(linkedPlace);
+  const cameFromCountryLink = useRef(linked !== null);
+  const [focusCode, setFocusCodeOnly] = useState(() => linked?.country ?? "US");
+  /* The place picked out: filled in its own colour on both maps, as a layer
+     is, with a chip beside the layers to switch it off and on. It is on when
+     the page was reached from a place's own "show on map" button, and it is
+     always the place the country map is on - or the one state a link named,
+     until another country is picked. */
+  const [markOn, setMarkOn] = useState(linked !== null);
+  const [markState, setMarkState] = useState<string | null>(linked?.state ?? null);
+  const setFocusCode = useCallback((code: string) => {
+    setFocusCodeOnly(code);
+    setMarkState(null);
+  }, []);
   /* The country card sits well down the page, under the world map and the
      scope/indicator chips. Arriving from a country's own "Nav" button and
      landing at the top of an unrelated page - not on the country it asked
@@ -1559,6 +1576,8 @@ export function WorldMapsPage() {
     cities: isLight ? "#0066cc" : "#4db8ff",
     climate: isLight ? "#2f8f6f" : "#5fd1a8",
   };
+  /* The place picked out: an orange none of the layers uses, dark enough to read as the chip's text on the light card. */
+  const markInk = isLight ? "#c2410c" : "#ff922b";
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
   const cardBorder = isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)";
   const cardShadow = isLight
@@ -2990,6 +3009,43 @@ export function WorldMapsPage() {
      defined in here it was a new type on every render, so each button was
      thrown away and rebuilt on every step of a zoom or a pan, losing its
      focus and hover as it went. */
+  /* ── The place picked out ── */
+  const markedState = markState ? (usStatesData.find((s) => s.abbreviation === markState) ?? null) : null;
+  const markName = markedState?.name ?? (focusCode === "US" ? "United States" : (focusCountry?.name ?? focusCode));
+  /* On the world map: the state itself where a link named one - the state
+     shapes are in longitude and latitude, so the world's projection draws them
+     too - and the country otherwise. `size` is its longer side on the map, so
+     a place too small to see can be ringed. */
+  const worldMark = useMemo(() => {
+    if (!markOn) return [];
+    const drawn = (f: unknown) => {
+      const [[x0, y0], [x1, y1]] = worldPath.path.bounds(f as never);
+      const [cx, cy] = worldPath.path.centroid(f as never);
+      return { d: worldPath.path(f as never) ?? undefined, cx, cy, size: Math.max(x1 - x0, y1 - y0) };
+    };
+    if (markedState) {
+      return states.features.filter((f) => stateForFeature(f.properties.name)?.abbreviation === markedState.abbreviation).map(drawn);
+    }
+    return worldDrawn.features.filter((f) => countryForFeature(f.properties.name)?.code === focusCode).map(drawn);
+  }, [markOn, markedState, focusCode, states, worldDrawn, worldPath]);
+
+  /** The picked-out place's switch, drawn as a layer's is. */
+  const markChip = (
+    <button
+      key="mark"
+      onClick={() => setMarkOn((v) => !v)}
+      aria-pressed={markOn}
+      className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
+        markOn ? "border-transparent" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+      }`}
+      style={markOn ? { background: `${markInk}26`, borderColor: `${markInk}66`, color: markInk } : undefined}
+      title={`Fill ${markName} in on both maps`}
+    >
+      <span aria-hidden className="w-2 h-2 shrink-0 rounded-[2px]" style={{ background: markOn ? markInk : "currentColor", opacity: markOn ? 1 : 0.45 }} />
+      {markName}
+    </button>
+  );
+
   const layerButton = (o: (typeof OVERLAYS)[0], layers: Record<OverlayId, boolean>, set: LayerSetter) => {
     const state = overlayState[o.id];
     return (
@@ -3039,6 +3095,7 @@ export function WorldMapsPage() {
             <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
               Layers
             </span>
+            {markChip}
             {mainLayers.map((o) => (
               layerButton(o, layers, set)
             ))}
@@ -3070,6 +3127,7 @@ export function WorldMapsPage() {
             <CaretDown size={10} weight="bold" className={`transition-transform ${showAdditionalLayers ? "rotate-180" : ""}`} />
             More
           </button>
+          {markChip}
         </div>
         {showAdditionalLayers && (
           <div className="flex flex-wrap items-center gap-2 mb-3 pl-6">
@@ -3282,6 +3340,24 @@ export function WorldMapsPage() {
                 pointerEvents="none"
               />
             )}
+
+            {/* The place picked out: filled in its own colour over the shading
+                and under the overlays, as a layer is, with a casing so its edge
+                reads on any fill. A place too small to see at this zoom gets a
+                ring round it. No pointer events, so a hover still reports the
+                country underneath. */}
+            {worldMark.map((m, i) => (
+              <g key={`mark-${i}`} pointerEvents="none">
+                <path d={m.d} fill={markInk} fillOpacity={0.62} stroke={labelHalo} strokeOpacity={0.55} strokeWidth={2.6 / worldZoom.zoom} strokeLinejoin="round" />
+                <path d={m.d} fill="none" stroke={markInk} strokeWidth={1.3 / worldZoom.zoom} strokeLinejoin="round" />
+                {m.size * worldZoom.zoom < 18 && Number.isFinite(m.cx) && Number.isFinite(m.cy) && (
+                  <>
+                    <circle cx={m.cx} cy={m.cy} r={11 / worldZoom.zoom} fill="none" stroke={labelHalo} strokeOpacity={0.55} strokeWidth={3.4 / worldZoom.zoom} />
+                    <circle cx={m.cx} cy={m.cy} r={11 / worldZoom.zoom} fill="none" stroke={markInk} strokeWidth={1.8 / worldZoom.zoom} />
+                  </>
+                )}
+              </g>
+            ))}
 
             {/* ── Overlays ──────────────────────────────────────────────
                 Drawn over the fills and the internal borders, under the hover
@@ -3732,6 +3808,21 @@ export function WorldMapsPage() {
                 <title>{state?.name ?? name}</title>
               </path>
             ))}
+            {/* The place picked out: the one state a link named, or the whole
+                country, filled as on the world map. */}
+            {markOn &&
+              (markState
+                ? stateShapes
+                    .filter((s) => s.state?.abbreviation === markState)
+                    .map((s, i) => (
+                      <g key={`mark-${i}`} pointerEvents="none">
+                        <path d={s.d} fill={markInk} fillOpacity={0.62} stroke={labelHalo} strokeOpacity={0.55} strokeWidth={3 / zoom} strokeLinejoin="round" />
+                        <path d={s.d} fill="none" stroke={markInk} strokeWidth={1.5 / zoom} strokeLinejoin="round" />
+                      </g>
+                    ))
+                : usOutlineD && (
+                    <path d={usOutlineD} fill={markInk} fillOpacity={0.45} stroke={markInk} strokeWidth={1.5 / zoom} strokeLinejoin="round" pointerEvents="none" />
+                  ))}
 
             {/* Labels last, so nothing is drawn over them. */}
             {stateLabels.map((l) => (
@@ -4056,6 +4147,10 @@ export function WorldMapsPage() {
                           strokeWidth={1 / zoom}
                           strokeLinejoin="round"
                         />
+                        {/* The place picked out: this map is all of it, so the whole of it is filled. */}
+                        {markOn && (
+                          <path d={focusMap.outline} fill={markInk} fillOpacity={0.45} stroke={markInk} strokeWidth={1.5 / zoom} strokeLinejoin="round" pointerEvents="none" />
+                        )}
 
                         {/* Hit targets: one invisible shape per division, so
                             every name is discoverable on hover even when it is
