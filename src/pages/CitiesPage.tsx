@@ -16,11 +16,15 @@ import {
   Rocket,
   ArrowsIn,
   ArrowsOut,
+  ClockCounterClockwise,
+  Globe,
   X,
 } from "@phosphor-icons/react";
 import {
   AreaChart,
   Area,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -28,6 +32,10 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { citiesData, type City } from "../data/citiesData";
+import { countriesData, type Country } from "../data/countriesData";
+import { ArticleLead, ArticlePanel } from "../components/HistoryPanel";
+import { useTheme } from "../contexts/ThemeContext";
+import { has } from "../lib/na";
 import { HeadlinesBanner, namesTag, type Headline, type Shown } from "../components/HeadlinesBanner";
 import { nameMatcher } from "../lib/namesInText";
 import { SourceLink } from "../components/SourceLink";
@@ -2663,10 +2671,247 @@ function CityUrbanStatsPanel({ city }: { city: City }) {
   );
 }
 
+// ── The city window's pieces ───────────────────────────────────────────────
+
+/** A section's heading inside the window, drawn as the country window draws its own. */
+function WindowSection({ title, note, children }: { title: string; note?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">{title}</span>
+        <div className="flex-1 h-px bg-border/60" />
+      </div>
+      {note && <p className="text-[11px] font-sans text-muted-foreground leading-snug mb-2">{note}</p>}
+      {children}
+    </div>
+  );
+}
+
+/** A figure in a tile, with a line under it saying how it ranks or what it is. */
+function CityTile({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="modal-tile rounded-lg p-3 min-w-0">
+      <p className="text-xs text-muted-foreground font-sans">{label}</p>
+      <p className="text-base font-bold font-mono text-foreground">{value}</p>
+      {sub && <p className="text-[10px] text-muted-foreground font-sans mt-0.5 truncate" title={sub}>{sub}</p>}
+    </div>
+  );
+}
+
+/** 1st, 2nd, 3rd, 4th … */
+function nth(n: number): string {
+  const t = n % 100;
+  if (t >= 11 && t <= 13) return `${n}th`;
+  return `${n}${["th", "st", "nd", "rd"][n % 10] ?? "th"}`;
+}
+
+type CityMeasure = { key: "population" | "metroPopulation" | "gdpBillions" | "gdpPerCapita" | "populationDensity" | "costOfLivingIndex" | "safetyIndex" | "airQualityIndex"; label: string; fmt: (v: number) => string; lowerFirst?: boolean; scale?: string };
+/** The measures a city is set among the others on. */
+const CITY_MEASURES: CityMeasure[] = [
+  { key: "gdpPerCapita", label: "GDP per person", fmt: (v) => `$${Math.round(v).toLocaleString()}` },
+  { key: "population", label: "City population", fmt: fmtPeople },
+  { key: "populationDensity", label: "Density", fmt: (v) => `${Math.round(v).toLocaleString()}/km²` },
+  { key: "costOfLivingIndex", label: "Cost of living index", fmt: (v) => String(v), scale: "higher is dearer" },
+  { key: "safetyIndex", label: "Safety index", fmt: (v) => String(v), scale: "higher is safer" },
+  { key: "airQualityIndex", label: "Air quality index", fmt: (v) => String(v), lowerFirst: true, scale: "lower is cleaner" },
+];
+
+/** Where a city stands among the cities the page holds, on one measure: its rank, and the list's low, middle and high. */
+function standingOf(city: City, key: CityMeasure["key"], lowerFirst = false) {
+  const values = citiesData.map((c) => c[key]).sort((a, b) => a - b);
+  const mid = values.length >> 1;
+  const better = citiesData.filter((c) => (lowerFirst ? c[key] < city[key] : c[key] > city[key])).length;
+  return {
+    rank: better + 1,
+    of: values.length,
+    min: values[0],
+    max: values[values.length - 1],
+    median: values.length % 2 ? values[mid] : (values[mid - 1] + values[mid]) / 2,
+  };
+}
+const rankLine = (city: City, key: CityMeasure["key"]) => {
+  const s = standingOf(city, key);
+  return `${nth(s.rank)} of the ${s.of} cities here`;
+};
+
+/**
+ * Where the city stands: for each measure, every city the page holds as a
+ * tick along the measure's range, the middle of them marked, and this city
+ * picked out - so its figure is read against the others rather than alone.
+ */
+function CityStandings({ city }: { city: City }) {
+  return (
+    <ul className="modal-tile rounded-lg p-4 flex flex-col gap-3.5">
+      {CITY_MEASURES.map((m) => {
+        const s = standingOf(city, m.key, m.lowerFirst);
+        const at = (v: number) => (s.max === s.min ? 50 : ((v - s.min) / (s.max - s.min)) * 100);
+        return (
+          <li key={m.key}>
+            <div className="flex items-baseline justify-between gap-2 mb-1">
+              <span className="text-xs font-sans text-foreground">
+                {m.label}
+                {m.scale && <span className="text-muted-foreground"> · {m.scale}</span>}
+              </span>
+              <span className="text-xs font-mono text-foreground shrink-0">
+                <span className="font-bold">{m.fmt(city[m.key])}</span>
+                <span className="text-muted-foreground"> · {nth(s.rank)} of {s.of}</span>
+              </span>
+            </div>
+            <div
+              className="relative h-5"
+              role="img"
+              aria-label={`${city.name}: ${m.fmt(city[m.key])}, ${nth(s.rank)} of ${s.of} cities. They run from ${m.fmt(s.min)} to ${m.fmt(s.max)}; the middle is ${m.fmt(s.median)}.`}
+            >
+              <span className="absolute inset-x-0 top-1/2 h-px bg-border" />
+              {citiesData.map((c) => (
+                <span
+                  key={c.id}
+                  className="absolute top-1.5 bottom-1.5 w-px bg-foreground opacity-40"
+                  style={{ left: `${at(c[m.key])}%` }}
+                  title={`${c.name}: ${m.fmt(c[m.key])}`}
+                />
+              ))}
+              <span className="absolute top-0.5 bottom-0.5 border-l border-dashed border-foreground opacity-70" style={{ left: `${at(s.median)}%` }} title={`Middle of the ${s.of}: ${m.fmt(s.median)}`} />
+              <span
+                className="absolute top-0 bottom-0 w-1.5 -translate-x-1/2 rounded-full bg-secondary ring-2 ring-card"
+                style={{ left: `${at(city[m.key])}%` }}
+                title={`${city.name}: ${m.fmt(city[m.key])}`}
+              />
+            </div>
+            <div className="flex justify-between text-[10px] font-mono text-muted-foreground mt-0.5">
+              <span>{m.fmt(s.min)}</span>
+              <span>middle {m.fmt(s.median)}</span>
+              <span>{m.fmt(s.max)}</span>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** The city's population and its cost of living, year by year, from the years the page holds. */
+function CityTrends({ city }: { city: City }) {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+  const muted = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.5)";
+  const grid = isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)";
+  const ink = isLight ? "#0f172a" : "#f1f0ff";
+  const tick = { fill: muted, fontSize: 10, fontFamily: "Figures, IBM Plex Mono" };
+  const tip = {
+    contentStyle: { background: isLight ? "#ffffff" : "#15151a", border: isLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 11, fontFamily: "monospace", color: ink },
+    itemStyle: { color: ink },
+    labelStyle: { color: muted },
+  };
+  const first = city.trends[0];
+  const last = city.trends[city.trends.length - 1];
+  if (!first || !last) return null;
+  const exact = (v: number) => (v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : fmtPeople(v));
+  const moved = (a: number, b: number) => `${b >= a ? "+" : ""}${(((b - a) / a) * 100).toFixed(1)}%`;
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="modal-tile rounded-lg p-4">
+        <p className="text-xs font-semibold font-sans text-foreground">Population</p>
+        <p className="text-[10px] font-mono text-muted-foreground mb-2">
+          {exact(first.population)} in {first.year} → {exact(last.population)} in {last.year} · {moved(first.population, last.population)}
+        </p>
+        <div className="h-36" role="img" aria-label={`Population of ${city.name}, ${first.year} to ${last.year}: ${fmtPeople(first.population)} to ${fmtPeople(last.population)}.`}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={city.trends} margin={{ top: 5, right: 8, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id={`cityPop-${city.id}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke={grid} vertical={false} />
+              <XAxis dataKey="year" tick={tick} axisLine={false} tickLine={false} />
+              <YAxis tick={tick} axisLine={false} tickLine={false} width={52} tickFormatter={(v: number) => exact(v)} domain={["auto", "auto"]} />
+              <Tooltip {...tip} formatter={(v: number) => [Math.round(v).toLocaleString(), "Population"]} />
+              <Area type="monotone" dataKey="population" stroke="#0ea5e9" strokeWidth={2} fill={`url(#cityPop-${city.id})`} dot={{ r: 2.5, fill: "#0ea5e9" }} isAnimationActive={false} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+      <div className="modal-tile rounded-lg p-4">
+        <p className="text-xs font-semibold font-sans text-foreground">Cost of living index</p>
+        <p className="text-[10px] font-mono text-muted-foreground mb-2">
+          {first.costOfLiving} in {first.year} → {last.costOfLiving} in {last.year} · {moved(first.costOfLiving, last.costOfLiving)}
+        </p>
+        <div className="h-36" role="img" aria-label={`Cost of living index of ${city.name}, ${first.year} to ${last.year}: ${first.costOfLiving} to ${last.costOfLiving}.`}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={city.trends} margin={{ top: 5, right: 8, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={grid} vertical={false} />
+              <XAxis dataKey="year" tick={tick} axisLine={false} tickLine={false} />
+              <YAxis tick={tick} axisLine={false} tickLine={false} width={40} domain={["auto", "auto"]} allowDecimals={false} />
+              <Tooltip {...tip} formatter={(v: number) => [String(v), "Cost of living index"]} />
+              <Line type="monotone" dataKey="costOfLiving" stroke="#f59e0b" strokeWidth={2} dot={{ r: 2.5, fill: "#f59e0b" }} isAnimationActive={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** The city beside its country: what each produces per person, and how much of the country lives in the metropolitan area. */
+function CityAndCountry({ city, home }: { city: City; home: Country }) {
+  const rows: { label: string; city: number; country: number; fmt: (v: number) => string }[] = [];
+  if (has(home.gdpPerCapita)) rows.push({ label: "GDP per person", city: city.gdpPerCapita, country: home.gdpPerCapita, fmt: (v) => `$${Math.round(v).toLocaleString()}` });
+  const share = home.population > 0 ? (city.metroPopulation / home.population) * 100 : null;
+  const gdpShare = has(home.gdp) && home.gdp > 0 ? (city.gdpBillions / home.gdp) * 100 : null;
+  if (!rows.length && share === null) return null;
+  return (
+    <div className="modal-tile rounded-lg p-4 space-y-3">
+      {rows.map((r) => {
+        const top = Math.max(r.city, r.country, 1);
+        return (
+          <div key={r.label}>
+            <p className="text-xs font-sans text-muted-foreground mb-1.5">{r.label}</p>
+            {[
+              { name: city.name, v: r.city, tone: "bg-secondary" },
+              { name: home.name, v: r.country, tone: "bg-foreground opacity-40" },
+            ].map((b) => (
+              <div key={b.name} className="grid grid-cols-[minmax(0,8rem)_1fr_auto] items-center gap-x-2 mb-1">
+                <span className="text-[11px] font-sans text-foreground truncate">{b.name}</span>
+                <span className="h-2.5 rounded-full bg-background overflow-hidden">
+                  <span className={`block h-full rounded-full ${b.tone}`} style={{ width: `${Math.max(1.5, (100 * b.v) / top)}%` }} />
+                </span>
+                <span className="text-[11px] font-mono font-bold text-foreground text-right">{r.fmt(b.v)}</span>
+              </div>
+            ))}
+          </div>
+        );
+      })}
+      <div className="grid grid-cols-2 gap-3">
+        {share !== null && (
+          <div>
+            <p className="text-base font-bold font-mono text-foreground">{share >= 10 ? share.toFixed(0) : share.toFixed(1)}%</p>
+            <p className="text-[10px] font-sans text-muted-foreground leading-snug">of {home.name}'s people live in its metropolitan area</p>
+          </div>
+        )}
+        {gdpShare !== null && (
+          <div>
+            <p className="text-base font-bold font-mono text-foreground">{gdpShare >= 10 ? gdpShare.toFixed(0) : gdpShare.toFixed(1)}%</p>
+            <p className="text-[10px] font-sans text-muted-foreground leading-snug">of {home.name}'s GDP, on the two figures held</p>
+          </div>
+        )}
+      </div>
+      <p className="text-[10px] font-sans text-muted-foreground leading-snug">
+        The city's figures are this page's; {home.name}'s are from its country profile. The two are for different years and are set side by side as a
+        rough comparison, not a measurement.
+      </p>
+    </div>
+  );
+}
+
 function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
-  const [activeTab, setActiveTab] = useState<"overview" | "map" | "laws">(
+  const [activeTab, setActiveTab] = useState<"overview" | "map" | "laws" | "history">(
     "overview",
   );
+  /* The city's country, where the site has a record of it, and its article. */
+  const home = countriesData.find((c) => c.code === city.countryCode) ?? null;
+  const place = CITY_PLACES[city.id];
   const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
 
@@ -2690,25 +2935,6 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
     regionColor.split(" ").find((c) => c.startsWith("text-")) ??
     "text-muted-foreground";
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload?.length) {
-      return (
-        <div className="bg-card border border-border rounded-md p-3 text-xs font-mono shadow-lg">
-          <p className="font-semibold mb-1">{label}</p>
-          {payload.map((e: any) => (
-            <p key={e.name} style={{ color: e.color }}>
-              {e.name}:{" "}
-              {typeof e.value === "number" && e.value > 100000
-                ? fmtPeople(e.value)
-                : e.value}
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in"
@@ -2722,7 +2948,11 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
         <div className="p-6">
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
-            <div>
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-16 h-11 rounded-xl overflow-hidden shrink-0 border border-border shadow-md bg-muted">
+                <img src={`https://flagcdn.com/w160/${city.countryCode.toLowerCase()}.png`} alt={`${city.country} flag`} className="w-full h-full object-cover" />
+              </div>
+            <div className="min-w-0">
               <h2 className="text-2xl font-bold font-sans text-foreground">
                 {city.name}
               </h2>
@@ -2739,6 +2969,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                   Tourism #{city.tourismRankGlobal} globally
                 </span>
               </div>
+            </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               {/* As in a country's and a state's window: to the maps page, with this city marked on both maps. */}
@@ -2772,6 +3003,33 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
             </div>
           </div>
 
+          {/* Through to the country: its window, and the city's place on the map. */}
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mr-1">See also</span>
+            {home && (
+              <button
+                type="button"
+                onClick={() => navigate(`/dashboard/countries?open=${home.id}`)}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                title={`Open ${home.name}'s country profile`}
+              >
+                <Globe size={12} weight="fill" aria-hidden />
+                {home.name} · country profile
+              </button>
+            )}
+            {place && (
+              <button
+                type="button"
+                onClick={() => navigate(`/dashboard/maps?city=${city.id}`)}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                title={`Show ${city.name} on the map`}
+              >
+                <MapTrifold size={12} weight="fill" aria-hidden />
+                On the map
+              </button>
+            )}
+          </div>
+
           {/* Tab Bar */}
           <div className="flex gap-1 p-1 bg-muted/40 rounded-xl border border-border/50 mb-5">
             {(
@@ -2783,6 +3041,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                 },
                 { key: "map", label: "Map", icon: <MapTrifold size={14} /> },
                 { key: "laws", label: "Laws", icon: <Scales size={14} /> },
+                { key: "history", label: "History", icon: <ClockCounterClockwise size={14} /> },
               ] as const
             ).map((tab) => (
               <button
@@ -2803,46 +3062,64 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
           {/* Overview Tab */}
           {activeTab === "overview" && (
             <div className="space-y-4">
-              {/* Key Metrics */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {[
-                  {
-                    label: "City Population",
-                    value: fmtPeople(city.population),
-                  },
-                  {
-                    label: "Metro Area",
-                    value: fmtPeople(city.metroPopulation),
-                  },
-                  { label: "GDP", value: fmtBillionsUSD(city.gdpBillions) },
-                  {
-                    label: "GDP Per Capita",
-                    value: `$${city.gdpPerCapita.toLocaleString()}`,
-                  },
-                  {
-                    label: "Area",
-                    value: `${city.areaKm2.toLocaleString()} km²`,
-                  },
-                  {
-                    label: "Density",
-                    value: `${city.populationDensity.toLocaleString()}/km²`,
-                  },
-                  { label: "Avg Temp", value: `${city.avgTemperatureC}°C` },
-                  { label: "Fortune HQs", value: `${city.fortuneHQs}` },
-                  { label: "Universities", value: `${city.universities}` },
-                ].map((s) => (
-                  <div key={s.label} className="modal-tile rounded-lg p-3">
-                    <p className="text-xs text-muted-foreground font-sans">
-                      {s.label}
-                    </p>
-                    <p className="text-base font-bold font-mono text-foreground">
-                      {s.value}
-                    </p>
-                  </div>
-                ))}
+              {/* What the city is, in Wikipedia's words. */}
+              {place && (
+                <WindowSection title="📖 About">
+                  <ArticleLead title={place.wiki} name={city.name} />
+                </WindowSection>
+              )}
+
+              {/* The page's own figures, in a sentence. */}
+              <div className="modal-tile rounded-lg p-4">
+                <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">In figures</p>
+                <p className="text-[13px] font-sans text-foreground/90 leading-relaxed">
+                  {city.name} has {fmtPeople(city.population)} people within the city and {fmtPeople(city.metroPopulation)} across its metropolitan area,
+                  on {city.areaKm2.toLocaleString()} km². Its economy is put at {fmtBillionsUSD(city.gdpBillions)} a year, ${city.gdpPerCapita.toLocaleString()} for
+                  each person. Of the {citiesData.length} cities on this page it is the {nth(standingOf(city, "population").rank)} largest by
+                  population and the {nth(standingOf(city, "gdpPerCapita").rank)} by GDP per person, and it ranks {nth(city.tourismRankGlobal)} in
+                  the world for visitors.
+                </p>
               </div>
 
+              <WindowSection title="👥 People & place">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <CityTile label="City Population" value={fmtPeople(city.population)} sub={rankLine(city, "population")} />
+                  <CityTile label="Metro Area" value={fmtPeople(city.metroPopulation)} sub={rankLine(city, "metroPopulation")} />
+                  <CityTile label="Density" value={`${city.populationDensity.toLocaleString()}/km²`} sub={rankLine(city, "populationDensity")} />
+                  <CityTile label="Area" value={`${city.areaKm2.toLocaleString()} km²`} />
+                  <CityTile label="Avg Temp" value={`${city.avgTemperatureC}°C`} />
+                  <CityTile label="Visitors" value={`#${city.tourismRankGlobal}`} sub="tourism rank, worldwide" />
+                </div>
+              </WindowSection>
+
+              <WindowSection title="💰 Economy & institutions">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <CityTile label="GDP" value={fmtBillionsUSD(city.gdpBillions)} sub={rankLine(city, "gdpBillions")} />
+                  <CityTile label="GDP Per Capita" value={`$${city.gdpPerCapita.toLocaleString()}`} sub={rankLine(city, "gdpPerCapita")} />
+                  <CityTile label="Fortune HQs" value={`${city.fortuneHQs}`} sub="company headquarters" />
+                  <CityTile label="Tech Hubs" value={`${city.techHubs}`} />
+                  <CityTile label="Universities" value={`${city.universities}`} />
+                </div>
+              </WindowSection>
+
               <SourceLink sources={SRC_CITIES} className="mb-1" />
+
+              <WindowSection
+                title="📊 Where it stands"
+                note={`Each tick is one of the ${citiesData.length} cities on this page; the dashed line is the middle of them, and the solid bar is ${city.name}.`}
+              >
+                <CityStandings city={city} />
+              </WindowSection>
+
+              <WindowSection title="📈 Over time">
+                <CityTrends city={city} />
+              </WindowSection>
+
+              {home && (
+                <WindowSection title={`🌐 ${city.name} and ${home.name}`}>
+                  <CityAndCountry city={city} home={home} />
+                </WindowSection>
+              )}
 
               {/* City Indices */}
               <div className="modal-tile rounded-lg p-4 space-y-3">
@@ -2936,79 +3213,10 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
               {/* Urban Statistics */}
               <CityUrbanStatsPanel city={city} />
 
-              {/* Population Trend */}
-              <div className="modal-tile rounded-lg p-4">
-                <h3 className="text-sm font-semibold font-sans text-foreground mb-3">
-                  Population Trend
-                </h3>
-                <div className="h-40">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={city.trends}
-                      margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
-                    >
-                      <defs>
-                        <linearGradient
-                          id={`cityModalGrad-${city.id}`}
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop
-                            offset="5%"
-                            stopColor="hsl(200,85%,50%)"
-                            stopOpacity={0.3}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="hsl(200,85%,50%)"
-                            stopOpacity={0}
-                          />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="hsl(222,30%,25%)"
-                        vertical={false}
-                      />
-                      <XAxis
-                        dataKey="year"
-                        tick={{
-                          fill: "hsl(0,0%,60%)",
-                          fontSize: 10,
-                          fontFamily: "Figures, IBM Plex Mono",
-                        }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        tick={{
-                          fill: "hsl(0,0%,60%)",
-                          fontSize: 10,
-                          fontFamily: "Figures, IBM Plex Mono",
-                        }}
-                        axisLine={false}
-                        tickLine={false}
-                        width={52}
-                        tickFormatter={(v) => fmtPeople(v)}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Area
-                        type="monotone"
-                        dataKey="population"
-                        name="Population"
-                        stroke="hsl(200,85%,50%)"
-                        strokeWidth={2}
-                        fill={`url(#cityModalGrad-${city.id})`}
-                        dot={false}
-                        isAnimationActive
-                        animationDuration={600}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug pt-1">
+                The figures in this window were entered from the sources named and are not rebuilt from them, so they are a guide rather than a
+                record; the description and history are Wikipedia's, fetched as the window opens.
+              </p>
             </div>
           )}
 
@@ -3096,6 +3304,14 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
 
           {/* Laws Tab */}
           {activeTab === "laws" && <CityLawsTab city={city} />}
+
+          {/* History Tab: the city's story from its Wikipedia article. */}
+          {activeTab === "history" &&
+            (place ? (
+              <ArticlePanel title={place.wiki} name={city.name} mode="history" />
+            ) : (
+              <p className="text-xs font-sans text-muted-foreground py-6 text-center">No article is recorded for {city.name}.</p>
+            ))}
         </div>
       </div>
     </div>

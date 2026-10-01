@@ -268,6 +268,27 @@ export function HistoryPanel({ code, name }: { code: string; name: string }) {
   );
 }
 
+/** The opening of an article and nothing else: what a place is, in Wikipedia's words. */
+async function loadLead(article: string): Promise<History | null> {
+  const page = await extractOf(article);
+  if (!page) return null;
+  const open = split(page.extract).lead.slice(0, 2).map((p) => opening(p, 640));
+  return open.length ? { article: page.title, fromSection: false, lead: open, eras: [] } : null;
+}
+
+/** A description of a place from the opening of its Wikipedia article, named by title. */
+export function ArticleLead({ title, name }: { title: string; name: string }) {
+  const state = useLoaded(`lead:${title}`, () => loadLead(title));
+  return (
+    <HistoryView
+      state={state}
+      what="the description"
+      none={`Wikipedia's article on ${name} has no opening to show here.`}
+      note={(h) => <>The opening of Wikipedia's article {articleLink(h)}.</>}
+    />
+  );
+}
+
 /**
  * The story of a person, a family or an organisation from its Wikipedia
  * article: a `life` as the biography's parts, a `history` as the article's
