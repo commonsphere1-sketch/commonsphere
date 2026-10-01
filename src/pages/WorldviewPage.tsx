@@ -51,6 +51,7 @@ import { LAND_USE, LAND_USE_SOURCE } from "@/data/landUse";
 import { useTheme } from "@/contexts/ThemeContext";
 import { HeadlinesBanner, placeName, placeTag, type Headline, type Shown } from "@/components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "@/components/SectionNav";
+import { StatCard, splitChange } from "@/components/StatCard";
 import { has } from "@/lib/na";
 
 /**
@@ -439,35 +440,6 @@ const DESCRIBE_CLIMATE: Record<string, string> = {
 };
 
 // ── Trend lines ────────────────────────────────────────────────────────────
-
-/**
- * A figure's trend across the foot of its tile, as wide as the tile: grey
- * line, the latest point in the accent. Drawn in percent of the strip, so it
- * stretches with the tile; the stroke and the point keep their size.
- */
-function TileTrend({ series }: { series: WorldPoint[] }) {
-  if (series.length < 3) return null;
-  const x0 = series[0][0];
-  const x1 = series[series.length - 1][0];
-  const ys = series.map(([, v]) => v);
-  const lo = Math.min(...ys);
-  const hi = Math.max(...ys);
-  const px = (x: number) => 3 + ((x - x0) / (x1 - x0 || 1)) * 94;
-  const py = (y: number) => 86 - ((y - lo) / (hi - lo || 1)) * 72;
-  const d = series.map(([x, y], i) => `${i ? "L" : "M"}${px(x).toFixed(1)},${py(y).toFixed(1)}`).join("");
-  const [lx, ly] = series[series.length - 1];
-  return (
-    <span className="relative block h-6 w-full text-muted-foreground" aria-hidden>
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
-        <path d={d} fill="none" stroke="currentColor" strokeWidth={1.5} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
-      </svg>
-      <span
-        className={`absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full ${ACCENT_BG}`}
-        style={{ left: `${px(lx)}%`, top: `${py(ly)}%` }}
-      />
-    </span>
-  );
-}
 
 /**
  * The full trend: a grey line with a faint wash, the latest point in the
@@ -1818,21 +1790,10 @@ function PillarCard({ p }: { p: Pillar }) {
       <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,max(200px,30%)),1fr))] gap-2">
         {tiles.map((t) => {
           return t.fig ? (
-            <FigureTile key={t.label} f={t.fig} label={t.label} onClick={() => open(p, t.fig)} />
+            <FigureTile key={t.label} f={t.fig} label={t.label} color={p.color} onClick={() => open(p, t.fig)} />
           ) : (
-            <div key={t.label} className="rounded-xl modal-tile px-3 py-2.5 flex flex-col gap-0.5">
-              <p className="text-[10px] font-sans uppercase tracking-wider leading-snug" style={{ color: muted }}>
-                {t.label}
-              </p>
-              <p className="text-lg sm:text-xl font-bold font-mono leading-tight" style={{ color: head }}>
-                {t.value}
-              </p>
-              <p className="text-[10px] font-mono leading-snug" style={{ color: muted }}>
-                {t.sub}
-              </p>
-              {t.d && <DeltaLine d={t.d} small />}
-              <TileSummary story={t.summary} />
-            </div>
+            // A share worked out on the page: the same card, with no window behind it.
+            <StatCard key={t.label} s={{ label: t.label, value: t.value, sub: t.sub, change: t.d ? splitChange(t.d.text, t.d.dir, t.d.verdict) : null, story: t.summary, color: p.color }} />
           );
         })}
       </div>
@@ -1870,18 +1831,6 @@ function valueOf(f: Figure): string {
 function subOf(f: Figure): string {
   if (f.kind === "world") return `${unitOf(f.ind)} · ${f.ind.series[f.ind.series.length - 1][0]}${f.extra ? ` · ${f.extra}` : ""}`;
   return `${f.c.unit} · ${f.c.period}`;
-}
-
-/** A tile's summary: what the figure measures, then what its numbers show. */
-function TileSummary({ about, story }: { about?: string; story?: string }) {
-  const { muted } = useLook();
-  if (!about && !story) return null;
-  return (
-    <span className="block mt-1.5 text-[11px] font-sans leading-snug">
-      {about && <span style={{ color: muted }}>{about} </span>}
-      {story && <span className="text-foreground/85">{story}</span>}
-    </span>
-  );
 }
 
 /** "Up 16 since 1990, when it was 49.": the move across a whole series, in its own terms. */
@@ -1944,52 +1893,45 @@ function storyOf(f: Figure): string {
   return `${since} ${tail[0].toUpperCase()}${tail.slice(1)}.`;
 }
 
+/** The facts a figure's card shows: those of its window that set the latest reading against the rest of its series. */
+const CARD_FACTS = new Set(["Ten years before", "Highest", "Lowest"]);
+
 /**
- * A figure as a tile, as the site's other pages show figures: what it is,
- * its value, its unit and year, its direction over about ten years, a
- * summary - what it measures and what its series shows - and its trend.
- * Picking it opens its window.
+ * A figure as the site's card (StatCard): what it is, its value, its unit
+ * and year, its direction over about ten years as a chip, a summary - what
+ * it measures and what its series shows - its trend in its pillar's colour,
+ * and three facts from its series. Picking it opens its window.
  */
 function FigureTile({
   f,
   onClick,
   label,
+  color,
 }: {
   f: Figure;
   onClick: () => void;
   /** A shorter name, for a pillar's card. */
   label?: string;
+  /** The pillar's colour. */
+  color: string;
 }) {
-  const { head, muted } = useLook();
   const d = deltaOf(f);
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-haspopup="dialog"
-      title={aboutOf(f)}
-      className="modal-tile h-full w-full rounded-xl px-3 py-2.5 flex flex-col gap-0.5 text-left cursor-pointer transition-colors"
-    >
-      <span className="flex items-start justify-between gap-2">
-        <span className="text-[10px] font-sans uppercase tracking-wider leading-snug" style={{ color: muted }}>
-          {label ?? labelOf(f)}
-        </span>
-        <ArrowsOut size={10} weight="bold" className="shrink-0 mt-0.5" style={{ color: muted }} aria-hidden />
-      </span>
-      <span className="text-lg sm:text-xl font-bold font-mono leading-tight" style={{ color: head }}>
-        {valueOf(f)}
-      </span>
-      <span className="text-[10px] font-mono leading-snug" style={{ color: muted }}>
-        {subOf(f)}
-      </span>
-      {d && <DeltaLine d={d} small />}
-      <TileSummary about={aboutOf(f)} story={storyOf(f)} />
-      {f.kind === "world" && f.ind.series.length > 2 && (
-        <span className="mt-auto block w-full pt-2">
-          <TileTrend series={f.ind.series} />
-        </span>
-      )}
-    </button>
+    <StatCard
+      onOpen={onClick}
+      more="Open the figure"
+      s={{
+        label: label ?? labelOf(f),
+        value: valueOf(f),
+        sub: subOf(f),
+        change: d ? splitChange(d.text, d.dir, d.verdict) : null,
+        about: aboutOf(f),
+        story: storyOf(f),
+        series: f.kind === "world" ? f.ind.series : undefined,
+        color,
+        facts: factsOf(f).filter((x) => CARD_FACTS.has(x.label)),
+      }}
+    />
   );
 }
 
@@ -2472,7 +2414,7 @@ function PillarView({ p, onPick }: { p: Pillar; onPick: (f: Figure) => void }) {
             {g.freedom && <FreedomBars />}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
               {figs.map((f) => (
-                <FigureTile key={f.key} f={f} onClick={() => onPick(f)} />
+                <FigureTile key={f.key} f={f} color={p.color} onClick={() => onPick(f)} />
               ))}
             </div>
           </div>

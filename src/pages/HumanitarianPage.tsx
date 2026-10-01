@@ -28,11 +28,13 @@
  */
 import { useMemo, useState, type ReactNode } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowDownRight, ArrowRight, ArrowUpRight, Drop, ForkKnife, HandHeart, Users, Warning } from "@phosphor-icons/react";
+import { ArrowDownRight, ArrowUpRight, Drop, ForkKnife, HandHeart, Users, Warning } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "../components/SectionNav";
+import { StatCard, splitChange, type StatFact } from "../components/StatCard";
+import { EXPLAIN } from "../data/worldviewExplain";
 import { DONOR_AID, DONOR_AID_SOURCE, DAC_TOTAL } from "../data/donorAid";
 import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES, DISPLACED_BY_KIND, WORLD, WORLDVIEW_RETRIEVED, type WorldPoint } from "../data/worldview";
 import { COUNTRY_PANELS, PANEL_SOURCES } from "../data/countryPanels";
@@ -251,6 +253,13 @@ type Stat = {
   about: string;
   change: Change | null;
   series?: WorldPoint[];
+  /** A value of the series, printed as the figure is: the card reads its facts off the series with it. */
+  fmt?: (v: number) => string;
+  /** Facts in place of those read off the series. */
+  facts?: StatFact[];
+  /** What the figure counts and why it matters, for the card's window. */
+  what?: string;
+  why?: string;
   source: { label: string; url: string };
 };
 
@@ -272,15 +281,21 @@ function worldStat(
   const series: WorldPoint[] = o.complement ? ind.series.map(([y, v]) => [y, Number((100 - v).toFixed(ind.dp))]) : ind.series;
   const [year, v] = lastOf(series);
   const kind = ind.format === "count" ? "count" : ind.format === "pct" ? "pct" : "num";
+  const fmt = (x: number) => (o.whole ? x.toLocaleString("en-US") : kind === "count" ? millions(x) : kind === "pct" ? `${x.toFixed(ind.dp)}%` : x.toFixed(ind.dp));
+  // The source's own account of the measure - not for a figure turned round to its complement.
+  const explain = o.complement ? undefined : EXPLAIN[id];
   return {
     key: id,
     label,
-    value: o.whole ? v.toLocaleString("en-US") : kind === "count" ? millions(v) : kind === "pct" ? `${v.toFixed(ind.dp)}%` : v.toFixed(ind.dp),
+    value: fmt(v),
     unit: o.unit ?? (kind === "count" ? "people" : ind.unit),
     sub: `${agency} · ${year}`,
     about,
     change: o.neutral ? unjudged(changeOf(series, kind, ind.dp, upIsGood)) : changeOf(series, kind, ind.dp, upIsGood),
     series,
+    fmt,
+    what: explain?.what,
+    why: explain?.why,
     source: ind.source,
   };
 }
@@ -355,68 +370,46 @@ function SectionHead({ icon, color, title, kicker }: { icon: ReactNode; color: s
   );
 }
 
-function DeltaLine({ d }: { d: Change }) {
-  const Icon = d.dir === "up" ? ArrowUpRight : d.dir === "down" ? ArrowDownRight : ArrowRight;
-  const tone = d.verdict === "better" ? BETTER : d.verdict === "worse" ? WORSE : "text-muted-foreground";
+/**
+ * A headline figure as the site's card (StatCard): what it is, its value,
+ * whose it is and for when, its change as a chip, what it means, its trend in
+ * its section's colour, and facts read off its series; a figure with a series
+ * opens a window with the full chart.
+ */
+function StatTile({ s, color }: { s: Stat; color: string }) {
   return (
-    <p className={`flex items-center gap-1 font-sans text-[10px] ${tone}`}>
-      <Icon size={10} weight="bold" aria-hidden />
-      <span>
-        {d.text}
-        {d.verdict && <span className="font-semibold">{` · ${d.verdict}`}</span>}
-      </span>
-    </p>
+    <StatCard
+      s={{
+        label: s.label,
+        value: s.value,
+        sub: `${s.unit} · ${s.sub}`,
+        change: s.change ? splitChange(s.change.text, s.change.dir, s.change.verdict) : null,
+        about: s.about,
+        series: s.series,
+        color,
+        fmt: s.fmt,
+        facts: s.facts,
+        what: s.what,
+        why: s.why,
+        source: s.source,
+      }}
+    />
   );
 }
 
-/** A figure's trend across the foot of its tile: a grey line, the latest point in the accent. */
-function TileTrend({ series, accent }: { series: WorldPoint[]; accent: string }) {
-  if (series.length < 3) return null;
-  const x0 = series[0][0];
-  const x1 = lastOf(series)[0];
-  const ys = series.map(([, v]) => v);
-  const lo = Math.min(...ys);
-  const hi = Math.max(...ys);
-  const px = (x: number) => 3 + ((x - x0) / (x1 - x0 || 1)) * 94;
-  const py = (y: number) => 86 - ((y - lo) / (hi - lo || 1)) * 72;
-  const d = series.map(([x, y], i) => `${i ? "L" : "M"}${px(x).toFixed(1)},${py(y).toFixed(1)}`).join("");
-  const [lx, ly] = lastOf(series);
-  return (
-    <span className="relative block h-7 w-full text-muted-foreground" aria-hidden>
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
-        <path d={d} fill="none" stroke="currentColor" strokeWidth={1.5} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
-      </svg>
-      <span className="absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ left: `${px(lx)}%`, top: `${py(ly)}%`, background: accent }} />
-    </span>
-  );
-}
-
-/** A headline figure as a tile: what it is, its value, whose it is and for when, its change, what it means, and its trend. */
-function StatTile({ s }: { s: Stat }) {
-  const { head, muted, accent } = useLook();
-  return (
-    <div className="modal-tile h-full rounded-xl px-3 py-2.5 flex flex-col gap-0.5">
-      <p className="text-[10px] font-sans uppercase tracking-wider leading-snug" style={{ color: muted }}>
-        {s.label}
-      </p>
-      <p className="text-xl font-bold font-mono leading-tight" style={{ color: head }}>
-        {s.value}
-      </p>
-      <p className="text-[10px] font-mono leading-snug" style={{ color: muted }}>
-        {s.unit} · {s.sub}
-      </p>
-      {s.change && <DeltaLine d={s.change} />}
-      <p className="text-[11px] font-sans leading-snug mt-1" style={{ color: muted }}>
-        {s.about}
-      </p>
-      {s.series && (
-        <span className="mt-auto block w-full pt-2">
-          <TileTrend series={s.series} accent={accent} />
-        </span>
-      )}
-    </div>
-  );
-}
+/** The sections' colours, which their cards take. */
+const TONE = { overview: "#10b981", conflict: "#ef4444", displacement: "#f97316", food: "#eab308", health: "#06b6d4" };
+/** The headline cards take the colour of the section each belongs to. */
+const HEADLINE_TONE: Record<string, string> = {
+  displaced: TONE.displacement,
+  idps: TONE.displacement,
+  refugees: TONE.displacement,
+  undernourished: TONE.food,
+  childMortality: TONE.health,
+  water: TONE.health,
+  health: TONE.health,
+  aid: TONE.overview,
+};
 
 type BarRow = { key: string; name: string; code?: string; value: number | null; text: string; note?: string };
 
@@ -635,7 +628,7 @@ export function HumanitarianPage() {
     const fromKind = (key: string, k: "idps" | "refugees", label: string, about: string): Stat => {
       const series = kind(k);
       const [year, v] = lastOf(series);
-      return { key, label, value: millions(v), unit: "people", sub: `UNHCR · ${year}`, about, change: changeOf(series, "count", 0, false), series, source: WORLD.displaced.source };
+      return { key, label, value: millions(v), unit: "people", sub: `UNHCR · ${year}`, about, change: changeOf(series, "count", 0, false), series, fmt: millions, source: WORLD.displaced.source };
     };
     const lastAid = AID_FUNDING[AID_FUNDING.length - 1];
     return [
@@ -654,6 +647,12 @@ export function HumanitarianPage() {
         about: `What the UN's coordinated humanitarian appeals asked for, up from $${AID_FUNDING[0].required}bn in ${AID_FUNDING[0].year}; $${lastAid.funded}bn of it was funded.`,
         change: null,
         series: AID_FUNDING.map((a) => [a.year, a.required]),
+        fmt: (v) => `$${v}bn`,
+        facts: [
+          { label: "Funded", value: `$${lastAid.funded}bn`, sub: `${Math.round((100 * lastAid.funded) / lastAid.required)}% of what was asked` },
+          { label: "Not funded", value: `$${(lastAid.required - lastAid.funded).toFixed(1)}bn`, sub: `${lastAid.year}` },
+          { label: "Asked for", value: `$${AID_FUNDING[0].required}bn`, sub: `${AID_FUNDING[0].year}` },
+        ],
         source: SRC.fts,
       },
       {
@@ -780,7 +779,7 @@ export function HumanitarianPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {stats.map((s) => (
-              <StatTile key={s.key} s={s} />
+              <StatTile key={s.key} s={s} color={HEADLINE_TONE[s.key] ?? TONE.overview} />
             ))}
           </div>
 
@@ -809,7 +808,7 @@ export function HumanitarianPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {drivers.map((s) => (
-              <StatTile key={s.key} s={s} />
+              <StatTile key={s.key} s={s} color={TONE.conflict} />
             ))}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -903,8 +902,7 @@ export function HumanitarianPage() {
           <h2 id="food-title" className="sr-only">
             Food and hunger
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <Card className="lg:col-span-2">
+          <Card>
               <CardHead title="Hunger and food insecurity" kicker="Share of the world's people · FAO, via the World Bank" />
               <HungerChart />
               <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
@@ -913,12 +911,11 @@ export function HumanitarianPage() {
                 which revise earlier years as better data arrive.
               </p>
               <SourceLink sources={[WORLD.undernourished.source, WORLD.foodInsecure.source]} className="mt-3" />
-            </Card>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
-              {food.map((s) => (
-                <StatTile key={s.key} s={s} />
-              ))}
-            </div>
+          </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {food.map((s) => (
+              <StatTile key={s.key} s={s} color={TONE.food} />
+            ))}
           </div>
           <Card>
             <CardHead title="Hunger by region" kicker="Share of each region's people undernourished · FAO, 2023" />
@@ -947,7 +944,7 @@ export function HumanitarianPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {more.map((s) => (
-              <StatTile key={s.key} s={s} />
+              <StatTile key={s.key} s={s} color={TONE.health} />
             ))}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
