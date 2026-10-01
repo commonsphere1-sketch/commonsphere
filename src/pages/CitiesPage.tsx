@@ -2705,15 +2705,25 @@ function nth(n: number): string {
   return `${n}${["th", "st", "nd", "rd"][n % 10] ?? "th"}`;
 }
 
-type CityMeasure = { key: "population" | "metroPopulation" | "gdpBillions" | "gdpPerCapita" | "populationDensity" | "costOfLivingIndex" | "safetyIndex" | "airQualityIndex"; label: string; fmt: (v: number) => string; lowerFirst?: boolean; scale?: string };
+type CityMeasure = {
+  key: "population" | "metroPopulation" | "gdpBillions" | "gdpPerCapita" | "populationDensity" | "costOfLivingIndex" | "safetyIndex" | "airQualityIndex";
+  label: string;
+  fmt: (v: number) => string;
+  /** The lowest figure ranks first (air quality: lower is cleaner). */
+  lowerFirst?: boolean;
+  /** What the city ranked 1st is: the largest, the dearest, the cleanest. */
+  first: string;
+  /** The bar's colour: one of the site's, a measure each. The figures stay in ink. */
+  color: string;
+};
 /** The measures a city is set among the others on. */
 const CITY_MEASURES: CityMeasure[] = [
-  { key: "gdpPerCapita", label: "GDP per person", fmt: (v) => `$${Math.round(v).toLocaleString()}` },
-  { key: "population", label: "City population", fmt: fmtPeople },
-  { key: "populationDensity", label: "Density", fmt: (v) => `${Math.round(v).toLocaleString()}/km²` },
-  { key: "costOfLivingIndex", label: "Cost of living index", fmt: (v) => String(v), scale: "higher is dearer" },
-  { key: "safetyIndex", label: "Safety index", fmt: (v) => String(v), scale: "higher is safer" },
-  { key: "airQualityIndex", label: "Air quality index", fmt: (v) => String(v), lowerFirst: true, scale: "lower is cleaner" },
+  { key: "gdpPerCapita", label: "GDP per person", fmt: (v) => `$${Math.round(v).toLocaleString()}`, first: "highest", color: "#10b981" },
+  { key: "population", label: "City population", fmt: fmtPeople, first: "largest", color: "#3b82f6" },
+  { key: "populationDensity", label: "Density", fmt: (v) => `${Math.round(v).toLocaleString()}/km²`, first: "densest", color: "#8b5cf6" },
+  { key: "costOfLivingIndex", label: "Cost of living index", fmt: (v) => String(v), first: "dearest", color: "#f59e0b" },
+  { key: "safetyIndex", label: "Safety index", fmt: (v) => String(v), first: "safest", color: "#14b8a6" },
+  { key: "airQualityIndex", label: "Air quality index", fmt: (v) => String(v), lowerFirst: true, first: "cleanest", color: "#06b6d4" },
 ];
 
 /** Where a city stands among the cities the page holds, on one measure: its rank, and the list's low, middle and high. */
@@ -2735,54 +2745,54 @@ const rankLine = (city: City, key: CityMeasure["key"]) => {
 };
 
 /**
- * Where the city stands: for each measure, every city the page holds as a
- * tick along the measure's range, the middle of them marked, and this city
- * picked out - so its figure is read against the others rather than alone.
+ * Where the city stands, a tile to a measure, in the window's own tiles and
+ * bars: the figure, its rank among the cities the page holds, how far it is
+ * from the middle of them, and a bar that is full for the city ranked 1st and
+ * notched at the middle. Under it, the range the cities run over.
  */
 function CityStandings({ city }: { city: City }) {
   return (
-    <ul className="modal-tile rounded-lg p-4 flex flex-col gap-3.5">
+    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {CITY_MEASURES.map((m) => {
         const s = standingOf(city, m.key, m.lowerFirst);
-        const at = (v: number) => (s.max === s.min ? 50 : ((v - s.min) / (s.max - s.min)) * 100);
+        const v = city[m.key];
+        const off = s.median ? ((v - s.median) / s.median) * 100 : 0;
+        const fromMiddle = Math.abs(off) < 0.5 ? "at the middle" : `${Math.abs(off) >= 10 ? Math.round(Math.abs(off)) : Math.abs(off).toFixed(1)}% ${off > 0 ? "above" : "below"} the middle`;
+        // Rank as a length: 1st fills the bar, last leaves a sliver; the middle of the list falls at its notch.
+        const filled = ((s.of - s.rank + 1) / s.of) * 100;
+        const notch = ((s.of + 1) / 2 / s.of) * 100;
         return (
-          <li key={m.key}>
-            <div className="flex items-baseline justify-between gap-2 mb-1">
-              <span className="text-xs font-sans text-foreground">
-                {m.label}
-                {m.scale && <span className="text-muted-foreground"> · {m.scale}</span>}
-              </span>
-              <span className="text-xs font-mono text-foreground shrink-0">
-                <span className="font-bold">{m.fmt(city[m.key])}</span>
-                <span className="text-muted-foreground"> · {nth(s.rank)} of {s.of}</span>
-              </span>
-            </div>
-            <div
-              className="relative h-5"
-              role="img"
-              aria-label={`${city.name}: ${m.fmt(city[m.key])}, ${nth(s.rank)} of ${s.of} cities. They run from ${m.fmt(s.min)} to ${m.fmt(s.max)}; the middle is ${m.fmt(s.median)}.`}
-            >
-              <span className="absolute inset-x-0 top-1/2 h-px bg-border" />
-              {citiesData.map((c) => (
-                <span
-                  key={c.id}
-                  className="absolute top-1.5 bottom-1.5 w-px bg-foreground opacity-40"
-                  style={{ left: `${at(c[m.key])}%` }}
-                  title={`${c.name}: ${m.fmt(c[m.key])}`}
-                />
-              ))}
-              <span className="absolute top-0.5 bottom-0.5 border-l border-dashed border-foreground opacity-70" style={{ left: `${at(s.median)}%` }} title={`Middle of the ${s.of}: ${m.fmt(s.median)}`} />
+          <li key={m.key} className="modal-tile rounded-lg p-3 min-w-0">
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-xs text-muted-foreground font-sans">{m.label}</p>
               <span
-                className="absolute top-0 bottom-0 w-1.5 -translate-x-1/2 rounded-full bg-secondary ring-2 ring-card"
-                style={{ left: `${at(city[m.key])}%` }}
-                title={`${city.name}: ${m.fmt(city[m.key])}`}
-              />
+                className="text-[10px] font-mono font-bold text-foreground px-2 py-0.5 rounded-full border whitespace-nowrap"
+                style={{ background: `${m.color}26`, borderColor: `${m.color}80` }}
+              >
+                {nth(s.rank)} of {s.of}
+              </span>
             </div>
-            <div className="flex justify-between text-[10px] font-mono text-muted-foreground mt-0.5">
-              <span>{m.fmt(s.min)}</span>
-              <span>middle {m.fmt(s.median)}</span>
-              <span>{m.fmt(s.max)}</span>
+            <p className="text-lg font-bold font-mono text-foreground leading-tight mt-0.5">{m.fmt(v)}</p>
+            <p className="text-[11px] font-sans text-muted-foreground">
+              {fromMiddle} ({m.fmt(s.median)})
+            </p>
+            <div
+              className="relative mt-2.5 h-2.5 rounded-full bg-background overflow-hidden"
+              role="img"
+              aria-label={`${city.name} is ${nth(s.rank)} of ${s.of} cities for ${m.label.toLowerCase()}, where 1st is the ${m.first}.`}
+            >
+              <div className="h-full rounded-full" style={{ width: `${Math.max(3, filled)}%`, background: m.color }} />
+              <span className="absolute top-0 bottom-0 w-0.5 bg-foreground opacity-70" style={{ left: `${notch}%` }} />
             </div>
+            <div className="flex justify-between text-[10px] font-mono text-muted-foreground mt-1">
+              <span>{nth(s.of)}</span>
+              <span>middle</span>
+              <span>1st · {m.first}</span>
+            </div>
+            <p className="text-[11px] font-sans text-muted-foreground mt-2 pt-2 border-t border-border/50">
+              The {s.of} cities run from <span className="font-mono text-foreground">{m.fmt(s.min)}</span> to{" "}
+              <span className="font-mono text-foreground">{m.fmt(s.max)}</span>.
+            </p>
           </li>
         );
       })}
@@ -3106,7 +3116,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
 
               <WindowSection
                 title="📊 Where it stands"
-                note={`Each tick is one of the ${citiesData.length} cities on this page; the dashed line is the middle of them, and the solid bar is ${city.name}.`}
+                note={`Where ${city.name} ranks among the ${citiesData.length} cities on this page. A full bar is 1st, and the notch marks the middle of them.`}
               >
                 <CityStandings city={city} />
               </WindowSection>
