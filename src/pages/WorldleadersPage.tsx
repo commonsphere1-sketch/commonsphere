@@ -1,6 +1,7 @@
 import { decodeEntities } from "../lib/security";
 import React, { useState, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Globe,
   Users,
@@ -28,6 +29,7 @@ import {
   Money,
   ArrowsIn,
   ArrowsOut,
+  MapTrifold,
   X,
 } from "@phosphor-icons/react";
 import {
@@ -44,6 +46,7 @@ import { FilterBar } from "../components/FilterBar";
 import { HeadlinesBanner, namesTag, type Headline, type Shown } from "../components/HeadlinesBanner";
 import { ArticlePanel } from "../components/HistoryPanel";
 import { WIKI_ARTICLES } from "../data/wikiArticles";
+import { LEADERS_BY_COUNTRY } from "../data/leaderIndex";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 // Globe is used in LeaderDetail tabs — do not remove
 
@@ -13863,6 +13866,10 @@ function LeaderDetail({
     "overview",
   );
   const born = ageOf(leader.id, leader.birthYear);
+  const navigate = useNavigate();
+  /* The leader's country, where the site has a record of it: the way through
+     to its window, so its figures can be read beside the person's. */
+  const home = countriesData.find((c) => c.code === leader.countryCode) ?? null;
 
   const tabs = [
     { id: "overview" as const, label: "Overview", icon: <Globe size={13} /> },
@@ -13921,9 +13928,18 @@ function LeaderDetail({
                     {leader.title}
                   </span>
                   <span className="text-muted-foreground">·</span>
-                  <span className={CHIP_TEXT}>
-                    {leader.country}
-                  </span>
+                  {home ? (
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/dashboard/countries?open=${home.id}`)}
+                      className={`${CHIP_TEXT} underline decoration-dotted underline-offset-2 hover:text-foreground cursor-pointer`}
+                      title={`Open ${home.name}'s country profile`}
+                    >
+                      {leader.country}
+                    </button>
+                  ) : (
+                    <span className={CHIP_TEXT}>{leader.country}</span>
+                  )}
                   <span
                     className={`text-xs border px-2 py-0.5 rounded-full font-sans ${IDEOLOGY_COLORS[leader.ideology]}`}
                   >
@@ -14003,6 +14019,31 @@ function LeaderDetail({
               </div>
             ))}
           </div>
+
+          {/* Through to the country: its window, and its place on the map. */}
+          {home && (
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mr-1">See also</span>
+              <button
+                type="button"
+                onClick={() => navigate(`/dashboard/countries?open=${home.id}`)}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                title={`Open ${home.name}'s country profile: its economy, government, people and history`}
+              >
+                <Globe size={12} weight="fill" aria-hidden />
+                {home.name} · country profile
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate(`/dashboard/maps?country=${home.code}`)}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                title={`Show ${home.name} on the map`}
+              >
+                <MapTrifold size={12} weight="fill" aria-hidden />
+                On the map
+              </button>
+            </div>
+          )}
 
           {/* Tab bar — the pill row the country and state modals use, rather
               than the underline row this modal had. */}
@@ -16139,6 +16180,28 @@ export function WorldLeadersPage() {
   const [viewMode, setViewMode] = useState<
     "list" | "monarchies" | "richest" | "alliances"
   >("list");
+
+  /* Deep link: ?open=<leader id> opens that leader's window - the link a
+     country's window makes. The value is only ever matched against the list. */
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const open = params.get("open");
+    if (open) {
+      const found = LEADERS.find((l) => l.id === open);
+      if (found) setSelected(found);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("open");
+      window.history.replaceState({}, "", url.toString());
+    }
+    /* The index those links are made from is a generated copy of this page's
+       list; say so, in development, when it has fallen behind. */
+    if (import.meta.env.DEV) {
+      const indexed = Object.values(LEADERS_BY_COUNTRY).flat().map((l) => l.id).sort().join();
+      if (indexed !== LEADERS.map((l) => l.id).sort().join()) {
+        console.warn("[leaders] src/data/leaderIndex.ts is out of date - run: node build-leader-index.cjs");
+      }
+    }
+  }, []);
 
   const ideologies = [
     "All",

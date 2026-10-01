@@ -1,6 +1,7 @@
 import { na, has, orZero, sortKey } from "../lib/na";
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { LEADERS_BY_COUNTRY } from "../data/leaderIndex";
 import {
   MapPin,
   Shield,
@@ -613,6 +614,25 @@ function CountryModal({
                   </span>
                   )}
                 </div>
+                {/* Through to the people: each leader profile the World
+                    Leaders page holds for this country opens there. */}
+                {(LEADERS_BY_COUNTRY[country.code] ?? []).length > 0 && (
+                  <div className="flex items-baseline gap-x-3 gap-y-1 mt-2 flex-wrap">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Leaders</span>
+                    {LEADERS_BY_COUNTRY[country.code].map((l) => (
+                      <button
+                        key={l.id}
+                        type="button"
+                        onClick={() => navigate(`/dashboard/world-leaders?open=${l.id}`)}
+                        className="text-xs font-sans text-foreground hover:text-secondary transition-colors cursor-pointer text-left"
+                        title={`Open ${l.name}'s profile on the World Leaders page`}
+                      >
+                        <span className="underline decoration-dotted underline-offset-2">{l.name}</span>
+                        <span className="text-muted-foreground"> · {l.title}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
