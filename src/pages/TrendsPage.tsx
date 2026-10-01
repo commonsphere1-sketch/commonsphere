@@ -1,2476 +1,926 @@
-import { decodeEntities } from "../lib/security";
-import { useState } from "react";
-import { SourceLink } from "../components/SourceLink";
+/**
+ * Trends & Projections: where the world has been heading and where the
+ * bodies that publish projections put it next - as a hero, a row of headline
+ * tiles, and a section each, in the card, tile and chart language of the
+ * Humanitarian and Worldview pages.
+ *
+ * Every figure is published. The projections are the IMF's World Economic
+ * Outlook (the economy, to five years out) and the UN's World Population
+ * Prospects (people, to 2100), from projections.ts, built by
+ * build-projections.cjs; the trends are the world series in worldview.ts.
+ * In each chart the publisher's estimates of the past are a solid line and
+ * its projections a dashed one, and the page says where one becomes the
+ * other.
+ *
+ * What is not here: a probability, a "confidence", or a forecast for a
+ * sector. The page this replaces gave all three, written by hand; no body
+ * publishes them, so the scenarios shown are the ones a body does publish -
+ * the UN's low and high variants - with no likelihood put on either.
+ */
+import { useMemo, useState, type ReactNode } from "react";
+import { Area, AreaChart, CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { ArrowDownRight, ArrowRight, ArrowUpRight, ChartLineUp, Globe, Lightning, Target, TrendUp, Users } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
+import { SourceLink } from "../components/SourceLink";
+import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
+import { SectionNav, type NavSection } from "../components/SectionNav";
+import { StyledSelect } from "../components/StyledSelect";
+import { usdFromBillions } from "../lib/money";
+import { WORLD, WORLDVIEW_RETRIEVED, type WorldIndicator } from "../data/worldview";
 import {
-  Sparkle,
-  ArrowUp,
-  ArrowDown,
-  TrendUp,
-  TrendDown,
-  Warning,
-  Info,
-  Globe,
-  Lightning,
-  Target,
-  Users,
-  Leaf,
-  Package,
-  DeviceMobile,
-  ShieldWarning,
-} from "@phosphor-icons/react";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  CartesianGrid,
-  ReferenceLine,
-} from "recharts";
+  POPULATION_OUTLOOK,
+  POPULATION_VARIANTS,
+  PROJECTIONS_RETRIEVED,
+  PROJECTION_SOURCES,
+  WEO_COUNTRIES,
+  WEO_GROUPS,
+  type CountryOutlook,
+  type Point,
+} from "../data/projections";
 
-/* ─── Projection / Forecast Data ──────────────────────────────────────── */
+// ── Look ───────────────────────────────────────────────────────────────────
 
-const GDP_PROJECTION = [
-  { year: "2024", world: 105.4, usa: 27.4, china: 18.5, eu: 17.9 },
-  { year: "2025", world: 109.1, usa: 28.2, china: 19.8, eu: 18.3 },
-  { year: "2026", world: 113.4, usa: 29.5, china: 21.2, eu: 18.9 },
-  { year: "2027", world: 118.2, usa: 30.8, china: 22.8, eu: 19.4 },
-  { year: "2028", world: 123.5, usa: 32.1, china: 24.6, eu: 20.0 },
-  { year: "2029", world: 129.1, usa: 33.4, china: 26.5, eu: 20.6 },
-  { year: "2030", world: 135.0, usa: 34.9, china: 28.6, eu: 21.3 },
-];
+function useLook() {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+  const head = isLight ? "#0f172a" : "#f1f0ff";
+  const muted = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.5)";
+  return {
+    isLight,
+    head,
+    muted,
+    card: {
+      background: isLight ? "#ffffff" : "rgba(255,255,255,0.04)",
+      border: isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)",
+      boxShadow: isLight ? "var(--card-glow), 0 1px 10px rgba(0,0,0,0.07)" : "var(--card-glow)",
+    },
+    grid: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)",
+    track: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.07)",
+    /** The wash over the years that are projections. */
+    ahead: isLight ? "rgba(99,102,241,0.07)" : "rgba(129,140,248,0.10)",
+    accent: isLight ? "#2a78d6" : "#3987e5",
+    tooltip: {
+      contentStyle: {
+        background: isLight ? "#ffffff" : "#15151a",
+        border: isLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)",
+        borderRadius: 10,
+        fontSize: 11,
+        fontFamily: "monospace",
+        color: head,
+      },
+      // The lines of a hover box are in ink, not in their series' colour.
+      itemStyle: { color: head },
+      labelStyle: { color: muted },
+    },
+  };
+}
+type Look = ReturnType<typeof useLook>;
 
-const INFLATION_FORECAST = [
-  { year: "2022", g20: 8.7, em: 9.8, adv: 7.3 },
-  { year: "2023", g20: 6.1, em: 7.4, adv: 4.6 },
-  { year: "2024", g20: 4.8, em: 6.2, adv: 3.2 },
-  { year: "2025", g20: 3.9, em: 5.1, adv: 2.6 },
-  { year: "2026", g20: 3.2, em: 4.3, adv: 2.2 },
-  { year: "2027", g20: 2.8, em: 3.8, adv: 2.1 },
-  { year: "2028", g20: 2.5, em: 3.4, adv: 2.0 },
-];
+/** The series of the charts, by what they are. The same in both themes. */
+const SERIES = {
+  world: "#6366f1",
+  advanced: "#0ea5e9",
+  emerging: "#f59e0b",
+  low: "#10b981",
+  medium: "#6366f1",
+  high: "#ef4444",
+  people: "#8b5cf6",
+};
+const PALETTE = ["#ef4444", "#f97316", "#f59e0b", "#84cc16", "#10b981", "#14b8a6", "#06b6d4", "#3b82f6", "#6366f1", "#8b5cf6", "#d946ef", "#ec4899"];
 
-const UNEMPLOYMENT_PROJ = [
-  { year: "2022", rate: 3.6 },
-  { year: "2023", rate: 3.8 },
-  { year: "2024", rate: 4.1 },
-  { year: "2025", rate: 4.3 },
-  { year: "2026", rate: 4.1 },
-  { year: "2027", rate: 3.9 },
-  { year: "2028", rate: 3.7 },
-  { year: "2029", rate: 3.6 },
-  { year: "2030", rate: 3.5 },
-];
+// ── Figures ────────────────────────────────────────────────────────────────
 
+const WEO = PROJECTION_SOURCES.weo;
+const WPP = PROJECTION_SOURCES.wpp;
+const THIS_YEAR = new Date().getFullYear();
 
-const SCENARIOS = [
-  {
-    id: "s1",
-    icon: <Target size={16} weight="fill" />,
-    color: "#10b981",
-    label: "Green Transition Acceleration",
-    horizon: "2030",
-    probability: 62,
-    impact: "High",
-    impactColor: "#10b981",
-    summary:
-      "Renewable energy reaches 45% of global electricity by 2030 if current policy trajectories hold.",
-    drivers: ["EU Green Deal", "US IRA", "China net-zero pledges"],
-  },
-  {
-    id: "s2",
-    icon: <Lightning size={16} weight="fill" />,
-    color: "#f59e0b",
-    label: "AI Economic Disruption",
-    horizon: "2028",
-    probability: 74,
-    impact: "Very High",
-    impactColor: "#f59e0b",
-    summary:
-      "Automation displaces 14–20% of white-collar roles in advanced economies within 4 years.",
-    drivers: ["LLM adoption", "Labor market shifts", "Regulatory lag"],
-  },
-  {
-    id: "s3",
-    icon: <Globe size={16} weight="fill" />,
-    color: "#6366f1",
-    label: "Multipolar Trade Realignment",
-    horizon: "2027",
-    probability: 81,
-    impact: "High",
-    impactColor: "#6366f1",
-    summary:
-      "Dollar's share of global reserves drops below 55% as BRICS+ nations build trade alternatives.",
-    drivers: ["De-dollarization push", "BRICS expansion", "Sanctions blowback"],
-  },
-  {
-    id: "s4",
-    icon: <Warning size={16} weight="fill" />,
-    color: "#ef4444",
-    label: "Taiwan Strait Escalation",
-    horizon: "2026–2028",
-    probability: 31,
-    impact: "Critical",
-    impactColor: "#ef4444",
-    summary:
-      "Military incidents raise risk of full blockade, triggering $3T+ supply chain disruption.",
-    drivers: ["PLA exercises", "US posture", "Taiwan elections"],
-  },
-];
+const at = (s: Point[] | undefined, year: number) => s?.find(([y]) => y === year)?.[1];
+const last = (s: Point[]) => s[s.length - 1];
+const people = (n: number) => (n >= 1e9 ? `${(n / 1e9).toFixed(2)}bn` : n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : Math.round(n).toLocaleString("en-US"));
+const pct = (v: number, dp = 1) => `${v.toFixed(dp)}%`;
+const signed = (v: number, dp = 1) => `${v > 0 ? "+" : ""}${v.toFixed(dp)}`;
+const flagUrl = (code: string) => `https://flagcdn.com/w40/${code.toLowerCase()}.png`;
 
-const GROWTH_TRENDS = [
-  {
-    name: "India",
-    color: "#f97316",
-    data: [6.1, 6.5, 7.0, 6.8, 7.1, 7.3, 7.5],
-    trend: "up",
-  },
-  {
-    name: "USA",
-    color: "#3b82f6",
-    data: [2.5, 2.1, 2.8, 2.3, 2.6, 2.5, 2.7],
-    trend: "stable",
-  },
-  {
-    name: "China",
-    color: "#ef4444",
-    data: [5.2, 4.6, 4.9, 5.1, 5.2, 5.3, 5.4],
-    trend: "stable",
-  },
-  {
-    name: "Germany",
-    color: "#6366f1",
-    data: [1.8, -0.2, 0.3, 0.9, 1.2, 1.5, 1.7],
-    trend: "up",
-  },
-  {
-    name: "Brazil",
-    color: "#10b981",
-    data: [2.9, 3.1, 2.8, 3.0, 3.2, 3.1, 3.3],
-    trend: "up",
-  },
-];
+const WORLD_POP = POPULATION_OUTLOOK[0];
+const POP_PEAK = WORLD_POP.population.reduce((a, b) => (b[1] > a[1] ? b : a));
 
-/* ─── Population & Demographics ─────────────────────────────────────── */
-const POPULATION_TRENDS = [
-  { year: "2020", world: 7.8, africa: 1.34, asia: 4.64, europe: 0.745 },
-  { year: "2022", world: 7.95, africa: 1.39, asia: 4.72, europe: 0.744 },
-  { year: "2024", world: 8.09, africa: 1.45, asia: 4.79, europe: 0.742 },
-  { year: "2026", world: 8.22, africa: 1.51, asia: 4.85, europe: 0.74 },
-  { year: "2028", world: 8.35, africa: 1.57, asia: 4.9, europe: 0.738 },
-  { year: "2030", world: 8.47, africa: 1.64, asia: 4.95, europe: 0.736 },
-];
-
-const AGING_STATS = [
-  { country: "Japan", over65Pct: 29.9, medianAge: 49.5, color: "#ef4444" },
-  { country: "Italy", over65Pct: 24.1, medianAge: 47.7, color: "#f97316" },
-  { country: "Germany", over65Pct: 22.7, medianAge: 46.8, color: "#6366f1" },
-  { country: "USA", over65Pct: 17.3, medianAge: 38.9, color: "#3b82f6" },
-  { country: "China", over65Pct: 14.2, medianAge: 38.4, color: "#ef4444" },
-  { country: "India", over65Pct: 7.1, medianAge: 29.5, color: "#f59e0b" },
-  { country: "Nigeria", over65Pct: 3.0, medianAge: 18.4, color: "#10b981" },
-];
-
-/* ─── Climate & Energy ───────────────────────────────────────────────── */
-const RENEWABLE_CAPACITY = [
-  { year: "2019", solar: 627, wind: 623, hydro: 1310 },
-  { year: "2020", solar: 714, wind: 733, hydro: 1332 },
-  { year: "2021", solar: 849, wind: 825, hydro: 1360 },
-  { year: "2022", solar: 1053, wind: 899, hydro: 1392 },
-  { year: "2023", solar: 1419, wind: 1017, hydro: 1421 },
-  { year: "2024", solar: 1900, wind: 1150, hydro: 1445 },
-  { year: "2025", solar: 2340, wind: 1280, hydro: 1460 },
-];
-
-const CLIMATE_INDICATORS = [
-  {
-    label: "Global Temp Anomaly",
-    value: "+1.45°C",
-    delta: "2024 vs pre-industrial",
-    color: "#ef4444",
-    up: true,
-  },
-  {
-    label: "CO₂ Concentration",
-    value: "422 ppm",
-    delta: "+2.4 ppm/yr",
-    color: "#f97316",
-    up: true,
-  },
-  {
-    label: "Arctic Sea Ice Loss",
-    value: "-13%/decade",
-    delta: "vs 1981–2010 avg",
-    color: "#3b82f6",
-    up: false,
-  },
-  {
-    label: "Clean Energy Share",
-    value: "30.3%",
-    delta: "+4.1pp vs 2020",
-    color: "#10b981",
-    up: true,
-  },
-];
-
-/* ─── Global Trade ───────────────────────────────────────────────────── */
-const TRADE_DATA = [
-  { year: "2019", volume: 19.0, fdi: 1.54 },
-  { year: "2020", volume: 17.4, fdi: 0.99 },
-  { year: "2021", volume: 22.3, fdi: 1.6 },
-  { year: "2022", volume: 25.1, fdi: 1.3 },
-  { year: "2023", volume: 24.2, fdi: 1.33 },
-  { year: "2024", volume: 25.6, fdi: 1.45 },
-  { year: "2025", volume: 26.8, fdi: 1.58 },
-];
-
-const TOP_TRADE_FLOWS = [
-  { route: "China → USA", value: "$438B", share: 92, color: "#ef4444" },
-  { route: "EU → USA", value: "$606B", share: 100, color: "#3b82f6" },
-  { route: "China → EU", value: "$575B", share: 95, color: "#f97316" },
-  { route: "USA → Mexico", value: "$323B", share: 53, color: "#10b981" },
-  { route: "Japan → USA", value: "$148B", share: 24, color: "#a855f7" },
-  { route: "India → EU", value: "$76B", share: 13, color: "#f59e0b" },
-];
-
-/* ─── Digital Economy ────────────────────────────────────────────────── */
-const DIGITAL_METRICS = [
-  { year: "2019", ecommerce: 3.5, aiMarket: 0.27, cloudSpend: 0.24 },
-  { year: "2020", ecommerce: 4.3, aiMarket: 0.38, cloudSpend: 0.37 },
-  { year: "2021", ecommerce: 5.2, aiMarket: 0.52, cloudSpend: 0.49 },
-  { year: "2022", ecommerce: 5.8, aiMarket: 0.72, cloudSpend: 0.63 },
-  { year: "2023", ecommerce: 6.3, aiMarket: 1.07, cloudSpend: 0.72 },
-  { year: "2024", ecommerce: 6.9, aiMarket: 1.84, cloudSpend: 0.84 },
-  { year: "2025", ecommerce: 7.6, aiMarket: 2.74, cloudSpend: 0.98 },
-];
-
-const INTERNET_ADOPTION = [
-  { region: "North America", pct: 93, color: "#3b82f6" },
-  { region: "Europe", pct: 89, color: "#6366f1" },
-  { region: "Latin America", pct: 77, color: "#10b981" },
-  { region: "East Asia", pct: 74, color: "#f97316" },
-  { region: "Middle East", pct: 71, color: "#f59e0b" },
-  { region: "Southeast Asia", pct: 67, color: "#a855f7" },
-  { region: "South Asia", pct: 48, color: "#ef4444" },
-  { region: "Sub-Saharan Africa", pct: 37, color: "#ec4899" },
-];
-
-/* ─── Geopolitical Risk Heat ─────────────────────────────────────────── */
-const GEO_RISK_TABLE = [
-  {
-    region: "Taiwan Strait",
-    risk: 87,
-    trend: "up",
-    category: "Military",
-    color: "#ef4444",
-  },
-  {
-    region: "Russia–Ukraine",
-    risk: 82,
-    trend: "stable",
-    category: "Conflict",
-    color: "#ef4444",
-  },
-  {
-    region: "Middle East",
-    risk: 74,
-    trend: "down",
-    category: "Multi-front",
-    color: "#f97316",
-  },
-  {
-    region: "Korean Peninsula",
-    risk: 61,
-    trend: "up",
-    category: "Nuclear",
-    color: "#f59e0b",
-  },
-  {
-    region: "South China Sea",
-    risk: 58,
-    trend: "up",
-    category: "Maritime",
-    color: "#f59e0b",
-  },
-  {
-    region: "Sahel Region",
-    risk: 54,
-    trend: "up",
-    category: "Insurgency",
-    color: "#f59e0b",
-  },
-  {
-    region: "Venezuela",
-    risk: 42,
-    trend: "stable",
-    category: "Political",
-    color: "#10b981",
-  },
-  {
-    region: "Western Balkans",
-    risk: 31,
-    trend: "down",
-    category: "Ethnic",
-    color: "#10b981",
-  },
-];
-
-const SECTOR_PROJECTIONS = [
-  {
-    sector: "Defense",
-    outlook: "+18%",
-    confidence: 88,
-    direction: "up",
-    color: "#ef4444",
-  },
-  {
-    sector: "Renewables",
-    outlook: "+24%",
-    confidence: 76,
-    direction: "up",
-    color: "#10b981",
-  },
-  {
-    sector: "Semiconductors",
-    outlook: "+31%",
-    confidence: 71,
-    direction: "up",
-    color: "#6366f1",
-  },
-  {
-    sector: "Commodities",
-    outlook: "-6%",
-    confidence: 62,
-    direction: "down",
-    color: "#f59e0b",
-  },
-  {
-    sector: "EM Debt",
-    outlook: "-11%",
-    confidence: 69,
-    direction: "down",
-    color: "#ef4444",
-  },
-  {
-    sector: "AI Infrastructure",
-    outlook: "+42%",
-    confidence: 83,
-    direction: "up",
-    color: "#a855f7",
-  },
-];
-
-/* ─── Mini Sparkline ─────────────────────────────────────────────────── */
-function MiniSparkline({ data, color }: { data: number[]; color: string }) {
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const h = 28,
-    w = 72;
-  const points = data
-    .map(
-      (v, i) =>
-        `${(i / (data.length - 1)) * w},${h - ((v - min) / (max - min || 1)) * h}`,
-    )
-    .join(" ");
-  return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} fill="none">
-      <polyline
-        points={points}
-        stroke={color}
-        strokeWidth={1.5}
-        fill="none"
-        strokeLinejoin="round"
-      />
-      <circle
-        cx={((data.length - 1) / (data.length - 1)) * w}
-        cy={h - ((data[data.length - 1] - min) / (max - min || 1)) * h}
-        r={3}
-        fill={color}
-      />
-    </svg>
-  );
+/** A world series' value as its own format prints it. */
+function fmtWorld(ind: WorldIndicator, v: number): string {
+  if (ind.format === "pct") return `${v.toFixed(ind.dp)}%`;
+  if (ind.format === "usd") return v >= 1e12 ? `$${(v / 1e12).toFixed(2)}T` : v >= 1e9 ? `$${(v / 1e9).toFixed(1)}B` : `$${Math.round(v / 1e6).toLocaleString("en-US")}M`;
+  if (ind.format === "count") return v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : Math.round(v).toLocaleString("en-US");
+  return v >= 1000 ? Math.round(v).toLocaleString("en-US") : v.toFixed(ind.dp);
 }
 
-/* ─── Section Header ─────────────────────────────────────────────────── */
-function SectionHeader({
-  title,
-  sub,
-  badge,
-  isLight,
-}: {
-  title: string;
-  sub?: string;
-  badge?: string;
-  isLight: boolean;
-}) {
-  const headText = isLight ? "#0f172a" : "#f1f0ff";
+/** A world series' reading about ten years before its latest, where it has one. */
+function decadeBefore(s: Point[]): Point | null {
+  const [ly] = last(s);
+  const earlier = s.filter(([y]) => y <= ly - 10);
+  const p = earlier[earlier.length - 1];
+  return p && ly - 10 - p[0] <= 2 ? p : null;
+}
+
+// ── Pieces ─────────────────────────────────────────────────────────────────
+
+function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
+  const { card } = useLook();
   return (
-    <div className="mb-4">
-      {sub && (
-        <p
-          className="text-[10px] font-mono uppercase tracking-widest mb-1"
-          style={{ color: isLight ? "#6366f1" : "rgba(167,139,250,0.7)" }}
-        >
-          {sub}
-        </p>
-      )}
-      <h2
-        className="text-base font-bold font-sans flex items-center gap-2"
-        style={{ color: headText }}
-      >
-        {title}
-        {badge && (
-          <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400">
-            {badge}
-          </span>
-        )}
-      </h2>
+    <div className={`rounded-2xl p-5 min-w-0 ${className}`} style={card}>
+      {children}
     </div>
   );
 }
 
-/* ─── Main Component ─────────────────────────────────────────────────── */
-export function TrendsPage() {
-  const { theme } = useTheme();
-  const isLight = theme === "light";
-
-  const [gdpView, setGdpView] = useState<"world" | "regions">("world");
-  const [activeScenario, setActiveScenario] = useState<string | null>(null);
-
-  const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
-  const cardBorder = isLight
-    ? "1px solid rgba(0,0,0,0.09)"
-    : "1px solid rgba(255,255,255,0.08)";
-  const cardShadow = isLight
-    ? "var(--card-glow), 0 1px 10px rgba(0,0,0,0.07)"
-    : "var(--card-glow)";
-  const mutedText = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.38)";
-  const bodyText = isLight ? "#1e293b" : "#e2e8f0";
-  const headText = isLight ? "#0f172a" : "#f1f0ff";
-  const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
-
+function CardHead({ title, kicker }: { title: string; kicker: string }) {
+  const { head, muted } = useLook();
   return (
-    <div
-      className="min-h-screen w-full animate-fade-in"
-      style={{ background: isLight ? "#ffffff" : "#0b0b14", color: bodyText }}
-    >
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-4 flex flex-col gap-4">
-        {/* ── HERO ─────────────────────────────────────────────────── */}
-        <div
-          className="rounded-2xl px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 overflow-hidden relative"
-          style={{
-            background: isLight
-              ? "linear-gradient(130deg, #e0e7ff 0%, #dbeafe 60%, #d1fae5 100%)"
-              : "linear-gradient(130deg, #1e1b4b 0%, #0f0b1e 50%, #022c22 100%)",
-            border: isLight
-              ? "1px solid rgba(99,102,241,0.2)"
-              : "1px solid rgba(139,92,246,0.2)",
-          }}
-        >
-          <div
-            className="absolute inset-0 pointer-events-none opacity-[0.04]"
-            style={{
-              backgroundImage: `radial-gradient(circle, ${isLight ? "#4f46e5" : "#7c3aed"} 1px, transparent 1px)`,
-              backgroundSize: "28px 28px",
-            }}
-          />
-          <div className="relative">
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkle
-                size={12}
-                weight="fill"
-                style={{ color: isLight ? "#4f46e5" : "#a78bfa" }}
-              />
-              <span
-                className="text-[10px] font-mono uppercase tracking-widest"
-                style={{ color: isLight ? "#4f46e5" : "#a78bfa" }}
-              >
-                Forecasting &amp; Scenario Analysis
-              </span>
-            </div>
-            <h1
-              className="text-xl sm:text-2xl font-bold font-sans leading-tight"
-              style={{ color: headText }}
-            >
-              Trends &amp; Projections
-            </h1>
-            <p
-              className="text-xs font-sans mt-1 max-w-lg"
-              style={{ color: mutedText }}
-            >
-              Forward-looking economic and geopolitical forecasts through 2030,
-              built on IMF, World Bank, and consensus analyst data.
-            </p>
-          </div>
-          <div className="relative flex flex-wrap gap-2 shrink-0">
-            {[
-              { v: "2026–30", l: "Horizon" },
-              { v: "4", l: "Scenarios" },
-              { v: "12", l: "Indicators" },
-              { v: "IMF", l: "Source" },
-            ].map((s) => (
-              <div
-                key={s.l}
-                className="rounded-xl px-3 py-1.5 text-center"
-                style={{
-                  background: isLight
-                    ? "rgba(255,255,255,0.7)"
-                    : "rgba(255,255,255,0.08)",
-                  border: isLight
-                    ? "1px solid rgba(99,102,241,0.18)"
-                    : "1px solid rgba(255,255,255,0.1)",
-                }}
-              >
-                <p
-                  className="text-sm font-bold font-mono"
-                  style={{ color: headText }}
-                >
-                  {s.v}
-                </p>
-                <p
-                  className="text-[10px] font-sans"
-                  style={{ color: mutedText }}
-                >
-                  {s.l}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
+    <div className="mb-4">
+      <h3 className="text-sm font-bold font-sans" style={{ color: head }}>
+        {title}
+      </h3>
+      <p className="text-[10px] font-mono uppercase tracking-widest mt-1" style={{ color: muted }}>
+        {kicker}
+      </p>
+    </div>
+  );
+}
 
-        {/* ── KPI PILLS ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-4 gap-3">
-          {[
-            {
-              label: "Global GDP 2030 (proj.)",
-              value: "$135T",
-              delta: "+28%",
-              positive: true,
-            },
-            {
-              label: "US Unemp. by 2030 (proj.)",
-              value: "3.5%",
-              delta: "-0.6pp",
-              positive: true,
-            },
-            {
-              label: "G20 Inflation 2028 (proj.)",
-              value: "2.5%",
-              delta: "-2.3pp",
-              positive: true,
-            },
-            {
-              label: "High-Risk Scenarios",
-              value: "2 active",
-              delta: "Critical",
-              positive: false,
-            },
-          ].map((k) => (
-            <div
-              key={k.label}
-              className="rounded-2xl px-5 py-4 flex flex-col gap-1.5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <p
-                className="text-[11px] font-sans uppercase tracking-widest"
-                style={{ color: mutedText }}
-              >
-                {k.label}
-              </p>
-              <p
-                className="text-2xl font-bold font-mono"
-                style={{ color: headText }}
-              >
-                {k.value}
-              </p>
-              <div className="flex items-center gap-1">
-                {k.positive ? (
-                  <ArrowUp size={11} weight="bold" color="#10b981" />
-                ) : (
-                  <Warning size={11} weight="fill" color="#ef4444" />
-                )}
-                <span
-                  className="text-[11px] font-mono"
-                  style={{ color: k.positive ? "#10b981" : "#ef4444" }}
-                >
-                  {k.delta}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+function SectionHead({ icon, color, title, kicker }: { icon: ReactNode; color: string; title: string; kicker: string }) {
+  const { head, muted } = useLook();
+  return (
+    <div className="flex items-center gap-3">
+      <span className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}18`, color, border: `1px solid ${color}30` }}>
+        {icon}
+      </span>
+      <div>
+        <h2 className="text-lg font-bold font-sans leading-tight" style={{ color: head }}>
+          {title}
+        </h2>
+        <p className="text-xs font-sans" style={{ color: muted }}>
+          {kicker}
+        </p>
+      </div>
+    </div>
+  );
+}
 
-        {/* ── MAIN GRID ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* COL 1-5: Charts */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
-            {/* GDP Projection */}
-            <div
-              className="rounded-2xl p-5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <div className="flex items-end justify-between mb-4">
-                <div>
-                  <p
-                    className="text-[10px] font-mono uppercase tracking-widest mb-1"
-                    style={{
-                      color: isLight ? "#6366f1" : "rgba(167,139,250,0.7)",
-                    }}
-                  >
-                    GDP Forecast
-                  </p>
-                  <h2
-                    className="text-base font-bold font-sans"
-                    style={{ color: headText }}
-                  >
-                    Global GDP Projections
-                    <span
-                      className="ml-2 text-[9px] font-mono px-2 py-0.5 rounded-full"
-                      style={{ background: "#6366f115", color: "#6366f1" }}
-                    >
-                      2024 – 2030
-                    </span>
-                  </h2>
-                </div>
-                <div
-                  className="flex rounded-lg overflow-hidden text-[10px] font-semibold"
-                  style={{
-                    border: isLight
-                      ? "1px solid rgba(0,0,0,0.1)"
-                      : "1px solid rgba(255,255,255,0.1)",
-                  }}
-                >
-                  {(["world", "regions"] as const).map((v) => (
-                    <button
-                      key={v}
-                      onClick={() => setGdpView(v)}
-                      className="px-2.5 py-1 transition-colors capitalize"
-                      style={{
-                        background: gdpView === v ? "#6366f1" : "transparent",
-                        color: gdpView === v ? "#fff" : mutedText,
-                      }}
-                    >
-                      {v}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <ResponsiveContainer width="100%" height={220}>
-                <AreaChart
-                  data={GDP_PROJECTION}
-                  margin={{ top: 4, right: 4, left: -10, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient
-                      id="tpGdpUsaGrad"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor="#3b82f6"
-                        stopOpacity={0.35}
-                      />
-                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient
-                      id="tpGdpChinaGrad"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor="#ef4444"
-                        stopOpacity={0.35}
-                      />
-                      <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient
-                      id="tpGdpEuGrad"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient
-                      id="tpGdpWorldGrad"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor="#a855f7" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#a855f7" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke={gridLine} strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="year"
-                    tick={{
-                      fontSize: 9,
-                      fill: mutedText,
-                      fontFamily: "monospace",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{
-                      fontSize: 9,
-                      fill: mutedText,
-                      fontFamily: "monospace",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(v) => `$${v}T`}
-                  />
-                  <ReferenceLine
-                    x="2025"
-                    stroke={mutedText}
-                    strokeDasharray="4 2"
-                    label={{
-                      value: "Now",
-                      position: "top",
-                      fontSize: 9,
-                      fill: mutedText,
-                    }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: isLight ? "#fff" : "#1a1730",
-                      border: isLight
-                        ? "1px solid rgba(0,0,0,0.1)"
-                        : "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: 10,
-                      fontSize: 11,
-                      fontFamily: "monospace",
-                      color: headText,
-                    }}
-                    formatter={(v: number, name: string) => [
-                      `$${v}T`,
-                      name.toUpperCase(),
-                    ]}
-                    labelStyle={{ color: mutedText, marginBottom: 2 }}
-                  />
-                  {gdpView === "world" ? (
-                    <Area
-                      type="monotone"
-                      dataKey="world"
-                      stroke="#a855f7"
-                      fill="url(#tpGdpWorldGrad)"
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                  ) : (
-                    <>
-                      <Area
-                        type="monotone"
-                        dataKey="usa"
-                        stroke="#3b82f6"
-                        fill="url(#tpGdpUsaGrad)"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="china"
-                        stroke="#ef4444"
-                        fill="url(#tpGdpChinaGrad)"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="eu"
-                        stroke="#10b981"
-                        fill="url(#tpGdpEuGrad)"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-                    </>
-                  )}
-                </AreaChart>
-              </ResponsiveContainer>
-              {gdpView === "regions" && (
-                <div className="flex items-center gap-4 mt-2 justify-center">
-                  {[
-                    { label: "USA", color: "#3b82f6" },
-                    { label: "China", color: "#ef4444" },
-                    { label: "EU", color: "#10b981" },
-                  ].map((l) => (
-                    <div key={l.label} className="flex items-center gap-1">
-                      <div
-                        className="w-3 h-0.5 rounded-full"
-                        style={{ background: l.color }}
-                      />
-                      <span
-                        className="text-[10px] font-mono"
-                        style={{ color: mutedText }}
-                      >
-                        {l.label}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <SourceLink
-                sources={[
-                  {
-                    label: "IMF World Economic Outlook",
-                    url: "https://imf.org/en/Publications/WEO",
-                  },
-                  {
-                    label: "World Bank GEP",
-                    url: "https://worldbank.org/en/publication/global-economic-prospects",
-                  },
-                ]}
-                className="mt-3"
-              />
-            </div>
+function Note({ children }: { children: ReactNode }) {
+  const { muted } = useLook();
+  return (
+    <p className="text-[10px] font-sans leading-relaxed mt-3 max-w-4xl" style={{ color: muted }}>
+      {children}
+    </p>
+  );
+}
 
-            {/* Global Inflation Forecast */}
-            <div
-              className="rounded-2xl p-5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <SectionHeader
-                title="Global Inflation Forecast"
-                sub="Monetary Outlook"
-                badge="2022–2028"
-                isLight={isLight}
-              />
-              <ResponsiveContainer width="100%" height={185}>
-                <LineChart
-                  data={INFLATION_FORECAST}
-                  margin={{ top: 4, right: 4, left: -10, bottom: 0 }}
-                >
-                  <CartesianGrid stroke={gridLine} strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="year"
-                    tick={{
-                      fontSize: 9,
-                      fill: mutedText,
-                      fontFamily: "monospace",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{
-                      fontSize: 9,
-                      fill: mutedText,
-                      fontFamily: "monospace",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(v) => `${v}%`}
-                    domain={[0, "auto"]}
-                  />
-                  <ReferenceLine
-                    x="2025"
-                    stroke={mutedText}
-                    strokeDasharray="4 2"
-                  />
-                  <ReferenceLine
-                    y={2}
-                    stroke="#10b981"
-                    strokeDasharray="3 3"
-                    label={{
-                      value: "2% target",
-                      position: "right",
-                      fontSize: 9,
-                      fill: "#10b981",
-                    }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: isLight ? "#fff" : "#1a1730",
-                      border: isLight
-                        ? "1px solid rgba(0,0,0,0.1)"
-                        : "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: 10,
-                      fontSize: 11,
-                      fontFamily: "monospace",
-                      color: headText,
-                    }}
-                    formatter={(v: number, name: string) => [
-                      `${v}%`,
-                      name === "g20"
-                        ? "G20"
-                        : name === "em"
-                          ? "Emerging Markets"
-                          : "Advanced Economies",
-                    ]}
-                    labelStyle={{ color: mutedText, marginBottom: 2 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="g20"
-                    stroke="#f59e0b"
-                    strokeWidth={2}
-                    dot={{ fill: "#f59e0b", r: 2.5, strokeWidth: 0 }}
-                    activeDot={{ r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="em"
-                    stroke="#ef4444"
-                    strokeWidth={2}
-                    strokeDasharray="5 2"
-                    dot={{ fill: "#ef4444", r: 2.5, strokeWidth: 0 }}
-                    activeDot={{ r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="adv"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    dot={{ fill: "#3b82f6", r: 2.5, strokeWidth: 0 }}
-                    activeDot={{ r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-              <div className="flex items-center gap-4 mt-2 justify-center">
-                {[
-                  { label: "G20 Avg", color: "#f59e0b" },
-                  { label: "Emerging Markets", color: "#ef4444" },
-                  { label: "Advanced Economies", color: "#3b82f6" },
-                ].map((l) => (
-                  <div key={l.label} className="flex items-center gap-1">
-                    <div
-                      className="w-3 h-0.5 rounded-full"
-                      style={{ background: l.color }}
-                    />
-                    <span
-                      className="text-[10px] font-mono"
-                      style={{ color: mutedText }}
-                    >
-                      {l.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <SourceLink
-                sources={[
-                  {
-                    label: "IMF World Economic Outlook",
-                    url: "https://imf.org/en/Publications/WEO",
-                  },
-                  {
-                    label: "World Bank GEP",
-                    url: "https://worldbank.org/en/publication/global-economic-prospects",
-                  },
-                ]}
-                className="mt-3"
-              />
-            </div>
+function Legend({ items }: { items: { color: string; label: string; value?: string; dashed?: boolean }[] }) {
+  const { head, muted } = useLook();
+  return (
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-3">
+      {items.map((l) => (
+        <span key={l.label} className="flex items-center gap-1.5">
+          <span className="w-4 h-0 border-t-2" style={{ borderColor: l.color, borderStyle: l.dashed ? "dashed" : "solid" }} aria-hidden />
+          <span className="text-[10px] font-sans" style={{ color: muted }}>
+            {l.label}
+          </span>
+          {l.value && (
+            <span className="text-[10px] font-mono font-bold" style={{ color: head }}>
+              {l.value}
+            </span>
+          )}
+        </span>
+      ))}
+    </div>
+  );
+}
 
-            {/* US Unemployment Projection */}
-            <div
-              className="rounded-2xl p-5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <SectionHeader
-                title="US Unemployment Projection"
-                sub="Labor Market"
-                badge="2022–2030"
-                isLight={isLight}
-              />
-              <ResponsiveContainer width="100%" height={175}>
-                <AreaChart
-                  data={UNEMPLOYMENT_PROJ}
-                  margin={{ top: 4, right: 4, left: -10, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient
-                      id="tpUnempProjGrad"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor="#6366f1" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke={gridLine} strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="year"
-                    tick={{
-                      fontSize: 9,
-                      fill: mutedText,
-                      fontFamily: "monospace",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{
-                      fontSize: 9,
-                      fill: mutedText,
-                      fontFamily: "monospace",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(v) => `${v}%`}
-                    domain={[2.5, 5]}
-                  />
-                  <ReferenceLine
-                    x="2025"
-                    stroke={mutedText}
-                    strokeDasharray="4 2"
-                    label={{
-                      value: "Now",
-                      position: "top",
-                      fontSize: 9,
-                      fill: mutedText,
-                    }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: isLight ? "#fff" : "#1a1730",
-                      border: isLight
-                        ? "1px solid rgba(0,0,0,0.1)"
-                        : "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: 10,
-                      fontSize: 11,
-                      fontFamily: "monospace",
-                      color: headText,
-                    }}
-                    formatter={(v: number) => [`${v}%`, "Unemployment Rate"]}
-                    labelStyle={{ color: mutedText, marginBottom: 2 }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="rate"
-                    stroke="#6366f1"
-                    fill="url(#tpUnempProjGrad)"
-                    strokeWidth={2}
-                    dot={{ fill: "#6366f1", r: 3, strokeWidth: 0 }}
-                    activeDot={{ r: 5 }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-              <SourceLink
-                sources={{
-                  label: "BLS Current Population Survey",
-                  url: "https://bls.gov/cps",
-                }}
-                className="mt-3"
-              />
-            </div>
-          </div>
+/** A series' trend across the foot of a tile: grey to where the estimates end, dashed from there, the last point in the accent. */
+function TileTrend({ series, split, accent }: { series: Point[]; split?: number; accent: string }) {
+  if (series.length < 3) return null;
+  const x0 = series[0][0];
+  const x1 = last(series)[0];
+  const ys = series.map(([, v]) => v);
+  const lo = Math.min(...ys);
+  const hi = Math.max(...ys);
+  const px = (x: number) => 3 + ((x - x0) / (x1 - x0 || 1)) * 94;
+  const py = (y: number) => 86 - ((y - lo) / (hi - lo || 1)) * 72;
+  const path = (pts: Point[]) => pts.map(([x, y], i) => `${i ? "L" : "M"}${px(x).toFixed(1)},${py(y).toFixed(1)}`).join("");
+  const past = split ? series.filter(([y]) => y < split) : series;
+  const ahead = split ? series.filter(([y]) => y >= split - 1) : [];
+  const [lx, ly] = last(series);
+  return (
+    <span className="relative block h-7 w-full text-muted-foreground" aria-hidden>
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
+        {past.length > 1 && <path d={path(past)} fill="none" stroke="currentColor" strokeWidth={1.5} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />}
+        {ahead.length > 1 && <path d={path(ahead)} fill="none" stroke={accent} strokeWidth={1.5} strokeDasharray="3 3" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />}
+      </svg>
+      <span className="absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ left: `${px(lx)}%`, top: `${py(ly)}%`, background: accent }} />
+    </span>
+  );
+}
 
-          {/* COL 6-8: Risk + Sector */}
-          <div className="lg:col-span-3 flex flex-col gap-4">
-            {/* Sector Outlook */}
-            <div
-              className="rounded-2xl p-5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <SectionHeader
-                title="Sector Outlook"
-                sub="12-Month Projections"
-                isLight={isLight}
-              />
-              <div className="flex flex-col gap-2">
-                {SECTOR_PROJECTIONS.map((s) => (
-                  <div
-                    key={s.sector}
-                    className="flex items-center gap-3 py-2"
-                    style={{ borderBottom: `1px solid ${gridLine}` }}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <span
-                        className="text-xs font-semibold font-sans"
-                        style={{ color: headText }}
-                      >
-                        {s.sector}
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-end gap-1 shrink-0">
-                      <div className="flex items-center gap-1">
-                        {s.direction === "up" ? (
-                          <TrendUp
-                            size={12}
-                            weight="fill"
-                            style={{ color: s.color }}
-                          />
-                        ) : (
-                          <TrendDown
-                            size={12}
-                            weight="fill"
-                            style={{ color: s.color }}
-                          />
-                        )}
-                        <span
-                          className="text-[11px] font-mono font-semibold"
-                          style={{ color: s.color }}
-                        >
-                          {s.outlook}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <div
-                          className="w-16 h-1.5 rounded-full overflow-hidden"
-                          style={{
-                            background: isLight
-                              ? "rgba(0,0,0,0.07)"
-                              : "rgba(255,255,255,0.08)",
-                          }}
-                        >
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: `${s.confidence}%`,
-                              background: s.color,
-                            }}
-                          />
-                        </div>
-                        <span
-                          className="text-[9px] font-mono w-6"
-                          style={{ color: mutedText }}
-                        >
-                          {s.confidence}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <SourceLink
-                sources={[
-                  { label: "OECD Statistics", url: "https://stats.oecd.org" },
-                  { label: "EIU Consensus", url: "https://eiu.com" },
-                ]}
-                className="mt-3"
-              />
-            </div>
+type Stat = { key: string; label: string; value: string; sub: string; move?: { text: string; dir: "up" | "down" | "flat" }; about: string; series?: Point[]; split?: number };
 
-            {/* Country Growth Trends */}
-            <div
-              className="rounded-2xl p-5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <SectionHeader
-                title="Country Growth Trends"
-                sub="GDP YoY %"
-                isLight={isLight}
-              />
-              <div className="flex flex-col gap-3">
-                {GROWTH_TRENDS.map((g) => (
-                  <div key={g.name} className="flex items-center gap-3">
-                    <span
-                      className="text-xs font-semibold font-sans w-16 shrink-0"
-                      style={{ color: headText }}
-                    >
-                      {g.name}
-                    </span>
-                    <MiniSparkline data={g.data} color={g.color} />
-                    <div className="flex flex-col items-end ml-auto">
-                      <span
-                        className="text-[11px] font-mono font-semibold"
-                        style={{ color: g.color }}
-                      >
-                        {g.data[g.data.length - 1].toFixed(1)}%
-                      </span>
-                      <span
-                        className="text-[9px] font-mono"
-                        style={{ color: mutedText }}
-                      >
-                        {g.trend === "up"
-                          ? "↑ Rising"
-                          : g.trend === "down"
-                            ? "↓ Falling"
-                            : "→ Stable"}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <SourceLink
-                sources={{
-                  label: "World Bank Open Data",
-                  url: "https://data.worldbank.org",
-                }}
-                className="mt-3"
-              />
-            </div>
-          </div>
+/** A headline figure as a tile: what it is, the figure, whose it is and for when, where it has come from, what it means, and its line. */
+function StatTile({ s }: { s: Stat }) {
+  const { head, muted, accent } = useLook();
+  const Icon = s.move?.dir === "up" ? ArrowUpRight : s.move?.dir === "down" ? ArrowDownRight : ArrowRight;
+  return (
+    <div className="modal-tile h-full rounded-xl px-3 py-2.5 flex flex-col gap-0.5">
+      <p className="text-[10px] font-sans uppercase tracking-wider leading-snug" style={{ color: muted }}>
+        {s.label}
+      </p>
+      <p className="text-xl font-bold font-mono leading-tight" style={{ color: head }}>
+        {s.value}
+      </p>
+      <p className="text-[10px] font-mono leading-snug" style={{ color: muted }}>
+        {s.sub}
+      </p>
+      {s.move && (
+        <p className="flex items-center gap-1 font-sans text-[10px] text-muted-foreground">
+          <Icon size={10} weight="bold" aria-hidden />
+          <span>{s.move.text}</span>
+        </p>
+      )}
+      <p className="text-[11px] font-sans leading-snug mt-1" style={{ color: muted }}>
+        {s.about}
+      </p>
+      {s.series && (
+        <span className="mt-auto block w-full pt-2">
+          <TileTrend series={s.series} split={s.split} accent={accent} />
+        </span>
+      )}
+    </div>
+  );
+}
 
-          {/* COL 9-12: Scenario Analysis */}
-          <div className="lg:col-span-4 flex flex-col gap-4">
-            {/* Key Scenarios */}
-            <div
-              className="rounded-2xl p-5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <div className="flex items-end justify-between mb-4">
-                <div>
-                  <p
-                    className="text-[10px] font-mono uppercase tracking-widest mb-1"
-                    style={{
-                      color: isLight ? "#6366f1" : "rgba(167,139,250,0.7)",
-                    }}
-                  >
-                    Scenario Analysis
-                  </p>
-                  <h2
-                    className="text-base font-bold font-sans"
-                    style={{ color: headText }}
-                  >
-                    Key Scenarios
-                  </h2>
-                </div>
-                <span
-                  className="text-[9px] font-mono px-2 py-1 rounded-full"
-                  style={{ background: "#ef444415", color: "#ef4444" }}
-                >
-                  2 High-Risk
-                </span>
-              </div>
-              <div className="flex flex-col gap-3">
-                {SCENARIOS.map((s) => (
-                  <div
-                    key={s.id}
-                    className="rounded-xl p-3 cursor-pointer transition-all"
-                    onClick={() =>
-                      setActiveScenario(activeScenario === s.id ? null : s.id)
-                    }
-                    style={{
-                      background:
-                        activeScenario === s.id
-                          ? isLight
-                            ? `${s.color}12`
-                            : `${s.color}15`
-                          : isLight
-                            ? "rgba(0,0,0,0.025)"
-                            : "rgba(255,255,255,0.035)",
-                      border: `1px solid ${activeScenario === s.id ? s.color + "40" : isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.07)"}`,
-                    }}
-                  >
-                    <div className="flex items-start gap-2.5 mb-2">
-                      <div
-                        className="w-7 h-7 rounded-xl flex items-center justify-center shrink-0"
-                        style={{ background: s.color + "20", color: s.color }}
-                      >
-                        {s.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p
-                          className="text-xs font-bold font-sans leading-snug"
-                          style={{ color: headText }}
-                        >
-                          {s.label}
-                        </p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span
-                            className="text-[9px] font-mono"
-                            style={{ color: mutedText }}
-                          >
-                            {s.horizon}
-                          </span>
-                          <span
-                            className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded-full"
-                            style={{
-                              background: s.impactColor + "15",
-                              color: s.impactColor,
-                            }}
-                          >
-                            {s.impact}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-center shrink-0">
-                        <span
-                          className="text-sm font-bold font-mono"
-                          style={{ color: s.color }}
-                        >
-                          {s.probability}%
-                        </span>
-                        <span
-                          className="text-[9px] font-mono"
-                          style={{ color: mutedText }}
-                        >
-                          prob.
-                        </span>
-                      </div>
-                    </div>
-                    {activeScenario === s.id && (
-                      <div
-                        className="mt-2 pt-2"
-                        style={{ borderTop: `1px solid ${gridLine}` }}
-                      >
-                        <p
-                          className="text-[11px] font-sans leading-relaxed mb-2"
-                          style={{ color: isLight ? "#475569" : "#cbd5e1" }}>{decodeEntities(s.summary)}</p>
-                        <p
-                          className="text-[10px] font-mono uppercase tracking-widest mb-1.5"
-                          style={{ color: mutedText }}
-                        >
-                          Key Drivers
-                        </p>
-                        <div className="flex flex-wrap gap-1">
-                          {s.drivers.map((d) => (
-                            <span
-                              key={d}
-                              className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
-                              style={{
-                                background: s.color + "15",
-                                color: s.color,
-                              }}
-                            >
-                              {d}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <SourceLink
-                sources={[
-                  {
-                    label: "IMF WEO",
-                    url: "https://imf.org/en/Publications/WEO",
-                  },
-                  { label: "EIU Risk Briefings", url: "https://eiu.com" },
-                ]}
-                className="mt-3"
-              />
-            </div>
+const axis = (look: Look) => ({ tick: { fontSize: 9, fill: look.muted, fontFamily: "monospace" }, axisLine: false, tickLine: false });
 
-            {/* Forecast Confidence */}
-            <div
-              className="rounded-2xl p-5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <SectionHeader
-                title="Forecast Confidence"
-                sub="Model Quality"
-                isLight={isLight}
-              />
-              <div className="flex flex-col gap-3">
-                {[
-                  {
-                    label: "GDP Projections",
-                    confidence: 78,
-                    color: "#6366f1",
-                  },
-                  {
-                    label: "Inflation Forecast",
-                    confidence: 71,
-                    color: "#f59e0b",
-                  },
-                  {
-                    label: "Unemployment Path",
-                    confidence: 82,
-                    color: "#3b82f6",
-                  },
-                  { label: "Risk Index", confidence: 61, color: "#ef4444" },
-                  { label: "Sector Outlook", confidence: 67, color: "#10b981" },
-                ].map((f) => (
-                  <div key={f.label} className="flex items-center gap-3">
-                    <span
-                      className="text-[11px] font-sans flex-1"
-                      style={{ color: headText }}
-                    >
-                      {f.label}
-                    </span>
-                    <div
-                      className="w-20 h-1.5 rounded-full overflow-hidden"
-                      style={{
-                        background: isLight
-                          ? "rgba(0,0,0,0.07)"
-                          : "rgba(255,255,255,0.08)",
-                      }}
-                    >
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${f.confidence}%`,
-                          background: f.color,
-                        }}
-                      />
-                    </div>
-                    <span
-                      className="text-[10px] font-mono w-8 text-right"
-                      style={{ color: f.color }}
-                    >
-                      {f.confidence}%
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <SourceLink
-                sources={{
-                  label: "World Bank Global Prospects",
-                  url: "https://worldbank.org/en/publication/global-economic-prospects",
-                }}
-                className="mt-3"
-              />
-            </div>
+// ── Charts ─────────────────────────────────────────────────────────────────
 
-            {/* Methodology Note */}
-            <div
-              className="rounded-2xl p-4"
-              style={{
-                background: isLight
-                  ? "rgba(99,102,241,0.05)"
-                  : "rgba(139,92,246,0.08)",
-                border: isLight
-                  ? "1px solid rgba(99,102,241,0.15)"
-                  : "1px solid rgba(139,92,246,0.2)",
-              }}
-            >
-              <div className="flex items-start gap-2.5">
-                <Info
-                  size={14}
-                  weight="fill"
-                  style={{
-                    color: isLight ? "#6366f1" : "#a78bfa",
-                    flexShrink: 0,
-                    marginTop: 1,
-                  }}
-                />
-                <div>
-                  <p
-                    className="text-[11px] font-bold font-sans mb-1"
-                    style={{ color: isLight ? "#4f46e5" : "#a78bfa" }}
-                  >
-                    Methodology Note
-                  </p>
-                  <p
-                    className="text-[10px] font-sans leading-relaxed"
-                    style={{ color: mutedText }}
-                  >
-                    All projections combine IMF World Economic Outlook (Apr
-                    2025), World Bank Global Economic Prospects, and Economist
-                    Intelligence Unit consensus. Scenarios scored using Bayesian
-                    probability updates from geopolitical risk models.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+/**
+ * One series as an area, solid to where the publisher's estimates end and
+ * dashed from there. Recharts cannot change a line's stroke part-way, so the
+ * series is two keys; the dashed one also carries the last estimate, so the
+ * two join.
+ */
+function SplitArea({ series, split, color, name, fmt, tick, height = 250, mark }: { series: Point[]; split: number; color: string; name: string; fmt: (v: number) => string; tick: (v: number) => string; height?: number; mark?: { year: number; label: string } }) {
+  const look = useLook();
+  const data = series.map(([y, v]) => ({ year: String(y), a: y < split ? v : null, p: y >= split - 1 ? v : null }));
+  const id = `fill-${name.replace(/\W+/g, "")}`;
+  return (
+    <div role="img" aria-label={`${name}, ${series[0][0]} to ${last(series)[0]}: ${fmt(series[0][1])} to ${fmt(last(series)[1])}. Projections from ${split}.`}>
+      <ResponsiveContainer width="100%" height={height}>
+        <AreaChart data={data} margin={{ top: 14, right: 8, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity={0.28} />
+              <stop offset="100%" stopColor={color} stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+          <XAxis dataKey="year" {...axis(look)} minTickGap={22} />
+          <YAxis {...axis(look)} width={48} tickFormatter={tick} domain={[0, "auto"]} />
+          <ReferenceArea x1={String(split)} x2={String(last(series)[0])} fill={look.ahead} fillOpacity={1} ifOverflow="visible" />
+          {mark && <ReferenceLine x={String(mark.year)} stroke={look.muted} strokeDasharray="2 3" label={{ value: mark.label, position: "top", fontSize: 9, fill: look.muted, fontFamily: "monospace" }} />}
+          <Tooltip {...look.tooltip} formatter={(v: number, k: string) => [fmt(v), k === "p" ? `${name}, projected` : name]} />
+          <Area type="monotone" dataKey="a" stroke={color} strokeWidth={2} fill={`url(#${id})`} isAnimationActive={false} connectNulls={false} />
+          <Area type="monotone" dataKey="p" stroke={color} strokeWidth={2} strokeDasharray="5 4" fill={`url(#${id})`} fillOpacity={0.5} isAnimationActive={false} connectNulls={false} />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
 
-        {/* ── POPULATION & DEMOGRAPHICS ──────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Population projection chart */}
-          <div
-            className="lg:col-span-5 rounded-2xl p-5"
-            style={{
-              background: cardBg,
-              border: cardBorder,
-              boxShadow: cardShadow,
-            }}
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <Users
-                size={13}
-                weight="fill"
-                style={{ color: isLight ? "#6366f1" : "#a78bfa" }}
-              />
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest"
-                style={{ color: isLight ? "#6366f1" : "rgba(167,139,250,0.7)" }}
-              >
-                Population Trends
-              </p>
-            </div>
-            <h2
-              className="text-base font-bold font-sans mb-4"
-              style={{ color: headText }}
-            >
-              World Population by Region
-              <span
-                className="ml-2 text-[9px] font-mono px-2 py-0.5 rounded-full"
-                style={{ background: "#6366f115", color: "#6366f1" }}
-              >
-                2020–2030
-              </span>
-            </h2>
-            <ResponsiveContainer width="100%" height={200}>
-              <AreaChart
-                data={POPULATION_TRENDS}
-                margin={{ top: 4, right: 4, left: -10, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="popWorldGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#a855f7" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#a855f7" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient
-                    id="popAfricaGrad"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="popAsiaGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f97316" stopOpacity={0.25} />
-                    <stop offset="100%" stopColor="#f97316" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke={gridLine} strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="year"
-                  tick={{
-                    fontSize: 9,
-                    fill: mutedText,
-                    fontFamily: "monospace",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{
-                    fontSize: 9,
-                    fill: mutedText,
-                    fontFamily: "monospace",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(v) => `${v}B`}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: isLight ? "#fff" : "#1a1730",
-                    border: isLight
-                      ? "1px solid rgba(0,0,0,0.1)"
-                      : "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: 10,
-                    fontSize: 11,
-                    fontFamily: "monospace",
-                    color: headText,
-                  }}
-                  formatter={(v: number, name: string) => [
-                    `${v}B`,
-                    name === "world"
-                      ? "World"
-                      : name === "africa"
-                        ? "Africa"
-                        : name === "asia"
-                          ? "Asia"
-                          : "Europe",
-                  ]}
-                  labelStyle={{ color: mutedText }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="asia"
-                  stroke="#f97316"
-                  fill="url(#popAsiaGrad)"
-                  strokeWidth={1.5}
-                  dot={false}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="africa"
-                  stroke="#10b981"
-                  fill="url(#popAfricaGrad)"
-                  strokeWidth={1.5}
-                  dot={false}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="world"
-                  stroke="#a855f7"
-                  fill="url(#popWorldGrad)"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-            <div className="flex items-center gap-4 mt-2 justify-center">
-              {[
-                { label: "World", color: "#a855f7" },
-                { label: "Asia", color: "#f97316" },
-                { label: "Africa", color: "#10b981" },
-              ].map((l) => (
-                <div key={l.label} className="flex items-center gap-1">
-                  <div
-                    className="w-3 h-0.5 rounded-full"
-                    style={{ background: l.color }}
-                  />
-                  <span
-                    className="text-[10px] font-mono"
-                    style={{ color: mutedText }}
-                  >
-                    {l.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <SourceLink
-              sources={{
-                label: "UN World Population Prospects 2024",
-                url: "https://population.un.org/wpp/",
-              }}
-              className="mt-3"
-            />
-          </div>
+type LineSpec = { key: string; label: string; color: string; series: Point[] };
 
-          {/* Aging stats */}
-          <div
-            className="lg:col-span-3 rounded-2xl p-5"
-            style={{
-              background: cardBg,
-              border: cardBorder,
-              boxShadow: cardShadow,
-            }}
-          >
-            <SectionHeader
-              title="Global Aging Index"
-              sub="Demographics"
-              isLight={isLight}
-            />
-            <div className="flex flex-col gap-2">
-              {AGING_STATS.map((a) => (
-                <div
-                  key={a.country}
-                  className="flex items-center gap-2 py-1.5"
-                  style={{ borderBottom: `1px solid ${gridLine}` }}
-                >
-                  <span
-                    className="text-xs font-semibold font-sans w-16 shrink-0"
-                    style={{ color: headText }}
-                  >
-                    {a.country}
-                  </span>
-                  <div className="flex-1">
-                    <div
-                      className="w-full h-1.5 rounded-full overflow-hidden"
-                      style={{
-                        background: isLight
-                          ? "rgba(0,0,0,0.07)"
-                          : "rgba(255,255,255,0.08)",
-                      }}
-                    >
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${(a.over65Pct / 32) * 100}%`,
-                          background: a.color,
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <span
-                    className="text-[10px] font-mono w-10 text-right"
-                    style={{ color: a.color }}
-                  >
-                    {a.over65Pct}%
-                  </span>
-                  <span
-                    className="text-[9px] font-mono w-12 text-right"
-                    style={{ color: mutedText }}
-                  >
-                    age {a.medianAge}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <p
-              className="text-[9px] font-mono mt-2"
-              style={{ color: mutedText }}
-            >
-              % of population aged 65+
-            </p>
-            <SourceLink
-              sources={{
-                label: "UN DESA Population Division",
-                url: "https://population.un.org",
-              }}
-              className="mt-2"
-            />
-          </div>
+/** Several series on one axis, with the projected years washed. A line is dashed over its projected years. */
+function OutlookLines({ lines, split, fmt, height = 230, from }: { lines: LineSpec[]; split: number; fmt: (v: number) => string; height?: number; from?: number }) {
+  const look = useLook();
+  const years = [...new Set(lines.flatMap((l) => l.series.map(([y]) => y)))].filter((y) => !from || y >= from).sort((a, b) => a - b);
+  if (years.length < 2) return null;
+  const data = years.map((y) => {
+    const row: Record<string, string | number | null> = { year: String(y) };
+    for (const l of lines) {
+      const v = at(l.series, y) ?? null;
+      row[`${l.key}A`] = y < split ? v : null;
+      row[`${l.key}P`] = y >= split - 1 ? v : null;
+    }
+    return row;
+  });
+  const lastYear = years[years.length - 1];
+  const nameOf = (k: string) => {
+    const l = lines.find((x) => k.startsWith(x.key));
+    return `${l?.label ?? k}${k.endsWith("P") ? ", projected" : ""}`;
+  };
+  return (
+    <div role="img" aria-label={`${lines.map((l) => l.label).join(", ")}, ${years[0]} to ${lastYear}. Projections from ${split}; the latest figures are in the legend below.`}>
+      <ResponsiveContainer width="100%" height={height}>
+        <LineChart data={data} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
+          <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+          <XAxis dataKey="year" {...axis(look)} minTickGap={18} />
+          <YAxis {...axis(look)} width={40} tickFormatter={(v: number) => fmt(v)} />
+          {lastYear >= split && <ReferenceArea x1={String(split)} x2={String(lastYear)} fill={look.ahead} fillOpacity={1} ifOverflow="visible" />}
+          <ReferenceLine y={0} stroke={look.grid} />
+          <Tooltip {...look.tooltip} formatter={(v: number, k: string) => [fmt(v), nameOf(k)]} />
+          {lines.flatMap((l) => [
+            <Line key={`${l.key}A`} type="monotone" dataKey={`${l.key}A`} stroke={l.color} strokeWidth={2} dot={false} isAnimationActive={false} />,
+            <Line key={`${l.key}P`} type="monotone" dataKey={`${l.key}P`} stroke={l.color} strokeWidth={2} strokeDasharray="5 4" dot={false} isAnimationActive={false} />,
+          ])}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
 
-          {/* Climate indicators */}
-          <div
-            className="lg:col-span-4 rounded-2xl p-5"
-            style={{
-              background: cardBg,
-              border: cardBorder,
-              boxShadow: cardShadow,
-            }}
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <Leaf size={13} weight="fill" style={{ color: "#10b981" }} />
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest"
-                style={{ color: "#10b981" }}
-              >
-                Climate &amp; Energy
-              </p>
-            </div>
-            <h2
-              className="text-base font-bold font-sans mb-4"
-              style={{ color: headText }}
-            >
-              Key Climate Indicators 2025
-            </h2>
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              {CLIMATE_INDICATORS.map((c) => (
-                <div
-                  key={c.label}
-                  className="rounded-xl p-3"
-                  style={{
-                    background: isLight
-                      ? "rgba(0,0,0,0.025)"
-                      : "rgba(255,255,255,0.04)",
-                    border: `1px solid ${c.color}25`,
-                  }}
-                >
-                  <p
-                    className="text-[9px] font-mono uppercase tracking-widest mb-1"
-                    style={{ color: mutedText }}
-                  >
-                    {c.label}
-                  </p>
-                  <p
-                    className="text-lg font-bold font-mono"
-                    style={{ color: c.color }}
-                  >
-                    {c.value}
-                  </p>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    {c.up ? (
-                      <ArrowUp size={9} weight="bold" color={c.color} />
-                    ) : (
-                      <ArrowDown size={9} weight="bold" color={c.color} />
-                    )}
-                    <span
-                      className="text-[9px] font-mono"
-                      style={{ color: mutedText }}
-                    >
-                      {c.delta}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <SectionHeader
-              title="Renewable Capacity GW"
-              sub="Solar · Wind · Hydro"
-              isLight={isLight}
-            />
-            <ResponsiveContainer width="100%" height={130}>
-              <AreaChart
-                data={RENEWABLE_CAPACITY}
-                margin={{ top: 2, right: 4, left: -10, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="solarGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="windGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke={gridLine} strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="year"
-                  tick={{
-                    fontSize: 9,
-                    fill: mutedText,
-                    fontFamily: "monospace",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{
-                    fontSize: 9,
-                    fill: mutedText,
-                    fontFamily: "monospace",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(v) => `${v}`}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: isLight ? "#fff" : "#1a1730",
-                    border: isLight
-                      ? "1px solid rgba(0,0,0,0.1)"
-                      : "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: 10,
-                    fontSize: 11,
-                    fontFamily: "monospace",
-                    color: headText,
-                  }}
-                  formatter={(v: number, name: string) => [
-                    `${v} GW`,
-                    name.charAt(0).toUpperCase() + name.slice(1),
-                  ]}
-                  labelStyle={{ color: mutedText }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="hydro"
-                  stroke="#6366f1"
-                  fill="none"
-                  strokeWidth={1.5}
-                  dot={false}
-                  strokeDasharray="4 2"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="wind"
-                  stroke="#3b82f6"
-                  fill="url(#windGrad)"
-                  strokeWidth={1.5}
-                  dot={false}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="solar"
-                  stroke="#f59e0b"
-                  fill="url(#solarGrad)"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-            <div className="flex items-center gap-4 mt-2 justify-center">
-              {[
-                { label: "Solar", color: "#f59e0b" },
-                { label: "Wind", color: "#3b82f6" },
-                { label: "Hydro", color: "#6366f1" },
-              ].map((l) => (
-                <div key={l.label} className="flex items-center gap-1">
-                  <div
-                    className="w-3 h-0.5 rounded-full"
-                    style={{ background: l.color }}
-                  />
-                  <span
-                    className="text-[10px] font-mono"
-                    style={{ color: mutedText }}
-                  >
-                    {l.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <SourceLink
-              sources={[
-                { label: "IRENA Renewable Capacity", url: "https://irena.org" },
-                {
-                  label: "IEA World Energy Outlook",
-                  url: "https://iea.org/weo",
-                },
-              ]}
-              className="mt-3"
-            />
-          </div>
-        </div>
+/** A row of a ranked list: a flag and a name, a bar in the row's own colour, and its figure in ink. */
+function RankRow({ name, code, value, top, text, sub, color, min = 0 }: { name: string; code: string | null; value: number; top: number; text: string; sub?: string; color: string; min?: number }) {
+  const { head, muted, track } = useLook();
+  const width = top === min ? 0 : ((value - min) / (top - min)) * 100;
+  return (
+    <li className="grid grid-cols-[minmax(6.5rem,10rem)_1fr_auto] items-center gap-x-3">
+      <span className="flex items-center gap-2 min-w-0">
+        {code ? <img src={flagUrl(code)} alt="" width={18} height={13} loading="lazy" className="rounded-[2px] shrink-0" /> : <span className="w-[18px] shrink-0" />}
+        <span className="block text-[11px] font-sans truncate" style={{ color: head }} title={name}>
+          {name}
+        </span>
+      </span>
+      <span className="h-2.5 rounded-full overflow-hidden" style={{ background: track }} aria-hidden>
+        <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, Math.min(100, width))}%`, background: color }} />
+      </span>
+      <span className="text-right">
+        <span className="text-[11px] font-mono font-bold tabular-nums" style={{ color: head }}>
+          {text}
+        </span>
+        {sub && (
+          <span className="text-[10px] font-mono tabular-nums" style={{ color: muted }}>
+            {" "}
+            {sub}
+          </span>
+        )}
+      </span>
+    </li>
+  );
+}
 
-        {/* ── TRADE & DIGITAL ECONOMY ────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Global Trade Volume */}
-          <div
-            className="lg:col-span-4 rounded-2xl p-5"
-            style={{
-              background: cardBg,
-              border: cardBorder,
-              boxShadow: cardShadow,
-            }}
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <Package
-                size={13}
-                weight="fill"
-                style={{ color: isLight ? "#f97316" : "#fb923c" }}
-              />
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest"
-                style={{ color: isLight ? "#f97316" : "#fb923c" }}
-              >
-                Global Trade
-              </p>
-            </div>
-            <h2
-              className="text-base font-bold font-sans mb-4"
-              style={{ color: headText }}
-            >
-              Trade Volume &amp; FDI Flows
-              <span
-                className="ml-2 text-[9px] font-mono px-2 py-0.5 rounded-full"
-                style={{ background: "#f9731615", color: "#f97316" }}
-              >
-                2019–2025
-              </span>
-            </h2>
-            <ResponsiveContainer width="100%" height={175}>
-              <LineChart
-                data={TRADE_DATA}
-                margin={{ top: 4, right: 4, left: -10, bottom: 0 }}
-              >
-                <CartesianGrid stroke={gridLine} strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="year"
-                  tick={{
-                    fontSize: 9,
-                    fill: mutedText,
-                    fontFamily: "monospace",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{
-                    fontSize: 9,
-                    fill: mutedText,
-                    fontFamily: "monospace",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(v) => `$${v}T`}
-                />
-                <ReferenceLine
-                  x="2025"
-                  stroke={mutedText}
-                  strokeDasharray="4 2"
-                  label={{
-                    value: "Now",
-                    position: "top",
-                    fontSize: 9,
-                    fill: mutedText,
-                  }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: isLight ? "#fff" : "#1a1730",
-                    border: isLight
-                      ? "1px solid rgba(0,0,0,0.1)"
-                      : "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: 10,
-                    fontSize: 11,
-                    fontFamily: "monospace",
-                    color: headText,
-                  }}
-                  formatter={(v: number, name: string) => [
-                    `$${v}T`,
-                    name === "volume" ? "Trade Volume" : "FDI Inflows",
-                  ]}
-                  labelStyle={{ color: mutedText }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="volume"
-                  stroke="#f97316"
-                  strokeWidth={2}
-                  dot={{ fill: "#f97316", r: 2.5, strokeWidth: 0 }}
-                  activeDot={{ r: 4 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="fdi"
-                  stroke="#6366f1"
-                  strokeWidth={2}
-                  strokeDasharray="5 2"
-                  dot={{ fill: "#6366f1", r: 2.5, strokeWidth: 0 }}
-                  activeDot={{ r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-            <div className="flex items-center gap-4 mt-2 justify-center">
-              {[
-                { label: "Trade Volume", color: "#f97316" },
-                { label: "FDI Inflows", color: "#6366f1" },
-              ].map((l) => (
-                <div key={l.label} className="flex items-center gap-1">
-                  <div
-                    className="w-3 h-0.5 rounded-full"
-                    style={{ background: l.color }}
-                  />
-                  <span
-                    className="text-[10px] font-mono"
-                    style={{ color: mutedText }}
-                  >
-                    {l.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <SourceLink
-              sources={[
-                { label: "WTO Statistics", url: "https://stats.wto.org" },
-                {
-                  label: "UNCTAD FDI Data",
-                  url: "https://unctad.org/topic/investment/world-investment-report",
-                },
-              ]}
-              className="mt-3"
-            />
-          </div>
+// ── One economy ────────────────────────────────────────────────────────────
 
-          {/* Top Trade Flows */}
-          <div
-            className="lg:col-span-3 rounded-2xl p-5"
-            style={{
-              background: cardBg,
-              border: cardBorder,
-              boxShadow: cardShadow,
-            }}
-          >
-            <SectionHeader
-              title="Top Bilateral Trade Flows"
-              sub="2024 Estimates"
-              isLight={isLight}
-            />
-            <div className="flex flex-col gap-2">
-              {TOP_TRADE_FLOWS.map((t) => (
-                <div
-                  key={t.route}
-                  className="flex items-center gap-2 py-1.5"
-                  style={{ borderBottom: `1px solid ${gridLine}` }}
-                >
-                  <span
-                    className="text-[11px] font-sans flex-1 min-w-0 truncate"
-                    style={{ color: headText }}
-                  >
-                    {t.route}
-                  </span>
-                  <div
-                    className="w-16 h-1.5 rounded-full overflow-hidden shrink-0"
-                    style={{
-                      background: isLight
-                        ? "rgba(0,0,0,0.07)"
-                        : "rgba(255,255,255,0.08)",
-                    }}
-                  >
-                    <div
-                      className="h-full rounded-full"
-                      style={{ width: `${t.share}%`, background: t.color }}
-                    />
-                  </div>
-                  <span
-                    className="text-[10px] font-mono w-12 text-right shrink-0"
-                    style={{ color: t.color }}
-                  >
-                    {t.value}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <SourceLink
-              sources={{
-                label: "WTO Trade Profiles 2024",
-                url: "https://stats.wto.org",
-              }}
-              className="mt-3"
-            />
-          </div>
+const COUNTRY_OPTIONS = WEO_COUNTRIES.map((c) => ({ value: c.iso3, label: c.name }));
 
-          {/* Digital Economy */}
-          <div
-            className="lg:col-span-5 rounded-2xl p-5"
-            style={{
-              background: cardBg,
-              border: cardBorder,
-              boxShadow: cardShadow,
-            }}
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <DeviceMobile
-                size={13}
-                weight="fill"
-                style={{ color: "#a855f7" }}
-              />
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest"
-                style={{ color: "#a855f7" }}
-              >
-                Digital Economy
-              </p>
-            </div>
-            <h2
-              className="text-base font-bold font-sans mb-4"
-              style={{ color: headText }}
-            >
-              E-Commerce · AI · Cloud Market Size ($T)
-              <span
-                className="ml-2 text-[9px] font-mono px-2 py-0.5 rounded-full"
-                style={{ background: "#a855f715", color: "#a855f7" }}
-              >
-                2019–2025
-              </span>
-            </h2>
-            <ResponsiveContainer width="100%" height={170}>
-              <AreaChart
-                data={DIGITAL_METRICS}
-                margin={{ top: 4, right: 4, left: -10, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="ecomGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#a855f7" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#a855f7" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="aiGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="cloudGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke={gridLine} strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="year"
-                  tick={{
-                    fontSize: 9,
-                    fill: mutedText,
-                    fontFamily: "monospace",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{
-                    fontSize: 9,
-                    fill: mutedText,
-                    fontFamily: "monospace",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(v) => `$${v}T`}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: isLight ? "#fff" : "#1a1730",
-                    border: isLight
-                      ? "1px solid rgba(0,0,0,0.1)"
-                      : "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: 10,
-                    fontSize: 11,
-                    fontFamily: "monospace",
-                    color: headText,
-                  }}
-                  formatter={(v: number, name: string) => [
-                    `$${v}T`,
-                    name === "ecommerce"
-                      ? "E-Commerce"
-                      : name === "aiMarket"
-                        ? "AI Market"
-                        : "Cloud Spend",
-                  ]}
-                  labelStyle={{ color: mutedText }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="cloudSpend"
-                  stroke="#3b82f6"
-                  fill="url(#cloudGrad)"
-                  strokeWidth={1.5}
-                  dot={false}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="aiMarket"
-                  stroke="#f59e0b"
-                  fill="url(#aiGrad)"
-                  strokeWidth={2}
-                  dot={false}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="ecommerce"
-                  stroke="#a855f7"
-                  fill="url(#ecomGrad)"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-            <div className="flex items-center gap-4 mt-2 justify-center">
-              {[
-                { label: "E-Commerce", color: "#a855f7" },
-                { label: "AI Market", color: "#f59e0b" },
-                { label: "Cloud Spend", color: "#3b82f6" },
-              ].map((l) => (
-                <div key={l.label} className="flex items-center gap-1">
-                  <div
-                    className="w-3 h-0.5 rounded-full"
-                    style={{ background: l.color }}
-                  />
-                  <span
-                    className="text-[10px] font-mono"
-                    style={{ color: mutedText }}
-                  >
-                    {l.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <SourceLink
-              sources={[
-                {
-                  label: "Statista Digital Economy Report",
-                  url: "https://statista.com",
-                },
-                { label: "IDC Cloud & AI Tracker", url: "https://idc.com" },
-              ]}
-              className="mt-3"
-            />
-          </div>
-        </div>
-
-        {/* ── GEOPOLITICAL RISK + INTERNET ADOPTION ──────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Geopolitical Risk Table */}
-          <div
-            className="lg:col-span-7 rounded-2xl p-5"
-            style={{
-              background: cardBg,
-              border: cardBorder,
-              boxShadow: cardShadow,
-            }}
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <ShieldWarning
-                size={13}
-                weight="fill"
-                style={{ color: "#ef4444" }}
-              />
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest"
-                style={{ color: "#ef4444" }}
-              >
-                Geopolitical Risk
-              </p>
-            </div>
-            <h2
-              className="text-base font-bold font-sans mb-4"
-              style={{ color: headText }}
-            >
-              Global Risk Heat Map — 2025
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {GEO_RISK_TABLE.map((r) => (
-                <div
-                  key={r.region}
-                  className="rounded-xl p-3 flex items-center gap-3"
-                  style={{
-                    background: isLight
-                      ? "rgba(0,0,0,0.025)"
-                      : "rgba(255,255,255,0.035)",
-                    border: `1px solid ${r.color}22`,
-                  }}
-                >
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className="text-xs font-bold font-sans leading-snug"
-                      style={{ color: headText }}
-                    >
-                      {r.region}
-                    </p>
-                    <span
-                      className="text-[9px] font-mono px-1.5 py-0.5 rounded-full mt-0.5 inline-block"
-                      style={{ background: r.color + "20", color: r.color }}
-                    >
-                      {r.category}
-                    </span>
-                  </div>
-                  <div className="flex flex-col items-center shrink-0 w-16">
-                    <div
-                      className="w-full h-1.5 rounded-full overflow-hidden mb-1"
-                      style={{
-                        background: isLight
-                          ? "rgba(0,0,0,0.07)"
-                          : "rgba(255,255,255,0.08)",
-                      }}
-                    >
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{ width: `${r.risk}%`, background: r.color }}
-                      />
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span
-                        className="text-sm font-bold font-mono"
-                        style={{ color: r.color }}
-                      >
-                        {r.risk}
-                      </span>
-                      <span
-                        className="text-[9px] font-mono"
-                        style={{ color: mutedText }}
-                      >
-                        {r.trend === "up"
-                          ? "↑"
-                          : r.trend === "down"
-                            ? "↓"
-                            : "→"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p
-              className="text-[9px] font-mono mt-2"
-              style={{ color: mutedText }}
-            >
-              Risk score 0–100 composite index. ↑ Rising ↓ Falling → Stable
-            </p>
-            <SourceLink
-              sources={[
-                { label: "EIU Country Risk", url: "https://eiu.com" },
-                {
-                  label: "Control Risks GRRC",
-                  url: "https://controlrisks.com",
-                },
-              ]}
-              className="mt-2"
-            />
-          </div>
-
-          {/* Internet Adoption */}
-          <div
-            className="lg:col-span-5 rounded-2xl p-5"
-            style={{
-              background: cardBg,
-              border: cardBorder,
-              boxShadow: cardShadow,
-            }}
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <Globe size={13} weight="fill" style={{ color: "#3b82f6" }} />
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest"
-                style={{ color: "#3b82f6" }}
-              >
-                Connectivity
-              </p>
-            </div>
-            <h2
-              className="text-base font-bold font-sans mb-4"
-              style={{ color: headText }}
-            >
-              Internet Adoption by Region — 2025
-            </h2>
-            <div className="flex flex-col gap-3">
-              {INTERNET_ADOPTION.map((r) => (
-                <div key={r.region} className="flex items-center gap-3">
-                  <span
-                    className="text-[11px] font-sans w-36 shrink-0"
-                    style={{ color: headText }}
-                  >
-                    {r.region}
-                  </span>
-                  <div
-                    className="flex-1 h-2 rounded-full overflow-hidden"
-                    style={{
-                      background: isLight
-                        ? "rgba(0,0,0,0.07)"
-                        : "rgba(255,255,255,0.08)",
-                    }}
-                  >
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{ width: `${r.pct}%`, background: r.color }}
-                    />
-                  </div>
-                  <span
-                    className="text-[11px] font-mono w-9 text-right shrink-0"
-                    style={{ color: r.color }}
-                  >
-                    {r.pct}%
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div
-              className="mt-4 p-3 rounded-xl"
-              style={{
-                background: isLight
-                  ? "rgba(59,130,246,0.05)"
-                  : "rgba(59,130,246,0.08)",
-                border: "1px solid rgba(59,130,246,0.15)",
-              }}
-            >
-              <p className="text-[10px] font-mono" style={{ color: mutedText }}>
-                ~2.6B people remain offline globally. Africa and South Asia
-                represent the largest unconnected populations, with mobile-first
-                connectivity driving the fastest growth.
-              </p>
-            </div>
-            <SourceLink
-              sources={[
-                {
-                  label: "ITU Digital Development 2025",
-                  url: "https://itu.int/en/ITU-D/Statistics",
-                },
-                {
-                  label: "DataReportal Global Overview",
-                  url: "https://datareportal.com",
-                },
-              ]}
-              className="mt-3"
-            />
-          </div>
-        </div>
-
-        {/* ── FOOTER ─────────────────────────────────────────────── */}
-        <div className="text-center py-3">
-          <p className="text-[11px] font-sans" style={{ color: mutedText }}>
-            © {new Date().getFullYear()} CommonSphere · Trends &amp;
-            Projections · Data updated Q2 2025
+/** One economy's outlook, picked from every economy the IMF covers: its figures for this year and the last projected, and each series as a line. */
+function CountryOutlookCard() {
+  const { head, muted } = useLook();
+  const [iso3, setIso3] = useState("USA");
+  const c: CountryOutlook = WEO_COUNTRIES.find((x) => x.iso3 === iso3) ?? WEO_COUNTRIES[0];
+  const first = WEO.firstProjected;
+  const end = WEO.lastYear;
+  const charts: { key: keyof CountryOutlook; label: string; color: string; fmt: (v: number) => string }[] = [
+    { key: "gdp", label: "GDP, current US$", color: SERIES.world, fmt: (v) => usdFromBillions(v) },
+    { key: "growth", label: "Real GDP growth", color: "#10b981", fmt: (v) => pct(v) },
+    { key: "inflation", label: "Inflation", color: "#f59e0b", fmt: (v) => pct(v) },
+    { key: "debt", label: "Government debt, % of GDP", color: "#ef4444", fmt: (v) => pct(v) },
+    { key: "unemployment", label: "Unemployment", color: "#8b5cf6", fmt: (v) => pct(v) },
+  ];
+  const have = charts.filter((ch) => Array.isArray(c[ch.key]) && (c[ch.key] as Point[]).length > 1);
+  return (
+    <Card>
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+        <div>
+          <h3 className="text-sm font-bold font-sans flex items-center gap-2" style={{ color: head }}>
+            {c.code && <img src={flagUrl(c.code)} alt="" width={20} height={14} className="rounded-[2px]" />}
+            {c.name}: the IMF's outlook
+          </h3>
+          <p className="text-[10px] font-mono uppercase tracking-widest mt-1" style={{ color: muted }}>
+            {WEO.edition} · estimates to {first - 1}, projections {first}–{end}
           </p>
         </div>
+        <StyledSelect value={iso3} onValueChange={setIso3} ariaLabel="Choose an economy" options={COUNTRY_OPTIONS} triggerClassName="chip-selected px-3 py-1.5 rounded-full font-medium" />
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
+        {have.map((ch) => {
+          const s = c[ch.key] as Point[];
+          const now = at(s, first);
+          const then = at(s, end) ?? last(s)[1];
+          const thenYear = at(s, end) !== undefined ? end : last(s)[0];
+          return (
+            <div key={ch.key} className="modal-tile rounded-xl px-3 py-2.5">
+              <p className="text-[10px] font-sans uppercase tracking-wider leading-snug" style={{ color: muted }}>
+                {ch.label}
+              </p>
+              <p className="text-base font-bold font-mono leading-tight mt-0.5" style={{ color: head }}>
+                {now !== undefined ? ch.fmt(now) : "—"}
+              </p>
+              <p className="text-[10px] font-mono" style={{ color: muted }}>
+                {first} → {ch.fmt(then)} in {thenYear}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+        {have.map((ch) => (
+          <div key={ch.key} className="min-w-0">
+            <p className="text-[11px] font-semibold font-sans mb-1" style={{ color: head }}>
+              {ch.label}
+            </p>
+            <OutlookLines lines={[{ key: "v", label: ch.label, color: ch.color, series: c[ch.key] as Point[] }]} split={first} fmt={ch.fmt} height={150} />
+          </div>
+        ))}
+      </div>
+      {have.length < charts.length && (
+        <Note>
+          The IMF publishes no {charts.filter((ch) => !have.includes(ch)).map((ch) => ch.label.toLowerCase()).join(" or ")} series for {c.name}, so none is shown.
+        </Note>
+      )}
+      <SourceLink sources={[WEO]} className="mt-3" />
+    </Card>
+  );
+}
+
+// ── Trends ─────────────────────────────────────────────────────────────────
+
+/** The measures the Trends section follows, by the part of the world they describe. Each is a world series in worldview.ts. */
+const TREND_GROUPS: { title: string; color: string; ids: string[] }[] = [
+  { title: "Energy", color: "#10b981", ids: ["renewableElectricity", "fossilShare", "evSalesShare", "co2"] },
+  { title: "Technology", color: "#8b5cf6", ids: ["internet", "aiInvestment", "robotInstalls", "research"] },
+  { title: "Industry and trade", color: "#f59e0b", ids: ["trade", "manufacturingVA", "servicesVA", "highTechExports"] },
+  { title: "People", color: "#3b82f6", ids: ["lifeExpectancy", "extremePoverty", "urban", "aged65"] },
+];
+
+/** A world series as a tile: its latest reading, its move on about ten years before in its own terms, and its line. */
+function TrendTile({ id }: { id: string }) {
+  const ind = WORLD[id];
+  if (!ind || ind.series.length < 2) return null;
+  const [year, v] = last(ind.series);
+  const prev = decadeBefore(ind.series);
+  const diff = prev ? v - prev[1] : 0;
+  const move = !prev
+    ? undefined
+    : {
+        dir: (Math.abs(diff) < 10 ** -ind.dp / 2 ? "flat" : diff > 0 ? "up" : "down") as "up" | "down" | "flat",
+        text:
+          ind.format === "pct"
+            ? `${signed(diff, ind.dp)} points since ${prev[0]}`
+            : `${signed((100 * diff) / prev[1], Math.abs((100 * diff) / prev[1]) < 10 ? 1 : 0)}% since ${prev[0]}`,
+      };
+  return (
+    <StatTile
+      s={{
+        key: id,
+        label: ind.label,
+        value: fmtWorld(ind, v),
+        sub: `${ind.unit} · ${year}`,
+        move,
+        about: ind.note ?? "",
+        series: ind.series,
+      }}
+    />
+  );
+}
+
+// ── Page ───────────────────────────────────────────────────────────────────
+
+const SECTIONS: NavSection[] = [
+  { id: "overview", label: "Overview" },
+  { id: "economy", label: "World economy" },
+  { id: "countries", label: "Countries" },
+  { id: "population", label: "Population" },
+  { id: "scenarios", label: "Scenarios" },
+  { id: "trends", label: "Trends" },
+];
+
+export function TrendsPage() {
+  const look = useLook();
+  const { isLight, head, muted } = look;
+  const first = WEO.firstProjected;
+  const end = WEO.lastYear;
+  const { world, advanced, emerging } = WEO_GROUPS;
+  const gdp = world.gdp ?? [];
+  const gdpBase = at(gdp, first - 1) ?? 0;
+  const gdpEnd = at(gdp, end) ?? 0;
+
+  const stats = useMemo<Stat[]>(() => {
+    const w = WEO_GROUPS.world;
+    const line = (s: Point[] | undefined, label: string, fmt: (v: number) => string, about: string, key: string): Stat => {
+      const now = at(s, first) ?? 0;
+      const then = at(s, end) ?? 0;
+      return {
+        key,
+        label,
+        value: fmt(now),
+        sub: `IMF projection · ${first}`,
+        move: { dir: then > now ? "up" : then < now ? "down" : "flat", text: `${fmt(at(s, first - 1) ?? 0)} in ${first - 1} · ${fmt(then)} projected for ${end}` },
+        about,
+        series: s,
+        split: first,
+      };
+    };
+    const pop = WORLD_POP.population;
+    const age = WORLD_POP.medianAge;
+    const lex = WORLD_POP.lifeExpectancy;
+    return [
+      {
+        key: "gdp",
+        label: `World GDP in ${end}`,
+        value: usdFromBillions(at(w.gdp, end) ?? 0),
+        sub: `IMF projection · ${end}`,
+        move: { dir: "up", text: `${usdFromBillions(at(w.gdp, first - 1) ?? 0)} in ${first - 1}` },
+        about: "Everything the world's economies produce in a year, in current US dollars, so it includes price rises.",
+        series: w.gdp,
+        split: first,
+      },
+      line(w.growth, "Real growth", (v) => pct(v), "How much more the world produces than the year before, with price rises taken out.", "growth"),
+      line(w.inflation, "Inflation", (v) => pct(v), "The rise in consumer prices over the year, averaged across the world's economies.", "inflation"),
+      line(w.debt, "Government debt", (v) => `${pct(v)} of GDP`, "What the world's governments owe, against the size of the world economy.", "debt"),
+      {
+        key: "pop2050",
+        label: "World population in 2050",
+        value: people(at(pop, 2050) ?? 0),
+        sub: "UN medium variant · 2050",
+        move: { dir: "up", text: `${people(at(pop, THIS_YEAR) ?? 0)} in ${THIS_YEAR}` },
+        about: "People alive on 1 July, on the UN's central projection of births, deaths and migration.",
+        series: pop.filter(([y]) => y >= 1990 && y <= 2060),
+        split: WPP.firstProjected,
+      },
+      {
+        key: "peak",
+        label: "Population peaks",
+        value: String(POP_PEAK[0]),
+        sub: `UN medium variant · at ${people(POP_PEAK[1])}`,
+        move: { dir: "down", text: `${people(at(pop, 2100) ?? 0)} by 2100` },
+        about: "The year the world's population is projected to be at its largest, before it begins to fall.",
+        series: pop.filter(([y]) => y >= 2000),
+        split: WPP.firstProjected,
+      },
+      {
+        key: "age",
+        label: "Median age in 2050",
+        value: `${(at(age, 2050) ?? 0).toFixed(1)} years`,
+        sub: "UN medium variant · 2050",
+        move: { dir: "up", text: `${(at(age, THIS_YEAR) ?? 0).toFixed(1)} in ${THIS_YEAR} · ${(at(age, 2100) ?? 0).toFixed(1)} by 2100` },
+        about: "Half the world's people are older than this and half younger.",
+        series: age,
+        split: WPP.firstProjected,
+      },
+      {
+        key: "lex",
+        label: "Life expectancy in 2050",
+        value: `${(at(lex, 2050) ?? 0).toFixed(1)} years`,
+        sub: "UN medium variant · 2050",
+        move: { dir: "up", text: `${(at(lex, THIS_YEAR) ?? 0).toFixed(1)} in ${THIS_YEAR} · ${(at(lex, 2100) ?? 0).toFixed(1)} by 2100` },
+        about: "The years a child born in that year would live if its death rates held for life.",
+        series: lex,
+        split: WPP.firstProjected,
+      },
+    ];
+  }, [first, end]);
+
+  /* The largest economies in the last projected year, with where each stands now. */
+  const largest = useMemo(
+    () =>
+      WEO_COUNTRIES.map((c) => ({ c, now: at(c.gdp, first - 1), then: at(c.gdp, end) }))
+        .filter((r): r is { c: CountryOutlook; now: number; then: number } => r.now !== undefined && r.then !== undefined)
+        .sort((a, b) => b.then - a.then)
+        .slice(0, 15),
+    [first, end],
+  );
+  /* Growth projected for the first projected year, both ends of the list. */
+  const growth = useMemo(() => {
+    const all = WEO_COUNTRIES.map((c) => ({ c, v: at(c.growth, first) }))
+      .filter((r): r is { c: CountryOutlook; v: number } => r.v !== undefined)
+      .sort((a, b) => b.v - a.v);
+    return { fastest: all.slice(0, 10), slowest: all.slice(-10).reverse(), of: all.length };
+  }, [first]);
+
+  const regions = POPULATION_OUTLOOK.slice(1);
+  const regionTop = Math.max(...regions.flatMap((r) => [at(r.population, THIS_YEAR) ?? 0, at(r.population, 2050) ?? 0, at(r.population, 2100) ?? 0]));
+  const med = WORLD_POP.population.filter(([y]) => y >= WPP.firstProjected);
+  const variantRows = [
+    { key: "low", label: "Low variant", color: SERIES.low, series: POPULATION_VARIANTS.low },
+    { key: "medium", label: "Medium variant", color: SERIES.medium, series: med },
+    { key: "high", label: "High variant", color: SERIES.high, series: POPULATION_VARIANTS.high },
+  ];
+
+  return (
+    <div className="min-h-screen w-full animate-fade-in" style={{ background: "var(--color-background)" }}>
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-6">
+        {/* ── Hero ── */}
+        <div className="rounded-2xl relative overflow-hidden" style={{ background: isLight ? "#ffffff" : "#0b0b0d", border: isLight ? "1px solid rgba(0,0,0,0.12)" : "1px solid rgba(255,255,255,0.12)" }}>
+          <div className="absolute inset-0 pointer-events-none opacity-[0.05]" style={{ backgroundImage: `radial-gradient(circle, ${isLight ? "#000000" : "#ffffff"} 1px, transparent 1px)`, backgroundSize: "32px 32px" }} />
+          <div className="relative px-5 py-6 flex flex-col lg:flex-row lg:items-center gap-6 justify-between">
+            <div className="max-w-xl">
+              <p className="text-[10px] font-mono uppercase tracking-widest mb-1" style={{ color: muted }}>
+                CommonSphere · Trends &amp; Projections
+              </p>
+              <h1 className="text-2xl sm:text-3xl font-bold font-sans" style={{ color: head }}>
+                Where the world is heading
+              </h1>
+              <p className="text-sm font-sans mt-1.5" style={{ color: muted }}>
+                The world economy to {end} as the IMF projects it, the world's people to 2100 as the UN does, and the trends behind both - each projection from the body
+                that publishes it, with the year its estimates end and its projections begin.
+              </p>
+              <p className="text-[11px] font-sans mt-2" style={{ color: muted }}>
+                IMF World Economic Outlook, {WEO.edition} · UN World Population Prospects {WPP.revision} · World Bank · retrieved {PROJECTIONS_RETRIEVED}
+              </p>
+            </div>
+            <div className="lg:text-right">
+              <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: muted }}>
+                World GDP · IMF projection for {end}
+              </p>
+              <p className="text-4xl sm:text-5xl font-bold font-mono leading-none mt-1" style={{ color: head }}>
+                {usdFromBillions(gdpEnd)}
+              </p>
+              <p className="mt-2 text-[11px] font-mono" style={{ color: muted }}>
+                from <span style={{ color: head }}>{usdFromBillions(gdpBase)}</span> in {first - 1} · {signed(((gdpEnd - gdpBase) / (gdpBase || 1)) * 100, 0)}% in current dollars
+              </p>
+              <p className="mt-1 text-[10px] font-sans max-w-sm lg:ml-auto" style={{ color: muted }}>
+                A projection, not a forecast with a probability: the IMF's central case, revised twice a year.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <SectionNav label="Trends and projections sections" sections={SECTIONS} />
+
+        <HeadlinesBanner
+          label="Economy headlines"
+          topics={["economy"]}
+          subject={SUBJECT.economy}
+          days={7}
+          note={(outlets) => (
+            <>
+              The last week's economic news - {outlets}, five at most from each - refreshed every half hour. The tag is the place a story is about, violet for more than
+              one. Each links to its source.
+            </>
+          )}
+        />
+
+        {/* ══ Overview ══ */}
+        <section id="overview" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="overview-title">
+          <SectionHead icon={<ChartLineUp size={18} weight="fill" />} color="#6366f1" title="At a glance" kicker="The headline projections: the economy from the IMF, people from the UN" />
+          <h2 id="overview-title" className="sr-only">
+            Overview
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {stats.map((s) => (
+              <StatTile key={s.key} s={s} />
+            ))}
+          </div>
+          <Note>
+            In each tile's line, grey is what the publisher estimates has happened and the dashed part is what it projects. The IMF's estimates run to {first - 1} and its
+            projections from {first}; the UN's projections begin in {WPP.firstProjected}.
+          </Note>
+        </section>
+
+        {/* ══ World economy ══ */}
+        <section id="economy" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="economy-title">
+          <SectionHead icon={<TrendUp size={18} weight="fill" />} color="#6366f1" title="World economy" kicker={`The IMF's outlook to ${end}: output, growth, prices and debt`} />
+          <h2 id="economy-title" className="sr-only">
+            World economy
+          </h2>
+          <Card>
+            <CardHead title="World GDP, and where the IMF projects it" kicker={`Current US dollars · IMF World Economic Outlook, ${WEO.edition} · ${gdp[0]?.[0]}–${end}`} />
+            <SplitArea series={gdp} split={first} color={SERIES.world} name="World GDP" fmt={(v) => usdFromBillions(v)} tick={(v) => `$${Math.round(v / 1000)}T`} />
+            <Legend
+              items={[
+                { color: SERIES.world, label: `Estimated, ${first - 1}`, value: usdFromBillions(gdpBase) },
+                { color: SERIES.world, label: `Projected, ${end}`, value: usdFromBillions(gdpEnd), dashed: true },
+              ]}
+            />
+            <Note>
+              In current dollars, so the rise is part growth and part price rises and exchange rates. The shaded years are projections; the line is dashed through them.
+            </Note>
+            <SourceLink sources={[WEO]} className="mt-3" />
+          </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {(
+              [
+                { key: "growth", title: "Real GDP growth", kicker: "% a year" },
+                { key: "inflation", title: "Inflation", kicker: "Consumer prices, % a year" },
+                { key: "debt", title: "Government debt", kicker: "% of GDP" },
+              ] as const
+            ).map((m) => {
+              const lines: LineSpec[] = [
+                { key: "w", label: "World", color: SERIES.world, series: world[m.key] ?? [] },
+                { key: "a", label: "Advanced economies", color: SERIES.advanced, series: advanced[m.key] ?? [] },
+                { key: "e", label: "Emerging and developing", color: SERIES.emerging, series: emerging[m.key] ?? [] },
+              ].filter((l) => l.series.length > 1);
+              return (
+                <Card key={m.key}>
+                  <CardHead title={m.title} kicker={`${m.kicker} · IMF · to ${end}`} />
+                  <OutlookLines lines={lines} split={first} fmt={(v) => pct(v, m.key === "debt" ? 0 : 1)} from={2015} />
+                  <Legend items={lines.map((l) => ({ color: l.color, label: `${l.label}, ${first}`, value: pct(at(l.series, first) ?? 0) }))} />
+                  <SourceLink sources={[WEO]} className="mt-3" />
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ══ Countries ══ */}
+        <section id="countries" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="countries-title">
+          <SectionHead icon={<Globe size={18} weight="fill" />} color="#3b82f6" title="Countries" kicker={`${WEO_COUNTRIES.length} economies, as the IMF projects each`} />
+          <h2 id="countries-title" className="sr-only">
+            Countries
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHead title={`The fifteen largest economies in ${end}`} kicker={`GDP, current US dollars · IMF projection · with the change on ${first - 1}`} />
+              <ul className="flex flex-col gap-2.5" aria-label={`Largest economies projected for ${end}`}>
+                {largest.map(({ c, now, then }, i) => (
+                  <RankRow key={c.iso3} name={c.name} code={c.code} value={then} top={largest[0].then} text={usdFromBillions(then)} sub={`${signed(((then - now) / now) * 100, 0)}%`} color={PALETTE[i % PALETTE.length]} />
+                ))}
+              </ul>
+              <Note>
+                The percentage is the change in current dollars from the IMF's {first - 1} estimate to its {end} projection - growth, price rises and exchange rates together -
+                worked out here from the two published figures.
+              </Note>
+              <SourceLink sources={[WEO]} className="mt-3" />
+            </Card>
+            <Card>
+              <CardHead title={`Growth projected for ${first}`} kicker={`Real GDP, % · IMF · the ten fastest and ten slowest of ${growth.of}`} />
+              <p className="text-[10px] font-mono uppercase tracking-widest mb-2" style={{ color: muted }}>
+                Fastest
+              </p>
+              <ul className="flex flex-col gap-2" aria-label="Fastest growth projected">
+                {growth.fastest.map(({ c, v }) => (
+                  <RankRow key={c.iso3} name={c.name} code={c.code} value={v} top={growth.fastest[0].v} text={`${signed(v)}%`} color="#10b981" />
+                ))}
+              </ul>
+              <p className="text-[10px] font-mono uppercase tracking-widest mt-4 mb-2" style={{ color: muted }}>
+                Slowest
+              </p>
+              <ul className="flex flex-col gap-2" aria-label="Slowest growth projected">
+                {growth.slowest.map(({ c, v }) => (
+                  <RankRow key={c.iso3} name={c.name} code={c.code} value={Math.abs(v)} top={Math.max(...growth.slowest.map((r) => Math.abs(r.v)), 1)} text={`${signed(v)}%`} color={v < 0 ? "#ef4444" : "#f59e0b"} />
+                ))}
+              </ul>
+              <Note>Small economies lead both ends: one mine, one harvest or one conflict moves a small economy's year a long way.</Note>
+              <SourceLink sources={[WEO]} className="mt-3" />
+            </Card>
+          </div>
+          <CountryOutlookCard />
+        </section>
+
+        {/* ══ Population ══ */}
+        <section id="population" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="population-title">
+          <SectionHead icon={<Users size={18} weight="fill" />} color="#8b5cf6" title="Population" kicker="The UN's medium variant to 2100: how many people, how old, and where" />
+          <h2 id="population-title" className="sr-only">
+            Population
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <Card className="lg:col-span-2">
+              <CardHead title="World population, 1950 to 2100" kicker={`People on 1 July · UN World Population Prospects ${WPP.revision}, medium variant`} />
+              <SplitArea
+                series={WORLD_POP.population}
+                split={WPP.firstProjected}
+                color={SERIES.people}
+                name="World population"
+                fmt={people}
+                tick={(v) => `${(v / 1e9).toFixed(0)}bn`}
+                height={280}
+                mark={{ year: POP_PEAK[0], label: `peak ${POP_PEAK[0]}` }}
+              />
+              <Legend
+                items={[
+                  { color: SERIES.people, label: `Now, ${THIS_YEAR}`, value: people(at(WORLD_POP.population, THIS_YEAR) ?? 0) },
+                  { color: SERIES.people, label: `Peak, ${POP_PEAK[0]}`, value: people(POP_PEAK[1]), dashed: true },
+                  { color: SERIES.people, label: "2100", value: people(at(WORLD_POP.population, 2100) ?? 0), dashed: true },
+                ]}
+              />
+              <SourceLink sources={[WPP]} className="mt-3" />
+            </Card>
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
+              {[
+                { label: "Median age", s: WORLD_POP.medianAge, fmt: (v: number) => `${v.toFixed(1)} years`, about: "Half the world is older than this." },
+                { label: "Births per woman", s: WORLD_POP.fertility, fmt: (v: number) => v.toFixed(2), about: "About 2.1 keeps a population level over time." },
+                { label: "Life expectancy", s: WORLD_POP.lifeExpectancy, fmt: (v: number) => `${v.toFixed(1)} years`, about: "At birth, for the year's death rates." },
+              ].map((m) => (
+                <StatTile
+                  key={m.label}
+                  s={{
+                    key: m.label,
+                    label: m.label,
+                    value: m.fmt(at(m.s, THIS_YEAR) ?? 0),
+                    sub: `UN · ${THIS_YEAR}`,
+                    move: { dir: (at(m.s, 2100) ?? 0) > (at(m.s, THIS_YEAR) ?? 0) ? "up" : "down", text: `${m.fmt(at(m.s, 2050) ?? 0)} in 2050 · ${m.fmt(at(m.s, 2100) ?? 0)} in 2100` },
+                    about: m.about,
+                    series: m.s,
+                    split: WPP.firstProjected,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+          <Card>
+            <CardHead title="Where the people will be" kicker={`Population by region · UN medium variant · ${THIS_YEAR}, 2050 and 2100`} />
+            <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4" aria-label="Population by region">
+              {regions.map((r, i) => {
+                const pts = [THIS_YEAR, 2050, 2100].map((y) => ({ y, v: at(r.population, y) ?? 0 }));
+                const color = PALETTE[(i * 2) % PALETTE.length];
+                return (
+                  <li key={r.name}>
+                    <div className="flex items-baseline justify-between gap-2 mb-1">
+                      <span className="text-[12px] font-semibold font-sans" style={{ color: head }}>
+                        {r.name}
+                      </span>
+                      <span className="text-[10px] font-mono" style={{ color: muted }}>
+                        {signed(((pts[2].v - pts[0].v) / (pts[0].v || 1)) * 100, 0)}% by 2100
+                      </span>
+                    </div>
+                    {pts.map((p, k) => (
+                      <div key={p.y} className="grid grid-cols-[2.5rem_1fr_3.5rem] items-center gap-x-2 mb-1">
+                        <span className="text-[10px] font-mono" style={{ color: muted }}>
+                          {p.y}
+                        </span>
+                        <span className="h-2 rounded-full overflow-hidden" style={{ background: look.track }}>
+                          <span className="block h-full rounded-full" style={{ width: `${Math.max(1, (100 * p.v) / regionTop)}%`, background: color, opacity: k === 0 ? 1 : k === 1 ? 0.7 : 0.45 }} />
+                        </span>
+                        <span className="text-[11px] font-mono font-bold text-right tabular-nums" style={{ color: head }}>
+                          {people(p.v)}
+                        </span>
+                      </div>
+                    ))}
+                  </li>
+                );
+              })}
+            </ul>
+            <Note>A region's three bars are on one scale across all six, so they can be compared; the lighter the bar, the further ahead the year.</Note>
+            <SourceLink sources={[WPP]} className="mt-3" />
+          </Card>
+        </section>
+
+        {/* ══ Scenarios ══ */}
+        <section id="scenarios" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="scenarios-title">
+          <SectionHead icon={<Target size={18} weight="fill" />} color="#f97316" title="Scenarios" kicker="The UN's own: what the world's population does if families are a little smaller or larger" />
+          <h2 id="scenarios-title" className="sr-only">
+            Scenarios
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <Card className="lg:col-span-2">
+              <CardHead title="Three variants of the world's population" kicker={`People on 1 July · UN World Population Prospects ${WPP.revision} · ${WPP.firstProjected}–2100`} />
+              <OutlookLines lines={variantRows.map((v) => ({ key: v.key, label: v.label, color: v.color, series: v.series }))} split={WPP.firstProjected} fmt={(v) => `${(v / 1e9).toFixed(1)}bn`} height={280} />
+              <Legend items={variantRows.map((v) => ({ color: v.color, label: `${v.label}, 2100`, value: people(at(v.series, 2100) ?? 0), dashed: true }))} />
+              <Note>
+                The low and high variants assume half a child fewer or more per woman than the medium, everywhere and throughout. The UN gives neither a likelihood, and
+                nor does this page: they mark out how much rests on fertility, which is the least certain part of the projection.
+              </Note>
+              <SourceLink sources={[WPP]} className="mt-3" />
+            </Card>
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
+              {variantRows.map((v) => (
+                <div key={v.key} className="modal-tile rounded-xl px-3 py-2.5">
+                  <p className="text-[10px] font-sans uppercase tracking-wider flex items-center gap-1.5" style={{ color: muted }}>
+                    <span className="w-2 h-2 rounded-full" style={{ background: v.color }} aria-hidden />
+                    {v.label}
+                  </p>
+                  <p className="text-xl font-bold font-mono leading-tight mt-0.5" style={{ color: head }}>
+                    {people(at(v.series, 2100) ?? 0)}
+                  </p>
+                  <p className="text-[10px] font-mono" style={{ color: muted }}>
+                    in 2100 · {people(at(v.series, 2050) ?? 0)} in 2050
+                  </p>
+                  <p className="text-[11px] font-sans leading-snug mt-1" style={{ color: muted }}>
+                    {v.key === "low" ? "Half a child fewer per woman than the medium." : v.key === "high" ? "Half a child more per woman than the medium." : "The UN's central projection, used everywhere else on this page."}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ══ Trends ══ */}
+        <section id="trends" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="trends-title">
+          <SectionHead icon={<Lightning size={18} weight="fill" />} color="#10b981" title="Trends" kicker="What has been moving: the latest reading of each measure, and its change on about ten years before" />
+          <h2 id="trends-title" className="sr-only">
+            Trends
+          </h2>
+          {TREND_GROUPS.map((g) => (
+            <div key={g.title} className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full" style={{ background: g.color }} aria-hidden />
+                <span className="text-[10px] font-bold font-sans uppercase tracking-widest" style={{ color: muted }}>
+                  {g.title}
+                </span>
+                <div className="flex-1 h-px" style={{ background: look.grid }} />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {g.ids.map((id) => (
+                  <TrendTile key={id} id={id} />
+                ))}
+              </div>
+              <SourceLink sources={g.ids.flatMap((id) => (WORLD[id] ? [WORLD[id].source] : []))} />
+            </div>
+          ))}
+          <Note>These are measured, not projected: each is a published world series to its latest year. The Worldview page has all of them, with what each means.</Note>
+        </section>
+
+        <p className="text-[10px] font-sans leading-relaxed max-w-4xl px-1" style={{ color: muted }}>
+          Every projection on this page is its publisher's own: the economy from the IMF's World Economic Outlook ({WEO.edition}; estimates to {first - 1}, projections{" "}
+          {first}–{end}) and people from the UN's World Population Prospects {WPP.revision} (projections from {WPP.firstProjected}), retrieved {PROJECTIONS_RETRIEVED}.
+          The trends are world series retrieved {WORLDVIEW_RETRIEVED}. The page gives no probabilities, confidence scores or sector forecasts, because no body publishes
+          them; a change given as a percentage between two years is worked out here from the two published figures.
+        </p>
       </div>
     </div>
   );
