@@ -1520,11 +1520,13 @@ export function WorldMapsPage() {
   const [linked] = useState(linkedPlace);
   const cameFromCountryLink = useRef(linked !== null);
   const [focusCode, setFocusCodeOnly] = useState(() => linked?.country ?? "US");
-  /* The place picked out: filled in its own colour on both maps, as a layer
-     is, with a chip beside the layers to switch it off and on. It is on when
-     the page was reached from a place's own "show on map" button, and it is
-     always the place the country map is on - or the one state a link named,
-     until another country is picked. */
+  /* The place picked out: marked in its own colour, as a layer is, with a
+     chip beside the layers to switch it off and on. It is on when the page
+     was reached from a place's own "show on map" button, and it is always the
+     place the country map is on - or the one state or city a link named,
+     until another country is picked. A country is filled on the world map
+     only: the country map is already all of it. A state and a city are marked
+     on both. */
   const [markOn, setMarkOn] = useState(linked !== null);
   const [markState, setMarkState] = useState<string | null>(linked?.state ?? null);
   const [markCity, setMarkCity] = useState<string | null>(linked?.city ?? null);
@@ -3148,7 +3150,7 @@ export function WorldMapsPage() {
         markOn ? "border-transparent" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
       }`}
       style={markOn ? { background: `${markInk}26`, borderColor: `${markInk}66`, color: markInk } : undefined}
-      title={`Pick ${markName} out on both maps`}
+      title={markedState || markedCity ? `Pick ${markName} out on both maps` : `Pick ${markName} out on the world map`}
       onMouseEnter={markOn ? tipAt : undefined}
       onMouseLeave={tipOff}
       onFocus={markOn ? tipAt : undefined}
@@ -3208,7 +3210,8 @@ export function WorldMapsPage() {
             <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
               Layers
             </span>
-            {markChip}
+            {/* On the country map the chip is for a state or a city: a country is not picked out here. */}
+            {(markedState || markedCity) && markChip}
             {mainLayers.map((o) => (
               layerButton(o, layers, set)
             ))}
@@ -3954,32 +3957,20 @@ export function WorldMapsPage() {
                 <title>{state?.name ?? name}</title>
               </path>
             ))}
-            {/* The place picked out: the one state a link named, or the whole
-                country, filled as on the world map. */}
+            {/* The place picked out, where it is a part of this map: the one
+                state a link named, filled as on the world map, or a city's
+                mark. A country is not picked out here - this map is already
+                all of it, and filling the whole of it only hid the map. */}
             {markOn &&
-              (markState
-                ? stateShapes
-                    .filter((s) => s.state?.abbreviation === markState)
-                    .map((s, i) => (
-                      <g key={`mark-${i}`} onMouseEnter={tipAt} onMouseLeave={tipOff} style={{ cursor: "help" }}>
-                        <path d={s.d} fill={markInk} fillOpacity={0.62} stroke={labelHalo} strokeOpacity={0.55} strokeWidth={3 / zoom} strokeLinejoin="round" />
-                        <path d={s.d} fill="none" stroke={markInk} strokeWidth={1.5 / zoom} strokeLinejoin="round" />
-                      </g>
-                    ))
-                : !markedCity &&
-                  usOutlineD && (
-                    <path
-                      d={usOutlineD}
-                      fill={markInk}
-                      fillOpacity={0.45}
-                      stroke={markInk}
-                      strokeWidth={1.5 / zoom}
-                      strokeLinejoin="round"
-                      onMouseEnter={tipAt}
-                      onMouseLeave={tipOff}
-                      style={{ cursor: "help" }}
-                    />
-                  ))}
+              markState &&
+              stateShapes
+                .filter((s) => s.state?.abbreviation === markState)
+                .map((s, i) => (
+                  <g key={`mark-${i}`} onMouseEnter={tipAt} onMouseLeave={tipOff} style={{ cursor: "help" }}>
+                    <path d={s.d} fill={markInk} fillOpacity={0.62} stroke={labelHalo} strokeOpacity={0.55} strokeWidth={3 / zoom} strokeLinejoin="round" />
+                    <path d={s.d} fill="none" stroke={markInk} strokeWidth={1.5 / zoom} strokeLinejoin="round" />
+                  </g>
+                ))}
             {focusCode === "US" && cityMark(cityAt?.focus ?? null, zoom)}
 
             {/* Labels last, so nothing is drawn over them. */}
@@ -4288,8 +4279,6 @@ export function WorldMapsPage() {
                     style={{ ...focusZoom.style, flex: `0 1 ${focusZoom.style.maxWidth}` }}
                     {...focusZoom.panProps}
                     {...focusZoom.a11yProps}
-                    onMouseEnter={markOn && !markedCity ? tipAt : undefined}
-                    onMouseLeave={tipOff}
                     role="img"
                     aria-label={`Outline map of ${focusCountry?.name ?? "the selected country"}${
                       focusMap && focusMap.parts.length > 1
@@ -4307,10 +4296,6 @@ export function WorldMapsPage() {
                           strokeWidth={1 / zoom}
                           strokeLinejoin="round"
                         />
-                        {/* The place picked out: this map is all of it, so the whole of it is filled. */}
-                        {markOn && !markedCity && (
-                          <path d={focusMap.outline} fill={markInk} fillOpacity={0.45} stroke={markInk} strokeWidth={1.5 / zoom} strokeLinejoin="round" pointerEvents="none" />
-                        )}
 
                         {/* Hit targets: one invisible shape per division, so
                             every name is discoverable on hover even when it is
@@ -4514,6 +4499,8 @@ export function WorldMapsPage() {
                       )}
 
                     </g>
+                    {/* A city a link named, marked where it stands, over everything else. */}
+                    {cityMark(cityAt?.focus ?? null, zoom)}
                   </svg>
 
                   {focusMap && focusMap.insets.length > 0 && (
