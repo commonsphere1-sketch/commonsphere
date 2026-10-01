@@ -18,9 +18,10 @@
  * region (FAO 2023), deaths from six diseases and people without essential
  * health care (WHO). These are not refreshed by a build.
  *
- * One accent for data marks and a three-step ramp of it for the parts of a
- * whole; better and worse appear only as an arrow and a word, never colour
- * alone. Charts do not animate.
+ * Bars and series take the site's several colours, a row or a series each,
+ * as its other pages do; a figure is always beside its bar in ink, and every
+ * series is named in a legend, so nothing is told by colour alone. Better
+ * and worse appear as an arrow and a word. Charts do not animate.
  */
 import { useMemo, useState, type ReactNode } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -171,10 +172,8 @@ function useLook() {
     head: isLight ? "#0f172a" : "#f1f0ff",
     grid: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)",
     track: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.07)",
-    /** The one accent for data marks, as on the Worldview page. */
+    /** The accent for a tile's latest point, as on the Worldview page. */
     accent: isLight ? "#2a78d6" : "#3987e5",
-    /** The same blue in three steps, for the parts of a whole; the first stands out most against the page. */
-    ramp: isLight ? ["#0d366b", "#3987e5", "#86b6ef"] : ["#b7d3f6", "#2a78d6", "#184f95"],
     tooltip: {
       contentStyle: {
         background: isLight ? "#ffffff" : "#15151a",
@@ -184,11 +183,30 @@ function useLook() {
         fontFamily: "monospace",
         color: isLight ? "#0f172a" : "#f1f0ff",
       },
+      // The lines of a hover box are in ink, not in their series' colour: amber on white cannot be read.
+      itemStyle: { color: isLight ? "#0f172a" : "#f1f0ff" },
       labelStyle: { color: isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.46)" },
     },
   };
 }
 type Look = ReturnType<typeof useLook>;
+
+/**
+ * The site's colours for bars and series, in the order a list takes them: a
+ * row each, round again after the twelfth. The same in both themes.
+ */
+const PALETTE = ["#ef4444", "#f97316", "#f59e0b", "#84cc16", "#10b981", "#14b8a6", "#06b6d4", "#3b82f6", "#6366f1", "#8b5cf6", "#d946ef", "#ec4899"];
+const colourOf = (i: number) => PALETTE[i % PALETTE.length];
+/** The series of each chart, by what they are. */
+const SERIES = {
+  idps: "#f97316",
+  refugees: "#3b82f6",
+  asylum: "#8b5cf6",
+  hungry: "#ef4444",
+  insecure: "#f59e0b",
+  funded: "#10b981",
+  gap: "#ef4444",
+};
 
 // ── Figures ────────────────────────────────────────────────────────────────
 
@@ -380,15 +398,15 @@ type BarRow = { key: string; name: string; code?: string; value: number | null; 
 
 /**
  * A ranked list as bars, longest first as given: a name, its bar against the
- * longest, and its figure in ink - one accent throughout, since the bars
- * differ in length, not in kind. A row with no published figure says so.
+ * longest in the row's own colour, and its figure in ink. A row with no
+ * published figure says so.
  */
 function BarList({ rows, max, label }: { rows: BarRow[]; max?: number; label: string }) {
-  const { head, muted, track, accent } = useLook();
+  const { head, muted, track } = useLook();
   const top = max ?? Math.max(...rows.map((r) => r.value ?? 0), 1);
   return (
     <ul className="flex flex-col gap-2.5" aria-label={label}>
-      {rows.map((r) => (
+      {rows.map((r, i) => (
         <li key={r.key} className="grid grid-cols-[minmax(7rem,11rem)_1fr_auto] items-center gap-x-3">
           <span className="flex items-center gap-2 min-w-0">
             {r.code && <img src={flagUrl(r.code)} alt="" width={18} height={13} loading="lazy" className="rounded-[2px] shrink-0" />}
@@ -404,7 +422,7 @@ function BarList({ rows, max, label }: { rows: BarRow[]; max?: number; label: st
             </span>
           </span>
           <span className="h-2.5 rounded-full overflow-hidden" style={{ background: track }} aria-hidden>
-            {r.value !== null && <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, Math.min(100, (100 * r.value) / top))}%`, background: accent }} />}
+            {r.value !== null && <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, Math.min(100, (100 * r.value) / top))}%`, background: colourOf(i) }} />}
           </span>
           <span className="text-[11px] font-mono font-bold text-right tabular-nums" style={{ color: r.value === null ? muted : head }}>
             {r.text}
@@ -460,17 +478,17 @@ function DisplacementChart() {
             <XAxis dataKey="year" {...axis(look)} minTickGap={18} />
             <YAxis {...axis(look)} tickFormatter={(v: number) => `${v}M`} />
             <Tooltip {...look.tooltip} formatter={(v: number, n: string) => [`${v}M people`, names[n] ?? n]} />
-            {(["idps", "refugees", "asylum"] as const).map((k, i) => (
-              <Area key={k} type="monotone" dataKey={k} stackId="displaced" stroke={look.ramp[i]} strokeWidth={2} fill={look.ramp[i]} fillOpacity={0.55} isAnimationActive={false} />
+            {(["idps", "refugees", "asylum"] as const).map((k) => (
+              <Area key={k} type="monotone" dataKey={k} stackId="displaced" stroke={SERIES[k]} strokeWidth={2} fill={SERIES[k]} fillOpacity={0.5} isAnimationActive={false} />
             ))}
           </AreaChart>
         </ResponsiveContainer>
       </div>
       <Legend
         items={[
-          { color: look.ramp[0], label: `Internally displaced, ${last.year}`, value: millions(last.idps) },
-          { color: look.ramp[1], label: "Refugees", value: millions(last.refugees) },
-          { color: look.ramp[2], label: "Asylum-seekers", value: millions(last.asylum) },
+          { color: SERIES.idps, label: `Internally displaced, ${last.year}`, value: millions(last.idps) },
+          { color: SERIES.refugees, label: "Refugees", value: millions(last.refugees) },
+          { color: SERIES.asylum, label: "Asylum-seekers", value: millions(last.asylum) },
         ]}
       />
     </>
@@ -496,15 +514,15 @@ function HungerChart() {
             <XAxis dataKey="year" {...axis(look)} minTickGap={18} />
             <YAxis {...axis(look)} tickFormatter={(v: number) => `${v}%`} domain={[0, "auto"]} />
             <Tooltip {...look.tooltip} formatter={(v: number, n: string) => [`${v}%`, n === "hungry" ? "Undernourished" : "Food insecure"]} />
-            <Line type="monotone" dataKey="insecure" stroke={look.ramp[0]} strokeWidth={2} dot={false} connectNulls isAnimationActive={false} />
-            <Line type="monotone" dataKey="hungry" stroke={look.accent} strokeWidth={2} dot={false} connectNulls isAnimationActive={false} />
+            <Line type="monotone" dataKey="insecure" stroke={SERIES.insecure} strokeWidth={2} dot={false} connectNulls isAnimationActive={false} />
+            <Line type="monotone" dataKey="hungry" stroke={SERIES.hungry} strokeWidth={2} dot={false} connectNulls isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
       <Legend
         items={[
-          { color: look.accent, label: `Undernourished, ${hy}`, value: `${hv.toFixed(1)}%` },
-          { color: look.ramp[0], label: `Moderately or severely food insecure, ${iy}`, value: `${iv.toFixed(1)}%` },
+          { color: SERIES.hungry, label: `Undernourished, ${hy}`, value: `${hv.toFixed(1)}%` },
+          { color: SERIES.insecure, label: `Moderately or severely food insecure, ${iy}`, value: `${iv.toFixed(1)}%` },
         ]}
       />
     </>
@@ -512,7 +530,7 @@ function HungerChart() {
 }
 
 /** One world series as a line, with its latest reading in the legend. */
-function TrendChart({ id, name, unit, height = 190 }: { id: string; name: string; unit: (v: number) => string; height?: number }) {
+function TrendChart({ id, name, unit, color, height = 190 }: { id: string; name: string; unit: (v: number) => string; color: string; height?: number }) {
   const look = useLook();
   const s = WORLD[id].series;
   const data = s.map(([y, v]) => ({ year: String(y), v }));
@@ -526,11 +544,11 @@ function TrendChart({ id, name, unit, height = 190 }: { id: string; name: string
             <XAxis dataKey="year" {...axis(look)} minTickGap={18} />
             <YAxis {...axis(look)} domain={[0, "auto"]} />
             <Tooltip {...look.tooltip} formatter={(v: number) => [unit(v), name]} />
-            <Line type="monotone" dataKey="v" stroke={look.accent} strokeWidth={2} dot={false} isAnimationActive={false} />
+            <Line type="monotone" dataKey="v" stroke={color} strokeWidth={2} dot={false} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <Legend items={[{ color: look.accent, label: `${name}, ${ly}`, value: unit(lv) }]} />
+      <Legend items={[{ color, label: `${name}, ${ly}`, value: unit(lv) }]} />
     </>
   );
 }
@@ -558,15 +576,15 @@ function AidChart() {
                 n === "funded" ? [`$${v}bn · ${e.payload ? Math.round((100 * e.payload.funded) / e.payload.required) : 0}% of what was asked`, "Funded"] : [`$${v}bn`, "Not funded"]
               }
             />
-            <Bar dataKey="funded" stackId="aid" fill={look.accent} isAnimationActive={false} />
-            <Bar dataKey="gap" stackId="aid" fill={look.ramp[2]} fillOpacity={0.55} radius={[4, 4, 0, 0]} isAnimationActive={false} />
+            <Bar dataKey="funded" stackId="aid" fill={SERIES.funded} isAnimationActive={false} />
+            <Bar dataKey="gap" stackId="aid" fill={SERIES.gap} fillOpacity={0.45} radius={[4, 4, 0, 0]} isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </div>
       <Legend
         items={[
-          { color: look.accent, label: `Funded, ${last.year}`, value: `$${last.funded}bn` },
-          { color: look.ramp[2], label: "Asked for and not funded", value: `$${(last.required - last.funded).toFixed(1)}bn` },
+          { color: SERIES.funded, label: `Funded, ${last.year}`, value: `$${last.funded}bn` },
+          { color: SERIES.gap, label: "Asked for and not funded", value: `$${(last.required - last.funded).toFixed(1)}bn` },
         ]}
       />
     </>
@@ -811,7 +829,7 @@ export function HumanitarianPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHead title="Deaths before age five, worldwide" kicker={`Per 1,000 live births · UN child mortality estimates · ${WORLD.childMortality.series[0][0]}–${lastOf(WORLD.childMortality.series)[0]}`} />
-              <TrendChart id="childMortality" name="Deaths before age five" unit={(v) => `${v.toFixed(1)} per 1,000`} height={230} />
+              <TrendChart id="childMortality" name="Deaths before age five" unit={(v) => `${v.toFixed(1)} per 1,000`} color="#ef4444" height={230} />
               <SourceLink sources={[WORLD.childMortality.source]} className="mt-3" />
             </Card>
             <Card>
@@ -828,7 +846,7 @@ export function HumanitarianPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHead title="Safely managed drinking water, worldwide" kicker={`Share of people · WHO/UNICEF · ${WORLD.water.series[0][0]}–${lastOf(WORLD.water.series)[0]}`} />
-              <TrendChart id="water" name="Safely managed drinking water" unit={(v) => `${v.toFixed(1)}%`} height={230} />
+              <TrendChart id="water" name="Safely managed drinking water" unit={(v) => `${v.toFixed(1)}%`} color="#06b6d4" height={230} />
               <SourceLink sources={[WORLD.water.source]} className="mt-3" />
             </Card>
             <Card>
@@ -888,7 +906,7 @@ export function HumanitarianPage() {
  * and the card says so.
  */
 function DonorAidCard() {
-  const { head, muted, track, accent } = useLook();
+  const { head, muted, track } = useLook();
   const [showAll, setShowAll] = useState(false);
   const shown = showAll ? DONOR_AID : DONOR_AID.slice(0, 15);
   const max = DONOR_AID[0]?.usd ?? 1;
@@ -929,7 +947,7 @@ function DonorAidCard() {
       </div>
 
       <div className="flex flex-col">
-        {shown.map((d) => {
+        {shown.map((d, i) => {
           const meets = d.pctGni !== null && d.pctGni >= 0.7;
           return (
             <div key={d.iso3} className="grid grid-cols-[minmax(6rem,9rem)_1fr_4.5rem_4rem_4.5rem] gap-x-3 items-center py-1.5">
@@ -942,7 +960,7 @@ function DonorAidCard() {
                 )}
               </span>
               <div className="h-2.5 rounded-full overflow-hidden" style={{ background: track }} aria-hidden>
-                <div className="h-full rounded-full" style={{ width: `${Math.max(1, (d.usd / max) * 100)}%`, background: accent }} />
+                <div className="h-full rounded-full" style={{ width: `${Math.max(1, (d.usd / max) * 100)}%`, background: colourOf(i) }} />
               </div>
               <span className="text-[11px] font-mono font-bold text-right tabular-nums" style={{ color: head }}>
                 {fmtUsd(d.usd)}

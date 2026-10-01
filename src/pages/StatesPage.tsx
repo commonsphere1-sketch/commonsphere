@@ -7374,10 +7374,7 @@ export function StatesPage() {
   return (
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
-        {/* US National Banner */}
-        <USNationalBanner />
-
-        {/* Summary Metrics */}
+        {/* Summary metrics: first on the page, as on the Cities page */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
             {
@@ -7412,6 +7409,9 @@ export function StatesPage() {
             </div>
           ))}
         </div>
+
+        {/* US National Banner */}
+        <USNationalBanner />
 
         {/* States you follow */}
         <FollowedPlaces

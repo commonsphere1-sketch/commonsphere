@@ -13659,10 +13659,10 @@ const IDEOLOGY_COLORS: Record<Ideology, string> = {
 
 const IMPACT_ICONS: Record<string, React.ReactNode> = {
   positive: (
-    <CheckCircle size={13} weight="fill" className="text-green-400 shrink-0" />
+    <CheckCircle size={13} weight="fill" className="text-green-700 dark:text-green-400 shrink-0" />
   ),
   negative: (
-    <XCircle size={13} weight="fill" className="text-red-400 shrink-0" />
+    <XCircle size={13} weight="fill" className="text-red-600 dark:text-red-400 shrink-0" />
   ),
   neutral: (
     <CalendarBlank
@@ -13700,9 +13700,9 @@ function ApprovalBar({
     trend === "up" ? CaretUp : trend === "down" ? CaretDown : null;
   const trendColor =
     trend === "up"
-      ? "text-green-400"
+      ? "text-green-700 dark:text-green-400"
       : trend === "down"
-        ? "text-red-400"
+        ? "text-red-600 dark:text-red-400"
         : "text-muted-foreground";
   return (
     <div className="space-y-1.5">
@@ -14003,7 +14003,7 @@ function LeaderDetail({
                         <CheckCircle
                           size={14}
                           weight="fill"
-                          className="text-green-400 mt-0.5 shrink-0"
+                          className="text-green-700 dark:text-green-400 mt-0.5 shrink-0"
                         />
                         <span>{a}</span>
                       </li>
@@ -14036,10 +14036,10 @@ function LeaderDetail({
                     : isPast
                       ? "text-muted-foreground"
                       : isUrgent
-                        ? "text-red-400"
+                        ? "text-red-600 dark:text-red-400"
                         : isSoon
-                          ? "text-amber-400"
-                          : "text-sky-400";
+                          ? "text-amber-700 dark:text-amber-400"
+                          : "text-sky-700 dark:text-sky-400";
                   const bg = !info.isScheduled
                     ? "bg-muted/20 border-border"
                     : isPast
@@ -14127,10 +14127,10 @@ function LeaderDetail({
                   <span
                     className={`text-xs font-medium px-2 py-1 rounded-full border ${
                       leader.status === "In Office"
-                        ? "bg-green-500/10 text-green-400 border-green-500/30"
+                        ? "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30"
                         : leader.status === "Incumbent (Disputed)"
-                          ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
-                          : "bg-zinc-500/10 text-zinc-400 border-zinc-500/30"
+                          ? "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30"
+                          : "bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-500/30"
                     }`}
                   >
                     {leader.status}
@@ -14381,7 +14381,7 @@ function MonarchCard({
               );
               if (!match) return null;
               return (
-                <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1 py-0.5 leading-tight text-center whitespace-nowrap">
+                <span className="text-[10px] font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1 py-0.5 leading-tight text-center whitespace-nowrap">
                   {match[0]}
                 </span>
               );
@@ -14407,7 +14407,7 @@ function MonarchCard({
             {monarch.houseName}
           </p>
           <div className="mt-2 flex items-center gap-2">
-            <span className="flex items-center gap-1 text-[10px] text-yellow-400 font-mono font-semibold">
+            <span className="flex items-center gap-1 text-[10px] text-yellow-700 dark:text-yellow-400 font-mono font-semibold">
               <Crown size={9} weight="fill" />
               Since {monarch.reignSince}
             </span>
@@ -14559,7 +14559,7 @@ function MonarchDetail({
           {/* All content displayed at once — no tabs */}
           <div className="space-y-4">
             {/* ── OVERVIEW ── */}
-            <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400 flex items-center gap-1.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-800 dark:text-yellow-400 flex items-center gap-1.5">
               <Globe size={13} /> Overview
             </h3>
 
@@ -14585,7 +14585,7 @@ function MonarchDetail({
                     <Crown
                       size={12}
                       weight="fill"
-                      className="text-yellow-400 mt-0.5 shrink-0"
+                      className="text-yellow-700 dark:text-yellow-400 mt-0.5 shrink-0"
                     />
                     <span>{decodeEntities(f)}</span>
                   </li>
@@ -14616,7 +14616,7 @@ function MonarchDetail({
             )}
 
             {/* ── DYNASTY & HOUSE ── */}
-            <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400 flex items-center gap-1.5 pt-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-800 dark:text-yellow-400 flex items-center gap-1.5 pt-2">
               <Crown size={13} /> Dynasty &amp; House
             </h3>
 
@@ -14626,7 +14626,7 @@ function MonarchDetail({
                   <CrownSimple
                     size={18}
                     weight="fill"
-                    className="text-yellow-400"
+                    className="text-yellow-700 dark:text-yellow-400"
                   />
                 </div>
                 <div>
@@ -14643,7 +14643,7 @@ function MonarchDetail({
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                     Reigning Since
                   </p>
-                  <p className="text-sm font-mono font-bold text-yellow-400">
+                  <p className="text-sm font-mono font-bold text-yellow-700 dark:text-yellow-400">
                     {monarch.reignSince}
                   </p>
                   <p className="text-[10px] text-muted-foreground">
@@ -14655,7 +14655,7 @@ function MonarchDetail({
                     System
                   </p>
                   <p
-                    className={`text-sm font-medium ${monarch.systemType === "Absolute" ? "text-red-400" : monarch.systemType === "Constitutional" ? "text-green-400" : "text-amber-400"}`}
+                    className={`text-sm font-medium ${monarch.systemType === "Absolute" ? "text-red-600 dark:text-red-400" : monarch.systemType === "Constitutional" ? "text-green-700 dark:text-green-400" : "text-amber-700 dark:text-amber-400"}`}
                   >
                     {monarch.systemType}
                   </p>
@@ -14688,7 +14688,7 @@ function MonarchDetail({
             </div>
 
             {/* ── SUCCESSION & FAMILY ── */}
-            <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400 flex items-center gap-1.5 pt-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-800 dark:text-yellow-400 flex items-center gap-1.5 pt-2">
               <Users size={13} /> Succession &amp; Family
             </h3>
 
@@ -14700,7 +14700,7 @@ function MonarchDetail({
                 <CrownSimple
                   size={14}
                   weight="fill"
-                  className="text-yellow-400 mt-0.5 shrink-0"
+                  className="text-yellow-700 dark:text-yellow-400 mt-0.5 shrink-0"
                 />
                 <p className="text-sm text-foreground">
                   {monarch.successionOrder}
@@ -14745,7 +14745,7 @@ function MonarchDetail({
                       <Star
                         size={12}
                         weight="fill"
-                        className="text-yellow-400 mt-0.5 shrink-0"
+                        className="text-yellow-700 dark:text-yellow-400 mt-0.5 shrink-0"
                       />
                       <span>{decodeEntities(c)}</span>
                     </li>
@@ -15384,7 +15384,7 @@ function RichestFamiliesView() {
             <div className="p-4">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold font-mono text-amber-400">
+                  <span className="text-lg font-bold font-mono text-amber-700 dark:text-amber-400">
                     #{sortBy === "wealth" ? idx + 1 : ""}
                   </span>
                   <img
@@ -15407,7 +15407,7 @@ function RichestFamiliesView() {
               </p>
               <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-2xl font-bold font-mono text-amber-400">
+                  <p className="text-2xl font-bold font-mono text-amber-700 dark:text-amber-400">
                     {f.netWorth}
                   </p>
                   <p className="text-[10px] text-muted-foreground">
@@ -15419,7 +15419,7 @@ function RichestFamiliesView() {
                     est. {f.founded}
                   </p>
                   <div
-                    className={`flex items-center gap-0.5 justify-end text-[10px] font-medium ${f.trend === "up" ? "text-green-400" : f.trend === "down" ? "text-red-400" : "text-muted-foreground"}`}
+                    className={`flex items-center gap-0.5 justify-end text-[10px] font-medium ${f.trend === "up" ? "text-green-700 dark:text-green-400" : f.trend === "down" ? "text-red-600 dark:text-red-400" : "text-muted-foreground"}`}
                   >
                     {f.trend === "up" ? "↑" : f.trend === "down" ? "↓" : "→"}{" "}
                     {f.trend}
@@ -15504,12 +15504,12 @@ function RichestFamiliesView() {
                   {
                     label: "Net Worth",
                     value: selectedFamily.netWorth,
-                    color: "text-amber-400",
+                    color: "text-amber-700 dark:text-amber-400",
                   },
                   {
                     label: "Founded",
                     value: String(selectedFamily.founded),
-                    color: "text-purple-400",
+                    color: "text-purple-700 dark:text-purple-400",
                   },
                   {
                     label: "Trend",
@@ -15521,9 +15521,9 @@ function RichestFamiliesView() {
                           : "→ Stable",
                     color:
                       selectedFamily.trend === "up"
-                        ? "text-green-400"
+                        ? "text-green-700 dark:text-green-400"
                         : selectedFamily.trend === "down"
-                          ? "text-red-400"
+                          ? "text-red-600 dark:text-red-400"
                           : "text-muted-foreground",
                   },
                 ].map((s) => (
@@ -15562,7 +15562,7 @@ function RichestFamiliesView() {
                       <CheckCircle
                         size={13}
                         weight="fill"
-                        className="text-amber-400 mt-0.5 shrink-0"
+                        className="text-amber-700 dark:text-amber-400 mt-0.5 shrink-0"
                       />
                       <span>{decodeEntities(a)}</span>
                     </li>
@@ -15720,7 +15720,7 @@ function AllianceModal({
                 <ul className="space-y-1.5">
                   {alliance.impact.map((a) => (
                     <li key={a} className="flex gap-2 text-xs font-sans text-foreground leading-relaxed">
-                      <span className="text-amber-400 shrink-0">•</span>
+                      <span className="text-amber-700 dark:text-amber-400 shrink-0">•</span>
                       {a}
                     </li>
                   ))}

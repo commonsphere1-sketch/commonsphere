@@ -973,6 +973,7 @@ export function CrimeStatsPage() {
                     fontFamily: "monospace",
                     color: headText,
                   }}
+                  itemStyle={{ color: headText }}
                   formatter={(v: number, _name: string, entry: any) => [
                     `${v} per 100k`,
                     entry.payload.country,
@@ -1066,6 +1067,7 @@ export function CrimeStatsPage() {
                     fontFamily: "monospace",
                     color: headText,
                   }}
+                  itemStyle={{ color: headText }}
                   formatter={(v: number, name: string) => [
                     `${v} (index)`,
                     name === "violent"
@@ -1726,6 +1728,7 @@ export function CrimeStatsPage() {
                     fontFamily: "monospace",
                     color: headText,
                   }}
+                  itemStyle={{ color: headText }}
                   formatter={(v: number, name: string) => [
                     v.toLocaleString(),
                     name === "deaths" ? "Deaths" : "Incidents",
@@ -1870,6 +1873,7 @@ export function CrimeStatsPage() {
                     fontFamily: "monospace",
                     color: headText,
                   }}
+                  itemStyle={{ color: headText }}
                   formatter={(v: number, _name: string, entry: any) => [
                     `${v.toLocaleString()} deaths · ${entry.payload.incidents.toLocaleString()} incidents`,
                     entry.payload.region,
@@ -1973,6 +1977,7 @@ export function CrimeStatsPage() {
                     fontFamily: "monospace",
                     color: headText,
                   }}
+                  itemStyle={{ color: headText }}
                   formatter={(v: number, _name: string, entry: any) => [
                     `${v.toLocaleString()} total deaths`,
                     `${entry.payload.group} · ${entry.payload.region}`,
@@ -2052,6 +2057,7 @@ export function CrimeStatsPage() {
                     fontFamily: "monospace",
                     color: headText,
                   }}
+                  itemStyle={{ color: headText }}
                   formatter={(v: number, name: string) => [`${v}%`, name]}
                 />
               </PieChart>
@@ -2519,6 +2525,7 @@ export function CrimeStatsPage() {
                     fontFamily: "monospace",
                     color: headText,
                   }}
+                  itemStyle={{ color: headText }}
                   formatter={(v: number, _name: string, entry: any) => [
                     `${v}M victims · ${entry.payload.prevalence} per 1,000`,
                     entry.payload.region,
@@ -2718,6 +2725,7 @@ export function CrimeStatsPage() {
                     fontFamily: "monospace",
                     color: headText,
                   }}
+                  itemStyle={{ color: headText }}
                   formatter={(v: number, name: string) => [
                     `$${v}B annual profit`,
                     name,
