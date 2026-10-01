@@ -19,6 +19,7 @@ import {
 import { usStatesData } from "../data/statesData";
 import { FilterBar } from "../components/FilterBar";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
+import { DataExplorer } from "../components/DataExplorer";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -11091,6 +11092,9 @@ export function PolicyPage() {
           </>
         )}
       />
+
+      {/* Data explorer: the same countries, economies and policy panel as the Dashboard */}
+      <DataExplorer initialTab="policies" />
 
       {/* Entity rows */}
       {paginatedGroups.length === 0 ? (

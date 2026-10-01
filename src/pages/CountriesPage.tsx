@@ -48,6 +48,7 @@ import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 import { useWatchlist } from "@/contexts/WatchlistContext";
 import { FollowedPlaces } from "@/components/FollowedPlaces";
+import { DataExplorer } from "@/components/DataExplorer";
 import { HistoryPanel } from "@/components/HistoryPanel";
 import { fmtArea, fmtGDP, fmtPop } from "@/lib/placeFormat";
 
@@ -16777,6 +16778,9 @@ export function CountriesPage() {
 
         {/* ── INTERNATIONAL SNAPSHOT ── */}
         <InternationalSnapshot countries={liveCountries} />
+
+        {/* ── DATA EXPLORER: the same countries, economies and policy panel as the Dashboard ── */}
+        <DataExplorer initialTab="countries" />
 
         {/* ── SEARCH + FILTER BAR ── */}
         <FilterBar

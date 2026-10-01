@@ -67,6 +67,7 @@ import {
   type Share,
 } from "../data/criticalMinerals";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
+import { DataExplorer } from "@/components/DataExplorer";
 import { HeadlinesBanner, SUBJECT } from "@/components/HeadlinesBanner";
 
 
@@ -2608,6 +2609,11 @@ export function EconomiesPage() {
             </>
           )}
         />
+
+        {/* ── Data explorer: the same countries, economies and policy panel as the Dashboard ── */}
+        <div className="mb-6">
+          <DataExplorer initialTab="economies" />
+        </div>
 
         {modalEconomy && (
           <EconomyModal

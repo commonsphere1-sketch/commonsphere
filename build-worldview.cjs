@@ -81,11 +81,14 @@
  *                           PEW), since its site does not serve scripts
  *
  * A series that fails to download stops the build rather than being left
- * out quietly.
+ * out quietly. A world figure's newest year is left out while some but fewer than
+ * nine in ten of the economies that reported the year before have reported
+ * it; the build lists any it leaves out.
  *
  *   node build-worldview.cjs
  */
 const fs = require("fs");
+const { execFileSync } = require("child_process");
 const os = require("os");
 const path = require("path");
 
@@ -98,12 +101,33 @@ const FROM = 1990;
 
 async function get(url, name) {
   const at = path.join(CACHE, name);
-  if (!fs.existsSync(at)) {
-    const res = await fetch(url, { headers: { "User-Agent": UA, "Accept-Language": "en" } });
-    if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
-    fs.writeFileSync(at, await res.text());
-  }
+  if (!fs.existsSync(at)) fs.writeFileSync(at, await download(url));
   return fs.readFileSync(at, "utf8");
+}
+
+/**
+ * A source's response. The World Bank's API goes quiet for minutes at a time,
+ * and Node's fetch can stall on it while curl still gets through, so a
+ * request that does not answer in 45 seconds is made again with curl, and the
+ * pair is tried three times, half a minute apart, before the build gives up.
+ */
+async function download(url) {
+  let failure = "";
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    if (attempt > 1) await new Promise((r) => setTimeout(r, 30_000));
+    try {
+      const res = await fetch(url, { headers: { "User-Agent": UA, "Accept-Language": "en" }, signal: AbortSignal.timeout(45_000) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.text();
+    } catch (e) {
+      try {
+        return execFileSync("curl", ["-sSfL", "-m", "90", "-A", UA, "-H", "Accept-Language: en", url], { encoding: "utf8", maxBuffer: 512 * 1024 * 1024, stdio: ["ignore", "pipe", "pipe"] });
+      } catch (e2) {
+        failure = `${e.message}; curl: ${String(e2.stderr || e2.message).trim().split("\n")[0]}`;
+      }
+    }
+  }
+  throw new Error(`${url}: ${failure}`);
 }
 
 // ── Sources ───────────────────────────────────────────────────────────────
@@ -182,6 +206,19 @@ const PEW = [
 
 // ── World Bank ────────────────────────────────────────────────────────────
 
+/** The World Bank's economies - countries and territories, not its aggregates - by ISO3. */
+let ECONOMIES = null;
+async function economies() {
+  if (!ECONOMIES) {
+    const list = JSON.parse(await get("https://api.worldbank.org/v2/country?format=json&per_page=400", "wb-countries.json"))[1];
+    ECONOMIES = new Set(list.filter((c) => c.region?.id && c.region.id !== "NA").map((c) => c.id));
+  }
+  return ECONOMIES;
+}
+
+/** Latest years left out of world series because too few economies had reported them. */
+const EARLY = [];
+
 async function wbSeries(code, area = "WLD") {
   const t = await get(
     `https://api.worldbank.org/v2/country/${area}/indicator/${code}?format=json&per_page=200&date=${FROM}:${THIS_YEAR}`,
@@ -194,6 +231,26 @@ async function wbSeries(code, area = "WLD") {
     .map((r) => [Number(r.date), r.value])
     .sort((a, b) => a[0] - b[0]);
   if (pts.length < 5) throw new Error(`World Bank ${code} (${area}): only ${pts.length} points`);
+  // A world figure for the newest year can be built from the few economies
+  // that have reported it - world trade for 2025 first came from a fifth
+  // fewer than 2024's and read 12 points higher. Where some but fewer than
+  // nine in ten of the year before's economies have reported, the year
+  // waits. Where almost none have - under one in ten - the figure cannot be
+  // a sum of reports: it is the agency's own world estimate (the ITU's for
+  // internet use and phone subscriptions), and it stays.
+  const [ly] = pts[pts.length - 1];
+  if (area === "WLD" && ly >= THIS_YEAR - 1) {
+    const all = JSON.parse(
+      await get(`https://api.worldbank.org/v2/country/all/indicator/${code}?format=json&per_page=600&date=${ly - 1}:${ly}`, `wb-all-${code}-${ly}.json`),
+    );
+    const eco = await economies();
+    const n = { [ly - 1]: 0, [ly]: 0 };
+    for (const r of all[1] ?? []) if (eco.has(r.countryiso3code) && r.value !== null) n[Number(r.date)]++;
+    if (n[ly] >= 0.1 * n[ly - 1] && n[ly] < 0.9 * n[ly - 1]) {
+      EARLY.push(`${code} ${ly}: ${n[ly]} economies reported, against ${n[ly - 1]} for ${ly - 1}`);
+      pts.pop();
+    }
+  }
   return pts;
 }
 
@@ -1062,6 +1119,56 @@ function indicator(id, o) {
     ["fertility", "Births per woman", "SP.DYN.TFRT.IN", "num", 2, null],
     ["co2PerPerson", "CO₂ per person (tonnes a year)", "EN.GHG.CO2.PC.CE.AR5", "num", 2, null],
   ];
+  // Regions and blocs: the World Bank's aggregates for its seven regions and
+  // for the European Union - output, real growth and a decade's trend - and
+  // which region each economy is in, for the data explorer's economies.
+  const EU27 = ["AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE"];
+  const regionOf = {};
+  const regionName = {};
+  for (const c of countryList) {
+    const r = c.region;
+    if (!r || !r.id || r.id === "NA" || !/^[A-Z]{2}$/.test(c.iso2Code)) continue;
+    regionOf[c.iso2Code] = r.id;
+    regionName[r.id] = r.value.trim();
+  }
+  if (Object.keys(regionName).length !== 7) throw new Error(`World Bank regions: expected 7, found ${Object.keys(regionName).length}`);
+  const regionStats = [];
+  for (const [id, name, kind, members] of [
+    ...Object.entries(regionName)
+      .sort((a, b) => a[1].localeCompare(b[1]))
+      .map(([id, name]) => [id, name, "region", Object.keys(regionOf).filter((k) => regionOf[k] === id)]),
+    ["EUU", "European Union", "bloc", EU27],
+  ]) {
+    const gdp = await wbSeries("NY.GDP.MKTP.CD", id);
+    const growth = await wbSeries("NY.GDP.MKTP.KD.ZG", id);
+    regionStats.push({
+      id,
+      name,
+      kind,
+      members: members.sort(),
+      gdp: gdp.slice(-11).map(([y, v]) => [y, Math.round(v)]),
+      growth: growth.slice(-11).map(([y, v]) => [y, round(v, 2)]),
+      source: WB("NY.GDP.MKTP.CD", id),
+    });
+  }
+
+  // Consumer-price inflation for the world and the advanced economies, from
+  // the IMF's World Economic Outlook; the current year and later are
+  // projections and are left out.
+  const imfInflation = {};
+  {
+    const j = JSON.parse(await get("https://www.imf.org/external/datamapper/api/v1/PCPIPCH", "imf-inflation.json"));
+    for (const [key, area] of [["world", "WEOWORLD"], ["advanced", "ADVEC"], ["emerging", "OEMDC"]]) {
+      const v = j?.values?.PCPIPCH?.[area];
+      if (!v) throw new Error(`IMF: no ${area} inflation`);
+      imfInflation[key] = Object.entries(v)
+        .map(([y, x]) => [Number(y), round(x, 1)])
+        .filter(([y, x]) => y >= THIS_YEAR - 12 && y < THIS_YEAR && Number.isFinite(x))
+        .sort((a, b) => a[0] - b[0]);
+      if (imfInflation[key].length < 5) throw new Error(`IMF: too few ${area} inflation points`);
+    }
+  }
+
   const byIncome = [];
   for (const [id, label, code, format, dp, upIsGood] of COMPARE) {
     const values = {};
@@ -1171,6 +1278,30 @@ export const COUNTRY_FIGURE_SOURCES = ${JSON.stringify({
     freedom: SRC.fh,
   })};
 
+/**
+ * The World Bank's seven regions and the European Union: GDP in current US
+ * dollars and real growth, the last eleven years of each, and their members
+ * by ISO2.
+ */
+export const REGIONS: {
+  id: string;
+  name: string;
+  kind: "region" | "bloc";
+  members: string[];
+  gdp: WorldPoint[];
+  growth: WorldPoint[];
+  source: { label: string; url: string };
+}[] = ${JSON.stringify(regionStats)};
+
+/** Each economy's World Bank region, by ISO2. */
+export const REGION_OF: Record<string, string> = ${JSON.stringify(regionOf)};
+
+/** Consumer-price inflation, % a year, from the IMF's World Economic Outlook - actual years only, no projections. */
+export const IMF_INFLATION: { world: WorldPoint[]; advanced: WorldPoint[]; emerging: WorldPoint[]; source: { label: string; url: string } } = ${JSON.stringify({
+    ...imfInflation,
+    source: { label: "IMF — World Economic Outlook, consumer prices", url: "https://www.imf.org/external/datamapper/PCPIPCH@WEO" },
+  })};
+
 /** The same measures for the world and each income group, from the Bank's own aggregates. */
 export const BY_INCOME: {
   id: string;
@@ -1184,6 +1315,7 @@ export const BY_INCOME: {
 `,
   );
   console.log(`wrote ${path.relative(__dirname, OUT)}: ${Object.keys(W).length} indicators`);
+  if (EARLY.length) console.log(`newest year left out, too few economies reported:\n  ${EARLY.join("\n  ")}`);
   for (const o of Object.values(W)) {
     const last = o.series.at(-1);
     console.log(`  ${o.id.padEnd(18)} ${String(last[1]).padStart(16)} (${last[0]})  ${o.series.length} pts`);
