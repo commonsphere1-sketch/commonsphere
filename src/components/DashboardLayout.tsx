@@ -54,13 +54,15 @@ export function DashboardLayout() {
             collapsed={!sidebarOpen}
             onToggle={() => setSidebarOpen((v) => !v)}
           />
-          {/* A handle half-way down the bar's edge: opens and closes the
+          {/* An arrow half-way down the bar's edge: opens and closes the
               sidebar from wherever the page is, without scrolling the bar to
-              the toggle at its foot - which is still there. */}
+              the toggle at its foot - which is still there. Only the arrow is
+              drawn; the button around it is a larger, unseen target, kept
+              inside the bar so it never lies over the page. */}
           <button
             type="button"
             onClick={() => setSidebarOpen((v) => !v)}
-            className="absolute top-1/2 -right-3 -translate-y-1/2 z-10 w-6 h-11 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground shadow-md flex items-center justify-center cursor-pointer transition-colors"
+            className="absolute top-1/2 right-0 -translate-y-1/2 z-10 w-4 h-11 bg-transparent text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 rounded"
             aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
             aria-expanded={sidebarOpen}
             title={sidebarOpen ? "Collapse the menu" : "Expand the menu"}
