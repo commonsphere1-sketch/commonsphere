@@ -22,6 +22,7 @@ import {
   Scales,
   ListBullets,
   Clock,
+  ClockCounterClockwise,
   Crown,
   CrownSimple,
   Money,
@@ -41,6 +42,8 @@ import { ALLIANCES, ALLIANCES_CHECKED, type Alliance, type AllianceKind } from "
 import { countriesData, type Country } from "../data/countriesData";
 import { FilterBar } from "../components/FilterBar";
 import { HeadlinesBanner, namesTag, type Headline, type Shown } from "../components/HeadlinesBanner";
+import { ArticlePanel } from "../components/HistoryPanel";
+import { WIKI_ARTICLES } from "../data/wikiArticles";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 // Globe is used in LeaderDetail tabs — do not remove
 
@@ -13809,6 +13812,46 @@ function LeaderCard({
   );
 }
 
+/**
+ * A person's age and birth, for a tile. Counted from the date of birth
+ * Wikidata gives (data/wikiArticles.ts) where it gives one to the day - the
+ * ages written into the entries stood still while the people aged. From a
+ * year alone the age is one of two, and both are given.
+ */
+function ageOf(id: string, birthYear: number): { age: string; born: string } {
+  const iso = WIKI_ARTICLES[id]?.born;
+  const now = new Date();
+  if (iso) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const had = now.getMonth() + 1 > m || (now.getMonth() + 1 === m && now.getDate() >= d);
+    return {
+      age: `${now.getFullYear() - y - (had ? 0 : 1)}`,
+      born: `b. ${new Date(y, m - 1, d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`,
+    };
+  }
+  const older = now.getFullYear() - birthYear;
+  return { age: `${older - 1}–${older}`, born: `b. ${birthYear}` };
+}
+
+/**
+ * A window's history, in Wikipedia's words: the article found for the entry
+ * (data/wikiArticles.ts) - a person's life, or a family's or an
+ * organisation's history - or a line saying none is linked.
+ */
+function Story({ id, name, mode }: { id: string; name: string; mode: "life" | "history" }) {
+  const article = WIKI_ARTICLES[id];
+  if (!article) return <p className="text-xs font-sans text-muted-foreground py-4">No Wikipedia article is linked for {name}.</p>;
+  return <ArticlePanel title={article.title} name={name} mode={mode} />;
+}
+
+/** What a royal's "since" year is the start of: a reign, the wait as heir, or a reign since ended. */
+function royalRole(m: RoyalMember): { label: string; sub: string; short: string } {
+  const years = new Date().getFullYear() - m.reignSince;
+  if (/abdicat/i.test(m.successionOrder)) return { label: "Reigned From", sub: m.successionOrder, short: `Reigned from ${m.reignSince}` };
+  if (/^heir/i.test(m.successionOrder)) return { label: "Heir Since", sub: `${years} years`, short: `Heir since ${m.reignSince}` };
+  return { label: "Reigning Since", sub: `${years} years`, short: `Since ${m.reignSince} · ${years}y reign` };
+}
+
 function LeaderDetail({
   leader,
   onClose,
@@ -13816,9 +13859,10 @@ function LeaderDetail({
   leader: Leader;
   onClose: () => void;
 }) {
-  const [tab, setTab] = useState<"overview" | "career" | "events" | "views">(
+  const [tab, setTab] = useState<"overview" | "career" | "events" | "views" | "history">(
     "overview",
   );
+  const born = ageOf(leader.id, leader.birthYear);
 
   const tabs = [
     { id: "overview" as const, label: "Overview", icon: <Globe size={13} /> },
@@ -13837,6 +13881,7 @@ function LeaderDetail({
       label: "Political Views",
       icon: <Scales size={13} />,
     },
+    { id: "history" as const, label: "History", icon: <ClockCounterClockwise size={13} /> },
   ];
 
   const totalYears = leader.termsInOffice.reduce((acc, t) => {
@@ -13913,8 +13958,8 @@ function LeaderDetail({
             {[
               {
                 label: "Age",
-                value: `${leader.age}`,
-                sub: `b. ${leader.birthYear}`,
+                value: born.age,
+                sub: born.born,
               },
               {
                 label: "Party",
@@ -13966,7 +14011,7 @@ function LeaderDetail({
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className={`flex items-center justify-center gap-1.5 flex-1 px-3 py-2 rounded-lg text-xs font-medium font-sans whitespace-nowrap transition-colors cursor-pointer ${
+                className={`flex items-center justify-center gap-1.5 flex-1 px-2 py-2 rounded-lg text-xs font-medium font-sans whitespace-nowrap transition-colors cursor-pointer ${
                   tab === t.id
                     ? "bg-card text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -14272,6 +14317,8 @@ function LeaderDetail({
               </div>
             )}
 
+            {tab === "history" && <Story id={leader.id} name={leader.name} mode="life" />}
+
             {tab === "views" && (
               <>
                 <div className="modal-tile rounded-xl p-4">
@@ -14345,7 +14392,7 @@ function MonarchCard({
   onClick: () => void;
   isSelected: boolean;
 }) {
-  const yearsReigning = new Date().getFullYear() - monarch.reignSince;
+  const role = royalRole(monarch);
   return (
     <button
       onClick={onClick}
@@ -14409,13 +14456,7 @@ function MonarchCard({
           <div className="mt-2 flex items-center gap-2">
             <span className="flex items-center gap-1 text-[10px] text-yellow-700 dark:text-yellow-400 font-mono font-semibold">
               <Crown size={9} weight="fill" />
-              Since {monarch.reignSince}
-            </span>
-            <span className="text-[10px] text-muted-foreground font-mono">
-              ·
-            </span>
-            <span className="text-[10px] text-muted-foreground font-mono">
-              {yearsReigning}y reign
+              {role.short}
             </span>
           </div>
           <p className="text-[10px] text-muted-foreground mt-1 truncate">
@@ -14435,7 +14476,9 @@ function MonarchDetail({
   monarch: RoyalMember;
   onClose: () => void;
 }) {
-  const yearsReigning = new Date().getFullYear() - monarch.reignSince;
+  const role = royalRole(monarch);
+  const born = ageOf(monarch.id, monarch.born);
+  const house = WIKI_ARTICLES[monarch.id]?.house;
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -14506,14 +14549,14 @@ function MonarchDetail({
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
             {[
               {
-                label: "Reigning Since",
+                label: role.label,
                 value: String(monarch.reignSince),
-                sub: `${yearsReigning} years`,
+                sub: role.sub,
               },
               {
                 label: "Age",
-                value: String(monarch.age),
-                sub: `b. ${monarch.born}`,
+                value: born.age,
+                sub: born.born,
               },
               {
                 label: "System",
@@ -14541,7 +14584,7 @@ function MonarchDetail({
                     and state tiles hold, so they wrap instead of truncating —
                     "Constitutional" was rendering as "Constitut…". */}
                 <p
-                  className="text-sm font-bold font-mono text-foreground leading-tight break-words"
+                  className={`${/^[\d–]+$/.test(s.value) ? "text-sm" : "text-[13px]"} font-bold font-mono text-foreground leading-tight break-words`}
                   title={s.value}
                 >
                   {s.value}
@@ -14641,13 +14684,13 @@ function MonarchDetail({
               <div className="grid grid-cols-2 gap-3">
                 <div className="modal-tile rounded-lg p-3">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                    Reigning Since
+                    {role.label}
                   </p>
                   <p className="text-sm font-mono font-bold text-yellow-700 dark:text-yellow-400">
                     {monarch.reignSince}
                   </p>
                   <p className="text-[10px] text-muted-foreground">
-                    {yearsReigning} years on throne
+                    {role.label === "Reigning Since" ? `${role.sub} on the throne` : role.sub}
                   </p>
                 </div>
                 <div className="modal-tile rounded-lg p-3">
@@ -14752,6 +14795,20 @@ function MonarchDetail({
                   ))}
                 </ul>
               </div>
+            )}
+
+            {/* ── HISTORY: the life, and the house ── */}
+            <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-800 dark:text-yellow-400 flex items-center gap-1.5 pt-2">
+              <ClockCounterClockwise size={13} /> History
+            </h3>
+            <Story id={monarch.id} name={monarch.name} mode="life" />
+            {house && (
+              <>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 pt-2">
+                  <CrownSimple size={12} weight="fill" /> {house}
+                </h4>
+                <ArticlePanel title={house} name={`the ${house}`} mode="history" />
+              </>
             )}
           </div>
         </div>
@@ -15594,6 +15651,13 @@ function RichestFamiliesView() {
                 <p
                   className="text-sm text-foreground">{decodeEntities(selectedFamily.patriarch)}</p>
               </div>
+
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <ClockCounterClockwise size={12} /> History
+                </h4>
+                <Story id={selectedFamily.id} name={selectedFamily.family} mode="history" />
+              </div>
             </div>
           </div>
         </div>
@@ -15752,6 +15816,13 @@ function AllianceModal({
               </div>
             </div>
           )}
+
+          <div className="mb-4">
+            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-1.5">
+              <ClockCounterClockwise size={11} /> History
+            </p>
+            <Story id={alliance.id} name={alliance.name} mode="history" />
+          </div>
 
           {alliance.note && (
             <p className="text-xs text-muted-foreground font-sans leading-relaxed mb-2">{alliance.note}</p>

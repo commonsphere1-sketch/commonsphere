@@ -1,18 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ArrowSquareOut, Spinner } from "@phosphor-icons/react";
 
 /**
- * A country's or US state's history, in Wikipedia's words: its "History of
- * …" article, found through Wikidata's link from the place (property P2184,
+ * History in Wikipedia's words, two ways.
+ *
+ * HistoryPanel: a country's or US state's history - its "History of …"
+ * article, found through Wikidata's link from the place (property P2184,
  * "history of topic"), looked up by ISO code - "FR" for a country (ISO
  * 3166-1), "US-TX" for a state (ISO 3166-2) - so no article name is guessed
  * ("History of Georgia (U.S. state)" is not the country's). For a place with
  * no such article (Bouvet Island, Tokelau), the History section of its own
- * article. Shown: the article's opening, then each era with its first
- * paragraph, each linking to the full section.
+ * article.
  *
- * Fetched when the tab opens, and kept for the visit. The text is
- * Wikipedia's, under CC BY-SA 4.0, and says so with a link to the article.
+ * ArticlePanel: the story of a person, a family or an organisation from its
+ * own article, named by title (data/wikiArticles.ts, where each title was
+ * found and checked by build-wiki-articles.cjs). A person's is their life:
+ * the article's opening, then each part of the biography. An organisation's
+ * or a family's is the article's History section where it has one, else its
+ * parts.
+ *
+ * Shown either way: the opening, then each part with its first paragraph,
+ * each linking to the full section. Fetched when the panel opens, and kept
+ * for the visit. The text is Wikipedia's, under CC BY-SA 4.0, and says so
+ * with a link to the article.
  */
 
 type Era = { title: string; text: string };
@@ -22,7 +32,11 @@ type State = { status: "loading" } | { status: "error" } | { status: "none" } | 
 const cache = new Map<string, History | null>();
 
 /** Sections that are the article's apparatus, not its history. */
-const APPARATUS = /^(see also|references|notes|citations|sources|bibliography|further reading|external links|footnotes|works cited|historiography|general and cited references)$/i;
+const APPARATUS = /^(see also|references|notes|citations|sources|bibliography|further reading|external links|footnotes|works cited|historiography|general and cited references|explanatory notes|notes and references)$/i;
+
+/** Sections of a biography or an organisation's article that are lists and honours, not its story. */
+const NOT_STORY =
+  /^(honou?rs|awards|awards and honou?rs|honou?rs and awards|titles.*|arms|ancestry|issue|family tree|electoral history|publications|selected works|works|writings|filmography|discography|gallery|in popular culture|members|member states|membership|list of .*|organi[sz]ation|structure|organi[sz]ational structure|summits|secretaries[- ]general|leadership)$/i;
 
 const wikiUrl = (title: string, section?: string) =>
   `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}${section ? `#${encodeURIComponent(section.replace(/ /g, "_"))}` : ""}`;
@@ -54,16 +68,38 @@ function split(text: string): { lead: string[]; sections: Section[] } {
 }
 
 /** Each section at `level` with the first paragraph found in it or its subsections. */
-function eras(sections: Section[], level: number): Era[] {
+function eras(sections: Section[], level: number, skip?: RegExp): Era[] {
   const out: Era[] = [];
   for (let i = 0; i < sections.length; i++) {
     const s = sections[i];
-    if (s.level !== level || APPARATUS.test(s.title)) continue;
+    if (s.level !== level || APPARATUS.test(s.title) || skip?.test(s.title)) continue;
     let text = s.paras[0];
     for (let j = i + 1; !text && j < sections.length && sections[j].level > level; j++) text = sections[j].paras[0];
     if (text) out.push({ title: s.title, text: opening(text) });
   }
   return out;
+}
+
+/** An article's plain text, by title, following redirects. */
+async function extractOf(article: string): Promise<{ title: string; extract: string } | null> {
+  const api = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&exsectionformat=wiki&redirects=1&format=json&origin=*&titles=${encodeURIComponent(article)}`;
+  const wr = await fetch(api);
+  if (!wr.ok) throw new Error(`Wikipedia ${wr.status}`);
+  const pages = ((await wr.json()) as { query?: { pages?: Record<string, { title?: string; extract?: string }> } }).query?.pages ?? {};
+  const page = Object.values(pages)[0];
+  return page?.extract ? { title: page.title ?? article, extract: page.extract } : null;
+}
+
+/** The History section of an article, its subsections as eras; null where it has none. */
+function historySection(title: string, sections: Section[]): History | null {
+  const at = sections.findIndex((s) => s.level === 2 && /^history/i.test(s.title));
+  if (at < 0) return null;
+  let end = at + 1;
+  while (end < sections.length && sections[end].level > 2) end++;
+  const part = sections.slice(at + 1, end);
+  const lead = sections[at].paras.slice(0, 2).map((p) => opening(p, 640));
+  const parts = eras(part, 3);
+  return lead.length || parts.length ? { article: title, fromSection: true, lead, eras: parts } : null;
 }
 
 async function loadHistory(code: string): Promise<History | null> {
@@ -88,47 +124,52 @@ async function loadHistory(code: string): Promise<History | null> {
   const article = history || main;
   if (!article) return null;
 
-  const api = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&exsectionformat=wiki&redirects=1&format=json&origin=*&titles=${encodeURIComponent(article)}`;
-  const wr = await fetch(api);
-  if (!wr.ok) throw new Error(`Wikipedia ${wr.status}`);
-  const pages = ((await wr.json()) as { query?: { pages?: Record<string, { title?: string; extract?: string }> } }).query?.pages ?? {};
-  const page = Object.values(pages)[0];
-  if (!page?.extract) return null;
+  const page = await extractOf(article);
+  if (!page) return null;
   const { lead, sections } = split(page.extract);
 
-  if (history) return { article: page.title ?? article, fromSection: false, lead: lead.slice(0, 2).map((p) => opening(p, 640)), eras: eras(sections, 2) };
+  if (history) return { article: page.title, fromSection: false, lead: lead.slice(0, 2).map((p) => opening(p, 640)), eras: eras(sections, 2) };
 
   // No history article: the History section of the place's own article, its subsections as eras.
-  const at = sections.findIndex((s) => s.level === 2 && /^history/i.test(s.title));
-  if (at < 0) return null;
-  let end = at + 1;
-  while (end < sections.length && sections[end].level > 2) end++;
-  const part = sections.slice(at + 1, end);
-  return {
-    article: page.title ?? article,
-    fromSection: true,
-    lead: sections[at].paras.slice(0, 2).map((p) => opening(p, 640)),
-    eras: eras(part, 3),
-  };
+  return historySection(page.title, sections);
 }
 
-export function HistoryPanel({ code, name }: { code: string; name: string }) {
+/**
+ * An article's story. A life: its opening and each part of the biography.
+ * A history: its History section where it has one, else its opening and its
+ * parts.
+ */
+async function loadArticle(article: string, mode: "life" | "history"): Promise<History | null> {
+  const page = await extractOf(article);
+  if (!page) return null;
+  const { lead, sections } = split(page.extract);
+  if (mode === "history") {
+    const h = historySection(page.title, sections);
+    if (h) return h;
+  }
+  const parts = eras(sections, 2, NOT_STORY);
+  const open = lead.slice(0, 2).map((p) => opening(p, 640));
+  return open.length || parts.length ? { article: page.title, fromSection: false, lead: open, eras: parts } : null;
+}
+
+/** Loads once per key and keeps the answer for the visit. */
+function useLoaded(key: string, load: () => Promise<History | null>): State {
   const [state, setState] = useState<State>(() => {
-    const hit = cache.get(code);
+    const hit = cache.get(key);
     return hit === undefined ? { status: "loading" } : hit ? { status: "ok", history: hit } : { status: "none" };
   });
 
   useEffect(() => {
-    const hit = cache.get(code);
+    const hit = cache.get(key);
     if (hit !== undefined) {
       setState(hit ? { status: "ok", history: hit } : { status: "none" });
       return;
     }
     let live = true;
     setState({ status: "loading" });
-    loadHistory(code)
+    load()
       .then((h) => {
-        cache.set(code, h);
+        cache.set(key, h);
         if (live) setState(h ? { status: "ok", history: h } : { status: "none" });
       })
       .catch(() => {
@@ -137,26 +178,26 @@ export function HistoryPanel({ code, name }: { code: string; name: string }) {
     return () => {
       live = false;
     };
-  }, [code]);
+    // The key says what is loaded.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  return state;
+}
 
+/** The opening, then each part with its first paragraph, then where it is from. */
+function HistoryView({ state, what, none, note }: { state: State; what: string; none: string; note: (h: History) => ReactNode }) {
   if (state.status === "loading")
     return (
       <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
         <Spinner size={16} className="animate-spin" />
-        <span className="text-xs font-sans">Loading the history from Wikipedia…</span>
+        <span className="text-xs font-sans">Loading {what} from Wikipedia…</span>
       </div>
     );
   if (state.status === "error")
-    return <p className="text-xs font-sans text-destructive py-4">The history could not be loaded from Wikipedia. Try again in a moment.</p>;
-  if (state.status === "none")
-    return (
-      <p className="text-xs font-sans text-muted-foreground py-6 text-center leading-relaxed">
-        Wikipedia has no history of {name} to show here.
-      </p>
-    );
+    return <p className="text-xs font-sans text-destructive py-4">This could not be loaded from Wikipedia. Try again in a moment.</p>;
+  if (state.status === "none") return <p className="text-xs font-sans text-muted-foreground py-6 text-center leading-relaxed">{none}</p>;
 
   const { history } = state;
-  const section = history.fromSection ? "History" : undefined;
   return (
     <div className="animate-fade-in space-y-4">
       {history.lead.length > 0 && (
@@ -190,17 +231,61 @@ export function HistoryPanel({ code, name }: { code: string; name: string }) {
       )}
 
       <p className="text-[10px] font-sans text-muted-foreground leading-snug">
-        From Wikipedia's article{" "}
-        <a href={wikiUrl(history.article, section)} target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
-          {history.article}
-          {section ? ` (its ${section} section)` : ""}
-        </a>
-        , the one Wikidata links to {name}, shortened to each part's opening; the full article has more. Text under{" "}
+        {note(history)} Text under{" "}
         <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
           CC BY-SA 4.0
         </a>
         .
       </p>
     </div>
+  );
+}
+
+const articleLink = (h: History) => {
+  const section = h.fromSection ? "History" : undefined;
+  return (
+    <a href={wikiUrl(h.article, section)} target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+      {h.article}
+      {section ? ` (its ${section} section)` : ""}
+    </a>
+  );
+};
+
+export function HistoryPanel({ code, name }: { code: string; name: string }) {
+  const state = useLoaded(`place:${code}`, () => loadHistory(code));
+  return (
+    <HistoryView
+      state={state}
+      what="the history"
+      none={`Wikipedia has no history of ${name} to show here.`}
+      note={(h) => (
+        <>
+          From Wikipedia's article {articleLink(h)}, the one Wikidata links to {name}, shortened to each part's opening; the full article has
+          more.
+        </>
+      )}
+    />
+  );
+}
+
+/**
+ * The story of a person, a family or an organisation from its Wikipedia
+ * article: a `life` as the biography's parts, a `history` as the article's
+ * History section where it has one. `title` is the article, as
+ * data/wikiArticles.ts names it.
+ */
+export function ArticlePanel({ title, name, mode }: { title: string; name: string; mode: "life" | "history" }) {
+  const state = useLoaded(`${mode}:${title}`, () => loadArticle(title, mode));
+  return (
+    <HistoryView
+      state={state}
+      what={mode === "life" ? "the biography" : "the history"}
+      none={`Wikipedia's article on ${name} has nothing to show here.`}
+      note={(h) => (
+        <>
+          From Wikipedia's article {articleLink(h)}, shortened to each part's opening; the full article has more.
+        </>
+      )}
+    />
   );
 }
