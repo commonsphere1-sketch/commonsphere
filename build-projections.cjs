@@ -35,7 +35,7 @@ const os = require("os");
 const path = require("path");
 const zlib = require("zlib");
 const readline = require("readline");
-const { execFileSync } = require("child_process");
+const { execFileSync, execSync } = require("child_process");
 
 const OUT = path.join(__dirname, "src/data/projections.ts");
 const UA = "commonsphere-data-build/1.0 (+https://github.com/commonsphere1-sketch/commonsphere)";
@@ -72,6 +72,14 @@ const json = (url, name) => {
   return JSON.parse(fs.readFileSync(at, "utf8"));
 };
 const round = (v, dp) => Number(Number(v).toFixed(dp));
+
+/** The site's own countries, for the names it calls them by. */
+function loadCountries() {
+  const bundle = path.join(CACHE, "countriesData.cjs");
+  execSync(`npx esbuild src/data/countriesData.ts --bundle --format=cjs --platform=node --log-level=error --outfile="${bundle}"`, { cwd: __dirname, stdio: "inherit" });
+  delete require.cache[bundle];
+  return require(bundle).countriesData;
+}
 
 /** RFC 4180 line: quoted fields, embedded commas, doubled quotes. */
 function splitCsvLine(line) {
@@ -143,11 +151,14 @@ function gzRows(file, keep) {
   const imfCountries = json(IMF + "countries", "imf-countries.json").countries;
   const wb = json("https://api.worldbank.org/v2/country?format=json&per_page=400", "wb-countries.json")[1];
   const iso2 = Object.fromEntries(wb.map((c) => [c.id, c.iso2Code]));
+  // Named as the rest of the site names them ("China", not "China, People's
+  // Republic of"); an economy the site has no record of keeps the IMF's name.
+  const siteName = Object.fromEntries(loadCountries().map((c) => [c.code, c.name]));
   const countries = [];
   for (const [iso3, c] of Object.entries(imfCountries)) {
     const gdp = series("gdp", iso3, COUNTRY_FROM);
     if (!gdp.length || !c.label) continue;
-    const e = { iso3, code: iso2[iso3] ?? null, name: c.label, gdp };
+    const e = { iso3, code: iso2[iso3] ?? null, name: siteName[iso2[iso3]] ?? c.label, gdp };
     for (const k of ["growth", "inflation", "debt", "unemployment"]) {
       const s = series(k, iso3, COUNTRY_FROM);
       if (s.length) e[k] = s;
@@ -179,6 +190,8 @@ function gzRows(file, keep) {
   for (const r of medium.rows) {
     if (r[c.variant] !== "Medium") continue;
     const y = Number(r[c.year]);
+    // The file's last row is 2101, with a population for 1 January only: the series end at 2100.
+    if (y > 2100 || !(Number(r[c.pop]) > 0)) continue;
     const e = (regions[r[c.loc]] ||= { population: [], medianAge: [], fertility: [], lifeExpectancy: [] });
     // The world year by year from 1950; its regions and the slower measures every five years.
     const world = r[c.loc] === "900";

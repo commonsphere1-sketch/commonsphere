@@ -264,7 +264,7 @@ const axis = (look: Look) => ({ tick: { fontSize: 9, fill: look.muted, fontFamil
  * series is two keys; the dashed one also carries the last estimate, so the
  * two join.
  */
-function SplitArea({ series, split, color, name, fmt, tick, height = 250, mark }: { series: Point[]; split: number; color: string; name: string; fmt: (v: number) => string; tick: (v: number) => string; height?: number; mark?: { year: number; label: string } }) {
+function SplitArea({ series, split, color, name, fmt, tick, height = 250, mark, ticks }: { series: Point[]; split: number; color: string; name: string; fmt: (v: number) => string; tick: (v: number) => string; height?: number; mark?: { year: number; label: string }; ticks?: number[] }) {
   const look = useLook();
   const data = series.map(([y, v]) => ({ year: String(y), a: y < split ? v : null, p: y >= split - 1 ? v : null }));
   const id = `fill-${name.replace(/\W+/g, "")}`;
@@ -279,7 +279,7 @@ function SplitArea({ series, split, color, name, fmt, tick, height = 250, mark }
             </linearGradient>
           </defs>
           <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="year" {...axis(look)} minTickGap={22} />
+          <XAxis dataKey="year" {...axis(look)} minTickGap={22} ticks={ticks?.map(String)} />
           <YAxis {...axis(look)} width={48} tickFormatter={tick} domain={[0, "auto"]} />
           <ReferenceArea x1={String(split)} x2={String(last(series)[0])} fill={look.ahead} fillOpacity={1} ifOverflow="visible" />
           {mark && <ReferenceLine x={String(mark.year)} stroke={look.muted} strokeDasharray="2 3" label={{ value: mark.label, position: "top", fontSize: 9, fill: look.muted, fontFamily: "monospace" }} />}
@@ -295,7 +295,7 @@ function SplitArea({ series, split, color, name, fmt, tick, height = 250, mark }
 type LineSpec = { key: string; label: string; color: string; series: Point[] };
 
 /** Several series on one axis, with the projected years washed. A line is dashed over its projected years. */
-function OutlookLines({ lines, split, fmt, height = 230, from }: { lines: LineSpec[]; split: number; fmt: (v: number) => string; height?: number; from?: number }) {
+function OutlookLines({ lines, split, fmt, height = 230, from, tick }: { lines: LineSpec[]; split: number; fmt: (v: number) => string; height?: number; from?: number; tick?: (v: number) => string }) {
   const look = useLook();
   const years = [...new Set(lines.flatMap((l) => l.series.map(([y]) => y)))].filter((y) => !from || y >= from).sort((a, b) => a - b);
   if (years.length < 2) return null;
@@ -319,7 +319,7 @@ function OutlookLines({ lines, split, fmt, height = 230, from }: { lines: LineSp
         <LineChart data={data} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
           <XAxis dataKey="year" {...axis(look)} minTickGap={18} />
-          <YAxis {...axis(look)} width={40} tickFormatter={(v: number) => fmt(v)} />
+          <YAxis {...axis(look)} width={44} tickFormatter={(v: number) => (tick ?? fmt)(v)} />
           {lastYear >= split && <ReferenceArea x1={String(split)} x2={String(lastYear)} fill={look.ahead} fillOpacity={1} ifOverflow="visible" />}
           <ReferenceLine y={0} stroke={look.grid} />
           <Tooltip {...look.tooltip} formatter={(v: number, k: string) => [fmt(v), nameOf(k)]} />
@@ -374,8 +374,10 @@ function CountryOutlookCard() {
   const c: CountryOutlook = WEO_COUNTRIES.find((x) => x.iso3 === iso3) ?? WEO_COUNTRIES[0];
   const first = WEO.firstProjected;
   const end = WEO.lastYear;
-  const charts: { key: keyof CountryOutlook; label: string; color: string; fmt: (v: number) => string }[] = [
-    { key: "gdp", label: "GDP, current US$", color: SERIES.world, fmt: (v) => usdFromBillions(v) },
+  /* An axis label for an amount in billions: short enough to fit beside a small chart. */
+  const shortUsd = (v: number) => (v === 0 ? "$0" : v >= 1000 ? `$${(v / 1000).toFixed(v >= 10000 ? 0 : 1)}T` : v >= 1 ? `$${Math.round(v)}B` : `$${Math.round(v * 1000)}M`);
+  const charts: { key: keyof CountryOutlook; label: string; color: string; fmt: (v: number) => string; tick?: (v: number) => string }[] = [
+    { key: "gdp", label: "GDP, current US$", color: SERIES.world, fmt: (v) => usdFromBillions(v), tick: shortUsd },
     { key: "growth", label: "Real GDP growth", color: "#10b981", fmt: (v) => pct(v) },
     { key: "inflation", label: "Inflation", color: "#f59e0b", fmt: (v) => pct(v) },
     { key: "debt", label: "Government debt, % of GDP", color: "#ef4444", fmt: (v) => pct(v) },
@@ -423,7 +425,7 @@ function CountryOutlookCard() {
             <p className="text-[11px] font-semibold font-sans mb-1" style={{ color: head }}>
               {ch.label}
             </p>
-            <OutlookLines lines={[{ key: "v", label: ch.label, color: ch.color, series: c[ch.key] as Point[] }]} split={first} fmt={ch.fmt} height={150} />
+            <OutlookLines lines={[{ key: "v", label: ch.label, color: ch.color, series: c[ch.key] as Point[] }]} split={first} fmt={ch.fmt} tick={ch.tick} height={150} />
           </div>
         ))}
       </div>
@@ -779,6 +781,7 @@ export function TrendsPage() {
                 fmt={people}
                 tick={(v) => `${(v / 1e9).toFixed(0)}bn`}
                 height={280}
+                ticks={[1950, 1975, 2000, 2025, 2050, 2075, 2100]}
                 mark={{ year: POP_PEAK[0], label: `peak ${POP_PEAK[0]}` }}
               />
               <Legend
