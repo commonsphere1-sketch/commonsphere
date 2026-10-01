@@ -10,8 +10,13 @@
  * projections); policy from the live headlines of national politics desks
  * and US statehouse coverage, counted by the words in them. Nothing here is
  * typed in by hand.
+ *
+ * On the Policy page a headline's detail goes further (PolicyContext): where
+ * the headline came from, the published figures for the place it is about,
+ * and the week's other policy headlines about that place. It is loaded only
+ * there, so the Dashboard's panel does not carry its data.
  */
-import { useMemo, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowRight, ArrowSquareOut, ChartBar, Globe, Heart, MagnifyingGlass, MapPin, Scales, Users, X } from "@phosphor-icons/react";
@@ -23,6 +28,10 @@ import { has, na, sortKey } from "../lib/na";
 import { usdFromBillions } from "../lib/money";
 import { SourceLink } from "./SourceLink";
 import { ago, placeName, useHeadlines, type Headline } from "./HeadlinesBanner";
+import type { TopicHit } from "./PolicyContext";
+
+/** The Policy page's fuller detail for a headline, with the data it draws on. */
+const PolicyContext = lazy(() => import("./PolicyContext"));
 
 export type ExplorerTab = "countries" | "economies" | "policies";
 
@@ -65,7 +74,7 @@ function useTokens() {
     tooltipBg: isLight ? "#ffffff" : "#1a1730",
   };
 }
-type Tokens = ReturnType<typeof useTokens>;
+export type Tokens = ReturnType<typeof useTokens>;
 
 const lastOf = (s: WorldPoint[]) => s[s.length - 1];
 const trillions = (usd: number) => `$${(usd / 1e12).toFixed(usd >= 1e13 ? 1 : 2)}T`;
@@ -101,9 +110,9 @@ export function DataExplorer({ only }: { /** Show this category alone, without t
   const regionList = regions.filter((r) => !q || r.name.toLowerCase().includes(q));
   const region = (regionId ? regions.find((r) => r.id === regionId) : null) ?? regionList[0] ?? null;
 
-  // The last week's policy headlines, by topic: the newest POLICY_READ of them at most.
+  // The last week's headlines from the policy desks, by topic: the newest POLICY_READ of them at most.
   // Not read at all where the explorer shows another category alone.
-  const headlines = useHeadlines(["policy"], 7, POLICY_READ, true, undefined, !only || only === "policies");
+  const headlines = useHeadlines(["policy"], 7, POLICY_READ, false, undefined, !only || only === "policies");
   const capped = headlines.length >= POLICY_READ;
   const [topic, setTopic] = useState<string | null>(null);
   const topicRe = POLICY_TOPICS.find((p) => p.label === topic)?.re;
@@ -112,7 +121,19 @@ export function DataExplorer({ only }: { /** Show this category alone, without t
     .filter((h) => !q || h.title.toLowerCase().includes(q) || h.outlet.toLowerCase().includes(q) || h.places.some((p) => placeName(p)?.toLowerCase().includes(q)))
     .slice(0, 60);
   const [policyUrl, setPolicyUrl] = useState<string | null>(null);
-  const policy = (policyUrl ? policies.find((h) => h.url === policyUrl) : null) ?? policies[0] ?? null;
+  // A headline opened from the detail pane - another about the same place - may not be in the list.
+  const [opened, setOpened] = useState<Headline | null>(null);
+  const policy = (policyUrl ? (policies.find((h) => h.url === policyUrl) ?? (opened?.url === policyUrl ? opened : null)) : null) ?? policies[0] ?? null;
+
+  // Narrowing the list lets go of it, as it does of a headline picked from the list.
+  useEffect(() => setOpened(null), [topic, q]);
+
+  // A new headline in the detail pane starts at its top.
+  const detailRef = useRef<HTMLDivElement | null>(null);
+  const shownUrl = tab === "policies" ? (policy?.url ?? null) : null;
+  useEffect(() => {
+    if (detailRef.current) detailRef.current.scrollTop = 0;
+  }, [shownUrl]);
 
   const cur = TABS.find((x) => x.id === tab)!;
   const badge: Record<ExplorerTab, string> = {
@@ -211,10 +232,38 @@ export function DataExplorer({ only }: { /** Show this category alone, without t
             />
           )}
         </div>
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 md:h-full">
+        <div ref={detailRef} className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 md:h-full">
           {tab === "countries" && country && <CountryDetail t={t} c={country} onProfile={pathname === TABS[0].path ? null : () => navigate(TABS[0].path)} />}
           {tab === "economies" && region && <RegionDetail t={t} region={region} byGdp={byGdp} onExplorer={pathname === TABS[1].path ? null : () => navigate(TABS[1].path)} />}
-          {tab === "policies" && (policy ? <PolicyDetail t={t} h={policy} onHub={pathname === TABS[2].path ? null : () => navigate(TABS[2].path)} /> : <Empty t={t}>No policy headlines to show.</Empty>)}
+          {tab === "policies" &&
+            (policy ? (
+              <PolicyDetail
+                t={t}
+                h={policy}
+                onHub={pathname === TABS[2].path ? null : () => navigate(TABS[2].path)}
+                more={
+                  only === "policies"
+                    ? {
+                        headlines,
+                        onOpen: (h) => {
+                          setOpened(h);
+                          setPolicyUrl(h.url);
+                        },
+                        onTopic: (label) => {
+                          setSearch("");
+                          setTopic(label);
+                        },
+                        onOutlet: (outlet) => {
+                          setTopic(null);
+                          setSearch(outlet);
+                        },
+                      }
+                    : null
+                }
+              />
+            ) : (
+              <Empty t={t}>No policy headlines to show.</Empty>
+            ))}
         </div>
       </div>
 
@@ -240,7 +289,7 @@ export function DataExplorer({ only }: { /** Show this category alone, without t
 
 // ── Pieces ──────────────────────────────────────────────────────────────────
 
-function Label({ t, children, className = "" }: { t: Tokens; children: ReactNode; className?: string }) {
+export function Label({ t, children, className = "" }: { t: Tokens; children: ReactNode; className?: string }) {
   return (
     <p className={`text-[9px] font-mono uppercase tracking-widest ${className}`} style={{ color: t.mutedText }}>
       {children}
@@ -258,7 +307,7 @@ function Empty({ t, children }: { t: Tokens; children: ReactNode }) {
   );
 }
 
-function Kpi({ t, label, value, color, sub }: { t: Tokens; label: string; value: string; color: string; sub?: string }) {
+export function Kpi({ t, label, value, color, sub }: { t: Tokens; label: string; value: string; color: string; sub?: string }) {
   return (
     <div className="rounded-lg px-2.5 py-2" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
       <p className="text-[9px] font-mono" style={{ color: t.mutedText }}>
@@ -853,8 +902,24 @@ function PolicyList({
   );
 }
 
-function PolicyDetail({ t, h, onHub }: { t: Tokens; h: Headline; onHub: (() => void) | null }) {
+/** What the Policy page's detail adds: the headlines read, and what its links into the list do. */
+type PolicyMore = {
+  headlines: Headline[];
+  onOpen: (h: Headline) => void;
+  onTopic: (label: string) => void;
+  onOutlet: (outlet: string) => void;
+};
+
+/** A topic's words as the headline has them, each once. */
+function wordsIn(re: RegExp, title: string): string[] {
+  const found = new Map<string, string>();
+  for (const m of title.matchAll(new RegExp(re.source, "gi"))) if (!found.has(m[0].toLowerCase())) found.set(m[0].toLowerCase(), m[0]);
+  return [...found.values()];
+}
+
+function PolicyDetail({ t, h, onHub, more }: { t: Tokens; h: Headline; onHub: (() => void) | null; more: PolicyMore | null }) {
   const topics = POLICY_TOPICS.filter((p) => p.re.test(h.title));
+  const hits: TopicHit[] = topics.map((p) => ({ label: p.label, color: p.color, words: wordsIn(p.re, h.title) }));
   const places = placesOf(h);
   const when = new Date(h.published_at);
   return (
@@ -877,7 +942,7 @@ function PolicyDetail({ t, h, onHub }: { t: Tokens; h: Headline; onHub: (() => v
           {h.outlet} · {when.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} · {ago(h.published_at)}
         </p>
       </div>
-      {places.length > 0 && (
+      {!more && places.length > 0 && (
         <div className="rounded-xl px-3 py-3" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
           <Label t={t} className="mb-1">
             About
@@ -896,9 +961,22 @@ function PolicyDetail({ t, h, onHub }: { t: Tokens; h: Headline; onHub: (() => v
       >
         Read it at {h.outlet} <ArrowSquareOut size={11} weight="bold" />
       </a>
-      <p className="text-[9px] font-sans leading-snug" style={{ color: t.mutedText }}>
-        {topics.length ? "Its topics come from the words in the headline. " : ""}The story is the outlet's; CommonSphere links to it and adds nothing to it.
-      </p>
+      {more ? (
+        // Keyed by the headline, so the place it shows starts afresh with each.
+        <Suspense
+          fallback={
+            <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
+              Loading the figures…
+            </p>
+          }
+        >
+          <PolicyContext key={h.url} t={t} h={h} hits={hits} {...more} />
+        </Suspense>
+      ) : (
+        <p className="text-[9px] font-sans leading-snug" style={{ color: t.mutedText }}>
+          {topics.length ? "Its topics come from the words in the headline. " : ""}The story is the outlet's; CommonSphere links to it and adds nothing to it.
+        </p>
+      )}
       {onHub && (
         <GoButton color="#a855f7" onClick={onHub}>
           Policy hub
