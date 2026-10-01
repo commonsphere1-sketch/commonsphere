@@ -16779,8 +16779,8 @@ export function CountriesPage() {
         {/* ── INTERNATIONAL SNAPSHOT ── */}
         <InternationalSnapshot countries={liveCountries} />
 
-        {/* ── DATA EXPLORER: the same countries, economies and policy panel as the Dashboard ── */}
-        <DataExplorer initialTab="countries" />
+        {/* ── DATA EXPLORER: the Dashboard's countries panel, on its own ── */}
+        <DataExplorer only="countries" />
 
         {/* ── SEARCH + FILTER BAR ── */}
         <FilterBar

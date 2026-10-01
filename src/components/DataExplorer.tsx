@@ -1,7 +1,8 @@
 /**
  * The data explorer: countries, the world's economies, and policy news, each
- * as a list beside a detail pane. It sits on the Dashboard and on the
- * Countries, Economies and Policy pages, each opening on its own tab.
+ * as a list beside a detail pane. The Dashboard has all three, as tabs; the
+ * Countries, Economies and Policy pages each have their own alone (`only`),
+ * with no tabs to the other two.
  *
  * Every figure is sourced. Countries come from the site's country data; the
  * world, its regions and the European Union from the World Bank's and the
@@ -75,11 +76,12 @@ const flagOf = (c: Country) => (c as Country & { flag?: string }).flag ?? c.code
 const GREEN = "#10b981";
 const RED = "#ef4444";
 
-export function DataExplorer({ initialTab = "countries" }: { initialTab?: ExplorerTab }) {
+export function DataExplorer({ only }: { /** Show this category alone, without the tabs. */ only?: ExplorerTab }) {
   const t = useTokens();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [tab, setTab] = useState<ExplorerTab>(initialTab);
+  const [picked, setTab] = useState<ExplorerTab>("countries");
+  const tab = only ?? picked;
   const [search, setSearch] = useState("");
   const q = search.trim().toLowerCase();
 
@@ -100,7 +102,8 @@ export function DataExplorer({ initialTab = "countries" }: { initialTab?: Explor
   const region = (regionId ? regions.find((r) => r.id === regionId) : null) ?? regionList[0] ?? null;
 
   // The last week's policy headlines, by topic: the newest POLICY_READ of them at most.
-  const headlines = useHeadlines(["policy"], 7, POLICY_READ, true);
+  // Not read at all where the explorer shows another category alone.
+  const headlines = useHeadlines(["policy"], 7, POLICY_READ, true, undefined, !only || only === "policies");
   const capped = headlines.length >= POLICY_READ;
   const [topic, setTopic] = useState<string | null>(null);
   const topicRe = POLICY_TOPICS.find((p) => p.label === topic)?.re;
@@ -126,38 +129,48 @@ export function DataExplorer({ initialTab = "countries" }: { initialTab?: Explor
 
   return (
     <div className="flex flex-col rounded-2xl overflow-hidden" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
-      {/* Tabs */}
-      <div role="tablist" aria-label="Data explorer" className="flex items-center overflow-x-auto border-b" style={{ borderColor: t.gridLine }}>
-        {TABS.map((x) => {
-          const on = tab === x.id;
-          return (
-            <button
-              key={x.id}
-              type="button"
-              role="tab"
-              aria-selected={on}
-              onClick={() => {
-                setTab(x.id);
-                setSearch("");
-                setTopic(null);
-              }}
-              className="flex items-center gap-1.5 px-4 py-3 text-[11px] font-bold font-sans transition-colors relative shrink-0 cursor-pointer"
-              style={{
-                color: on ? x.color : t.mutedText,
-                background: on ? t.tile : "transparent",
-                borderBottom: `2px solid ${on ? x.color : "transparent"}`,
-                marginBottom: -1,
-              }}
-            >
-              <x.Icon size={12} weight="fill" style={{ color: x.color }} aria-hidden />
-              {x.label}
-              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: x.color + "15", color: x.color }}>
-                {badge[x.id]}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      {/* One category alone is headed by its name; all three are tabs. */}
+      {only ? (
+        <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: cur.color }}>
+          <cur.Icon size={12} weight="fill" aria-hidden />
+          <h2 className="text-[11px] font-bold font-sans">{cur.label}</h2>
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: cur.color + "15" }}>
+            {badge[cur.id]}
+          </span>
+        </div>
+      ) : (
+        <div role="tablist" aria-label="Data explorer" className="flex items-center overflow-x-auto border-b" style={{ borderColor: t.gridLine }}>
+          {TABS.map((x) => {
+            const on = tab === x.id;
+            return (
+              <button
+                key={x.id}
+                type="button"
+                role="tab"
+                aria-selected={on}
+                onClick={() => {
+                  setTab(x.id);
+                  setSearch("");
+                  setTopic(null);
+                }}
+                className="flex items-center gap-1.5 px-4 py-3 text-[11px] font-bold font-sans transition-colors relative shrink-0 cursor-pointer"
+                style={{
+                  color: on ? x.color : t.mutedText,
+                  background: on ? t.tile : "transparent",
+                  borderBottom: `2px solid ${on ? x.color : "transparent"}`,
+                  marginBottom: -1,
+                }}
+              >
+                <x.Icon size={12} weight="fill" style={{ color: x.color }} aria-hidden />
+                {x.label}
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: x.color + "15", color: x.color }}>
+                  {badge[x.id]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Search */}
       <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: t.gridLine }}>

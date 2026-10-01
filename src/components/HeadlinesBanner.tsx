@@ -88,13 +88,14 @@ const cache = new Map<string, { at: number; rows: Headline[] }>();
 /** Fewer than this from a page's own desks, and a banner with a subject tops itself up. */
 const TOP_UP_BELOW = 12;
 
-export function useHeadlines(topics: Topic[], days: number, read: number, untagged: boolean, subject?: RegExp): Headline[] {
+/** `enabled` false reads nothing: for a caller that shows headlines only some of the time. */
+export function useHeadlines(topics: Topic[], days: number, read: number, untagged: boolean, subject?: RegExp, enabled = true): Headline[] {
   const key = `${topics.join(",")}|${days}|${read}|${untagged}|${subject?.source ?? ""}`;
   const [rows, setRows] = useState<Headline[]>(() => cache.get(key)?.rows ?? []);
   useEffect(() => {
     const db = supabase;
     const hit = cache.get(key);
-    if (!db || (hit && Date.now() - hit.at < 10 * 60_000)) return;
+    if (!enabled || !db || (hit && Date.now() - hit.at < 10 * 60_000)) return;
     let live = true;
     const since = new Date(Date.now() - days * 86_400_000).toISOString();
     const query = (byTopic: boolean, limit = read) => {
@@ -135,7 +136,7 @@ export function useHeadlines(topics: Topic[], days: number, read: number, untagg
     };
     // The key spells out topics, days, read, untagged and subject.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, enabled]);
   return rows;
 }
 

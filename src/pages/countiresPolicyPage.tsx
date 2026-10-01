@@ -11093,8 +11093,8 @@ export function PolicyPage() {
         )}
       />
 
-      {/* Data explorer: the same countries, economies and policy panel as the Dashboard */}
-      <DataExplorer initialTab="policies" />
+      {/* Data explorer: the Dashboard's policies panel, on its own */}
+      <DataExplorer only="policies" />
 
       {/* Entity rows */}
       {paginatedGroups.length === 0 ? (

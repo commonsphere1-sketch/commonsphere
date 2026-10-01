@@ -2610,9 +2610,9 @@ export function EconomiesPage() {
           )}
         />
 
-        {/* ── Data explorer: the same countries, economies and policy panel as the Dashboard ── */}
+        {/* ── Data explorer: the Dashboard's economies panel, on its own ── */}
         <div className="mb-6">
-          <DataExplorer initialTab="economies" />
+          <DataExplorer only="economies" />
         </div>
 
         {modalEconomy && (
