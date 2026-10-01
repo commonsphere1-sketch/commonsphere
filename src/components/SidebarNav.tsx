@@ -652,6 +652,28 @@ function SectionLabel({
   );
 }
 
+/** The row that opens and closes the sidebar: at the head of the bar and at its foot. */
+function CollapseToggle({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      className={`flex items-center gap-2 px-2.5 py-2 rounded-lg w-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-250 ease-in-out cursor-pointer ${
+        collapsed ? "justify-center px-0" : ""
+      }`}
+      aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+    >
+      {collapsed ? (
+        <CaretRight size={14} weight="bold" />
+      ) : (
+        <>
+          <CaretLeft size={14} weight="bold" />
+          <span className="text-[11px] font-medium font-sans tracking-wide">Collapse</span>
+        </>
+      )}
+    </button>
+  );
+}
+
 export function SidebarNav({
   collapsed,
   onToggle,
@@ -665,6 +687,13 @@ export function SidebarNav({
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       aria-label="Sidebar navigation"
     >
+      {/* Collapse toggle at the head of the bar — desktop only; the same one is at its foot. */}
+      {!mobile && (
+        <div className="px-2 pb-2 border-b border-border mb-2 shrink-0">
+          <CollapseToggle collapsed={collapsed} onToggle={onToggle} />
+        </div>
+      )}
+
       {/* Main nav — fills available height. At tablet widths the bar is tall
           and the list short, so it sat bunched at the top with the account
           links stranded at the foot; there the items are spread evenly down
@@ -731,25 +760,8 @@ export function SidebarNav({
 
       {/* Collapse toggle — desktop only */}
       {!mobile && (
-        <div className="px-2 pt-3 border-t border-border mt-2">
-          <button
-            onClick={onToggle}
-            className={`flex items-center gap-2 px-2.5 py-2 rounded-lg w-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-250 ease-in-out cursor-pointer ${
-              collapsed ? "justify-center px-0" : ""
-            }`}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {collapsed ? (
-              <CaretRight size={14} weight="bold" />
-            ) : (
-              <>
-                <CaretLeft size={14} weight="bold" />
-                <span className="text-[11px] font-medium font-sans tracking-wide">
-                  Collapse
-                </span>
-              </>
-            )}
-          </button>
+        <div className="px-2 pt-3 border-t border-border mt-2 shrink-0">
+          <CollapseToggle collapsed={collapsed} onToggle={onToggle} />
         </div>
       )}
     </nav>
