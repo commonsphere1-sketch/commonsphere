@@ -10,13 +10,13 @@ import {
   Users,
   Buildings,
   Globe,
-  ArrowUp,
-  ArrowDown,
-  ArrowRight,
   CaretDown,
   CaretRight,
 } from "@phosphor-icons/react";
 import { usStatesData } from "../data/statesData";
+import { countryPolicyFigures, policyCountry, statePolicyFigures, type PolicyFigures } from "../data/policyFigures";
+import { has } from "../lib/na";
+import { SourceLink } from "../components/SourceLink";
 import { FilterBar } from "../components/FilterBar";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
 import { DataExplorer } from "../components/DataExplorer";
@@ -33,20 +33,23 @@ type PolicyCategory =
   | "Technology"
   | "Social";
 
-type Trend = "up" | "down" | "stable";
-
+/**
+ * A card: a place and a policy area. Its name and description are the
+ * page's own, written for the place and area (`written`), or the area's
+ * plain name where none is written. Its figures are not held here: the card
+ * reads them from data/policyFigures when it is drawn.
+ */
 interface PolicyCard {
   id: string;
   entityId: string;
+  /** The key the figures are held under: a country's ISO code, a state's postal code. */
+  code: string;
   entityName: string;
   entityType: "state" | "country";
   category: PolicyCategory;
   policyName: string;
   description: string;
-  allocated: string;
-  gdpPct: string;
-  score: number;
-  trend: Trend;
+  written: boolean;
 }
 
 // ── Inline mini country dataset (avoids bundler parsing countriesData.ts) ──
@@ -1351,49 +1354,49 @@ const CATEGORY_CONFIG: Record<
 > = {
   Climate: {
     icon: Leaf,
-    color: "text-emerald-400",
+    color: "text-emerald-700 dark:text-emerald-400",
     bg: "bg-emerald-400/15",
     bar: "bg-emerald-400",
   },
   Healthcare: {
     icon: Heart,
-    color: "text-pink-400",
+    color: "text-pink-700 dark:text-pink-400",
     bg: "bg-pink-400/15",
     bar: "bg-pink-400",
   },
   Infrastructure: {
     icon: Wrench,
-    color: "text-orange-400",
+    color: "text-orange-700 dark:text-orange-400",
     bg: "bg-orange-400/15",
     bar: "bg-orange-400",
   },
   Education: {
     icon: BookOpen,
-    color: "text-yellow-400",
+    color: "text-yellow-700 dark:text-yellow-400",
     bg: "bg-yellow-400/15",
     bar: "bg-yellow-400",
   },
   Economy: {
     icon: TrendUp,
-    color: "text-purple-400",
+    color: "text-purple-700 dark:text-purple-400",
     bg: "bg-purple-400/15",
     bar: "bg-purple-400",
   },
   Defense: {
     icon: ShieldCheck,
-    color: "text-red-400",
+    color: "text-red-700 dark:text-red-400",
     bg: "bg-red-400/15",
     bar: "bg-red-400",
   },
   Technology: {
     icon: Desktop,
-    color: "text-cyan-400",
+    color: "text-cyan-700 dark:text-cyan-400",
     bg: "bg-cyan-400/15",
     bar: "bg-cyan-400",
   },
   Social: {
     icon: Users,
-    color: "text-rose-400",
+    color: "text-rose-700 dark:text-rose-400",
     bg: "bg-rose-400/15",
     bar: "bg-rose-400",
   },
@@ -1401,17 +1404,7 @@ const CATEGORY_CONFIG: Record<
 
 
 
-// ── Seeded RNG helper ────────────────────────────────────────────────────────
-
-function seededRand(seed: number) {
-  let s = seed;
-  return () => {
-    s = (s * 16807 + 0) % 2147483647;
-    return (s - 1) / 2147483646;
-  };
-}
-
-// ── Policy data generator ────────────────────────────────────────────────────
+// ── Policy areas ─────────────────────────────────────────────────────────────
 
 const CATEGORIES: PolicyCategory[] = [
   "Climate",
@@ -3532,109 +3525,6 @@ const STATE_SPECIFIC_POLICIES: Record<
         "Improves state-delivered healthcare, education, and housing services to the Eastern Shoshone and Northern Arapaho on Wind River.",
     },
   },
-};
-
-// Fallback generic pool for states not in the specific map
-const STATE_POLICIES: Record<
-  PolicyCategory,
-  Array<{ name: string; description: string }>
-> = {
-  Climate: [
-    {
-      name: "Clean Air Initiative",
-      description:
-        "Reduces industrial emissions and improves air quality standards statewide.",
-    },
-    {
-      name: "Renewable Portfolio Standard",
-      description:
-        "Mandates a percentage of electricity from renewable sources by a set deadline.",
-    },
-  ],
-  Healthcare: [
-    {
-      name: "Medicaid Expansion Program",
-      description:
-        "Extends Medicaid eligibility to cover more low-income residents.",
-    },
-    {
-      name: "Public Health Modernization",
-      description:
-        "Upgrades public health systems and data infrastructure across the state.",
-    },
-  ],
-  Infrastructure: [
-    {
-      name: "Roads & Bridges Overhaul",
-      description:
-        "Repairs and upgrades aging highway and bridge infrastructure.",
-    },
-    {
-      name: "Broadband Expansion Plan",
-      description:
-        "Extends high-speed internet access to rural and underserved communities.",
-    },
-  ],
-  Education: [
-    {
-      name: "K-12 Excellence Fund",
-      description:
-        "Boosts per-pupil spending and teacher retention in public schools.",
-    },
-    {
-      name: "Early Childhood Literacy",
-      description:
-        "Invests in pre-K reading programs to close the early literacy gap.",
-    },
-  ],
-  Economy: [
-    {
-      name: "Small Business Growth Act",
-      description:
-        "Provides grants and tax credits to support small business formation.",
-    },
-    {
-      name: "Job Creation Fund",
-      description:
-        "Partners with private sector to attract investment and create jobs.",
-    },
-  ],
-  Defense: [
-    {
-      name: "National Guard Readiness",
-      description:
-        "Improves training, equipment, and mobilization capacity of the National Guard.",
-    },
-    {
-      name: "Cybersecurity Shield",
-      description:
-        "Strengthens state cybersecurity defenses against foreign and domestic threats.",
-    },
-  ],
-  Technology: [
-    {
-      name: "Digital Transformation Fund",
-      description:
-        "Digitalizes government services to improve efficiency and accessibility.",
-    },
-    {
-      name: "Broadband for All",
-      description:
-        "Ensures universal access to high-speed internet for residents and businesses.",
-    },
-  ],
-  Social: [
-    {
-      name: "Affordable Housing Act",
-      description:
-        "Increases housing supply and prevents displacement of low-income residents.",
-    },
-    {
-      name: "Food Security Program",
-      description:
-        "Expands food assistance and supports local food banks and nutrition access.",
-    },
-  ],
 };
 
 // ── Country-specific policy descriptions ─────────────────────────────────────
@@ -10323,208 +10213,71 @@ const COUNTRY_SPECIFIC_POLICIES: Record<
   },
 };
 
-// Fallback generic pool for countries not in the specific map
-const COUNTRY_POLICY_FALLBACK: Record<
-  PolicyCategory,
-  Array<{ name: string; description: string }>
-> = {
-  Climate: [
-    {
-      name: "National Climate Action Plan",
-      description:
-        "A comprehensive strategy to cut emissions and reach Paris Agreement targets.",
-    },
-    {
-      name: "Renewable Energy Expansion",
-      description:
-        "Scales up wind, solar, and hydro capacity to replace fossil fuel generation.",
-    },
-  ],
-  Healthcare: [
-    {
-      name: "Universal Healthcare Reform",
-      description:
-        "Extends affordable health coverage to all citizens regardless of income.",
-    },
-    {
-      name: "Public Hospital Modernization",
-      description:
-        "Upgrades public hospital facilities, equipment, and staffing standards.",
-    },
-  ],
-  Infrastructure: [
-    {
-      name: "National Infrastructure Plan",
-      description:
-        "Long-term investment roadmap for transport, energy, and digital infrastructure.",
-    },
-    {
-      name: "Digital Infrastructure Act",
-      description:
-        "Funds fiber networks, 5G rollout, and data center buildout nationwide.",
-    },
-  ],
-  Education: [
-    {
-      name: "National Education Reform",
-      description:
-        "Overhauls curriculum, teacher pay, and school funding formulas nationally.",
-    },
-    {
-      name: "Vocational Training Initiative",
-      description:
-        "Expands technical and trade education to align with labor market needs.",
-    },
-  ],
-  Economy: [
-    {
-      name: "Economic Competitiveness Act",
-      description:
-        "Streamlines regulations and incentivizes investment to boost productivity.",
-    },
-    {
-      name: "National Industry Strategy",
-      description:
-        "Identifies and develops key strategic industries for long-term growth.",
-    },
-  ],
-  Defense: [
-    {
-      name: "National Defense Strategy",
-      description:
-        "Sets out priorities for military posture, alliances, and threat response.",
-    },
-    {
-      name: "Military Modernization Fund",
-      description:
-        "Invests in next-generation weapons systems and force readiness.",
-    },
-  ],
-  Technology: [
-    {
-      name: "National AI Strategy",
-      description:
-        "Coordinates AI investment, regulation, and research across government and industry.",
-    },
-    {
-      name: "Digital Economy Blueprint",
-      description:
-        "Drives digital transformation of key economic sectors and public services.",
-    },
-  ],
-  Social: [
-    {
-      name: "Social Safety Net Reform",
-      description:
-        "Consolidates and strengthens income support programs for vulnerable populations.",
-    },
-    {
-      name: "Youth Employment Initiative",
-      description:
-        "Tackles youth unemployment with apprenticeships and job placement programs.",
-    },
-  ],
+// ── The cards ────────────────────────────────────────────────────────────────
+
+/** What an area is called on a card with no policy written for it. */
+const AREA_TITLE: Record<PolicyCategory, string> = {
+  Climate: "Climate and environment",
+  Healthcare: "Health",
+  Infrastructure: "Infrastructure and economic affairs",
+  Education: "Education",
+  Economy: "The economy and public finances",
+  Defense: "Defence",
+  Technology: "Technology",
+  Social: "Social protection",
 };
 
-function generateCountryPolicies(): PolicyCard[] {
-  const cards: PolicyCard[] = [];
-  MINI_COUNTRIES.forEach((country, ci) => {
-    CATEGORIES.forEach((cat, ki) => {
-      const r = seededRand(ci * 113 + ki * 17 + 5);
-      const specificEntry = COUNTRY_SPECIFIC_POLICIES[country.id]?.[cat];
-      let policyName: string;
-      let description: string;
-      if (specificEntry) {
-        policyName = specificEntry.name;
-        description = specificEntry.description;
-      } else {
-        const fallbackOptions = COUNTRY_POLICY_FALLBACK[cat];
-        const fallbackItem =
-          fallbackOptions[Math.floor(r() * fallbackOptions.length)];
-        policyName = fallbackItem.name;
-        description = fallbackItem.description;
-      }
-      r(); // consume one value to keep score/trend RNG consistent
-      const gdpPctVal = parseFloat((r() * 15 + 0.5).toFixed(1));
-      const allocBillions = parseFloat(
-        (country.gdp * (gdpPctVal / 100) * (0.3 + r() * 0.7)).toFixed(1),
-      );
-      const allocStr =
-        allocBillions >= 1000
-          ? `$${(allocBillions / 1000).toFixed(1)}T`
-          : `$${allocBillions.toFixed(0)}B`;
-      const score = parseFloat((4.5 + r() * 5.5).toFixed(1));
-      const trendRoll = r();
-      const trend: Trend =
-        trendRoll > 0.6 ? "up" : trendRoll < 0.25 ? "down" : "stable";
-      cards.push({
+/**
+ * A card for every place and policy area.
+ *
+ * The cards used to carry an "allocated" amount, a share of GDP, a score out
+ * of ten and a trend, all drawn from a random-number function, and a country
+ * with no policy written for it was dealt a generic policy name at random.
+ * None of that is made any more. A card's figures are published ones
+ * (data/policyFigures.ts), read when it is drawn; a place with no policy
+ * written for an area gets the area's plain name and no description.
+ */
+function countryCards(): PolicyCard[] {
+  return MINI_COUNTRIES.flatMap((country) =>
+    CATEGORIES.map((cat): PolicyCard => {
+      const written = COUNTRY_SPECIFIC_POLICIES[country.id]?.[cat];
+      return {
         id: `country-${country.id}-${cat}`,
         entityId: country.id,
+        code: country.code,
         entityName: country.name,
         entityType: "country",
         category: cat,
-        policyName,
-        description,
-        allocated: allocStr,
-        gdpPct: `${gdpPctVal}% GDP`,
-        score,
-        trend,
-      });
-    });
-  });
-  return cards;
+        policyName: written?.name ?? AREA_TITLE[cat],
+        description: written?.description ?? "",
+        written: !!written,
+      };
+    }),
+  );
 }
 
-function generateStatePolicies(): PolicyCard[] {
-  const cards: PolicyCard[] = [];
-  usStatesData.forEach((state, si) => {
-    CATEGORIES.forEach((cat, ci) => {
-      const r = seededRand(si * 97 + ci * 13 + 3);
-      // Use state-specific policy if available, otherwise fall back to generic pool
-      const specificEntry = STATE_SPECIFIC_POLICIES[state.id]?.[cat];
-      let policyName: string;
-      let description: string;
-      if (specificEntry) {
-        policyName = specificEntry.name;
-        description = specificEntry.description;
-      } else {
-        const policyOptions = STATE_POLICIES[cat];
-        const policyItem =
-          policyOptions[Math.floor(r() * policyOptions.length)];
-        policyName = policyItem.name;
-        description = policyItem.description;
-      }
-      // Consume one random value to keep score/trend RNG consistent
-      r();
-      const gdpPctVal = parseFloat((r() * 12 + 0.5).toFixed(1));
-      const allocBillions = parseFloat(
-        (state.gdp * (gdpPctVal / 100) * (0.4 + r() * 0.6)).toFixed(1),
-      );
-      const allocStr =
-        allocBillions >= 1000
-          ? `$${(allocBillions / 1000).toFixed(1)}T`
-          : `$${allocBillions.toFixed(0)}B`;
-      const score = parseFloat((5.5 + r() * 4.5).toFixed(1));
-      const trendRoll = r();
-      const trend: Trend =
-        trendRoll > 0.6 ? "up" : trendRoll < 0.25 ? "down" : "stable";
-      cards.push({
+function stateCards(): PolicyCard[] {
+  return usStatesData.flatMap((state) =>
+    CATEGORIES.map((cat): PolicyCard => {
+      const written = STATE_SPECIFIC_POLICIES[state.id]?.[cat];
+      return {
         id: `state-${state.id}-${cat}`,
         entityId: state.id,
+        code: state.id,
         entityName: state.name,
         entityType: "state",
         category: cat,
-        policyName,
-        description,
-        allocated: allocStr,
-        gdpPct: `${gdpPctVal}%`,
-        score,
-        trend,
-      });
-    });
-  });
-  return cards;
+        policyName: written?.name ?? AREA_TITLE[cat],
+        description: written?.description ?? "",
+        written: !!written,
+      };
+    }),
+  );
 }
+
+/** A card's published figures. */
+const figuresOf = (card: PolicyCard): PolicyFigures =>
+  card.entityType === "country" ? countryPolicyFigures(card.code, card.category) : statePolicyFigures(card.code, card.category);
 
 // ── Country meta lookup ──────────────────────────────────────────────────────
 
@@ -10534,15 +10287,10 @@ const countryMetaMap = new Map(
     {
       flagUrl: `https://flagcdn.com/w80/${c.code}.png`,
       continent: c.continent,
-      population: c.population,
-      gdp: c.gdp,
+      code: c.code,
     },
   ]),
 );
-
-function getCountryMeta(entityId: string) {
-  return countryMetaMap.get(entityId);
-}
 
 function formatPop(n: number): string {
   if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`;
@@ -10553,7 +10301,8 @@ function formatPop(n: number): string {
 
 function formatGDP(gdp: number): string {
   if (gdp >= 1000) return `$${(gdp / 1000).toFixed(1)}T`;
-  return `$${gdp.toFixed(0)}B`;
+  if (gdp >= 1) return `$${gdp.toFixed(0)}B`;
+  return `$${Math.round(gdp * 1000)}M`;
 }
 
 // ── Group by entity ──────────────────────────────────────────────────────────
@@ -10564,67 +10313,13 @@ interface EntityGroup {
   entityType: "state" | "country";
   flagUrl?: string;
   continent?: string;
+  /** Population and GDP (US$ billions) from the site's sourced country and state data; absent where it has none. */
   population?: number;
   gdp?: number;
-  avgScore: number;
   policies: PolicyCard[];
 }
 
-function getStateFlag(stateId: string): string {
-  const abbrevMap: Record<string, string> = {
-    ca: "us-ca",
-    tx: "us-tx",
-    ny: "us-ny",
-    fl: "us-fl",
-    il: "us-il",
-    pa: "us-pa",
-    oh: "us-oh",
-    ga: "us-ga",
-    nc: "us-nc",
-    mi: "us-mi",
-    wa: "us-wa",
-    az: "us-az",
-    co: "us-co",
-    tn: "us-tn",
-    in: "us-in",
-    ma: "us-ma",
-    wv: "us-wv",
-    mn: "us-mn",
-    wi: "us-wi",
-    mo: "us-mo",
-    md: "us-md",
-    sc: "us-sc",
-    al: "us-al",
-    la: "us-la",
-    ky: "us-ky",
-    or: "us-or",
-    ok: "us-ok",
-    ct: "us-ct",
-    ut: "us-ut",
-    ia: "us-ia",
-    nv: "us-nv",
-    ar: "us-ar",
-    ms: "us-ms",
-    ks: "us-ks",
-    nm: "us-nm",
-    ne: "us-ne",
-    id: "us-id",
-    hi: "us-hi",
-    nh: "us-nh",
-    me: "us-me",
-    mt: "us-mt",
-    ri: "us-ri",
-    de: "us-de",
-    sd: "us-sd",
-    nd: "us-nd",
-    ak: "us-ak",
-    vt: "us-vt",
-    wy: "us-wy",
-    dc: "us-dc",
-  };
-  const slug = abbrevMap[stateId] ?? "us";
-  return `https://flagcdn.com/w80/${slug}.png`;
-}
+const STATE_BY_ID = new Map(usStatesData.map((s) => [s.id, s]));
 
 function groupByEntity(policies: PolicyCard[]): EntityGroup[] {
   const map = new Map<string, EntityGroup>();
@@ -10636,42 +10331,27 @@ function groupByEntity(policies: PolicyCard[]): EntityGroup[] {
       let population: number | undefined;
       let gdp: number | undefined;
       if (p.entityType === "country") {
-        const meta = getCountryMeta(p.entityId);
-        if (meta) {
-          flagUrl = meta.flagUrl;
-          continent = meta.continent;
-          population = meta.population;
-          gdp = meta.gdp;
-        }
+        const meta = countryMetaMap.get(p.entityId);
+        flagUrl = meta?.flagUrl;
+        continent = meta?.continent;
+        // Only figures that carry a source: a country the World Bank does not report has none here.
+        const c = policyCountry(p.code);
+        if (c?.sources?.population && has(c.population)) population = c.population;
+        if (c?.sources?.gdp && has(c.gdp)) gdp = c.gdp;
       } else {
-        flagUrl = getStateFlag(p.entityId);
+        flagUrl = `https://flagcdn.com/w80/us-${p.entityId}.png`;
         continent = "United States";
+        const st = STATE_BY_ID.get(p.entityId);
+        population = st?.population;
+        gdp = st?.gdp;
       }
-      map.set(key, {
-        entityId: p.entityId,
-        entityName: p.entityName,
-        entityType: p.entityType,
-        flagUrl,
-        continent,
-        population,
-        gdp,
-        avgScore: 0,
-        policies: [],
-      });
+      map.set(key, { entityId: p.entityId, entityName: p.entityName, entityType: p.entityType, flagUrl, continent, population, gdp, policies: [] });
     }
     map.get(key)!.policies.push(p);
   }
-  for (const group of map.values()) {
-    group.avgScore = parseFloat(
-      (
-        group.policies.reduce((s, p) => s + p.score, 0) / group.policies.length
-      ).toFixed(1),
-    );
-    group.policies.sort(
-      (a, b) => CATEGORIES.indexOf(a.category) - CATEGORIES.indexOf(b.category),
-    );
-  }
-  return Array.from(map.values()).sort((a, b) => b.avgScore - a.avgScore);
+  for (const group of map.values()) group.policies.sort((a, b) => CATEGORIES.indexOf(a.category) - CATEGORIES.indexOf(b.category));
+  // Largest economy first, states among the countries; a place with no published GDP after them, by name.
+  return Array.from(map.values()).sort((a, b) => (b.gdp ?? -1) - (a.gdp ?? -1) || a.entityName.localeCompare(b.entityName));
 }
 
 // ── Sub-components ───────────────────────────────────────────────────────────
@@ -10691,94 +10371,90 @@ const CATEGORY_FILTERS: ("All" | PolicyCategory)[] = [
   "Social",
 ];
 
-function TrendIcon({ trend }: { trend: Trend }) {
-  if (trend === "up")
-    return <ArrowUp size={11} className="text-emerald-400" weight="bold" />;
-  if (trend === "down")
-    return <ArrowDown size={11} className="text-red-400" weight="bold" />;
-  return (
-    <ArrowRight size={11} className="text-muted-foreground" weight="bold" />
-  );
-}
-
+/**
+ * A card: the area, its published figure with a bar where the figure is a
+ * share, the policy the page has written for the place, and a Details
+ * dropdown with the whole description, what the figure covers, every figure
+ * held for the area with its year, and their sources.
+ */
 function PolicyCardItem({ card }: { card: PolicyCard }) {
   const cfg = CATEGORY_CONFIG[card.category];
   const Icon = cfg.icon;
+  const fig = figuresOf(card);
+  const head = fig.head;
+  const sources = [...(fig.covers ? [fig.covers.source] : []), ...fig.figures.map((x) => x.source)];
 
   return (
-    <div className="bg-card rounded-2xl border border-border/50 p-4 flex flex-col gap-2.5 hover:border-border/80 hover:shadow-sm transition-all duration-150 w-64 shrink-0 snap-start">
-      {/* Top row: badge | trend + GDP% + score */}
+    <div className="bg-card rounded-2xl border border-border/50 p-4 flex flex-col gap-2.5 hover:border-border/80 hover:shadow-sm transition-all duration-150 w-64 shrink-0 snap-start self-start">
+      {/* Top row: the area | its published figure */}
       <div className="flex items-center gap-2">
-        <div
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${cfg.bg} flex-shrink-0`}
-        >
+        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${cfg.bg} flex-shrink-0`}>
           <Icon size={12} weight="fill" className={cfg.color} />
-          <span className={`text-[11px] font-semibold ${cfg.color}`}>
-            {card.category}
-          </span>
+          <span className={`text-[11px] font-semibold ${cfg.color}`}>{card.category}</span>
         </div>
-        <div className="flex items-center gap-1.5 ml-auto flex-shrink-0">
-          <TrendIcon trend={card.trend} />
-          <span className="text-[10px] text-muted-foreground font-medium">
-            {card.gdpPct}
-          </span>
-          <span className="text-[15px] font-bold text-foreground leading-none ml-1">
-            {card.score.toFixed(1)}
-            <span className="text-[10px] font-normal text-muted-foreground">
-              /10
-            </span>
-          </span>
-        </div>
+        {head && <span className="ml-auto text-[15px] font-bold text-foreground leading-none">{head.value}</span>}
       </div>
 
-      {/* Score bar */}
+      {/* The figure as a bar, where it is a share */}
       <div className="relative h-1.5 rounded-full bg-muted overflow-hidden">
-        <div
-          className={`absolute inset-y-0 left-0 rounded-full ${cfg.bar}`}
-          style={{ width: `${(card.score / 10) * 100}%` }}
-        />
-        <div
-          className="absolute inset-y-0 rounded-full bg-blue-400/40"
-          style={{ left: `${(card.score / 10) * 100}%`, right: "0" }}
-        />
+        {head?.share !== undefined && <div className={`absolute inset-y-0 left-0 rounded-full ${cfg.bar}`} style={{ width: `${Math.min(100, Math.max(1, head.share))}%` }} />}
       </div>
 
-      {/* Policy name */}
-      <p
-        className={`text-[12px] font-semibold leading-snug line-clamp-2 ${cfg.color}`}
-      >
-        {card.policyName}
+      {/* The policy the page has written for the place, or the area's name */}
+      <p className={`text-[12px] font-semibold leading-snug line-clamp-2 ${cfg.color}`}>{card.policyName}</p>
+      {card.description && <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2">{card.description}</p>}
+
+      {/* The figure in words, with its year; or why there is none */}
+      <p className="text-[11px] text-muted-foreground leading-snug">
+        {head ? (
+          <>
+            <span className="text-foreground font-semibold">{head.value}</span> {head.label}
+            {head.share !== undefined && !/%$/.test(head.value) ? ` - ${head.share.toFixed(1)}% of its spending` : ""} · {head.when}
+          </>
+        ) : (
+          fig.none
+        )}
       </p>
 
-      {/* Description */}
-      <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2">
-        {card.description}
-      </p>
-
-      {/* Allocation. mt-auto so it sits on the bottom edge of every card,
-          which is what makes equal-height cards look deliberate. */}
-      <p className="text-[11px] text-muted-foreground mt-auto">
-        <span className="text-foreground font-semibold">{card.allocated}</span>{" "}
-        allocated
-      </p>
+      <details className="group/details">
+        <summary className="flex items-center gap-1 text-[11px] font-semibold text-foreground cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
+          <CaretRight size={11} weight="bold" className="transition-transform group-open/details:rotate-90" />
+          Details
+        </summary>
+        <div className="mt-2 pt-2 border-t border-border/50 flex flex-col gap-2.5">
+          {card.description && <p className="text-[11px] text-foreground/90 leading-snug">{card.description}</p>}
+          {fig.covers && (
+            <p className="text-[11px] text-muted-foreground leading-snug">
+              <span className="font-semibold text-foreground">What the figure covers.</span> {fig.covers.text}
+            </p>
+          )}
+          {fig.figures.length > 0 ? (
+            <dl className="flex flex-col">
+              {fig.figures.map((x, i) => (
+                <div key={i} className="py-1.5 border-t border-border/40 first:border-t-0">
+                  <dt className="text-[10px] text-muted-foreground leading-snug">{x.label}</dt>
+                  <dd className="text-[11px] font-semibold text-foreground leading-snug">
+                    {x.value}
+                    <span className="font-normal text-muted-foreground">
+                      {" "}
+                      · {x.when}
+                      {x.note ? ` · ${x.note}` : ""}
+                    </span>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="text-[11px] text-muted-foreground leading-snug">No published figure is held for this area here.</p>
+          )}
+          <SourceLink sources={sources} className="!mt-0" />
+          <p className="text-[10px] text-muted-foreground leading-snug">
+            The figures are {card.entityName}'s for the whole area, not for one programme.
+            {card.written ? " The policy named above and its description are CommonSphere's own summary, not taken from a source." : ""}
+          </p>
+        </div>
+      </details>
     </div>
-  );
-}
-
-function AvgScoreBadge({ score }: { score: number }) {
-  const color =
-    score >= 8
-      ? "text-emerald-400"
-      : score >= 7
-        ? "text-blue-400"
-        : score >= 6
-          ? "text-yellow-400"
-          : "text-red-400";
-  return (
-    <span className={`text-[13px] font-bold ${color}`}>
-      {score.toFixed(1)}
-      <span className="text-[10px] font-normal text-muted-foreground">/10</span>
-    </span>
   );
 }
 
@@ -10815,15 +10491,34 @@ function EntityFlag({ group }: { group: EntityGroup }) {
 function EntityRow({ group }: { group: EntityGroup }) {
   const [open, setOpen] = useState(false);
 
-  const categoryScores = CATEGORIES.map((cat) => {
-    const p = group.policies.find((x) => x.category === cat);
-    return { cat, score: p?.score ?? 0, cfg: CATEGORY_CONFIG[cat] };
-  });
+  // Each area's share of what the government spends, where its figure is one: the only shares that sit on one scale.
+  const shares = useMemo(
+    () =>
+      group.policies.map((p) => {
+        const head = figuresOf(p).head;
+        return { cat: p.category, cfg: CATEGORY_CONFIG[p.category], share: head?.spending && head.share !== undefined ? head.share : null };
+      }),
+    [group.policies],
+  );
+  const most = Math.max(0, ...shares.map((x) => x.share ?? 0));
+  // The largest is named only where there are several to be the largest of.
+  const shared = shares.filter((x) => x.share !== null).sort((a, b) => (b.share ?? 0) - (a.share ?? 0));
+  const largest = shared.length >= 3 ? shared[0] : undefined;
+  const whose = group.entityType === "country" ? "government" : "state";
+  // The place's whole spending: against the economy for a country, in dollars for a state.
+  const total = useMemo(() => {
+    const economy = group.policies.find((p) => p.category === "Economy") ?? group.policies[0];
+    const head = (group.entityType === "country" ? countryPolicyFigures(economy.code, "Economy") : statePolicyFigures(economy.code, "Economy")).head;
+    if (!head) return null;
+    if (group.entityType === "state") return { value: head.value, label: `state spending · ${head.when}` };
+    return head.share !== undefined ? { value: head.value, label: `spending / GDP · ${head.when}` } : null;
+  }, [group.policies, group.entityType]);
 
   return (
     <div className="modal-tile rounded-2xl overflow-hidden transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40">
       <button
         onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
         className="w-full flex items-center gap-3 px-5 py-4 transition-colors text-left"
       >
         <EntityFlag group={group} />
@@ -10860,63 +10555,51 @@ function EntityRow({ group }: { group: EntityGroup }) {
               </span>
             )}
           </div>
-          <div className="hidden sm:flex mt-0.5">
-            {(() => {
-              const top = [...group.policies].sort(
-                (a, b) => b.score - a.score,
-              )[0];
-              if (!top) return null;
-              const cfg = CATEGORY_CONFIG[top.category];
-              const Icon = cfg.icon;
-              return (
-                <span
-                  className={`flex items-center gap-1.5 text-[10px] font-semibold ${cfg.color}`}
-                >
-                  <Icon size={11} weight="fill" />
-                  <span>{top.category}</span>
-                  <span className="opacity-40 font-normal mx-0.5">·</span>
-                  <span>{top.score.toFixed(1)}</span>
-                  <span className="opacity-40 font-normal mx-0.5">·</span>
-                  <span className="font-medium opacity-70">
-                    {top.policyName}
+          {largest && (
+            <div className="hidden sm:flex mt-0.5">
+              {(() => {
+                const Icon = largest.cfg.icon;
+                return (
+                  <span className={`flex items-center gap-1.5 text-[10px] font-semibold ${largest.cfg.color}`}>
+                    <Icon size={11} weight="fill" />
+                    <span>{largest.cat}</span>
+                    <span className="opacity-40 font-normal mx-0.5">·</span>
+                    <span className="font-medium opacity-80">
+                      largest of these, {largest.share!.toFixed(1)}% of {whose} spending
+                    </span>
                   </span>
-                </span>
-              );
-            })()}
-          </div>
+                );
+              })()}
+            </div>
+          )}
         </div>
 
-        {/* Category mini-bars */}
-        <div
-          className="items-end gap-1.5 mx-3 hidden md:flex"
-          style={{ height: "36px" }}
-        >
-          {categoryScores.map(({ cat, score, cfg }) => (
-            <div
-              key={cat}
-              className="flex flex-col items-center justify-end h-full"
-              title={`${cat}: ${score.toFixed(1)}/10`}
-            >
+        {/* Each area's share of spending, as mini-bars on one scale */}
+        {most > 0 && (
+          <div className="items-end gap-1.5 mx-3 hidden md:flex" style={{ height: "36px" }}>
+            {shares.map(({ cat, share, cfg }) => (
               <div
-                className="rounded-full bg-muted overflow-hidden flex items-end"
-                style={{ width: "4px", height: "100%" }}
+                key={cat}
+                className="flex flex-col items-center justify-end h-full"
+                title={share === null ? `${cat}: no share of spending published` : `${cat}: ${share.toFixed(1)}% of ${whose} spending`}
               >
-                <div
-                  className={`w-full rounded-full ${cfg.bar} transition-all`}
-                  style={{ height: `${(score / 10) * 100}%` }}
-                />
+                <div className="rounded-full bg-muted overflow-hidden flex items-end" style={{ width: "4px", height: "100%" }}>
+                  {share !== null && <div className={`w-full rounded-full ${cfg.bar} transition-all`} style={{ height: `${Math.max(4, (100 * share) / most)}%` }} />}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <div className="flex items-center gap-3 flex-shrink-0">
-          <div className="text-right hidden sm:block">
-            <div className="text-[10px] text-muted-foreground">avg</div>
-            <AvgScoreBadge score={group.avgScore} />
-          </div>
+          {total && (
+            <div className="text-right hidden sm:block">
+              <div className="text-[13px] font-bold text-foreground leading-tight">{total.value}</div>
+              <div className="text-[10px] text-muted-foreground">{total.label}</div>
+            </div>
+          )}
           <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full whitespace-nowrap">
-            {group.policies.length} policies
+            {group.policies.length} {group.policies.length === 1 ? "area" : "areas"}
           </span>
           {open ? (
             <CaretDown size={13} className="text-muted-foreground" />
@@ -10929,10 +10612,10 @@ function EntityRow({ group }: { group: EntityGroup }) {
       {open && (
         <div className="px-5 pb-5 pt-1 border-t border-border/40 min-w-0">
           <div
-            className="flex items-stretch gap-3 mt-3 overflow-x-auto pb-1 snap-x"
+            className="flex items-start gap-3 mt-3 overflow-x-auto pb-1 snap-x"
             tabIndex={0}
             role="group"
-            aria-label="Policies by category — scrolls sideways"
+            aria-label="Policy areas — scrolls sideways"
           >
             {group.policies.map((card) => (
               <PolicyCardItem key={card.id} card={card} />
@@ -10957,9 +10640,7 @@ export function PolicyPage() {
   const PAGE_SIZE = 40;
 
   useEffect(() => {
-    const statePolicies = generateStatePolicies();
-    const countryPolicies = generateCountryPolicies();
-    setAllPolicies([...statePolicies, ...countryPolicies]);
+    setAllPolicies([...stateCards(), ...countryCards()]);
   }, []);
 
   const filteredPolicies = useMemo(() => {
@@ -11017,8 +10698,8 @@ export function PolicyPage() {
         </div>
         {/* pl-8 dropped with the icon — it existed to clear the badge. */}
         <p className="text-xs text-muted-foreground">
-          Policy ratings, allocations, and spending priorities across US States
-          and Countries
+          What governments spend on each policy area, across US states and
+          countries: published figures, each with its year and source
         </p>
       </div>
 
@@ -11030,7 +10711,7 @@ export function PolicyPage() {
           onChange: handleSearch,
           placeholder: "Search countries, states, or policies…",
         }}
-        status={<>{groups.length.toLocaleString()} entities · {filteredPolicies.length.toLocaleString()} policies</>}
+        status={<>{groups.length.toLocaleString()} places · {filteredPolicies.length.toLocaleString()} policy areas</>}
       >
         {/* Entity-type tabs */}
         {TABS.map((t) => (
@@ -11099,7 +10780,7 @@ export function PolicyPage() {
       {/* Entity rows */}
       {paginatedGroups.length === 0 ? (
         <div className="modal-tile rounded-xl p-10 text-center text-muted-foreground text-sm">
-          No policies match your filters.
+          No place or policy matches your filters.
         </div>
       ) : (
         <div className="flex flex-col gap-3">
