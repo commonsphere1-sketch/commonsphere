@@ -34,9 +34,6 @@ import {
 import { MORE_ECONOMIES_SOURCE } from "../data/economiesMore";
 import { ECONOMY_INDICATORS_SOURCE } from "../data/economyIndicators";
 import { ECONOMY_ISO3, type EconomyRents } from "../data/resourceRents";
-import { RESOURCE_PRODUCERS } from "../data/resourceProducers";
-import { ENERGY_PRODUCERS } from "../data/energyProducers";
-import { OTHER_PRODUCERS } from "../data/otherProducers";
 import { useResourceRents } from "../hooks/useResourceRents";
 import { useLiveStatus } from "../lib/liveFigures";
 import { SourceLink } from "../components/SourceLink";
@@ -56,9 +53,18 @@ import {
   type CountryBudget,
 } from "../data/countryBudget";
 import {
+  ChangeChip,
+  LATEST_PRICE_MONTH,
+  PriceSparkline,
   ResourceModal,
+  fmtMonth,
+  fmtPrice,
+  holderTitle,
+  priceFacts,
+  producerFacts,
   type ResourceSummary,
 } from "../components/ResourceModal";
+import { COMMODITY_PRICE_SOURCES } from "../data/commodityPrices";
 import {
   CRITICAL_MINERALS,
   CRITICAL_MINERALS_SOURCE,
@@ -2198,169 +2204,115 @@ function EconomyModal({
 type ViewMode = "economies" | "resources";
 
 /**
- * For every card with a country table, the headline holder and share are read
- * from that same table, so the card and the list inside it cannot disagree.
- * They were typed in and had drifted — lithium said Chile held 36% of the
- * world's reserves (USGS: 24.9%); rare earths said China held 38% (up to
- * 51.8%); crude oil named Saudi Arabia, where OPEC's own bulletin puts
- * Venezuela first, 19.3% to 17.0%; coal named China at 21%, where EIA puts the
- * United States first at 21.3%.
+ * The commodities on the page, and the colour each is drawn in. Nothing else
+ * is written here: a card's price comes from commodityPrices.ts (World Bank
+ * and IMF monthly averages) and its output, largest producer and largest
+ * holder from the same country table its window lists, so a card and the
+ * list inside it cannot disagree.
  *
- * The share is of reserves where the source reports them, and says so;
- * aluminum has none (its reserves are bauxite, a different commodity), so its
- * card gives the share of smelter output. Gold is left as it is: its card
- * leads with central-bank holdings, a different and deliberate measure that
- * its own detail text explains.
+ * Each card used to carry a price, a change and a "top holder" typed in under
+ * the heading "Aug 2026". The holders had drifted from the sources - lithium
+ * said Chile held 36% of the world's reserves (USGS: 24.9%), crude oil named
+ * Saudi Arabia where OPEC's bulletin puts Venezuela first - and the prices
+ * were far from the published averages for that month: gold at $2,341 an
+ * ounce against $4,411, copper at $9,280 a tonne against $14,326.
  */
-const CARD_PRODUCERS = { ...RESOURCE_PRODUCERS, ...ENERGY_PRODUCERS, ...OTHER_PRODUCERS };
+const RESOURCES_DATA: ResourceSummary[] = [
+  { name: "Crude Oil", color: "#f97316" },
+  { name: "Natural Gas", color: "#6366f1" },
+  { name: "Gold", color: "#f59e0b" },
+  { name: "Coal", color: "#6b7280" },
+  { name: "Iron Ore", color: "#b45309" },
+  { name: "Copper", color: "#dc2626" },
+  { name: "Lithium", color: "#7c3aed" },
+  { name: "Wheat", color: "#ca8a04" },
+  { name: "Rare Earth", color: "#059669" },
+  { name: "Uranium", color: "#65a30d" },
+  // Slate greys dark enough to draw a line with on the light card.
+  { name: "Aluminum", color: "#64748b" },
+  { name: "Silver", color: "#8492a6" },
+];
 
-function producerHeadline<T extends { name: string; holder: string; reserve: string }>(r: T): T {
-  if (r.name === "Gold") return r;
-  const p = CARD_PRODUCERS[r.name];
-  if (!p) return r;
-  const mark = (b: string) => (b === "atMost" ? "≤" : b === "atLeast" ? "≥" : "");
-  if (p.worldReserves) {
-    const top = [...p.countries]
-      .filter((c) => c.reservesShare)
-      .sort((a, b) => (b.reserves?.value ?? 0) - (a.reserves?.value ?? 0))[0];
-    if (!top?.reservesShare) return r;
-    return {
-      ...r,
-      holder: top.name,
-      reserve: `${mark(top.reservesShare.bound)}${top.reservesShare.pct}% of ${(p.reservesLabel ?? "reserves").toLowerCase()}`,
-    };
-  }
-  const top = p.countries.find((c) => c.productionShare);
-  if (!top?.productionShare) return r;
-  return {
-    ...r,
-    holder: top.name,
-    reserve: `${mark(top.productionShare.bound)}${top.productionShare.pct}% of output`,
-  };
+/** One line of a card: what the figure is, and the figure. */
+function CardFact({ label, value, sub }: { label: string; value: string; sub?: string | null }) {
+  return (
+    <div className="flex justify-between items-baseline gap-2">
+      <span className="text-[10px] text-muted-foreground font-sans shrink-0">{label}</span>
+      <span className="text-[10px] font-semibold font-sans text-foreground text-right truncate">
+        {value}
+        {sub && <span className="font-mono font-normal text-muted-foreground"> · {sub}</span>}
+      </span>
+    </div>
+  );
 }
 
-const RESOURCES_DATA = [
-  {
-    name: "Crude Oil",
-    unit: "$/bbl",
-    price: 83.2,
-    change: +1.8,
-    holder: "Saudi Arabia",
-    reserve: "17% of global",
-    color: "#f97316",
-    icon: "🛢️",
-  },
-  {
-    name: "Natural Gas",
-    unit: "$/MMBtu",
-    price: 2.84,
-    change: -0.3,
-    holder: "Russia",
-    reserve: "24% of global",
-    color: "#6366f1",
-    icon: "🔥",
-  },
-  {
-    name: "Gold",
-    unit: "$/troy oz",
-    price: 2341,
-    change: +0.6,
-    holder: "USA",
-    reserve: "8,133 tons",
-    color: "#f59e0b",
-    icon: "🥇",
-  },
-  {
-    name: "Coal",
-    unit: "$/ton",
-    price: 128,
-    change: -2.1,
-    holder: "China",
-    reserve: "21% of global",
-    color: "#6b7280",
-    icon: "⛏️",
-  },
-  {
-    name: "Iron Ore",
-    unit: "$/ton",
-    price: 114,
-    change: +0.4,
-    holder: "Australia",
-    reserve: "28% of global",
-    color: "#b45309",
-    icon: "⚙️",
-  },
-  {
-    name: "Copper",
-    unit: "$/ton",
-    price: 9280,
-    change: +1.2,
-    holder: "Chile",
-    reserve: "23% of global",
-    color: "#dc2626",
-    icon: "🔩",
-  },
-  {
-    name: "Lithium",
-    unit: "$/ton",
-    price: 15400,
-    change: +3.4,
-    holder: "Chile",
-    reserve: "36% of global",
-    color: "#7c3aed",
-    icon: "🔋",
-  },
-  {
-    name: "Wheat",
-    unit: "$/bushel",
-    price: 5.62,
-    change: -0.8,
-    holder: "Russia",
-    reserve: "17% exports",
-    color: "#ca8a04",
-    icon: "🌾",
-  },
-  {
-    name: "Rare Earth",
-    unit: "$/kg avg",
-    price: 42,
-    change: +2.1,
-    holder: "China",
-    reserve: "38% of global",
-    color: "#059669",
-    icon: "🧲",
-  },
-  {
-    name: "Uranium",
-    unit: "$/lb",
-    price: 91.5,
-    change: +4.2,
-    holder: "Kazakhstan",
-    reserve: "29% of global",
-    color: "#84cc16",
-    icon: "☢️",
-  },
-  {
-    name: "Aluminum",
-    unit: "$/ton",
-    price: 2410,
-    change: +0.9,
-    holder: "China",
-    reserve: "N/A (produced)",
-    color: "#94a3b8",
-    icon: "🏗️",
-  },
-  {
-    name: "Silver",
-    unit: "$/troy oz",
-    price: 29.4,
-    change: +1.1,
-    holder: "Mexico",
-    reserve: "23% of global",
-    color: "#cbd5e1",
-    icon: "🥈",
-  },
-].map(producerHeadline);
+/**
+ * A commodity's card: its published price for the latest month and what that
+ * has done on the month and the year before, five years of the price as a
+ * line, and the headline of its country table - world output, the largest
+ * producer and the largest holder of reserves.
+ */
+function ResourceCard({ resource, onOpen }: { resource: ResourceSummary; onOpen: () => void }) {
+  const price = priceFacts(resource.name);
+  const made = producerFacts(resource.name);
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label={`${resource.name} details`}
+      className="text-left w-full bg-card border border-border rounded-xl p-4 hover:border-secondary/40 transition-colors cursor-pointer flex flex-col"
+    >
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="min-w-0">
+          <p className="text-sm font-bold font-sans text-foreground flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: resource.color }} aria-hidden />
+            {resource.name}
+          </p>
+          <p className="text-[10px] text-muted-foreground font-sans truncate" title={price?.price.about}>
+            {price ? price.price.benchmark : "No published price"}
+          </p>
+        </div>
+        {price?.onMonth && (
+          <span className="flex flex-col items-end gap-0.5 shrink-0">
+            <ChangeChip c={price.onMonth} unit={price.price.unit} now={price.value} />
+            <span className="text-[9px] font-sans text-muted-foreground">on {fmtMonth(price.onMonth.from)}</span>
+          </span>
+        )}
+      </div>
+      {price ? (
+        <>
+          <p className="flex items-baseline gap-1.5">
+            <span className="text-2xl font-bold font-mono text-foreground leading-none">{fmtPrice(price.value)}</span>
+            <span className="text-[10px] font-mono text-muted-foreground">{price.price.unit}</span>
+          </p>
+          <p className="text-[10px] font-sans text-muted-foreground mt-1">
+            Average for {fmtMonth(price.month)}
+          </p>
+          {price.onYear && (
+            <p className="text-[10px] font-sans text-muted-foreground flex items-center gap-1 mt-1">
+              <ChangeChip c={price.onYear} unit={price.price.unit} now={price.value} small />
+              on {fmtMonth(price.onYear.from)}
+            </p>
+          )}
+          <div className="mt-2" title={`${price.price.benchmark}, monthly average, ${fmtMonth(price.price.series.slice(-61)[0][0])} to ${fmtMonth(price.month)}`}>
+            <PriceSparkline series={price.price.series} color={resource.color} />
+            <p className="text-[9px] font-mono text-muted-foreground mt-0.5">Five years</p>
+          </div>
+        </>
+      ) : (
+        <p className="text-[11px] font-sans text-muted-foreground">No published price series is held for this commodity.</p>
+      )}
+      {made && (
+        <div className="mt-3 pt-3 border-t border-border/40 space-y-1">
+          <CardFact label="World output" value={made.output} sub={made.outputYear} />
+          {made.topProducer && <CardFact label="Largest producer" value={made.topProducer.name} sub={made.topProducer.share} />}
+          {made.topHolder && <CardFact label={holderTitle(made.heldLabel)} value={made.topHolder.name} sub={made.topHolder.share} />}
+        </div>
+      )}
+      <p className="text-[10px] font-sans text-secondary mt-auto pt-3">Uses, producers and ten years of prices →</p>
+    </button>
+  );
+}
 
 export function EconomiesPage() {
   // Re-render when the scheduled refresh updates the figures.
@@ -2632,75 +2584,24 @@ export function EconomiesPage() {
                   Global Resource Markets
                 </h2>
                 <p className="text-xs text-muted-foreground font-sans">
-                  Commodity prices, reserves & top holders · Aug 2026
+                  Average prices for {fmtMonth(LATEST_PRICE_MONTH)}, world output, and who produces and holds the most - each from a published source
                 </p>
               </div>
-              <span className="text-[10px] font-mono bg-muted border border-border px-2.5 py-1 rounded-full text-muted-foreground">
+              <span className="text-[10px] font-mono bg-muted border border-border px-2.5 py-1 rounded-full text-muted-foreground shrink-0">
                 {RESOURCES_DATA.length} commodities tracked
               </span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {RESOURCES_DATA.map((r) => (
-                <button
-                  key={r.name}
-                  type="button"
-                  onClick={() => setSelectedResource(r)}
-                  aria-label={`${r.name} details`}
-                  className="text-left w-full bg-card border border-border rounded-xl p-4 hover:border-secondary/40 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div>
-                        <p className="text-sm font-bold font-sans text-foreground">
-                          {r.name}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground font-mono">
-                          {r.unit}
-                        </p>
-                      </div>
-                    </div>
-                    <span
-                      className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full ${r.change >= 0 ? "bg-success/10 text-success border border-success/20" : "bg-destructive/10 text-destructive border border-destructive/20"}`}
-                    >
-                      {r.change >= 0 ? "+" : ""}
-                      {r.change}%
-                    </span>
-                  </div>
-                  <p
-                    className="text-2xl font-bold font-mono mb-1"
-                    style={{ color: r.color }}
-                  >
-                    {r.price.toLocaleString()}
-                  </p>
-                  <div className="mt-3 pt-3 border-t border-border/40 space-y-1">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] text-muted-foreground font-sans">
-                        Top Holder
-                      </span>
-                      <span className="text-[10px] font-semibold font-sans text-foreground">
-                        {r.holder}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] text-muted-foreground font-sans">
-                        Reserve
-                      </span>
-                      <span className="text-[10px] font-mono text-foreground">
-                        {r.reserve}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${Math.min(100, Math.abs(r.change) * 15 + 30)}%`,
-                        background: r.color,
-                      }}
-                    />
-                  </div>
-                </button>
+                <ResourceCard key={r.name} resource={r} onOpen={() => setSelectedResource(r)} />
               ))}
+            </div>
+            <div className="-mt-2">
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug max-w-4xl">
+                Prices are monthly averages in nominal US dollars, in each publisher's own unit. The two changes on a card - on the month before and on the same
+                month a year before - are worked out here from the two published figures, which each gives when hovered. Output, producers and holders are from the country tables inside each card.
+              </p>
+              <SourceLink sources={[COMMODITY_PRICE_SOURCES.wb, COMMODITY_PRICE_SOURCES.imf]} />
             </div>
             {/* ── Critical minerals, global view ──
                 From the USGS Mineral Commodity Summaries 2026. The table used to
