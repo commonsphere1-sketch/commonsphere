@@ -19,12 +19,13 @@
  */
 import { useMemo, useState, type ReactNode } from "react";
 import { Area, AreaChart, CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowDownRight, ArrowRight, ArrowUpRight, ChartLineUp, Globe, Lightning, Target, TrendUp, Users } from "@phosphor-icons/react";
+import { ChartLineUp, Globe, Lightning, Target, TrendUp, Users } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "../components/SectionNav";
 import { StyledSelect } from "../components/StyledSelect";
+import { StatCard, splitChange, type StatCardData } from "../components/StatCard";
 import { usdFromBillions } from "../lib/money";
 import { WORLD, WORLDVIEW_RETRIEVED, type WorldIndicator } from "../data/worldview";
 import {
@@ -108,7 +109,7 @@ const POP_PEAK = WORLD_POP.population.reduce((a, b) => (b[1] > a[1] ? b : a));
 function fmtWorld(ind: WorldIndicator, v: number): string {
   if (ind.format === "pct") return `${v.toFixed(ind.dp)}%`;
   if (ind.format === "usd") return v >= 1e12 ? `$${(v / 1e12).toFixed(2)}T` : v >= 1e9 ? `$${(v / 1e9).toFixed(1)}B` : `$${Math.round(v / 1e6).toLocaleString("en-US")}M`;
-  if (ind.format === "count") return v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : Math.round(v).toLocaleString("en-US");
+  if (ind.format === "count") return v >= 1e9 ? `${(v / 1e9).toFixed(2)}bn` : v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : Math.round(v).toLocaleString("en-US");
   return v >= 1000 ? Math.round(v).toLocaleString("en-US") : v.toFixed(ind.dp);
 }
 
@@ -190,66 +191,6 @@ function Legend({ items }: { items: { color: string; label: string; value?: stri
           )}
         </span>
       ))}
-    </div>
-  );
-}
-
-/** A series' trend across the foot of a tile: grey to where the estimates end, dashed from there, the last point in the accent. */
-function TileTrend({ series, split, accent }: { series: Point[]; split?: number; accent: string }) {
-  if (series.length < 3) return null;
-  const x0 = series[0][0];
-  const x1 = last(series)[0];
-  const ys = series.map(([, v]) => v);
-  const lo = Math.min(...ys);
-  const hi = Math.max(...ys);
-  const px = (x: number) => 3 + ((x - x0) / (x1 - x0 || 1)) * 94;
-  const py = (y: number) => 86 - ((y - lo) / (hi - lo || 1)) * 72;
-  const path = (pts: Point[]) => pts.map(([x, y], i) => `${i ? "L" : "M"}${px(x).toFixed(1)},${py(y).toFixed(1)}`).join("");
-  const past = split ? series.filter(([y]) => y < split) : series;
-  const ahead = split ? series.filter(([y]) => y >= split - 1) : [];
-  const [lx, ly] = last(series);
-  return (
-    <span className="relative block h-7 w-full text-muted-foreground" aria-hidden>
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
-        {past.length > 1 && <path d={path(past)} fill="none" stroke="currentColor" strokeWidth={1.5} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />}
-        {ahead.length > 1 && <path d={path(ahead)} fill="none" stroke={accent} strokeWidth={1.5} strokeDasharray="3 3" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />}
-      </svg>
-      <span className="absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ left: `${px(lx)}%`, top: `${py(ly)}%`, background: accent }} />
-    </span>
-  );
-}
-
-type Stat = { key: string; label: string; value: string; sub: string; move?: { text: string; dir: "up" | "down" | "flat" }; about: string; series?: Point[]; split?: number };
-
-/** A headline figure as a tile: what it is, the figure, whose it is and for when, where it has come from, what it means, and its line. */
-function StatTile({ s }: { s: Stat }) {
-  const { head, muted, accent } = useLook();
-  const Icon = s.move?.dir === "up" ? ArrowUpRight : s.move?.dir === "down" ? ArrowDownRight : ArrowRight;
-  return (
-    <div className="modal-tile h-full rounded-xl px-3 py-2.5 flex flex-col gap-0.5">
-      <p className="text-[10px] font-sans uppercase tracking-wider leading-snug" style={{ color: muted }}>
-        {s.label}
-      </p>
-      <p className="text-xl font-bold font-mono leading-tight" style={{ color: head }}>
-        {s.value}
-      </p>
-      <p className="text-[10px] font-mono leading-snug" style={{ color: muted }}>
-        {s.sub}
-      </p>
-      {s.move && (
-        <p className="flex items-center gap-1 font-sans text-[10px] text-muted-foreground">
-          <Icon size={10} weight="bold" aria-hidden />
-          <span>{s.move.text}</span>
-        </p>
-      )}
-      <p className="text-[11px] font-sans leading-snug mt-1" style={{ color: muted }}>
-        {s.about}
-      </p>
-      {s.series && (
-        <span className="mt-auto block w-full pt-2">
-          <TileTrend series={s.series} split={s.split} accent={accent} />
-        </span>
-      )}
     </div>
   );
 }
@@ -441,40 +382,56 @@ function CountryOutlookCard() {
 
 // ── Trends ─────────────────────────────────────────────────────────────────
 
-/** The measures the Trends section follows, by the part of the world they describe. Each is a world series in worldview.ts. */
-const TREND_GROUPS: { title: string; color: string; ids: string[] }[] = [
-  { title: "Energy", color: "#10b981", ids: ["renewableElectricity", "fossilShare", "evSalesShare", "co2"] },
-  { title: "Technology", color: "#8b5cf6", ids: ["internet", "aiInvestment", "robotInstalls", "research"] },
-  { title: "Industry and trade", color: "#f59e0b", ids: ["trade", "manufacturingVA", "servicesVA", "highTechExports"] },
-  { title: "People", color: "#3b82f6", ids: ["lifeExpectancy", "extremePoverty", "urban", "aged65"] },
+/**
+ * The measures the Trends section follows, by the part of the world they
+ * describe. Each is a world series in worldview.ts, with its own source.
+ */
+const TREND_GROUPS: { title: string; kicker: string; color: string; ids: string[] }[] = [
+  { title: "Energy", kicker: "What the world runs on", color: "#10b981", ids: ["renewableElectricity", "fossilShare", "evSalesShare", "co2"] },
+  { title: "Technology", kicker: "What people and firms are taking up", color: "#8b5cf6", ids: ["internet", "broadband", "mobile", "secureServers", "aiInvestment", "genAiInvestment", "robotInstalls", "robotStock"] },
+  { title: "Research and development", kicker: "What is spent on finding things out, and what comes of it", color: "#06b6d4", ids: ["research", "researchers", "sciArticles", "aiPublications", "patents", "ipReceipts"] },
+  {
+    title: "International relations",
+    kicker: "War and peace, arms, movement and money between countries",
+    color: "#ef4444",
+    ids: ["conflicts", "conflictDeaths", "militaryUsd", "militaryGdp", "armsTransfers", "nuclearWarheads", "displaced", "remittances"],
+  },
+  { title: "Industry and trade", kicker: "What the world makes and sells", color: "#f59e0b", ids: ["trade", "manufacturingVA", "servicesVA", "highTechExports"] },
+  { title: "People", kicker: "How long people live, where, and on what", color: "#3b82f6", ids: ["lifeExpectancy", "extremePoverty", "urban", "aged65"] },
 ];
 
-/** A world series as a tile: its latest reading, its move on about ten years before in its own terms, and its line. */
-function TrendTile({ id }: { id: string }) {
+/** A world series as a card: its latest reading, its move on about ten years before in its own terms, what it measures, and its line. */
+function TrendTile({ id, color }: { id: string; color: string }) {
   const ind = WORLD[id];
   if (!ind || ind.series.length < 2) return null;
   const [year, v] = last(ind.series);
   const prev = decadeBefore(ind.series);
   const diff = prev ? v - prev[1] : 0;
-  const move = !prev
-    ? undefined
-    : {
-        dir: (Math.abs(diff) < 10 ** -ind.dp / 2 ? "flat" : diff > 0 ? "up" : "down") as "up" | "down" | "flat",
-        text:
-          ind.format === "pct"
+  const flat = Math.abs(diff) < 10 ** -ind.dp / 2;
+  const change = !prev
+    ? null
+    : splitChange(
+        flat
+          ? `level with ${prev[0]}`
+          : ind.format === "pct"
             ? `${signed(diff, ind.dp)} points since ${prev[0]}`
             : `${signed((100 * diff) / prev[1], Math.abs((100 * diff) / prev[1]) < 10 ? 1 : 0)}% since ${prev[0]}`,
-      };
+        flat ? "flat" : diff > 0 ? "up" : "down",
+        // Better or worse only where the series itself says which way is which.
+        flat || ind.upIsGood === null ? null : diff > 0 === ind.upIsGood ? "better" : "worse",
+      );
   return (
-    <StatTile
+    <StatCard
       s={{
-        key: id,
         label: ind.label,
         value: fmtWorld(ind, v),
         sub: `${ind.unit} · ${year}`,
-        move,
-        about: ind.note ?? "",
+        change,
+        about: ind.note,
         series: ind.series,
+        color,
+        fmt: (x) => fmtWorld(ind, x),
+        source: ind.source,
       }}
     />
   );
@@ -501,78 +458,122 @@ export function TrendsPage() {
   const gdpBase = at(gdp, first - 1) ?? 0;
   const gdpEnd = at(gdp, end) ?? 0;
 
-  const stats = useMemo<Stat[]>(() => {
+  const stats = useMemo<StatCardData[]>(() => {
     const w = WEO_GROUPS.world;
-    const line = (s: Point[] | undefined, label: string, fmt: (v: number) => string, about: string, key: string): Stat => {
-      const now = at(s, first) ?? 0;
-      const then = at(s, end) ?? 0;
+    /* One of the IMF's world series as a card: this year's projection, its
+       move on last year's estimate, and where it stands at the end. */
+    const line = (series: Point[] | undefined, label: string, fmt: (v: number) => string, about: string, color: string, upIsGood: boolean): StatCardData => {
+      const now = at(series, first) ?? 0;
+      const before = at(series, first - 1) ?? 0;
+      const diff = now - before;
       return {
-        key,
         label,
         value: fmt(now),
         sub: `IMF projection · ${first}`,
-        move: { dir: then > now ? "up" : then < now ? "down" : "flat", text: `${fmt(at(s, first - 1) ?? 0)} in ${first - 1} · ${fmt(then)} projected for ${end}` },
+        change: {
+          chip: Math.abs(diff) < 0.05 ? "level" : `${signed(diff)} pts`,
+          caption: `on ${first - 1}`,
+          dir: Math.abs(diff) < 0.05 ? "flat" : diff > 0 ? "up" : "down",
+          verdict: Math.abs(diff) < 0.05 ? null : diff > 0 === upIsGood ? "better" : "worse",
+        },
         about,
-        series: s,
+        series,
         split: first,
+        color,
+        fmt,
+        source: WEO,
       };
     };
     const pop = WORLD_POP.population;
     const age = WORLD_POP.medianAge;
     const lex = WORLD_POP.lifeExpectancy;
+    const years = (v: number) => `${v.toFixed(1)} years`;
+    const popNow = at(pop, THIS_YEAR) ?? 0;
+    const gdpNow = at(w.gdp, first - 1) ?? 0;
+    const gdpThen = at(w.gdp, end) ?? 0;
     return [
       {
-        key: "gdp",
         label: `World GDP in ${end}`,
-        value: usdFromBillions(at(w.gdp, end) ?? 0),
+        value: usdFromBillions(gdpThen),
         sub: `IMF projection · ${end}`,
-        move: { dir: "up", text: `${usdFromBillions(at(w.gdp, first - 1) ?? 0)} in ${first - 1}` },
+        change: { chip: `${signed(((gdpThen - gdpNow) / (gdpNow || 1)) * 100, 0)}%`, caption: `on ${first - 1}`, dir: "up", verdict: null },
         about: "Everything the world's economies produce in a year, in current US dollars, so it includes price rises.",
         series: w.gdp,
         split: first,
+        color: SERIES.world,
+        fmt: (v) => usdFromBillions(v),
+        source: WEO,
       },
-      line(w.growth, "Real growth", (v) => pct(v), "How much more the world produces than the year before, with price rises taken out.", "growth"),
-      line(w.inflation, "Inflation", (v) => pct(v), "The rise in consumer prices over the year, averaged across the world's economies.", "inflation"),
-      line(w.debt, "Government debt", (v) => `${pct(v)} of GDP`, "What the world's governments owe, against the size of the world economy.", "debt"),
+      line(w.growth, "Real growth", (v) => pct(v), "How much more the world produces than the year before, with price rises taken out.", "#10b981", true),
+      line(w.inflation, "Inflation", (v) => pct(v), "The rise in consumer prices over the year, averaged across the world's economies.", "#f59e0b", false),
+      line(w.debt, "Government debt, % of GDP", (v) => pct(v), "What the world's governments owe, against the size of the world economy.", "#ef4444", false),
       {
-        key: "pop2050",
         label: "World population in 2050",
         value: people(at(pop, 2050) ?? 0),
         sub: "UN medium variant · 2050",
-        move: { dir: "up", text: `${people(at(pop, THIS_YEAR) ?? 0)} in ${THIS_YEAR}` },
+        change: { chip: `${signed((((at(pop, 2050) ?? 0) - popNow) / (popNow || 1)) * 100, 0)}%`, caption: `on ${THIS_YEAR}`, dir: "up", verdict: null },
         about: "People alive on 1 July, on the UN's central projection of births, deaths and migration.",
         series: pop.filter(([y]) => y >= 1990 && y <= 2060),
         split: WPP.firstProjected,
+        color: SERIES.people,
+        fmt: people,
+        facts: [
+          { label: "Now", value: people(popNow), sub: `${THIS_YEAR}` },
+          { label: "Projected", value: people(at(pop, 2050) ?? 0), sub: "2050" },
+          { label: "Projected", value: people(at(pop, 2100) ?? 0), sub: "2100" },
+        ].map((x, i) => ({ ...x, label: i === 2 ? "By the century's end" : x.label })),
+        source: WPP,
       },
       {
-        key: "peak",
         label: "Population peaks",
         value: String(POP_PEAK[0]),
         sub: `UN medium variant · at ${people(POP_PEAK[1])}`,
-        move: { dir: "down", text: `${people(at(pop, 2100) ?? 0)} by 2100` },
+        change: null,
         about: "The year the world's population is projected to be at its largest, before it begins to fall.",
         series: pop.filter(([y]) => y >= 2000),
         split: WPP.firstProjected,
+        color: SERIES.people,
+        fmt: people,
+        facts: [
+          { label: "Now", value: people(popNow), sub: `${THIS_YEAR}` },
+          { label: "At its peak", value: people(POP_PEAK[1]), sub: `${POP_PEAK[0]}` },
+          { label: "By the century's end", value: people(at(pop, 2100) ?? 0), sub: "2100" },
+        ],
+        source: WPP,
       },
       {
-        key: "age",
         label: "Median age in 2050",
-        value: `${(at(age, 2050) ?? 0).toFixed(1)} years`,
+        value: years(at(age, 2050) ?? 0),
         sub: "UN medium variant · 2050",
-        move: { dir: "up", text: `${(at(age, THIS_YEAR) ?? 0).toFixed(1)} in ${THIS_YEAR} · ${(at(age, 2100) ?? 0).toFixed(1)} by 2100` },
+        change: { chip: `${signed((at(age, 2050) ?? 0) - (at(age, THIS_YEAR) ?? 0))} years`, caption: `on ${THIS_YEAR}`, dir: "up", verdict: null },
         about: "Half the world's people are older than this and half younger.",
         series: age,
         split: WPP.firstProjected,
+        color: "#06b6d4",
+        fmt: years,
+        facts: [
+          { label: "Now", value: years(at(age, THIS_YEAR) ?? 0), sub: `${THIS_YEAR}` },
+          { label: "Projected", value: years(at(age, 2050) ?? 0), sub: "2050" },
+          { label: "By the century's end", value: years(at(age, 2100) ?? 0), sub: "2100" },
+        ],
+        source: WPP,
       },
       {
-        key: "lex",
         label: "Life expectancy in 2050",
-        value: `${(at(lex, 2050) ?? 0).toFixed(1)} years`,
+        value: years(at(lex, 2050) ?? 0),
         sub: "UN medium variant · 2050",
-        move: { dir: "up", text: `${(at(lex, THIS_YEAR) ?? 0).toFixed(1)} in ${THIS_YEAR} · ${(at(lex, 2100) ?? 0).toFixed(1)} by 2100` },
+        change: { chip: `${signed((at(lex, 2050) ?? 0) - (at(lex, THIS_YEAR) ?? 0))} years`, caption: `on ${THIS_YEAR}`, dir: "up", verdict: "better" },
         about: "The years a child born in that year would live if its death rates held for life.",
         series: lex,
         split: WPP.firstProjected,
+        color: "#10b981",
+        fmt: years,
+        facts: [
+          { label: "Now", value: years(at(lex, THIS_YEAR) ?? 0), sub: `${THIS_YEAR}` },
+          { label: "Projected", value: years(at(lex, 2050) ?? 0), sub: "2050" },
+          { label: "By the century's end", value: years(at(lex, 2100) ?? 0), sub: "2100" },
+        ],
+        source: WPP,
       },
     ];
   }, [first, end]);
@@ -665,12 +666,13 @@ export function TrendsPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {stats.map((s) => (
-              <StatTile key={s.key} s={s} />
+              <StatCard key={s.label} s={s} />
             ))}
           </div>
           <Note>
-            In each tile's line, grey is what the publisher estimates has happened and the dashed part is what it projects. The IMF's estimates run to {first - 1} and its
-            projections from {first}; the UN's projections begin in {WPP.firstProjected}.
+            In each card's line the solid part is what the publisher estimates has happened and the dashed part is what it projects. The IMF's estimates run to{" "}
+            {first - 1} and its projections from {first}; the UN's projections begin in {WPP.firstProjected}. A card opens to its full series; a chip is green or red only
+            where one direction is plainly the better.
           </Note>
         </section>
 
@@ -799,17 +801,22 @@ export function TrendsPage() {
                 { label: "Births per woman", s: WORLD_POP.fertility, fmt: (v: number) => v.toFixed(2), about: "About 2.1 keeps a population level over time." },
                 { label: "Life expectancy", s: WORLD_POP.lifeExpectancy, fmt: (v: number) => `${v.toFixed(1)} years`, about: "At birth, for the year's death rates." },
               ].map((m) => (
-                <StatTile
+                <StatCard
                   key={m.label}
                   s={{
-                    key: m.label,
                     label: m.label,
                     value: m.fmt(at(m.s, THIS_YEAR) ?? 0),
                     sub: `UN · ${THIS_YEAR}`,
-                    move: { dir: (at(m.s, 2100) ?? 0) > (at(m.s, THIS_YEAR) ?? 0) ? "up" : "down", text: `${m.fmt(at(m.s, 2050) ?? 0)} in 2050 · ${m.fmt(at(m.s, 2100) ?? 0)} in 2100` },
                     about: m.about,
                     series: m.s,
                     split: WPP.firstProjected,
+                    color: SERIES.people,
+                    fmt: m.fmt,
+                    facts: [
+                      { label: "Projected", value: m.fmt(at(m.s, 2050) ?? 0), sub: "2050" },
+                      { label: "By the century's end", value: m.fmt(at(m.s, 2100) ?? 0), sub: "2100" },
+                    ],
+                    source: WPP,
                   }}
                 />
               ))}
@@ -902,14 +909,17 @@ export function TrendsPage() {
             <div key={g.title} className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full" style={{ background: g.color }} aria-hidden />
-                <span className="text-[10px] font-bold font-sans uppercase tracking-widest" style={{ color: muted }}>
+                <span className="text-[10px] font-bold font-sans uppercase tracking-widest" style={{ color: head }}>
                   {g.title}
+                </span>
+                <span className="text-[10px] font-sans hidden sm:inline" style={{ color: muted }}>
+                  {g.kicker}
                 </span>
                 <div className="flex-1 h-px" style={{ background: look.grid }} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {g.ids.map((id) => (
-                  <TrendTile key={id} id={id} />
+                  <TrendTile key={id} id={id} color={g.color} />
                 ))}
               </div>
               <SourceLink sources={g.ids.flatMap((id) => (WORLD[id] ? [WORLD[id].source] : []))} />
