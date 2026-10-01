@@ -47,6 +47,8 @@ coverage/
 
 # ...but the template is meant to be shared; it holds no values.
 !.env.example
+# The deployed site's build defaults: publishable values only (see the file).
+!.env.production
 
 # Agent skills installed via `npx skills add` — machine-local tooling
 .agents/
