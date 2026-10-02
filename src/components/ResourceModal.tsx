@@ -197,6 +197,19 @@ export function producerFacts(name: string): ProducerFacts | null {
   };
 }
 
+/** The countries that produce most of a commodity, largest first, each with its output as printed and its share of the world's. */
+export function leadingProducers(name: string, n = 6): { name: string; value: number; amount: string; share: string | null }[] {
+  const p = PRODUCERS[name];
+  if (!p) return [];
+  return p.countries
+    .flatMap((c) => (c.production ? [{ name: c.name, value: c.production.value, amount: fmtAmount(c.production, p.productionUnit), share: fmtShare(c.productionShare) }] : []))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, n);
+}
+
+/** Where a commodity's country table comes from. */
+export const producerSources = (name: string) => PRODUCERS[name]?.sources ?? [];
+
 /** "exports" → "Top exporter", "reserves" → "Largest reserves": what to call whoever leads the second column. */
 export const holderTitle = (label: string) => (label === "exports" ? "Top exporter" : `Largest ${label}`);
 

@@ -58,7 +58,7 @@ const POLICY_TOPICS: { label: string; color: string; re: RegExp }[] = [
 const POLICY_READ = 300;
 
 /** The site's card colours, as the Dashboard sets them, for light and dark. */
-function useTokens() {
+export function useTokens() {
   const { theme } = useTheme();
   const isLight = theme === "light";
   return {
@@ -300,7 +300,7 @@ export function Label({ t, children, className = "" }: { t: Tokens; children: Re
   );
 }
 
-function Empty({ t, children }: { t: Tokens; children: ReactNode }) {
+export function Empty({ t, children }: { t: Tokens; children: ReactNode }) {
   return (
     <div className="px-4 py-8 text-center">
       <p className="text-[11px] font-sans" style={{ color: t.mutedText }}>
@@ -328,7 +328,7 @@ export function Kpi({ t, label, value, color, sub }: { t: Tokens; label: string;
   );
 }
 
-function Row({ t, selected, color, onClick, children }: { t: Tokens; selected: boolean; color: string; onClick: () => void; children: ReactNode }) {
+export function Row({ t, selected, color, onClick, children }: { t: Tokens; selected: boolean; color: string; onClick: () => void; children: ReactNode }) {
   return (
     <button
       type="button"
@@ -343,7 +343,7 @@ function Row({ t, selected, color, onClick, children }: { t: Tokens; selected: b
   );
 }
 
-function GoButton({ color, onClick, children }: { color: string; onClick: () => void; children: ReactNode }) {
+export function GoButton({ color, onClick, children }: { color: string; onClick: () => void; children: ReactNode }) {
   return (
     <button
       type="button"
@@ -356,7 +356,7 @@ function GoButton({ color, onClick, children }: { color: string; onClick: () => 
   );
 }
 
-function tooltipStyle(t: Tokens) {
+export function tooltipStyle(t: Tokens) {
   return {
     contentStyle: { background: t.tooltipBg, border: `1px solid ${t.gridLine}`, borderRadius: 8, fontSize: 10, fontFamily: "monospace", color: t.headText },
     labelStyle: { color: t.mutedText },

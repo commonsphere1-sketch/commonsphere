@@ -74,6 +74,7 @@ import {
 } from "../data/criticalMinerals";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 import { DataExplorer } from "@/components/DataExplorer";
+import { ResourceExplorer } from "@/components/ResourceExplorer";
 import { HeadlinesBanner, SUBJECT } from "@/components/HeadlinesBanner";
 
 
@@ -2327,6 +2328,9 @@ export function EconomiesPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("economies");
   const [selectedResource, setSelectedResource] =
     useState<ResourceSummary | null>(null);
+  // In the Resources view the bar's search narrows the commodity cards by name.
+  const sought = search.trim().toLowerCase();
+  const shownResources = RESOURCES_DATA.filter((r) => !sought || r.name.toLowerCase().includes(sought));
   // Fifty cards a page; a new search, filter or sort starts again at page 1.
   const [page, setPage] = useState(0);
   const listTop = React.useRef<HTMLDivElement>(null);
@@ -2483,12 +2487,12 @@ export function EconomiesPage() {
 
         {/* Unified Search + Filter Bar */}
         <FilterBar
-          label="Economy filters"
+          label={viewMode === "resources" ? "Resource filters" : "Economy filters"}
           className="mb-5"
           search={{
             value: search,
             onChange: setSearch,
-            placeholder: "Search economies…",
+            placeholder: viewMode === "resources" ? "Search resources…" : "Search economies…",
           }}
         >
           {(
@@ -2518,6 +2522,9 @@ export function EconomiesPage() {
               {tab.label}
             </button>
           ))}
+          {/* The kinds of economy and the sort are for the economies; the Resources view has neither. */}
+          {viewMode === "economies" && (
+            <>
           <div className="w-px h-4 bg-border shrink-0" />
           {typeChips.map((t) => (
             <button
@@ -2544,6 +2551,8 @@ export function EconomiesPage() {
             <option value="inflationRate">Sort: Inflation</option>
             <option value="stockMarketCap">Sort: Mkt Cap</option>
           </select>
+            </>
+          )}
         </FilterBar>
 
         {/* ── Economy headlines: the business desks' news, kept current ── */}
@@ -2562,10 +2571,9 @@ export function EconomiesPage() {
           )}
         />
 
-        {/* ── Data explorer: the Dashboard's economies panel, on its own ── */}
-        <div className="mb-6">
-          <DataExplorer only="economies" />
-        </div>
+        {/* ── Data explorer: the Dashboard's economies panel, on its own; in the
+            Resources view, the same panel for commodities ── */}
+        <div className="mb-6">{viewMode === "resources" ? <ResourceExplorer resources={RESOURCES_DATA} onOpen={setSelectedResource} /> : <DataExplorer only="economies" />}</div>
 
         {modalEconomy && (
           <EconomyModal
@@ -2588,14 +2596,15 @@ export function EconomiesPage() {
                 </p>
               </div>
               <span className="text-[10px] font-mono bg-muted border border-border px-2.5 py-1 rounded-full text-muted-foreground shrink-0">
-                {RESOURCES_DATA.length} commodities tracked
+                {shownResources.length === RESOURCES_DATA.length ? `${RESOURCES_DATA.length} commodities tracked` : `${shownResources.length} of ${RESOURCES_DATA.length} commodities`}
               </span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {RESOURCES_DATA.map((r) => (
+              {shownResources.map((r) => (
                 <ResourceCard key={r.name} resource={r} onOpen={() => setSelectedResource(r)} />
               ))}
             </div>
+            {shownResources.length === 0 && <p className="text-xs font-sans text-muted-foreground">No commodity matches "{search.trim()}".</p>}
             <div className="-mt-2">
               <p className="text-[10px] font-sans text-muted-foreground leading-snug max-w-4xl">
                 Prices are monthly averages in nominal US dollars, in each publisher's own unit. The two changes on a card - on the month before and on the same
