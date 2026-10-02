@@ -735,12 +735,14 @@ const usdBn = (v: number) => `$${v >= 100 ? Math.round(v) : v.toFixed(1)}bn`;
 const lastPoint = (p: YearValue[]) => p[p.length - 1];
 /** The reading ten years before a series' latest, where it has that year. */
 const decadeAgo = (p: YearValue[]) => p.find(([y]) => y === lastPoint(p)[0] - 10);
-/** "+312% since 2015" as a card's chip; a fall where falling is the point (a price) is for the better. */
+/** "+63% since 2015" - or "×11 since 2015" where it has more than doubled - as a card's chip; a fall where falling is the point (a price) is for the better. */
 function decadeChange(p: YearValue[], fallIsGood = false) {
   const was = decadeAgo(p);
   if (!was || was[1] === 0) return null;
   const move = (100 * (lastPoint(p)[1] - was[1])) / was[1];
-  return splitChange(`${signed(move, Math.abs(move) < 10 ? 1 : 0)}% since ${was[0]}`, move > 0 ? "up" : "down", move > 0 === !fallIsGood ? "better" : "worse");
+  const ratio = lastPoint(p)[1] / was[1];
+  const amount = ratio >= 2 ? `×${ratio >= 100 ? Math.round(ratio).toLocaleString("en-US") : ratio.toFixed(ratio >= 10 ? 0 : 1)}` : `${signed(move, Math.abs(move) < 10 ? 1 : 0)}%`;
+  return splitChange(`${amount} since ${was[0]}`, move > 0 ? "up" : "down", move > 0 === !fallIsGood ? "better" : "worse");
 }
 /** A ranking as a table for a card's window: each country with its share of the world's. */
 const leadersTable = (key: string, title: string, l: Leaders, fmt: (v: number) => string): StatTable => ({
@@ -1682,8 +1684,8 @@ function TechnologySection() {
             ]}
           />
           <Note>
-            NVIDIA makes most of the chips AI systems are trained on. In {nvFirst.quarter} its data-centre segment brought in {usdBn(nvFirst.dataCentres)} of {usdBn(nvFirst.dataCentres + nvFirst.other)}. "Everything
-            else" is its total less that segment, worked out here. TSMC, which manufactures those chips and most other advanced ones, reported {usdBn(lastPoint(tsmc)[1])} of revenue in {lastPoint(tsmc)[0]}
+            NVIDIA designs chips that AI systems are trained and run on. In {nvFirst.quarter} its data-centre segment brought in {usdBn(nvFirst.dataCentres)} of {usdBn(nvFirst.dataCentres + nvFirst.other)}. "Everything
+            else" is its total less that segment, worked out here. TSMC, which manufactures chips for NVIDIA and other designers, reported {usdBn(lastPoint(tsmc)[1])} of revenue in {lastPoint(tsmc)[0]}
             {decadeAgo(tsmc) ? `, against ${usdBn(decadeAgo(tsmc)?.[1] ?? 0)} in ${decadeAgo(tsmc)?.[0]}` : ""}.
           </Note>
           <SourceLink sources={[NVIDIA_REVENUE_SOURCE, TSMC_REVENUE.source]} className="mt-3" />
