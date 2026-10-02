@@ -30,7 +30,7 @@ import { BUDGET_DIVISIONS, BUDGET_SOURCE, COUNTRY_BUDGET, type BudgetDivision } 
 import { MILITARY_MEASURED, MILITARY_SOURCES, type MilitaryFigure } from "../data/militarySpending";
 import { COUNTRY_ENERGY, ENERGY_SOURCE } from "../data/countryEnergy";
 import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES } from "../data/worldview";
-import { ALLIANCES, ALLIANCES_CHECKED, type AllianceKind } from "../data/alliances";
+import { ALLIANCES, ALLIANCES_CHECKED, HUMAN_RIGHTS_CHECKED, type AllianceKind } from "../data/alliances";
 import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
 import { STATE_ENERGY, STATE_ENERGY_SOURCE, STATE_ENERGY_YEAR } from "../data/stateEnergy";
 import { NEWS_SOURCES } from "../data/newsSources";
@@ -185,6 +185,7 @@ const KINDS: [kind: AllianceKind, label: string][] = [
   ["Political & regional bloc", "Political"],
   ["Economic & trade bloc", "Economic"],
   ["International agency", "Agencies"],
+  ["Human rights body", "Human rights"],
 ];
 
 /** The year a cited figure is for: the end of its source's label. */
@@ -385,7 +386,7 @@ function CountryRecord({ t, c, topics }: { t: Tokens; c: Country; topics: string
       )}
 
       {blocs.length > 0 && (
-        <Section t={t} title="Blocs and alliances" note={`Membership as each body lists it, checked ${ALLIANCES_CHECKED}. Bodies nearly every country belongs to are left out.`}>
+        <Section t={t} title="Blocs and alliances" note={`Membership as each body lists it, checked ${ALLIANCES_CHECKED} - the human rights bodies on ${HUMAN_RIGHTS_CHECKED}; a seat on the UN Human Rights Council is for this year. Bodies nearly every country belongs to are left out.`}>
           <div className="flex flex-col gap-1.5">
             {KINDS.map(([kind, label]) => {
               const mine = blocs.filter((a) => a.kind === kind);

@@ -3,7 +3,8 @@ import { G20_MEMBER_CODES } from "./g20";
 import { BRICS_MEMBER_CODES } from "./brics";
 
 /**
- * Alliances, blocs and international agencies, and which countries belong.
+ * Alliances, blocs, international agencies and human rights bodies, and
+ * which countries belong.
  *
  * Every membership list was checked against the organisation's own page on
  * the date below (the source is on each entry), except where noted. Wikidata
@@ -21,12 +22,31 @@ import { BRICS_MEMBER_CODES } from "./brics";
  * was checked is shown on the page.
  */
 export const ALLIANCES_CHECKED = "18 September 2026";
+/**
+ * The human rights bodies were added later, each from its own page on this
+ * date: the UN Human Rights Council's membership for 2026 (OHCHR), the States
+ * Parties to the Rome Statute (the ICC's Assembly of States Parties), the
+ * Council of Europe's member states, the states that have ratified the
+ * American Convention (the Inter-American Court), and the count of states
+ * party to the African Charter (the African Commission). Their cards say so.
+ */
+export const HUMAN_RIGHTS_CHECKED = "2 October 2026";
 
 export type AllianceKind =
   | "Security alliance"
   | "Political & regional bloc"
   | "Economic & trade bloc"
-  | "International agency";
+  | "International agency"
+  | "Human rights body";
+
+/** Each kind as the filter names it: several of them. */
+export const ALLIANCE_KIND_PLURAL: Record<AllianceKind, string> = {
+  "Security alliance": "Security alliances",
+  "Political & regional bloc": "Political & regional blocs",
+  "Economic & trade bloc": "Economic & trade blocs",
+  "International agency": "International agencies",
+  "Human rights body": "Human rights bodies",
+};
 
 export interface Alliance {
   id: string;
@@ -406,5 +426,63 @@ export const ALLIANCES: Alliance[] = [
     agenda: ["Lending programmes for countries in balance-of-payments trouble", "Debt restructuring cases", "Quota reform and voting shares"],
     impact: ["Loans normally come with policy conditions, long a source of controversy", "Its Special Drawing Rights allocation in 2021 was the largest in its history"],
     source: { label: "IMF — about", url: "https://www.imf.org/en/About" },
+  },
+
+  // ── Human rights bodies ──
+  // Each list is the body's own, read on HUMAN_RIGHTS_CHECKED. What each does
+  // is from its founding instrument and its own account of itself.
+  {
+    id: "unhrc", name: "United Nations Human Rights Council", short: "UN Human Rights Council", kind: "Human rights body",
+    founded: 2006, headquarters: "Geneva",
+    members: ["AL", "AO", "BJ", "BO", "BR", "BG", "BI", "CL", "CN", "CO", "CI", "CU", "CY", "CZ", "CD", "DO", "EC", "EG", "EE", "ET", "FR", "GM", "GH", "IS", "IN", "ID", "IQ", "IT", "JP", "KE", "KW", "MW", "MH", "MU", "MX", "NL", "MK", "PK", "QA", "KR", "SI", "ZA", "ES", "CH", "TH", "GB", "VN"],
+    memberCount: 47,
+    note: "The membership for 1 January to 31 December 2026. A third of the seats change each year, so this list is for this year only. Checked 2 October 2026.",
+    what: "The United Nations' main intergovernmental body for human rights: 47 states elected by the General Assembly for three-year terms. It replaced the Commission on Human Rights in 2006, and the UN's human rights office, OHCHR, serves as its secretariat.",
+    agenda: ["The Universal Periodic Review, which examines the human rights record of every UN member state in turn", "Special procedures: the independent experts and rapporteurs it appoints on countries and on themes", "Commissions of inquiry and fact-finding missions"],
+    impact: ["Its resolutions are not legally binding", "The General Assembly can suspend a member for gross and systematic violations: it suspended Libya in 2011 and Russia in 2022", "A state cannot be re-elected straight after two consecutive terms"],
+    source: { label: "OHCHR — membership of the Human Rights Council, 2026", url: "https://www.ohchr.org/en/hr-bodies/hrc/current-members" },
+  },
+  {
+    id: "icc", name: "International Criminal Court", short: "ICC", kind: "Human rights body",
+    founded: 2002, headquarters: "The Hague",
+    members: ["AF", "AL", "AD", "AG", "AR", "AM", "AU", "AT", "BD", "BB", "BE", "BZ", "BJ", "BO", "BA", "BW", "BR", "BG", "BF", "CV", "KH", "CA", "CF", "TD", "CL", "CO", "KM", "CG", "CK", "CR", "CI", "HR", "CY", "CZ", "CD", "DK", "DJ", "DM", "DO", "EC", "SV", "EE", "FJ", "FI", "FR", "GA", "GM", "GE", "DE", "GH", "GR", "GD", "GT", "GN", "GY", "HN", "HU", "IS", "IE", "IT", "JP", "JO", "KE", "KI", "LV", "LS", "LR", "LI", "LT", "LU", "MG", "MW", "MV", "ML", "MT", "MH", "MU", "MX", "MN", "ME", "NA", "NR", "NL", "NZ", "NE", "NG", "MK", "NO", "PA", "PY", "PE", "PL", "PT", "KR", "MD", "RO", "KN", "LC", "VC", "WS", "SM", "SN", "RS", "SC", "SL", "SK", "SI", "ZA", "ES", "PS", "SR", "SE", "CH", "TJ", "TL", "TT", "TN", "UG", "UA", "GB", "TZ", "UY", "VU", "VE", "ZM"],
+    memberCount: 125,
+    note: "The 125 States Parties to the Rome Statute, as the Court's Assembly of States Parties lists them. The United States, China, Russia and India are not among them. A state that has given notice to withdraw stays on the list until the withdrawal takes effect. Checked 2 October 2026.",
+    what: "The permanent court that tries individuals - not states - for genocide, crimes against humanity, war crimes and the crime of aggression. It was set up by the Rome Statute of 1998, which entered into force in 2002.",
+    agenda: ["Investigations, arrest warrants and trials of individuals", "Acting only where national courts are unwilling or unable to: the principle of complementarity", "Reparations to victims through its Trust Fund for Victims"],
+    impact: ["It has no police of its own and relies on states to arrest those it charges", "A case reaches it by referral from a State Party or from the UN Security Council, or on the Prosecutor's own initiative", "A withdrawal takes effect one year after a state gives notice"],
+    source: { label: "ICC — the States Parties to the Rome Statute", url: "https://asp.icc-cpi.int/states-parties" },
+  },
+  {
+    id: "coe", name: "Council of Europe", short: "Council of Europe", kind: "Human rights body",
+    founded: 1949, headquarters: "Strasbourg",
+    members: ["AL", "AD", "AM", "AT", "AZ", "BE", "BA", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "GE", "DE", "GR", "HU", "IS", "IE", "IT", "LV", "LI", "LT", "LU", "MT", "MD", "MC", "ME", "NL", "MK", "NO", "PL", "PT", "RO", "SM", "RS", "SK", "SI", "ES", "SE", "CH", "TR", "UA", "GB"],
+    memberCount: 46,
+    note: "Not a body of the European Union: its 46 members include all 27 EU states and 19 others. Russia ceased to be a member in March 2022. Canada, the Holy See, Japan, Mexico and the United States are observers. Checked 2 October 2026.",
+    what: "Europe's human rights organisation. Its members are bound by the European Convention on Human Rights, which the European Court of Human Rights in Strasbourg enforces.",
+    agenda: ["The European Court of Human Rights, which hears complaints from individuals against member states", "Monitoring bodies on torture, corruption, minorities and the rule of law", "The Register of Damage caused by Russia's aggression against Ukraine, set up in 2023"],
+    impact: ["The Court's judgments bind the state they are given against", "Anyone in a member state can take a complaint to the Court once the national courts have been tried", "No execution has been carried out in a member state since 1997"],
+    source: { label: "Council of Europe — member states", url: "https://www.coe.int/en/web/portal/members-states" },
+  },
+  {
+    id: "iachr-court", name: "Inter-American Court of Human Rights", short: "Inter-American Court", kind: "Human rights body",
+    founded: 1979, headquarters: "San José",
+    members: ["AR", "BB", "BO", "BR", "CL", "CO", "CR", "DM", "DO", "EC", "SV", "GD", "GT", "HT", "HN", "JM", "MX", "NI", "PA", "PY", "PE", "SR", "UY"],
+    memberCount: 23,
+    note: "The 23 states that have ratified the American Convention on Human Rights, as the Court lists them. Trinidad and Tobago left it in 1999 and Venezuela in 2013; the United States and Canada are not among those that have ratified it. Checked 2 October 2026.",
+    what: "The court of the Americas' human rights system, set up by the American Convention on Human Rights - the Pact of San José - which entered into force in 1978. It works beside the Inter-American Commission on Human Rights in Washington, D.C.",
+    agenda: ["Judgments on cases brought to it by the Commission or by a state", "Advisory opinions on what the Convention and other human rights treaties require", "Provisional measures to protect people in grave and urgent danger"],
+    impact: ["Its judgments bind the states that have accepted its jurisdiction", "People cannot take a case to it themselves: a petition goes first to the Inter-American Commission"],
+    source: { label: "Inter-American Court of Human Rights — what is the Court?", url: "https://www.corteidh.or.cr/que_es_la_corte.cfm?lang=en" },
+  },
+  {
+    id: "achpr", name: "African Commission on Human and Peoples' Rights", short: "African Commission", kind: "Human rights body",
+    founded: 1987, headquarters: "Banjul",
+    memberCount: 54,
+    note: "The African Charter on Human and Peoples' Rights has been ratified by 54 member states of the African Union; South Sudan was the latest, in 2013. The count is the Commission's own. Checked 2 October 2026.",
+    what: "The body that promotes and protects the rights set out in the African Charter on Human and Peoples' Rights. It was inaugurated in Addis Ababa in 1987, and its secretariat is in Banjul, The Gambia.",
+    agenda: ["Examining the reports states submit on how they apply the Charter", "Hearing complaints against states, which it calls communications", "Special rapporteurs and working groups on particular rights"],
+    impact: ["Its findings are recommendations to states, not binding judgments", "The African Court on Human and Peoples' Rights, in Arusha, can give binding judgments against the states that have accepted its jurisdiction"],
+    source: { label: "African Commission — state parties to the African Charter", url: "https://achpr.au.int/en/states" },
   },
 ];

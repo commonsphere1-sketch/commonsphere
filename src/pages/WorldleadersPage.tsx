@@ -40,7 +40,7 @@ import {
 } from "../data/electionCountdowns";
 import { ROYAL_FAMILIES, type RoyalMember } from "../data/royalFamiliesData";
 import { SourceLink } from "../components/SourceLink";
-import { ALLIANCES, ALLIANCES_CHECKED, type Alliance, type AllianceKind } from "../data/alliances";
+import { ALLIANCES, ALLIANCES_CHECKED, ALLIANCE_KIND_PLURAL, type Alliance, type AllianceKind } from "../data/alliances";
 import { countriesData, type Country } from "../data/countriesData";
 import { FilterBar } from "../components/FilterBar";
 import { HeadlinesBanner, namesTag, type Headline, type Shown } from "../components/HeadlinesBanner";
@@ -15889,7 +15889,7 @@ function AlliancesView() {
   const [detail, setDetail] = useState<Alliance | null>(null);
   const byCode = useMemo(() => new Map(countriesData.map((c) => [c.code, c])), []);
 
-  const kinds: ("All" | AllianceKind)[] = ["All", "Security alliance", "Political & regional bloc", "Economic & trade bloc", "International agency"];
+  const kinds: ("All" | AllianceKind)[] = ["All", "Security alliance", "Political & regional bloc", "Economic & trade bloc", "International agency", "Human rights body"];
   const q = query.trim().toLowerCase();
   const shown = ALLIANCES.filter((a) => {
     if (kind !== "All" && a.kind !== kind) return false;
@@ -15911,7 +15911,7 @@ function AlliancesView() {
             onClick={() => setKind(k)}
             className={`px-3 py-1.5 rounded-full text-xs font-sans border transition-colors ${kind === k ? "chip-selected" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
           >
-            {k === "All" ? "All" : `${k}s`}
+            {k === "All" ? "All" : ALLIANCE_KIND_PLURAL[k]}
           </button>
         ))}
         <input

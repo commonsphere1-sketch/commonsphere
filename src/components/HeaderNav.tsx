@@ -181,7 +181,7 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
         className="header-bar-bg absolute inset-0 -z-10 pointer-events-none"
         style={{
           background:
-            "linear-gradient(180deg, rgba(5, 5, 12, 0.95) 0%, rgba(3, 3, 8, 0.92) 100%)",
+            "linear-gradient(180deg, rgba(7, 7, 7, 0.95) 0%, rgba(4, 4, 4, 0.92) 100%)",
           backdropFilter: "blur(28px) saturate(180%)",
           WebkitBackdropFilter: "blur(28px) saturate(180%)",
         }}

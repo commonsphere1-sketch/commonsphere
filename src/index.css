@@ -59,8 +59,10 @@
      date pickers) with dark chrome. Without it the currency-converter
      dropdown rendered its options on the default white system popup. */
   color-scheme: dark;
-  --hero-gradient: #050509;
-  --color-header-bg: #030308;
+  /* Neutral near-blacks: with a little more blue than red, as these were, the
+     header's and the bars' saturate() filters turned the theme navy. */
+  --hero-gradient: #060606;
+  --color-header-bg: #040404;
   --color-primary: hsl(42, 22%, 94%);
   --color-primary-foreground: hsl(40, 25%, 8%);
   --color-secondary: hsl(0, 0%, 92%);
@@ -71,7 +73,7 @@
   --color-neutral-foreground: hsl(220, 10%, 12%);
   --color-success: hsl(158, 52%, 38%);
   --color-warning: hsl(38, 100%, 50%);
-  --color-background: #050509;
+  --color-background: #060606;
   --color-foreground: hsl(40, 16%, 92%);
   --color-card: rgba(255, 255, 255, 0.032);
   --color-card-foreground: hsl(40, 16%, 92%);
@@ -120,7 +122,7 @@ body,
 
 html,
 body {
-  background-color: #050509;
+  background-color: #060606;
   color: hsl(40, 16%, 92%);
   font-family: "Figures", "Spectral", "DM Sans", Georgia, serif;
   -webkit-font-smoothing: antialiased;
@@ -684,7 +686,7 @@ html.light .header-bar-bg {
    A 10% white tint with a blur that never took effect (see HeaderNav) left
    page headings legible straight through the list. */
 html:not(.light) .search-dropdown-glass {
-  background: rgba(24, 24, 32, 0.62);
+  background: rgba(24, 24, 24, 0.62);
   border-color: rgba(255, 255, 255, 0.16);
   backdrop-filter: blur(24px) saturate(170%);
   -webkit-backdrop-filter: blur(24px) saturate(170%);
@@ -1201,7 +1203,7 @@ html.light .cs-on-hue {
    is recharts' default once no chart overrides it. */
 .recharts-default-tooltip,
 .cs-chart-tip {
-  background: rgba(18, 18, 24, 0.22) !important;
+  background: rgba(18, 18, 18, 0.22) !important;
   backdrop-filter: blur(5px) saturate(150%) brightness(0.62) !important;
   -webkit-backdrop-filter: blur(5px) saturate(150%) brightness(0.62) !important;
   border: 1px solid rgba(255, 255, 255, 0.16) !important;
