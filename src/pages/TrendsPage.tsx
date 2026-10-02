@@ -26,6 +26,7 @@ import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "../components/SectionNav";
 import { StyledSelect } from "../components/StyledSelect";
 import { StatExplorer, type StatGroup } from "../components/StatExplorer";
+import { CategoryCharts, TREND_CHARTS } from "../components/CategoryCharts";
 import { StatCard, splitChange, type StatCardData, type StatFact, type StatTable } from "../components/StatCard";
 import { usdFromBillions } from "../lib/money";
 import { WORLD, WORLDVIEW_RETRIEVED, type WorldIndicator } from "../data/worldview";
@@ -2323,6 +2324,8 @@ export function TrendsPage() {
                 ))}
               </div>
               <SourceLink sources={g.ids.flatMap((id) => figureOf(id)?.source ?? [])} />
+              {/* The group in charts: its lead figures by region, year by year. */}
+              {TREND_CHARTS[g.id] && <CategoryCharts charts={TREND_CHARTS[g.id]} frame="card" />}
             </div>
           ))}
           <Note>These are measured, not projected: each is a published world series to its latest year. The Worldview page has all of them, with what each means.</Note>

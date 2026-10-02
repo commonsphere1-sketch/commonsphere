@@ -52,6 +52,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { HeadlinesBanner, placeName, placeTag, type Headline, type Shown } from "@/components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "@/components/SectionNav";
 import { StatCard, splitChange } from "@/components/StatCard";
+import { CategoryCharts, PILLAR_CHARTS } from "@/components/CategoryCharts";
 import { has } from "@/lib/na";
 
 /**
@@ -1798,6 +1799,15 @@ function PillarCard({ p }: { p: Pillar }) {
         })}
       </div>
       <p className="text-xs font-sans leading-relaxed text-foreground/85 max-w-4xl">{p.summary()}</p>
+      {/* The pillar in charts: a figure by region year by year, and its figures that share a unit side by side. */}
+      {PILLAR_CHARTS[p.id] && (
+        <div>
+          <p className="text-[9px] font-mono uppercase tracking-widest mb-2" style={{ color: muted }}>
+            {p.title} in charts
+          </p>
+          <CategoryCharts charts={PILLAR_CHARTS[p.id]} />
+        </div>
+      )}
       <div className="max-w-xl">
         <DirectionBar p={p} />
       </div>
