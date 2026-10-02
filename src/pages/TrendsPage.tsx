@@ -539,6 +539,102 @@ function TrendTile({ id, color, group, beside }: { id: string; color: string; gr
   );
 }
 
+/**
+ * The world population chart, explained under it: the milestones on the
+ * line, what the solid and dashed parts are, how the UN makes the
+ * projection, what it shows and what it rests on. Every number is read off
+ * the UN's series in projections.ts; the account of the method is the UN's
+ * own, from World Population Prospects' methodology.
+ */
+function PopulationExplained() {
+  const pop = WORLD_POP.population;
+  const now = at(pop, THIS_YEAR) ?? 0;
+  const end = at(pop, 2100) ?? 0;
+  const [peakYear, peak] = POP_PEAK;
+  /** The first year from now in which the projection is at or past a number. */
+  const passes = (n: number) => pop.find(([y, v]) => y >= THIS_YEAR && v >= n)?.[0];
+  const fert = (y: number) => at(WORLD_POP.fertility, y);
+  const age = (y: number) => at(WORLD_POP.medianAge, y);
+  const lex = (y: number) => at(WORLD_POP.lifeExpectancy, y);
+  const low = POPULATION_VARIANTS.low;
+  const lowPeak = low.reduce((a, b) => (b[1] > a[1] ? b : a));
+  const marks = [
+    { label: `Now · ${THIS_YEAR}`, value: people(now), sub: "on the UN's medium variant" },
+    ...[9e9, 10e9].flatMap((n) => {
+      const y = passes(n);
+      return y ? [{ label: `Passes ${n / 1e9} billion`, value: String(y), sub: `${y - THIS_YEAR} years from now` }] : [];
+    }),
+    { label: "Peaks", value: String(peakYear), sub: `at ${people(peak)}` },
+    { label: "By 2100", value: people(end), sub: `${people(peak - end)} below the peak` },
+  ];
+  const points: { title: string; text: ReactNode }[] = [
+    {
+      title: "What the line is",
+      text: (
+        <>
+          The solid line is the UN's estimate of everyone alive on 1 July of each year since 1950, built from censuses, registers of births and deaths, and surveys.
+          From {WPP.firstProjected} the dashed line is a projection: the medium variant of World Population Prospects {WPP.revision}, which the UN revises every few
+          years as new counts come in.
+        </>
+      ),
+    },
+    {
+      title: "How the projection is made",
+      text: (
+        <>
+          Country by country, the UN carries the population forward a year at a time, by age and sex: everyone grows a year older, some die, babies are born, and
+          migrants come and go. What it has to assume is how many children women will have, how long people will live, and how many will move. The medium variant is
+          the middle path of the range its models give for births and deaths.
+        </>
+      ),
+    },
+    {
+      title: "What it shows",
+      text: (
+        <>
+          From {people(now)} now the world adds {people(peak - now)} by {peakYear} - {((100 * (peak - now)) / now).toFixed(0)}% more - then slowly shrinks. Growth is
+          already slowing: women have {fert(THIS_YEAR)?.toFixed(2)} children on average, against {fert(1950)?.toFixed(2)} in 1950, and the projection has{" "}
+          {fert(2050)?.toFixed(2)} in 2050 and {fert(2100)?.toFixed(2)} in 2100; about 2.1 keeps a population level. People also live longer - {lex(THIS_YEAR)?.toFixed(1)}{" "}
+          years at birth now, {lex(2100)?.toFixed(1)} projected for 2100 - so the world grows older: half are older than {age(THIS_YEAR)?.toFixed(1)} today, and half older than{" "}
+          {age(2100)?.toFixed(1)} by 2100.
+        </>
+      ),
+    },
+    {
+      title: "What it rests on",
+      text: (
+        <>
+          Births are the least certain part. With half a child fewer per woman than the medium, the UN's low variant peaks at {people(lowPeak[1])} in {lowPeak[0]} and
+          falls to {people(at(low, 2100) ?? 0)} by 2100; with half a child more, its high variant is still growing at {people(at(POPULATION_VARIANTS.high, 2100) ?? 0)}.
+          The UN puts no probability on either, and nor does this page; the Scenarios section sets them side by side.
+        </>
+      ),
+    },
+  ];
+  return (
+    <div className="mt-5 pt-4 border-t border-border/40">
+      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-2">The projection, explained</p>
+      <dl className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        {marks.map((m) => (
+          <div key={m.label} className="modal-tile rounded-xl px-3 py-2.5 min-w-0">
+            <dt className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground leading-snug">{m.label}</dt>
+            <dd className="text-base font-bold font-mono text-foreground leading-tight mt-1">{m.value}</dd>
+            <dd className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">{m.sub}</dd>
+          </div>
+        ))}
+      </dl>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+        {points.map((p) => (
+          <div key={p.title} className="modal-tile rounded-xl p-3">
+            <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1.5">{p.title}</p>
+            <p className="text-[12px] font-sans leading-relaxed text-foreground/90">{p.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Page ───────────────────────────────────────────────────────────────────
 
 const SECTIONS: NavSection[] = [
@@ -969,6 +1065,7 @@ export function TrendsPage() {
                   { color: SERIES.people, label: "2100", value: people(at(WORLD_POP.population, 2100) ?? 0), dashed: true },
                 ]}
               />
+              <PopulationExplained />
               <SourceLink sources={[WPP]} className="mt-3" />
             </Card>
             <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
