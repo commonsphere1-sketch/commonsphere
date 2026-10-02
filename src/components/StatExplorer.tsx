@@ -177,7 +177,7 @@ function StatDetail({ t, group, s, onOpen }: { t: Tokens; group: StatGroup; s: S
                 </defs>
                 <XAxis dataKey="year" tick={{ fontSize: 8, fill: t.mutedText, fontFamily: "monospace" }} axisLine={false} tickLine={false} minTickGap={24} />
                 <YAxis tick={{ fontSize: 8, fill: t.mutedText, fontFamily: "monospace" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => fmt(v)} domain={["auto", "auto"]} width={52} />
-                <Tooltip {...tooltipStyle(t)} itemStyle={{ color: t.headText }} formatter={(v: number, k: string) => [fmt(v), k === "p" ? `${s.label}, projected` : s.label]} />
+                <Tooltip {...tooltipStyle(t)} formatter={(v: number, k: string) => [fmt(v), k === "p" ? `${s.label}, projected` : s.label]} />
                 <Area type="monotone" dataKey="a" stroke={color} fill={`url(#${gradient})`} strokeWidth={1.5} dot={false} isAnimationActive={false} />
                 <Area type="monotone" dataKey="p" stroke={color} strokeDasharray="5 4" fill={`url(#${gradient})`} fillOpacity={0.5} strokeWidth={1.5} dot={false} isAnimationActive={false} />
               </AreaChart>

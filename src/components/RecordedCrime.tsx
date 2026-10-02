@@ -635,7 +635,6 @@ function Wildlife({ look }: { look: Look }) {
           <YAxis tick={{ fontSize: 9, fill: look.muted, fontFamily: "monospace" }} axisLine={false} tickLine={false} width={52} tickFormatter={(v: number) => amount(v)} />
           <Tooltip
             contentStyle={{ background: look.tip, border: `1px solid ${look.line}`, borderRadius: 10, fontSize: 11, fontFamily: "monospace", color: look.head }}
-            itemStyle={{ color: look.head }}
             formatter={(v: number) => [amount(v), `${g.group} seized`]}
             cursor={{ fill: look.isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.04)" }}
           />

@@ -755,11 +755,11 @@ function SectorPie({ sectors }: { sectors: EconomySectors }) {
     if (!active || !payload?.length) return null;
     const entry = payload[0];
     return (
-      <div className="bg-card border border-border rounded-lg p-2.5 text-xs font-mono shadow-lg">
+      <div className="cs-chart-tip rounded-lg p-2.5 text-xs font-mono font-bold" style={{ color: getSectorColor(entry.name) }}>
         <p style={{ color: getSectorColor(entry.name) }} className="font-semibold">
           {entry.name}
         </p>
-        <p className="text-foreground">
+        <p>
           {pct1(entry.value)} {basisLabel}
         </p>
       </div>
@@ -909,11 +909,11 @@ function BudgetPie({ budget }: { budget: CountryBudget }) {
     if (!active || !payload?.length) return null;
     const e = payload[0].payload;
     return (
-      <div className="bg-card border border-border rounded-lg p-2.5 text-xs font-mono shadow-lg">
+      <div className="cs-chart-tip rounded-lg p-2.5 text-xs font-mono font-bold" style={{ color: BUDGET_COLORS[e.key as keyof typeof BUDGET_COLORS] }}>
         <p style={{ color: BUDGET_COLORS[e.key as keyof typeof BUDGET_COLORS] }} className="font-semibold">
           {e.name}
         </p>
-        <p className="text-foreground">{pct1(e.pct)} of government spending</p>
+        <p>{pct1(e.pct)} of government spending</p>
       </div>
     );
   };
@@ -1016,7 +1016,7 @@ function EconomyModal({
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload?.length) {
       return (
-        <div className="bg-card border border-border rounded-md p-3 text-xs font-mono">
+        <div className="cs-chart-tip rounded-md p-3 text-xs font-mono font-bold">
           <p className="font-semibold mb-1">{label}</p>
           {payload.map((e: any) => (
             <p key={e.name} style={{ color: e.color }}>
@@ -1788,18 +1788,18 @@ function EconomyModal({
                     const entry = payload[0];
                     const res = resources.find((r) => r.name === entry.name);
                     return (
-                      <div className="bg-card border border-border rounded-lg p-2.5 text-xs font-mono shadow-lg">
+                      <div className="cs-chart-tip rounded-lg p-2.5 text-xs font-mono font-bold" style={{ color: res?.color ?? "#fff" }}>
                         <p
                           style={{ color: res?.color ?? "#fff" }}
                           className="font-semibold"
                         >
                           {entry.name}
                         </p>
-                        <p className="text-foreground">
+                        <p>
                           {rentShare(entry.value)}% of this economy's resource
                           rents
                         </p>
-                        <p className="text-foreground">
+                        <p>
                           {entry.value} {res?.unit}
                         </p>
                         <p className="text-muted-foreground">{res?.share}</p>

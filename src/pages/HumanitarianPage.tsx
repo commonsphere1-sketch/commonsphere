@@ -188,8 +188,7 @@ function useLook() {
         fontFamily: "monospace",
         color: isLight ? "#0f172a" : "#f1f0ff",
       },
-      // The lines of a hover box are in ink, not in their series' colour: amber on white cannot be read.
-      itemStyle: { color: isLight ? "#0f172a" : "#f1f0ff" },
+      // Each line of a hover box takes its series' colour, recharts' default; the card is glass (index.css).
       labelStyle: { color: isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.46)" },
     },
   };

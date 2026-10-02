@@ -2810,7 +2810,6 @@ function CityTrends({ city }: { city: City }) {
   const tick = { fill: muted, fontSize: 10, fontFamily: "Figures, IBM Plex Mono" };
   const tip = {
     contentStyle: { background: isLight ? "#ffffff" : "#15151a", border: isLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 11, fontFamily: "monospace", color: ink },
-    itemStyle: { color: ink },
     labelStyle: { color: muted },
   };
   const first = city.trends[0];

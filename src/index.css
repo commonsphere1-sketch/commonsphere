@@ -1189,3 +1189,42 @@ html.light .cs-on-hue {
   --color-muted-foreground: hsl(38, 12%, 30%);
   --color-border: hsl(214, 30%, 74%);
 }
+
+/* ── Chart hover cards ──
+   The box a chart shows under the pointer, on every page: recharts' own
+   (.recharts-default-tooltip) and the few the pages draw themselves
+   (.cs-chart-tip). It is glass in both themes - a faint fill over a blurred,
+   dimmed or lightened backdrop, as .modal-glass is - so the chart reads
+   through it; !important because each chart sets a solid background inline.
+   Each line of text in it takes the colour of the series it is about, which
+   is recharts' default once no chart overrides it. */
+.recharts-default-tooltip,
+.cs-chart-tip {
+  background: rgba(18, 18, 24, 0.3) !important;
+  backdrop-filter: blur(16px) saturate(170%) brightness(0.55) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(170%) brightness(0.55) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 10px !important;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+html.light .recharts-default-tooltip,
+html.light .cs-chart-tip {
+  background: rgba(255, 255, 255, 0.38) !important;
+  backdrop-filter: blur(16px) saturate(160%) brightness(1.14) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(160%) brightness(1.14) !important;
+  border-color: rgba(120, 100, 70, 0.22) !important;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+}
+/* Coloured text on glass wants weight. */
+.recharts-default-tooltip .recharts-tooltip-item {
+  font-weight: 700;
+}
+/* A bar chart whose bars are coloured one by one has no series colour, and
+   recharts draws its line black: in ink instead, which both themes can read. */
+.recharts-default-tooltip .recharts-tooltip-item[style*="color: rgb(0, 0, 0)"] {
+  color: var(--color-foreground) !important;
+}

@@ -97,8 +97,7 @@ function useChartLook() {
         fontFamily: "monospace",
         color: head,
       },
-      // The lines of a hover box are in ink, not in their series' colour.
-      itemStyle: { color: head },
+      // Each line of a hover box takes its series' colour, recharts' default; the card is glass (index.css).
       labelStyle: { color: muted },
     },
   };
@@ -293,8 +292,8 @@ function StackChart({ def, frame, look }: { def: Extract<ChartDef, { kind: "stac
             <YAxis {...look.axis} width={48} tickFormatter={s.tick} domain={s.shares ? [0, 100] : [0, "auto"]} ticks={s.shares ? [0, 25, 50, 75, 100] : undefined} allowDataOverflow={s.shares} />
             <Tooltip {...look.tooltip} formatter={(v: number, k: string) => [s.fmt(v), s.parts.find((p) => p.key === k)?.label ?? k]} />
             {s.parts.map((p, i) => (
-              // A hairline of the surface between the bands, so two that touch stay apart.
-              <Area key={p.key} type="monotone" dataKey={p.key} stackId={id} stroke={look.card.background} strokeWidth={1} fill={ORDERED[i % 5]} fillOpacity={0.85} isAnimationActive={false} />
+              // Each band's edge is its own colour, a shade stronger than its fill: the hover box takes a band's colour from its edge.
+              <Area key={p.key} type="monotone" dataKey={p.key} stackId={id} stroke={ORDERED[i % 5]} strokeWidth={1.5} fill={ORDERED[i % 5]} fillOpacity={0.7} isAnimationActive={false} />
             ))}
           </AreaChart>
         </ResponsiveContainer>

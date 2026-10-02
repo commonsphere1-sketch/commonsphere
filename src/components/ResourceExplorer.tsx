@@ -198,7 +198,7 @@ function ResourceDetail({ t, entry: { r, price }, onOpen }: { t: Tokens; entry: 
                 </defs>
                 <XAxis dataKey="m" ticks={januaries} tickFormatter={(m: string) => m.slice(0, 4)} tick={{ fontSize: 8, fill: t.mutedText, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 8, fill: t.mutedText, fontFamily: "monospace" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => (v >= 10000 ? `${Math.round(v / 1000)}k` : fmtPrice(v))} domain={["auto", "auto"]} />
-                <Tooltip {...tooltipStyle(t)} itemStyle={{ color: t.headText }} labelFormatter={(m: string) => fmtMonth(m)} formatter={(v: number) => [`${fmtPrice(v)} ${price.price.unit}`, price.price.benchmark]} />
+                <Tooltip {...tooltipStyle(t)} labelFormatter={(m: string) => fmtMonth(m)} formatter={(v: number) => [`${fmtPrice(v)} ${price.price.unit}`, price.price.benchmark]} />
                 <Area type="monotone" dataKey="v" stroke={r.color} fill={`url(#explorerResource-${r.color.replace("#", "")})`} strokeWidth={1.5} dot={false} isAnimationActive={false} />
               </AreaChart>
             </ResponsiveContainer>

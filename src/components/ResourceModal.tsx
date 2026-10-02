@@ -354,7 +354,6 @@ function PriceHistory({ facts, color, unitNote }: { facts: PriceFacts; color: st
               <YAxis width={46} tick={{ fontSize: 9, fill: muted, fontFamily: "monospace" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => (v >= 10000 ? `${Math.round(v / 1000)}k` : fmtPrice(v))} domain={[0, "auto"]} />
               <Tooltip
                 contentStyle={{ background: isLight ? "#ffffff" : "#15151a", border: isLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 11, fontFamily: "monospace", color: ink }}
-                itemStyle={{ color: ink }}
                 labelStyle={{ color: muted }}
                 labelFormatter={(m: string) => fmtMonth(m)}
                 formatter={(v: number) => [`${fmtPrice(v)} ${price.unit}`, price.benchmark]}

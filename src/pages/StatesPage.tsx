@@ -333,7 +333,7 @@ function TaxCard({
 function ChartTip({ active, payload, label, suffix = "%" }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-card border border-border rounded-md p-2 text-xs font-mono shadow-lg">
+    <div className="cs-chart-tip rounded-md p-2 text-xs font-mono font-bold">
       {label && <p className="font-semibold mb-1">{label}</p>}
       {payload.map((e: any) => (
         <p key={e.name ?? e.dataKey} style={{ color: e.fill ?? e.color }}>

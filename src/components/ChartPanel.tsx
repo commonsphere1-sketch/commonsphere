@@ -47,7 +47,7 @@ export function ChartPanel({ entityType, timeRange, metric }: ChartPanelProps) {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-card border border-border rounded-md p-3 text-sm font-mono">
+        <div className="cs-chart-tip rounded-md p-3 text-sm font-mono font-bold">
           <p className="text-foreground font-semibold mb-1">{label}</p>
           {payload.map((entry: any) => (
             <p

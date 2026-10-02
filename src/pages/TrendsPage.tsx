@@ -120,8 +120,7 @@ function useLook() {
         fontFamily: "monospace",
         color: head,
       },
-      // The lines of a hover box are in ink, not in their series' colour.
-      itemStyle: { color: head },
+      // Each line of a hover box takes its series' colour, recharts' default; the card is glass (index.css).
       labelStyle: { color: muted },
     },
   };

@@ -431,7 +431,6 @@ export function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => voi
                     {split && <ReferenceArea x1={String(split)} x2={String(lastOf(series)[0])} fill={isLight ? "rgba(99,102,241,0.07)" : "rgba(129,140,248,0.10)"} fillOpacity={1} ifOverflow="visible" />}
                     <Tooltip
                       contentStyle={{ background: isLight ? "#ffffff" : "#15151a", border: isLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 11, fontFamily: "monospace", color: ink }}
-                      itemStyle={{ color: ink }}
                       labelStyle={{ color: muted }}
                       formatter={(v: number, k: string) => [fmt(v), k === "p" ? `${s.label}, projected` : s.label]}
                     />
