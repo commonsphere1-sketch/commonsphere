@@ -243,7 +243,7 @@ export function StatCard({ s, onOpen, more }: { s: StatCardData; onOpen?: () => 
   const [open, setOpen] = useState(false);
   const color = s.color ?? DEFAULT_COLOR;
   const facts = (s.facts ?? statFacts(s)).slice(0, 3);
-  const hasWindow = Boolean(s.series && s.series.length > 2);
+  const hasWindow = Boolean((s.series && s.series.length > 2) || s.tables?.length);
   const act = onOpen ?? (hasWindow ? () => setOpen(true) : undefined);
   const body: ReactNode = (
     <>

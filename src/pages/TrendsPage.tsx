@@ -19,7 +19,7 @@
  */
 import { useMemo, useState, type ReactNode } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ChartLineUp, Globe, Leaf, Lightning, Target, TrendUp, Users } from "@phosphor-icons/react";
+import { ChartLineUp, Cpu, Globe, Leaf, Lightning, Target, TrendUp, Users } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
@@ -50,6 +50,34 @@ import {
   type Leaders,
   type YearValue,
 } from "../data/renewables";
+import {
+  AI_DEALS,
+  AI_DEALS_SOURCE,
+  AI_INVESTMENT_PLACES,
+  AI_INVESTMENT_PLACES_SOURCE,
+  AI_MODELS,
+  AI_MODELS_SOURCE,
+  COMPANIES_USING_AI,
+  DATA_CENTRES,
+  DISK_PRICE,
+  DRIVERLESS_TAXIS,
+  GENERATIVE_AI_USERS,
+  GENOME_COST,
+  LARGE_AI_SYSTEMS,
+  MOBILE_COVERAGE,
+  NVIDIA_REVENUE,
+  NVIDIA_REVENUE_SOURCE,
+  PEOPLE_ONLINE,
+  ROBOT_INSTALLS,
+  ROBOT_INSTALLS_SOURCE,
+  SERVICE_ROBOTS,
+  SUPERCOMPUTER,
+  TECHNOLOGY_RETRIEVED,
+  TECH_TAKE_UP,
+  TECH_TAKE_UP_SOURCE,
+  TRANSISTORS,
+  TSMC_REVENUE,
+} from "../data/technology";
 import {
   POPULATION_OUTLOOK,
   POPULATION_VARIANTS,
@@ -1150,6 +1178,570 @@ function RenewablesSection() {
   );
 }
 
+// ── Technology ─────────────────────────────────────────────────────────────
+
+/**
+ * The colours of a chart's series, in the order the palette validator passed
+ * them on the light and the dark surface: a chart takes them from the first.
+ * Every series is also named in a legend with its figure.
+ */
+const ORDERED = ["#d97706", "#2563eb", "#0d9488", "#c026d3", "#65a30d"];
+const TECH_COLOR = "#8b5cf6";
+
+/** A large count in words a card can hold: 58.2bn, 6.05bn, 77.6M. */
+const big = (v: number) => (v >= 1e12 ? `${(v / 1e12).toFixed(2)}tn` : v >= 1e9 ? `${(v / 1e9).toFixed(v >= 1e10 ? 1 : 2)}bn` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : Math.round(v).toLocaleString("en-US"));
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/** "2026-06" or "2026-06-30" as "Jun 2026". */
+const monthOf = (d: string) => `${MONTHS[Number(d.slice(5, 7)) - 1]} ${d.slice(0, 4)}`;
+/** "×25" where a figure has more than doubled between two readings, a percentage otherwise. */
+const multiple = (a: number, b: number) => (a > 0 && b / a >= 2 ? `×${b / a >= 100 ? Math.round(b / a).toLocaleString("en-US") : (b / a).toFixed(b / a >= 10 ? 0 : 1)}` : `${signed((100 * (b - a)) / (a || 1), 0)}%`);
+
+/**
+ * The take-up chart, explained under it: each line's latest reading and its
+ * reading ten years before, what the lines count, what they show, how many
+ * people that is, and the networks behind it. Every number is read off the
+ * ITU's series in technology.ts.
+ */
+function TakeUpExplained({ lines }: { lines: readonly { key: "mobile" | "internet" | "broadband" | "landline"; label: string; color: string }[] }) {
+  const rows = TECH_TAKE_UP;
+  const now = rows[rows.length - 1];
+  const then = rows.find((r) => r.year === now.year - 10);
+  const v = (r: (typeof rows)[number] | undefined, k: (typeof lines)[number]["key"]) => r?.[k] ?? null;
+  // The year mobile subscriptions passed landlines, the year landlines were most common, the year half the world was online.
+  const mobilePast = rows.find((r) => r.mobile !== null && r.landline !== null && r.mobile > r.landline)?.year;
+  const landlinePeak = rows.reduce((a, b) => ((b.landline ?? 0) > (a.landline ?? 0) ? b : a));
+  const halfOnline = rows.find((r) => (r.internet ?? 0) >= 50)?.year;
+  const online = PEOPLE_ONLINE;
+  const [onlineYear, onlineNow] = lastPoint(online.series);
+  const onlineThen = online.series.find(([y]) => y === onlineYear - 10);
+  const g = (name: string) => MOBILE_COVERAGE.generations.find((x) => x.name === name)?.series;
+  const g5 = g("5G");
+  const g4 = g("4G");
+  const points: { title: string; text: ReactNode }[] = [
+    {
+      title: "What the lines are",
+      text: (
+        <>
+          Each line is a count for every 100 people in the world, from the International Telecommunication Union's figures. Mobile, broadband and landline are subscriptions, so a person with two SIM
+          cards is counted twice - which is how mobile passes 100. Internet is people: those who used it at all in the last three months.
+        </>
+      ),
+    },
+    {
+      title: "What it shows",
+      text: (
+        <>
+          {mobilePast ? `Mobile subscriptions passed landlines in ${mobilePast}. ` : ""}Landlines were most common in {landlinePeak.year}, at {landlinePeak.landline} for every 100 people, and have fallen to{" "}
+          {now.landline}.{halfOnline ? ` Half the world was online by ${halfOnline}; ` : " "}
+          {now.internet} in every 100 are now{then ? `, against ${then.internet} in ${then.year}` : ""}. Fixed broadband, which needs a cable to the home, has spread far more slowly than the phone in the pocket.
+        </>
+      ),
+    },
+    {
+      title: "How many people",
+      text: (
+        <>
+          {big(onlineNow)} people used the internet in {onlineYear}
+          {onlineThen ? `, against ${big(onlineThen[1])} in ${onlineThen[0]}` : ""}. In {online.year}, the latest year countries report, {online.rows[0].n} had {big(online.rows[0].v)} of them, {online.rows[1].n}{" "}
+          {big(online.rows[1].v)} and {online.rows[2].n} {big(online.rows[2].v)}.
+        </>
+      ),
+    },
+    {
+      title: "The networks behind it",
+      text: (
+        <>
+          {g4 && g5
+            ? `In ${lastPoint(g5)[0]}, ${lastPoint(g4)[1]}% of the world's people lived within range of a 4G network and ${lastPoint(g5)[1]}% within range of 5G, whether or not they had a phone to use it; 5G reached ${g5[0][1]}% in ${g5[0][0]}.`
+            : ""}{" "}
+          The cards below take up 5G and the other emerging kinds one by one.
+        </>
+      ),
+    },
+  ];
+  return (
+    <div className="mt-5 pt-4 border-t border-border/40">
+      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-2">The chart, explained</p>
+      <dl className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {lines.map((l) => (
+          <div key={l.key} className="modal-tile rounded-xl px-3 py-2.5 min-w-0">
+            <dt className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground leading-snug flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: l.color }} aria-hidden />
+              {l.label}
+            </dt>
+            <dd className="text-base font-bold font-mono text-foreground leading-tight mt-1">{v(now, l.key)}</dd>
+            <dd className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">
+              per 100 people in {now.year}
+              {v(then, l.key) !== null ? ` · ${v(then, l.key)} in ${then?.year}` : ""}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+        {points.map((p) => (
+          <div key={p.title} className="modal-tile rounded-xl p-3">
+            <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1.5">{p.title}</p>
+            <p className="text-[12px] font-sans leading-relaxed text-foreground/90">{p.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Technology in charts: how far communication technology has spread, what
+ * computing has come to do and cost, the emerging kinds as cards, where the
+ * money for AI goes, the robots, and the countries and companies behind them.
+ * Every figure is from technology.ts (build-technology.cjs) or, for the
+ * makers of AI models and the companies publishing research, trendDetails.ts.
+ */
+function TechnologySection() {
+  const look = useLook();
+  const { head, muted } = look;
+
+  const takeUpLines = [
+    { key: "mobile", label: "Mobile subscriptions", color: ORDERED[0] },
+    { key: "internet", label: "People using the internet", color: ORDERED[1] },
+    { key: "broadband", label: "Fixed broadband", color: ORDERED[2] },
+    { key: "landline", label: "Landlines", color: ORDERED[3] },
+  ] as const;
+  const takeUpNow = TECH_TAKE_UP[TECH_TAKE_UP.length - 1];
+
+  /** A series' first reading and its latest, as two facts and the move between them. */
+  const span = (p: YearValue[], fmt: (v: number) => string): StatFact[] => [
+    { label: `In ${p[0][0]}`, value: fmt(p[0][1]) },
+    { label: `Change since ${p[0][0]}`, value: multiple(p[0][1], lastPoint(p)[1]), sub: "worked out here" },
+  ];
+  const usd = (v: number) => (v >= 1e6 ? `$${big(v)}` : `$${v >= 100 ? Math.round(v).toLocaleString("en-US") : v.toFixed(2)}`);
+  const flops = (v: number) => (v >= 1e9 ? `${(v / 1e9).toFixed(2)} exaflops` : v >= 1e6 ? `${(v / 1e6).toFixed(1)} petaflops` : v >= 1e3 ? `${(v / 1e3).toFixed(1)} teraflops` : `${Math.round(v)} gigaflops`);
+  const computing: StatCardData[] = [
+    {
+      label: "Transistors on a chip",
+      value: big(lastPoint(TRANSISTORS.series)[1]),
+      sub: `on a microprocessor · ${lastPoint(TRANSISTORS.series)[0]}`,
+      change: decadeChange(TRANSISTORS.series),
+      about: "The most transistors on one microprocessor - the count behind Moore's law, the observation that it doubles about every two years.",
+      series: TRANSISTORS.series,
+      color: ORDERED[1],
+      fmt: big,
+      facts: span(TRANSISTORS.series, big),
+      source: TRANSISTORS.source,
+    },
+    {
+      label: "The fastest supercomputer",
+      value: flops(lastPoint(SUPERCOMPUTER.series)[1]),
+      sub: `operations a second · ${lastPoint(SUPERCOMPUTER.series)[0]}`,
+      change: decadeChange(SUPERCOMPUTER.series),
+      about: "The speed of the fastest machine on the TOP500 list. An exaflop is a billion billion calculations a second.",
+      series: SUPERCOMPUTER.series,
+      color: ORDERED[2],
+      fmt: flops,
+      facts: span(SUPERCOMPUTER.series, flops),
+      source: SUPERCOMPUTER.source,
+    },
+    {
+      label: "Price of disk storage",
+      value: `${usd(lastPoint(DISK_PRICE.series)[1])} a terabyte`,
+      sub: `constant 2020 US$ · ${lastPoint(DISK_PRICE.series)[0]}`,
+      change: decadeChange(DISK_PRICE.series, true),
+      about: "The cheapest price recorded for a terabyte of magnetic disk storage up to each year.",
+      series: DISK_PRICE.series,
+      color: ORDERED[0],
+      fmt: usd,
+      facts: span(DISK_PRICE.series, usd),
+      source: DISK_PRICE.source,
+    },
+  ];
+
+  const g5 = MOBILE_COVERAGE.generations.find((x) => x.name === "5G")?.series ?? [];
+  const gen = GENERATIVE_AI_USERS;
+  const genFirst = gen.readings[0];
+  const genLast = gen.readings[gen.readings.length - 1];
+  const firms = COMPANIES_USING_AI;
+  const modelsNow = AI_MODELS[AI_MODELS.length - 1];
+  const modelKinds = [
+    { key: "industry", label: "Industry", color: ORDERED[0] },
+    { key: "collaboration", label: "Industry and academia together", color: ORDERED[1] },
+    { key: "academia", label: "Academia", color: ORDERED[2] },
+    { key: "other", label: "Other and not specified", color: ORDERED[3] },
+  ] as const;
+  const modelTotal = (r: (typeof AI_MODELS)[number]) => modelKinds.reduce((t, k) => t + r[k.key], 0);
+  const modelSeries: YearValue[] = AI_MODELS.map((r) => [r.year, modelTotal(r)]);
+  const large = LARGE_AI_SYSTEMS;
+  const dc = DATA_CENTRES;
+  const taxis = DRIVERLESS_TAXIS;
+  const pctOf = (v: number, dp = 1) => `${v.toFixed(dp)}%`;
+  const km = (v: number) => `${big(v)} km`;
+  const kinds: StatCardData[] = [
+    {
+      label: "Within range of 5G",
+      value: pctOf(lastPoint(g5)[1], 0),
+      sub: `of the world's people · ITU · ${lastPoint(g5)[0]}`,
+      change: { chip: `${signed(lastPoint(g5)[1] - g5[0][1], 0)} pts`, caption: `since ${g5[0][0]}`, dir: "up", verdict: "better" },
+      about: "People living where a 5G signal reaches, whether or not they have a phone that uses it.",
+      series: g5,
+      color: ORDERED[1],
+      fmt: (v) => pctOf(v, 1),
+      tables: [
+        {
+          key: "generations",
+          title: "By generation of network",
+          kicker: `Share of the world's people within range · ${lastPoint(g5)[0]}`,
+          rows: MOBILE_COVERAGE.generations.map((x) => ({ name: x.name, value: lastPoint(x.series)[1], text: pctOf(lastPoint(x.series)[1]), note: `${pctOf(x.series[0][1])} in ${x.series[0][0]}` })),
+          note: "Coverage is cumulative: anyone within range of a newer generation is also counted in the older ones.",
+          source: MOBILE_COVERAGE.source,
+        },
+      ],
+      source: MOBILE_COVERAGE.source,
+    },
+    {
+      label: "Using generative AI",
+      value: pctOf(genLast[1]),
+      sub: `of working-age adults · Microsoft's estimate · ${monthOf(gen.day)}`,
+      change: { chip: `${signed(genLast[1] - genFirst[1])} pts`, caption: `since ${monthOf(genFirst[0])}`, dir: genLast[1] >= genFirst[1] ? "up" : "down", verdict: null },
+      about: "People aged 15 to 64 who used a generative AI site or app at all in the period, estimated from use of Microsoft's own platforms. One visit counts.",
+      color: ORDERED[3],
+      facts: gen.readings.map(([d, v]) => ({ label: monthOf(d), value: pctOf(v) })),
+      tables: [
+        {
+          key: "countries",
+          title: "Where most people use it",
+          kicker: `Share of working-age adults · of ${gen.countries} countries · ${monthOf(gen.day)}`,
+          rows: gen.rows.map((r) => ({ name: r.n, code: r.c, value: r.v, text: pctOf(r.v) })),
+          source: gen.source,
+        },
+      ],
+      source: gen.source,
+    },
+    {
+      label: "Companies using AI",
+      value: pctOf(lastPoint(firms.series)[1], 0),
+      sub: `of companies surveyed · McKinsey · ${firms.year}`,
+      change: { chip: `${signed(lastPoint(firms.series)[1] - firms.series[0][1], 0)} pts`, caption: `since ${firms.series[0][0]}`, dir: "up", verdict: null },
+      about: "The share of companies answering McKinsey's yearly survey that say they use AI.",
+      series: firms.series,
+      color: ORDERED[2],
+      fmt: (v) => pctOf(v, 0),
+      tables: [{ key: "regions", title: "By region", kicker: `Share of companies surveyed, as McKinsey groups them · ${firms.year}`, rows: firms.regions.map((r) => ({ name: r.n, value: r.v, text: pctOf(r.v, 0) })), source: firms.source }],
+      source: firms.source,
+    },
+    {
+      label: "Notable AI systems a year",
+      value: String(modelTotal(modelsNow)),
+      sub: `published in the year · Epoch AI · ${modelsNow.year}`,
+      change: decadeChange(modelSeries),
+      about: "AI systems Epoch AI lists as notable - for advancing the state of the art, being highly cited, widely used or historically significant - by the year they were published.",
+      series: modelSeries,
+      color: ORDERED[0],
+      fmt: (v) => String(Math.round(v)),
+      tables: [
+        {
+          key: "builders",
+          title: "Who built them",
+          kicker: `Notable systems by the team's affiliation · ${modelsNow.year}`,
+          rows: modelKinds.map((k) => ({ name: k.label, value: modelsNow[k.key], text: String(modelsNow[k.key]), note: `${shareText(modelsNow[k.key], modelTotal(modelsNow))} of the year's` })),
+          source: AI_MODELS_SOURCE,
+        },
+      ],
+      source: AI_MODELS_SOURCE,
+    },
+    {
+      label: "Large-scale AI systems",
+      value: String(lastPoint(large.series)[1]),
+      sub: `since 2019 · Epoch AI · to ${large.year}`,
+      change: { chip: multiple(large.series[Math.max(0, large.series.length - 3)][1], lastPoint(large.series)[1]), caption: `on ${large.series[Math.max(0, large.series.length - 3)][0]}`, dir: "up", verdict: null },
+      about: "A running count of AI systems whose training took more than 10²³ operations - the largest there are - by where the organisation that built each is based.",
+      series: large.series,
+      color: ORDERED[4],
+      fmt: (v) => String(Math.round(v)),
+      tables: [leadersTable("countries", "Where they were built", large, (x) => String(x))],
+      source: large.source,
+    },
+    {
+      label: "Data centres' electricity",
+      value: pctOf(lastPoint(dc.series)[1], 2),
+      sub: `of the world's electricity demand · IEA · ${dc.year}`,
+      change: { chip: `${signed(lastPoint(dc.series)[1] - dc.series[0][1], 2)} pts`, caption: `since ${dc.series[0][0]}`, dir: "up", verdict: null },
+      about: "Electricity used by data centres - which run streaming, messaging and cloud storage as well as AI - as a share of all the electricity used. The source cannot separate AI's part.",
+      series: dc.series,
+      color: ORDERED[1],
+      fmt: (v) => pctOf(v, 2),
+      tables: [{ key: "places", title: "By place", kicker: `Share of each place's electricity demand, as the IEA groups them · ${dc.year}`, rows: dc.places.map((r) => ({ name: r.n, code: r.c, value: r.v, text: pctOf(r.v, 2) })), source: dc.source }],
+      source: dc.source,
+    },
+    {
+      label: "Driverless taxi travel",
+      value: km(lastPoint(taxis.series)[1]),
+      sub: `passenger-km in California · ${lastPoint(taxis.series)[0]}`,
+      change: { chip: multiple(taxis.series[taxis.series.length - 2][1], lastPoint(taxis.series)[1]), caption: `on ${taxis.series[taxis.series.length - 2][0]}`, dir: "up", verdict: null },
+      about: "The distance passengers travelled in California's paid driverless taxis - the one place with a public monthly count. A year is the sum of its twelve months.",
+      series: taxis.series,
+      color: ORDERED[2],
+      fmt: km,
+      facts: [
+        { label: `In ${monthOf(taxis.first[0])}`, value: km(taxis.first[1]), sub: "the first month counted" },
+        { label: `In ${monthOf(taxis.latest[0])}`, value: km(taxis.latest[1]), sub: "the latest month" },
+        { label: `In ${taxis.series[0][0]}`, value: km(taxis.series[0][1]), sub: "the first full year" },
+      ],
+      source: taxis.source,
+    },
+    {
+      label: "Cost of a human genome",
+      value: usd(lastPoint(GENOME_COST.series)[1]),
+      sub: `to sequence one · current US$ · ${lastPoint(GENOME_COST.series)[0]}`,
+      change: decadeChange(GENOME_COST.series, true),
+      about: "What it costs to read the whole of one person's DNA, as the U.S. National Human Genome Research Institute tracks it.",
+      series: GENOME_COST.series,
+      color: ORDERED[3],
+      fmt: usd,
+      facts: span(GENOME_COST.series, usd),
+      source: GENOME_COST.source,
+    },
+  ];
+
+  const places = [
+    { key: "china", label: "China", color: ORDERED[0] },
+    { key: "us", label: "United States", color: ORDERED[1] },
+    { key: "europe", label: "Europe (EU and UK)", color: ORDERED[2] },
+  ] as const;
+  const inv = AI_INVESTMENT_PLACES;
+  const invNow = inv[inv.length - 1];
+  const dealKinds = [
+    { key: "private", label: "Private investment", color: ORDERED[0] },
+    { key: "merger", label: "Mergers and acquisitions", color: ORDERED[1] },
+    { key: "minority", label: "Minority stakes", color: ORDERED[2] },
+    { key: "offering", label: "Public offerings", color: ORDERED[3] },
+  ] as const;
+  const dealNow = AI_DEALS[AI_DEALS.length - 1];
+  const makers = [
+    { key: "china", label: "China", color: ORDERED[0] },
+    { key: "japan", label: "Japan", color: ORDERED[1] },
+    { key: "us", label: "United States", color: ORDERED[2] },
+    { key: "korea", label: "South Korea", color: ORDERED[3] },
+    { key: "germany", label: "Germany", color: ORDERED[4] },
+  ] as const;
+  const robotsNow = ROBOT_INSTALLS[ROBOT_INSTALLS.length - 1];
+  const nvNow = NVIDIA_REVENUE[NVIDIA_REVENUE.length - 1];
+  const nvFirst = NVIDIA_REVENUE[0];
+  const tsmc = TSMC_REVENUE.series;
+  const whoOf = (key: string) => TREND_DETAILS.aiInvestment?.tables.find((t) => t.key === key);
+  const stack = (i: number, n: number): [number, number, number, number] | number => (i === n - 1 ? [4, 4, 0, 0] : 0);
+
+  return (
+    <section id="emerging-tech" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="emerging-tech-title">
+      <SectionHead icon={<Cpu size={18} weight="fill" />} color={TECH_COLOR} title="Technology in charts" kicker="How far it has spread, what computing can do and costs, the emerging kinds, the money, the robots, and who leads" />
+      <h2 id="emerging-tech-title" className="sr-only">
+        Technology in charts
+      </h2>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="lg:col-span-2">
+          <CardHead title="The spread of communication technology" kicker={`For every 100 people in the world · ITU · ${TECH_TAKE_UP[0].year}–${takeUpNow.year}`} />
+          <MultiLine
+            data={TECH_TAKE_UP.map((r) => ({ ...r, year: String(r.year) }))}
+            lines={[...takeUpLines]}
+            fmt={(v) => `${v.toFixed(1)} per 100`}
+            tick={(v) => String(Math.round(v))}
+            height={270}
+            label={`Communication technology for every 100 people in the world, ${TECH_TAKE_UP[0].year} to ${takeUpNow.year}. In ${takeUpNow.year}: ${takeUpLines.map((l) => `${l.label} ${takeUpNow[l.key]}`).join(", ")}.`}
+          />
+          <Legend items={takeUpLines.map((l) => ({ color: l.color, label: `${l.label}, ${takeUpNow.year}`, value: `${takeUpNow[l.key]} per 100` }))} />
+          <TakeUpExplained lines={takeUpLines} />
+          <SourceLink sources={[TECH_TAKE_UP_SOURCE, PEOPLE_ONLINE.source, MOBILE_COVERAGE.source]} className="mt-3" />
+        </Card>
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
+          {computing.map((c) => (
+            <StatCard key={c.label} s={c} />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full" style={{ background: TECH_COLOR }} aria-hidden />
+          <span className="text-[10px] font-bold font-sans uppercase tracking-widest" style={{ color: head }}>
+            The emerging kinds
+          </span>
+          <span className="text-[10px] font-sans hidden sm:inline" style={{ color: muted }}>
+            What is newly taken up, each with where it stands and who is ahead
+          </span>
+          <div className="flex-1 h-px" style={{ background: look.grid }} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {kinds.map((k) => (
+            <StatCard key={k.label} s={k} more="Its figures in full, and who is ahead" />
+          ))}
+        </div>
+        <SourceLink sources={kinds.flatMap((k) => (k.source ? (Array.isArray(k.source) ? k.source : [k.source]) : []))} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHead title="Where the money for AI goes" kicker={`Private investment in AI, US$ billions at 2021 prices · Quid, via the AI Index · ${inv[0].year}–${invNow.year}`} />
+          <MultiLine
+            data={inv.map((r) => ({ ...r, year: String(r.year) }))}
+            lines={[...places]}
+            fmt={usdBn}
+            tick={(v) => `$${Math.round(v)}bn`}
+            label={`Private investment in AI by place, ${inv[0].year} to ${invNow.year}. In ${invNow.year}: ${places.map((p) => `${p.label} ${usdBn(invNow[p.key])}`).join(", ")}, of ${usdBn(invNow.world)} in the world.`}
+          />
+          <Legend items={places.map((p) => ({ color: p.color, label: `${p.label}, ${invNow.year}`, value: `${usdBn(invNow[p.key])} · ${shareText(invNow[p.key], invNow.world)}` }))} />
+          <Note>
+            Of {usdBn(invNow.world)} invested in the world in {invNow.year}, against {usdBn(inv[0].world)} in {inv[0].year}; each share is of the world's. Private investment is money put into AI companies by venture
+            capital and other private investors - not what companies spend on their own AI.
+          </Note>
+          <SourceLink sources={[AI_INVESTMENT_PLACES_SOURCE]} className="mt-3" />
+        </Card>
+        <Card>
+          <CardHead title="The deals behind AI, by type" kicker={`Corporate deals involving AI companies, US$ billions at 2021 prices · ${AI_DEALS[0].year}–${dealNow.year}`} />
+          <div role="img" aria-label={`Corporate deals involving AI companies by type, ${AI_DEALS[0].year} to ${dealNow.year}. In ${dealNow.year}: ${dealKinds.map((k) => `${k.label} ${usdBn(dealNow[k.key])}`).join(", ")}.`}>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={AI_DEALS.map((r) => ({ ...r, year: String(r.year) }))} margin={{ top: 6, right: 8, left: 0, bottom: 0 }} barCategoryGap="22%">
+                <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="year" {...axis(look)} minTickGap={12} />
+                <YAxis {...axis(look)} width={50} tickFormatter={(v: number) => `$${v}bn`} />
+                <Tooltip {...look.tooltip} cursor={{ fill: look.grid }} formatter={(v: number, k: string) => [usdBn(v), dealKinds.find((x) => x.key === k)?.label ?? k]} />
+                {dealKinds.map((k, i) => (
+                  <Bar key={k.key} dataKey={k.key} stackId="deals" fill={k.color} stroke={look.card.background} strokeWidth={1} radius={stack(i, dealKinds.length)} isAnimationActive={false} />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <Legend items={dealKinds.map((k) => ({ color: k.color, label: `${k.label}, ${dealNow.year}`, value: `${usdBn(dealNow[k.key])} · ${shareText(dealNow[k.key], dealNow.total)}` }))} />
+          <Note>
+            {usdBn(dealNow.total)} in {dealNow.year}, against {usdBn(AI_DEALS[0].total)} in {AI_DEALS[0].year}. Private investment here is the same figure as in the chart beside this one; the rest is companies
+            buying AI companies, taking stakes in them, and AI companies listing their shares.
+          </Note>
+          <SourceLink sources={[AI_DEALS_SOURCE]} className="mt-3" />
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHead title="Industrial robots installed, by country" kicker={`Robots installed in the year · International Federation of Robotics · ${ROBOT_INSTALLS[0].year}–${robotsNow.year}`} />
+          <MultiLine
+            data={ROBOT_INSTALLS.map((r) => ({ ...r, year: String(r.year) }))}
+            lines={[...makers]}
+            fmt={(v) => `${Math.round(v).toLocaleString("en-US")} robots`}
+            tick={(v) => (v === 0 ? "0" : `${Math.round(v / 1000)}k`)}
+            label={`Industrial robots installed by country, ${ROBOT_INSTALLS[0].year} to ${robotsNow.year}. In ${robotsNow.year}: ${makers.map((m) => `${m.label} ${(robotsNow[m.key] ?? 0).toLocaleString("en-US")}`).join(", ")}.`}
+          />
+          <Legend items={makers.map((m) => ({ color: m.color, label: `${m.label}, ${robotsNow.year}`, value: `${(robotsNow[m.key] ?? 0).toLocaleString("en-US")} · ${shareText(robotsNow[m.key] ?? 0, robotsNow.world ?? 1)}` }))} />
+          <Note>
+            Of {(robotsNow.world ?? 0).toLocaleString("en-US")} installed in the world in {robotsNow.year}; each share is of the world's. These five are the countries the source's file gives.
+          </Note>
+          <SourceLink sources={[ROBOT_INSTALLS_SOURCE]} className="mt-3" />
+        </Card>
+        <Card>
+          <CardHead title="Service robots, by what they do" kicker={`Professional service robots installed in the year · International Federation of Robotics · ${SERVICE_ROBOTS.year}`} />
+          <LeaderList
+            label="Professional service robots installed, by application"
+            color={TECH_COLOR}
+            rows={SERVICE_ROBOTS.rows.map((r) => ({ name: r.n, value: r.v, text: r.v.toLocaleString("en-US"), sub: r.was ? `${r.was[1].toLocaleString("en-US")} in ${r.was[0]}` : undefined }))}
+          />
+          <Note>
+            Robots sold to do a job outside a factory: moving goods in warehouses, serving in restaurants and hotels, cleaning, farming, and work in hospitals. The figure beside each is {SERVICE_ROBOTS.year}'s, then
+            the first year the source gives.
+          </Note>
+          <SourceLink sources={[SERVICE_ROBOTS.source]} className="mt-3" />
+          <p className="text-[10px] font-mono uppercase tracking-widest mt-5 mb-2.5" style={{ color: muted }}>
+            The countries with most people online · {PEOPLE_ONLINE.year}
+          </p>
+          <LeaderList
+            label="Countries with the most people using the internet"
+            color={ORDERED[1]}
+            rows={PEOPLE_ONLINE.rows.slice(0, 6).map((r) => ({ name: r.n, code: r.c, value: r.v, text: big(r.v), sub: shareText(r.v, PEOPLE_ONLINE.total) }))}
+          />
+          <SourceLink sources={[PEOPLE_ONLINE.source]} className="mt-3" />
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHead title="The chips behind AI: NVIDIA's revenue" kicker={`US$ billions a quarter, as the company reports it · ${nvFirst.quarter} to ${nvNow.quarter}`} />
+          <div
+            role="img"
+            aria-label={`NVIDIA's quarterly revenue, ${nvFirst.quarter} to ${nvNow.quarter}. In ${nvNow.quarter}: ${usdBn(nvNow.dataCentres)} from data centres and AI and ${usdBn(nvNow.other)} from everything else.`}
+          >
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={NVIDIA_REVENUE} margin={{ top: 6, right: 8, left: 0, bottom: 0 }} barCategoryGap="12%">
+                <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="quarter" {...axis(look)} minTickGap={28} tickFormatter={(q: string) => q.slice(0, 4)} />
+                <YAxis {...axis(look)} width={50} tickFormatter={(v: number) => `$${v}bn`} />
+                <Tooltip {...look.tooltip} cursor={{ fill: look.grid }} formatter={(v: number, k: string) => [usdBn(v), k === "dataCentres" ? "Data centres and AI" : "Everything else"]} />
+                <Bar dataKey="dataCentres" stackId="nv" fill={ORDERED[0]} stroke={look.card.background} strokeWidth={1} isAnimationActive={false} />
+                <Bar dataKey="other" stackId="nv" fill={ORDERED[1]} stroke={look.card.background} strokeWidth={1} radius={[3, 3, 0, 0]} isAnimationActive={false} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <Legend
+            items={[
+              { color: ORDERED[0], label: `Data centres and AI, ${nvNow.quarter}`, value: `${usdBn(nvNow.dataCentres)} · ${shareText(nvNow.dataCentres, nvNow.dataCentres + nvNow.other)}` },
+              { color: ORDERED[1], label: "Everything else", value: usdBn(nvNow.other) },
+            ]}
+          />
+          <Note>
+            NVIDIA makes most of the chips AI systems are trained on. In {nvFirst.quarter} its data-centre segment brought in {usdBn(nvFirst.dataCentres)} of {usdBn(nvFirst.dataCentres + nvFirst.other)}. "Everything
+            else" is its total less that segment, worked out here. TSMC, which manufactures those chips and most other advanced ones, reported {usdBn(lastPoint(tsmc)[1])} of revenue in {lastPoint(tsmc)[0]}
+            {decadeAgo(tsmc) ? `, against ${usdBn(decadeAgo(tsmc)?.[1] ?? 0)} in ${decadeAgo(tsmc)?.[0]}` : ""}.
+          </Note>
+          <SourceLink sources={[NVIDIA_REVENUE_SOURCE, TSMC_REVENUE.source]} className="mt-3" />
+        </Card>
+        <Card>
+          <CardHead title="Who builds AI systems: industry and academia" kicker={`Notable AI systems published in the year, by who built them · Epoch AI · ${AI_MODELS[0].year}–${modelsNow.year}`} />
+          <div role="img" aria-label={`Notable AI systems by who built them, ${AI_MODELS[0].year} to ${modelsNow.year}. In ${modelsNow.year}: ${modelKinds.map((k) => `${k.label} ${modelsNow[k.key]}`).join(", ")}.`}>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={AI_MODELS.map((r) => ({ ...r, year: String(r.year) }))} margin={{ top: 6, right: 8, left: 0, bottom: 0 }} barCategoryGap="22%">
+                <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="year" {...axis(look)} minTickGap={12} />
+                <YAxis {...axis(look)} width={36} allowDecimals={false} />
+                <Tooltip {...look.tooltip} cursor={{ fill: look.grid }} formatter={(v: number, k: string) => [String(v), modelKinds.find((x) => x.key === k)?.label ?? k]} />
+                {modelKinds.map((k, i) => (
+                  <Bar key={k.key} dataKey={k.key} stackId="models" fill={k.color} stroke={look.card.background} strokeWidth={1} radius={stack(i, modelKinds.length)} isAnimationActive={false} />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <Legend items={modelKinds.map((k) => ({ color: k.color, label: `${k.label}, ${modelsNow.year}`, value: `${modelsNow[k.key]} · ${shareText(modelsNow[k.key], modelTotal(modelsNow))}` }))} />
+          <Note>
+            {modelTotal(modelsNow)} notable systems in {modelsNow.year}, against {modelTotal(AI_MODELS[0])} in {AI_MODELS[0].year}. Epoch AI's list is its own judgement of what is notable, and recent years fill in as it adds
+            to it.
+          </Note>
+          <SourceLink sources={[AI_MODELS_SOURCE]} className="mt-3" />
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card>
+          <CardHead title="Where the largest AI systems are built" kicker={`Systems trained with over 10²³ operations, since 2019 · Epoch AI · to ${large.year}`} />
+          <LeaderList label="Large-scale AI systems by country" color={ORDERED[4]} rows={large.rows.map((r) => ({ name: r.n, code: r.c, value: r.v, text: String(r.v), sub: shareText(r.v, large.total) }))} />
+          <Note>
+            Of {large.total} in all, by where the organisation that built each is based.
+          </Note>
+          <SourceLink sources={[large.source]} className="mt-3" />
+        </Card>
+        {[whoOf("who-models"), whoOf("who-companies")].map(
+          (t) =>
+            t && (
+              <Card key={t.key}>
+                <CardHead title={t.title} kicker={t.kicker} />
+                <LeaderList label={t.title} color={t.key === "who-models" ? ORDERED[0] : ORDERED[1]} rows={t.rows.slice(0, 8).map((r) => ({ name: r.n, code: r.c, value: r.v, text: r.v.toLocaleString("en-US") }))} />
+                {t.note && <Note>{t.note}</Note>}
+                <SourceLink sources={[t.source]} className="mt-3" />
+              </Card>
+            ),
+        )}
+      </div>
+      <Note>
+        What this section does not show, for want of an open source to read it from: a projection for any of these - no body publishes one openly, as the IMF and the UN do for the economy and for people -
+        and companies ranked by what they sell or spend on research. The companies here are named by their own reported revenue, by the AI systems they have built, and by the research they publish. Figures
+        retrieved {TECHNOLOGY_RETRIEVED}.
+      </Note>
+    </section>
+  );
+}
+
 // ── Page ───────────────────────────────────────────────────────────────────
 
 const SECTIONS: NavSection[] = [
@@ -1159,6 +1751,7 @@ const SECTIONS: NavSection[] = [
   { id: "population", label: "Population" },
   { id: "scenarios", label: "Scenarios" },
   { id: "renewables", label: "Renewables" },
+  { id: "emerging-tech", label: "Tech in charts" },
   // The trends, a chip to each group of them; the first group sits under the section's heading, so its chip goes there.
   ...TREND_GROUPS.map((g, i) => ({ id: i === 0 ? "trends" : g.id, label: g.nav })),
 ];
@@ -1700,6 +2293,9 @@ export function TrendsPage() {
 
         {/* ══ Renewables ══ */}
         <RenewablesSection />
+
+        {/* ══ Technology in charts ══ */}
+        <TechnologySection />
 
         {/* ══ Trends ══ */}
         <section id="trends" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="trends-title">
