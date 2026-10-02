@@ -10527,7 +10527,8 @@ function EntityFlag({ group }: { group: EntityGroup }) {
     );
   }
   return (
-    <div className="w-12 h-8 rounded-md overflow-hidden flex-shrink-0 bg-muted ring-1 ring-border/40">
+    // A plain hairline in the border colour. The ring this had named a colour Tailwind could not make (the theme's colours take no opacity), so it fell back to the default ring, which is blue.
+    <div className="w-12 h-8 rounded-md overflow-hidden flex-shrink-0 bg-muted border border-border">
       <img
         src={src}
         alt={group.entityName}
