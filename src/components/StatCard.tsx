@@ -87,6 +87,8 @@ export interface StatCardData {
   moreFacts?: StatFact[];
   /** The figure broken down: by region, group, country, type. */
   tables?: StatTable[];
+  /** What a body says of its own programme, recorded from its page: a title, its account, and where it is from. */
+  briefs?: { title: string; text: string; source?: { label: string; url: string }; checked?: string }[];
   /** The figures that sit beside this one on the page. */
   related?: { title: string; rows: StatFact[] };
   notes?: string[];
@@ -336,7 +338,8 @@ function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => void }) {
   const facts = s.facts && s.facts.length > 3 ? given : [...(s.facts ?? []), ...seriesFacts(s, true).filter((f) => !given.some((x) => x.label === f.label)), ...(s.moreFacts ?? [])];
   const tables = s.tables ?? [];
   // The figure's own source, then each breakdown's, once each.
-  const sources = [...(s.source ? (Array.isArray(s.source) ? s.source : [s.source]) : []), ...tables.flatMap((t) => (t.source ? [t.source] : []))].filter(
+  const briefs = s.briefs ?? [];
+  const sources = [...(s.source ? (Array.isArray(s.source) ? s.source : [s.source]) : []), ...tables.flatMap((t) => (t.source ? [t.source] : [])), ...briefs.flatMap((b) => (b.source ? [b.source] : []))].filter(
     (x, i, all) => all.findIndex((o) => o.label === x.label && o.url === x.url) === i,
   );
   const worked = tables.some((t) => t.rows.some((r) => r.note?.includes("% of")));
@@ -462,6 +465,26 @@ function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => void }) {
                 {tables.map((t, i) => (
                   // An odd one out takes the full width, its rows in two columns.
                   <TableCard key={t.key} t={t} color={color} wide={tables.length % 2 === 1 && i === 0} />
+                ))}
+              </div>
+            </>
+          )}
+
+          {briefs.length > 0 && (
+            <>
+              <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mt-6 mb-2">In the programme's own account</p>
+              <div className={`grid grid-cols-1 gap-3 ${briefs.length > 2 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
+                {briefs.map((b) => (
+                  <div key={b.title} className="modal-tile rounded-xl p-3 flex flex-col">
+                    <p className="text-[12px] font-bold font-sans text-foreground leading-snug mb-1.5">{b.title}</p>
+                    <p className="text-[12px] font-sans leading-relaxed text-foreground/90">{b.text}</p>
+                    {b.source && (
+                      <p className="text-[9px] font-mono text-muted-foreground mt-auto pt-2 leading-snug">
+                        {b.source.label}
+                        {b.checked ? ` · read ${b.checked}` : ""}
+                      </p>
+                    )}
+                  </div>
                 ))}
               </div>
             </>

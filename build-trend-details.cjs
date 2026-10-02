@@ -29,6 +29,23 @@
  *   UNHCR Refugee Data Finder (api.unhcr.org)
  *     The displaced by country of origin and by country of asylum.
  *
+ * FIGURES OF ITS OWN
+ *   Two world series the Worldview page does not carry are built here too,
+ *   for the Trends page's research and development group, in the shape of
+ *   worldview.ts's indicators: objects launched into space (UN Office for
+ *   Outer Space Affairs), with what is in orbit (US Space Force), what a
+ *   kilogram costs to launch by rocket and who has flown (CSIS Aerospace
+ *   Security Project); and nuclear power's share of electricity (Ember),
+ *   with who generates it. All are read from Our World in Data's files.
+ *
+ * RECORDED, AND CHECKED AGAINST ITS PAGE
+ *   Fusion has no world series: it is still experiments. What the page says
+ *   of ITER - who is building it and who pays what share, what it is
+ *   designed to do, and when - is the ITER Organization's own account
+ *   (iter.org/few-lines). It is written out below, and each run of this
+ *   script fetches that page and stops if a figure quoted is no longer on
+ *   it.
+ *
  * WHAT IS WORKED OUT HERE
  *   Only shares: a part divided by the same source's total for the same
  *   year. A share is given only where the parts are parts of that total -
@@ -236,18 +253,22 @@ function splitCsvLine(line) {
 function owid(slug) {
   const lines = get(`https://ourworldindata.org/grapher/${slug}.csv?v=1&csvType=full&useColumnShortNames=true`, `owid-${slug}.csv`).trim().split(/\r?\n/);
   const head = splitCsvLine(lines[0]);
+  // Most files are entity, code, year, then the figures; one about things that are not countries has no code.
+  const coded = head[1] === "code";
+  const at = coded ? 3 : 2;
+  if (head[0] !== "entity" || head[at - 1] !== "year") throw new Error("OWID " + slug + ": columns are " + head.join());
   const out = {};
   for (const l of lines.slice(1)) {
     const cells = splitCsvLine(l);
-    const e = (out[cells[0]] ||= { code: cells[1], cols: {} });
-    const y = Number(cells[2]);
-    head.slice(3).forEach((h, i) => {
-      const raw = cells[i + 3];
+    const e = (out[cells[0]] ||= { code: coded ? cells[1] : "", cols: {} });
+    const y = Number(cells[at - 1]);
+    head.slice(at).forEach((h, i) => {
+      const raw = cells[i + at];
       if (raw === "" || raw === undefined || !Number.isFinite(Number(raw))) return;
       (e.cols[h] ||= {})[y] = Number(raw);
     });
   }
-  return { head: head.slice(3), entities: out };
+  return { head: head.slice(at), entities: out };
 }
 const owidSource = (label, slug) => ({ label: `${label} (via Our World in Data)`, url: `https://ourworldindata.org/grapher/${slug}` });
 /** A column by the end of its name, as build-worldview.cjs finds them. */
@@ -534,6 +555,225 @@ function owidDetails() {
   return out;
 }
 
+// ── Space and nuclear: figures of this file's own ─────────────────────────
+
+const FROM = 1990;
+const seriesOf = (file, entity, col, dp) =>
+  Object.entries(file.entities[entity]?.cols[col] ?? {})
+    .map(([y, v]) => [Number(y), round(v, dp)])
+    .filter(([y]) => y >= FROM)
+    .sort((a, b) => a[0] - b[0]);
+
+/** The ITER Organization's page, and the words on it that each recorded figure rests on. */
+const ITER_PAGE = "https://www.iter.org/few-lines";
+const ITER_SAYS = [
+  "34 nations",
+  "China, the European Union, India, Japan, Korea, Russia and the United States",
+  "Saint Paul-lez-Durance",
+  "500 MW of fusion power from 50 MW of input heating power",
+  "16 MW of fusion power from a total input heating power of 24 MW",
+  "(45.6 percent)",
+  "(9.1 percent each)",
+  "full magnetic energy in 2036",
+  "deuterium-tritium operation phase in 2039",
+  "building has been underway since 2010",
+];
+function checkIter() {
+  const today = new Date().toISOString().slice(0, 10);
+  const text = get(ITER_PAGE, `iter-few-lines-${today}.html`)
+    .replace(/<script[\s\S]*?<\/script>/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/\s+/g, " ");
+  const missing = ITER_SAYS.filter((p) => !text.includes(p));
+  if (missing.length) throw new Error(`iter.org no longer says: ${missing.join(" | ")} - read the page again and update what is recorded`);
+  return today;
+}
+
+function extras() {
+  const indicators = {};
+  const details = {};
+  const explain = {};
+  const briefs = {};
+
+  // ── Objects launched into space (UNOOSA) ──
+  {
+    const slug = "yearly-number-of-objects-launched-into-outer-space";
+    const f = owid(slug);
+    const col = colOf(f, "annual_launches");
+    const series = seriesOf(f, "World", col, 0);
+    const [y0, v0] = series[series.length - 1];
+    const source = owidSource("UN Office for Outer Space Affairs — Online Index of Objects Launched into Outer Space", slug);
+    indicators.spaceLaunches = {
+      id: "spaceLaunches",
+      label: "Objects launched into space",
+      unit: "objects a year",
+      format: "count",
+      dp: 0,
+      upIsGood: null,
+      series,
+      source,
+      note: "UN Office for Outer Space Affairs: satellites, probes, landers, crewed spacecraft and space station parts put into Earth orbit or beyond, from the launches nations register with the UN.",
+    };
+    const every = f.entities.World.cols[col];
+    const first = Math.min(...Object.keys(every).map(Number));
+    const tables = [];
+
+    // A launch made jointly is counted for each of its countries, so the countries can add up to more than the world.
+    const everyone = Object.entries(f.entities)
+      .filter(([name]) => name !== "World")
+      .reduce((t, [, e]) => t + (e.cols[col]?.[y0] ?? 0), 0);
+    const launchers = {
+      key: "countries",
+      title: "Who launched them",
+      kicker: `Objects, for the country that commissioned the launch · ${y0}`,
+      kind: "rate",
+      as: "figure",
+      rows: countryRows(f, col, y0, 0).sort((a, b) => b.v - a.v).slice(0, 8).map(strip),
+      source,
+    };
+    if (everyone <= v0 * 1.005) Object.assign(launchers, { kind: "share", total: v0 });
+    else launchers.note = "A launch made jointly by several countries is counted for each of them and once for the world, so no shares of the world's are given.";
+    tables.push(launchers);
+
+    const orbits = owid("space-objects-by-orbit");
+    const ocol = colOf(orbits, "n_objects");
+    const oy = Math.max(...Object.keys(orbits.entities["Low Earth orbit"].cols[ocol]).map(Number));
+    const orbitRows = ["Low Earth orbit", "Medium Earth orbit", "Geostationary orbit", "High Earth orbit"].map((n) => {
+      const was = valueOf(orbits, n, ocol, oy - 10);
+      return { n, v: valueOf(orbits, n, ocol, oy), ...(was !== undefined ? { was: [oy - 10, was] } : {}) };
+    });
+    if (orbitRows.some((r) => r.v === undefined)) throw new Error("space-objects-by-orbit: an orbit has no value");
+    tables.push({
+      key: "types",
+      title: "What is in orbit, by orbit",
+      kicker: `Payloads and rocket bodies tracked in space · ${oy}`,
+      kind: "share",
+      as: "count",
+      total: orbitRows.reduce((t, r) => t + r.v, 0),
+      rows: orbitRows.sort((a, b) => b.v - a.v),
+      note: "Low Earth orbit comes within 2,000 km of the Earth; medium Earth orbit lies above it, below geostationary orbit at about 35,786 km. Debris is not counted, and an object leaves the count when it re-enters the atmosphere. Shares are of the four orbits, added together here.",
+      source: owidSource("United States Space Force — objects in space", "space-objects-by-orbit"),
+    });
+
+    // This file's columns are the vehicle, a year, the cost of a kilogram and the vehicle's class.
+    const costLines = get("https://ourworldindata.org/grapher/cost-space-launches-low-earth-orbit.csv?v=1&csvType=full&useColumnShortNames=true", "owid-cost-space-launches-low-earth-orbit.csv")
+      .trim()
+      .split(/\r?\n/)
+      .map(splitCsvLine);
+    if (costLines[0].join() !== "entity,year,cost_per_kg,launch_class") throw new Error(`cost-space-launches: columns are ${costLines[0].join()}`);
+    const rockets = costLines
+      .slice(1)
+      .map(([n, y, c, cls]) => ({ n, v: Number(c), d: `${cls.toLowerCase()} vehicle · ${y}`, y: Number(y) }))
+      .filter((r) => Number.isFinite(r.v) && r.v > 0)
+      .sort((a, b) => a.v - b.v);
+    if (rockets.length < 30) throw new Error("cost-space-launches: too few rockets");
+    const dearest = rockets[rockets.length - 1];
+    tables.push({
+      key: "rockets",
+      title: "The cheapest rockets to orbit",
+      kicker: "Cost of launching a kilogram to low Earth orbit, US$ at 2021 prices · the eight lowest, with the year the source gives each",
+      kind: "rate",
+      as: "usdPerKg",
+      rows: rockets.slice(0, 8).map(({ y, ...r }) => r),
+      note: `Of ${rockets.length} launch vehicles dated from ${Math.min(...rockets.map((r) => r.y))} to ${Math.max(...rockets.map((r) => r.y))}; the dearest, ${dearest.n}, cost $${dearest.v.toLocaleString("en-US")} a kilogram. Small vehicles carry up to 2,000 kg, medium ones up to 20,000 kg, heavy ones more.`,
+      source: owidSource("CSIS Aerospace Security Project (2022) — cost of space launches", "cost-space-launches-low-earth-orbit"),
+    });
+
+    const people = owid("cumulative-people-space");
+    const pcol = colOf(people, "n_cumulative_new_astronauts");
+    const py = Math.max(...Object.keys(people.entities.World.cols[pcol]).map(Number));
+    const flown = countryRows(people, pcol, py, 0).sort((a, b) => b.v - a.v);
+    const everFlown = valueOf(people, "World", pcol, py);
+    const flownTable = {
+      key: "people",
+      title: "Who has been to space",
+      kicker: `People who have flown above 100 km, by nationality · to ${py}`,
+      kind: "rate",
+      as: "count",
+      rows: flown.slice(0, 8).map(strip),
+      note: `Each person is counted once, at their first flight. The source's file ends in ${py}.`,
+      source: owidSource("CSIS Aerospace Security Project (2022) — International Astronaut Database", "cumulative-people-space"),
+    };
+    tables.push(flown.reduce((t, r) => t + r.v, 0) <= everFlown * 1.005 ? { ...flownTable, kind: "share", total: everFlown } : flownTable);
+
+    details.spaceLaunches = {
+      tables,
+      facts: [
+        { label: `Launched since ${first}`, v: Object.values(every).reduce((t, v) => t + v, 0), as: "count", sub: `${first}–${y0}, added up here` },
+        { label: "People who have been to space", v: everFlown, as: "count", sub: `to ${py}` },
+        { label: "Countries that have launched", v: Object.values(f.entities).filter((e) => ISO2.has(e.code)).length, as: "count", sub: `${first}–${y0}` },
+      ],
+      notes: ["The UN's count rests on the launches nations register with it; by its own estimate that is around 88% of all objects launched."],
+    };
+    explain.spaceLaunches = {
+      what: "Every satellite, probe, lander, crewed spacecraft and space station part launched into Earth orbit or beyond in the year, from the launches nations register with the United Nations Office for Outer Space Affairs. A launch one country makes on behalf of another is counted for the country that commissioned it.",
+      why: "It shows how fast activity in space is growing and which countries are behind it. More objects in orbit mean more of what space is used for - communications, navigation, watching the Earth - and more crowding in the orbits they share.",
+    };
+  }
+
+  // ── Nuclear power's share of electricity (Ember), and fusion as ITER describes it ──
+  {
+    const slug = "share-electricity-nuclear";
+    const f = owid(slug);
+    const col = colOf(f, "nuclear_share_of_electricity__pct");
+    const series = seriesOf(f, "World", col, 1);
+    const [y0] = series[series.length - 1];
+    const source = owidSource("Ember", slug);
+    indicators.nuclearElectricity = {
+      id: "nuclearElectricity",
+      label: "Nuclear electricity",
+      unit: "% of electricity generated",
+      format: "pct",
+      dp: 1,
+      upIsGood: null,
+      series,
+      source,
+      note: "Ember: electricity from nuclear power stations as a share of all electricity generated. Fusion supplies none of it yet - the window sets out where ITER, the largest fusion experiment, stands.",
+    };
+    const gen = owid("nuclear-energy-generation");
+    const gcol = colOf(gen, "nuclear_generation__twh");
+    const world = valueOf(gen, "World", gcol, y0);
+    if (!(world > 0)) throw new Error(`nuclear-energy-generation: no world figure for ${y0}`);
+    const generators = countryRows(gen, gcol, y0, 1).filter((r) => r.v > 0).sort((a, b) => b.v - a.v);
+    const checked = checkIter();
+    const iter = { label: "ITER Organization — ITER in a few lines", url: ITER_PAGE };
+    details.nuclearElectricity = {
+      tables: [
+        shareOf({ key: "countries", title: "The largest generators", kicker: `Nuclear electricity generated, TWh · ${y0}`, kind: "rate", as: "twh", rows: generators.slice(0, 8).map(strip), source: owidSource("Ember", "nuclear-energy-generation") }, round(world, 1), "nuclearElectricity"),
+        { key: "highest", title: "Where its share is highest", kicker: `Nuclear share of the country's electricity · ${y0}`, kind: "rate", as: "figure", rows: countryRows(f, col, y0, 1).sort((a, b) => b.v - a.v).slice(0, 8).map(strip), source },
+        {
+          key: "iter",
+          title: "Fusion: who pays for ITER's construction",
+          kicker: `Share of construction costs, by member · ITER Organization, read ${checked}`,
+          kind: "parts",
+          as: "pct",
+          rows: [{ n: "European Union", v: 45.6 }, ...["China", "India", "Japan", "Korea", "Russia", "United States"].map((n) => ({ n, v: 9.1 }))],
+          note: "Nine-tenths of the project's value is delivered in kind, as finished components, systems or buildings.",
+          source: iter,
+        },
+      ],
+      facts: [
+        { label: "Generated", v: round(world, 0), as: "twh", sub: `${y0}` },
+        { label: "Countries generating it", v: generators.length, as: "count", sub: `${y0}` },
+      ],
+      notes: [],
+    };
+    explain.nuclearElectricity = {
+      what: "Electricity generated by nuclear power stations - reactors that split heavy atoms, fission - as a share of all the electricity generated in the year, from Ember's yearly electricity data.",
+      why: "Nuclear power makes electricity without burning fossil fuels, so its share is part of how clean the world's power is. Fusion, which joins light atoms instead, supplies none of it: it is still at the stage of experiments, and the largest of them, ITER, is described below.",
+    };
+    briefs.nuclearElectricity = [
+      { title: "Fusion: what ITER is", text: "ITER is the world's largest tokamak, a magnetic fusion device, being built at Saint Paul-lez-Durance in southern France. Its seven members - China, the European Union, India, Japan, Korea, Russia and the United States - make 34 nations in all. The agreement was signed in 2006 and building has been under way since 2010.", source: iter, checked },
+      { title: "Fusion: what ITER is designed to do", text: "To produce 500 MW of fusion power in its plasma from 50 MW of heating power - a ten-fold return (Q=10). The record for a magnetic fusion device is 16 MW from 24 MW of heating (Q=0.67), set by the European tokamak JET in 1997. ITER will not generate electricity: it is an experiment to prepare the way for machines that can.", source: iter, checked },
+      { title: "Fusion: when", text: "Under the plan the ITER Organization presented to its Council in November 2024, the machine reaches full magnetic energy in 2036 and starts operating with deuterium-tritium fuel in 2039 - three and four years later than the plan of 2016.", source: iter, checked },
+    ];
+  }
+
+  return { indicators, details, explain, briefs };
+}
+
 // ── UNHCR ─────────────────────────────────────────────────────────────────
 
 function displacedDetail() {
@@ -572,6 +812,8 @@ function main() {
   for (const id of WB_SUMS) details[id] = wbDetail(id, { sum: true });
   for (const id of WB_RATES) details[id] = wbDetail(id);
   details.displaced = displacedDetail();
+  const extra = extras();
+  Object.assign(details, extra.details);
 
   let tables = 0;
   for (const [id, d] of Object.entries(details)) {
@@ -586,6 +828,10 @@ function main() {
     console.log(`${id.padEnd(22)} ${d.tables.map((t) => `${t.key}(${t.rows.length}${t.kind === "share" ? ", shares" : ""})`).join(" ") || "-"}${d.facts.length ? ` + ${d.facts.length} facts` : ""}`);
   }
   if (tables < 60) throw new Error(`Only ${tables} tables built`);
+  for (const ind of Object.values(extra.indicators)) {
+    if (ind.series.length < 10) throw new Error(`${ind.id}: only ${ind.series.length} points`);
+    if (!extra.explain[ind.id]) throw new Error(`${ind.id}: no explanation`);
+  }
 
   const body = Object.entries(details)
     .map(([id, d]) => `  ${JSON.stringify(id)}: ${JSON.stringify(d)},`)
@@ -605,6 +851,8 @@ function main() {
  * worked out is a share - a part over the same source's total for the same
  * year - and a table carries a total only where its rows are parts of it.
  */
+import type { WorldIndicator } from "./worldview";
+
 export const TREND_DETAILS_RETRIEVED = "${today}";
 
 export interface DetailRow {
@@ -615,6 +863,8 @@ export interface DetailRow {
   c?: string;
   /** The same reading ten years before, where the source has one. */
   was?: [year: number, value: number];
+  /** What sets the row apart, in the source's terms: a rocket's class and year. */
+  d?: string;
 }
 
 export interface DetailTable {
@@ -623,19 +873,30 @@ export interface DetailTable {
   kicker: string;
   /** "rate": each row is its own reading of the figure. "share": rows are parts of \`total\`. "parts": rows are percentages that make up a whole. */
   kind: "rate" | "share" | "parts";
-  /** How a value prints: as the figure itself does, as a percentage, a whole number, or US dollars. */
-  as: "figure" | "pct" | "count" | "usd";
+  /** How a value prints: as the figure itself does, as a percentage, a whole number, US dollars, dollars a kilogram, or terawatt-hours. */
+  as: DetailAs;
   total?: number;
   rows: DetailRow[];
   note?: string;
   source: { label: string; url: string };
 }
 
+export type DetailAs = "figure" | "pct" | "count" | "usd" | "usdPerKg" | "twh";
+
 export interface DetailFact {
   label: string;
   v: number;
-  as: "figure" | "pct" | "count" | "usd";
+  as: DetailAs;
   sub: string;
+}
+
+/** What a programme says of itself, recorded from its own page and checked against it on each build. */
+export interface TrendBrief {
+  title: string;
+  text: string;
+  source: { label: string; url: string };
+  /** The day the page was last read and found to say this. */
+  checked: string;
 }
 
 export interface TrendDetail {
@@ -647,6 +908,18 @@ export interface TrendDetail {
 export const TREND_DETAILS: Record<string, TrendDetail> = {
 ${body}
 };
+
+/** World series the Worldview page does not carry, in the shape of its indicators: space launches and nuclear electricity. */
+export const TREND_EXTRAS: Record<string, WorldIndicator> = {
+${Object.entries(extra.indicators)
+  .map(([id, d]) => `  ${JSON.stringify(id)}: ${JSON.stringify(d)},`)
+  .join("\n")}
+};
+
+/** What each of those measures and why it matters, written from its source's own definition. */
+export const TREND_EXPLAIN: Record<string, { what: string; why: string }> = ${JSON.stringify(extra.explain, null, 2)};
+
+export const TREND_BRIEFS: Record<string, TrendBrief[]> = ${JSON.stringify(extra.briefs, null, 2)};
 `,
   );
   console.log(`\nWrote ${path.relative(__dirname, OUT)}: ${Object.keys(details).length} figures, ${tables} tables.`);

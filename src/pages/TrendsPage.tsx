@@ -29,7 +29,7 @@ import { StatCard, splitChange, type StatCardData, type StatFact, type StatTable
 import { usdFromBillions } from "../lib/money";
 import { WORLD, WORLDVIEW_RETRIEVED, type WorldIndicator } from "../data/worldview";
 import { EXPLAIN } from "../data/worldviewExplain";
-import { TREND_DETAILS, type DetailTable } from "../data/trendDetails";
+import { TREND_BRIEFS, TREND_DETAILS, TREND_EXPLAIN, TREND_EXTRAS, type DetailAs } from "../data/trendDetails";
 import {
   POPULATION_OUTLOOK,
   POPULATION_VARIANTS,
@@ -391,7 +391,7 @@ function CountryOutlookCard() {
 const TREND_GROUPS: { id: string; nav: string; title: string; kicker: string; color: string; ids: string[] }[] = [
   { id: "trend-energy", nav: "Energy", title: "Energy", kicker: "What the world runs on", color: "#10b981", ids: ["renewableElectricity", "fossilShare", "evSalesShare", "co2"] },
   { id: "trend-technology", nav: "Technology", title: "Technology", kicker: "What people and firms are taking up", color: "#8b5cf6", ids: ["internet", "broadband", "mobile", "secureServers", "aiInvestment", "genAiInvestment", "robotInstalls", "robotStock"] },
-  { id: "trend-research", nav: "Research & development", title: "Research and development", kicker: "What is spent on finding things out, and what comes of it", color: "#06b6d4", ids: ["research", "researchers", "sciArticles", "aiPublications", "patents", "ipReceipts"] },
+  { id: "trend-research", nav: "Research & development", title: "Research and development", kicker: "What is spent on finding things out, and what comes of it", color: "#06b6d4", ids: ["research", "researchers", "sciArticles", "aiPublications", "patents", "ipReceipts", "spaceLaunches", "nuclearElectricity"] },
   {
     id: "trend-relations",
     nav: "International relations",
@@ -404,16 +404,29 @@ const TREND_GROUPS: { id: string; nav: string; title: string; kicker: string; co
   { id: "trend-people", nav: "People", title: "People", kicker: "How long people live, where, and on what", color: "#3b82f6", ids: ["lifeExpectancy", "extremePoverty", "urban", "aged65"] },
 ];
 
+/** A trend's world series: one of the Worldview page's, or one of the two trendDetails.ts builds for this page. */
+const figureOf = (id: string): WorldIndicator | undefined => WORLD[id] ?? TREND_EXTRAS[id];
+
 const usdShort = (v: number) => (v >= 1e12 ? `$${(v / 1e12).toFixed(2)}T` : v >= 1e9 ? `$${(v / 1e9).toFixed(1)}B` : `$${Math.round(v / 1e6).toLocaleString("en-US")}M`);
 /** A value of a breakdown, printed as its table says: as the figure itself is, or as a percentage, a count or dollars. */
-const printAs = (ind: WorldIndicator, as: DetailTable["as"], v: number) =>
-  as === "figure" ? fmtWorld(ind, v) : as === "pct" ? `${v.toFixed(1)}%` : as === "usd" ? usdShort(v) : v.toLocaleString("en-US");
+const printAs = (ind: WorldIndicator, as: DetailAs, v: number) =>
+  as === "figure"
+    ? fmtWorld(ind, v)
+    : as === "pct"
+      ? `${v.toFixed(1)}%`
+      : as === "usd"
+        ? usdShort(v)
+        : as === "usdPerKg"
+          ? `$${v.toLocaleString("en-US")}/kg`
+          : as === "twh"
+            ? `${v.toLocaleString("en-US")} TWh`
+            : v.toLocaleString("en-US");
 const shareText = (part: number, total: number) => {
   const p = (100 * part) / total;
   return p > 0 && p < 0.1 ? "under 0.1%" : `${p.toFixed(p < 10 ? 1 : 0)}%`;
 };
 /** Tables whose rows are parts of a total that is not the world figure on the card. */
-const OF_THE_TOTAL = new Set(["types", "investment", "origins", "hosts"]);
+const OF_THE_TOTAL = new Set(["types", "investment", "origins", "hosts", "people"]);
 
 /**
  * A trend's breakdowns for its window: its make-up by kind, where
@@ -459,7 +472,7 @@ function tablesOf(ind: WorldIndicator): StatTable[] {
         value: r.v,
         text: printAs(ind, t.as, r.v),
         code: r.c,
-        note: [t.kind === "share" && t.total ? `${shareText(r.v, t.total)} ${of}` : "", r.was ? `${printAs(ind, t.as, r.was[1])} in ${r.was[0]}` : ""].filter(Boolean).join(" · ") || undefined,
+        note: [t.kind === "share" && t.total ? `${shareText(r.v, t.total)} ${of}` : "", r.was ? `${printAs(ind, t.as, r.was[1])} in ${r.was[0]}` : "", r.d ?? ""].filter(Boolean).join(" · ") || undefined,
       })),
       note: t.note,
       source: t.source,
@@ -470,11 +483,11 @@ function tablesOf(ind: WorldIndicator): StatTable[] {
 
 /** A world series' latest reading as a line for another card's window. */
 function relatedFact(id: string, beside: string[]): StatFact | null {
-  const ind = WORLD[id];
+  const ind = figureOf(id);
   if (!ind || !ind.series.length) return null;
   const [year, v] = last(ind.series);
   // Two figures of a group can share a name (military spending, in dollars and as a share of GDP): the unit tells them apart.
-  const twin = beside.some((x) => x !== id && WORLD[x]?.label === ind.label);
+  const twin = beside.some((x) => x !== id && figureOf(x)?.label === ind.label);
   return { label: twin ? `${ind.label}, ${ind.unit}` : ind.label, value: fmtWorld(ind, v), sub: twin ? `${year}` : `${ind.unit} · ${year}` };
 }
 
@@ -485,7 +498,7 @@ function relatedFact(id: string, beside: string[]): StatFact | null {
  * breakdowns, and the other figures of its group.
  */
 function TrendTile({ id, color, group, beside }: { id: string; color: string; group: string; beside: string[] }) {
-  const ind = WORLD[id];
+  const ind = figureOf(id);
   if (!ind || ind.series.length < 2) return null;
   const [year, v] = last(ind.series);
   const prev = decadeBefore(ind.series);
@@ -504,7 +517,7 @@ function TrendTile({ id, color, group, beside }: { id: string; color: string; gr
         flat || ind.upIsGood === null ? null : diff > 0 === ind.upIsGood ? "better" : "worse",
       );
   const detail = TREND_DETAILS[id];
-  const explain = EXPLAIN[id];
+  const explain = EXPLAIN[id] ?? TREND_EXPLAIN[id];
   const [y0, v0] = ind.series[0];
   const moved = v - v0;
   const moreFacts: StatFact[] = [
@@ -531,6 +544,7 @@ function TrendTile({ id, color, group, beside }: { id: string; color: string; gr
         why: explain?.why,
         moreFacts,
         tables: tablesOf(ind),
+        briefs: TREND_BRIEFS[id],
         related: { title: `Beside it · ${group.toLowerCase()}`, rows: related },
         notes: detail?.notes,
       }}
@@ -1195,7 +1209,7 @@ export function TrendsPage() {
                   <TrendTile key={id} id={id} color={g.color} group={g.title} beside={g.ids} />
                 ))}
               </div>
-              <SourceLink sources={g.ids.flatMap((id) => (WORLD[id] ? [WORLD[id].source] : []))} />
+              <SourceLink sources={g.ids.flatMap((id) => figureOf(id)?.source ?? [])} />
             </div>
           ))}
           <Note>These are measured, not projected: each is a published world series to its latest year. The Worldview page has all of them, with what each means.</Note>
