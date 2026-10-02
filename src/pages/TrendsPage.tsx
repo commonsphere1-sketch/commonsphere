@@ -426,7 +426,7 @@ const shareText = (part: number, total: number) => {
   return p > 0 && p < 0.1 ? "under 0.1%" : `${p.toFixed(p < 10 ? 1 : 0)}%`;
 };
 /** Tables whose rows are parts of a total that is not the world figure on the card. */
-const OF_THE_TOTAL = new Set(["types", "investment", "origins", "hosts", "people"]);
+const OF_THE_TOTAL = new Set(["types", "investment", "origins", "hosts", "people", "who-launchers"]);
 
 /**
  * A trend's breakdowns for its window: its make-up by kind, where
@@ -476,6 +476,8 @@ function tablesOf(ind: WorldIndicator): StatTable[] {
       })),
       note: t.note,
       source: t.source,
+      // The tables of names - launch providers, model makers, institutions, companies, funders - have their own heading.
+      section: t.key.startsWith("who-") ? "who" : undefined,
     });
   }
   return out;
@@ -548,7 +550,7 @@ function TrendTile({ id, color, group, beside }: { id: string; color: string; gr
         related: { title: `Beside it · ${group.toLowerCase()}`, rows: related },
         notes: detail?.notes,
       }}
-      more="Regions, types, facts and the full series"
+      more="Regions, types, names and the full series"
     />
   );
 }

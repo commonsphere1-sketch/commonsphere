@@ -48,6 +48,8 @@ export interface StatTable {
   rows: StatTableRow[];
   note?: string;
   source?: { label: string; url: string };
+  /** "who": a table of organisations by name - companies, institutions, agencies - shown under its own heading. */
+  section?: "who";
 }
 
 /** How a figure has moved: the amount for the chip, what it is measured against, and whether that is for the better. */
@@ -456,18 +458,25 @@ function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => void }) {
             </>
           )}
 
-          {tables.length > 0 && (
-            <>
-              <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mt-6 mb-2">
-                Broken down · {tables.map((t) => t.title.toLowerCase()).join(" · ")}
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {tables.map((t, i) => (
-                  // An odd one out takes the full width, its rows in two columns.
-                  <TableCard key={t.key} t={t} color={color} wide={tables.length % 2 === 1 && i === 0} />
-                ))}
-              </div>
-            </>
+          {/* The figure broken down, then who is behind it by name: each a grid of tables. */}
+          {[
+            { label: "Broken down", list: tables.filter((t) => t.section !== "who") },
+            { label: "Who is behind it · companies, institutions and agencies by name", list: tables.filter((t) => t.section === "who") },
+          ].map(
+            (g) =>
+              g.list.length > 0 && (
+                <div key={g.label}>
+                  <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mt-6 mb-2">
+                    {g.label === "Broken down" ? `Broken down · ${g.list.map((t) => t.title.toLowerCase()).join(" · ")}` : g.label}
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {g.list.map((t, i) => (
+                      // An odd one out takes the full width, its rows in two columns.
+                      <TableCard key={t.key} t={t} color={color} wide={g.list.length % 2 === 1 && i === 0} />
+                    ))}
+                  </div>
+                </div>
+              ),
           )}
 
           {briefs.length > 0 && (
@@ -493,7 +502,7 @@ function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => void }) {
           {s.related && s.related.rows.length > 0 && (
             <>
               <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mt-6 mb-2">{s.related.title}</p>
-              <div className="modal-tile rounded-xl px-3 py-2.5 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+              <div className="modal-tile rounded-xl px-3 py-2.5 flex flex-col divide-y divide-border/40 [&>*]:py-1.5">
                 {s.related.rows.map((f) => (
                   <FactRow key={f.label} f={f} />
                 ))}

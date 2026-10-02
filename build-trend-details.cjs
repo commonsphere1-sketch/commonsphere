@@ -29,6 +29,22 @@
  *   UNHCR Refugee Data Finder (api.unhcr.org)
  *     The displaced by country of origin and by country of asylum.
  *
+ * WHO IS BEHIND IT, BY NAME
+ *   For the technology, research and energy figures, the organisations
+ *   named most often by three open sources - each a count the source's own
+ *   records give, not a judgement made here:
+ *   Jonathan McDowell's General Catalog of Artificial Space Objects
+ *   (planet4589.org/space/gcat, CC BY): every orbital launch attempt of the
+ *     last full year, by the provider that launched it.
+ *   Epoch AI's Notable AI Models (epoch.ai/data, CC BY): the models it
+ *     lists for the last three full years, by the organisation that made them.
+ *   OpenAlex (openalex.org, CC0): the last fully indexed year's research
+ *     articles on each subject, by the institution and the company their
+ *     authors work at and by the funder they name. A paper is counted for
+ *     everyone named on it, so these are counts, never shares.
+ *   A subject is one of OpenAlex's own subfields, or - where it has none
+ *   that fits - a word in the article's title, and the table says which.
+ *
  * FIGURES OF ITS OWN
  *   Two world series the Worldview page does not carry are built here too,
  *   for the Trends page's research and development group, in the shape of
@@ -774,6 +790,293 @@ function extras() {
   return { indicators, details, explain, briefs };
 }
 
+// ── Who is behind it: organisations by name ───────────────────────────────
+
+const NOW_YEAR = new Date().getFullYear();
+/** Research is counted for the last year the index holds in full: papers of the year before this one are still arriving. */
+const PAPERS_YEAR = NOW_YEAR - 2;
+const hash = (text) => require("crypto").createHash("md5").update(text).digest("hex").slice(0, 12);
+const getJson = (url) => JSON.parse(get(encodeURI(url), `names-${hash(url)}.json`));
+
+const OA = "https://api.openalex.org";
+const OA_SOURCE = { label: "OpenAlex — the open index of research papers", url: "https://openalex.org" };
+const OA_KIND = { education: "university", government: "government body", facility: "research facility", company: "company", nonprofit: "non-profit", healthcare: "hospital or health body", funder: "funder", archive: "archive", other: "other" };
+
+/** Research articles of PAPERS_YEAR matching a filter, counted by institution or funder: the 200 most named. */
+function oaGroups(filter, groupBy) {
+  const j = getJson(`${OA}/works?filter=publication_year:${PAPERS_YEAR},type:article${filter ? `,${filter}` : ""}&group_by=${groupBy}&per-page=200`);
+  if (!Array.isArray(j.group_by) || !j.group_by.length) throw new Error(`OpenAlex: nothing for ${filter} by ${groupBy}`);
+  return { total: j.meta.count, groups: j.group_by.map((g) => ({ id: String(g.key).split("/").pop(), name: g.key_display_name, count: g.count })) };
+}
+/** OpenAlex's own record of institutions or funders: what kind each is, and its country. */
+function oaLookup(kind, ids, select) {
+  const out = new Map();
+  for (let i = 0; i < ids.length; i += 50) {
+    const j = getJson(`${OA}/${kind}?filter=openalex:${ids.slice(i, i + 50).join("|")}&select=${select}&per-page=100`);
+    for (const r of j.results ?? []) out.set(String(r.id).split("/").pop(), r);
+  }
+  return out;
+}
+/** "Google (United States)" as "Google": the flag beside it says where. */
+const plainName = (name) => name.replace(/ \([^()]+\)$/, "");
+
+/** The subjects, each one of OpenAlex's subfields or a word in the title. */
+const SUBJECTS = {
+  all: { filter: "", of: "" },
+  ai: { subfield: 1702, name: "Artificial Intelligence", of: " on artificial intelligence" },
+  net: { subfield: 1705, name: "Computer Networks and Communications", of: " on computer networks and communications" },
+  // OpenAlex's subfields for these two are broad - "aerospace engineering" takes in 180,000 articles a year, most of
+  // them not about space - so they are found by the words in the title instead.
+  renew: { filter: 'title.search:photovoltaic OR "solar cell" OR "wind turbine"', of: ' with "photovoltaic", "solar cell" or "wind turbine" in the title' },
+  space: { filter: 'title.search:satellite OR spacecraft OR "launch vehicle"', of: ' with "satellite", "spacecraft" or "launch vehicle" in the title' },
+  robot: { filter: "title.search:robot", of: ' with "robot" in the title' },
+  ev: { filter: 'title.search:"electric vehicle"', of: ' with "electric vehicle" in the title' },
+  fusion: { filter: "title.search:tokamak", of: ' with "tokamak" - the fusion device - in the title' },
+};
+for (const sub of Object.values(SUBJECTS)) {
+  if (!sub.subfield) continue;
+  // The subfield is named by number: check it is still the subject meant.
+  const got = getJson(`${OA}/subfields/${sub.subfield}?select=id,display_name`).display_name;
+  if (got !== sub.name) throw new Error(`OpenAlex subfield ${sub.subfield} is "${got}", not "${sub.name}"`);
+  sub.filter = `primary_topic.subfield.id:${sub.subfield}`;
+}
+
+const WHO_CACHE = new Map();
+/** One table of names for a subject: its institutions, its companies, or its funders. */
+function whoTable(subjectKey, kind) {
+  const cacheKey = `${subjectKey}:${kind}`;
+  if (WHO_CACHE.has(cacheKey)) return WHO_CACHE.get(cacheKey);
+  const sub = SUBJECTS[subjectKey];
+  let table = null;
+  const counted = (total) => `Of the ${total.toLocaleString("en-US")} research articles${sub.of} that OpenAlex indexes for ${PAPERS_YEAR}. An article is counted for everyone named on it, so these are counts, not shares.`;
+  if (kind === "funders") {
+    const { total, groups } = oaGroups(sub.filter, "funders.id");
+    const top = groups.slice(0, 8);
+    const info = oaLookup("funders", top.map((g) => g.id), "id,display_name,country_code");
+    table = {
+      key: "who-funders",
+      title: "The funders named on most of the research",
+      kicker: `Articles${sub.of} that name the funder · ${PAPERS_YEAR}`,
+      kind: "rate",
+      as: "count",
+      rows: top.map((g) => ({ n: plainName(g.name), v: g.count, ...(info.get(g.id)?.country_code ? { c: info.get(g.id).country_code } : {}) })),
+      note: counted(total),
+      source: OA_SOURCE,
+    };
+  } else {
+    const companies = kind === "companies";
+    const { total, groups } = oaGroups([sub.filter, companies ? "authorships.institutions.type:company" : ""].filter(Boolean).join(","), "authorships.institutions.id");
+    // With the company filter the groups are every institution on a paper that has a company author: keep the companies.
+    const info = oaLookup("institutions", (companies ? groups : groups.slice(0, 8)).map((g) => g.id), "id,display_name,type,country_code");
+    const top = groups.filter((g) => !companies || info.get(g.id)?.type === "company").slice(0, 8);
+    table = {
+      key: companies ? "who-companies" : "who-institutions",
+      title: companies ? "The companies publishing most of the research" : "Where most of the research is done",
+      kicker: `Articles${sub.of} with an author ${companies ? "at the company" : "there"} · ${PAPERS_YEAR}`,
+      kind: "rate",
+      as: "count",
+      rows: top.map((g) => {
+        const i = info.get(g.id);
+        return { n: plainName(g.name), v: g.count, ...(i?.country_code ? { c: i.country_code } : {}), ...(!companies && i?.type && OA_KIND[i.type] ? { d: OA_KIND[i.type] } : {}) };
+      }),
+      note: companies ? `Of the ${total.toLocaleString("en-US")} such articles with an author at a company. An article is counted for every company named on it.` : counted(total),
+      source: OA_SOURCE,
+    };
+  }
+  if (table.rows.length < 3) table = null;
+  WHO_CACHE.set(cacheKey, table);
+  return table;
+}
+
+/** GCAT's own country codes, where they are not the two-letter ones flags go by. */
+const GCAT_STATE = { J: "JP", F: "FR", D: "DE", I: "IT", UK: "GB", E: "ES", S: "SE", NL: "NL", CA: "CA", BR: "BR" };
+const GCAT_CLASS = { B: "company", C: "government agency", D: "military", A: "academic body" };
+const tsv = (text) => {
+  const lines = text.split(/\r?\n/).filter(Boolean);
+  const head = lines[0].replace(/^#/, "").split("\t").map((h) => h.trim());
+  return lines.filter((l) => !l.startsWith("#")).map((l) => Object.fromEntries(l.split("\t").map((c, i) => [head[i], c.trim()])));
+};
+/** Last year's orbital launch attempts by the provider that made them, from GCAT's launch log. */
+function launchProviders() {
+  const year = NOW_YEAR - 1;
+  const today = new Date().toISOString().slice(0, 10);
+  const launches = tsv(get("https://planet4589.org/space/gcat/tsv/launch/launch.tsv", `gcat-launch-${today}.tsv`));
+  const orgs = new Map(tsv(get("https://planet4589.org/space/gcat/tsv/tables/orgs.tsv", `gcat-orgs-${today}.tsv`)).map((o) => [o.Code, o]));
+  // GCAT designates a launch that reached orbit YYYY-NNN and one that failed to YYYY-Fnn.
+  const reached = new RegExp(`^${year}-\\d{3}$`);
+  const failed = new RegExp(`^${year}-F\\d+$`);
+  const by = new Map();
+  let attempts = 0;
+  let orbit = 0;
+  for (const l of launches) {
+    const ok = reached.test(l.Launch_Tag);
+    if (!ok && !failed.test(l.Launch_Tag)) continue;
+    attempts++;
+    if (ok) orbit++;
+    const e = by.get(l.Agency) ?? { n: 0, ok: 0 };
+    e.n++;
+    if (ok) e.ok++;
+    by.set(l.Agency, e);
+  }
+  if (attempts < 100) throw new Error(`GCAT: only ${attempts} orbital launches for ${year}`);
+  const ascii = (v) => (v && v !== "-" && /^[\x20-\x7e]+$/.test(v) ? v : "");
+  const nameOfOrg = (code) => {
+    const o = orgs.get(code);
+    return o ? ascii(o.EName) || ascii(o.UName) || ascii(o.ShortEName) || code : code;
+  };
+  const rows = [...by.entries()]
+    .sort((a, b) => b[1].n - a[1].n)
+    .slice(0, 10)
+    .map(([code, e]) => {
+      const first = orgs.get(code.split("/")[0]);
+      const iso = first ? (GCAT_STATE[first.StateCode] ?? (SITE_NAME.has(first.StateCode) ? first.StateCode : undefined)) : undefined;
+      const what = first && GCAT_CLASS[first.Class];
+      return { n: code.split("/").map(nameOfOrg).join(" with "), v: e.n, ...(iso ? { c: iso } : {}), d: [what, e.ok === e.n ? "all reached orbit" : `${e.ok} reached orbit`].filter(Boolean).join(" · ") };
+    });
+  return {
+    table: {
+      key: "who-launchers",
+      title: "Who launched the rockets",
+      kicker: `Orbital launch attempts, by the provider that made them · ${year}`,
+      kind: "share",
+      as: "count",
+      total: attempts,
+      rows,
+      note: `${attempts} launches were aimed at orbit or beyond in ${year}, and ${orbit} got there. A provider is the body that conducted the launch, as GCAT's launch log names it - a company, a government agency or a military force.`,
+      source: { label: "Jonathan McDowell — General Catalog of Artificial Space Objects, launch log", url: "https://planet4589.org/space/gcat/" },
+    },
+    facts: [
+      { label: "Orbital launch attempts", v: attempts, as: "count", sub: `${year}` },
+      { label: "Reached orbit", v: orbit, as: "count", sub: `${year}` },
+    ],
+  };
+}
+
+/** A quoted CSV in full: fields may hold commas and line breaks. */
+function csvTable(text) {
+  const rows = [];
+  let row = [];
+  let cur = "";
+  let quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quoted) {
+      if (ch === '"' && text[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else if (ch === '"') quoted = false;
+      else cur += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === ",") {
+      row.push(cur);
+      cur = "";
+    } else if (ch === "\n") {
+      row.push(cur);
+      rows.push(row);
+      row = [];
+      cur = "";
+    } else if (ch !== "\r") cur += ch;
+  }
+  if (cur || row.length) rows.push([...row, cur]);
+  const head = rows[0];
+  return rows.slice(1).map((r) => Object.fromEntries(head.map((h, i) => [h, r[i] ?? ""])));
+}
+const ISO2_BY_NAME = new Map([
+  ...WB_LIST.filter((c) => c.region?.id && c.region.id !== "NA").map((c) => [c.name.trim(), c.iso2Code]),
+  ["United States of America", "US"],
+  ["South Korea", "KR"],
+  ["Hong Kong", "HK"],
+  ["Taiwan", "TW"],
+  ["Russia", "RU"],
+  ["Iran (Islamic Republic of)", "IR"],
+]);
+/** The organisations that made the most of the notable AI models of the last three full years, as Epoch AI lists them. */
+function modelMakers() {
+  const today = new Date().toISOString().slice(0, 10);
+  const models = csvTable(get("https://epoch.ai/data/notable_ai_models.csv", `epoch-notable-${today}.csv`));
+  if (models.length < 500 || !("Organization" in models[0]) || !("Publication date" in models[0])) throw new Error("Epoch AI: the file is not the one expected");
+  const to = NOW_YEAR - 1;
+  const from = to - 2;
+  const by = new Map();
+  let n = 0;
+  for (const m of models) {
+    const y = Number(m["Publication date"].slice(0, 4));
+    if (!(y >= from && y <= to)) continue;
+    n++;
+    const makers = m.Organization.split(",").map((x) => x.trim()).filter(Boolean);
+    const countries = m["Country (of organization)"].split(",").map((x) => x.trim());
+    const kinds = m["Organization categorization"].split(",").map((x) => x.trim());
+    makers.forEach((name, i) => {
+      const e = by.get(name) ?? { n: 0 };
+      e.n++;
+      // The file lists a model's makers, their countries and their kinds in the same order where it lists one of each.
+      if (countries.length === makers.length && countries[i]) e.country = countries[i];
+      if (kinds.length === makers.length && kinds[i]) e.kind = kinds[i];
+      by.set(name, e);
+    });
+  }
+  if (n < 50) throw new Error(`Epoch AI: only ${n} models for ${from}-${to}`);
+  const rows = [...by.entries()]
+    .sort((a, b) => b[1].n - a[1].n)
+    .slice(0, 10)
+    .map(([name, e]) => ({ n: name, v: e.n, ...(ISO2_BY_NAME.get(e.country) ? { c: ISO2_BY_NAME.get(e.country) } : {}), ...(e.kind ? { d: e.kind.toLowerCase() } : {}) }));
+  return {
+    key: "who-models",
+    title: "Who made the notable AI models",
+    kicker: `Notable models released, by the organisation that made them · ${from}–${to}`,
+    kind: "rate",
+    as: "count",
+    rows,
+    note: `Of ${n} models Epoch AI lists as notable for those three years - for advancing the state of the art, being highly cited, being widely used, being of historical significance or costing much to train. A model made by several organisations is counted for each.`,
+    source: { label: "Epoch AI — Notable AI Models", url: "https://epoch.ai/data/notable-ai-models" },
+  };
+}
+
+/**
+ * Which names each figure's window gets: a subject, and which of its
+ * institutions, companies and funders. Companies are listed only for a
+ * subject narrow enough for the list to be of companies doing that work:
+ * across all research, what OpenAlex classes as a company takes in
+ * publishers and research facilities, and the list was not one to print.
+ */
+const WHO = {
+  // Technology
+  internet: ["net", ["companies", "funders"]],
+  broadband: ["net", ["companies", "funders"]],
+  mobile: ["net", ["companies", "funders"]],
+  secureServers: ["net", ["companies", "funders"]],
+  aiInvestment: ["ai", ["companies"]],
+  genAiInvestment: ["ai", ["companies"]],
+  robotInstalls: ["robot", ["companies", "institutions"]],
+  robotStock: ["robot", ["companies", "institutions"]],
+  // Research and development
+  research: ["all", ["funders"]],
+  researchers: ["all", ["institutions"]],
+  sciArticles: ["all", ["institutions", "funders"]],
+  aiPublications: ["ai", ["institutions", "companies", "funders"]],
+  spaceLaunches: ["space", ["companies", "funders"]],
+  nuclearElectricity: ["fusion", ["institutions", "funders"]],
+  // Energy
+  renewableElectricity: ["renew", ["companies", "funders"]],
+  evSalesShare: ["ev", ["companies", "funders"]],
+};
+
+function addNames(details) {
+  const models = modelMakers();
+  const launch = launchProviders();
+  for (const [id, [subject, kinds]] of Object.entries(WHO)) {
+    const d = details[id];
+    if (!d) throw new Error(`No details for ${id} to add names to`);
+    const tables = kinds.map((k) => whoTable(subject, k)).filter(Boolean);
+    if (id === "aiInvestment" || id === "genAiInvestment" || id === "aiPublications") tables.unshift(models);
+    if (id === "spaceLaunches") {
+      tables.unshift(launch.table);
+      d.facts.push(...launch.facts);
+    }
+    d.tables.push(...tables);
+  }
+}
+
 // ── UNHCR ─────────────────────────────────────────────────────────────────
 
 function displacedDetail() {
@@ -814,6 +1117,7 @@ function main() {
   details.displaced = displacedDetail();
   const extra = extras();
   Object.assign(details, extra.details);
+  addNames(details);
 
   let tables = 0;
   for (const [id, d] of Object.entries(details)) {
