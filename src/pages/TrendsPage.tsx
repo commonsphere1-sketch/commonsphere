@@ -756,6 +756,100 @@ function LeaderList({ label, rows, color }: { label: string; rows: { name: strin
 }
 
 /**
+ * The generation chart, explained under it: each source's latest figure and
+ * its move in ten years, what the lines are, what they show, why sun and
+ * wind have risen, and how the five stand against all electricity. Every
+ * number is read off Ember's series or IRENA's costs in renewables.ts; a
+ * multiple or a percentage between two years is worked out from the two.
+ */
+function GenerationExplained({ lines }: { lines: readonly { key: "solar" | "hydro" | "wind" | "other" | "bioenergy"; label: string; color: string }[] }) {
+  const gen = RENEWABLE_GENERATION;
+  const first = gen[0];
+  const now = gen[gen.length - 1];
+  const then = gen.find((r) => r.year === now.year - 10);
+  const sum = (r: (typeof gen)[number]) => lines.reduce((t, l) => t + r[l.key], 0);
+  /** "×12.3" where it has more than doubled, a percentage otherwise. */
+  const moved = (a: number, b: number) => (a > 0 && b / a >= 2 ? `×${(b / a).toFixed(b / a >= 10 ? 0 : 1)}` : `${signed((100 * (b - a)) / (a || 1), 0)}%`);
+  // The first year the sun made more than the wind, and the two together more than hydropower.
+  const sunPastWind = gen.find((r) => r.solar > r.wind)?.year;
+  const bothPastHydro = gen.find((r) => r.solar + r.wind > r.hydro)?.year;
+  const cost = (key: string) => RENEWABLE_COSTS.find((c) => c.key === key)?.series;
+  const pv = cost("solarPv");
+  const onshore = cost("onshoreWind");
+  const points: { title: string; text: ReactNode }[] = [
+    {
+      title: "What the lines are",
+      text: (
+        <>
+          Each line is the electricity the world generated from one renewable source in a year, in terawatt-hours, as Ember adds it up from countries' own statistics. Hydropower is dams and
+          run-of-river plants; bioenergy is power from burning plant matter, biogas and waste; "geothermal and other" is geothermal, tidal and wave power together.
+        </>
+      ),
+    },
+    {
+      title: "What it shows",
+      text: (
+        <>
+          Hydropower is still the largest single source, at {twh(now.hydro)}, but it has grown slowly{then ? `: ${moved(then.hydro, now.hydro)} in ten years` : ""}. Solar and wind are what has changed
+          {then ? `: solar ${moved(then.solar, now.solar)} and wind ${moved(then.wind, now.wind)} since ${then.year}` : ""}.
+          {bothPastHydro ? ` From ${bothPastHydro} the two together made more than hydropower` : ""}
+          {sunPastWind ? `${bothPastHydro ? ", and" : " "} in ${sunPastWind} solar made more than wind for the first time.` : bothPastHydro ? "." : ""}
+        </>
+      ),
+    },
+    {
+      title: "Behind the rise of sun and wind",
+      text: (
+        <>
+          Their cost fell.
+          {pv && onshore
+            ? ` A kilowatt-hour from a new solar farm cost ${cents(pv[0][1])} in ${pv[0][0]} and ${cents(lastPoint(pv)[1])} in ${lastPoint(pv)[0]}; from a new onshore wind farm, ${cents(onshore[0][1])} and ${cents(lastPoint(onshore)[1])} (IRENA, at 2025 prices).`
+            : ""}{" "}
+          The cards beside this chart give the price of solar modules and of battery cells, and the chart of costs below has every kind.
+        </>
+      ),
+    },
+    {
+      title: "Against all electricity",
+      text: (
+        <>
+          The five together made {twh(sum(now))} in {now.year} - {shareText(sum(now), WORLD_GENERATION.twh)} of the {twh(WORLD_GENERATION.twh)} the world generated - against {twh(sum(first))} in{" "}
+          {first.year}. The rest came from coal, gas, oil and nuclear power. The share beside each name above is of all electricity, not of the renewables alone.
+        </>
+      ),
+    },
+  ];
+  return (
+    <div className="mt-5 pt-4 border-t border-border/40">
+      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-2">The chart, explained</p>
+      <dl className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        {lines.map((l) => (
+          <div key={l.key} className="modal-tile rounded-xl px-3 py-2.5 min-w-0">
+            <dt className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground leading-snug flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: l.color }} aria-hidden />
+              {l.label}
+            </dt>
+            <dd className="text-base font-bold font-mono text-foreground leading-tight mt-1">{Math.round(now[l.key]).toLocaleString("en-US")}</dd>
+            <dd className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">
+              TWh in {now.year}
+              {then ? ` · ${moved(then[l.key], now[l.key])} on ${then.year}` : ""}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+        {points.map((p) => (
+          <div key={p.title} className="modal-tile rounded-xl p-3">
+            <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1.5">{p.title}</p>
+            <p className="text-[12px] font-sans leading-relaxed text-foreground/90">{p.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
  * Renewable power: what each kind generates, how much of each is installed,
  * what each has come to cost, what is invested, what the U.S. EIA projects,
  * and the countries and companies that lead. Every figure is from
@@ -774,7 +868,6 @@ function RenewablesSection() {
     { key: "other", label: "Geothermal and other", color: POWER.other },
     { key: "bioenergy", label: "Bioenergy", color: POWER.bioenergy },
   ] as const;
-  const allNow = genLines.reduce((t, l) => t + now[l.key], 0);
 
   const costLines = RENEWABLE_COSTS.map((c) => ({ key: c.key, label: c.name, color: KIND_COLOR[c.key] }));
   const costYears = [...new Set(RENEWABLE_COSTS.flatMap((c) => c.series.map(([y]) => y)))].sort((a, b) => a - b);
@@ -896,11 +989,8 @@ function RenewablesSection() {
             label={`Electricity generated from renewable sources, ${gen[0].year} to ${now.year}. In ${now.year}: ${genLines.map((l) => `${l.label} ${twh(now[l.key])}`).join(", ")}.`}
           />
           <Legend items={genLines.map((l) => ({ color: l.color, label: `${l.label}, ${now.year}`, value: `${twh(now[l.key])} · ${shareText(now[l.key], WORLD_GENERATION.twh)}` }))} />
-          <Note>
-            Together the five made {twh(allNow)} in {now.year}, {shareText(allNow, WORLD_GENERATION.twh)} of the {twh(WORLD_GENERATION.twh)} the world generated; each share beside a name is of that total. Solar made{" "}
-            {twh(gen[0].solar)} in {gen[0].year} and wind {twh(gen[0].wind)}.
-          </Note>
-          <SourceLink sources={[RENEWABLE_GENERATION_SOURCE]} className="mt-3" />
+          <GenerationExplained lines={genLines} />
+          <SourceLink sources={[RENEWABLE_GENERATION_SOURCE, RENEWABLE_COSTS_SOURCE]} className="mt-3" />
         </Card>
         <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
           {breakthroughs.map((b) => (
