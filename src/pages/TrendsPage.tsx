@@ -18,8 +18,8 @@
  * the UN's low and high variants - with no likelihood put on either.
  */
 import { useMemo, useState, type ReactNode } from "react";
-import { Area, AreaChart, CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ChartLineUp, Globe, Lightning, Target, TrendUp, Users } from "@phosphor-icons/react";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { ChartLineUp, Globe, Leaf, Lightning, Target, TrendUp, Users } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
@@ -30,6 +30,25 @@ import { usdFromBillions } from "../lib/money";
 import { WORLD, WORLDVIEW_RETRIEVED, type WorldIndicator } from "../data/worldview";
 import { EXPLAIN } from "../data/worldviewExplain";
 import { TREND_BRIEFS, TREND_DETAILS, TREND_EXPLAIN, TREND_EXTRAS, type DetailAs } from "../data/trendDetails";
+import {
+  BATTERY_CELL_PRICE,
+  CLEAN_ENERGY_FINANCE,
+  RENEWABLES_RETRIEVED,
+  RENEWABLE_CAPACITY_TOTAL,
+  RENEWABLE_COSTS,
+  RENEWABLE_COSTS_SOURCE,
+  RENEWABLE_GENERATION,
+  RENEWABLE_GENERATION_SOURCE,
+  RENEWABLE_GENERATORS,
+  RENEWABLE_INVESTMENT,
+  RENEWABLE_INVESTMENT_SOURCE,
+  RENEWABLE_KINDS,
+  RENEWABLE_OUTLOOK,
+  SOLAR_MODULE_PRICE,
+  WORLD_GENERATION,
+  type Leaders,
+  type YearValue,
+} from "../data/renewables";
 import {
   POPULATION_OUTLOOK,
   POPULATION_VARIANTS,
@@ -651,6 +670,397 @@ function PopulationExplained() {
   );
 }
 
+// ── Renewable power ────────────────────────────────────────────────────────
+
+/**
+ * The colours of the kinds of power, the same wherever a kind appears. Each
+ * chart's set was run through the palette validator in the order it is
+ * drawn, on the light and the dark surface; every line is also named in a
+ * legend with its figure, so nothing is told by colour alone.
+ */
+const POWER = {
+  solar: "#d97706",
+  hydro: "#2563eb",
+  wind: "#0d9488",
+  other: "#c026d3",
+  bioenergy: "#65a30d",
+  geothermal: "#7c3aed",
+  csp: "#b45309",
+  offshore: "#c026d3",
+  marine: "#0e7490",
+  fossil: "#64748b",
+};
+const KIND_COLOR: Record<string, string> = {
+  solarPv: POWER.solar,
+  onshoreWind: POWER.wind,
+  offshoreWind: POWER.offshore,
+  hydro: POWER.hydro,
+  bioenergy: POWER.bioenergy,
+  geothermal: POWER.geothermal,
+  csp: POWER.csp,
+  marine: POWER.marine,
+};
+
+const twh = (v: number) => `${Math.round(v).toLocaleString("en-US")} TWh`;
+const gw = (v: number) => `${v >= 100 ? Math.round(v).toLocaleString("en-US") : v >= 10 ? v.toFixed(1) : v.toFixed(2)} GW`;
+const cents = (v: number) => `${(v * 100).toFixed(1)}¢`;
+const usdBn = (v: number) => `$${v >= 100 ? Math.round(v) : v.toFixed(1)}bn`;
+const lastPoint = (p: YearValue[]) => p[p.length - 1];
+/** The reading ten years before a series' latest, where it has that year. */
+const decadeAgo = (p: YearValue[]) => p.find(([y]) => y === lastPoint(p)[0] - 10);
+/** "+312% since 2015" as a card's chip; a fall where falling is the point (a price) is for the better. */
+function decadeChange(p: YearValue[], fallIsGood = false) {
+  const was = decadeAgo(p);
+  if (!was || was[1] === 0) return null;
+  const move = (100 * (lastPoint(p)[1] - was[1])) / was[1];
+  return splitChange(`${signed(move, Math.abs(move) < 10 ? 1 : 0)}% since ${was[0]}`, move > 0 ? "up" : "down", move > 0 === !fallIsGood ? "better" : "worse");
+}
+/** A ranking as a table for a card's window: each country with its share of the world's. */
+const leadersTable = (key: string, title: string, l: Leaders, fmt: (v: number) => string): StatTable => ({
+  key,
+  title,
+  kicker: `Of ${l.countries} countries with a figure · ${l.year}`,
+  rows: l.rows.map((r) => ({ name: r.n, code: r.c, value: r.v, text: fmt(r.v), note: `${shareText(r.v, l.total)} of the world's` })),
+  source: l.source,
+});
+
+/** Several series against the years, a line each, named in the hover box. */
+function MultiLine({ data, lines, fmt, tick, label, height = 250 }: { data: Record<string, number | string | null>[]; lines: { key: string; label: string; color: string }[]; fmt: (v: number) => string; tick?: (v: number) => string; label: string; height?: number }) {
+  const look = useLook();
+  return (
+    <div role="img" aria-label={label}>
+      <ResponsiveContainer width="100%" height={height}>
+        <LineChart data={data} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
+          <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+          <XAxis dataKey="year" {...axis(look)} minTickGap={18} />
+          <YAxis {...axis(look)} width={50} tickFormatter={(v: number) => (tick ?? fmt)(v)} />
+          <Tooltip {...look.tooltip} formatter={(v: number, k: string) => [fmt(v), lines.find((l) => l.key === k)?.label ?? k]} />
+          {lines.map((l) => (
+            <Line key={l.key} type="monotone" dataKey={l.key} stroke={l.color} strokeWidth={2} dot={false} connectNulls isAnimationActive={false} />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+/** A ranking of countries or organisations as bars in one colour, each with its figure and what it is a share of. */
+function LeaderList({ label, rows, color }: { label: string; rows: { name: string; code?: string; value: number; text: string; sub?: string }[]; color: string }) {
+  const top = Math.max(...rows.map((r) => r.value), 1);
+  return (
+    <ul className="flex flex-col gap-2.5" aria-label={label}>
+      {rows.map((r) => (
+        <RankRow key={r.name} name={r.name} code={r.code ?? null} value={r.value} top={top} text={r.text} sub={r.sub} color={color} />
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Renewable power: what each kind generates, how much of each is installed,
+ * what each has come to cost, what is invested, what the U.S. EIA projects,
+ * and the countries and companies that lead. Every figure is from
+ * renewables.ts (build-renewables.cjs) or, for the companies and funders,
+ * trendDetails.ts.
+ */
+function RenewablesSection() {
+  const look = useLook();
+  const { head, muted, track } = look;
+  const gen = RENEWABLE_GENERATION;
+  const now = gen[gen.length - 1];
+  const genLines = [
+    { key: "solar", label: "Solar", color: POWER.solar },
+    { key: "hydro", label: "Hydropower", color: POWER.hydro },
+    { key: "wind", label: "Wind", color: POWER.wind },
+    { key: "other", label: "Geothermal and other", color: POWER.other },
+    { key: "bioenergy", label: "Bioenergy", color: POWER.bioenergy },
+  ] as const;
+  const allNow = genLines.reduce((t, l) => t + now[l.key], 0);
+
+  const costLines = RENEWABLE_COSTS.map((c) => ({ key: c.key, label: c.name, color: KIND_COLOR[c.key] }));
+  const costYears = [...new Set(RENEWABLE_COSTS.flatMap((c) => c.series.map(([y]) => y)))].sort((a, b) => a - b);
+  const costData = costYears.map((y) => ({ year: String(y), ...Object.fromEntries(RENEWABLE_COSTS.map((c) => [c.key, c.series.find(([x]) => x === y)?.[1] ?? null])) }));
+
+  const invKeys = [
+    { key: "solar", label: "Solar", color: POWER.solar },
+    { key: "wind", label: "Wind", color: POWER.wind },
+    { key: "biofuels", label: "Biofuels", color: POWER.other },
+    { key: "biomass", label: "Biomass and waste", color: POWER.bioenergy },
+    { key: "other", label: "Small hydropower, geothermal and marine", color: POWER.geothermal },
+  ] as const;
+  const inv = RENEWABLE_INVESTMENT;
+  const invLast = inv[inv.length - 1];
+  const invTotal = (r: (typeof inv)[number]) => invKeys.reduce((t, k) => t + r[k.key], 0);
+
+  const modules = SOLAR_MODULE_PRICE.series;
+  const cells = BATTERY_CELL_PRICE.series;
+  const fall = (p: YearValue[]) => `${signed((100 * (lastPoint(p)[1] - p[0][1])) / p[0][1], 1)}%`;
+  const finance = CLEAN_ENERGY_FINANCE;
+  const breakthroughs: StatCardData[] = [
+    {
+      label: "Price of a solar module",
+      value: `$${lastPoint(modules)[1].toFixed(2)} a watt`,
+      sub: `constant 2025 US$ · ${lastPoint(modules)[0]}`,
+      change: decadeChange(modules, true),
+      about: "The average price of the panels themselves. Global estimates to 2009, European market benchmarks from 2010.",
+      series: modules,
+      color: POWER.solar,
+      fmt: (v) => `$${v >= 10 ? v.toFixed(0) : v.toFixed(2)}`,
+      facts: [
+        { label: `In ${modules[0][0]}`, value: `$${modules[0][1].toFixed(2)}`, sub: "a watt" },
+        { label: `Change since ${modules[0][0]}`, value: fall(modules), sub: "worked out here" },
+        { label: "Ten years before", value: `$${(decadeAgo(modules)?.[1] ?? 0).toFixed(2)}`, sub: `${decadeAgo(modules)?.[0] ?? ""}` },
+      ],
+      source: SOLAR_MODULE_PRICE.source,
+    },
+    {
+      label: "Price of a battery cell",
+      value: `$${lastPoint(cells)[1]} a kWh`,
+      sub: `lithium-ion · constant 2024 US$ · ${lastPoint(cells)[0]}`,
+      change: decadeChange(cells, true),
+      about: "A representative price of lithium-ion cells across the main chemistries: what storing electricity costs to build.",
+      series: cells,
+      color: POWER.geothermal,
+      fmt: (v) => `$${Math.round(v).toLocaleString("en-US")}`,
+      facts: [
+        { label: `In ${cells[0][0]}`, value: `$${cells[0][1].toLocaleString("en-US")}`, sub: "a kWh" },
+        { label: `Change since ${cells[0][0]}`, value: fall(cells), sub: "worked out here" },
+        { label: "Ten years before", value: `$${(decadeAgo(cells)?.[1] ?? 0).toLocaleString("en-US")}`, sub: `${decadeAgo(cells)?.[0] ?? ""}` },
+      ],
+      source: BATTERY_CELL_PRICE.source,
+    },
+    {
+      label: "Public finance for clean energy",
+      value: usdBn(lastPoint(finance.series)[1]),
+      sub: `to developing countries · ${lastPoint(finance.series)[0]}`,
+      change: decadeChange(finance.series),
+      about: "International public finance to developing countries for clean energy research and development and for renewable power, at constant prices.",
+      series: finance.series,
+      color: POWER.wind,
+      fmt: usdBn,
+      tables: [leadersTable("recipients", "Who received most", finance, usdBn)],
+      source: finance.source,
+    },
+  ];
+
+  const kinds: StatCardData[] = RENEWABLE_KINDS.map((k) => {
+    const [year, v] = lastPoint(k.series);
+    const c = k.countries;
+    return {
+      label: k.name,
+      value: gw(v),
+      sub: `installed in the world · IRENA · ${year}`,
+      change: decadeChange(k.series),
+      about: k.about,
+      series: k.series,
+      color: KIND_COLOR[k.key],
+      fmt: gw,
+      tables: c ? [leadersTable("countries", c.title, c, (x) => (c.unit === "MW" ? `${Math.round(x).toLocaleString("en-US")} MW` : gw(x)))] : undefined,
+      moreFacts: [{ label: "Of all renewable capacity", value: shareText(v, lastPoint(RENEWABLE_CAPACITY_TOTAL)[1]), sub: `of ${gw(lastPoint(RENEWABLE_CAPACITY_TOTAL)[1])} · ${year}` }],
+      source: k.source,
+    };
+  });
+
+  const out = RENEWABLE_OUTLOOK;
+  const OUTLOOK_NAME: Record<string, [string, string]> = {
+    solar: ["Solar", POWER.solar],
+    wind: ["Wind", POWER.wind],
+    hydro: ["Hydropower", POWER.hydro],
+    other: ["Other renewables", POWER.other],
+    nuclear: ["Nuclear", POWER.fossil],
+    gas: ["Natural gas", POWER.fossil],
+    coal: ["Coal", POWER.fossil],
+  };
+  const outTop = Math.max(...out.generation.map((g) => g.high));
+  const battery = out.capacity.find((r) => r.key === "battery");
+  const solarCap = out.capacity.find((r) => r.key === "solar");
+  const whoOf = (key: string) => TREND_DETAILS.renewableElectricity?.tables.find((t) => t.key === key);
+  const companies = whoOf("who-companies");
+  const funders = whoOf("who-funders");
+
+  return (
+    <section id="renewables" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="renewables-title">
+      <SectionHead icon={<Leaf size={18} weight="fill" />} color="#10b981" title="Renewables" kicker="The kinds of renewable power: what each makes, what it costs, what is invested, what is projected, and who leads" />
+      <h2 id="renewables-title" className="sr-only">
+        Renewables
+      </h2>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="lg:col-span-2">
+          <CardHead title="Electricity from each renewable source" kicker={`TWh generated in the world a year · Ember · ${gen[0].year}–${now.year}`} />
+          <MultiLine
+            data={gen.map((r) => ({ ...r, year: String(r.year) }))}
+            lines={[...genLines]}
+            fmt={twh}
+            tick={(v) => `${(v / 1000).toFixed(v % 1000 ? 1 : 0)}k`}
+            height={270}
+            label={`Electricity generated from renewable sources, ${gen[0].year} to ${now.year}. In ${now.year}: ${genLines.map((l) => `${l.label} ${twh(now[l.key])}`).join(", ")}.`}
+          />
+          <Legend items={genLines.map((l) => ({ color: l.color, label: `${l.label}, ${now.year}`, value: `${twh(now[l.key])} · ${shareText(now[l.key], WORLD_GENERATION.twh)}` }))} />
+          <Note>
+            Together the five made {twh(allNow)} in {now.year}, {shareText(allNow, WORLD_GENERATION.twh)} of the {twh(WORLD_GENERATION.twh)} the world generated; each share beside a name is of that total. Solar made{" "}
+            {twh(gen[0].solar)} in {gen[0].year} and wind {twh(gen[0].wind)}.
+          </Note>
+          <SourceLink sources={[RENEWABLE_GENERATION_SOURCE]} className="mt-3" />
+        </Card>
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
+          {breakthroughs.map((b) => (
+            <StatCard key={b.label} s={b} />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full" style={{ background: "#10b981" }} aria-hidden />
+          <span className="text-[10px] font-bold font-sans uppercase tracking-widest" style={{ color: head }}>
+            The kinds, by what is installed
+          </span>
+          <span className="text-[10px] font-sans hidden sm:inline" style={{ color: muted }}>
+            Generating capacity in the world, and its change on ten years before
+          </span>
+          <div className="flex-1 h-px" style={{ background: look.grid }} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {kinds.map((k) => (
+            <StatCard key={k.label} s={k} more="Its growth, year by year, and who has most" />
+          ))}
+        </div>
+        <SourceLink sources={RENEWABLE_KINDS.map((k) => k.source)} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHead title="What a kilowatt-hour costs from a new plant" kicker={`Levelised cost, US cents at 2025 prices · IRENA · ${costYears[0]}–${costYears[costYears.length - 1]}`} />
+          <MultiLine
+            data={costData}
+            lines={costLines}
+            fmt={cents}
+            tick={(v) => `${Math.round(v * 100)}¢`}
+            label={`The levelised cost of electricity from new renewable plants, ${costYears[0]} to ${costYears[costYears.length - 1]}: ${RENEWABLE_COSTS.map((c) => `${c.name} from ${cents(c.series[0][1])} to ${cents(lastPoint(c.series)[1])}`).join("; ")}.`}
+          />
+          <Legend items={RENEWABLE_COSTS.map((c) => ({ color: KIND_COLOR[c.key], label: c.name, value: `${cents(c.series[0][1])} → ${cents(lastPoint(c.series)[1])}` }))} />
+          <Note>
+            The cost of building and running a plant spread over all the electricity it makes in its life, averaged over the plants that came into service in the year. Each figure is the
+            cost in {costYears[0]}, then in {costYears[costYears.length - 1]}.
+          </Note>
+          <SourceLink sources={[RENEWABLE_COSTS_SOURCE]} className="mt-3" />
+        </Card>
+        <Card>
+          <CardHead title={`Projected: the world's electricity in ${out.year}`} kicker={`TWh a year by type · U.S. EIA, International Energy Outlook 2023 · ${out.base} and ${out.year}`} />
+          <ul className="flex flex-col gap-3" aria-label={`Electricity generation by type in ${out.base} and as projected for ${out.year}`}>
+            {out.generation.map((g) => {
+              const [name, color] = OUTLOOK_NAME[g.key];
+              return (
+                <li key={g.key}>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-[11px] font-semibold font-sans" style={{ color: head }}>
+                      {name}
+                    </span>
+                    <span className="text-[11px] font-mono" style={{ color: head }}>
+                      {Math.round(g.base).toLocaleString("en-US")} <span style={{ color: muted }}>→</span> <span className="font-bold">{twh(g.ref)}</span>
+                    </span>
+                  </div>
+                  <div className="relative h-2.5 rounded-full mt-1" style={{ background: track }} aria-hidden>
+                    {/* The projection, paler and behind; the year it starts from, solid; the reach of EIA's cases as a line. */}
+                    <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${(100 * g.ref) / outTop}%`, background: color, opacity: 0.35 }} />
+                    <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${(100 * g.base) / outTop}%`, background: color }} />
+                    <span className="absolute top-1/2 h-0.5 -translate-y-1/2" style={{ left: `${(100 * g.low) / outTop}%`, width: `${(100 * (g.high - g.low)) / outTop}%`, background: head }} />
+                  </div>
+                  <p className="text-[9px] font-mono mt-0.5" style={{ color: muted }}>
+                    {g.ref >= g.base ? `×${(g.ref / g.base).toFixed(1)}` : `${signed((100 * (g.ref - g.base)) / g.base, 0)}%`} on {out.base} · {Math.round(g.low).toLocaleString("en-US")}–{Math.round(g.high).toLocaleString("en-US")} across EIA's seven cases
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+          <Legend
+            items={[
+              { color: POWER.solar, label: `Generated in ${out.base}` },
+              { color: `${POWER.solar}59`, label: `Projected for ${out.year}, Reference case` },
+              { color: head, label: "Lowest to highest of the seven cases" },
+            ]}
+          />
+          <Note>
+            EIA's Reference case assumes the laws and policies in place when it was made, and its six other cases vary economic growth, oil prices and the cost of zero-carbon technology. It gives no
+            likelihood to any of them, and nor does this page. This is its 2023 edition, the latest it has published.
+            {battery && solarCap ? ` On the same projection battery storage grows from ${gw(battery.base)} to ${gw(battery.ref)} (${Math.round(battery.low)}–${Math.round(battery.high).toLocaleString("en-US")}), and solar capacity from ${gw(solarCap.base)} to ${gw(solarCap.ref)}.` : ""}
+          </Note>
+          <SourceLink sources={[out.source]} className="mt-3" />
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHead title="What was invested, by technology" kicker={`New investment in renewable power, US$ billions a year · ${inv[0].year}–${invLast.year}`} />
+          <div
+            role="img"
+            aria-label={`New investment in renewable power by technology, ${inv[0].year} to ${invLast.year}. In ${invLast.year}: ${invKeys.map((k) => `${k.label} ${usdBn(invLast[k.key])}`).join(", ")}.`}
+          >
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={inv.map((r) => ({ ...r, year: String(r.year) }))} margin={{ top: 6, right: 8, left: 0, bottom: 0 }} barCategoryGap="22%">
+                <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="year" {...axis(look)} minTickGap={12} />
+                <YAxis {...axis(look)} width={50} tickFormatter={(v: number) => `$${v}bn`} />
+                <Tooltip {...look.tooltip} cursor={{ fill: look.grid }} formatter={(v: number, k: string) => [usdBn(v), invKeys.find((x) => x.key === k)?.label ?? k]} />
+                {invKeys.map((k, i) => (
+                  <Bar key={k.key} dataKey={k.key} stackId="inv" fill={k.color} stroke={look.card.background} strokeWidth={1} radius={i === invKeys.length - 1 ? [4, 4, 0, 0] : 0} isAnimationActive={false} />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <Legend items={invKeys.map((k) => ({ color: k.color, label: `${k.label}, ${invLast.year}`, value: `${usdBn(invLast[k.key])} · ${shareText(invLast[k.key], invTotal(invLast))}` }))} />
+          <Note>
+            {usdBn(invTotal(invLast))} in {invLast.year}, against {usdBn(invTotal(inv[0]))} in {inv[0].year}; a share is of the technologies shown, added together here. {invLast.year} is the last year this source's
+            file holds: no body publishes a later series by technology that this page can read. Large hydropower is not in it.
+          </Note>
+          <SourceLink sources={[RENEWABLE_INVESTMENT_SOURCE]} className="mt-3" />
+        </Card>
+        <Card>
+          <CardHead title="The countries that generate most" kicker={`TWh from the sun and from the wind · Ember · ${RENEWABLE_GENERATORS.solar.year}`} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+            {(
+              [
+                ["Solar", RENEWABLE_GENERATORS.solar, POWER.solar],
+                ["Wind", RENEWABLE_GENERATORS.wind, POWER.wind],
+              ] as const
+            ).map(([name, l, color]) => (
+              <div key={name}>
+                <p className="text-[10px] font-mono uppercase tracking-widest mb-2.5" style={{ color: muted }}>
+                  {name} · world {twh(l.total)}
+                </p>
+                <LeaderList label={`Countries generating the most ${name.toLowerCase()} electricity`} color={color} rows={l.rows.map((r) => ({ name: r.n, code: r.c, value: r.v, text: Math.round(r.v).toLocaleString("en-US"), sub: shareText(r.v, l.total) }))} />
+              </div>
+            ))}
+          </div>
+          <Note>Each country's TWh, and its share of the world's from that source. The cards above give who has the most solar, wind and geothermal capacity installed.</Note>
+          <SourceLink sources={[RENEWABLE_GENERATORS.solar.source, RENEWABLE_GENERATORS.wind.source]} className="mt-3" />
+        </Card>
+      </div>
+
+      {(companies || funders) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {[companies, funders].map(
+            (t) =>
+              t && (
+                <Card key={t.key}>
+                  <CardHead title={t.key === "who-companies" ? "The companies publishing most of the research" : "The funders named on most of the research"} kicker={t.kicker} />
+                  <LeaderList label={t.title} color={t.key === "who-companies" ? POWER.solar : POWER.wind} rows={t.rows.map((r) => ({ name: r.n, code: r.c, value: r.v, text: r.v.toLocaleString("en-US") }))} />
+                  {t.note && <Note>{t.note}</Note>}
+                  <SourceLink sources={[t.source]} className="mt-3" />
+                </Card>
+              ),
+          )}
+        </div>
+      )}
+      <Note>
+        What this section cannot show, because no body publishes it openly: investment by technology after {invLast.year}, makers of panels and turbines by what they ship, and a projection for each emerging
+        kind - offshore wind, geothermal, marine - on its own. The companies above are named by the research they publish, which is what an open source counts. Figures retrieved {RENEWABLES_RETRIEVED}.
+      </Note>
+    </section>
+  );
+}
+
 // ── Page ───────────────────────────────────────────────────────────────────
 
 const SECTIONS: NavSection[] = [
@@ -659,6 +1069,7 @@ const SECTIONS: NavSection[] = [
   { id: "countries", label: "Countries" },
   { id: "population", label: "Population" },
   { id: "scenarios", label: "Scenarios" },
+  { id: "renewables", label: "Renewables" },
   // The trends, a chip to each group of them; the first group sits under the section's heading, so its chip goes there.
   ...TREND_GROUPS.map((g, i) => ({ id: i === 0 ? "trends" : g.id, label: g.nav })),
 ];
@@ -1187,6 +1598,9 @@ export function TrendsPage() {
             </div>
           </div>
         </section>
+
+        {/* ══ Renewables ══ */}
+        <RenewablesSection />
 
         {/* ══ Trends ══ */}
         <section id="trends" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="trends-title">
