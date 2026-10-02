@@ -184,6 +184,9 @@ function RegionsChart({ def, frame, look }: { def: Extract<ChartDef, { kind: "re
   const top = ranked[0];
   const bottom = last(ranked);
   const fmt = (v: number) => print(ind, v);
+  // Regions that print the same figure share the place: two at 100.0% are both the highest.
+  const sharing = (v: number) => ranked.filter((r) => fmt(r.v) === fmt(v)).map((r) => r.l.label);
+  const named = (names: string[]) => (names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${last(names)}` : names[0]);
   const was = (l: LineDef) => {
     const v = at(l, start);
     return v === undefined ? "" : `, from ${fmt(v)} in ${start}`;
@@ -194,9 +197,9 @@ function RegionsChart({ def, frame, look }: { def: Extract<ChartDef, { kind: "re
       <Legend look={look} items={lines.map((l) => ({ color: l.color, label: l.label, value: `${fmt(last(l.series)[1])}${last(l.series)[0] !== end ? ` (${last(l.series)[0]})` : ""}` }))} />
       {top && bottom && (
         <Reading look={look}>
-          In {end} the figure was highest in {top.l.label}, at {fmt(top.v)}
-          {was(top.l)}, and lowest in {bottom.l.label}, at {fmt(bottom.v)}
-          {was(bottom.l)}. For the world it was {fmt(last(ind.series)[1])} in {last(ind.series)[0]}.
+          In {end} the figure was highest in {named(sharing(top.v))}, at {fmt(top.v)}
+          {sharing(top.v).length === 1 ? was(top.l) : ""}, and lowest in {named(sharing(bottom.v))}, at {fmt(bottom.v)}
+          {sharing(bottom.v).length === 1 ? was(bottom.l) : ""}. For the world it was {fmt(last(ind.series)[1])} in {last(ind.series)[0]}.
         </Reading>
       )}
       <SourceLink sources={[data.source]} className="mt-2" />
@@ -230,13 +233,14 @@ function WorldChart({ def, frame, look }: { def: Extract<ChartDef, { kind: "worl
   );
 }
 
-type Stack = { unit: string; parts: { key: string; label: string }[]; rows: Record<string, number>[]; fmt: (v: number) => string; tick: (v: number) => string; note: string; source: Source };
+type Stack = { unit: string; /** The parts are shares that make up 100%: the axis stops there, and no total is given. */ shares?: boolean; parts: { key: string; label: string }[]; rows: Record<string, number>[]; fmt: (v: number) => string; tick: (v: number) => string; note: string; source: Source };
 
 const at = (id: string, y: number) => WORLD[id]?.series.find(([x]) => x === y)?.[1];
 /** The parts of each whole, year by year. */
 const STACKS: Record<"regimes" | "displaced", () => Stack> = {
   regimes: () => ({
     unit: "% of the world's people",
+    shares: true,
     parts: [
       { key: "liberal", label: "Liberal democracy" },
       { key: "electoral", label: "Electoral democracy" },
@@ -286,7 +290,7 @@ function StackChart({ def, frame, look }: { def: Extract<ChartDef, { kind: "stac
           <AreaChart data={s.rows.map((r) => ({ ...r, year: String(r.year) }))} margin={{ top: 6, right: 16, left: 0, bottom: 0 }}>
             <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="year" {...look.axis} minTickGap={22} />
-            <YAxis {...look.axis} width={48} tickFormatter={s.tick} />
+            <YAxis {...look.axis} width={48} tickFormatter={s.tick} domain={s.shares ? [0, 100] : [0, "auto"]} ticks={s.shares ? [0, 25, 50, 75, 100] : undefined} allowDataOverflow={s.shares} />
             <Tooltip {...look.tooltip} formatter={(v: number, k: string) => [s.fmt(v), s.parts.find((p) => p.key === k)?.label ?? k]} />
             {s.parts.map((p, i) => (
               // A hairline of the surface between the bands, so two that touch stay apart.
@@ -297,7 +301,9 @@ function StackChart({ def, frame, look }: { def: Extract<ChartDef, { kind: "stac
       </div>
       <Legend look={look} items={s.parts.map((p, i) => ({ color: ORDERED[i % 5], label: p.label, value: s.fmt(now[p.key]) }))} />
       <Reading look={look}>
-        In {now.year} the largest part was {biggest.label.toLowerCase()}, at {s.fmt(now[biggest.key])} of {s.fmt(total(now))}; in {first.year} it was {s.fmt(first[biggest.key])} of {s.fmt(total(first))}. {s.note}
+        In {now.year} the largest part was {biggest.label.toLowerCase()}, at {s.fmt(now[biggest.key])}
+        {s.shares ? "" : ` of ${s.fmt(total(now))}`}; in {first.year} it was {s.fmt(first[biggest.key])}
+        {s.shares ? "" : ` of ${s.fmt(total(first))}`}. {s.note}
       </Reading>
       <SourceLink sources={[s.source]} className="mt-2" />
     </Frame>
