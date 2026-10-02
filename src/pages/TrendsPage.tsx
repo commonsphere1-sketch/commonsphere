@@ -25,6 +25,7 @@ import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "../components/SectionNav";
 import { StyledSelect } from "../components/StyledSelect";
+import { StatExplorer, type StatGroup } from "../components/StatExplorer";
 import { StatCard, splitChange, type StatCardData, type StatFact, type StatTable } from "../components/StatCard";
 import { usdFromBillions } from "../lib/money";
 import { WORLD, WORLDVIEW_RETRIEVED, type WorldIndicator } from "../data/worldview";
@@ -518,7 +519,7 @@ function relatedFact(id: string, beside: string[]): StatFact | null {
  * what it measures and why it matters, its move over the whole series, its
  * breakdowns, and the other figures of its group.
  */
-function TrendTile({ id, color, group, beside }: { id: string; color: string; group: string; beside: string[] }) {
+function trendCard(id: string, color: string, group: string, beside: string[]): StatCardData | null {
   const ind = figureOf(id);
   if (!ind || ind.series.length < 2) return null;
   const [year, v] = last(ind.series);
@@ -549,30 +550,28 @@ function TrendTile({ id, color, group, beside }: { id: string; color: string; gr
     ...(detail?.facts ?? []).map((f) => ({ label: f.label, value: printAs(ind, f.as, f.v), sub: f.sub })),
   ];
   const related = beside.filter((x) => x !== id).flatMap((x) => relatedFact(x, beside) ?? []);
-  return (
-    <StatCard
-      s={{
-        label: ind.label,
-        value: fmtWorld(ind, v),
-        sub: `${ind.unit} · ${year}`,
-        change,
-        about: ind.note,
-        series: ind.series,
-        color,
-        fmt: (x) => fmtWorld(ind, x),
-        source: ind.source,
-        what: explain?.what,
-        why: explain?.why,
-        moreFacts,
-        tables: tablesOf(ind),
-        briefs: TREND_BRIEFS[id],
-        related: { title: `Beside it · ${group.toLowerCase()}`, rows: related },
-        notes: detail?.notes,
-      }}
-      more="Regions, types, names and the full series"
-    />
-  );
+  return {
+    label: ind.label,
+    value: fmtWorld(ind, v),
+    sub: `${ind.unit} · ${year}`,
+    change,
+    about: ind.note,
+    series: ind.series,
+    color,
+    fmt: (x) => fmtWorld(ind, x),
+    source: ind.source,
+    what: explain?.what,
+    why: explain?.why,
+    moreFacts,
+    tables: tablesOf(ind),
+    briefs: TREND_BRIEFS[id],
+    related: { title: `Beside it · ${group.toLowerCase()}`, rows: related },
+    notes: detail?.notes,
+  };
 }
+
+/** Every trend as its card's data, by group: what the cards and the explorer are both drawn from. Built once - nothing in it changes. */
+const TREND_CARDS: StatGroup[] = TREND_GROUPS.map((g) => ({ title: g.title, color: g.color, items: g.ids.flatMap((id) => trendCard(id, g.color, g.title, g.ids) ?? []) }));
 
 /**
  * The world population chart, explained under it: the milestones on the
@@ -730,7 +729,7 @@ function MultiLine({ data, lines, fmt, tick, label, height = 250 }: { data: Reco
   return (
     <div role="img" aria-label={label}>
       <ResponsiveContainer width="100%" height={height}>
-        <LineChart data={data} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
+        <LineChart data={data} margin={{ top: 6, right: 18, left: 0, bottom: 0 }}>
           <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
           <XAxis dataKey="year" {...axis(look)} minTickGap={18} />
           <YAxis {...axis(look)} width={50} tickFormatter={(v: number) => (tick ?? fmt)(v)} />
@@ -1012,7 +1011,7 @@ function RenewablesSection() {
           <Legend items={invKeys.map((k) => ({ color: k.color, label: `${k.label}, ${invLast.year}`, value: `${usdBn(invLast[k.key])} · ${shareText(invLast[k.key], invTotal(invLast))}` }))} />
           <Note>
             {usdBn(invTotal(invLast))} in {invLast.year}, against {usdBn(invTotal(inv[0]))} in {inv[0].year}; a share is of the technologies shown, added together here. {invLast.year} is the last year this source's
-            file holds: no body publishes a later series by technology that this page can read. Large hydropower is not in it.
+            file holds, and this page has found no later open series by technology. Of hydropower it counts small plants only.
           </Note>
           <SourceLink sources={[RENEWABLE_INVESTMENT_SOURCE]} className="mt-3" />
         </Card>
@@ -1054,8 +1053,8 @@ function RenewablesSection() {
         </div>
       )}
       <Note>
-        What this section cannot show, because no body publishes it openly: investment by technology after {invLast.year}, makers of panels and turbines by what they ship, and a projection for each emerging
-        kind - offshore wind, geothermal, marine - on its own. The companies above are named by the research they publish, which is what an open source counts. Figures retrieved {RENEWABLES_RETRIEVED}.
+        What this section does not show, for want of an open source to read it from: investment by technology after {invLast.year}, makers of panels and turbines by what they ship, and a projection for each
+        emerging kind - offshore wind, geothermal, marine - on its own. The companies above are named by the research they publish, which is what an open source counts. Figures retrieved {RENEWABLES_RETRIEVED}.
       </Note>
     </section>
   );
@@ -1357,6 +1356,16 @@ export function TrendsPage() {
           )}
         />
 
+        {/* ── Explorer: every figure of the page, by group, beside its detail - as the
+            Countries and Economies pages have their own ── */}
+        <StatExplorer
+          title="Trends & projections"
+          icon={<ChartLineUp size={12} weight="fill" aria-hidden />}
+          color="#6366f1"
+          noun="figures"
+          groups={[{ title: "Projections", color: "#6366f1", items: stats }, ...TREND_CARDS]}
+        />
+
         {/* ══ Overview ══ */}
         <section id="overview" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="overview-title">
           <SectionHead icon={<ChartLineUp size={18} weight="fill" />} color="#6366f1" title="At a glance" kicker="The headline projections: the economy from the IMF, people from the UN" />
@@ -1621,8 +1630,8 @@ export function TrendsPage() {
                 <div className="flex-1 h-px" style={{ background: look.grid }} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {g.ids.map((id) => (
-                  <TrendTile key={id} id={id} color={g.color} group={g.title} beside={g.ids} />
+                {(TREND_CARDS.find((c) => c.title === g.title)?.items ?? []).map((s) => (
+                  <StatCard key={`${s.label}·${s.sub}`} s={s} more="Regions, types, names and the full series" />
                 ))}
               </div>
               <SourceLink sources={g.ids.flatMap((id) => figureOf(id)?.source ?? [])} />

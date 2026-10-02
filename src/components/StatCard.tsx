@@ -115,7 +115,7 @@ function decadeBefore(s: StatPoint[]): StatPoint | null {
 }
 
 /** Facts read off the series: for a measured series, ten years back and its high and low; for a projected one, where the estimates end and where the projection does. */
-function seriesFacts(s: StatCardData, full = false): StatFact[] {
+export function statFacts(s: StatCardData, full = false): StatFact[] {
   const { series, fmt, split } = s;
   if (!series || series.length < 3 || !fmt) return [];
   const [ly, lv] = lastOf(series);
@@ -242,7 +242,7 @@ function FactRow({ f }: { f: StatFact }) {
 export function StatCard({ s, onOpen, more }: { s: StatCardData; onOpen?: () => void; more?: string }) {
   const [open, setOpen] = useState(false);
   const color = s.color ?? DEFAULT_COLOR;
-  const facts = (s.facts ?? seriesFacts(s)).slice(0, 3);
+  const facts = (s.facts ?? statFacts(s)).slice(0, 3);
   const hasWindow = Boolean(s.series && s.series.length > 2);
   const act = onOpen ?? (hasWindow ? () => setOpen(true) : undefined);
   const body: ReactNode = (
@@ -310,7 +310,7 @@ export function StatCard({ s, onOpen, more }: { s: StatCardData; onOpen?: () => 
  * down by region, group, country and type, the figures beside it, and its
  * sources.
  */
-function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => void }) {
+export function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => void }) {
   const { theme } = useTheme();
   const isLight = theme === "light";
   const [isExpanded, setIsExpanded] = useState(false);
@@ -337,7 +337,7 @@ function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => void }) {
   const ink = isLight ? "#0f172a" : "#f1f0ff";
   const data = series.map(([y, v]) => ({ year: String(y), a: !split || y < split ? v : null, p: split && y >= split - 1 ? v : null }));
   const given = [...(s.facts ?? []), ...(s.moreFacts ?? [])];
-  const facts = s.facts && s.facts.length > 3 ? given : [...(s.facts ?? []), ...seriesFacts(s, true).filter((f) => !given.some((x) => x.label === f.label)), ...(s.moreFacts ?? [])];
+  const facts = s.facts && s.facts.length > 3 ? given : [...(s.facts ?? []), ...statFacts(s, true).filter((f) => !given.some((x) => x.label === f.label)), ...(s.moreFacts ?? [])];
   const tables = s.tables ?? [];
   // The figure's own source, then each breakdown's, once each.
   const briefs = s.briefs ?? [];
