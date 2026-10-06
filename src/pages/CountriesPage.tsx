@@ -1,4 +1,5 @@
 import { na, has, orZero, sortKey } from "../lib/na";
+import { PublicServicesSection, ServiceBadges } from "../components/PublicServices";
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LEADERS_BY_COUNTRY } from "../data/leaderIndex";
@@ -1379,6 +1380,7 @@ function CountryModal({
 
           {activeTab === "overview" && (
             <>
+              {!country.uninhabited && <PublicServicesSection code={country.code} name={country.name} />}
               <TerritoriesSection country={country} onOpenCode={onOpenCode} />
               <GeographySection country={country} />
             </>
@@ -17097,6 +17099,8 @@ export function CountriesPage() {
                     )}
                   </div>
                 </div>
+                {/* What the country's people are given free or covered for, where a body publishes it. */}
+                <ServiceBadges code={country.code} className="mt-2" />
               </article>
             );
           })}
