@@ -19,6 +19,7 @@
 export const MODERN_SLAVERY_SOURCES = {
   estimates: { label: "ILO, Walk Free and IOM — Global Estimates of Modern Slavery (2022), as reported by Walk Free", url: "https://www.walkfree.org/global-slavery-index/findings/global-findings/" },
   index: { label: "Walk Free — Global Slavery Index 2023", url: "https://www.walkfree.org/global-slavery-index/" },
+  ilo: { label: "ILO — main figures on forced labour (2022 Global Estimates; Profits and Poverty, 2024)", url: "https://www.ilo.org/topics-and-sectors/forced-labour-modern-slavery-and-trafficking-persons/data-and-research-forced-labour" },
   retrieved: "2026-10-06",
 };
 
@@ -27,6 +28,16 @@ export const MODERN_SLAVERY = {
   year: 2021,
   /** Millions of people. */
   world: { people: 50, forcedLabour: 27.6, forcedMarriage: 22, /** "More than" this many are children. */ childrenOver: 12, womenAndGirlsPct: 54, /** The rise since the 2016 estimates. */ risenSince2016: 10 },
+  /**
+   * The forms forced labour takes, millions of people, as the ILO gives them: in the private economy outside the sex
+   * trade, in forced commercial sexual exploitation, and imposed by the state. Rounded each on its own, so they come
+   * to within a tenth of the total.
+   */
+  forcedLabourForms: { privateEconomy: 17.3, sexualExploitation: 6.3, stateImposed: 3.9 },
+  /** Of the people in forced labour: the share who are women and girls, and the millions of them in each kind; the share who are children, and how many. */
+  forcedLabourWho: { womenAndGirlsPct: 39.4, womenInSexualExploitation: 4.9, womenInOtherSectors: 6, childrenPct: 12, children: 3.3 },
+  /** Illegal profits made from forced labour each year, US$ billions, and the year of the ILO report that estimates them. */
+  profits: { billions: 236, report: 2024 },
   /** Each region: millions of people, and people per thousand - in all, in forced labour, in forced marriage. */
   regions: [
     { name: "Asia and the Pacific", millions: 29.3, per1000: 6.8, labourPer1000: 3.5, marriagePer1000: 3.3, url: "https://www.walkfree.org/global-slavery-index/findings/regional-findings/asia-and-the-pacific/" },

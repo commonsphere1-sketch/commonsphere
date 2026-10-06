@@ -54,8 +54,16 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 3
   },
   {
-    "what": "Modern slavery: the world's and the regions' estimates",
-    "from": "ILO, Walk Free and IOM (Global Estimates), Walk Free (Global Slavery Index)",
+    "what": "Legal systems, the stages of criminal justice and the people who staff it",
+    "from": "CIA World Factbook (final edition), UNODC, World Bank",
+    "page": "/dashboard/crime",
+    "where": "Crime statistics",
+    "read": "2026-10-06",
+    "files": 1
+  },
+  {
+    "what": "Modern slavery: the world's and the regions' estimates, and the forms it takes",
+    "from": "ILO, Walk Free and IOM (Global Estimates), Walk Free (Global Slavery Index), ILO (main figures on forced labour)",
     "page": "/dashboard/crime",
     "where": "Crime statistics",
     "read": "2026-10-06",
@@ -192,4 +200,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 42;
+export const DATA_LOG_FILES = 43;

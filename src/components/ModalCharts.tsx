@@ -126,6 +126,8 @@ export interface Part {
   text: string;
   /** The part's own colour, where it has one by convention - a party's. Otherwise it takes the next of the chart's. */
   color?: string;
+  /** What the middle of a ring says for this part, where its printed figure or its name is too long to sit there. */
+  mid?: { text: string; label: string };
 }
 
 /**
@@ -187,7 +189,10 @@ export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part
     return arc;
   });
   const largest = shown.reduce((a, p) => (p.value > a.value ? p : a));
-  const mid = shown.find((p) => p.label === on) ?? largest;
+  const part = shown.find((p) => p.label === on) ?? largest;
+  const mid = part.mid ?? part;
+  // The middle is about 60 units across: a line too long for it is set smaller, never run over the ring.
+  const fit = (s: string, size: number, em: number) => Math.min(size, 60 / (em * Math.max(1, s.length)));
   return (
     <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
       <svg viewBox="0 0 100 100" className="w-28 h-28 shrink-0" role="img" aria-label={`${label}: ${shown.map((p) => `${p.label} ${p.text}`).join(", ")}.`}>
@@ -211,10 +216,10 @@ export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part
             </circle>
           ))}
         </g>
-        <text x={50} y={49} textAnchor="middle" className="fill-foreground font-mono font-bold" style={{ fontSize: 13 }}>
+        <text x={50} y={49} textAnchor="middle" className="fill-foreground font-mono font-bold" style={{ fontSize: fit(mid.text, 13, 0.62) }}>
           {mid.text}
         </text>
-        <text x={50} y={61} textAnchor="middle" className="fill-muted-foreground font-sans" style={{ fontSize: 7.5 }}>
+        <text x={50} y={61} textAnchor="middle" className="fill-muted-foreground font-sans" style={{ fontSize: fit(mid.label, 7.5, 0.5) }}>
           {mid.label}
         </text>
       </svg>

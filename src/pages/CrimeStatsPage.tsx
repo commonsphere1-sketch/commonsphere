@@ -30,28 +30,20 @@
  * on a handful of cases, so the country lists start with places of a
  * million people or more; all places are one press away.
  */
-import { useMemo, useState } from "react";
 import { ShieldCheck } from "@phosphor-icons/react";
-import { useTheme } from "../contexts/ThemeContext";
-import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
 import { RecordedCrime } from "../components/RecordedCrime";
 import { TraffickingAndSlavery } from "../components/TraffickingAndSlavery";
+import { JusticeSection } from "../components/JusticeSection";
+import { ACCENT, RankCard, SectionHead, useLook, type Ranked } from "../components/CrimeParts";
 import { StatCard, type StatCardData } from "../components/StatCard";
 import { CategoryCharts } from "../components/CategoryCharts";
-import { ChartNote, MeasureBars } from "../components/ModalCharts";
 import { countriesData } from "../data/countriesData";
 import { COUNTRY_CRIME, CRIME_SOURCE } from "../data/countryCrime";
 import { PRISON_RATES, PRISON_RATES_SOURCE } from "../data/prisonRates";
 import { WORLD, type WorldIndicator } from "../data/worldview";
 
-const ACCENT = "#ef4444";
 const PLACE = new Map(countriesData.map((c) => [c.id, c]));
-/** A place counts as large enough for its rate to be steady from year to year. */
-const LARGE = 1_000_000;
-
-type Ranked = { id: string; name: string; population: number; value: number; text: string; sub: string };
-
 /** Every place with a homicide rate from UNODC, with the year it is for. */
 const HOMICIDE: Ranked[] = Object.entries(COUNTRY_CRIME).flatMap(([id, c]) => {
   const place = PLACE.get(id);
@@ -62,28 +54,6 @@ const PRISONS: Ranked[] = Object.entries(PRISON_RATES).flatMap(([id, p]) => {
   const place = PLACE.get(id);
   return place ? [{ id, name: place.name, population: place.population, value: p.v, text: `${p.approx ? "c. " : ""}${p.v.toLocaleString("en-US")}`, sub: p.at }] : [];
 });
-const yearsOf = (rows: Ranked[]) => {
-  const ys = rows.map((r) => Number(/\d{4}/.exec(r.sub)?.[0])).filter(Number.isFinite);
-  return ys.length ? `${Math.min(...ys)}–${Math.max(...ys)}` : "";
-};
-
-function useLook() {
-  const { theme } = useTheme();
-  const isLight = theme === "light";
-  return {
-    isLight,
-    head: isLight ? "#0f172a" : "#f1f0ff",
-    muted: isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.5)",
-    grid: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)",
-    card: {
-      background: isLight ? "#ffffff" : "rgba(255,255,255,0.04)",
-      border: isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)",
-      boxShadow: isLight ? "var(--card-glow), 0 1px 10px rgba(0,0,0,0.07)" : "var(--card-glow)",
-    },
-  };
-}
-type Look = ReturnType<typeof useLook>;
-
 const compact = (v: number) => (Math.abs(v) >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : Math.round(v).toLocaleString("en-US"));
 const print = (ind: WorldIndicator, v: number) => (ind.format === "count" ? compact(v) : Math.abs(v) >= 1000 ? Math.round(v).toLocaleString("en-US") : v.toFixed(ind.dp));
 const publisher = (label: string) => label.split(/ \(| — /)[0];
@@ -111,92 +81,6 @@ function worldCard(id: string): StatCardData | null {
   };
 }
 
-function SectionHead({ look, title, kicker }: { look: Look; title: string; kicker: string }) {
-  return (
-    <div>
-      <h2 className="text-lg font-bold font-sans leading-tight" style={{ color: look.head }}>
-        {title}
-      </h2>
-      <p className="text-[11px] font-sans mt-0.5" style={{ color: look.muted }}>
-        {kicker}
-      </p>
-    </div>
-  );
-}
-
-function Pick<T extends string>({ look, value, onChange, options, label }: { look: Look; value: T; onChange: (v: T) => void; options: { id: T; label: string }[]; label: string }) {
-  return (
-    <div className="flex flex-wrap gap-1" role="group" aria-label={label}>
-      {options.map((o) => {
-        const on = o.id === value;
-        return (
-          <button
-            key={o.id}
-            type="button"
-            onClick={() => onChange(o.id)}
-            aria-pressed={on}
-            className="text-[10px] font-sans font-semibold px-2 py-1 rounded-full transition-opacity hover:opacity-80 cursor-pointer"
-            style={{ background: on ? ACCENT + "22" : "transparent", border: `1px solid ${on ? ACCENT + "66" : look.grid}`, color: on ? ACCENT : look.head }}
-          >
-            {o.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-/**
- * Places ranked by one published rate: the highest or the lowest of those
- * that report, on one scale - the highest rate of the places counted - so a
- * bar's length is its rate whichever end is shown.
- */
-function RankCard({ look, title, unit, rows, note, source, count = 12 }: { look: Look; title: string; unit: string; rows: Ranked[]; note: string; source: { label: string; url: string }; count?: number }) {
-  const [end, setEnd] = useState<"highest" | "lowest">("highest");
-  const [scope, setScope] = useState<"large" | "all">("large");
-  const pool = useMemo(() => (scope === "large" ? rows.filter((r) => r.population >= LARGE) : rows), [rows, scope]);
-  const sorted = useMemo(() => [...pool].sort((a, b) => (end === "highest" ? b.value - a.value : a.value - b.value)), [pool, end]);
-  const shown = sorted.slice(0, count);
-  const top = Math.max(0, ...pool.map((r) => r.value));
-  return (
-    <div className="rounded-2xl p-5 flex flex-col gap-3 min-w-0" style={look.card}>
-      <div>
-        <h3 className="text-[13px] font-bold font-sans leading-snug" style={{ color: look.head }}>
-          {title}
-        </h3>
-        <p className="text-[9px] font-mono uppercase tracking-widest mt-1 leading-snug" style={{ color: look.muted }}>
-          {unit} · the {end} {shown.length} of {pool.length} {scope === "large" ? "places of a million people or more" : "places"} · {yearsOf(pool)}
-        </p>
-      </div>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-        <Pick
-          look={look}
-          value={end}
-          onChange={setEnd}
-          label="Which end of the list"
-          options={[
-            { id: "highest", label: "Highest" },
-            { id: "lowest", label: "Lowest" },
-          ]}
-        />
-        <Pick
-          look={look}
-          value={scope}
-          onChange={setScope}
-          label="Which places are counted"
-          options={[
-            { id: "large", label: "A million people or more" },
-            { id: "all", label: `All ${rows.length} places` },
-          ]}
-        />
-      </div>
-      <MeasureBars max={top} color={ACCENT} label={`${title}: the ${end} ${shown.length}`} rows={shown.map((r) => ({ key: r.id, label: r.name, value: r.value, text: r.text, sub: r.sub }))} />
-      <ChartNote>{note} Every bar is on one scale, the highest rate among the places counted, so the lowest are short because they are low.</ChartNote>
-      <SourceLink sources={[source]} />
-    </div>
-  );
-}
-
 export function CrimeStatsPage() {
   const look = useLook();
   const { isLight, head, muted } = look;
@@ -221,11 +105,12 @@ export function CrimeStatsPage() {
                 Crime and justice in figures
               </h1>
               <p className="text-sm font-sans mt-1.5" style={{ color: muted }}>
-                Homicide, the offences police record, prison populations and terrorism - each as the body that counts it publishes it, with the year it is for. {HOMICIDE.length} places report
+                Homicide, the offences police record, trafficking and modern slavery, how justice systems work, prison populations and terrorism - each as the body that counts it
+                publishes it, with the year it is for. {HOMICIDE.length} places report
                 a homicide rate and {PRISONS.length} a prison population.
               </p>
               <p className="text-[11px] font-sans mt-2" style={{ color: muted }}>
-                UNODC · World Bank · World Prison Brief · Global Terrorism Database
+                UNODC · World Bank · World Prison Brief · ILO · Walk Free · CIA World Factbook · Global Terrorism Database
               </p>
             </div>
             <div className="lg:text-right">
@@ -292,6 +177,9 @@ export function CrimeStatsPage() {
         {/* ── Human trafficking and modern slavery: UNODC's detected victims, and the published estimates ── */}
         <TraffickingAndSlavery isLight={isLight} />
 
+        {/* ── Justice: its kinds, the legal traditions, the steps of a case, and a justice system in figures ── */}
+        <JusticeSection look={look} />
+
         {/* ── Prisons ── */}
         <section className="flex flex-col gap-4" aria-labelledby="crime-prisons">
           <div id="crime-prisons">
@@ -329,7 +217,8 @@ export function CrimeStatsPage() {
         <p className="text-[10px] font-sans leading-relaxed max-w-4xl px-1" style={{ color: muted }}>
           Every figure on this page is its publisher's, read by the site's build scripts and dated where it appears. The page once also carried a "safety index", crime trends by
           category, regional crime rates, cybercrime losses and terrorism by region and group; those were typed by hand, did not match the sources they named, and have been
-          taken down rather than left looking current. Human trafficking and modern slavery are back, on UNODC's reported figures and the published estimates.
+          taken down rather than left looking current. Human trafficking and modern slavery are back, on UNODC's reported figures and the published estimates; the Justice section
+          explains in Wikipedia's words and counts in the Factbook's and UNODC's.
         </p>
       </div>
     </div>
