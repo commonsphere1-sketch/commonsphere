@@ -34,7 +34,7 @@ export interface Geography {
 }
 
 export const GEOGRAPHY_SOURCES = {
-  factbook: { label: "CIA World Factbook — Geography (public domain)", url: "https://www.cia.gov/the-world-factbook/" },
+  factbook: { label: "CIA World Factbook, final edition (January 2026) — Geography (public domain)", url: "https://github.com/factbook/factbook.json" },
   wikidata: { label: "Wikidata (CC0)", url: "https://www.wikidata.org/" },
 };
 

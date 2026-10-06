@@ -40,6 +40,7 @@ import {
   type ReferenceField,
 } from "../data/countriesData";
 import type { Geography } from "../data/countryGeography";
+import { CARD_COVERS, DEPENDENCIES_SOURCE, FACTBOOK_STATUS, UNCARDED_DEPENDENCIES } from "../data/dependencies";
 import { PRISON_RATES, PRISON_RATES_SOURCE } from "../data/prisonRates";
 import { COUNTRY_CRIME, CRIME_SOURCE, type CrimeFigure } from "../data/countryCrime";
 import { COUNTRY_PANELS, panelSource, type PanelField, type PanelFigure } from "../data/countryPanels";
@@ -132,6 +133,10 @@ const territoriesOf = (code: string) =>
 /** How the administering state's card describes the relationship. */
 const relationOf = (c: Country) => c.sovereignStatus ?? c.governmentType;
 
+/** The badge a place with no permanent population carries in a state's list of territories. */
+const UNINHABITED_BADGE =
+  "px-1.5 py-0.5 rounded-full border border-amber-600/40 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300";
+
 /**
  * The badge for a place the site can say less about: one with no permanent
  * population, a territory, one with several headline figures no source
@@ -198,7 +203,12 @@ function CoverageNote({
 
 /**
  * The territories and dependencies a state administers, on that state's
- * card, each labelled with its status and opening its own card.
+ * card: each place with a card of its own, labelled with its status and
+ * opening that card, and after them the dependencies the CIA World Factbook
+ * lists that have no card, because the cards follow the ISO 3166-1 list and
+ * it has no entry for them. dependencies.ts (build-dependencies.cjs) holds
+ * those, and its build checks every dependency in the Factbook against the
+ * site's places, so a state's list is the whole of what the Factbook lists.
  */
 function TerritoriesSection({
   country,
@@ -208,7 +218,8 @@ function TerritoriesSection({
   onOpenCode?: (code: string) => void;
 }) {
   const list = territoriesOf(country.code);
-  if (!list.length) return null;
+  const others = UNCARDED_DEPENDENCIES[country.code] ?? [];
+  if (!list.length && !others.length) return null;
   return (
     <div className="mt-6">
       <div className="flex items-center gap-2 mb-2">
@@ -217,16 +228,20 @@ function TerritoriesSection({
         </span>
         <div className="flex-1 h-px bg-border/60" />
         <span className="text-[10px] font-mono text-muted-foreground border border-border px-2 py-0.5 rounded-full">
-          {list.length}
+          {list.length + others.length}
         </span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {list.map((t) => (
+        {list.map((t) => {
+          // The Factbook's entries this card stands for, where its name does not already give them.
+          const covers = (CARD_COVERS[t.code] ?? []).filter((n) => !t.name.includes(n));
+          return (
           <button
             key={t.code}
             type="button"
             onClick={() => onOpenCode?.(t.code)}
             disabled={!onOpenCode}
+            title={FACTBOOK_STATUS[t.code] ? `CIA World Factbook: ${FACTBOOK_STATUS[t.code]}` : undefined}
             className="modal-tile rounded-xl p-3 flex items-center gap-3 text-left transition-colors hover:border-secondary/40 cursor-pointer disabled:cursor-default"
           >
             <img
@@ -238,22 +253,59 @@ function TerritoriesSection({
               }}
             />
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold font-sans text-foreground truncate">{t.name}</p>
+              <p className="text-xs font-semibold font-sans text-foreground leading-snug">{t.name}</p>
               <p className="text-[10px] font-sans text-muted-foreground leading-snug">{relationOf(t)}</p>
+              {covers.length > 0 && (
+                <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">{covers.join(", ")}</p>
+              )}
             </div>
             <span
-              className={`text-[10px] font-mono shrink-0 ${t.uninhabited ? "px-1.5 py-0.5 rounded-full border border-amber-600/40 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300" : "text-muted-foreground"}`}
+              className={`text-[10px] font-mono shrink-0 ${t.uninhabited ? UNINHABITED_BADGE : "text-muted-foreground"}`}
             >
               {t.uninhabited ? "Uninhabited" : fmtPop(t.population)}
             </span>
           </button>
+          );
+        })}
+        {/* Listed by the Factbook, with no card to open: what it gives of each is here. */}
+        {others.map((d) => (
+          <div key={d.name} title={`CIA World Factbook: ${d.statusFull}`} className="modal-tile rounded-xl p-3 flex items-center gap-3">
+            {d.flag ? (
+              <img
+                src={`https://flagcdn.com/w40/${d.flag.toLowerCase()}.png`}
+                alt=""
+                title={`Flies the flag of ${nameOfCode(d.flag)}`}
+                className="w-7 h-5 rounded-[3px] object-cover border border-border shrink-0"
+                onError={(e) => {
+                  e.currentTarget.style.visibility = "hidden";
+                }}
+              />
+            ) : (
+              <span className="w-7 h-5 shrink-0" aria-hidden />
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold font-sans text-foreground leading-snug">{d.name}</p>
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug">{d.status}</p>
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">
+                {d.areaUnder ? "Under " : ""}
+                {d.areaKm2.toLocaleString()} km² · {d.location}
+              </p>
+            </div>
+            <span className={`text-[10px] font-mono shrink-0 ${d.uninhabited ? UNINHABITED_BADGE : "text-muted-foreground"}`}>
+              {d.uninhabited ? "Uninhabited" : "No card"}
+            </span>
+          </div>
         ))}
       </div>
       <p className="text-[9px] font-sans text-muted-foreground mt-2 leading-snug">
-        Status as the CIA World Factbook describes it. Places also claimed by
-        another state say so; claims to Antarctica are held in abeyance by the
-        Antarctic Treaty and are not listed.
+        Each status is the site's short form of the CIA World Factbook's; hover a place for the Factbook's own words. The
+        list is checked against every dependency in the Factbook's final edition, of January 2026.
+        {others.length > 0 &&
+          ` ${others.map((d) => d.name).join(", ").replace(/, ([^,]*)$/, " and $1")} ${others.length === 1 ? "has" : "have"} no card to open: the site's cards follow the ISO 3166 list, which has no entry for ${others.length === 1 ? "it" : "them"}.`}{" "}
+        Places also claimed by another state say so; claims to Antarctica are held in abeyance by the Antarctic Treaty
+        and are not listed.
       </p>
+      <SourceLink sources={[DEPENDENCIES_SOURCE]} className="mt-1.5" />
     </div>
   );
 }

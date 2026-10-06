@@ -33,7 +33,7 @@ export const COUNTRY_INDICATOR_FALLBACKS = {
   wpp: { label: "UN — World Population Prospects 2024 (via Our World in Data)", url: "https://population.un.org/wpp/" },
   spc: { label: "Pacific Community (SPC) — Pacific Data Hub", url: "https://stats.pacificdata.org/" },
   adb: { label: "Asian Development Bank — Key Indicators (via Pacific Data Hub)", url: "https://kidb.adb.org/" },
-  factbook: { label: "CIA World Factbook (public domain)", url: "https://www.cia.gov/the-world-factbook/" },
+  factbook: { label: "CIA World Factbook, final edition (January 2026; public domain)", url: "https://github.com/factbook/factbook.json" },
   wikidata: { label: "Wikidata (CC0), from the statistics office it cites", url: "https://www.wikidata.org/" },
 };
 

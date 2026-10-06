@@ -3,8 +3,9 @@
  * like: location, coordinates, area, coastline, climate, terrain, elevation,
  * natural resources and hazards.
  *
- * From the CIA World Factbook (public domain, the September 2026 edition via
- * the factbook.json mirror), matched to the site's ISO codes through each
+ * From the CIA World Factbook (public domain) in its final edition - the CIA
+ * closed the Factbook in February 2026, and the factbook.json mirror last
+ * copied it that January - matched to the site's ISO codes through each
  * entry's internet country code - ".uk" for the United Kingdom, and a few
  * entries listed by path because they have none. For the places the Factbook
  * folds into another country - Åland, the Caribbean Netherlands, France's
@@ -211,7 +212,7 @@ export interface Geography {
 }
 
 export const GEOGRAPHY_SOURCES = {
-  factbook: { label: "CIA World Factbook — Geography (public domain)", url: "https://www.cia.gov/the-world-factbook/" },
+  factbook: { label: "CIA World Factbook, final edition (January 2026) — Geography (public domain)", url: "https://github.com/factbook/factbook.json" },
   wikidata: { label: "Wikidata (CC0)", url: "https://www.wikidata.org/" },
 };
 
