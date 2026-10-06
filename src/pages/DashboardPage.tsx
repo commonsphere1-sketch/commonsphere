@@ -7,41 +7,15 @@ import { useTheme } from "../contexts/ThemeContext";
 import { HeadlinesBanner, ALL_TOPICS } from "../components/HeadlinesBanner";
 import {
   Globe,
-  Buildings,
   MapTrifold,
-  Scales,
   Crosshair,
   ArrowRight,
   TrendUp,
-  TrendDown,
-  ArrowUp,
-  ArrowDown,
-  Warning,
-  Lightning,
-  Atom,
-  Flag,
-  ShareNetwork,
-  Newspaper,
-  Bank,
-  Handshake,
-  Sparkle,
   MagnifyingGlass,
   X,
   CheckCircle,
   ChartDonut,
 } from "@phosphor-icons/react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-  LineChart,
-  Line,
-  ReferenceLine,
-} from "recharts";
 import { countriesData } from "../data/countriesData";
 import { useLiveCountries } from "../contexts/LiveDataContext";
 import { usStatesData } from "../data/statesData";
@@ -51,10 +25,11 @@ import { SourceLink } from "../components/SourceLink";
 import { DataExplorer } from "../components/DataExplorer";
 import { DataLog } from "../components/DataLog";
 import { CommodityMovers } from "../components/CommodityMovers";
+import { ConflictFigures } from "../components/ConflictFigures";
 
 /** The Trends & Projections desk, with the projections it draws on: loaded after the page. */
 const ProjectionsDesk = lazy(() => import("../components/ProjectionsDesk"));
-import { IMF_INFLATION, REGIONS } from "../data/worldview";
+import { WORLD } from "../data/worldview";
 import { Figures, COUNTER_FIGURES, COUNTER_UNIT } from "../components/Figures";
 import {
   CALENDAR_2026,
@@ -71,17 +46,6 @@ const SRC_DASH_STATES = [
   },
   { label: "Bureau of Labor Statistics", url: "https://www.bls.gov/data/" },
 ];
-const SRC_DASH_CITIES = [
-  {
-    label: "Numbeo City Rankings",
-    url: "https://www.numbeo.com/city-rankings/",
-  },
-];
-const SRC_DASH_CONFLICTS = [
-  { label: "ACLED Conflict Data", url: "https://acleddata.com/" },
-  { label: "Uppsala Conflict Data Program", url: "https://ucdp.uu.se/" },
-];
-
 /**
  * Slides a doubled track leftwards for ever, wrapping at its halfway point.
  *
@@ -693,386 +657,6 @@ function StatesCarousel({
 /* ─── Helpers ──────────────────────────────────────────────────────────── */
 const fmtB = (n: number) =>
   n >= 1000 ? `${(n / 1000).toFixed(1)}T` : n >= 1 ? `${n.toFixed(0)}B` : `${Math.round(n * 1000)}M`;
-
-/* ─── Static data ──────────────────────────────────────────────────────── */
-// IMF World Economic Outlook, consumer prices, annual %: the world and the
-// advanced economies, actual years only - built by build-worldview.cjs.
-const INFLATION_DATA = IMF_INFLATION.world.slice(-5).map(([y, world]) => ({
-  year: String(y),
-  world,
-  adv: IMF_INFLATION.advanced.find(([x]) => x === y)?.[1] ?? null,
-}));
-
-/**
- * Newest "Mon YYYY" date in a curated feed.
- *
- * These feeds are hand-authored and cannot refresh themselves — GDELT and
- * NewsAPI both block browser requests, so there is no client-side source to
- * wire them to. Deriving the label from the entries means the UI states the
- * period it is actually showing instead of asserting it is live, and it stays
- * correct whenever the entries are next edited.
- */
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-function feedLatestLabel(items: { date: string }[]): string {
-  let best = -Infinity;
-  let label = "";
-  for (const it of items) {
-    const m = /^([A-Za-z]{3})\s+(\d{4})$/.exec(it.date.trim());
-    if (!m) continue;
-    const mi = MONTHS.indexOf(m[1]);
-    if (mi < 0) continue;
-    const key = Number(m[2]) * 12 + mi;
-    if (key > best) {
-      best = key;
-      label = it.date.trim();
-    }
-  }
-  return label;
-}
-
-const NATIONAL_HIGHLIGHTS = [
-  {
-    tag: "Economy",
-    color: "#3b82f6",
-    icon: <Bank size={12} weight="fill" />,
-    title: "US GDP growth revised up to 2.8% for Q2 2025",
-    sub: "Bureau of Economic Analysis",
-    date: "Jul 2025",
-  },
-  {
-    tag: "Policy",
-    color: "#6366f1",
-    icon: <Scales size={12} weight="fill" />,
-    title: "Senate passes infrastructure spending package",
-    sub: "Congress · Domestic",
-    date: "Jun 2025",
-  },
-  {
-    tag: "Labor",
-    color: "#10b981",
-    icon: <Buildings size={12} weight="fill" />,
-    title: "Unemployment holds at 3.9% — 3rd consecutive month",
-    sub: "Bureau of Labor Statistics",
-    date: "Jun 2025",
-  },
-  {
-    tag: "Energy",
-    color: "#f59e0b",
-    icon: <Lightning size={12} weight="fill" />,
-    title: "Federal clean energy tax credits extended through 2032",
-    sub: "Department of Energy",
-    date: "May 2025",
-  },
-];
-
-const INTERNATIONAL_EVENTS = [
-  {
-    tag: "Diplomacy",
-    color: "#6366f1",
-    icon: <Handshake size={12} weight="fill" />,
-    title: "G20 summit reaches consensus on AI governance framework",
-    region: "Global",
-    date: "Jul 2025",
-  },
-  {
-    tag: "Trade",
-    color: "#3b82f6",
-    icon: <Newspaper size={12} weight="fill" />,
-    title: "EU-Mercosur trade deal enters ratification phase",
-    region: "Europe · S. America",
-    date: "Jun 2025",
-  },
-  {
-    tag: "Security",
-    color: "#ef4444",
-    icon: <Warning size={12} weight="fill" />,
-    title: "NATO defence spending pledges hit record €1.1T",
-    region: "NATO Alliance",
-    date: "Jun 2025",
-  },
-  {
-    tag: "Climate",
-    color: "#10b981",
-    icon: <Atom size={12} weight="fill" />,
-    title: "COP30 pre-summit: 47 nations pledge net-zero by 2045",
-    region: "UN Framework",
-    date: "May 2025",
-  },
-];
-
-// The World Bank's regions and the European Union, largest economy first:
-// GDP and real growth for the latest year - built by build-worldview.cjs.
-const REGION_STATS = [...REGIONS]
-  .sort((a, b) => b.gdp[b.gdp.length - 1][1] - a.gdp[a.gdp.length - 1][1])
-  .map((r) => {
-    const g = r.growth[r.growth.length - 1][1];
-    return { region: r.name, growth: `${g > 0 ? "+" : ""}${g.toFixed(1)}%`, up: g >= 0 };
-  });
-
-const CONFLICTS_DATA = [
-  {
-    name: "Gaza / Israel",
-    intensity: 92,
-    type: "Armed Conflict",
-    color: "#ef4444",
-  },
-  {
-    name: "Ukraine / Russia",
-    intensity: 88,
-    type: "Interstate War",
-    color: "#ef4444",
-  },
-  {
-    name: "Sudan Civil War",
-    intensity: 74,
-    type: "Civil Conflict",
-    color: "#f97316",
-  },
-  {
-    name: "Myanmar Junta",
-    intensity: 68,
-    type: "Civil Conflict",
-    color: "#f97316",
-  },
-  {
-    name: "Sahel Insurgency",
-    intensity: 61,
-    type: "Terrorism",
-    color: "#f59e0b",
-  },
-];
-
-const CITIES_DATA = [
-  {
-    city: "New York",
-    country: "USA",
-    flag: "🇺🇸",
-    pop: "8.4M",
-    gdpPerCapita: 92,
-    gdpLabel: "$92k",
-    growth: "+1.2%",
-    up: true,
-    color: "#6366f1",
-  },
-  {
-    city: "San Francisco",
-    country: "USA",
-    flag: "🇺🇸",
-    pop: "4.8M",
-    gdpPerCapita: 141,
-    gdpLabel: "$141k",
-    growth: "+2.1%",
-    up: true,
-    color: "#8b5cf6",
-  },
-  {
-    city: "Zurich",
-    country: "Switzerland",
-    flag: "🇨🇭",
-    pop: "435k",
-    gdpPerCapita: 120,
-    gdpLabel: "$120k",
-    growth: "+1.6%",
-    up: true,
-    color: "#3b82f6",
-  },
-  {
-    city: "London",
-    country: "UK",
-    flag: "🇬🇧",
-    pop: "9.8M",
-    gdpPerCapita: 76,
-    gdpLabel: "$76k",
-    growth: "+1.4%",
-    up: true,
-    color: "#06b6d4",
-  },
-  {
-    city: "Tokyo",
-    country: "Japan",
-    flag: "🇯🇵",
-    pop: "13.8M",
-    gdpPerCapita: 43,
-    gdpLabel: "$43k",
-    growth: "+0.8%",
-    up: true,
-    color: "#10b981",
-  },
-  {
-    city: "Singapore",
-    country: "Singapore",
-    flag: "🇸🇬",
-    pop: "6.0M",
-    gdpPerCapita: 87,
-    gdpLabel: "$87k",
-    growth: "+3.2%",
-    up: true,
-    color: "#f59e0b",
-  },
-  {
-    city: "Dubai",
-    country: "UAE",
-    flag: "🇦🇪",
-    pop: "3.8M",
-    gdpPerCapita: 46,
-    gdpLabel: "$46k",
-    growth: "+3.7%",
-    up: true,
-    color: "#f97316",
-  },
-  {
-    city: "Shanghai",
-    country: "China",
-    flag: "🇨🇳",
-    pop: "25.0M",
-    gdpPerCapita: 31,
-    gdpLabel: "$31k",
-    growth: "+4.9%",
-    up: true,
-    color: "#ef4444",
-  },
-  {
-    city: "Sydney",
-    country: "Australia",
-    flag: "🇦🇺",
-    pop: "5.5M",
-    gdpPerCapita: 65,
-    gdpLabel: "$65k",
-    growth: "+2.3%",
-    up: true,
-    color: "#a855f7",
-  },
-  {
-    city: "Paris",
-    country: "France",
-    flag: "🇫🇷",
-    pop: "2.2M",
-    gdpPerCapita: 60,
-    gdpLabel: "$60k",
-    growth: "+1.1%",
-    up: true,
-    color: "#ec4899",
-  },
-];
-
-const CITIES_CHART_DATA = [
-  { name: "SFO", gdp: 141 },
-  { name: "ZRH", gdp: 120 },
-  { name: "NYC", gdp: 92 },
-  { name: "SGP", gdp: 87 },
-  { name: "SYD", gdp: 65 },
-  { name: "LDN", gdp: 76 },
-  { name: "PAR", gdp: 60 },
-  { name: "TYO", gdp: 43 },
-  { name: "DXB", gdp: 46 },
-  { name: "SHA", gdp: 31 },
-];
-
-/* ─── US States panel static data ─────────────────────────────────────── */
-const US_UPCOMING_INDUSTRIES = [
-  { name: "Quantum Computing", growth: "+68%", color: "#a855f7", pct: 68 },
-  { name: "Space Tech", growth: "+54%", color: "#3b82f6", pct: 54 },
-  { name: "Green Hydrogen", growth: "+47%", color: "#10b981", pct: 47 },
-  { name: "Biotech / mRNA", growth: "+43%", color: "#06b6d4", pct: 43 },
-  { name: "AI Chips", growth: "+61%", color: "#6366f1", pct: 61 },
-];
-
-const US_FUNDING_DATA = [
-  { sector: "AI / ML", raised: "$94B", color: "#6366f1", pct: 94 },
-  { sector: "Clean Energy", raised: "$61B", color: "#10b981", pct: 61 },
-  { sector: "Biotech", raised: "$48B", color: "#06b6d4", pct: 48 },
-  { sector: "Space", raised: "$31B", color: "#3b82f6", pct: 31 },
-  { sector: "Quantum", raised: "$18B", color: "#a855f7", pct: 18 },
-];
-
-const US_ALLIANCES = [
-  {
-    name: "AUKUS",
-    partners: "UK · Australia",
-    tag: "Defense",
-    color: "#ef4444",
-    project: "Nuclear-powered submarines + AI warfare",
-  },
-  {
-    name: "Quad",
-    partners: "Japan · India · AU",
-    tag: "Geopolitics",
-    color: "#6366f1",
-    project: "Indo-Pacific stability + tech supply chains",
-  },
-  {
-    name: "Five Eyes",
-    partners: "UK · CA · AU · NZ",
-    tag: "Intelligence",
-    color: "#f59e0b",
-    project: "Signals intelligence & cyber threat sharing",
-  },
-  {
-    name: "NATO DIANA",
-    partners: "31 Nations",
-    tag: "Innovation",
-    color: "#3b82f6",
-    project: "Deep-tech accelerator for dual-use R&D",
-  },
-  {
-    name: "Clean Power Alliance",
-    partners: "IEA + G7",
-    tag: "Climate",
-    color: "#10b981",
-    project: "100% clean grid targets by 2035",
-  },
-];
-
-const US_RD_BREAKTHROUGHS = [
-  {
-    title: "DARPA AI pilot outperforms human in dogfight",
-    field: "Defense AI",
-    date: "Jun 2025",
-    color: "#ef4444",
-    agency: "DARPA",
-  },
-  {
-    title: "NIH announces CRISPR cure for sickle-cell disease",
-    field: "Biotech",
-    date: "May 2025",
-    color: "#06b6d4",
-    agency: "NIH",
-  },
-  {
-    title: "NIST certifies post-quantum encryption standard",
-    field: "Cybersecurity",
-    date: "Apr 2025",
-    color: "#a855f7",
-    agency: "NIST",
-  },
-  {
-    title: "NASA Artemis II crew completes lunar orbit",
-    field: "Space",
-    date: "Mar 2025",
-    color: "#3b82f6",
-    agency: "NASA",
-  },
-  {
-    title: "DOE achieves net energy gain in fusion reaction",
-    field: "Energy",
-    date: "Feb 2025",
-    color: "#10b981",
-    agency: "DOE / NIF",
-  },
-];
 
 /* ─── Pinned Dashboard logic ────────────────────────────────────────────── */
 
@@ -2270,157 +1854,6 @@ function PinnedSection({
 
 
 
-/* ─── Expandable Info Card ──────────────────────────────────────────────── */
-function ExpandableCard({
-  icon,
-  title,
-  badge,
-  description,
-  accentColor,
-  isLight,
-  cardBg,
-  cardBorder,
-  gridLine,
-  headText,
-  mutedText,
-  children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  badge?: string;
-  badgeColor?: string;
-  description: string;
-  accentColor: string;
-  isLight: boolean;
-  cardBg: string;
-  cardBorder: string;
-  gridLine: string;
-  headText: string;
-  mutedText: string;
-  children: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(false);
-  // Hover is tracked in state rather than with a :hover class because the row's
-  // background is an inline style keyed to accentColor, and a Tailwind hover
-  // variant cannot override an inline background.
-  const [hover, setHover] = useState(false);
-
-  // The row previously only had hover:opacity-90, which fades it — reading as
-  // disabled rather than clickable. It now warms toward the card's accent
-  // colour on hover, and a little further again when already open.
-  //
-  // The tints were far too weak to see: on the light theme a hovered row came
-  // out at rgba(59,130,246,0.008), which is no change at all. They are now
-  // strong enough to read as a hover state while still being a tint - roughly
-  // 9% of the accent on the light theme and 16% on the dark one, deepening
-  // again when the card is already open.
-  const headerBg = open
-    ? isLight
-      ? accentColor + (hover ? "24" : "12")
-      : accentColor + (hover ? "33" : "1a")
-    : hover
-      ? isLight
-        ? accentColor + "17"
-        : accentColor + "29"
-      : "transparent";
-
-  return (
-    <div
-      className="rounded-2xl overflow-hidden"
-      style={{ background: cardBg, border: cardBorder }}
-    >
-      {/* Header / toggle row */}
-      <button
-        onClick={() => setOpen((v) => !v)}
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
-        onFocus={() => setHover(true)}
-        onBlur={() => setHover(false)}
-        aria-expanded={open}
-        className="w-full flex items-center gap-3 px-5 py-4 text-left transition-all duration-150 cursor-pointer"
-        style={{
-          borderBottom: open ? `1px solid ${gridLine}` : "none",
-          background: headerBg,
-          // A bar in the accent colour on hover or while open, so the row
-          // reads as interactive even where a tint is hard to see.
-          boxShadow: hover || open ? `inset 3px 0 0 0 ${accentColor}` : "none",
-        }}
-      >
-        {/* Icon */}
-        <div
-          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-150"
-          style={{
-            background: accentColor + (hover ? "26" : "15"),
-            border: `1px solid ${accentColor}${hover ? "45" : "25"}`,
-          }}
-        >
-          {icon}
-        </div>
-
-        {/* Title + description */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className="text-sm font-bold font-sans"
-              style={{ color: headText }}
-            >
-              {title}
-            </span>
-            {badge && (
-              <span
-                className="text-[9px] font-mono px-2 py-0.5 rounded-full"
-                style={{ background: accentColor + "15", color: accentColor }}
-              >
-                {badge}
-              </span>
-            )}
-          </div>
-          <p
-            className="text-[10px] font-sans mt-0.5 leading-snug pr-4"
-            style={{ color: mutedText }}
-          >
-            {description}
-          </p>
-        </div>
-
-        {/* Chevron */}
-        <div
-          className="shrink-0 transition-all duration-200"
-          style={{
-            transform: open ? "rotate(180deg)" : "rotate(0deg)",
-            color: hover ? accentColor : mutedText,
-          }}
-        >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path
-              d="M3 5l4 4 4-4"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-      </button>
-
-      {/* Expandable content */}
-      {open && <div className="px-5 py-4 animate-fade-in">{children}</div>}
-    </div>
-  );
-}
-
-
-// Helper to convert lon/lat → SVG x/y (equirectangular, 1000×500)
-
-// Build simplified country outlines as SVG path strings from bounding-box rectangles
-// For each country we use a rough polygon approximation
-
-
-
-// Which countries to show labels for (to avoid clutter)
-
-
-/* ─── Reusable Section Header ───────────────────────────────────────────── */
 function SectionHeader({
   icon,
   label,
@@ -3498,9 +2931,16 @@ export function DashboardPage() {
   const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
 
   const topStates = useMemo(
-    () => [...usStatesData].sort((a, b) => b.gdp - a.gdp).slice(0, 6),
+    () => [...usStatesData].sort((a, b) => b.gdp - a.gdp).slice(0, 8),
     [],
   );
+  /* The states with the lowest and the highest unemployment rate, as the BLS has them. */
+  const stateJobs = useMemo(() => {
+    const byRate = [...usStatesData].sort((a, b) => a.unemploymentRate - b.unemploymentRate);
+    return { low: byRate[0], high: byRate[byRate.length - 1] };
+  }, []);
+  /* UCDP's count of state-based armed conflicts for its latest year. */
+  const [conflictYear, conflictCount] = WORLD.conflicts.series[WORLD.conflicts.series.length - 1];
 
   return (
     <div
@@ -3632,29 +3072,27 @@ export function DashboardPage() {
           onNav={navigate}
         />
 
-        {/* ── KPI PILLS ─────────────────────────────────────────────────── */}
+        {/* ── HEADLINE COUNTS: counted from the site's own data. They were typed in - "195 countries",
+            "42 active conflicts, 3 escalating", "1,200+ policies, +48 this month" - and matched nothing the site held. ── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {[
             {
-              label: "Countries Tracked",
-              value: "195",
-              delta: "6 continents",
-              positive: true,
+              label: "Countries and territories",
+              value: `${countriesData.length}`,
+              note: `${countriesData.filter((c) => c.territory).length} of them territories and dependencies`,
               icon: <Globe size={14} weight="fill" />,
             },
             {
-              label: "Active Conflicts",
-              value: "42",
-              delta: "3 escalating",
-              positive: false,
+              label: "Armed conflicts",
+              value: `${conflictCount}`,
+              note: `state-based, in ${conflictYear} · Uppsala Conflict Data Program`,
               icon: <Crosshair size={14} weight="fill" />,
             },
             {
-              label: "Policies Tracked",
-              value: "1,200+",
-              delta: "+48 this month",
-              positive: true,
-              icon: <Scales size={14} weight="fill" />,
+              label: "World figures followed",
+              value: `${Object.keys(WORLD).length}`,
+              note: "each a published series, year by year",
+              icon: <TrendUp size={14} weight="fill" />,
             },
           ].map((k) => (
             <div
@@ -3678,16 +3116,9 @@ export function DashboardPage() {
               >
                 {k.value}
               </p>
-              <div className="flex items-center gap-1">
-                <span style={{ color: k.positive ? "#10b981" : "#ef4444" }}>
-                  {k.icon}
-                </span>
-                <span
-                  className="text-[11px] font-mono"
-                  style={{ color: k.positive ? "#10b981" : "#ef4444" }}
-                >
-                  {k.delta}
-                </span>
+              <div className="flex items-center gap-1.5" style={{ color: mutedText }}>
+                {k.icon}
+                <span className="text-[11px] font-mono leading-snug">{k.note}</span>
               </div>
             </div>
           ))}
@@ -3709,11 +3140,13 @@ export function DashboardPage() {
           <ProjectionsDesk action={{ label: "Full analysis", onClick: () => navigate("/dashboard/trends") }} />
         </Suspense>
 
-        {/* ── MAIN GRID ─────────────────────────────────────────────────── */}
+        {/* ── MAIN GRID: the states, the world's conflicts, and the site's own data.
+            Four cards stood in the first column that nothing published backs - "up-and-coming industries" with a
+            growth rate each, "funding raised", alliances and "R&D breakthroughs" - and a Cities chart of GDP per
+            head credited to a source that publishes no such figure. They are gone. ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* COL 1: US States + Cities */}
           <div className="flex flex-col gap-4">
-            {/* US STATES container */}
+            {/* US STATES: the largest economies, with each one's unemployment rate */}
             <div
               className="rounded-2xl p-5"
               style={{
@@ -3732,12 +3165,15 @@ export function DashboardPage() {
                 isLight={isLight}
                 onNav={() => navigate("/dashboard/states")}
               />
+              <p className="text-[9px] font-mono uppercase tracking-widest mb-2" style={{ color: mutedText }}>
+                The {topStates.length} largest economies · GDP, {topStates[0].figureYears?.gdp} · unemployment, {topStates[0].figureYears?.unemploymentRate}
+              </p>
               <div className="flex flex-col gap-0">
                 {topStates.map((s, i) => (
                   <button
                     key={s.id}
-                    onClick={() => navigate("/dashboard/states")}
-                    className="flex items-center gap-3 py-2.5 text-left hover:opacity-80 transition-opacity"
+                    onClick={() => navigate(`/dashboard/states?open=${s.id}`)}
+                    className="flex items-center gap-3 py-2.5 text-left hover:opacity-80 transition-opacity cursor-pointer"
                     style={{
                       borderBottom:
                         i < topStates.length - 1
@@ -3765,6 +3201,7 @@ export function DashboardPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
+                      {/* On the scale of the largest state: a bar's length is its GDP. */}
                       <div
                         className="w-14 h-1.5 rounded-full overflow-hidden"
                         style={{
@@ -3782,10 +3219,17 @@ export function DashboardPage() {
                         />
                       </div>
                       <span
-                        className="text-[11px] font-mono w-14 text-right"
+                        className="text-[11px] font-mono font-bold w-14 text-right"
                         style={{ color: headText }}
                       >
                         {fmtB(s.gdp)}
+                      </span>
+                      <span
+                        className="text-[10px] font-mono w-10 text-right"
+                        style={{ color: mutedText }}
+                        title={`Unemployment rate, ${s.figureYears?.unemploymentRate ?? ""}`}
+                      >
+                        {s.unemploymentRate}%
                       </span>
                     </div>
                   </button>
@@ -3793,655 +3237,48 @@ export function DashboardPage() {
               </div>
               <SourceLink sources={SRC_DASH_STATES} className="mt-2 mb-1" />
 
-              {/* State snapshot grid */}
+              {/* Three figures read off the fifty states. They were typed in - "top GDP $3.9T" against the $4.3T in the data. */}
               <div
                 className="grid grid-cols-3 gap-2 mt-3 pt-3"
                 style={{ borderTop: `1px solid ${gridLine}` }}
               >
                 {[
-                  { label: "Avg Unemp.", value: "3.9%", color: "#10b981" },
-                  { label: "Top GDP", value: "$3.9T", color: "#3b82f6" },
-                  { label: "Growth", value: "+2.1%", color: "#6366f1" },
+                  { label: "Largest economy", value: fmtB(topStates[0].gdp), note: topStates[0].name },
+                  { label: "Lowest unemployment", value: `${stateJobs.low.unemploymentRate}%`, note: stateJobs.low.name },
+                  { label: "Highest unemployment", value: `${stateJobs.high.unemploymentRate}%`, note: stateJobs.high.name },
                 ].map((m) => (
                   <div
                     key={m.label}
                     className="rounded-xl px-2 py-2 text-center"
                     style={{
-                      background: m.color + "10",
-                      border: `1px solid ${m.color}20`,
+                      background: isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${gridLine}`,
                     }}
                   >
                     <p
                       className="text-sm font-bold font-mono"
-                      style={{ color: m.color }}
-                    >
-                      {m.value}
-                    </p>
-                    <p
-                      className="text-[9px] font-sans"
-                      style={{ color: mutedText }}
-                    >
-                      {m.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* ── Up-and-coming Industries card ── */}
-            <ExpandableCard
-              icon={
-                <Sparkle size={14} weight="fill" style={{ color: "#f97316" }} />
-              }
-              title="Up-and-coming Industries"
-              badge="US 2025"
-              badgeColor="#f97316"
-              description="Fastest-growing emerging sectors by projected YoY investment growth inside the US economy."
-              accentColor="#f97316"
-              isLight={isLight}
-              cardBg={cardBg}
-              cardBorder={cardBorder}
-              gridLine={gridLine}
-              headText={headText}
-              mutedText={mutedText}
-            >
-              <div className="flex flex-col gap-2.5">
-                {US_UPCOMING_INDUSTRIES.map((ind) => (
-                  <div key={ind.name}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <div
-                        className="w-1.5 h-1.5 rounded-full shrink-0"
-                        style={{ background: ind.color }}
-                      />
-                      <span
-                        className="text-[11px] font-sans font-semibold flex-1 truncate"
-                        style={{ color: headText }}
-                      >
-                        {ind.name}
-                      </span>
-                      <span
-                        className="text-[10px] font-mono font-bold"
-                        style={{ color: ind.color }}
-                      >
-                        {ind.growth}
-                      </span>
-                    </div>
-                    <div
-                      className="h-2 rounded-full overflow-hidden"
-                      style={{
-                        background: isLight
-                          ? "rgba(0,0,0,0.07)"
-                          : "rgba(255,255,255,0.08)",
-                      }}
-                    >
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{ width: `${ind.pct}%`, background: ind.color }}
-                      />
-                    </div>
-                    <p
-                      className="text-[10px] font-sans mt-1 leading-relaxed"
-                      style={{ color: mutedText }}
-                    >
-                      {ind.name === "Quantum Computing" &&
-                        "Backed by IBM, Google, and DARPA with $4.2B in federal investment pledged through 2030. Applications in cryptography, logistics, and drug discovery."}
-                      {ind.name === "Space Tech" &&
-                        "SpaceX, Blue Origin, and 40+ startups driving commercial launch, satellite broadband, and lunar logistics. NASA Artemis anchors public demand."}
-                      {ind.name === "Green Hydrogen" &&
-                        "DOE Hydrogen Hubs program allocating $7B to 7 regional hubs. Industrial decarbonization and long-haul transport key use cases."}
-                      {ind.name === "Biotech / mRNA" &&
-                        "Post-COVID mRNA platform expansion into cancer vaccines, rare diseases, and personalized medicine. NIH funding up 31% since 2022."}
-                      {ind.name === "AI Chips" &&
-                        "NVIDIA, Intel, and AMD racing to meet data-center demand. CHIPS Act directing $52B to domestic semiconductor fabs and R&D."}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </ExpandableCard>
-
-            {/* ── Funding Raised card ── */}
-            <ExpandableCard
-              icon={
-                <Bank size={14} weight="fill" style={{ color: "#6366f1" }} />
-              }
-              title="Funding Raised"
-              badge="$252B · 2025 YTD"
-              badgeColor="#6366f1"
-              description="Venture capital, private equity, and federal grants raised across major US innovation sectors year-to-date 2025."
-              accentColor="#6366f1"
-              isLight={isLight}
-              cardBg={cardBg}
-              cardBorder={cardBorder}
-              gridLine={gridLine}
-              headText={headText}
-              mutedText={mutedText}
-            >
-              <div className="flex flex-col gap-3">
-                {US_FUNDING_DATA.map((f) => (
-                  <div key={f.sector}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span
-                        className="text-[11px] font-sans font-semibold flex-1 truncate"
-                        style={{ color: headText }}
-                      >
-                        {f.sector}
-                      </span>
-                      <span
-                        className="text-[11px] font-mono font-bold"
-                        style={{ color: f.color }}
-                      >
-                        {f.raised}
-                      </span>
-                    </div>
-                    <div
-                      className="h-2 rounded-full overflow-hidden"
-                      style={{
-                        background: isLight
-                          ? "rgba(0,0,0,0.07)"
-                          : "rgba(255,255,255,0.08)",
-                      }}
-                    >
-                      <div
-                        className="h-full rounded-full"
-                        style={{ width: `${f.pct}%`, background: f.color }}
-                      />
-                    </div>
-                    <p
-                      className="text-[10px] font-sans mt-1 leading-relaxed"
-                      style={{ color: mutedText }}
-                    >
-                      {f.sector === "AI / ML" &&
-                        "Largest single-sector raise on record. Led by OpenAI ($10B), Anthropic ($7.3B), and Cohere. Hyperscaler capex adds another $120B+ in infrastructure."}
-                      {f.sector === "Clean Energy" &&
-                        "IRA incentives driving solar, battery, and grid investment. Includes $18B in utility-scale solar and $14B in EV battery supply chains."}
-                      {f.sector === "Biotech" &&
-                        "mRNA, CRISPR, and oncology platforms dominate. Top rounds: Recursion Pharma ($850M), Generate Biomedicines ($754M), Flagship Pioneering ($3.5B fund)."}
-                      {f.sector === "Space" &&
-                        "SpaceX Starship program, lunar logistics, and satellite broadband. NASA CLPS contracts worth $2.6B. Commercial LEO station deals signed."}
-                      {f.sector === "Quantum" &&
-                        "IBM, IonQ, and PsiQuantum raising for error-corrected qubit milestones. NSF and DOE co-investing $1.8B via National Quantum Initiative."}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </ExpandableCard>
-
-            {/* ── Global Alliances card ── */}
-            <ExpandableCard
-              icon={
-                <ShareNetwork
-                  size={14}
-                  weight="fill"
-                  style={{ color: "#3b82f6" }}
-                />
-              }
-              title="Global Alliances & Joint Projects"
-              badge="5 active"
-              badgeColor="#3b82f6"
-              description="Key multilateral defense, intelligence, and technology alliances the US participates in, and their active joint programs."
-              accentColor="#3b82f6"
-              isLight={isLight}
-              cardBg={cardBg}
-              cardBorder={cardBorder}
-              gridLine={gridLine}
-              headText={headText}
-              mutedText={mutedText}
-            >
-              <div className="flex flex-col gap-3">
-                {US_ALLIANCES.map((a, _i) => (
-                  <div
-                    key={a.name}
-                    className="rounded-xl px-3 py-3"
-                    style={{
-                      background: a.color + "0a",
-                      border: `1px solid ${a.color}22`,
-                    }}
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="text-[12px] font-mono font-bold"
-                          style={{ color: a.color }}
-                        >
-                          {a.name}
-                        </span>
-                        <span
-                          className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
-                          style={{ background: a.color + "18", color: a.color }}
-                        >
-                          {a.tag}
-                        </span>
-                      </div>
-                      <span
-                        className="text-[9px] font-mono"
-                        style={{ color: mutedText }}
-                      >
-                        {a.partners}
-                      </span>
-                    </div>
-                    <p
-                      className="text-[11px] font-sans font-semibold mb-1"
                       style={{ color: headText }}
                     >
-                      {a.project}
-                    </p>
-                    <p
-                      className="text-[10px] font-sans leading-relaxed"
-                      style={{ color: mutedText }}
-                    >
-                      {a.name === "AUKUS" &&
-                        "Trilateral security pact signed Sept 2021. Pillar I delivers SSN-AUKUS nuclear-powered submarines to Australia by mid-2030s. Pillar II covers AI, cyber, hypersonics, quantum, and undersea capabilities sharing."}
-                      {a.name === "Quad" &&
-                        "Quadrilateral Security Dialogue revived 2017, elevated to leaders-level 2021. Coordinates on COVID vaccines, climate, critical tech, and counter-China maritime strategy in the Indo-Pacific."}
-                      {a.name === "Five Eyes" &&
-                        "Oldest intelligence-sharing alliance (est. 1941). Covers SIGINT, HUMINT, and cyber threat intelligence. Expanded focus on CCP economic espionage and critical infrastructure protection since 2020."}
-                      {a.name === "NATO DIANA" &&
-                        "Defence Innovation Accelerator for the North Atlantic launched 2022. 1,000+ dual-use deep-tech startups targeted. Test centres in UK and Estonia. $1B+ in allied nation co-investment."}
-                      {a.name === "Clean Power Alliance" &&
-                        "G7 + IEA pledge framework to triple renewable capacity globally by 2030. US commits $20B via DFC for emerging-market clean energy financing. Includes Just Energy Transition Partnerships with South Africa, Vietnam, India."}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </ExpandableCard>
-
-            {/* ── R&D Breakthroughs card ── */}
-            <ExpandableCard
-              icon={
-                <Atom size={14} weight="fill" style={{ color: "#a855f7" }} />
-              }
-              title="R&D Discoveries & Breakthroughs"
-              badge="2025"
-              badgeColor="#a855f7"
-              description="Major US federal agency and national laboratory scientific discoveries and technology breakthroughs from the past 12 months."
-              accentColor="#a855f7"
-              isLight={isLight}
-              cardBg={cardBg}
-              cardBorder={cardBorder}
-              gridLine={gridLine}
-              headText={headText}
-              mutedText={mutedText}
-            >
-              <div className="flex flex-col gap-0">
-                {US_RD_BREAKTHROUGHS.map((r, i) => (
-                  <div
-                    key={r.title}
-                    className="py-3"
-                    style={{
-                      borderBottom:
-                        i < US_RD_BREAKTHROUGHS.length - 1
-                          ? `1px solid ${gridLine}`
-                          : "none",
-                    }}
-                  >
-                    <div className="flex items-start gap-2.5 mb-1.5">
-                      <div
-                        className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
-                        style={{ background: r.color + "18", color: r.color }}
-                      >
-                        <Atom size={10} weight="fill" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p
-                          className="text-[12px] font-sans font-semibold leading-snug"
-                          style={{ color: headText }}
-                        >
-                          {r.title}
-                        </p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span
-                            className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
-                            style={{
-                              background: r.color + "15",
-                              color: r.color,
-                            }}
-                          >
-                            {r.field}
-                          </span>
-                          <span
-                            className="text-[9px] font-mono"
-                            style={{ color: mutedText }}
-                          >
-                            {r.agency} · {r.date}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <p
-                      className="text-[10px] font-sans leading-relaxed pl-8"
-                      style={{ color: mutedText }}
-                    >
-                      {r.agency === "DARPA" &&
-                        "DARPA's Air Combat Evolution (ACE) program pit an AI-controlled F-16 against a human pilot in a live dogfight. The AI won 5-0 using reinforcement learning trained on millions of simulated engagements. Marks a pivotal shift in autonomous combat doctrine."}
-                      {r.agency === "NIH" &&
-                        "FDA approved Casgevy — the world's first CRISPR-based therapy — for sickle-cell disease. NIH-funded research spanning 15 years enabled the breakthrough. Treatment edits patients' own stem cells to produce functional haemoglobin, potentially offering a functional cure."}
-                      {r.agency === "NIST" &&
-                        "NIST finalized three post-quantum cryptographic algorithms (CRYSTALS-Kyber, CRYSTALS-Dilithium, SPHINCS+) as federal standards, hardening US government communications against future quantum decryption attacks. Implementation deadline for federal agencies set for 2030."}
-                      {r.agency === "NASA" &&
-                        "Artemis II carried four astronauts — including the first woman and first Canadian — on a 10-day lunar flyby at 8,900 km altitude. Validated Orion life-support and deep-space communications systems ahead of the Artemis III crewed lunar landing."}
-                      {r.agency === "DOE / NIF" &&
-                        "National Ignition Facility at Lawrence Livermore achieved ignition — releasing more fusion energy than laser energy delivered — for the third consecutive time, demonstrating repeatability. DOE's milestone roadmap now targets a 10× energy gain pilot plant by 2035."}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </ExpandableCard>
-
-            {/* CITIES container */}
-            <div
-              className="rounded-2xl p-5 flex flex-col gap-0 flex-1"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <SectionHeader
-                icon={<Buildings size={16} weight="fill" />}
-                label="Cities"
-                badge="500+ global"
-                badgeColor="#10b981"
-                cta="All Cities"
-                ctaTo="/dashboard/cities"
-                isLight={isLight}
-                onNav={() => navigate("/dashboard/cities")}
-              />
-
-              {/* GDP per Capita bar chart */}
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest mb-2"
-                style={{ color: mutedText }}
-              >
-                GDP per Capita (USD k)
-              </p>
-              <ResponsiveContainer width="100%" height={110}>
-                <BarChart
-                  data={CITIES_CHART_DATA}
-                  margin={{ top: 2, right: 4, left: -18, bottom: 0 }}
-                  barSize={14}
-                >
-                  <defs>
-                    <linearGradient
-                      id="cityGdpGrad"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.9} />
-                      <stop
-                        offset="100%"
-                        stopColor="#059669"
-                        stopOpacity={0.5}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    stroke={gridLine}
-                    strokeDasharray="3 3"
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="name"
-                    tick={{
-                      fontSize: 8,
-                      fill: mutedText,
-                      fontFamily: "monospace",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{
-                      fontSize: 8,
-                      fill: mutedText,
-                      fontFamily: "monospace",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(v) => `$${v}k`}
-                    domain={[0, 160]}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: isLight ? "#fff" : "#1a1730",
-                      border: isLight
-                        ? "1px solid rgba(0,0,0,0.1)"
-                        : "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: 8,
-                      fontSize: 11,
-                      fontFamily: "monospace",
-                      color: headText,
-                    }}
-                    formatter={(v: number) => [`$${v}k`, "GDP/capita"]}
-                    labelStyle={{ color: mutedText }}
-                  />
-                  <Bar
-                    dataKey="gdp"
-                    fill="url(#cityGdpGrad)"
-                    radius={[3, 3, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-
-              <SourceLink sources={SRC_DASH_CITIES} className="mt-1 mb-1" />
-
-              {/* City list */}
-              <div
-                className="flex flex-col gap-0 mt-3 pt-3"
-                style={{ borderTop: `1px solid ${gridLine}` }}
-              >
-                {CITIES_DATA.map((c, i) => (
-                  <button
-                    key={c.city}
-                    onClick={() => navigate("/dashboard/cities")}
-                    className="flex items-center gap-2 py-2 text-left hover:opacity-80 transition-opacity"
-                    style={{
-                      borderBottom:
-                        i < CITIES_DATA.length - 1
-                          ? `1px solid ${gridLine}`
-                          : "none",
-                    }}
-                  >
-                    <span className="text-base w-6 shrink-0">{c.flag}</span>
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="text-xs font-semibold font-sans truncate"
-                        style={{ color: headText }}
-                      >
-                        {c.city}
-                      </p>
-                      <p
-                        className="text-[10px] font-mono"
-                        style={{ color: mutedText }}
-                      >
-                        {c.country} · {c.pop}
-                      </p>
-                    </div>
-                    {/* Confidence bar */}
-                    <div
-                      className="w-12 h-1.5 rounded-full overflow-hidden shrink-0"
-                      style={{
-                        background: isLight
-                          ? "rgba(0,0,0,0.07)"
-                          : "rgba(255,255,255,0.08)",
-                      }}
-                    >
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${Math.min(100, Math.round((c.gdpPerCapita / 141) * 100))}%`,
-                          background: c.color,
-                        }}
-                      />
-                    </div>
-                    <div className="text-right shrink-0 w-14">
-                      <p
-                        className="text-[11px] font-mono font-semibold"
-                        style={{ color: headText }}
-                      >
-                        {c.gdpLabel}
-                      </p>
-                      <p
-                        className="text-[10px] font-mono"
-                        style={{ color: c.up ? "#10b981" : "#ef4444" }}
-                      >
-                        {c.growth}
-                      </p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              {/* Summary stats */}
-              <div
-                className="grid grid-cols-3 gap-2 mt-3 pt-3"
-                style={{ borderTop: `1px solid ${gridLine}` }}
-              >
-                {[
-                  { label: "Avg GDP/cap", value: "$76k", color: "#10b981" },
-                  { label: "Fastest Grow", value: "+4.9%", color: "#f59e0b" },
-                  { label: "Cities Tracked", value: "500+", color: "#6366f1" },
-                ].map((m) => (
-                  <div
-                    key={m.label}
-                    className="rounded-xl px-2 py-2 text-center"
-                    style={{
-                      background: m.color + "10",
-                      border: `1px solid ${m.color}20`,
-                    }}
-                  >
-                    <p
-                      className="text-sm font-bold font-mono"
-                      style={{ color: m.color }}
-                    >
                       {m.value}
                     </p>
                     <p
-                      className="text-[9px] font-sans"
+                      className="text-[9px] font-sans leading-snug"
                       style={{ color: mutedText }}
                     >
                       {m.label}
+                      <br />
+                      {m.note}
                     </p>
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* The world's published counts of conflict and displacement. A box of "intensity" scores stood here. */}
+            <ConflictFigures />
           </div>
 
-          {/* COL 2: Conflicts + Recent Events */}
           <div className="flex flex-col gap-4">
-            {/* CONFLICTS container */}
-            <div
-              className="rounded-2xl p-5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <SectionHeader
-                icon={<Crosshair size={16} weight="fill" />}
-                label="Conflicts"
-                badge="42 active"
-                badgeColor="#ef4444"
-                cta="View Conflicts"
-                ctaTo="/dashboard/conflicts"
-                isLight={isLight}
-                onNav={() => navigate("/dashboard/conflicts")}
-              />
-              <div className="flex flex-col gap-2.5">
-                {CONFLICTS_DATA.map((c) => (
-                  <div key={c.name} className="flex flex-col gap-1">
-                    <div className="flex items-center justify-between">
-                      <span
-                        className="text-xs font-semibold font-sans"
-                        style={{ color: headText }}
-                      >
-                        {c.name}
-                      </span>
-                      <span
-                        className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
-                        style={{ background: c.color + "15", color: c.color }}
-                      >
-                        {c.type}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="flex-1 h-2 rounded-full overflow-hidden"
-                        style={{
-                          background: isLight
-                            ? "rgba(0,0,0,0.07)"
-                            : "rgba(255,255,255,0.08)",
-                        }}
-                      >
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${c.intensity}%`,
-                            background: c.color,
-                          }}
-                        />
-                      </div>
-                      <span
-                        className="text-[9px] font-mono w-6 text-right shrink-0"
-                        style={{ color: mutedText }}
-                      >
-                        {c.intensity}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <SourceLink sources={SRC_DASH_CONFLICTS} className="mt-2 mb-1" />
-              <div
-                className="mt-2 pt-3 grid grid-cols-2 gap-2"
-                style={{ borderTop: `1px solid ${gridLine}` }}
-              >
-                <div
-                  className="rounded-xl px-3 py-2 text-center"
-                  style={{
-                    background: "#ef444410",
-                    border: "1px solid #ef444420",
-                  }}
-                >
-                  <p
-                    className="text-base font-bold font-mono"
-                    style={{ color: "#ef4444" }}
-                  >
-                    42
-                  </p>
-                  <p
-                    className="text-[9px] font-sans"
-                    style={{ color: mutedText }}
-                  >
-                    Active
-                  </p>
-                </div>
-                <div
-                  className="rounded-xl px-3 py-2 text-center"
-                  style={{
-                    background: "#f5940010",
-                    border: "1px solid #f5940020",
-                  }}
-                >
-                  <p
-                    className="text-base font-bold font-mono"
-                    style={{ color: "#f59e0b" }}
-                  >
-                    18
-                  </p>
-                  <p
-                    className="text-[9px] font-sans"
-                    style={{ color: mutedText }}
-                  >
-                    Monitored
-                  </p>
-                </div>
-              </div>
-            </div>
-
             {/* The site's own log: when each of its data sets was last read from its sources.
                 An "Event Log" of five hand-typed news items, the newest from July 2025, stood here. */}
             <DataLog />
@@ -4463,394 +3300,21 @@ export function DashboardPage() {
           onNav={navigate}
         />
 
-        {/* ── NATIONAL SECTION ──────────────────────────────────────────── */}
-        <div
-          className="rounded-2xl p-5"
-          style={{
-            background: cardBg,
-            border: cardBorder,
-            boxShadow: cardShadow,
-          }}
-        >
-          <SectionHeader
-            icon={<Flag size={16} weight="fill" />}
-            label="National"
-            badge="US Focus"
-            badgeColor="#3b82f6"
-            cta="View States"
-            ctaTo="/dashboard/states"
-            isLight={isLight}
-            onNav={() => navigate("/dashboard/states")}
-          />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2">
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest mb-3"
-                style={{ color: mutedText }}
-              >
-                Domestic Highlights · to {feedLatestLabel(NATIONAL_HIGHLIGHTS)}
-              </p>
-              <div className="flex flex-col gap-0">
-                {NATIONAL_HIGHLIGHTS.map((e, i) => (
-                  <div
-                    key={i}
-                    className="flex items-start gap-3 py-3"
-                    style={{
-                      borderBottom:
-                        i < NATIONAL_HIGHLIGHTS.length - 1
-                          ? `1px solid ${gridLine}`
-                          : "none",
-                    }}
-                  >
-                    <div
-                      className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
-                      style={{ background: e.color + "18", color: e.color }}
-                    >
-                      {e.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="text-xs font-semibold font-sans leading-snug"
-                        style={{ color: headText }}
-                      >
-                        {e.title}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <span
-                          className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
-                          style={{ background: e.color + "15", color: e.color }}
-                        >
-                          {e.tag}
-                        </span>
-                        <span
-                          className="text-[10px] font-mono"
-                          style={{ color: mutedText }}
-                        >
-                          {e.sub} · {e.date}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest mb-3"
-                style={{ color: mutedText }}
-              >
-                State GDP Snapshot
-              </p>
-              <div className="flex flex-col gap-0">
-                {[
-                  {
-                    state: "CA",
-                    label: "California",
-                    gdp: "$3.9T",
-                    change: "+2.1%",
-                    up: true,
-                    color: "#6366f1",
-                  },
-                  {
-                    state: "TX",
-                    label: "Texas",
-                    gdp: "$2.6T",
-                    change: "+3.4%",
-                    up: true,
-                    color: "#3b82f6",
-                  },
-                  {
-                    state: "NY",
-                    label: "New York",
-                    gdp: "$2.1T",
-                    change: "+1.8%",
-                    up: true,
-                    color: "#10b981",
-                  },
-                  {
-                    state: "FL",
-                    label: "Florida",
-                    gdp: "$1.6T",
-                    change: "+4.2%",
-                    up: true,
-                    color: "#f59e0b",
-                  },
-                  {
-                    state: "WA",
-                    label: "Washington",
-                    gdp: "$800B",
-                    change: "-0.3%",
-                    up: false,
-                    color: "#ef4444",
-                  },
-                  {
-                    state: "IL",
-                    label: "Illinois",
-                    gdp: "$912B",
-                    change: "+0.9%",
-                    up: true,
-                    color: "#a855f7",
-                  },
-                ].map((s, i) => (
-                  <div
-                    key={s.state}
-                    className="flex items-center gap-2.5 py-2.5"
-                    style={{
-                      borderBottom: i < 5 ? `1px solid ${gridLine}` : "none",
-                    }}
-                  >
-                    <span
-                      className="text-[10px] font-mono font-bold w-7 text-center rounded-md py-0.5 shrink-0"
-                      style={{ background: s.color + "18", color: s.color }}
-                    >
-                      {s.state}
-                    </span>
-                    <p
-                      className="text-xs font-semibold font-sans flex-1 truncate"
-                      style={{ color: headText }}
-                    >
-                      {s.label}
-                    </p>
-                    <span
-                      className="text-[11px] font-mono shrink-0"
-                      style={{ color: headText }}
-                    >
-                      {s.gdp}
-                    </span>
-                    <div className="flex items-center gap-0.5 shrink-0">
-                      {s.up ? (
-                        <ArrowUp size={10} weight="bold" color="#10b981" />
-                      ) : (
-                        <ArrowDown size={10} weight="bold" color="#ef4444" />
-                      )}
-                      <span
-                        className="text-[10px] font-mono"
-                        style={{ color: s.up ? "#10b981" : "#ef4444" }}
-                      >
-                        {s.change}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── INTERNATIONAL SECTION ─────────────────────────────────────── */}
-        <div
-          className="rounded-2xl p-5"
-          style={{
-            background: cardBg,
-            border: cardBorder,
-            boxShadow: cardShadow,
-          }}
-        >
-          <SectionHeader
-            icon={<Globe size={16} weight="fill" />}
-            label="International"
-            badge="Global"
-            badgeColor="#6366f1"
-            cta="View Countries"
-            ctaTo="/dashboard/countries"
-            isLight={isLight}
-            onNav={() => navigate("/dashboard/countries")}
-          />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2">
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest mb-3"
-                style={{ color: mutedText }}
-              >
-                Global Developments
-              </p>
-              <div className="flex flex-col gap-0">
-                {INTERNATIONAL_EVENTS.map((e, i) => (
-                  <div
-                    key={i}
-                    className="flex items-start gap-3 py-3"
-                    style={{
-                      borderBottom:
-                        i < INTERNATIONAL_EVENTS.length - 1
-                          ? `1px solid ${gridLine}`
-                          : "none",
-                    }}
-                  >
-                    <div
-                      className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
-                      style={{ background: e.color + "18", color: e.color }}
-                    >
-                      {e.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="text-xs font-semibold font-sans leading-snug"
-                        style={{ color: headText }}
-                      >
-                        {e.title}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <span
-                          className="text-[9px] font-mono px-1.5 py-0.5 rounded-full"
-                          style={{ background: e.color + "15", color: e.color }}
-                        >
-                          {e.tag}
-                        </span>
-                        <span
-                          className="text-[10px] font-mono"
-                          style={{ color: mutedText }}
-                        >
-                          {e.region} · {e.date}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p
-                className="text-[10px] font-mono uppercase tracking-widest mb-3"
-                style={{ color: mutedText }}
-              >
-                Inflation Trend
-              </p>
-              <ResponsiveContainer width="100%" height={140}>
-                <LineChart
-                  data={INFLATION_DATA}
-                  margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
-                >
-                  <CartesianGrid stroke={gridLine} strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="year"
-                    tick={{
-                      fontSize: 9,
-                      fill: mutedText,
-                      fontFamily: "monospace",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{
-                      fontSize: 9,
-                      fill: mutedText,
-                      fontFamily: "monospace",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(v) => `${v}%`}
-                  />
-                  <ReferenceLine y={2} stroke="#10b981" strokeDasharray="3 3" />
-                  <Tooltip
-                    contentStyle={{
-                      background: isLight ? "#fff" : "#1a1730",
-                      border: isLight
-                        ? "1px solid rgba(0,0,0,0.1)"
-                        : "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: 8,
-                      fontSize: 11,
-                      fontFamily: "monospace",
-                      color: headText,
-                    }}
-                    formatter={(v: number, name: string) => [
-                      `${v}%`,
-                      name === "world" ? "World" : "Advanced",
-                    ]}
-                    labelStyle={{ color: mutedText }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="world"
-                    stroke="#f59e0b"
-                    strokeWidth={2}
-                    dot={{ fill: "#f59e0b", r: 2.5, strokeWidth: 0 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="adv"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    dot={{ fill: "#3b82f6", r: 2.5, strokeWidth: 0 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-              <div className="flex items-center gap-4 mt-2">
-                {[
-                  { label: "World", color: "#f59e0b" },
-                  { label: "Advanced", color: "#3b82f6" },
-                ].map((l) => (
-                  <div key={l.label} className="flex items-center gap-1">
-                    <div
-                      className="w-3 h-0.5 rounded-full"
-                      style={{ background: l.color }}
-                    />
-                    <span
-                      className="text-[10px] font-mono"
-                      style={{ color: mutedText }}
-                    >
-                      {l.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div
-                className="mt-3 pt-3"
-                style={{ borderTop: `1px solid ${gridLine}` }}
-              >
-                <p
-                  className="text-[10px] font-mono uppercase tracking-widest mb-2"
-                  style={{ color: mutedText }}
-                >
-                  Regional GDP
-                </p>
-                {REGION_STATS.slice(0, 4).map((r, i) => (
-                  <div
-                    key={r.region}
-                    className="flex items-center justify-between py-1.5"
-                    style={{
-                      borderBottom: i < 3 ? `1px solid ${gridLine}` : "none",
-                    }}
-                  >
-                    <p
-                      className="text-[11px] font-sans truncate flex-1"
-                      style={{ color: headText }}
-                    >
-                      {r.region}
-                    </p>
-                    <div className="flex items-center gap-1 shrink-0">
-                      {r.up ? (
-                        <TrendUp size={9} weight="fill" color="#10b981" />
-                      ) : (
-                        <TrendDown size={9} weight="fill" color="#ef4444" />
-                      )}
-                      <span
-                        className="text-[10px] font-mono"
-                        style={{ color: r.up ? "#10b981" : "#ef4444" }}
-                      >
-                        {r.growth}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* ── FOOTER ────────────────────────────────────────────────────── */}
         <div className="text-center py-3 flex flex-col items-center gap-1">
           <p className="text-[11px] font-sans" style={{ color: mutedText }}>
-            © {new Date().getFullYear()} CommonSphere · Dashboard · Data updated
-            Q2 2025
+            © {new Date().getFullYear()} CommonSphere · Dashboard · each figure is dated where it appears; the data log
+            above says when each source was last read
           </p>
           <SourceLink
             sources={[
               { label: "World Bank", url: "https://data.worldbank.org/" },
               { label: "IMF", url: "https://www.imf.org/en/Data" },
-              { label: "BLS", url: "https://www.bls.gov/data/" },
+              { label: "UN", url: "https://population.un.org/wpp/" },
               { label: "BEA", url: "https://www.bea.gov/" },
-              { label: "ACLED", url: "https://acleddata.com/" },
+              { label: "BLS", url: "https://www.bls.gov/data/" },
+              { label: "Uppsala Conflict Data Program", url: "https://ucdp.uu.se/" },
+              { label: "UNHCR", url: "https://www.unhcr.org/refugee-statistics/" },
             ]}
           />
         </div>
