@@ -26,6 +26,7 @@ import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "../components/SectionNav";
 import { StyledSelect } from "../components/StyledSelect";
 import { StatExplorer, type StatGroup } from "../components/StatExplorer";
+import { ProjectionsDesk } from "../components/ProjectionsDesk";
 import { PROJECTION_FIGURES, TREND_GROUPS } from "../data/trendGroups";
 import { CategoryCharts, TREND_CHARTS } from "../components/CategoryCharts";
 import { StatCard, splitChange, type StatCardData, type StatFact, type StatTable } from "../components/StatCard";
@@ -1733,6 +1734,7 @@ function TechnologySection() {
 // ── Page ───────────────────────────────────────────────────────────────────
 
 const SECTIONS: NavSection[] = [
+  { id: "desk", label: "Projections desk" },
   { id: "overview", label: "Overview" },
   { id: "economy", label: "World economy" },
   { id: "countries", label: "Countries" },
@@ -2043,6 +2045,10 @@ export function TrendsPage() {
         </div>
 
         <SectionNav label="Trends and projections sections" sections={SECTIONS} />
+
+        {/* The desk: every projection the site holds, in one panel - the same one the Dashboard has. The sections
+            below take each subject at length. */}
+        <ProjectionsDesk id="desk" />
 
         <HeadlinesBanner
           label="Economy headlines"
