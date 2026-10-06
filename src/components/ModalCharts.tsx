@@ -10,9 +10,10 @@
  *   - a bar is drawn on a scale that means something: 0 to 100 for a share,
  *     or the largest of the things compared. A rate with no natural ceiling
  *     is given as a figure, not as a bar against an invented one;
- *   - the parts of a whole are one bar, each part in its own colour with a
- *     gap between, and a legend that carries every figure - not a donut, and
- *     not drawn a second time as separate bars;
+ *   - the parts of a whole are drawn once - as one bar, or as a ring where
+ *     the window's owner asked for one (land use) - each part in its own
+ *     colour with a gap between, and a legend that carries every figure; they
+ *     are not drawn a second time as separate bars;
  *   - figures are in ink. Colour says which part is which, never whether a
  *     figure is good or bad: the site has no source for where good ends;
  *   - a figure says what it measures, its unit and its year, and - where the
@@ -25,7 +26,7 @@
  * the light and the dark surface (the one the Worldview and Trends charts
  * use); ordered parts - ages - take one hue, light to dark.
  */
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { WORLD } from "../data/worldview";
 
 /** The colours of the parts of a whole, in the order they are assigned. */
@@ -153,6 +154,80 @@ export function PartsBar({ parts, colors = PART_COLORS, label, columns = 2 }: { 
         {shown.map((p, i) => (
           <li key={p.label} className="flex items-baseline gap-1.5 min-w-0">
             <span className="w-2 h-2 rounded-sm shrink-0 translate-y-px" style={{ background: fill(p, i) }} aria-hidden />
+            <span className="text-[11px] font-sans text-foreground min-w-0 leading-snug">{p.label}</span>
+            <span className="text-[11px] font-mono font-semibold text-foreground ml-auto shrink-0">{p.text}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * The parts of a whole as a ring - each part an arc in its own colour, a gap
+ * between - beside the legend PartsBar has: every part named in full with its
+ * figure in ink, so nothing is told by colour alone. The middle of the ring
+ * names the largest part, or the part the pointer is on; pointing at a part,
+ * on the ring or in the legend, dims the others. Nothing spins into place.
+ */
+export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part[]; colors?: string[]; /** What the ring shows, for a screen reader. */ label: string }) {
+  const [on, setOn] = useState<string | null>(null);
+  const shown = parts.filter((p) => p.value > 0);
+  const total = shown.reduce((a, p) => a + p.value, 0);
+  if (!shown.length || total <= 0) return null;
+  const fill = (p: Part, i: number) => p.color ?? colors[i % colors.length];
+  const R = 40;
+  const C = 2 * Math.PI * R;
+  const gap = shown.length > 1 ? 2.5 : 0;
+  let run = 0;
+  const arcs = shown.map((p, i) => {
+    const len = (p.value / total) * C;
+    const arc = { p, i, start: run, len: Math.max(1.5, len - gap) };
+    run += len;
+    return arc;
+  });
+  const largest = shown.reduce((a, p) => (p.value > a.value ? p : a));
+  const mid = shown.find((p) => p.label === on) ?? largest;
+  return (
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+      <svg viewBox="0 0 100 100" className="w-28 h-28 shrink-0" role="img" aria-label={`${label}: ${shown.map((p) => `${p.label} ${p.text}`).join(", ")}.`}>
+        <g transform="rotate(-90 50 50)">
+          {arcs.map(({ p, i, start, len }) => (
+            <circle
+              key={p.label}
+              cx={50}
+              cy={50}
+              r={R}
+              fill="none"
+              stroke={fill(p, i)}
+              strokeWidth={13}
+              strokeDasharray={`${len} ${C - len}`}
+              strokeDashoffset={-start}
+              opacity={on && on !== p.label ? 0.3 : 1}
+              onMouseEnter={() => setOn(p.label)}
+              onMouseLeave={() => setOn(null)}
+            >
+              <title>{`${p.label}: ${p.text}`}</title>
+            </circle>
+          ))}
+        </g>
+        <text x={50} y={49} textAnchor="middle" className="fill-foreground font-mono font-bold" style={{ fontSize: 13 }}>
+          {mid.text}
+        </text>
+        <text x={50} y={61} textAnchor="middle" className="fill-muted-foreground font-sans" style={{ fontSize: 7.5 }}>
+          {mid.label}
+        </text>
+      </svg>
+      <ul className="flex-1 min-w-[8.5rem] flex flex-col gap-1">
+        {shown.map((p, i) => (
+          <li
+            key={p.label}
+            className="flex items-baseline gap-1.5 min-w-0 rounded-sm"
+            style={{ opacity: on && on !== p.label ? 0.45 : 1 }}
+            onMouseEnter={() => setOn(p.label)}
+            onMouseLeave={() => setOn(null)}
+          >
+            <span className="w-2 h-2 rounded-full shrink-0 translate-y-px" style={{ background: fill(p, i) }} aria-hidden />
             <span className="text-[11px] font-sans text-foreground min-w-0 leading-snug">{p.label}</span>
             <span className="text-[11px] font-mono font-semibold text-foreground ml-auto shrink-0">{p.text}</span>
           </li>

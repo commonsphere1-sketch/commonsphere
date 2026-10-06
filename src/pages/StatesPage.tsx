@@ -30,6 +30,7 @@ import { FollowedPlaces } from "@/components/FollowedPlaces";
 import { HistoryPanel } from "@/components/HistoryPanel";
 import { usdFromBillions } from "@/lib/money";
 import { has } from "@/lib/na";
+import { SeeAlso } from "../components/SeeAlso";
 
 // ─── Housing and commuting, from the American Community Survey ───────────
 // These panels used to read STATE_HOUSING and STATE_TRANSPORT, hand-written
@@ -6157,6 +6158,9 @@ function StateModal({
               </button>
             </div>
           </div>
+
+          {/* Through to the country the state is part of: its profile, its economy, its leaders, and the state's place on the map. */}
+          <SeeAlso code="US" name="United States" omit={["cities", "states"]} mapTo={`/dashboard/maps?state=${state.abbreviation}`} />
 
           {/* Tab bar */}
           <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60">

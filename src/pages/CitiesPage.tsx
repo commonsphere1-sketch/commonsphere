@@ -16,7 +16,7 @@
  * body publishes for every city alike is not shown.
  */
 import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { CITY_PLACES } from "../data/cityPlaces";
 import {
   MapPin,
@@ -26,7 +26,6 @@ import {
   ArrowsIn,
   ArrowsOut,
   ClockCounterClockwise,
-  Globe,
   X,
 } from "@phosphor-icons/react";
 import {
@@ -43,13 +42,13 @@ import {
 import { citiesData, type City } from "../data/citiesData";
 import { CITY_FIGURES, CITY_FIGURES_SOURCE, CITY_ADMIN_SOURCE, type CityFigures } from "../data/cityFigures";
 import { CITY_YEARS, cityYear, cityFirstYear, cityGrowth, type CityYear } from "../lib/cityFigures";
-import { countriesData } from "../data/countriesData";
 import { ArticleLead, ArticlePanel } from "../components/HistoryPanel";
 import { ACCENT, PART_COLORS, MeasureBars, ChartNote } from "../components/ModalCharts";
 import { useTheme } from "../contexts/ThemeContext";
 import { HeadlinesBanner, namesTag, type Headline, type Shown } from "../components/HeadlinesBanner";
 import { nameMatcher } from "../lib/namesInText";
 import { SourceLink } from "../components/SourceLink";
+import { SeeAlso } from "../components/SeeAlso";
 import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 
@@ -470,8 +469,7 @@ function CityStandings({ row }: { row: Row }) {
 
 function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<"overview" | "map" | "history">("overview");
-  /* The city's country, where the site has a record of it, and its article. */
-  const home = countriesData.find((c) => c.code === city.countryCode) ?? null;
+  /* The city's article and where it is. */
   const place = CITY_PLACES[city.id];
   const row = rowOf(city.id);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -560,32 +558,9 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
             </div>
           </div>
 
-          {/* Through to the country: its window, and the city's place on the map. */}
-          <div className="flex flex-wrap items-center gap-2 mb-4">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mr-1">See also</span>
-            {home && (
-              <button
-                type="button"
-                onClick={() => navigate(`/dashboard/countries?open=${home.id}`)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                title={`Open ${home.name}'s country profile`}
-              >
-                <Globe size={12} weight="fill" aria-hidden />
-                {home.name} · country profile
-              </button>
-            )}
-            {place && (
-              <button
-                type="button"
-                onClick={() => navigate(`/dashboard/maps?city=${city.id}`)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                title={`Show ${city.name} on the map`}
-              >
-                <MapTrifold size={12} weight="fill" aria-hidden />
-                On the map
-              </button>
-            )}
-          </div>
+          {/* Through to the same place on the other pages: its country, the country's economy and leaders, the other
+              cities profiled in it, and the city's place on the map. */}
+          <SeeAlso code={city.countryCode} name={city.country} cityId={city.id} mapTo={place ? `/dashboard/maps?city=${city.id}` : undefined} />
 
           {/* Tab Bar */}
           <div className="flex gap-1 p-1 bg-muted/40 rounded-xl border border-border/50 mb-5">
@@ -1028,18 +1003,18 @@ export function CitiesPage() {
   const [sortBy, setSortBy] = useState<MeasureKey>("population");
   const [modalCity, setModalCity] = useState<City | null>(null);
 
-  // Deep-link: open entity from search bar via ?open=<id>
+  /* Deep link: ?open=<city id> opens that city's window - from the search bar, another page's window, or one city's
+     window to another's. It is read from the router so a link made while the page is open works too, and the address
+     is tidied through the router so the same link works a second time. The value is only ever matched against the list. */
+  const location = useLocation();
+  const navigate = useNavigate();
   React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const openId = params.get("open");
-    if (openId) {
-      const found = citiesData.find((c) => c.id === openId);
-      if (found) setModalCity(found);
-      const url = new URL(window.location.href);
-      url.searchParams.delete("open");
-      window.history.replaceState({}, "", url.toString());
-    }
-  }, []);
+    const openId = new URLSearchParams(location.search).get("open");
+    if (!openId) return;
+    const found = citiesData.find((c) => c.id === openId);
+    if (found) setModalCity(found);
+    navigate(location.pathname, { replace: true });
+  }, [location.search, location.pathname, navigate]);
 
   const allRegions = ["All", ...Array.from(new Set(citiesData.map((c) => c.region))).sort()];
   const measure = measureOf(sortBy);

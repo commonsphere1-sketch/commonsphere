@@ -47,12 +47,13 @@ const SETS = [
   { files: ["economyIndicators.ts", "economySectors.ts", "countrySectorsUn.ts", "economiesMore.ts", "economiesRemaining.ts"], what: "Every economy's figures and what it is made of", from: "World Bank, IMF, UN Statistics Division, Eurostat and others", page: "/dashboard/economies", where: "Economies" },
   { files: ["countryCrime.ts", "crimeOffences.ts", "prisonRates.ts"], what: "Recorded crime and prison populations", from: "UNODC, World Prison Brief", page: "/dashboard/crime", where: "Crime statistics" },
   { files: ["stateIndicators.ts", "stateFinance.ts", "stateEnergy.ts"], what: "The fifty states: people, incomes, budgets and power", from: "US Census Bureau, BEA, BLS, BJS, U.S. EIA and others", page: "/dashboard/states", where: "US states" },
+  { files: ["publicSecurity.ts"], what: "Public security: stability, conflict deaths, terrorism and displacement, by country", from: "World Bank (Worldwide Governance Indicators), UCDP, Global Terrorism Database, UNHCR, IDMC", page: "/dashboard/countries", where: "Countries" },
   { files: ["cityFigures.ts"], what: "Each city's population, land and built-up area, 1975 to 2050", from: "United Nations (World Urbanization Prospects), Wikidata", page: "/dashboard/cities", where: "Cities" },
   { files: ["airQuality.ts"], what: "The air people breathe: PM2.5 exposure by country", from: "World Bank", page: "/dashboard/maps", where: "World maps" },
   { files: ["climateIndicators.ts"], what: "The measured state of the climate", from: "NOAA, NASA GISS, NSIDC", page: "/dashboard/planetary-boundaries", where: "Climate" },
 ];
 /** Generated files that are indexes of the site's own content - names, places, feeds - not readings of figures. */
-const NOT_DATA = new Set(["dataLog.ts", "leaderIndex.ts", "newsSources.ts", "wikiArticles.ts", "admin1Sources.ts", "cityPlaces.ts"]);
+const NOT_DATA = new Set(["dataLog.ts", "leaderIndex.ts", "newsSources.ts", "wikiArticles.ts", "admin1Sources.ts", "cityPlaces.ts", "placeIndex.ts"]);
 
 const builtOn = (file) => {
   const head = fs.readFileSync(path.join(DATA, file), "utf8").slice(0, 2500);

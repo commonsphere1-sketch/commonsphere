@@ -38,6 +38,8 @@ import { useResourceRents } from "../hooks/useResourceRents";
 import { useLiveStatus } from "../lib/liveFigures";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
+import { CODE_OF_ECONOMY } from "../data/placeIndex";
+import { SeeAlso } from "../components/SeeAlso";
 import { FilterBar } from "../components/FilterBar";
 import { StyledSelect } from "../components/StyledSelect";
 import {
@@ -1170,6 +1172,10 @@ function EconomyModal({
           </div>
 
           {economy.limitedData && <LimitedDataNote economy={economy} />}
+
+          {/* Through to the same place on the other pages: its country profile, its leaders, its cities, the map.
+              A bloc's or a region's card is no one country's, and has no such row. */}
+          {CODE_OF_ECONOMY[economy.id] && <SeeAlso code={CODE_OF_ECONOMY[economy.id]} name={economy.name} omit={["economy"]} className="mt-4" />}
 
           {/* ── ALL SECTIONS ── */}
           <div className="mt-4 space-y-4 animate-fade-in">

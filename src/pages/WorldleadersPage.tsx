@@ -1,7 +1,8 @@
 import { decodeEntities } from "../lib/security";
 import React, { useState, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { SeeAlso } from "../components/SeeAlso";
 import {
   Globe,
   Users,
@@ -27,7 +28,6 @@ import {
   Money,
   ArrowsIn,
   ArrowsOut,
-  MapTrifold,
   X,
 } from "@phosphor-icons/react";
 import {
@@ -13556,30 +13556,9 @@ function LeaderDetail({
             ))}
           </div>
 
-          {/* Through to the country: its window, and its place on the map. */}
-          {home && (
-            <div className="flex flex-wrap items-center gap-2 mb-4">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mr-1">See also</span>
-              <button
-                type="button"
-                onClick={() => navigate(`/dashboard/countries?open=${home.id}`)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                title={`Open ${home.name}'s country profile: its economy, government, people and history`}
-              >
-                <Globe size={12} weight="fill" aria-hidden />
-                {home.name} · country profile
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate(`/dashboard/maps?country=${home.code}`)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                title={`Show ${home.name} on the map`}
-              >
-                <MapTrifold size={12} weight="fill" aria-hidden />
-                On the map
-              </button>
-            </div>
-          )}
+          {/* Through to the same place on the other pages: the leader's country, its economy, the other leaders
+              profiled for it, its cities and the map. */}
+          <SeeAlso code={leader.countryCode} name={home?.name ?? leader.country} leaderId={leader.id} />
 
           {/* Tab bar — the pill row the country and state modals use, rather
               than the underline row this modal had. */}
@@ -15709,16 +15688,18 @@ export function WorldLeadersPage() {
 
   /* Deep link: ?open=<leader id> opens that leader's window - the link a
      country's window makes. The value is only ever matched against the list. */
+  /* Read from the router, so a link from one leader's window to another's works while the page is open; and the
+     address is tidied through the router so the same link works a second time. */
+  const location = useLocation();
+  const goTo = useNavigate();
   React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const open = params.get("open");
-    if (open) {
-      const found = LEADERS.find((l) => l.id === open);
-      if (found) setSelected(found);
-      const url = new URL(window.location.href);
-      url.searchParams.delete("open");
-      window.history.replaceState({}, "", url.toString());
-    }
+    const open = new URLSearchParams(location.search).get("open");
+    if (!open) return;
+    const found = LEADERS.find((l) => l.id === open);
+    if (found) setSelected(found);
+    goTo(location.pathname, { replace: true });
+  }, [location.search, location.pathname, goTo]);
+  React.useEffect(() => {
     /* The index those links are made from is a generated copy of this page's
        list; say so, in development, when it has fallen behind. */
     if (import.meta.env.DEV) {
