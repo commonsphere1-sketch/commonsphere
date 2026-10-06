@@ -5,7 +5,6 @@ import {
   Timer,
   UserCircle,
   Gavel,
-  UsersThree,
   MapTrifold,
   Scroll,
   ListBullets,
@@ -16,24 +15,12 @@ import {
   X,
 } from "@phosphor-icons/react";
 // Bookmark feature removed
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  PieChart,
-  Pie,
-  Legend,
-} from "recharts";
 import { usStatesData, type USState } from "../data/statesData";
 import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
 import { UpcomingStates } from "@/components/UpcomingStates";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
+import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, rampOf } from "../components/ModalCharts";
 import { Figures, COUNTER_FIGURES } from "../components/Figures";
 import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
@@ -63,26 +50,6 @@ function MiniStat({ label, value, sub }: { label: string; value: string; sub?: s
   );
 }
 
-function ShareBar({ parts }: { parts: { name: string; pct: number; color: string }[] }) {
-  return (
-    <>
-      <div className="flex h-3 rounded-full overflow-hidden gap-px">
-        {parts.map((p) => (
-          <div key={p.name} style={{ width: `${p.pct}%`, background: p.color }} title={`${p.name}: ${p.pct}%`} />
-        ))}
-      </div>
-      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5">
-        {parts.map((p) => (
-          <span key={p.name} className="flex items-center gap-1 text-[10px] font-sans text-muted-foreground">
-            <span className="w-1.5 h-1.5 rounded-full" style={{ background: p.color }} />
-            {p.name} <span className="font-mono text-foreground">{p.pct}%</span>
-          </span>
-        ))}
-      </div>
-    </>
-  );
-}
-
 function HousingPanel({ state }: { state: USState }) {
   const h = STATE_INDICATORS[state.id]?.housing;
   if (!h) return null;
@@ -103,13 +70,12 @@ function HousingPanel({ state }: { state: USState }) {
         <MiniStat label="Vacant homes" value={`${h.vacancyPct}%`} sub="of housing units" />
         <MiniStat label="Rent-burdened" value={`${h.rentBurdenPct}%`} sub="renters paying 30%+ of income" />
       </div>
-      <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-        Occupied homes
-      </p>
-      <ShareBar
+      <ChartTitle>Occupied homes · % · {h.y}</ChartTitle>
+      <PartsBar
+        label={`Occupied homes in ${state.name}, ${h.y}`}
         parts={[
-          { name: "Owner-occupied", pct: h.homeOwnershipPct, color: "#60a5fa" },
-          { name: "Renter-occupied", pct: renter, color: "#34d399" },
+          { label: "Owner-occupied", value: h.homeOwnershipPct, text: `${h.homeOwnershipPct}%` },
+          { label: "Renter-occupied", value: renter, text: `${renter}%` },
         ]}
       />
       <SourceLink sources={[STATE_SOURCES.acs]} className="mt-3" />
@@ -135,16 +101,16 @@ function TransportationPanel({ state }: { state: USState }) {
         <MiniStat label="Mean commute" value={`${c.meanCommuteMin} min`} sub="one way, excluding home workers" />
         <MiniStat label="Households with a vehicle" value={`${c.householdsWithVehiclePct}%`} />
       </div>
-      <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-        How people get to work
-      </p>
-      <ShareBar
+      <ChartTitle>How people get to work · % of workers · {c.y}</ChartTitle>
+      <PartsBar
+        label={`How workers in ${state.name} get to work, ${c.y}`}
+        columns={3}
         parts={[
-          { name: "Car, truck or van", pct: c.carTruckVanPct, color: "#60a5fa" },
-          { name: "Public transit", pct: c.transitPct, color: "#34d399" },
-          { name: "Walk or bike", pct: c.walkBikePct, color: "#fbbf24" },
-          { name: "Work from home", pct: c.workFromHomePct, color: "#a78bfa" },
-          { name: "Other", pct: other, color: "#94a3b8" },
+          { label: "Car, truck or van", value: c.carTruckVanPct, text: `${c.carTruckVanPct}%` },
+          { label: "Public transit", value: c.transitPct, text: `${c.transitPct}%` },
+          { label: "Walk or bike", value: c.walkBikePct, text: `${c.walkBikePct}%` },
+          { label: "Work from home", value: c.workFromHomePct, text: `${c.workFromHomePct}%` },
+          { label: "Other", value: other, text: `${other}%` },
         ]}
       />
       <SourceLink sources={[STATE_SOURCES.acs]} className="mt-3" />
@@ -208,7 +174,6 @@ const STATE_ELEVATION_FT: Record<string, number> = {
 // ── Source citation constants ────────────────────────────────────────────
 const SRC_BLS = [STATE_SOURCES.bls, STATE_SOURCES.population];
 const SRC_BEA = [STATE_SOURCES.bea];
-const SRC_CENSUS = [STATE_SOURCES.acs, STATE_SOURCES.population];
 const SRC_CONGRESS = [STATE_SOURCES.congress, STATE_SOURCES.apportionment, STATE_SOURCES.governors];
 
 const partyColor = {
@@ -217,26 +182,10 @@ const partyColor = {
   Independent: TONE.violet,
 };
 
-// ─── Color palettes ──────────────────────────────────────────────────────────
-const ETHNICITY_COLORS = [
-  "#60a5fa",
-  "#f87171",
-  "#34d399",
-  "#fbbf24",
-  "#a78bfa",
-];
-const AGE_COLORS = ["#a78bfa", "#60a5fa", "#34d399", "#fbbf24", "#f87171"];
+// ─── The parties' colours, for the vote ─────────────────────────────────────
 const VOTER_COLORS = ["#3b82f6", "#ef4444", "#a3a3a3"];
-const WEALTH_COLORS = ["#22d3ee", "#60a5fa", "#fbbf24", "#f87171"];
-const ENERGY_COLORS = [
-  "#78716c",
-  "#6b7280",
-  "#60a5fa",
-  "#22d3ee",
-  "#fbbf24",
-  "#34d399",
-  "#a78bfa",
-];
+const PARTY_FILL: Record<string, string> = { Democrat: "#3b82f6", Republican: "#ef4444" };
+const partyFill = (party: string) => PARTY_FILL[party] ?? "#a3a3a3";
 
 function StatCard({
   label,
@@ -329,279 +278,54 @@ function TaxCard({
   );
 }
 
-// ─── Shared tooltip ──────────────────────────────────────────────────────────
-function ChartTip({ active, payload, label, suffix = "%" }: any) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="cs-chart-tip rounded-md p-2 text-xs font-mono font-bold">
-      {label && <p className="font-semibold mb-1">{label}</p>}
-      {payload.map((e: any) => (
-        <p key={e.name ?? e.dataKey} style={{ color: e.fill ?? e.color }}>
-          {e.name ?? e.dataKey}: {e.value}
-          {suffix}
-        </p>
-      ))}
-    </div>
-  );
-}
-
-// ─── Mini horizontal bar ─────────────────────────────────────────────────────
-function HorizBar({
-  label,
-  pct,
-  color,
-}: {
-  label: string;
-  pct: number;
-  color: string;
-}) {
-  return (
-    <div className="flex items-center gap-2 text-[11px]">
-      <span className="w-20 shrink-0 text-muted-foreground font-sans truncate">
-        {label}
-      </span>
-      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${pct}%`, background: color }}
-        />
-      </div>
-      <span className="w-8 text-right font-mono text-foreground shrink-0">
-        {pct}%
-      </span>
-    </div>
-  );
-}
-
-// ─── 6 Chart panels ──────────────────────────────────────────────────────────
+// ─── A state's people, vote, incomes and power: five charts, each drawn once ──
+// The window drew four of these twice - a donut and two bar charts above, then
+// the same shares again below as bars stretched to twice or three times their
+// length so they would fill the track. Each is a whole split into parts that
+// sum to 100, so each is one bar with a legend that carries every figure.
 function DemographicsCharts({ state }: { state: USState }) {
-  const id = state.id;
+  const y = state.figureYears ?? {};
+  const pct = (v: number) => `${v}%`;
+  const tile = "modal-tile rounded-lg p-4";
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {/* 1. Ethnicity */}
-      <div className="modal-tile rounded-lg p-4">
-        <h4 className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider mb-1">
-          Race &amp; Hispanic Origin
-        </h4>
-        <p className="text-[10px] text-muted-foreground font-sans mb-2">
-          Census estimates, {state.figureYears?.ethnicity}. White, Black and Asian
-          are non-Hispanic and single-race; Hispanic is of any race.
-        </p>
-        <div className="h-44">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <defs>
-                {state.ethnicity.map((_, i) => (
-                  <linearGradient
-                    key={i}
-                    id={`ethGrad-${id}-${i}`}
-                    x1="0"
-                    y1="0"
-                    x2="1"
-                    y2="1"
-                  >
-                    <stop
-                      offset="0%"
-                      stopColor={ETHNICITY_COLORS[i % ETHNICITY_COLORS.length]}
-                      stopOpacity={0.9}
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor={ETHNICITY_COLORS[i % ETHNICITY_COLORS.length]}
-                      stopOpacity={0.6}
-                    />
-                  </linearGradient>
-                ))}
-              </defs>
-              <Pie
-                data={state.ethnicity.filter((d) => d.pct > 0)}
-                dataKey="pct"
-                nameKey="group"
-                cx="50%"
-                cy="50%"
-                innerRadius={32}
-                outerRadius={60}
-                paddingAngle={2}
-                isAnimationActive
-                animationDuration={600}
-              >
-                {state.ethnicity
-                  .filter((d) => d.pct > 0)
-                  .map((_, i) => (
-                    <Cell key={i} fill={`url(#ethGrad-${id}-${i})`} />
-                  ))}
-              </Pie>
-              <Tooltip content={<ChartTip />} />
-              <Legend
-                iconType="circle"
-                iconSize={8}
-                wrapperStyle={{ fontSize: 10, fontFamily: "Figures, IBM Plex Mono" }}
-                formatter={(v) => (
-                  <span style={{ color: "hsl(0,0%,65%)" }}>{v}</span>
-                )}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+      <div className={tile}>
+        <ChartTitle>Race and Hispanic origin · % of residents · {y.ethnicity}</ChartTitle>
+        <PartsBar label={`The people of ${state.name} by race and Hispanic origin, ${y.ethnicity}`} columns={3} parts={state.ethnicity.map((e) => ({ label: e.group, value: e.pct, text: pct(e.pct) }))} />
+        <ChartNote className="mt-2">Census Bureau estimates. White, Black and Asian are non-Hispanic and of one race; Hispanic is of any race.</ChartNote>
+      </div>
+
+      <div className={tile}>
+        <ChartTitle>Its people by age · % of residents · {y.ageGroups}</ChartTitle>
+        <PartsBar label={`The people of ${state.name} by age, ${y.ageGroups}`} columns={3} colors={rampOf(state.ageGroups.length)} parts={state.ageGroups.map((g) => ({ label: g.group, value: g.pct, text: pct(g.pct) }))} />
+        <div className="mt-2">
+          <FigureRow label="Median age" value={`${state.medianAge} years`} sub={`ACS ${y.medianAge}`} />
         </div>
       </div>
 
-      {/* 3. Age Distribution */}
-      <div className="modal-tile rounded-lg p-4">
-        <h4 className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider mb-2">
-          Age Distribution{" "}
-          <span className="text-muted-foreground normal-case font-normal">
-            ({state.figureYears?.ageGroups}; median {state.medianAge} yrs, ACS {state.figureYears?.medianAge})
-          </span>
-        </h4>
-        <div className="flex flex-col gap-1.5 mt-2">
-          {state.ageGroups.map((g, i) => (
-            <HorizBar
-              key={g.group}
-              label={g.group}
-              pct={g.pct}
-              color={AGE_COLORS[i % AGE_COLORS.length]}
-            />
-          ))}
+      <div className={tile}>
+        <ChartTitle>Vote for president · % of votes cast · {y.voterShare}</ChartTitle>
+        <PartsBar label={`The vote for president in ${state.name}, ${y.voterShare}`} columns={3} parts={state.voterShare.map((v) => ({ label: v.party, value: v.pct, text: pct(v.pct), color: partyFill(v.party) }))} />
+      </div>
+
+      <div className={tile}>
+        <ChartTitle>Income against the poverty line · % of people · {y.wealthPoverty}</ChartTitle>
+        <PartsBar label={`The people of ${state.name} by household income against the federal poverty line, ${y.wealthPoverty}`} columns={1} colors={rampOf(state.wealthPoverty.length)} parts={state.wealthPoverty.map((w) => ({ label: w.label, value: w.pct, text: pct(w.pct) }))} />
+        <div className="mt-2">
+          <FigureRow label="Median household income" value={`$${state.medianIncome.toLocaleString()}`} sub={`ACS ${y.medianIncome}`} />
         </div>
       </div>
 
-      {/* 4. Voter Registration */}
-      <div className="modal-tile rounded-lg p-4">
-        <h4 className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider mb-3">
-          {state.figureYears?.voterShare} Presidential Vote
-        </h4>
-        <div className="h-36">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={state.voterShare}
-              layout="vertical"
-              margin={{ top: 2, right: 16, left: 0, bottom: 2 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="hsl(222,30%,22%)"
-                horizontal={false}
-              />
-              <XAxis
-                type="number"
-                domain={[0, 100]}
-                tick={{
-                  fill: "hsl(0,0%,55%)",
-                  fontSize: 9,
-                  fontFamily: "Figures, IBM Plex Mono",
-                }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(v) => `${v}%`}
-              />
-              <YAxis
-                type="category"
-                dataKey="party"
-                tick={{
-                  fill: "hsl(0,0%,65%)",
-                  fontSize: 10,
-                  fontFamily: "Figures, IBM Plex Mono",
-                }}
-                axisLine={false}
-                tickLine={false}
-                width={76}
-              />
-              <Tooltip content={<ChartTip label="" />} />
-              <Bar
-                dataKey="pct"
-                radius={[0, 4, 4, 0]}
-                isAnimationActive
-                animationDuration={600}
-              >
-                {state.voterShare.map((_, i) => (
-                  <Cell key={i} fill={VOTER_COLORS[i % VOTER_COLORS.length]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* 5. Wealth & Poverty */}
-      <div className="modal-tile rounded-lg p-4">
-        <h4 className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider mb-1">
-          Income vs Poverty Line
-        </h4>
-        <p className="text-[10px] text-muted-foreground font-sans mb-2">
-          Share of people by household income relative to the federal poverty
-          line, ACS {state.figureYears?.wealthPoverty}
-        </p>
-        <div className="h-36">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={state.wealthPoverty}
-              margin={{ top: 4, right: 8, left: 0, bottom: 4 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="hsl(222,30%,22%)"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="label"
-                tick={{
-                  fill: "hsl(0,0%,60%)",
-                  fontSize: 9,
-                  fontFamily: "Figures, IBM Plex Mono",
-                }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{
-                  fill: "hsl(0,0%,55%)",
-                  fontSize: 9,
-                  fontFamily: "Figures, IBM Plex Mono",
-                }}
-                axisLine={false}
-                tickLine={false}
-                width={28}
-                tickFormatter={(v) => `${v}%`}
-              />
-              <Tooltip content={<ChartTip />} />
-              <Bar
-                dataKey="pct"
-                radius={[4, 4, 0, 0]}
-                isAnimationActive
-                animationDuration={600}
-              >
-                {state.wealthPoverty.map((_, i) => (
-                  <Cell
-                    key={i}
-                    fill={WEALTH_COLORS[i % WEALTH_COLORS.length]}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* 6. Energy Production */}
-      <div className="modal-tile rounded-lg p-4 sm:col-span-2">
-        <h4 className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider mb-2">
-          Electricity Generation Mix{" "}
-          <span className="text-muted-foreground normal-case font-normal">
-            ({state.figureYears?.energyMix})
-          </span>
-        </h4>
-        <div className="flex flex-col gap-1.5 mt-2">
-          {state.energyMix
+      <div className={`${tile} sm:col-span-2`}>
+        <ChartTitle>What its electricity is generated from · % of generation · {y.energyMix}</ChartTitle>
+        <MeasureBars
+          max={100}
+          label={`Electricity generation in ${state.name} by source`}
+          rows={state.energyMix
             .filter((e) => e.pct > 0)
-            .map((e, i) => (
-              <HorizBar
-                key={e.source}
-                label={e.source}
-                pct={e.pct}
-                color={ENERGY_COLORS[i % ENERGY_COLORS.length]}
-              />
-            ))}
-        </div>
+            .sort((a, b) => b.pct - a.pct)
+            .map((e) => ({ label: e.source, value: e.pct, text: pct(e.pct) }))}
+        />
         <SourceLink sources={[STATE_SOURCES.eia]} className="mt-2" />
       </div>
       <div className="sm:col-span-2">
@@ -1921,15 +1645,6 @@ const STATE_EDUCATION: Record<string, StateEducationData> = {
 };
 
 
-const TYPE_COLORS: Record<string, string> = {
-  Public: "text-blue-400 border-blue-500/30 bg-blue-500/10",
-  Private: "text-purple-400 border-purple-500/30 bg-purple-500/10",
-  Technical: "text-orange-400 border-orange-500/30 bg-orange-500/10",
-  Research: "text-green-400 border-green-500/30 bg-green-500/10",
-  "Liberal Arts": "text-pink-400 border-pink-500/30 bg-pink-500/10",
-  HBCU: "text-amber-400 border-amber-500/30 bg-amber-500/10",
-};
-
 /**
  * Education attainment from the Census Bureau's ACS, with the major
  * universities kept from the written table by name only.
@@ -1965,44 +1680,25 @@ function StateEducationPanel({ state }: { state: USState }) {
       </div>
 
       {e && (
-        <div className="space-y-3 mb-4">
-          {[
-            { label: "High school diploma or higher", pct: e.highSchoolOrHigherPct, color: "hsl(200,85%,55%)" },
-            { label: "Bachelor's degree or higher", pct: e.bachelorsOrHigherPct, color: "hsl(260,70%,65%)" },
-          ].map((b) => (
-            <div key={b.label}>
-              <div className="flex justify-between text-[10px] mb-1">
-                <span className="text-muted-foreground font-sans">{b.label}</span>
-                <span className="font-mono font-semibold text-foreground">{b.pct}%</span>
-              </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: `${b.pct}%`, background: b.color }} />
-              </div>
-            </div>
-          ))}
+        <div className="mb-4">
+          <ChartTitle>How far adults went in school · % of those 25 and over · {e.y}</ChartTitle>
+          <MeasureBars
+            max={100}
+            label={`Schooling of adults in ${state.name}`}
+            rows={[
+              { label: "High school diploma or higher", value: e.highSchoolOrHigherPct, text: `${e.highSchoolOrHigherPct}%` },
+              { label: "Bachelor's degree or higher", value: e.bachelorsOrHigherPct, text: `${e.bachelorsOrHigherPct}%` },
+            ]}
+          />
         </div>
       )}
 
       {schools.length > 0 && (
         <div className="mb-3">
-          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-            Major Universities
-          </p>
-          <div className="space-y-2">
+          <ChartTitle>Major universities</ChartTitle>
+          <div className="flex flex-col">
             {schools.map((u) => (
-              <div
-                key={u.name}
-                className="flex items-center gap-2.5 p-2 rounded-lg bg-background/30 border border-border/40"
-              >
-                <p className="flex-1 min-w-0 text-xs font-sans font-medium text-foreground truncate">
-                  {u.name}
-                </p>
-                <span
-                  className={`text-[10px] font-sans px-1.5 py-0.5 rounded-full border shrink-0 ${TYPE_COLORS[u.type] ?? "text-secondary border-secondary/30 bg-secondary/10"}`}
-                >
-                  {u.type}
-                </span>
-              </div>
+              <FigureRow key={u.name} label={u.name} value={<span className="font-sans font-normal text-muted-foreground">{u.type}</span>} />
             ))}
           </div>
         </div>
@@ -6643,219 +6339,6 @@ function StateModal({
                 {/* 6 Charts */}
                 <DemographicsCharts state={state} />
 
-                {/* Sociological Breakdown */}
-                <div className="mt-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <UsersThree
-                      size={14}
-                      weight="fill"
-                      className="text-secondary"
-                    />
-                    <p className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider">
-                      Sociological Breakdown
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* Ethnic Composition */}
-                    <div className="modal-tile rounded-lg p-4">
-                      <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-                        Ethnic Composition
-                      </p>
-                      <div className="space-y-1.5">
-                        {state.ethnicity
-                          .filter((e) => e.pct > 0)
-                          .map((e, i) => (
-                            <div
-                              key={e.group}
-                              className="flex items-center gap-2"
-                            >
-                              <div
-                                className="w-2 h-2 rounded-full shrink-0"
-                                style={{
-                                  backgroundColor:
-                                    ETHNICITY_COLORS[
-                                      i % ETHNICITY_COLORS.length
-                                    ],
-                                }}
-                              />
-                              <span className="text-[11px] font-sans text-muted-foreground flex-1 truncate">
-                                {e.group}
-                              </span>
-                              <span
-                                className="text-[11px] font-mono font-semibold"
-                                style={{
-                                  color:
-                                    ETHNICITY_COLORS[
-                                      i % ETHNICITY_COLORS.length
-                                    ],
-                                }}
-                              >
-                                {e.pct}%
-                              </span>
-                            </div>
-                          ))}
-                      </div>
-                      {/* stacked diversity bar */}
-                      <div className="flex h-2 rounded-full overflow-hidden mt-3 gap-px">
-                        {state.ethnicity
-                          .filter((e) => e.pct > 0)
-                          .map((e, i) => (
-                            <div
-                              key={e.group}
-                              style={{
-                                width: `${e.pct}%`,
-                                backgroundColor:
-                                  ETHNICITY_COLORS[i % ETHNICITY_COLORS.length],
-                              }}
-                            />
-                          ))}
-                      </div>
-                    </div>
-
-                    {/* Age Structure */}
-                    <div className="modal-tile rounded-lg p-4">
-                      <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-                        Age Structure
-                        <span className="ml-1 normal-case font-normal text-muted-foreground">
-                          · median {state.medianAge} yrs
-                        </span>
-                      </p>
-                      <div className="space-y-1.5">
-                        {state.ageGroups.map((g, i) => (
-                          <div
-                            key={g.group}
-                            className="flex items-center gap-2"
-                          >
-                            <span className="text-[11px] font-sans text-muted-foreground w-16 shrink-0">
-                              {g.group}
-                            </span>
-                            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full rounded-full transition-all duration-500"
-                                style={{
-                                  width: `${g.pct * 3}%`,
-                                  backgroundColor:
-                                    AGE_COLORS[i % AGE_COLORS.length],
-                                }}
-                              />
-                            </div>
-                            <span
-                              className="text-[11px] font-mono w-7 text-right shrink-0"
-                              style={{
-                                color: AGE_COLORS[i % AGE_COLORS.length],
-                              }}
-                            >
-                              {g.pct}%
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Political Alignment */}
-                    <div className="modal-tile rounded-lg p-4">
-                      <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-                        Political Alignment
-                      </p>
-                      <div className="flex gap-1 h-5 rounded-full overflow-hidden mb-2">
-                        {state.voterShare.map((v, i) => (
-                          <div
-                            key={v.party}
-                            style={{
-                              width: `${v.pct}%`,
-                              backgroundColor:
-                                VOTER_COLORS[i % VOTER_COLORS.length],
-                            }}
-                          />
-                        ))}
-                      </div>
-                      <div className="space-y-1">
-                        {state.voterShare.map((v, i) => (
-                          <div
-                            key={v.party}
-                            className="flex items-center justify-between text-[11px]"
-                          >
-                            <span className="flex items-center gap-1.5 font-sans text-muted-foreground">
-                              <span
-                                className="w-2 h-2 rounded-full"
-                                style={{
-                                  backgroundColor:
-                                    VOTER_COLORS[i % VOTER_COLORS.length],
-                                }}
-                              />
-                              {v.party}
-                            </span>
-                            <span className="font-mono font-semibold text-foreground">
-                              {v.pct}%
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="mt-3 pt-3 border-t border-border">
-                        <span
-                          className={`text-xs font-semibold px-2 py-0.5 rounded-full border font-sans ${
-                            state.party === "Democrat"
-                              ? "text-secondary border-secondary/40 bg-secondary/10"
-                              : state.party === "Republican"
-                                ? "text-red-400 border-red-500/40 bg-red-500/10"
-                                : "text-yellow-400 border-yellow-500/40 bg-yellow-500/10"
-                          }`}
-                        >
-                          {state.party} Leaning
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Wealth Distribution */}
-                    <div className="modal-tile rounded-lg p-4">
-                      <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-                        Wealth Distribution
-                      </p>
-                      <div className="space-y-1.5">
-                        {state.wealthPoverty.map((w, i) => (
-                          <div
-                            key={w.label}
-                            className="flex items-center gap-2"
-                          >
-                            <span className="text-[11px] font-sans text-muted-foreground w-24 shrink-0">
-                              {w.label}
-                            </span>
-                            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full rounded-full transition-all duration-500"
-                                style={{
-                                  width: `${w.pct * 2}%`,
-                                  backgroundColor:
-                                    WEALTH_COLORS[i % WEALTH_COLORS.length],
-                                }}
-                              />
-                            </div>
-                            <span
-                              className="text-[11px] font-mono w-7 text-right shrink-0"
-                              style={{
-                                color: WEALTH_COLORS[i % WEALTH_COLORS.length],
-                              }}
-                            >
-                              {w.pct}%
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="mt-3 pt-2 border-t border-border flex items-center justify-between">
-                        <span className="text-[10px] text-muted-foreground font-sans">
-                          Median Household Income
-                        </span>
-                        <span className="text-xs font-mono font-bold text-foreground">
-                          ${state.medianIncome.toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <SourceLink sources={SRC_CENSUS} className="mt-3" />
-
-                </div>
-
                 {/* Incarceration (BJS). This section also showed a homelessness
                     rate and a "crime rate" breakdown that multiplied one
                     unsourced crime index by fixed factors to make assault,
@@ -6869,31 +6352,8 @@ function StateModal({
                       <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3">
                         Imprisonment Rate
                       </p>
-                      <div className="rounded-lg border border-border bg-background/40 p-3">
-                        <p
-                          className={`text-xl font-bold font-mono ${inc.v >= 450 ? "text-destructive" : inc.v >= 300 ? "text-warning" : "text-success"}`}
-                        >
-                          {inc.v}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-                          sentenced prisoners under state jurisdiction per 100,000
-                          residents, end of {inc.y}
-                        </p>
-                        <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: `${Math.min(100, (inc.v / 700) * 100)}%`,
-                              background: inc.v >= 450 ? "hsl(0,70%,55%)" : inc.v >= 300 ? "hsl(38,92%,50%)" : "hsl(142,71%,45%)",
-                            }}
-                          />
-                        </div>
-                        {inc.note && (
-                          <p className="text-[10px] text-muted-foreground font-sans mt-2 leading-relaxed">
-                            BJS note: {inc.note}
-                          </p>
-                        )}
-                      </div>
+                      <FigureRow label="Sentenced prisoners under state jurisdiction" value={`${inc.v}`} sub={`per 100,000 residents · end of ${inc.y}`} />
+                      {inc.note && <ChartNote className="mt-2">BJS note: {inc.note}</ChartNote>}
                       <SourceLink sources={[STATE_SOURCES.bjs]} className="mt-3" />
                     </div>
                   );

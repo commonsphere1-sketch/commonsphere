@@ -123,6 +123,8 @@ export interface Part {
   value: number;
   /** The figure as printed: "30%". */
   text: string;
+  /** The part's own colour, where it has one by convention - a party's. Otherwise it takes the next of the chart's. */
+  color?: string;
 }
 
 /**
@@ -133,6 +135,7 @@ export interface Part {
  */
 export function PartsBar({ parts, colors = PART_COLORS, label, columns = 2 }: { parts: Part[]; colors?: string[]; /** What the bar shows, for a screen reader. */ label: string; columns?: 1 | 2 | 3 }) {
   const shown = parts.filter((p) => p.value > 0);
+  const fill = (p: Part, i: number) => p.color ?? colors[i % colors.length];
   return (
     <div>
       <div className="flex h-2.5 gap-0.5" role="img" aria-label={`${label}: ${shown.map((p) => `${p.label} ${p.text}`).join(", ")}.`}>
@@ -140,16 +143,17 @@ export function PartsBar({ parts, colors = PART_COLORS, label, columns = 2 }: { 
           <span
             key={p.label}
             className={`h-full min-w-[2px] ${i === 0 ? "rounded-l-full" : ""} ${i === shown.length - 1 ? "rounded-r-full" : ""}`}
-            style={{ flexGrow: p.value, flexBasis: 0, background: colors[i % colors.length] }}
+            style={{ flexGrow: p.value, flexBasis: 0, background: fill(p, i) }}
             title={`${p.label}: ${p.text}`}
           />
         ))}
       </div>
-      <ul className={`grid gap-x-4 gap-y-1 mt-2 ${columns === 3 ? "grid-cols-2 sm:grid-cols-3" : columns === 2 ? "grid-cols-2" : "grid-cols-1"}`}>
+      {/* As many columns as fit with every name in full: a name cut short is no legend. */}
+      <ul className="grid gap-x-4 gap-y-1 mt-2" style={{ gridTemplateColumns: columns === 1 ? "1fr" : `repeat(auto-fit, minmax(${columns === 3 ? "7.5rem" : "9rem"}, 1fr))` }}>
         {shown.map((p, i) => (
           <li key={p.label} className="flex items-baseline gap-1.5 min-w-0">
-            <span className="w-2 h-2 rounded-sm shrink-0 translate-y-px" style={{ background: colors[i % colors.length] }} aria-hidden />
-            <span className="text-[11px] font-sans text-foreground min-w-0 truncate">{p.label}</span>
+            <span className="w-2 h-2 rounded-sm shrink-0 translate-y-px" style={{ background: fill(p, i) }} aria-hidden />
+            <span className="text-[11px] font-sans text-foreground min-w-0 leading-snug">{p.label}</span>
             <span className="text-[11px] font-mono font-semibold text-foreground ml-auto shrink-0">{p.text}</span>
           </li>
         ))}

@@ -1408,10 +1408,12 @@ function CountryDemographicsChart({ country }: { country: Country }) {
           )}
         </div>
       )}
-      <ChartNote className="mt-3">
-        {has(country.humanDevelopmentIndex) && "UNDP's tiers of human development begin at 0.550, 0.700 and 0.800, marked on the scale. "}
-        {shownWorld && WORLD_NOTE}
-      </ChartNote>
+      {(has(country.humanDevelopmentIndex) || shownWorld) && (
+        <ChartNote className="mt-3">
+          {has(country.humanDevelopmentIndex) && "UNDP's tiers of human development begin at 0.550, 0.700 and 0.800, marked on the scale. "}
+          {shownWorld && WORLD_NOTE}
+        </ChartNote>
+      )}
       <SourceLink
         sources={[
           ...(country.sources?.population ? [country.sources.population] : []),
