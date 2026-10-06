@@ -62,12 +62,23 @@ function print(ind: Pick<WorldIndicator, "format" | "dp">, v: number): string {
   if (ind.format === "count") return compact(v);
   return Math.abs(v) >= 1000 ? Math.round(v).toLocaleString("en-US") : v.toFixed(ind.dp);
 }
+/**
+ * A large number on an axis, in one unit down the whole axis and to a tenth of
+ * it: 4.5k, 9k, 13.5k. The figures' own printing rounds to whole thousands
+ * from ten thousand, which on an axis put "14k" on the line at 13,500 and
+ * "9,000" two lines under it.
+ */
+const axisCompact = (v: number) => {
+  const a = Math.abs(v);
+  const cut = (n: number, unit: string) => `${Number((v / n).toFixed(1))}${unit}`;
+  return a >= 1e12 ? cut(1e12, "T") : a >= 1e9 ? cut(1e9, "bn") : a >= 1e6 ? cut(1e6, "M") : a >= 1e3 ? cut(1e3, "k") : String(Math.round(v));
+};
 /** The same, shorter, for an axis. */
 function tickOf(ind: Pick<WorldIndicator, "format" | "dp">, v: number): string {
   if (ind.format === "pct") return `${Number(v.toFixed(Math.min(ind.dp, 1)))}%`;
-  if (ind.format === "usd") return `$${compact(v)}`;
-  if (ind.format === "count") return compact(v);
-  return Math.abs(v) >= 1000 ? compact(v) : String(Number(v.toFixed(ind.dp)));
+  if (ind.format === "usd") return `$${axisCompact(v)}`;
+  if (ind.format === "count") return axisCompact(v);
+  return Math.abs(v) >= 1000 ? axisCompact(v) : String(Number(v.toFixed(ind.dp)));
 }
 const last = <T,>(a: T[]) => a[a.length - 1];
 
