@@ -30,6 +30,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "Each country's political parties and the seats they hold",
+    "from": "CIA World Factbook (final edition)",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-10-06",
+    "files": 1
+  },
+  {
     "what": "Free schooling, public health cover and what care costs",
     "from": "UNESCO, OECD, WHO (via the World Bank)",
     "page": "/dashboard/countries",
@@ -184,4 +192,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 41;
+export const DATA_LOG_FILES = 42;

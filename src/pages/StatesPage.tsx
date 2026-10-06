@@ -34,6 +34,7 @@ import { HistoryPanel } from "@/components/HistoryPanel";
 import { usdFromBillions } from "@/lib/money";
 import { has } from "@/lib/na";
 import { SeeAlso } from "../components/SeeAlso";
+import { PlaceTopics } from "../components/PlaceTopics";
 
 // ─── Housing and commuting, from the American Community Survey ───────────
 // These panels used to read STATE_HOUSING and STATE_TRANSPORT, hand-written
@@ -6486,6 +6487,10 @@ function StateModal({
                 )}
                 <SourceLink sources={SRC_CONGRESS} className="mt-3" />
 
+                {/* The parties holding the state's offices, and what is being reported about the state now. */}
+                <StateParties state={state} />
+                <PlaceTopics tag={`s:${state.id}`} name={state.name} className="mt-3" />
+
                 {/* When the state's offices are next filled, the national dates ahead, and where each office announces its events. */}
                 <StateDates state={state} />
               </>
@@ -6527,6 +6532,61 @@ const inDays = (d: Date) => {
   const n = daysUntil(d);
   return n === 0 ? "today" : `in ${n.toLocaleString("en-US")} day${n === 1 ? "" : "s"}`;
 };
+
+/** The parties in the order they are drawn, each with the colour the page gives it everywhere. */
+const PARTY_ORDER = ["Democrat", "Republican", "Independent"] as const;
+
+/**
+ * The parties in a state: who holds its governorship and its seats in
+ * Congress, and how it voted for president. Every figure is counted from the
+ * offices the page already lists (stateOffices.ts) or is the published vote
+ * share; no party is described, only counted.
+ */
+function StateParties({ state }: { state: USState }) {
+  const o = STATE_OFFICES[state.id];
+  if (!o) return null;
+  const y = state.figureYears ?? {};
+  const count = (people: { party: string }[]) => PARTY_ORDER.map((p) => ({ party: p, n: people.filter((x) => x.party === p).length })).filter((x) => x.n > 0);
+  const seats = (people: { party: string }[], unit: string) =>
+    count(people).map((x) => ({ label: x.party, value: x.n, text: `${x.n} ${unit}${x.n === 1 ? "" : "s"}`, color: partyFill(x.party) }));
+  return (
+    <div className="mt-5">
+      <div className="flex items-center gap-2 mb-2">
+        <UserCircle size={14} weight="fill" className="text-secondary" />
+        <p className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider">Parties</p>
+      </div>
+      <div className="modal-tile rounded-lg p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+          <div>
+            <ChartTitle>Governor</ChartTitle>
+            <p className="text-[12px] font-sans font-semibold text-foreground">{state.governor}</p>
+            <p className="text-[11px] font-mono text-muted-foreground mt-0.5 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-sm shrink-0" style={{ background: partyFill(state.party) }} aria-hidden />
+              {state.party} · term ends {o.governor.termEnds}
+            </p>
+          </div>
+          <div>
+            <ChartTitle>US Senate · {o.senators.length} seats</ChartTitle>
+            <PartsBar label={`${state.name}'s seats in the US Senate by party`} columns={3} parts={seats(o.senators, "seat")} />
+          </div>
+          <div>
+            <ChartTitle>US House · {o.representatives.length} seat{o.representatives.length === 1 ? "" : "s"}</ChartTitle>
+            <PartsBar label={`${state.name}'s seats in the US House by party`} columns={3} parts={seats(o.representatives, "seat")} />
+          </div>
+          <div>
+            <ChartTitle>The vote for president · % · {y.voterShare}</ChartTitle>
+            <PartsBar label={`The vote for president in ${state.name}, ${y.voterShare}`} columns={3} parts={state.voterShare.map((v) => ({ label: v.party, value: v.pct, text: `${v.pct}%`, color: partyFill(v.party) }))} />
+          </div>
+        </div>
+        <ChartNote className="mt-3">
+          Counted from the members and the governor listed above, each in the party they sit for; the vote is the state's share for each party's candidate. The
+          state legislature's own make-up is not held here.
+        </ChartNote>
+        <SourceLink sources={[{ label: STATE_OFFICES_SOURCES.congress.label, url: STATE_OFFICES_SOURCES.congress.url }, STATE_SOURCES.governors]} className="mt-2" />
+      </div>
+    </div>
+  );
+}
 
 /**
  * At the foot of a state's window: when each of its elected offices is next

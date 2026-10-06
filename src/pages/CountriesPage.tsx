@@ -2,10 +2,14 @@ import { na, has, orZero, sortKey } from "../lib/na";
 import { PublicServicesSection, ServiceBadges } from "../components/PublicServices";
 import { ACCENT, ChartNote, ChartTitle, FigureRow, FigureTile, HdiScale, MeasureBars, PartsBar, PartsDonut, rampOf, worldFor, type MeasureRow } from "../components/ModalCharts";
 import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES } from "../data/worldview";
-import React, { useMemo, useState } from "react";
+import React, { lazy, Suspense, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LEADERS_BY_COUNTRY } from "../data/leaderIndex";
 import { SeeAlso } from "../components/SeeAlso";
+import { PlaceTopics } from "../components/PlaceTopics";
+
+/* Every country's parties and chambers: loaded when a Governance tab opens, not with the page. */
+const PoliticalParties = lazy(() => import("../components/PoliticalParties"));
 import {
   MapPin,
   Shield,
@@ -12622,6 +12626,14 @@ function ConstitutionTab({ country }: { country: Country }) {
           )}
         </div>
       </div>
+
+      {/* ── The parties, and the seats each holds: the Factbook's record ── */}
+      <Suspense fallback={null}>
+        <PoliticalParties code={country.code} name={country.name} className="" />
+      </Suspense>
+
+      {/* ── What is being reported about the country now: where its debates surface ── */}
+      <PlaceTopics tag={`c:${country.code}`} name={country.name} className="" />
 
       {/* ── 2. CODIFIED LAW / LEGAL SYSTEM ── */}
       {(legal || constitution) && (
