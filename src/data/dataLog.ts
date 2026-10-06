@@ -38,6 +38,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "Each economy's inflation, deficits and tariffs, with the IMF's projections",
+    "from": "IMF (World Economic Outlook, Fiscal Monitor), World Bank",
+    "page": "/dashboard/economies",
+    "where": "Economies",
+    "read": "2026-10-06",
+    "files": 1
+  },
+  {
     "what": "Free schooling, public health cover and what care costs",
     "from": "UNESCO, OECD, WHO (via the World Bank)",
     "page": "/dashboard/countries",
@@ -200,4 +208,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 43;
+export const DATA_LOG_FILES = 44;

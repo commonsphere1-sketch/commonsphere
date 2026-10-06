@@ -994,6 +994,9 @@ function BudgetPie({ budget }: { budget: CountryBudget }) {
   );
 }
 
+/** Inflation, deficits and tariffs: three sections with their own series, loaded when a window opens. */
+const EconomyDetails = React.lazy(() => import("../components/EconomyDetails"));
+
 function EconomyModal({
   economy,
   onClose,
@@ -1199,75 +1202,42 @@ function EconomyModal({
                   </span>
                   <div className="flex-1 h-px bg-border/60" />
                 </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    {
-                      label: "GDP",
-                      value: na(economy.gdpTrillions, fmtUsdT),
-                      color: "text-secondary",
-                    },
-                    {
-                      label: "Per Capita",
-                      value: na(economy.gdpPerCapita, (v) => `$${v.toLocaleString()}`),
-                      color: "text-foreground",
-                    },
-                    {
-                      label: "Inflation",
-                      value: na(economy.inflationRate, (v) => `${v}%`),
-                      color: "text-foreground",
-                    },
-                    {
-                      label: "Unemployment",
-                      value: na(economy.unemploymentRate, (v) => `${v}%`),
-                      color: "text-foreground",
-                    },
-                    {
-                      label: "Debt/GDP",
-                      value: na(economy.debtToGDPRatio, (v) => `${v}%`),
-                      color: "text-foreground",
-                    },
-                    {
-                      label: rateLabel(economy),
-                      value: na(economy.interestRate, (v) => `${v}%`),
-                      color: "text-foreground",
-                    },
-                    {
-                      label: "Trade Volume",
-                      value: na(economy.tradeVolumeTrillions, fmtUsdT),
-                      color: "text-foreground",
-                    },
-                    {
-                      label: "FDI Net Inflow",
-                      value: na(economy.fdiInflowBillions, fmtUsdB),
-                      color: economy.fdiInflowBillions < 0 ? "text-destructive" : "text-secondary",
-                    },
-                    {
-                      label: "Mkt Cap",
-                      value: na(economy.stockMarketCap, fmtUsdT),
-                      color: "text-foreground",
-                    },
-                  ].map((s) => (
-                    <div
-                      key={s.label}
-                      className="modal-tile rounded-lg px-3 py-2.5 flex items-center justify-between gap-2"
-                    >
-                      <p className="text-xs text-muted-foreground font-sans truncate">
-                        {s.label}
-                      </p>
-                      <p
-                        className={`text-sm font-bold font-mono whitespace-nowrap ${s.value === "—" ? "text-muted-foreground" : s.color}`}
-                        title={
-                          s.value === "—"
-                            ? "Not published"
-                            : s.label === "FDI Net Inflow"
-                              ? "New foreign direct investment less disinvestment (World Bank). Negative in a year when more was withdrawn than invested."
-                              : undefined
-                        }
-                      >
-                        {s.value}
-                      </p>
-                    </div>
-                  ))}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {(
+                    [
+                      { field: "gdpTrillions", label: "GDP", unit: "current US$", value: na(economy.gdpTrillions, fmtUsdT) },
+                      { field: "gdpPerCapita", label: "GDP per person", unit: "current US$", value: na(economy.gdpPerCapita, (v) => `$${v.toLocaleString()}`) },
+                      { field: "inflationRate", label: "Inflation", unit: "consumer prices, a year", value: na(economy.inflationRate, (v) => `${v}%`) },
+                      { field: "unemploymentRate", label: "Unemployment", unit: "of the labour force", value: na(economy.unemploymentRate, (v) => `${v}%`) },
+                      { field: "debtToGDPRatio", label: "Government debt", unit: "of GDP", value: na(economy.debtToGDPRatio, (v) => `${v}%`) },
+                      { field: "interestRate", label: rateLabel(economy), unit: "a year", value: na(economy.interestRate, (v) => `${v}%`) },
+                      { field: "tradeVolumeTrillions", label: "Trade volume", unit: "exports and imports", value: na(economy.tradeVolumeTrillions, fmtUsdT) },
+                      {
+                        field: "fdiInflowBillions",
+                        label: "FDI net inflow",
+                        unit: "a year",
+                        value: na(economy.fdiInflowBillions, fmtUsdB),
+                        title: "New foreign direct investment less disinvestment (World Bank). Negative in a year when more was withdrawn than invested.",
+                      },
+                      { field: "stockMarketCap", label: "Stock market value", unit: "listed companies", value: na(economy.stockMarketCap, fmtUsdT) },
+                    ] as { field: string; label: string; unit: string; value: string; title?: string }[]
+                  ).map((s) => {
+                    // The year the figure is for: from the source it is cited to, or the card's own record. None is shown where none is recorded.
+                    const year = (ECONOMY_FIGURE_SOURCES[economy.id] as Record<string, { year: string } | undefined> | undefined)?.[s.field]?.year ?? economy.figureYears?.[s.field];
+                    const none = s.value === "—";
+                    return (
+                      <div key={s.field} className="modal-tile rounded-lg px-3 py-2.5 min-w-0" title={none ? "Not published" : s.title}>
+                        <p className="text-[10px] font-sans text-muted-foreground leading-snug">{s.label}</p>
+                        <p className={`text-base font-bold font-mono leading-tight mt-0.5 ${none ? "text-muted-foreground" : "text-foreground"}`}>{none ? "Not published" : s.value}</p>
+                        {!none && (
+                          <p className="text-[9px] font-mono text-muted-foreground leading-snug mt-0.5">
+                            {s.unit}
+                            {year ? ` · ${year}` : ""}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
                 {economy.limitedData && <FigureYears economy={economy} />}
               </div>
@@ -1374,6 +1344,11 @@ function EconomyModal({
                 </div>
               </div>
               )}
+
+              {/* ── INFLATION · DEFICITS · TARIFFS: each with its series, its projections where a body makes them, and what it measures ── */}
+              <React.Suspense fallback={<p className="text-[11px] font-sans text-muted-foreground">Loading inflation, deficits and tariffs…</p>}>
+                <EconomyDetails id={economy.id} name={economy.name} />
+              </React.Suspense>
 
               {/* ── GDP SECTOR COMPOSITION ── */}
               {(ECONOMY_SECTORS[economy.id] || !economy.limitedData) && (
