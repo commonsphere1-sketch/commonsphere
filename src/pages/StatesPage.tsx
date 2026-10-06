@@ -12,15 +12,18 @@ import {
   Star,
   ArrowsIn,
   ArrowsOut,
+  CaretDown,
   X,
 } from "@phosphor-icons/react";
 // Bookmark feature removed
+import { STATE_OFFICES, STATE_OFFICES_SOURCES } from "../data/stateOffices";
+import { civicDay, daysUntil, electionDay, upcomingCivicDates } from "../lib/usCivicDates";
 import { usStatesData, type USState } from "../data/statesData";
 import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
 import { UpcomingStates } from "@/components/UpcomingStates";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
-import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, rampOf } from "../components/ModalCharts";
+import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, PartsDonut, rampOf } from "../components/ModalCharts";
 import { Figures, COUNTER_FIGURES } from "../components/Figures";
 import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
@@ -292,7 +295,8 @@ function DemographicsCharts({ state }: { state: USState }) {
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div className={tile}>
         <ChartTitle>Race and Hispanic origin · % of residents · {y.ethnicity}</ChartTitle>
-        <PartsBar label={`The people of ${state.name} by race and Hispanic origin, ${y.ethnicity}`} columns={3} parts={state.ethnicity.map((e) => ({ label: e.group, value: e.pct, text: pct(e.pct) }))} />
+        {/* A ring, as asked: the groups as arcs of one whole, each named with its share beside it. */}
+        <PartsDonut label={`The people of ${state.name} by race and Hispanic origin, ${y.ethnicity}`} parts={state.ethnicity.map((e) => ({ label: e.group, value: e.pct, text: pct(e.pct) }))} />
         <ChartNote className="mt-2">Census Bureau estimates. White, Black and Asian are non-Hispanic and of one race; Hispanic is of any race.</ChartNote>
       </div>
 
@@ -6481,6 +6485,9 @@ function StateModal({
                   </div>
                 )}
                 <SourceLink sources={SRC_CONGRESS} className="mt-3" />
+
+                {/* When the state's offices are next filled, the national dates ahead, and where each office announces its events. */}
+                <StateDates state={state} />
               </>
             ) /* end overview tab */
           }
@@ -6491,14 +6498,16 @@ function StateModal({
 }
 
 // ─── Election Countdown ──────────────────────────────────────────────────────
-function useElectionCountdown() {
-  const target = new Date("2028-11-07T00:00:00");
-  const [diff, setDiff] = useState(target.getTime() - Date.now());
+/** Days, hours, minutes and seconds to a date, ticking. */
+function useCountdown(target: Date) {
+  const at = target.getTime();
+  const [diff, setDiff] = useState(at - Date.now());
 
   useEffect(() => {
-    const id = setInterval(() => setDiff(target.getTime() - Date.now()), 1000);
+    setDiff(at - Date.now());
+    const id = setInterval(() => setDiff(at - Date.now()), 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [at]);
 
   const totalSecs = Math.max(0, Math.floor(diff / 1000));
   const days = Math.floor(totalSecs / 86400);
@@ -6506,6 +6515,177 @@ function useElectionCountdown() {
   const mins = Math.floor((totalSecs % 3600) / 60);
   const secs = totalSecs % 60;
   return { days, hours, mins, secs };
+}
+
+// ─── A state's dates ─────────────────────────────────────────────────────────
+
+/** "3 January 2027" from "2027-01-03". */
+const dayOf = (iso: string) => civicDay(new Date(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)));
+/** The day a seat in Congress is filled by election: the November before a term that ends on 3 January; for a seat held by appointment, the day the appointment runs to. */
+const ballotDay = (termEnd: string) => (termEnd.endsWith("-01-03") ? electionDay(+termEnd.slice(0, 4) - 1) : new Date(+termEnd.slice(0, 4), +termEnd.slice(5, 7) - 1, +termEnd.slice(8, 10)));
+const inDays = (d: Date) => {
+  const n = daysUntil(d);
+  return n === 0 ? "today" : `in ${n.toLocaleString("en-US")} day${n === 1 ? "" : "s"}`;
+};
+
+/**
+ * At the foot of a state's window: when each of its elected offices is next
+ * filled, the national dates ahead, and where each office announces its own
+ * events.
+ *
+ * The term ends are the published ones (stateOffices.ts); the election days
+ * follow from federal law (lib/usCivicDates.ts). No body publishes a calendar
+ * of town halls or of officials' public events, so none is shown: the section
+ * says so and links to each office's own site.
+ */
+function StateDates({ state }: { state: USState }) {
+  const o = STATE_OFFICES[state.id];
+  const national = React.useMemo(() => upcomingCivicDates().slice(0, 5), []);
+  const [allReps, setAllReps] = useState(false);
+  if (!o) return null;
+  const today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()).getTime();
+  const houseEnd = o.representatives[0]?.termEnd;
+  const rows: { key: string; office: string; who: string; term: string; next: string; url?: string }[] = [
+    ...o.senators.map((sen) => {
+      const ballot = ballotDay(sen.termEnd);
+      const appointed = !sen.termEnd.endsWith("-01-03");
+      return {
+        key: sen.name,
+        office: "US Senate",
+        who: `${sen.name} · ${sen.party}`,
+        term: appointed ? `Holds the seat by appointment until ${dayOf(sen.termEnd)}` : `Term ends ${dayOf(sen.termEnd)}`,
+        next: ballot.getTime() >= today ? `On the ballot ${civicDay(ballot)}, ${inDays(ballot)}` : `Filled at the election of ${civicDay(ballot)}`,
+        url: sen.url,
+      };
+    }),
+    {
+      key: "governor",
+      office: "Governor",
+      who: state.governor,
+      term: `Term ends ${o.governor.termEnds}`,
+      next: "The state's own constitution sets the election; see the governor's page.",
+      url: o.governor.nga,
+    },
+    ...(houseEnd
+      ? [
+          {
+            key: "house",
+            office: "US House",
+            who: `All ${o.representatives.length} seat${o.representatives.length === 1 ? "" : "s"}`,
+            term: `Terms end ${dayOf(houseEnd)}`,
+            next: ballotDay(houseEnd).getTime() >= today ? `On the ballot ${civicDay(ballotDay(houseEnd))}, ${inDays(ballotDay(houseEnd))}` : `Filled at the election of ${civicDay(ballotDay(houseEnd))}`,
+          },
+        ]
+      : []),
+  ];
+  const reps = allReps ? o.representatives : o.representatives.slice(0, 8);
+  const chip = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground hover:bg-muted/60 transition-colors";
+  return (
+    <div className="mt-5">
+      <div className="flex items-center gap-2 mb-2">
+        <Timer size={14} weight="fill" className="text-secondary" />
+        <p className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider">Dates &amp; elections</p>
+      </div>
+
+      {/* When each office is next filled */}
+      <div className="modal-tile rounded-lg p-4">
+        <ChartTitle>When each of {state.name}'s offices is next filled</ChartTitle>
+        <ul className="flex flex-col">
+          {rows.map((r) => (
+            <li key={r.key} className="grid grid-cols-1 sm:grid-cols-[6.5rem_minmax(0,1fr)_minmax(0,1.3fr)] gap-x-3 gap-y-0.5 py-2 border-b border-border last:border-b-0">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{r.office}</span>
+              <span className="text-[12px] font-sans font-semibold text-foreground min-w-0">
+                {r.url ? (
+                  <a href={r.url} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted underline-offset-2 hover:text-secondary transition-colors">
+                    {r.who}
+                  </a>
+                ) : (
+                  r.who
+                )}
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[11px] font-mono text-foreground">{r.term}</span>
+                <span className="block text-[10px] font-sans text-muted-foreground leading-snug">{r.next}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* The national dates ahead */}
+      <div className="modal-tile rounded-lg p-4 mt-3">
+        <ChartTitle>National dates ahead · each set by the law beside it</ChartTitle>
+        <ul className="flex flex-col">
+          {national.map((d) => (
+            <li key={d.id} className="flex items-baseline justify-between gap-3 py-1.5 border-b border-border last:border-b-0" title={d.what}>
+              <span className="min-w-0">
+                <span className="block text-[11px] font-sans font-semibold text-foreground">{d.short}</span>
+                <span className="block text-[10px] font-sans text-muted-foreground leading-snug">{d.what}</span>
+              </span>
+              <span className="text-right shrink-0">
+                <span className="block text-[11px] font-mono font-semibold text-foreground">{civicDay(d.date)}</span>
+                <span className="block text-[10px] font-mono text-muted-foreground">
+                  {inDays(d.date)} ·{" "}
+                  <a href={d.law.url} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted underline-offset-2 hover:text-foreground">
+                    {d.law.label}
+                  </a>
+                </span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Town halls and public events */}
+      <div className="modal-tile rounded-lg p-4 mt-3">
+        <ChartTitle>Town halls and public events</ChartTitle>
+        <p className="text-[11px] font-sans text-muted-foreground leading-relaxed mb-2.5">
+          No body publishes one calendar of town halls or of officials' public events, so no dates are shown here. Each office announces its own: these are
+          the official sites of {state.name}'s senators, its governor and its members of the House. Mayors and councils announce theirs on each city's own
+          site; the site keeps no list of them.
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {o.senators
+            .filter((x) => x.url)
+            .map((x) => (
+              <a key={x.name} href={x.url} target="_blank" rel="noopener noreferrer" className={chip} title={`${x.name}'s official Senate site`}>
+                <span className="text-[9px] font-mono text-muted-foreground">SENATE</span>
+                {x.name}
+              </a>
+            ))}
+          {o.governor.nga && (
+            <a href={o.governor.nga} target="_blank" rel="noopener noreferrer" className={chip} title={`The National Governors Association's page for ${state.governor}, with the governor's own site`}>
+              <span className="text-[9px] font-mono text-muted-foreground">GOVERNOR</span>
+              {state.governor}
+            </a>
+          )}
+          {reps
+            .filter((x) => x.url)
+            .map((x) => (
+              <a key={x.district} href={x.url} target="_blank" rel="noopener noreferrer" className={chip} title={`${x.name}'s official House site`}>
+                <span className="text-[9px] font-mono text-muted-foreground">
+                  {state.abbreviation}-{x.district === "At Large" ? "AL" : x.district}
+                </span>
+                {x.name}
+              </a>
+            ))}
+          {o.representatives.length > 8 && (
+            <button type="button" onClick={() => setAllReps((v) => !v)} className={`${chip} cursor-pointer text-secondary`} aria-expanded={allReps}>
+              {allReps ? "Show fewer" : `All ${o.representatives.length} members of the House`}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <SourceLink
+        sources={[
+          { label: STATE_OFFICES_SOURCES.congress.label, url: STATE_OFFICES_SOURCES.congress.url },
+          { label: STATE_OFFICES_SOURCES.governors.label, url: STATE_OFFICES_SOURCES.governors.url },
+        ]}
+        className="mt-3"
+      />
+    </div>
+  );
 }
 
 // ─── National Stats Banner ────────────────────────────────────────────────────
@@ -6693,7 +6873,13 @@ function StateSnapshot() {
 }
 
 function USNationalBanner() {
-  const { days, hours, mins, secs } = useElectionCountdown();
+  /* The dates the countdown can run to: the elections and changes of office ahead, each worked out from the law that
+     fixes it. It opens on the next presidential election, as it always has; the others are a choice away. */
+  const dates = React.useMemo(() => upcomingCivicDates(), []);
+  const [pickedId, setPickedId] = useState(() => (dates.find((d) => d.id.startsWith("president-")) ?? dates[0]).id);
+  const picked = dates.find((d) => d.id === pickedId) ?? dates[0];
+  const [datesOpen, setDatesOpen] = useState(false);
+  const { days, hours, mins, secs } = useCountdown(picked.date);
 
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden mb-8 shadow-lg">
@@ -6742,9 +6928,18 @@ function USNationalBanner() {
               />
             </div>
             <div>
-              <p className="text-[9px] font-semibold text-muted-foreground font-sans uppercase tracking-widest mb-1">
-                Next Presidential Election · Nov 2028
-              </p>
+              {/* The date counted to, as a drop-down: the midterms, the presidential election and each change of office after them. */}
+              <button
+                type="button"
+                onClick={() => setDatesOpen((v) => !v)}
+                aria-expanded={datesOpen}
+                aria-controls="us-civic-dates"
+                title="Choose the date the countdown runs to"
+                className="flex items-center gap-1.5 text-[9px] font-semibold text-muted-foreground hover:text-foreground font-sans uppercase tracking-widest mb-1 transition-colors cursor-pointer"
+              >
+                {picked.short} · {picked.date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                <CaretDown size={10} weight="bold" className={`transition-transform ${datesOpen ? "rotate-180" : ""}`} aria-hidden />
+              </button>
               <div className="flex items-end gap-1">
                 {[
                   { val: String(days).padStart(3, "0"), label: "days" },
@@ -6775,6 +6970,34 @@ function USNationalBanner() {
                   </span>
                 ))}
               </div>
+              {datesOpen && (
+                <ul id="us-civic-dates" role="listbox" aria-label="The date the countdown runs to" className="mt-2.5 pt-2 border-t border-border flex flex-col gap-0.5 w-[19rem] max-w-full">
+                  {dates.map((d) => (
+                    <li key={d.id} role="option" aria-selected={d.id === picked.id}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPickedId(d.id);
+                          setDatesOpen(false);
+                        }}
+                        title={d.what}
+                        className={`w-full text-left rounded-lg px-2 py-1.5 transition-colors cursor-pointer ${d.id === picked.id ? "bg-muted/70" : "hover:bg-muted/40"}`}
+                      >
+                        <span className="flex items-baseline justify-between gap-3">
+                          <span className="text-[11px] font-sans font-semibold text-foreground">{d.short}</span>
+                          <span className="text-[10px] font-mono text-muted-foreground shrink-0">{inDays(d.date)}</span>
+                        </span>
+                        <span className="block text-[10px] font-mono text-muted-foreground">
+                          {civicDay(d.date)} · {d.law.label}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                  <li className="text-[9px] font-sans text-muted-foreground leading-snug px-2 pt-1.5">
+                    Each day follows from the law named beside it. States set their own primaries, which are not here.
+                  </li>
+                </ul>
+              )}
             </div>
           </div>
         </div>

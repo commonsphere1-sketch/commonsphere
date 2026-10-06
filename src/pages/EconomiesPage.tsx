@@ -218,10 +218,10 @@ const FIGURE_YEAR_LABELS: [string, string][] = [
   ["stockMarketCap", "market cap"],
 ];
 
-/** The state an economy's growth puts it in, with the year that figure is for: from the source it is cited to, or the card's own record. */
+/** The degree of inflation an economy is at, with the year that figure is for: from the source it is cited to, or the card's own record. */
 function statusOf(economy: Economy) {
-  const year = (ECONOMY_FIGURE_SOURCES[economy.id] as Record<string, { year: string } | undefined> | undefined)?.gdpGrowthRate?.year ?? economy.figureYears?.gdpGrowthRate;
-  return economyStatus(economy.gdpGrowthRate, year);
+  const year = (ECONOMY_FIGURE_SOURCES[economy.id] as Record<string, { year: string } | undefined> | undefined)?.inflationRate?.year ?? economy.figureYears?.inflationRate;
+  return economyStatus(economy.inflationRate, year);
 }
 
 function FigureYears({ economy }: { economy: Economy }) {
@@ -2728,7 +2728,7 @@ export function EconomiesPage() {
                 ? "No economies match."
                 : `Showing ${currentPage * ECONOMIES_PER_PAGE + 1}–${Math.min((currentPage + 1) * ECONOMIES_PER_PAGE, filtered.length)} of ${filtered.length} economies`}
             </p>
-            {/* What a card's hue says, before any is read: the state its growth puts it in. */}
+            {/* What a card's hue says, before any is read: the degree of inflation the economy is at. */}
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mb-3" aria-label="What each card's colour means">
               <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Card colour</span>
               {ECONOMY_STATUS_KEY.map((k) => (
@@ -2737,8 +2737,8 @@ export function EconomiesPage() {
                 </span>
               ))}
               <span className="text-[10px] font-sans text-muted-foreground leading-snug basis-full">
-                An economy's real GDP growth for its latest year against the world's for the same year, both the World Bank's. It reads growth
-                alone; prices, jobs and debt are the figures on each card.
+                An economy's consumer-price inflation for its latest year against the world's for the same year, both the World Bank's. The
+                lines are zero, the world's rate and twice it. It reads prices alone; growth, jobs and debt are the figures on each card.
               </span>
             </div>
             <div className="space-y-4 min-w-0">
@@ -2753,7 +2753,7 @@ export function EconomiesPage() {
                     className="cs-on-hue modal-tile relative overflow-hidden rounded-xl p-2 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40 flex-1 min-w-0"
                     title={statusOf(economy).detail}
                   >
-                    {/* The hue of the state the economy is in: the headline banners' wash, in the state's colour. */}
+                    {/* The hue of the degree of inflation the economy is at: the headline banners' wash, in the degree's colour. */}
                     <div aria-hidden className={`absolute inset-0 ${statusOf(economy).hue} pointer-events-none`} />
                     <div className="relative">
                     <div className="flex items-start justify-between mb-1">
@@ -2772,7 +2772,7 @@ export function EconomiesPage() {
                           <span className="text-[10px] text-muted-foreground border border-border px-1.5 py-px rounded-full font-sans">
                             {economy.entityType}
                           </span>
-                          {/* The state the hue stands for, in words. */}
+                          {/* The degree the hue stands for, in words. */}
                           <span className={`text-[10px] font-semibold px-1.5 py-px rounded-full font-sans ${statusOf(economy).chip}`} title={statusOf(economy).detail}>
                             {statusOf(economy).label}
                           </span>

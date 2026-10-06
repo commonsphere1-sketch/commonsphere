@@ -15,7 +15,7 @@
  * referenced figure, the population inside the city's own boundary. What no
  * body publishes for every city alike is not shown.
  */
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CITY_PLACES } from "../data/cityPlaces";
 import {
@@ -51,6 +51,10 @@ import { SourceLink } from "../components/SourceLink";
 import { SeeAlso } from "../components/SeeAlso";
 import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
+
+/* Water, energy, transport, safety, business and the economy for the city's country. Loaded when a window opens:
+   the figures it reads are the Countries page's, and large. */
+const CountryQuality = lazy(() => import("../components/CountryQuality"));
 
 const SRC = CITY_FIGURES_SOURCE;
 /** The last year of the UN's estimates; the years after are its projections. */
@@ -716,6 +720,12 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                   <SourceLink sources={SRC_CITY} className="mb-1" />
                 </>
               )}
+
+              {/* The headings the windows once had - water, energy, transport, safety, business, the economy - with the
+                  country's published figures under them, and said to be the country's. */}
+              <Suspense fallback={null}>
+                <CountryQuality code={city.countryCode} country={city.country} place={city.name} />
+              </Suspense>
 
               {/* Languages, Landmarks, Religions */}
               {(city.languages?.length || city.landmarks?.length || city.religions?.length) && (

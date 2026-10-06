@@ -54,6 +54,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "When each state's senators', representatives' and governor's terms end",
+    "from": "congress-legislators, Wikipedia (citing the National Governors Association)",
+    "page": "/dashboard/states",
+    "where": "US states",
+    "read": "2026-10-06",
+    "files": 1
+  },
+  {
     "what": "Renewable power: generation, capacity, cost and investment",
     "from": "IRENA, Ember, U.S. EIA, OECD",
     "page": "/dashboard/trends",
@@ -168,4 +176,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 39;
+export const DATA_LOG_FILES = 40;
