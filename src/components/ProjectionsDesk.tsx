@@ -17,13 +17,6 @@
  *     Energy Outlook               its Reference case, and the lowest and
  *                                  highest of its seven cases (renewables.ts)
  *
- * Two tabs are trends, not projections, because no body projects them:
- * research and discovery (what the world spends on research, its researchers,
- * its papers and patents) and technology (who is online, the robots at work,
- * what is put into AI, electric cars). Each is the world's measured series to
- * its publisher's latest year (worldview.ts), drawn solid throughout, and the
- * tab says there is no projection to show.
- *
  * How it reads. A line is solid over the years its publisher estimates and
  * dashed over the years it projects, and the projected years are washed; a
  * table gives the same series to the figure, year by year. A percentage
@@ -34,10 +27,9 @@
  */
 import { useMemo, useState, type ReactNode } from "react";
 import { Area, CartesianGrid, ComposedChart, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowDown, ArrowRight, ArrowUp, ChartLineUp, Cpu, Flask, Globe, Lightning, Minus, Target, TrendUp, Users, X } from "@phosphor-icons/react";
+import { ArrowDown, ArrowRight, ArrowUp, ChartLineUp, Globe, Lightning, Minus, Target, TrendUp, Users, X } from "@phosphor-icons/react";
 import { POPULATION_OUTLOOK, POPULATION_VARIANTS, PROJECTIONS_RETRIEVED, PROJECTION_SOURCES, WEO_COUNTRIES, WEO_GROUPS, type CountryOutlook, type Point } from "../data/projections";
 import { RENEWABLE_OUTLOOK, type OutlookRow } from "../data/renewables";
-import { WORLD, type WorldIndicator } from "../data/worldview";
 import { usdFromBillions } from "../lib/money";
 import { Label, useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
@@ -1085,248 +1077,9 @@ function ScenariosTab({ t }: { t: Tokens }) {
   );
 }
 
-// ── Research and technology: the measured record ────────────────────────────
-
-/** A tab of world series that are measured, not projected: which series, in the order of its tiles, and its colour. */
-type TrendSpec = { ids: string[]; color: string; about: string };
-const RESEARCH: TrendSpec = {
-  ids: ["research", "researchers", "sciArticles", "patents", "aiPublications", "ipReceipts"],
-  color: "#65a30d",
-  about: "What the world puts into research and what comes out of it: spending, the people doing it, the papers and patents, and what is paid across borders for their use.",
-};
-const TECH: TrendSpec = {
-  ids: ["internet", "mobile", "broadband", "secureServers", "robotStock", "aiInvestment", "evSalesShare", "highTechExports"],
-  color: "#e11d48",
-  about: "How far technology has spread and what is being put into it: who is online and how, the robots at work, the money going into AI, electric cars, and high-tech goods in trade.",
-};
-const seriesOf = (spec: TrendSpec) => spec.ids.map((id) => WORLD[id]).filter((x): x is WorldIndicator => !!x && x.series.length > 1);
-/** The latest year any of a tab's series runs to: the tab's badge. */
-const latestOf = (spec: TrendSpec) => Math.max(0, ...seriesOf(spec).map((i) => lastOf(i.series)[0]));
-
-const compact = (v: number) => {
-  const a = Math.abs(v);
-  return a >= 1e12 ? `${Number((v / 1e12).toFixed(2))}tn` : a >= 1e9 ? `${Number((v / 1e9).toFixed(a >= 1e10 ? 0 : 1))}bn` : a >= 1e6 ? `${Number((v / 1e6).toFixed(a >= 1e7 ? 1 : 2))}M` : whole(v);
-};
-/** A world series' figure, as its kind is printed. */
-const printWorld = (ind: WorldIndicator, v: number) =>
-  ind.format === "pct" ? `${v.toFixed(ind.dp)}%` : ind.format === "usd" ? `$${compact(v)}` : ind.format === "count" ? compact(v) : v.toLocaleString("en-US", { minimumFractionDigits: ind.dp, maximumFractionDigits: ind.dp });
-const tickWorld = (ind: WorldIndicator) => (v: number) => {
-  const a = Math.abs(v);
-  const n = a >= 1e9 ? `${Number((v / 1e9).toFixed(1))}bn` : a >= 1e6 ? `${Number((v / 1e6).toFixed(1))}M` : a >= 1e4 ? `${Number((v / 1e3).toFixed(0))}k` : String(Number(v.toFixed(2)));
-  return ind.format === "pct" ? `${n}%` : ind.format === "usd" ? (v === 0 ? "$0" : `$${n}`) : n;
-};
-/** The publisher, without "via ..." or what follows a dash. */
-const publisherOf = (label: string) => label.split(/ \(| — /)[0];
-
-/** How a series' latest figure stands against an earlier one: points for a share, a percentage or a multiple otherwise. */
-function movedSince(ind: WorldIndicator, from: [number, number], to: [number, number]): { text: string; dir?: "up" | "down" } | null {
-  if (from[0] === to[0]) return null;
-  const was = `${from[0]} (${printWorld(ind, from[1])})`;
-  if (ind.format === "pct") {
-    const d = to[1] - from[1];
-    return { text: `${signed(d, ind.dp)} pts on ${was}`, dir: d > 0 ? "up" : d < 0 ? "down" : undefined };
-  }
-  if (from[1] <= 0) return null;
-  const ratio = to[1] / from[1];
-  const dir = ratio > 1 ? ("up" as const) : ratio < 1 ? ("down" as const) : undefined;
-  return { text: ratio >= 10 ? `${Math.round(ratio)} times ${was}` : `${signed(100 * (ratio - 1), 0)}% on ${was}`, dir };
-}
-/** The figure nearest ten years before the series' latest, or its first. */
-const tenBefore = (ind: WorldIndicator): [number, number] => {
-  const last = lastOf(ind.series)[0];
-  return [...ind.series].reverse().find(([y]) => y <= last - 10) ?? ind.series[0];
-};
-
-function TrendTip({ active, payload, label, ind }: { active?: boolean; payload?: { value?: number | null }[]; label?: string; ind: WorldIndicator }) {
-  const v = payload?.[0]?.value;
-  if (!active || v == null) return null;
-  return (
-    <div className="cs-chart-tip rounded-md p-2 text-[11px] font-mono font-bold">
-      <p className="mb-1" style={{ opacity: 0.75 }}>
-        {label} · measured
-      </p>
-      <p>
-        {ind.label}: {printWorld(ind, v)}
-      </p>
-    </div>
-  );
-}
-
-/** One measured series, year by year, on an axis from zero: solid all the way, a dot a figure - a year with none is a gap, not a guess. */
-function TrendChart({ t, ind, color, label }: { t: Tokens; ind: WorldIndicator; color: string; label: string }) {
-  const [y0, y1] = [ind.series[0][0], lastOf(ind.series)[0]];
-  const data = Array.from({ length: y1 - y0 + 1 }, (_, i) => ({ year: String(y0 + i), v: at(ind.series, y0 + i) ?? null }));
-  const sparse = ind.series.length < (y1 - y0 + 1) * 0.7;
-  return (
-    <div role="img" aria-label={label}>
-      <ResponsiveContainer width="100%" height={250}>
-        <LineChart data={data} margin={{ top: 16, right: 10, left: 0, bottom: 0 }}>
-          <CartesianGrid stroke={t.gridLine} vertical={false} />
-          <XAxis dataKey="year" {...axisOf(t)} minTickGap={18} />
-          <YAxis {...axisOf(t)} width={54} tickFormatter={tickWorld(ind)} domain={[0, "auto"]} />
-          <Tooltip content={<TrendTip ind={ind} />} />
-          <Line type="monotone" dataKey="v" stroke={color} strokeWidth={2} dot={sparse ? { r: 3, fill: color, strokeWidth: 0 } : false} connectNulls isAnimationActive={false} />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
-/** Every series of the tab at the same years, to the figure: a row a series, each in its own unit, a dash where its publisher has no figure for the year. */
-function MeasuredTable({ t, inds, picked, onPick, caption }: { t: Tokens; inds: WorldIndicator[]; picked: string; onPick: (id: string) => void; caption: string }) {
-  const last = Math.max(...inds.map((i) => lastOf(i.series)[0]));
-  const first = Math.max(Math.min(...inds.map((i) => i.series[0][0])), last - 30);
-  const years = [...new Set([...Array.from({ length: last - first + 1 }, (_, i) => first + i).filter((y) => y % 5 === 0), ...inds.map((i) => lastOf(i.series)[0])])].sort((a, b) => a - b);
-  const cell = "px-2 py-1.5 text-[11px] font-mono tabular-nums whitespace-nowrap";
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-right" style={{ minWidth: 220 + years.length * 64 }}>
-        <caption className="sr-only">{caption}</caption>
-        <thead>
-          <tr>
-            <td />
-            {years.map((y) => (
-              <th key={y} scope="col" className={`${cell} font-bold`} style={{ color: t.headText, borderBottom: `1px solid ${t.gridLine}` }}>
-                {y}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {inds.map((ind) => (
-            <tr key={ind.id} onClick={() => onPick(ind.id)} className="cursor-pointer" style={{ background: ind.id === picked ? t.tile : undefined }}>
-              <th scope="row" className="py-1.5 pr-3 text-left font-normal" style={{ borderBottom: `1px solid ${t.gridLine}` }}>
-                <span className="block text-[11px] font-sans font-semibold leading-tight" style={{ color: t.headText }}>
-                  {ind.label}
-                </span>
-                <span className="block text-[9px] font-mono leading-tight" style={{ color: t.mutedText }}>
-                  {ind.unit}
-                </span>
-              </th>
-              {years.map((y) => {
-                const v = at(ind.series, y);
-                return (
-                  <td key={y} className={cell} style={{ color: v === undefined ? t.mutedText : t.headText, borderBottom: `1px solid ${t.gridLine}` }}>
-                    {v === undefined ? "—" : printWorld(ind, v)}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-/**
- * A tab of measured world series: a tile a series, the picked one drawn over
- * its whole record with what it says read off beside it, and every series of
- * the tab in one table. Nothing here is a projection, and the tab says so.
- */
-function MeasuredTab({ t, spec, name }: { t: Tokens; spec: TrendSpec; name: string }) {
-  const inds = seriesOf(spec);
-  const [pick, setPick] = useState(inds[0]?.id ?? "");
-  const ind = inds.find((x) => x.id === pick) ?? inds[0];
-  if (!ind) return <Note t={t}>The site holds no series for this.</Note>;
-  const first = ind.series[0];
-  const last = lastOf(ind.series);
-  const hi = ind.series.reduce((a, b) => (b[1] > a[1] ? b : a));
-  const lo = ind.series.reduce((a, b) => (b[1] < a[1] ? b : a));
-  const whole_ = movedSince(ind, first, last);
-  const facts: { label: string; value: string; sub?: string }[] = [
-    { label: `Latest, ${last[0]}`, value: printWorld(ind, last[1]), sub: ind.unit },
-    { label: `Where the series starts, ${first[0]}`, value: printWorld(ind, first[1]) },
-    ...(whole_ ? [{ label: `Over the ${last[0] - first[0]} years between`, value: whole_.text.split(" on ")[0], sub: `from ${printWorld(ind, first[1])} to ${printWorld(ind, last[1])}` }] : []),
-    { label: "Highest and lowest in the series", value: `${printWorld(ind, hi[1])} · ${printWorld(ind, lo[1])}`, sub: `${hi[0]} · ${lo[0]}` },
-  ];
-  const sources = [...new Map(inds.map((i) => [i.source.url, i.source])).values()];
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="rounded-xl px-4 py-3" style={{ background: spec.color + (t.isLight ? "0d" : "14"), border: `1px solid ${spec.color}33` }}>
-        <p className="text-[12px] font-sans leading-relaxed" style={{ color: t.bodyText }}>
-          <strong style={{ color: t.headText }}>These are measured, not projected.</strong> {spec.about} No body publishes a projection of any of them, so each
-          line stops at its publisher's latest year and nothing is drawn beyond it.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2" role="group" aria-label="The series the chart shows">
-        {inds.map((x) => {
-          const end = lastOf(x.series);
-          return (
-            <Figure
-              key={x.id}
-              t={t}
-              label={x.label}
-              value={printWorld(x, end[1])}
-              sub={`${x.unit} · ${end[0]}`}
-              change={movedSince(x, tenBefore(x), end)}
-              on={x.id === ind.id}
-              onPick={() => setPick(x.id)}
-              color={spec.color}
-            />
-          );
-        })}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Block t={t} title={`${ind.label}: the world, ${first[0]} to ${last[0]}`} kicker={`${ind.unit} · ${publisherOf(ind.source.label)} · measured, on an axis from zero`} className="lg:col-span-2">
-          <TrendChart t={t} ind={ind} color={spec.color} label={`${ind.label} for the world, ${first[0]} to ${last[0]}: ${printWorld(ind, first[1])} to ${printWorld(ind, last[1])}. The table below has the figures.`} />
-          <Legend t={t} items={[{ color: spec.color, label: `${first[0]}`, value: printWorld(ind, first[1]) }, { color: spec.color, label: `${last[0]}`, value: printWorld(ind, last[1]) }]} />
-          {ind.note && <Note t={t}>{ind.note}</Note>}
-        </Block>
-        <Block t={t} title="What it says" kicker={`Read off the series · ${publisherOf(ind.source.label)}`}>
-          <dl className="flex flex-col">
-            {facts.map((x) => (
-              <div key={x.label} className="py-2" style={{ borderBottom: `1px solid ${t.gridLine}` }}>
-                <dt className="text-[10px] font-sans" style={{ color: t.mutedText }}>
-                  {x.label}
-                </dt>
-                <dd className="text-sm font-bold font-mono leading-tight mt-0.5" style={{ color: t.headText }}>
-                  {x.value}
-                </dd>
-                {x.sub && (
-                  <dd className="text-[9px] font-mono leading-snug mt-0.5" style={{ color: t.mutedText }}>
-                    {x.sub}
-                  </dd>
-                )}
-              </div>
-            ))}
-          </dl>
-          {ind.breakdown && ind.breakdown.length > 0 && (
-            <div>
-              <p className="text-[9px] font-mono uppercase tracking-widest mb-1.5" style={{ color: t.mutedText }}>
-                Its parts{ind.breakdownYear ? `, ${ind.breakdownYear}` : ""}
-                {ind.breakdownUnit ? ` · ${ind.breakdownUnit}` : ""}
-              </p>
-              <ul className="flex flex-col gap-1">
-                {ind.breakdown.slice(0, 6).map(([label, v]) => (
-                  <li key={label} className="flex items-baseline justify-between gap-3">
-                    <span className="text-[11px] font-sans min-w-0" style={{ color: t.bodyText }}>
-                      {label}
-                    </span>
-                    <span className="text-[11px] font-mono font-bold shrink-0" style={{ color: t.headText }}>
-                      {ind.breakdownUnit ? v.toLocaleString("en-US", { maximumFractionDigits: 1 }) : printWorld(ind, v)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </Block>
-      </div>
-
-      <Block t={t} title={`${name}, year by year`} kicker="Each series in its own unit · every fifth year and each series' latest · a dash where its publisher has no figure · select a row to chart it">
-        <MeasuredTable t={t} inds={inds} picked={ind.id} onPick={setPick} caption={`${name}: the world's figure for each series, by year.`} />
-        <SourceLink sources={sources} />
-      </Block>
-    </div>
-  );
-}
-
 // ── The desk ────────────────────────────────────────────────────────────────
 
-type TabId = "economy" | "countries" | "people" | "energy" | "research" | "tech" | "scenarios";
+type TabId = "economy" | "countries" | "people" | "energy" | "scenarios";
 
 export function ProjectionsDesk({ action, id }: { /** A link at the head of the panel: to the page with the full analysis. */ action?: { label: string; onClick: () => void }; id?: string }) {
   const t = useTokens();
@@ -1336,9 +1089,6 @@ export function ProjectionsDesk({ action, id }: { /** A link at the head of the 
     { id: "countries", label: "Countries", badge: `${WEO_COUNTRIES.length}`, color: "#d97706", icon: <Globe size={12} weight="fill" /> },
     { id: "people", label: "People", badge: `to ${UN_END}`, color: "#c026d3", icon: <Users size={12} weight="fill" /> },
     { id: "energy", label: "Energy", badge: `to ${EIA.year}`, color: "#0d9488", icon: <Lightning size={12} weight="fill" /> },
-    // The measured record, not a projection: the badge is the latest year its series run to.
-    { id: "research", label: "Research & discovery", badge: `measured to ${latestOf(RESEARCH)}`, color: RESEARCH.color, icon: <Flask size={12} weight="fill" /> },
-    { id: "tech", label: "Technology", badge: `measured to ${latestOf(TECH)}`, color: TECH.color, icon: <Cpu size={12} weight="fill" /> },
     { id: "scenarios", label: "Scenarios", badge: "published only", color: "#7c3aed", icon: <Target size={12} weight="fill" /> },
   ];
   return (
@@ -1353,8 +1103,8 @@ export function ProjectionsDesk({ action, id }: { /** A link at the head of the 
               Trends &amp; Projections
             </h2>
             <p className="text-[11px] font-sans leading-snug mt-0.5 max-w-2xl" style={{ color: t.mutedText }}>
-              Where the bodies that publish projections put the world next: the economy from the IMF, power from the U.S. EIA, people from the UN - and, for research and
-              technology, which nobody projects, the measured record to date. Published figures only - no probabilities, no confidence scores.
+              Where the bodies that publish projections put the world next: the economy from the IMF, power from the U.S. EIA, people from the UN. Published figures only - no
+              probabilities, no confidence scores.
             </p>
           </div>
         </div>
@@ -1395,8 +1145,6 @@ export function ProjectionsDesk({ action, id }: { /** A link at the head of the 
         {tab === "countries" && <CountriesTab t={t} />}
         {tab === "people" && <PeopleTab t={t} />}
         {tab === "energy" && <EnergyTab t={t} />}
-        {tab === "research" && <MeasuredTab key="research" t={t} spec={RESEARCH} name="Research and discovery" />}
-        {tab === "tech" && <MeasuredTab key="tech" t={t} spec={TECH} name="Technology" />}
         {tab === "scenarios" && <ScenariosTab t={t} />}
       </div>
     </section>
