@@ -1237,3 +1237,84 @@ html:not(.light) .cs-chart-tip p[style*="color"] {
 .recharts-default-tooltip .recharts-tooltip-item[style*="color: rgb(0, 0, 0)"] {
   color: var(--color-foreground) !important;
 }
+
+/* ── The explorers on a wide window ──────────────────────────────────────
+   The list-and-detail explorers (DataExplorer, ResourceExplorer,
+   StatExplorer) were drawn as a narrow card: 520px tall, capped at 72rem,
+   the detail one long column of 9 to 11px text. On a wide or full-screen
+   window that left a small box to scroll and small print to read. From
+   1280px they take the page's width and most of the window's height, give
+   the list a column of its own width, set the detail's parts side by side -
+   two columns, three from 1536px - and set their text two sizes larger.
+   A part is a <section> (Block, in DataExplorer); anything else in the
+   detail runs the full width. */
+@media (min-width: 1280px) {
+  .explorer {
+    max-width: none;
+  }
+  .explorer .explorer-panes,
+  .explorer-panes {
+    height: min(78vh, 900px);
+  }
+  .explorer-panes > .explorer-list {
+    width: 340px;
+    flex: none;
+  }
+  .explorer-panes > .explorer-detail {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem 2rem;
+    align-items: start;
+    align-content: start;
+    padding: 1.25rem 1.5rem;
+  }
+  .explorer-detail > :not(section) {
+    grid-column: 1 / -1;
+  }
+  .explorer .text-\[8px\],
+  .explorer-panes .text-\[8px\] {
+    font-size: 10px;
+  }
+  .explorer .text-\[9px\],
+  .explorer-panes .text-\[9px\] {
+    font-size: 11px;
+  }
+  .explorer .text-\[10px\],
+  .explorer-panes .text-\[10px\] {
+    font-size: 12px;
+  }
+  .explorer .text-\[11px\],
+  .explorer-panes .text-\[11px\] {
+    font-size: 13px;
+  }
+  .explorer .text-\[12px\],
+  .explorer-panes .text-\[12px\] {
+    font-size: 14px;
+  }
+  .explorer .text-\[13px\],
+  .explorer-panes .text-\[13px\] {
+    font-size: 15px;
+  }
+  .explorer .text-xs,
+  .explorer-panes .text-xs {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  .explorer .text-sm,
+  .explorer-panes .text-sm {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  .explorer .recharts-cartesian-axis-tick-value,
+  .explorer-panes .recharts-cartesian-axis-tick-value {
+    font-size: 10px;
+  }
+}
+@media (min-width: 1536px) {
+  .explorer-panes > .explorer-list {
+    width: 380px;
+  }
+  .explorer-panes > .explorer-detail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

@@ -23,7 +23,7 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { ArrowRight, MagnifyingGlass, Tree, X } from "@phosphor-icons/react";
 import { RESOURCE_DETAILS } from "../data/resourceDetails";
 import { COMMODITY_PRICE_SOURCES } from "../data/commodityPrices";
-import { Empty, GoButton, Kpi, Label, Row, tooltipStyle, useTokens, type Tokens } from "./DataExplorer";
+import { Block, Empty, GoButton, Kpi, Label, Row, tooltipStyle, useTokens, type Tokens } from "./DataExplorer";
 import { LATEST_PRICE_MONTH, fmtMonth, fmtPrice, holderTitle, leadingHolders, leadingProducers, priceFacts, producerFacts, producerSources, type PriceFacts, type ResourceSummary } from "./ResourceModal";
 import { SourceLink } from "./SourceLink";
 
@@ -64,7 +64,7 @@ export function ResourceExplorer({
   const shown = (name ? entries.find((e) => e.r.name === name) : null) ?? list[0] ?? null;
 
   return (
-    <div className={embedded ? "flex flex-col" : "flex flex-col rounded-2xl overflow-hidden w-full max-w-6xl mx-auto"} style={embedded ? undefined : { background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
+    <div className={embedded ? "flex flex-col" : "explorer flex flex-col rounded-2xl overflow-hidden w-full max-w-6xl mx-auto"} style={embedded ? undefined : { background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
       {!embedded && (
       <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: COLOR }}>
         <Tree size={12} weight="fill" aria-hidden />
@@ -93,11 +93,11 @@ export function ResourceExplorer({
         )}
       </div>
 
-      <div className="flex flex-col md:flex-row md:h-[520px]">
-        <div className="flex flex-col overflow-y-auto max-h-[320px] md:max-h-none md:h-full md:w-[44%] border-b md:border-b-0 md:border-r" style={{ borderColor: t.gridLine }}>
+      <div className="explorer-panes flex flex-col md:flex-row md:h-[520px]">
+        <div className="explorer-list flex flex-col overflow-y-auto max-h-[320px] md:max-h-none md:h-full md:w-[44%] border-b md:border-b-0 md:border-r" style={{ borderColor: t.gridLine }}>
           <ResourceList t={t} entries={entries} list={list} selected={shown} onPick={(n) => setName(n)} />
         </div>
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 md:h-full">{shown && <ResourceDetail key={shown.r.name} t={t} entry={shown} onOpen={() => onOpen(shown.r)} />}</div>
+        <div className="explorer-detail flex-1 overflow-y-auto p-4 flex flex-col gap-3 md:h-full">{shown && <ResourceDetail key={shown.r.name} t={t} entry={shown} onOpen={() => onOpen(shown.r)} />}</div>
       </div>
 
       <div className="px-4 py-2.5 border-t flex items-center justify-between gap-3" style={{ borderColor: t.gridLine }}>
@@ -224,6 +224,7 @@ function ResourceDetail({ t, entry: { r, price }, onOpen }: { t: Tokens; entry: 
   const text = "text-[11px] font-sans leading-relaxed";
   return (
     <>
+      <Block>
       <div>
         <p className="text-sm font-bold font-sans flex items-center gap-2" style={{ color: t.headText }}>
           <span className="w-2 h-2 rounded-full shrink-0" style={{ background: r.color }} aria-hidden />
@@ -248,8 +249,9 @@ function ResourceDetail({ t, entry: { r, price }, onOpen }: { t: Tokens; entry: 
         {made?.held && <Kpi t={t} label={`World ${made.heldLabel}`} value={made.held} sub={made.heldYear ?? undefined} color={t.headText} />}
         {made?.topHolder && <Kpi t={t} label={holderTitle(made.heldLabel)} value={made.topHolder.name} sub={[made.topHolder.amount, made.topHolder.share].filter(Boolean).join(" · ")} color={t.headText} />}
       </div>
+      </Block>
       {price && trend.length > 2 && (
-        <>
+        <Block>
           <Label t={t}>
             Price · {price.price.unit} · {fmtMonth(trend[0].m)} to {fmtMonth(price.month)}
           </Label>
@@ -285,10 +287,10 @@ function ResourceDetail({ t, entry: { r, price }, onOpen }: { t: Tokens; entry: 
               {detail.unit}
             </p>
           )}
-        </>
+        </Block>
       )}
       {producers.length > 0 && made && (
-        <>
+        <Block>
           <Label t={t}>
             Largest producers · {made.outputYear} · of {made.countries} listed
           </Label>
@@ -296,16 +298,16 @@ function ResourceDetail({ t, entry: { r, price }, onOpen }: { t: Tokens; entry: 
           <p className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
             {made.measure}.
           </p>
-        </>
+        </Block>
       )}
       {holders.length > 1 && made?.held && (
-        <>
+        <Block>
           <Label t={t}>
             {made.heldLabel === "exports" ? "Largest exporters" : `Largest ${made.heldLabel}`}
             {made.heldYear ? ` · ${made.heldYear}` : ""}
           </Label>
           <RankBars t={t} color={r.color} rows={holders} label={`Largest ${made.heldLabel} of ${r.name}`} />
-        </>
+        </Block>
       )}
       <SourceLink sources={sources} />
 

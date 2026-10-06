@@ -189,10 +189,11 @@ export function DataExplorer({
         : `${policies.length} of the ${capped ? `newest ${headlines.length}` : headlines.length} policy headlines from the last week`;
 
   return (
-    /* Capped and centred: on a wide or full-screen window the list's rows and
-       the detail's charts stretched across the whole page, a name at one edge
-       and its figure at the other. */
-    <div className="flex flex-col rounded-2xl overflow-hidden w-full max-w-6xl mx-auto" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
+    /* Capped and centred up to 1280px. From there the explorer takes the page's
+       width and the window's height, the list keeps a column of its own and
+       the detail sets its parts side by side (index.css, "The explorers on a
+       wide window"): what stretched across the page was one column, not this. */
+    <div className="explorer flex flex-col rounded-2xl overflow-hidden w-full max-w-6xl mx-auto" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
       {/* One category alone is headed by its name; all three are tabs. */}
       {only ? (
         <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: cur.color }}>
@@ -261,9 +262,9 @@ export function DataExplorer({
       </div>
 
       {/* List beside detail; stacked on a phone */}
-      <div className="flex flex-col md:flex-row md:h-[520px]">
+      <div className="explorer-panes flex flex-col md:flex-row md:h-[520px]">
         <div
-          className="flex flex-col overflow-y-auto max-h-[320px] md:max-h-none md:h-full md:w-[44%] border-b md:border-b-0 md:border-r"
+          className="explorer-list flex flex-col overflow-y-auto max-h-[320px] md:max-h-none md:h-full md:w-[44%] border-b md:border-b-0 md:border-r"
           style={{ borderColor: t.gridLine }}
         >
           {tab === "countries" && <CountryList t={t} countries={countries} selected={country} onPick={(c) => setCountryId(c.id)} searching={!!q} />}
@@ -280,7 +281,7 @@ export function DataExplorer({
             />
           )}
         </div>
-        <div ref={detailRef} className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 md:h-full">
+        <div ref={detailRef} className="explorer-detail flex-1 overflow-y-auto p-4 flex flex-col gap-3 md:h-full">
           {tab === "countries" && country && <CountryDetail key={country.id} t={t} c={country} all={byGdp} onOpen={onOpenCountry} />}
           {tab === "economies" && region && <RegionDetail key={region.id} t={t} region={region} byGdp={byGdp} onExplorer={pathname === TABS[1].path ? null : () => navigate(TABS[1].path)} />}
           {tab === "policies" &&
@@ -341,6 +342,11 @@ export function Label({ t, children, className = "" }: { t: Tokens; children: Re
       {children}
     </p>
   );
+}
+
+/** A part of a detail pane that stays together. On a wide window the pane sets its parts side by side, in columns. */
+export function Block({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <section className={`flex flex-col gap-3 min-w-0 ${className}`}>{children}</section>;
 }
 
 export function Empty({ t, children }: { t: Tokens; children: ReactNode }) {
@@ -540,6 +546,7 @@ function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Coun
   const scoreColor = total >= 75 ? GREEN : total >= 50 ? "#f59e0b" : RED;
   return (
     <>
+      <Block>
       <div className="rounded-xl overflow-hidden relative shrink-0" style={{ height: 96, background: "linear-gradient(135deg,#1e2040 0%,#0f1535 100%)" }}>
         <img
           src={`https://flagcdn.com/w320/${c.code.toLowerCase()}.png`}
@@ -619,9 +626,10 @@ function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Coun
         ))}
       </div>
       <SourceLink sources={distinct([src("gdp"), src("gdpGrowth"), src("gdpPerCapita"), src("inflationRate"), src("unemploymentRate"), src("humanDevelopmentIndex"), src("population"), src("lifeExpectancy"), src("tradeBalance")])} />
+      </Block>
 
       {standing && (
-        <>
+        <Block>
           <Label t={t}>Where it stands</Label>
           <div className="flex flex-col">
             {ranks.gdp && <FactRow t={t} label="Size of its economy" value={`${ordinal(ranks.gdp.rank)} of ${ranks.gdp.of}`} sub={gdpShare ? `${shareText(gdpShare.pct)} of world GDP, ${gdpShare.year}` : undefined} />}
@@ -637,11 +645,11 @@ function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Coun
             {the(c.name)} beside the Bank's world total for the same year.
           </p>
           <SourceLink sources={distinct([WORLD.gdp.source, ...(income ? [INCOME_SOURCE] : [])])} />
-        </>
+        </Block>
       )}
 
       {c.trends && c.trends.length > 1 && first && last && (
-        <>
+        <Block>
           <Label t={t}>
             GDP · current US$ · {first.year}–{last.year}
           </Label>
@@ -674,11 +682,11 @@ function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Coun
               </span>
             ))}
           </div>
-        </>
+        </Block>
       )}
 
       {c.keyIndustries && c.keyIndustries.length > 0 && (
-        <>
+        <Block>
           <Label t={t}>What its economy is made of · share of GDP{sectorYear ? ` · ${sectorYear}` : ""}</Label>
           <div className="flex flex-col gap-1.5">
             {c.keyIndustries.slice(0, 5).map((ind) => (
@@ -697,9 +705,10 @@ function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Coun
             ))}
           </div>
           <SourceLink sources={distinct([src("keyIndustries")])} />
-        </>
+        </Block>
       )}
 
+      <Block>
       <div style={{ borderTop: `1px solid ${t.gridLine}` }} />
       <Label t={t}>Political &amp; social</Label>
       <div className="flex flex-col gap-1.5">
@@ -719,9 +728,10 @@ function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Coun
           </div>
         ))}
       </div>
+      </Block>
 
       {score && (
-        <div className="rounded-xl px-3 py-3" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
+        <section className="rounded-xl px-3 py-3 min-w-0" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
           <div className="flex items-center justify-between mb-1">
             <Label t={t}>Macro health score</Label>
             <span className="text-[13px] font-bold font-mono" style={{ color: scoreColor }}>
@@ -752,7 +762,7 @@ function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Coun
             CommonSphere's own composite of the published figures above, not an official index: the HDI counts for 40 points, and growth,
             inflation and unemployment for 20 each.
           </p>
-        </div>
+        </section>
       )}
 
       {/* The record in full: the same sections the Policies tab gives a headline's place, for every topic. */}
@@ -931,6 +941,7 @@ function RegionDetail({ t, region: r, byGdp, onExplorer }: { t: Tokens; region: 
   const axis = { tick: { fontSize: 8, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false };
   return (
     <>
+      <Block>
       <div>
         <p className="text-sm font-bold font-sans" style={{ color: t.headText }}>
           {r.name}
@@ -947,7 +958,9 @@ function RegionDetail({ t, region: r, byGdp, onExplorer }: { t: Tokens; region: 
         <Kpi t={t} label="Strongest year" value={`${signed(best[1])}%`} sub={`${best[0]} · real growth`} color={t.headText} />
         <Kpi t={t} label="Weakest year" value={`${signed(worst[1])}%`} sub={`${worst[0]} · real growth`} color={t.headText} />
       </div>
+      </Block>
 
+      <Block>
       <Label t={t}>
         GDP · current US$ trillions · {firstYear}–{gy}
       </Label>
@@ -968,7 +981,9 @@ function RegionDetail({ t, region: r, byGdp, onExplorer }: { t: Tokens; region: 
           </AreaChart>
         </ResponsiveContainer>
       </div>
+      </Block>
 
+      <Block>
       <Label t={t}>
         Real growth · % a year · {r.growth[0][0]}–{growthYear}
       </Label>
@@ -989,7 +1004,9 @@ function RegionDetail({ t, region: r, byGdp, onExplorer }: { t: Tokens; region: 
           </BarChart>
         </ResponsiveContainer>
       </div>
+      </Block>
 
+      <Block>
       {share.length > 2 && (
         <>
           <Label t={t}>
@@ -1013,9 +1030,10 @@ function RegionDetail({ t, region: r, byGdp, onExplorer }: { t: Tokens; region: 
         </>
       )}
       <SourceLink sources={distinct([r.source, WORLD.gdp.source])} />
+      </Block>
 
       {mine.length > 0 && (
-        <>
+        <Block>
           <Label t={t}>
             {r.kind === "bloc" ? "Its members" : "Its economies"} · GDP and real growth · {showAll ? `all ${mine.length}` : `largest ${listed.length} of ${mine.length}`}
           </Label>
@@ -1074,7 +1092,7 @@ function RegionDetail({ t, region: r, byGdp, onExplorer }: { t: Tokens; region: 
               <SourceLink sources={INCOME_SOURCE} />
             </>
           )}
-        </>
+        </Block>
       )}
 
       <Suspense
