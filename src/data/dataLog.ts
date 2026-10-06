@@ -46,6 +46,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 3
   },
   {
+    "what": "Modern slavery: the world's and the regions' estimates",
+    "from": "ILO, Walk Free and IOM (Global Estimates), Walk Free (Global Slavery Index)",
+    "page": "/dashboard/crime",
+    "where": "Crime statistics",
+    "read": "2026-10-06",
+    "files": 1
+  },
+  {
     "what": "Public security: stability, conflict deaths, terrorism and displacement, by country",
     "from": "World Bank (Worldwide Governance Indicators), UCDP, Global Terrorism Database, UNHCR, IDMC",
     "page": "/dashboard/countries",
@@ -176,4 +184,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 40;
+export const DATA_LOG_FILES = 41;

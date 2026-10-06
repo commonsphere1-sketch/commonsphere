@@ -482,6 +482,11 @@ function Trafficking({ look }: { look: Look }) {
   );
 }
 
+/** The trafficking card on its own: the Crime page draws it in its section on trafficking and modern slavery. */
+export function TraffickingByPlace({ isLight }: { isLight: boolean }) {
+  return <Trafficking look={lookOf(isLight)} />;
+}
+
 // ── Firearms seized ────────────────────────────────────────────────────────
 
 const ARMS: { key: ArmType; label: string; color: string }[] = [
@@ -720,14 +725,12 @@ export function RecordedCrime({ isLight }: { isLight: boolean }) {
         <OffenceExplorer look={look} />
         <CountryRecord look={look} />
       </div>
+      {/* Trafficking in persons has its own section on the page, under this one. */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Trafficking look={look} />
         <Firearms look={look} />
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Unsentenced look={look} />
-        <Wildlife look={look} />
       </div>
+      <Wildlife look={look} />
     </>
   );
 }

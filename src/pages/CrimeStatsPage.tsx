@@ -36,6 +36,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
 import { RecordedCrime } from "../components/RecordedCrime";
+import { TraffickingAndSlavery } from "../components/TraffickingAndSlavery";
 import { StatCard, type StatCardData } from "../components/StatCard";
 import { CategoryCharts } from "../components/CategoryCharts";
 import { ChartNote, MeasureBars } from "../components/ModalCharts";
@@ -288,6 +289,9 @@ export function CrimeStatsPage() {
         {/* ── Recorded crime: what police, courts and customs report to UNODC ── */}
         <RecordedCrime isLight={isLight} />
 
+        {/* ── Human trafficking and modern slavery: UNODC's detected victims, and the published estimates ── */}
+        <TraffickingAndSlavery isLight={isLight} />
+
         {/* ── Prisons ── */}
         <section className="flex flex-col gap-4" aria-labelledby="crime-prisons">
           <div id="crime-prisons">
@@ -324,8 +328,8 @@ export function CrimeStatsPage() {
 
         <p className="text-[10px] font-sans leading-relaxed max-w-4xl px-1" style={{ color: muted }}>
           Every figure on this page is its publisher's, read by the site's build scripts and dated where it appears. The page once also carried a "safety index", crime trends by
-          category, regional crime rates, cybercrime losses, terrorism by region and group, and modern slavery; those were typed by hand, did not match the sources they named, and have
-          been taken down rather than left looking current.
+          category, regional crime rates, cybercrime losses and terrorism by region and group; those were typed by hand, did not match the sources they named, and have been
+          taken down rather than left looking current. Human trafficking and modern slavery are back, on UNODC's reported figures and the published estimates.
         </p>
       </div>
     </div>
