@@ -15,7 +15,6 @@ import {
   ChartLineUp,
   Warning,
   CheckCircle,
-  XCircle,
   Flag,
   Buildings,
   Handshake,
@@ -13275,21 +13274,6 @@ const IDEOLOGY_COLORS: Record<Ideology, string> = {
 };
 
 
-const IMPACT_ICONS: Record<string, React.ReactNode> = {
-  positive: (
-    <CheckCircle size={13} weight="fill" className="text-green-700 dark:text-green-400 shrink-0" />
-  ),
-  negative: (
-    <XCircle size={13} weight="fill" className="text-red-600 dark:text-red-400 shrink-0" />
-  ),
-  neutral: (
-    <CalendarBlank
-      size={13}
-      weight="fill"
-      className="text-muted-foreground shrink-0"
-    />
-  ),
-};
 
 const REGIONS = [
   "All Regions",
@@ -13580,20 +13564,20 @@ function LeaderDetail({
           </div>
 
           {/* Tab content */}
-          <div className="p-5 space-y-5">
+          <div className="space-y-4">
             {tab === "overview" && (
               <>
-                <div className="modal-tile rounded-xl p-4">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                    <BookOpen size={12} /> Background
+                <div className="modal-tile rounded-lg p-4">
+                  <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><BookOpen size={13} weight="fill" /></span> Background
                   </h4>
-                  <p className="text-sm text-foreground leading-relaxed">
+                  <p className="text-[13px] font-sans text-foreground/90 leading-relaxed">
                     {leader.background}
                   </p>
                 </div>
-                <div className="modal-tile rounded-xl p-4">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                    <Trophy size={12} /> Key Achievements
+                <div className="modal-tile rounded-lg p-4">
+                  <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Trophy size={13} weight="fill" /></span> Key Achievements
                   </h4>
                   <ul className="space-y-1.5">
                     {leader.achievements.map((a, i) => (
@@ -13604,18 +13588,18 @@ function LeaderDetail({
                         <CheckCircle
                           size={14}
                           weight="fill"
-                          className="text-green-700 dark:text-green-400 mt-0.5 shrink-0"
+                          className="text-muted-foreground mt-0.5 shrink-0"
                         />
                         <span>{a}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-                <div className="modal-tile rounded-xl p-4">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                    <ChartLineUp size={12} /> Impact Assessment
+                <div className="modal-tile rounded-lg p-4">
+                  <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><ChartLineUp size={13} weight="fill" /></span> Impact Assessment
                   </h4>
-                  <p className="text-sm text-foreground leading-relaxed">
+                  <p className="text-[13px] font-sans text-foreground/90 leading-relaxed">
                     {leader.impact}
                   </p>
                 </div>
@@ -13623,33 +13607,12 @@ function LeaderDetail({
                   const info = getElectionInfo(leader.id);
                   if (!info) return null;
                   const days = getCountdownDays(info.nextElection);
-                  const isPast = days === 0;
-                  const isUrgent = days !== null && days > 0 && days <= 90;
-                  const isSoon = days !== null && days > 90 && days <= 365;
-                  const color = !info.isScheduled
-                    ? "text-muted-foreground"
-                    : isPast
-                      ? "text-muted-foreground"
-                      : isUrgent
-                        ? "text-red-600 dark:text-red-400"
-                        : isSoon
-                          ? "text-amber-700 dark:text-amber-400"
-                          : "text-sky-700 dark:text-sky-400";
-                  const bg = !info.isScheduled
-                    ? "bg-muted/20 border-border"
-                    : isPast
-                      ? "bg-muted/20 border-border"
-                      : isUrgent
-                        ? "bg-red-500/10 border-red-500/30"
-                        : isSoon
-                          ? "bg-amber-500/10 border-amber-500/30"
-                          : "bg-sky-500/10 border-sky-500/30";
+                  const color = info.isScheduled && days !== 0 ? "text-foreground" : "text-muted-foreground";
+                  const bg = "";
                   return (
-                    <div className={`modal-tile rounded-xl p-4 border ${bg}`}>
-                      <h4
-                        className={`text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5 ${color}`}
-                      >
-                        <Clock size={12} /> Next Election / Mandate
+                    <div className={`modal-tile rounded-lg p-4 ${bg}`}>
+                      <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Clock size={13} weight="fill" /></span> Next Election / Mandate
                       </h4>
                       <p className={`text-sm font-semibold ${color}`}>
                         {info.electionType}
@@ -13716,16 +13679,12 @@ function LeaderDetail({
                   );
                 })()}
                 <div>
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                    <Flag size={12} /> Status
+                  <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Flag size={13} weight="fill" /></span> Status
                   </h4>
                   <span
-                    className={`text-xs font-medium px-2 py-1 rounded-full border ${
-                      leader.status === "In Office"
-                        ? "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30"
-                        : leader.status === "Incumbent (Disputed)"
-                          ? "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30"
-                          : "bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-500/30"
+                    className={`text-xs font-medium px-2 py-1 rounded-full ${
+                      leader.status === "In Office" ? TONE.green : leader.status === "Incumbent (Disputed)" ? TONE.yellow : TONE.zinc
                     }`}
                   >
                     {leader.status}
@@ -13733,15 +13692,15 @@ function LeaderDetail({
                 </div>
 
                 {/* Career and education */}
-                <div className="modal-tile rounded-xl p-4">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
-                    <GraduationCap size={12} /> Education
+                <div className="modal-tile rounded-lg p-4">
+                  <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><GraduationCap size={13} weight="fill" /></span> Education
                   </h4>
                   <div className="space-y-3">
                     {leader.education.map((e, i) => (
                       <div key={i} className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-secondary/10 border border-secondary/20 flex items-center justify-center shrink-0">
-                          <GraduationCap size={14} className="text-secondary" />
+                        <div className="w-8 h-8 rounded-md border border-border bg-muted text-muted-foreground flex items-center justify-center shrink-0">
+                          <GraduationCap size={14} weight="fill" />
                         </div>
                         <div>
                           <p className="text-sm font-medium text-foreground">
@@ -13756,9 +13715,9 @@ function LeaderDetail({
                     ))}
                   </div>
                 </div>
-                <div className="modal-tile rounded-xl p-4">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
-                    <Buildings size={12} /> Terms in Office
+                <div className="modal-tile rounded-lg p-4">
+                  <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Buildings size={13} weight="fill" /></span> Terms in Office
                   </h4>
                   <div className="space-y-2">
                     {leader.termsInOffice.map((t, i) => (
@@ -13767,9 +13726,7 @@ function LeaderDetail({
                         <span className="text-sm font-mono text-foreground">
                           {t.from} –{" "}
                           {t.to === "present" ? (
-                            <span className="text-secondary font-semibold">
-                              Present
-                            </span>
+                            <span className="font-bold">Present</span>
                           ) : (
                             t.to
                           )}
@@ -13785,9 +13742,9 @@ function LeaderDetail({
                     ))}
                   </div>
                 </div>
-                <div className="modal-tile rounded-xl p-4">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                    <Handshake size={12} /> Party & Affiliation
+                <div className="modal-tile rounded-lg p-4">
+                  <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Handshake size={13} weight="fill" /></span> Party & Affiliation
                   </h4>
                   <div className="flex items-center gap-2">
                     <span
@@ -13800,12 +13757,12 @@ function LeaderDetail({
                     </span>
                   </div>
                 </div>
-                <div className="modal-tile rounded-xl p-4">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                    <Users size={12} /> Personal
+                <div className="modal-tile rounded-lg p-4">
+                  <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Users size={13} weight="fill" /></span> Personal
                   </h4>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="modal-tile rounded-lg p-3">
+                    <div className="rounded-lg border border-border bg-background/40 px-3 py-2.5">
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                         Born
                       </p>
@@ -13813,7 +13770,7 @@ function LeaderDetail({
                         {leader.birthYear}
                       </p>
                     </div>
-                    <div className="modal-tile rounded-lg p-3">
+                    <div className="rounded-lg border border-border bg-background/40 px-3 py-2.5">
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                         Birthplace
                       </p>
@@ -13825,9 +13782,9 @@ function LeaderDetail({
                 </div>
 
                 {/* Significant events */}
-              <div className="modal-tile rounded-xl p-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-1.5">
-                  <CalendarBlank size={12} /> Timeline of Significant Events
+              <div className="modal-tile rounded-lg p-4">
+                <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><CalendarBlank size={13} weight="fill" /></span> Timeline of Significant Events
                 </h4>
                 <div className="relative pl-5">
                   <div className="absolute left-1.5 top-0 bottom-0 w-px bg-border" />
@@ -13835,13 +13792,7 @@ function LeaderDetail({
                     {leader.significantEvents.map((e, i) => (
                       <div key={i} className="relative">
                         <div
-                          className={`absolute -left-[21px] w-3 h-3 rounded-full border-2 border-background ${
-                            e.impact === "positive"
-                              ? "bg-green-400"
-                              : e.impact === "negative"
-                                ? "bg-red-400"
-                                : "bg-muted-foreground"
-                          }`}
+                          className="absolute -left-[21px] w-3 h-3 rounded-full border-2 border-background bg-secondary"
                         />
                         <div className="flex items-start gap-2">
                           <span className="text-xs font-bold font-mono text-secondary shrink-0 w-10">
@@ -13849,9 +13800,8 @@ function LeaderDetail({
                           </span>
                           <div className="flex-1">
                             <div className="flex items-start gap-1.5">
-                              {IMPACT_ICONS[e.impact]}
                               <p
-                                className="text-sm text-foreground leading-relaxed">{decodeEntities(e.event)}</p>
+                                className="text-[13px] font-sans text-foreground/90 leading-relaxed">{decodeEntities(e.event)}</p>
                             </div>
                           </div>
                         </div>
@@ -13867,9 +13817,9 @@ function LeaderDetail({
 
             {tab === "views" && (
               <>
-                <div className="modal-tile rounded-xl p-4">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                    <Strategy size={12} /> Political Ideology
+                <div className="modal-tile rounded-lg p-4">
+                  <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Strategy size={13} weight="fill" /></span> Political Ideology
                   </h4>
                   <div className="flex items-center gap-2 mb-3">
                     <span
@@ -13881,21 +13831,21 @@ function LeaderDetail({
                       {leader.party}
                     </span>
                   </div>
-                  <p className="text-sm text-foreground leading-relaxed">
+                  <p className="text-[13px] font-sans text-foreground/90 leading-relaxed">
                     {leader.politicalViews}
                   </p>
                 </div>
-                <div className="modal-tile rounded-xl p-4">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                    <ChartLineUp size={12} /> Overall Impact
+                <div className="modal-tile rounded-lg p-4">
+                  <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><ChartLineUp size={13} weight="fill" /></span> Overall Impact
                   </h4>
-                  <p className="text-sm text-foreground leading-relaxed">
+                  <p className="text-[13px] font-sans text-foreground/90 leading-relaxed">
                     {leader.impact}
                   </p>
                 </div>
-                <div className="modal-tile rounded-xl p-4">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                    <Star size={12} /> Achievements
+                <div className="modal-tile rounded-lg p-4">
+                  <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Star size={13} weight="fill" /></span> Achievements
                   </h4>
                   <ul className="space-y-1.5">
                     {leader.achievements.map((a, i) => (
@@ -14152,18 +14102,18 @@ function MonarchDetail({
               <Globe size={13} /> Overview
             </h3>
 
-            <div className="modal-tile rounded-xl p-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                <BookOpen size={12} /> Background
+            <div className="modal-tile rounded-lg p-4">
+              <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><BookOpen size={13} weight="fill" /></span> Background
               </h4>
-              <p className="text-sm text-foreground leading-relaxed">
+              <p className="text-[13px] font-sans text-foreground/90 leading-relaxed">
                 {monarch.background}
               </p>
             </div>
 
-            <div className="modal-tile rounded-xl p-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                <Star size={12} /> Key Facts
+            <div className="modal-tile rounded-lg p-4">
+              <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Star size={13} weight="fill" /></span> Key Facts
               </h4>
               <ul className="space-y-1.5">
                 {monarch.keyFacts.map((f, i) => (
@@ -14183,9 +14133,9 @@ function MonarchDetail({
             </div>
 
             {monarch.religionRole && (
-              <div className="modal-tile rounded-xl p-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                  <Flag size={12} /> Religious Role
+              <div className="modal-tile rounded-lg p-4">
+                <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Flag size={13} weight="fill" /></span> Religious Role
                 </h4>
                 <p className="text-sm text-foreground">
                   {monarch.religionRole}
@@ -14194,9 +14144,9 @@ function MonarchDetail({
             )}
 
             {monarch.netWorthNote && (
-              <div className="modal-tile rounded-xl p-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                  <ChartLineUp size={12} /> Wealth Note
+              <div className="modal-tile rounded-lg p-4">
+                <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><ChartLineUp size={13} weight="fill" /></span> Wealth Note
                 </h4>
                 <p className="text-sm text-foreground">
                   {monarch.netWorthNote}
@@ -14209,7 +14159,7 @@ function MonarchDetail({
               <Crown size={13} /> Dynasty &amp; House
             </h3>
 
-            <div className="modal-tile rounded-xl p-4">
+            <div className="modal-tile rounded-lg p-4">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0">
                   <CrownSimple
@@ -14228,7 +14178,7 @@ function MonarchDetail({
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="modal-tile rounded-lg p-3">
+                <div className="rounded-lg border border-border bg-background/40 px-3 py-2.5">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                     {role.label}
                   </p>
@@ -14239,7 +14189,7 @@ function MonarchDetail({
                     {role.label === "Reigning Since" ? `${role.sub} on the throne` : role.sub}
                   </p>
                 </div>
-                <div className="modal-tile rounded-lg p-3">
+                <div className="rounded-lg border border-border bg-background/40 px-3 py-2.5">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                     System
                   </p>
@@ -14255,9 +14205,9 @@ function MonarchDetail({
               </div>
             </div>
 
-            <div className="modal-tile rounded-xl p-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                <Flag size={12} /> Country &amp; Region
+            <div className="modal-tile rounded-lg p-4">
+              <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Flag size={13} weight="fill" /></span> Country &amp; Region
               </h4>
               <div className="flex items-center gap-3">
                 <img
@@ -14281,8 +14231,8 @@ function MonarchDetail({
               <Users size={13} /> Succession &amp; Family
             </h3>
 
-            <div className="modal-tile rounded-xl p-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+            <div className="modal-tile rounded-lg p-4">
+              <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
                 <CrownSimple size={12} weight="fill" /> Succession Order
               </h4>
               <div className="flex items-start gap-2">
@@ -14298,9 +14248,9 @@ function MonarchDetail({
             </div>
 
             {monarch.spouses && monarch.spouses.length > 0 && (
-              <div className="modal-tile rounded-xl p-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                  <Handshake size={12} /> Spouse(s)
+              <div className="modal-tile rounded-lg p-4">
+                <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Handshake size={13} weight="fill" /></span> Spouse(s)
                 </h4>
                 <ul className="space-y-1">
                   {monarch.spouses.map((s, i) => (
@@ -14321,9 +14271,9 @@ function MonarchDetail({
             )}
 
             {monarch.children && monarch.children.length > 0 && (
-              <div className="modal-tile rounded-xl p-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                  <Users size={12} /> Children
+              <div className="modal-tile rounded-lg p-4">
+                <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Users size={13} weight="fill" /></span> Children
                 </h4>
                 <ul className="space-y-1">
                   {monarch.children.map((c, i) => (
@@ -14350,7 +14300,7 @@ function MonarchDetail({
             <Story id={monarch.id} name={monarch.name} mode="life" />
             {house && (
               <>
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 pt-2">
+                <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-0 flex items-center gap-2 pt-2">
                   <CrownSimple size={12} weight="fill" /> {house}
                 </h4>
                 <ArticlePanel title={house} name={`the ${house}`} mode="history" />
@@ -15145,16 +15095,16 @@ function RichestFamiliesView() {
               </div>
 
               <div className="bg-muted/20 rounded-xl p-4 border border-border/40">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                  <BookOpen size={12} /> About
+                <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><BookOpen size={13} weight="fill" /></span> About
                 </h4>
                 <p
-                  className="text-sm text-foreground leading-relaxed">{decodeEntities(selectedFamily.description)}</p>
+                  className="text-[13px] font-sans text-foreground/90 leading-relaxed">{decodeEntities(selectedFamily.description)}</p>
               </div>
 
               <div className="bg-muted/20 rounded-xl p-4 border border-border/40">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                  <Trophy size={12} /> Key Assets
+                <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Trophy size={13} weight="fill" /></span> Key Assets
                 </h4>
                 <ul className="space-y-1.5">
                   {selectedFamily.keyAssets.map((a, i) => (
@@ -15174,8 +15124,8 @@ function RichestFamiliesView() {
               </div>
 
               <div className="bg-muted/20 rounded-xl p-4 border border-border/40">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                  <Users size={12} /> Key Members
+                <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Users size={13} weight="fill" /></span> Key Members
                 </h4>
                 <ul className="space-y-1">
                   {selectedFamily.members.map((m, i) => (
@@ -15191,16 +15141,16 @@ function RichestFamiliesView() {
               </div>
 
               <div className="bg-muted/20 rounded-xl p-4 border border-border/40">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1.5">
-                  <Flag size={12} /> Patriarch / Founder
+                <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Flag size={13} weight="fill" /></span> Patriarch / Founder
                 </h4>
                 <p
                   className="text-sm text-foreground">{decodeEntities(selectedFamily.patriarch)}</p>
               </div>
 
               <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                  <ClockCounterClockwise size={12} /> History
+                <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><ClockCounterClockwise size={13} weight="fill" /></span> History
                 </h4>
                 <Story id={selectedFamily.id} name={selectedFamily.family} mode="history" />
               </div>
@@ -15451,7 +15401,7 @@ function AlliancesView() {
                   setDetail(a);
                 }
               }}
-              className="modal-tile rounded-xl p-4 border border-border/60 flex flex-col cursor-pointer transition-colors hover:border-secondary/40"
+              className="modal-tile rounded-lg p-4 border border-border/60 flex flex-col cursor-pointer transition-colors hover:border-secondary/40"
             >
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="min-w-0">
