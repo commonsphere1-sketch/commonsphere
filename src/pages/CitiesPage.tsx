@@ -1,19 +1,28 @@
-import React, { useState, useEffect } from "react";
+/**
+ * The Cities page: each city as the United Nations measures it.
+ *
+ * Every figure here was typed in - populations, GDP, "indices" of cost of
+ * living, crime, safety and air quality, a tourism rank, five years of
+ * "trends", eighteen "urban statistics" a city - and credited to two rankings
+ * that publish none of them as given. A Laws tab showed every city the same
+ * six placeholder ordinances, because the laws written for eight cities were
+ * filed under ids no city on the page has.
+ *
+ * The page is built on data/cityFigures.ts instead: the UN's World
+ * Urbanization Prospects (2025 Revision), which draws every city on Earth by
+ * one rule and gives its population, land area and built-up area year by year
+ * from 1975, with its own projections to 2050. Beside it, where Wikidata has a
+ * referenced figure, the population inside the city's own boundary. What no
+ * body publishes for every city alike is not shown.
+ */
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { CITY_PLACES } from "../data/cityPlaces";
 import {
   MapPin,
   ListBullets,
   MapTrifold,
-  Scales,
   DownloadSimple,
-  House,
-  Train,
-  FirstAid,
-  GraduationCap,
-  WifiHigh,
-  ChartBar,
-  Rocket,
   ArrowsIn,
   ArrowsOut,
   ClockCounterClockwise,
@@ -21,8 +30,6 @@ import {
   X,
 } from "@phosphor-icons/react";
 import {
-  AreaChart,
-  Area,
   LineChart,
   Line,
   XAxis,
@@ -30,947 +37,31 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  ReferenceArea,
+  ReferenceLine,
 } from "recharts";
 import { citiesData, type City } from "../data/citiesData";
-import { countriesData, type Country } from "../data/countriesData";
+import { CITY_FIGURES, CITY_FIGURES_SOURCE, CITY_ADMIN_SOURCE, type CityFigures } from "../data/cityFigures";
+import { CITY_YEARS, cityYear, cityFirstYear, cityGrowth, type CityYear } from "../lib/cityFigures";
+import { countriesData } from "../data/countriesData";
 import { ArticleLead, ArticlePanel } from "../components/HistoryPanel";
+import { ACCENT, PART_COLORS, MeasureBars, ChartNote } from "../components/ModalCharts";
 import { useTheme } from "../contexts/ThemeContext";
-import { has } from "../lib/na";
 import { HeadlinesBanner, namesTag, type Headline, type Shown } from "../components/HeadlinesBanner";
 import { nameMatcher } from "../lib/namesInText";
 import { SourceLink } from "../components/SourceLink";
 import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 
-const SRC_CITIES = [
-  {
-    label: "Numbeo City Rankings",
-    url: "https://www.numbeo.com/city-rankings/",
-  },
-  {
-    label: "Global Power City Index",
-    url: "https://mori-m-foundation.or.jp/english/ius2/gpci2/",
-  },
-];
+const SRC = CITY_FIGURES_SOURCE;
+/** The last year of the UN's estimates; the years after are its projections. */
+const BASE = SRC.baseYear;
+const LAST = SRC.lastYear;
+/** The year a city's recent growth is measured from. */
+const SINCE = 2000;
 
-// ─── Urban Statistics Data ─────────────────────────────────────────────────
-interface UrbanStats {
-  // Housing
-  avgRentUSD1BR: number; // avg monthly rent 1-bedroom city center (USD)
-  avgHomePriceUSDm2: number; // avg price per m² to buy apartment (USD)
-  rentToIncomeRatio: number; // rent as % of avg salary (0–100)
-  // Transport
-  transitScore: number; // public transit quality 0–100 (Numbeo-style)
-  avgCommuteMin: number; // avg one-way commute in minutes
-  bikeInfraScore: number; // cycling infrastructure 0–100
-  // Healthcare
-  healthcareIndex: number; // Numbeo healthcare index 0–100
-  hospitalBedsPerK: number; // hospital beds per 1,000 residents
-  // Education
-  literacyRate: number; // %
-  topUniversityRank: number | null; // QS world ranking of top uni in city (null if none in top 500)
-  // Digital & Environment
-  avgInternetMbps: number; // avg broadband speed Mbps
-  greenSpacePct: number; // % of city area that is parks/green
-  recyclingRatePct: number; // municipal recycling rate %
-  // Economy & Inequality
-  unemploymentRate: number; // %
-  giniCoefficient: number; // 0–100 (higher = more unequal)
-  avgSalaryUSD: number; // net monthly avg salary USD
-  // Startup Ecosystem
-  startupScore: number; // 0–100 composite
-  unicorns: number; // unicorn companies HQ'd here
-}
-
-const CITY_URBAN_STATS: Record<string, UrbanStats> = {
-  "new-york": {
-    avgRentUSD1BR: 3800,
-    avgHomePriceUSDm2: 17500,
-    rentToIncomeRatio: 62,
-    transitScore: 88,
-    avgCommuteMin: 47,
-    bikeInfraScore: 52,
-    healthcareIndex: 72,
-    hospitalBedsPerK: 3.1,
-    literacyRate: 99,
-    topUniversityRank: 12,
-    avgInternetMbps: 250,
-    greenSpacePct: 27,
-    recyclingRatePct: 21,
-    unemploymentRate: 5.2,
-    giniCoefficient: 50,
-    avgSalaryUSD: 5800,
-    startupScore: 92,
-    unicorns: 143,
-  },
-  "new-york-city": {
-    avgRentUSD1BR: 3800,
-    avgHomePriceUSDm2: 17500,
-    rentToIncomeRatio: 62,
-    transitScore: 88,
-    avgCommuteMin: 47,
-    bikeInfraScore: 52,
-    healthcareIndex: 72,
-    hospitalBedsPerK: 3.1,
-    literacyRate: 99,
-    topUniversityRank: 12,
-    avgInternetMbps: 250,
-    greenSpacePct: 27,
-    recyclingRatePct: 21,
-    unemploymentRate: 5.2,
-    giniCoefficient: 50,
-    avgSalaryUSD: 5800,
-    startupScore: 92,
-    unicorns: 143,
-  },
-  nyc26: {
-    avgRentUSD1BR: 3800,
-    avgHomePriceUSDm2: 17500,
-    rentToIncomeRatio: 62,
-    transitScore: 88,
-    avgCommuteMin: 47,
-    bikeInfraScore: 52,
-    healthcareIndex: 72,
-    hospitalBedsPerK: 3.1,
-    literacyRate: 99,
-    topUniversityRank: 12,
-    avgInternetMbps: 250,
-    greenSpacePct: 27,
-    recyclingRatePct: 21,
-    unemploymentRate: 5.2,
-    giniCoefficient: 50,
-    avgSalaryUSD: 5800,
-    startupScore: 92,
-    unicorns: 143,
-  },
-  tky26: {
-    avgRentUSD1BR: 1400,
-    avgHomePriceUSDm2: 10200,
-    rentToIncomeRatio: 28,
-    transitScore: 97,
-    avgCommuteMin: 48,
-    bikeInfraScore: 62,
-    healthcareIndex: 88,
-    hospitalBedsPerK: 13.1,
-    literacyRate: 99.9,
-    topUniversityRank: 23,
-    avgInternetMbps: 190,
-    greenSpacePct: 18,
-    recyclingRatePct: 77,
-    unemploymentRate: 2.4,
-    giniCoefficient: 33,
-    avgSalaryUSD: 3100,
-    startupScore: 71,
-    unicorns: 12,
-  },
-  tokyo: {
-    avgRentUSD1BR: 1400,
-    avgHomePriceUSDm2: 10200,
-    rentToIncomeRatio: 28,
-    transitScore: 97,
-    avgCommuteMin: 48,
-    bikeInfraScore: 62,
-    healthcareIndex: 88,
-    hospitalBedsPerK: 13.1,
-    literacyRate: 99.9,
-    topUniversityRank: 23,
-    avgInternetMbps: 190,
-    greenSpacePct: 18,
-    recyclingRatePct: 77,
-    unemploymentRate: 2.4,
-    giniCoefficient: 33,
-    avgSalaryUSD: 3100,
-    startupScore: 71,
-    unicorns: 12,
-  },
-  lon26: {
-    avgRentUSD1BR: 2900,
-    avgHomePriceUSDm2: 14800,
-    rentToIncomeRatio: 57,
-    transitScore: 83,
-    avgCommuteMin: 43,
-    bikeInfraScore: 65,
-    healthcareIndex: 74,
-    hospitalBedsPerK: 2.5,
-    literacyRate: 99.5,
-    topUniversityRank: 6,
-    avgInternetMbps: 165,
-    greenSpacePct: 47,
-    recyclingRatePct: 38,
-    unemploymentRate: 4.1,
-    giniCoefficient: 40,
-    avgSalaryUSD: 4300,
-    startupScore: 87,
-    unicorns: 68,
-  },
-  london: {
-    avgRentUSD1BR: 2900,
-    avgHomePriceUSDm2: 14800,
-    rentToIncomeRatio: 57,
-    transitScore: 83,
-    avgCommuteMin: 43,
-    bikeInfraScore: 65,
-    healthcareIndex: 74,
-    hospitalBedsPerK: 2.5,
-    literacyRate: 99.5,
-    topUniversityRank: 6,
-    avgInternetMbps: 165,
-    greenSpacePct: 47,
-    recyclingRatePct: 38,
-    unemploymentRate: 4.1,
-    giniCoefficient: 40,
-    avgSalaryUSD: 4300,
-    startupScore: 87,
-    unicorns: 68,
-  },
-  par26: {
-    avgRentUSD1BR: 2100,
-    avgHomePriceUSDm2: 13200,
-    rentToIncomeRatio: 51,
-    transitScore: 86,
-    avgCommuteMin: 40,
-    bikeInfraScore: 74,
-    healthcareIndex: 82,
-    hospitalBedsPerK: 6.0,
-    literacyRate: 99.8,
-    topUniversityRank: 33,
-    avgInternetMbps: 215,
-    greenSpacePct: 14,
-    recyclingRatePct: 43,
-    unemploymentRate: 8.5,
-    giniCoefficient: 42,
-    avgSalaryUSD: 3300,
-    startupScore: 79,
-    unicorns: 28,
-  },
-  paris: {
-    avgRentUSD1BR: 2100,
-    avgHomePriceUSDm2: 13200,
-    rentToIncomeRatio: 51,
-    transitScore: 86,
-    avgCommuteMin: 40,
-    bikeInfraScore: 74,
-    healthcareIndex: 82,
-    hospitalBedsPerK: 6.0,
-    literacyRate: 99.8,
-    topUniversityRank: 33,
-    avgInternetMbps: 215,
-    greenSpacePct: 14,
-    recyclingRatePct: 43,
-    unemploymentRate: 8.5,
-    giniCoefficient: 42,
-    avgSalaryUSD: 3300,
-    startupScore: 79,
-    unicorns: 28,
-  },
-  dxb26: {
-    avgRentUSD1BR: 2400,
-    avgHomePriceUSDm2: 5400,
-    rentToIncomeRatio: 36,
-    transitScore: 62,
-    avgCommuteMin: 39,
-    bikeInfraScore: 22,
-    healthcareIndex: 79,
-    hospitalBedsPerK: 1.9,
-    literacyRate: 96.3,
-    topUniversityRank: 301,
-    avgInternetMbps: 195,
-    greenSpacePct: 11,
-    recyclingRatePct: 19,
-    unemploymentRate: 2.6,
-    giniCoefficient: 38,
-    avgSalaryUSD: 4800,
-    startupScore: 72,
-    unicorns: 7,
-  },
-  dubai: {
-    avgRentUSD1BR: 2400,
-    avgHomePriceUSDm2: 5400,
-    rentToIncomeRatio: 36,
-    transitScore: 62,
-    avgCommuteMin: 39,
-    bikeInfraScore: 22,
-    healthcareIndex: 79,
-    hospitalBedsPerK: 1.9,
-    literacyRate: 96.3,
-    topUniversityRank: 301,
-    avgInternetMbps: 195,
-    greenSpacePct: 11,
-    recyclingRatePct: 19,
-    unemploymentRate: 2.6,
-    giniCoefficient: 38,
-    avgSalaryUSD: 4800,
-    startupScore: 72,
-    unicorns: 7,
-  },
-  sgp: {
-    avgRentUSD1BR: 3100,
-    avgHomePriceUSDm2: 17900,
-    rentToIncomeRatio: 43,
-    transitScore: 91,
-    avgCommuteMin: 45,
-    bikeInfraScore: 44,
-    healthcareIndex: 90,
-    hospitalBedsPerK: 2.4,
-    literacyRate: 97.5,
-    topUniversityRank: 8,
-    avgInternetMbps: 310,
-    greenSpacePct: 47,
-    recyclingRatePct: 61,
-    unemploymentRate: 2.1,
-    giniCoefficient: 46,
-    avgSalaryUSD: 5200,
-    startupScore: 85,
-    unicorns: 11,
-  },
-  singapore: {
-    avgRentUSD1BR: 3100,
-    avgHomePriceUSDm2: 17900,
-    rentToIncomeRatio: 43,
-    transitScore: 91,
-    avgCommuteMin: 45,
-    bikeInfraScore: 44,
-    healthcareIndex: 90,
-    hospitalBedsPerK: 2.4,
-    literacyRate: 97.5,
-    topUniversityRank: 8,
-    avgInternetMbps: 310,
-    greenSpacePct: 47,
-    recyclingRatePct: 61,
-    unemploymentRate: 2.1,
-    giniCoefficient: 46,
-    avgSalaryUSD: 5200,
-    startupScore: 85,
-    unicorns: 11,
-  },
-  syd26: {
-    avgRentUSD1BR: 2600,
-    avgHomePriceUSDm2: 12800,
-    rentToIncomeRatio: 49,
-    transitScore: 68,
-    avgCommuteMin: 41,
-    bikeInfraScore: 48,
-    healthcareIndex: 78,
-    hospitalBedsPerK: 3.8,
-    literacyRate: 99.9,
-    topUniversityRank: 19,
-    avgInternetMbps: 90,
-    greenSpacePct: 46,
-    recyclingRatePct: 62,
-    unemploymentRate: 3.4,
-    giniCoefficient: 35,
-    avgSalaryUSD: 4600,
-    startupScore: 69,
-    unicorns: 6,
-  },
-  sydney: {
-    avgRentUSD1BR: 2600,
-    avgHomePriceUSDm2: 12800,
-    rentToIncomeRatio: 49,
-    transitScore: 68,
-    avgCommuteMin: 41,
-    bikeInfraScore: 48,
-    healthcareIndex: 78,
-    hospitalBedsPerK: 3.8,
-    literacyRate: 99.9,
-    topUniversityRank: 19,
-    avgInternetMbps: 90,
-    greenSpacePct: 46,
-    recyclingRatePct: 62,
-    unemploymentRate: 3.4,
-    giniCoefficient: 35,
-    avgSalaryUSD: 4600,
-    startupScore: 69,
-    unicorns: 6,
-  },
-  ber26: {
-    avgRentUSD1BR: 1600,
-    avgHomePriceUSDm2: 7200,
-    rentToIncomeRatio: 38,
-    transitScore: 87,
-    avgCommuteMin: 38,
-    bikeInfraScore: 91,
-    healthcareIndex: 81,
-    hospitalBedsPerK: 8.2,
-    literacyRate: 99.7,
-    topUniversityRank: 130,
-    avgInternetMbps: 135,
-    greenSpacePct: 44,
-    recyclingRatePct: 67,
-    unemploymentRate: 7.8,
-    giniCoefficient: 39,
-    avgSalaryUSD: 3100,
-    startupScore: 76,
-    unicorns: 18,
-  },
-  berlin: {
-    avgRentUSD1BR: 1600,
-    avgHomePriceUSDm2: 7200,
-    rentToIncomeRatio: 38,
-    transitScore: 87,
-    avgCommuteMin: 38,
-    bikeInfraScore: 91,
-    healthcareIndex: 81,
-    hospitalBedsPerK: 8.2,
-    literacyRate: 99.7,
-    topUniversityRank: 130,
-    avgInternetMbps: 135,
-    greenSpacePct: 44,
-    recyclingRatePct: 67,
-    unemploymentRate: 7.8,
-    giniCoefficient: 39,
-    avgSalaryUSD: 3100,
-    startupScore: 76,
-    unicorns: 18,
-  },
-  sfo: {
-    avgRentUSD1BR: 3400,
-    avgHomePriceUSDm2: 14500,
-    rentToIncomeRatio: 44,
-    transitScore: 65,
-    avgCommuteMin: 42,
-    bikeInfraScore: 67,
-    healthcareIndex: 76,
-    hospitalBedsPerK: 1.8,
-    literacyRate: 99.2,
-    topUniversityRank: 1,
-    avgInternetMbps: 320,
-    greenSpacePct: 20,
-    recyclingRatePct: 80,
-    unemploymentRate: 3.9,
-    giniCoefficient: 52,
-    avgSalaryUSD: 9400,
-    startupScore: 99,
-    unicorns: 287,
-  },
-  sha26: {
-    avgRentUSD1BR: 1100,
-    avgHomePriceUSDm2: 8900,
-    rentToIncomeRatio: 53,
-    transitScore: 89,
-    avgCommuteMin: 52,
-    bikeInfraScore: 70,
-    healthcareIndex: 67,
-    hospitalBedsPerK: 5.8,
-    literacyRate: 99.3,
-    topUniversityRank: 47,
-    avgInternetMbps: 195,
-    greenSpacePct: 16,
-    recyclingRatePct: 37,
-    unemploymentRate: 3.5,
-    giniCoefficient: 48,
-    avgSalaryUSD: 2100,
-    startupScore: 74,
-    unicorns: 22,
-  },
-  bei26: {
-    avgRentUSD1BR: 950,
-    avgHomePriceUSDm2: 10600,
-    rentToIncomeRatio: 61,
-    transitScore: 90,
-    avgCommuteMin: 55,
-    bikeInfraScore: 78,
-    healthcareIndex: 65,
-    hospitalBedsPerK: 8.7,
-    literacyRate: 99.4,
-    topUniversityRank: 15,
-    avgInternetMbps: 145,
-    greenSpacePct: 12,
-    recyclingRatePct: 35,
-    unemploymentRate: 3.8,
-    giniCoefficient: 49,
-    avgSalaryUSD: 1800,
-    startupScore: 78,
-    unicorns: 30,
-  },
-  seo26: {
-    avgRentUSD1BR: 1600,
-    avgHomePriceUSDm2: 13700,
-    rentToIncomeRatio: 42,
-    transitScore: 94,
-    avgCommuteMin: 44,
-    bikeInfraScore: 55,
-    healthcareIndex: 87,
-    hospitalBedsPerK: 12.8,
-    literacyRate: 99.9,
-    topUniversityRank: 36,
-    avgInternetMbps: 290,
-    greenSpacePct: 41,
-    recyclingRatePct: 82,
-    unemploymentRate: 2.8,
-    giniCoefficient: 31,
-    avgSalaryUSD: 2900,
-    startupScore: 80,
-    unicorns: 15,
-  },
-  ams26: {
-    avgRentUSD1BR: 2200,
-    avgHomePriceUSDm2: 9100,
-    rentToIncomeRatio: 48,
-    transitScore: 79,
-    avgCommuteMin: 35,
-    bikeInfraScore: 97,
-    healthcareIndex: 84,
-    hospitalBedsPerK: 3.3,
-    literacyRate: 99.9,
-    topUniversityRank: 61,
-    avgInternetMbps: 310,
-    greenSpacePct: 16,
-    recyclingRatePct: 64,
-    unemploymentRate: 3.7,
-    giniCoefficient: 30,
-    avgSalaryUSD: 3900,
-    startupScore: 77,
-    unicorns: 10,
-  },
-  zur26: {
-    avgRentUSD1BR: 2800,
-    avgHomePriceUSDm2: 14400,
-    rentToIncomeRatio: 31,
-    transitScore: 91,
-    avgCommuteMin: 29,
-    bikeInfraScore: 82,
-    healthcareIndex: 90,
-    hospitalBedsPerK: 4.4,
-    literacyRate: 99.9,
-    topUniversityRank: 7,
-    avgInternetMbps: 265,
-    greenSpacePct: 42,
-    recyclingRatePct: 92,
-    unemploymentRate: 2.3,
-    giniCoefficient: 33,
-    avgSalaryUSD: 8200,
-    startupScore: 75,
-    unicorns: 5,
-  },
-  cph26: {
-    avgRentUSD1BR: 2100,
-    avgHomePriceUSDm2: 8600,
-    rentToIncomeRatio: 37,
-    transitScore: 84,
-    avgCommuteMin: 32,
-    bikeInfraScore: 95,
-    healthcareIndex: 87,
-    hospitalBedsPerK: 2.9,
-    literacyRate: 99.9,
-    topUniversityRank: 87,
-    avgInternetMbps: 260,
-    greenSpacePct: 38,
-    recyclingRatePct: 70,
-    unemploymentRate: 4.9,
-    giniCoefficient: 29,
-    avgSalaryUSD: 4900,
-    startupScore: 71,
-    unicorns: 9,
-  },
-  hel26: {
-    avgRentUSD1BR: 1450,
-    avgHomePriceUSDm2: 5600,
-    rentToIncomeRatio: 32,
-    transitScore: 80,
-    avgCommuteMin: 31,
-    bikeInfraScore: 88,
-    healthcareIndex: 89,
-    hospitalBedsPerK: 4.8,
-    literacyRate: 100,
-    topUniversityRank: 105,
-    avgInternetMbps: 240,
-    greenSpacePct: 67,
-    recyclingRatePct: 58,
-    unemploymentRate: 6.5,
-    giniCoefficient: 27,
-    avgSalaryUSD: 4000,
-    startupScore: 68,
-    unicorns: 4,
-  },
-  tal: {
-    avgRentUSD1BR: 780,
-    avgHomePriceUSDm2: 3100,
-    rentToIncomeRatio: 33,
-    transitScore: 71,
-    avgCommuteMin: 28,
-    bikeInfraScore: 60,
-    healthcareIndex: 75,
-    hospitalBedsPerK: 5.4,
-    literacyRate: 99.8,
-    topUniversityRank: 401,
-    avgInternetMbps: 230,
-    greenSpacePct: 28,
-    recyclingRatePct: 30,
-    unemploymentRate: 5.3,
-    giniCoefficient: 31,
-    avgSalaryUSD: 1800,
-    startupScore: 62,
-    unicorns: 2,
-  },
-  tor26: {
-    avgRentUSD1BR: 2100,
-    avgHomePriceUSDm2: 10400,
-    rentToIncomeRatio: 46,
-    transitScore: 74,
-    avgCommuteMin: 43,
-    bikeInfraScore: 57,
-    healthcareIndex: 80,
-    hospitalBedsPerK: 2.6,
-    literacyRate: 99.8,
-    topUniversityRank: 18,
-    avgInternetMbps: 145,
-    greenSpacePct: 18,
-    recyclingRatePct: 55,
-    unemploymentRate: 5.8,
-    giniCoefficient: 41,
-    avgSalaryUSD: 3600,
-    startupScore: 74,
-    unicorns: 14,
-  },
-  mum26: {
-    avgRentUSD1BR: 520,
-    avgHomePriceUSDm2: 4600,
-    rentToIncomeRatio: 55,
-    transitScore: 71,
-    avgCommuteMin: 58,
-    bikeInfraScore: 18,
-    healthcareIndex: 55,
-    hospitalBedsPerK: 1.6,
-    literacyRate: 89.7,
-    topUniversityRank: null,
-    avgInternetMbps: 35,
-    greenSpacePct: 13,
-    recyclingRatePct: 17,
-    unemploymentRate: 5.4,
-    giniCoefficient: 46,
-    avgSalaryUSD: 790,
-    startupScore: 63,
-    unicorns: 8,
-  },
-  sao26: {
-    avgRentUSD1BR: 620,
-    avgHomePriceUSDm2: 3200,
-    rentToIncomeRatio: 44,
-    transitScore: 58,
-    avgCommuteMin: 62,
-    bikeInfraScore: 32,
-    healthcareIndex: 52,
-    hospitalBedsPerK: 2.8,
-    literacyRate: 97.2,
-    topUniversityRank: 115,
-    avgInternetMbps: 110,
-    greenSpacePct: 16,
-    recyclingRatePct: 25,
-    unemploymentRate: 11.5,
-    giniCoefficient: 57,
-    avgSalaryUSD: 870,
-    startupScore: 58,
-    unicorns: 5,
-  },
-  ist26: {
-    avgRentUSD1BR: 680,
-    avgHomePriceUSDm2: 2800,
-    rentToIncomeRatio: 52,
-    transitScore: 70,
-    avgCommuteMin: 50,
-    bikeInfraScore: 14,
-    healthcareIndex: 63,
-    hospitalBedsPerK: 3.7,
-    literacyRate: 98.5,
-    topUniversityRank: null,
-    avgInternetMbps: 53,
-    greenSpacePct: 12,
-    recyclingRatePct: 22,
-    unemploymentRate: 9.7,
-    giniCoefficient: 44,
-    avgSalaryUSD: 890,
-    startupScore: 52,
-    unicorns: 3,
-  },
-  mos26: {
-    avgRentUSD1BR: 700,
-    avgHomePriceUSDm2: 4200,
-    rentToIncomeRatio: 35,
-    transitScore: 88,
-    avgCommuteMin: 52,
-    bikeInfraScore: 28,
-    healthcareIndex: 60,
-    hospitalBedsPerK: 8.6,
-    literacyRate: 99.8,
-    topUniversityRank: 87,
-    avgInternetMbps: 72,
-    greenSpacePct: 34,
-    recyclingRatePct: 11,
-    unemploymentRate: 3.1,
-    giniCoefficient: 44,
-    avgSalaryUSD: 1400,
-    startupScore: 45,
-    unicorns: 4,
-  },
-  mex26: {
-    avgRentUSD1BR: 680,
-    avgHomePriceUSDm2: 2100,
-    rentToIncomeRatio: 47,
-    transitScore: 63,
-    avgCommuteMin: 56,
-    bikeInfraScore: 36,
-    healthcareIndex: 53,
-    hospitalBedsPerK: 1.4,
-    literacyRate: 97.9,
-    topUniversityRank: 104,
-    avgInternetMbps: 38,
-    greenSpacePct: 14,
-    recyclingRatePct: 14,
-    unemploymentRate: 3.4,
-    giniCoefficient: 51,
-    avgSalaryUSD: 860,
-    startupScore: 50,
-    unicorns: 2,
-  },
-  bue26: {
-    avgRentUSD1BR: 430,
-    avgHomePriceUSDm2: 1800,
-    rentToIncomeRatio: 41,
-    transitScore: 67,
-    avgCommuteMin: 45,
-    bikeInfraScore: 48,
-    healthcareIndex: 61,
-    hospitalBedsPerK: 5.0,
-    literacyRate: 99.2,
-    topUniversityRank: null,
-    avgInternetMbps: 62,
-    greenSpacePct: 9,
-    recyclingRatePct: 12,
-    unemploymentRate: 7.7,
-    giniCoefficient: 49,
-    avgSalaryUSD: 550,
-    startupScore: 42,
-    unicorns: 2,
-  },
-  lag26: {
-    avgRentUSD1BR: 280,
-    avgHomePriceUSDm2: 890,
-    rentToIncomeRatio: 48,
-    transitScore: 32,
-    avgCommuteMin: 70,
-    bikeInfraScore: 4,
-    healthcareIndex: 30,
-    hospitalBedsPerK: 0.4,
-    literacyRate: 92.4,
-    topUniversityRank: null,
-    avgInternetMbps: 14,
-    greenSpacePct: 4,
-    recyclingRatePct: 6,
-    unemploymentRate: 21.0,
-    giniCoefficient: 55,
-    avgSalaryUSD: 320,
-    startupScore: 35,
-    unicorns: 1,
-  },
-  bar26: {
-    avgRentUSD1BR: 1400,
-    avgHomePriceUSDm2: 5800,
-    rentToIncomeRatio: 45,
-    transitScore: 83,
-    avgCommuteMin: 36,
-    bikeInfraScore: 78,
-    healthcareIndex: 80,
-    hospitalBedsPerK: 3.2,
-    literacyRate: 99.7,
-    topUniversityRank: 135,
-    avgInternetMbps: 185,
-    greenSpacePct: 6,
-    recyclingRatePct: 36,
-    unemploymentRate: 9.4,
-    giniCoefficient: 38,
-    avgSalaryUSD: 2200,
-    startupScore: 65,
-    unicorns: 3,
-  },
-  vie26: {
-    avgRentUSD1BR: 1450,
-    avgHomePriceUSDm2: 7400,
-    rentToIncomeRatio: 30,
-    transitScore: 89,
-    avgCommuteMin: 30,
-    bikeInfraScore: 80,
-    healthcareIndex: 87,
-    hospitalBedsPerK: 7.3,
-    literacyRate: 99.9,
-    topUniversityRank: 164,
-    avgInternetMbps: 130,
-    greenSpacePct: 50,
-    recyclingRatePct: 65,
-    unemploymentRate: 5.1,
-    giniCoefficient: 30,
-    avgSalaryUSD: 3100,
-    startupScore: 60,
-    unicorns: 2,
-  },
-  mel26: {
-    avgRentUSD1BR: 2300,
-    avgHomePriceUSDm2: 10900,
-    rentToIncomeRatio: 47,
-    transitScore: 66,
-    avgCommuteMin: 40,
-    bikeInfraScore: 45,
-    healthcareIndex: 79,
-    hospitalBedsPerK: 3.9,
-    literacyRate: 99.9,
-    topUniversityRank: 14,
-    avgInternetMbps: 85,
-    greenSpacePct: 50,
-    recyclingRatePct: 60,
-    unemploymentRate: 3.6,
-    giniCoefficient: 33,
-    avgSalaryUSD: 4400,
-    startupScore: 65,
-    unicorns: 3,
-  },
-  hk26: {
-    avgRentUSD1BR: 2700,
-    avgHomePriceUSDm2: 27000,
-    rentToIncomeRatio: 58,
-    transitScore: 93,
-    avgCommuteMin: 44,
-    bikeInfraScore: 20,
-    healthcareIndex: 85,
-    hospitalBedsPerK: 4.9,
-    literacyRate: 98.4,
-    topUniversityRank: 26,
-    avgInternetMbps: 265,
-    greenSpacePct: 40,
-    recyclingRatePct: 39,
-    unemploymentRate: 3.0,
-    giniCoefficient: 54,
-    avgSalaryUSD: 3800,
-    startupScore: 68,
-    unicorns: 7,
-  },
-  fra26: {
-    avgRentUSD1BR: 1600,
-    avgHomePriceUSDm2: 6900,
-    rentToIncomeRatio: 31,
-    transitScore: 82,
-    avgCommuteMin: 34,
-    bikeInfraScore: 72,
-    healthcareIndex: 82,
-    hospitalBedsPerK: 6.1,
-    literacyRate: 99.8,
-    topUniversityRank: 120,
-    avgInternetMbps: 155,
-    greenSpacePct: 22,
-    recyclingRatePct: 53,
-    unemploymentRate: 6.2,
-    giniCoefficient: 31,
-    avgSalaryUSD: 3400,
-    startupScore: 62,
-    unicorns: 4,
-  },
-  joh26: {
-    avgRentUSD1BR: 480,
-    avgHomePriceUSDm2: 1600,
-    rentToIncomeRatio: 40,
-    transitScore: 28,
-    avgCommuteMin: 55,
-    bikeInfraScore: 8,
-    healthcareIndex: 39,
-    hospitalBedsPerK: 1.8,
-    literacyRate: 95.4,
-    topUniversityRank: 240,
-    avgInternetMbps: 22,
-    greenSpacePct: 18,
-    recyclingRatePct: 9,
-    unemploymentRate: 27.0,
-    giniCoefficient: 63,
-    avgSalaryUSD: 840,
-    startupScore: 34,
-    unicorns: 0,
-  },
-  kar26: {
-    avgRentUSD1BR: 190,
-    avgHomePriceUSDm2: 700,
-    rentToIncomeRatio: 39,
-    transitScore: 35,
-    avgCommuteMin: 53,
-    bikeInfraScore: 5,
-    healthcareIndex: 33,
-    hospitalBedsPerK: 0.6,
-    literacyRate: 73.5,
-    topUniversityRank: null,
-    avgInternetMbps: 12,
-    greenSpacePct: 4,
-    recyclingRatePct: 5,
-    unemploymentRate: 8.8,
-    giniCoefficient: 41,
-    avgSalaryUSD: 270,
-    startupScore: 28,
-    unicorns: 0,
-  },
-  bkk26: {
-    avgRentUSD1BR: 680,
-    avgHomePriceUSDm2: 3400,
-    rentToIncomeRatio: 40,
-    transitScore: 61,
-    avgCommuteMin: 51,
-    bikeInfraScore: 16,
-    healthcareIndex: 72,
-    hospitalBedsPerK: 2.2,
-    literacyRate: 97.1,
-    topUniversityRank: 246,
-    avgInternetMbps: 115,
-    greenSpacePct: 7,
-    recyclingRatePct: 21,
-    unemploymentRate: 1.1,
-    giniCoefficient: 47,
-    avgSalaryUSD: 1100,
-    startupScore: 52,
-    unicorns: 2,
-  },
-  mco: {
-    avgRentUSD1BR: 6500,
-    avgHomePriceUSDm2: 65000,
-    rentToIncomeRatio: 28,
-    transitScore: 72,
-    avgCommuteMin: 14,
-    bikeInfraScore: 40,
-    healthcareIndex: 88,
-    hospitalBedsPerK: 13.8,
-    literacyRate: 99.9,
-    topUniversityRank: null,
-    avgInternetMbps: 500,
-    greenSpacePct: 6,
-    recyclingRatePct: 50,
-    unemploymentRate: 2.0,
-    giniCoefficient: 32,
-    avgSalaryUSD: 18000,
-    startupScore: 50,
-    unicorns: 0,
-  },
-};
-
-const DEFAULT_URBAN_STATS: UrbanStats = {
-  avgRentUSD1BR: 1200,
-  avgHomePriceUSDm2: 5000,
-  rentToIncomeRatio: 40,
-  transitScore: 65,
-  avgCommuteMin: 42,
-  bikeInfraScore: 40,
-  healthcareIndex: 65,
-  hospitalBedsPerK: 3.0,
-  literacyRate: 95,
-  topUniversityRank: null,
-  avgInternetMbps: 80,
-  greenSpacePct: 20,
-  recyclingRatePct: 25,
-  unemploymentRate: 6.0,
-  giniCoefficient: 40,
-  avgSalaryUSD: 1500,
-  startupScore: 40,
-  unicorns: 0,
-};
-const SRC_CITY_LAWS = [
-  {
-    label: "City & Local Government Network",
-    url: "https://www.citiesalliance.org/",
-  },
-];
+const SRC_UN = [{ label: "United Nations, World Urbanization Prospects: The 2025 Revision", url: SRC.url }];
+const SRC_CITY = [...SRC_UN, { label: "Wikidata (population within the city's own boundary)", url: CITY_ADMIN_SOURCE.url }];
 
 const regionColors: Record<string, string> = {
   "North America": TONE.blue,
@@ -987,1687 +78,219 @@ const regionColors: Record<string, string> = {
   Africa: TONE.amber,
 };
 
-/* Population and GDP in whichever unit keeps the real number visible.
-   Fixed at millions, Monaco's 38,341 people read "0.0M" - a city that is
-   small, shown as a city that is empty. */
+/* People in whichever unit keeps the real number visible. Fixed at millions,
+   Monaco's 57,050 read "0.1M" - a city that is small, shown as one that is
+   barely there. */
 function fmtPeople(n: number): string {
   if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
   if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
-  return n.toLocaleString();
+  return Math.round(n).toLocaleString("en-US");
 }
-function fmtBillionsUSD(b: number): string {
-  if (b >= 1000) return `$${(b / 1000).toFixed(2)}T`;
-  if (b >= 1) return `$${Number(b.toFixed(1)).toLocaleString()}B`;
-  return `$${Math.round(b * 1000).toLocaleString()}M`;
+const whole = (v: number) => Math.round(v).toLocaleString("en-US");
+const km2 = (v: number) => `${v >= 100 ? whole(v) : v.toLocaleString("en-US", { maximumFractionDigits: 1 })} km²`;
+const perKm2 = (v: number) => `${whole(v)}/km²`;
+const m2 = (v: number) => `${v.toFixed(1)} m²`;
+const share = (v: number) => `${v >= 10 ? v.toFixed(1) : v.toFixed(2)}%`;
+const signed = (v: number) => `${v >= 0 ? "+" : "−"}${Math.abs(v) >= 10 ? Math.abs(v).toFixed(0) : Math.abs(v).toFixed(1)}%`;
+/** An axis's people: 33M, 2.5M, 440k. */
+const axisPeople = (v: number) => (v >= 1e6 ? `${Number((v / 1e6).toFixed(v >= 1e7 ? 0 : 1))}M` : v >= 1e3 ? `${Math.round(v / 1e3)}k` : String(v));
+
+/** 1st, 2nd, 3rd, 4th … */
+function nth(n: number): string {
+  const t = n % 100;
+  if (t >= 11 && t <= 13) return `${n.toLocaleString("en-US")}th`;
+  return `${n.toLocaleString("en-US")}${["th", "st", "nd", "rd"][n % 10] ?? "th"}`;
 }
 
-function IndexBar({
-  label,
-  value,
-  color,
-}: {
+/** A city with the UN's figures for it: the base year's, and how its population moved before and is projected to after. */
+type Row = {
+  city: City;
+  f: CityFigures;
+  now: CityYear;
+  /** From SINCE to the base year; null where the UN has no figure that far back. */
+  since: ReturnType<typeof cityGrowth>;
+  /** From the base year to the last projected one. */
+  ahead: ReturnType<typeof cityGrowth>;
+};
+/** Every city on the page has figures: the build stops if the UN has none for one. */
+const ROWS: Row[] = citiesData.flatMap((city) => {
+  const f = CITY_FIGURES[city.id];
+  const now = cityYear(city.id);
+  return f && now ? [{ city, f, now, since: cityGrowth(city.id, SINCE, BASE), ahead: cityGrowth(city.id, BASE, LAST) }] : [];
+});
+const rowOf = (id: string) => ROWS.find((r) => r.city.id === id) ?? null;
+
+type MeasureKey = "population" | "density" | "builtPer" | "share" | "growth";
+type Measure = {
+  key: MeasureKey;
   label: string;
-  value: number;
-  color: string;
-}) {
-  return (
-    <div>
-      <div className="flex justify-between text-xs mb-1">
-        <span className="text-muted-foreground font-sans">{label}</span>
-        <span className={`font-mono ${color}`}>{value}</span>
-      </div>
-      <div className="h-1.5 bg-background rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${color.replace("text-", "bg-")}`}
-          style={{ width: `${Math.min(value, 100)}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
-// ─── Per-city laws data ────────────────────────────────────────────────────
-interface CityLaw {
-  category: string;
-  title: string;
-  description: string;
-  enacted?: string;
-  status: "Active" | "Proposed" | "Repealed";
-  color: string;
-}
-
-const CITY_LAWS: Record<string, CityLaw[]> = {
-  "new-york": [
-    {
-      category: "Housing",
-      title: "Rent Stabilization Law",
-      description:
-        "Limits annual rent increases for eligible apartments and grants tenants right of renewal.",
-      enacted: "1969",
-      status: "Active",
-      color: "#60a5fa",
-    },
-    {
-      category: "Environment",
-      title: "Local Law 97 — Climate Mobilization Act",
-      description:
-        "Requires large buildings to cut carbon emissions by 40% by 2030 and 80% by 2050.",
-      enacted: "2019",
-      status: "Active",
-      color: "#34d399",
-    },
-    {
-      category: "Labor",
-      title: "Fair Work Week Law",
-      description:
-        "Requires fast-food employers to provide predictable schedules and premium pay for last-minute changes.",
-      enacted: "2017",
-      status: "Active",
-      color: "#fbbf24",
-    },
-    {
-      category: "Public Safety",
-      title: "Bail Reform Act (local application)",
-      description:
-        "Limits cash bail for most misdemeanors and non-violent felonies to reduce pre-trial detention.",
-      enacted: "2020",
-      status: "Active",
-      color: "#f87171",
-    },
-    {
-      category: "Transport",
-      title: "Congestion Pricing Scheme",
-      description:
-        "Tolls vehicles entering Manhattan below 60th Street to reduce gridlock and fund public transit.",
-      enacted: "2024",
-      status: "Active",
-      color: "#a78bfa",
-    },
-    {
-      category: "Business",
-      title: "Commercial Rent Stabilization Bill",
-      description:
-        "Proposed protections for small-business tenants against sudden lease non-renewals.",
-      enacted: "2024",
-      status: "Proposed",
-      color: "#fb923c",
-    },
-  ],
-  tokyo: [
-    {
-      category: "Environment",
-      title: "Tokyo Cap-and-Trade Program",
-      description:
-        "World's first urban emissions trading scheme requiring large facilities to cut CO₂.",
-      enacted: "2010",
-      status: "Active",
-      color: "#34d399",
-    },
-    {
-      category: "Disaster",
-      title: "Disaster Prevention Ordinance",
-      description:
-        "Mandates earthquake-resistance retrofitting for buildings and regular evacuation drills.",
-      enacted: "2000",
-      status: "Active",
-      color: "#f87171",
-    },
-    {
-      category: "Labor",
-      title: "Overwork Prevention Regulation",
-      description:
-        "Caps overtime at 100 hours/month and requires employers to offer mental health support.",
-      enacted: "2019",
-      status: "Active",
-      color: "#fbbf24",
-    },
-    {
-      category: "Housing",
-      title: "Urban Renaissance Special District Law",
-      description:
-        "Enables fast-track development in designated zones to increase housing stock.",
-      enacted: "2002",
-      status: "Active",
-      color: "#60a5fa",
-    },
-    {
-      category: "Public Safety",
-      title: "Anti-Stalking Ordinance",
-      description:
-        "Strengthens restraining-order provisions and criminalises persistent unwanted contact.",
-      enacted: "2013",
-      status: "Active",
-      color: "#a78bfa",
-    },
-    {
-      category: "Transport",
-      title: "Zero-Emission Vehicle By-Law",
-      description:
-        "Requires all new taxis and ride-share vehicles registered in Tokyo to be electric by 2030.",
-      enacted: "2022",
-      status: "Active",
-      color: "#22d3ee",
-    },
-  ],
-  london: [
-    {
-      category: "Environment",
-      title: "Ultra Low Emission Zone (ULEZ)",
-      description:
-        "Charges high-emission vehicles entering Greater London to improve air quality.",
-      enacted: "2021",
-      status: "Active",
-      color: "#34d399",
-    },
-    {
-      category: "Transport",
-      title: "Congestion Charge Scheme",
-      description:
-        "Daily charge for vehicles driving within the Central London Congestion Charge Zone.",
-      enacted: "2003",
-      status: "Active",
-      color: "#60a5fa",
-    },
-    {
-      category: "Housing",
-      title: "Mayor's London Plan",
-      description:
-        "Requires 35–50% affordable housing in new residential developments.",
-      enacted: "2021",
-      status: "Active",
-      color: "#fbbf24",
-    },
-    {
-      category: "Business",
-      title: "London Living Wage Policy",
-      description:
-        "Voluntary certification scheme encouraging employers to pay above the national minimum wage.",
-      enacted: "2005",
-      status: "Active",
-      color: "#a78bfa",
-    },
-    {
-      category: "Public Safety",
-      title: "Night Time Economy Strategy",
-      description:
-        "Licensing framework governing late-night venues to balance vibrancy with public safety.",
-      enacted: "2018",
-      status: "Active",
-      color: "#f87171",
-    },
-    {
-      category: "Climate",
-      title: "Net Zero London By 2030 Target",
-      description:
-        "Binding mayoral commitment to decarbonise city operations and cut borough-wide emissions.",
-      enacted: "2018",
-      status: "Active",
-      color: "#22d3ee",
-    },
-  ],
-  paris: [
-    {
-      category: "Environment",
-      title: "Paris Climate Action Plan",
-      description:
-        "Aims for carbon neutrality by 2050 with interim milestones including cycling infrastructure expansion.",
-      enacted: "2018",
-      status: "Active",
-      color: "#34d399",
-    },
-    {
-      category: "Transport",
-      title: "Paris Car-Free Sundays",
-      description:
-        "Monthly closures of central boulevards to private vehicles, promoting walking and cycling.",
-      enacted: "2015",
-      status: "Active",
-      color: "#60a5fa",
-    },
-    {
-      category: "Housing",
-      title: "Encadrement des Loyers (Rent Control)",
-      description:
-        "Caps rents at 20% above reference index in Paris arrondissements.",
-      enacted: "2019",
-      status: "Active",
-      color: "#fbbf24",
-    },
-    {
-      category: "Urban Planning",
-      title: "Paris en Commun Street Reallocation",
-      description:
-        "Converts car lanes to protected cycle tracks and green corridors city-wide.",
-      enacted: "2020",
-      status: "Active",
-      color: "#a78bfa",
-    },
-    {
-      category: "Business",
-      title: "Late-Night Noise Ordinance",
-      description:
-        "Restricts amplified music after midnight in residential zones with fines for non-compliance.",
-      enacted: "2017",
-      status: "Active",
-      color: "#f87171",
-    },
-    {
-      category: "Heritage",
-      title: "View Corridor Protection Rules",
-      description:
-        "Prohibits high-rise construction in 23 protected visual corridors around historic monuments.",
-      enacted: "1977",
-      status: "Active",
-      color: "#fb923c",
-    },
-  ],
-  dubai: [
-    {
-      category: "Business",
-      title: "Free Zone Corporate Law",
-      description:
-        "Allows 100% foreign ownership and zero corporate tax within designated free zones.",
-      enacted: "1985",
-      status: "Active",
-      color: "#fbbf24",
-    },
-    {
-      category: "Public Safety",
-      title: "Dubai Dress Code Ordinance",
-      description:
-        "Requires modest dress in public spaces; fines apply for violations in malls and government buildings.",
-      enacted: "2012",
-      status: "Active",
-      color: "#f87171",
-    },
-    {
-      category: "Environment",
-      title: "Dubai Clean Energy Strategy 2050",
-      description:
-        "Mandates 75% of energy from clean sources by 2050 with interim solar and nuclear targets.",
-      enacted: "2015",
-      status: "Active",
-      color: "#34d399",
-    },
-    {
-      category: "Labor",
-      title: "WPS (Wage Protection System)",
-      description:
-        "Requires employers to pay workers via regulated bank transfers to prevent wage theft.",
-      enacted: "2009",
-      status: "Active",
-      color: "#60a5fa",
-    },
-    {
-      category: "Housing",
-      title: "Rental Dispute Settlement Ordinance",
-      description:
-        "Governs landlord-tenant disputes through the Rental Disputes Center; caps increases at RERA index.",
-      enacted: "2008",
-      status: "Active",
-      color: "#a78bfa",
-    },
-    {
-      category: "Transport",
-      title: "Autonomous Vehicles Regulation 2021",
-      description:
-        "Framework permitting self-driving vehicle trials and sets liability rules for AV incidents.",
-      enacted: "2021",
-      status: "Active",
-      color: "#22d3ee",
-    },
-  ],
-  singapore: [
-    {
-      category: "Environment",
-      title: "Carbon Tax Act",
-      description:
-        "Uniform S$25/tonne carbon tax on large industrial emitters, rising to S$80 by 2030.",
-      enacted: "2019",
-      status: "Active",
-      color: "#34d399",
-    },
-    {
-      category: "Housing",
-      title: "HDB (Housing Development Board) Scheme",
-      description:
-        "Government-subsidised public housing covering ~80% of the resident population.",
-      enacted: "1960",
-      status: "Active",
-      color: "#60a5fa",
-    },
-    {
-      category: "Transport",
-      title: "Vehicle Quota System (COE)",
-      description:
-        "Limits total vehicle population via certificates of entitlement auctioned monthly.",
-      enacted: "1990",
-      status: "Active",
-      color: "#fbbf24",
-    },
-    {
-      category: "Public Safety",
-      title: "Zero Tolerance Drug Policy",
-      description:
-        "Mandatory death penalty for trafficking above threshold quantities.",
-      enacted: "1973",
-      status: "Active",
-      color: "#f87171",
-    },
-    {
-      category: "Business",
-      title: "Personal Data Protection Act (PDPA)",
-      description:
-        "Governs collection, use, and disclosure of personal data by organisations.",
-      enacted: "2012",
-      status: "Active",
-      color: "#a78bfa",
-    },
-    {
-      category: "Labor",
-      title: "Fair Consideration Framework",
-      description:
-        "Requires employers to consider Singaporeans fairly before hiring foreign professionals.",
-      enacted: "2014",
-      status: "Active",
-      color: "#fb923c",
-    },
-  ],
-  sydney: [
-    {
-      category: "Environment",
-      title: "Net Zero Emissions by 2035 Strategy",
-      description:
-        "City of Sydney's commitment to decarbonise council operations and support district renewable energy.",
-      enacted: "2021",
-      status: "Active",
-      color: "#34d399",
-    },
-    {
-      category: "Housing",
-      title: "Affordable Housing Contributions Scheme",
-      description:
-        "Requires developers to contribute 3–5% of residential floor space as affordable units.",
-      enacted: "2019",
-      status: "Active",
-      color: "#60a5fa",
-    },
-    {
-      category: "Transport",
-      title: "Cycling Infrastructure Policy",
-      description:
-        "Mandates separated cycleways on all major inner-city streets as part of the cycling action plan.",
-      enacted: "2018",
-      status: "Active",
-      color: "#fbbf24",
-    },
-    {
-      category: "Liquor",
-      title: "Sydney Lock-out Laws",
-      description:
-        "Prohibits entry to licensed venues after 1:30am and last drinks at 3am in the CBD entertainment precinct.",
-      enacted: "2014",
-      status: "Active",
-      color: "#f87171",
-    },
-    {
-      category: "Heritage",
-      title: "Heritage Conservation Areas Policy",
-      description:
-        "Protects streetscapes and built fabric in 47 heritage conservation areas across the city.",
-      enacted: "1988",
-      status: "Active",
-      color: "#a78bfa",
-    },
-    {
-      category: "Business",
-      title: "Night-Time Economy Strategy 2030",
-      description:
-        "Permits businesses to trade 24/7 in designated night-time economy precincts.",
-      enacted: "2020",
-      status: "Active",
-      color: "#fb923c",
-    },
-  ],
-  berlin: [
-    {
-      category: "Housing",
-      title: "Mietendeckel (Rent Cap — overturned)",
-      description:
-        "Capped rents at 2019 levels; struck down by Federal Constitutional Court in 2021.",
-      enacted: "2020",
-      status: "Repealed",
-      color: "#f87171",
-    },
-    {
-      category: "Environment",
-      title: "Berlin Energy Transition Law",
-      description:
-        "Sets target of 100% renewable electricity for Berlin by 2050 with 5-year milestones.",
-      enacted: "2021",
-      status: "Active",
-      color: "#34d399",
-    },
-    {
-      category: "Transport",
-      title: "Mobility Act (Mobilitätsgesetz)",
-      description:
-        "Germany's first state mobility law, prioritising cycling, pedestrians, and public transit.",
-      enacted: "2018",
-      status: "Active",
-      color: "#60a5fa",
-    },
-    {
-      category: "Public Safety",
-      title: "Berlin House Rules Ordinance",
-      description:
-        "Anti-discrimination provisions prohibiting denial of services based on ethnicity or religion.",
-      enacted: "2011",
-      status: "Active",
-      color: "#fbbf24",
-    },
-    {
-      category: "Housing",
-      title: "Zweckentfremdungsverbot (Misuse Prohibition)",
-      description:
-        "Restricts conversion of residential apartments to tourist accommodation without a permit.",
-      enacted: "2014",
-      status: "Active",
-      color: "#a78bfa",
-    },
-    {
-      category: "Business",
-      title: "Berlin Nightlife Protection Ordinance",
-      description:
-        "Classifies clubs as cultural institutions, shielding them from noise-complaint-based closures.",
-      enacted: "2021",
-      status: "Active",
-      color: "#fb923c",
-    },
-  ],
-};
-
-const DEFAULT_CITY_LAWS: CityLaw[] = [
-  {
-    category: "Zoning",
-    title: "Urban Zoning Ordinance",
-    description:
-      "Governs land use designations — residential, commercial, industrial — and development parameters.",
-    enacted: "2000",
-    status: "Active",
-    color: "#60a5fa",
-  },
-  {
-    category: "Environment",
-    title: "Clean Air Standards",
-    description:
-      "Sets emission limits for industry and vehicles operating within city limits.",
-    enacted: "2010",
-    status: "Active",
-    color: "#34d399",
-  },
-  {
-    category: "Housing",
-    title: "Tenant Protection Act",
-    description:
-      "Limits eviction grounds and requires 90-day notice for rent increases exceeding 10%.",
-    enacted: "2015",
-    status: "Active",
-    color: "#fbbf24",
-  },
-  {
-    category: "Public Safety",
-    title: "Public Order Ordinance",
-    description:
-      "Regulates gatherings, noise levels, and conduct in public spaces.",
-    enacted: "2005",
-    status: "Active",
-    color: "#f87171",
-  },
-  {
-    category: "Business",
-    title: "Business Licensing Framework",
-    description:
-      "Defines licensing requirements, trading hours, and compliance obligations for commercial operators.",
-    enacted: "2008",
-    status: "Active",
-    color: "#a78bfa",
-  },
-  {
-    category: "Transport",
-    title: "Road Safety Regulation",
-    description:
-      "Establishes speed limits, cycling infrastructure requirements, and pedestrian priority zones.",
-    enacted: "2018",
-    status: "Active",
-    color: "#fb923c",
-  },
-];
-
-const STATUS_COLORS: Record<string, string> = {
-  Active: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
-  Proposed: "text-amber-400 bg-amber-500/10 border-amber-500/30",
-  Repealed: "text-red-400 bg-red-500/10 border-red-500/30",
-};
-
-// ─── City Legal Status Grid ───────────────────────────────────────────────
-type LegalStatus =
-  | "Legal"
-  | "Illegal"
-  | "Decriminalized"
-  | "Restricted"
-  | "Varies"
-  | "N/A";
-
-interface CityLegalTopic {
-  topic: string;
-  icon: string;
-  status: LegalStatus;
-  note: string;
-}
-
-const LEGAL_STATUS_BADGE: Record<LegalStatus, string> = {
-  Legal: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
-  Illegal: "text-red-400 bg-red-500/10 border-red-500/30",
-  Decriminalized: "text-amber-400 bg-amber-500/10 border-amber-500/30",
-  Restricted: "text-orange-400 bg-orange-500/10 border-orange-500/30",
-  Varies: "text-blue-400 bg-blue-500/10 border-blue-500/30",
-  "N/A": "text-muted-foreground bg-muted border-border",
-};
-
-const CITY_LEGAL_STATUS: Record<string, CityLegalTopic[]> = {
-  "new-york": [
-    {
-      topic: "Recreational Cannabis",
-      icon: "🌿",
-      status: "Legal",
-      note: "Legal for adults 21+ since 2021 (MRTA); licensed dispensaries operating.",
-    },
-    {
-      topic: "Psychedelics",
-      icon: "🍄",
-      status: "Decriminalized",
-      note: "NYC decriminalized psilocybin possession in 2023; state-level ban still applies.",
-    },
-    {
-      topic: "Alcohol",
-      icon: "🍺",
-      status: "Legal",
-      note: "Legal 21+; open container prohibited in public spaces.",
-    },
-    {
-      topic: "Gambling",
-      icon: "🎰",
-      status: "Restricted",
-      note: "Licensed casinos permitted; NYC awarding 3 downstate casino licenses.",
-    },
-    {
-      topic: "Firearms",
-      icon: "🔫",
-      status: "Restricted",
-      note: "Strict licensing required; concealed carry permit system under NYSRPA v. Bruen.",
-    },
-    {
-      topic: "Sex Work",
-      icon: "💼",
-      status: "Illegal",
-      note: "Prostitution illegal; buying sex criminalized since 2021 Nordic-model push.",
-    },
-    {
-      topic: "Same-Sex Marriage",
-      icon: "🏳️‍🌈",
-      status: "Legal",
-      note: "Legal statewide since 2011; federally guaranteed since Obergefell 2015.",
-    },
-    {
-      topic: "Abortion",
-      icon: "⚕️",
-      status: "Legal",
-      note: "Legal up to fetal viability (~24 weeks); broader access enshrined in NY Constitution.",
-    },
-    {
-      topic: "Assisted Dying",
-      icon: "🕊️",
-      status: "Illegal",
-      note: "Medical Aid in Dying bills have not passed the NY Legislature as of 2026.",
-    },
-    {
-      topic: "Public Smoking",
-      icon: "🚬",
-      status: "Illegal",
-      note: "Banned in parks, beaches, pedestrian plazas, and all indoor public spaces.",
-    },
-    {
-      topic: "Street Vending",
-      icon: "🛒",
-      status: "Restricted",
-      note: "Strictly regulated; vendor permits are limited and highly competitive.",
-    },
-    {
-      topic: "Jaywalking",
-      icon: "🚶",
-      status: "Legal",
-      note: "Decriminalized in 2022; NYPD no longer tickets pedestrians for crossing mid-block.",
-    },
-  ],
-  tokyo: [
-    {
-      topic: "Recreational Cannabis",
-      icon: "🌿",
-      status: "Illegal",
-      note: "Cannabis strictly prohibited under the Cannabis Control Act; penalties include imprisonment.",
-    },
-    {
-      topic: "Psychedelics",
-      icon: "🍄",
-      status: "Illegal",
-      note: "Psilocybin and all psychedelics fully prohibited; zero-tolerance enforcement.",
-    },
-    {
-      topic: "Alcohol",
-      icon: "🍺",
-      status: "Legal",
-      note: "Legal 20+; public drinking is culturally accepted in parks during cherry blossom season.",
-    },
-    {
-      topic: "Gambling",
-      icon: "🎰",
-      status: "Restricted",
-      note: "Pachinko legally a grey zone; integrated resort casino law passed 2018, first opening 2030.",
-    },
-    {
-      topic: "Firearms",
-      icon: "🔫",
-      status: "Illegal",
-      note: "Handguns completely banned for civilians; one of the world\'s strictest gun laws.",
-    },
-    {
-      topic: "Sex Work",
-      icon: "💼",
-      status: "Restricted",
-      note: "Intercourse for payment illegal; non-penetrative acts in 'fashion health' clubs in grey zone.",
-    },
-    {
-      topic: "Same-Sex Marriage",
-      icon: "🏳️‍🌈",
-      status: "Restricted",
-      note: "Tokyo issues partnership certificates; national constitutional ban remains; Supreme Court ruling pending.",
-    },
-    {
-      topic: "Abortion",
-      icon: "⚕️",
-      status: "Restricted",
-      note: "Legal up to 22 weeks but requires spousal consent — widely criticised internationally.",
-    },
-    {
-      topic: "Assisted Dying",
-      icon: "🕊️",
-      status: "Illegal",
-      note: "Euthanasia and assisted suicide are illegal; no legislative movement as of 2026.",
-    },
-    {
-      topic: "Public Smoking",
-      icon: "🚬",
-      status: "Restricted",
-      note: "Banned in most outdoor public spaces; designated smoking areas mandated near stations.",
-    },
-    {
-      topic: "Street Vending",
-      icon: "🛒",
-      status: "Restricted",
-      note: "Requires permit; yatai (food stall) culture tightly regulated by ward offices.",
-    },
-    {
-      topic: "Jaywalking",
-      icon: "🚶",
-      status: "Illegal",
-      note: "Technically illegal; crossing against signals is enforced more strictly than in Western cities.",
-    },
-  ],
-  london: [
-    {
-      topic: "Recreational Cannabis",
-      icon: "🌿",
-      status: "Illegal",
-      note: "Class B drug; possession carries up to 5 years imprisonment though enforcement varies.",
-    },
-    {
-      topic: "Psychedelics",
-      icon: "🍄",
-      status: "Illegal",
-      note: "Psilocybin is Class A; mere possession can result in up to 7 years imprisonment.",
-    },
-    {
-      topic: "Alcohol",
-      icon: "🍺",
-      status: "Legal",
-      note: "Legal 18+; alcohol banned only on the London Underground (since 2008).",
-    },
-    {
-      topic: "Gambling",
-      icon: "🎰",
-      status: "Legal",
-      note: "Legal and regulated by the UK Gambling Commission; online and land-based casinos permitted.",
-    },
-    {
-      topic: "Firearms",
-      icon: "🔫",
-      status: "Illegal",
-      note: "Handguns banned since 1997 Dunblane massacre; shotguns/rifles require license.",
-    },
-    {
-      topic: "Sex Work",
-      icon: "💼",
-      status: "Restricted",
-      note: "Selling sex is legal; brothel-keeping, pimping, and kerb crawling are illegal.",
-    },
-    {
-      topic: "Same-Sex Marriage",
-      icon: "🏳️‍🌈",
-      status: "Legal",
-      note: "Legal in England and Wales since 2014.",
-    },
-    {
-      topic: "Abortion",
-      icon: "⚕️",
-      status: "Legal",
-      note: "Legal up to 24 weeks under the Abortion Act 1967; at-home medical abortion permitted.",
-    },
-    {
-      topic: "Assisted Dying",
-      icon: "🕊️",
-      status: "Legal",
-      note: "Terminally Ill Adults (End of Life) Act 2025 passed; implementation in progress.",
-    },
-    {
-      topic: "Public Smoking",
-      icon: "🚬",
-      status: "Restricted",
-      note: "Banned in enclosed public spaces and workplaces since 2007; legal outdoors.",
-    },
-    {
-      topic: "Street Vending",
-      icon: "🛒",
-      status: "Restricted",
-      note: "Licensed by local borough councils; street markets like Borough Market are tightly managed.",
-    },
-    {
-      topic: "Jaywalking",
-      icon: "🚶",
-      status: "Legal",
-      note: "Not a legal offence in the UK; pedestrians may cross anywhere.",
-    },
-  ],
-  paris: [
-    {
-      topic: "Recreational Cannabis",
-      icon: "🌿",
-      status: "Illegal",
-      note: "Possession of any amount is technically illegal; enforcement often results in on-the-spot fines.",
-    },
-    {
-      topic: "Psychedelics",
-      icon: "🍄",
-      status: "Illegal",
-      note: "All psychedelics prohibited as stupéfiants; enforcement focuses on trafficking.",
-    },
-    {
-      topic: "Alcohol",
-      icon: "🍺",
-      status: "Legal",
-      note: "Legal 18+; public drinking is culturally normal but prohibited near schools and mosques.",
-    },
-    {
-      topic: "Gambling",
-      icon: "🎰",
-      status: "Restricted",
-      note: "Legal in licensed casinos (Casino de Paris); online gambling regulated by ANJ.",
-    },
-    {
-      topic: "Firearms",
-      icon: "🔫",
-      status: "Illegal",
-      note: "Civilian handgun ownership banned; rifles/shotguns require permit and proof of reason.",
-    },
-    {
-      topic: "Sex Work",
-      icon: "💼",
-      status: "Restricted",
-      note: "Selling sex decriminalized; buying sex criminalized under 2016 Nordic-model law.",
-    },
-    {
-      topic: "Same-Sex Marriage",
-      icon: "🏳️‍🌈",
-      status: "Legal",
-      note: "Legal nationwide since 2013 (Loi Taubira).",
-    },
-    {
-      topic: "Abortion",
-      icon: "⚕️",
-      status: "Legal",
-      note: "Legal up to 14 weeks; enshrined in the French Constitution since March 2024.",
-    },
-    {
-      topic: "Assisted Dying",
-      icon: "🕊️",
-      status: "Restricted",
-      note: "Deep sedation until death permitted for terminal cases (2016 Claeys-Leonetti law); active euthanasia bill debated 2024.",
-    },
-    {
-      topic: "Public Smoking",
-      icon: "🚬",
-      status: "Restricted",
-      note: "Banned in enclosed public spaces; Paris expanded outdoor bans to parks and playgrounds.",
-    },
-    {
-      topic: "Street Vending",
-      icon: "🛒",
-      status: "Restricted",
-      note: "Unauthorized street vending is illegal; heavily policed around tourist sites.",
-    },
-    {
-      topic: "Jaywalking",
-      icon: "🚶",
-      status: "Illegal",
-      note: "Technically illegal (R412-34 Code de la Route); fines of €4 rarely enforced.",
-    },
-  ],
-  dubai: [
-    {
-      topic: "Recreational Cannabis",
-      icon: "🌿",
-      status: "Illegal",
-      note: "Zero tolerance — any amount can result in 4+ years imprisonment and deportation.",
-    },
-    {
-      topic: "Psychedelics",
-      icon: "🍄",
-      status: "Illegal",
-      note: "All psychedelics strictly banned; severe penalties including life imprisonment.",
-    },
-    {
-      topic: "Alcohol",
-      icon: "🍺",
-      status: "Restricted",
-      note: "Legal for non-Muslims in licensed venues and with a personal licence; public intoxication illegal.",
-    },
-    {
-      topic: "Gambling",
-      icon: "🎰",
-      status: "Illegal",
-      note: "All forms of gambling prohibited under UAE law; Dubai plans a regulated casino resort (2027).",
-    },
-    {
-      topic: "Firearms",
-      icon: "🔫",
-      status: "Illegal",
-      note: "Civilian firearm ownership banned; military and police carry strictly controlled.",
-    },
-    {
-      topic: "Sex Work",
-      icon: "💼",
-      status: "Illegal",
-      note: "Illegal under Islamic law; strict enforcement with imprisonment and deportation.",
-    },
-    {
-      topic: "Same-Sex Marriage",
-      icon: "🏳️‍🌈",
-      status: "Illegal",
-      note: "Homosexual acts punishable under UAE Penal Code with up to 10 years imprisonment.",
-    },
-    {
-      topic: "Abortion",
-      icon: "⚕️",
-      status: "Illegal",
-      note: "Illegal except to save the mother\'s life or in cases of severe fetal abnormality.",
-    },
-    {
-      topic: "Assisted Dying",
-      icon: "🕊️",
-      status: "Illegal",
-      note: "Prohibited; no legislation exists permitting any form of assisted dying.",
-    },
-    {
-      topic: "Public Smoking",
-      icon: "🚬",
-      status: "Restricted",
-      note: "Banned in government buildings, malls, public transport, and most indoor spaces.",
-    },
-    {
-      topic: "Street Vending",
-      icon: "🛒",
-      status: "Illegal",
-      note: "Unauthorized vending prohibited; violators face fines and deportation for expatriates.",
-    },
-    {
-      topic: "Jaywalking",
-      icon: "🚶",
-      status: "Illegal",
-      note: "Strictly enforced with fines up to AED 400; pedestrian bridges required where provided.",
-    },
-  ],
-  singapore: [
-    {
-      topic: "Recreational Cannabis",
-      icon: "🌿",
-      status: "Illegal",
-      note: "Possession of >500g carries mandatory death penalty; small amounts up to 10 years.",
-    },
-    {
-      topic: "Psychedelics",
-      icon: "🍄",
-      status: "Illegal",
-      note: "All psychedelics are Class A; trafficking carries the death penalty.",
-    },
-    {
-      topic: "Alcohol",
-      icon: "🍺",
-      status: "Restricted",
-      note: "Legal 18+; prohibited in public between 10:30pm–7am under the Liquor Control Act.",
-    },
-    {
-      topic: "Gambling",
-      icon: "🎰",
-      status: "Restricted",
-      note: "Legal in licensed integrated resorts (Marina Bay Sands, Sentosa); online gambling banned.",
-    },
-    {
-      topic: "Firearms",
-      icon: "🔫",
-      status: "Illegal",
-      note: "All civilian gun ownership banned; even imitation firearms are illegal.",
-    },
-    {
-      topic: "Sex Work",
-      icon: "💼",
-      status: "Restricted",
-      note: "Selling sex legal in licensed Geylang red-light district; soliciting and pimping illegal.",
-    },
-    {
-      topic: "Same-Sex Marriage",
-      icon: "🏳️‍🌈",
-      status: "Illegal",
-      note: "Same-sex marriage prohibited; Section 377A repealed 2023 but marriage rights not extended.",
-    },
-    {
-      topic: "Abortion",
-      icon: "⚕️",
-      status: "Legal",
-      note: "Legal on request up to 24 weeks of pregnancy under the Termination of Pregnancy Act.",
-    },
-    {
-      topic: "Assisted Dying",
-      icon: "🕊️",
-      status: "Illegal",
-      note: "Euthanasia and assisted suicide are illegal; palliative care advanced-directives are legal.",
-    },
-    {
-      topic: "Public Smoking",
-      icon: "🚬",
-      status: "Restricted",
-      note: "Banned in almost all public areas; violators face fines up to SGD 1,000.",
-    },
-    {
-      topic: "Street Vending",
-      icon: "🛒",
-      status: "Restricted",
-      note: "Only permitted in licensed hawker centres; unauthorized vending results in fines.",
-    },
-    {
-      topic: "Chewing Gum",
-      icon: "🍬",
-      status: "Restricted",
-      note: "Sale banned since 1992; medical/dental gum allowed with prescription.",
-    },
-  ],
-  sydney: [
-    {
-      topic: "Recreational Cannabis",
-      icon: "🌿",
-      status: "Decriminalized",
-      note: "Personal use decriminalized in NSW (caution scheme); medical cannabis legal since 2016.",
-    },
-    {
-      topic: "Psychedelics",
-      icon: "🍄",
-      status: "Restricted",
-      note: "TGA approved psilocybin for treatment-resistant depression from July 2023 (authorised prescribers only).",
-    },
-    {
-      topic: "Alcohol",
-      icon: "🍺",
-      status: "Legal",
-      note: "Legal 18+; 'dry zones' in some parks and CBD areas restrict public drinking.",
-    },
-    {
-      topic: "Gambling",
-      icon: "🎰",
-      status: "Restricted",
-      note: "Legal in licensed venues; The Star Casino operates in Sydney; pokies (slots) widespread and controversial.",
-    },
-    {
-      topic: "Firearms",
-      icon: "🔫",
-      status: "Restricted",
-      note: "Strictly licensed; handguns for sport only; no self-defense justification post-1996 Port Arthur reforms.",
-    },
-    {
-      topic: "Sex Work",
-      icon: "💼",
-      status: "Legal",
-      note: "NSW fully decriminalized sex work in 1995; one of the most progressive frameworks globally.",
-    },
-    {
-      topic: "Same-Sex Marriage",
-      icon: "🏳️‍🌈",
-      status: "Legal",
-      note: "Legal nationally since December 2017 (Marriage Amendment Act).",
-    },
-    {
-      topic: "Abortion",
-      icon: "⚕️",
-      status: "Legal",
-      note: "Legal on request up to 22 weeks in NSW; after 22 weeks with two-doctor approval.",
-    },
-    {
-      topic: "Assisted Dying",
-      icon: "🕊️",
-      status: "Legal",
-      note: "Legal in NSW under the Voluntary Assisted Dying Act 2021; commenced November 2023.",
-    },
-    {
-      topic: "Public Smoking",
-      icon: "🚬",
-      status: "Restricted",
-      note: "Banned within 4m of building entrances, outdoor dining, public transport stops, and sports venues.",
-    },
-    {
-      topic: "Street Vending",
-      icon: "🛒",
-      status: "Restricted",
-      note: "Requires council approval; regulated by City of Sydney\'s outdoor dining and trading policies.",
-    },
-    {
-      topic: "Jaywalking",
-      icon: "🚶",
-      status: "Illegal",
-      note: "Fines up to AUD 79 for crossing against signals; however enforcement is minimal in practice.",
-    },
-  ],
-  berlin: [
-    {
-      topic: "Recreational Cannabis",
-      icon: "🌿",
-      status: "Legal",
-      note: "Legal for adults 18+ since April 2024 (CanG); up to 25g in public, 50g at home.",
-    },
-    {
-      topic: "Psychedelics",
-      icon: "🍄",
-      status: "Illegal",
-      note: "Psilocybin remains illegal (BtMG); decriminalization debate active in Bundestag.",
-    },
-    {
-      topic: "Alcohol",
-      icon: "🍺",
-      status: "Legal",
-      note: "Legal 18+ (spirits); 16+ for beer and wine; public drinking is broadly legal.",
-    },
-    {
-      topic: "Gambling",
-      icon: "🎰",
-      status: "Restricted",
-      note: "Licensed casinos legal; online gambling regulated by new Interstate Gambling Treaty (GlüStV 2021).",
-    },
-    {
-      topic: "Firearms",
-      icon: "🔫",
-      status: "Restricted",
-      note: "Strict licensing under Waffengesetz; sport shooting and hunting permitted; handguns heavily restricted.",
-    },
-    {
-      topic: "Sex Work",
-      icon: "💼",
-      status: "Legal",
-      note: "Fully legal and regulated since the Prostitution Act 2002; sex workers can pay into social security.",
-    },
-    {
-      topic: "Same-Sex Marriage",
-      icon: "🏳️‍🌈",
-      status: "Legal",
-      note: "Legal nationally since October 2017 (Ehe für alle).",
-    },
-    {
-      topic: "Abortion",
-      icon: "⚕️",
-      status: "Restricted",
-      note: "Legal up to 12 weeks after mandatory counselling (§218 StGB); technically still 'illegal but not punishable'.",
-    },
-    {
-      topic: "Assisted Dying",
-      icon: "🕊️",
-      status: "Legal",
-      note: "Federal Court struck down ban in 2020; assisted suicide organisations now operate legally.",
-    },
-    {
-      topic: "Public Smoking",
-      icon: "🚬",
-      status: "Restricted",
-      note: "Banned in restaurants, bars (unless designated), and public transport; outdoor smoking legal.",
-    },
-    {
-      topic: "Street Vending",
-      icon: "🛒",
-      status: "Restricted",
-      note: "Requires Gewerbeerlaubnis (trade permit); markets like Mauerpark flea market operate under permits.",
-    },
-    {
-      topic: "Jaywalking",
-      icon: "🚶",
-      status: "Illegal",
-      note: "Fines of €5–10 for crossing red lights as pedestrian; enforcement is relaxed but real.",
-    },
-  ],
-};
-
-const DEFAULT_CITY_LEGAL: CityLegalTopic[] = [
-  {
-    topic: "Recreational Cannabis",
-    icon: "🌿",
-    status: "Varies",
-    note: "Legal status varies by national and municipal law.",
-  },
-  {
-    topic: "Alcohol",
-    icon: "🍺",
-    status: "Restricted",
-    note: "Subject to local licensing laws and minimum age requirements.",
-  },
-  {
-    topic: "Gambling",
-    icon: "🎰",
-    status: "Restricted",
-    note: "Regulated by national gambling authority.",
-  },
-  {
-    topic: "Firearms",
-    icon: "🔫",
-    status: "Restricted",
-    note: "Subject to national firearms licensing laws.",
-  },
-  {
-    topic: "Sex Work",
-    icon: "💼",
-    status: "Varies",
-    note: "Legal status determined by national law.",
-  },
-  {
-    topic: "Same-Sex Marriage",
-    icon: "🏳️‍🌈",
-    status: "Varies",
-    note: "Legal status determined by national law.",
-  },
-  {
-    topic: "Abortion",
-    icon: "⚕️",
-    status: "Varies",
-    note: "Regulated by national health law.",
-  },
-  {
-    topic: "Public Smoking",
-    icon: "🚬",
-    status: "Restricted",
-    note: "Typically banned in enclosed public spaces.",
-  },
-];
-
-function CityLegalStatusGrid({ city }: { city: City }) {
-  const topics = CITY_LEGAL_STATUS[city.id] ?? DEFAULT_CITY_LEGAL;
-  return (
-    <div className="modal-tile rounded-xl border border-border/60 p-4 mb-4">
-      <div className="flex items-center gap-2 mb-3">
-        <h3 className="text-sm font-bold font-sans text-foreground">
-          What&#39;s Legal &amp; Illegal in {city.name}
-        </h3>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {topics.map((t) => (
-          <div
-            key={t.topic}
-            className="flex items-start gap-2.5 p-2.5 rounded-lg bg-background/40 border border-border/40 hover:border-border/70 transition-colors"
-          >
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                <span className="text-xs font-semibold font-sans text-foreground leading-tight">
-                  {t.topic}
-                </span>
-                <span
-                  className={`text-[10px] font-sans font-medium px-1.5 py-0.5 rounded-full border shrink-0 ${LEGAL_STATUS_BADGE[t.status]}`}
-                >
-                  {t.status}
-                </span>
-              </div>
-              <p className="text-[10px] text-muted-foreground font-sans leading-relaxed">
-                {t.note}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function CityLawsTab({ city }: { city: City }) {
-  const laws = CITY_LAWS[city.id] ?? DEFAULT_CITY_LAWS;
-  const categories = Array.from(new Set(laws.map((l) => l.category)));
-
-  return (
-    <div className="space-y-4">
-      {/* Legal Status Grid */}
-      <CityLegalStatusGrid city={city} />
-
-      {/* Header strip */}
-      <div className="flex items-center gap-3 p-4 modal-tile rounded-xl border border-border/60">
-        <div className="p-2 rounded-lg bg-secondary/10 border border-secondary/20">
-          <Scales size={16} weight="fill" className="text-secondary" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold font-sans text-foreground">
-            {city.name} · Local Laws &amp; Ordinances
-          </p>
-          <p className="text-xs text-muted-foreground font-sans mt-0.5">
-            {city.country} · {laws.length} laws across {categories.length}{" "}
-            categories
-          </p>
-        </div>
-        <span className="shrink-0 text-[10px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-          {laws.filter((l) => l.status === "Active").length} active
-        </span>
-      </div>
-
-      <SourceLink sources={SRC_CITY_LAWS} className="-mt-1 mb-1" />
-
-      {/* Law cards */}
-      <div className="space-y-2">
-        {laws.map((law, i) => (
-          <div
-            key={i}
-            className="p-4 modal-tile rounded-xl border border-border/60 hover:border-secondary/30 transition-colors"
-          >
-            <div className="flex items-start justify-between gap-3 mb-2">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span
-                  className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border"
-                  style={{
-                    color: law.color,
-                    borderColor: law.color + "44",
-                    backgroundColor: law.color + "18",
-                  }}
-                >
-                  {law.category}
-                </span>
-                <span
-                  className={`text-[10px] font-sans px-2 py-0.5 rounded-full border ${STATUS_COLORS[law.status]}`}
-                >
-                  {law.status}
-                </span>
-                {law.enacted && (
-                  <span className="text-[10px] font-mono text-muted-foreground">
-                    Est. {law.enacted}
-                  </span>
-                )}
-              </div>
-            </div>
-            <p className="text-xs font-semibold font-sans text-foreground mb-1">
-              {law.title}
-            </p>
-            <p className="text-[11px] text-muted-foreground font-sans leading-relaxed">
-              {law.description}
-            </p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-
-
-
-
-// ─── Urban Stats Panel ─────────────────────────────────────────────────────
-function ScoreBar({
-  value,
-  max = 100,
-  color,
-}: {
-  value: number;
+  /** Its unit and year. */
+  what: string;
+  value: (r: Row) => number | null;
+  fmt: (v: number) => string;
+  /** What the city ranked 1st is. */
+  first: string;
+  /** Whether it is drawn as a bar: a change that can be negative is a figure, not a length. */
+  bar: boolean;
+  /** The end of the bar's scale where it has a natural one: 100 for a share. Otherwise the largest city's figure. */
   max?: number;
-  color: string;
-}) {
-  const pct = Math.min((value / max) * 100, 100);
-  return (
-    <div className="h-1.5 bg-background rounded-full overflow-hidden mt-1">
-      <div
-        className={`h-full rounded-full ${color}`}
-        style={{ width: `${pct}%`, transition: "width 0.6s ease" }}
-      />
-    </div>
-  );
+};
+/** The measures the cities are sorted, ranked and set side by side on. */
+const MEASURES: Measure[] = [
+  { key: "population", label: "Population", what: `people, ${BASE}`, value: (r) => r.now.population, fmt: fmtPeople, first: "largest", bar: true },
+  { key: "density", label: "Density", what: `people per km² of land, ${BASE}`, value: (r) => r.now.density, fmt: perKm2, first: "densest", bar: true },
+  { key: "builtPer", label: "Built-up area per person", what: `m², ${BASE}`, value: (r) => r.now.builtPer, fmt: m2, first: "most built-up area a person", bar: true },
+  { key: "share", label: "Share of its country's city population", what: `per cent, ${BASE}`, value: (r) => r.now.share, fmt: share, first: "largest share", bar: true, max: 100 },
+  { key: "growth", label: `Population change since ${SINCE}`, what: `per cent, ${SINCE} to ${BASE}`, value: (r) => r.since?.pct ?? null, fmt: signed, first: "fastest growing", bar: false },
+];
+const measureOf = (key: MeasureKey) => MEASURES.find((m) => m.key === key)!;
+
+/** Where a city stands among the cities the page holds, on one measure: its rank, and the list's low, middle and high. */
+function standingOf(row: Row, m: Measure) {
+  const v = m.value(row);
+  const all = ROWS.map(m.value).filter((x): x is number => x != null).sort((a, b) => a - b);
+  if (v == null || !all.length) return null;
+  const mid = all.length >> 1;
+  return {
+    v,
+    rank: all.filter((x) => x > v).length + 1,
+    of: all.length,
+    min: all[0],
+    max: all[all.length - 1],
+    median: all.length % 2 ? all[mid] : (all[mid - 1] + all[mid]) / 2,
+  };
 }
 
-function UrbanStatSection({
-  icon,
-  title,
-  color,
-  children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  color: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="modal-tile rounded-xl border border-border/60 p-4">
-      <div
-        className={`flex items-center gap-2 mb-3 pb-2 border-b border-border/40`}
-      >
-        <span className={color}>{icon}</span>
-        <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-wide">
-          {title}
-        </h4>
-      </div>
-      <div className="space-y-2.5">{children}</div>
-    </div>
-  );
+// ── Charts ─────────────────────────────────────────────────────────────────
+
+/** The chart's quiet colours, by theme: axis text, grid, and the wash over the projected years. */
+function useChartInk() {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+  return {
+    muted: isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.5)",
+    grid: isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)",
+    ahead: isLight ? "rgba(99,102,241,0.07)" : "rgba(129,140,248,0.10)",
+  };
 }
 
-function StatRow({
+type SeriesLine = { key: string; label: string; color: string; values: (number | null)[] };
+
+function SeriesTip({
+  active,
+  payload,
   label,
-  value,
-  bar,
-  barColor = "bg-secondary",
-  barMax = 100,
-  sub,
+  lines,
+  fmt,
 }: {
-  label: string;
-  value: string;
-  bar?: number;
-  barColor?: string;
-  barMax?: number;
-  sub?: string;
+  active?: boolean;
+  payload?: { dataKey?: string | number; value?: number | null }[];
+  label?: string;
+  lines: SeriesLine[];
+  fmt: (v: number) => string;
 }) {
+  if (!active || !payload?.length) return null;
+  const seen = new Set<string>();
+  const rows = payload.flatMap((p) => {
+    const key = String(p.dataKey).slice(0, -1);
+    const line = lines.find((l) => l.key === key);
+    if (!line || p.value == null || seen.has(key)) return [];
+    seen.add(key);
+    return [{ line, v: p.value }];
+  });
+  if (!rows.length) return null;
   return (
-    <div>
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="text-[11px] text-muted-foreground font-sans">
-          {label}
-        </span>
-        <div className="text-right">
-          <span className="text-xs font-bold font-mono text-foreground">
-            {value}
-          </span>
-          {sub && (
-            <span className="text-[10px] text-muted-foreground font-sans ml-1">
-              {sub}
-            </span>
-          )}
-        </div>
-      </div>
-      {bar !== undefined && (
-        <ScoreBar value={bar} max={barMax} color={barColor} />
-      )}
+    <div className="cs-chart-tip rounded-md p-2 text-[11px] font-mono font-bold">
+      <p className="mb-1" style={{ opacity: 0.75 }}>
+        {label}
+        {Number(label) > BASE ? " · projected" : " · estimated"}
+      </p>
+      {rows.map(({ line, v }) => (
+        <p key={line.key}>
+          <span className="inline-block w-2 h-2 rounded-sm mr-1.5" style={{ background: line.color }} aria-hidden />
+          {line.label}: {fmt(v)}
+        </p>
+      ))}
     </div>
   );
 }
 
-function CityUrbanStatsPanel({ city }: { city: City }) {
-  const s = CITY_URBAN_STATS[city.id] ?? DEFAULT_URBAN_STATS;
-
-  const rentStressColor =
-    s.rentToIncomeRatio > 55
-      ? "bg-destructive"
-      : s.rentToIncomeRatio > 40
-        ? "bg-warning"
-        : "bg-success";
-  const giniColor =
-    s.giniCoefficient > 50
-      ? "bg-destructive"
-      : s.giniCoefficient > 38
-        ? "bg-warning"
-        : "bg-success";
-  const unempColor =
-    s.unemploymentRate > 10
-      ? "bg-destructive"
-      : s.unemploymentRate > 6
-        ? "bg-warning"
-        : "bg-success";
-  const aqiColor =
-    city.airQualityIndex < 30
-      ? "bg-success"
-      : city.airQualityIndex < 60
-        ? "bg-warning"
-        : "bg-destructive";
-
+/**
+ * A city's series, year by year, on an axis from zero: solid to the UN's last
+ * estimate, dashed over the years it projects, which are washed. A year the
+ * UN gives no figure for is a gap in the line.
+ */
+function SeriesChart({ lines, fmt, tick, label, height = 200 }: { lines: SeriesLine[]; fmt: (v: number) => string; tick: (v: number) => string; label: string; height?: number }) {
+  const ink = useChartInk();
+  const data = CITY_YEARS.map((y, i) => {
+    const row: Record<string, string | number | null> = { year: String(y) };
+    for (const l of lines) {
+      const v = l.values[i] ?? null;
+      row[`${l.key}A`] = y <= BASE ? v : null;
+      row[`${l.key}P`] = y >= BASE ? v : null;
+    }
+    return row;
+  });
+  const axis = { tick: { fontSize: 9, fill: ink.muted, fontFamily: "monospace" }, axisLine: false, tickLine: false };
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 mb-1">
-        <ChartBar size={15} weight="fill" className="text-secondary" />
-        <h3 className="text-sm font-bold font-sans text-foreground">
-          Urban Statistics
-        </h3>
-        <span className="ml-auto text-[10px] text-muted-foreground font-sans bg-muted px-2 py-0.5 rounded-full">
-          Most inquired
-        </span>
-      </div>
-
-      {/* Housing */}
-      <UrbanStatSection
-        icon={<House size={14} weight="fill" />}
-        title="Housing & Affordability"
-        color="text-blue-400"
-      >
-        <StatRow
-          label="Avg Rent · 1BR City Center"
-          value={`$${s.avgRentUSD1BR.toLocaleString()}/mo`}
-        />
-        <StatRow
-          label="Avg Buy Price / m²"
-          value={`$${s.avgHomePriceUSDm2.toLocaleString()}`}
-        />
-        <StatRow
-          label="Rent-to-Income Ratio"
-          value={`${s.rentToIncomeRatio}%`}
-          sub={
-            s.rentToIncomeRatio > 55
-              ? "Severely unaffordable"
-              : s.rentToIncomeRatio > 40
-                ? "Unaffordable"
-                : "Manageable"
-          }
-          bar={s.rentToIncomeRatio}
-          barMax={80}
-          barColor={rentStressColor}
-        />
-        <StatRow
-          label="Avg Monthly Net Salary"
-          value={`$${s.avgSalaryUSD.toLocaleString()}`}
-        />
-      </UrbanStatSection>
-
-      {/* Transport */}
-      <UrbanStatSection
-        icon={<Train size={14} weight="fill" />}
-        title="Transport & Mobility"
-        color="text-purple-400"
-      >
-        <StatRow
-          label="Public Transit Quality"
-          value={`${s.transitScore}/100`}
-          bar={s.transitScore}
-          barColor="bg-purple-500"
-        />
-        <StatRow
-          label="Cycling Infrastructure"
-          value={`${s.bikeInfraScore}/100`}
-          bar={s.bikeInfraScore}
-          barColor="bg-purple-400"
-        />
-        <StatRow
-          label="Avg Daily Commute"
-          value={`${s.avgCommuteMin} min`}
-          sub="one-way"
-        />
-      </UrbanStatSection>
-
-      {/* Healthcare */}
-      <UrbanStatSection
-        icon={<FirstAid size={14} weight="fill" />}
-        title="Healthcare"
-        color="text-emerald-400"
-      >
-        <StatRow
-          label="Healthcare Quality Index"
-          value={`${s.healthcareIndex}/100`}
-          bar={s.healthcareIndex}
-          barColor="bg-emerald-500"
-        />
-        <StatRow
-          label="Hospital Beds per 1,000"
-          value={s.hospitalBedsPerK.toFixed(1)}
-          bar={s.hospitalBedsPerK}
-          barMax={15}
-          barColor="bg-emerald-400"
-        />
-      </UrbanStatSection>
-
-      {/* Education */}
-      <UrbanStatSection
-        icon={<GraduationCap size={14} weight="fill" />}
-        title="Education"
-        color="text-yellow-400"
-      >
-        <StatRow
-          label="Literacy Rate"
-          value={`${s.literacyRate}%`}
-          bar={s.literacyRate}
-          barMax={100}
-          barColor="bg-yellow-500"
-        />
-        <StatRow
-          label="Top University (QS Rank)"
-          value={
-            s.topUniversityRank ? `#${s.topUniversityRank}` : "Not in top 500"
-          }
-          sub={
-            s.topUniversityRank && s.topUniversityRank <= 50
-              ? "World-class"
-              : s.topUniversityRank && s.topUniversityRank <= 200
-                ? "Strong"
-                : ""
-          }
-        />
-        <StatRow label="Universities in City" value={`${city.universities}`} />
-      </UrbanStatSection>
-
-      {/* Digital & Environment */}
-      <UrbanStatSection
-        icon={<WifiHigh size={14} weight="fill" />}
-        title="Digital & Environment"
-        color="text-cyan-400"
-      >
-        <StatRow
-          label="Avg Broadband Speed"
-          value={`${s.avgInternetMbps} Mbps`}
-          bar={s.avgInternetMbps}
-          barMax={400}
-          barColor="bg-cyan-500"
-        />
-        <StatRow
-          label="Green Space Coverage"
-          value={`${s.greenSpacePct}%`}
-          bar={s.greenSpacePct}
-          barMax={70}
-          barColor="bg-green-500"
-        />
-        <StatRow
-          label="Municipal Recycling Rate"
-          value={`${s.recyclingRatePct}%`}
-          bar={s.recyclingRatePct}
-          barMax={100}
-          barColor="bg-teal-500"
-        />
-        <StatRow
-          label="Air Quality Index (AQI)"
-          value={`${city.airQualityIndex}`}
-          sub={
-            city.airQualityIndex < 30
-              ? "Good"
-              : city.airQualityIndex < 60
-                ? "Moderate"
-                : "Poor"
-          }
-          bar={city.airQualityIndex}
-          barMax={100}
-          barColor={aqiColor}
-        />
-      </UrbanStatSection>
-
-      {/* Economy & Inequality */}
-      <UrbanStatSection
-        icon={<ChartBar size={14} weight="fill" />}
-        title="Economy & Inequality"
-        color="text-orange-400"
-      >
-        <StatRow
-          label="Unemployment Rate"
-          value={`${s.unemploymentRate}%`}
-          bar={s.unemploymentRate}
-          barMax={30}
-          barColor={unempColor}
-        />
-        <StatRow
-          label="Gini Coefficient"
-          value={`${s.giniCoefficient}`}
-          sub={
-            s.giniCoefficient > 50
-              ? "Very unequal"
-              : s.giniCoefficient > 38
-                ? "Moderate"
-                : "Relatively equal"
-          }
-          bar={s.giniCoefficient}
-          barMax={70}
-          barColor={giniColor}
-        />
-        <StatRow
-          label="GDP Per Capita"
-          value={`$${city.gdpPerCapita.toLocaleString()}`}
-        />
-        <StatRow label="Fortune 500 HQs" value={`${city.fortuneHQs}`} />
-      </UrbanStatSection>
-
-      {/* Startup Ecosystem */}
-      <UrbanStatSection
-        icon={<Rocket size={14} weight="fill" />}
-        title="Startup Ecosystem"
-        color="text-pink-400"
-      >
-        <StatRow
-          label="Ecosystem Score"
-          value={`${s.startupScore}/100`}
-          bar={s.startupScore}
-          barColor="bg-pink-500"
-        />
-        <StatRow
-          label="Unicorn Companies"
-          value={`${s.unicorns}`}
-          sub="HQ'd in city"
-        />
-        <StatRow label="Tech Hubs / Incubators" value={`${city.techHubs}`} />
-      </UrbanStatSection>
+    <div role="img" aria-label={label}>
+      <ResponsiveContainer width="100%" height={height}>
+        <LineChart data={data} margin={{ top: 14, right: 12, left: 0, bottom: 0 }}>
+          <CartesianGrid stroke={ink.grid} vertical={false} />
+          <XAxis dataKey="year" {...axis} ticks={[String(SRC.firstYear), "2000", String(BASE), String(LAST)]} interval={0} />
+          <YAxis {...axis} width={46} tickFormatter={tick} domain={[0, "auto"]} />
+          <ReferenceArea x1={String(BASE + 1)} x2={String(LAST)} fill={ink.ahead} fillOpacity={1} ifOverflow="visible" />
+          <ReferenceLine
+            x={String(BASE + 1)}
+            stroke={ink.muted}
+            strokeDasharray="2 3"
+            label={{ value: "projected", position: "insideTopLeft", fontSize: 9, fill: ink.muted, fontFamily: "monospace" }}
+          />
+          <Tooltip content={<SeriesTip lines={lines} fmt={fmt} />} />
+          {lines.flatMap((l) => [
+            <Line key={`${l.key}A`} type="monotone" dataKey={`${l.key}A`} stroke={l.color} strokeWidth={2} dot={false} isAnimationActive={false} />,
+            <Line key={`${l.key}P`} type="monotone" dataKey={`${l.key}P`} stroke={l.color} strokeWidth={2} strokeDasharray="5 4" dot={false} isAnimationActive={false} />,
+          ])}
+        </LineChart>
+      </ResponsiveContainer>
     </div>
+  );
+}
+
+/** The lines of a chart, named, each with its latest figure in ink. */
+function Legend({ items }: { items: { color: string; label: string; value: string }[] }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-1.5">
+      {items.map((l) => (
+        <span key={l.label} className="flex items-center gap-1.5">
+          <span className="w-3 h-0.5 rounded-full" style={{ background: l.color }} aria-hidden />
+          <span className="text-[10px] font-sans text-muted-foreground">{l.label}</span>
+          <span className="text-[10px] font-mono font-bold text-foreground">{l.value}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** A city's population from 1975 to 2050 as a line the width of its card: solid to the last estimate, dashed after, from zero. */
+function PopSpark({ f, name }: { f: CityFigures; name: string }) {
+  const W = 120;
+  const H = 30;
+  const top = Math.max(...f.pop.map((v) => v ?? 0));
+  const pts = f.pop.map((v, i) => (v == null || top <= 0 ? null : ([(i / (f.pop.length - 1)) * W, H - 1 - (v / top) * (H - 2)] as const)));
+  const path = (from: number, to: number) =>
+    pts
+      .slice(from, to + 1)
+      .filter((p): p is readonly [number, number] => p != null)
+      .map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`)
+      .join("");
+  const b = BASE - SRC.firstYear;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="block w-full h-8" role="img" aria-label={`Population of ${name}, ${SRC.firstYear} to ${LAST}; projected from ${BASE + 1}.`}>
+      <line x1={0} y1={H - 0.5} x2={W} y2={H - 0.5} stroke="currentColor" strokeWidth={1} opacity={0.15} vectorEffect="non-scaling-stroke" />
+      <path d={path(0, b)} fill="none" stroke={ACCENT} strokeWidth={1.75} vectorEffect="non-scaling-stroke" />
+      <path d={path(b, pts.length - 1)} fill="none" stroke={ACCENT} strokeWidth={1.75} strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
+    </svg>
   );
 }
 
@@ -2687,111 +310,156 @@ function WindowSection({ title, note, children }: { title: string; note?: string
   );
 }
 
-/** A figure in a tile, with a line under it saying how it ranks or what it is. */
+/** A figure in a tile, with a line under it saying whose it is and for when. */
 function CityTile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="modal-tile rounded-lg p-3 min-w-0">
       <p className="text-xs text-muted-foreground font-sans">{label}</p>
       <p className="text-base font-bold font-mono text-foreground">{value}</p>
-      {sub && <p className="text-[10px] text-muted-foreground font-sans mt-0.5 truncate" title={sub}>{sub}</p>}
+      {sub && <p className="text-[10px] text-muted-foreground font-sans mt-0.5 leading-snug">{sub}</p>}
     </div>
   );
 }
 
-/** 1st, 2nd, 3rd, 4th … */
-function nth(n: number): string {
-  const t = n % 100;
-  if (t >= 11 && t <= 13) return `${n}th`;
-  return `${n}${["th", "st", "nd", "rd"][n % 10] ?? "th"}`;
-}
-
-type CityMeasure = {
-  key: "population" | "metroPopulation" | "gdpBillions" | "gdpPerCapita" | "populationDensity" | "costOfLivingIndex" | "safetyIndex" | "airQualityIndex";
-  label: string;
-  fmt: (v: number) => string;
-  /** The lowest figure ranks first (air quality: lower is cleaner). */
-  lowerFirst?: boolean;
-  /** What the city ranked 1st is: the largest, the dearest, the cleanest. */
-  first: string;
-  /** The bar's colour: one of the site's, a measure each. The figures stay in ink. */
-  color: string;
-};
-/** The measures a city is set among the others on. */
-const CITY_MEASURES: CityMeasure[] = [
-  { key: "gdpPerCapita", label: "GDP per person", fmt: (v) => `$${Math.round(v).toLocaleString()}`, first: "highest", color: "#10b981" },
-  { key: "population", label: "City population", fmt: fmtPeople, first: "largest", color: "#3b82f6" },
-  { key: "populationDensity", label: "Density", fmt: (v) => `${Math.round(v).toLocaleString()}/km²`, first: "densest", color: "#8b5cf6" },
-  { key: "costOfLivingIndex", label: "Cost of living index", fmt: (v) => String(v), first: "dearest", color: "#f59e0b" },
-  { key: "safetyIndex", label: "Safety index", fmt: (v) => String(v), first: "safest", color: "#14b8a6" },
-  { key: "airQualityIndex", label: "Air quality index", fmt: (v) => String(v), lowerFirst: true, first: "cleanest", color: "#06b6d4" },
-];
-
-/** Where a city stands among the cities the page holds, on one measure: its rank, and the list's low, middle and high. */
-function standingOf(city: City, key: CityMeasure["key"], lowerFirst = false) {
-  const values = citiesData.map((c) => c[key]).sort((a, b) => a - b);
-  const mid = values.length >> 1;
-  const better = citiesData.filter((c) => (lowerFirst ? c[key] < city[key] : c[key] > city[key])).length;
-  return {
-    rank: better + 1,
-    of: values.length,
-    min: values[0],
-    max: values[values.length - 1],
-    median: values.length % 2 ? values[mid] : (values[mid - 1] + values[mid]) / 2,
-  };
-}
-const rankLine = (city: City, key: CityMeasure["key"]) => {
-  const s = standingOf(city, key);
-  return `${nth(s.rank)} of the ${s.of} cities here`;
+/** What the UN's rating of a population figure rests on, in its words' sense: the age and the resolution of the census grid under it. */
+const PLAUSIBILITY: Record<CityFigures["plausibility"], string> = {
+  High: "recent, fine-grained census data under it",
+  Moderate: "older or coarser census data under it",
+  Low: "old or coarse census data under it",
 };
 
 /**
- * Where the city stands, a tile to a measure, in the window's own tiles and
- * bars: the figure, its rank among the cities the page holds, how far it is
- * from the middle of them, and a bar that is full for the city ranked 1st and
- * notched at the middle. Under it, the range the cities run over.
+ * The figures the UN gives for the city at four points - where its series
+ * starts, 2000, its last estimate and its last projection - a column a year,
+ * the projected one washed. The same numbers as the charts, to the figure.
  */
-function CityStandings({ city }: { city: City }) {
+function ThenAndNow({ row }: { row: Row }) {
+  const first = cityFirstYear(row.city.id) ?? SRC.firstYear;
+  const years = [...new Set([first, SINCE, BASE, LAST])].filter((y) => y >= first).sort((a, b) => a - b);
+  const cols = years.map((y) => cityYear(row.city.id, y));
+  const lines: [string, (c: CityYear) => string][] = [
+    ["Population", (c) => whole(c.population)],
+    ["Land area, km²", (c) => c.area.toLocaleString("en-US", { maximumFractionDigits: 1 })],
+    ["Built-up area, km²", (c) => c.built.toLocaleString("en-US", { maximumFractionDigits: 1 })],
+    ["People per km² of land", (c) => whole(c.density)],
+    ["Built-up area per person, m²", (c) => c.builtPer.toFixed(1)],
+    [`Share of ${row.city.country}'s city population`, (c) => share(c.share)],
+  ];
+  const cell = "px-2 py-1.5 text-[11px] font-mono tabular-nums whitespace-nowrap text-right";
+  return (
+    <div className="modal-tile rounded-lg p-3 overflow-x-auto">
+      <table className="w-full border-collapse">
+        <caption className="sr-only">
+          {row.city.name}: the United Nations' figures for {years.join(", ")}.
+        </caption>
+        <thead>
+          <tr>
+            <td />
+            {years.map((y) => (
+              <th key={y} scope="col" className={`${cell} font-bold text-foreground ${y > BASE ? "bg-secondary/10 rounded-t-md" : ""}`}>
+                {y}
+                {y > BASE && <span className="block text-[8px] font-normal uppercase tracking-widest text-muted-foreground">projected</span>}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {lines.map(([label, fmt]) => (
+            <tr key={label} className="border-t border-border">
+              <th scope="row" className="py-1.5 pr-2 text-left text-[11px] font-sans font-normal text-muted-foreground">
+                {label}
+              </th>
+              {cols.map((c, i) => (
+                <td key={years[i]} className={`${cell} text-foreground ${years[i] > BASE ? "bg-secondary/10" : ""}`}>
+                  {c ? fmt(c) : "—"}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** How the city's population moved over each stretch of the series: the change, and the average rate a year it comes to. */
+function GrowthRows({ row }: { row: Row }) {
+  const first = cityFirstYear(row.city.id) ?? SRC.firstYear;
+  const marks = [...new Set([first, SINCE, BASE, LAST])].filter((y) => y >= first).sort((a, b) => a - b);
+  const spans = marks.slice(1).flatMap((to, i) => {
+    const g = cityGrowth(row.city.id, marks[i], to);
+    return g ? [g] : [];
+  });
+  if (!spans.length) return null;
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
+      {spans.map((g) => (
+        <div key={g.from} className="rounded-lg border border-border bg-background/40 px-3 py-2">
+          <p className="text-[10px] font-mono text-muted-foreground">
+            {g.from} to {g.to}
+            {g.to > BASE ? " · projected" : ""}
+          </p>
+          <p className="text-sm font-bold font-mono text-foreground">{signed(g.pct)}</p>
+          <p className="text-[10px] font-sans text-muted-foreground">{signed(g.perYear)} a year on average</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Where the city stands among the cities on the page, a tile to a measure:
+ * the figure, its rank, the middle of the list, and a bar on the measure's
+ * own scale - from zero to the largest city's figure, or to 100 for a share -
+ * with a notch at the middle. A change that can be negative is given as a
+ * figure with no bar.
+ */
+function CityStandings({ row }: { row: Row }) {
   return (
     <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {CITY_MEASURES.map((m) => {
-        const s = standingOf(city, m.key, m.lowerFirst);
-        const v = city[m.key];
-        const off = s.median ? ((v - s.median) / s.median) * 100 : 0;
-        const fromMiddle = Math.abs(off) < 0.5 ? "at the middle" : `${Math.abs(off) >= 10 ? Math.round(Math.abs(off)) : Math.abs(off).toFixed(1)}% ${off > 0 ? "above" : "below"} the middle`;
-        // Rank as a length: 1st fills the bar, last leaves a sliver; the middle of the list falls at its notch.
-        const filled = ((s.of - s.rank + 1) / s.of) * 100;
-        const notch = ((s.of + 1) / 2 / s.of) * 100;
+      {MEASURES.map((m) => {
+        const s = standingOf(row, m);
+        if (!s) {
+          return (
+            <li key={m.key} className="modal-tile rounded-lg p-3 min-w-0">
+              <p className="text-xs text-muted-foreground font-sans">{m.label}</p>
+              <p className="text-sm font-mono text-muted-foreground mt-1">Not published</p>
+              <p className="text-[11px] font-sans text-muted-foreground">The UN's series for {row.city.name} starts after {SINCE}.</p>
+            </li>
+          );
+        }
+        const top = m.max ?? s.max;
+        const at = (v: number) => `${top > 0 ? Math.min(100, Math.max(0, (100 * v) / top)) : 0}%`;
         return (
           <li key={m.key} className="modal-tile rounded-lg p-3 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <p className="text-xs text-muted-foreground font-sans">{m.label}</p>
-              <span
-                className="text-[10px] font-mono font-bold text-foreground px-2 py-0.5 rounded-full border whitespace-nowrap"
-                style={{ background: `${m.color}26`, borderColor: `${m.color}80` }}
-              >
+              <span className="text-[10px] font-mono font-bold text-foreground px-2 py-0.5 rounded-full border border-border whitespace-nowrap">
                 {nth(s.rank)} of {s.of}
               </span>
             </div>
-            <p className="text-lg font-bold font-mono text-foreground leading-tight mt-0.5">{m.fmt(v)}</p>
+            <p className="text-lg font-bold font-mono text-foreground leading-tight mt-0.5">{m.fmt(s.v)}</p>
             <p className="text-[11px] font-sans text-muted-foreground">
-              {fromMiddle} ({m.fmt(s.median)})
+              {m.what} · the middle of the {s.of} is {m.fmt(s.median)}
             </p>
-            <div
-              className="relative mt-2.5 h-2.5 rounded-full bg-background overflow-hidden"
-              role="img"
-              aria-label={`${city.name} is ${nth(s.rank)} of ${s.of} cities for ${m.label.toLowerCase()}, where 1st is the ${m.first}.`}
-            >
-              <div className="h-full rounded-full" style={{ width: `${Math.max(3, filled)}%`, background: m.color }} />
-              <span className="absolute top-0 bottom-0 w-0.5 bg-foreground opacity-70" style={{ left: `${notch}%` }} />
-            </div>
-            <div className="flex justify-between text-[10px] font-mono text-muted-foreground mt-1">
-              <span>{nth(s.of)}</span>
-              <span>middle</span>
-              <span>1st · {m.first}</span>
-            </div>
+            {m.bar && (
+              <>
+                <div
+                  className="relative mt-2.5 h-1.5 rounded-full bg-muted"
+                  role="img"
+                  aria-label={`${row.city.name}: ${m.fmt(s.v)}, ${nth(s.rank)} of ${s.of} cities for ${m.label.toLowerCase()}, on a scale from zero to ${m.fmt(top)}.`}
+                >
+                  <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: at(s.v), minWidth: 2, background: ACCENT }} />
+                  <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground" style={{ left: at(s.median) }} title={`The middle of the ${s.of}: ${m.fmt(s.median)}`} />
+                </div>
+                <div className="flex justify-between text-[10px] font-mono text-muted-foreground mt-1">
+                  <span>0</span>
+                  <span>{m.max ? "100%" : `${m.fmt(top)} · the ${m.first}`}</span>
+                </div>
+              </>
+            )}
             <p className="text-[11px] font-sans text-muted-foreground mt-2 pt-2 border-t border-border/50">
-              The {s.of} cities run from <span className="font-mono text-foreground">{m.fmt(s.min)}</span> to{" "}
-              <span className="font-mono text-foreground">{m.fmt(s.max)}</span>.
+              The {s.of} cities run from <span className="font-mono text-foreground">{m.fmt(s.min)}</span> to <span className="font-mono text-foreground">{m.fmt(s.max)}</span>.
             </p>
           </li>
         );
@@ -2800,127 +468,12 @@ function CityStandings({ city }: { city: City }) {
   );
 }
 
-/** The city's population and its cost of living, year by year, from the years the page holds. */
-function CityTrends({ city }: { city: City }) {
-  const { theme } = useTheme();
-  const isLight = theme === "light";
-  const muted = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.5)";
-  const grid = isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)";
-  const ink = isLight ? "#0f172a" : "#f1f0ff";
-  const tick = { fill: muted, fontSize: 10, fontFamily: "Figures, IBM Plex Mono" };
-  const tip = {
-    contentStyle: { background: isLight ? "#ffffff" : "#15151a", border: isLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 11, fontFamily: "monospace", color: ink },
-    labelStyle: { color: muted },
-  };
-  const first = city.trends[0];
-  const last = city.trends[city.trends.length - 1];
-  if (!first || !last) return null;
-  const exact = (v: number) => (v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : fmtPeople(v));
-  const moved = (a: number, b: number) => `${b >= a ? "+" : ""}${(((b - a) / a) * 100).toFixed(1)}%`;
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <div className="modal-tile rounded-lg p-4">
-        <p className="text-xs font-semibold font-sans text-foreground">Population</p>
-        <p className="text-[10px] font-mono text-muted-foreground mb-2">
-          {exact(first.population)} in {first.year} → {exact(last.population)} in {last.year} · {moved(first.population, last.population)}
-        </p>
-        <div className="h-36" role="img" aria-label={`Population of ${city.name}, ${first.year} to ${last.year}: ${fmtPeople(first.population)} to ${fmtPeople(last.population)}.`}>
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={city.trends} margin={{ top: 5, right: 8, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id={`cityPop-${city.id}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={grid} vertical={false} />
-              <XAxis dataKey="year" tick={tick} axisLine={false} tickLine={false} />
-              <YAxis tick={tick} axisLine={false} tickLine={false} width={52} tickFormatter={(v: number) => exact(v)} domain={["auto", "auto"]} />
-              <Tooltip {...tip} formatter={(v: number) => [Math.round(v).toLocaleString(), "Population"]} />
-              <Area type="monotone" dataKey="population" stroke="#0ea5e9" strokeWidth={2} fill={`url(#cityPop-${city.id})`} dot={{ r: 2.5, fill: "#0ea5e9" }} isAnimationActive={false} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <div className="modal-tile rounded-lg p-4">
-        <p className="text-xs font-semibold font-sans text-foreground">Cost of living index</p>
-        <p className="text-[10px] font-mono text-muted-foreground mb-2">
-          {first.costOfLiving} in {first.year} → {last.costOfLiving} in {last.year} · {moved(first.costOfLiving, last.costOfLiving)}
-        </p>
-        <div className="h-36" role="img" aria-label={`Cost of living index of ${city.name}, ${first.year} to ${last.year}: ${first.costOfLiving} to ${last.costOfLiving}.`}>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={city.trends} margin={{ top: 5, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={grid} vertical={false} />
-              <XAxis dataKey="year" tick={tick} axisLine={false} tickLine={false} />
-              <YAxis tick={tick} axisLine={false} tickLine={false} width={40} domain={["auto", "auto"]} allowDecimals={false} />
-              <Tooltip {...tip} formatter={(v: number) => [String(v), "Cost of living index"]} />
-              <Line type="monotone" dataKey="costOfLiving" stroke="#f59e0b" strokeWidth={2} dot={{ r: 2.5, fill: "#f59e0b" }} isAnimationActive={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** The city beside its country: what each produces per person, and how much of the country lives in the metropolitan area. */
-function CityAndCountry({ city, home }: { city: City; home: Country }) {
-  const rows: { label: string; city: number; country: number; fmt: (v: number) => string }[] = [];
-  if (has(home.gdpPerCapita)) rows.push({ label: "GDP per person", city: city.gdpPerCapita, country: home.gdpPerCapita, fmt: (v) => `$${Math.round(v).toLocaleString()}` });
-  const share = home.population > 0 ? (city.metroPopulation / home.population) * 100 : null;
-  const gdpShare = has(home.gdp) && home.gdp > 0 ? (city.gdpBillions / home.gdp) * 100 : null;
-  if (!rows.length && share === null) return null;
-  return (
-    <div className="modal-tile rounded-lg p-4 space-y-3">
-      {rows.map((r) => {
-        const top = Math.max(r.city, r.country, 1);
-        return (
-          <div key={r.label}>
-            <p className="text-xs font-sans text-muted-foreground mb-1.5">{r.label}</p>
-            {[
-              { name: city.name, v: r.city, tone: "bg-secondary" },
-              { name: home.name, v: r.country, tone: "bg-foreground opacity-40" },
-            ].map((b) => (
-              <div key={b.name} className="grid grid-cols-[minmax(0,8rem)_1fr_auto] items-center gap-x-2 mb-1">
-                <span className="text-[11px] font-sans text-foreground truncate">{b.name}</span>
-                <span className="h-2.5 rounded-full bg-background overflow-hidden">
-                  <span className={`block h-full rounded-full ${b.tone}`} style={{ width: `${Math.max(1.5, (100 * b.v) / top)}%` }} />
-                </span>
-                <span className="text-[11px] font-mono font-bold text-foreground text-right">{r.fmt(b.v)}</span>
-              </div>
-            ))}
-          </div>
-        );
-      })}
-      <div className="grid grid-cols-2 gap-3">
-        {share !== null && (
-          <div>
-            <p className="text-base font-bold font-mono text-foreground">{share >= 10 ? share.toFixed(0) : share.toFixed(1)}%</p>
-            <p className="text-[10px] font-sans text-muted-foreground leading-snug">of {home.name}'s people live in its metropolitan area</p>
-          </div>
-        )}
-        {gdpShare !== null && (
-          <div>
-            <p className="text-base font-bold font-mono text-foreground">{gdpShare >= 10 ? gdpShare.toFixed(0) : gdpShare.toFixed(1)}%</p>
-            <p className="text-[10px] font-sans text-muted-foreground leading-snug">of {home.name}'s GDP, on the two figures held</p>
-          </div>
-        )}
-      </div>
-      <p className="text-[10px] font-sans text-muted-foreground leading-snug">
-        The city's figures are this page's; {home.name}'s are from its country profile. The two are for different years and are set side by side as a
-        rough comparison, not a measurement.
-      </p>
-    </div>
-  );
-}
-
 function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
-  const [activeTab, setActiveTab] = useState<"overview" | "map" | "laws" | "history">(
-    "overview",
-  );
+  const [activeTab, setActiveTab] = useState<"overview" | "map" | "history">("overview");
   /* The city's country, where the site has a record of it, and its article. */
   const home = countriesData.find((c) => c.code === city.countryCode) ?? null;
   const place = CITY_PLACES[city.id];
+  const row = rowOf(city.id);
   const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
 
@@ -2936,13 +489,13 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
     };
   }, [onClose]);
 
-  const regionColor =
-    regionColors[city.region] ?? "text-muted-foreground border-border bg-muted";
-  const regionBg =
-    regionColor.split(" ").find((c) => c.startsWith("bg-")) ?? "bg-muted";
-  const regionText =
-    regionColor.split(" ").find((c) => c.startsWith("text-")) ??
-    "text-muted-foreground";
+  /* The region's tone, whole: its fill, border and text for the light theme and for the dark. The Map tab's banner took
+     only the light fill out of it and set the page's text on top, so in the dark theme it was pale text on pale yellow. */
+  const regionColor = regionColors[city.region] ?? "text-muted-foreground border-border bg-muted";
+
+  const first = cityFirstYear(city.id) ?? SRC.firstYear;
+  const then = cityYear(city.id, first);
+  const end = cityYear(city.id, LAST);
 
   return (
     <div
@@ -2961,28 +514,25 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
               <div className="w-16 h-11 rounded-xl overflow-hidden shrink-0 border border-border shadow-md bg-muted">
                 <img src={`https://flagcdn.com/w160/${city.countryCode.toLowerCase()}.png`} alt={`${city.country} flag`} className="w-full h-full object-cover" />
               </div>
-            <div className="min-w-0">
-              <h2 className="text-2xl font-bold font-sans text-foreground">
-                {city.name}
-              </h2>
-              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span className={`flex items-center gap-1 ${CHIP_TEXT}`}>
-                  <MapPin size={12} weight="fill" /> {city.country}
-                </span>
-                <span
-                  className={`text-xs border px-2 py-0.5 rounded-full font-sans ${regionColors[city.region] ?? "text-muted-foreground border-border bg-muted"}`}
-                >
-                  {city.region}
-                </span>
-                <span className={CHIP_TEXT}>
-                  Tourism #{city.tourismRankGlobal} globally
-                </span>
+              <div className="min-w-0">
+                <h2 className="text-2xl font-bold font-sans text-foreground">{city.name}</h2>
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                  <span className={`flex items-center gap-1 ${CHIP_TEXT}`}>
+                    <MapPin size={12} weight="fill" /> {city.country}
+                  </span>
+                  <span className={`text-xs border px-2 py-0.5 rounded-full font-sans ${regionColor}`}>{city.region}</span>
+                  {row?.f.capital && <span className={CHIP_TEXT}>Capital</span>}
+                  {row && (
+                    <span className={CHIP_TEXT} title={`By population in ${BASE}, among the ${SRC.cities.toLocaleString("en-US")} cities the United Nations counts`}>
+                      {nth(row.f.rank)} largest city in the world
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               {/* As in a country's and a state's window: to the maps page, with this city marked on both maps. */}
-              {CITY_PLACES[city.id] && (
+              {place && (
                 <button
                   onClick={() => navigate(`/dashboard/maps?city=${city.id}`)}
                   className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
@@ -2995,9 +545,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
               <button
                 onClick={() => setIsExpanded((v) => !v)}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-label={
-                  isExpanded ? "Collapse modal" : "Expand modal to full screen"
-                }
+                aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
                 title={isExpanded ? "Collapse" : "Expand to full screen"}
               >
                 {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
@@ -3043,13 +591,8 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
           <div className="flex gap-1 p-1 bg-muted/40 rounded-xl border border-border/50 mb-5">
             {(
               [
-                {
-                  key: "overview",
-                  label: "Overview",
-                  icon: <ListBullets size={14} />,
-                },
+                { key: "overview", label: "Overview", icon: <ListBullets size={14} /> },
                 { key: "map", label: "Map", icon: <MapTrifold size={14} /> },
-                { key: "laws", label: "Laws", icon: <Scales size={14} /> },
                 { key: "history", label: "History", icon: <ClockCounterClockwise size={14} /> },
               ] as const
             ).map((tab) => (
@@ -3057,9 +600,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium font-sans transition-all duration-200 ${
-                  activeTab === tab.key
-                    ? "bg-card text-foreground shadow-sm border border-border/60"
-                    : "text-muted-foreground hover:text-foreground"
+                  activeTab === tab.key ? "bg-card text-foreground shadow-sm border border-border/60" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {tab.icon}
@@ -3078,103 +619,138 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                 </WindowSection>
               )}
 
-              {/* The page's own figures, in a sentence. */}
-              <div className="modal-tile rounded-lg p-4">
-                <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">In figures</p>
-                <p className="text-[13px] font-sans text-foreground/90 leading-relaxed">
-                  {city.name} has {fmtPeople(city.population)} people within the city and {fmtPeople(city.metroPopulation)} across its metropolitan area,
-                  on {city.areaKm2.toLocaleString()} km². Its economy is put at {fmtBillionsUSD(city.gdpBillions)} a year, ${city.gdpPerCapita.toLocaleString()} for
-                  each person. Of the {citiesData.length} cities on this page it is the {nth(standingOf(city, "population").rank)} largest by
-                  population and the {nth(standingOf(city, "gdpPerCapita").rank)} by GDP per person, and it ranks {nth(city.tourismRankGlobal)} in
-                  the world for visitors.
-                </p>
-              </div>
+              {row && (
+                <>
+                  {/* The UN's figures, in a sentence. */}
+                  <div className="modal-tile rounded-lg p-4">
+                    <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">In figures</p>
+                    <p className="text-[13px] font-sans text-foreground/90 leading-relaxed">
+                      By the United Nations' count, {city.name} had {whole(row.now.population)} people in {BASE} on {km2(row.now.area)} of land,{" "}
+                      {whole(row.now.density)} to the square kilometre: the {nth(row.f.rank)} largest of the {SRC.cities.toLocaleString("en-US")} cities it
+                      counts, and home to {share(row.now.share)} of the people who live in {city.country}'s cities.
+                      {row.since && ` Its population is ${signed(row.since.pct)} on ${SINCE}.`}
+                      {row.ahead && end && ` The UN projects ${whole(end.population)} people in ${LAST}, ${signed(row.ahead.pct)} on ${BASE}.`}
+                      {row.f.admin &&
+                        ` Inside the boundary its own article describes, ${city.name} had ${whole(row.f.admin.population)} people in ${row.f.admin.year}, as Wikidata records it.`}
+                    </p>
+                    {row.f.un !== city.name && (
+                      <p className="text-[11px] font-sans text-muted-foreground leading-snug mt-2">
+                        The UN's name for the city it draws here is “{row.f.un}”.
+                      </p>
+                    )}
+                  </div>
 
-              <WindowSection title="👥 People & place">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  <CityTile label="City Population" value={fmtPeople(city.population)} sub={rankLine(city, "population")} />
-                  <CityTile label="Metro Area" value={fmtPeople(city.metroPopulation)} sub={rankLine(city, "metroPopulation")} />
-                  <CityTile label="Density" value={`${city.populationDensity.toLocaleString()}/km²`} sub={rankLine(city, "populationDensity")} />
-                  <CityTile label="Area" value={`${city.areaKm2.toLocaleString()} km²`} />
-                  <CityTile label="Avg Temp" value={`${city.avgTemperatureC}°C`} />
-                  <CityTile label="Visitors" value={`#${city.tourismRankGlobal}`} sub="tourism rank, worldwide" />
-                </div>
-              </WindowSection>
+                  <WindowSection
+                    title="👥 People & land"
+                    note={`A city, to the UN, is contiguous 1 km² cells of at least 1,500 people each, holding 50,000 people or more - one rule for every city, whatever its boundary. That is why its figure and the city's own differ.`}
+                  >
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <CityTile label="Population" value={whole(row.now.population)} sub={`UN estimate, ${BASE}`} />
+                      {row.f.admin && (
+                        <CityTile label="Within its own boundary" value={whole(row.f.admin.population)} sub={`Wikidata, ${row.f.admin.year}`} />
+                      )}
+                      <CityTile label="Land area" value={km2(row.now.area)} sub={`as the UN draws the city, ${BASE}`} />
+                      <CityTile label="Density" value={perKm2(row.now.density)} sub={`people per km² of land, ${BASE}`} />
+                      <CityTile label="Built-up area" value={km2(row.now.built)} sub={`ground under buildings, ${BASE}`} />
+                      <CityTile label="Built-up area per person" value={m2(row.now.builtPer)} sub={`${BASE}`} />
+                      <CityTile label="Share of the country's city population" value={share(row.now.share)} sub={`of the people in ${city.country}'s cities, ${BASE}`} />
+                      <CityTile label="Among the world's cities" value={nth(row.f.rank)} sub={`of ${SRC.cities.toLocaleString("en-US")} by population, ${BASE}`} />
+                      <CityTile label="How sure the UN is" value={row.f.plausibility} sub={`its rating of the population figure: ${PLAUSIBILITY[row.f.plausibility]}`} />
+                    </div>
+                  </WindowSection>
 
-              <WindowSection title="💰 Economy & institutions">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  <CityTile label="GDP" value={fmtBillionsUSD(city.gdpBillions)} sub={rankLine(city, "gdpBillions")} />
-                  <CityTile label="GDP Per Capita" value={`$${city.gdpPerCapita.toLocaleString()}`} sub={rankLine(city, "gdpPerCapita")} />
-                  <CityTile label="Fortune HQs" value={`${city.fortuneHQs}`} sub="company headquarters" />
-                  <CityTile label="Tech Hubs" value={`${city.techHubs}`} />
-                  <CityTile label="Universities" value={`${city.universities}`} />
-                </div>
-              </WindowSection>
+                  <WindowSection
+                    title={`📈 Population, ${first} to ${LAST}`}
+                    note={`The UN's estimates to ${BASE} and its projections after, a figure a year, on an axis from zero.`}
+                  >
+                    <div className="modal-tile rounded-lg p-4">
+                      <Legend
+                        items={[
+                          ...(then ? [{ color: ACCENT, label: String(first), value: fmtPeople(then.population) }] : []),
+                          { color: ACCENT, label: String(BASE), value: fmtPeople(row.now.population) },
+                          ...(end ? [{ color: ACCENT, label: `${LAST}, projected`, value: fmtPeople(end.population) }] : []),
+                        ]}
+                      />
+                      <SeriesChart
+                        lines={[{ key: "pop", label: "Population", color: ACCENT, values: row.f.pop }]}
+                        fmt={whole}
+                        tick={axisPeople}
+                        label={`Population of ${city.name}, ${first} to ${LAST}: ${then ? fmtPeople(then.population) : ""} to ${end ? fmtPeople(end.population) : ""}, projected from ${BASE + 1}.`}
+                      />
+                      <GrowthRows row={row} />
+                    </div>
+                  </WindowSection>
 
-              <SourceLink sources={SRC_CITIES} className="mb-1" />
+                  <WindowSection
+                    title="🏙️ Land and built-up area"
+                    note="The land the city covers as the UN draws it each year, and the ground under buildings within it, in square kilometres on one axis."
+                  >
+                    <div className="modal-tile rounded-lg p-4">
+                      <Legend
+                        items={[
+                          { color: PART_COLORS[1], label: `Land area, ${BASE}`, value: km2(row.now.area) },
+                          { color: PART_COLORS[0], label: `Built-up area, ${BASE}`, value: km2(row.now.built) },
+                        ]}
+                      />
+                      <SeriesChart
+                        lines={[
+                          { key: "area", label: "Land area", color: PART_COLORS[1], values: row.f.area },
+                          { key: "built", label: "Built-up area", color: PART_COLORS[0], values: row.f.built },
+                        ]}
+                        fmt={km2}
+                        tick={(v) => whole(v)}
+                        height={180}
+                        label={`Land area and built-up area of ${city.name}, ${first} to ${LAST}, in square kilometres.`}
+                      />
+                    </div>
+                  </WindowSection>
 
-              <WindowSection
-                title="📊 Where it stands"
-                note={`Where ${city.name} ranks among the ${citiesData.length} cities on this page. A full bar is 1st, and the notch marks the middle of them.`}
-              >
-                <CityStandings city={city} />
-              </WindowSection>
+                  <WindowSection title="🗓️ Then and now" note="The same series at four points, to the figure.">
+                    <ThenAndNow row={row} />
+                  </WindowSection>
 
-              <WindowSection title="📈 Over time">
-                <CityTrends city={city} />
-              </WindowSection>
+                  <WindowSection
+                    title={`🌐 ${city.name} in ${city.country}`}
+                    note={`Of the people the UN counts in ${city.country}'s cities, the share who live in this one.`}
+                  >
+                    <div className="modal-tile rounded-lg p-4">
+                      <Legend
+                        items={[
+                          ...(then ? [{ color: ACCENT, label: String(first), value: share(then.share) }] : []),
+                          { color: ACCENT, label: String(BASE), value: share(row.now.share) },
+                          ...(end ? [{ color: ACCENT, label: `${LAST}, projected`, value: share(end.share) }] : []),
+                        ]}
+                      />
+                      <SeriesChart
+                        lines={[{ key: "share", label: `Share of ${city.country}'s city population`, color: ACCENT, values: row.f.share }]}
+                        fmt={share}
+                        tick={(v) => `${v}%`}
+                        height={160}
+                        label={`${city.name}'s share of the people living in ${city.country}'s cities, ${first} to ${LAST}.`}
+                      />
+                    </div>
+                  </WindowSection>
 
-              {home && (
-                <WindowSection title={`🌐 ${city.name} and ${home.name}`}>
-                  <CityAndCountry city={city} home={home} />
-                </WindowSection>
+                  <WindowSection
+                    title="📊 Where it stands"
+                    note={`${city.name} among the ${ROWS.length} cities on this page. Each bar runs from zero to the largest city's figure, or to 100 for a share; the notch is the middle of them.`}
+                  >
+                    <CityStandings row={row} />
+                  </WindowSection>
+
+                  <SourceLink sources={SRC_CITY} className="mb-1" />
+                </>
               )}
 
-              {/* City Indices */}
-              <div className="modal-tile rounded-lg p-4 space-y-3">
-                <h3 className="text-sm font-semibold font-sans text-foreground mb-2">
-                  City Indices
-                </h3>
-                <IndexBar
-                  label="Cost of Living Index"
-                  value={city.costOfLivingIndex}
-                  color="text-warning"
-                />
-                <IndexBar
-                  label="Crime Index"
-                  value={city.crimeIndex}
-                  color="text-destructive"
-                />
-                <IndexBar
-                  label="Safety Index"
-                  value={city.safetyIndex}
-                  color="text-success"
-                />
-                <IndexBar
-                  label="Air Quality Index (AQI)"
-                  value={city.airQualityIndex}
-                  color="text-secondary"
-                />
-              </div>
-
-              <SourceLink sources={SRC_CITIES} className="mb-1" />
-
               {/* Languages, Landmarks, Religions */}
-              {(city.languages?.length ||
-                city.landmarks?.length ||
-                city.religions?.length) && (
+              {(city.languages?.length || city.landmarks?.length || city.religions?.length) && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {city.languages?.length ? (
                     <div className="modal-tile rounded-lg p-4">
-                      <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">
-                        Languages Spoken
-                      </p>
+                      <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">Languages Spoken</p>
                       <div className="flex flex-wrap gap-1.5">
                         {city.languages.map((l) => (
-                          <span
-                            key={l}
-                            className="text-xs bg-secondary/15 text-secondary border border-secondary/30 px-2 py-0.5 rounded-full font-sans"
-                          >
+                          <span key={l} className="text-xs bg-secondary/15 text-secondary border border-secondary/30 px-2 py-0.5 rounded-full font-sans">
                             {l}
                           </span>
                         ))}
@@ -3183,15 +759,10 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                   ) : null}
                   {city.landmarks?.length ? (
                     <div className="modal-tile rounded-lg p-4">
-                      <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">
-                        Top Landmarks
-                      </p>
+                      <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">Top Landmarks</p>
                       <ul className="space-y-1">
                         {city.landmarks.map((lm) => (
-                          <li
-                            key={lm}
-                            className="text-xs text-foreground font-sans flex items-start gap-1.5"
-                          >
+                          <li key={lm} className="text-xs text-foreground font-sans flex items-start gap-1.5">
                             <span className="text-secondary mt-0.5">•</span>
                             {lm}
                           </li>
@@ -3201,15 +772,10 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                   ) : null}
                   {city.religions?.length ? (
                     <div className="modal-tile rounded-lg p-4">
-                      <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">
-                        Religions
-                      </p>
+                      <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">Religions</p>
                       <div className="flex flex-wrap gap-1.5">
                         {city.religions.map((r) => (
-                          <span
-                            key={r}
-                            className="text-xs bg-warning/15 text-warning border border-warning/30 px-2 py-0.5 rounded-full font-sans"
-                          >
+                          <span key={r} className="text-xs bg-warning/15 text-warning border border-warning/30 px-2 py-0.5 rounded-full font-sans">
                             {r}
                           </span>
                         ))}
@@ -3219,12 +785,10 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                 </div>
               )}
 
-              {/* Urban Statistics */}
-              <CityUrbanStatsPanel city={city} />
-
               <p className="text-[10px] font-sans text-muted-foreground leading-snug pt-1">
-                The figures in this window were entered from the sources named and are not rebuilt from them, so they are a guide rather than a
-                record; the description and history are Wikipedia's, fetched as the window opens.
+                Every figure in this window is the United Nations' (World Urbanization Prospects: The 2025 Revision, read {SRC.retrieved}), except the
+                population within the city's own boundary, which is Wikidata's. The lists of languages, landmarks and religions are the site's own notes,
+                not a published count. The description and history are Wikipedia's, fetched as the window opens.
               </p>
             </div>
           )}
@@ -3232,41 +796,24 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
           {/* Map Tab */}
           {activeTab === "map" && (
             <div className="space-y-4">
-              {/* Region color info strip */}
-              <div
-                className={`rounded-xl p-4 flex items-center gap-4 border ${regionBg} border-current/20`}
-              >
+              {/* Region banner: every line in the tone's own text colour, which is dark on the pale fill and pale on the deep one. */}
+              <div className={`rounded-xl p-4 flex items-center gap-4 ${regionColor}`}>
                 <div>
-                  <p
-                    className={`text-xs font-semibold font-sans uppercase tracking-wide ${regionText}`}
-                  >
-                    {city.region}
-                  </p>
-                  <p className="text-foreground font-bold font-sans text-lg leading-tight">
-                    {city.name}
-                  </p>
-                  <p className="text-muted-foreground text-xs font-sans">
-                    {city.country}
-                  </p>
+                  <p className="text-xs font-semibold font-sans uppercase tracking-wide opacity-80">{city.region}</p>
+                  <p className="font-bold font-sans text-lg leading-tight">{city.name}</p>
+                  <p className="text-xs font-sans opacity-80">{city.country}</p>
                 </div>
-                <div className="ml-auto text-right">
-                  <p className="text-xs text-muted-foreground font-sans">
-                    Population
-                  </p>
-                  <p className={`font-mono font-bold text-sm ${regionText}`}>
-                    {fmtPeople(city.population)} city
-                  </p>
-                  <p className={`font-mono text-xs ${regionText} opacity-80`}>
-                    {fmtPeople(city.metroPopulation)} metro
-                  </p>
-                </div>
+                {row && (
+                  <div className="ml-auto text-right">
+                    <p className="text-xs font-sans opacity-80">Population</p>
+                    <p className="font-mono font-bold text-sm">{fmtPeople(row.now.population)}</p>
+                    <p className="font-mono text-xs opacity-80">UN estimate, {BASE}</p>
+                  </div>
+                )}
               </div>
 
               {/* Google Maps embed */}
-              <div
-                className="rounded-xl overflow-hidden border border-border"
-                style={{ height: 320 }}
-              >
+              <div className="rounded-xl overflow-hidden border border-border" style={{ height: 320 }}>
                 <iframe
                   title={`Map of ${city.name}`}
                   width="100%"
@@ -3279,40 +826,30 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
               </div>
 
               {/* Location facts grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  {
-                    label: "Area",
-                    value: `${city.areaKm2.toLocaleString()} km²`,
-                  },
-                  {
-                    label: "Pop. Density",
-                    value: `${city.populationDensity.toLocaleString()}/km²`,
-                  },
-                  { label: "Avg Temp", value: `${city.avgTemperatureC}°C` },
-                  {
-                    label: "Tourism Rank",
-                    value: `#${city.tourismRankGlobal} global`,
-                  },
-                ].map((f) => (
-                  <div
-                    key={f.label}
-                    className="modal-tile rounded-lg p-3 text-center"
-                  >
-                    <p className="text-xs text-muted-foreground font-sans">
-                      {f.label}
-                    </p>
-                    <p className="text-sm font-bold font-mono text-foreground mt-0.5">
-                      {f.value}
-                    </p>
+              {row && (
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {[
+                      { label: "Land area", value: km2(row.now.area) },
+                      { label: "Density", value: perKm2(row.now.density) },
+                      { label: "Built-up area", value: km2(row.now.built) },
+                      { label: "A capital", value: row.f.capital ? "Yes" : "No" },
+                    ].map((f) => (
+                      <div key={f.label} className="modal-tile rounded-lg p-3 text-center">
+                        <p className="text-xs text-muted-foreground font-sans">{f.label}</p>
+                        <p className="text-sm font-bold font-mono text-foreground mt-0.5">{f.value}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                  <ChartNote>
+                    The city as the United Nations draws it, {BASE}; whether it is a capital is as its country designates. The map is Google's and shows
+                    the place by name, not the UN's outline.
+                  </ChartNote>
+                  <SourceLink sources={SRC_UN} />
+                </>
+              )}
             </div>
           )}
-
-          {/* Laws Tab */}
-          {activeTab === "laws" && <CityLawsTab city={city} />}
 
           {/* History Tab: the city's story from its Wikipedia article. */}
           {activeTab === "history" &&
@@ -3327,48 +864,47 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
   );
 }
 
-function exportCitiesToCSV(cities: City[]) {
+/** The cities shown, as a file: every figure the page holds for each, with whose it is and for when in the column's name. */
+function exportCitiesToCSV(rows: Row[]) {
   const headers = [
     "Name",
     "Country",
     "Region",
-    "Population",
-    "Metro Population",
-    "GDP (B USD)",
-    "GDP Per Capita",
-    "Area km2",
-    "Density /km2",
-    "Cost of Living Index",
-    "Crime Index",
-    "Safety Index",
-    "Air Quality Index",
-    "Tourism Rank",
-    "Fortune HQs",
-    "Universities",
-    "Avg Temp C",
+    "UN city name",
+    "Capital",
+    `Population ${BASE} (UN estimate)`,
+    `Land area km2 ${BASE} (UN)`,
+    `Built-up area km2 ${BASE} (UN)`,
+    `People per km2 ${BASE} (UN)`,
+    `Built-up m2 per person ${BASE} (UN)`,
+    `Share of country's city population % ${BASE} (UN)`,
+    `World rank by population ${BASE} (of ${SRC.cities} UN cities)`,
+    "UN plausibility of population figure",
+    `Population ${SINCE} (UN estimate)`,
+    `Population ${LAST} (UN projection)`,
+    "Population within own boundary (Wikidata)",
+    "Year of boundary population",
   ];
-  const rows = cities.map((c) => [
-    c.name,
-    c.country,
-    c.region,
-    c.population,
-    c.metroPopulation,
-    c.gdpBillions,
-    c.gdpPerCapita,
-    c.areaKm2,
-    c.populationDensity,
-    c.costOfLivingIndex,
-    c.crimeIndex,
-    c.safetyIndex,
-    c.airQualityIndex,
-    c.tourismRankGlobal,
-    c.fortuneHQs,
-    c.universities,
-    c.avgTemperatureC,
+  const lines = rows.map((r) => [
+    r.city.name,
+    r.city.country,
+    r.city.region,
+    r.f.un,
+    r.f.capital ? "yes" : "no",
+    r.now.population,
+    r.now.area,
+    r.now.built,
+    r.now.density,
+    r.now.builtPer,
+    r.now.share,
+    r.f.rank,
+    r.f.plausibility,
+    cityYear(r.city.id, SINCE)?.population ?? "",
+    cityYear(r.city.id, LAST)?.population ?? "",
+    r.f.admin?.population ?? "",
+    r.f.admin?.year ?? "",
   ]);
-  const csv = [headers, ...rows]
-    .map((r) => r.map((v) => `"${v}"`).join(","))
-    .join("\n");
+  const csv = [headers, ...lines].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
   const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -3426,12 +962,70 @@ const pickCities = (rows: Headline[], all = false): Shown[] => {
   return out;
 };
 
+/** The city with the highest figure on a measure, among the page's. */
+const topOf = (key: MeasureKey) => {
+  const m = measureOf(key);
+  return ROWS.reduce<{ row: Row; v: number } | null>((best, row) => {
+    const v = m.value(row);
+    return v != null && (!best || v > best.v) ? { row, v } : best;
+  }, null);
+};
+
+/**
+ * The cities shown, ranked on the measure they are sorted by: a name and its
+ * figure in ink over a bar on the measure's own scale. The first ten, and the
+ * rest on request.
+ */
+function RankedPanel({ rows, measure }: { rows: Row[]; measure: Measure }) {
+  const [all, setAll] = useState(false);
+  const ranked = rows.flatMap((r) => {
+    const v = measure.value(r);
+    return v == null ? [] : [{ r, v }];
+  });
+  if (ranked.length < 2) return null;
+  const shown = all ? ranked : ranked.slice(0, 10);
+  return (
+    <section className="bg-card border border-border rounded-xl p-5 mb-6" aria-label={`Cities ranked by ${measure.label.toLowerCase()}`}>
+      <div className="flex items-baseline justify-between gap-3 mb-1">
+        <h2 className="text-sm font-bold font-sans text-foreground">{measure.label}</h2>
+        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{measure.what}</span>
+      </div>
+      <p className="text-[11px] font-sans text-muted-foreground leading-snug mb-3">
+        {measure.bar
+          ? measure.max
+            ? "Each bar is on a scale from zero to 100 per cent."
+            : `Each bar is on the scale of the ${measure.first} city shown.`
+          : "A change can be negative, so it is given as a figure and not drawn as a length."}{" "}
+        United Nations, World Urbanization Prospects: The 2025 Revision.
+      </p>
+      <MeasureBars
+        label={`${measure.label}, ${measure.what}`}
+        max={measure.bar ? measure.max : undefined}
+        rows={shown.map(({ r, v }, i) => ({
+          key: r.city.id,
+          label: `${i + 1}. ${r.city.name}, ${r.city.country}`,
+          value: measure.bar ? v : undefined,
+          text: measure.fmt(v),
+        }))}
+      />
+      {ranked.length > 10 && (
+        <button
+          type="button"
+          onClick={() => setAll((v) => !v)}
+          className="mt-3 text-[11px] font-semibold font-sans text-secondary hover:opacity-70 transition-opacity cursor-pointer"
+          aria-expanded={all}
+        >
+          {all ? "Show the first ten" : `Show all ${ranked.length}`}
+        </button>
+      )}
+    </section>
+  );
+}
+
 export function CitiesPage() {
   const [search, setSearch] = useState("");
   const [regionFilter, setRegionFilter] = useState("All");
-  const [sortBy, setSortBy] = useState<
-    "gdpBillions" | "population" | "safetyIndex" | "costOfLivingIndex"
-  >("gdpBillions");
+  const [sortBy, setSortBy] = useState<MeasureKey>("population");
   const [modalCity, setModalCity] = useState<City | null>(null);
 
   // Deep-link: open entity from search bar via ?open=<id>
@@ -3447,83 +1041,69 @@ export function CitiesPage() {
     }
   }, []);
 
-  const allRegions = [
-    "All",
-    ...Array.from(new Set(citiesData.map((c) => c.region))).sort(),
-  ];
+  const allRegions = ["All", ...Array.from(new Set(citiesData.map((c) => c.region))).sort()];
+  const measure = measureOf(sortBy);
 
-  const filtered = citiesData
-    .filter((c) => {
-      const matchSearch =
-        c.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.country.toLowerCase().includes(search.toLowerCase());
-      const matchRegion = regionFilter === "All" || c.region === regionFilter;
-      return matchSearch && matchRegion;
-    })
-    .sort((a, b) => b[sortBy] - a[sortBy]);
+  /* The cities that match, highest on the chosen measure first; one the UN has no figure for on it goes last. */
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return ROWS.filter(({ city }) => (city.name.toLowerCase().includes(q) || city.country.toLowerCase().includes(q)) && (regionFilter === "All" || city.region === regionFilter)).sort(
+      (a, b) => (measure.value(b) ?? -Infinity) - (measure.value(a) ?? -Infinity),
+    );
+  }, [search, regionFilter, measure]);
+
+  /* The headline figures, read off the cities: they were typed in - "Tokyo 37M", "Safest City: Dubai (83)". */
+  const summary = useMemo(() => {
+    const largest = topOf("population");
+    const densest = topOf("density");
+    const fastest = topOf("growth");
+    return [
+      { label: "Cities profiled", value: String(ROWS.length), sub: `of the ${SRC.cities.toLocaleString("en-US")} the UN counts` },
+      ...(largest ? [{ label: "Largest", value: `${largest.row.city.name} · ${fmtPeople(largest.v)}`, sub: `people, ${BASE}` }] : []),
+      ...(densest ? [{ label: "Densest", value: `${densest.row.city.name} · ${perKm2(densest.v)}`, sub: `people per km² of land, ${BASE}` }] : []),
+      ...(fastest ? [{ label: `Grown most since ${SINCE}`, value: `${fastest.row.city.name} · ${signed(fastest.v)}`, sub: `population, ${SINCE} to ${BASE}` }] : []),
+    ];
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
           <div>
-            <h1 className="text-2xl font-bold font-sans text-foreground">
-              Global Cities
-            </h1>
+            <h1 className="text-2xl font-bold font-sans text-foreground">Global Cities</h1>
             <p className="text-muted-foreground text-sm font-sans">
-              {citiesData.length} world cities — urban demographics, cost of
-              living, safety &amp; economic data
+              {ROWS.length} world cities — people, land and built-up area, {SRC.firstYear} to {LAST}, as the United Nations measures them
             </p>
           </div>
-        </div>
-
-        {/* CSV Export */}
-        <div className="flex justify-end mb-4">
           <button
             onClick={() => exportCitiesToCSV(filtered)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-[11px] font-sans cursor-pointer"
-            title="Export visible cities to CSV"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-[11px] font-medium font-sans cursor-pointer"
+            title="Export the cities shown, with every figure, to CSV"
           >
             <DownloadSimple size={13} weight="bold" />
             Export CSV
           </button>
         </div>
 
+        {/* What a figure here is: said once, before any is read. */}
+        <div className="bg-card border border-border rounded-lg px-4 py-3 mb-6">
+          <p className="text-xs font-sans text-muted-foreground leading-relaxed">
+            <span className="font-semibold text-foreground">How to read this page.</span> Every figure is the United Nations', from World Urbanization
+            Prospects: The 2025 Revision. It draws every city by one rule - contiguous 1 km² cells of at least 1,500 people each, together holding
+            50,000 or more - so the cities can be set side by side, and a figure here is not the one a city government reports for the area inside its
+            own boundary. Years to {BASE} are estimates; later years are the UN's projections.
+          </p>
+          <SourceLink sources={SRC_UN} className="mt-1.5" />
+        </div>
+
         {/* Summary Strip */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-          {[
-            {
-              label: "Cities Tracked",
-              value: `${citiesData.length} Cities`,
-              color: "text-secondary",
-            },
-            {
-              label: "Largest Metro",
-              value: "Tokyo 37M",
-              color: "text-warning",
-            },
-            {
-              label: "Safest City",
-              value: "Dubai (83)",
-              color: "text-success",
-            },
-            {
-              label: "Highest GDP",
-              value: "NYC $1.77T",
-              color: "text-secondary",
-            },
-          ].map((s) => (
-            <div
-              key={s.label}
-              className="bg-card border border-border rounded-lg p-4"
-            >
-              <p className="text-xs text-muted-foreground font-sans">
-                {s.label}
-              </p>
-              <p className={`text-base font-bold font-mono ${s.color}`}>
-                {s.value}
-              </p>
+          {summary.map((s) => (
+            <div key={s.label} className="bg-card border border-border rounded-lg p-4">
+              <p className="text-xs text-muted-foreground font-sans">{s.label}</p>
+              <p className="text-base font-bold font-mono text-foreground">{s.value}</p>
+              <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{s.sub}</p>
             </div>
           ))}
         </div>
@@ -3543,9 +1123,7 @@ export function CitiesPage() {
               key={r}
               onClick={() => setRegionFilter(r)}
               className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
-                regionFilter === r
-                  ? "chip-selected"
-                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                regionFilter === r ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
             >
               {r}
@@ -3553,15 +1131,16 @@ export function CitiesPage() {
           ))}
           <div className="w-px h-4 bg-border shrink-0" />
           <select
-            aria-label="Sort results"
+            aria-label="Sort and rank cities by"
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
+            onChange={(e) => setSortBy(e.target.value as MeasureKey)}
             className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
           >
-            <option value="gdpBillions">Sort: GDP</option>
-            <option value="population">Sort: Population</option>
-            <option value="safetyIndex">Sort: Safety</option>
-            <option value="costOfLivingIndex">Sort: Cost of Living</option>
+            {MEASURES.map((m) => (
+              <option key={m.key} value={m.key}>
+                Sort: {m.label}
+              </option>
+            ))}
           </select>
         </FilterBar>
 
@@ -3583,112 +1162,90 @@ export function CitiesPage() {
           )}
         />
 
-        {modalCity && (
-          <CityModal city={modalCity} onClose={() => setModalCity(null)} />
-        )}
+        {modalCity && <CityModal city={modalCity} onClose={() => setModalCity(null)} />}
+
+        {/* The cities shown, set side by side on the measure they are sorted by. */}
+        <RankedPanel rows={filtered} measure={measure} />
 
         {/* City Cards — 3 per row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 auto-rows-fr">
-          {filtered.map((city) => (
-            <article
-              key={city.id}
-              onClick={() => setModalCity(city)}
-              className="modal-tile rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40 flex flex-col h-full"
-            >
-              {/* Card header with country flag background */}
-              <div className="relative flex items-start justify-between mb-3 -mx-5 -mt-5 px-5 pt-5 pb-4 rounded-t-xl overflow-hidden">
-                {/* Flag background */}
-                <img
-                  src={`https://flagcdn.com/w320/${city.countryCode?.toLowerCase() ?? "un"}.png`}
-                  alt=""
-                  aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover opacity-20 scale-105 select-none pointer-events-none"
-                />
-                {/* Gradient overlay */}
-                {/* Content */}
-                <div className="relative flex items-center gap-3">
-                  <div className="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 shadow-md">
-                    <img
-                      src={`https://flagcdn.com/w80/${city.countryCode?.toLowerCase() ?? "un"}.png`}
-                      alt={`${city.country} flag`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const t = e.currentTarget;
-                        t.onerror = null;
-                        t.style.display = "none";
-                      }}
-                    />
+          {filtered.map(({ city, f, now, since }) => {
+            const first = cityFirstYear(city.id) ?? SRC.firstYear;
+            const end = cityYear(city.id, LAST);
+            return (
+              <article
+                key={city.id}
+                onClick={() => setModalCity(city)}
+                className="modal-tile rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40 flex flex-col h-full"
+              >
+                {/* Card header with country flag background */}
+                <div className="relative flex items-start justify-between mb-3 -mx-5 -mt-5 px-5 pt-5 pb-4 rounded-t-xl overflow-hidden">
+                  <img
+                    src={`https://flagcdn.com/w320/${city.countryCode?.toLowerCase() ?? "un"}.png`}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 w-full h-full object-cover opacity-20 scale-105 select-none pointer-events-none"
+                  />
+                  <div className="relative flex items-center gap-3">
+                    <div className="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 shadow-md">
+                      <img
+                        src={`https://flagcdn.com/w80/${city.countryCode?.toLowerCase() ?? "un"}.png`}
+                        alt={`${city.country} flag`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const t = e.currentTarget;
+                          t.onerror = null;
+                          t.style.display = "none";
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold font-sans text-foreground text-sm">{city.name}</h3>
+                      <p className="text-xs text-muted-foreground font-sans flex items-center gap-1 mt-0.5">
+                        <MapPin size={11} /> {city.country}
+                        {f.capital ? " · capital" : ""}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 mb-3 flex-1">
+                  <div>
+                    <p className="text-xs text-muted-foreground font-sans">Population, {BASE}</p>
+                    <p className="text-sm font-bold font-mono text-foreground">{fmtPeople(now.population)}</p>
                   </div>
                   <div>
-                    <h3 className="font-semibold font-sans text-foreground text-sm">
-                      {city.name}
-                    </h3>
-                    <p className="text-xs text-muted-foreground font-sans flex items-center gap-1 mt-0.5">
-                      <MapPin size={11} /> {city.country}
+                    <p className="text-xs text-muted-foreground font-sans">Land area</p>
+                    <p className="text-sm font-bold font-mono text-foreground">{km2(now.area)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground font-sans">Density</p>
+                    <p className="text-sm font-bold font-mono text-foreground">{perKm2(now.density)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground font-sans">Since {SINCE}</p>
+                    <p className="text-sm font-bold font-mono text-foreground" title={since ? undefined : `The UN's series for ${city.name} starts in ${first}`}>
+                      {since ? signed(since.pct) : "—"}
                     </p>
                   </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-2 mb-3 flex-1">
                 <div>
-                  <p className="text-xs text-muted-foreground font-sans">
-                    City Pop.
-                  </p>
-                  <p className="text-sm font-bold font-mono text-foreground">
-                    {fmtPeople(city.population)}
-                  </p>
+                  <div className="flex justify-between text-[10px] mb-1">
+                    <span className="text-muted-foreground font-sans">
+                      Population, {first}–{LAST}
+                    </span>
+                    {end && <span className="font-mono text-muted-foreground">{fmtPeople(end.population)} projected</span>}
+                  </div>
+                  <PopSpark f={f} name={city.name} />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-sans">GDP</p>
-                  <p className="text-sm font-bold font-mono text-foreground">
-                    {fmtBillionsUSD(city.gdpBillions)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-sans">
-                    Cost of Living
-                  </p>
-                  <p className="text-sm font-bold font-mono text-foreground">
-                    {city.costOfLivingIndex}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-sans">
-                    Safety Index
-                  </p>
-                  <p
-                    className={`text-sm font-bold font-mono ${city.safetyIndex >= 60 ? "text-success" : city.safetyIndex >= 40 ? "text-warning" : "text-destructive"}`}
-                  >
-                    {city.safetyIndex}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-muted-foreground font-sans">
-                    Safety Score
-                  </span>
-                  <span className="font-mono text-foreground">
-                    {city.safetyIndex}/100
-                  </span>
-                </div>
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${city.safetyIndex >= 60 ? "bg-success" : city.safetyIndex >= 40 ? "bg-warning" : "bg-destructive"}`}
-                    style={{ width: `${city.safetyIndex}%` }}
-                  />
-                </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
 
           {filtered.length === 0 && (
             <div className="col-span-3 bg-card border border-border rounded-xl p-12 text-center">
-              <p className="text-muted-foreground font-sans text-sm">
-                No cities match your filters.
-              </p>
+              <p className="text-muted-foreground font-sans text-sm">No cities match your filters.</p>
             </div>
           )}
         </div>

@@ -60,6 +60,8 @@ import {
 import { StyledSelect } from "../components/StyledSelect";
 import { citiesData } from "../data/citiesData";
 import { CITY_PLACES } from "../data/cityPlaces";
+import { CITY_FIGURES, CITY_FIGURES_SOURCE } from "../data/cityFigures";
+import { cityYear } from "../lib/cityFigures";
 import { COUNTRY_CLIMATE, type ClimateZone } from "../data/climateZones";
 
 /**
@@ -2867,7 +2869,7 @@ export function WorldMapsPage() {
       focusCountry
         ? citiesData
             .filter((c) => c.countryCode === focusCountry.code)
-            .sort((a, b) => b.population - a.population)
+            .sort((a, b) => (cityYear(b.id)?.population ?? 0) - (cityYear(a.id)?.population ?? 0))
         : [],
     [focusCountry],
   );
@@ -3055,18 +3057,23 @@ export function WorldMapsPage() {
     const rows = (list: [string, string | null | undefined][]) => list.filter((r): r is [string, string] => Boolean(r[1]));
     if (markedCity) {
       const c = markedCity;
+      /* The United Nations' figures for the city, for its last estimated year: the ones the city's window shows. */
+      const un = CITY_FIGURES[c.id];
+      const now = cityYear(c.id);
+      const year = CITY_FIGURES_SOURCE.baseYear;
       return {
         kind: "City",
         name: c.name,
         flag: c.countryCode,
-        about: `A city in ${inSentence(c.country)} (${c.region}), home to ${peopleShort(c.population)} people, ${peopleShort(c.metroPopulation)} in its wider metropolitan area.`,
+        about: now
+          ? `A city in ${inSentence(c.country)} (${c.region}). The United Nations counts ${peopleShort(now.population)} people in it in ${year}, drawing the city by where people live close together, not by its boundary.`
+          : `A city in ${inSentence(c.country)} (${c.region}).`,
         stats: rows([
-          ["City population", peopleShort(c.population)],
-          ["Metro population", peopleShort(c.metroPopulation)],
-          ["GDP", usdFromBillions(c.gdpBillions)],
-          ["GDP per person", `$${c.gdpPerCapita.toLocaleString("en-US")}`],
-          ["Area", `${c.areaKm2.toLocaleString("en-US")} km²`],
-          ["Density", `${c.populationDensity.toLocaleString("en-US")}/km²`],
+          ["Population", now && `${peopleShort(now.population)} · UN, ${year}`],
+          ["Land area", now && `${Math.round(now.area).toLocaleString("en-US")} km²`],
+          ["Density", now && `${Math.round(now.density).toLocaleString("en-US")}/km²`],
+          ["Built-up area", now && `${Math.round(now.built).toLocaleString("en-US")} km²`],
+          ["Among the world's cities", un && `#${un.rank.toLocaleString("en-US")} of ${CITY_FIGURES_SOURCE.cities.toLocaleString("en-US")}`],
         ]),
         more: "Open the city on the Cities page for the rest.",
       };
@@ -4619,8 +4626,8 @@ export function WorldMapsPage() {
                         className="px-3 py-1 rounded-full text-[11px] font-sans border border-border text-muted-foreground"
                       >
                         {c.name}{" "}
-                        <span className="font-mono">
-                          {(c.population / 1e6).toFixed(1)}M
+                        <span className="font-mono" title={`United Nations, ${CITY_FIGURES_SOURCE.baseYear}`}>
+                          {peopleShort(cityYear(c.id)?.population ?? 0)}
                         </span>
                       </span>
                     ))}
