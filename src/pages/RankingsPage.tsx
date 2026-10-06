@@ -855,7 +855,8 @@ function RowDetailPanel({
       <p className="text-[9px] text-muted-foreground mt-2">
         Bar height is where this entity places among all those with the
         measure, not the value itself — so a short bar is a low placing, whether
-        the measure counts up or down.
+        the measure counts up or down. The rank under each bar is out of the
+        places that publish that measure, which is why the totals differ.
       </p>
     </div>
   );
@@ -910,6 +911,39 @@ const COMPARE_SHORT: Record<string, string> = {
   energyOutputTWh: "Energy", energySelfSufficiency: "Energy self.",
 };
 
+/** 1st, 2nd, 3rd, 4th … */
+const ordinal = (n: number) => {
+  const t = n % 100;
+  return `${n}${t >= 11 && t <= 13 ? "th" : (["th", "st", "nd", "rd"][n % 10] ?? "th")}`;
+};
+
+/**
+ * Where a figure places among all those with the measure: its rank (1st is
+ * the best, or the largest where neither direction is better), how many have
+ * the measure, the share of the others it is ahead of or level with, and the
+ * lowest, middle and highest of them.
+ *
+ * The strip's bars were captioned "where this entity places" and tipped as a
+ * "percentile", but their height was the figure's distance between the lowest
+ * and the highest - so Bermuda's $142k a head, 4th of 267, stood at "49th
+ * percentile" because Monaco's is twice it. The height is the placing now.
+ */
+function placingOf(value: number, allValues: number[], higherIsBetter: boolean) {
+  const valid = allValues.filter((v) => isFinite(v)).sort((a, b) => a - b);
+  if (!valid.length || !isFinite(value)) return null;
+  const better = valid.filter((v) => (higherIsBetter ? v > value : v < value)).length;
+  const mid = valid.length >> 1;
+  return {
+    rank: better + 1,
+    of: valid.length,
+    // The share of the others that do not rank above it: places level on a figure share a rank, and so a height.
+    ahead: valid.length > 1 ? ((valid.length - 1 - better) / (valid.length - 1)) * 100 : 100,
+    min: valid[0],
+    max: valid[valid.length - 1],
+    median: valid.length % 2 ? valid[mid] : (valid[mid - 1] + valid[mid]) / 2,
+  };
+}
+
 function ProfileStrip({
   row,
   allValuesMap,
@@ -919,78 +953,147 @@ function ProfileStrip({
   allValuesMap: Partial<Record<string, number[]>>;
   bare?: boolean;
 }) {
+  /* The bar whose details are open under the strip: the one pointed at, or the one last selected. */
+  const [picked, setPicked] = useState<string | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
   // Every measure the Compare table carries, for whichever this entity
   // publishes — in the list rows and the detail panel alike.
-  const shown: { id: string; label: string; shortLabel: string; higherIsBetter: boolean; format: (v: number) => string }[] =
+  const shown: { id: string; label: string; shortLabel: string; description?: string; higherIsBetter: boolean; neutral?: boolean; format: (v: number) => string }[] =
     COMPARE_ROWS.filter((m) => m.id !== "composite").map((m) => ({
           id: m.id as string,
           label: m.label,
           shortLabel: METRICS.find((x) => x.id === m.id)?.shortLabel ?? COMPARE_SHORT[m.id as string] ?? m.label,
+          description: METRICS.find((x) => x.id === m.id)?.description,
           higherIsBetter: m.higherIsBetter,
+          neutral: m.neutral,
           format: m.format,
         })).filter((m) => hasMetric(row, m.id as keyof RankRow));
   if (shown.length === 0) return null;
+  const colorOf = (m: (typeof shown)[number]) => PROFILE_BAR[m.id] ?? EXTRA_BARS[shown.indexOf(m) % EXTRA_BARS.length];
+  const placed = shown.flatMap((m) => {
+    const val = row[m.id as keyof RankRow] as number;
+    const p = placingOf(val, allValuesMap[m.id] ?? [], m.higherIsBetter);
+    return p ? [{ m, val, p }] : [];
+  });
 
-  return (
-    <div
-      className={
-        bare
-          ? "flex items-end gap-1 h-9"
-          : "flex flex-wrap items-end gap-x-1 gap-y-3 pb-1"
-      }
-    >
-      {shown.map((m) => {
-        const val = row[m.id as keyof RankRow] as number;
-        const allVals = allValuesMap[m.id] ?? [];
-        const pct = percentile(val, allVals, m.higherIsBetter);
-        const title = `${m.label} — ${fmtMetric(m, val)}, ${pct.toFixed(0)}th percentile of ${allVals.filter((v) => isFinite(v)).length}`;
-
-        if (bare) {
-          // The Public Policy page's category bars: 4px wide, 36px tall, on
-          // a full-height track, one colour per measure. Height is the
-          // percentile; the tooltip gives the figure and where it sits.
-          return (
-            <div
-              key={m.id}
-              title={title}
-              className="rounded-full bg-muted overflow-hidden flex items-end h-full"
-              style={{ width: "4px" }}
-            >
-              <div
-                className={`w-full rounded-full ${PROFILE_BAR[m.id] ?? EXTRA_BARS[shown.indexOf(m) % EXTRA_BARS.length]}`}
-                style={{ height: `${Math.max(8, pct)}%` }}
-              />
-            </div>
-          );
-        }
-        return (
+  if (bare) {
+    // The Public Policy page's category bars: 4px wide, 36px tall, on a
+    // full-height track, one colour per measure. Height is the placing; the
+    // tooltip gives the figure and its rank.
+    return (
+      <div className="flex items-end gap-1 h-9">
+        {placed.map(({ m, val, p }) => (
           <div
             key={m.id}
-            title={title}
-            // Fixed narrow columns, not flex-1: an entity with three measures
-            // would otherwise stretch three bars across the whole panel, which
-            // reads as a chart of something rather than a profile.
-            className="w-[4.75rem] shrink-0 flex flex-col items-center gap-0.5"
+            title={`${m.label} — ${fmtMetric(m, val)}, ${ordinal(p.rank)} of ${p.of}`}
+            className="rounded-full bg-muted overflow-hidden flex items-end h-full"
+            style={{ width: "4px" }}
           >
-            <span className="text-[10px] font-mono font-bold text-foreground truncate max-w-full">
-              {fmtMetric(m, val)}
-            </span>
-            {/* The same bar as the list rows and the Public Policy page. */}
-            <div
-              className="h-9 bg-muted rounded-full overflow-hidden flex items-end"
-              style={{ width: "4px" }}
-            >
-              <div
-                className={`w-full rounded-full transition-all duration-500 ${PROFILE_BAR[m.id] ?? EXTRA_BARS[shown.indexOf(m) % EXTRA_BARS.length]}`}
-                style={{ height: `${Math.max(4, pct)}%` }}
-              />
-            </div>
-            <span className="text-[9px] text-muted-foreground text-center leading-tight">
-              {m.shortLabel}
-            </span>
+            <div className={`w-full rounded-full ${colorOf(m)}`} style={{ height: `${Math.max(8, p.ahead)}%` }} />
           </div>
-        );
-      })}
+        ))}
+      </div>
+    );
+  }
+
+  const open = placed.find((x) => x.m.id === (hovered ?? picked)) ?? null;
+  return (
+    <div>
+      <div className="flex flex-wrap items-end gap-x-1 gap-y-3 pb-1" role="group" aria-label={`${row.name}: its placing on each measure`}>
+        {placed.map(({ m, val, p }) => {
+          const isOpen = open?.m.id === m.id;
+          return (
+            <button
+              key={m.id}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPicked((cur) => (cur === m.id ? null : m.id));
+              }}
+              onMouseEnter={() => setHovered(m.id)}
+              onMouseLeave={() => setHovered(null)}
+              onFocus={() => setHovered(m.id)}
+              onBlur={() => setHovered(null)}
+              aria-pressed={picked === m.id}
+              aria-label={`${m.label}: ${fmtMetric(m, val)}, ${ordinal(p.rank)} of ${p.of}. Select for details.`}
+              // Fixed narrow columns, not flex-1: an entity with three measures
+              // would otherwise stretch three bars across the whole panel, which
+              // reads as a chart of something rather than a profile.
+              className={`w-[5.25rem] shrink-0 flex flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 cursor-pointer transition-colors ${isOpen ? "bg-muted/70" : "hover:bg-muted/40"}`}
+            >
+              <span className="text-[10px] font-mono font-bold text-foreground truncate max-w-full">{fmtMetric(m, val)}</span>
+              {/* The same bar as the list rows and the Public Policy page. */}
+              <span className="h-9 bg-muted rounded-full overflow-hidden flex items-end" style={{ width: "4px" }}>
+                <span className={`w-full rounded-full ${colorOf(m)}`} style={{ height: `${Math.max(4, p.ahead)}%` }} />
+              </span>
+              <span className="text-[9px] text-muted-foreground text-center leading-tight">{m.shortLabel}</span>
+              {/* Its rank, under every bar: the detail the height stands for. */}
+              <span className="text-[9px] font-mono text-foreground/80 text-center leading-tight">
+                {ordinal(p.rank)}
+                <span className="text-muted-foreground"> of {p.of}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* The details of the bar pointed at or selected: what it measures, the figure, its rank, and the range it sits in. */}
+      <div className="mt-2 rounded-lg border border-border bg-background/40 px-3 py-2.5 min-h-[5.5rem]" aria-live="polite">
+        {open ? (
+          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-x-6 gap-y-2">
+            <div className="min-w-0">
+              <p className="text-xs font-bold font-sans text-foreground flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-sm shrink-0 ${colorOf(open.m)}`} aria-hidden />
+                {open.m.label}
+              </p>
+              {open.m.description && <p className="text-[11px] font-sans text-muted-foreground leading-snug mt-0.5">{open.m.description}</p>}
+              <p className="text-[11px] font-sans text-foreground/90 leading-snug mt-1.5">
+                {row.name}: <span className="font-mono font-bold">{fmtMetric(open.m, open.val)}</span> — {ordinal(open.p.rank)} of the {open.p.of} places with this
+                measure{open.p.of > 1 ? (open.p.rank === 1 ? "; none ranks above it" : `, ahead of or level with ${Math.round(open.p.ahead)}% of the others`) : ""}.
+              </p>
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">
+                {open.m.neutral
+                  ? "Neither direction is better on this measure: it is ranked largest first."
+                  : open.m.higherIsBetter
+                    ? "Ranked highest first: a higher figure places better."
+                    : "Ranked lowest first: a lower figure places better."}
+              </p>
+            </div>
+            <div className="min-w-0">
+              <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1.5">Where the figure falls, lowest to highest</p>
+              {/* The figure itself on the scale from the lowest to the highest: the dot is this place, the tick the middle of them all. */}
+              <div className="relative h-1.5 rounded-full bg-muted mx-1" role="img" aria-label={`From ${fmtMetric(open.m, open.p.min)} to ${fmtMetric(open.m, open.p.max)}; the middle is ${fmtMetric(open.m, open.p.median)}.`}>
+                {open.p.max > open.p.min && (
+                  <>
+                    <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground opacity-60" style={{ left: `${((open.p.median - open.p.min) / (open.p.max - open.p.min)) * 100}%` }} />
+                    <span
+                      className={`absolute top-1/2 w-2.5 h-2.5 -mt-[5px] -ml-[5px] rounded-full ring-2 ring-background ${colorOf(open.m)}`}
+                      style={{ left: `${((open.val - open.p.min) / (open.p.max - open.p.min)) * 100}%` }}
+                    />
+                  </>
+                )}
+              </div>
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                {[
+                  ["Lowest", open.p.min],
+                  ["Middle", open.p.median],
+                  ["Highest", open.p.max],
+                ].map(([label, v], i) => (
+                  <div key={label as string} className={i === 1 ? "text-center" : i === 2 ? "text-right" : ""}>
+                    <p className="text-[9px] font-sans text-muted-foreground">{label}</p>
+                    <p className="text-[10px] font-mono font-semibold text-foreground">{fmtMetric(open.m, v as number)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="text-[11px] font-sans text-muted-foreground leading-snug">
+            Point at a bar, or select it, for what it measures, {row.name}'s rank on it, and the lowest, middle and highest figures among all the places
+            that have it.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

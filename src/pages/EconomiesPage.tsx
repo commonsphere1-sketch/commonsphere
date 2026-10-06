@@ -75,6 +75,7 @@ import {
   type Share,
 } from "../data/criticalMinerals";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
+import { economyStatus, ECONOMY_STATUS_KEY } from "@/lib/economyStatus";
 import { DataExplorer } from "@/components/DataExplorer";
 import { ResourceExplorer } from "@/components/ResourceExplorer";
 import { RESOURCES } from "@/data/resourceList";
@@ -216,6 +217,12 @@ const FIGURE_YEAR_LABELS: [string, string][] = [
   ["fdiInflowBillions", "FDI"],
   ["stockMarketCap", "market cap"],
 ];
+
+/** The state an economy's growth puts it in, with the year that figure is for: from the source it is cited to, or the card's own record. */
+function statusOf(economy: Economy) {
+  const year = (ECONOMY_FIGURE_SOURCES[economy.id] as Record<string, { year: string } | undefined> | undefined)?.gdpGrowthRate?.year ?? economy.figureYears?.gdpGrowthRate;
+  return economyStatus(economy.gdpGrowthRate, year);
+}
 
 function FigureYears({ economy }: { economy: Economy }) {
   const cited = ECONOMY_FIGURE_SOURCES[economy.id] ?? {};
@@ -2721,6 +2728,19 @@ export function EconomiesPage() {
                 ? "No economies match."
                 : `Showing ${currentPage * ECONOMIES_PER_PAGE + 1}–${Math.min((currentPage + 1) * ECONOMIES_PER_PAGE, filtered.length)} of ${filtered.length} economies`}
             </p>
+            {/* What a card's hue says, before any is read: the state its growth puts it in. */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mb-3" aria-label="What each card's colour means">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Card colour</span>
+              {ECONOMY_STATUS_KEY.map((k) => (
+                <span key={k.key} className="inline-flex items-center gap-1.5" title={`${k.label}: ${k.means}`}>
+                  <span className={`text-[10px] font-semibold font-sans px-2 py-0.5 rounded-full ${k.chip}`}>{k.label}</span>
+                </span>
+              ))}
+              <span className="text-[10px] font-sans text-muted-foreground leading-snug basis-full">
+                An economy's real GDP growth for its latest year against the world's for the same year, both the World Bank's. It reads growth
+                alone; prices, jobs and debt are the figures on each card.
+              </span>
+            </div>
             <div className="space-y-4 min-w-0">
               {pageItems.map((economy) => (
                 <div
@@ -2730,8 +2750,12 @@ export function EconomiesPage() {
                   {/* ── Main card ── */}
                   <article
                     onClick={() => setModalEconomy(economy)}
-                    className="modal-tile rounded-xl p-2 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40 flex-1 min-w-0"
+                    className="cs-on-hue modal-tile relative overflow-hidden rounded-xl p-2 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40 flex-1 min-w-0"
+                    title={statusOf(economy).detail}
                   >
+                    {/* The hue of the state the economy is in: the headline banners' wash, in the state's colour. */}
+                    <div aria-hidden className={`absolute inset-0 ${statusOf(economy).hue} pointer-events-none`} />
+                    <div className="relative">
                     <div className="flex items-start justify-between mb-1">
                       <div>
                         <div className="flex items-center gap-1.5 mb-0.5">
@@ -2747,6 +2771,10 @@ export function EconomiesPage() {
                           )}
                           <span className="text-[10px] text-muted-foreground border border-border px-1.5 py-px rounded-full font-sans">
                             {economy.entityType}
+                          </span>
+                          {/* The state the hue stands for, in words. */}
+                          <span className={`text-[10px] font-semibold px-1.5 py-px rounded-full font-sans ${statusOf(economy).chip}`} title={statusOf(economy).detail}>
+                            {statusOf(economy).label}
                           </span>
                           {economy.limitedData && (
                             <span
@@ -2945,6 +2973,7 @@ export function EconomiesPage() {
                               : "Exports not reported to UN Comtrade since 2020")}
                         </span>
                       )}
+                    </div>
                     </div>
                   </article>
 
