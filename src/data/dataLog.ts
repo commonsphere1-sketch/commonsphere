@@ -38,6 +38,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "Each country's sovereignty, and its death rates, disaster displacements and natural hazards",
+    "from": "CIA World Factbook (final edition), World Bank (WHO, IDMC)",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-10-06",
+    "files": 1
+  },
+  {
     "what": "Each economy's inflation, deficits and tariffs, with the IMF's projections",
     "from": "IMF (World Economic Outlook, Fiscal Monitor), World Bank",
     "page": "/dashboard/economies",
@@ -208,4 +216,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 44;
+export const DATA_LOG_FILES = 45;

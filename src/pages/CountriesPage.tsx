@@ -11,6 +11,9 @@ import { PlaceTopics } from "../components/PlaceTopics";
 
 /* Every country's parties and chambers: loaded when a Governance tab opens, not with the page. */
 const PoliticalParties = lazy(() => import("../components/PoliticalParties"));
+/** The Sovereignty and Safety reports: two panels with their own data, loaded when a window opens. */
+const SovereigntyReport = lazy(() => import("../components/CountryReports").then((m) => ({ default: m.SovereigntyReport })));
+const SafetyReport = lazy(() => import("../components/CountryReports").then((m) => ({ default: m.SafetyReport })));
 import {
   MapPin,
   Shield,
@@ -1212,6 +1215,12 @@ function CountryModal({
                     )}
                   </div>
                 )}
+
+                {/* ── SOVEREIGNTY, then SAFETY: each a report of its own, ahead of the panels that go into one part of it ── */}
+                <Suspense fallback={null}>
+                  <SovereigntyReport country={country} />
+                  <SafetyReport country={country} />
+                </Suspense>
 
                 {/* ── CRIME STATISTICS ── */}
                 <PublicSecurityPanel country={country} />
