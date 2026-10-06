@@ -26,6 +26,7 @@ import {
   ArrowsIn,
   ArrowsOut,
   ClockCounterClockwise,
+  Star,
   X,
 } from "@phosphor-icons/react";
 import {
@@ -49,6 +50,7 @@ import { HeadlinesBanner, namesTag, type Headline, type Shown } from "../compone
 import { nameMatcher } from "../lib/namesInText";
 import { SourceLink } from "../components/SourceLink";
 import { SeeAlso } from "../components/SeeAlso";
+import { useFollowedCities } from "../lib/followedCities";
 import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 
@@ -476,6 +478,8 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
   /* The city's article and where it is. */
   const place = CITY_PLACES[city.id];
   const row = rowOf(city.id);
+  const follow = useFollowedCities();
+  const followed = follow.isFollowed(city.id);
   const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
 
@@ -533,6 +537,16 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
+              {/* Follow, as in a country's and a state's window: the city is kept at the top of the page. */}
+              <button
+                onClick={() => follow.toggle(city.id)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                aria-pressed={followed}
+                aria-label={followed ? `Unfollow ${city.name}` : `Follow ${city.name}`}
+                title={followed ? "Stop following" : "Keep this city at the top of the page · saved in this browser"}
+              >
+                <Star size={18} weight={followed ? "fill" : "regular"} className={followed ? "text-amber-500" : undefined} />
+              </button>
               {/* As in a country's and a state's window: to the maps page, with this city marked on both maps. */}
               {place && (
                 <button
@@ -1037,6 +1051,12 @@ export function CitiesPage() {
     );
   }, [search, regionFilter, measure]);
 
+  /* The cards: the cities the reader follows first, each group in the order of the chosen measure. The ranked panel
+     above keeps the plain order - it is a ranking, and a followed city has no place at its head. */
+  const follow = useFollowedCities();
+  const cards = useMemo(() => [...filtered.filter((r) => follow.ids.includes(r.city.id)), ...filtered.filter((r) => !follow.ids.includes(r.city.id))], [filtered, follow.ids]);
+  const followedShown = cards.filter((r) => follow.ids.includes(r.city.id)).length;
+
   /* The headline figures, read off the cities: they were typed in - "Tokyo 37M", "Safest City: Dubai (83)". */
   const summary = useMemo(() => {
     const largest = topOf("population");
@@ -1152,9 +1172,16 @@ export function CitiesPage() {
         {/* The cities shown, set side by side on the measure they are sorted by. */}
         <RankedPanel rows={filtered} measure={measure} />
 
+        {followedShown > 0 && (
+          <p className="flex items-center gap-1.5 text-[11px] font-sans text-muted-foreground mb-2">
+            <Star size={12} weight="fill" className="text-amber-500" aria-hidden />
+            The {followedShown === 1 ? "city" : `${followedShown} cities`} you follow {followedShown === 1 ? "is" : "are"} first. Followed cities are saved in this browser.
+          </p>
+        )}
+
         {/* City Cards — 3 per row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 auto-rows-fr">
-          {filtered.map(({ city, f, now, since }) => {
+          {cards.map(({ city, f, now, since }) => {
             const first = cityFirstYear(city.id) ?? SRC.firstYear;
             const end = cityYear(city.id, LAST);
             return (
@@ -1192,6 +1219,20 @@ export function CitiesPage() {
                       </p>
                     </div>
                   </div>
+                  {/* Follow: kept to its own click, so it does not open the card. */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      follow.toggle(city.id);
+                    }}
+                    aria-pressed={follow.isFollowed(city.id)}
+                    aria-label={follow.isFollowed(city.id) ? `Unfollow ${city.name}` : `Follow ${city.name}`}
+                    title={follow.isFollowed(city.id) ? "Following" : "Follow"}
+                    className="relative shrink-0 p-1.5 rounded-full bg-background/60 hover:bg-background/90 transition-colors cursor-pointer"
+                  >
+                    <Star size={16} weight={follow.isFollowed(city.id) ? "fill" : "regular"} className={follow.isFollowed(city.id) ? "text-amber-500" : "text-foreground/70"} />
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 mb-3 flex-1">

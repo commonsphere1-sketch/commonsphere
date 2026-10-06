@@ -11,11 +11,15 @@
  * under them, each from the body that measures it and each with its year, and
  * the section says plainly that they are the country's and not the city's.
  *
- * A row is a name and its figure on one line, and under them what the figure
- * is counted in, its year, and the world's figure for the same measure and
- * year where the same publisher gives one. The unit used to share the line
- * with the name and the figure, and in a narrow tile the three ran into one
- * another.
+ * A row is a name and its figure on one line; under them what the figure is
+ * counted in, its year, and the world's figure for the same measure and year
+ * where the same publisher gives one. A figure with a scale of its own is
+ * drawn on it - 0 to 100 for a share or a score, 1 to 5 for the logistics
+ * index, or, where the world's figure is the only yardstick, the larger of
+ * the two - with a tick where the world stands. A figure with neither a
+ * scale nor a yardstick (kilometres of railway, dollars a person) is given
+ * as a figure and not drawn against a ceiling made up for it. What a country
+ * produces its energy from is a whole, so it is a ring.
  *
  * It is loaded when a window opens, not with the page: the figures it reads
  * are the Countries page's, and large.
@@ -29,19 +33,41 @@ import { COUNTRY_CRIME, CRIME_SOURCE } from "../data/countryCrime";
 import { PUBLIC_SECURITY, PUBLIC_SECURITY_SOURCES } from "../data/publicSecurity";
 import { ECONOMY_INDICATORS, ECONOMY_INDICATORS_SOURCE } from "../data/economyIndicators";
 import { AIR_QUALITY, AIR_QUALITY_SOURCE } from "../data/airQuality";
-import { worldFor } from "./ModalCharts";
+import { ACCENT, ChartTitle, PartsDonut, worldFor } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
 
-type Row = { label: string; value: string; sub: string; world?: string | null };
+/** Where a bar ends and where the world's tick sits, each as a percentage of the measure's scale. */
+type Bar = { at: number; world?: number; scale: string };
+type Row = { label: string; value: string; sub: string; world?: string | null; bar?: Bar };
 type Source = { label: string; url: string };
+/**
+ * How a figure is drawn: "share" on 0 to 100; "world" on the larger of it and
+ * the world's figure for the same year (and not at all without one); a pair
+ * on the scale between them.
+ */
+type Scale = "share" | "world" | { from: number; to: number };
 
 const n = (v: number, dp = 0) => v.toLocaleString("en-US", { minimumFractionDigits: dp, maximumFractionDigits: dp });
 const twh = (v: number) => `${v >= 100 ? n(v) : n(v, 1)} TWh`;
 const pct = (v: number) => `${v}%`;
+const clamp = (v: number) => Math.min(100, Math.max(0, v));
 /** A country's name as it reads in a sentence: "the United States", "the Netherlands", "France". */
 const inSentence = (name: string) => (/^(United |Netherlands$|Philippines$|Bahamas$|Maldives$|Czech Republic$|Dominican Republic$|Central African Republic$)/.test(name) ? `the ${name}` : name);
 
-/** A figure, what it is counted in and for when, and the world's beside it. The name may run to two lines; nothing shares a line with it but its figure. */
+/** The bar for a figure on its scale, with the world's tick where there is one; none where the scale has nothing to say. */
+function barOf(v: number, w: number | null, scale: Scale | undefined): Bar | undefined {
+  if (!scale || !Number.isFinite(v) || v < 0) return undefined;
+  if (scale === "share") return { at: clamp(v), world: w != null ? clamp(w) : undefined, scale: "0 to 100" };
+  if (scale === "world") {
+    if (w == null || w < 0) return undefined;
+    const top = Math.max(v, w);
+    return top > 0 ? { at: (100 * v) / top, world: (100 * w) / top, scale: "the larger of the two" } : undefined;
+  }
+  const span = scale.to - scale.from;
+  return span > 0 ? { at: clamp((100 * (v - scale.from)) / span), world: w != null ? clamp((100 * (w - scale.from)) / span) : undefined, scale: `${scale.from} to ${scale.to}` } : undefined;
+}
+
+/** A figure, what it is counted in and for when, the world's beside it, and its bar where it has a scale. The name may run to two lines; nothing shares a line with it but its figure. */
 function QualityRow({ r }: { r: Row }) {
   return (
     <div className="py-1.5 border-b border-border last:border-b-0">
@@ -49,7 +75,18 @@ function QualityRow({ r }: { r: Row }) {
         <span className="text-[11px] font-sans text-foreground min-w-0 leading-snug">{r.label}</span>
         <span className="text-[12px] font-mono font-semibold text-foreground text-right shrink-0">{r.value}</span>
       </div>
-      <p className="text-[10px] font-mono text-muted-foreground leading-snug mt-0.5">
+      {r.bar && (
+        <span
+          className="relative block h-1.5 rounded-full bg-muted mt-1"
+          role="img"
+          aria-label={`${r.label}: ${r.value}${r.world ? `, against ${r.world} for the world` : ""}, on a scale of ${r.bar.scale}.`}
+          title={`On a scale of ${r.bar.scale}${r.world ? ` · the tick is the world, ${r.world}` : ""}`}
+        >
+          <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${r.bar.at}%`, minWidth: r.bar.at > 0 ? 2 : 0, background: ACCENT }} />
+          {r.bar.world != null && <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground" style={{ left: `${r.bar.world}%` }} />}
+        </span>
+      )}
+      <p className="text-[10px] font-mono text-muted-foreground leading-snug mt-1">
         {r.sub}
         {r.world ? ` · world ${r.world}` : ""}
       </p>
@@ -68,20 +105,19 @@ export default function CountryQuality({ code, country, place }: { /** The count
 
   const sources = new Map<string, Source>();
   const cite = (s: Source) => sources.set(s.label, s);
-  /** The world's figure for a measure in the same year, printed the same way, where worldview.ts holds that series and year. */
-  const world = (worldId: string | undefined, year: string | number, print: (v: number) => string) => {
+  /** A row: the figure, the world's for the same measure and year where worldview.ts holds it, and the bar its scale allows. */
+  const row = (label: string, v: number, year: string | number, print: (v: number) => string, unit: string, worldId?: string, scale?: Scale): Row => {
     const w = worldId ? worldFor(worldId, year) : null;
-    return w == null ? null : print(w);
+    return { label, value: print(v), sub: `${unit} · ${year}`, world: w == null ? null : print(w), bar: barOf(v, w, scale) };
   };
   /** A row from one of the country panels' figures, citing where it is from. */
-  const panel = (label: string, f: PanelFigure | undefined, print: (v: number) => string, unit: string, worldId?: string): Row[] => {
+  const panel = (label: string, f: PanelFigure | undefined, print: (v: number) => string, unit: string, worldId?: string, scale?: Scale): Row[] => {
     if (!f) return [];
     const s = panelSource(f);
     cite({ label: s.label.replace(/, \d{4}.*$/, ""), url: s.url });
-    return [{ label, value: print(f.v), sub: `${unit} · ${f.y}`, world: world(worldId, f.y, print) }];
+    return [row(label, f.v, f.y, print, unit, worldId, scale)];
   };
 
-  const topFuel = energy?.mix.length ? energy.mix.reduce((a, b) => (b.pct > a.pct ? b : a)) : null;
   if (energy) cite({ label: ENERGY_SOURCE.label, url: ENERGY_SOURCE.url });
   if (crime?.homicide) cite(CRIME_SOURCE);
   if (sec?.stability) cite({ label: PUBLIC_SECURITY_SOURCES.wgi.label, url: PUBLIC_SECURITY_SOURCES.wgi.url });
@@ -91,45 +127,51 @@ export default function CountryQuality({ code, country, place }: { /** The count
   const conflictDeaths = sec?.conflict ? sec.conflict.stateBased + sec.conflict.nonState + sec.conflict.oneSided : null;
   const one = (v: number) => n(v, 1);
   const signedPct = (v: number) => `${v > 0 ? "+" : ""}${v}%`;
+  const score = { from: 0, to: 100 };
 
-  const groups: { title: string; icon: ReactNode; rows: Row[] }[] = [
+  const groups: { title: string; icon: ReactNode; rows: Row[]; extra?: ReactNode }[] = [
     {
       title: "Water",
       icon: <Drop size={13} weight="fill" />,
-      rows: [...panel("Safely managed drinking water", p.safeWater, pct, "of people", "water"), ...panel("Safely managed sanitation", p.safeSanitation, pct, "of people", "sanitation")],
+      rows: [...panel("Safely managed drinking water", p.safeWater, pct, "of people", "water", "share"), ...panel("Safely managed sanitation", p.safeSanitation, pct, "of people", "sanitation", "share")],
     },
     {
       title: "Energy",
       icon: <Lightning size={13} weight="fill" />,
       rows: [
-        ...panel("People with electricity", p.electricityAccess, pct, "of people", "electricity"),
+        ...panel("People with electricity", p.electricityAccess, pct, "of people", "electricity", "share"),
         ...(energy
           ? [
               { label: "Energy used", value: twh(energy.totalUseTWh), sub: `primary energy · ${energy.y}` },
               { label: "Energy produced", value: twh(energy.totalProductionTWh), sub: `primary energy · ${energy.y}` },
-              ...(topFuel ? [{ label: "Largest source of what it produces", value: topFuel.source, sub: `${topFuel.pct}% of production · ${energy.y}` }] : []),
             ]
           : []),
       ],
+      // What it produces its energy from is a whole: a ring, each source named with its share.
+      extra:
+        energy && energy.mix.length > 0 ? (
+          <div className="mt-3">
+            <ChartTitle>What it produces its energy from · % of production · {energy.y}</ChartTitle>
+            <PartsDonut label={`What ${country} produces its energy from, ${energy.y}`} parts={energy.mix.map((m) => ({ label: m.source, value: m.pct, text: `${m.pct}%` }))} />
+          </div>
+        ) : undefined,
     },
     {
       title: "Transportation",
       icon: <Train size={13} weight="fill" />,
       rows: [
         ...panel("Railway lines", p.railKm, (v) => `${n(v)} km`, "route length"),
-        ...panel("Logistics Performance Index", p.logisticsIndex, (v) => `${v}`, "World Bank index, 1 to 5"),
-        ...panel("Electric cars' share of new car sales", p.evSalesShare, pct, "of new cars sold", "evSalesShare"),
+        ...panel("Logistics Performance Index", p.logisticsIndex, (v) => `${v}`, "World Bank index, 1 to 5", undefined, { from: 1, to: 5 }),
+        ...panel("Electric cars' share of new car sales", p.evSalesShare, pct, "of new cars sold", "evSalesShare", "share"),
       ],
     },
     {
       title: "Crime & safety",
       icon: <ShieldCheck size={13} weight="fill" />,
       rows: [
-        ...(crime?.homicide
-          ? [{ label: "Intentional homicides", value: one(crime.homicide.v), sub: `per 100,000 people · ${crime.homicide.y}`, world: world("homicide", crime.homicide.y, one) }]
-          : []),
-        ...(sec?.stability ? [{ label: "Political stability and absence of violence", value: `${sec.stability.v}`, sub: `World Bank score, 0 to 100 · ${sec.stability.y}` }] : []),
-        ...(sec?.ruleOfLaw ? [{ label: "Rule of law", value: `${sec.ruleOfLaw.v}`, sub: `World Bank score, 0 to 100 · ${sec.ruleOfLaw.y}` }] : []),
+        ...(crime?.homicide ? [row("Intentional homicides", crime.homicide.v, crime.homicide.y, one, "per 100,000 people", "homicide", "world")] : []),
+        ...(sec?.stability ? [row("Political stability and absence of violence", sec.stability.v, sec.stability.y, (v) => `${v}`, "World Bank score, 0 to 100", undefined, score)] : []),
+        ...(sec?.ruleOfLaw ? [row("Rule of law", sec.ruleOfLaw.v, sec.ruleOfLaw.y, (v) => `${v}`, "World Bank score, 0 to 100", undefined, score)] : []),
         ...(sec?.conflict ? [{ label: "Deaths in armed conflict in the country", value: conflictDeaths === 0 ? "None recorded" : n(conflictDeaths!), sub: `Uppsala Conflict Data Program · ${sec.conflict.y}` }] : []),
       ],
     },
@@ -137,35 +179,35 @@ export default function CountryQuality({ code, country, place }: { /** The count
       title: "Health",
       icon: <FirstAid size={13} weight="fill" />,
       rows: [
-        ...panel("Life expectancy", p.lifeExpectancy, (v) => `${one(v)} yrs`, "at birth", "lifeExpectancy"),
+        ...panel("Life expectancy", p.lifeExpectancy, (v) => `${one(v)} yrs`, "at birth", "lifeExpectancy", "world"),
         ...panel("Physicians", p.physicians, (v) => `${v}`, "per 1,000 people"),
         ...panel("Hospital beds", p.hospitalBeds, (v) => `${v}`, "per 1,000 people"),
-        ...panel("Maternal deaths", p.maternalMortality, (v) => n(v), "per 100,000 live births", "maternalMortality"),
+        ...panel("Maternal deaths", p.maternalMortality, (v) => n(v), "per 100,000 live births", "maternalMortality", "world"),
       ],
     },
     {
       title: "Education",
       icon: <BookOpen size={13} weight="fill" />,
       rows: [
-        ...panel("Adults who can read", p.literacy, pct, "of people 15 and over", "literacy"),
-        ...panel("Years of schooling", p.schoolingYears, (v) => `${one(v)} yrs`, "average, adults 25 and over", "schoolingYears"),
-        ...panel("Finished upper secondary school", p.upperSecondaryPct, pct, "of people 25 and over"),
-        ...panel("Hold a bachelor's degree or higher", p.bachelorsPct, pct, "of people 25 and over"),
+        ...panel("Adults who can read", p.literacy, pct, "of people 15 and over", "literacy", "share"),
+        ...panel("Years of schooling", p.schoolingYears, (v) => `${one(v)} yrs`, "average, adults 25 and over", "schoolingYears", "world"),
+        ...panel("Finished upper secondary school", p.upperSecondaryPct, pct, "of people 25 and over", undefined, "share"),
+        ...panel("Hold a bachelor's degree or higher", p.bachelorsPct, pct, "of people 25 and over", undefined, "share"),
       ],
     },
     {
       title: "Air",
       icon: <Wind size={13} weight="fill" />,
-      rows: air ? [{ label: "Fine-particle pollution people breathe", value: `${one(air.pm25)} µg/m³`, sub: `PM2.5, mean annual exposure · ${air.year}`, world: world("pm25", air.year, (v) => `${one(v)} µg/m³`) }] : [],
+      rows: air ? [row("Fine-particle pollution people breathe", air.pm25, air.year, (v) => `${one(v)} µg/m³`, "PM2.5, mean annual exposure", "pm25", "world")] : [],
     },
     {
       title: "Business",
       icon: <Storefront size={13} weight="fill" />,
       rows: [
-        ...panel("Corruption Perceptions Index", p.cpiScore, (v) => `${v}`, "0 to 100, higher is cleaner"),
-        ...panel("People using the internet", p.internetPct, pct, "of people", "internet"),
-        ...panel("Fixed broadband subscriptions", p.broadbandPer100, (v) => `${v}`, "per 100 people", "broadband"),
-        ...panel("Mobile subscriptions", p.mobilePer100, (v) => `${v}`, "per 100 people", "mobile"),
+        ...panel("Corruption Perceptions Index", p.cpiScore, (v) => `${v}`, "0 to 100, higher is cleaner", undefined, score),
+        ...panel("People using the internet", p.internetPct, pct, "of people", "internet", "share"),
+        ...panel("Fixed broadband subscriptions", p.broadbandPer100, (v) => `${v}`, "per 100 people", "broadband", "world"),
+        ...panel("Mobile subscriptions", p.mobilePer100, (v) => `${v}`, "per 100 people", "mobile", "world"),
         ...panel("Statutory minimum wage", p.minimumWageMonthlyUSD, (v) => `$${n(v)}`, "US dollars a month"),
       ],
     },
@@ -174,15 +216,16 @@ export default function CountryQuality({ code, country, place }: { /** The count
       icon: <CurrencyDollar size={13} weight="fill" />,
       rows: [
         ...(eco?.gdpPerCapita ? [{ label: "GDP per person", value: `$${n(eco.gdpPerCapita.v)}`, sub: `current US dollars · ${eco.gdpPerCapita.y}` }] : []),
-        ...(eco?.gdpGrowthRate ? [{ label: "Real GDP growth", value: signedPct(eco.gdpGrowthRate.v), sub: `a year · ${eco.gdpGrowthRate.y}`, world: world("gdpGrowth", eco.gdpGrowthRate.y, signedPct) }] : []),
-        ...(eco?.unemploymentRate ? [{ label: "Unemployment", value: pct(eco.unemploymentRate.v), sub: `of the labour force · ${eco.unemploymentRate.y}`, world: world("unemployment", eco.unemploymentRate.y, pct) }] : []),
-        ...(eco?.inflationRate ? [{ label: "Inflation", value: pct(eco.inflationRate.v), sub: `consumer prices, a year · ${eco.inflationRate.y}`, world: world("inflation", eco.inflationRate.y, pct) }] : []),
+        // Growth can be negative, so it is a figure and not a length.
+        ...(eco?.gdpGrowthRate ? [row("Real GDP growth", eco.gdpGrowthRate.v, eco.gdpGrowthRate.y, signedPct, "a year", "gdpGrowth")] : []),
+        ...(eco?.unemploymentRate ? [row("Unemployment", eco.unemploymentRate.v, eco.unemploymentRate.y, pct, "of the labour force", "unemployment", "world")] : []),
+        ...(eco?.inflationRate ? [row("Inflation", eco.inflationRate.v, eco.inflationRate.y, pct, "consumer prices, a year", "inflation", "world")] : []),
         ...panel("Median income or spending a person", p.medianDailyIncome, (v) => `$${n(v, 2)}`, "a day, 2021 PPP dollars"),
-        ...panel("Below the national poverty line", p.povertyNationalPct, pct, "of people"),
-        ...panel("Households that own their home", p.homeOwnershipPct, pct, "of households"),
+        ...panel("Below the national poverty line", p.povertyNationalPct, pct, "of people", undefined, "share"),
+        ...panel("Households that own their home", p.homeOwnershipPct, pct, "of households", undefined, "share"),
       ],
     },
-  ].filter((g) => g.rows.length > 0);
+  ].filter((g) => g.rows.length > 0 || g.extra);
   if (!groups.length) return null;
 
   return (
@@ -192,9 +235,9 @@ export default function CountryQuality({ code, country, place }: { /** The count
         <div className="flex-1 h-px bg-border/60" />
       </div>
       <p className="text-[11px] font-sans text-muted-foreground leading-snug mb-2">
-        These figures are for {inSentence(country)}, not for {place}. No body publishes water, energy, transport, safety, health, schooling, business and the economy city by city on
-        one footing, so they are given for the country {place} is in, each from the body that measures it and for its latest year, with the world's figure for the
-        same year where there is one.
+        These figures are for {inSentence(country)}, not for {place}. No body publishes water, energy, transport, safety, health, schooling, business and the economy
+        city by city on one footing, so they are given for the country {place} is in, each from the body that measures it and for its latest year. A bar is on the
+        measure's own scale - 0 to 100 for a share or a score - or, where the world's figure is the only yardstick, on the larger of the two; the tick is the world.
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {groups.map((g) => (
@@ -208,6 +251,7 @@ export default function CountryQuality({ code, country, place }: { /** The count
                 <QualityRow key={r.label} r={r} />
               ))}
             </div>
+            {g.extra}
           </div>
         ))}
       </div>
