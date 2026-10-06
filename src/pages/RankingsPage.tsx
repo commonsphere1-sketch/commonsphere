@@ -722,15 +722,13 @@ function ScoreBar({
   if (!isFinite(value)) {
     return <div className="w-10 h-1.5 bg-muted rounded-full overflow-hidden" />;
   }
-  const pct = percentile(value, allValues, higherIsBetter);
-  const barColor =
-    pct >= 66 ? "bg-success" : pct >= 33 ? "bg-amber-500" : "bg-destructive";
+  // The placing among the places that have the measure - the share of them it ranks ahead of or level with - as the profile
+  // strip draws it. It was the figure's distance between the lowest and the highest, in green, amber or red by thirds.
+  const p = placingOf(value, allValues, higherIsBetter);
+  if (!p) return <div className="w-10 h-1.5 bg-muted rounded-full overflow-hidden" />;
   return (
-    <div className="w-10 h-1.5 bg-muted rounded-full overflow-hidden">
-      <div
-        className={`h-full rounded-full transition-all ${barColor}`}
-        style={{ width: `${pct}%` }}
-      />
+    <div className="w-10 h-1.5 bg-muted rounded-full overflow-hidden" title={`${ordinal(p.rank)} of ${p.of}`}>
+      <div className="h-full rounded-full bg-secondary" style={{ width: `${Math.max(4, p.ahead)}%` }} />
     </div>
   );
 }
@@ -790,7 +788,8 @@ function RowDetailPanel({
   compareFull: boolean;
   onToggleCompare: () => void;
 }) {
-  const topPercentile = Math.round((1 - (rank - 1) / totalInPool) * 100);
+  // The share of the other places it ranks ahead of. It read "Top 99th percentile", which is neither a top share nor a percentile.
+  const aheadOf = totalInPool > 1 ? Math.round(((totalInPool - rank) / (totalInPool - 1)) * 100) : null;
 
   return (
     <div className="animate-fade-in">
@@ -804,7 +803,8 @@ function RowDetailPanel({
           <div>
             <h3 className="text-sm font-bold text-foreground">{row.name}</h3>
             <p className="text-[11px] text-muted-foreground">
-              Rank #{rank} of {totalInPool} · Top {topPercentile}th percentile
+              Rank #{rank} of {totalInPool}
+              {aheadOf !== null ? (rank === 1 ? " · none ranks above it" : ` · ahead of ${aheadOf}% of the others`) : ""}
             </p>
           </div>
           <div className="px-2.5 py-1 bg-yellow-500/15 rounded-lg">
@@ -1116,14 +1116,8 @@ function MobileCard({
   const primary =
     activeMetrics.find((m) => m.id !== "composite") ?? activeMetrics[0];
   const primaryVal = primary.accessor(row);
-  const allPrimary = allValuesMap[primary.id] ?? [];
-  const pct = percentile(primaryVal, allPrimary, primary.higherIsBetter);
-  const textColor =
-    pct >= 66
-      ? "text-success"
-      : pct >= 33
-        ? "text-amber-400"
-        : "text-destructive";
+  // In ink: the figure was green, amber or red by which third of the range it fell in.
+  const textColor = "text-foreground";
 
   return (
     <div
@@ -2322,13 +2316,8 @@ export function RankingsPage() {
                       {tableColumns.map((m) => {
                         const val = m.accessor(row);
                         const allVals = allValuesMap[m.id] ?? [];
-                        const pct = percentile(val, allVals, m.higherIsBetter);
-                        const textColor =
-                          pct >= 66
-                            ? "text-success"
-                            : pct >= 33
-                              ? "text-amber-400"
-                              : "text-destructive";
+                        // In ink: the bar under it says where it places.
+                        const textColor = "text-foreground";
                         return (
                           <td
                             key={m.id}

@@ -24,6 +24,7 @@ import { economiesData } from "../data/economiesData";
 import { SourceLink } from "../components/SourceLink";
 import { DataExplorer } from "../components/DataExplorer";
 import { DataLog } from "../components/DataLog";
+import { hdiHex } from "../lib/hdiTier";
 import { CommodityMovers } from "../components/CommodityMovers";
 import { ConflictFigures } from "../components/ConflictFigures";
 
@@ -165,8 +166,8 @@ function CountryCarousel({
     return `${Math.round(n / 1000)}K`;
   };
 
-  const hdiColor = (h: number) =>
-    !has(h) ? "#9ca3af" : h >= 0.8 ? "#10b981" : h >= 0.65 ? "#f59e0b" : "#ef4444";
+  /* The UNDP's tier for the index, not a cut-off of the page's own. */
+  const hdiColor = (h: number) => hdiHex(h);
 
   return (
     <div
@@ -2186,8 +2187,8 @@ function FocusCarousel({
 
   const fmtGDPShort = (b: number) =>
     b >= 1000 ? `${(b / 1000).toFixed(1)}T` : b >= 1 ? `${Math.round(b)}B` : `${Math.round(b * 1000)}M`;
-  const hdiColor = (h: number) =>
-    !has(h) ? "#9ca3af" : h >= 0.8 ? "#10b981" : h >= 0.65 ? "#f59e0b" : "#ef4444";
+  /* The UNDP's tier for the index, not a cut-off of the page's own. */
+  const hdiColor = (h: number) => hdiHex(h);
 
   /* One card in the deck. The centre one is the choice; the two beside it
      are the neighbours in the list, drawn smaller and behind so the deck

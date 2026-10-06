@@ -19,13 +19,9 @@ import { countriesData, type Country } from "../data/countriesData";
 import { usStatesData, type USState } from "../data/statesData";
 import { STATE_INDICATORS as STATE_FIGURES } from "../data/stateIndicators";
 
-const COLORS = [
-  "hsl(200,85%,50%)",
-  "hsl(330,70%,55%)",
-  "hsl(150,60%,45%)",
-  "hsl(45,90%,55%)",
-  "hsl(270,60%,60%)",
-];
+/* The colours of the places compared, in the order they are picked: four of the palette the site's charts share,
+   whose neighbours stay apart for colour-blind readers on the light and the dark card. */
+const COLORS = ["#2563eb", "#d97706", "#0d9488", "#c026d3"];
 
 type EntityItem =
   | { kind: "country"; data: Country }
@@ -38,53 +34,6 @@ function entityName(e: EntityItem) {
   return e.data.name;
 }
 
-// Normalise a value 0–100 for radar
-function norm(val: number, lo: number, hi: number) {
-  return Math.round(Math.min(100, Math.max(0, ((val - lo) / (hi - lo)) * 100)));
-}
-
-/*
- * What the comparison shows, and why it changed.
- *
- * The radar used to label proxies as if they were the thing named: a
- * country's "Transport" axis was its GDP growth, "Crime" its unemployment,
- * "Housing" its inflation and "Education" its HDI a second time; a state's
- * "Transport" was its governor's approval rating and its "HDI" and "Life
- * Exp." were unsourced education and healthcare ranks. Every axis is now the
- * measure its label names, and a country and a state are only drawn on the
- * same radar where both have that measure.
- */
-type Axis = { axis: string; value: number };
-
-function radarData(e: EntityItem): Axis[] {
-  if (e.kind === "country") {
-    const c = e.data;
-    return [
-      { axis: "GDP per capita", value: norm(c.gdpPerCapita, 0, 120000) },
-      { axis: "Employment", value: norm(100 - c.unemploymentRate, 75, 100) },
-      { axis: "HDI", value: norm(c.humanDevelopmentIndex, 0.3, 1) },
-      { axis: "Life expectancy", value: norm(c.lifeExpectancy, 50, 90) },
-      { axis: "Price stability", value: norm(10 - Math.abs(c.inflationRate - 2), 0, 10) },
-    ];
-  }
-  const s = e.data;
-  const f = STATE_FIGURES[s.id];
-  return [
-    { axis: "GDP per capita", value: norm((s.gdp * 1e9) / s.population, 0, 120000) },
-    { axis: "Employment", value: norm(100 - s.unemploymentRate, 75, 100) },
-    { axis: "Median household income", value: norm(s.medianIncome, 40000, 110000) },
-    { axis: "Bachelor's degree+", value: norm(f?.education.bachelorsOrHigherPct ?? 0, 20, 50) },
-    { axis: "Home ownership", value: norm(f?.housing.homeOwnershipPct ?? 0, 40, 80) },
-  ];
-}
-
-/** Axes every selected entity has, in order. */
-function sharedAxes(sel: EntityItem[]): string[] {
-  if (sel.length === 0) return [];
-  const sets = sel.map((e) => new Set(radarData(e).map((a) => a.axis)));
-  return radarData(sel[0]).map((a) => a.axis).filter((ax) => sets.every((st) => st.has(ax)));
-}
-
 const money0 = (v: number) => `$${Math.round(v).toLocaleString()}`;
 /** Billions in, T or B out. The sign leads the currency: -$898B, not $-898B. */
 // Scaled to T/B/M so a small economy is not "$0B".
@@ -93,6 +42,50 @@ const people = (v: number) =>
   v >= 1e9 ? `${(v / 1e9).toFixed(2)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : `${(v / 1e3).toFixed(0)}k`;
 const areaKm = (v: number) =>
   v >= 1e6 ? `${(v / 1e6).toFixed(2)}M km²` : `${Math.round(v).toLocaleString()} km²`;
+
+/*
+ * What the profile shows, and why it changed twice.
+ *
+ * It first labelled proxies as the thing named - a country's "Transport" axis
+ * was its GDP growth, "Crime" its unemployment. Those went, but what replaced
+ * them still drew each axis between a floor and a ceiling picked to look
+ * right (employment from 75 to 100, life expectancy from 50 to 90), and one
+ * axis, "Price stability", was a sum of the page's own making: ten less the
+ * distance of inflation from two. A spoke's length meant whatever the range
+ * had been set to.
+ *
+ * Each axis is a published figure now, and its scale is the largest of the
+ * places being compared: that place reaches the edge, and one halfway in has
+ * half its figure. A longer spoke is a larger figure, not a better one -
+ * unemployment is among them - and the chart says so.
+ */
+type AxisDef = { axis: string; get: (e: EntityItem) => number | undefined; print: (v: number) => string };
+
+const COUNTRY_AXES: AxisDef[] = [
+  { axis: "GDP per capita", get: (e) => (e.data as Country).gdpPerCapita, print: money0 },
+  { axis: "HDI", get: (e) => (e.data as Country).humanDevelopmentIndex, print: (v) => String(v) },
+  { axis: "Life expectancy", get: (e) => (e.data as Country).lifeExpectancy, print: (v) => `${v} yrs` },
+  { axis: "Unemployment", get: (e) => (e.data as Country).unemploymentRate, print: (v) => `${v}%` },
+];
+const STATE_AXES: AxisDef[] = [
+  { axis: "GDP per capita", get: (e) => ((e.data as USState).gdp * 1e9) / (e.data as USState).population, print: money0 },
+  { axis: "Unemployment", get: (e) => (e.data as USState).unemploymentRate, print: (v) => `${v}%` },
+  { axis: "Median household income", get: (e) => (e.data as USState).medianIncome, print: money0 },
+  { axis: "Bachelor's degree+", get: (e) => STATE_FIGURES[e.data.id]?.education.bachelorsOrHigherPct, print: (v) => `${v}%` },
+  { axis: "Home ownership", get: (e) => STATE_FIGURES[e.data.id]?.housing.homeOwnershipPct, print: (v) => `${v}%` },
+];
+const axesOf = (e: EntityItem) => (e.kind === "country" ? COUNTRY_AXES : STATE_AXES);
+/** An entity's figure on an axis, where it has one and it is above zero: a spoke has nowhere to put anything else. */
+const figureOn = (e: EntityItem, axis: string) => {
+  const v = axesOf(e).find((a) => a.axis === axis)?.get(e);
+  return typeof v === "number" && Number.isFinite(v) && v > 0 ? v : undefined;
+};
+
+/** The axes every selected entity has a figure for, in the first one's order. */
+function sharedAxes(sel: EntityItem[]): AxisDef[] {
+  if (sel.length === 0) return [];
+  return axesOf(sel[0]).filter((a) => sel.every((e) => figureOn(e, a.axis) !== undefined));
+}
 
 /**
  * Stat rows for the comparison table: the same measures the dashboard's
@@ -209,10 +202,15 @@ export function ComparisonModule() {
   // leaves two (GDP per capita, employment), too few for a radar, so the
   // chart is shown only when at least three axes are shared.
   const radarAxes = sharedAxes(selected);
-  const mergedRadar = radarAxes.map((axis) => {
-    const row: Record<string, any> = { axis };
-    selected.forEach((e) => {
-      row[entityName(e)] = radarData(e).find((r) => r.axis === axis)?.value ?? 0;
+  /* A row an axis: each place's figure as a share of the largest among them (the spoke), and the figure itself as
+     printed (the tooltip and the list under the chart). */
+  const mergedRadar = radarAxes.map((a) => {
+    const figures = selected.map((e) => figureOn(e, a.axis)!);
+    const top = Math.max(...figures);
+    const row: Record<string, string | number> = { axis: a.axis };
+    selected.forEach((e, i) => {
+      row[entityName(e)] = Math.round((1000 * figures[i]) / top) / 10;
+      row[`${entityName(e)}__text`] = a.print(figures[i]);
     });
     return row;
   });
@@ -353,7 +351,7 @@ export function ComparisonModule() {
 
       {selected.length >= 2 && (
         <>
-          {/* Radar chart */}
+          {/* The profile */}
           {radarAxes.length < 3 ? (
             <div className="bg-card border border-border rounded-xl p-5 text-xs text-muted-foreground font-sans">
               Countries and US states share only GDP per capita and
@@ -366,34 +364,28 @@ export function ComparisonModule() {
             <h3 className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider mb-1">
               Profile
             </h3>
-            <p className="text-[10px] text-muted-foreground font-sans mb-3">
-              Each axis scaled 0–100 over a fixed range; the table below has the
-              actual figures.
+            <p className="text-[10px] text-muted-foreground font-sans mb-3 max-w-3xl leading-relaxed">
+              Each spoke is one published figure, on the scale of the largest of the places compared: that place reaches the edge, and a point
+              halfway in is half its figure. A longer spoke is a larger figure, not a better one - unemployment is among them. Point at the chart for
+              the figures.
             </p>
-            <div className="h-64">
+            <div className="h-64 text-muted-foreground" role="img" aria-label={`A profile of ${selected.map(entityName).join(", ")} on ${radarAxes.map((a) => a.axis.toLowerCase()).join(", ")}, each as a share of the largest among them.`}>
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart
                   data={mergedRadar}
                   margin={{ top: 8, right: 32, bottom: 8, left: 32 }}
                 >
-                  <PolarGrid stroke="hsl(222,30%,25%)" />
+                  <PolarGrid stroke="currentColor" strokeOpacity={0.25} />
                   <PolarAngleAxis
                     dataKey="axis"
                     tick={{
-                      fill: "hsl(0,0%,60%)",
+                      fill: "currentColor",
                       fontSize: 11,
                       fontFamily: "Figures, IBM Plex Mono",
                     }}
                   />
-                  <Tooltip
-                    contentStyle={{
-                      background: "hsl(222,44%,12%)",
-                      border: "1px solid hsl(222,30%,24%)",
-                      borderRadius: 6,
-                      fontFamily: "Figures, IBM Plex Mono",
-                      fontSize: 11,
-                    }}
-                  />
+                  {/* The figure as published, not the spoke's length. */}
+                  <Tooltip formatter={(_v: unknown, name: string, item: { payload?: Record<string, string | number> }) => [String(item.payload?.[`${name}__text`] ?? ""), name]} />
                   {selected.map((e, idx) => (
                     <Radar
                       key={entityId(e)}
@@ -403,24 +395,42 @@ export function ComparisonModule() {
                       fill={COLORS[idx % COLORS.length]}
                       fillOpacity={0.08}
                       strokeWidth={2}
+                      isAnimationActive={false}
                     />
                   ))}
                 </RadarChart>
               </ResponsiveContainer>
             </div>
-            {/* Legend */}
-            <div className="flex flex-wrap justify-center gap-4 mt-2">
-              {selected.map((e, idx) => (
-                <div key={entityId(e)} className="flex items-center gap-1.5">
-                  <span
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: COLORS[idx % COLORS.length] }}
-                  />
-                  <span className="text-xs font-sans text-muted-foreground">
-                    {entityName(e)}
-                  </span>
-                </div>
-              ))}
+            {/* The same figures, to the number: a row an axis, a column a place. */}
+            <div className="overflow-x-auto mt-3">
+              <table className="w-full text-[11px] font-mono">
+                <caption className="sr-only">The figures the profile is drawn from.</caption>
+                <thead>
+                  <tr>
+                    <td />
+                    {selected.map((e, idx) => (
+                      <th key={entityId(e)} scope="col" className="px-2 py-1 text-right font-sans font-semibold text-foreground">
+                        <span className="inline-block w-2 h-2 rounded-full mr-1.5 align-baseline" style={{ backgroundColor: COLORS[idx % COLORS.length] }} aria-hidden />
+                        {entityName(e)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {mergedRadar.map((r) => (
+                    <tr key={String(r.axis)} className="border-t border-border">
+                      <th scope="row" className="py-1 pr-2 text-left font-sans font-normal text-muted-foreground">
+                        {r.axis}
+                      </th>
+                      {selected.map((e) => (
+                        <td key={entityId(e)} className="px-2 py-1 text-right text-foreground">
+                          {r[`${entityName(e)}__text`]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 

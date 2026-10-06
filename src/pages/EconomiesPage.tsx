@@ -1702,6 +1702,7 @@ function EconomyModal({
                           fill="hsl(142,60%,45%)"
                           radius={[2, 2, 0, 0]}
                           maxBarSize={18}
+                          isAnimationActive={false}
                         />
                         <Bar
                           dataKey="inflation"
@@ -1709,6 +1710,7 @@ function EconomyModal({
                           fill="hsl(35,100%,50%)"
                           radius={[2, 2, 0, 0]}
                           maxBarSize={18}
+                          isAnimationActive={false}
                         />
                       </BarChart>
                     </ResponsiveContainer>

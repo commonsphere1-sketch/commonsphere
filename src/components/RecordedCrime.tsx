@@ -643,7 +643,7 @@ function Wildlife({ look }: { look: Look }) {
             formatter={(v: number) => [amount(v), `${g.group} seized`]}
             cursor={{ fill: look.isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.04)" }}
           />
-          <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} />
+          <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
       <p className="text-[10px] font-mono uppercase tracking-widest mt-3 mb-2" style={{ color: look.muted }}>

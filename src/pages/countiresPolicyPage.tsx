@@ -10679,7 +10679,7 @@ function EntityRow({ group }: { group: EntityGroup }) {
                   className={`rounded-full bg-muted overflow-hidden flex items-end transition-all ${tip?.i === i ? "ring-1 ring-foreground" : ""}`}
                   style={{ width: "4px", height: "100%" }}
                 >
-                  {fill !== null && <div className={`w-full rounded-full ${cfg.bar} transition-all`} style={{ height: `${fill}%` }} />}
+                  {fill !== null && <div className={`w-full rounded-full ${cfg.bar}`} style={{ height: `${fill}%` }} />}
                 </div>
               </div>
             ))}

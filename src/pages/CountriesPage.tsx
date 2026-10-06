@@ -6,6 +6,7 @@ import React, { lazy, Suspense, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LEADERS_BY_COUNTRY } from "../data/leaderIndex";
 import { SeeAlso } from "../components/SeeAlso";
+import { hdiTitle, hdiTone } from "../lib/hdiTier";
 import { PlaceTopics } from "../components/PlaceTopics";
 
 /* Every country's parties and chambers: loaded when a Governance tab opens, not with the page. */
@@ -415,13 +416,8 @@ const continentColors: Record<string, string> = {
   Antarctica: TONE.sky,
 };
 
-const hdiBadge = (hdi: number) => {
-  if (!has(hdi)) return "border border-border bg-muted text-muted-foreground"; // not published
-  if (hdi >= 0.9) return TONE.green;
-  if (hdi >= 0.8) return TONE.teal;
-  if (hdi >= 0.7) return TONE.yellow;
-  return TONE.orange;
-};
+/* The HDI chip's colour is the UNDP's tier for the index (lib/hdiTier.ts): it was set by cut-offs of the page's own. */
+const hdiBadge = (hdi: number) => hdiTone(hdi);
 
 /** FAO land use as donut slices, or null where FAO/World Bank publish none. */
 function getBiosphere(country: Country) {
@@ -621,6 +617,7 @@ function CountryModal({
                   {has(country.humanDevelopmentIndex) && (
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full font-mono font-semibold ${hdiBadge(country.humanDevelopmentIndex)}`}
+                    title={hdiTitle(country.humanDevelopmentIndex)}
                   >
                     HDI {country.humanDevelopmentIndex}
                   </span>
@@ -16132,13 +16129,15 @@ export function CountriesPage() {
                     {has(country.humanDevelopmentIndex) && (
                     <span
                       className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full ${hdiBg}`}
+                      title={hdiTitle(country.humanDevelopmentIndex)}
                     >
                       HDI {country.humanDevelopmentIndex}
                     </span>
                     )}
                     {ext?.cpiScore != null && (
                       <span
-                        className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${ext.cpiScore >= 60 ? "text-success border-success/30 bg-success/10" : ext.cpiScore >= 40 ? "text-warning border-warning/30 bg-warning/10" : "text-destructive border-destructive/30 bg-destructive/10"}`}
+                        className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-foreground"
+                        title="Transparency International's Corruption Perceptions Index: 0 to 100, higher is cleaner"
                       >
                         CPI {ext.cpiScore}
                       </span>

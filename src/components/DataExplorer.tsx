@@ -39,6 +39,7 @@ import { IMF_INFLATION, INCOME_GROUPS, INCOME_OF, INCOME_SOURCE, REGIONS, REGION
 import { has, na, sortKey } from "../lib/na";
 import { usdFromBillions } from "../lib/money";
 import { SourceLink } from "./SourceLink";
+import { hdiHex } from "../lib/hdiTier";
 import { ago, placeName, useHeadlines, type Headline } from "./HeadlinesBanner";
 import type { TopicHit } from "./PolicyContext";
 import { RESOURCES } from "../data/resourceList";
@@ -573,14 +574,14 @@ function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Coun
         <Kpi t={t} label="GDP" value={na(c.gdp, gdpShort)} sub={yr("gdp")} color="#6366f1" />
         <Kpi t={t} label="Real growth" value={na(c.gdpGrowth, (v) => `${signed(v)}%`)} sub={yr("gdpGrowth")} color={up ? GREEN : RED} />
         <Kpi t={t} label="GDP per person" value={na(c.gdpPerCapita, (v) => `$${Math.round(v).toLocaleString("en-US")}`)} sub={yr("gdpPerCapita")} color="#3b82f6" />
-        <Kpi t={t} label="Inflation" value={na(c.inflationRate, (v) => `${v}%`)} sub={yr("inflationRate")} color={c.inflationRate > 6 ? RED : "#f59e0b"} />
-        <Kpi t={t} label="Unemployment" value={na(c.unemploymentRate, (v) => `${v.toFixed(1)}%`)} sub={yr("unemploymentRate")} color={c.unemploymentRate < 5 ? GREEN : "#f59e0b"} />
+        <Kpi t={t} label="Inflation" value={na(c.inflationRate, (v) => `${v}%`)} sub={yr("inflationRate")} color="#f59e0b" />
+        <Kpi t={t} label="Unemployment" value={na(c.unemploymentRate, (v) => `${v.toFixed(1)}%`)} sub={yr("unemploymentRate")} color="#0d9488" />
         <Kpi
           t={t}
           label="HDI"
           value={na(c.humanDevelopmentIndex, (v) => v.toFixed(3))}
           sub={yr("humanDevelopmentIndex")}
-          color={c.humanDevelopmentIndex >= 0.8 ? GREEN : c.humanDevelopmentIndex >= 0.65 ? "#f59e0b" : RED}
+          color={hdiHex(c.humanDevelopmentIndex)}
         />
       </div>
 
