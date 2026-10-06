@@ -13862,27 +13862,17 @@ function LeaderDetail({
   leader: Leader;
   onClose: () => void;
 }) {
-  const [tab, setTab] = useState<"overview" | "career" | "events" | "views" | "history">(
-    "overview",
-  );
+  const [tab, setTab] = useState<"overview" | "views" | "history">("overview");
   const born = ageOf(leader.id, leader.birthYear);
   const navigate = useNavigate();
   /* The leader's country, where the site has a record of it: the way through
      to its window, so its figures can be read beside the person's. */
   const home = countriesData.find((c) => c.code === leader.countryCode) ?? null;
 
+  /* Career and education, and the timeline of significant events, are part of
+     the overview: they were tabs of their own, each a short page to click to. */
   const tabs = [
     { id: "overview" as const, label: "Overview", icon: <Globe size={13} /> },
-    {
-      id: "career" as const,
-      label: "Career & Education",
-      icon: <GraduationCap size={13} />,
-    },
-    {
-      id: "events" as const,
-      label: "Significant Events",
-      icon: <CalendarBlank size={13} />,
-    },
     {
       id: "views" as const,
       label: "Political Views",
@@ -14222,11 +14212,8 @@ function LeaderDetail({
                     {leader.status}
                   </span>
                 </div>
-              </>
-            )}
 
-            {tab === "career" && (
-              <>
+                {/* Career and education */}
                 <div className="modal-tile rounded-xl p-4">
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
                     <GraduationCap size={12} /> Education
@@ -14317,10 +14304,8 @@ function LeaderDetail({
                     </div>
                   </div>
                 </div>
-              </>
-            )}
 
-            {tab === "events" && (
+                {/* Significant events */}
               <div className="modal-tile rounded-xl p-4">
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-1.5">
                   <CalendarBlank size={12} /> Timeline of Significant Events
@@ -14356,6 +14341,7 @@ function LeaderDetail({
                   </div>
                 </div>
               </div>
+              </>
             )}
 
             {tab === "history" && <Story id={leader.id} name={leader.name} mode="life" />}
