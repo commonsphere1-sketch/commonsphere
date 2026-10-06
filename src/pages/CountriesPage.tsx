@@ -1,5 +1,7 @@
 import { na, has, orZero, sortKey } from "../lib/na";
 import { PublicServicesSection, ServiceBadges } from "../components/PublicServices";
+import { ACCENT, ChartNote, ChartTitle, FigureRow, FigureTile, HdiScale, MeasureBars, PartsBar, rampOf, worldFor, type MeasureRow } from "../components/ModalCharts";
+import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES } from "../data/worldview";
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LEADERS_BY_COUNTRY } from "../data/leaderIndex";
@@ -10,7 +12,7 @@ import {
   Airplane,
   Buildings,
   Flag,
-  CurrencyDollar,
+  Lightning,
   MapTrifold,
   Scroll,
   ListBullets,
@@ -18,7 +20,6 @@ import {
   Scales,
   Star,
   DownloadSimple,
-  ChartPie,
   ArrowsIn,
   ArrowsOut,
   X,
@@ -26,13 +27,6 @@ import {
 import { MILITARY_BRANCHES, fmtPers } from "../data/militaryData";
 import { MILITARY_MEASURED, MILITARY_SOURCES, type MilitaryFigure, type MilitaryMeasured } from "../data/militarySpending";
 import { LAND_USE, LAND_USE_SOURCE } from "../data/landUse";
-import {
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  PieChart,
-  Pie,
-} from "recharts";
 import {
   countriesData,
   type Country,
@@ -427,12 +421,37 @@ function getBiosphere(country: Country) {
   const l = LAND_USE[country.id];
   if (!l) return null;
   return [
-    { label: "Forest", value: l.forest, color: "hsl(150,60%,42%)" },
-    { label: "Cropland", value: l.cropland, color: "hsl(90,55%,40%)" },
-    { label: "Pasture", value: l.pasture, color: "hsl(45,70%,50%)" },
-    { label: "Other land", value: l.other, color: "hsl(0,0%,48%)" },
+    { label: "Forest", value: l.forest },
+    { label: "Cropland", value: l.cropland },
+    { label: "Pasture", value: l.pasture },
+    { label: "Other land", value: l.other },
   ].filter((x) => x.value > 0);
 }
+
+/** The head of a panel in a country's window: its mark, its name, what it holds, and anything set to its right. */
+function PanelHead({ icon, title, sub, aside }: { icon: React.ReactNode; title: string; sub?: React.ReactNode; aside?: React.ReactNode }) {
+  return (
+    <div className="flex items-start justify-between gap-3 mb-4">
+      <div className="flex items-center gap-2 min-w-0">
+        <div className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0">{icon}</div>
+        <div className="min-w-0">
+          <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">{title}</h3>
+          {sub && <p className="text-[10px] text-muted-foreground font-sans mt-0.5">{sub}</p>}
+        </div>
+      </div>
+      {aside}
+    </div>
+  );
+}
+
+/** A panel figure's year, and the world's figure for the same indicator and year where the site holds that series. */
+function withWorld(f: PanelFigure | undefined, worldId: string | undefined, print: (v: number) => string) {
+  const w = f && worldId ? worldFor(worldId, f.y) : null;
+  return w == null ? null : { value: w, text: print(w) };
+}
+
+/** The line a panel adds where it sets a country's figure beside the world's. */
+const WORLD_NOTE = "A world figure is the same publisher's, for the same indicator and the same year.";
 
 // ── Military Panel Sub-component ──
 /** "$954.4B", "$18.2B", "$640M" from US$ millions. */
@@ -457,47 +476,12 @@ function MilitarySection({
   branches: string[] | null;
 }) {
   const m = measured;
-  const kpiCards = [
-    m?.spendUSDm && {
-      label: "Military Spending",
-      value: fmtMilUSD(m.spendUSDm.v),
-      sub: milSub(m.spendUSDm, "current US$"),
-      icon: <CurrencyDollar size={14} weight="fill" className="text-success" />,
-      accent: "border-green-500/25 bg-green-500/5",
-      valueColor: "text-success",
-    },
-    m?.shareOfGDP && {
-      label: "Share of GDP",
-      value: `${m.shareOfGDP.v}%`,
-      sub: milSub(m.shareOfGDP, "of GDP"),
-      icon: <ChartPie size={14} weight="fill" className="text-yellow-400" />,
-      accent: "border-yellow-500/25 bg-yellow-500/5",
-      valueColor: "text-yellow-400",
-    },
-    m?.shareOfGovt && {
-      label: "Share of Govt Spending",
-      value: `${m.shareOfGovt.v}%`,
-      sub: milSub(m.shareOfGovt, "of government spending"),
-      icon: <Shield size={14} weight="fill" className="text-orange-400" />,
-      accent: "border-orange-500/25 bg-orange-500/5",
-      valueColor: "text-orange-400",
-    },
-    m?.personnel && {
-      label: "Armed Forces Personnel",
-      value: fmtPers(m.personnel.v),
-      sub: `${m.personnel.v.toLocaleString()} · incl. paramilitary, ${m.personnel.y}`,
-      icon: <Users size={14} weight="fill" className="text-red-400" />,
-      accent: "border-red-500/25 bg-red-500/5",
-      valueColor: "text-red-400",
-    },
-  ].filter(Boolean) as {
-    label: string;
-    value: string;
-    sub: string;
-    icon: React.ReactNode;
-    accent: string;
-    valueColor: string;
-  }[];
+  const figures = [
+    m?.spendUSDm && { label: "Military spending", value: fmtMilUSD(m.spendUSDm.v), sub: milSub(m.spendUSDm, "current US$") },
+    m?.shareOfGDP && { label: "As a share of GDP", value: `${m.shareOfGDP.v}%`, sub: milSub(m.shareOfGDP, "of GDP") },
+    m?.shareOfGovt && { label: "As a share of government spending", value: `${m.shareOfGovt.v}%`, sub: milSub(m.shareOfGovt, "of government spending") },
+    m?.personnel && { label: "Armed forces personnel", value: fmtPers(m.personnel.v), sub: `${m.personnel.v.toLocaleString()} · with paramilitary, ${m.personnel.y}` },
+  ].filter(Boolean) as { label: string; value: string; sub: string }[];
 
   const sources = [
     ...(m?.spendUSDm || m?.shareOfGDP || m?.shareOfGovt ? [MILITARY_SOURCES.sipri] : []),
@@ -506,63 +490,31 @@ function MilitarySection({
 
   return (
     <div className="modal-tile rounded-lg p-4 mb-4">
-      {/* Section header */}
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-1.5 bg-red-500/10 rounded-md border border-red-500/20">
-          <Shield size={13} weight="fill" className="text-red-400" />
-        </div>
-        <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-          Military
-        </h3>
-      </div>
+      <PanelHead icon={<Shield size={13} weight="fill" />} title="Military" sub="What it spends on its armed forces, and how many serve in them" />
 
-      {kpiCards.length > 0 ? (
+      {figures.length > 0 ? (
         <div className="grid grid-cols-2 gap-2 mb-3">
-          {kpiCards.map((k) => (
-            <div key={k.label} className={`rounded-lg border p-3 ${k.accent}`}>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-sans text-muted-foreground uppercase tracking-wider">
-                  {k.label}
-                </span>
-                {k.icon}
-              </div>
-              <p className={`text-xl font-bold font-mono leading-none ${k.valueColor}`}>
-                {k.value}
-              </p>
-              <p className="text-[9px] text-muted-foreground font-mono mt-1 opacity-80">
-                {k.sub}
-              </p>
-            </div>
+          {figures.map((k) => (
+            <FigureTile key={k.label} label={k.label} value={k.value} sub={k.sub} />
           ))}
         </div>
       ) : (
-        <p className="text-[10px] text-muted-foreground font-sans italic mb-3">
-          Neither SIPRI nor the World Bank publishes military figures for this
-          country.
-        </p>
+        <ChartNote className="mb-3">Neither SIPRI nor the World Bank publishes military figures for this country.</ChartNote>
       )}
 
       {m?.personnel && (
-        <p className="text-[10px] text-muted-foreground font-sans mb-3 leading-relaxed">
-          Personnel is the IISS count the World Bank republishes, which it has
-          not extended past {m.personnel.y}; current IISS figures are not
-          openly published.
-        </p>
+        <ChartNote className="mb-3">
+          Personnel is the IISS count the World Bank republishes, which it has not extended past {m.personnel.y}; current IISS figures are not openly
+          published.
+        </ChartNote>
       )}
 
-      {/* Service Branches */}
       {branches && branches.length > 0 && (
         <div>
-          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-            Service Branches
-          </p>
+          <ChartTitle>Service branches</ChartTitle>
           <div className="flex flex-wrap gap-1.5">
             {branches.map((b) => (
-              <span
-                key={b}
-                className="inline-flex items-center gap-1 text-[10px] bg-card text-foreground border border-border px-2.5 py-1 rounded-md font-sans hover:border-red-500/30 hover:text-red-400 transition-colors"
-              >
-                <span className="w-1 h-1 rounded-full bg-red-400/70 shrink-0" />
+              <span key={b} className="text-[10px] bg-muted text-foreground border border-border px-2.5 py-1 rounded-md font-sans">
                 {b}
               </span>
             ))}
@@ -901,29 +853,19 @@ function CountryModal({
                       {
                         label: "HDI Score",
                         value: na(country.humanDevelopmentIndex, (v) => String(v)),
-                        sub: "0–1 scale",
-                        color:
-                          country.humanDevelopmentIndex >= 0.8
-                            ? "text-success"
-                            : country.humanDevelopmentIndex >= 0.65
-                              ? "text-warning"
-                              : "text-destructive",
+                        sub: `UNDP index, 0 to 1${citedYear(country, "humanDevelopmentIndex")}`,
+                        color: "text-foreground",
                       },
                       {
                         label: "Life Expectancy",
                         value: na(country.lifeExpectancy, (v) => `${v} yrs`),
-                        sub: "average",
-                        color:
-                          country.lifeExpectancy >= 75
-                            ? "text-success"
-                            : country.lifeExpectancy >= 65
-                              ? "text-warning"
-                              : "text-destructive",
+                        sub: `at birth${citedYear(country, "lifeExpectancy")}`,
+                        color: "text-foreground",
                       },
                       {
                         label: "Population",
                         value: fmtPop(country.population),
-                        sub: "estimated",
+                        sub: `people${citedYear(country, "population")}`,
                         color: "text-foreground",
                       },
                     ]
@@ -962,36 +904,21 @@ function CountryModal({
                               label: "Internet Access",
                               value: `${ext.internetPct}%`,
                               sub: `of people online, ${ext.y.internetPct}`,
-                              color:
-                                ext.internetPct >= 80
-                                  ? "text-success"
-                                  : ext.internetPct >= 50
-                                    ? "text-warning"
-                                    : "text-destructive",
+                              color: "text-foreground",
                             });
                           if (ext?.gini != null)
                             extras.push({
                               label: "Gini Index",
                               value: `${ext.gini}`,
                               sub: `inequality (0–100), ${ext.y.gini}`,
-                              color:
-                                ext.gini > 45
-                                  ? "text-destructive"
-                                  : ext.gini > 35
-                                    ? "text-warning"
-                                    : "text-success",
+                              color: "text-foreground",
                             });
                           if (ext?.cpiScore != null)
                             extras.push({
                               label: "Corruption Index",
                               value: `${ext.cpiScore}/100`,
                               sub: `TI CPI ${ext.y.cpiScore}, higher = cleaner`,
-                              color:
-                                ext.cpiScore >= 60
-                                  ? "text-success"
-                                  : ext.cpiScore >= 40
-                                    ? "text-warning"
-                                    : "text-destructive",
+                              color: "text-foreground",
                             });
                           return extras;
                         })(),
@@ -1103,9 +1030,8 @@ function CountryModal({
                 {/* Economy by sector + land use */}
                 {((country.keyIndustries && country.keyIndustries.length > 0) || getBiosphere(country)) && (
                   <div className="modal-tile rounded-lg p-4 mb-4">
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      {/* Horizontal bar chart */}
-                      <div className="flex-1 min-w-0">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div className="min-w-0">
                         <h3 className="text-sm font-semibold font-sans text-foreground mb-1">
                           Economy by Sector
                         </h3>
@@ -1118,113 +1044,29 @@ function CountryModal({
                               : `Share of GDP (value added), ${country.sources?.keyIndustries?.label.match(/\d{4}$/)?.[0] ?? ""}. Taxes less subsidies on products belong to no sector, so the shares sum to less than 100, or to more where subsidies exceed those taxes.`
                             : "The World Bank publishes no complete sector split for this country."}
                         </p>
-                        <div className="space-y-2">
-                          {(country.keyIndustries ?? []).map((ind) => (
-                            <div
-                              key={ind.name}
-                              className="flex items-center gap-2"
-                            >
-                              <span className="text-xs font-sans text-muted-foreground w-28 shrink-0 truncate">
-                                {ind.name}
-                              </span>
-                              <div className="flex-1 h-4 bg-background rounded-full overflow-hidden">
-                                <div
-                                  className="h-full rounded-full transition-all duration-700"
-                                  style={{
-                                    width: `${Math.min(100, ind.gdpShare)}%`,
-                                    backgroundColor: ind.color,
-                                    opacity: 0.85,
-                                  }}
-                                />
-                              </div>
-                              <span
-                                className="text-xs font-mono w-9 text-right shrink-0"
-                                style={{ color: ind.color }}
-                              >
-                                {ind.gdpShare}%
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                        {/* Each bar on 0 to 100: a sector's length is its share. */}
+                        <MeasureBars
+                          max={100}
+                          label={`The economy of ${country.name} by sector`}
+                          rows={(country.keyIndustries ?? []).map((ind) => ({ label: ind.name, value: ind.gdpShare, text: `${ind.gdpShare}%` }))}
+                        />
                         {country.sources?.keyIndustries && (
                           <SourceLink sources={[country.sources.keyIndustries]} className="mt-2" />
                         )}
                       </div>
-                      {/* Land use donut */}
                       {getBiosphere(country) ? (
-                      <div className="shrink-0 flex flex-col items-center">
+                      <div className="min-w-0">
                         <h3 className="text-sm font-semibold font-sans text-foreground mb-1">
                           Land Use
                         </h3>
-                        <div className="relative w-32 h-32">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                              <Pie
-                                data={getBiosphere(country)!}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={34}
-                                outerRadius={55}
-                                paddingAngle={2}
-                                dataKey="value"
-                                isAnimationActive
-                                animationDuration={700}
-                              >
-                                {getBiosphere(country)!.map((entry, idx) => (
-                                  <Cell
-                                    key={idx}
-                                    fill={entry.color}
-                                    fillOpacity={0.9}
-                                  />
-                                ))}
-                              </Pie>
-                              <Tooltip
-                                content={({ active, payload }) => {
-                                  if (active && payload?.length) {
-                                    const d = payload[0].payload;
-                                    return (
-                                      <div className="bg-card border border-border rounded-md p-2 text-xs font-mono shadow-lg">
-                                        <p className="font-semibold text-foreground">
-                                          {d.label}
-                                        </p>
-                                        <p style={{ color: d.color }}>
-                                          {d.value}%
-                                        </p>
-                                      </div>
-                                    );
-                                  }
-                                  return null;
-                                }}
-                              />
-                            </PieChart>
-                          </ResponsiveContainer>
-                        </div>
-                        <div className="mt-1 space-y-0.5 w-full">
-                          {getBiosphere(country)!.map((seg) => (
-                            <div
-                              key={seg.label}
-                              className="flex items-center gap-1.5"
-                            >
-                              <span
-                                className="w-2 h-2 rounded-full shrink-0"
-                                style={{ backgroundColor: seg.color }}
-                              />
-                              <span className="text-xs font-sans text-muted-foreground truncate">
-                                {seg.label}
-                              </span>
-                              <span
-                                className="text-xs font-mono ml-auto"
-                                style={{ color: seg.color }}
-                              >
-                                {seg.value}%
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                        <p className="text-[10px] text-muted-foreground font-sans mt-1 text-center">
-                          Share of land, {LAND_USE[country.id].y}
+                        <p className="text-[10px] text-muted-foreground font-sans mb-3">
+                          Share of the country's land, {LAND_USE[country.id].y}.
                         </p>
-                        <SourceLink sources={[LAND_USE_SOURCE]} className="mt-1" />
+                        <PartsBar
+                          label={`The land of ${country.name} by use, ${LAND_USE[country.id].y}`}
+                          parts={getBiosphere(country)!.map((seg) => ({ label: seg.label, value: seg.value, text: `${seg.value}%` }))}
+                        />
+                        <SourceLink sources={[LAND_USE_SOURCE]} className="mt-2" />
                       </div>
                       ) : null}
                     </div>
@@ -1361,45 +1203,10 @@ function CountryModal({
                 {(() => {
                   const pr = PRISON_RATES[country.id];
                   if (!pr) return null;
-                  const ss = { incarcerationRate: pr.v };
                   return (
                     <div className="modal-tile rounded-lg p-4 mt-4">
-                      <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-3">
-                        Social Statistics{" "}
-                        <span className="normal-case font-normal">
-                          (per 100k residents)
-                        </span>
-                      </p>
-                      <div className="grid grid-cols-1 gap-3">
-                        <div className="rounded-lg border border-border bg-background/40 p-3">
-                          <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
-                            ⛓️ Incarceration Rate
-                          </p>
-                          <p
-                            className={`text-xl font-bold font-mono ${ss.incarcerationRate >= 400 ? "text-destructive" : ss.incarcerationRate >= 150 ? "text-warning" : "text-success"}`}
-                          >
-                            {pr.approx ? "c. " : ""}
-                            {ss.incarcerationRate}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-                            prisoners per 100,000 people · count at {pr.at}
-                          </p>
-                          <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all duration-700"
-                              style={{
-                                width: `${Math.min(100, (ss.incarcerationRate / 700) * 100)}%`,
-                                background:
-                                  ss.incarcerationRate >= 400
-                                    ? "hsl(0,70%,55%)"
-                                    : ss.incarcerationRate >= 150
-                                      ? "hsl(38,92%,50%)"
-                                      : "hsl(142,71%,45%)",
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
+                      <ChartTitle>People in prison</ChartTitle>
+                      <FigureRow label="Prison population rate" value={`${pr.approx ? "c. " : ""}${pr.v}`} sub={`per 100,000 people · count at ${pr.at}`} />
                       <SourceLink sources={[PRISON_RATES_SOURCE]} className="mt-3" />
                     </div>
                   );
@@ -1454,130 +1261,32 @@ function EnergySection({
   source?: { label: string; url: string };
 }) {
   const year = source?.label.match(/\d{4}$/)?.[0];
-  const netBalance = energy.totalProductionTWh - energy.totalUseTWh;
-  const isExporter = netBalance >= 0;
-  const fmtTWh = (n: number) =>
-    n >= 1000 ? `${(n / 1000).toFixed(1)} PWh` : `${n.toLocaleString()} TWh`;
+  // One unit throughout, so the two totals can be read against each other.
+  const twh = (n: number) => `${n >= 100 ? Math.round(n).toLocaleString("en-US") : n.toLocaleString("en-US", { maximumFractionDigits: 1 })} TWh`;
+  const net = energy.totalProductionTWh - energy.totalUseTWh;
+  const mix = energy.mix.filter((m) => m.pct > 0).sort((a, b) => b.pct - a.pct);
+  const when = year ? ` · ${year}` : "";
 
   return (
     <div className="modal-tile rounded-lg p-4 mb-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-yellow-500/10 rounded-md border border-yellow-500/20">
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="text-yellow-400"
-            >
-              <path
-                fillRule="evenodd"
-                d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-          <div>
-            <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-              Energy
-            </h3>
-            <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-              Primary energy use, production &amp; production mix{year ? ` · ${year}` : ""}
-            </p>
-          </div>
-        </div>
-        <span
-          className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${isExporter ? "text-green-400 border-green-500/30 bg-green-500/10" : "text-orange-400 border-orange-500/30 bg-orange-500/10"}`}
-        >
-          {isExporter
-            ? `Net Exporter +${fmtTWh(netBalance)}`
-            : `Net Importer ${fmtTWh(Math.abs(netBalance))}`}
-        </span>
+      <PanelHead icon={<Lightning size={13} weight="fill" />} title="Energy" sub={`Primary energy used and produced, and what its production is made of${when}`} />
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
+        <FigureTile label="Energy used" value={twh(energy.totalUseTWh)} sub={`primary energy${when}`} />
+        <FigureTile label="Energy produced" value={twh(energy.totalProductionTWh)} sub={`primary energy${when}`} />
+        <FigureTile
+          label="Production less use"
+          value={`${net >= 0 ? "+" : "−"}${twh(Math.abs(net))}`}
+          sub={net >= 0 ? "it produces more than it uses" : "it uses more than it produces"}
+        />
       </div>
 
-      {/* Use vs Production KPI row */}
-      <div className="grid grid-cols-2 gap-2 mb-4">
-        <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-3">
-          <p className="text-[10px] font-sans text-muted-foreground uppercase tracking-wider mb-1">
-            Total Consumption
-          </p>
-          <p className="text-lg font-bold font-mono text-yellow-400 leading-none">
-            {fmtTWh(energy.totalUseTWh)}
-          </p>
-          <p className="text-[9px] text-muted-foreground font-mono mt-1 opacity-70">
-            per year
-          </p>
-        </div>
-        <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-3">
-          <p className="text-[10px] font-sans text-muted-foreground uppercase tracking-wider mb-1">
-            Total Production
-          </p>
-          <p className="text-lg font-bold font-mono text-blue-400 leading-none">
-            {fmtTWh(energy.totalProductionTWh)}
-          </p>
-          <p className="text-[9px] text-muted-foreground font-mono mt-1 opacity-70">
-            per year
-          </p>
-        </div>
-      </div>
-
-      {/* Energy Mix */}
-      <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-        Production Mix (% of domestic production)
-      </p>
-      <div className="space-y-2 mb-3">
-        {energy.mix.map((src) => (
-          <div key={src.source} className="flex items-center gap-2">
-            <span className="text-[11px] font-sans text-muted-foreground w-24 shrink-0 truncate">
-              {src.source}
-            </span>
-            <div className="flex-1 h-3 bg-black/20 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{
-                  width: `${src.pct}%`,
-                  backgroundColor: src.color,
-                  opacity: 0.85,
-                }}
-              />
-            </div>
-            <span
-              className="text-[11px] font-mono w-9 text-right shrink-0"
-              style={{ color: src.color }}
-            >
-              {src.pct}%
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* Stacked mix bar */}
-      <div className="flex h-3 rounded-full overflow-hidden gap-px">
-        {energy.mix.map((src) => (
-          <div
-            key={src.source}
-            className="h-full transition-all duration-700"
-            style={{ width: `${src.pct}%`, backgroundColor: src.color }}
-            title={`${src.source}: ${src.pct}%`}
-          />
-        ))}
-      </div>
-      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
-        {energy.mix.map((src) => (
-          <span
-            key={src.source}
-            className="flex items-center gap-1 text-[10px] font-sans text-muted-foreground"
-          >
-            <span
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ backgroundColor: src.color }}
-            />
-            {src.source}
-          </span>
-        ))}
-      </div>
+      {mix.length > 0 && (
+        <>
+          <ChartTitle>What its production is made of · % of energy produced{when}</ChartTitle>
+          <MeasureBars max={100} label="Energy production by source" rows={mix.map((m) => ({ label: m.source, value: m.pct, text: `${m.pct}%` }))} />
+        </>
+      )}
       <SourceLink sources={source ? [source] : SRC_ENERGY} className="mt-3" />
     </div>
   );
@@ -1587,83 +1296,39 @@ function EnergySection({
 // From UNODC with each figure's year (countryCrime.ts, built by build-crime.cjs).
 // The hand-written table this replaced also carried Numbeo "safety" and
 // "crime" indices and drug-offence rates, which are gone; see that script.
-const CRIME_BAR_COLORS: Record<string, string> = {
-  Homicide: "hsl(0,72%,55%)",
-  Robbery: "hsl(22,88%,55%)",
-  "Serious assault": "hsl(38,92%,50%)",
-  Burglary: "hsl(45,90%,50%)",
-  "Vehicle theft": "hsl(200,85%,55%)",
-};
-
+// The offences are given as figures, not bars: they are on scales a hundred
+// times apart, and the bars they had were each drawn against a ceiling picked
+// for the purpose.
 function CountryCrimeStatsPanel({ country }: { country: Country }) {
   const cs = COUNTRY_CRIME[country.id];
   if (!cs) return null;
 
   const rows = (
     [
-      ["Homicide", cs.homicide, 50],
-      ["Robbery", cs.robbery, 700],
-      ["Serious assault", cs.assault, 700],
-      ["Burglary", cs.burglary, 700],
-      ["Vehicle theft", cs.vehicleTheft, 700],
-    ] as [string, CrimeFigure | undefined, number][]
-  ).filter((r): r is [string, CrimeFigure, number] => !!r[1]);
+      ["Intentional homicide", cs.homicide],
+      ["Robbery", cs.robbery],
+      ["Serious assault", cs.assault],
+      ["Burglary", cs.burglary],
+      ["Vehicle theft", cs.vehicleTheft],
+    ] as [string, CrimeFigure | undefined][]
+  ).filter((r): r is [string, CrimeFigure] => !!r[1]);
   const anyDerived = rows.some(([, f]) => f.derived);
 
   return (
     <div className="modal-tile rounded-lg p-4 mt-4">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-1.5 bg-red-500/10 rounded-md border border-red-500/20 shrink-0">
-          <Shield size={13} weight="fill" className="text-red-400" />
-        </div>
-        <div>
-          <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-            Crime Statistics
-          </h3>
-          <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-            Police-recorded, per 100,000 people
-          </p>
-        </div>
-      </div>
+      <PanelHead icon={<Shield size={13} weight="fill" />} title="Crime Statistics" sub="Offences the police recorded, per 100,000 people, each for its latest year" />
 
-      <div className="space-y-2">
-        {rows.map(([label, f, max]) => (
-          <div key={label} className="flex items-center gap-2">
-            <span className="text-[10px] font-sans text-muted-foreground w-28 shrink-0 truncate">
-              {label}
-            </span>
-            <div className="flex-1 h-3 bg-black/20 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{
-                  width: `${Math.min(100, (f.v / max) * 100)}%`,
-                  backgroundColor: CRIME_BAR_COLORS[label],
-                  opacity: 0.85,
-                }}
-              />
-            </div>
-            <span
-              className="text-[10px] font-mono w-12 text-right shrink-0"
-              style={{ color: CRIME_BAR_COLORS[label] }}
-            >
-              {f.v}
-            </span>
-            <span className="text-[9px] font-mono text-muted-foreground w-9 text-right shrink-0">
-              {f.y}
-              {f.derived ? "*" : ""}
-            </span>
-          </div>
+      <div className="flex flex-col">
+        {rows.map(([label, f]) => (
+          <FigureRow key={label} label={label} value={f.v.toLocaleString("en-US")} sub={`per 100,000 · ${f.y}${f.derived ? " *" : ""}`} />
         ))}
       </div>
 
-      <p className="text-[10px] text-muted-foreground font-sans mt-3 leading-relaxed">
-        Recorded offences depend on each country's legal definitions and how
-        often people report, so UNODC advises comparing a country with itself
-        over time rather than with other countries.
-        {anyDerived &&
-          " * UNODC publishes this offence as a count; the rate is that count over the World Bank's population for the same year."}
-      </p>
+      <ChartNote className="mt-3">
+        Recorded offences depend on each country's legal definitions and how often people report, so UNODC advises comparing a country with itself over
+        time rather than with other countries. They are given as figures, not drawn against one another: the offences are on very different scales.
+        {anyDerived && " * UNODC publishes this offence as a count; the rate is that count over the World Bank's population for the same year."}
+      </ChartNote>
       <SourceLink sources={[CRIME_SOURCE]} className="mt-2" />
     </div>
   );
@@ -1683,202 +1348,83 @@ interface AgeGroup {
 function ageDistFor(id: string): { groups: AgeGroup[]; year: string } | null {
   const p = COUNTRY_PANELS[id];
   const parts: [string, PanelField][] = [
-    ["0–14", "age0to14"],
-    ["15–24", "age15to24"],
-    ["25–54", "age25to54"],
-    ["55–64", "age55to64"],
-    ["65+", "age65up"],
+    ["Under 15", "age0to14"],
+    ["15 to 24", "age15to24"],
+    ["25 to 54", "age25to54"],
+    ["55 to 64", "age55to64"],
+    ["65 and over", "age65up"],
   ];
   if (!p || parts.some(([, f]) => !p[f])) return null;
   return { groups: parts.map(([group, f]) => ({ group, pct: p[f]!.v })), year: p.age0to14!.y };
 }
-const AGE_COLORS = ["#60a5fa", "#34d399", "#fbbf24", "#fb923c", "#f472b6"];
 
 function CountryDemographicsChart({ country }: { country: Country }) {
-  const ext = countryExt(country.id);
+  const p = COUNTRY_PANELS[country.id] ?? {};
   const age = ageDistFor(country.id);
-  const ageDist = age?.groups ?? [];
+  const pct = (v: number) => `${v}%`;
+  // The world's share under 15 and 65 or over, for the year the country's ages are for.
+  const worldYoung = age ? worldFor("under15", age.year) : null;
+  const worldOld = age ? worldFor("aged65", age.year) : null;
+  const hdiYear = sourceYear(country.sources?.humanDevelopmentIndex?.label ?? "");
+  const lifeYear = sourceYear(country.sources?.lifeExpectancy?.label ?? "");
+  // Set beside the Bank's world figure only where the country's is the Bank's too.
+  const worldLife = /^World Bank/.test(country.sources?.lifeExpectancy?.label ?? "") ? worldFor("lifeExpectancy", lifeYear) : null;
+  const urbanWorld = withWorld(p.urbanPct, "urban", pct);
+  const shownWorld = urbanWorld || worldYoung != null || worldLife != null || (has(country.humanDevelopmentIndex) && worldFor("hdi", hdiYear) != null);
 
   return (
     <div className="modal-tile rounded-lg p-4 mt-4">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="p-1.5 bg-violet-500/10 rounded-md border border-violet-500/20 shrink-0">
-          <Users size={13} weight="fill" className="text-violet-400" />
-        </div>
-        <div>
-          <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-            Demographics
-          </h3>
-          <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-            Population structure &amp; vital stats
-          </p>
-        </div>
-      </div>
+      <PanelHead icon={<Users size={13} weight="fill" />} title="Demographics" sub="How many people, how old, and how long they live" />
 
-      {/* Top stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-          <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5">
-            Population
-          </p>
-          <p className="text-sm font-bold font-mono text-foreground">
-            {country.uninhabited ? "Uninhabited" : fmtPop(country.population)}
-          </p>
-        </div>
-        {ext?.medianAge != null && (
-          <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5">
-              Median Age
-            </p>
-            <p className="text-sm font-bold font-mono text-foreground">
-              {ext.medianAge} yrs
-            </p>
-          </div>
-        )}
-        {ext?.urbanPct != null && (
-          <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5">
-              Urban
-            </p>
-            <p className="text-sm font-bold font-mono text-foreground">
-              {ext.urbanPct}%
-            </p>
-          </div>
-        )}
-        {ext?.birthRate != null && (
-          <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5">
-              Birth Rate
-            </p>
-            <p className="text-sm font-bold font-mono text-foreground">
-              {ext.birthRate}
-              <span className="text-[9px] text-muted-foreground">/1k</span>
-            </p>
-          </div>
-        )}
+        <FigureTile label="Population" value={country.uninhabited ? "Uninhabited" : fmtPop(country.population)} sub={sourceYear(country.sources?.population?.label ?? "")} />
+        {p.medianAge && <FigureTile label="Median age" value={`${p.medianAge.v} years`} sub={p.medianAge.y} />}
+        {p.urbanPct && <FigureTile label="Living in cities and towns" value={pct(p.urbanPct.v)} sub={p.urbanPct.y} world={urbanWorld?.text} />}
+        {p.birthRate && <FigureTile label="Births" value={`${p.birthRate.v}`} sub={`per 1,000 people · ${p.birthRate.y}`} />}
       </div>
-      {/* Death Rate tile intentionally removed */}
 
-      {/* Age distribution chart */}
       {age && (
-      <>
-      <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-        Age Distribution <span className="normal-case font-normal">· {age.year}</span>
-      </p>
-      <div className="space-y-2 mb-3">
-        {ageDist.map((a, i) => (
-          <div key={a.group} className="flex items-center gap-2">
-            <span className="text-[10px] font-mono text-muted-foreground w-12 shrink-0 text-right">
-              {a.group}
-            </span>
-            <div className="flex-1 h-5 bg-background/40 rounded-md overflow-hidden">
-              <div
-                className="h-full rounded-md transition-all duration-700 flex items-center pl-2"
-                style={{
-                  width: `${(a.pct / 50) * 100}%`,
-                  backgroundColor: AGE_COLORS[i % AGE_COLORS.length],
-                  opacity: 0.85,
-                }}
-              >
-                <span className="text-[9px] font-mono text-white/90 font-bold">
-                  {a.pct}%
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Stacked age bar */}
-      <div className="flex h-3 rounded-full overflow-hidden gap-px mb-2">
-        {ageDist.map((a, i) => (
-          <div
-            key={a.group}
-            className="h-full transition-all duration-700"
-            style={{
-              width: `${a.pct}%`,
-              backgroundColor: AGE_COLORS[i % AGE_COLORS.length],
-            }}
-            title={`${a.group}: ${a.pct}%`}
-          />
-        ))}
-      </div>
-      <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3">
-        {ageDist.map((a, i) => (
-          <span
-            key={a.group}
-            className="flex items-center gap-1 text-[9px] font-sans text-muted-foreground"
-          >
-            <span
-              className="w-1.5 h-1.5 rounded-full shrink-0"
-              style={{ backgroundColor: AGE_COLORS[i % AGE_COLORS.length] }}
-            />
-            {a.group}
-          </span>
-        ))}
-      </div>
-      </>
+        <div className="mb-4">
+          <ChartTitle>Its people by age · % of the population · {age.year}</ChartTitle>
+          <PartsBar label={`The people of ${country.name} by age, ${age.year}`} colors={rampOf(age.groups.length)} columns={3} parts={age.groups.map((a) => ({ label: a.group, value: a.pct, text: pct(a.pct) }))} />
+          {worldYoung != null && worldOld != null && (
+            <ChartNote className="mt-2">
+              Of the world's people in {age.year}, {pct(worldYoung)} were under 15 and {pct(worldOld)} were 65 or over.
+            </ChartNote>
+          )}
+        </div>
       )}
 
-      {/* HDI + Life Expectancy, each only where it is published: an empty
-          bar under a dash read as a score of zero. */}
+      {/* HDI and life expectancy, each only where it is published: an empty bar under a dash read as a score of zero. */}
       {(has(country.humanDevelopmentIndex) || has(country.lifeExpectancy)) && (
-      <div className="mt-2 pt-3 border-t border-border/50 space-y-2">
-        {has(country.humanDevelopmentIndex) && (
-        <div>
-          <div className="flex justify-between text-[10px] mb-1">
-            <span className="text-muted-foreground font-sans">HDI Score</span>
-            <span className="font-mono font-semibold text-foreground">
-              {na(country.humanDevelopmentIndex, (v) => String(v))}
-            </span>
-          </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-700"
-              style={{
-                width: `${orZero(country.humanDevelopmentIndex) * 100}%`,
-                background:
-                  country.humanDevelopmentIndex >= 0.8
-                    ? "#34d399"
-                    : country.humanDevelopmentIndex >= 0.6
-                      ? "#fbbf24"
-                      : "#f87171",
-              }}
+        <div className="pt-3 border-t border-border flex flex-col gap-3">
+          {has(country.humanDevelopmentIndex) && <HdiScale value={country.humanDevelopmentIndex} year={hdiYear} world={worldFor("hdi", hdiYear)} />}
+          {has(country.lifeExpectancy) && (
+            <FigureRow
+              label="Life expectancy at birth"
+              value={`${country.lifeExpectancy} years`}
+              sub={[lifeYear, worldLife != null ? `world ${worldLife}` : ""].filter(Boolean).join(" · ") || undefined}
             />
-          </div>
-          <div className="flex justify-between text-[9px] mt-0.5 text-muted-foreground">
-            <span>Low</span>
-            <span>Medium</span>
-            <span>High</span>
-            <span>Very High</span>
-          </div>
+          )}
         </div>
-        )}
-        {has(country.lifeExpectancy) && (
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] text-muted-foreground font-sans">
-            Life Expectancy
-          </span>
-          <span className="text-xs font-mono font-bold text-foreground">
-            {`${country.lifeExpectancy} yrs`}
-          </span>
-        </div>
-        )}
-      </div>
       )}
+      <ChartNote className="mt-3">
+        {has(country.humanDevelopmentIndex) && "UNDP's tiers of human development begin at 0.550, 0.700 and 0.800, marked on the scale. "}
+        {shownWorld && WORLD_NOTE}
+      </ChartNote>
       <SourceLink
         sources={[
-          ...(COUNTRY_PANELS[country.id]?.medianAge
-            ? [panelSource(COUNTRY_PANELS[country.id]!.medianAge!)]
-            : []),
+          ...(country.sources?.population ? [country.sources.population] : []),
+          ...(p.medianAge ? [panelSource(p.medianAge)] : []),
           ...(age
             ? [
-                COUNTRY_PANELS[country.id]?.age0to14?.s === "wpp"
-                  ? panelSource(COUNTRY_PANELS[country.id]!.age0to14!)
+                p.age0to14?.s === "wpp"
+                  ? panelSource(p.age0to14)
                   : { label: `World Bank — population by age, ${age.year}`, url: "https://data.worldbank.org/indicator/SP.POP.0014.TO.ZS" },
               ]
             : []),
           ...(country.sources?.humanDevelopmentIndex ? [country.sources.humanDevelopmentIndex] : []),
+          ...(country.sources?.lifeExpectancy ? [country.sources.lifeExpectancy] : []),
         ]}
         className="mt-2"
       />
@@ -1887,18 +1433,8 @@ function CountryDemographicsChart({ country }: { country: Country }) {
 }
 
 // ── Country Sociological Breakdown ──────────────────────────────────────────
-const SOCIO_PALETTE = [
-  "#60a5fa",
-  "#f87171",
-  "#34d399",
-  "#fbbf24",
-  "#a78bfa",
-  "#fb923c",
-  "#38bdf8",
-  "#e879f9",
-  "#4ade80",
-  "#f472b6",
-];
+/** A name in a list of them: a plain chip. The colours these had ran through a palette in turn and meant nothing. */
+const PLAIN_CHIP = "text-[11px] font-sans px-2 py-0.5 rounded-full border border-border bg-muted text-foreground";
 
 function CountrySociologicalBreakdown({ country }: { country: Country }) {
   const religions = (country as any).religions as string[] | undefined;
@@ -1920,44 +1456,27 @@ function CountrySociologicalBreakdown({ country }: { country: Country }) {
 
   if (!hasSocioData) return null;
 
+  const p = COUNTRY_PANELS[country.id] ?? {};
+  const urban = p.urbanPct;
+  const worldUrban = urban ? worldFor("urban", urban.y) : null;
+
   return (
     <div className="mt-4">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="p-1.5 bg-violet-500/10 rounded-md border border-violet-500/20">
-          <Users size={13} weight="fill" className="text-violet-400" />
-        </div>
-        <div>
-          <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-            Sociological Breakdown
-          </h3>
-          <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-            People, culture, beliefs &amp; governance
-          </p>
-        </div>
-      </div>
+      <PanelHead icon={<Users size={13} weight="fill" />} title="Sociological Breakdown" sub="Belief, language, where people live, and how the country is governed" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Religion */}
         {religions && religions.length > 0 && (
           <div className="modal-tile rounded-lg p-4">
-            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-              Religion / Belief Systems
-            </p>
-            <div className="space-y-1.5">
-              {religions.map((r, i) => (
-                <div key={r} className="flex items-center gap-2">
-                  <div
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{
-                      backgroundColor: SOCIO_PALETTE[i % SOCIO_PALETTE.length],
-                    }}
-                  />
-                  <span className="text-[11px] font-sans text-foreground flex-1">
-                    {r}
-                  </span>
-                </div>
+            <ChartTitle>Religion and belief</ChartTitle>
+            <ul className="flex flex-col gap-1.5">
+              {religions.map((r) => (
+                <li key={r} className="flex items-baseline gap-2">
+                  <span className="w-1 h-1 rounded-full bg-muted-foreground shrink-0 -translate-y-0.5" aria-hidden />
+                  <span className="text-[11px] font-sans text-foreground flex-1">{r}</span>
+                </li>
               ))}
-            </div>
+            </ul>
             {country.sources?.religions && (
               <SourceLink sources={country.sources.religions} />
             )}
@@ -1967,21 +1486,10 @@ function CountrySociologicalBreakdown({ country }: { country: Country }) {
         {/* Languages */}
         {spokenLanguages && spokenLanguages.length > 0 && (
           <div className="modal-tile rounded-lg p-4">
-            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-              Languages Spoken
-            </p>
+            <ChartTitle>Languages spoken</ChartTitle>
             <div className="flex flex-wrap gap-1.5">
-              {spokenLanguages.map((l, i) => (
-                <span
-                  key={l}
-                  className="text-[11px] font-sans px-2 py-0.5 rounded-full border"
-                  style={{
-                    color: SOCIO_PALETTE[i % SOCIO_PALETTE.length],
-                    borderColor: SOCIO_PALETTE[i % SOCIO_PALETTE.length] + "44",
-                    backgroundColor:
-                      SOCIO_PALETTE[i % SOCIO_PALETTE.length] + "18",
-                  }}
-                >
+              {spokenLanguages.map((l) => (
+                <span key={l} className={PLAIN_CHIP}>
                   {l}
                 </span>
               ))}
@@ -1992,145 +1500,38 @@ function CountrySociologicalBreakdown({ country }: { country: Country }) {
           </div>
         )}
 
-        {/* Rural / Urban Development tile */}
-        {(() => {
-          const ext = countryExt(country.id);
-          const urbanPct = ext?.urbanPct;
-          const ruralPct = urbanPct != null ? 100 - urbanPct : null;
-          const pop = country.population;
-          const urbanPop =
-            urbanPct != null ? Math.round(pop * (urbanPct / 100)) : null;
-          const ruralPop = urbanPop != null ? pop - urbanPop : null;
-          const urbanColor = "hsl(200,85%,55%)";
-          const ruralColor = "hsl(142,60%,45%)";
-          return (
-            <div className="modal-tile rounded-lg p-4">
-              <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-3">
-                Rural / Urban Development
-              </p>
-              {urbanPct != null && ruralPct != null ? (
-                <>
-                  {/* Stacked bar */}
-                  <div className="flex h-4 rounded-full overflow-hidden gap-px mb-2">
-                    <div
-                      className="h-full transition-all duration-700 flex items-center justify-center"
-                      style={{
-                        width: `${urbanPct}%`,
-                        backgroundColor: urbanColor,
-                      }}
-                      title={`Urban: ${urbanPct}%`}
-                    >
-                      {urbanPct > 20 && (
-                        <span className="text-[9px] font-mono text-white/90 font-bold px-1 truncate">
-                          Urban {urbanPct}%
-                        </span>
-                      )}
-                    </div>
-                    <div
-                      className="h-full transition-all duration-700 flex items-center justify-center"
-                      style={{
-                        width: `${ruralPct}%`,
-                        backgroundColor: ruralColor,
-                      }}
-                      title={`Rural: ${ruralPct}%`}
-                    >
-                      {ruralPct > 20 && (
-                        <span className="text-[9px] font-mono text-white/90 font-bold px-1 truncate">
-                          Rural {ruralPct}%
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {/* Legend */}
-                  <div className="flex gap-3 mb-3">
-                    <span className="flex items-center gap-1 text-[10px] font-sans text-muted-foreground">
-                      <span
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{ backgroundColor: urbanColor }}
-                      />
-                      Urban {urbanPct}%
-                    </span>
-                    <span className="flex items-center gap-1 text-[10px] font-sans text-muted-foreground">
-                      <span
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{ backgroundColor: ruralColor }}
-                      />
-                      Rural {ruralPct}%
-                    </span>
-                  </div>
-                  {/* Population breakdown */}
-                  {urbanPop != null && ruralPop != null && (
-                    <div className="grid grid-cols-2 gap-2 mb-3">
-                      <div className="rounded-lg border border-border bg-background/40 p-2 text-center">
-                        <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5">
-                          Urban Pop.
-                        </p>
-                        <p
-                          className="text-sm font-bold font-mono"
-                          style={{ color: urbanColor }}
-                        >
-                          {fmtPop(urbanPop)}
-                        </p>
-                      </div>
-                      <div className="rounded-lg border border-border bg-background/40 p-2 text-center">
-                        <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5">
-                          Rural Pop.
-                        </p>
-                        <p
-                          className="text-sm font-bold font-mono"
-                          style={{ color: ruralColor }}
-                        >
-                          {fmtPop(ruralPop)}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <p className="text-[11px] text-muted-foreground font-sans italic mb-3">
-                  Urbanization data unavailable
-                </p>
-              )}
-              {/* Housing affordability & transit quick stats */}
-              {ext?.birthRate != null && ext?.deathRate != null && (
-                <div className="space-y-1.5 pt-2 border-t border-border/50">
-                  {ext?.birthRate != null && ext?.deathRate != null && (
-                    <div className="flex gap-2 pt-1">
-                      <div className="flex-1 rounded border border-border bg-background/30 p-1.5 text-center">
-                        <p className="text-[9px] text-muted-foreground font-sans">
-                          Birth Rate
-                        </p>
-                        <p className="text-xs font-bold font-mono text-foreground">
-                          {ext.birthRate}
-                          <span className="text-[9px] text-muted-foreground">
-                            /1k
-                          </span>
-                        </p>
-                      </div>
-                      <div className="flex-1 rounded border border-border bg-background/30 p-1.5 text-center">
-                        <p className="text-[9px] text-muted-foreground font-sans">
-                          Death Rate
-                        </p>
-                        <p className="text-xs font-bold font-mono text-foreground">
-                          {ext.deathRate}
-                          <span className="text-[9px] text-muted-foreground">
-                            /1k
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+        {/* Where its people live, and its births and deaths */}
+        <div className="modal-tile rounded-lg p-4">
+          {urban ? (
+            <>
+              <ChartTitle>Where its people live · % of the population · {urban.y}</ChartTitle>
+              <PartsBar
+                label={`Where the people of ${country.name} live, ${urban.y}`}
+                parts={[
+                  { label: "Cities and towns", value: urban.v, text: `${urban.v}%` },
+                  { label: "The countryside", value: Math.round((100 - urban.v) * 10) / 10, text: `${Math.round((100 - urban.v) * 10) / 10}%` },
+                ]}
+              />
+              {worldUrban != null && <ChartNote className="mt-2">Of the world's people in {urban.y}, {worldUrban}% lived in cities and towns.</ChartNote>}
+            </>
+          ) : (
+            <>
+              <ChartTitle>Where its people live</ChartTitle>
+              <ChartNote>The World Bank publishes no urban share for this country.</ChartNote>
+            </>
+          )}
+          {p.birthRate && p.deathRate && (
+            <div className="grid grid-cols-2 gap-2 mt-3">
+              <FigureTile label="Births" value={`${p.birthRate.v}`} sub={`per 1,000 people · ${p.birthRate.y}`} />
+              <FigureTile label="Deaths" value={`${p.deathRate.v}`} sub={`per 1,000 people · ${p.deathRate.y}`} />
             </div>
-          );
-        })()}
+          )}
+          <SourceLink sources={[urban, p.birthRate, p.deathRate].filter((x): x is PanelFigure => !!x).map(panelSource)} className="mt-2" />
+        </div>
 
         {/* Political & Governance Culture */}
         <div className="modal-tile rounded-lg p-4">
-          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-            Political &amp; Governance Culture
-          </p>
+          <ChartTitle>Politics and government</ChartTitle>
           <div className="space-y-2">
             <div>
               <p className="text-[10px] text-muted-foreground font-sans mb-1">
@@ -2154,18 +1555,8 @@ function CountrySociologicalBreakdown({ country }: { country: Country }) {
                   Political Ideologies
                 </p>
                 <div className="flex flex-wrap gap-1">
-                  {politicalIdeologies.map((id, i) => (
-                    <span
-                      key={id}
-                      className="text-[10px] font-sans px-1.5 py-0.5 rounded border"
-                      style={{
-                        color: SOCIO_PALETTE[i % SOCIO_PALETTE.length],
-                        borderColor:
-                          SOCIO_PALETTE[i % SOCIO_PALETTE.length] + "44",
-                        backgroundColor:
-                          SOCIO_PALETTE[i % SOCIO_PALETTE.length] + "18",
-                      }}
-                    >
+                  {politicalIdeologies.map((id) => (
+                    <span key={id} className={PLAIN_CHIP}>
                       {id}
                     </span>
                   ))}
@@ -2178,11 +1569,8 @@ function CountrySociologicalBreakdown({ country }: { country: Country }) {
                   Governance Style
                 </p>
                 <div className="flex flex-wrap gap-1">
-                  {governanceStyle.map((gs, _i) => (
-                    <span
-                      key={gs}
-                      className="text-[10px] font-sans px-1.5 py-0.5 rounded border bg-muted/60 text-muted-foreground border-border"
-                    >
+                  {governanceStyle.map((gs) => (
+                    <span key={gs} className={PLAIN_CHIP}>
                       {gs}
                     </span>
                   ))}
@@ -5240,65 +4628,6 @@ const COUNTRY_IDEOLOGY_OVERRIDES: Record<string, string[]> = {
   ],
 };
 
-const DEFAULT_CONSTITUTION: ConstitutionData = {
-  name: "National Constitutional Framework",
-  adopted: 1900,
-  type: "Constitutional Government",
-  ideology: ["Constitutionalism", "Rule of Law", "Democracy"],
-  summary:
-    "This country operates under a constitutional framework that defines the structure of government, the rights of citizens, and the principles of governance.",
-  articles: [
-    {
-      title: "Sovereignty",
-      description:
-        "The nation is a sovereign state with supreme authority over its territory and people.",
-      type: "principle",
-    },
-    {
-      title: "Rule of Law",
-      description:
-        "All persons and institutions are accountable to laws that are publicly promulgated and equally enforced.",
-      type: "doctrine",
-    },
-    {
-      title: "Fundamental Rights",
-      description:
-        "Citizens are guaranteed basic civil and political rights including freedom of expression and equal treatment.",
-      type: "right",
-    },
-    {
-      title: "Separation of Powers",
-      description:
-        "Government authority is divided among executive, legislative, and judicial branches with checks and balances.",
-      type: "structure",
-    },
-    {
-      title: "Democratic Governance",
-      description:
-        "The government derives its legitimacy from the consent of the governed through free and fair elections.",
-      type: "doctrine",
-    },
-    {
-      title: "Constitutional Supremacy",
-      description:
-        "The constitution is the supreme law of the land; all other laws must conform to its provisions.",
-      type: "principle",
-    },
-  ],
-};
-
-function getConstitution(country: Country): ConstitutionData {
-  const base = COUNTRY_CONSTITUTIONS[country.id] ?? DEFAULT_CONSTITUTION;
-  // Apply per-country ideology override if the country isn't in the full data set
-  if (
-    !COUNTRY_CONSTITUTIONS[country.id] &&
-    COUNTRY_IDEOLOGY_OVERRIDES[country.id]
-  ) {
-    return { ...base, ideology: COUNTRY_IDEOLOGY_OVERRIDES[country.id] };
-  }
-  return base;
-}
-
 // ── Per-country political status data ────────────────────────────────────────
 interface PoliticalStatus {
   status: string;
@@ -5895,25 +5224,6 @@ const POLITICAL_STATUS: Record<string, PoliticalStatus> = {
   },
 };
 
-const DEFAULT_POLITICAL_STATUS: PoliticalStatus = {
-  status: "Constitutional Government",
-  statusColor: "text-secondary border-secondary/30 bg-secondary/10",
-  regime: "Constitutional State",
-  freedomScore: 50,
-  freedomLabel: "Partly Free",
-  pressIndex: 50,
-  electionType: "Regular Elections",
-  lastElection: "Recent",
-  ruling: "Governing Party / Coalition",
-  opposition: "Parliamentary Opposition",
-  notes:
-    "This country operates under a constitutional framework with regular elections and formal separation of powers.",
-};
-
-function getPoliticalStatus(country: Country): PoliticalStatus {
-  return POLITICAL_STATUS[country.id] ?? DEFAULT_POLITICAL_STATUS;
-}
-
 const LEGAL_SYSTEMS: Record<
   string,
   { system: string; family: string; codified: boolean; description: string }
@@ -6156,14 +5466,6 @@ const LEGAL_SYSTEMS: Record<
     description:
       "Constitution mandates all laws must conform to Islamic standards (Sharia). Guardian Council reviews legislation for conformity. Civil Code based on Shia Imami jurisprudence (fiqh). Criminal punishments include Qisas (retribution) and Hudud (fixed punishments). Theocratic legal authority ultimately vests in the Supreme Leader.",
   },
-};
-
-const DEFAULT_LEGAL = {
-  system: "Mixed Legal System",
-  family: "Hybrid",
-  codified: true,
-  description:
-    "This country operates under a constitutional legal framework combining codified statutes with judicial precedent and customary norms.",
 };
 
 // ── Per-country legal status data ────────────────────────────────────────────
@@ -13102,52 +12404,43 @@ function CountryLegalStatusSection({ country }: { country: Country }) {
   );
 }
 
-function getLegalSystem(country: Country) {
-  return LEGAL_SYSTEMS[country.id] ?? DEFAULT_LEGAL;
-}
+/** Freedom House's three statuses, as it names them. */
+const FREEDOM_STATUS = { F: "Free", PF: "Partly Free", NF: "Not Free" } as const;
 
 function ConstitutionTab({ country }: { country: Country }) {
-  const data = getConstitution(country);
-  const polStatus = getPoliticalStatus(country);
-  const legal = getLegalSystem(country);
+  // Only what was written for this country. A default once stood in for the rest - a constitution "adopted 1900",
+  // a freedom score of 50, "regular elections", a "mixed legal system" - and read as each one's own.
+  const constitution = COUNTRY_CONSTITUTIONS[country.id] ?? null;
+  const ideology = constitution?.ideology ?? COUNTRY_IDEOLOGY_OVERRIDES[country.id] ?? null;
+  const polStatus = POLITICAL_STATUS[country.id] ?? null;
+  const legal = LEGAL_SYSTEMS[country.id] ?? null;
+  // Freedom House's score, with its year: the published figure, where the tab had a hand-typed one.
+  const fh = COUNTRY_FIGURES.freedom[country.code];
+  const chip = "text-xs font-sans px-3 py-1 rounded-full border border-border bg-muted text-foreground font-semibold";
 
   return (
     <div className="animate-fade-in space-y-4">
       {/* ── 1. GOVERNANCE TYPE ── */}
       <div className="modal-tile rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="p-1.5 bg-secondary/10 rounded-md border border-secondary/20 shrink-0">
-            <Scales size={14} weight="fill" className="text-secondary" />
-          </div>
-          <div>
-            <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-              Type of Governance
-            </p>
-            <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-              System of government &amp; legal foundation
-            </p>
-          </div>
-        </div>
+        <PanelHead icon={<Scales size={14} weight="fill" />} title="Type of Governance" sub="System of government and how free it is" />
 
-        {/* Regime type badge */}
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          <span className="text-xs font-sans text-secondary border border-secondary/30 bg-secondary/10 px-3 py-1 rounded-full font-semibold">
-            {polStatus.regime}
-          </span>
-          <span
-            className={`text-xs font-sans px-3 py-1 rounded-full border font-semibold ${polStatus.statusColor}`}
-          >
-            {polStatus.status}
-          </span>
-        </div>
+        {polStatus && (
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <span className={chip}>{polStatus.regime}</span>
+            <span className={chip}>{polStatus.status}</span>
+          </div>
+        )}
 
-        {/* Governance fast-facts grid */}
         <div className="grid grid-cols-2 gap-2 mb-3">
           {[
             { label: "Government Type", value: country.governmentType },
             { label: "Head of State", value: country.headOfState },
-            { label: "Election Type", value: polStatus.electionType },
-            { label: "Ruling Party / Leader", value: polStatus.ruling },
+            ...(polStatus
+              ? [
+                  { label: "Election Type", value: polStatus.electionType },
+                  { label: "Ruling Party / Leader", value: polStatus.ruling },
+                ]
+              : []),
           ].map((f) => (
             <div
               key={f.label}
@@ -13163,190 +12456,98 @@ function ConstitutionTab({ country }: { country: Country }) {
           ))}
         </div>
 
-        {/* Freedom score bar */}
+        {/* Freedom House's score on its own scale, with the two parts it is the sum of. */}
         <div className="rounded-lg border border-border bg-background/30 p-3">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-              Political Freedom Index
-            </p>
-            <span
-              className={`text-[10px] font-sans px-2 py-0.5 rounded-full border font-semibold ${
-                polStatus.freedomScore >= 70
-                  ? "text-green-400 border-green-500/30 bg-green-500/10"
-                  : polStatus.freedomScore >= 35
-                    ? "text-yellow-400 border-yellow-500/30 bg-yellow-500/10"
-                    : "text-red-400 border-red-500/30 bg-red-500/10"
-              }`}
-            >
-              {polStatus.freedomLabel} · {polStatus.freedomScore}/100
-            </span>
-          </div>
-          <div className="h-2.5 bg-muted rounded-full overflow-hidden mb-1">
-            <div
-              className="h-full rounded-full transition-all duration-700"
-              style={{
-                width: `${polStatus.freedomScore}%`,
-                background:
-                  polStatus.freedomScore >= 70
-                    ? "hsl(142,71%,45%)"
-                    : polStatus.freedomScore >= 35
-                      ? "hsl(38,92%,50%)"
-                      : "hsl(0,70%,55%)",
-              }}
-            />
-          </div>
-          <div className="flex justify-between text-[9px] text-muted-foreground">
-            <span>Not Free</span>
-            <span>Partly Free</span>
-            <span>Free</span>
-          </div>
+          <ChartTitle>Freedom in the World · Freedom House{fh ? ` · ${fh[0]}` : ""}</ChartTitle>
+          {fh ? (
+            <>
+              <MeasureBars max={100} label={`Freedom House's score for ${country.name}`} rows={[{ label: "Freedom score", value: fh[1], text: `${fh[1]} of 100`, sub: FREEDOM_STATUS[fh[4]] }]} />
+              <div className="flex flex-col mt-2">
+                <FigureRow label="Political rights" value={`${fh[2]} of 40`} />
+                <FigureRow label="Civil liberties" value={`${fh[3]} of 60`} />
+              </div>
+              <ChartNote className="mt-2">The score is the two added together; "{FREEDOM_STATUS[fh[4]]}" is Freedom House's own status for the country.</ChartNote>
+              <SourceLink sources={COUNTRY_FIGURE_SOURCES.freedom} className="mt-2" />
+            </>
+          ) : (
+            <ChartNote>Freedom House publishes no score for {country.name}.</ChartNote>
+          )}
         </div>
       </div>
 
       {/* ── 2. CODIFIED LAW / LEGAL SYSTEM ── */}
-      <div className="modal-tile rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="p-1.5 bg-amber-500/10 rounded-md border border-amber-500/20 shrink-0">
-            <Scroll size={14} weight="fill" className="text-amber-400" />
-          </div>
-          <div>
-            <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-              Legal System &amp; Codified Law
-            </p>
-            <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-              Legal family, codification status &amp; constitutional basis
-            </p>
-          </div>
-        </div>
+      {(legal || constitution) && (
+        <div className="modal-tile rounded-xl p-4">
+          <PanelHead icon={<Scroll size={14} weight="fill" />} title="Legal System & Codified Law" sub="Legal family, codification and constitutional basis" />
 
-        <div className="flex flex-wrap gap-2 mb-3">
-          <span className="text-xs font-sans text-amber-400 border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 rounded-full font-semibold">
-            {legal.system}
-          </span>
-          <span className="text-xs font-sans text-purple-400 border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 rounded-full font-semibold">
-            {legal.family}
-          </span>
-          <span
-            className={`text-xs font-sans px-2.5 py-1 rounded-full border font-semibold ${
-              legal.codified
-                ? "text-green-400 border-green-500/30 bg-green-500/10"
-                : "text-orange-400 border-orange-500/30 bg-orange-500/10"
-            }`}
-          >
-            {legal.codified
-              ? "Codified Constitution"
-              : "Uncodified Constitution"}
-          </span>
-        </div>
-
-        <p className="text-xs text-muted-foreground font-sans leading-relaxed mb-3">
-          {legal.description}
-        </p>
-
-        {/* Constitutional document reference */}
-        <div className="rounded-lg border border-border bg-background/30 p-3">
-          <div className="flex items-start justify-between gap-2 mb-1">
-            <p className="text-xs font-semibold font-sans text-foreground leading-snug">
-              {data.name}
-            </p>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                {data.adopted}
-              </span>
-              {data.lastAmended && (
-                <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                  Amended {data.lastAmended}
-                </span>
-              )}
-            </div>
-          </div>
-          <p className="text-[11px] text-muted-foreground font-sans leading-relaxed">
-            {data.summary}
-          </p>
-        </div>
-
-        <SourceLink sources={SRC_CONSTITUTION} className="mt-3" />
-      </div>
-
-      {/* ── 3. CURRENT POLITICAL STATUS ── */}
-      <div className="modal-tile rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="p-1.5 bg-blue-500/10 rounded-md border border-blue-500/20 shrink-0">
-            <Flag size={14} weight="fill" className="text-blue-400" />
-          </div>
-          <div>
-            <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-              Current Political Status
-            </p>
-            <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-              {/* Said "Live political landscape as of 2025" — it cannot be
-                  both live and fixed to a past year. It is curated, so it
-                  says so. */}
-              Curated political landscape · 2025
-            </p>
-          </div>
-        </div>
-
-        {/* Press Freedom bar */}
-        <div className="mb-3">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-[10px] font-sans text-muted-foreground uppercase tracking-wider">
-              Press Freedom Index (RSF)
-            </p>
-            <span
-              className={`text-[10px] font-mono font-semibold ${
-                polStatus.pressIndex >= 60
-                  ? "text-green-400"
-                  : polStatus.pressIndex >= 30
-                    ? "text-yellow-400"
-                    : "text-red-400"
-              }`}
-            >
-              {polStatus.pressIndex}/100
-            </span>
-          </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-700"
-              style={{
-                width: `${polStatus.pressIndex}%`,
-                background:
-                  polStatus.pressIndex >= 60
-                    ? "hsl(142,71%,45%)"
-                    : polStatus.pressIndex >= 30
-                      ? "hsl(38,92%,50%)"
-                      : "hsl(0,70%,55%)",
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Election timeline */}
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          <div className="rounded-lg border border-border bg-background/40 p-3">
-            <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
-              Last Election
-            </p>
-            <p className="text-xs font-semibold font-sans text-foreground">
-              {polStatus.lastElection}
-            </p>
-          </div>
-          {polStatus.nextElection && (
-            <div className="rounded-lg border border-border bg-background/40 p-3">
-              <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
-                Next Election
+          {legal && (
+            <>
+              <div className="flex flex-wrap gap-2 mb-3">
+                <span className={chip}>{legal.system}</span>
+                <span className={chip}>{legal.family}</span>
+                <span className={chip}>{legal.codified ? "Codified Constitution" : "Uncodified Constitution"}</span>
+              </div>
+              <p className="text-xs text-muted-foreground font-sans leading-relaxed mb-3">
+                {legal.description}
               </p>
-              <p className="text-xs font-semibold font-sans text-foreground">
-                {polStatus.nextElection}
+            </>
+          )}
+
+          {constitution && (
+            <div className="rounded-lg border border-border bg-background/30 p-3">
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <p className="text-xs font-semibold font-sans text-foreground leading-snug">
+                  {constitution.name}
+                </p>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                    {constitution.adopted}
+                  </span>
+                  {constitution.lastAmended && (
+                    <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                      Amended {constitution.lastAmended}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground font-sans leading-relaxed">
+                {constitution.summary}
               </p>
             </div>
           )}
-        </div>
 
-        {/* Ruling / Opposition */}
-        <div className="space-y-2 mb-3">
-          <div className="flex items-start gap-2">
-            <span className="w-2 h-2 rounded-full bg-secondary shrink-0 mt-1.5" />
+          <SourceLink sources={SRC_CONSTITUTION} className="mt-3" />
+        </div>
+      )}
+
+      {/* ── 3. CURRENT POLITICAL STATUS ── */}
+      {polStatus && (
+        <div className="modal-tile rounded-xl p-4">
+          {/* Said "Live political landscape as of 2025" — it cannot be both live and fixed to a past year. It is curated, so it says so. */}
+          <PanelHead icon={<Flag size={14} weight="fill" />} title="Current Political Status" sub="Curated political landscape · 2025" />
+
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <div className="rounded-lg border border-border bg-background/40 p-3">
+              <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
+                Last Election
+              </p>
+              <p className="text-xs font-semibold font-sans text-foreground">
+                {polStatus.lastElection}
+              </p>
+            </div>
+            {polStatus.nextElection && (
+              <div className="rounded-lg border border-border bg-background/40 p-3">
+                <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
+                  Next Election
+                </p>
+                <p className="text-xs font-semibold font-sans text-foreground">
+                  {polStatus.nextElection}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2 mb-3">
             <div>
               <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider">
                 Ruling Party / Leader
@@ -13355,9 +12556,6 @@ function ConstitutionTab({ country }: { country: Country }) {
                 {polStatus.ruling}
               </p>
             </div>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="w-2 h-2 rounded-full bg-muted-foreground shrink-0 mt-1.5" />
             <div>
               <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider">
                 Opposition
@@ -13367,51 +12565,45 @@ function ConstitutionTab({ country }: { country: Country }) {
               </p>
             </div>
           </div>
-        </div>
 
-        {/* Political notes */}
-        <div className="rounded-lg border border-border bg-background/30 p-3">
-          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">
-            Political Context
-          </p>
-          <p className="text-[11px] text-muted-foreground font-sans leading-relaxed">
-            {polStatus.notes}
-          </p>
+          <div className="rounded-lg border border-border bg-background/30 p-3">
+            <ChartTitle>Political context</ChartTitle>
+            <p className="text-[11px] text-muted-foreground font-sans leading-relaxed">
+              {polStatus.notes}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── 4. IDEOLOGY TAGS ── */}
-      <div className="modal-tile rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Star size={12} weight="fill" className="text-amber-400" />
-          <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-            Constitutional Ideology &amp; Doctrine
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {data.ideology.map((tag, i) => {
-            const colors = [
-              "text-blue-400 border-blue-500/30 bg-blue-500/10",
-              "text-purple-400 border-purple-500/30 bg-purple-500/10",
-              "text-green-400 border-green-500/30 bg-green-500/10",
-              "text-orange-400 border-orange-500/30 bg-orange-500/10",
-            ];
-            return (
-              <span
-                key={tag}
-                className={`text-xs font-sans px-2.5 py-1 rounded-full border ${colors[i % colors.length]}`}
-              >
+      {ideology && ideology.length > 0 && (
+        <div className="modal-tile rounded-xl p-4">
+          <ChartTitle>Constitutional ideology and doctrine</ChartTitle>
+          <div className="flex flex-wrap gap-2">
+            {ideology.map((tag) => (
+              <span key={tag} className={PLAIN_CHIP}>
                 {tag}
               </span>
-            );
-          })}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* What is not here, said once: a default used to fill it in. */}
+      {(!constitution || !legal || !polStatus) && (
+        <div className="modal-tile rounded-xl p-4">
+          <ChartNote>
+            The site holds no written entry on {[!constitution && "the constitution", !legal && "the legal system", !polStatus && "the current political landscape"].filter(Boolean).join(", ").replace(/, ([^,]*)$/, " or $1")} of{" "}
+            {country.name}, so none is shown: a placeholder would read as its own.
+          </ChartNote>
+        </div>
+      )}
 
       {/* ── 5. LEGAL STATUS SECTION ── */}
       <CountryLegalStatusSection country={country} />
 
       {/* ── 6. KEY CONSTITUTIONAL ARTICLES (collapsed under disclosure) ── */}
+      {constitution && (
       <details className="group">
         <summary className="flex items-center gap-2 cursor-pointer select-none modal-tile rounded-xl px-4 py-3 hover:bg-muted/60 transition-colors">
           <BookOpen size={12} weight="fill" className="text-muted-foreground" />
@@ -13419,7 +12611,7 @@ function ConstitutionTab({ country }: { country: Country }) {
             Key Constitutional Articles &amp; Provisions
           </p>
           <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-            {data.articles.length} provisions
+            {constitution.articles.length} provisions
           </span>
           <svg
             width="12"
@@ -13438,7 +12630,7 @@ function ConstitutionTab({ country }: { country: Country }) {
           </svg>
         </summary>
         <div className="mt-2 space-y-2.5">
-          {data.articles.map((article, i) => (
+          {constitution.articles.map((article, i) => (
             <div key={i} className="modal-tile rounded-lg p-3.5">
               <div className="flex items-start justify-between gap-2 mb-1.5">
                 <p className="text-xs font-bold font-sans text-foreground">
@@ -13457,6 +12649,7 @@ function ConstitutionTab({ country }: { country: Country }) {
           ))}
         </div>
       </details>
+      )}
     </div>
   );
 }
@@ -15826,109 +15019,45 @@ const GraduationCapIcon = () => (
 
 function CountryEducationPanel({ country }: { country: Country }) {
   const edu = getCountryEducation(country);
-  const typeColors: Record<string, string> = {
-    Public: "text-blue-400 border-blue-500/30 bg-blue-500/10",
-    Private: "text-purple-400 border-purple-500/30 bg-purple-500/10",
-    Technical: "text-orange-400 border-orange-500/30 bg-orange-500/10",
-    Research: "text-green-400 border-green-500/30 bg-green-500/10",
-  };
+  const literacyWorld = withWorld(edu.literacy ?? undefined, "literacy", (v) => `${v}%`);
+  const schoolingWorld = withWorld(edu.schooling ?? undefined, "schoolingYears", (v) => `${v} years`);
   return (
     <div className="modal-tile rounded-lg p-4 mt-4">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-1.5 bg-indigo-500/10 rounded-md border border-indigo-500/20 shrink-0">
-          <span className="text-indigo-400 flex items-center">
-            <GraduationCapIcon />
-          </span>
-        </div>
-        <div>
-          <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-            Education & Universities
-          </h3>
-          <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-            Literacy, schooling and major universities
-          </p>
-        </div>
+      <PanelHead icon={<GraduationCapIcon />} title="Education & Universities" sub="Literacy, schooling and major universities" />
 
-      </div>
-
-      {/* Stats Row */}
       <div className="grid grid-cols-2 gap-2 mb-4">
-        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-          <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-            Adult Literacy
-          </p>
-          {edu.literacy ? (
-            <>
-              <p
-                className={`text-base font-bold font-mono ${edu.literacy.v >= 95 ? "text-success" : edu.literacy.v >= 80 ? "text-warning" : "text-destructive"}`}
-              >
-                {edu.literacy.v}%
-              </p>
-              <p className="text-[9px] text-muted-foreground font-mono">{edu.literacy.y}</p>
-            </>
-          ) : (
-            <p className="text-[10px] text-muted-foreground font-sans leading-snug mt-1">
-              No survey in the last ten years
-            </p>
-          )}
-        </div>
-        <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-          <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-            Mean Years of Schooling
-          </p>
-          {edu.schooling ? (
-            <>
-              <p className="text-base font-bold font-mono text-foreground">
-                {edu.schooling.v} yrs
-              </p>
-              <p className="text-[9px] text-muted-foreground font-mono">adults 25+, {edu.schooling.y}</p>
-            </>
-          ) : (
-            <p className="text-[10px] text-muted-foreground font-sans mt-1">Not published</p>
-          )}
-        </div>
+        {edu.literacy ? (
+          <FigureTile label="Adults who can read and write" value={`${edu.literacy.v}%`} sub={`of those 15 and over · ${edu.literacy.y}`} world={literacyWorld?.text} />
+        ) : (
+          <FigureTile label="Adults who can read and write" value="Not published" sub="no survey in the last ten years" />
+        )}
+        {edu.schooling ? (
+          <FigureTile label="Years of schooling" value={`${edu.schooling.v} years`} sub={`average, adults 25 and over · ${edu.schooling.y}`} world={schoolingWorld?.text} />
+        ) : (
+          <FigureTile label="Years of schooling" value="Not published" />
+        )}
       </div>
       {!edu.literacy && (
-        <p className="text-[10px] text-muted-foreground font-sans mb-4 leading-relaxed">
+        <ChartNote className="mb-4">
           {country.code === "TW"
             ? "UNESCO and UNDP, the sources used here, do not cover Taiwan."
             : "Most high-income countries stopped measuring adult literacy this way decades ago, so UNESCO has no recent figure for them."}
-        </p>
+        </ChartNote>
       )}
 
-      {/* Top Universities */}
+      {/* A list, in no order of merit: the numbers these carried read as a ranking nobody published. */}
       {edu.topUniversities.length > 0 && (
-      <div className="mb-3">
-        <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-          Major Universities
-        </p>
-        <div className="space-y-2">
-          {edu.topUniversities.map((u, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-2.5 p-2 rounded-lg bg-background/30 border border-border/40"
-            >
-              <span className="w-5 h-5 flex items-center justify-center rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-mono font-bold shrink-0">
-                {i + 1}
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-sans font-medium text-foreground truncate">
-                  {u.name}
-                </p>
-
-              </div>
-              <span
-                className={`text-[10px] font-sans px-1.5 py-0.5 rounded-full border shrink-0 ${typeColors[u.type]}`}
-              >
-                {u.type}
-              </span>
-            </div>
-          ))}
+        <div className="mb-3">
+          <ChartTitle>Major universities</ChartTitle>
+          <div className="flex flex-col">
+            {edu.topUniversities.map((u) => (
+              <FigureRow key={u.name} label={u.name} value={<span className="font-sans font-normal text-muted-foreground">{u.type}</span>} />
+            ))}
+          </div>
         </div>
-      </div>
       )}
 
-
+      {(literacyWorld || schoolingWorld) && <ChartNote>{WORLD_NOTE}</ChartNote>}
       <SourceLink
         sources={[edu.literacy, edu.schooling]
           .filter((f): f is PanelFigure => !!f)
@@ -15988,287 +15117,87 @@ function genderStatsFor(id: string) {
 function CountryGenderStatsPanel({ country }: { country: Country }) {
   const gs = genderStatsFor(country.id);
   if (!gs) return null;
-  const lifeExpGapNum = gs.lifeExpectancyFemale - gs.lifeExpectancyMale;
-  const lifeExpGap = Math.abs(lifeExpGapNum).toFixed(1);
-  const literacyGap =
-    gs.literacyMalePct != null && gs.literacyFemalePct != null
-      ? (gs.literacyMalePct - gs.literacyFemalePct).toFixed(1)
-      : null;
-  const lfGap =
-    gs.laborForceMalePct != null && gs.laborForceFemale != null
-      ? Math.round((gs.laborForceMalePct - gs.laborForceFemale) * 10) / 10
-      : null;
+  const p = COUNTRY_PANELS[country.id] ?? {};
+  const points = (a: number, b: number) => Math.round(Math.abs(a - b) * 10) / 10;
+  /** "Men 12.3 points higher", from two published shares. */
+  const gap = (men: number, women: number) => (men === women ? "The same for men and women." : `${men > women ? "Men" : "Women"} ${points(men, women)} points higher.`);
+  const lifeGap = points(gs.lifeExpectancyFemale, gs.lifeExpectancyMale);
+  const parliamentWorld = withWorld(p.parliamentFemale, "womenParliament", (v) => `${v}%`);
+  const maternalWorld = withWorld(p.maternalMortality, "maternalMortality", (v) => `${v}`);
+  const pair = (men: number, women: number): MeasureRow[] => [
+    { label: "Men", value: men, text: `${men}%` },
+    { label: "Women", value: women, text: `${women}%` },
+  ];
 
   return (
     <div className="modal-tile rounded-lg p-4 mt-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-pink-500/10 rounded-md border border-pink-500/20 shrink-0">
-            <Users size={13} weight="fill" className="text-pink-400" />
-          </div>
-          <div>
-            <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-              Male / Female Statistics
-            </h3>
-            <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-              Latest year published for each measure
-            </p>
-          </div>
-        </div>
-        {gs.sexRatioAtBirth != null && (
-          <span className="text-[10px] font-mono text-muted-foreground border border-border px-2 py-0.5 rounded-full bg-background/50">
-            {gs.sexRatioAtBirth} boys per 100 girls at birth, {gs.sexRatioYear}
-          </span>
-        )}
-      </div>
+      <PanelHead
+        icon={<Users size={13} weight="fill" />}
+        title="Male / Female Statistics"
+        sub="Latest year published for each measure"
+        aside={
+          gs.sexRatioAtBirth != null ? (
+            <span className="text-[10px] font-mono text-muted-foreground border border-border px-2 py-0.5 rounded-full shrink-0">
+              {gs.sexRatioAtBirth} boys per 100 girls at birth, {gs.sexRatioYear}
+            </span>
+          ) : undefined
+        }
+      />
 
-      {/* Population split bar */}
       {gs.malePct != null && gs.femalePct != null && (
-      <div className="mb-4">
-        <div className="flex items-center justify-between text-[10px] mb-1.5">
-          <span className="flex items-center gap-1 text-blue-400 font-semibold font-sans">
-            <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
-            Male {gs.malePct}%
-          </span>
-          <span className="text-muted-foreground font-sans font-medium">
-            Population split, {gs.popYear}
-          </span>
-          <span className="flex items-center gap-1 text-pink-400 font-semibold font-sans">
-            Female {gs.femalePct}%
-            <span className="w-2 h-2 rounded-full bg-pink-400 shrink-0" />
-          </span>
+        <div className="mb-4">
+          <ChartTitle>Its people by sex · % of the population · {gs.popYear}</ChartTitle>
+          <PartsBar
+            label={`The people of ${country.name} by sex, ${gs.popYear}`}
+            parts={[
+              { label: "Men", value: gs.malePct, text: `${gs.malePct}%` },
+              { label: "Women", value: gs.femalePct, text: `${gs.femalePct}%` },
+            ]}
+          />
         </div>
-        <div className="flex h-5 rounded-full overflow-hidden gap-px">
-          <div
-            className="h-full flex items-center justify-center transition-all duration-700"
-            style={{ width: `${gs.malePct}%`, background: "hsl(213,85%,55%)" }}
-          >
-            {gs.malePct > 20 && (
-              <span className="text-[9px] font-mono text-white/90 font-bold px-1">
-                {gs.malePct}%
-              </span>
-            )}
-          </div>
-          <div
-            className="h-full flex items-center justify-center transition-all duration-700"
-            style={{
-              width: `${gs.femalePct}%`,
-              background: "hsl(330,70%,55%)",
-            }}
-          >
-            {gs.femalePct > 20 && (
-              <span className="text-[9px] font-mono text-white/90 font-bold px-1">
-                {gs.femalePct}%
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
       )}
-      {/* Life Expectancy comparison */}
+
       <div className="mb-4">
-        <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-2">
-          Life Expectancy <span className="normal-case font-normal">· {gs.lifeYear}</span>
-        </p>
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-3 text-center">
-            <p className="text-[10px] text-blue-400 font-sans mb-0.5">♂ Male</p>
-            <p className="text-xl font-bold font-mono text-blue-400">
-              {gs.lifeExpectancyMale}
-            </p>
-            <p className="text-[9px] text-muted-foreground font-sans">years</p>
-          </div>
-          <div className="rounded-lg border border-pink-500/20 bg-pink-500/5 p-3 text-center">
-            <p className="text-[10px] text-pink-400 font-sans mb-0.5">
-              ♀ Female
-            </p>
-            <p className="text-xl font-bold font-mono text-pink-400">
-              {gs.lifeExpectancyFemale}
-            </p>
-            <p className="text-[9px] text-muted-foreground font-sans">years</p>
-          </div>
+        <ChartTitle>Life expectancy at birth · years · {gs.lifeYear}</ChartTitle>
+        <div className="grid grid-cols-2 gap-2">
+          <FigureTile label="Men" value={`${gs.lifeExpectancyMale} years`} />
+          <FigureTile label="Women" value={`${gs.lifeExpectancyFemale} years`} />
         </div>
-        <div className="rounded-lg bg-background/30 border border-border/50 px-3 py-2 flex items-center justify-between">
-          <span className="text-[10px] text-muted-foreground font-sans">
-            Gender life-expectancy gap
-          </span>
-          <span className="text-xs font-mono font-semibold text-pink-400">
-            {lifeExpGapNum >= 0
-              ? `+${lifeExpGap} yrs (women live longer)`
-              : `+${lifeExpGap} yrs (men live longer)`}
-          </span>
+        <ChartNote className="mt-2">
+          {lifeGap === 0 ? "The same for men and women." : `${gs.lifeExpectancyFemale > gs.lifeExpectancyMale ? "Women" : "Men"} live ${lifeGap} years longer.`}
+        </ChartNote>
+      </div>
+
+      {gs.literacyMalePct != null && gs.literacyFemalePct != null && (
+        <div className="mb-4">
+          <ChartTitle>Adults who can read and write · % of those 15 and over · {gs.literacyYear}</ChartTitle>
+          <MeasureBars max={100} label="Adult literacy, men and women" rows={pair(gs.literacyMalePct, gs.literacyFemalePct)} />
+          <ChartNote className="mt-2">{gap(gs.literacyMalePct, gs.literacyFemalePct)}</ChartNote>
         </div>
-      </div>
+      )}
 
-      {/* Dual progress bars for key metrics */}
-      <div className="space-y-3 mb-4">
-        {/* Literacy */}
-        {gs.literacyMalePct != null && gs.literacyFemalePct != null && (
-          <div>
-            <div className="flex items-center justify-between text-[10px] mb-1">
-              <span className="text-muted-foreground font-sans font-semibold uppercase tracking-wider">
-                Adult Literacy Rate <span className="normal-case font-normal">· {gs.literacyYear}</span>
-              </span>
-              {literacyGap && (
-                <span
-                  className={`font-mono text-[10px] ${parseFloat(literacyGap) > 5 ? "text-warning" : "text-muted-foreground"}`}
-                >
-                  {parseFloat(literacyGap) > 0
-                    ? `♂ +${literacyGap}%`
-                    : parseFloat(literacyGap) < 0
-                      ? `♀ +${Math.abs(parseFloat(literacyGap))}%`
-                      : "Equal"}
-                </span>
-              )}
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] font-sans text-blue-400 w-8 shrink-0">
-                  ♂ Male
-                </span>
-                <div className="flex-1 h-3 bg-black/20 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{
-                      width: `${gs.literacyMalePct}%`,
-                      background: "hsl(213,85%,55%)",
-                    }}
-                  />
-                </div>
-                <span className="text-[9px] font-mono text-blue-400 w-10 text-right shrink-0">
-                  {gs.literacyMalePct}%
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] font-sans text-pink-400 w-8 shrink-0">
-                  ♀ Female
-                </span>
-                <div className="flex-1 h-3 bg-black/20 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{
-                      width: `${gs.literacyFemalePct}%`,
-                      background: "hsl(330,70%,55%)",
-                    }}
-                  />
-                </div>
-                <span className="text-[9px] font-mono text-pink-400 w-10 text-right shrink-0">
-                  {gs.literacyFemalePct}%
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
+      {gs.laborForceMalePct != null && gs.laborForceFemale != null && (
+        <div className="mb-4">
+          <ChartTitle>In the labour force · % of those 15 and over · ILO model, {gs.laborYear}</ChartTitle>
+          <MeasureBars max={100} label="Labour force participation, men and women" rows={pair(gs.laborForceMalePct, gs.laborForceFemale)} />
+          <ChartNote className="mt-2">{gap(gs.laborForceMalePct, gs.laborForceFemale)}</ChartNote>
+        </div>
+      )}
 
-        {/* Labor Force Participation */}
-        {gs.laborForceMalePct != null && gs.laborForceFemale != null && (
-          <div>
-            <div className="flex items-center justify-between text-[10px] mb-1">
-              <span className="text-muted-foreground font-sans font-semibold uppercase tracking-wider">
-                Labor Force Participation <span className="normal-case font-normal">· ILO model, {gs.laborYear}</span>
-              </span>
-              {lfGap != null && (
-                <span
-                  className={`font-mono text-[10px] ${lfGap > 20 ? "text-warning" : "text-muted-foreground"}`}
-                >
-                  Gap: {lfGap}pp
-                </span>
-              )}
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] font-sans text-blue-400 w-8 shrink-0">
-                  ♂ Male
-                </span>
-                <div className="flex-1 h-3 bg-black/20 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{
-                      width: `${gs.laborForceMalePct}%`,
-                      background: "hsl(213,85%,55%)",
-                    }}
-                  />
-                </div>
-                <span className="text-[9px] font-mono text-blue-400 w-10 text-right shrink-0">
-                  {gs.laborForceMalePct}%
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] font-sans text-pink-400 w-8 shrink-0">
-                  ♀ Female
-                </span>
-                <div className="flex-1 h-3 bg-black/20 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{
-                      width: `${gs.laborForceFemale}%`,
-                      background: "hsl(330,70%,55%)",
-                    }}
-                  />
-                </div>
-                <span className="text-[9px] font-mono text-pink-400 w-10 text-right shrink-0">
-                  {gs.laborForceFemale}%
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* KPI tiles: parliament, maternal mortality */}
-      <div className="grid grid-cols-2 gap-2 mb-3">
-        {gs.parliamentFemale != null && (
-          <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5 leading-tight">
-              Women in Parliament
-            </p>
-            <p
-              className={`text-base font-bold font-mono ${gs.parliamentFemale >= 40 ? "text-success" : gs.parliamentFemale >= 25 ? "text-secondary" : "text-warning"}`}
-            >
-              {gs.parliamentFemale}%
-            </p>
-            <p className="text-[8px] text-muted-foreground font-sans mt-0.5">
-              of seats, {gs.parliamentYear}
-            </p>
-            <div className="mt-1 h-1 bg-muted rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full"
-                style={{
-                  width: `${gs.parliamentFemale}%`,
-                  background:
-                    gs.parliamentFemale >= 40
-                      ? "hsl(142,71%,45%)"
-                      : gs.parliamentFemale >= 25
-                        ? "hsl(200,85%,55%)"
-                        : "hsl(38,92%,50%)",
-                }}
-              />
-            </div>
-          </div>
-        )}
-        {gs.maternalMortality != null && (
-          <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
-            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5 leading-tight">
-              Maternal Mortality
-            </p>
-            <p
-              className={`text-base font-bold font-mono ${gs.maternalMortality >= 100 ? "text-destructive" : gs.maternalMortality >= 25 ? "text-warning" : "text-success"}`}
-            >
-              {gs.maternalMortality}
-            </p>
-            <p className="text-[8px] text-muted-foreground font-sans mt-0.5">
-              per 100k live births, {gs.maternalYear}
-            </p>
-          </div>
-        )}
-      </div>
+      {(gs.parliamentFemale != null || gs.maternalMortality != null) && (
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          {gs.parliamentFemale != null && <FigureTile label="Parliament seats held by women" value={`${gs.parliamentFemale}%`} sub={`of seats · ${gs.parliamentYear}`} world={parliamentWorld?.text} />}
+          {gs.maternalMortality != null && (
+            <FigureTile label="Mothers dying in childbirth" value={`${gs.maternalMortality}`} sub={`per 100,000 live births · ${gs.maternalYear}`} world={maternalWorld?.text} />
+          )}
+        </div>
+      )}
+      {(parliamentWorld || maternalWorld) && <ChartNote>{WORLD_NOTE}</ChartNote>}
       <SourceLink
         sources={(() => {
           // Where the figures came from somewhere other than the World Bank
           // (Taiwan: its interior ministry and the UN), cite those instead.
-          const p = COUNTRY_PANELS[country.id];
-          const other = [p?.lifeExpFemale, p?.sexRatioAtBirth]
+          const other = [p.lifeExpFemale, p.sexRatioAtBirth]
             .filter((f): f is PanelFigure => !!f && !!f.s && f.s !== "wb")
             .map(panelSource);
           return other.length ? other : SRC_GENDER;
@@ -16300,52 +15229,31 @@ function CountryInfraPanel({ country }: { country: Country }) {
   const p = COUNTRY_PANELS[country.id];
   if (!p) return null;
 
-  type Item = { label: string; f: PanelFigure | undefined; fmt: (v: number) => string; bar?: (v: number) => number; goodAbove?: number };
-  const all: { label: string; color: string; border: string; bg: string; items: Item[] }[] = [
+  // A share of people is drawn on 0 to 100. A count per 100 or per 1,000 people has no ceiling to be drawn
+  // against - the bars these had were each measured from one chosen to suit - so it is given as a figure.
+  type Item = { label: string; f: PanelFigure | undefined; unit: string; print?: (v: number) => string; share?: boolean; world?: string };
+  const all: { label: string; items: Item[] }[] = [
+    { label: "Power", items: [{ label: "People with electricity", f: p.electricityAccess, unit: "of people", share: true, world: "electricity" }] },
     {
-      label: "⚡ Power",
-      color: "text-yellow-400",
-      border: "border-yellow-500/20",
-      bg: "bg-yellow-500/5",
-      items: [{ label: "Electricity access", f: p.electricityAccess, fmt: (v) => `${v}%`, bar: (v) => v, goodAbove: 95 }],
-    },
-    {
-      label: "💧 Water & Sanitation",
-      color: "text-blue-400",
-      border: "border-blue-500/20",
-      bg: "bg-blue-500/5",
+      label: "Water and sanitation",
       items: [
-        { label: "Safely managed drinking water", f: p.safeWater, fmt: (v) => `${v}%`, bar: (v) => v, goodAbove: 90 },
-        { label: "Safely managed sanitation", f: p.safeSanitation, fmt: (v) => `${v}%`, bar: (v) => v, goodAbove: 80 },
+        { label: "Safely managed drinking water", f: p.safeWater, unit: "of people", share: true, world: "water" },
+        { label: "Safely managed sanitation", f: p.safeSanitation, unit: "of people", share: true, world: "sanitation" },
       ],
     },
     {
-      label: "📡 Digital & Telecoms",
-      color: "text-purple-400",
-      border: "border-purple-500/20",
-      bg: "bg-purple-500/5",
+      label: "Digital and telecoms",
       items: [
-        { label: "Mobile subscriptions /100", f: p.mobilePer100, fmt: (v) => `${v}`, bar: (v) => Math.min(100, v), goodAbove: 90 },
-        { label: "Fixed broadband /100", f: p.broadbandPer100, fmt: (v) => `${v}`, bar: (v) => Math.min(100, (v / 60) * 100), goodAbove: 50 },
+        { label: "Mobile subscriptions", f: p.mobilePer100, unit: "per 100 people", world: "mobile" },
+        { label: "Fixed broadband subscriptions", f: p.broadbandPer100, unit: "per 100 people", world: "broadband" },
       ],
     },
+    { label: "Logistics", items: [{ label: "Logistics Performance Index", f: p.logisticsIndex, unit: "World Bank index, 1 to 5", print: (v) => `${v}` }] },
     {
-      label: "🛣️ Logistics",
-      color: "text-orange-400",
-      border: "border-orange-500/20",
-      bg: "bg-orange-500/5",
+      label: "Health",
       items: [
-        { label: "Logistics Performance Index", f: p.logisticsIndex, fmt: (v) => `${v}/5`, bar: (v) => (v / 5) * 100, goodAbove: 70 },
-      ],
-    },
-    {
-      label: "🏥 Health",
-      color: "text-green-400",
-      border: "border-green-500/20",
-      bg: "bg-green-500/5",
-      items: [
-        { label: "Hospital beds /1,000", f: p.hospitalBeds, fmt: (v) => `${v}`, bar: (v) => Math.min(100, (v / 14) * 100), goodAbove: 30 },
-        { label: "Physicians /1,000", f: p.physicians, fmt: (v) => `${v}`, bar: (v) => Math.min(100, (v / 6) * 100), goodAbove: 30 },
+        { label: "Hospital beds", f: p.hospitalBeds, unit: "per 1,000 people" },
+        { label: "Physicians", f: p.physicians, unit: "per 1,000 people" },
       ],
     },
   ];
@@ -16355,72 +15263,31 @@ function CountryInfraPanel({ country }: { country: Country }) {
 
   if (categories.length === 0) return null;
 
+  const rowOf = (item: Item): MeasureRow => {
+    const fig = item.f!;
+    const print = item.print ?? ((v: number) => (item.share ? `${v}%` : `${v}`));
+    return { label: item.label, value: item.share ? fig.v : undefined, text: print(fig.v), sub: `${item.unit} · ${fig.y}`, world: withWorld(fig, item.world, print) };
+  };
+  const anyWorld = categories.some((c) => c.items.some((i) => rowOf(i).world));
+
   return (
     <div className="modal-tile rounded-lg p-4 mt-4">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-1.5 bg-teal-500/10 rounded-md border border-teal-500/20 shrink-0">
-          <Buildings size={13} weight="fill" className="text-teal-400" />
-        </div>
-        <div>
-          <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-            Infrastructure Statistics
-          </h3>
-          <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-            Latest year published for each measure
-          </p>
-        </div>
-      </div>
+      <PanelHead icon={<Buildings size={13} weight="fill" />} title="Infrastructure Statistics" sub="Latest year published for each measure" />
 
-      {/* Category sections */}
-      <div className="space-y-3">
+      <div className="flex flex-col gap-4">
         {categories.map((cat) => (
-          <div key={cat.label} className={`rounded-lg border p-3 ${cat.border} ${cat.bg}`}>
-            <p className={`text-[10px] font-bold font-sans uppercase tracking-widest mb-2 ${cat.color}`}>
-              {cat.label}
-            </p>
-            <div className="space-y-2">
-              {cat.items.map((item) => {
-                const f = item.f!;
-                const bar = item.bar ? item.bar(f.v) : null;
-                const tone =
-                  bar == null || item.goodAbove == null
-                    ? null
-                    : bar >= item.goodAbove
-                      ? "good"
-                      : bar >= item.goodAbove * 0.6
-                        ? "mid"
-                        : "low";
-                const valueColor =
-                  tone === "good" ? "text-success" : tone === "mid" ? "text-warning" : tone === "low" ? "text-destructive" : "text-foreground";
-                const barColor =
-                  tone === "good" ? "hsl(142,71%,45%)" : tone === "mid" ? "hsl(38,92%,50%)" : tone === "low" ? "hsl(0,70%,55%)" : "hsl(200,85%,55%)";
-                return (
-                  <div key={item.label}>
-                    <div className="flex items-center justify-between mb-1 gap-2">
-                      <span className="text-[10px] font-sans text-muted-foreground">{item.label}</span>
-                      <span className="text-[10px] font-mono">
-                        <span className={`font-semibold ${valueColor}`}>{item.fmt(f.v)}</span>
-                        <span className="text-muted-foreground"> · {f.y}</span>
-                      </span>
-                    </div>
-                    {bar != null && (
-                      <div className="h-1.5 bg-black/20 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-700"
-                          style={{ width: `${Math.max(2, bar)}%`, backgroundColor: barColor, opacity: 0.85 }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+          <div key={cat.label}>
+            <ChartTitle>{cat.label}</ChartTitle>
+            <MeasureBars max={100} label={cat.label} rows={cat.items.map(rowOf)} />
           </div>
         ))}
       </div>
 
-      <SourceLink sources={SRC_INFRA} className="mt-3" />
+      <ChartNote className="mt-3">
+        A share of people is drawn on a scale of 0 to 100, with a tick where the world stands. Counts per 100 or per 1,000 people are given as figures:
+        they have no ceiling to be drawn against. {anyWorld && WORLD_NOTE}
+      </ChartNote>
+      <SourceLink sources={SRC_INFRA} className="mt-2" />
     </div>
   );
 }
@@ -16445,43 +15312,15 @@ function CountryTransportPanel({ country }: { country: Country }) {
   const ev = p?.evSalesShare;
   const rail = p?.railKm;
   if (!ev && !rail) return null;
+  const evWorld = withWorld(ev, "evSalesShare", (v) => `${v}%`);
   return (
     <div className="modal-tile rounded-lg p-4 mt-4">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-1.5 bg-sky-500/10 rounded-md border border-sky-500/20 shrink-0">
-          <Airplane size={13} weight="fill" className="text-sky-400" />
-        </div>
-        <div>
-          <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">
-            Transport
-          </h3>
-          <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-            Latest year published for each measure
-          </p>
-        </div>
-      </div>
+      <PanelHead icon={<Airplane size={13} weight="fill" />} title="Transport" sub="Latest year published for each measure" />
       <div className="grid grid-cols-2 gap-2">
-        {ev && (
-          <div className="rounded-lg border border-border bg-background/40 p-3 text-center">
-            <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
-              EV share of new cars
-            </p>
-            <p className="text-xl font-bold font-mono text-sky-400">{ev.v}%</p>
-            <p className="text-[9px] text-muted-foreground font-mono mt-0.5">{ev.y}</p>
-          </div>
-        )}
-        {rail && (
-          <div className="rounded-lg border border-border bg-background/40 p-3 text-center">
-            <p className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider mb-1">
-              Rail network
-            </p>
-            <p className="text-xl font-bold font-mono text-foreground">
-              {rail.v.toLocaleString()} km
-            </p>
-            <p className="text-[9px] text-muted-foreground font-mono mt-0.5">{rail.y}</p>
-          </div>
-        )}
+        {ev && <FigureTile label="Electric cars' share of new cars sold" value={`${ev.v}%`} sub={ev.y} world={evWorld?.text} />}
+        {rail && <FigureTile label="Rail network" value={`${rail.v.toLocaleString()} km`} sub={`of line · ${rail.y}`} />}
       </div>
+      {evWorld && <ChartNote className="mt-2">{WORLD_NOTE}</ChartNote>}
       <SourceLink
         sources={[ev, rail].filter((f): f is PanelFigure => !!f).map(panelSource)}
         className="mt-3"
@@ -16614,6 +15453,11 @@ const SNAPSHOT_SPECS: {
 /** The year a source label ends with, when it carries one. */
 function sourceYear(label: string): string | undefined {
   return /(\d{4})\s*$/.exec(label)?.[1];
+}
+/** ", 2024": the year a country's cited figure is for, to follow what it measures. */
+function citedYear(c: Country, f: ReferenceField): string {
+  const y = sourceYear(c.sources?.[f]?.label ?? "");
+  return y ? `, ${y}` : "";
 }
 
 /** One accent per snapshot tile, by theme of the measure: people, money,
@@ -17105,19 +15949,9 @@ export function CountriesPage() {
                       {na(country.humanDevelopmentIndex, (v) => String(v))}
                     </span>
                   </div>
+                  {/* On its own scale, 0 to 1. Not coloured by tier: the cut-offs it had were not UNDP's. */}
                   <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${orZero(country.humanDevelopmentIndex) * 100}%`,
-                        background:
-                          country.humanDevelopmentIndex >= 0.8
-                            ? "hsl(142,71%,45%)"
-                            : country.humanDevelopmentIndex >= 0.65
-                              ? "hsl(38,92%,50%)"
-                              : "hsl(0,70%,55%)",
-                      }}
-                    />
+                    <div className="h-full rounded-full" style={{ width: `${orZero(country.humanDevelopmentIndex) * 100}%`, background: ACCENT }} />
                   </div>
                 </div>
                 )}
