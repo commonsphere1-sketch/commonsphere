@@ -26,6 +26,7 @@ import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "../components/SectionNav";
 import { StyledSelect } from "../components/StyledSelect";
 import { StatExplorer, type StatGroup } from "../components/StatExplorer";
+import { PROJECTION_FIGURES, TREND_GROUPS } from "../data/trendGroups";
 import { CategoryCharts, TREND_CHARTS } from "../components/CategoryCharts";
 import { StatCard, splitChange, type StatCardData, type StatFact, type StatTable } from "../components/StatCard";
 import { usdFromBillions } from "../lib/money";
@@ -436,21 +437,6 @@ function CountryOutlookCard() {
  * The measures the Trends section follows, by the part of the world they
  * describe. Each is a world series in worldview.ts, with its own source.
  */
-const TREND_GROUPS: { id: string; nav: string; title: string; kicker: string; color: string; ids: string[] }[] = [
-  { id: "trend-energy", nav: "Energy", title: "Energy", kicker: "What the world runs on", color: "#10b981", ids: ["renewableElectricity", "fossilShare", "evSalesShare", "co2"] },
-  { id: "trend-technology", nav: "Technology", title: "Technology", kicker: "What people and firms are taking up", color: "#8b5cf6", ids: ["internet", "broadband", "mobile", "secureServers", "aiInvestment", "genAiInvestment", "robotInstalls", "robotStock"] },
-  { id: "trend-research", nav: "Research & development", title: "Research and development", kicker: "What is spent on finding things out, and what comes of it", color: "#06b6d4", ids: ["research", "researchers", "sciArticles", "aiPublications", "patents", "ipReceipts", "spaceLaunches", "nuclearElectricity"] },
-  {
-    id: "trend-relations",
-    nav: "International relations",
-    title: "International relations",
-    kicker: "War and peace, arms, movement and money between countries",
-    color: "#ef4444",
-    ids: ["conflicts", "conflictDeaths", "militaryUsd", "militaryGdp", "armsTransfers", "nuclearWarheads", "displaced", "remittances"],
-  },
-  { id: "trend-industry", nav: "Industry & trade", title: "Industry and trade", kicker: "What the world makes and sells", color: "#f59e0b", ids: ["trade", "manufacturingVA", "servicesVA", "highTechExports"] },
-  { id: "trend-people", nav: "People", title: "People", kicker: "How long people live, where, and on what", color: "#3b82f6", ids: ["lifeExpectancy", "extremePoverty", "urban", "aged65"] },
-];
 
 /** A trend's world series: one of the Worldview page's, or one of the two trendDetails.ts builds for this page. */
 const figureOf = (id: string): WorldIndicator | undefined => WORLD[id] ?? TREND_EXTRAS[id];
@@ -1758,6 +1744,227 @@ const SECTIONS: NavSection[] = [
   ...TREND_GROUPS.map((g, i) => ({ id: i === 0 ? "trends" : g.id, label: g.nav })),
 ];
 
+/**
+ * The headline projections as cards: the IMF's for the economy, the UN's for
+ * people. Built once - nothing in them changes - for the page's own cards and
+ * for the explorer.
+ */
+function projectionCards(): StatCardData[] {
+  const first = WEO.firstProjected;
+  const end = WEO.lastYear;
+  const w = WEO_GROUPS.world;
+  /* The ten largest economies by the IMF's latest estimate of their GDP:
+     the countries a world figure is mostly made of. */
+  const largest = [...WEO_COUNTRIES].sort((a, b) => (at(b.gdp, first - 1) ?? 0) - (at(a.gdp, first - 1) ?? 0)).slice(0, 10);
+  const halves: [string, typeof w][] = [
+    ["Advanced economies", WEO_GROUPS.advanced],
+    ["Emerging and developing economies", WEO_GROUPS.emerging],
+  ];
+  /* One of the IMF's measures for its two halves of the world and for the
+     ten largest economies, in the year named, each with the year before's. */
+  const weoTables = (key: "growth" | "inflation" | "debt", fmt: (v: number) => string, year: number): StatTable[] => {
+    const row = (name: string, o: { growth?: Point[]; inflation?: Point[]; debt?: Point[] }, code?: string | null) => {
+      const v = at(o[key], year);
+      const was = at(o[key], year - 1);
+      return v === undefined ? [] : [{ name, value: v, text: fmt(v), code: code ?? undefined, note: was === undefined ? undefined : `${fmt(was)} in ${year - 1}` }];
+    };
+    return [
+      { key: "halves", title: "Advanced and emerging", kicker: `The IMF's two groups of economies · ${year}`, rows: halves.flatMap(([name, o]) => row(name, o)), source: WEO },
+      {
+        key: "largest",
+        title: "In the ten largest economies",
+        kicker: `By the size of their economy in ${first - 1} · ${year}`,
+        rows: largest.flatMap((c) => row(c.name, c, c.code)).sort((a, b) => b.value - a.value),
+        source: WEO,
+      },
+    ].filter((t) => t.rows.length > 1);
+  };
+  /* One of the UN's measures by region in a year, each with this year's. */
+  const regionTable = (key: "population" | "medianAge" | "lifeExpectancy", fmt: (v: number) => string, year: number, total?: number): StatTable[] => {
+    const rows = POPULATION_OUTLOOK.slice(1).flatMap((r) => {
+      const v = at(r[key], year);
+      const now = at(r[key], THIS_YEAR);
+      if (v === undefined) return [];
+      const share = total ? `${((100 * v) / total).toFixed(1)}% of the world's` : "";
+      return [{ name: r.name, value: v, text: fmt(v), note: [share, now === undefined ? "" : `${fmt(now)} in ${THIS_YEAR}`].filter(Boolean).join(" · ") || undefined }];
+    });
+    return rows.length > 1 ? [{ key: `regions-${year}`, title: `By region in ${year}`, kicker: `The UN's regions, medium variant · ${year}`, rows: rows.sort((a, b) => b.value - a.value), source: WPP }] : [];
+  };
+  /* One of the IMF's world series as a card: this year's projection, its
+     move on last year's estimate, and where it stands at the end. */
+  const line = (key: "growth" | "inflation" | "debt", label: string, fmt: (v: number) => string, about: string, color: string, upIsGood: boolean): StatCardData => {
+    const series = w[key];
+    const now = at(series, first) ?? 0;
+    const before = at(series, first - 1) ?? 0;
+    const diff = now - before;
+    return {
+      label,
+      value: fmt(now),
+      sub: `IMF projection · ${first}`,
+      change: {
+        chip: Math.abs(diff) < 0.05 ? "level" : `${signed(diff)} pts`,
+        caption: `on ${first - 1}`,
+        dir: Math.abs(diff) < 0.05 ? "flat" : diff > 0 ? "up" : "down",
+        verdict: Math.abs(diff) < 0.05 ? null : diff > 0 === upIsGood ? "better" : "worse",
+      },
+      about,
+      series,
+      split: first,
+      color,
+      fmt,
+      source: WEO,
+      moreFacts: [{ label: `Projected for ${end}`, value: fmt(at(series, end) ?? 0), sub: `${end}` }],
+      tables: weoTables(key, fmt, first),
+      notes: [`A projection, not a forecast with a probability: the IMF's central case in its ${WEO.edition} edition, which it revises twice a year.`],
+    };
+  };
+  const pop = WORLD_POP.population;
+  const age = WORLD_POP.medianAge;
+  const lex = WORLD_POP.lifeExpectancy;
+  const years = (v: number) => `${v.toFixed(1)} years`;
+  const popNow = at(pop, THIS_YEAR) ?? 0;
+  const gdpNow = at(w.gdp, first - 1) ?? 0;
+  const gdpThen = at(w.gdp, end) ?? 0;
+  return [
+    {
+      label: `World GDP in ${end}`,
+      value: usdFromBillions(gdpThen),
+      sub: `IMF projection · ${end}`,
+      change: { chip: `${signed(((gdpThen - gdpNow) / (gdpNow || 1)) * 100, 0)}%`, caption: `on ${first - 1}`, dir: "up", verdict: null },
+      about: "Everything the world's economies produce in a year, in current US dollars, so it includes price rises.",
+      series: w.gdp,
+      split: first,
+      color: SERIES.world,
+      fmt: (v) => usdFromBillions(v),
+      source: WEO,
+      tables: [
+        {
+          key: "halves",
+          title: "Advanced and emerging",
+          kicker: `The IMF's two groups of economies · ${end}`,
+          rows: halves.flatMap(([name, o]) => {
+            const v = at(o.gdp, end);
+            const was = at(o.gdp, first - 1);
+            return v === undefined ? [] : [{ name, value: v, text: usdFromBillions(v), note: `${((100 * v) / (gdpThen || 1)).toFixed(1)}% of the world's${was === undefined ? "" : ` · ${usdFromBillions(was)} in ${first - 1}`}` }];
+          }),
+          source: WEO,
+        },
+        {
+          key: "largest",
+          title: `The largest economies in ${end}`,
+          kicker: `GDP in current US dollars · IMF projection · ${end}`,
+          rows: [...WEO_COUNTRIES]
+            .flatMap((c) => {
+              const v = at(c.gdp, end);
+              const was = at(c.gdp, first - 1);
+              return v === undefined ? [] : [{ name: c.name, value: v, text: usdFromBillions(v), code: c.code ?? undefined, note: `${((100 * v) / (gdpThen || 1)).toFixed(1)}% of the world's${was === undefined ? "" : ` · ${usdFromBillions(was)} in ${first - 1}`}` }];
+            })
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 10),
+          source: WEO,
+        },
+      ],
+      notes: [`A projection, not a forecast with a probability: the IMF's central case in its ${WEO.edition} edition, which it revises twice a year. Current dollars include price rises.`],
+    },
+    line("growth", "Real growth", (v) => pct(v), "How much more the world produces than the year before, with price rises taken out.", "#10b981", true),
+    line("inflation", "Inflation", (v) => pct(v), "The rise in consumer prices over the year, averaged across the world's economies.", "#f59e0b", false),
+    line("debt", "Government debt, % of GDP", (v) => pct(v), "What the world's governments owe, against the size of the world economy.", "#ef4444", false),
+    {
+      label: "World population in 2050",
+      value: people(at(pop, 2050) ?? 0),
+      sub: "UN medium variant · 2050",
+      change: { chip: `${signed((((at(pop, 2050) ?? 0) - popNow) / (popNow || 1)) * 100, 0)}%`, caption: `on ${THIS_YEAR}`, dir: "up", verdict: null },
+      about: "People alive on 1 July, on the UN's central projection of births, deaths and migration.",
+      series: pop.filter(([y]) => y >= 1990 && y <= 2060),
+      split: WPP.firstProjected,
+      color: SERIES.people,
+      fmt: people,
+      facts: [
+        { label: "Now", value: people(popNow), sub: `${THIS_YEAR}` },
+        { label: "Projected", value: people(at(pop, 2050) ?? 0), sub: "2050" },
+        { label: "By the century's end", value: people(at(pop, 2100) ?? 0), sub: "2100" },
+      ],
+      source: WPP,
+      tables: regionTable("population", people, 2050, at(pop, 2050)),
+    },
+    {
+      label: "Population peaks",
+      value: String(POP_PEAK[0]),
+      sub: `UN medium variant · at ${people(POP_PEAK[1])}`,
+      change: null,
+      about: "The year the world's population is projected to be at its largest, before it begins to fall.",
+      series: pop.filter(([y]) => y >= 2000),
+      split: WPP.firstProjected,
+      color: SERIES.people,
+      fmt: people,
+      facts: [
+        { label: "Now", value: people(popNow), sub: `${THIS_YEAR}` },
+        { label: "At its peak", value: people(POP_PEAK[1]), sub: `${POP_PEAK[0]}` },
+        { label: "By the century's end", value: people(at(pop, 2100) ?? 0), sub: "2100" },
+      ],
+      source: WPP,
+      tables: regionTable("population", people, 2100, at(pop, 2100)),
+    },
+    {
+      label: "Median age in 2050",
+      value: years(at(age, 2050) ?? 0),
+      sub: "UN medium variant · 2050",
+      change: { chip: `${signed((at(age, 2050) ?? 0) - (at(age, THIS_YEAR) ?? 0))} years`, caption: `on ${THIS_YEAR}`, dir: "up", verdict: null },
+      about: "Half the world's people are older than this and half younger.",
+      series: age,
+      split: WPP.firstProjected,
+      color: "#06b6d4",
+      fmt: years,
+      facts: [
+        { label: "Now", value: years(at(age, THIS_YEAR) ?? 0), sub: `${THIS_YEAR}` },
+        { label: "Projected", value: years(at(age, 2050) ?? 0), sub: "2050" },
+        { label: "By the century's end", value: years(at(age, 2100) ?? 0), sub: "2100" },
+      ],
+      source: WPP,
+      tables: regionTable("medianAge", years, 2050),
+    },
+    {
+      label: "Life expectancy in 2050",
+      value: years(at(lex, 2050) ?? 0),
+      sub: "UN medium variant · 2050",
+      change: { chip: `${signed((at(lex, 2050) ?? 0) - (at(lex, THIS_YEAR) ?? 0))} years`, caption: `on ${THIS_YEAR}`, dir: "up", verdict: "better" },
+      about: "The years a child born in that year would live if its death rates held for life.",
+      series: lex,
+      split: WPP.firstProjected,
+      color: "#10b981",
+      fmt: years,
+      facts: [
+        { label: "Now", value: years(at(lex, THIS_YEAR) ?? 0), sub: `${THIS_YEAR}` },
+        { label: "Projected", value: years(at(lex, 2050) ?? 0), sub: "2050" },
+        { label: "By the century's end", value: years(at(lex, 2100) ?? 0), sub: "2100" },
+      ],
+      source: WPP,
+      tables: regionTable("lifeExpectancy", years, 2050),
+    },
+  ];
+}
+const PROJECTION_CARDS = projectionCards();
+if (import.meta.env.DEV && PROJECTION_CARDS.length !== PROJECTION_FIGURES) console.warn(`trendGroups.ts says ${PROJECTION_FIGURES} projections; the Trends page builds ${PROJECTION_CARDS.length}.`);
+
+/**
+ * The explorer of the page's own figures: the projections, then each group of
+ * trends. The page has it under its headlines; the Dashboard's explorer has it
+ * as its Trends tab, without the card and heading of its own.
+ */
+export function TrendsExplorer({ embedded = false, action }: { embedded?: boolean; action?: { label: string; onClick: () => void } }) {
+  return (
+    <StatExplorer
+      title="Trends & projections"
+      icon={<ChartLineUp size={12} weight="fill" aria-hidden />}
+      color="#6366f1"
+      noun="figures"
+      groups={[{ title: "Projections", color: "#6366f1", items: PROJECTION_CARDS }, ...TREND_CARDS]}
+      embedded={embedded}
+      action={action}
+    />
+  );
+}
+
 export function TrendsPage() {
   const look = useLook();
   const { isLight, head, muted } = look;
@@ -1768,198 +1975,7 @@ export function TrendsPage() {
   const gdpBase = at(gdp, first - 1) ?? 0;
   const gdpEnd = at(gdp, end) ?? 0;
 
-  const stats = useMemo<StatCardData[]>(() => {
-    const w = WEO_GROUPS.world;
-    /* The ten largest economies by the IMF's latest estimate of their GDP:
-       the countries a world figure is mostly made of. */
-    const largest = [...WEO_COUNTRIES].sort((a, b) => (at(b.gdp, first - 1) ?? 0) - (at(a.gdp, first - 1) ?? 0)).slice(0, 10);
-    const halves: [string, typeof w][] = [
-      ["Advanced economies", WEO_GROUPS.advanced],
-      ["Emerging and developing economies", WEO_GROUPS.emerging],
-    ];
-    /* One of the IMF's measures for its two halves of the world and for the
-       ten largest economies, in the year named, each with the year before's. */
-    const weoTables = (key: "growth" | "inflation" | "debt", fmt: (v: number) => string, year: number): StatTable[] => {
-      const row = (name: string, o: { growth?: Point[]; inflation?: Point[]; debt?: Point[] }, code?: string | null) => {
-        const v = at(o[key], year);
-        const was = at(o[key], year - 1);
-        return v === undefined ? [] : [{ name, value: v, text: fmt(v), code: code ?? undefined, note: was === undefined ? undefined : `${fmt(was)} in ${year - 1}` }];
-      };
-      return [
-        { key: "halves", title: "Advanced and emerging", kicker: `The IMF's two groups of economies · ${year}`, rows: halves.flatMap(([name, o]) => row(name, o)), source: WEO },
-        {
-          key: "largest",
-          title: "In the ten largest economies",
-          kicker: `By the size of their economy in ${first - 1} · ${year}`,
-          rows: largest.flatMap((c) => row(c.name, c, c.code)).sort((a, b) => b.value - a.value),
-          source: WEO,
-        },
-      ].filter((t) => t.rows.length > 1);
-    };
-    /* One of the UN's measures by region in a year, each with this year's. */
-    const regionTable = (key: "population" | "medianAge" | "lifeExpectancy", fmt: (v: number) => string, year: number, total?: number): StatTable[] => {
-      const rows = POPULATION_OUTLOOK.slice(1).flatMap((r) => {
-        const v = at(r[key], year);
-        const now = at(r[key], THIS_YEAR);
-        if (v === undefined) return [];
-        const share = total ? `${((100 * v) / total).toFixed(1)}% of the world's` : "";
-        return [{ name: r.name, value: v, text: fmt(v), note: [share, now === undefined ? "" : `${fmt(now)} in ${THIS_YEAR}`].filter(Boolean).join(" · ") || undefined }];
-      });
-      return rows.length > 1 ? [{ key: `regions-${year}`, title: `By region in ${year}`, kicker: `The UN's regions, medium variant · ${year}`, rows: rows.sort((a, b) => b.value - a.value), source: WPP }] : [];
-    };
-    /* One of the IMF's world series as a card: this year's projection, its
-       move on last year's estimate, and where it stands at the end. */
-    const line = (key: "growth" | "inflation" | "debt", label: string, fmt: (v: number) => string, about: string, color: string, upIsGood: boolean): StatCardData => {
-      const series = w[key];
-      const now = at(series, first) ?? 0;
-      const before = at(series, first - 1) ?? 0;
-      const diff = now - before;
-      return {
-        label,
-        value: fmt(now),
-        sub: `IMF projection · ${first}`,
-        change: {
-          chip: Math.abs(diff) < 0.05 ? "level" : `${signed(diff)} pts`,
-          caption: `on ${first - 1}`,
-          dir: Math.abs(diff) < 0.05 ? "flat" : diff > 0 ? "up" : "down",
-          verdict: Math.abs(diff) < 0.05 ? null : diff > 0 === upIsGood ? "better" : "worse",
-        },
-        about,
-        series,
-        split: first,
-        color,
-        fmt,
-        source: WEO,
-        moreFacts: [{ label: `Projected for ${end}`, value: fmt(at(series, end) ?? 0), sub: `${end}` }],
-        tables: weoTables(key, fmt, first),
-        notes: [`A projection, not a forecast with a probability: the IMF's central case in its ${WEO.edition} edition, which it revises twice a year.`],
-      };
-    };
-    const pop = WORLD_POP.population;
-    const age = WORLD_POP.medianAge;
-    const lex = WORLD_POP.lifeExpectancy;
-    const years = (v: number) => `${v.toFixed(1)} years`;
-    const popNow = at(pop, THIS_YEAR) ?? 0;
-    const gdpNow = at(w.gdp, first - 1) ?? 0;
-    const gdpThen = at(w.gdp, end) ?? 0;
-    return [
-      {
-        label: `World GDP in ${end}`,
-        value: usdFromBillions(gdpThen),
-        sub: `IMF projection · ${end}`,
-        change: { chip: `${signed(((gdpThen - gdpNow) / (gdpNow || 1)) * 100, 0)}%`, caption: `on ${first - 1}`, dir: "up", verdict: null },
-        about: "Everything the world's economies produce in a year, in current US dollars, so it includes price rises.",
-        series: w.gdp,
-        split: first,
-        color: SERIES.world,
-        fmt: (v) => usdFromBillions(v),
-        source: WEO,
-        tables: [
-          {
-            key: "halves",
-            title: "Advanced and emerging",
-            kicker: `The IMF's two groups of economies · ${end}`,
-            rows: halves.flatMap(([name, o]) => {
-              const v = at(o.gdp, end);
-              const was = at(o.gdp, first - 1);
-              return v === undefined ? [] : [{ name, value: v, text: usdFromBillions(v), note: `${((100 * v) / (gdpThen || 1)).toFixed(1)}% of the world's${was === undefined ? "" : ` · ${usdFromBillions(was)} in ${first - 1}`}` }];
-            }),
-            source: WEO,
-          },
-          {
-            key: "largest",
-            title: `The largest economies in ${end}`,
-            kicker: `GDP in current US dollars · IMF projection · ${end}`,
-            rows: [...WEO_COUNTRIES]
-              .flatMap((c) => {
-                const v = at(c.gdp, end);
-                const was = at(c.gdp, first - 1);
-                return v === undefined ? [] : [{ name: c.name, value: v, text: usdFromBillions(v), code: c.code ?? undefined, note: `${((100 * v) / (gdpThen || 1)).toFixed(1)}% of the world's${was === undefined ? "" : ` · ${usdFromBillions(was)} in ${first - 1}`}` }];
-              })
-              .sort((a, b) => b.value - a.value)
-              .slice(0, 10),
-            source: WEO,
-          },
-        ],
-        notes: [`A projection, not a forecast with a probability: the IMF's central case in its ${WEO.edition} edition, which it revises twice a year. Current dollars include price rises.`],
-      },
-      line("growth", "Real growth", (v) => pct(v), "How much more the world produces than the year before, with price rises taken out.", "#10b981", true),
-      line("inflation", "Inflation", (v) => pct(v), "The rise in consumer prices over the year, averaged across the world's economies.", "#f59e0b", false),
-      line("debt", "Government debt, % of GDP", (v) => pct(v), "What the world's governments owe, against the size of the world economy.", "#ef4444", false),
-      {
-        label: "World population in 2050",
-        value: people(at(pop, 2050) ?? 0),
-        sub: "UN medium variant · 2050",
-        change: { chip: `${signed((((at(pop, 2050) ?? 0) - popNow) / (popNow || 1)) * 100, 0)}%`, caption: `on ${THIS_YEAR}`, dir: "up", verdict: null },
-        about: "People alive on 1 July, on the UN's central projection of births, deaths and migration.",
-        series: pop.filter(([y]) => y >= 1990 && y <= 2060),
-        split: WPP.firstProjected,
-        color: SERIES.people,
-        fmt: people,
-        facts: [
-          { label: "Now", value: people(popNow), sub: `${THIS_YEAR}` },
-          { label: "Projected", value: people(at(pop, 2050) ?? 0), sub: "2050" },
-          { label: "By the century's end", value: people(at(pop, 2100) ?? 0), sub: "2100" },
-        ],
-        source: WPP,
-        tables: regionTable("population", people, 2050, at(pop, 2050)),
-      },
-      {
-        label: "Population peaks",
-        value: String(POP_PEAK[0]),
-        sub: `UN medium variant · at ${people(POP_PEAK[1])}`,
-        change: null,
-        about: "The year the world's population is projected to be at its largest, before it begins to fall.",
-        series: pop.filter(([y]) => y >= 2000),
-        split: WPP.firstProjected,
-        color: SERIES.people,
-        fmt: people,
-        facts: [
-          { label: "Now", value: people(popNow), sub: `${THIS_YEAR}` },
-          { label: "At its peak", value: people(POP_PEAK[1]), sub: `${POP_PEAK[0]}` },
-          { label: "By the century's end", value: people(at(pop, 2100) ?? 0), sub: "2100" },
-        ],
-        source: WPP,
-        tables: regionTable("population", people, 2100, at(pop, 2100)),
-      },
-      {
-        label: "Median age in 2050",
-        value: years(at(age, 2050) ?? 0),
-        sub: "UN medium variant · 2050",
-        change: { chip: `${signed((at(age, 2050) ?? 0) - (at(age, THIS_YEAR) ?? 0))} years`, caption: `on ${THIS_YEAR}`, dir: "up", verdict: null },
-        about: "Half the world's people are older than this and half younger.",
-        series: age,
-        split: WPP.firstProjected,
-        color: "#06b6d4",
-        fmt: years,
-        facts: [
-          { label: "Now", value: years(at(age, THIS_YEAR) ?? 0), sub: `${THIS_YEAR}` },
-          { label: "Projected", value: years(at(age, 2050) ?? 0), sub: "2050" },
-          { label: "By the century's end", value: years(at(age, 2100) ?? 0), sub: "2100" },
-        ],
-        source: WPP,
-        tables: regionTable("medianAge", years, 2050),
-      },
-      {
-        label: "Life expectancy in 2050",
-        value: years(at(lex, 2050) ?? 0),
-        sub: "UN medium variant · 2050",
-        change: { chip: `${signed((at(lex, 2050) ?? 0) - (at(lex, THIS_YEAR) ?? 0))} years`, caption: `on ${THIS_YEAR}`, dir: "up", verdict: "better" },
-        about: "The years a child born in that year would live if its death rates held for life.",
-        series: lex,
-        split: WPP.firstProjected,
-        color: "#10b981",
-        fmt: years,
-        facts: [
-          { label: "Now", value: years(at(lex, THIS_YEAR) ?? 0), sub: `${THIS_YEAR}` },
-          { label: "Projected", value: years(at(lex, 2050) ?? 0), sub: "2050" },
-          { label: "By the century's end", value: years(at(lex, 2100) ?? 0), sub: "2100" },
-        ],
-        source: WPP,
-        tables: regionTable("lifeExpectancy", years, 2050),
-      },
-    ];
-  }, [first, end]);
+  const stats = PROJECTION_CARDS;
 
   /* The largest economies in the last projected year, with where each stands now. */
   const largest = useMemo(
@@ -2043,13 +2059,7 @@ export function TrendsPage() {
 
         {/* ── Explorer: every figure of the page, by group, beside its detail - as the
             Countries and Economies pages have their own ── */}
-        <StatExplorer
-          title="Trends & projections"
-          icon={<ChartLineUp size={12} weight="fill" aria-hidden />}
-          color="#6366f1"
-          noun="figures"
-          groups={[{ title: "Projections", color: "#6366f1", items: stats }, ...TREND_CARDS]}
-        />
+        <TrendsExplorer />
 
         {/* ══ Overview ══ */}
         <section id="overview" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="overview-title">

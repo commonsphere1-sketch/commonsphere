@@ -75,6 +75,7 @@ import {
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 import { DataExplorer } from "@/components/DataExplorer";
 import { ResourceExplorer } from "@/components/ResourceExplorer";
+import { RESOURCES } from "@/data/resourceList";
 import { HeadlinesBanner, SUBJECT } from "@/components/HeadlinesBanner";
 
 
@@ -2218,21 +2219,7 @@ type ViewMode = "economies" | "resources";
  * were far from the published averages for that month: gold at $2,341 an
  * ounce against $4,411, copper at $9,280 a tonne against $14,326.
  */
-const RESOURCES_DATA: ResourceSummary[] = [
-  { name: "Crude Oil", color: "#f97316" },
-  { name: "Natural Gas", color: "#6366f1" },
-  { name: "Gold", color: "#f59e0b" },
-  { name: "Coal", color: "#6b7280" },
-  { name: "Iron Ore", color: "#b45309" },
-  { name: "Copper", color: "#dc2626" },
-  { name: "Lithium", color: "#7c3aed" },
-  { name: "Wheat", color: "#ca8a04" },
-  { name: "Rare Earth", color: "#059669" },
-  { name: "Uranium", color: "#65a30d" },
-  // Slate greys dark enough to draw a line with on the light card.
-  { name: "Aluminum", color: "#64748b" },
-  { name: "Silver", color: "#8492a6" },
-];
+const RESOURCES_DATA: ResourceSummary[] = RESOURCES;
 
 /** One line of a card: what the figure is, and the figure. */
 function CardFact({ label, value, sub }: { label: string; value: string; sub?: string | null }) {
@@ -2345,6 +2332,12 @@ export function EconomiesPage() {
       if (found) setModalEconomy(found);
       const url = new URL(window.location.href);
       url.searchParams.delete("open");
+      window.history.replaceState({}, "", url.toString());
+    }
+    if (params.get("view") === "resources") {
+      setViewMode("resources");
+      const url = new URL(window.location.href);
+      url.searchParams.delete("view");
       window.history.replaceState({}, "", url.toString());
     }
     /* ?resource=<name> is a direct link to one commodity: switch to the

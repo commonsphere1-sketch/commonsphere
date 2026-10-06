@@ -1,8 +1,9 @@
 /**
  * The data explorer: countries, the world's economies, and policy news, each
- * as a list beside a detail pane. The Dashboard has all three, as tabs; the
- * Countries, Economies and Policy pages each have their own alone (`only`),
- * with no tabs to the other two.
+ * as a list beside a detail pane. The Dashboard has all three as tabs, and
+ * with them the explorers the Economies and Trends pages have - resources and
+ * trends - each loaded when its tab is first opened; the Countries, Economies
+ * and Policy pages each have their own alone (`only`), with no tabs.
  *
  * Every figure is sourced. Countries come from the site's country data; the
  * world, its regions and the European Union from the World Bank's and the
@@ -19,7 +20,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowRight, ArrowSquareOut, ChartBar, Globe, Heart, MagnifyingGlass, MapPin, Scales, Users, X } from "@phosphor-icons/react";
+import { ArrowRight, ArrowSquareOut, ChartBar, ChartLine, Globe, Heart, MagnifyingGlass, MapPin, Scales, Tree, Users, X } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLiveCountries } from "../contexts/LiveDataContext";
 import type { Country } from "../data/countriesData";
@@ -29,16 +30,25 @@ import { usdFromBillions } from "../lib/money";
 import { SourceLink } from "./SourceLink";
 import { ago, placeName, useHeadlines, type Headline } from "./HeadlinesBanner";
 import type { TopicHit } from "./PolicyContext";
+import { RESOURCES } from "../data/resourceList";
+import { TREND_FIGURES } from "../data/trendGroups";
 
 /** The Policy page's fuller detail for a headline, with the data it draws on. */
 const PolicyContext = lazy(() => import("./PolicyContext"));
+/** The explorers of the Economies page's resources and of the Trends page, each with its data: loaded when its tab is opened. */
+const ResourcesTab = lazy(() => import("./ResourceExplorerTab"));
+const TrendsTab = lazy(() => import("../pages/TrendsPage").then((m) => ({ default: m.TrendsExplorer })));
 
 export type ExplorerTab = "countries" | "economies" | "policies";
+/** The Dashboard's tabs: the three above, and the two explorers that come from other pages. */
+type Tab = ExplorerTab | "resources" | "trends";
 
-const TABS: { id: ExplorerTab; label: string; color: string; path: string; Icon: typeof Globe }[] = [
+const TABS: { id: Tab; label: string; color: string; path: string; Icon: typeof Globe }[] = [
   { id: "countries", label: "Countries", color: "#6366f1", path: "/dashboard/countries", Icon: Globe },
   { id: "economies", label: "Economies", color: "#f59e0b", path: "/dashboard/economies", Icon: ChartBar },
   { id: "policies", label: "Policies", color: "#a855f7", path: "/dashboard/policy", Icon: Scales },
+  { id: "resources", label: "Resources", color: "#059669", path: "/dashboard/economies?view=resources", Icon: Tree },
+  { id: "trends", label: "Trends", color: "#0ea5e9", path: "/dashboard/trends", Icon: ChartLine },
 ];
 
 /**
@@ -89,8 +99,8 @@ export function DataExplorer({ only }: { /** Show this category alone, without t
   const t = useTokens();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [picked, setTab] = useState<ExplorerTab>("countries");
-  const tab = only ?? picked;
+  const [picked, setTab] = useState<Tab>("countries");
+  const tab: Tab = only ?? picked;
   const [search, setSearch] = useState("");
   const q = search.trim().toLowerCase();
 
@@ -136,11 +146,15 @@ export function DataExplorer({ only }: { /** Show this category alone, without t
   }, [shownUrl]);
 
   const cur = TABS.find((x) => x.id === tab)!;
-  const badge: Record<ExplorerTab, string> = {
+  const badge: Record<Tab, string> = {
     countries: `${byGdp.length}`,
     economies: `${regions.length}`,
     policies: `${headlines.length}${capped ? "+" : ""}`,
+    resources: `${RESOURCES.length}`,
+    trends: `${TREND_FIGURES}`,
   };
+  /* The link at the foot of a tab that is another page's explorer: to that page. */
+  const toPage = { label: "View all", onClick: () => navigate(cur.path) };
   const footer =
     tab === "countries"
       ? `${countries.length} of ${byGdp.length} countries`
@@ -196,6 +210,11 @@ export function DataExplorer({ only }: { /** Show this category alone, without t
         </div>
       )}
 
+      {tab === "resources" || tab === "trends" ? (
+        // Another page's explorer, in this card: it brings its own search, list, detail and footer.
+        <Suspense fallback={<Empty t={t}>Loading…</Empty>}>{tab === "resources" ? <ResourcesTab action={toPage} /> : <TrendsTab embedded action={toPage} />}</Suspense>
+      ) : (
+        <>
       {/* Search */}
       <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: t.gridLine }}>
         <MagnifyingGlass size={13} style={{ color: t.mutedText }} aria-hidden />
@@ -286,6 +305,8 @@ export function DataExplorer({ only }: { /** Show this category alone, without t
           </button>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 }

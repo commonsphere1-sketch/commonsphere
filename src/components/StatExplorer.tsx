@@ -16,7 +16,7 @@
 import { useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { MagnifyingGlass, X } from "@phosphor-icons/react";
+import { ArrowRight, MagnifyingGlass, X } from "@phosphor-icons/react";
 import { Empty, GoButton, Kpi, Label, Row, tooltipStyle, useTokens, type Tokens } from "./DataExplorer";
 import { StatWindow, statFacts, type StatCardData } from "./StatCard";
 import { SourceLink } from "./SourceLink";
@@ -33,7 +33,26 @@ const toneOf = (t: Tokens, s: StatCardData) => (s.change?.verdict === "better" ?
 /** A figure's place in the list: its group, its name and its unit - two figures can share a name (military spending, in dollars and as a share of GDP). */
 const idOf = (group: string, s: StatCardData) => `${group}·${s.label}·${s.sub}`;
 
-export function StatExplorer({ title, icon, color, groups, noun }: { title: string; icon: ReactNode; color: string; groups: StatGroup[]; /** What the figures are, for the search box and the footer: "figures". */ noun: string }) {
+export function StatExplorer({
+  title,
+  icon,
+  color,
+  groups,
+  noun,
+  embedded = false,
+  action,
+}: {
+  title: string;
+  icon: ReactNode;
+  color: string;
+  groups: StatGroup[];
+  /** What the figures are, for the search box and the footer: "figures". */
+  noun: string;
+  /** Inside another explorer's card: no card or heading of its own. */
+  embedded?: boolean;
+  /** A link at the foot, to the page the figures are from. */
+  action?: { label: string; onClick: () => void };
+}) {
   const t = useTokens();
   const [search, setSearch] = useState("");
   const q = search.trim().toLowerCase();
@@ -46,7 +65,8 @@ export function StatExplorer({ title, icon, color, groups, noun }: { title: stri
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="flex flex-col rounded-2xl overflow-hidden w-full max-w-6xl mx-auto" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
+    <div className={embedded ? "flex flex-col" : "flex flex-col rounded-2xl overflow-hidden w-full max-w-6xl mx-auto"} style={embedded ? undefined : { background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
+      {!embedded && (
       <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color }}>
         {icon}
         <h2 className="text-[11px] font-bold font-sans">{title}</h2>
@@ -54,6 +74,7 @@ export function StatExplorer({ title, icon, color, groups, noun }: { title: stri
           {all.length}
         </span>
       </div>
+      )}
 
       <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: t.gridLine }}>
         <MagnifyingGlass size={13} style={{ color: t.mutedText }} aria-hidden />
@@ -113,10 +134,15 @@ export function StatExplorer({ title, icon, color, groups, noun }: { title: stri
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 md:h-full">{shown && <StatDetail key={shown.id} t={t} group={shown.g} s={shown.s} onOpen={() => setOpen(true)} />}</div>
       </div>
 
-      <div className="px-4 py-2.5 border-t" style={{ borderColor: t.gridLine }}>
+      <div className="px-4 py-2.5 border-t flex items-center justify-between gap-3" style={{ borderColor: t.gridLine }}>
         <span className="text-[10px] font-mono" style={{ color: t.mutedText }}>
           {list.length} of {all.length} {noun} · {groups.length} groups · each from its publisher, with its year
         </span>
+        {action && (
+          <button type="button" onClick={action.onClick} className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70 cursor-pointer shrink-0" style={{ color: color }}>
+            {action.label} <ArrowRight size={10} weight="bold" />
+          </button>
+        )}
       </div>
       {open && shown && createPortal(<StatWindow s={shown.s} onClose={() => setOpen(false)} />, document.body)}
     </div>

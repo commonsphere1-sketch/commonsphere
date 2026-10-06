@@ -10,11 +10,8 @@ import type { Amount, ProducerUnit, ResourceProducers, Share } from "../data/res
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "./SourceLink";
 
-/** A commodity on the page: its name, which keys every data file, and the colour it is drawn in. */
-export interface ResourceSummary {
-  name: string;
-  color: string;
-}
+import type { ResourceSummary } from "../data/resourceList";
+export type { ResourceSummary };
 
 /**
  * An amount in its own unit, read at a glance. Oil is in barrels and gas in
