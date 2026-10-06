@@ -23,7 +23,7 @@ import { STATE_INDICATORS as STATE_FIGURES } from "../data/stateIndicators";
 import { economiesData } from "../data/economiesData";
 import { SourceLink } from "../components/SourceLink";
 import { DataExplorer } from "../components/DataExplorer";
-import { DataLog } from "../components/DataLog";
+import { DashboardDrops } from "../components/DashboardDrops";
 import { hdiHex } from "../lib/hdiTier";
 import { CommodityMovers } from "../components/CommodityMovers";
 import { ConflictFigures } from "../components/ConflictFigures";
@@ -3275,14 +3275,14 @@ export function DashboardPage() {
               </div>
             </div>
 
-            {/* The world's published counts of conflict and displacement. A box of "intensity" scores stood here. */}
-            <ConflictFigures />
+            {/* The four drop-down cards, back under the states: industries, funding, alliances, research.
+                They open on published series now; what they held was typed in. */}
+            <DashboardDrops />
           </div>
 
           <div className="flex flex-col gap-4">
-            {/* The site's own log: when each of its data sets was last read from its sources.
-                An "Event Log" of five hand-typed news items, the newest from July 2025, stood here. */}
-            <DataLog />
+            {/* The world's published counts of conflict and displacement. A box of "intensity" scores stood here. */}
+            <ConflictFigures />
 
             {/* Published commodity prices, each with its change on the year.
                 A "Sector Outlook" of typed-in outlooks and confidences stood here. */}
@@ -3304,8 +3304,7 @@ export function DashboardPage() {
         {/* ── FOOTER ────────────────────────────────────────────────────── */}
         <div className="text-center py-3 flex flex-col items-center gap-1">
           <p className="text-[11px] font-sans" style={{ color: mutedText }}>
-            © {new Date().getFullYear()} CommonSphere · Dashboard · each figure is dated where it appears; the data log
-            above says when each source was last read
+            © {new Date().getFullYear()} CommonSphere · Dashboard · each figure is dated where it appears, beside its source
           </p>
           <SourceLink
             sources={[
