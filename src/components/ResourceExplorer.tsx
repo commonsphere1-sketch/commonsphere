@@ -6,21 +6,25 @@
  * The list is every commodity with its latest published monthly price and
  * that price's change on the same month a year before; the detail is the
  * commodity at a glance - its price and the five years behind it, world
- * output and reserves, who produces most of it, and what it is used for -
- * with the full profile (ResourceModal) a click away.
+ * output and reserves, who produces most of it and who holds most of it,
+ * how its price is quoted, what it is used for, how it is produced, where
+ * it comes from and what moves its price - with the full profile
+ * (ResourceModal) a click away.
  *
  * Every figure is the one the commodity's card and window show, read from
  * the same files: commodityPrices.ts (World Bank, IMF) and the producer
- * tables (USGS, EIA, OPEC and the rest). The two changes are worked out
- * from two published monthly averages, as on the cards.
+ * tables (USGS, EIA, OPEC and the rest). A change is worked out from two
+ * published monthly averages, as on the cards, and names both months. The
+ * background - uses, production, deposits, pricing - is the site's own
+ * summary (resourceDetails.ts), kept to what is settled.
  */
-import { useMemo, useState } from "react";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useMemo, useState, type ReactNode } from "react";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowRight, MagnifyingGlass, Tree, X } from "@phosphor-icons/react";
 import { RESOURCE_DETAILS } from "../data/resourceDetails";
 import { COMMODITY_PRICE_SOURCES } from "../data/commodityPrices";
 import { Empty, GoButton, Kpi, Label, Row, tooltipStyle, useTokens, type Tokens } from "./DataExplorer";
-import { LATEST_PRICE_MONTH, fmtMonth, fmtPrice, holderTitle, leadingProducers, priceFacts, producerFacts, producerSources, type PriceFacts, type ResourceSummary } from "./ResourceModal";
+import { LATEST_PRICE_MONTH, fmtMonth, fmtPrice, holderTitle, leadingHolders, leadingProducers, priceFacts, producerFacts, producerSources, type PriceFacts, type ResourceSummary } from "./ResourceModal";
 import { SourceLink } from "./SourceLink";
 
 const COLOR = "#059669";
@@ -169,15 +173,55 @@ function ResourceList({ t, entries, list, selected, onPick }: { t: Tokens; entri
   );
 }
 
+/** Countries ranked on one scale, the largest filling the track: each with its amount as printed and its share of the world's. */
+function RankBars({ t, color, rows, label }: { t: Tokens; color: string; rows: { name: string; value: number; amount: string; share: string | null }[]; label: string }) {
+  const top = Math.max(...rows.map((p) => p.value), 0) || 1;
+  return (
+    <ul className="flex flex-col gap-2" aria-label={label}>
+      {rows.map((p) => (
+        <li key={p.name}>
+          <span className="flex items-baseline justify-between gap-2">
+            <span className="text-[11px] font-sans font-semibold truncate" style={{ color: t.headText }}>
+              {p.name}
+            </span>
+            <span className="text-[11px] font-mono shrink-0" style={{ color: t.headText }}>
+              {p.amount}
+              {p.share && <span style={{ color: t.mutedText }}> · {p.share} of the world</span>}
+            </span>
+          </span>
+          <span className="block h-1.5 rounded-full overflow-hidden mt-1" style={{ background: t.gridLine }} aria-hidden>
+            <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, (100 * p.value) / top)}%`, background: color }} />
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** A heading and what is said under it, in the pane's small print. */
+function Told({ t, title, children }: { t: Tokens; title: string; children: ReactNode }) {
+  return (
+    <section className="flex flex-col gap-1.5 pt-3" style={{ borderTop: `1px solid ${t.gridLine}` }}>
+      <Label t={t}>{title}</Label>
+      {children}
+    </section>
+  );
+}
+
 function ResourceDetail({ t, entry: { r, price }, onOpen }: { t: Tokens; entry: Entry; onOpen: () => void }) {
   const detail = RESOURCE_DETAILS[r.name];
   const made = producerFacts(r.name);
   const producers = leadingProducers(r.name, 6);
+  const holders = leadingHolders(r.name, 5);
   // Five years and the month before them, as on the commodity's card.
-  const trend = (price?.price.series ?? []).slice(-61).map(([m, v]) => ({ m, v }));
+  const series = price?.price.series ?? [];
+  const trend = series.slice(-61).map(([m, v]) => ({ m, v }));
   const januaries = trend.filter((p) => p.m.endsWith("-01")).map((p) => p.m);
-  const top = Math.max(...producers.map((p) => p.value), 0) || 1;
+  // The same month five years before, where the series has it: two published monthly averages, like the other two changes.
+  const fiveBack = price ? series.find(([m]) => m === `${Number(price.month.slice(0, 4)) - 5}${price.month.slice(4)}`) : undefined;
+  const onFive = price && fiveBack && fiveBack[1] > 0 ? { pct: Math.round(((price.value - fiveBack[1]) / fiveBack[1]) * 1000) / 10, from: fiveBack[0], was: fiveBack[1] } : null;
   const sources = [...(price ? [COMMODITY_PRICE_SOURCES[price.price.source]] : []), ...producerSources(r.name)];
+  const text = "text-[11px] font-sans leading-relaxed";
   return (
     <>
       <div>
@@ -190,7 +234,7 @@ function ResourceDetail({ t, entry: { r, price }, onOpen }: { t: Tokens; entry: 
         </p>
       </div>
       {detail && (
-        <p className="text-[11px] font-sans leading-relaxed" style={{ color: t.bodyText }}>
+        <p className={text} style={{ color: t.bodyText }}>
           {detail.summary}
         </p>
       )}
@@ -198,7 +242,9 @@ function ResourceDetail({ t, entry: { r, price }, onOpen }: { t: Tokens; entry: 
         {price && <Kpi t={t} label="Price" value={fmtPrice(price.value)} sub={price.price.unit} color={t.headText} />}
         {price?.onYear && <Kpi t={t} label="On a year before" value={signedPct(price.onYear.pct)} sub={`${fmtPrice(price.onYear.was)} in ${fmtMonth(price.onYear.from)}`} color={price.onYear.pct >= 0 ? GREEN : RED} />}
         {price?.onMonth && <Kpi t={t} label="On the month before" value={signedPct(price.onMonth.pct)} sub={`${fmtPrice(price.onMonth.was)} in ${fmtMonth(price.onMonth.from)}`} color={price.onMonth.pct >= 0 ? GREEN : RED} />}
+        {onFive && <Kpi t={t} label="On five years before" value={signedPct(onFive.pct)} sub={`${fmtPrice(onFive.was)} in ${fmtMonth(onFive.from)}`} color={onFive.pct >= 0 ? GREEN : RED} />}
         {made && <Kpi t={t} label="World output" value={made.output} sub={made.outputYear} color={t.headText} />}
+        {made?.topProducer && <Kpi t={t} label="Largest producer" value={made.topProducer.name} sub={[made.topProducer.amount, made.topProducer.share].filter(Boolean).join(" · ")} color={t.headText} />}
         {made?.held && <Kpi t={t} label={`World ${made.heldLabel}`} value={made.held} sub={made.heldYear ?? undefined} color={t.headText} />}
         {made?.topHolder && <Kpi t={t} label={holderTitle(made.heldLabel)} value={made.topHolder.name} sub={[made.topHolder.amount, made.topHolder.share].filter(Boolean).join(" · ")} color={t.headText} />}
       </div>
@@ -208,14 +254,15 @@ function ResourceDetail({ t, entry: { r, price }, onOpen }: { t: Tokens; entry: 
             Price · {price.price.unit} · {fmtMonth(trend[0].m)} to {fmtMonth(price.month)}
           </Label>
           <div role="img" aria-label={`${price.price.benchmark}, ${fmtMonth(trend[0].m)} to ${fmtMonth(price.month)}: ${fmtPrice(trend[0].v)} to ${fmtPrice(price.value)} ${price.price.unit}.`}>
-            <ResponsiveContainer width="100%" height={90}>
-              <AreaChart data={trend} margin={{ top: 2, right: 2, left: -14, bottom: 0 }}>
+            <ResponsiveContainer width="100%" height={96}>
+              <AreaChart data={trend} margin={{ top: 4, right: 2, left: -14, bottom: 0 }}>
                 <defs>
                   <linearGradient id={`explorerResource-${r.color.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={r.color} stopOpacity={0.35} />
                     <stop offset="100%" stopColor={r.color} stopOpacity={0} />
                   </linearGradient>
                 </defs>
+                <CartesianGrid stroke={t.gridLine} vertical={false} />
                 <XAxis dataKey="m" ticks={januaries} tickFormatter={(m: string) => m.slice(0, 4)} tick={{ fontSize: 8, fill: t.mutedText, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 8, fill: t.mutedText, fontFamily: "monospace" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => (v >= 10000 ? `${Math.round(v / 1000)}k` : fmtPrice(v))} domain={["auto", "auto"]} />
                 <Tooltip {...tooltipStyle(t)} labelFormatter={(m: string) => fmtMonth(m)} formatter={(v: number) => [`${fmtPrice(v)} ${price.price.unit}`, price.price.benchmark]} />
@@ -233,6 +280,11 @@ function ResourceDetail({ t, entry: { r, price }, onOpen }: { t: Tokens; entry: 
               </span>
             ))}
           </div>
+          {detail && (
+            <p className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
+              {detail.unit}
+            </p>
+          )}
         </>
       )}
       {producers.length > 0 && made && (
@@ -240,42 +292,84 @@ function ResourceDetail({ t, entry: { r, price }, onOpen }: { t: Tokens; entry: 
           <Label t={t}>
             Largest producers · {made.outputYear} · of {made.countries} listed
           </Label>
-          <ul className="flex flex-col gap-2" aria-label={`Largest producers of ${r.name}`}>
-            {producers.map((p) => (
-              <li key={p.name}>
-                <span className="flex items-baseline justify-between gap-2">
-                  <span className="text-[11px] font-sans font-semibold truncate" style={{ color: t.headText }}>
-                    {p.name}
-                  </span>
-                  <span className="text-[11px] font-mono shrink-0" style={{ color: t.headText }}>
-                    {p.amount}
-                    {p.share && <span style={{ color: t.mutedText }}> · {p.share} of the world</span>}
-                  </span>
-                </span>
-                <span className="block h-1.5 rounded-full overflow-hidden mt-1" style={{ background: t.gridLine }} aria-hidden>
-                  <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, (100 * p.value) / top)}%`, background: r.color }} />
-                </span>
-              </li>
-            ))}
-          </ul>
+          <RankBars t={t} color={r.color} rows={producers} label={`Largest producers of ${r.name}`} />
           <p className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
             {made.measure}.
           </p>
         </>
       )}
-      {detail && (
+      {holders.length > 1 && made?.held && (
         <>
-          <Label t={t}>What it is used for</Label>
-          <div className="flex flex-wrap gap-1">
-            {detail.uses.map((u) => (
-              <span key={u.label} title={u.detail} className="rounded-md px-1.5 py-0.5 text-[10px] font-sans" style={{ background: t.tile, border: `1px solid ${t.gridLine}`, color: t.bodyText }}>
-                {u.label}
-              </span>
-            ))}
-          </div>
+          <Label t={t}>
+            {made.heldLabel === "exports" ? "Largest exporters" : `Largest ${made.heldLabel}`}
+            {made.heldYear ? ` · ${made.heldYear}` : ""}
+          </Label>
+          <RankBars t={t} color={r.color} rows={holders} label={`Largest ${made.heldLabel} of ${r.name}`} />
         </>
       )}
       <SourceLink sources={sources} />
+
+      {detail && (
+        <>
+          <Told t={t} title="What it is used for">
+            <dl className="flex flex-col gap-1.5">
+              {detail.uses.map((u) => (
+                <div key={u.label}>
+                  <dt className="text-[11px] font-sans font-bold" style={{ color: t.headText }}>
+                    {u.label}
+                  </dt>
+                  <dd className="text-[10px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                    {u.detail}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </Told>
+          <Told t={t} title="How it is produced">
+            <ol className="flex flex-col gap-1.5">
+              {detail.made.map((step, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-[10px] font-mono font-bold shrink-0 w-3" style={{ color: r.color }}>
+                    {i + 1}
+                  </span>
+                  <span className="text-[10px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                    {step}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </Told>
+          <Told t={t} title="Where it comes from">
+            <dl className="flex flex-col gap-1.5">
+              {detail.deposits.map((d) => (
+                <div key={d.place}>
+                  <dt className="text-[11px] font-sans font-bold" style={{ color: t.headText }}>
+                    {d.place}
+                  </dt>
+                  <dd className="text-[10px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                    {d.detail}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </Told>
+          <Told t={t} title="What moves its price">
+            <ul className="flex flex-col gap-1">
+              {detail.value.map((v, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="mt-1.5 w-1 h-1 rounded-full shrink-0" style={{ background: r.color }} aria-hidden />
+                  <span className="text-[10px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                    {v}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-[9px] font-sans leading-snug" style={{ color: t.mutedText }}>
+              The site's own summary, kept to what is settled; the figures above are each from the source named.
+            </p>
+          </Told>
+        </>
+      )}
       <GoButton color={COLOR} onClick={onOpen}>
         {r.name} in full: ten years of prices, every country, how it is produced
       </GoButton>

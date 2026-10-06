@@ -34,7 +34,7 @@ function fmtAmount(a: Amount, unit: ProducerUnit): string {
     case "mb":
       // Million barrels; the large holders read better in billions.
       return v >= 1000
-        ? `${pre}${(v / 1000).toFixed(v >= 10000 ? 0 : 1)} bn bbl`
+        ? `${pre}${v >= 10000 ? Math.round(v / 1000).toLocaleString("en-US") : (v / 1000).toFixed(1)} bn bbl`
         : `${pre}${Math.round(v).toLocaleString()} m bbl`;
     case "bcm":
       return v >= 1000
@@ -200,6 +200,17 @@ export function leadingProducers(name: string, n = 6): { name: string; value: nu
   if (!p) return [];
   return p.countries
     .flatMap((c) => (c.production ? [{ name: c.name, value: c.production.value, amount: fmtAmount(c.production, p.productionUnit), share: fmtShare(c.productionShare) }] : []))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, n);
+}
+
+/** The countries that hold most of a commodity's reserves - or of whatever its second column is - largest first, as printed, each with its share of the world's. */
+export function leadingHolders(name: string, n = 5): { name: string; value: number; amount: string; share: string | null }[] {
+  const p = PRODUCERS[name];
+  const unit = p?.reservesUnit;
+  if (!p || !unit) return [];
+  return p.countries
+    .flatMap((c) => (c.reserves ? [{ name: c.name, value: c.reserves.value, amount: fmtAmount(c.reserves, unit), share: fmtShare(c.reservesShare) }] : []))
     .sort((a, b) => b.value - a.value)
     .slice(0, n);
 }

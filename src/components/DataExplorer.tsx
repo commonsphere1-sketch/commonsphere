@@ -17,15 +17,25 @@
  * about, and the week's other policy headlines about that place - the same
  * on the Dashboard's Policies tab as on the Policy page. It is loaded when a
  * headline's detail is first shown, so neither carries its data before then.
+ *
+ * A country's detail is its headline figures, each with its year; where it
+ * stands among the site's places and in the world's totals; and then its
+ * record in full (PolicyContext's CountryRecord): its people, health,
+ * schooling and public services, trade, energy, technology, work, defence,
+ * rights, what its government spends, and the blocs it belongs to. A
+ * region's detail adds the World Bank's own figures for the region beside
+ * the world's (RegionFigures). Both are loaded when first shown. A rank or a
+ * share is the only thing worked out, each from published figures, and the
+ * pane says what from.
  */
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowRight, ArrowSquareOut, ChartBar, ChartLine, Globe, Heart, MagnifyingGlass, MapPin, Scales, Tree, Users, X } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLiveCountries } from "../contexts/LiveDataContext";
-import type { Country } from "../data/countriesData";
-import { IMF_INFLATION, REGIONS, WORLD, type WorldPoint } from "../data/worldview";
+import type { Country, DataSource, ReferenceField } from "../data/countriesData";
+import { IMF_INFLATION, INCOME_GROUPS, INCOME_OF, INCOME_SOURCE, REGIONS, REGION_OF, WORLD, type WorldPoint } from "../data/worldview";
 import { has, na, sortKey } from "../lib/na";
 import { usdFromBillions } from "../lib/money";
 import { SourceLink } from "./SourceLink";
@@ -36,6 +46,12 @@ import { TREND_FIGURES } from "../data/trendGroups";
 
 /** A policy headline's fuller detail, with the data it draws on: loaded when one is first shown. */
 const PolicyContext = lazy(() => import("./PolicyContext"));
+/** A country's record in full, from the same file and so with the same data: loaded when a country's detail is first shown. */
+const CountryRecord = lazy(() => import("./PolicyContext").then((m) => ({ default: m.CountryRecord })));
+/** A region's World Bank figures beside the world's, with the series they are read from. */
+const RegionFigures = lazy(() => import("./RegionFigures"));
+/** Every topic a country's record has figures for, in the order a country's detail gives them. */
+const RECORD_TOPICS = ["Trade", "Energy", "Climate", "Tech", "Jobs & pay", "Defence"];
 /** The explorers of the Economies page's resources and of the Trends page, each with its data: loaded when its tab is opened. */
 const ResourcesTab = lazy(() => import("./ResourceExplorerTab"));
 const TrendsTab = lazy(() => import("../pages/TrendsPage").then((m) => ({ default: m.TrendsExplorer })));
@@ -96,7 +112,15 @@ const flagOf = (c: Country) => (c as Country & { flag?: string }).flag ?? c.code
 const GREEN = "#10b981";
 const RED = "#ef4444";
 
-export function DataExplorer({ only }: { /** Show this category alone, without the tabs. */ only?: ExplorerTab }) {
+export function DataExplorer({
+  only,
+  onOpenCountry,
+}: {
+  /** Show this category alone, without the tabs. */
+  only?: ExplorerTab;
+  /** Opens a country's full profile where the explorer is; without it the pane's button goes to the Countries page and opens it there. */
+  onOpenCountry?: (c: Country) => void;
+}) {
   const t = useTokens();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -256,8 +280,8 @@ export function DataExplorer({ only }: { /** Show this category alone, without t
           )}
         </div>
         <div ref={detailRef} className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 md:h-full">
-          {tab === "countries" && country && <CountryDetail t={t} c={country} onProfile={pathname === TABS[0].path ? null : () => navigate(TABS[0].path)} />}
-          {tab === "economies" && region && <RegionDetail t={t} region={region} byGdp={byGdp} onExplorer={pathname === TABS[1].path ? null : () => navigate(TABS[1].path)} />}
+          {tab === "countries" && country && <CountryDetail key={country.id} t={t} c={country} all={byGdp} onOpen={onOpenCountry} />}
+          {tab === "economies" && region && <RegionDetail key={region.id} t={t} region={region} byGdp={byGdp} onExplorer={pathname === TABS[1].path ? null : () => navigate(TABS[1].path)} />}
           {tab === "policies" &&
             (policy ? (
               <PolicyDetail
@@ -374,6 +398,39 @@ export function GoButton({ color, onClick, children }: { color: string; onClick:
   );
 }
 
+/** A row of a pane's short table: what it is, and the figure. */
+function FactRow({ t, label, value, sub }: { t: Tokens; label: string; value: ReactNode; sub?: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 py-1.5" style={{ borderBottom: `1px solid ${t.gridLine}` }}>
+      <span className="text-[10px] font-mono shrink-0" style={{ color: t.mutedText }}>
+        {label}
+      </span>
+      <span className="text-[11px] font-sans font-semibold text-right min-w-0" style={{ color: t.headText }}>
+        {value}
+        {sub && (
+          <span className="font-mono font-normal text-[10px]" style={{ color: t.mutedText }}>
+            {" "}
+            · {sub}
+          </span>
+        )}
+      </span>
+    </div>
+  );
+}
+
+/** The year a cited figure is for: the end of its source's label. */
+const yearOf = (src: DataSource | undefined) => /, (\d{4})$/.exec(src?.label ?? "")?.[1];
+/** Sources without repeats, in the order given. */
+const distinct = (list: (DataSource | undefined)[]) => [...new Map(list.filter((x): x is DataSource => !!x).map((x) => [x.label, x])).values()];
+/** "the United States", "Japan". */
+const the = (name: string) => (/^(United |Netherlands$|Philippines$|Bahamas$|Gambia$|Maldives$)/.test(name) ? `the ${name}` : name);
+const ordinal = (n: number) => {
+  const v = n % 100;
+  return `${n}${v >= 11 && v <= 13 ? "th" : (["th", "st", "nd", "rd"][n % 10] ?? "th")}`;
+};
+/** A share of a world total: tenths of a percent, and "under 0.1%" below that. */
+const shareText = (pct: number) => (pct < 0.1 ? "under 0.1%" : `${pct.toFixed(1)}%`);
+
 export function tooltipStyle(t: Tokens) {
   return {
     contentStyle: { background: t.tooltipBg, border: `1px solid ${t.gridLine}`, borderRadius: 8, fontSize: 10, fontFamily: "monospace", color: t.headText },
@@ -435,9 +492,39 @@ function CountryList({ t, countries, selected, onPick, searching }: { t: Tokens;
   );
 }
 
-function CountryDetail({ t, c, onProfile }: { t: Tokens; c: Country; onProfile: (() => void) | null }) {
+type Ranked = "gdp" | "population" | "gdpPerCapita";
+
+/** Where a country stands among the places with a published figure, largest first. */
+function rankOf(all: Country[], c: Country, f: Ranked) {
+  if (!has(c[f])) return null;
+  const withFigure = all.filter((x) => has(x[f]));
+  return { rank: withFigure.filter((x) => x[f] > c[f]).length + 1, of: withFigure.length };
+}
+
+function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Country[]; onOpen?: (c: Country) => void }) {
   const up = c.gdpGrowth >= 0;
   const pop = (n: number) => (n >= 1e9 ? `${(n / 1e9).toFixed(2)}B` : n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : `${Math.round(n / 1000)}K`);
+  const src = (f: ReferenceField) => c.sources?.[f];
+  const yr = (f: ReferenceField) => yearOf(src(f));
+
+  // Where it stands: its rank among the site's places, and its share of the World Bank's world total for the same year.
+  const ranks = { gdp: rankOf(all, c, "gdp"), population: rankOf(all, c, "population"), gdpPerCapita: rankOf(all, c, "gdpPerCapita") };
+  const shareOf = (f: "gdp" | "population", value: number, series: WorldPoint[]) => {
+    // Only a World Bank figure is set beside the Bank's world total, and only for the same year.
+    const y = yr(f);
+    const world = y && /^World Bank/.test(src(f)?.label ?? "") ? series.find(([year]) => String(year) === y)?.[1] : undefined;
+    return world && has(c[f]) ? { pct: (100 * value) / world, year: y! } : null;
+  };
+  const gdpShare = shareOf("gdp", c.gdp * 1e9, WORLD.gdp.series);
+  const popShare = shareOf("population", c.population, WORLD.population.series);
+  const region = REGIONS.find((r) => r.id === REGION_OF[c.code]);
+  const income = INCOME_GROUPS.find((g) => g.id === INCOME_OF[c.code]);
+  const standing = ranks.gdp || ranks.population || ranks.gdpPerCapita || region || income;
+
+  const sectorYear = yr("keyIndustries");
+  const first = c.trends?.[0];
+  const last = c.trends?.[c.trends.length - 1];
+
   // The site's own composite, shown only when all four of its figures are published.
   const score =
     has(c.humanDevelopmentIndex) && has(c.gdpGrowth) && has(c.inflationRate) && has(c.unemploymentRate)
@@ -475,39 +562,43 @@ function CountryDetail({ t, c, onProfile }: { t: Tokens; c: Country; onProfile: 
               className="font-mono font-bold text-[9px] rounded-full px-2 py-0.5"
               style={{ background: up ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)", color: up ? "#6ee7b7" : "#fca5a5", border: `1px solid ${up ? "#10b98155" : "#ef444455"}` }}
             >
-              GDP {signed(c.gdpGrowth)}%
+              GDP {signed(c.gdpGrowth)}%{yr("gdpGrowth") ? ` · ${yr("gdpGrowth")}` : ""}
             </span>
           )}
         </div>
       </div>
 
+      {/* Each figure with the year it is for. */}
       <div className="grid grid-cols-3 gap-1.5">
-        <Kpi t={t} label="GDP" value={na(c.gdp, gdpShort)} color="#6366f1" />
-        <Kpi t={t} label="Growth" value={na(c.gdpGrowth, (v) => `${signed(v)}%`)} color={up ? GREEN : RED} />
-        <Kpi t={t} label="GDP per person" value={na(c.gdpPerCapita, (v) => `$${Math.round(v).toLocaleString("en-US")}`)} color="#3b82f6" />
-        <Kpi t={t} label="Inflation" value={na(c.inflationRate, (v) => `${v}%`)} color={c.inflationRate > 6 ? RED : "#f59e0b"} />
-        <Kpi t={t} label="Unemployment" value={na(c.unemploymentRate, (v) => `${v.toFixed(1)}%`)} color={c.unemploymentRate < 5 ? GREEN : "#f59e0b"} />
+        <Kpi t={t} label="GDP" value={na(c.gdp, gdpShort)} sub={yr("gdp")} color="#6366f1" />
+        <Kpi t={t} label="Real growth" value={na(c.gdpGrowth, (v) => `${signed(v)}%`)} sub={yr("gdpGrowth")} color={up ? GREEN : RED} />
+        <Kpi t={t} label="GDP per person" value={na(c.gdpPerCapita, (v) => `$${Math.round(v).toLocaleString("en-US")}`)} sub={yr("gdpPerCapita")} color="#3b82f6" />
+        <Kpi t={t} label="Inflation" value={na(c.inflationRate, (v) => `${v}%`)} sub={yr("inflationRate")} color={c.inflationRate > 6 ? RED : "#f59e0b"} />
+        <Kpi t={t} label="Unemployment" value={na(c.unemploymentRate, (v) => `${v.toFixed(1)}%`)} sub={yr("unemploymentRate")} color={c.unemploymentRate < 5 ? GREEN : "#f59e0b"} />
         <Kpi
           t={t}
           label="HDI"
           value={na(c.humanDevelopmentIndex, (v) => v.toFixed(3))}
+          sub={yr("humanDevelopmentIndex")}
           color={c.humanDevelopmentIndex >= 0.8 ? GREEN : c.humanDevelopmentIndex >= 0.65 ? "#f59e0b" : RED}
         />
       </div>
 
       <div className="grid grid-cols-2 gap-1.5">
         {[
-          { label: "Population", value: na(c.population, pop), icon: <Users size={10} weight="fill" />, color: "#06b6d4" },
-          { label: "Life expectancy", value: na(c.lifeExpectancy, (v) => `${v} yrs`), icon: <Heart size={10} weight="fill" />, color: "#ec4899" },
+          { label: "Population", value: na(c.population, pop), year: yr("population"), icon: <Users size={10} weight="fill" />, color: "#06b6d4" },
+          { label: "Life expectancy", value: na(c.lifeExpectancy, (v) => `${v} yrs`), year: yr("lifeExpectancy"), icon: <Heart size={10} weight="fill" />, color: "#ec4899" },
           {
             label: "Trade balance",
             value: has(c.tradeBalance) ? usdFromBillions(c.tradeBalance, true) : "—",
+            year: yr("tradeBalance"),
             icon: <Scales size={10} weight="fill" />,
             color: !has(c.tradeBalance) ? t.mutedText : c.tradeBalance >= 0 ? GREEN : RED,
           },
           {
             label: "Area",
             value: na(c.areaKm2, (v) => (v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M km²` : `${Math.round(v).toLocaleString("en-US")} km²`)),
+            year: undefined,
             icon: <MapPin size={10} weight="fill" />,
             color: "#a855f7",
           },
@@ -517,6 +608,7 @@ function CountryDetail({ t, c, onProfile }: { t: Tokens; c: Country; onProfile: 
             <div className="min-w-0">
               <p className="text-[9px] font-mono truncate" style={{ color: t.mutedText }}>
                 {m.label}
+                {m.year && m.value !== "—" ? ` · ${m.year}` : ""}
               </p>
               <p className="text-[12px] font-bold font-mono" style={{ color: m.color }}>
                 {m.value}
@@ -525,35 +617,68 @@ function CountryDetail({ t, c, onProfile }: { t: Tokens; c: Country; onProfile: 
           </div>
         ))}
       </div>
+      <SourceLink sources={distinct([src("gdp"), src("gdpGrowth"), src("gdpPerCapita"), src("inflationRate"), src("unemploymentRate"), src("humanDevelopmentIndex"), src("population"), src("lifeExpectancy"), src("tradeBalance")])} />
 
-      {c.trends && c.trends.length > 1 && (
+      {standing && (
         <>
-          <Label t={t}>GDP trend · World Bank</Label>
-          <ResponsiveContainer width="100%" height={72}>
-            <AreaChart data={c.trends} margin={{ top: 2, right: 2, left: -28, bottom: 0 }}>
-              <defs>
-                <linearGradient id={`explorerCountry-${c.id}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#6366f1" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="year" tick={{ fontSize: 8, fill: t.mutedText, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
-              <YAxis
-                tick={{ fontSize: 8, fill: t.mutedText, fontFamily: "monospace" }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(v: number) => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}T` : `${v}B`}`}
-              />
-              <Tooltip {...tooltipStyle(t)} formatter={(v: number) => [v >= 1000 ? `$${(v / 1000).toFixed(1)}T` : `$${v}B`, "GDP"]} />
-              <Area type="monotone" dataKey="gdp" stroke="#6366f1" fill={`url(#explorerCountry-${c.id})`} strokeWidth={1.5} dot={false} isAnimationActive={false} />
-            </AreaChart>
-          </ResponsiveContainer>
+          <Label t={t}>Where it stands</Label>
+          <div className="flex flex-col">
+            {ranks.gdp && <FactRow t={t} label="Size of its economy" value={`${ordinal(ranks.gdp.rank)} of ${ranks.gdp.of}`} sub={gdpShare ? `${shareText(gdpShare.pct)} of world GDP, ${gdpShare.year}` : undefined} />}
+            {ranks.population && (
+              <FactRow t={t} label="Population" value={`${ordinal(ranks.population.rank)} of ${ranks.population.of}`} sub={popShare ? `${shareText(popShare.pct)} of the world's people, ${popShare.year}` : undefined} />
+            )}
+            {ranks.gdpPerCapita && <FactRow t={t} label="GDP per person" value={`${ordinal(ranks.gdpPerCapita.rank)} of ${ranks.gdpPerCapita.of}`} />}
+            {region && <FactRow t={t} label="World Bank region" value={region.name} sub={`${region.members.length} economies`} />}
+            {income && <FactRow t={t} label="Income group" value={income.label} sub={`one of ${income.economies}`} />}
+          </div>
+          <p className="text-[9px] font-sans leading-snug" style={{ color: t.mutedText }}>
+            A rank is among the places on the site with a published figure, each for its own latest year. A share sets the World Bank's figure for{" "}
+            {the(c.name)} beside the Bank's world total for the same year.
+          </p>
+          <SourceLink sources={distinct([WORLD.gdp.source, ...(income ? [INCOME_SOURCE] : [])])} />
+        </>
+      )}
+
+      {c.trends && c.trends.length > 1 && first && last && (
+        <>
+          <Label t={t}>
+            GDP · current US$ · {first.year}–{last.year}
+          </Label>
+          <div role="img" aria-label={`GDP of ${c.name}, ${first.year} to ${last.year}: ${gdpShort(first.gdp)} to ${gdpShort(last.gdp)}.`}>
+            <ResponsiveContainer width="100%" height={84}>
+              <AreaChart data={c.trends} margin={{ top: 4, right: 2, left: -18, bottom: 0 }}>
+                <defs>
+                  <linearGradient id={`explorerCountry-${c.id}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6366f1" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke={t.gridLine} vertical={false} />
+                <XAxis dataKey="year" tick={{ fontSize: 8, fill: t.mutedText, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
+                <YAxis
+                  tick={{ fontSize: 8, fill: t.mutedText, fontFamily: "monospace" }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v: number) => (v === 0 ? "$0" : v >= 1000 ? `$${Number((v / 1000).toFixed(1))}T` : gdpShort(v))}
+                />
+                <Tooltip {...tooltipStyle(t)} formatter={(v: number) => [gdpShort(v), "GDP"]} />
+                <Area type="monotone" dataKey="gdp" stroke="#6366f1" fill={`url(#explorerCountry-${c.id})`} strokeWidth={1.5} dot={false} isAnimationActive={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {[first, last].map((p, i) => (
+              <span key={p.year} className="rounded-md px-1.5 py-0.5 text-[10px] font-mono" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
+                <span style={{ color: t.mutedText }}>{i === 0 ? "Began" : "Latest"}</span> <span style={{ color: t.headText }}>{gdpShort(p.gdp)}</span> <span style={{ color: t.mutedText }}>· {p.year}</span>
+              </span>
+            ))}
+          </div>
         </>
       )}
 
       {c.keyIndustries && c.keyIndustries.length > 0 && (
         <>
-          <Label t={t}>Key industries</Label>
+          <Label t={t}>What its economy is made of · share of GDP{sectorYear ? ` · ${sectorYear}` : ""}</Label>
           <div className="flex flex-col gap-1.5">
             {c.keyIndustries.slice(0, 5).map((ind) => (
               <div key={ind.name} className="flex items-center gap-2">
@@ -564,12 +689,13 @@ function CountryDetail({ t, c, onProfile }: { t: Tokens; c: Country; onProfile: 
                 <span className="w-16 h-1.5 rounded-full overflow-hidden" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }}>
                   <span className="block h-full rounded-full" style={{ width: `${ind.gdpShare}%`, background: ind.color }} />
                 </span>
-                <span className="text-[9px] font-mono w-7 text-right shrink-0" style={{ color: t.mutedText }}>
+                <span className="text-[10px] font-mono w-9 text-right shrink-0" style={{ color: t.headText }}>
                   {ind.gdpShare}%
                 </span>
               </div>
             ))}
           </div>
+          <SourceLink sources={distinct([src("keyIndustries")])} />
         </>
       )}
 
@@ -586,7 +712,7 @@ function CountryDetail({ t, c, onProfile }: { t: Tokens; c: Country; onProfile: 
             <span className="text-[10px] font-mono" style={{ color: t.mutedText }}>
               {row.label}
             </span>
-            <span className="text-[11px] font-sans font-semibold text-right max-w-[60%] truncate" style={{ color: t.headText }}>
+            <span className="text-[11px] font-sans font-semibold text-right max-w-[60%] truncate" style={{ color: t.headText }} title={row.value}>
               {row.value}
             </span>
           </div>
@@ -610,13 +736,13 @@ function CountryDetail({ t, c, onProfile }: { t: Tokens; c: Country; onProfile: 
               { label: "Growth", v: score.growth, max: 20, color: GREEN },
               { label: "Inflation", v: score.inflation, max: 20, color: "#f59e0b" },
               { label: "Jobs", v: score.jobs, max: 20, color: "#3b82f6" },
-            ].map((s) => (
-              <div key={s.label} className="text-center">
-                <p className="text-[10px] font-bold font-mono" style={{ color: s.color }}>
-                  {Math.round(s.v)}/{s.max}
+            ].map((x) => (
+              <div key={x.label} className="text-center">
+                <p className="text-[10px] font-bold font-mono" style={{ color: x.color }}>
+                  {Math.round(x.v)}/{x.max}
                 </p>
                 <p className="text-[8px] font-mono" style={{ color: t.mutedText }}>
-                  {s.label}
+                  {x.label}
                 </p>
               </div>
             ))}
@@ -628,11 +754,16 @@ function CountryDetail({ t, c, onProfile }: { t: Tokens; c: Country; onProfile: 
         </div>
       )}
 
-      {onProfile && (
-        <GoButton color="#6366f1" onClick={onProfile}>
-          Full country profiles
-        </GoButton>
-      )}
+      {/* The record in full: the same sections the Policies tab gives a headline's place, for every topic. */}
+      <Suspense
+        fallback={
+          <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
+            Loading the record…
+          </p>
+        }
+      >
+        <CountryRecord t={t} c={c} topics={RECORD_TOPICS} accent="#6366f1" full onProfile={onOpen ? () => onOpen(c) : undefined} />
+      </Suspense>
     </>
   );
 }
@@ -757,11 +888,46 @@ function EconomyList({ t, regions, selected, onPick }: { t: Tokens; regions: Reg
 
 function RegionDetail({ t, region: r, byGdp, onExplorer }: { t: Tokens; region: Region; byGdp: Country[]; onExplorer: (() => void) | null }) {
   const [gy, gdp] = lastOf(r.gdp);
+  const [firstYear, firstGdp] = r.gdp[0];
   const [growthYear, growth] = lastOf(r.growth);
-  const worldThen = WORLD.gdp.series.find(([y]) => y === gy)?.[1];
-  const members = new Set(r.members);
-  const largest = byGdp.filter((c) => members.has(c.code)).slice(0, 6);
+  const worldAt = (y: number) => WORLD.gdp.series.find(([year]) => year === y)?.[1];
+  const worldThen = worldAt(gy);
+  // Its GDP as a share of the world's, for each year both are published.
+  const share = r.gdp.flatMap(([year, v]) => {
+    const w = worldAt(year);
+    return w ? [{ year: String(year), share: Number(((100 * v) / w).toFixed(2)) }] : [];
+  });
+  const best = r.growth.reduce((a, b) => (b[1] > a[1] ? b : a));
+  const worst = r.growth.reduce((a, b) => (b[1] < a[1] ? b : a));
+  const growthBars = r.growth.map(([year, g]) => ({ year: String(year), g }));
   const trend = r.gdp.map(([year, v]) => ({ year: String(year), gdp: Number((v / 1e12).toFixed(2)) }));
+
+  // Its members, as the site holds them: largest first, and those growing fastest and slowest.
+  const members = new Set(r.members);
+  const mine = byGdp.filter((c) => members.has(c.code));
+  const [showAll, setShowAll] = useState(false);
+  const listed = showAll ? mine : mine.slice(0, 8);
+  // Set side by side only where the growth is for the same year as the region's: a member's latest may be older.
+  const growing = mine.filter((c) => has(c.gdpGrowth) && yearOf(c.sources?.gdpGrowth) === String(growthYear)).sort((a, b) => b.gdpGrowth - a.gdpGrowth);
+  const ends = growing.length >= 6 ? { fastest: growing.slice(0, 3), slowest: growing.slice(-3).reverse() } : null;
+  // How many of its members the World Bank puts in each income group.
+  const groups = INCOME_GROUPS.map((g) => ({ label: g.label, n: r.members.filter((code) => INCOME_OF[code] === g.id).length })).filter((g) => g.n > 0);
+  const unclassified = r.members.length - groups.reduce((n, g) => n + g.n, 0);
+  const memberRow = (c: Country, i: number, n: number) => (
+    <div key={c.id} className="flex items-center gap-2 py-1.5" style={{ borderBottom: i < n - 1 ? `1px solid ${t.gridLine}` : "none" }}>
+      <span className="text-sm w-6">{flagOf(c)}</span>
+      <span className="flex-1 text-[11px] font-sans font-semibold truncate" style={{ color: t.headText }}>
+        {c.name}
+      </span>
+      <span className="text-[11px] font-mono shrink-0" style={{ color: t.headText }}>
+        {na(c.gdp, gdpShort)}
+      </span>
+      <span className="text-[10px] font-mono shrink-0 w-12 text-right" style={{ color: has(c.gdpGrowth) ? (c.gdpGrowth >= 0 ? GREEN : RED) : t.mutedText }}>
+        {na(c.gdpGrowth, (v) => `${signed(v)}%`)}
+      </span>
+    </div>
+  );
+  const axis = { tick: { fontSize: 8, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false };
   return (
     <>
       <div>
@@ -776,53 +942,150 @@ function RegionDetail({ t, region: r, byGdp, onExplorer }: { t: Tokens; region: 
         <Kpi t={t} label="GDP" value={trillions(gdp)} sub={`${gy} · current US$`} color="#f59e0b" />
         <Kpi t={t} label="Real growth" value={`${signed(growth)}%`} sub={`${growthYear}`} color={growth >= 0 ? GREEN : RED} />
         <Kpi t={t} label="Share of world GDP" value={worldThen ? `${((100 * gdp) / worldThen).toFixed(1)}%` : "—"} sub={`${gy}`} color="#6366f1" />
-        <Kpi t={t} label={r.kind === "bloc" ? "Members" : "Economies"} value={`${r.members.length}`} color="#3b82f6" />
+        <Kpi t={t} label={`GDP on ${firstYear}`} value={`${signed((100 * (gdp - firstGdp)) / firstGdp, 0)}%`} sub={`${trillions(firstGdp)} then · current US$`} color={t.headText} />
+        <Kpi t={t} label="Strongest year" value={`${signed(best[1])}%`} sub={`${best[0]} · real growth`} color={t.headText} />
+        <Kpi t={t} label="Weakest year" value={`${signed(worst[1])}%`} sub={`${worst[0]} · real growth`} color={t.headText} />
       </div>
-      <Label t={t}>GDP · current US$ trillions</Label>
-      <ResponsiveContainer width="100%" height={80}>
-        <AreaChart data={trend} margin={{ top: 2, right: 2, left: -24, bottom: 0 }}>
-          <defs>
-            <linearGradient id={`explorerRegion-${r.id}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.35} />
-              <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <XAxis dataKey="year" tick={{ fontSize: 8, fill: t.mutedText, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fontSize: 8, fill: t.mutedText, fontFamily: "monospace" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `$${v}T`} />
-          <Tooltip {...tooltipStyle(t)} formatter={(v: number) => [`$${v}T`, "GDP"]} />
-          <Area type="monotone" dataKey="gdp" stroke="#f59e0b" fill={`url(#explorerRegion-${r.id})`} strokeWidth={1.5} dot={false} isAnimationActive={false} />
-        </AreaChart>
-      </ResponsiveContainer>
-      <Label t={t}>Real growth, year by year</Label>
-      <div className="flex flex-wrap gap-1">
-        {r.growth.slice(-6).map(([y, g]) => (
-          <span key={y} className="rounded-md px-1.5 py-0.5 text-[10px] font-mono" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
-            <span style={{ color: t.mutedText }}>{y}</span> <span style={{ color: g >= 0 ? GREEN : RED }}>{signed(g)}%</span>
-          </span>
-        ))}
+
+      <Label t={t}>
+        GDP · current US$ trillions · {firstYear}–{gy}
+      </Label>
+      <div role="img" aria-label={`GDP of ${r.name}, ${firstYear} to ${gy}: ${trillions(firstGdp)} to ${trillions(gdp)}.`}>
+        <ResponsiveContainer width="100%" height={84}>
+          <AreaChart data={trend} margin={{ top: 4, right: 2, left: -24, bottom: 0 }}>
+            <defs>
+              <linearGradient id={`explorerRegion-${r.id}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid stroke={t.gridLine} vertical={false} />
+            <XAxis dataKey="year" {...axis} />
+            <YAxis {...axis} tickFormatter={(v: number) => `$${v}T`} />
+            <Tooltip {...tooltipStyle(t)} formatter={(v: number) => [`$${v}T`, "GDP"]} />
+            <Area type="monotone" dataKey="gdp" stroke="#f59e0b" fill={`url(#explorerRegion-${r.id})`} strokeWidth={1.5} dot={false} isAnimationActive={false} />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
-      <SourceLink sources={r.source} />
-      {largest.length > 0 && (
+
+      <Label t={t}>
+        Real growth · % a year · {r.growth[0][0]}–{growthYear}
+      </Label>
+      <div role="img" aria-label={`Real growth of ${r.name}, year by year: ${r.growth.map(([y, g]) => `${y} ${signed(g)}%`).join(", ")}.`}>
+        <ResponsiveContainer width="100%" height={92}>
+          <BarChart data={growthBars} margin={{ top: 12, right: 2, left: -24, bottom: 0 }}>
+            <CartesianGrid stroke={t.gridLine} vertical={false} />
+            <XAxis dataKey="year" {...axis} />
+            <YAxis {...axis} tickFormatter={(v: number) => `${v}%`} />
+            <ReferenceLine y={0} stroke={t.mutedText} strokeWidth={1} />
+            <Tooltip {...tooltipStyle(t)} cursor={{ fill: t.tile }} formatter={(v: number) => [`${signed(v)}%`, "Real growth"]} />
+            <Bar dataKey="g" radius={[2, 2, 0, 0]} maxBarSize={22} isAnimationActive={false}>
+              {growthBars.map((b) => (
+                <Cell key={b.year} fill={b.g >= 0 ? GREEN : RED} />
+              ))}
+              <LabelList dataKey="g" position="top" formatter={(v: number) => signed(v)} style={{ fontSize: 8, fontFamily: "monospace", fill: t.mutedText }} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {share.length > 2 && (
         <>
-          <Label t={t}>Largest economies</Label>
-          <div>
-            {largest.map((c, i) => (
-              <div key={c.id} className="flex items-center gap-2 py-1.5" style={{ borderBottom: i < largest.length - 1 ? `1px solid ${t.gridLine}` : "none" }}>
-                <span className="text-sm w-6">{flagOf(c)}</span>
-                <span className="flex-1 text-[11px] font-sans font-semibold truncate" style={{ color: t.headText }}>
-                  {c.name}
-                </span>
-                <span className="text-[11px] font-mono shrink-0" style={{ color: t.headText }}>
-                  {na(c.gdp, gdpShort)}
-                </span>
-                <span className="text-[10px] font-mono shrink-0 w-12 text-right" style={{ color: has(c.gdpGrowth) ? (c.gdpGrowth >= 0 ? GREEN : RED) : t.mutedText }}>
-                  {na(c.gdpGrowth, (v) => `${signed(v)}%`)}
-                </span>
-              </div>
-            ))}
+          <Label t={t}>
+            Share of world GDP · % · {share[0].year}–{share[share.length - 1].year}
+          </Label>
+          <div role="img" aria-label={`${r.name}'s share of world GDP, ${share[0].year} to ${share[share.length - 1].year}: ${share[0].share.toFixed(1)}% to ${share[share.length - 1].share.toFixed(1)}%.`}>
+            <ResponsiveContainer width="100%" height={70}>
+              <LineChart data={share} margin={{ top: 4, right: 2, left: -24, bottom: 0 }}>
+                <CartesianGrid stroke={t.gridLine} vertical={false} />
+                <XAxis dataKey="year" {...axis} />
+                <YAxis {...axis} tickFormatter={(v: number) => `${Number(v.toFixed(1))}%`} domain={["auto", "auto"]} />
+                <Tooltip {...tooltipStyle(t)} formatter={(v: number) => [`${v.toFixed(1)}%`, "Of world GDP"]} />
+                <Line type="monotone" dataKey="share" stroke="#6366f1" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
+          <p className="text-[9px] font-sans leading-snug" style={{ color: t.mutedText }}>
+            Its GDP over the world's, each year, both in current US dollars from the World Bank: {share[0].share.toFixed(1)}% in {share[0].year},{" "}
+            {share[share.length - 1].share.toFixed(1)}% in {share[share.length - 1].year}.
+          </p>
         </>
       )}
+      <SourceLink sources={distinct([r.source, WORLD.gdp.source])} />
+
+      {mine.length > 0 && (
+        <>
+          <Label t={t}>
+            {r.kind === "bloc" ? "Its members" : "Its economies"} · GDP and real growth · {showAll ? `all ${mine.length}` : `largest ${listed.length} of ${mine.length}`}
+          </Label>
+          <div>{listed.map((c, i) => memberRow(c, i, listed.length))}</div>
+          {mine.length > 8 && (
+            <button
+              type="button"
+              onClick={() => setShowAll((v) => !v)}
+              aria-expanded={showAll}
+              className="self-start text-[10px] font-sans font-semibold px-2 py-1 rounded-lg transition-opacity hover:opacity-80 cursor-pointer"
+              style={{ background: t.tile, border: `1px solid ${t.gridLine}`, color: t.headText }}
+            >
+              {showAll ? "Show the largest 8" : `Show all ${mine.length}`}
+            </button>
+          )}
+          {ends && (
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { title: `Growing fastest · ${growthYear}`, list: ends.fastest },
+                { title: `Growing slowest · ${growthYear}`, list: ends.slowest },
+              ].map((x) => (
+                <div key={x.title} className="min-w-0">
+                  <p className="text-[9px] font-mono mb-0.5" style={{ color: t.mutedText }}>
+                    {x.title}
+                  </p>
+                  {x.list.map((c) => (
+                    <p key={c.id} className="flex items-baseline justify-between gap-2 text-[10px] font-sans py-0.5">
+                      <span className="truncate font-semibold" style={{ color: t.headText }}>
+                        {c.name}
+                      </span>
+                      <span className="font-mono shrink-0" style={{ color: c.gdpGrowth >= 0 ? GREEN : RED }}>
+                        {signed(c.gdpGrowth)}%
+                      </span>
+                    </p>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+          {groups.length > 0 && (
+            <>
+              <p className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
+                By the World Bank's income groups:{" "}
+                {groups.map((g, i) => (
+                  <span key={g.label}>
+                    {i > 0 && " · "}
+                    <span className="font-mono font-bold" style={{ color: t.headText }}>
+                      {g.n}
+                    </span>{" "}
+                    {g.label.toLowerCase()}
+                  </span>
+                ))}
+                {unclassified > 0 && ` · ${unclassified} not classified`}. In the list, each member's GDP and growth are for its own latest published year
+                {ends ? `; the fastest and slowest are of the ${growing.length} with a figure for ${growthYear}` : ""}.
+              </p>
+              <SourceLink sources={INCOME_SOURCE} />
+            </>
+          )}
+        </>
+      )}
+
+      <Suspense
+        fallback={
+          <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
+            Loading the region's figures…
+          </p>
+        }
+      >
+        <RegionFigures t={t} code={r.id} name={r.name} />
+      </Suspense>
+
       {onExplorer && (
         <GoButton color="#f59e0b" onClick={onExplorer}>
           Economies explorer

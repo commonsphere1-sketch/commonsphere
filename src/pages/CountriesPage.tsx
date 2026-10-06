@@ -16854,7 +16854,7 @@ export function CountriesPage() {
         <InternationalSnapshot countries={liveCountries} />
 
         {/* ── DATA EXPLORER: the Dashboard's countries panel, on its own ── */}
-        <DataExplorer only="countries" />
+        <DataExplorer only="countries" onOpenCountry={setModalCountry} />
 
         {/* ── SEARCH + FILTER BAR ── */}
         <FilterBar

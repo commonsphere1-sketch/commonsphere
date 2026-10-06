@@ -17,8 +17,12 @@
  *
  * DataExplorer loads this lazily, when a headline's detail is first shown,
  * so a page does not carry the data it draws on before then.
+ *
+ * The country's record (CountryRecord) is also what the explorer's Countries
+ * tab shows under a country's headline figures - there in full, with every
+ * topic's figures and its people, health, schooling and public services.
  */
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ArrowSquareOut } from "@phosphor-icons/react";
 import { supabase } from "../lib/supabase";
@@ -31,6 +35,7 @@ import { BUDGET_DIVISIONS, BUDGET_SOURCE, COUNTRY_BUDGET, type BudgetDivision } 
 import { MILITARY_MEASURED, MILITARY_SOURCES, type MilitaryFigure } from "../data/militarySpending";
 import { COUNTRY_ENERGY, ENERGY_SOURCE } from "../data/countryEnergy";
 import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES } from "../data/worldview";
+import { PUBLIC_SERVICES, PUBLIC_SERVICE_SOURCES } from "../data/publicServices";
 import { ALLIANCES, ALLIANCES_CHECKED, HUMAN_RIGHTS_CHECKED, type AllianceKind } from "../data/alliances";
 import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
 import { STATE_ENERGY, STATE_ENERGY_SOURCE, STATE_ENERGY_YEAR } from "../data/stateEnergy";
@@ -46,6 +51,8 @@ export type TopicHit = { label: string; color: string; words: string[] };
 
 /** The Policies colour: the one accent for this pane's marks. */
 const ACCENT = "#a855f7";
+/** The accent of the pane a record is shown in: the Policies colour unless the pane gives its own. */
+const Accent = createContext(ACCENT);
 const DAY = 86_400_000;
 
 const signed = (v: number, dp = 1) => `${v > 0 ? "+" : ""}${v.toFixed(dp)}`;
@@ -121,6 +128,7 @@ type Bar = { key: string; label: string; value: number; text: string; strong?: b
 
 /** Shares as bars on one scale, the largest filling the track. */
 function Bars({ t, rows }: { t: Tokens; rows: Bar[] }) {
+  const accent = useContext(Accent);
   const top = Math.max(0, ...rows.map((r) => r.value));
   return (
     <div className="flex flex-col gap-1.5">
@@ -130,7 +138,7 @@ function Bars({ t, rows }: { t: Tokens; rows: Bar[] }) {
             {r.label}
           </span>
           <span className="w-20 h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }}>
-            <span className="block h-full rounded-full" style={{ width: `${top > 0 ? (100 * r.value) / top : 0}%`, background: ACCENT, opacity: r.strong ? 1 : 0.55 }} />
+            <span className="block h-full rounded-full" style={{ width: `${top > 0 ? (100 * r.value) / top : 0}%`, background: accent, opacity: r.strong ? 1 : 0.55 }} />
           </span>
           <span className={`text-[10px] font-mono w-11 text-right shrink-0 ${r.strong ? "font-bold" : ""}`} style={{ color: r.strong ? t.headText : t.mutedText }}>
             {r.text}
@@ -162,12 +170,13 @@ function BlockView({ t, b }: { t: Tokens; b: Block }) {
 }
 
 function ProfileButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
+  const accent = useContext(Accent);
   return (
     <button
       type="button"
       onClick={onClick}
       className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl text-[11px] font-bold transition-opacity hover:opacity-80 cursor-pointer"
-      style={{ background: ACCENT + "18", color: ACCENT, border: `1px solid ${ACCENT}25` }}
+      style={{ background: accent + "18", color: accent, border: `1px solid ${accent}25` }}
     >
       {children} <ArrowRight size={11} weight="bold" />
     </button>
@@ -285,10 +294,107 @@ function countryBlocks(c: Country, topics: string[]): Block[] {
   return out;
 }
 
-function CountryRecord({ t, c, topics }: { t: Tokens; c: Country; topics: string[] }) {
+/** A country's people, health, schooling and public services: the sections its record has in full. */
+function peopleBlocks(c: Country): Block[] {
+  const p = COUNTRY_PANELS[c.id] ?? {};
+  const out: Block[] = [];
+  const block = (key: string, title: string, note?: string) => {
+    const b: Block = { key, title, note, figs: [], sources: [] };
+    return {
+      b,
+      add: (f: (typeof p)[keyof typeof p], label: string, value: (v: number) => string, sub = "") => {
+        if (!f) return;
+        b.figs.push({ label, value: value(f.v), sub: [sub, f.y].filter(Boolean).join(" · ") });
+        b.sources.push(panelSource(f));
+      },
+    };
+  };
+
+  const people = block("people", `People in ${the(c.name)}`);
+  people.add(p.medianAge, "Median age", (v) => `${v}`, "years");
+  people.add(p.urbanPct, "Living in cities and towns", (v) => `${v}%`);
+  if (p.lifeExpMale && p.lifeExpFemale && p.lifeExpMale.y === p.lifeExpFemale.y) {
+    people.b.figs.push({ label: "Life expectancy: men · women", value: `${p.lifeExpMale.v} · ${p.lifeExpFemale.v}`, sub: `years at birth · ${p.lifeExpMale.y}` });
+    people.b.sources.push(panelSource(p.lifeExpMale));
+  }
+  if (p.birthRate && p.deathRate && p.birthRate.y === p.deathRate.y) {
+    people.b.figs.push({ label: "Births · deaths", value: `${p.birthRate.v} · ${p.deathRate.v}`, sub: `per 1,000 people · ${p.birthRate.y}` });
+    people.b.sources.push(panelSource(p.birthRate));
+  }
+  // The three ages of a population, where all three are for one year: they are shares of one total.
+  if (p.age0to14 && p.age15to64 && p.age65up && p.age0to14.y === p.age15to64.y && p.age15to64.y === p.age65up.y) {
+    people.b.bars = {
+      caption: `Its people by age, ${p.age0to14.y}`,
+      rows: [
+        { key: "young", label: "Under 15", value: p.age0to14.v, text: `${p.age0to14.v}%` },
+        { key: "working", label: "15 to 64", value: p.age15to64.v, text: `${p.age15to64.v}%` },
+        { key: "old", label: "65 and over", value: p.age65up.v, text: `${p.age65up.v}%` },
+      ],
+    };
+    people.b.sources.push(panelSource(p.age0to14));
+  }
+  if (people.b.figs.length || people.b.bars) out.push(people.b);
+
+  const living = block("living", "Health and living standards");
+  living.add(p.physicians, "Physicians", (v) => `${v}`, "per 1,000 people");
+  living.add(p.hospitalBeds, "Hospital beds", (v) => `${v}`, "per 1,000 people");
+  living.add(p.maternalMortality, "Mothers dying in childbirth", (v) => `${v}`, "per 100,000 live births");
+  living.add(p.safeWater, "Safely managed drinking water", (v) => `${v}%`, "of people");
+  living.add(p.povertyNationalPct, "Below the national poverty line", (v) => `${v}%`, "of people");
+  living.add(p.gini, "Income inequality (Gini)", (v) => `${v}`, "0 equal, 100 unequal");
+  if (living.b.figs.length) out.push(living.b);
+
+  const school = block("school", "Schooling");
+  school.add(p.schoolingYears, "Years of schooling", (v) => `${v}`, "average, adults 25 and over");
+  school.add(p.literacy, "Adults who can read and write", (v) => `${v}%`);
+  school.add(p.upperSecondaryPct, "Finished upper secondary", (v) => `${v}%`, "of adults 25 and over");
+  school.add(p.bachelorsPct, "Hold a bachelor's degree", (v) => `${v}%`, "of adults 25 and over");
+  if (school.b.figs.length) out.push(school.b);
+
+  // What the law and public insurance give: free schooling (UNESCO), health cover (OECD), and what care costs at the point of use (WHO).
+  const ps = PUBLIC_SERVICES[c.code];
+  if (ps) {
+    const services: Block = { key: "services", title: "Public services", note: "Free schooling is what the law guarantees, not what families pay in practice. The OECD reports health cover for its members and partners only.", figs: [], sources: [] };
+    if (ps.freeSchool) {
+      services.figs.push({ label: "Free schooling in law", value: `${ps.freeSchool.years} year${ps.freeSchool.years === 1 ? "" : "s"}`, sub: `primary and secondary · ${ps.freeSchool.year}` });
+      services.sources.push(PUBLIC_SERVICE_SOURCES.school);
+    }
+    if (ps.healthCover) {
+      services.figs.push({ label: "Public health insurance", value: `${ps.healthCover.pct}%`, sub: `of people covered · ${ps.healthCover.year}` });
+      services.sources.push(PUBLIC_SERVICE_SOURCES.health);
+    }
+    if (ps.outOfPocket) {
+      services.figs.push({ label: "Health care paid out of pocket", value: `${ps.outOfPocket.pct}%`, sub: `of all health spending · ${ps.outOfPocket.year}` });
+      services.sources.push(PUBLIC_SERVICE_SOURCES.pocket);
+    }
+    if (services.figs.length) out.push(services);
+  }
+  return out;
+}
+
+export function CountryRecord({
+  t,
+  c,
+  topics,
+  accent = ACCENT,
+  full = false,
+  onProfile,
+}: {
+  t: Tokens;
+  c: Country;
+  /** The topics to give figures for: a headline's own, or all of them. */
+  topics: string[];
+  /** The colour of the record's marks: that of the pane it is in. */
+  accent?: string;
+  /** The whole record: its people, health, schooling and public services as well, and no economy tiles, which the pane has above. */
+  full?: boolean;
+  /** Opens the country's full profile. Left out, the button goes to the Countries page and opens it there. */
+  onProfile?: () => void;
+}) {
   const navigate = useNavigate();
   const p = COUNTRY_PANELS[c.id] ?? {};
   const blocks = countryBlocks(c, topics);
+  const more = full ? peopleBlocks(c) : [];
 
   // Rights and representation.
   const fh = COUNTRY_FIGURES.freedom[c.code];
@@ -317,7 +423,8 @@ function CountryRecord({ t, c, topics }: { t: Tokens; c: Country; topics: string
   // A function reported as zero is left out of the bars and named instead, as the Economies page leaves it out of its pie:
   // the figure does not say whether nothing is spent or the spending is filed under another function.
   const budget = COUNTRY_BUDGET[c.code];
-  const marked = new Set(topics.map((x) => TOPIC_FUNCTION[x]).filter((id) => id && budget && budget.shares[id] > 0));
+  // Marked where the record is for a headline: in full it is for no topic more than another.
+  const marked = new Set(full ? [] : topics.map((x) => TOPIC_FUNCTION[x]).filter((id) => id && budget && budget.shares[id] > 0));
   const spending: Bar[] = budget
     ? BUDGET_DIVISIONS.filter((d) => budget.shares[d.id] > 0)
         .map((d) => ({ key: d.id, label: d.label, value: budget.shares[d.id], text: `${budget.shares[d.id].toFixed(1)}%`, strong: marked.has(d.id) }))
@@ -345,7 +452,10 @@ function CountryRecord({ t, c, topics }: { t: Tokens; c: Country; topics: string
   const blocs = ALLIANCES.filter((a) => a.members?.includes(c.code));
 
   return (
-    <>
+    <Accent.Provider value={accent}>
+      {more.map((b) => (
+        <BlockView key={b.key} t={t} b={b} />
+      ))}
       {blocks.map((b) => (
         <BlockView key={b.key} t={t} b={b} />
       ))}
@@ -379,7 +489,7 @@ function CountryRecord({ t, c, topics }: { t: Tokens; c: Country; topics: string
         </Section>
       )}
 
-      {economy.length > 0 && (
+      {!full && economy.length > 0 && (
         <Section t={t} title="Its economy">
           <Figs t={t} figs={economy} />
           <SourceLink sources={economySources} />
@@ -419,8 +529,8 @@ function CountryRecord({ t, c, topics }: { t: Tokens; c: Country; topics: string
         </Section>
       )}
 
-      <ProfileButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Full profile: {c.name}</ProfileButton>
-    </>
+      <ProfileButton onClick={onProfile ?? (() => navigate(`/dashboard/countries?open=${c.id}`))}>Full profile: {c.name}</ProfileButton>
+    </Accent.Provider>
   );
 }
 
