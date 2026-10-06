@@ -422,7 +422,7 @@ function FigureCardView({
         <div className="grid grid-cols-2 gap-2 mb-4">
           {card.figures.map((f) => (
             <div key={f.label} className="rounded-xl px-3 py-2.5" style={{ background: tile, border: `1px solid ${gridLine}` }}>
-              <p className="text-[15px] font-bold font-mono leading-tight" style={{ color: f.color }}>
+              <p className="text-[15px] font-bold font-mono leading-tight" style={{ color: headText }}>
                 {f.value}
               </p>
               <p className="text-[9px] font-sans leading-tight mt-0.5" style={{ color: mutedText }}>
@@ -444,7 +444,7 @@ function FigureCardView({
                 <div className="flex-1 h-2.5 rounded-full overflow-hidden" style={{ background: track }}>
                   <div className="h-full rounded-full" style={{ width: `${Math.min(100, (r.value / card.bars!.max) * 100)}%`, background: r.color }} />
                 </div>
-                <span className="text-[10px] font-bold font-mono text-right shrink-0 whitespace-nowrap" style={{ color: r.color }}>
+                <span className="text-[10px] font-bold font-mono text-right shrink-0 whitespace-nowrap" style={{ color: headText }}>
                   {r.display}
                 </span>
               </div>

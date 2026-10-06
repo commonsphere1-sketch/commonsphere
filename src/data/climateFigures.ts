@@ -14,7 +14,7 @@
 
 import type { Source } from "./climateContext";
 
-export type Figure = { value: string; label: string; color: string };
+export type Figure = { value: string; label: string };
 export type BarRow = { label: string; value: number; display: string; color: string };
 export type EventRow = { title: string; detail: string };
 
@@ -34,10 +34,10 @@ const DEEP_RED = "#dc2626";
 const ORANGE = "#f97316";
 const AMBER = "#f59e0b";
 const BLUE = "#3b82f6";
-const INDIGO = "#6366f1";
 const CYAN = "#06b6d4";
 const GREEN = "#22c55e";
 const EMERALD = "#10b981";
+const SLATE = "#64748b";
 
 /** NASA GISTEMP v4, annual (Jan–Dec) global means, °C against 1951–1980. */
 const GISTEMP: [string, number][] = [
@@ -59,11 +59,11 @@ export const FIGURE_CARDS: FigureCard[] = [
     kicker: "Air Quality",
     title: "Fine-particle pollution, 2025",
     figures: [
-      { value: "99.6 µg/m³", label: "New Delhi's annual PM2.5, the most polluted capital", color: DEEP_RED },
-      { value: "112.5 µg/m³", label: "Loni, India, the most polluted city", color: RED },
-      { value: "13", label: "countries within the WHO guideline", color: AMBER },
-      { value: "14%", label: "of cities within it", color: AMBER },
-      { value: "5 µg/m³", label: "WHO annual PM2.5 guideline", color: GREEN },
+      { value: "99.6 µg/m³", label: "New Delhi's annual PM2.5, the most polluted capital" },
+      { value: "112.5 µg/m³", label: "Loni, India, the most polluted city" },
+      { value: "13", label: "countries within the WHO guideline" },
+      { value: "14%", label: "of cities within it" },
+      { value: "5 µg/m³", label: "WHO annual PM2.5 guideline" },
     ],
     sources: [
       {
@@ -80,7 +80,7 @@ export const FIGURE_CARDS: FigureCard[] = [
     bars: {
       caption: "NASA GISTEMP v4, January–December mean",
       max: 1.4,
-      rows: GISTEMP.map(([y, v]) => ({ label: y, value: v, display: `+${v.toFixed(2)}°C`, color: v > 1 ? RED : v > 0.6 ? ORANGE : AMBER })),
+      rows: GISTEMP.map(([y, v]) => ({ label: y, value: v, display: `+${v.toFixed(2)}°C`, color: ORANGE })),
     },
     callout: {
       title: "2024 and 2025 are the two warmest years in NASA's record",
@@ -97,12 +97,12 @@ export const FIGURE_CARDS: FigureCard[] = [
     kicker: "Sea Level Rise",
     title: "Global mean sea level",
     figures: [
-      { value: "~10 cm", label: "risen since 1993, the satellite record", color: BLUE },
-      { value: "0.44 cm/yr", label: "long-term rate, more than double 1993's", color: RED },
-      { value: "0.08 cm", label: "rise in 2025, held back by La Niña", color: CYAN },
-      { value: "50%", label: "of the 1971–2018 rise from warming water; glaciers 22%, ice sheets 20%", color: INDIGO },
-      { value: "0.28–0.55 m", label: "likely rise by 2100 with very low emissions (SSP1-1.9)", color: AMBER },
-      { value: "0.63–1.01 m", label: "likely rise by 2100 with very high emissions (SSP5-8.5)", color: DEEP_RED },
+      { value: "~10 cm", label: "risen since 1993, the satellite record" },
+      { value: "0.44 cm/yr", label: "long-term rate, more than double 1993's" },
+      { value: "0.08 cm", label: "rise in 2025, held back by La Niña" },
+      { value: "50%", label: "of the 1971–2018 rise from warming water; glaciers 22%, ice sheets 20%" },
+      { value: "0.28–0.55 m", label: "likely rise by 2100 with very low emissions (SSP1-1.9)" },
+      { value: "0.63–1.01 m", label: "likely rise by 2100 with very high emissions (SSP5-8.5)" },
     ],
     callout: {
       title: "About 680 million people live in low-lying coastal zones",
@@ -146,12 +146,12 @@ export const FIGURE_CARDS: FigureCard[] = [
     kicker: "Deforestation",
     title: "Tropical primary forest loss, 2025",
     figures: [
-      { value: "4.3 Mha", label: "tropical primary forest lost in 2025", color: RED },
-      { value: "−36%", label: "from the record set in 2024", color: GREEN },
-      { value: "+46%", label: "above the level a decade earlier", color: ORANGE },
-      { value: "11", label: "football fields of it a minute", color: DEEP_RED },
-      { value: "−41%", label: "Brazil's non-fire loss, its lowest on record", color: GREEN },
-      { value: "5,796 km²", label: "cleared in the Legal Amazon, August 2024–July 2025", color: AMBER },
+      { value: "4.3 Mha", label: "tropical primary forest lost in 2025" },
+      { value: "−36%", label: "from the record set in 2024" },
+      { value: "+46%", label: "above the level a decade earlier" },
+      { value: "11", label: "football fields of it a minute" },
+      { value: "−41%", label: "Brazil's non-fire loss, its lowest on record" },
+      { value: "5,796 km²", label: "cleared in the Legal Amazon, August 2024–July 2025" },
     ],
     sources: [
       {
@@ -166,11 +166,11 @@ export const FIGURE_CARDS: FigureCard[] = [
     kicker: "Plastic Pollution",
     title: "Plastic made, wasted and leaked",
     figures: [
-      { value: "460 Mt", label: "plastic produced in 2019, double 2000's", color: DEEP_RED },
-      { value: "353 Mt", label: "plastic waste in 2019", color: ORANGE },
-      { value: "9%", label: "of that waste recycled", color: AMBER },
-      { value: "30 Mt", label: "accumulated in the ocean", color: BLUE },
-      { value: "109 Mt", label: "accumulated in rivers", color: INDIGO },
+      { value: "460 Mt", label: "plastic produced in 2019, double 2000's" },
+      { value: "353 Mt", label: "plastic waste in 2019" },
+      { value: "9%", label: "of that waste recycled" },
+      { value: "30 Mt", label: "accumulated in the ocean" },
+      { value: "109 Mt", label: "accumulated in rivers" },
     ],
     bars: {
       caption: "Plastic carried to the ocean by rivers, tonnes a year (Meijer et al. 2021); the Philippines' is 36% of the world's",
@@ -213,7 +213,7 @@ export const FIGURE_CARDS: FigureCard[] = [
         label: label as string,
         value: v as number,
         display: `${(v as number).toFixed(1)}%`,
-        color: label === "World" ? BLUE : (v as number) >= 80 ? EMERALD : (v as number) >= 50 ? GREEN : (v as number) >= 20 ? AMBER : RED,
+        color: label === "World" ? SLATE : EMERALD,
       })),
     },
     sources: [{ label: "Ember via Our World in Data", url: "https://ourworldindata.org/grapher/share-electricity-renewables" }],
@@ -223,9 +223,9 @@ export const FIGURE_CARDS: FigureCard[] = [
     kicker: "Extreme Weather",
     title: "Natural catastrophes, 2025, and recent disasters",
     figures: [
-      { value: "$224bn", label: "losses from natural disasters worldwide in 2025", color: DEEP_RED },
-      { value: "$108bn", label: "of them insured", color: ORANGE },
-      { value: "$53bn", label: "Los Angeles wildfires, January 2025: the year's costliest", color: RED },
+      { value: "$224bn", label: "losses from natural disasters worldwide in 2025" },
+      { value: "$108bn", label: "of them insured" },
+      { value: "$53bn", label: "Los Angeles wildfires, January 2025: the year's costliest" },
     ],
     events: [
       { title: "Canada wildfires, 2023", detail: "About 15 million hectares burned, the most in Canada's recorded history" },
@@ -244,12 +244,12 @@ export const FIGURE_CARDS: FigureCard[] = [
     kicker: "Water Stress & Access",
     title: "Freshwater security",
     figures: [
-      { value: "2.1bn", label: "people without safely managed drinking water, 2024", color: DEEP_RED },
-      { value: "3.4bn", label: "without safely managed sanitation, 2024", color: ORANGE },
-      { value: "74%", label: "with safely managed drinking water, up from 68% in 2015", color: GREEN },
-      { value: "~4bn", label: "people facing high water stress at least a month a year", color: RED },
-      { value: "25", label: "countries, home to a quarter of humanity, under extremely high water stress", color: AMBER },
-      { value: "70%", label: "of freshwater use goes to food systems", color: BLUE },
+      { value: "2.1bn", label: "people without safely managed drinking water, 2024" },
+      { value: "3.4bn", label: "without safely managed sanitation, 2024" },
+      { value: "74%", label: "with safely managed drinking water, up from 68% in 2015" },
+      { value: "~4bn", label: "people facing high water stress at least a month a year" },
+      { value: "25", label: "countries, home to a quarter of humanity, under extremely high water stress" },
+      { value: "70%", label: "of freshwater use goes to food systems" },
     ],
     callout: {
       title: "The most water-stressed: Bahrain, Cyprus, Kuwait, Lebanon and Oman",
@@ -285,7 +285,7 @@ export const FIGURE_CARDS: FigureCard[] = [
         label: label as string,
         value: v as number,
         display: `${(v as number).toFixed(2)} Gt · ${share}%`,
-        color: (v as number) > 3 ? RED : (v as number) > 1 ? ORANGE : AMBER,
+        color: ORANGE,
       })),
     },
     callout: {
@@ -303,11 +303,11 @@ export const FIGURE_CARDS: FigureCard[] = [
     kicker: "Biodiversity",
     title: "Species and wildlife populations",
     figures: [
-      { value: "49,500+", label: "species threatened with extinction", color: DEEP_RED },
-      { value: "28%", label: "of all species assessed", color: RED },
-      { value: "−73%", label: "average decline in monitored wildlife populations, 1970–2020", color: RED },
-      { value: "−85%", label: "freshwater populations", color: BLUE },
-      { value: "−95%", label: "Latin America and the Caribbean", color: ORANGE },
+      { value: "49,500+", label: "species threatened with extinction" },
+      { value: "28%", label: "of all species assessed" },
+      { value: "−73%", label: "average decline in monitored wildlife populations, 1970–2020" },
+      { value: "−85%", label: "freshwater populations" },
+      { value: "−95%", label: "Latin America and the Caribbean" },
     ],
     bars: {
       caption: "Share of assessed species threatened, IUCN Red List",
@@ -321,7 +321,7 @@ export const FIGURE_CARDS: FigureCard[] = [
         ["Mammals", 26],
         ["Reptiles", 21],
         ["Birds", 11],
-      ].map(([label, v]) => ({ label: label as string, value: v as number, display: `${v}%`, color: (v as number) >= 40 ? RED : (v as number) >= 25 ? ORANGE : AMBER })),
+      ].map(([label, v]) => ({ label: label as string, value: v as number, display: `${v}%`, color: ORANGE })),
     },
     sources: [
       { label: "IUCN Red List (2026-1)", url: "https://www.iucnredlist.org/" },
@@ -333,12 +333,12 @@ export const FIGURE_CARDS: FigureCard[] = [
     kicker: "Soil & Food Security",
     title: "Land degradation and hunger",
     figures: [
-      { value: "673M", label: "people facing hunger in 2024", color: RED },
-      { value: "8.2%", label: "of the world, down from 8.5% in 2023", color: AMBER },
-      { value: "2.3bn", label: "moderately or severely food insecure", color: ORANGE },
-      { value: "307M", label: "hungry in Africa, more than 20% of its people", color: DEEP_RED },
-      { value: "Up to 40%", label: "of the world's land degraded", color: "#a16207" },
-      { value: "$44tn", label: "of economic output, half the world's, at risk from it", color: "#b45309" },
+      { value: "673M", label: "people facing hunger in 2024" },
+      { value: "8.2%", label: "of the world, down from 8.5% in 2023" },
+      { value: "2.3bn", label: "moderately or severely food insecure" },
+      { value: "307M", label: "hungry in Africa, more than 20% of its people" },
+      { value: "Up to 40%", label: "of the world's land degraded" },
+      { value: "$44tn", label: "of economic output, half the world's, at risk from it" },
     ],
     sources: [
       { label: "FAO et al., State of Food Security and Nutrition 2025", url: "https://www.fao.org/newsroom/detail/global-hunger-declines--but-rises-in-africa-and-western-asia--un-report/en" },

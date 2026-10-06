@@ -15,8 +15,6 @@ import {
   Warning,
   CheckCircle,
   XCircle,
-  CaretDown,
-  CaretUp,
   Flag,
   Buildings,
   Handshake,
@@ -89,8 +87,6 @@ interface Leader {
   }[];
   achievements: string[];
   politicalViews: string;
-  approvalRating: number | null;
-  approvalTrend: "up" | "down" | "stable";
   status: Status;
   impact: string;
   region: string;
@@ -165,8 +161,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Economic nationalist, pro-tariff, anti-immigration, sceptical of multilateral institutions. America First foreign policy. Strong evangelical Christian base. Challenges mainstream media narratives.",
-    approvalRating: 44,
-    approvalTrend: "up",
     status: "In Office",
     impact:
       "Redefined Republican politics around populist nationalism. Two presidency arc makes him one of the most consequential and polarising modern US leaders.",
@@ -238,8 +232,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Marxist-Leninist with Chinese characteristics. Advocates CCP supremacy, national rejuvenation ('Chinese Dream'), reunification with Taiwan, and multipolarity against US hegemony.",
-    approvalRating: 80,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Transformed China into a global superpower challenger. His tenure defines a new era of US–China competition and reshapes global trade, technology, and security structures.",
@@ -313,8 +305,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Sovereign democracy, Russian nationalism, Orthodox Christianity as cultural pillar. Anti-NATO expansion, Pan-Slavic interest sphere, multipolar world order opposing US unipolarity.",
-    approvalRating: 83,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Reshaped Europe's security architecture through Ukraine invasion. Faces unprecedented Western sanctions while pivoting Russia toward China and the Global South.",
@@ -385,8 +375,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Hindu nationalism (Hindutva), economic liberalisation, strong military posture toward Pakistan/China. Advocates India as a Vishwaguru (world leader). Non-aligned but pro-West tech ties.",
-    approvalRating: 62,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Positioned India as indispensable swing state in global geopolitics. Balances ties with US, Russia, and China while pushing India's emergence as a major manufacturing and tech hub.",
@@ -457,8 +445,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pro-European federalism, liberal economics, secular republicanism (laïcité). Advocates EU strategic autonomy from both US and China. Supports nuclear energy as climate tool.",
-    approvalRating: 26,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Has kept France central to EU decision-making and Ukraine war response, but faces serious domestic political fragmentation after losing his parliamentary majority.",
@@ -530,8 +516,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Social democratic centre-left. Pro-European, cautious on military deployments, welfare-state defence, strong workers' rights, gradual green transition. More sceptical of deep defence commitments than allies.",
-    approvalRating: 20,
-    approvalTrend: "down",
     status: "Former",
     impact:
       "Guided Germany through its most difficult energy and security crisis since WWII, though rising far-right support and coalition collapse mark a troubled domestic legacy.",
@@ -602,8 +586,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Traditional fiscal conservative. Pro-free trade, low tax, deregulation. Strong on national security. More interventionist than Thatcher on energy/tech industrial policy.",
-    approvalRating: 22,
-    approvalTrend: "down",
     status: "Former",
     impact:
       "Cut short by historic 2024 Labour landslide. Legacy includes Windsor Framework and CPTPP but overshadowed by perception of broken promises on tax and NHS.",
@@ -665,8 +647,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-left pragmatist. Pro-European cooperation without re-joining EU. Climate mission, NHS investment, workers' rights, national wealth fund. Hawkish on crime; international rules-based order.",
-    approvalRating: 28,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Early approval rating declines despite large majority. Ambitious domestic agenda faces headwinds from inherited fiscal constraints and public discontent with pace of change.",
@@ -732,8 +712,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pro-European, pro-NATO integration. Anti-corruption reformer. Democratic values, rule of law, wartime nationalism. Pragmatic — willing to make territorial concessions for peace if security guarantees met.",
-    approvalRating: 57,
-    approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
       "Transformed from comedian-politician to global symbol of democratic resistance. His leadership has kept Ukraine in the fight but at extraordinary human cost.",
@@ -795,8 +773,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Absolute monarchist moderniser — social liberalisation domestically, but zero political opposition tolerated. Pro-business, anti-Iran, increasingly independent of US alignment. Leads OPEC+ oil strategy.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Transformed Saudi society at breakneck speed while eliminating political rivals. His leadership will define the post-oil transition era for the world's most important energy exporter.",
@@ -864,8 +840,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Democratic socialist. Pro-poor economic redistribution, environmental protection, South–South cooperation, multilateralism. Sceptical of US foreign policy; close ties with China and Arab states.",
-    approvalRating: 45,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "One of the most remarkable political comebacks in history. Leading a reinvigorated Brazil as a voice of the Global South at G20 and climate diplomacy forums.",
@@ -936,8 +910,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Juche (self-reliance ideology), Songun (military-first), hereditary totalitarianism. Absolute rejection of regime change or nuclear disarmament. Now aligns more openly with Russia and China.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Has brought North Korea closer to credible nuclear deterrent than any predecessor. The 2025 Russia–DPRK military axis marks a dangerous geopolitical shift.",
@@ -1008,8 +980,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Right-wing Zionist nationalist. Opposes Palestinian state. Pro-US alliance but independent actor. Hawk on Iran, pro-settlements, sceptical of any territorial compromise.",
-    approvalRating: 32,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Longest-serving Israeli PM whose legacy is permanently shaped by the Oct 7 failure and the subsequent Gaza war — and its profound regional consequences.",
@@ -1079,8 +1049,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative Islamic populism, Turkish nationalism, Neo-Ottomanism foreign policy. Uses NATO membership as leverage. Opposes Kurdish autonomy strongly. Pragmatic player between US, Russia, China.",
-    approvalRating: 43,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Transformed Turkey from a secular Kemalist state toward Islamic conservatism while leveraging strategic geography to make Turkey a key mediator in global conflicts.",
@@ -1140,8 +1108,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "National conservative, pro-family, anti-immigration, sovereignty-focused. Evolved from Eurosceptic to pragmatic EU partner. Hawkish on China, supportive of NATO and US alliance under Trump.",
-    approvalRating: 48,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Defied expectations of populist chaos, delivering stable governance while reshaping Italy's role in EU migration policy and positioning Rome as a key Washington ally.",
@@ -1207,8 +1173,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-left, pro-social welfare, nationalist on energy (state-owned Pemex and CFE), climate-conscious. Continuity with AMLO's Morena agenda but with more technocratic approach.",
-    approvalRating: 71,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Historic presidency reshaping Mexico's identity. Faces the tightest US–Mexico relationship since NAFTA as she navigates Trump's trade and immigration pressures.",
@@ -1275,8 +1239,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-left social democrat. Pro-climate action, pro-AUKUS alliance, pro-Indigenous recognition. Multilateralist — pushes Australia's middle-power role in Indo-Pacific while balancing US and China.",
-    approvalRating: 49,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Reshaped Australia's foreign policy by repairing China relations while deepening AUKUS defence ties. Domestic legacy mixed after failed Voice referendum.",
@@ -1341,8 +1303,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pan-African, non-aligned foreign policy. Social democratic economics — supports land reform without Zimbabwe-style expropriation. Pro-BRICS, pro-African Union, cautious on Ukraine war alignment.",
-    approvalRating: 41,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Navigated South Africa's most significant political transition since Mandela, forming the first GNU in 30 years after the ANC's historic loss of its parliamentary majority.",
@@ -1406,8 +1366,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Business-friendly conservative, pro-China CPEC investment, cautious on India relations. Pragmatic — willing to work with military establishment. Fiscal tightening under IMF conditionality.",
-    approvalRating: 29,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Governing a deeply fractured Pakistan under IMF austerity with Imran Khan jailed and the military as kingmaker. The 2025 India–Pakistan crisis defines his most dangerous moment in office.",
@@ -1479,8 +1437,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Anarcho-capitalist libertarian. Abolish central bank, dollarise economy, slash state to minimum, privatise public companies. Anti-socialist, anti-feminist, climate sceptic. Aligns with Trump and Israel. Quotes Mises and Hayek obsessively.",
-    approvalRating: 52,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Most radical economic experiment in modern Latin American history. If successful, becomes a global proof-of-concept for hard libertarian austerity. If it fails, Argentina risks another debt collapse.",
@@ -1550,8 +1506,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-left liberal, pro-multilateral institutions, strong climate finance advocate. Balances free trade with industrial policy. Determined to maintain Canadian economic independence from US pressure.",
-    approvalRating: 48,
-    approvalTrend: "up",
     status: "In Office",
     impact:
       "Taking power at the most fraught moment in Canada–US relations since NAFTA negotiations. His central bank credibility is his greatest asset in managing Trump's trade war.",
@@ -1607,8 +1561,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative nationalist, strong US alliance advocate but also interested in an Asian NATO concept. Pro-defence spending increase. Willing to break from LDP taboos — has discussed nuclear sharing debate openly.",
-    approvalRating: 35,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Leads Japan through its most significant military expansion since WWII while navigating coalition politics after losing the LDP's lower house majority.",
@@ -1683,8 +1635,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-left social democratic, pro-European federalism, progressive social agenda. Supports Palestinian statehood, climate action, expanded welfare state. Politically flexible — willing to make deals with separatists and radical left to stay in power.",
-    approvalRating: 37,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Master of political survival who has kept power through a patchwork of unlikely alliances. Spain's economy is Europe's growth outperformer under his tenure, even as institutional trust erodes.",
@@ -1751,8 +1701,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Populist authoritarian technocrat. Pro-Bitcoin and crypto-innovation, iron-fist anti-crime, dismissive of judicial independence and press freedom. Positions himself as outside left–right spectrum. Anti-gang absolutist.",
-    approvalRating: 91,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Created the most dramatic crime reduction in modern Latin American history. Became a model debated worldwide — balancing extraordinary public safety gains against documented mass arbitrary detention and suppressed civil liberties.",
@@ -1824,8 +1772,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Nationalist, pro-military, Indonesian sovereignty first. Maintains Jokowi's economic development model. Non-aligned between US and China — strategic autonomy as ASEAN's largest economy. Strong state role in economy.",
-    approvalRating: 74,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Leads the world's third-largest democracy and largest Muslim-majority nation. His military background and contested past make him a complex figure as Indonesia navigates US–China competition in Southeast Asia.",
@@ -1896,8 +1842,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Reformist moderate within Iran's clerical system. Advocates diplomatic engagement over confrontation, economic normalisation through nuclear deal, relaxed social restrictions domestically. Operates within boundaries set by Supreme Leader Khamenei.",
-    approvalRating: 44,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Represents Iran's best opening for nuclear diplomacy in a decade, but operates under hard constraints from Supreme Leader Khamenei, the IRGC, and hardliner-dominated institutions.",
@@ -1970,8 +1914,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Technocratic centrist conservative. Prioritises trade liberalisation, US alliance, and South Korea's export-driven economic model. Non-partisan in style; pragmatic in governance. Cautious on North Korea engagement.",
-    approvalRating: 38,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "An accidental president thrust into power by constitutional crisis. His steady-hand caretaker governance prevented South Korea's political meltdown from becoming an economic one.",
@@ -2039,8 +1981,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pro-European liberal democrat. Strong Atlanticist — champions NATO as cornerstone of Polish security. Democratic rule of law restoration after PiS erosion. Cautious on Russia, hawkish on Ukraine support. Centrist economics.",
-    approvalRating: 44,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "One of Europe's most consequential political comebacks — returning to dismantle a decade of populist institutional capture and reassert Poland as a core EU and NATO pillar.",
@@ -2108,8 +2048,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Bolivarian socialist. Anti-US imperialism, pro-ALBA regional bloc, state control of economy and PDVSA oil. Maintains Chávez's cult of personality as legitimising device. Deep ties to Cuba's security establishment.",
-    approvalRating: 21,
-    approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
       "Presided over the largest economic collapse in Latin American history outside wartime — GDP fell 80%, 7.7M fled the country. Survival through repression despite international isolation is his most remarkable 'achievement'.",
@@ -2181,8 +2119,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Absolute monarchy pragmatist. Pro-Western security alignment but increasingly independent from US direction. Anti-Islamist (Muslim Brotherhood considered terrorist organisation in UAE). Pro-business liberalisation, zero tolerance for political opposition. Plays all sides — US, China, Russia — for maximum leverage.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Transformed a federation of desert sheikhdoms into one of the world's most influential small states. UAE punch exceeds its size dramatically in finance, diplomacy, military, and AI investment under his leadership.",
@@ -2241,8 +2177,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "ZANU-PF nationalism, resource sovereigntism, Look East (China) policy. Promises 'Zimbabwe is Open for Business' but maintains authoritarian political control. Land redistribution legacy of Mugabe era preserved.",
-    approvalRating: 28,
-    approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
       "Failed to deliver promised break from Mugabe-era governance. Zimbabwe remains in economic crisis with high unemployment and political repression, though international isolation has slightly eased.",
@@ -2313,8 +2247,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Development-first authoritarianism. Pan-African, Chinese development model admirer. Ruthlessly anti-corruption domestically. Aggressive defender of Rwandan interests internationally — including targeted operations abroad.",
-    approvalRating: 93,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "One of Africa's most debated leaders — remarkable development record built on suppression of political opposition and alleged extraterritorial assassinations of dissidents. The Rwanda paradox defines African development discourse.",
@@ -2380,8 +2312,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative pragmatist, pro-market reforms, federalist. Strong South-West Yoruba political base. Pro-business Lagos model applied nationally. Non-ideological — focuses on practical economic governance and political coalition-building.",
-    approvalRating: 24,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Leading Africa's most populous nation through painful economic reforms. Fuel subsidy removal and naira float are structurally necessary but have caused severe short-term hardship for ordinary Nigerians.",
@@ -2455,8 +2385,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pan-Ethiopian nationalist, Prosperity Party unity ideology (replacing ethnic federalism). Medemer (synergy) philosophy. Pro-development, pro-foreign investment. Authoritarian consolidation masked by reformist early image.",
-    approvalRating: 35,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Nobel Peace Prize winner who then prosecuted one of Africa's bloodiest civil wars. His contradictory record — diplomacy peace and domestic war — defines the tragedy of Ethiopia's post-2020 trajectory.",
@@ -2529,8 +2457,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Military nationalism, secular authoritarianism, anti-Islamism. Anti-Iran, anti-Muslim Brotherhood. Balances US military aid with Russian nuclear deal and Gulf funding. Maintains Egypt's pivotal role as Arab world mediator.",
-    approvalRating: 50,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Built Egypt's largest infrastructure programme in modern history while jailing 60,000+ political prisoners. Egypt teeters on economic default under his rule, sustained only by Gulf and IMF bailouts.",
@@ -2596,8 +2522,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Social entrepreneur, poverty reduction through market mechanisms. Pro-democratic governance reform, anti-corruption. Non-partisan reformist. Advocates 'social business' model globally. Internationally respected.",
-    approvalRating: 62,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Global icon of poverty alleviation who became an accidental head of state. His leadership of Bangladesh's fragile transition is defining the country's post-authoritarian political future.",
@@ -2659,8 +2583,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Democratic socialist, strong anti-corruption mandate. Continuing IMF programme despite socialist roots — pragmatic governance. Pro-multilateral, non-aligned between India and China. Ethnic reconciliation with Tamil community.",
-    approvalRating: 69,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Historic mandate reflecting Sri Lanka's rejection of corrupt elite politics after the 2022 economic collapse. Leading the country's most consequential political transition in decades.",
@@ -2721,8 +2643,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative nationalist, strong US alliance pivot after Duterte's China tilt. Defends Philippine sovereignty against China in South China Sea. Pro-foreign investment, agriculture modernisation. Avoids confronting father's martial law legacy.",
-    approvalRating: 48,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Repositioned Philippines dramatically toward the US, making it a centerpiece of Washington's Indo-Pacific strategy — but faces domestic political turbulence from his Duterte alliance collapse.",
@@ -2784,8 +2704,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Populist centre — flagship free money stimulus, rural welfare. Continuity of Thaksin's pro-rural, pro-poor policy line. Needs to maintain balance with military establishment that ousted her family twice.",
-    approvalRating: 42,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Represents the resilience of the Shinawatra political brand in Thailand. Faces the same structural tension between elected populist governments and the Thai military-judicial establishment that toppled her predecessors.",
@@ -2846,8 +2764,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Islamic democratic, social justice advocate, pro-reform. Committed to multiracial Malaysia under rule of law. Pragmatic foreign policy — balances US and China. Anti-corruption as core mandate.",
-    approvalRating: 50,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "One of the great political perseverance stories in Asian democracy. Faces the paradox of needing to satisfy both reform expectations and the conservative Malay establishment that defines Malaysian politics.",
@@ -2911,8 +2827,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Constitutional monarchy — non-political role. Personally vocal on climate change and environmental protection. Denmark's constitutional monarch acts on advice of elected government.",
-    approvalRating: 82,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "New constitutional monarch at a time when Greenland's sovereignty is being tested by Trump's acquisition threats. Royal diplomacy and positioning of Denmark's Arctic interests is newly significant.",
@@ -2973,8 +2887,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative, pro-NATO, market liberal economics. Tough on crime/immigration. Pro-EU but sceptical of European fiscal union. Strong Ukraine support. Maintains Sweden's traditionally high social welfare model.",
-    approvalRating: 42,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Redefined Sweden's strategic identity by joining NATO. Governing a society in tension — wealthy, liberal, but experiencing serious gang violence that has no European precedent in scale.",
@@ -3037,8 +2949,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative, NATO hawk given 1,300km Russia border, fiscal austerity to reduce Finland's deficit. Pro-EU, pro-Ukraine, strong rule of law. Coalition with nationalist Finns Party creates ideological tensions.",
-    approvalRating: 40,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Governs NATO's most exposed flank — Finland's 1,300km Russia border gives him heightened security stakes. Fiscal austerity programme is politically contentious in a Nordic welfare state.",
@@ -3107,8 +3017,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Velayat-e Faqih (Guardianship of the Islamic Jurist) — theocratic supreme authority. Anti-US imperialism, anti-Zionism, pan-Islamic revolutionary ideology. Domestically suppresses all opposition. Strategically patient adversary to Western pressure.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "The most consequential figure in Middle Eastern geopolitics after MBS. His direction of the Axis of Resistance has defined regional conflict for a generation. Iran's nuclear programme under his watch has reached threshold status.",
@@ -3176,8 +3084,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Military institutionalist — Lebanese sovereignty, armed forces supremacy, Hezbollah disarmament goal. Works with West and Saudi Arabia. Pro-reform and reconstruction.",
-    approvalRating: 58,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Represents Lebanon's best opportunity for reform and sovereignty restoration since the Taif Agreement. His success depends on whether post-Hezbollah political realignment holds.",
@@ -3240,8 +3146,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Evolved from jihadi ideology to pragmatic Syrian nationalist. Promises inclusive transitional governance. Pro-Turkey, seeking Western recognition and sanctions relief. Projects moderation while maintaining Islamist base.",
-    approvalRating: 54,
-    approvalTrend: "stable",
     status: "Transitional",
     impact:
       "The most dramatic leadership transition in Middle Eastern history in a decade. His ability to consolidate Syria's transition and prevent new civil war will define the region for years.",
@@ -3303,8 +3207,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Kurdish nationalist, pro-Western security ties, pro-Israel informally. Economic liberalism in KRG. Balances Baghdad autonomy demands with Ankara's anti-PKK operations in KRG territory.",
-    approvalRating: 51,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Holds together one of the Middle East's most stable and pro-Western entities amid ISIS legacy, Iranian pressure, Turkish military operations, and Baghdad political negotiations.",
@@ -3366,8 +3268,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Democratic socialist, anti-extractivism (no new oil licences), peace process advocate. Environmental justice, land reform, universal healthcare. Foreign policy — non-aligned, Latin American integration, pro-Global South voice.",
-    approvalRating: 37,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Historic figure whose peace agenda has struggled against armed groups' continued violence. His anti-oil position threatens Colombia's fiscal base; progressive agenda faces implementation barriers in a conservative congress.",
@@ -3430,8 +3330,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pragmatic centrist — moved from left (Free Peru) to business-friendly governance. Pro-foreign investment, anti-Castillo, pro-stability. Faces criminal investigation for protest deaths. Maintains relations with neighbours.",
-    approvalRating: 10,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Symbol of Peru's chronic political dysfunction — the country's 6th president in 7 years. Governs with rock-bottom approval amid congressional blockage and ongoing criminal investigations.",
@@ -3498,8 +3396,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Right-wing security hawk, pro-US, pro-business. Declared internal armed conflict — unprecedented in Ecuador. Tough on crime, capital punishment advocate. Opposes socialism in region.",
-    approvalRating: 65,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Transformed Ecuador's political narrative from fragile stability to active wartime anti-cartel president. His iron-fist approach has shown results in some cities but at significant human rights concerns.",
@@ -3565,8 +3461,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative, pro-business, US-aligned. Bottom-up economics messaging versus austerity reality. Strong military cooperation with West. Anti-corruption rhetoric vs patronage network realities.",
-    approvalRating: 27,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "His dramatic climbdown on the Finance Bill under protest pressure marks the most significant youth-led accountability moment in sub-Saharan Africa in a generation.",
@@ -3633,8 +3527,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Anti-French, anti-ECOWAS, pro-Russia military partnership. Pan-Africanism as cover for authoritarian consolidation. No democratic transition timeline despite promises.",
-    approvalRating: 48,
-    approvalTrend: "stable",
     status: "Transitional",
     impact:
       "Epitomises the Sahel's anti-French coup wave. Mali's security situation has worsened under Wagner support, with jihadist control expanding. His Russia pivot is part of a geopolitical realignment of West Africa away from the West.",
@@ -3693,8 +3585,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pan-Africanist, anti-imperialist, pro-Russia security partnership. Frames governance as resistance to Western neo-colonialism. No transition timeline.",
-    approvalRating: null,
-    approvalTrend: "down",
     status: "Transitional",
     impact:
       "Burkina Faso's security situation dramatically worsened under his rule — 40% of territory effectively outside state control. His social media popularity among African youth exceeds his governance reality.",
@@ -3762,8 +3652,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Communist developmentalism, pragmatic economic engagement. Bamboo diplomacy — bends but doesn't break, tilts with all partners. South China Sea disputes managed through ASEAN and bilateral channels without direct confrontation.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Oversees Vietnam's emergence as a key manufacturing alternative to China and one of SE Asia's most important growth stories — while maintaining one-party communist governance.",
@@ -3831,8 +3719,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "CPP one-party state continuation, Cambodia-China deep alignment, pro-Chinese BRI investment. Formally maintains ASEAN non-alignment. Authoritarian governance under technocratic appearance. No political opposition tolerated.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Represents Southeast Asia's most explicit authoritarian dynastic transition. Cambodia's scam compound crisis and Chinese military base are defining him as a security concern for the region.",
@@ -3904,8 +3790,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "PAP technocratic governance — meritocracy, social order, long-term economic planning. Pragmatic balance between US and China. Singapore as indispensable neutral hub in great power competition.",
-    approvalRating: 72,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Inherits Singapore's most difficult geopolitical moment — navigating between US and China in an era of decoupling. His competence-first image gives Singapore strong soft power in a turbulent world.",
@@ -3972,8 +3856,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pro-China pivot, Maldivian sovereignty, Islamic identity politics. Opposes Indian military presence. Sees China as development partner over India's regional hegemony. Climate vulnerability — sea level rise existential issue.",
-    approvalRating: 46,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Maldives' China pivot is a symbolic and strategic blow to India's Indian Ocean dominance. His country's existential vulnerability to climate change gives him unusual global leverage on environmental issues.",
@@ -4039,8 +3921,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centrist, pro-EU, pro-UN settlement of Cyprus dispute. Close Israel ties but Gaza aid balancing. Russia legacy (offshore banking) being regulated. Eastern Mediterranean gas exploration advocate.",
-    approvalRating: 54,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Governed Cyprus through the most geopolitically intense period since the 1974 Turkish invasion. The Gaza maritime corridor cemented Cyprus as an indispensable humanitarian actor in the Middle East crisis.",
@@ -4117,8 +3997,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Illiberal national conservatism, Christian democracy, anti-immigration, anti-LGBTQ legislation, pro-Russia energy dependency. Defines himself against 'Brussels' and Western liberal values. Trumpist before Trump.",
-    approvalRating: 49,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Proven template for a new breed of European nationalism. His media control and constitutional engineering have become a playbook for populists globally. Most disruptive EU member on Ukraine policy.",
@@ -4194,8 +4072,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Traditional CDU conservatism — fiscal discipline (before the debt brake reform), pro-business, Atlantic alliance, tough on immigration and crime. More hawkish than Scholz on Russia and China. Advocates German leadership in European defence.",
-    approvalRating: 43,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Inherited Germany at its most uncertain moment since reunification — energy crisis legacy, stagnant economy, rearmament demands. His debt brake reform could prove the most consequential economic policy shift in Germany in a generation.",
@@ -4254,8 +4130,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Progressive social democrat, universal basic income advocate, pro-welfare expansion. Engagement with North Korea. More sceptical of Japan than conservatives. Pro-US alliance but wants more South Korean strategic autonomy.",
-    approvalRating: 54,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Inherited the most politically fractured South Korea since democratisation. His victory closes one of the most extraordinary constitutional crises in modern Asian democratic history.",
@@ -4324,8 +4198,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Democratic socialist, feminist, environmentalist. Anti-authoritarianism — has criticised Cuba, Venezuela, and Nicaragua despite left roots. Supports free healthcare and education, lithium state ownership. Pragmatically shifted centre from radical student days.",
-    approvalRating: 36,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "His presidency exemplifies the limits of progressive governance in Latin America — failed constitutional referendums, rising crime, and coalition fragility. Yet his democratic principles and self-correction mark him as a serious statesman.",
@@ -4403,8 +4275,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Hashemite constitutional monarchy. Pro-Western alliance, moderate Islam, Palestinian two-state solution advocate. Pragmatic — maintains Israel relations while defending Palestinian cause. Balances US, Arab Gulf, and Palestinian interests.",
-    approvalRating: 58,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Jordan's stability in one of the world's most volatile regions is Abdullah's remarkable achievement. The kingdom is the linchpin of Middle Eastern diplomacy — without it, refugee crises, ISIS containment, and Israeli–Arab dialogue would all worsen dramatically.",
@@ -4476,8 +4346,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pragmatic dynastic authoritarian. Hosts contradictory relationships simultaneously — Al Jazeera (critical), US CENTCOM (strategic), Hamas (diplomatic channel), Israel (back-channel). Non-alignment as strategy to maximise leverage. Uses natural gas wealth for outsider geopolitical influence.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Qatar punches far above its weight. A nation of 300,000 citizens that holds more global diplomatic leverage than most G20 states — due to gas wealth, strategic hosting, and willingness to talk to everyone.",
@@ -4540,8 +4408,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Welfare nationalist — strict immigration + generous welfare state. Pro-NATO, strong Ukraine support, pro-EU defence integration. Climate ambitious. Unusual combination of left economics and restrictive immigration that defines a new European centre-left model.",
-    approvalRating: 52,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Her 'welfare nationalism' model has influenced centre-left parties across Europe navigating the migration debate. Defending Greenland's sovereignty has given Denmark an outsized role in Arctic geopolitics.",
@@ -4608,8 +4474,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pan-Africanist, resource sovereigntist, anti-colonial in economics. Advocates African monetary independence from CFA franc. Pro-South-South cooperation, scrutinises French economic dominance. Democratic institutions defender.",
-    approvalRating: 61,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Symbolises a new generation of African leaders elected on genuine anti-corruption mandates. Senegal's new oil wealth under his watch will test whether resource sovereignty rhetoric translates to equitable development.",
@@ -4672,8 +4536,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Social democratic, DRC sovereignty, pro-Western investment. Seeks foreign investment in cobalt, coltan, lithium mining. Accuses Rwanda of backing M23 rebels — UN reports support this. African Union peace process engagement.",
-    approvalRating: 34,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Leads one of the world's most consequential but overlooked crises — the DRC's eastern conflict has killed more people than any war since WWII. Its mineral wealth will define the global electric vehicle and renewable energy transition.",
@@ -4747,8 +4609,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Military nationalist, Buddhist nationalist, absolute military rule. Anti-democratic. Patron-client economic model favouring military conglomerates. Deeply opposed to federalism for ethnic minorities.",
-    approvalRating: null,
-    approvalTrend: "down",
     status: "Transitional",
     impact:
       "Triggered one of Asia's worst humanitarian crises since the Vietnam War. His coup destroyed Myanmar's democratic transition and unleashed a resistance movement he cannot defeat but refuses to negotiate with.",
@@ -4821,8 +4681,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative liberal internationalist, pro-NATO, pro-EU, pro-Ukraine. Transatlanticist who believes strongly in US security commitment to Europe. Politically more liberal than PM Orpo on social issues. Climate-conscious.",
-    approvalRating: 68,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "As President of NATO's most exposed member-state, his role in managing the 1,300km Russian border relationship has outsized European security implications. Among Europe's most credible faces for the US–Europe security conversation.",
@@ -4890,8 +4748,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Christian democratic centrist. Pro-European integration, proportional representation advocate, institutional reform. Catholic social teaching influences. Supports Macron's agenda while pushing for broader coalition.",
-    approvalRating: 22,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "France's parliamentary crisis has made the PM role nearly impossible. Bayrou's political longevity and centrism make him better positioned than predecessors — but France's fragmented National Assembly fundamentally limits any PM's power.",
@@ -4957,8 +4813,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-right economic liberal. Pro-business deregulation, fiscal restraint, strong US/Five Eyes alliance. Evangelical Christian — socially conservative on some issues. Treaty of Waitangi co-governance sceptic.",
-    approvalRating: 38,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Represents a shift back to business-focused governance after six years of Labour. Faces criticism over cost of living crisis and controversial Maori policy reversals that sparked significant protests.",
@@ -5021,8 +4875,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-right Christian democratic. Pro-EU, pro-NATO, fiscal discipline, business-friendly. More hawkish on immigration than predecessors. Atlantic alliance and transatlantic trade focus.",
-    approvalRating: 35,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Governing Portugal at a pivotal moment as the country becomes a leading Southern European tech hub. His minority government's survival depends on fragile parliamentary arithmetic.",
@@ -5090,8 +4942,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative Christian democratic, tough on migration, pro-Austrian neutrality. Fiscal discipline, small business support. Refused to form government with FPÖ —ultimately unsuccessfully blocking them.",
-    approvalRating: 25,
-    approvalTrend: "down",
     status: "Former",
     impact:
       "His refusal to govern with FPÖ after their 2024 victory ultimately failed — the FPÖ formed government with ÖVP under a new Chancellor. Represents the mainstream right's losing battle against far-right surge across Europe.",
@@ -5154,8 +5004,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Far-right nationalist, anti-immigration absolutist, Eurosceptic, pro-Russia (opposes Ukraine sanctions), anti-COVID mandate legacy. Frames politics as 'Fortress Austria'. Opposed to EU federalism and climate regulation mandates.",
-    approvalRating: 38,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Represents the mainstreaming of the European far right into actual governance. Austria becomes the first EU founding-orbit country to have an explicitly far-right leader since WWII — a significant marker for European politics.",
@@ -5221,8 +5069,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative, strong NATO commitment, hawkish Russia policy, pro-EU member state rights (Czech sovereignty). Economic liberalism, anti-corruption, rule of law. Among Eastern Europe's most pro-Ukraine voices.",
-    approvalRating: 39,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "One of Europe's most consequential small-state leaders on Ukraine — the Czech ammunition initiative filled a critical gap in EU military support. Czech Republic punches above its weight under Fiala's government.",
@@ -5295,8 +5141,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-right market liberal. Pro-EU, pro-NATO, strong anti-immigration enforcement — built barriers and adopted pushback policies. Technology and startup ecosystem developer. Manages complex Turkey–Greece tensions tactically.",
-    approvalRating: 41,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Transformed Greece from Europe's most economically embarrassed state to a growth leader. His business-first approach and Harvard credentials give him unusual credibility with European and US investors. Greece's geopolitical importance in Eastern Med is growing.",
@@ -5355,8 +5199,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Career civil servant — non-partisan. Governs with PVV (Wilders), VVD, NSC and BBB coalition. Policies: strict immigration, farmers' rights, EU scepticism on regulation but pro-NATO. Personally moderate conservative.",
-    approvalRating: 33,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "A technocratic fig-leaf for Europe's most prominent far-right governing coalition. His intelligence background makes him a credible NATO partner, but Wilders' influence shapes his political constraints fundamentally.",
@@ -5425,8 +5267,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-right, pro-EU, pro-NATO. GERB's pragmatic conservatism — business-friendly, tough on corruption. Supports Bulgaria's full EU integration including Schengen and Eurozone. Atlanticist security posture.",
-    approvalRating: 31,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Brings much-needed stability to one of the EU's most politically fractured member states. Bulgaria's Eurozone and full Schengen integration under his watch would complete the country's post-communist European transformation.",
@@ -5491,8 +5331,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Serbian nationalist, officially pro-EU but refuses anti-Russia consensus. 'Four pillars' foreign policy — EU, Russia, China, US simultaneously. Kosovo non-recognition is red line. Controls vast media ownership domestically.",
-    approvalRating: 42,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "The Balkans' most consequential leader — Serbia's EU path, Kosovo's status, and Russian influence in SE Europe all run through him. His lithium deal with the EU marks a strategic pivot that Beijing and Moscow have noted with concern.",
@@ -5558,8 +5396,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Social democratic, pro-EU integration as top priority, pro-NATO. Anti-corruption (with critics noting its limits), modernisation-first. Warm relationship with Italy and US. Balkans regional cooperation advocate.",
-    approvalRating: 46,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Transformed Albania from a post-Hoxha recluse to an EU candidate with global diplomatic punch above its weight via the Italy migration deal. His artistic sensibility and political durability make him one of the Balkans' most distinctive leaders.",
@@ -5627,8 +5463,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Liberal conservative — fiscal discipline, Swiss neutrality, direct democracy respect. Pro-EU relationship through bilateral agreements (not membership). Financial regulation after Credit Suisse lesson. Rule of law champion.",
-    approvalRating: 62,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Her handling of Credit Suisse — the most consequential Swiss banking crisis in history — defined her tenure. The weekend she orchestrated UBS's acquisition may have prevented the largest European bank failure since 2008.",
@@ -5691,8 +5525,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-left social democratic, pro-EU, non-aligned defence (no NATO membership). Business-friendly — gaming, financial services, aviation leasing. Mediterranean migration management. Progressive social agenda — same-sex marriage, cannabis decriminalisation.",
-    approvalRating: 48,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Leads EU's smallest member state by population with outsized influence on migration policy and Mediterranean diplomacy. Malta's non-NATO status gives it a unique mediating role in the EU's security debates.",
@@ -5756,8 +5588,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Christian democratic conservative, pro-EU integration, pro-Atlantic alliance. Financial centre pragmatism — opposes excessive EU financial regulation. Multilingual governance (French, German, Luxembourgish). Fiscally conservative with social investment.",
-    approvalRating: 51,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Leads the EU's wealthiest state and one of its most important financial and institutional hubs. Luxembourg's space mining legislation positions it as a global regulatory pioneer for the next frontier of resource law.",
@@ -5830,8 +5660,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative, Atlanticist, hawkish Russia security stance, pro-Taiwan. Believes Baltic states must prepare for Russian aggression. Strong democratic values — experienced Soviet occupation personally as a child. Champions Eastern European voice in NATO.",
-    approvalRating: 56,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Lithuania under Nausėda punches far above its weight on China-Taiwan policy and Russia-NATO deterrence. The Kaliningrad transit decision was the most dramatic single NATO member action against Russia outside direct military confrontation.",
@@ -5900,8 +5728,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative Atlanticist, hawkish Russia security stance, pro-EU. Defence investment and NATO eastern flank reinforcement as absolute priorities. Strong Ukraine support. Pro-Baltic solidarity with Estonia and Lithuania.",
-    approvalRating: 38,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Leads Latvia through the most consequential security transition since independence — cutting electricity dependency on Russia while building NATO's eastern fortifications. Latvia's 27% Russian-speaking minority adds domestic security complexity.",
@@ -5968,8 +5794,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative, non-partisan. Hawkish Russia policy — views appeasement as existential threat. Strong transatlantic alliance, pro-EU integration, digital governance pioneer. Personal Soviet experience shapes his worldview.",
-    approvalRating: 64,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Estonia under Karis has become the EU's most per-capita committed Ukraine supporter and the global showcase for what a digital-first governance model can achieve. His moral authority on Russian aggression shapes Baltic diplomatic discourse.",
@@ -6042,8 +5866,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Liberal progressive, pro-EU, pro-rule of law, renewable energy champion. Supports Palestinian statehood. Opposes Orbán-style illiberalism. Climate policy, digital economy, EU integration as core agenda.",
-    approvalRating: 36,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Pulled Slovenia back from the brink of Orbán-style institutional erosion. His energy expertise gives him credibility in EU climate debates. Governing an increasingly difficult economic environment with declining support.",
@@ -6113,8 +5935,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Social democratic, multi-ethnic Bosnia advocacy, EU and NATO integration as existential anchor. Anti-nationalist, anti-corruption. Believes EU membership is the only path to durable Bosnian stability.",
-    approvalRating: 44,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Bosnia's EU candidacy under his term is the most hopeful diplomatic development in the country's post-war history. His Srebrenica origins give him moral authority in the ongoing contest over historical memory and ethnic nationalism in the Balkans.",
@@ -6180,8 +6000,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pro-European liberal technocrat. EU membership as defining national project. Rule of law, anti-corruption, judicial independence. Pro-NATO. Balances pro-Serbian constituency with EU-Western alignment.",
-    approvalRating: 42,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Montenegro's EU accession under Spajić would be the first Western Balkans EU enlargement since Croatia in 2013 — making it the most consequential potential achievement for the region's European future if completed on his timeline.",
@@ -6247,8 +6065,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative nationalist, more sceptical of Prespa Agreement concessions. Pro-NATO but slower on EU reforms. Traditional values, Macedonian national identity protection. Critical of previous government's identity concessions to neighbours.",
-    approvalRating: 40,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Governs a small Balkan state at the intersection of multiple great power tensions — Bulgaria's EU veto, Greek identity politics, Serbia's influence, and NATO obligations. North Macedonia's EU path depends on resolving a dispute about medieval history.",
@@ -6314,8 +6130,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Left-wing Albanian nationalist, anti-corruption, pro-EU integration. Seeks full UN membership and Serbia recognition of Kosovo. Refuses to create Association of Serb-majority Municipalities without reciprocal Serbian recognition. Anti-organised crime — including war crime accountability.",
-    approvalRating: 48,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Governs Europe's youngest democracy — a state still fighting for full international recognition while navigating the world's most intractable post-war sovereignty dispute. His anti-corruption mandate is at odds with Kosovo's wartime political establishment, making every day in office a high-stakes confrontation.",
@@ -6388,8 +6202,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Liberal pro-European, anti-corruption, rule of law. Committed to EU membership as existential anchor against Russian influence. Balanced on Transnistria frozen conflict. Atlantic alignment via EU partnership.",
-    approvalRating: 54,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "The most consequential Moldovan leader since independence — steering a tiny, impoverished country between Russian pressure and European aspiration. Her EU candidacy achievement under active Russian interference is remarkable.",
@@ -6459,8 +6271,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Liberal market economics, anti-corruption, pro-Western investment. Positions Zambia as critical minerals partner for the West against China's dominance. IMF programme compliance. Democratic governance restoration after Lungu-era erosion.",
-    approvalRating: 46,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Leads one of Africa's most mineral-critical nations at the inflection point of the global EV revolution. Zambia's copper deposits make it a key player in decarbonisation supply chains — if Hichilema can translate natural wealth into development.",
@@ -6532,8 +6342,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Moderate social democrat within CCM tradition. Pragmatic — balances state ownership with foreign investment attraction. Non-aligned between China (major investor) and West. Pro-East African Community integration. More open than predecessor on civil society.",
-    approvalRating: 57,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Her ascension transformed Tanzania from a COVID-denying pariah to a re-engaged African development story. As East Africa's largest economy by landmass, Tanzania's direction under Hassan matters enormously for regional stability.",
@@ -6605,8 +6413,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pro-European liberal, Atlantic-oriented foreign policy. Georgian sovereignty — against Russian influence and Georgian Dream's drift toward Moscow. Democratic institution defender. Advocates EU and NATO membership as Georgia's only security guarantee.",
-    approvalRating: 51,
-    approvalTrend: "up",
     status: "In Office",
     impact:
       "Became the symbol of Georgia's democratic choice at a critical crossroads — EU integration versus Russian orbit. Her resistance to Georgian Dream's contested elections has given the pro-EU protest movement a constitutional anchor figure.",
@@ -6676,8 +6482,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Liberal Atlantic-oriented. Hawkish Russia policy — 12 years reading Kremlin intentions. Pro-NATO, pro-EU, strong Ukraine support. LGBTQ rights advocate within Baltic conservative political culture. Believes Russia is an existential threat requiring permanent deterrence.",
-    approvalRating: 59,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "One of Europe's most Russia-literate leaders — shaped by 12 years watching Kremlin foreign policy. His election as an openly gay president in the post-Soviet space is a significant symbolic milestone for Eastern European democratic norms.",
@@ -6755,8 +6559,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Christian democratic centrist. Anti-corruption, good governance, rule of law. Pro-Western development partnerships. Climate vulnerable — advocates Loss and Damage compensation for devastating climate events.",
-    approvalRating: 35,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "The democratic court ruling that brought him to power is Malawi's most significant contribution to African democratic jurisprudence. Governing one of the world's most climate-vulnerable nations during increasingly catastrophic weather events.",
@@ -6828,8 +6630,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Liberal, pro-West economic development, African self-reliance ('Ghana Beyond Aid'), anti-poverty through education. Mature democratic practitioner. Pan-Africanist with market economics. Vocal on African development financing.",
-    approvalRating: 32,
-    approvalTrend: "down",
     status: "Former",
     impact:
       "Presided over Ghana's debt default — the country's most significant economic failure in decades — but also launched pan-African cultural diplomacy through the Year of Return. Demonstrated democratic maturity in defeat.",
@@ -6911,8 +6711,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Multi-vector pragmatism — cultivates US, EU, China, and Russia ties simultaneously. Modernisation-with-stability model. Limited political pluralism. Seeks Western investment while maintaining CIS ties. Refuses full alignment with Russia's Ukraine narrative.",
-    approvalRating: 58,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Kazakhstan's surprising pivot away from full Russia alignment after 2022 is one of Central Asia's most consequential geopolitical shifts. Its vast energy and mineral resources make it indispensable for East-West supply chains.",
@@ -6988,8 +6786,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Authoritarian nationalist, Azerbaijan sovereignty absolutist, secular state. Anti-Western on democracy criticism, but pro-Western on energy business. Balances Russia and Turkey (main ally) with European energy partnerships. Opposition suppressed entirely.",
-    approvalRating: 78,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Rewrote South Caucasus geopolitics by ending one of the world's most entrenched frozen conflicts through military force. Azerbaijan's energy role makes it simultaneously criticised for authoritarianism and courted for gas supply.",
@@ -7063,8 +6859,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Soviet nostalgia authoritarian. Pro-Russia integration, anti-Western, anti-NATO. State capitalism, collective agriculture preservation. No political opposition tolerated. Deep Belarus-Russia Union State integration as survival mechanism.",
-    approvalRating: 27,
-    approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
       "Transformed Belarus into Europe's most repressive state and Russia's closest satellite. His post-2020 survival through Russian support makes him the clearest example of Moscow backing authoritarians across the former Soviet space.",
@@ -7133,8 +6927,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pan-African nationalist, development-first authoritarian. Anti-Western criticism of gay rights enforcement. Pro-China investment, pro-East African Community. Economic nationalism in oil sector. Long-term stability through controlled political environment.",
-    approvalRating: 45,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "The paradox of Museveni: genuine liberator turned longest-serving East African dictator. His anti-LGBTQ laws triggered World Bank withdrawal of $300M+ in loans. Uganda's oil era beginning under his watch is his final legacy bid.",
@@ -7204,8 +6996,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-left social democratic, pro-development investment, Greater Accra infrastructure focus. African continental free trade champion. More state-interventionist than Akufo-Addo. Managed Ghana's relations with China and Western donors pragmatically.",
-    approvalRating: 54,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "His return caps one of West Africa's most important democratic consolidation stories — Ghana has now peacefully transferred power four times. Managing the post-default debt restructuring while restoring growth is his defining challenge.",
@@ -7274,8 +7064,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Algerian nationalist, anti-colonial legacy politics, gas resource sovereigntist. Deeply anti-France (based on colonial history). Non-aligned between Russia and West. Strong state role in economy through Sonatrach oil company. Pan-African solidarity rhetoric.",
-    approvalRating: 38,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Governs Africa's most militarily powerful and energy-wealthy Maghreb state. Algeria's gas role in Europe's post-Russia energy transition gives Tebboune leverage that far exceeds his domestic democratic legitimacy.",
@@ -7348,8 +7136,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "IMF/World Bank-trained liberal economist, market-friendly, West-aligned. CFA franc defender — unlike new Sahel leaders. Pro-French security presence (ECOWAS). Anti-coup, pro-democratic institutions. ECOWAS leadership on democratic governance.",
-    approvalRating: 47,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Transformed Côte d'Ivoire from West Africa's most conflict-prone economy into its growth engine. His technocratic IMF background delivered genuine development results — though at the cost of controversial constitutional term-limit manipulation.",
@@ -7417,8 +7203,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Liberal internationalist, pro-EU, pro-NATO, tech entrepreneur mindset applied to governance. Climate action but with nuclear pragmatism. Centrist on social issues with economic liberalism.",
-    approvalRating: 28,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Led Belgium through one of its most difficult governing periods but paid the electoral price. Belgium's linguistic and political complexity makes coalition governance an art form, which De Croo practiced with rare success.",
@@ -7486,8 +7270,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Social democratic, Nordic welfare state model. Advocates climate action (paradoxically while managing oil wealth). Atlantic alliance, Arctic sovereignty, Global South engagement. Believes sovereign wealth fund should be used for climate transition.",
-    approvalRating: 34,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Governs the world's most affluent per-capita democracy at a time when Norway's gas exports define European energy security. The paradox of climate-conscious Norway profiting from Europe's gas emergency is the defining tension of his tenure.",
@@ -7554,8 +7336,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Social democratic, feminist economics, climate sustainability, Nordic welfare state. Pro-NATO (Iceland has no army), pro-EEA membership, fisheries sovereignty advocate. Progressive on social issues.",
-    approvalRating: 52,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Leads the world's oldest parliament (Althing, 930 AD) at a critical moment of volcanic activity, housing stress, and Arctic great power competition. Iceland's outsized influence on NATO's northern flank belies its tiny population of 370,000.",
@@ -7629,8 +7409,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-right Christian democratic tradition. Pro-EU, pro-US relationship, strong on European sovereignty. Housing and public services investment. Traditionally nationalist (moderate) but firmly constitutional. Balances Irish neutrality with security realism.",
-    approvalRating: 44,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Presides over Ireland's most economically consequential period — tech and pharma FDI has made Ireland punching above its weight globally. Housing shortfall is the risk that could unravel the Celtic Tiger II story.",
@@ -7702,8 +7480,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Left-leaning populist — social spending at home, pro-Russia abroad. Anti-NATO expansion. Opposes Ukraine military aid. Friendly with Orbán and Putin. Sceptical of EU regulatory agenda. Anti-LGBTQ legislation.",
-    approvalRating: 38,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "One of the most disruptive voices in EU–Ukraine consensus. After surviving assassination, re-emerged more radicalized in his Russia-friendly politics. Slovakia under Fico mirrors Hungary's EU vetoes but with more extreme rhetoric.",
@@ -7766,8 +7542,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-left social democratic, pro-EU, strong NATO advocate given proximity to Ukraine war. Romanian sovereignty, Black Sea energy development, EU structural funds maximisation. Pro-US security guarantees.",
-    approvalRating: 32,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Romania's democratic crisis — when TikTok-amplified populist candidate Călin Georgescu won, then was annulled — became the EU's most alarming case of social media manipulation of elections. Ciolacu navigated the crisis but Romania's democratic stability remains under watch.",
@@ -7828,8 +7602,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative Christian democratic, pro-EU integration, pro-NATO. Western Balkans enlargement advocate. Balances Croatian national identity with Euro-Atlantic integration. Tough on migration through the Balkans corridor.",
-    approvalRating: 43,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Completed Croatia's full EU integration by securing both Eurozone and Schengen membership — the most consequential achievement for any Croatian PM since independence. Provides a rare example of stable long-term EU conservative governance.",
@@ -7909,8 +7681,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pro-Taiwan independence within current parameters. Rejects 'one country, two systems' absolutely. Strong US alliance, democratic identity diplomacy. Pragmatic on cross-strait trade while hardening defence posture. Semiconductor sovereignty — keeps TSMC under Taiwan's control.",
-    approvalRating: 52,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Governs the world's most geopolitically explosive flashpoint — a democratic de facto state of 23 million that produces 90%+ of the world's most advanced chips. His presidency defines the most dangerous potential military confrontation of our era.",
@@ -7980,8 +7750,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Reformist authoritarian — liberalises economically and socially while maintaining one-party state. Non-aligned multi-vector: cultivates Russia, China, EU, and US simultaneously. Anti-extremism focus domestically. Uzbekistan as Central Asia's hub for trade and connectivity.",
-    approvalRating: 71,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "The most consequential Central Asian leader since independence — turned Uzbekistan from a hermetically sealed police state into a viable emerging market and regional diplomatic hub. His liberalisation without democratisation is Central Asia's defining governance experiment.",
@@ -8055,8 +7823,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Secular authoritarian nationalist. Anti-Islamism — bans beards and hijabs in government settings. Deep Russia and China dependency for security and investment. Family dynasty consolidation. No political opposition tolerated.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Rules Central Asia's poorest nation — 37% of GDP comes from remittances of Tajiks working in Russia. His 30-year reign has maintained stability at the cost of all freedoms, while building a family dynasty that controls the state.",
@@ -8123,8 +7889,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-left social democratic, welfare state investment, Frente Amplio coalition values. Pro-Mercosur trade, regional integration, multilateralism. Human rights tradition — Uruguay processed its dictatorship crimes more thoroughly than most LatAm nations. Cannabis and social liberalisation legacy maintained.",
-    approvalRating: 58,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Governs Latin America's most admired democracy — a small nation that consistently outperforms its neighbours on every human development metric. Uruguay is the proof-of-concept that stable social democracy works in Latin America.",
@@ -8195,8 +7959,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Originally revolutionary socialist — now personal authoritarian dynasty. Anti-US imperialism, anti-Catholic hierarchy (despite once courting Church). State capitalism through family-controlled enterprises. Aligns with Venezuela, Cuba, Russia, and China. Wife Rosario Murillo controls messaging and day-to-day governance.",
-    approvalRating: 22,
-    approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
       "Transformed from liberation hero into one of the Western Hemisphere's most brutal authoritarian leaders. Nicaragua's mass expulsion of political prisoners and expulsion of foreign missionaries marks a regime increasingly disconnected from even cynical international legitimacy.",
@@ -8266,8 +8028,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-left multilateralist. Climate urgency absolutist, human rights universalist, anti-nuclear. Advocates Security Council reform to reflect 21st century power realities. Global governance reform to address AI, pandemics, and climate as existential threats.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Leads humanity's most important multilateral institution at its most challenged moment since founding. Security Council paralysis limits his power, but his moral voice on climate, Gaza, and AI governance carries weight no individual state can replicate.",
@@ -8345,8 +8105,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "At 91 and 42+ years in power, Biya is a case study in gerontocratic African authoritarianism sustained by French patronage. The Anglophone Crisis he created — through neglect and suppression — is Cameroon's defining tragedy, with 700,000+ displaced.",
-    approvalRating: null,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "At 91 and 42+ years in power, Biya is a case study in gerontocratic African authoritarianism sustained by French patronage. The Anglophone Crisis he created — through neglect and suppression — is Cameroon's defining tragedy, with 700,000+ displaced.",
@@ -8420,8 +8178,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Officially pro-EU but de facto pivoting toward Russia-aligned authoritarian model. Frames EU demands as interference in Georgian sovereignty. Anti-NGO law modelled on Russian foreign agents legislation. Positions Georgia as 'neutral' between Russia and West.",
-    approvalRating: 34,
-    approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
       "His suspension of EU accession negotiations triggered Georgia's worst political crisis since the 2008 Russian war — with hundreds of thousands in the streets demanding a pro-EU future. He represents Georgian Dream's decisive turn away from European integration.",
@@ -8493,8 +8249,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Hard-line conservative, fierce anti-communist, hawkish on North Korea. Strong US alliance, Japan rapprochement. Pro-business free market. His martial law declaration revealed authoritarian tendencies beneath the conservative veneer.",
-    approvalRating: 11,
-    approvalTrend: "down",
     status: "Former",
     impact:
       "His martial law declaration was the most serious assault on South Korean democracy since the 1980 coup — and democracy's survival proved the strength of Korean institutions. He will be remembered primarily for the crisis that ended his presidency.",
@@ -8572,8 +8326,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Populist technocrat — combines World Bank economist credentials with anti-establishment rhetoric. Pro-business, pro-FDI especially in tech sector. Critical of traditional political parties and institutions. Uses social media to bypass mainstream press.",
-    approvalRating: 37,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Broke Costa Rica's traditional centrist political model — his populist governing style is eroding the institutional norms that have made Costa Rica Central America's most stable democracy for 75 years.",
@@ -8644,8 +8396,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pragmatic survivalist. Initially balanced French and Russian security ties, now almost entirely dependent on Russia's Africa Corps. Resource sovereignty rhetoric. Governing a rump state — 80% of CAR's territory outside government control.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "His invite of Wagner Group is the defining case of Russia's Africa Corps model — security for resource concessions and political loyalty. CAR became the template that spread to Mali, Burkina, Niger, Libya, and Sudan.",
@@ -8717,8 +8467,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Revolutionary socialist turned pure autocrat. Anti-Western, anti-IMF, state control of all economic activity. 'Self-reliance' ideology — refuses all foreign aid. Military-first absolute state. No political parties, no elections, no civil society.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Runs what the UN Human Rights Council called a state with 'crimes against humanity' — indefinite conscription, secret detention, extrajudicial killings. 500,000+ Eritreans have fled, making it a top source of Mediterranean migrants. One of the world's most complete authoritarian models.",
@@ -8793,8 +8541,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative military nationalist, Islam as state identity, Gulf-friendly economic model. Uses AU chairmanship for legitimacy. Climate vulnerability diplomacy — Comoros at sea level rise risk. Anti-opposition through constitutional manipulation.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "Incumbent (Disputed)",
     impact:
       "In a country with the world's highest per-capita coup record, Assoumani's ability to survive two power returns is remarkable. His AU chairmanship gave the Comoros more international visibility than any prior moment in its post-independence history.",
@@ -8869,8 +8615,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Military nationalist, dynastic continuity. Initially France-aligned (father's model) then expelled French forces in 2024 — hedging toward Russia-Gulf axis like Sahel neighbours. Lake Chad basin security leadership. Resource sovereigntist — oil managed through politically connected SHT company.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "His expulsion of French forces in 2024 marked the end of France's most strategically important African military relationship — completing the collapse of Paris's Sahel security architecture. At 41, he's the youngest major African leader and represents the new generation of post-French African military rulers.",
@@ -8945,8 +8689,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pro-business liberal, Western-aligned, modernising within Moroccan monarchy constraints. Atlantic relationship — Morocco normalised with Israel in 2020 Abraham Accords. EU Partnership deepened. Pragmatic on migration as leverage over Europe. Sahara sovereignty absolutist.",
-    approvalRating: 44,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Governs Morocco at its most geopolitically consequential moment — a key EU migration partner, African gateway economy, and increasingly significant player in Middle East diplomacy after Abraham Accords normalisation with Israel.",
@@ -9019,8 +8761,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pragmatic centrist, democratic consolidation, rule of law restoration. Pro-Commonwealth, pro-ECOWAS, Western-aligned development partnerships. Gambia's tiny economy ($2B GDP) makes foreign aid and tourism dependency defining political constraints.",
-    approvalRating: 52,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "His 2016 victory is one of Africa's most celebrated democratic moments — an ordinary man who united a divided opposition and defeated a brutal dictator. Gambia's transition demonstrates that ECOWAS-backed democratic restoration is possible in West Africa.",
@@ -9092,8 +8832,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Originally Marxist-Leninist, now pragmatic resource-nationalist authoritarian. Pro-France (Françafrique), pro-China investment, family capitalism through oil sector. Absolute political control. No opposition tolerated.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Represents the Françafrique system at its most persistent — a French-backed African autocrat whose oil wealth sustains regime survival while his population remains among sub-Saharan Africa's poorest despite resource wealth.",
@@ -9167,8 +8905,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pragmatic authoritarian continuity. Pro-France, now hedging with Russia and China. Regional mediator role used to gain international legitimacy despite domestic repression. Free zone economic model — Lomé as West African logistics hub.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "One of Africa's clearest examples of dynastic succession — son inheriting a dictatorship built by his father. His constitutional manoeuvres to retain power despite term limits demonstrate the Gnassingbé family's total institutional control after 57 years combined.",
@@ -9236,8 +8972,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Liberal democratic, anti-corruption, equity-focused distribution of diamond wealth. Pro-investment climate, rule of law, independent judiciary. Supports diversifying Botswana's diamond-dependent economy into tech and services.",
-    approvalRating: 62,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "His election is Africa's most significant democratic transfer of 2024 — confirming that Botswana's 58-year-old democratic model can peacefully change governments. A moment of democratic proof in a continent where power transfers are often violent.",
@@ -9311,8 +9045,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Progressive anti-corruption reformist, rule of law, independent judiciary. Pro-social investment, women's rights, indigenous communities. Western-aligned, pro-US relationship, anti-organised crime in all forms including state corruption.",
-    approvalRating: 55,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "His inauguration against all odds is one of the most remarkable democratic moments in 21st century Latin America. Governs a deeply captured state — a congress, judiciary, and prosecutor's office controlled by corrupt networks — with limited tools but enormous moral authority.",
@@ -9392,8 +9124,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-left, oil-funded development investment, social inclusion for Indo-Guyanese and Afro-Guyanese communities. Pro-US and Western investment in oil sector. ICJ and international law for Venezuela border defence. Caribbean Community (CARICOM) leadership role.",
-    approvalRating: 59,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Governs the world's single most dramatic economic transformation story of the 2020s. Guyana's oil windfall — managed wisely — could make this small Caribbean nation a model of resource-to-development success. Mismanaged, it risks the resource curse that devastated Venezuela next door.",
@@ -9465,8 +9195,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Social democratic within MPLA tradition. More technocratic and reformist than predecessor. Pro-Western investment pivot while maintaining China ties. Oil sector transparency improvement. Anti-corruption as signature agenda.",
-    approvalRating: 45,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Transformed Angola's international image from a kleptocratic petro-state into a reforming emerging market. The Lobito Corridor deal with the EU and US marks the most significant Western infrastructure commitment in sub-Saharan Africa in decades — directly competing with China's BRI.",
@@ -9534,8 +9262,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "FRELIMO continuity — ruling party that has governed since independence in 1975. Developmentalist, pro-gas investment, pro-Western and Chinese dual engagement. Offers amnesty discussions with opposition. Reformist within FRELIMO tradition.",
-    approvalRating: 32,
-    approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
       "Leads Africa's most consequential new energy frontier — Mozambique's gas deposits could make it a major LNG exporter within a decade, completely transforming one of the world's poorest economies. Whether the post-election crisis stabilises will determine if foreign investors return.",
@@ -9595,8 +9321,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centrist pragmatist, US alliance-based security, climate action as existential priority — FSM faces sea level rise threat. Pacific sovereignty, anti-nuclear testing legacy. Democratic multilateralism.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Governs one of the Pacific's most strategically contested nations — the FSM's location across critical sea lanes makes it a key piece of the US Indo-Pacific defence framework, directly contested by China's growing Pacific influence campaign.",
@@ -9675,8 +9399,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Continuation of Berdimuhamedov dynasty authoritarianism. Permanent neutrality status (UN-recognised). Gas resource sovereigntism — almost entirely dependent on China as buyer. No civil society, no free press, no opposition of any kind.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Presides over one of the world's most complete authoritarian information voids alongside the fourth-largest gas reserves on the planet. Turkmenistan's methane leaks from its infrastructure have made it one of the largest contributors to global warming per GDP — a crisis acknowledged by no one inside the country.",
@@ -9744,8 +9466,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Liberal democrat, anti-corruption, rule of law. Has dramatically pivoted Armenia away from Russia after CSTO failed to defend Armenia in 2020 and 2023. Pro-EU partnership, pro-US normalisation. Pragmatic on peace treaty with Azerbaijan despite 100,000+ Karabakh refugees.",
-    approvalRating: 44,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "His pivot away from Russia is the most significant small-state geopolitical reorientation in the post-Soviet space since the Baltic states joined NATO. Armenia's EU application and CSTO suspension represent a tectonic shift — driven by Russia's failure to defend its ally.",
@@ -9809,8 +9529,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Cook Islands sovereignty first — resists New Zealand paternalism. Balance between NZ free association and independent foreign policy. Pro-development, climate vulnerable, Pacific Forum engagement. Views China partnership as economic diversification.",
-    approvalRating: 48,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "His China deal made the Cook Islands one of the most consequential micro-states in Pacific geopolitics — a 17,000-person nation that triggered a diplomatic crisis between China, New Zealand, and the broader Pacific security architecture in 2025.",
@@ -9874,8 +9592,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Social democratic, climate-focused, good governance. Sceptical of opaque Chinese debt. Pro-Pacific regional identity and FOSS. Less socially conservative than her predecessor on cultural and gender issues.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "Former",
     impact:
       "Her election and the constitutional crisis it triggered are the most significant democratic test in Pacific island politics in a generation. Lost her re-election bid in 2024.",
@@ -9943,8 +9659,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative resource nationalist. Pro-Western security alliance amid China's Pacific push. 'Take Back PNG' — greater local ownership of LNG and mining royalties. Balances US/Australian defence ties with Chinese investment in infrastructure.",
-    approvalRating: 38,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "PNG under Marape is one of the most consequential Pacific states in US-China competition — its US defence deal and vast resource wealth make it strategically pivotal. Tribal violence and resource governance failures are his defining domestic challenges.",
@@ -10013,8 +9727,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pragmatic transitional technocrat. No strong ideological position — governance survival is the mission. Pro-international security assistance, anti-gang, pro-election pathway. Heavily dependent on US, Canada, and regional support.",
-    approvalRating: null,
-    approvalTrend: "down",
     status: "Transitional",
     impact:
       "Governs what the UN describes as the Western Hemisphere's worst humanitarian crisis — a country where gangs control the capital, 5M+ face acute food insecurity, and there has been no elected president for four years. Haiti's collapse is a catastrophic failure of international engagement.",
@@ -10089,8 +9801,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative, pro-energy sovereignty, CARICOM regionalist. Pragmatic on Venezuela — energy realism over ideological anti-Maduro position. Pro-US security but demands Caribbean policy respect. Crime reduction through community policing advocate.",
-    approvalRating: 34,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Leads the Caribbean's most energy-significant nation at a pivotal moment — the Dragon Gas Field deal with Venezuelan gas through a US sanctions waiver is one of the most complex energy diplomacy achievements of any Caribbean leader.",
@@ -10162,8 +9872,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "RPF technocrat — development economics focus within Kagame's Rwanda Inc framework. Pro-foreign investment, anti-corruption (within RPF system), digital transformation advocate. Represents economic competence layer of Rwanda's authoritarian-developmental model.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "As the operational manager of Africa's most cited development success story, Ngirente's technocratic governance has translated Kagame's vision into documented economic results — while the DRC conflict casts a long shadow over Rwanda's international reputation.",
@@ -10232,8 +9940,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Authoritarian pragmatist who rents Djibouti's strategic geography to all comers simultaneously. Pro-revenue maximisation through military base hosting. Non-aligned between great powers by design. Gulf states partnership — Qatar and UAE strategic investment.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Transformed a tiny French colonial outpost into the Horn of Africa's most strategically indispensable state. The simultaneous presence of US, Chinese, French, and Japanese military bases is unique in modern history — and entirely Guelleh's achievement in selling Djibouti's geography to everyone.",
@@ -10300,8 +10006,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Left-wing social democratic, feminist, anti-corruption. Switched to China from Taiwan for investment. Critical of US immigration policy on Honduran migrants. Pro-Cuba and Venezuela relations. State of exception anti-gang measures despite civil liberties concerns.",
-    approvalRating: 36,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Historic as Central America's first left-wing female president, but governing one of the hemisphere's hardest-to-govern states — where gang violence, corruption networks, and emigration pressure define every policy choice.",
@@ -10369,8 +10073,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pragmatic centrist — no strong ideology; transactional politics. Militia patronage model to maintain power in Tripoli. Western-aligned formally but relies on Turkish military backing. Oil revenue distribution as primary governance lever.",
-    approvalRating: null,
-    approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
       "Governs half a country — Libya's persistent split between his Tripoli-based GNU and Haftar's eastern authority is the defining failure of post-Gaddafi international engagement. Libya's 48Bbl oil reserves make this dysfunction globally consequential.",
@@ -10439,8 +10141,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Dinka ethnic nationalism, liberation movement politics. Relies on oil revenues distributed to militia commanders as patronage. Deep mistrust of international institutions. Survival politics — coalition-building among armed factions is governance.",
-    approvalRating: null,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Transformed South Sudan from the world's most hopeful new democracy to one of its most complete state failures in just three years. The civil war he triggered resulted in the largest African refugee crisis since the Rwandan genocide.",
@@ -10508,8 +10208,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Social democratic, pan-African liberation movement tradition. SWAPO party continuity. Resource sovereignty — Namibia's offshore oil (estimated 11Bbl) and green hydrogen potential. Non-aligned between China investment and Western trade partnerships. Land reform within legal framework.",
-    approvalRating: 58,
-    approvalTrend: "up",
     status: "In Office",
     impact:
       "Her election is Africa's most significant democratic female leadership milestone of 2024. Namibia's vast offshore oil discoveries and green hydrogen potential make her the steward of one of Africa's most promising emerging energy economies.",
@@ -10574,8 +10272,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Absolute monarchist. Divine right of kingship traditions. All political parties banned. Tinkhundla elected-council system as controlled participation. Taiwan ally — one of only 12 formal Taiwan diplomatic recognition states. Conservative traditional values.",
-    approvalRating: null,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Africa's most complete anachronism — a 21st-century absolute monarch in a country where 63% live in poverty while the royal family's wealth is conspicuously displayed. His pro-democracy protesters' suppression in 2021 sparked an ongoing low-level resistance movement.",
@@ -10646,8 +10342,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Kyrgyz nationalist, resource sovereigntist. Took back Kumtor gold mine from Canadian ownership. Russia-aligned security — CSTO member. China investment accepted via BRI. Suspicious of Western democracy promotion NGOs. Populist framing of politics.",
-    approvalRating: 62,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "His Kumtor mine nationalisation is Central Asia's most significant resource sovereignty assertion against Western mining capital in decades. Kyrgyzstan's role as a Russia-sanctions-era re-export corridor has given him unexpected economic leverage.",
@@ -10717,8 +10411,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centrist sovereignty pragmatist — uses China-Australia competition for maximum aid leverage. Non-aligned rhetoric while deeply China-aligned in practice. Resource nationalism — fishing rights and seabed mining potential. Climate vulnerability diplomacy.",
-    approvalRating: 42,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Leads one of the Pacific's most geopolitically significant micro-states — Solomon Islands' China security deal triggered the most serious Pacific security alarm in Washington since the Cold War, directly causing the US to reopen its Honiara embassy and accelerate Pacific engagement.",
@@ -10789,8 +10481,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pragmatic Iraqi nationalist — neither fully pro-Iran nor pro-US. Seeks Iraq's strategic autonomy as mediator between Arab states and Iran. Development economics first. Committed to a sovereign Iraqi state that isn't a battlefield for proxy conflicts.",
-    approvalRating: 42,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Governs the Middle East's most geopolitically complex major state — an OPEC member with 145Bbl in reserves whose territory hosts simultaneously US forces and Iran-backed militias. His Development Road vision could make Iraq a regional logistics hub if political stability holds.",
@@ -10864,8 +10554,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-left nationalist, BSP-associated politically. Pro-NATO in alliance obligations but sceptical of escalatory posture toward Russia. Rule of law, anti-corruption. Represents Bulgarian public's more ambivalent view of Russia compared to Baltic NATO allies.",
-    approvalRating: 45,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Bulgaria's most visible political figure in a period of extraordinary governmental instability. His Russia-scepticism on Ukraine policy makes him an outlier within NATO's eastern flank presidents — creating tension with PM Zhelyazkov's more Western-aligned government.",
@@ -10933,8 +10621,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-left social democrat. More pro-EU and Ukraine than PM Fico. Supports NATO obligations. Domestic social policy — healthcare and welfare investment. Institutional democracy defender. Wants cooperation with Fico on economic issues while maintaining EU partnership.",
-    approvalRating: 54,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Provides Slovakia's democratic check on PM Fico's increasingly Russia-aligned governance. His presidential mandate from a clear majority gives him legitimacy to resist the most extreme aspects of Fico's foreign policy drift — making the Fico-Pellegrini cohabitation one of Europe's most watched political relationships.",
@@ -11003,8 +10689,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Liberal pro-business, technocratic governance. Foreign investment attraction, port logistics as economic engine. Anti-corruption rhetoric with selective application. France-aligned, ECOWAS committed. Counter-jihadist security investment in north.",
-    approvalRating: 48,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Governs West Africa's most interesting economic success story — Benin's logistics and digital economy growth while most neighbours face coups or stagnation. But democratic backsliding has made him a cautionary tale about modernising autocrats.",
@@ -11074,8 +10758,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Military reformist — positions junta as democratic restoration rather than Russia-aligned takeover. Pro-France, pro-Western investment. Gabon oil and manganese resource sovereignty. Institutional reform — reducing presidential excess and family enrichment model.",
-    approvalRating: 67,
-    approvalTrend: "stable",
     status: "Transitional",
     impact:
       "Gabon's coup represents a different model from the Sahel wave — a correction of a specific dynastic corruption rather than an anti-Western realignment. His maintenance of French ties and Western investment distinguishes Gabon from Mali, Burkina, and Niger's trajectory.",
@@ -11148,8 +10830,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Military nationalist, resource sovereigntist. Balances Chinese investment in minerals with Western diplomatic pressure for democratic transition. Anti-corruption framing. Transition timeline deliberately vague — no rush to elections.",
-    approvalRating: 52,
-    approvalTrend: "down",
     status: "Transitional",
     impact:
       "Controls the raw material for global aluminium production — 65% of world bauxite. The Simandou iron ore mine beginning production under his watch is potentially the most significant African mining development of the decade. Whether resource wealth translates to governance or perpetuates extraction depends on his transition.",
@@ -11221,8 +10901,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Non-partisan jurist. Rule of law absolutist, EU institutional defender, human rights champion. Greece's constitutional guardian — her legal expertise defining the presidential role. Pro-EU, pro-democratic norms, climate-conscious. Avoids partisan politics by design.",
-    approvalRating: 71,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Greece's highest-approval political figure— a non-partisan jurist whose legal gravitas provides institutional ballast during Greece's continued post-crisis political turbulence. Her historic first presidency represents a genuine social milestone for a country where political life has been male-dominated.",
@@ -11297,8 +10975,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Two-state solution advocate, negotiated settlement over armed resistance. Secular Palestinian nationalism (Fatah tradition). Anti-Hamas politically. Relies on US and EU financial support. Has publicly rejected return to 1948 refugee locations — a major concession from traditional PLO position.",
-    approvalRating: 22,
-    approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
       "At 89 and governing with an expired mandate since 2009, Abbas represents the Palestinian leadership vacuum. The Gaza war has made the question of Palestinian governance post-conflict the most important unresolved political question in the Middle East — and Abbas's PA is the only internationally recognised answer, however contested.",
@@ -11372,8 +11048,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Progressive Catholic social teaching. Climate urgency, migrants' rights, economic inequality as moral crises. Pastoral rather than condemnatory in style. Anti-war — consistently called for Ukraine-Russia peace.",
-    approvalRating: 64,
-    approvalTrend: "stable",
     status: "Former",
     impact:
       "Transformed the papacy's global political relevance — his encyclicals on climate and inequality became reference documents in international diplomacy. Led the world's largest religious institution through its most significant reform attempt in a generation.",
@@ -11443,8 +11117,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Malay Islamic Monarchy (MIB) — official state ideology combining Malay cultural identity, Islamic faith, and royal governance. Absolute rule, no political parties permitted. ASEAN diplomatic engagement. Oil dependency creating urgency for economic diversification.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Governs one of the world's last genuine absolute monarchies with oil wealth that has cushioned citizens from governance concerns. His 2019 sharia law implementation isolated Brunei internationally — but oil money and ASEAN membership insulate him from serious consequences.",
@@ -11516,8 +11188,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Islamic democratic populism, anti-corruption, anti-IMF austerity, independent foreign policy (neither pro-US nor pro-China). Populist welfare state. Opposes Pakistan's military interference in civilian government. Blames Biden administration and military for his removal.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Jailed but arguably more politically powerful than his successor — PTI won the 2024 election in popular votes if not in allocated seats. His imprisonment has made him a global symbol of civilian vs military political conflict in nuclear-armed Pakistan.",
@@ -11588,8 +11258,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Liberal democratic, Buddhism-influenced. Non-violent resistance as political philosophy. Federal democratic union for Myanmar's ethnic minorities. Pro-Western partnerships. Her legacy is haunted by Rohingya genocide defence — stripping her of many human rights credentials.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "One of the 20th century's greatest symbols of peaceful resistance to military tyranny — whose legacy was permanently complicated by the Rohingya genocide and whose imprisonment by the same military she had once worked with shows the tragic limits of democratic-military coexistence.",
@@ -11661,8 +11329,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Afghan nationalist, Pashtun tribal conservative. Now advocates pragmatic engagement with Taliban for stability. Blames US withdrawal strategy rather than Taliban for collapse. Believes international isolation of Taliban worsens Afghans' suffering. Seeks neutral status between Taliban and exiled republic.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "The human embodiment of NATO's $2 trillion, 20-year Afghanistan investment — which collapsed in 11 days in August 2021. His decision to stay in Kabul gives him unique if constrained moral standing in a country now running the world's most severe anti-female governance experiment.",
@@ -11731,8 +11397,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Authoritarian developmentalism, CPP one-party state, deep China alignment. Family capitalism — CPP-linked business empire controls major sectors. No opposition tolerated. Uses 'stability' and anti-Khmer Rouge credentials as perpetual legitimacy claims.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Built Cambodia from one of history's most devastating genocidal destructions into a functioning if authoritarian state. His dynastic transition to Hun Manet is Southeast Asia's most explicit successor experiment — and the fact that he retains Senate power means Cambodia's political story is still fundamentally his.",
@@ -11801,8 +11465,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Marxist-Leninist, anti-US imperialism, third-way socialist economics. Defends revolutionary legacy while acknowledging need for economic reforms. Deeply dependent on Venezuela oil, Russian credits, and remittances. Views emigration as an imperialist aggression consequence rather than governance failure.",
-    approvalRating: null,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Governs the Western Hemisphere's last communist state through a structural crisis that may be more severe than what ended communism in Eastern Europe. Cuba's mass emigration and blackout crisis under his watch is testing the revolutionary model's final limits.",
@@ -11867,8 +11529,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Absolute monarchist, pragmatic diplomatic neutralist. Oman talks to everyone — US, Iran, Israel, Houthis, Taliban. Believes dialogue over confrontation. Economic liberalisation through Oman Vision 2040. Maintains Qaboos' foreign policy tradition of being the Gulf's indispensable back channel.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Oman under Haitham continues to punch enormously above its weight in diplomacy — facilitating talks that no other Middle Eastern state can. His country's simultaneous relationships with Iran and the US make Muscat essential infrastructure for preventing escalation in the world's most volatile region.",
@@ -11935,8 +11595,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Social democratic, feminist, environmental. Nordic welfare state defender. The Ukraine invasion converted her to a security hawk — she became one of Europe's most consistent advocates for maximum Ukraine support. Post-PM she has become a global voice for democracy and social democratic values.",
-    approvalRating: 58,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Her decision to apply for NATO will be Finland's most consequential foreign policy act in living memory — permanently transforming the Nordic security architecture. At 38, she remains one of the most globally recognised progressive political figures and a likely future European leader.",
@@ -12009,8 +11667,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Security-state Marxist-Leninist. Continuity of bamboo multi-directional diplomacy. Anti-corruption as regime legitimacy tool. China relations managed carefully — close but sovereignty-assertive. US comprehensive strategic partnership maintained. Vietnam's economic opening continues.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Vietnam's most powerful figure arrived via the security apparatus — a different model than economist Trong's leadership. His anti-corruption campaign eliminated multiple senior officials and signals a harder-edged governance style. How he manages Vietnam's US–China balance will define Southeast Asian geopolitics for the coming decade.",
@@ -12090,8 +11746,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Progressive democratic, pro-Taiwan identity, opposed to 'one country two systems'. Security hawk who dramatically raised defence capabilities. Pro-US alliance, pro-Japan partnership. Semiconductor sovereignty — positioned TSMC as Taiwan's 'silicon shield'. Pragmatic on cross-strait trade while hardening military deterrence.",
-    approvalRating: 64,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Led Taiwan through its most dangerous eight years since 1996 while building the democratic identity and defence posture that has made Taiwan a credible self-defending democracy. Her semiconductor strategy transformed Taiwan's geopolitical leverage from vulnerability to indispensability.",
@@ -12159,8 +11813,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Zulu ethnic populism, ANC liberation movement traditionalism. Used state resources for personal and factional enrichment. Anti-establishment rhetoric despite being establishment. MK party frames ANC leadership as 'betrayers' of liberation legacy. Populist redistribution rhetoric with kleptocratic practice.",
-    approvalRating: 22,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "State capture under Zuma represents the largest self-inflicted economic damage by any African democracy — $34B stolen or wasted, Eskom collapsed, and institutions gutted. His MK party's 2024 resurgence shows the durability of ethnic-populist politics even after comprehensive governance failure.",
@@ -12229,8 +11881,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Mexican nationalist populism, anti-neoliberalism, fourth transformation ideology. Energy sovereigntist — state oil and electricity companies non-negotiable. Non-interventionist foreign policy ('best foreign policy is good domestic policy'). Deep distrust of US supervision of Mexico's internal affairs. Evangelical Christian values despite leftist economics.",
-    approvalRating: 62,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Reshaped Mexican politics permanently — MORENA now dominates all three branches of government under Sheinbaum. His judicial reform may prove his most consequential and most contested legacy, potentially undermining independent courts for decades. The progressive versus authoritarian debate about his six years remains Mexico's defining political argument.",
@@ -12306,8 +11956,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Constitutional monarch — non-political by constitutional requirement. Personally deeply committed to environmental conservation, organic farming, interfaith dialogue, and youth opportunity. Climate change activist before becoming King — the UK and global Commonwealth's ceremonial head.",
-    approvalRating: 42,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Inherited the most globally recognised monarchy at its most tested moment — navigating cancer, Prince Harry's departure, and Commonwealth questioning of the Crown's relevance while bringing genuine personal passion for climate and youth development to the role.",
@@ -12376,8 +12024,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Progressive social democrat, feminist, compassionate governance advocate. Climate action, child poverty reduction, mental health investment. Internationally championed a new model of empathetic political leadership. Post-PM: Harvard Kennedy School fellowship and global democracy advocacy.",
-    approvalRating: 72,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Redefined what political leadership could look like — proving empathy, directness, and humanity are political assets rather than weaknesses. Her resignation was as consequential as her tenure — modelling that acknowledging human limits is not weakness. One of the most globally recognised political figures of the 2020s.",
@@ -12452,8 +12098,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "One-nation Conservative, Eurosceptic, pro-free trade globally. Socially liberal by Conservative standards. Big state spender despite fiscal rhetoric. Popularist — pivoted Conservatives toward working-class northern England seats. Pro-Ukraine: one of Zelensky's earliest and most vocal Western supporters.",
-    approvalRating: 23,
-    approvalTrend: "down",
     status: "In Office",
     impact:
       "Delivered the most consequential policy change in British post-war history (Brexit) while proving the sustainability of populist politics within a Conservative framework. Partygate confirmed that even landslide mandates can't survive systematic hypocrisy on the rules leaders themselves set.",
@@ -12523,8 +12167,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pragmatic nationalist, development economics first. Infrastructure over bureaucracy. Non-aligned between US and China — both get investment. Anti-corruption rhetoric with selective enforcement. Nickel sovereigntism — banned raw ore exports to force downstream industrialisation.",
-    approvalRating: 76,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Transformed Indonesian governance from a revolving door of Jakarta elites to a genuine outsider presidency focused on infrastructure and development. His nickel export ban triggered the world's most consequential commodity sovereignty move by any developing country — forcing EV supply chain investment into Indonesia.",
@@ -12590,8 +12232,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Personal authoritarian dynasty. No political opposition tolerated. Oil revenues controlled by ruling family. Son Teodorin's corruption cases in Western courts represent the global rule-of-law challenge the regime embodies. Anti-Western democratic pressure.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "The world's most extreme case of oil-funded personal autocracy — higher GDP per capita than most African nations, yet one of the world's highest infant mortality rates. His 46-year rule is the definitive case study in resource curse governance failure.",
@@ -12662,8 +12302,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Populist authoritarian constitutionalist. Frames democracy as 'popular legitimacy' not institutionalism. Anti-Islamist, anti-liberal-democratic party system. Resource nationalist. Suspicious of Western NGOs and international financial conditions.",
-    approvalRating: 35,
-    approvalTrend: "down",
     status: "Incumbent (Disputed)",
     impact:
       "Reversed the Arab Spring's most consequential democratic experiment — Tunisia was the only country where the 2011 uprising produced durable democracy that actually functioned. His 2021 coup ended one of the most hopeful democratic chapters in Arab world history.",
@@ -12737,8 +12375,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "National conservative, Catholic social values, sovereign democracy (PiS model). Hawkish Russia security stance — Polish-American alliance as existential. Has blocked Tusk's judicial reforms as presidential check. Strongly pro-Ukraine.",
-    approvalRating: 46,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Poland's constitutional drama — a PiS-aligned President vetoing a pro-EU PM's reforms — is Europe's most complex cohabitation battle. His term ends in 2025; Poland's presidential election will resolve whether the PiS-era judicial appointments can be unwound.",
@@ -12811,8 +12447,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pan-Africanist anti-Western military nationalist. Russia security partnership, China economic partnership. Alliance of Sahel States as counter-ECOWAS institution. No democratic transition timeline. Anti-France, anti-US bases, anti-NGO presence.",
-    approvalRating: null,
-    approvalTrend: "down",
     status: "Transitional",
     impact:
       "Niger's coup completed the collapse of France's entire Sahel security architecture — the US's critical Agadez drone base, the largest US African intelligence hub, was also lost. His coup's consequence for counter-terrorism in the world's most jihadist-contested region will be felt for decades.",
@@ -12885,8 +12519,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pragmatic modernising absolute monarchist. Pro-business liberalisation without political pluralism. Dubai as global neutral hub — open to all nations. Vision-driven governance. Published poetry and books on leadership. Strategic hedging between East and West as Dubai's business model.",
-    approvalRating: null,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Transformed Dubai from a regional backwater into a global city synonymous with ambition, luxury, and modernity — a feat of governance-as-placemaking unmatched in the modern era. His creation of Emirates Airline alone reshaped global aviation and made Dubai the world's international transit hub.",
@@ -12959,8 +12591,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Social democratic, anti-corruption, pro-development investment. Close US relationship — Liberia has unique historical ties to America. Pro-ECOWAS regional integration. Rule of law restoration as defining mandate. Agricultural and resource sector diversification.",
-    approvalRating: 52,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "His election maintains Liberia's remarkable democratic consolidation — a country that survived two brutal civil wars to produce peaceful electoral transfers. At 79, he represents the democratic persistence of a generation that rebuilt Liberia from total devastation.",
@@ -13033,8 +12663,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Democratic socialist, MAS ideology, indigenous rights integration, resource nationalism (lithium and gas state ownership). Economic heterodox — state intervention, currency controls. Anti-imperialist rhetoric. Bitter split with Morales dominates final years.",
-    approvalRating: 24,
-    approvalTrend: "down",
     status: "Former",
     impact:
       "His term ended the MAS decade by exposing its contradictions — internal factional war destroying the movement, depletion of the gas wealth that funded its social programs, and a coup attempt underlining Bolivia's perennial institutional fragility. Bolivia's lithium dream remains unrealised.",
@@ -13108,8 +12736,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Progressive Catholic social teaching, continuity with Francis's approach on climate, migration, and poverty. His American origin gives him unique credibility for engaging US political Catholicism and Vatican-Washington relations. Canon law expertise shapes institutional reform agenda.",
-    approvalRating: null,
-    approvalTrend: "up",
     status: "In Office",
     impact:
       "An American pope fundamentally reshapes the Vatican's geopolitical optics — at a moment when the US political relationship with global Catholicism is highly contested. His dual American-Peruvian identity bridges North and South global Catholicism in a historically unprecedented way.",
@@ -13188,8 +12814,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centrist, moderate Islamist roots but governing as pragmatic nationalist. Pro-Arab League, pro-Turkey and UAE investment, suspicious of Ethiopian regional ambitions. Clan-balancing governance model. Seeks US counter-terrorism partnership while maintaining Islamic identity.",
-    approvalRating: 48,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Leads one of the world's most complex governance challenges — a fractious clan state rebuilding from complete collapse against an active jihadist insurgency, with regional powers (Ethiopia, UAE, Turkey) all competing for influence over its territory.",
@@ -13263,8 +12887,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Military nationalist, Islamist-adjacent (unlike RSF's secular-criminal model). Anti-civilian-rule in practice despite rhetoric. UAE and Egypt-backed. Anti-Ethiopian influence in Sudan. Refuses ICC jurisdiction over atrocity allegations.",
-    approvalRating: null,
-    approvalTrend: "down",
     status: "Transitional",
     impact:
       "Presides over what the UN calls the world's worst humanitarian crisis — Sudan's civil war has killed tens of thousands and displaced 10M+ in under two years. The conflict is reshaping the Horn of Africa's geopolitics as Gulf states, Egypt, and Wagner-linked forces back rival factions.",
@@ -13338,8 +12960,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Social democratic, pro-good governance, anti-corruption. Blue Economy — ocean conservation and sustainable fishing as economic model. Non-aligned between competing great powers in Indian Ocean. Commonwealth and African Union multilateralism.",
-    approvalRating: 58,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "His 2020 victory is one of Africa's most celebrated democratic moments — a priest who never stopped running eventually broke a 43-year political monopoly. Seychelles under Ramkalawan is the Indian Ocean's leading example of small-state democratic governance.",
@@ -13412,8 +13032,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "CNDD-FDD nationalist with pragmatic reform elements. Anti-Western human rights criticism domestically, but willing to engage multilaterals for development funding. Burundian sovereignty framing. Suspicious of Rwanda's regional ambitions.",
-    approvalRating: 41,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Represents a cautious opening from one of Africa's most isolated post-2015 states. Burundi remains deeply poor and authoritarian, but Ndayishimiye's partial pragmatism distinguishes him from his predecessor's complete international isolation.",
@@ -13488,8 +13106,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pragmatic centrist, ECOWAS institutionalist, strong presidential authority. Anti-drug trafficking rhetoric despite structural state-trafficking nexus. Pro-Portugal relations, pro-EU cooperation. Non-ideological governing style.",
-    approvalRating: 44,
-    approvalTrend: "stable",
     status: "In Office",
     impact:
       "Provides the closest thing to political stability Guinea-Bissau has seen in decades — though his repeated parliament dissolutions show the limits of that stability. His ECOWAS chairmanship during the Sahel coup wave made him one of West Africa's most prominent faces in 2023.",
@@ -13562,8 +13178,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative military-origin leader with genuine democratic transition credentials. Anti-Islamist militancy through combination of security and social integration. Pro-EU partnership, non-aligned on US-China, Arabic League solidarity. Slave trade abolition enforcement advanced.",
-    approvalRating: 56,
-    approvalTrend: "up",
     status: "In Office",
     impact:
       "Mauritania under Ghazouani is the Sahel's most important success story — a counter-example to Mali, Burkina, and Niger's coups and jihadist expansion. Understanding why Mauritania succeeded while neighbours collapsed is one of Africa's most consequential policy questions.",
@@ -13637,8 +13251,6 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Greater Serbia nationalism, Republika Srpska independence goal. Genocide denial on Srebrenica. Pro-Russia, anti-NATO expansion, anti-EU integration path. Aligns with Vučić, Orbán, and Putin. Views Bosnia's state institutions as illegitimate impositions.",
-    approvalRating: 43,
-    approvalTrend: "stable",
     status: "Incumbent (Disputed)",
     impact:
       "Europe's most dangerous destabiliser east of the Kremlin. His 2025 conviction and refusal to comply triggered Bosnia's worst post-war crisis — testing whether the EU and NATO have the will to enforce Dayton when its most provocative violator simply ignores court orders.",
@@ -13687,54 +13299,6 @@ const REGIONS = [
   "Middle East",
   "Africa",
 ];
-
-function ApprovalBar({
-  value,
-  trend,
-}: {
-  value: number | null;
-  trend: "up" | "down" | "stable";
-}) {
-  if (value === null)
-    return (
-      <div className="text-xs text-muted-foreground font-mono italic">
-        No public data
-      </div>
-    );
-  const color = value >= 60 ? "#34d399" : value >= 40 ? "#fbbf24" : "#f87171";
-  const TrendIcon =
-    trend === "up" ? CaretUp : trend === "down" ? CaretDown : null;
-  const trendColor =
-    trend === "up"
-      ? "text-green-700 dark:text-green-400"
-      : trend === "down"
-        ? "text-red-600 dark:text-red-400"
-        : "text-muted-foreground";
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground font-sans">
-          Approval Rating
-        </span>
-        <div className="flex items-center gap-1">
-          <span className="text-sm font-bold font-mono" style={{ color }}>
-            {value}%
-          </span>
-          {TrendIcon && (
-            <TrendIcon size={12} className={trendColor} weight="fill" />
-          )}
-        </div>
-      </div>
-      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${value}%`, background: color }}
-        />
-      </div>
-    </div>
-  );
-}
-
 
 function LeaderCard({
   leader,
@@ -13801,14 +13365,6 @@ function LeaderCard({
             <span className="mx-1 text-border">·</span>
             <span>{yearsInCurrentRole}y in role</span>
           </p>
-          <div className="mt-2 flex flex-col gap-1.5">
-            {leader.approvalRating !== null && (
-              <ApprovalBar
-                value={leader.approvalRating}
-                trend={leader.approvalTrend}
-              />
-            )}
-          </div>
         </div>
       </div>
     </button>
@@ -13978,19 +13534,9 @@ function LeaderDetail({
                 sub: `${leader.termsInOffice.length} term${leader.termsInOffice.length > 1 ? "s" : ""}`,
               },
               {
-                label: "Approval",
-                value:
-                  leader.approvalRating !== null
-                    ? `${leader.approvalRating}%`
-                    : "N/A",
-                sub:
-                  leader.approvalRating !== null
-                    ? leader.approvalTrend === "up"
-                      ? "↑ Rising"
-                      : leader.approvalTrend === "down"
-                        ? "↓ Falling"
-                        : "→ Stable"
-                    : "No public data",
+                label: "First Took Office",
+                value: `${Math.min(...leader.termsInOffice.map((t) => t.from))}`,
+                sub: leader.status,
               },
             ].map((s) => (
               <div key={s.label} className="modal-tile rounded-lg p-4">
@@ -14093,12 +13639,6 @@ function LeaderDetail({
                   <p className="text-sm text-foreground leading-relaxed">
                     {leader.impact}
                   </p>
-                </div>
-                <div className="modal-tile rounded-xl p-4">
-                  <ApprovalBar
-                    value={leader.approvalRating}
-                    trend={leader.approvalTrend}
-                  />
                 </div>
                 {(() => {
                   const info = getElectionInfo(leader.id);
@@ -16222,12 +15762,7 @@ export function WorldLeadersPage() {
   const inOffice = LEADERS.filter(
     (l) => l.status === "In Office" || l.status === "Incumbent (Disputed)",
   ).length;
-  const avgApproval = Math.round(
-    LEADERS.filter((l) => l.approvalRating !== null).reduce(
-      (a, l) => a + (l.approvalRating ?? 0),
-      0,
-    ) / LEADERS.filter((l) => l.approvalRating !== null).length,
-  );
+  const countriesLed = new Set(LEADERS.map((l) => l.countryCode)).size;
 
   return (
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
@@ -16239,8 +15774,8 @@ export function WorldLeadersPage() {
               World Leaders
             </h1>
             <p className="text-muted-foreground text-sm font-sans">
-              In-depth profiles: background, education, political views,
-              achievements, and approval ratings
+              In-depth profiles: background, education, political views and
+              achievements
             </p>
           </div>
         </div>
@@ -16257,8 +15792,8 @@ export function WorldLeadersPage() {
               value: String(inOffice),
             },
             {
-              label: "Avg Approval Rating",
-              value: `${avgApproval}%`,
+              label: "Countries",
+              value: String(countriesLed),
             },
             {
               label: "Regions Covered",
@@ -16510,16 +16045,11 @@ export function WorldLeadersPage() {
         <div className="mt-8 flex flex-col items-center gap-1">
           <p className="text-xs text-muted-foreground font-sans text-center">
             Profiles compiled from public records, official biographies, and
-            verified news sources. Approval ratings from major polling
-            aggregators as of 2025.
+            verified news sources.
           </p>
           <SourceLink
             sources={[
               { label: "Wikipedia", url: "https://www.wikipedia.org/" },
-              {
-                label: "Morning Consult Global Leader Approval",
-                url: "https://morningconsult.com/global-leader-approval/",
-              },
               {
                 label: "Reuters Leaders Coverage",
                 url: "https://www.reuters.com/world/",

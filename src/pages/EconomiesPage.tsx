@@ -713,7 +713,7 @@ function SectorBar({ name, share }: { name: string; share: number }) {
       </div>
       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
         <div
-          className="h-full rounded-full transition-all duration-500"
+          className="h-full rounded-full"
           style={{ width: `${share}%`, background: color }}
         />
       </div>
@@ -790,8 +790,7 @@ function SectorPie({ sectors }: { sectors: EconomySectors }) {
                 dataKey="value"
                 startAngle={90}
                 endAngle={-270}
-                isAnimationActive
-                animationDuration={600}
+                isAnimationActive={false}
               >
                 {pieData.map((entry) => (
                   <Cell
@@ -942,8 +941,7 @@ function BudgetPie({ budget }: { budget: CountryBudget }) {
                 dataKey="pct"
                 startAngle={90}
                 endAngle={-270}
-                isAnimationActive
-                animationDuration={600}
+                isAnimationActive={false}
               >
                 {ranked.map((s) => (
                   <Cell key={s.key} fill={BUDGET_COLORS[s.key]} stroke="transparent" />
@@ -1203,26 +1201,17 @@ function EconomyModal({
                     {
                       label: "Inflation",
                       value: na(economy.inflationRate, (v) => `${v}%`),
-                      color:
-                        economy.inflationRate > 5
-                          ? "text-destructive"
-                          : "text-success",
+                      color: "text-foreground",
                     },
                     {
                       label: "Unemployment",
                       value: na(economy.unemploymentRate, (v) => `${v}%`),
-                      color:
-                        economy.unemploymentRate > 6
-                          ? "text-warning"
-                          : "text-success",
+                      color: "text-foreground",
                     },
                     {
                       label: "Debt/GDP",
                       value: na(economy.debtToGDPRatio, (v) => `${v}%`),
-                      color:
-                        economy.debtToGDPRatio > 100
-                          ? "text-destructive"
-                          : "text-warning",
+                      color: "text-foreground",
                     },
                     {
                       label: rateLabel(economy),
@@ -1364,8 +1353,7 @@ function EconomyModal({
                           strokeWidth={2}
                           fill={`url(#ecoGrad-${economy.id})`}
                           dot={false}
-                          isAnimationActive
-                          animationDuration={600}
+                          isAnimationActive={false}
                         />
                       </AreaChart>
                     </ResponsiveContainer>
@@ -1604,20 +1592,12 @@ function EconomyModal({
                     {
                       label: rateLabel(economy),
                       value: na(economy.interestRate, (v) => `${v}%`),
-                      color:
-                        economy.interestRate > 5
-                          ? "text-warning"
-                          : "text-success",
+                      color: "text-foreground",
                     },
                     {
                       label: "Debt / GDP",
                       value: na(economy.debtToGDPRatio, (v) => `${v}%`),
-                      color:
-                        economy.debtToGDPRatio > 100
-                          ? "text-destructive"
-                          : economy.debtToGDPRatio > 60
-                            ? "text-warning"
-                            : "text-success",
+                      color: "text-foreground",
                     },
                     /* A generated card has no rating to show, so the sixth
                        tile is the consumer price index the World Bank does
@@ -1860,8 +1840,7 @@ function EconomyModal({
                                   dataKey="value"
                                   startAngle={90}
                                   endAngle={-270}
-                                  isAnimationActive
-                                  animationDuration={600}
+                                  isAnimationActive={false}
                                 >
                                   {pieData.map((entry) => {
                                     const res = resources.find(
@@ -1933,7 +1912,7 @@ function EconomyModal({
                                 </div>
                                 <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                                   <div
-                                    className="h-full rounded-full transition-all duration-500"
+                                    className="h-full rounded-full"
                                     style={{
                                       width: `${(r.value / peak) * 100}%`,
                                       background: r.color,
@@ -2442,19 +2421,19 @@ export function EconomiesPage() {
               label: "Fastest Growing",
               value: `${summary.fastest.name} ${summary.fastest.gdpGrowthRate >= 0 ? "+" : ""}${summary.fastest.gdpGrowthRate}%`,
               sub: "real GDP growth · economies over $10B",
-              color: "text-success",
+              color: summary.fastest.gdpGrowthRate >= 0 ? "text-success" : "text-destructive",
             },
             {
               label: "Largest Market",
               value: `${summary.largest.name} ${fmtUsdT(summary.largest.gdpTrillions)}`,
               sub: "by nominal GDP",
-              color: "text-warning",
+              color: "text-foreground",
             },
             {
               label: "Median Inflation",
               value: `${summary.medianInflation.toFixed(1)}%`,
               sub: `across ${summary.count} economies`,
-              color: "text-destructive",
+              color: "text-foreground",
             },
           ].map((s) => (
             <div
@@ -2815,7 +2794,7 @@ export function EconomiesPage() {
                           Inflation
                         </p>
                         <p
-                          className={`text-xs font-bold font-mono leading-tight ${!has(economy.inflationRate) ? "text-muted-foreground" : economy.inflationRate > 6 ? "text-destructive" : economy.inflationRate > 3 ? "text-warning" : "text-success"}`}
+                          className={`text-xs font-bold font-mono leading-tight ${has(economy.inflationRate) ? "text-foreground" : "text-muted-foreground"}`}
                         >
                           {na(economy.inflationRate, (v) => `${v}%`)}
                         </p>
@@ -2833,7 +2812,7 @@ export function EconomiesPage() {
                           Debt/GDP
                         </p>
                         <p
-                          className={`text-xs font-bold font-mono leading-tight ${!has(economy.debtToGDPRatio) ? "text-muted-foreground" : economy.debtToGDPRatio > 120 ? "text-destructive" : economy.debtToGDPRatio > 80 ? "text-warning" : "text-success"}`}
+                          className={`text-xs font-bold font-mono leading-tight ${has(economy.debtToGDPRatio) ? "text-foreground" : "text-muted-foreground"}`}
                         >
                           {na(economy.debtToGDPRatio, (v) => `${v}%`)}
                         </p>
@@ -2854,13 +2833,17 @@ export function EconomiesPage() {
                           })}
                         </span>
                       </div>
+                      {/* On the scale of the world: the whole track is world GDP, and the bar is this economy's part of it. */}
                       <div className="h-1 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-sky-500 transition-all duration-500"
-                          style={{
-                            width: `${has(economy.gdpTrillions) ? Math.min(100, (economy.gdpTrillions / WORLD_GDP_T) * 100 * 4) : 0}%`,
-                          }}
-                        />
+                        {has(economy.gdpTrillions) && (
+                          <div
+                            className="h-full rounded-full bg-sky-500"
+                            style={{
+                              width: `${Math.min(100, (economy.gdpTrillions / WORLD_GDP_T) * 100)}%`,
+                              minWidth: 2,
+                            }}
+                          />
+                        )}
                       </div>
                     </div>
 
@@ -2888,22 +2871,12 @@ export function EconomiesPage() {
                           {
                             label: "Unemployment",
                             value: na(country.unemploymentRate, (v) => `${v}%`),
-                            color:
-                              country.unemploymentRate <= 5
-                                ? "text-success"
-                                : country.unemploymentRate <= 10
-                                  ? "text-warning"
-                                  : "text-destructive",
+                            color: "text-foreground",
                           },
                           {
                             label: "Inflation",
                             value: na(country.inflationRate, (v) => `${v}%`),
-                            color:
-                              country.inflationRate <= 3
-                                ? "text-success"
-                                : country.inflationRate <= 8
-                                  ? "text-warning"
-                                  : "text-destructive",
+                            color: "text-foreground",
                           },
                           {
                             label: "Trade Balance",
@@ -3141,8 +3114,7 @@ export function EconomiesPage() {
                                       />
                                     );
                                   }}
-                                  isAnimationActive
-                                  animationDuration={600}
+                                  isAnimationActive={false}
                                 />
                               </AreaChart>
                             </ResponsiveContainer>
