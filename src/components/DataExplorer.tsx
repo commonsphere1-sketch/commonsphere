@@ -12,10 +12,11 @@
  * and US statehouse coverage, counted by the words in them. Nothing here is
  * typed in by hand.
  *
- * On the Policy page a headline's detail goes further (PolicyContext): where
- * the headline came from, the published figures for the place it is about,
- * and the week's other policy headlines about that place. It is loaded only
- * there, so the Dashboard's panel does not carry its data.
+ * A policy headline's detail goes further than its link (PolicyContext):
+ * where the headline came from, the published figures for the place it is
+ * about, and the week's other policy headlines about that place - the same
+ * on the Dashboard's Policies tab as on the Policy page. It is loaded when a
+ * headline's detail is first shown, so neither carries its data before then.
  */
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -33,7 +34,7 @@ import type { TopicHit } from "./PolicyContext";
 import { RESOURCES } from "../data/resourceList";
 import { TREND_FIGURES } from "../data/trendGroups";
 
-/** The Policy page's fuller detail for a headline, with the data it draws on. */
+/** A policy headline's fuller detail, with the data it draws on: loaded when one is first shown. */
 const PolicyContext = lazy(() => import("./PolicyContext"));
 /** The explorers of the Economies page's resources and of the Trends page, each with its data: loaded when its tab is opened. */
 const ResourcesTab = lazy(() => import("./ResourceExplorerTab"));
@@ -263,25 +264,21 @@ export function DataExplorer({ only }: { /** Show this category alone, without t
                 t={t}
                 h={policy}
                 onHub={pathname === TABS[2].path ? null : () => navigate(TABS[2].path)}
-                more={
-                  only === "policies"
-                    ? {
-                        headlines,
-                        onOpen: (h) => {
-                          setOpened(h);
-                          setPolicyUrl(h.url);
-                        },
-                        onTopic: (label) => {
-                          setSearch("");
-                          setTopic(label);
-                        },
-                        onOutlet: (outlet) => {
-                          setTopic(null);
-                          setSearch(outlet);
-                        },
-                      }
-                    : null
-                }
+                more={{
+                  headlines,
+                  onOpen: (h) => {
+                    setOpened(h);
+                    setPolicyUrl(h.url);
+                  },
+                  onTopic: (label) => {
+                    setSearch("");
+                    setTopic(label);
+                  },
+                  onOutlet: (outlet) => {
+                    setTopic(null);
+                    setSearch(outlet);
+                  },
+                }}
               />
             ) : (
               <Empty t={t}>No policy headlines to show.</Empty>
@@ -926,7 +923,7 @@ function PolicyList({
   );
 }
 
-/** What the Policy page's detail adds: the headlines read, and what its links into the list do. */
+/** What a headline's detail draws on beyond the headline: the headlines read, and what its links into the list do. */
 type PolicyMore = {
   headlines: Headline[];
   onOpen: (h: Headline) => void;
@@ -941,10 +938,9 @@ function wordsIn(re: RegExp, title: string): string[] {
   return [...found.values()];
 }
 
-function PolicyDetail({ t, h, onHub, more }: { t: Tokens; h: Headline; onHub: (() => void) | null; more: PolicyMore | null }) {
+function PolicyDetail({ t, h, onHub, more }: { t: Tokens; h: Headline; onHub: (() => void) | null; more: PolicyMore }) {
   const topics = POLICY_TOPICS.filter((p) => p.re.test(h.title));
   const hits: TopicHit[] = topics.map((p) => ({ label: p.label, color: p.color, words: wordsIn(p.re, h.title) }));
-  const places = placesOf(h);
   const when = new Date(h.published_at);
   return (
     <>
@@ -966,16 +962,6 @@ function PolicyDetail({ t, h, onHub, more }: { t: Tokens; h: Headline; onHub: ((
           {h.outlet} · {when.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} · {ago(h.published_at)}
         </p>
       </div>
-      {!more && places.length > 0 && (
-        <div className="rounded-xl px-3 py-3" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
-          <Label t={t} className="mb-1">
-            About
-          </Label>
-          <p className="text-[11px] font-sans" style={{ color: t.headText }}>
-            {places.join(", ")}
-          </p>
-        </div>
-      )}
       <a
         href={h.url}
         target="_blank"
@@ -985,22 +971,16 @@ function PolicyDetail({ t, h, onHub, more }: { t: Tokens; h: Headline; onHub: ((
       >
         Read it at {h.outlet} <ArrowSquareOut size={11} weight="bold" />
       </a>
-      {more ? (
-        // Keyed by the headline, so the place it shows starts afresh with each.
-        <Suspense
-          fallback={
-            <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
-              Loading the figures…
-            </p>
-          }
-        >
-          <PolicyContext key={h.url} t={t} h={h} hits={hits} {...more} />
-        </Suspense>
-      ) : (
-        <p className="text-[9px] font-sans leading-snug" style={{ color: t.mutedText }}>
-          {topics.length ? "Its topics come from the words in the headline. " : ""}The story is the outlet's; CommonSphere links to it and adds nothing to it.
-        </p>
-      )}
+      {/* Keyed by the headline, so the place it shows starts afresh with each. */}
+      <Suspense
+        fallback={
+          <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
+            Loading the figures…
+          </p>
+        }
+      >
+        <PolicyContext key={h.url} t={t} h={h} hits={hits} {...more} />
+      </Suspense>
       {onHub && (
         <GoButton color="#a855f7" onClick={onHub}>
           Policy hub

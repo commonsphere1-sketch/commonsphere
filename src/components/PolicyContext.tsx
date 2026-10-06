@@ -1,7 +1,8 @@
 /**
- * What the Policy page's explorer shows beside a headline, under the link to
- * the story: where the headline came from, the published figures for the
- * place it is about, and the week's other policy headlines about that place.
+ * What the explorer shows beside a policy headline, under the link to the
+ * story - on the Policy page and on the Dashboard's Policies tab alike: where
+ * the headline came from, the published figures for the place it is about,
+ * and the week's other policy headlines about that place.
  *
  * None of it is taken from the story. The news job keeps a story's headline,
  * link, outlet and time and never its text, so there is nothing of the story
@@ -14,8 +15,8 @@
  * an estimate. Government type and head of government are left out: the
  * site's country data has them written by hand, with no source.
  *
- * DataExplorer loads this lazily, on the Policy page only, so the
- * Dashboard's panel does not carry the data it draws on.
+ * DataExplorer loads this lazily, when a headline's detail is first shown,
+ * so a page does not carry the data it draws on before then.
  */
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
