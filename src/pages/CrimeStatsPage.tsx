@@ -4,7 +4,7 @@ import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
 import { RecordedCrime } from "../components/RecordedCrime";
 import { JusticeSection } from "../components/JusticeSection";
-import { TraffickingAndSlavery } from "../components/TraffickingAndSlavery";
+import { SlaveryForms, TraffickingAndSlavery } from "../components/TraffickingAndSlavery";
 import { CrimeExplorer } from "../components/CrimeExplorer";
 import { useLook } from "../components/CrimeParts";
 import {
@@ -2592,6 +2592,10 @@ export function CrimeStatsPage() {
             />
           </div>
         </div>
+
+        {/* ── The detailed chart of the forms, put back in this section as asked: the ILO's four forms as a ring, and
+            forced labour in figures. The card above keeps its own shares, which are typed in. ── */}
+        <SlaveryForms isLight={isLight} />
 
         {/* ── SLAVERY ROW 2: Countries + Forced Labour Economy + Government Response ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">

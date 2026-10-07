@@ -64,6 +64,60 @@ function traffickingTotals() {
 }
 const TIP = traffickingTotals();
 
+const S = MODERN_SLAVERY;
+const w = S.world;
+// The forms modern slavery takes: forced labour's three, and forced marriage. Each is rounded on its own, so the ring is on their sum.
+const f = S.forcedLabourForms;
+const who = S.forcedLabourWho;
+const forms = [
+  { label: "Forced labour in the private economy", short: "Private economy", value: f.privateEconomy },
+  { label: "Forced marriage", short: "Forced marriage", value: w.forcedMarriage },
+  { label: "Forced commercial sexual exploitation", short: "Sexual exploitation", value: f.sexualExploitation },
+  { label: "Forced labour imposed by the state", short: "State-imposed", value: f.stateImposed },
+];
+const formsSum = forms.reduce((a, x) => a + x.value, 0);
+
+/**
+ * The forms modern slavery takes, in detail: the ring of the four forms, and
+ * forced labour in figures - where it is, the women and girls and the children
+ * in it, and the profits made from it. The ILO's own counts, read by
+ * build-modern-slavery.cjs. It stands in the page's modern slavery section,
+ * with the page's older card of the forms; the fuller section lower down
+ * (TraffickingAndSlavery) carries the regions and the countries.
+ */
+export function SlaveryForms({ isLight }: { isLight: boolean }) {
+  const card = {
+    background: isLight ? "#ffffff" : "rgba(255,255,255,0.04)",
+    border: isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)",
+    boxShadow: isLight ? "var(--card-glow), 0 1px 10px rgba(0,0,0,0.07)" : "var(--card-glow)",
+  };
+  return (
+    <div className="rounded-2xl p-5" style={card}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-5">
+        <div>
+          <ChartTitle>The forms modern slavery takes · millions of people · {S.year}</ChartTitle>
+          <PartsDonut label={`People in modern slavery by the form it takes, ${S.year}`} parts={forms.map((x) => ({ label: x.label, value: x.value, text: `${x.value}M · ${share(x.value, formsSum)}`, mid: { text: `${x.value}M`, label: x.short } }))} />
+        </div>
+        <div>
+          <ChartTitle>Forced labour · {millions(w.forcedLabour)} people · {S.year}</ChartTitle>
+          <FigureRow label="In the private economy, outside the sex trade" value={millions(f.privateEconomy)} sub={share(f.privateEconomy, w.forcedLabour)} />
+          <FigureRow label="In forced commercial sexual exploitation" value={millions(f.sexualExploitation)} sub={share(f.sexualExploitation, w.forcedLabour)} />
+          <FigureRow label="Imposed by the state" value={millions(f.stateImposed)} sub={share(f.stateImposed, w.forcedLabour)} />
+          <FigureRow label="Women and girls among them" value={`${who.womenAndGirlsPct}%`} sub={`${millions(who.womenInSexualExploitation)} in commercial sexual exploitation, ${millions(who.womenInOtherSectors)} in other sectors`} />
+          <FigureRow label="Children among them" value={`${who.childrenPct}%`} sub={millions(who.children)} />
+          <FigureRow label="Illegal profits made from it" value={`US$${S.profits.billions} billion a year`} sub={`ILO, ${S.profits.report}`} />
+        </div>
+      </div>
+      <ChartNote className="mt-4">
+        These are estimates for any given day in {S.year}, built from household surveys and case records, not counts of identified people. The forms are the ILO's figures,
+        each rounded on its own, so the four come to {formsSum.toFixed(1)} million against the {millions(w.people)} the estimates round to; the ring and its shares are of the
+        four.
+      </ChartNote>
+      <SourceLink sources={[MODERN_SLAVERY_SOURCES.estimates, MODERN_SLAVERY_SOURCES.ilo]} className="mt-2" />
+    </div>
+  );
+}
+
 export function TraffickingAndSlavery({ isLight }: { isLight: boolean }) {
   const head = isLight ? "#0f172a" : "#f1f0ff";
   const muted = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)";
@@ -86,18 +140,6 @@ export function TraffickingAndSlavery({ isLight }: { isLight: boolean }) {
       </p>
     </div>
   );
-  const S = MODERN_SLAVERY;
-  const w = S.world;
-  // The forms modern slavery takes: forced labour's three, and forced marriage. Each is rounded on its own, so the ring is on their sum.
-  const f = S.forcedLabourForms;
-  const who = S.forcedLabourWho;
-  const forms = [
-    { label: "Forced labour in the private economy", short: "Private economy", value: f.privateEconomy },
-    { label: "Forced marriage", short: "Forced marriage", value: w.forcedMarriage },
-    { label: "Forced commercial sexual exploitation", short: "Sexual exploitation", value: f.sexualExploitation },
-    { label: "Forced labour imposed by the state", short: "State-imposed", value: f.stateImposed },
-  ];
-  const formsSum = forms.reduce((a, x) => a + x.value, 0);
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="crime-trafficking">
@@ -170,22 +212,7 @@ export function TraffickingAndSlavery({ isLight }: { isLight: boolean }) {
           <Tile label="Since the 2016 estimates" value={`+${millions(w.risenSince2016)}`} sub="more people forced to work or to marry" />
         </div>
 
-        {/* ── The forms it takes ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-5 mb-5">
-          <div>
-            <ChartTitle>The forms modern slavery takes · millions of people · {S.year}</ChartTitle>
-            <PartsDonut label={`People in modern slavery by the form it takes, ${S.year}`} parts={forms.map((x) => ({ label: x.label, value: x.value, text: `${x.value}M · ${share(x.value, formsSum)}`, mid: { text: `${x.value}M`, label: x.short } }))} />
-          </div>
-          <div>
-            <ChartTitle>Forced labour · {millions(w.forcedLabour)} people · {S.year}</ChartTitle>
-            <FigureRow label="In the private economy, outside the sex trade" value={millions(f.privateEconomy)} sub={share(f.privateEconomy, w.forcedLabour)} />
-            <FigureRow label="In forced commercial sexual exploitation" value={millions(f.sexualExploitation)} sub={share(f.sexualExploitation, w.forcedLabour)} />
-            <FigureRow label="Imposed by the state" value={millions(f.stateImposed)} sub={share(f.stateImposed, w.forcedLabour)} />
-            <FigureRow label="Women and girls among them" value={`${who.womenAndGirlsPct}%`} sub={`${millions(who.womenInSexualExploitation)} in commercial sexual exploitation, ${millions(who.womenInOtherSectors)} in other sectors`} />
-            <FigureRow label="Children among them" value={`${who.childrenPct}%`} sub={millions(who.children)} />
-            <FigureRow label="Illegal profits made from it" value={`US$${S.profits.billions} billion a year`} sub={`ILO, ${S.profits.report}`} />
-          </div>
-        </div>
+        <ChartNote className="mb-4">The forms modern slavery takes, and forced labour in figures, are drawn above, with the page's Forms of Modern Slavery.</ChartNote>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-5">
           <div>
@@ -227,8 +254,7 @@ export function TraffickingAndSlavery({ isLight }: { isLight: boolean }) {
         </div>
 
         <ChartNote className="mt-4">
-          These are estimates, built from household surveys and case records, not counts of identified people. The forms are the ILO's figures, each rounded on its
-          own, so the four come to {formsSum.toFixed(1)} million against the {millions(w.people)} the estimates round to; the ring and its shares are of the four.
+          These are estimates, built from household surveys and case records, not counts of identified people.
           Each bar is on the scale of the largest figure in its chart. The regions are the Global Slavery Index's; it names the highest- and lowest-prevalence countries but prints their rates only in a chart, so they are
           listed by name. It gives a figure for every country only on request, and the site does not hold that dataset.
         </ChartNote>
