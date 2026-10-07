@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
+
+// The explorer of revolutions, protests, boycotts and internal conflicts, with its accounts: loaded when the page reaches it.
+const UnrestExplorer = lazy(() => import("../components/UnrestExplorer"));
 import { RecordedCrime } from "../components/RecordedCrime";
 import { JusticeSection } from "../components/JusticeSection";
 import { SlaveryForms, TraffickingAndSlavery } from "../components/TraffickingAndSlavery";
@@ -2189,6 +2192,12 @@ export function CrimeStatsPage() {
             />
           </div>
         </div>
+
+        {/* ── REVOLUTIONS, PROTESTS, BOYCOTTS AND INTERNAL CONFLICTS: old and recent, each with its cause, what it
+            cost and how it ended, in the words of its own Wikipedia article; see data/unrest.ts. ── */}
+        <Suspense fallback={null}>
+          <UnrestExplorer />
+        </Suspense>
 
         {/* ── MODERN SLAVERY SECTION HEADER ─────────────────────── */}
         <div

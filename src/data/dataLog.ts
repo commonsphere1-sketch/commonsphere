@@ -62,6 +62,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "Revolutions, protests, boycotts and internal conflicts, each with its cause, what it cost and how it ended",
+    "from": "Wikipedia",
+    "page": "/dashboard/crime",
+    "where": "Crime stats",
+    "read": "2026-10-07",
+    "files": 1
+  },
+  {
     "what": "Species described in the last three years, with what is known of each and where it was found",
     "from": "Wikipedia, Wikidata",
     "page": "/dashboard/planetary-boundaries",
@@ -304,4 +312,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 56;
+export const DATA_LOG_FILES = 57;
