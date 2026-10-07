@@ -26,7 +26,7 @@ import { DataExplorer } from "../components/DataExplorer";
 import { DashboardDrops } from "../components/DashboardDrops";
 import { hdiHex } from "../lib/hdiTier";
 import { CommodityMovers } from "../components/CommodityMovers";
-import { InternationalSection, NationalSection } from "../components/DashboardScopes";
+import { GlobalAnalytics } from "../components/DashboardGlobal";
 import { CitiesContainer, SectorOutlook } from "../components/DashboardCitiesSectors";
 
 /** Energy to 2050, the panel kept of the Trends & Projections desk, with the projections it draws on: loaded after the page. */
@@ -3309,9 +3309,9 @@ export function DashboardPage() {
           onNav={navigate}
         />
 
-        {/* ── NATIONAL, then INTERNATIONAL: back where they stood, on live headlines and published figures ── */}
-        <NationalSection />
-        <InternationalSection />
+        {/* ── GLOBAL & GEOPOLITICAL ANALYTICS: where the National and International cards stood, replaced as asked.
+            The world's figures, how its people are governed, and its blocs side by side - each published. ── */}
+        <GlobalAnalytics />
 
         {/* ── FOOTER ────────────────────────────────────────────────────── */}
         <div className="text-center py-3 flex flex-col items-center gap-1">

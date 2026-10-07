@@ -14,15 +14,15 @@
  *   Sector Outlook  eight sectors with an "outlook" and a "confidence", and
  *                   "7-week" sparklines; nobody publishes such figures. It
  *                   now gives, for the sectors the site holds a published
- *                   world series for, the latest year against the year
- *                   before, and draws the whole series of the three that
- *                   moved most.
+ *                   world series for, the latest year's figure, the year
+ *                   before's, the change between them and on ten years
+ *                   before, and each one's whole series as a line.
  *
  * A growth rate here is worked out from two published figures of one series;
  * the containers say so. Sector Outlook keeps its name because it is the
  * container that was asked back, and says in its first line that it is what
- * happened, not a forecast: the published projections are in the Trends &
- * Projections panel above it.
+ * happened, not a forecast: the published projections are on the Trends
+ * page.
  */
 import { useMemo, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
@@ -191,107 +191,121 @@ export function CitiesContainer() {
 
 // ── Sector Outlook ──────────────────────────────────────────────────────────
 
-type Sector = { sector: string; what: string; series: Point[]; color: string; source: Source };
-const world = (id: string, sector: string, what: string, color: string): Sector[] => {
+type Sector = { sector: string; what: string; series: Point[]; color: string; source: Source; /** The figure as printed, with its unit. */ print: (v: number) => string };
+const money = (v: number) => {
+  const a = Math.abs(v);
+  return "$" + (a >= 1e12 ? (v / 1e12).toFixed(2) + "T" : a >= 1e9 ? (v / 1e9).toFixed(a >= 1e11 ? 0 : 1) + "bn" : (v / 1e6).toFixed(0) + "M");
+};
+const twh = (v: number) => Math.round(v).toLocaleString("en-US") + " TWh";
+const world = (id: string, sector: string, what: string, color: string, print: (v: number) => string): Sector[] => {
   const ind = WORLD[id];
-  return ind ? [{ sector, what, series: ind.series as Point[], color, source: ind.source }] : [];
+  return ind ? [{ sector, what, series: ind.series as Point[], color, source: ind.source, print }] : [];
 };
 /** The sectors the site holds a yearly world series for, each by the series that measures it. */
 const SECTORS: Sector[] = [
-  ...world("militaryUsd", "Defence", "world military spending", "#ef4444"),
-  { sector: "Renewables", what: "electricity from renewable sources", series: RENEWABLE_GENERATION.map((r) => [r.year, r.solar + r.wind + r.hydro + r.bioenergy + r.other] as Point), color: "#10b981", source: RENEWABLE_GENERATION_SOURCE },
-  { sector: "Semiconductors", what: "TSMC's revenue, the largest chip foundry", series: TSMC_REVENUE.series as Point[], color: "#6366f1", source: TSMC_REVENUE.source },
-  ...world("aiInvestment", "AI", "private investment in AI", "#a855f7"),
-  ...world("manufacturingUsd", "Manufacturing", "world manufacturing value added", "#06b6d4"),
-  ...world("robotInstalls", "Industrial robots", "robots installed in the year", "#f97316"),
-  ...world("extDebtUsd", "Developing-country debt", "external debt of developing countries", "#f59e0b"),
-  ...world("oilProduction", "Oil", "world oil production", "#64748b"),
+  ...world("militaryUsd", "Defence", "world military spending", "#ef4444", money),
+  { sector: "Renewables", what: "electricity from renewable sources", series: RENEWABLE_GENERATION.map((r) => [r.year, r.solar + r.wind + r.hydro + r.bioenergy + r.other] as Point), color: "#10b981", source: RENEWABLE_GENERATION_SOURCE, print: twh },
+  // TSMC's revenue is held in US$ billions.
+  { sector: "Semiconductors", what: "TSMC's revenue, the largest chip foundry", series: TSMC_REVENUE.series as Point[], color: "#6366f1", source: TSMC_REVENUE.source, print: (v) => "$" + v.toFixed(1) + "bn" },
+  ...world("aiInvestment", "AI", "private investment in AI, 2021 prices", "#a855f7", money),
+  ...world("manufacturingUsd", "Manufacturing", "world manufacturing value added", "#06b6d4", money),
+  ...world("robotInstalls", "Industrial robots", "robots installed in the year", "#f97316", (v) => Math.round(v).toLocaleString("en-US")),
+  ...world("extDebtUsd", "Developing-country debt", "external debt of developing countries", "#f59e0b", money),
+  ...world("oilProduction", "Oil", "world oil production", "#64748b", twh),
 ];
 
-/** Each sector's latest year against the year before, where its series has both. */
+/** Each sector's latest year against the year before, and against ten years before where its series reaches that far. */
 const SECTOR_ROWS = SECTORS.flatMap((s) => {
   const [year, now] = s.series[s.series.length - 1] ?? [];
   const before = s.series.find(([y]) => y === year - 1)?.[1];
   if (year === undefined || !before || before <= 0) return [];
-  return [{ ...s, year, change: (now / before - 1) * 100 }];
+  const decade = s.series.find(([y]) => y === year - 10)?.[1];
+  return [{ ...s, year, now, before, change: (now / before - 1) * 100, decade: decade && decade > 0 ? { value: decade, change: (now / decade - 1) * 100 } : null }];
 });
 
 export function SectorOutlook() {
   const t = useTokens();
   const color = "#a855f7";
-  const top = Math.max(...SECTOR_ROWS.map((r) => Math.abs(r.change)), 1);
-  const movers = useMemo(() => [...SECTOR_ROWS].sort((a, b) => Math.abs(b.change) - Math.abs(a.change)).slice(0, 3), []);
   const sources = [...new Map(SECTOR_ROWS.map((r) => [r.source.url, { label: publisher(r.source.label), url: r.source.url }])).values()];
   return (
     <Card t={t}>
       <Head t={t} icon={<ChartLineUp size={14} weight="fill" />} label="Sector Outlook" badge="latest year" color={color} cta="Full Trends" to="/dashboard/trends" />
       <p className="text-[10px] font-sans leading-snug -mt-2 mb-2" style={{ color: t.mutedText }}>
-        What each sector's published series did in its latest year against the year before - what happened, not a forecast.
+        What each sector's published series did: its latest year's figure, the year before's, the change between them and on ten years before, and the series itself - what
+        happened, not a forecast.
       </p>
 
-      {/* Sector rows */}
+      {/* Sector rows: the figure and its change above, the series and the years it is set against below. */}
       <div className="flex flex-col">
         {SECTOR_ROWS.map((s, i) => {
           const up = s.change >= 0;
+          const grad = "sector-" + s.sector.replace(/[^A-Za-z0-9]/g, "");
           return (
-            <div key={s.sector} className="flex items-center gap-2 py-1.5" style={{ borderBottom: i < SECTOR_ROWS.length - 1 ? `1px solid ${t.gridLine}` : "none" }} title={`${s.what}, ${s.year} against ${s.year - 1} · ${publisher(s.source.label)}`}>
-              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: s.color }} aria-hidden />
-              <span className="flex-1 min-w-0">
-                <span className="text-[11px] font-semibold font-sans truncate block" style={{ color: t.headText }}>
-                  {s.sector}
+            <div key={s.sector} className="py-2" style={{ borderBottom: i < SECTOR_ROWS.length - 1 ? `1px solid ${t.gridLine}` : "none" }} title={`${s.what}, ${s.series[0][0]} to ${s.year} · ${s.source.label}`}>
+              <div className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5" style={{ background: s.color }} aria-hidden />
+                <span className="flex-1 min-w-0">
+                  <span className="text-[11px] font-semibold font-sans truncate block" style={{ color: t.headText }}>
+                    {s.sector}
+                  </span>
+                  <span className="text-[9px] font-mono truncate block" style={{ color: t.mutedText }}>
+                    {s.what} · {publisher(s.source.label)}
+                  </span>
                 </span>
-                <span className="text-[9px] font-mono truncate block" style={{ color: t.mutedText }}>
-                  {s.what} · {s.year}
+                <span className="text-right shrink-0">
+                  <span className="block text-[12px] font-mono font-bold" style={{ color: t.headText }}>
+                    {s.print(s.now)}
+                  </span>
+                  <span className="block text-[9px] font-mono" style={{ color: t.mutedText }}>
+                    {s.year}
+                  </span>
                 </span>
-              </span>
-              {/* On the scale of the largest move shown, up or down. */}
-              <span className="w-12 h-1 rounded-full overflow-hidden shrink-0" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }} aria-hidden>
-                <span className="block h-full rounded-full" style={{ width: `${Math.max(3, (100 * Math.abs(s.change)) / top)}%`, background: s.color }} />
-              </span>
-              <span className="flex items-center gap-0.5 shrink-0 w-16 justify-end">
-                {up ? <TrendUp size={9} weight="fill" color={GREEN} /> : <TrendDown size={9} weight="fill" color={RED} />}
-                <span className="text-[10px] font-mono font-semibold" style={{ color: up ? GREEN : RED }}>
-                  {signed(s.change)}
+                <span className="flex items-center gap-0.5 shrink-0 w-16 justify-end mt-0.5" title={`${s.year} against ${s.year - 1}`}>
+                  {up ? <TrendUp size={9} weight="fill" color={GREEN} /> : <TrendDown size={9} weight="fill" color={RED} />}
+                  <span className="text-[10px] font-mono font-semibold" style={{ color: up ? GREEN : RED }}>
+                    {signed(s.change)}
+                  </span>
                 </span>
-              </span>
+              </div>
+              <div className="flex items-center gap-3 mt-1 pl-3.5">
+                <div className="flex-1 min-w-0" role="img" aria-label={`${s.what}, ${s.series[0][0]} to ${s.year}.`}>
+                  <ResponsiveContainer width="100%" height={22}>
+                    <AreaChart data={s.series.map(([year, v]) => ({ year, v }))} margin={{ top: 1, right: 0, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id={grad} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={s.color} stopOpacity={0.35} />
+                          <stop offset="100%" stopColor={s.color} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <Area type="monotone" dataKey="v" stroke={s.color} strokeWidth={1.5} fill={`url(#${grad})`} dot={false} isAnimationActive={false} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <span className="text-[9px] font-mono shrink-0 text-right leading-snug" style={{ color: t.mutedText }}>
+                  <span className="block">
+                    {s.year - 1}: <span style={{ color: t.bodyText }}>{s.print(s.before)}</span>
+                  </span>
+                  <span className="block">
+                    {s.decade ? (
+                      <>
+                        {s.year - 10}: <span style={{ color: t.bodyText }}>{s.print(s.decade.value)}</span> · {signed(s.decade.change, 0)}
+                      </>
+                    ) : (
+                      `series from ${s.series[0][0]}`
+                    )}
+                  </span>
+                </span>
+              </div>
             </div>
           );
         })}
       </div>
 
-      {/* The three that moved most: each one's whole series */}
-      <div className="mt-3 pt-3 flex flex-col gap-1.5" style={{ borderTop: `1px solid ${t.gridLine}` }}>
-        <p className="text-[9px] font-mono uppercase tracking-widest mb-0.5" style={{ color: t.mutedText }}>
-          Top movers · each one's series
-        </p>
-        {movers.map((s) => (
-          <div key={s.sector} className="flex items-center gap-2">
-            <span className="text-[9px] font-sans font-semibold truncate w-24 shrink-0" style={{ color: t.headText }}>
-              {s.sector}
-            </span>
-            <div className="flex-1 min-w-0" role="img" aria-label={`${s.what}, ${s.series[0][0]} to ${s.year}.`}>
-              <ResponsiveContainer width="100%" height={24}>
-                <AreaChart data={s.series.map(([year, v]) => ({ year, v }))} margin={{ top: 1, right: 0, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id={`sector-${s.sector.replace(/\W/g, "")}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={s.color} stopOpacity={0.35} />
-                      <stop offset="100%" stopColor={s.color} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <Area type="monotone" dataKey="v" stroke={s.color} strokeWidth={1.5} fill={`url(#sector-${s.sector.replace(/\W/g, "")})`} dot={false} isAnimationActive={false} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-            <span className="text-[9px] font-mono shrink-0 w-16 text-right" style={{ color: t.mutedText }}>
-              {s.series[0][0]}–{s.year}
-            </span>
-          </div>
-        ))}
-      </div>
-
       <p className="text-[9px] font-sans leading-snug mt-2" style={{ color: t.mutedText }}>
-        A change is worked out from the publisher's two figures. The sectors are measured in different things - dollars, terawatt-hours, robots - so the rates set
-        them in order and nothing more. No body publishes a twelve-month outlook by sector; the projections that are published are in Trends &amp; Projections.
+        A change is worked out from the publisher's two figures: beside a sector, its latest year on the year before; under it, the year before's figure and the figure
+        ten years before with the change since. The line is the series from its first year. The sectors are measured in different things - dollars, terawatt-hours,
+        robots - so the rates set them in order and nothing more. No body publishes a twelve-month outlook by sector; the projections that are published are on the
+        Trends page.
       </p>
       <SourceLink sources={sources} className="mt-1" />
     </Card>
