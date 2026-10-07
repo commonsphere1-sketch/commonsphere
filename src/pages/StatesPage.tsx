@@ -1617,7 +1617,8 @@ const STATE_EDUCATION: Record<string, StateEducationData> = {
 
 /**
  * Education attainment from the Census Bureau's ACS, with the major
- * universities kept from the written table by name and kind. Each is drawn
+ * universities kept from the written table by name and kind - the kind as a
+ * chip, like a leader's ideology. Each is drawn
  * as the country window draws a university (UniversityList): Wikidata's
  * one-line description under its name and the year it was founded, and it
  * opens to the opening of its Wikipedia article (stateUniversities.ts,
@@ -1672,7 +1673,7 @@ function StateEducationPanel({ state }: { state: USState }) {
           <ChartTitle>Major universities · open one for what it is about and known for</ChartTitle>
           <UniversityList list={schools.map((u) => ({ name: u.name, tag: u.type, ...STATE_UNIVERSITIES[state.id]?.[u.name] }))} />
           <ChartNote className="mt-3">
-            The schools listed, and the word beside each, are the site's own notes. What each is and the year it was founded are Wikidata's - the year
+            The schools listed, and the chip beside each, are the site's own notes. What each is and the year it was founded are Wikidata's - the year
             only where the school's Wikipedia article gives the same one - and what it is known for is the opening of that article.
           </ChartNote>
         </div>

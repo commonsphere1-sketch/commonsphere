@@ -40,7 +40,8 @@ export default function Universities({ city, country, place, className = "" }: {
       <ChartNote className="mt-3">
         Wikidata's list of the higher-education institutions it places in {place}, in the order of how many language editions of Wikipedia have an article on each:
         how widely one is written about, not a ranking of how good it is. One with no English article, or since dissolved, is left out. The year is its founding as
-        Wikidata gives it; what it is known for is the opening of its Wikipedia article.
+        Wikidata gives it; what it is known for is the opening of its Wikipedia article. A chip beside a name repeats what Wikidata's description says the school is -
+        public, private, research.
       </ChartNote>
       <SourceLink sources={[UNIVERSITIES_SOURCE]} className="mt-2" />
     </div>
