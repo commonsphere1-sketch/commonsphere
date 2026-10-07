@@ -19,6 +19,12 @@
  * one, as a state's or a country's window does for a place. The overview has
  * all six; each section opens with its own.
  *
+ * Peace is drawn as a wheel (StatWheel), in the manner of the Worldview
+ * page's: armed conflict, arms and armies, safety, displacement, rights, the
+ * law and regimes as wedges, each filled with its measures that moved for the
+ * better and for the worse over about ten years. It counts verdicts on
+ * published series and is not an index of peace.
+ *
  * A yearly chart also names what its years hold (namedEvents.ts): under the
  * disaster deaths, the deadliest disaster of each year by name, with its
  * kind, place, date and death toll from Wikipedia's list, and an earthquake's
@@ -60,6 +66,7 @@ import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "../components/SectionNav";
 import { StatCategoryCard, splitChange, type StatCardData, type StatCategoryData, type StatFact } from "../components/StatCard";
+import { StatWheel } from "../components/StatWheel";
 import { EXPLAIN } from "../data/worldviewExplain";
 import { ALLIANCES, HUMAN_RIGHTS_CHECKED } from "../data/alliances";
 import { DONOR_AID, DONOR_AID_SOURCE, DAC_TOTAL } from "../data/donorAid";
@@ -1083,6 +1090,33 @@ export function HumanitarianPage() {
     health: category("health", "Health & water", "Children's survival, mothers', disease, and the water people drink", <Drop size={18} weight="fill" />, [...pick("childMortality", "water", "health"), ...more]),
   };
   const categories = [CATEGORY.aid, CATEGORY.rights, CATEGORY.conflict, CATEGORY.displacement, CATEGORY.food, CATEGORY.health];
+  // Peace, measure by measure: a figure the page already has is taken as it is; any other is built from its world series, judged the way the series itself says is better.
+  const held = [...stats, ...rights, ...drivers];
+  const peaceStat = (id: string): Stat | null => {
+    const has = held.find((x) => x.key === id);
+    if (has) return has;
+    const ind = WORLD[id];
+    if (!ind || ind.series.length < 3) return null;
+    const agency = ind.source.label.replace(/\s*\(via .*$/, "").replace(/\s+[—-]\s+.*$/, "");
+    return worldStat(id, ind.label, agency, ind.note ?? "", ind.upIsGood ?? false, { neutral: ind.upIsGood === null, unit: ind.unit, whole: ind.format === "count" && lastOf(ind.series)[1] < 1e6 });
+  };
+  const peaceOf = (key: string, title: string, kicker: string, color: string, ids: string[]): StatCategoryData => ({
+    key,
+    title,
+    kicker,
+    color,
+    stats: ids.flatMap((id) => peaceStat(id) ?? []).map((x) => cardOf(x, color)),
+  });
+  const PEACE = [
+    peaceOf("peace-conflict", "Armed conflict", "Wars and the deaths in them", "#ef4444", ["conflicts", "conflictDeaths"]),
+    peaceOf("peace-arms", "Arms & armies", "What is spent on armed forces, who serves, and the weapons held and traded", "#f97316", ["militaryGdp", "militaryShare", "armedForces", "armsTransfers", "nuclearWarheads"]),
+    peaceOf("peace-safety", "Safety", "Violence outside war: killings, and the state's own", "#eab308", ["homicide", "physicalIntegrity"]),
+    peaceOf("peace-displacement", "Displacement", "People forced from home by conflict and persecution", "#f59e0b", ["displaced", "idps", "refugees"]),
+    peaceOf("peace-rights", "Rights", "The freedoms a peaceful society keeps", "#3b82f6", ["civilLiberties", "freeExpression", "freeAssociation", "womenCivilLiberties"]),
+    peaceOf("peace-law", "Law", "Whether power is held to the law", "#6366f1", ["ruleOfLaw", "equalityBeforeLaw", "judicialConstraints", "legislativeConstraints"]),
+    peaceOf("peace-regimes", "Regimes", "Who lives under what kind of government, and which way countries are moving", "#8b5cf6", ["democracyShare", "closedAutocracyShare", "autocratizingShare", "democratizingShare"]),
+    peaceOf("peace-society", "Society", "How divided, and how engaged, societies are", "#14b8a6", ["polarization", "civilSociety", "engagedSociety"]),
+  ];
   /** The world's count of state-based armed conflicts, by year. */
   const conflictCount = new Map(WORLD.conflicts.series);
   const span = (id: string) => `${WORLD[id].series[0][0]}–${lastOf(WORLD[id].series)[0]}`;
@@ -1162,6 +1196,21 @@ export function HumanitarianPage() {
               <StatCategoryCard key={c.key} c={c} lead={5} />
             ))}
           </div>
+
+          <StatWheel
+            title="Peace at a glance"
+            kicker="Whether the world has grown more peaceful over about ten years, measure by measure. Pick a wedge for its figures, each described and drawn."
+            centre="Peace"
+            categories={PEACE}
+            note={
+              <>
+                Each measure is a published world series - the Uppsala programme's for conflict, the World Bank's and SIPRI's for arms, UNHCR's for the displaced, V-Dem's for
+                rights, law and regimes - and its change is on about ten years before. It is better or worse only where the series itself says which way is; arms spending,
+                the size of armies and the share living in electoral autocracies have no verdict. The wheel counts those verdicts. It is not a peace index: it adds no
+                scores and weighs nothing, and deaths from terrorism are left out because their source is not open to this site.
+              </>
+            }
+          />
 
           <Card>
             <CardHead title="Active humanitarian crises" kicker="People in need, millions · UN OCHA, Global Humanitarian Overview 2024" />
