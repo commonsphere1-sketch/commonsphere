@@ -99,8 +99,10 @@ function load(file, name) {
   const about = (code) => {
     const i = indicators[code];
     if (!i?.description) throw new Error(`IMF: no description for ${code}`);
-    // The API serves "borrowing ()" where the IMF's own page has "borrowing (-)": the minus sign is lost on the way, and is put back.
-    return { label: plain(i.label), text: plain(i.description).replace(/borrowing ()/g, "borrowing (−)"), unit: plain(i.unit) };
+    // The API serves the dash of "borrowing (–)" as the control character U+0096 - the en dash's place in Windows-1252,
+    // not decoded - which a browser draws as an empty box. It is put back as a minus sign.
+    const dash = (s) => s.replace(/\u0096/g, "−");
+    return { label: dash(plain(i.label)), text: dash(plain(i.description)), unit: plain(i.unit) };
   };
   const edition = plain(indicators[WEO.inflation].source);
   const m = /\((April|October) (\d{4})\)/.exec(edition);

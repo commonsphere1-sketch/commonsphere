@@ -136,7 +136,14 @@ const recent = (d: Dated | undefined) => (d && d[0] >= FIRST - 10 ? d : undefine
 
 export default function EconomyDetails({ id, name }: { id: string; name: string }) {
   const d = ECONOMY_DETAILS[id];
-  if (!d) return null;
+  // The tab is there for every economy: one neither body covers is told so, not shown an empty pane.
+  if (!d)
+    return (
+      <p className="modal-tile rounded-lg p-4 text-[12px] font-sans text-muted-foreground leading-relaxed">
+        Neither the IMF's World Economic Outlook nor the World Bank's tariff series covers {name}, so no inflation, deficit or tariff figures are published for it
+        here.
+      </p>
+    );
 
   // ── Inflation ──
   const infl = points(d.inflation);

@@ -10,6 +10,8 @@ import {
   Info,
   ArrowsIn,
   ArrowsOut,
+  ListBullets,
+  Percent,
   X,
 } from "@phosphor-icons/react";
 import {
@@ -1011,6 +1013,8 @@ function EconomyModal({
     "gdp" | "growth" | "inflation"
   >("gdp");
   const [isExpanded, setIsExpanded] = React.useState(false);
+  /** The window's tabs, as a country's and a state's have: the overview, and inflation, deficits and tariffs. */
+  const [tab, setTab] = React.useState<"overview" | "details">("overview");
 
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -1187,7 +1191,40 @@ function EconomyModal({
               A bloc's or a region's card is no one country's, and has no such row. */}
           {CODE_OF_ECONOMY[economy.id] && <SeeAlso code={CODE_OF_ECONOMY[economy.id]} name={economy.name} omit={["economy"]} className="mt-4" />}
 
+          {/* Tab bar */}
+          <div className="flex items-center gap-1 mt-4 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto">
+            {(
+              [
+                { id: "overview", label: "Overview", icon: <ListBullets size={13} weight="bold" /> },
+                { id: "details", label: "Inflation, Deficits & Tariffs", icon: <Percent size={13} weight="bold" /> },
+              ] as const
+            ).map((x) => (
+              <button
+                key={x.id}
+                type="button"
+                onClick={() => setTab(x.id)}
+                aria-pressed={tab === x.id}
+                className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium font-sans whitespace-nowrap transition-all duration-150 cursor-pointer ${
+                  tab === x.id ? "bg-card text-foreground shadow-sm border border-border/60" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {x.icon}
+                {x.label}
+              </button>
+            ))}
+          </div>
+
+          {/* ── INFLATION · DEFICITS · TARIFFS: each with its series, its projections where a body makes them, and what it measures ── */}
+          {tab === "details" && (
+            <div className="mt-4 animate-fade-in">
+              <React.Suspense fallback={<p className="text-[11px] font-sans text-muted-foreground">Loading inflation, deficits and tariffs…</p>}>
+                <EconomyDetails id={economy.id} name={economy.name} />
+              </React.Suspense>
+            </div>
+          )}
+
           {/* ── ALL SECTIONS ── */}
+          {tab === "overview" && (
           <div className="mt-4 space-y-4 animate-fade-in">
             {/* ════════════════════════════════════════
                 SECTION: OVERVIEW
@@ -1344,11 +1381,6 @@ function EconomyModal({
                 </div>
               </div>
               )}
-
-              {/* ── INFLATION · DEFICITS · TARIFFS: each with its series, its projections where a body makes them, and what it measures ── */}
-              <React.Suspense fallback={<p className="text-[11px] font-sans text-muted-foreground">Loading inflation, deficits and tariffs…</p>}>
-                <EconomyDetails id={economy.id} name={economy.name} />
-              </React.Suspense>
 
               {/* ── GDP SECTOR COMPOSITION ── */}
               {(ECONOMY_SECTORS[economy.id] || !economy.limitedData) && (
@@ -2166,6 +2198,7 @@ function EconomyModal({
             </div>
             </>)}
           </div>
+          )}
         </div>
       </div>
     </div>
