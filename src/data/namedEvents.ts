@@ -16,7 +16,10 @@
  *
  * Conflict deaths are the Uppsala Conflict Data Program's, counted where they
  * took place: the three countries with the most in each year, and the world's
- * total for the year.
+ * total for the year - for all its kinds of violence together, and again for
+ * fighting in which a state is a party. New displacements by disasters are
+ * the Internal Displacement Monitoring Centre's, as the World Bank carries
+ * them country by country.
  */
 export const NAMED_EVENTS_SOURCES = {
   list: {
@@ -28,8 +31,12 @@ export const NAMED_EVENTS_SOURCES = {
     url: "https://www.ngdc.noaa.gov/hazel/view/hazards/earthquake/search",
   },
   ucdp: { label: "Uppsala Conflict Data Program (via Our World in Data) — deaths by country and kind of conflict", url: "https://ourworldindata.org/grapher/deaths-in-armed-conflicts-by-type" },
+  idmc: { label: "Internal Displacement Monitoring Centre (via the World Bank) — new displacements by disasters, by country", url: "https://data.worldbank.org/indicator/VC.IDP.NWDS" },
   retrieved: "2026-10-07",
 };
+
+/** A year's world figure and the three places with the most of it. */
+export type YearPlaces = { year: number; world: number; top: [place: string, n: number][] };
 
 export type DisasterEvent = {
   year: number;
@@ -93,7 +100,7 @@ export const DEADLIEST_DISASTERS: DisasterEvent[] = [
 ];
 
 /** For each year: the world's conflict deaths, and the three countries where most of them were. */
-export const CONFLICT_DEATHS_BY_PLACE: { year: number; world: number; top: [place: string, deaths: number][] }[] = [
+export const CONFLICT_DEATHS_BY_PLACE: YearPlaces[] = [
   { year: 1990, world: 95405, top: [["Eritrea",30702],["Ethiopia",19154],["Sri Lanka",4819]] },
   { year: 1991, world: 83961, top: [["Iraq",24498],["Somalia",8455],["Sri Lanka",6646]] },
   { year: 1992, world: 75571, top: [["Bosnia and Herzegovina",26868],["Somalia",4729],["Sri Lanka",4444]] },
@@ -130,4 +137,64 @@ export const CONFLICT_DEATHS_BY_PLACE: { year: number; world: number; top: [plac
   { year: 2023, world: 169400, top: [["Ukraine",76467],["Palestine",26228],["Sudan",14687]] },
   { year: 2024, world: 187023, top: [["Ukraine",91779],["Palestine",21542],["Mexico",10946]] },
   { year: 2025, world: 244579, top: [["Ukraine",90345],["Sudan",75164],["Palestine",14505]] },
+];
+
+/** The same for fighting in which a state is a party - within a state, between states - which is what the count of armed conflicts counts. */
+export const STATE_FIGHTING_BY_PLACE: YearPlaces[] = [
+  { year: 1990, world: 80297, top: [["Eritrea",30633],["Ethiopia",19065],["South Sudan",4237]] },
+  { year: 1991, world: 70355, top: [["Iraq",22755],["Somalia",8005],["Sri Lanka",6432]] },
+  { year: 1992, world: 53410, top: [["Bosnia and Herzegovina",20813],["Afghanistan",4276],["Sri Lanka",4091]] },
+  { year: 1993, world: 44954, top: [["Bosnia and Herzegovina",13233],["Angola",12054],["Afghanistan",4071]] },
+  { year: 1994, world: 38523, top: [["Afghanistan",8937],["Bosnia and Herzegovina",7019],["Angola",3974]] },
+  { year: 1995, world: 36755, top: [["Bosnia and Herzegovina",8855],["Afghanistan",5499],["Sri Lanka",4755]] },
+  { year: 1996, world: 28903, top: [["Sri Lanka",3868],["Turkey",3728],["Afghanistan",3177]] },
+  { year: 1997, world: 40389, top: [["Congo",10000],["Afghanistan",6396],["Democratic Republic of Congo",4599]] },
+  { year: 1998, world: 40238, top: [["Afghanistan",6256],["Sri Lanka",3762],["Democratic Republic of Congo",3433]] },
+  { year: 1999, world: 81462, top: [["Eritrea",45191],["Russia",5854],["Afghanistan",4629]] },
+  { year: 2000, world: 78674, top: [["Eritrea",49976],["Afghanistan",5235],["Russia",2907]] },
+  { year: 2001, world: 23623, top: [["Afghanistan",5055],["South Sudan",2788],["Rwanda",2054]] },
+  { year: 2002, world: 21157, top: [["Nepal",3946],["Colombia",3386],["South Sudan",2301]] },
+  { year: 2003, world: 23265, top: [["Iraq",7941],["Colombia",2085],["Sudan",1837]] },
+  { year: 2004, world: 19716, top: [["Iraq",4122],["Sudan",3023],["Nepal",1880]] },
+  { year: 2005, world: 12437, top: [["Iraq",2622],["Afghanistan",1595],["Colombia",1561]] },
+  { year: 2006, world: 20287, top: [["Afghanistan",4752],["Iraq",3956],["Sri Lanka",1944]] },
+  { year: 2007, world: 19381, top: [["Afghanistan",6907],["Sri Lanka",2490],["Iraq",2241]] },
+  { year: 2008, world: 28867, top: [["Sri Lanka",8262],["Afghanistan",5550],["Pakistan",3556]] },
+  { year: 2009, world: 36006, top: [["Sri Lanka",10165],["Pakistan",6920],["Afghanistan",6364]] },
+  { year: 2010, world: 21652, top: [["Afghanistan",6906],["Pakistan",6060],["Somalia",2150]] },
+  { year: 2011, world: 25636, top: [["Afghanistan",7403],["Libya",3765],["Pakistan",2864]] },
+  { year: 2012, world: 74155, top: [["Syria",50485],["Afghanistan",7681],["Pakistan",3061]] },
+  { year: 2013, world: 93495, top: [["Syria",72013],["Afghanistan",8066],["Iraq",1885]] },
+  { year: 2014, world: 116005, top: [["Syria",66066],["Iraq",13168],["Afghanistan",12325]] },
+  { year: 2015, world: 104479, top: [["Syria",51080],["Afghanistan",17310],["Iraq",10135]] },
+  { year: 2016, world: 90764, top: [["Syria",44940],["Afghanistan",17985],["Iraq",9643]] },
+  { year: 2017, world: 72137, top: [["Syria",25037],["Afghanistan",19019],["Iraq",10248]] },
+  { year: 2018, world: 55166, top: [["Afghanistan",25676],["Syria",13246],["Yemen",4695]] },
+  { year: 2019, world: 52676, top: [["Afghanistan",29942],["Syria",7539],["Yemen",2630]] },
+  { year: 2020, world: 73139, top: [["Ethiopia",20916],["Afghanistan",20475],["Azerbaijan",7528]] },
+  { year: 2021, world: 199816, top: [["Ethiopia",124550],["Afghanistan",35787],["Yemen",23354]] },
+  { year: 2022, world: 284981, top: [["Ethiopia",163207],["Ukraine",99463],["Somalia",3032]] },
+  { year: 2023, world: 138917, top: [["Ukraine",76154],["Palestine",26174],["Sudan",11760]] },
+  { year: 2024, world: 155038, top: [["Ukraine",91762],["Palestine",21492],["Russia",10439]] },
+  { year: 2025, world: 153643, top: [["Ukraine",90323],["Palestine",14419],["Sudan",12269]] },
+];
+
+/** For each year: the world's new displacements by disasters, and the three countries with the most. */
+export const DISASTER_DISPLACEMENT_BY_PLACE: YearPlaces[] = [
+  { year: 2008, world: 38240123, top: [["China",18660000],["India",6662000],["Philippines",2757000]] },
+  { year: 2009, world: 16734280, top: [["India",5304000],["China",4031000],["Philippines",2062000]] },
+  { year: 2010, world: 42350100, top: [["China",15920000],["Pakistan",11060000],["Colombia",3000000]] },
+  { year: 2011, world: 15023796, top: [["China",4490000],["Philippines",2499000],["Thailand",1645000]] },
+  { year: 2012, world: 30148600, top: [["India",9110000],["China",5731000],["Nigeria",3894000]] },
+  { year: 2013, world: 22125771, top: [["Philippines",7022000],["China",5924000],["India",2145000]] },
+  { year: 2014, world: 19119870, top: [["Philippines",5787000],["China",3612000],["India",3428000]] },
+  { year: 2015, world: 19188817, top: [["India",3655000],["China",3602000],["Nepal",2623000]] },
+  { year: 2016, world: 24418613, top: [["China",7434000],["Philippines",5930000],["India",2400000]] },
+  { year: 2017, world: 18673256, top: [["China",4463000],["Philippines",2529000],["Cuba",1738000]] },
+  { year: 2018, world: 17462844, top: [["China",4033000],["Philippines",3802000],["India",2675000]] },
+  { year: 2019, world: 25199758, top: [["India",5018000],["Philippines",4495000],["Bangladesh",4084000]] },
+  { year: 2020, world: 30984299, top: [["China",5074000],["Philippines",4450000],["Bangladesh",4443000]] },
+  { year: 2021, world: 23725311, top: [["China",6037000],["Philippines",5714000],["India",4903000]] },
+  { year: 2022, world: 32541018, top: [["Pakistan",8168000],["Philippines",5453000],["China",3632000]] },
+  { year: 2023, world: 26393278, top: [["China",4702000],["Turkiye",4053000],["Philippines",2594000]] },
 ];

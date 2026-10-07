@@ -33,7 +33,14 @@
  *     other conflict figures      and violence against civilians together,
  *     are built from)             counted where they took place - and the
  *                                 world's total, so each can be read as a
- *                                 share of it.
+ *                                 share of it. The same again for fighting
+ *                                 that involves a state alone, which is what
+ *                                 the count of armed conflicts counts.
+ *   Internal Displacement         For each year, the three countries with the
+ *     Monitoring Centre, via the  most new displacements by disasters, and the
+ *     World Bank (VC.IDP.NWDS)    world's total. The World Bank's own list of
+ *                                 countries says which rows are regions and
+ *                                 income groups, and those are left out.
  *
  * The disaster named for a year is the deadliest single event, not the year's
  * whole toll: EM-DAT's total covers every disaster of the year and is counted
@@ -56,6 +63,11 @@ const WIKI = "https://en.wikipedia.org/w/api.php";
 const NOAA = `https://www.ngdc.noaa.gov/hazel/hazard-service/api/v1/earthquakes?minYear=${FROM}&minDeaths=1000`;
 const UCDP_SLUG = "deaths-in-armed-conflicts-by-type";
 const UCDP = `https://ourworldindata.org/grapher/${UCDP_SLUG}.csv?v=1&csvType=full&useColumnShortNames=true`;
+const UCDP_KEY = "number_deaths_ongoing_conflicts__conflict_type_";
+/** Fighting in which a state is a party: what the programme's count of armed conflicts counts. */
+const STATE_KINDS = ["intrastate", "interstate", "extrasystemic"];
+const ALL_KINDS = ["one_sided_violence", "non_state_conflict", ...STATE_KINDS];
+const WB_INDICATOR = "VC.IDP.NWDS";
 /** The table's regions, which are sums of its countries and territories and not places of their own. */
 const UCDP_REGIONS = new Set(["Africa", "Americas", "Asia and Oceania", "Europe", "Middle East"]);
 
@@ -173,13 +185,12 @@ async function earthquakes(events) {
   }
 }
 
-/** Where most died in armed conflict, year by year. */
-async function conflictPlaces() {
+/** Where most died in armed conflict of the kinds given, year by year. */
+async function conflictPlaces(kinds) {
   const [head, ...lines] = (await cached("ucdp.csv", UCDP)).trim().split(/\r?\n/);
   const cols = head.split(",");
-  const k = "number_deaths_ongoing_conflicts__conflict_type_";
-  const kinds = ["one_sided_violence", "non_state_conflict", "intrastate", "interstate", "extrasystemic"];
-  for (const c of kinds) if (!cols.includes(k + c)) throw new Error(`UCDP: no "${c}" column`);
+  const k = UCDP_KEY;
+  for (const c of ALL_KINDS) if (!cols.includes(k + c)) throw new Error(`UCDP: no "${c}" column`);
   const years = new Map();
   for (const l of lines) {
     // No field is quoted except a name with a comma in it, which is the first.
@@ -205,8 +216,39 @@ async function conflictPlaces() {
   return out;
 }
 
+/** Where disasters displaced most people, year by year: the World Bank's rows for countries, its aggregates left out. */
+async function displacementPlaces() {
+  const meta = JSON.parse(await cached("wb-countries.json", "https://api.worldbank.org/v2/country?format=json&per_page=400"))[1];
+  if (!Array.isArray(meta) || meta.length < 250) throw new Error("World Bank: the list of countries is short");
+  const aggregate = new Set(meta.filter((c) => c.region.value === "Aggregates").map((c) => c.id));
+  const known = new Set(meta.map((c) => c.id));
+  const rows = JSON.parse(await cached("wb-nwds.json", `https://api.worldbank.org/v2/country/all/indicator/${WB_INDICATOR}?format=json&per_page=20000&date=2008:2030`))[1];
+  if (!Array.isArray(rows)) throw new Error("World Bank: no rows");
+  const years = new Map();
+  for (const r of rows) {
+    if (r.value === null) continue;
+    const year = Number(r.date);
+    const y = years.get(year) ?? { year, world: null, places: [] };
+    years.set(year, y);
+    if (r.countryiso3code === "WLD") y.world = r.value;
+    else if (known.has(r.countryiso3code) && !aggregate.has(r.countryiso3code)) y.places.push([r.country.value, r.value]);
+  }
+  const out = [...years.values()].filter((y) => y.world !== null).sort((a, b) => a.year - b.year);
+  if (out.length < 10) throw new Error("World Bank: too few years of disaster displacement");
+  for (const y of out) {
+    const sum = y.places.reduce((t, [, d]) => t + d, 0);
+    // The countries must account for the world's figure, or a region has been read as a country.
+    if (sum > y.world || sum < 0.95 * y.world) throw new Error(`World Bank: ${y.year}: the countries hold ${sum} of the world's ${y.world}`);
+    y.top = y.places.sort((a, b) => b[1] - a[1]).slice(0, 3).filter(([, d]) => d > 0);
+    delete y.places;
+  }
+  return out;
+}
+
 (async () => {
-  const conflicts = await conflictPlaces();
+  const conflicts = await conflictPlaces(ALL_KINDS);
+  const stateFighting = await conflictPlaces(STATE_KINDS);
+  const displaced = await displacementPlaces();
   const lastYear = conflicts.at(-1).year;
   const { events, revision } = await deadliestByYear(lastYear);
   await stormDamage(events);
@@ -234,7 +276,10 @@ async function conflictPlaces() {
  *
  * Conflict deaths are the Uppsala Conflict Data Program's, counted where they
  * took place: the three countries with the most in each year, and the world's
- * total for the year.
+ * total for the year - for all its kinds of violence together, and again for
+ * fighting in which a state is a party. New displacements by disasters are
+ * the Internal Displacement Monitoring Centre's, as the World Bank carries
+ * them country by country.
  */
 export const NAMED_EVENTS_SOURCES = {
   list: {
@@ -246,8 +291,12 @@ export const NAMED_EVENTS_SOURCES = {
     url: "https://www.ngdc.noaa.gov/hazel/view/hazards/earthquake/search",
   },
   ucdp: { label: "Uppsala Conflict Data Program (via Our World in Data) — deaths by country and kind of conflict", url: "https://ourworldindata.org/grapher/${UCDP_SLUG}" },
+  idmc: { label: "Internal Displacement Monitoring Centre (via the World Bank) — new displacements by disasters, by country", url: "https://data.worldbank.org/indicator/${WB_INDICATOR}" },
   retrieved: "${today}",
 };
+
+/** A year's world figure and the three places with the most of it. */
+export type YearPlaces = { year: number; world: number; top: [place: string, n: number][] };
 
 export type DisasterEvent = {
   year: number;
@@ -281,8 +330,18 @@ ${events
 ];
 
 /** For each year: the world's conflict deaths, and the three countries where most of them were. */
-export const CONFLICT_DEATHS_BY_PLACE: { year: number; world: number; top: [place: string, deaths: number][] }[] = [
+export const CONFLICT_DEATHS_BY_PLACE: YearPlaces[] = [
 ${conflicts.map((y) => `  { year: ${y.year}, world: ${y.world}, top: ${JSON.stringify(y.top)} },`).join("\n")}
+];
+
+/** The same for fighting in which a state is a party - within a state, between states - which is what the count of armed conflicts counts. */
+export const STATE_FIGHTING_BY_PLACE: YearPlaces[] = [
+${stateFighting.map((y) => `  { year: ${y.year}, world: ${y.world}, top: ${JSON.stringify(y.top)} },`).join("\n")}
+];
+
+/** For each year: the world's new displacements by disasters, and the three countries with the most. */
+export const DISASTER_DISPLACEMENT_BY_PLACE: YearPlaces[] = [
+${displaced.map((y) => `  { year: ${y.year}, world: ${y.world}, top: ${JSON.stringify(y.top)} },`).join("\n")}
 ];
 `,
   );
@@ -290,6 +349,8 @@ ${conflicts.map((y) => `  { year: ${y.year}, world: ${y.world}, top: ${JSON.stri
   console.log(`wrote ${path.relative(__dirname, OUT)}`);
   console.log(`  disasters ${FROM}–${lastYear}: ${events.length}; with NOAA's record ${events.filter((e) => e.noaaId).length} of ${events.filter((e) => /earthquake/i.test(e.kind || e.name)).length} earthquakes; storm damage ${events.filter((e) => e.damageFrom === "Wikipedia").length}`);
   for (const e of events) console.log(`    ${e.year}  ${e.name} · ${e.kind} · ${e.where} · ${e.when} · ${e.deaths}${e.magnitude ? ` · M${e.magnitude} · NOAA ${e.noaaDeaths}` : ""}${e.damageUsd ? ` · $${(e.damageUsd / 1e9).toFixed(2)}bn (${e.damageFrom})` : ""}`);
+  console.log(`  state fighting: ${stateFighting.length} years; ${stateFighting.at(-1).year} ${stateFighting.at(-1).top[0].join(" ")} of ${stateFighting.at(-1).world}`);
+  console.log(`  disaster displacement: ${displaced[0].year}–${displaced.at(-1).year}; ${displaced.at(-1).year} ${displaced.at(-1).top[0].join(" ")} of ${displaced.at(-1).world}`);
   console.log(`  conflicts: ${conflicts.length} years; e.g. ${conflicts.filter((y) => [1994, 2022, lastYear].includes(y.year)).map((y) => `${y.year} ${y.top[0][0]} ${y.top[0][1]} of ${y.world}`).join("; ")}`);
 })().catch((e) => {
   console.error(e);

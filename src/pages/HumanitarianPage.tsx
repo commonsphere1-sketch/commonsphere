@@ -25,6 +25,10 @@
  * magnitude and damage from NOAA; under the conflict deaths, the countries
  * where most died each year, from the Uppsala data. Hovering a year on either
  * chart names it too. The event is a year's deadliest, not its whole toll.
+ * The count of armed conflicts and the displacements by disasters have the
+ * same list, by country (state-based deaths; the World Bank's rows of the
+ * displacement centre's figures). Each list is folded away under its chart
+ * until asked for, and closed it says its latest year in a line.
  * * Two kinds of figure are on the page, and it says which is which.
  *
  * Built from source (worldview.ts, countryPanels.ts, donorAid.ts - each by
@@ -48,9 +52,9 @@
  * series is named in a legend, so nothing is told by colour alone. Better
  * and worse appear as an arrow and a word. Charts do not animate.
  */
-import { useMemo, useState, type ReactNode } from "react";
+import { useId, useMemo, useState, type ReactNode } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowDownRight, ArrowUpRight, Drop, ForkKnife, HandHeart, Scales, Users, Warning } from "@phosphor-icons/react";
+import { ArrowDownRight, ArrowUpRight, CaretDown, Drop, ForkKnife, HandHeart, Scales, Users, Warning } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
@@ -61,7 +65,7 @@ import { ALLIANCES, HUMAN_RIGHTS_CHECKED } from "../data/alliances";
 import { DONOR_AID, DONOR_AID_SOURCE, DAC_TOTAL } from "../data/donorAid";
 import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES, DISPLACED_BY_KIND, WORLD, WORLDVIEW_RETRIEVED, type WorldPoint } from "../data/worldview";
 import { COUNTRY_PANELS, PANEL_SOURCES } from "../data/countryPanels";
-import { CONFLICT_DEATHS_BY_PLACE, DEADLIEST_DISASTERS, NAMED_EVENTS_SOURCES } from "../data/namedEvents";
+import { CONFLICT_DEATHS_BY_PLACE, DEADLIEST_DISASTERS, DISASTER_DISPLACEMENT_BY_PLACE, NAMED_EVENTS_SOURCES, STATE_FIGHTING_BY_PLACE, type YearPlaces } from "../data/namedEvents";
 import { countriesData } from "../data/countriesData";
 
 // ── Recorded from the agencies' reports ────────────────────────────────────
@@ -668,6 +672,49 @@ function OrderToggle<T extends string>({ value, options, onChange }: { value: T;
   );
 }
 
+type Order = "year" | "toll";
+const ORDERS: [Order, string][] = [
+  ["year", "Newest first"],
+  ["toll", "Largest first"],
+];
+
+/**
+ * A year-by-year list under a chart, folded away until asked for: its heading
+ * opens and closes it, and closed it says its latest year in a line, so the
+ * card stays short and the list is one press away.
+ */
+function YearFold({ title, latest, order, onOrder, children, note }: { title: string; latest: string; order: Order; onOrder: (o: Order) => void; children: ReactNode; note: ReactNode }) {
+  const { head, muted } = useLook();
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  return (
+    <div className="mt-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <button type="button" aria-expanded={open} aria-controls={id} onClick={() => setOpen((o) => !o)} className="flex items-center gap-1.5 text-left cursor-pointer min-w-0 py-1" style={{ color: muted }}>
+          <CaretDown size={11} weight="bold" className={`shrink-0 transition-transform ${open ? "" : "-rotate-90"}`} aria-hidden />
+          <span className="text-[10px] font-mono uppercase tracking-widest">{title}</span>
+          <span className="text-[10px] font-sans normal-case" style={{ color: head }}>
+            · {open ? "hide" : "show"}
+          </span>
+        </button>
+        {open && <OrderToggle value={order} onChange={onOrder} options={ORDERS} />}
+      </div>
+      {open ? (
+        <div id={id} className="mt-2">
+          {children}
+          <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
+            {note}
+          </p>
+        </div>
+      ) : (
+        <p id={id} className="text-[11px] font-sans leading-snug mt-0.5 pl-[17px]" style={{ color: head }}>
+          {latest}
+        </p>
+      )}
+    </div>
+  );
+}
+
 const usdShort = (v: number) => (v >= 1e9 ? `$${(v / 1e9).toFixed(v >= 1e10 ? 0 : 1)}bn` : `$${Math.round(v / 1e6)}m`);
 /** The colour of a disaster's kind, by the first kind the list gives it. */
 const KIND_COLOR: [RegExp, string][] = [
@@ -689,25 +736,25 @@ const kindColor = (kind: string) => KIND_COLOR.find(([re]) => re.test(kind))?.[1
  */
 function NamedDisasters() {
   const { head, muted, track } = useLook();
-  const [order, setOrder] = useState<"year" | "toll">("year");
+  const [order, setOrder] = useState<Order>("year");
   const rows = [...DEADLIEST_DISASTERS].sort((a, b) => (order === "year" ? b.year - a.year : b.low - a.low));
   const top = Math.max(...DEADLIEST_DISASTERS.map((e) => e.low));
   const yearTotal = new Map(WORLD.disasterDeaths.series);
+  const last = DEADLIEST_DISASTERS[DEADLIEST_DISASTERS.length - 1];
   return (
-    <>
-      <div className="flex flex-wrap items-center justify-between gap-2 mt-4 mb-2.5">
-        <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: muted }}>
-          The deadliest disaster of each year, by name
-        </p>
-        <OrderToggle
-          value={order}
-          onChange={setOrder}
-          options={[
-            ["year", "Newest first"],
-            ["toll", "Deadliest first"],
-          ]}
-        />
-      </div>
+    <YearFold
+      title={`The deadliest disaster of each year, by name · ${DEADLIEST_DISASTERS.length} years`}
+      latest={`${last.year}: ${last.name} - ${last.deaths} dead${last.magnitude != null ? `, magnitude ${last.magnitude}` : ""}.`}
+      order={order}
+      onOrder={setOrder}
+      note={
+        <>
+          Each is the single deadliest disaster of its year, epidemics and famines apart, as Wikipedia's list of natural disasters by death toll names it; the toll is the list's, a
+          range where the counts differ, and the bar is its lower figure. An earthquake's magnitude and damage are NOAA's, and NOAA's own count of the dead is given beside the
+          list's. EM-DAT's yearly total covers every disaster of the year under its own rules, so it can be smaller than one event's highest estimate.
+        </>
+      }
+    >
       <Scroller label="The deadliest natural disaster of each year">
         {rows.map((e) => {
           const color = kindColor(e.kind);
@@ -727,7 +774,10 @@ function NamedDisasters() {
                   · <span style={{ color }}>{e.kind}</span>
                 </p>
                 <p className="text-[12px] font-mono font-bold tabular-nums shrink-0" style={{ color: head }}>
-                  {e.deaths} <span className="font-normal font-sans text-[10px]" style={{ color: muted }}>dead</span>
+                  {e.deaths}{" "}
+                  <span className="font-normal font-sans text-[10px]" style={{ color: muted }}>
+                    dead
+                  </span>
                 </p>
               </div>
               <a
@@ -751,40 +801,55 @@ function NamedDisasters() {
           );
         })}
       </Scroller>
-      <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
-        Each is the single deadliest disaster of its year, epidemics and famines apart, as Wikipedia's list of natural disasters by death toll names it; the toll is the
-        list's, a range where the counts differ, and the bar is its lower figure. An earthquake's magnitude and damage are NOAA's, and NOAA's own count of the dead is given
-        beside the list's. EM-DAT's yearly total covers every disaster of the year under its own rules, so it can be smaller than one event's highest estimate.
-      </p>
-    </>
+    </YearFold>
   );
 }
 
-/** Where most died in armed conflict in each year: the three countries with the most, each as a share of the world's deaths that year. */
-function ConflictPlaces() {
+/**
+ * Where a year's figure was: for each year the place with the most of it, as
+ * a share of the world's, and the two after it. The bar is against the
+ * largest in the list.
+ */
+function PlacesByYear({
+  title,
+  label,
+  rows,
+  unit,
+  color,
+  fmt = (n) => n.toLocaleString("en-US"),
+  beside,
+  note,
+}: {
+  title: string;
+  label: string;
+  rows: YearPlaces[];
+  /** What is counted, after the figure: "deaths", "displacements". */
+  unit: string;
+  color: string;
+  fmt?: (n: number) => string;
+  /** Something else to say of a year, after it: how many conflicts it had. */
+  beside?: (year: number) => string | undefined;
+  note: ReactNode;
+}) {
   const { head, muted, track } = useLook();
-  const [order, setOrder] = useState<"year" | "toll">("year");
-  const rows = [...CONFLICT_DEATHS_BY_PLACE].filter((y) => y.top.length > 0).sort((a, b) => (order === "year" ? b.year - a.year : b.top[0][1] - a.top[0][1]));
-  const top = Math.max(...CONFLICT_DEATHS_BY_PLACE.map((y) => y.top[0]?.[1] ?? 0));
+  const [order, setOrder] = useState<Order>("year");
+  const held = rows.filter((y) => y.top.length > 0);
+  const list = [...held].sort((a, b) => (order === "year" ? b.year - a.year : b.top[0][1] - a.top[0][1]));
+  const top = Math.max(...held.map((y) => y.top[0][1]));
   const share = (n: number, of: number) => `${Math.round((100 * n) / of)}%`;
+  const last = held[held.length - 1];
   return (
-    <>
-      <div className="flex flex-wrap items-center justify-between gap-2 mt-4 mb-2.5">
-        <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: muted }}>
-          Where most died, year by year
-        </p>
-        <OrderToggle
-          value={order}
-          onChange={setOrder}
-          options={[
-            ["year", "Newest first"],
-            ["toll", "Deadliest first"],
-          ]}
-        />
-      </div>
-      <Scroller label="The countries where most died in armed conflict, year by year">
-        {rows.map((y) => {
-          const [[place, deaths], ...next] = y.top;
+    <YearFold
+      title={`${title} · ${held.length} years`}
+      latest={`${last.year}: ${last.top[0][0]} - ${fmt(last.top[0][1])} ${unit}, ${share(last.top[0][1], last.world)} of the world's ${fmt(last.world)}.`}
+      order={order}
+      onOrder={setOrder}
+      note={note}
+    >
+      <Scroller label={label}>
+        {list.map((y) => {
+          const [[place, n], ...next] = y.top;
+          const also = beside?.(y.year);
           return (
             <li key={y.year} className="py-2.5" style={{ borderBottom: `1px solid ${track}` }}>
               <div className="flex items-baseline justify-between gap-3">
@@ -792,34 +857,34 @@ function ConflictPlaces() {
                   <span className="font-bold" style={{ color: head }}>
                     {y.year}
                   </span>{" "}
-                  · {share(deaths, y.world)} of the world's {y.world.toLocaleString("en-US")}
+                  {also && `· ${also} `}· {share(n, y.world)} of the world's {fmt(y.world)}
                 </p>
                 <p className="text-[12px] font-mono font-bold tabular-nums shrink-0" style={{ color: head }}>
-                  {deaths.toLocaleString("en-US")} <span className="font-normal font-sans text-[10px]" style={{ color: muted }}>deaths</span>
+                  {fmt(n)}{" "}
+                  <span className="font-normal font-sans text-[10px]" style={{ color: muted }}>
+                    {unit}
+                  </span>
                 </p>
               </div>
               <p className="text-[13px] font-sans font-bold leading-snug mt-0.5" style={{ color: head }}>
                 {place}
               </p>
               <span className="block h-1.5 rounded-full overflow-hidden mt-1.5" style={{ background: track }} aria-hidden>
-                <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, (100 * deaths) / top)}%`, background: "#ef4444" }} />
+                <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, (100 * n) / top)}%`, background: color }} />
               </span>
               {next.length > 0 && (
                 <p className="text-[10px] font-sans leading-relaxed mt-1.5" style={{ color: muted }}>
-                  Then {next.map(([p, d]) => `${p}, ${d.toLocaleString("en-US")} (${share(d, y.world)})`).join(" · ")}
+                  Then {next.map(([p, d]) => `${p}, ${fmt(d)} (${share(d, y.world)})`).join(" · ")}
                 </p>
               )}
             </li>
           );
         })}
       </Scroller>
-      <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
-        The Uppsala programme's best estimate of deaths in fighting involving a state, fighting between non-state groups and violence against civilians together, counted in the
-        country where they took place. The programme records deaths by country and by conflict; this list names the country, not the war.
-      </p>
-    </>
+    </YearFold>
   );
 }
+
 /** Appeals year by year: what was funded, and on top of it what was asked for and not met. */
 function AidChart() {
   const look = useLook();
@@ -1018,6 +1083,8 @@ export function HumanitarianPage() {
     health: category("health", "Health & water", "Children's survival, mothers', disease, and the water people drink", <Drop size={18} weight="fill" />, [...pick("childMortality", "water", "health"), ...more]),
   };
   const categories = [CATEGORY.aid, CATEGORY.rights, CATEGORY.conflict, CATEGORY.displacement, CATEGORY.food, CATEGORY.health];
+  /** The world's count of state-based armed conflicts, by year. */
+  const conflictCount = new Map(WORLD.conflicts.series);
   const span = (id: string) => `${WORLD[id].series[0][0]}–${lastOf(WORLD[id].series)[0]}`;
   const whole = (v: number) => v.toLocaleString("en-US");
   const thousands = (v: number) => (v === 0 ? "0" : v >= 1e6 ? `${v / 1e6}M` : `${Math.round(v / 1000)}k`);
@@ -1279,7 +1346,29 @@ export function HumanitarianPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHead title="Armed conflicts, year by year" kicker={`Conflicts involving a state · Uppsala Conflict Data Program · ${span("conflicts")}`} />
-              <TrendChart id="conflicts" name="State-based armed conflicts" unit={(v) => `${v} conflicts`} color="#8b5cf6" height={210} />
+              <TrendChart
+                id="conflicts"
+                name="State-based armed conflicts"
+                unit={(v) => `${v} conflicts`}
+                color="#8b5cf6"
+                height={210}
+                named={(year) => {
+                  const y = STATE_FIGHTING_BY_PLACE.find((p) => p.year === year);
+                  return y?.top[0] ? `deadliest in ${y.top[0][0]}, ${whole(y.top[0][1])}` : undefined;
+                }}
+              />
+              <PlacesByYear
+                title="Where the fighting was deadliest, year by year"
+                label="The countries where fighting involving a state killed most, year by year"
+                rows={STATE_FIGHTING_BY_PLACE}
+                unit="deaths"
+                color="#8b5cf6"
+                beside={(year) => {
+                  const n = conflictCount.get(year);
+                  return n != null ? `${n} conflicts` : undefined;
+                }}
+                note="Deaths in fighting in which a state is a party - within a state or between states - by the Uppsala programme's best estimate, counted in the country where they took place. The count of conflicts is the world's for the year; the programme does not give it here country by country, so the list shows where those conflicts killed most."
+              />
               <p className="text-[10px] font-mono uppercase tracking-widest mt-4 mb-2.5" style={{ color: muted }}>
                 By kind · {WORLD.conflicts.breakdownYear}
               </p>
@@ -1287,7 +1376,7 @@ export function HumanitarianPage() {
               <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
                 {WORLD.conflicts.note} The kinds marked "counted apart" are ones the programme counts separately from those {lastOf(WORLD.conflicts.series)[1]}.
               </p>
-              <SourceLink sources={[WORLD.conflicts.source]} className="mt-3" />
+              <SourceLink sources={[WORLD.conflicts.source, NAMED_EVENTS_SOURCES.ucdp]} className="mt-3" />
             </Card>
             <Card>
               <CardHead title="Deaths in armed conflicts" kicker={`Deaths a year · Uppsala Conflict Data Program · ${span("conflictDeaths")}`} />
@@ -1303,7 +1392,14 @@ export function HumanitarianPage() {
                   return y?.top[0] ? `most in ${y.top[0][0]}, ${whole(y.top[0][1])}` : undefined;
                 }}
               />
-              <ConflictPlaces />
+              <PlacesByYear
+                title="Where most died, year by year"
+                label="The countries where most died in armed conflict, year by year"
+                rows={CONFLICT_DEATHS_BY_PLACE}
+                unit="deaths"
+                color="#ef4444"
+                note="The Uppsala programme's best estimate of deaths in fighting involving a state, fighting between non-state groups and violence against civilians together, counted in the country where they took place. The programme records deaths by country and by conflict; this list names the country, not the war."
+              />
               <p className="text-[10px] font-mono uppercase tracking-widest mt-4 mb-2.5" style={{ color: muted }}>
                 By kind of violence · {WORLD.conflictDeaths.breakdownYear}
               </p>
@@ -1342,12 +1438,32 @@ export function HumanitarianPage() {
             </Card>
             <Card>
               <CardHead title="Displaced by disasters" kicker={`New displacements a year · IDMC, via the World Bank · ${span("disasterDisplacement")}`} />
-              <TrendChart id="disasterDisplacement" name="New displacements by disasters" unit={(v) => millions(v)} color="#06b6d4" height={210} tick={(v) => (v === 0 ? "0" : `${Math.round(v / 1e6)}M`)} />
+              <TrendChart
+                id="disasterDisplacement"
+                name="New displacements by disasters"
+                unit={(v) => millions(v)}
+                color="#06b6d4"
+                height={210}
+                tick={(v) => (v === 0 ? "0" : `${Math.round(v / 1e6)}M`)}
+                named={(year) => {
+                  const y = DISASTER_DISPLACEMENT_BY_PLACE.find((p) => p.year === year);
+                  return y?.top[0] ? `most in ${y.top[0][0]}, ${millions(y.top[0][1])}` : undefined;
+                }}
+              />
+              <PlacesByYear
+                title="Where disasters displaced most, year by year"
+                label="The countries where disasters displaced most people, year by year"
+                rows={DISASTER_DISPLACEMENT_BY_PLACE}
+                unit="displacements"
+                color="#06b6d4"
+                fmt={millions}
+                note="New displacements by disasters within each country, the Internal Displacement Monitoring Centre's figures as the World Bank carries them. They are movements, not people, and the list names the country, not the flood, storm or earthquake: the Centre's records of single events are not in the World Bank's table."
+              />
               <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
                 {WORLD.disasterDisplacement.note} These are movements, not people: someone displaced twice in a year is counted twice. The figures of the Displacement section below count people displaced by
                 conflict and persecution, and are a different measure.
               </p>
-              <SourceLink sources={[WORLD.disasterDisplacement.source]} className="mt-3" />
+              <SourceLink sources={[WORLD.disasterDisplacement.source, NAMED_EVENTS_SOURCES.idmc]} className="mt-3" />
             </Card>
           </div>
         </section>
