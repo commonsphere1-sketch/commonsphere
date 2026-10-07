@@ -17,6 +17,7 @@ import {
 } from "../data/planetaryBoundaries";
 import { FLASHPOINTS, TIPPING_POINTS, TREATIES, TREATIES_CHECKED, type ContextItem } from "../data/climateContext";
 import { FIGURE_CARDS, type FigureCard } from "../data/climateFigures";
+import { ClimateExplorer } from "../components/ClimateExplorer";
 import {
   Leaf,
   Info,
@@ -557,6 +558,14 @@ export function PlanetaryBoundariesPage() {
           )}
         />
 
+        {/* ── The page's explorer: everything it holds, as a list beside a detail ── */}
+        <ClimateExplorer
+          onOpenBoundary={(id) => {
+            setSelectedId(id);
+            document.getElementById("boundaries")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+        />
+
         {/* ── KPI STRIP ─────────────────────────────────────────────────── */}
         {/* Each figure is the source's own: the boundary count and the two
             boundary measures from the Planetary Health Check 2026, carbon
@@ -613,7 +622,7 @@ export function PlanetaryBoundariesPage() {
         {/* ── MAIN CONTENT GRID ─────────────────────────────────────────── */}
         {/* The nine boundaries and the one being read, side by side, so the
             choice stays in view next to what it opened. */}
-        <div className="bg-card border border-border rounded-2xl p-4 mb-6">
+        <div id="boundaries" className="bg-card border border-border rounded-2xl p-4 mb-6 scroll-mt-24">
           {/* Splits at md, not lg: the app's own chrome eats ~230px of the
               window, so a 1024px breakpoint never fired on a laptop. */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
