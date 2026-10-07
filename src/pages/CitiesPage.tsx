@@ -44,7 +44,7 @@ import { citiesData, type City } from "../data/citiesData";
 import { CITY_FIGURES, CITY_FIGURES_SOURCE, CITY_ADMIN_SOURCE, type CityFigures } from "../data/cityFigures";
 import { CITY_YEARS, cityYear, cityFirstYear, cityGrowth, type CityYear } from "../lib/cityFigures";
 import { ArticleLead, ArticlePanel } from "../components/HistoryPanel";
-import { ACCENT, PART_COLORS, MeasureBars, ChartNote } from "../components/ModalCharts";
+import { ACCENT, PART_COLORS, ChartNote } from "../components/ModalCharts";
 import { useTheme } from "../contexts/ThemeContext";
 import { HeadlinesBanner, namesTag, type Headline, type Shown } from "../components/HeadlinesBanner";
 import { nameMatcher } from "../lib/namesInText";
@@ -970,57 +970,6 @@ const topOf = (key: MeasureKey) => {
   }, null);
 };
 
-/**
- * The cities shown, ranked on the measure they are sorted by: a name and its
- * figure in ink over a bar on the measure's own scale. The first ten, and the
- * rest on request.
- */
-function RankedPanel({ rows, measure }: { rows: Row[]; measure: Measure }) {
-  const [all, setAll] = useState(false);
-  const ranked = rows.flatMap((r) => {
-    const v = measure.value(r);
-    return v == null ? [] : [{ r, v }];
-  });
-  if (ranked.length < 2) return null;
-  const shown = all ? ranked : ranked.slice(0, 10);
-  return (
-    <section className="bg-card border border-border rounded-xl p-5 mb-6" aria-label={`Cities ranked by ${measure.label.toLowerCase()}`}>
-      <div className="flex items-baseline justify-between gap-3 mb-1">
-        <h2 className="text-sm font-bold font-sans text-foreground">{measure.label}</h2>
-        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{measure.what}</span>
-      </div>
-      <p className="text-[11px] font-sans text-muted-foreground leading-snug mb-3">
-        {measure.bar
-          ? measure.max
-            ? "Each bar is on a scale from zero to 100 per cent."
-            : `Each bar is on the scale of the ${measure.first} city shown.`
-          : "A change can be negative, so it is given as a figure and not drawn as a length."}{" "}
-        United Nations, World Urbanization Prospects: The 2025 Revision.
-      </p>
-      <MeasureBars
-        label={`${measure.label}, ${measure.what}`}
-        max={measure.bar ? measure.max : undefined}
-        rows={shown.map(({ r, v }, i) => ({
-          key: r.city.id,
-          label: `${i + 1}. ${r.city.name}, ${r.city.country}`,
-          value: measure.bar ? v : undefined,
-          text: measure.fmt(v),
-        }))}
-      />
-      {ranked.length > 10 && (
-        <button
-          type="button"
-          onClick={() => setAll((v) => !v)}
-          className="mt-3 text-[11px] font-semibold font-sans text-secondary hover:opacity-70 transition-opacity cursor-pointer"
-          aria-expanded={all}
-        >
-          {all ? "Show the first ten" : `Show all ${ranked.length}`}
-        </button>
-      )}
-    </section>
-  );
-}
-
 export function CitiesPage() {
   const [search, setSearch] = useState("");
   const [regionFilter, setRegionFilter] = useState("All");
@@ -1051,8 +1000,7 @@ export function CitiesPage() {
     );
   }, [search, regionFilter, measure]);
 
-  /* The cards: the cities the reader follows first, each group in the order of the chosen measure. The ranked panel
-     above keeps the plain order - it is a ranking, and a followed city has no place at its head. */
+  /* The cards: the cities the reader follows first, each group in the order of the chosen measure. */
   const follow = useFollowedCities();
   const cards = useMemo(() => [...filtered.filter((r) => follow.ids.includes(r.city.id)), ...filtered.filter((r) => !follow.ids.includes(r.city.id))], [filtered, follow.ids]);
   const followedShown = cards.filter((r) => follow.ids.includes(r.city.id)).length;
@@ -1169,8 +1117,6 @@ export function CitiesPage() {
 
         {modalCity && <CityModal city={modalCity} onClose={() => setModalCity(null)} />}
 
-        {/* The cities shown, set side by side on the measure they are sorted by. */}
-        <RankedPanel rows={filtered} measure={measure} />
 
         {followedShown > 0 && (
           <p className="flex items-center gap-1.5 text-[11px] font-sans text-muted-foreground mb-2">
