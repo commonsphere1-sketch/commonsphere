@@ -51,6 +51,7 @@ import { LAND_USE, LAND_USE_SOURCE } from "@/data/landUse";
 import { useTheme } from "@/contexts/ThemeContext";
 import { HeadlinesBanner, placeName, placeTag, type Headline, type Shown } from "@/components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "@/components/SectionNav";
+import { GeopoliticsExplorer } from "@/components/GeopoliticsExplorer";
 import { StatCard, splitChange } from "@/components/StatCard";
 import { CategoryCharts, PILLAR_CHARTS } from "@/components/CategoryCharts";
 import { has } from "@/lib/na";
@@ -3255,6 +3256,9 @@ export function WorldviewPage() {
             </>
           )}
         />
+
+        {/* ── Geopolitics: the world's measures of power and conflict, and its alliances, as an explorer ── */}
+        <GeopoliticsExplorer />
 
         {/* ── The pillars: each its own section, one to a row; each card opens its window ── */}
         <div className="px-1 pt-2 flex items-center gap-2">
