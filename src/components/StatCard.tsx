@@ -524,3 +524,214 @@ export function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => voi
     </div>
   );
 }
+
+/** A category of figures: its name, a line on what it covers, its colour and mark, and the figures in it. */
+export interface StatCategoryData {
+  key: string;
+  title: string;
+  kicker: string;
+  color: string;
+  icon?: ReactNode;
+  stats: StatCardData[];
+}
+
+/** A figure's move as an arrow and an amount, in the colour of its verdict: for a line of a category card. */
+function MoveMark({ c }: { c: StatChange }) {
+  const Icon = c.dir === "up" ? TrendUp : c.dir === "down" ? TrendDown : Minus;
+  const tone = c.verdict === "better" ? "text-success" : c.verdict === "worse" ? "text-destructive" : "text-muted-foreground";
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-[9px] font-mono font-bold shrink-0 ${tone}`} title={c.verdict ? `For the ${c.verdict}${c.caption ? `, ${c.caption}` : ""}` : c.caption}>
+      <Icon size={9} weight="bold" aria-hidden />
+      {c.chip}
+    </span>
+  );
+}
+
+/**
+ * A category as one card in place of a row of figure cards: its name and what
+ * it covers, each figure on a line - its name, how it has moved, the figure -
+ * and a window behind it where every figure is described and drawn, as a
+ * state's or a country's window does for a place. `wide` lays the lines out
+ * in columns, for a card that spans its section.
+ */
+export function StatCategoryCard({ c, wide = false, lead }: { c: StatCategoryData; wide?: boolean; /** How many figures the card lists; all of them when left out. */ lead?: number }) {
+  const [open, setOpen] = useState(false);
+  const shown = lead ? c.stats.slice(0, lead) : c.stats;
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" className="modal-tile h-full w-full rounded-xl px-4 py-3.5 flex flex-col text-left cursor-pointer transition-colors hover:border-secondary/60">
+        <span className="flex items-center gap-3">
+          <span className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${c.color}18`, color: c.color, border: `1px solid ${c.color}30` }} aria-hidden>
+            {c.icon ?? <span className="w-2.5 h-2.5 rounded-full" style={{ background: c.color }} />}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-bold font-sans text-foreground leading-tight">{c.title}</span>
+            <span className="block text-[11px] font-sans text-muted-foreground leading-snug mt-0.5">{c.kicker}</span>
+          </span>
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full shrink-0 self-start" style={{ background: `${c.color}18`, color: c.color }}>
+            {c.stats.length} figures
+          </span>
+        </span>
+        <span className={`mt-3 pt-2.5 border-t border-border/40 grid gap-x-6 ${wide ? "sm:grid-cols-2 xl:grid-cols-4" : ""}`}>
+          {shown.map((s) => (
+            <span key={s.label} className="flex items-baseline justify-between gap-2 py-1 border-b border-border/30 min-w-0">
+              <span className="text-[11px] font-sans text-muted-foreground min-w-0 truncate" title={s.label}>
+                {s.label}
+              </span>
+              <span className="flex items-baseline gap-2 shrink-0">
+                {s.change && <MoveMark c={s.change} />}
+                <span className="text-[12px] font-mono font-bold text-foreground">{s.value}</span>
+              </span>
+            </span>
+          ))}
+        </span>
+        <span className="mt-auto pt-2.5 flex items-center gap-1 text-[10px] font-sans text-secondary">
+          {shown.length < c.stats.length ? `All ${c.stats.length} figures, each described and drawn` : "Each figure described and drawn"}
+          <ArrowRight size={10} weight="bold" aria-hidden />
+        </span>
+      </button>
+      {open && createPortal(<StatCategoryWindow c={c} onClose={() => setOpen(false)} />, document.body)}
+    </>
+  );
+}
+
+/**
+ * The window behind a category card, in the shell of a place's window: the
+ * category and what it covers, then each figure in turn - the figure and how
+ * it has moved, what it measures and why it matters, its series, the facts
+ * read off it, its source - and a way on to the figure's own full chart.
+ */
+export function StatCategoryWindow({ c, onClose }: { c: StatCategoryData; onClose: () => void }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  // The figure whose own window is open on top of this one.
+  const [inner, setInner] = useState<StatCardData | null>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      // A figure's window on top closes itself first.
+      if (e.key === "Escape" && !inner) onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose, inner]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${c.title}: the figures in detail`}
+    >
+      <div className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-3xl max-h-[90vh]"}`}>
+        <div className="p-6">
+          <div className="relative flex items-start justify-between -mx-6 -mt-6 px-6 pt-6 pb-5 rounded-t-2xl overflow-hidden">
+            <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(90deg, ${c.color}33, ${c.color}14, ${c.color}26)` }} />
+            <div className="relative flex items-center gap-3 min-w-0">
+              <span className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${c.color}22`, color: c.color, border: `1px solid ${c.color}40` }} aria-hidden>
+                {c.icon ?? <span className="w-3 h-3 rounded-full" style={{ background: c.color }} />}
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-xl font-bold font-sans text-foreground leading-tight">{c.title}</h2>
+                <p className="text-[12px] font-sans text-muted-foreground mt-1">{c.kicker}</p>
+                <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mt-1.5">{c.stats.length} figures</p>
+              </div>
+            </div>
+            <div className="relative flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => setIsExpanded((v) => !v)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
+                title={isExpanded ? "Collapse" : "Expand to full screen"}
+              >
+                {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+              </button>
+              <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Close">
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 mt-5">
+            {c.stats.map((s) => {
+              const color = s.color ?? c.color;
+              const facts = s.facts ?? statFacts(s, true);
+              const sources = s.source ? (Array.isArray(s.source) ? s.source : [s.source]) : [];
+              const hasWindow = Boolean((s.series && s.series.length > 2) || s.tables?.length);
+              return (
+                <section key={s.label} className="modal-tile rounded-xl p-4 min-w-0" aria-label={s.label}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="flex items-center gap-1.5 text-[11px] font-sans font-bold uppercase tracking-wider text-foreground">
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} aria-hidden />
+                        {s.label}
+                      </h3>
+                      <p className="text-2xl font-bold font-mono text-foreground leading-tight mt-1">{s.value}</p>
+                      <p className="text-[10px] font-mono text-muted-foreground leading-snug">{s.sub}</p>
+                    </div>
+                    {s.change && <ChangeChip c={s.change} />}
+                  </div>
+                  {(s.about || s.story) && (
+                    <p className="text-[12px] font-sans leading-relaxed text-foreground/90 mt-2.5">
+                      {s.about} {s.story}
+                    </p>
+                  )}
+                  {(s.what || s.why) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5 mt-3">
+                      {s.what && (
+                        <div>
+                          <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1">What it measures</p>
+                          <p className="text-[11px] font-sans leading-relaxed text-muted-foreground">{s.what}</p>
+                        </div>
+                      )}
+                      {s.why && (
+                        <div>
+                          <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1">Why it matters</p>
+                          <p className="text-[11px] font-sans leading-relaxed text-muted-foreground">{s.why}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {s.series && s.series.length > 2 && (
+                    <div className="mt-3">
+                      <StatSparkline series={s.series} color={color} split={s.split} height="h-16" />
+                      <span className="flex justify-between text-[9px] font-mono text-muted-foreground mt-0.5">
+                        <span>{s.series[0][0]}</span>
+                        {s.split && s.split <= lastOf(s.series)[0] && <span>projected from {s.split}</span>}
+                        <span>{lastOf(s.series)[0]}</span>
+                      </span>
+                    </div>
+                  )}
+                  {facts.length > 0 && (
+                    <div className="mt-2.5 pt-2.5 border-t border-border/40 grid sm:grid-cols-2 gap-x-6 gap-y-1">
+                      {facts.map((f) => (
+                        <FactRow key={f.label} f={f} />
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mt-2.5">
+                    {sources.length > 0 && <SourceLink sources={sources} />}
+                    {hasWindow && (
+                      <button type="button" onClick={() => setInner(s)} aria-haspopup="dialog" className="inline-flex items-center gap-1 text-[10px] font-sans text-secondary cursor-pointer hover:underline">
+                        The full series and its figures
+                        <ArrowRight size={10} weight="bold" aria-hidden />
+                      </button>
+                    )}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      {inner && createPortal(<StatWindow s={inner} onClose={() => setInner(null)} />, document.body)}
+    </div>
+  );
+}

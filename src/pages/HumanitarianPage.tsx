@@ -13,6 +13,12 @@
  * five in alliances.ts, each with the count and the account it gives of
  * itself and the day it was checked.
  *
+ * The figures are gathered by category - aid, rights, conflict and disaster,
+ * displacement, food, health - a card each in place of rows of figure cards:
+ * the card lists its figures, and a window behind it describes and draws each
+ * one, as a state's or a country's window does for a place. The overview has
+ * all six; each section opens with its own.
+ *
  * A yearly chart also names what its years hold (namedEvents.ts): under the
  * disaster deaths, the deadliest disaster of each year by name, with its
  * kind, place, date and death toll from Wikipedia's list, and an earthquake's
@@ -49,7 +55,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "../components/SectionNav";
-import { StatCard, splitChange, type StatFact } from "../components/StatCard";
+import { StatCategoryCard, splitChange, type StatCardData, type StatCategoryData, type StatFact } from "../components/StatCard";
 import { EXPLAIN } from "../data/worldviewExplain";
 import { ALLIANCES, HUMAN_RIGHTS_CHECKED } from "../data/alliances";
 import { DONOR_AID, DONOR_AID_SOURCE, DAC_TOTAL } from "../data/donorAid";
@@ -387,50 +393,26 @@ function SectionHead({ icon, color, title, kicker }: { icon: ReactNode; color: s
   );
 }
 
-/**
- * A headline figure as the site's card (StatCard): what it is, its value,
- * whose it is and for when, its change as a chip, what it means, its trend in
- * its section's colour, and facts read off its series; a figure with a series
- * opens a window with the full chart.
- */
-function StatTile({ s, color }: { s: Stat; color: string }) {
-  return (
-    <StatCard
-      s={{
-        label: s.label,
-        value: s.value,
-        sub: `${s.unit} · ${s.sub}`,
-        change: s.change ? splitChange(s.change.text, s.change.dir, s.change.verdict) : null,
-        about: s.about,
-        series: s.series,
-        color,
-        fmt: s.fmt,
-        facts: s.facts,
-        what: s.what,
-        why: s.why,
-        source: s.source,
-      }}
-    />
-  );
+/** A figure as the site's card data (StatCard): what it is, its value, whose it is and for when, its change, what it means, its series in its category's colour, and its source. */
+function cardOf(s: Stat, color: string): StatCardData {
+  return {
+    label: s.label,
+    value: s.value,
+    sub: `${s.unit} · ${s.sub}`,
+    change: s.change ? splitChange(s.change.text, s.change.dir, s.change.verdict) : null,
+    about: s.about,
+    series: s.series,
+    color,
+    fmt: s.fmt,
+    facts: s.facts,
+    what: s.what,
+    why: s.why,
+    source: s.source,
+  };
 }
 
 /** The sections' colours, which their cards take. */
 const TONE = { overview: "#10b981", aid: "#8b5cf6", rights: "#3b82f6", conflict: "#ef4444", displacement: "#f97316", food: "#eab308", health: "#06b6d4" };
-/** The headline cards take the colour of the section each belongs to. */
-const HEADLINE_TONE: Record<string, string> = {
-  displaced: TONE.displacement,
-  idps: TONE.displacement,
-  refugees: TONE.displacement,
-  undernourished: TONE.food,
-  childMortality: TONE.health,
-  water: TONE.health,
-  health: TONE.health,
-  aid: TONE.aid,
-  oda: TONE.aid,
-  civilLiberties: TONE.rights,
-  physicalIntegrity: TONE.rights,
-  freeExpression: TONE.rights,
-};
 
 type BarRow = { key: string; name: string; code?: string; value: number | null; text: string; note?: string };
 
@@ -1011,6 +993,31 @@ export function HumanitarianPage() {
   const regimeParts = WORLD.democracyShare.breakdown ?? [];
   const classified = regimeParts.reduce((t, [, v]) => t + v, 0);
   const regimeRows: BarRow[] = regimeParts.map(([label, v]) => ({ key: label, name: label, value: v, text: millions(v), note: `${((100 * v) / classified).toFixed(1)}% of the people classified` }));
+  // The figures by category: a card each in place of the rows of figure cards, with a window behind it.
+  const pick = (...keys: string[]) => keys.map((k) => stats.find((x) => x.key === k)).filter((x): x is Stat => !!x);
+  const category = (key: keyof typeof TONE, title: string, kicker: string, icon: ReactNode, list: Stat[]): StatCategoryData => ({
+    key,
+    title,
+    kicker,
+    color: TONE[key],
+    icon,
+    stats: list.map((x) => cardOf(x, TONE[key])),
+  });
+  const CATEGORY = {
+    aid: category("aid", "Aid & donors", "What is asked for, what is given, and by whom", <HandHeart size={18} weight="fill" />, pick("aid", "oda")),
+    rights: category(
+      "rights",
+      "Human rights",
+      "How far people are free from the state's violence, and free to speak, to organise and to live as they choose",
+      <Scales size={18} weight="fill" />,
+      [...pick("civilLiberties", "physicalIntegrity", "freeExpression"), ...rights],
+    ),
+    conflict: category("conflict", "Conflict & disaster", "What drives people from home and into need: wars, and floods, storms and earthquakes", <Warning size={18} weight="fill" />, drivers),
+    displacement: category("displacement", "Displacement", "Who has been forced from home, inside their country and across a border", <Users size={18} weight="fill" />, pick("displaced", "idps", "refugees")),
+    food: category("food", "Food & hunger", "Who does not get enough to eat", <ForkKnife size={18} weight="fill" />, [...pick("undernourished"), ...food]),
+    health: category("health", "Health & water", "Children's survival, mothers', disease, and the water people drink", <Drop size={18} weight="fill" />, [...pick("childMortality", "water", "health"), ...more]),
+  };
+  const categories = [CATEGORY.aid, CATEGORY.rights, CATEGORY.conflict, CATEGORY.displacement, CATEGORY.food, CATEGORY.health];
   const span = (id: string) => `${WORLD[id].series[0][0]}–${lastOf(WORLD[id].series)[0]}`;
   const whole = (v: number) => v.toLocaleString("en-US");
   const thousands = (v: number) => (v === 0 ? "0" : v >= 1e6 ? `${v / 1e6}M` : `${Math.round(v / 1000)}k`);
@@ -1079,13 +1086,13 @@ export function HumanitarianPage() {
 
         {/* ══ Overview ══ */}
         <section id="overview" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="overview-title">
-          <SectionHead icon={<HandHeart size={18} weight="fill" />} color="#10b981" title="At a glance" kicker="The headline figures, each with its change on about ten years before" />
+          <SectionHead icon={<HandHeart size={18} weight="fill" />} color="#10b981" title="At a glance" kicker="The page's figures by category - open one for each figure described and drawn, with its change on about ten years before" />
           <h2 id="overview-title" className="sr-only">
             Overview
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {stats.map((s) => (
-              <StatTile key={s.key} s={s} color={HEADLINE_TONE[s.key] ?? TONE.overview} />
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {categories.map((c) => (
+              <StatCategoryCard key={c.key} c={c} lead={5} />
             ))}
           </div>
 
@@ -1112,6 +1119,7 @@ export function HumanitarianPage() {
           <h2 id="aid-title" className="sr-only">
             Aid and donors
           </h2>
+          <StatCategoryCard wide c={CATEGORY.aid} />
           <Card>
             <CardHead title="Humanitarian appeals: asked for and funded" kicker={`US$ billions · UN OCHA Financial Tracking Service · ${AID_FUNDING[0].year}–${AID_FUNDING[AID_FUNDING.length - 1].year}`} />
             <AidChart />
@@ -1131,11 +1139,7 @@ export function HumanitarianPage() {
           <h2 id="rights-title" className="sr-only">
             Human rights
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {rights.map((s) => (
-              <StatTile key={s.key} s={s} color={TONE.rights} />
-            ))}
-          </div>
+          <StatCategoryCard wide c={CATEGORY.rights} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHead title="Civil liberties and their three parts" kicker={`Index, 0 to 1 · V-Dem · ${span("civilLiberties")}`} />
@@ -1271,11 +1275,7 @@ export function HumanitarianPage() {
           <h2 id="conflict-title" className="sr-only">
             Conflict and disaster
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {drivers.map((s) => (
-              <StatTile key={s.key} s={s} color={TONE.conflict} />
-            ))}
-          </div>
+          <StatCategoryCard wide c={CATEGORY.conflict} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHead title="Armed conflicts, year by year" kicker={`Conflicts involving a state · Uppsala Conflict Data Program · ${span("conflicts")}`} />
@@ -1358,6 +1358,7 @@ export function HumanitarianPage() {
           <h2 id="displacement-title" className="sr-only">
             Displacement
           </h2>
+          <StatCategoryCard wide c={CATEGORY.displacement} />
           <Card>
             <CardHead
               title="The forcibly displaced, year by year"
@@ -1401,11 +1402,7 @@ export function HumanitarianPage() {
               </p>
               <SourceLink sources={[WORLD.undernourished.source, WORLD.foodInsecure.source]} className="mt-3" />
           </Card>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {food.map((s) => (
-              <StatTile key={s.key} s={s} color={TONE.food} />
-            ))}
-          </div>
+          <StatCategoryCard wide c={CATEGORY.food} />
           <Card>
             <CardHead title="Hunger by region" kicker="Share of each region's people undernourished · FAO, 2023" />
             <BarList label="Undernourishment by region" rows={HUNGER_REGIONS.map(([region, pct]) => ({ key: region, name: region, value: pct, text: `${pct.toFixed(1)}%` }))} />
@@ -1431,11 +1428,7 @@ export function HumanitarianPage() {
               <SourceLink sources={[COUNTRY_FIGURE_SOURCES.childMortality]} className="mt-4" />
             </Card>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {more.map((s) => (
-              <StatTile key={s.key} s={s} color={TONE.health} />
-            ))}
-          </div>
+          <StatCategoryCard wide c={CATEGORY.health} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHead title="Safely managed drinking water, worldwide" kicker={`Share of people · WHO/UNICEF · ${WORLD.water.series[0][0]}–${lastOf(WORLD.water.series)[0]}`} />
