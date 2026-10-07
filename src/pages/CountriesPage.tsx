@@ -45,7 +45,7 @@ import {
 import type { Geography } from "../data/countryGeography";
 import { CARD_COVERS, DEPENDENCIES_SOURCE, FACTBOOK_STATUS, UNCARDED_DEPENDENCIES } from "../data/dependencies";
 import { PRISON_RATES, PRISON_RATES_SOURCE } from "../data/prisonRates";
-import { COUNTRY_CRIME, CRIME_SOURCE, type CrimeFigure } from "../data/countryCrime";
+import { COUNTRY_CRIME, CRIME_SOURCE } from "../data/countryCrime";
 import { PUBLIC_SECURITY } from "../data/publicSecurity";
 import { COUNTRY_PANELS, panelSource, type PanelField, type PanelFigure } from "../data/countryPanels";
 import { useLiveData } from "../hooks/useLiveData";
@@ -1315,34 +1315,104 @@ function EnergySection({
 // The offences are given as figures, not bars: they are on scales a hundred
 // times apart, and the bars they had were each drawn against a ceiling picked
 // for the purpose.
+type CrimeField = keyof (typeof COUNTRY_CRIME)[string];
+const CRIME_FIELDS: [CrimeField, string][] = [
+  ["homicide", "Intentional homicide"],
+  ["robbery", "Robbery"],
+  ["assault", "Serious assault"],
+  ["burglary", "Burglary"],
+  ["vehicleTheft", "Vehicle theft"],
+];
+/** Every place's rate for each offence, lowest first: what a country's own rate is read against. */
+const CRIME_SPREAD = Object.fromEntries(
+  CRIME_FIELDS.map(([field]) => [
+    field,
+    Object.values(COUNTRY_CRIME)
+      .map((c) => c[field]?.v)
+      .filter((v): v is number => typeof v === "number")
+      .sort((a, b) => a - b),
+  ]),
+) as Record<CrimeField, number[]>;
+const medianOf = (sorted: number[]) => (sorted.length % 2 ? sorted[(sorted.length - 1) / 2] : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2);
+
+/**
+ * The offences the police recorded, each read against the places that report
+ * it. The five rates are on scales a hundred times apart, so they are not
+ * drawn against one another: each has a track of its own that runs from the
+ * lowest-reporting place to the highest, by rank - the bar ends at the share
+ * of places with a lower rate, and the notch is the middle place. That puts
+ * the five on one footing and says something a figure alone does not: whether
+ * 272 is a lot. UNODC's caution - that countries count differently - stays
+ * under it.
+ */
 function CountryCrimeStatsPanel({ country }: { country: Country }) {
   const cs = COUNTRY_CRIME[country.id];
   if (!cs) return null;
 
-  const rows = (
-    [
-      ["Intentional homicide", cs.homicide],
-      ["Robbery", cs.robbery],
-      ["Serious assault", cs.assault],
-      ["Burglary", cs.burglary],
-      ["Vehicle theft", cs.vehicleTheft],
-    ] as [string, CrimeFigure | undefined][]
-  ).filter((r): r is [string, CrimeFigure] => !!r[1]);
-  const anyDerived = rows.some(([, f]) => f.derived);
+  const rows = CRIME_FIELDS.flatMap(([field, label]) => {
+    const f = cs[field];
+    if (!f) return [];
+    const all = CRIME_SPREAD[field];
+    const lower = all.filter((v) => v < f.v).length;
+    // The share of the other places with a lower rate: 0 at the lowest, 100 at the highest.
+    const pct = all.length > 1 ? (100 * lower) / (all.length - 1) : 50;
+    return [{ field, label, f, places: all.length, pct: Math.min(100, pct), median: medianOf(all), rank: all.length - lower }];
+  });
+  if (!rows.length) return null;
+  const anyDerived = rows.some((r) => r.f.derived);
+  const above = rows.filter((r) => r.f.v > r.median).length;
+  const n = (v: number) => v.toLocaleString("en-US", { maximumFractionDigits: 1 });
+  const ordinal = (k: number) => {
+    const t = k % 100;
+    return `${k}${t >= 11 && t <= 13 ? "th" : (["th", "st", "nd", "rd"][k % 10] ?? "th")}`;
+  };
 
   return (
     <div className="modal-tile rounded-lg p-4 mt-4">
-      <PanelHead icon={<Shield size={13} weight="fill" />} title="Crime Statistics" sub="Offences the police recorded, per 100,000 people, each for its latest year" />
+      <PanelHead icon={<Shield size={13} weight="fill" />} title="Crime Statistics" sub="Offences the police recorded, per 100,000 people, each for its latest year, and where each stands among the places reporting it" />
 
-      <div className="flex flex-col">
-        {rows.map(([label, f]) => (
-          <FigureRow key={label} label={label} value={f.v.toLocaleString("en-US")} sub={`per 100,000 · ${f.y}${f.derived ? " *" : ""}`} />
+      <p className="text-[12px] font-sans text-foreground/90 leading-relaxed mb-3">
+        Of the {rows.length} offence{rows.length === 1 ? "" : "s"} {country.name} reports, {above === 0 ? "none is" : above === rows.length ? (rows.length === 1 ? "it is" : "all are") : `${above} ${above === 1 ? "is" : "are"}`} above the
+        middle of the places that report {rows.length === 1 ? "it" : "them"}.
+      </p>
+
+      <ul className="flex flex-col" aria-label={`Recorded offences in ${country.name}, each against the places reporting it`}>
+        {rows.map((r) => (
+          <li key={r.field} className="py-2 border-b border-border last:border-b-0">
+            <span className="flex items-baseline justify-between gap-3">
+              <span className="text-[11px] font-sans text-foreground min-w-0">{r.label}</span>
+              <span className="text-[12px] font-mono font-semibold text-foreground text-right shrink-0">
+                {n(r.f.v)}
+                <span className="font-normal text-muted-foreground">
+                  {" "}
+                  · per 100,000 · {r.f.y}
+                  {r.f.derived ? " *" : ""}
+                </span>
+              </span>
+            </span>
+            {/* By rank among the places reporting: the bar ends at the share with a lower rate, the notch is the middle place. */}
+            <span
+              className="relative block h-1.5 rounded-full bg-muted mt-1.5"
+              role="img"
+              aria-label={`${r.label}: higher than ${Math.round(r.pct)}% of the ${r.places} places reporting; their median is ${n(r.median)}.`}
+            >
+              <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${r.pct}%`, minWidth: 2, background: ACCENT }} />
+              <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground" style={{ left: "50%" }} title={`The middle place: ${n(r.median)}`} />
+            </span>
+            <span className="flex items-baseline justify-between gap-3 mt-1">
+              <span className="text-[10px] font-mono text-muted-foreground leading-snug">
+                {ordinal(r.rank)} highest of {r.places} places · higher than {Math.round(r.pct)}% of them
+              </span>
+              <span className="text-[10px] font-mono text-muted-foreground leading-snug shrink-0">middle place {n(r.median)}</span>
+            </span>
+          </li>
         ))}
-      </div>
+      </ul>
 
       <ChartNote className="mt-3">
-        Recorded offences depend on each country's legal definitions and how often people report, so UNODC advises comparing a country with itself over
-        time rather than with other countries. They are given as figures, not drawn against one another: the offences are on very different scales.
+        Each track runs from the place with the lowest recorded rate to the one with the highest, by rank, so the five offences can be read alike though their
+        rates are on very different scales; the notch is the middle place. Recorded offences depend on each country's legal definitions and on how often people
+        report, so a high place can mean more crime or better recording: UNODC advises comparing a country with itself over time first.
         {anyDerived && " * UNODC publishes this offence as a count; the rate is that count over the World Bank's population for the same year."}
       </ChartNote>
       <SourceLink sources={[CRIME_SOURCE]} className="mt-2" />
@@ -15980,7 +16050,8 @@ export function CountriesPage() {
                       ? country.governmentType.slice(0, 22) + "…"
                       : country.governmentType}
                   </span>
-                  <div className="flex items-center gap-1.5 ml-auto">
+                  {/* In line with the chips before them: pushed to the right edge, they wrapped to a row of their own and sat indented. */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     {has(country.humanDevelopmentIndex) && (
                     <span
                       className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full ${hdiBg}`}
