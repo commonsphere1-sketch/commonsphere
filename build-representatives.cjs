@@ -22,6 +22,12 @@
  * took office is kept only where the place's record and the holder's give
  * the same year; Wikidata's two do not always agree, and then none is shown.
  *
+ * Every country is in the file all the same, by its head of state and of
+ * government: those are read from Wikipedia's "List of current heads of state
+ * and government", the list the World Leaders page is audited against, with
+ * the revision it was read at. That is one curated list, not three records,
+ * and the file says so.
+ *
  * A place that fails any of the three is left out, and counted: the file
  * says, for each country, how many places Wikidata records a head for and
  * how many were confirmed, so what is missing is not hidden. Nothing is
@@ -83,6 +89,131 @@ const words = (s) =>
     .replace(/[^a-z0-9 ]+/g, " ")
     .split(/\s+/)
     .filter((w) => w.length >= 3 && !/^(jr|sr|iii|the|von|van|del|der|den|los|las|bin|ibn|dos|das)$/.test(w));
+
+// ── The countries themselves: Wikipedia's list of current heads of state and government ──
+const LIST = "List of current heads of state and government";
+/** A state as the site names it, where the list's link says more than the name. */
+const SHOWN_AS = { "Georgia (country)": "Georgia", "Kingdom of the Netherlands": "Netherlands", "Federated States of Micronesia": "Micronesia" };
+/** A state's Wikidata label, where it is not the list's name. */
+const LABELLED = { Bahamas: "The Bahamas", Gambia: "The Gambia", China: "People's Republic of China", "Georgia (country)": "Georgia", "Kingdom of the Netherlands": "Netherlands", Palestine: "State of Palestine" };
+async function nationalHeads(countries) {
+  const page = await cached("hosg.json", async () => {
+    const res = await fetch("https://en.wikipedia.org/w/api.php?" + new URLSearchParams({ action: "query", prop: "revisions", rvprop: "content|ids|timestamp", rvslots: "main", format: "json", formatversion: "2", titles: LIST }), { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(60000) });
+    if (!res.ok) throw new Error(`Wikipedia: ${res.status} for the list of heads of state and government`);
+    const rev = (await res.json()).query.pages[0].revisions[0];
+    return { revid: rev.revid, timestamp: rev.timestamp, text: rev.slots.main.content };
+  });
+  /** What stands between a template's opening at `from` and its closing braces. */
+  const inside = (text, from) => {
+    let depth = 0;
+    for (let i = from; i < text.length - 1; i++) {
+      if (text.startsWith("{{", i)) { depth++; i++; } else if (text.startsWith("}}", i)) { depth--; i++; if (depth === 0) return i + 1; }
+    }
+    return text.length;
+  };
+  // A body's members are a folded list or a flat one, set over several lines: each is made one line, "Members: A; B".
+  let text = page.text.replace(/<!--[\s\S]*?-->/g, "").replace(/<ref[^>]*\/>/gi, "").replace(/<ref[^>]*>[\s\S]*?<\/ref>/gi, "");
+  for (let at; (at = text.search(/\{\{\s*Collapsible list/i)) >= 0; ) {
+    const end = inside(text, at);
+    // Links first: a link's own bar is not one of the template's.
+    const parts = text.slice(at + 2, end - 2).replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1").split("|").map((x) => x.trim());
+    const title = (parts.find((x) => /^title\s*=/.test(x)) || "").replace(/^title\s*=\s*/, "");
+    const members = parts.slice(1).filter((x) => !/^(title|hlist|frame_style|list_style|title_style|expand|bullets)\s*=/.test(x)).map((x) => x.replace(/^\d+\s*=\s*/, "")).filter(Boolean);
+    text = text.slice(0, at) + `${title} ${members.join("; ")}` + text.slice(end);
+  }
+  text = text.replace(/\{\{flatlist[^}]*\}\}([\s\S]*?)\{\{endflatlist\}\}/gi, (_, list) => list.split(/\n?\s*\*\s*/).map((x) => x.trim()).filter(Boolean).join("; "));
+  const unwrap = (s) => {
+    for (let prev = null; s !== prev; ) {
+      prev = s;
+      s = s.replace(/\{\{(?:small|smalldiv|nowrap)\|(?:1=)?((?:[^{}]|\{\{[^{}]*\}\})*)\}\}/gi, "$1").replace(/\{\{ill\|([^|{}]*)\|[^{}]*\}\}/gi, "$1").replace(/\{\{efn[^{}]*(?:\{\{[^{}]*\}\}[^{}]*)*\}\}/gi, "");
+    }
+    return s;
+  };
+  const plainCell = (s) =>
+    unwrap(s)
+      .replace(/\{\{(?:success|operational)\|(?:align=left\|)?/g, "")
+      .replace(/\}\}/g, "")
+      .replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1")
+      .replace(/&nbsp;/g, " ")
+      .replace(/'''?/g, "")
+      .replace(/<br\s*\/?>/gi, "; ")
+      .replace(/<[^>]+>/g, "")
+      .replace(/\s+/g, " ")
+      .replace(/\s+([;,)])/g, "$1")
+      .replace(/[;\s]+$/, "")
+      .trim();
+  const body = text.slice(text.indexOf("==Member and observer states"), text.indexOf("==See also=="));
+  if (body.length < 20000) throw new Error("the list of heads of state and government was not read: its sections were not found");
+  const states = [];
+  let cur = null;
+  let spanLeft = [0, 0];
+  for (const chunk of body.split(/\n\|-[^\n]*/)) {
+    // A table's last row runs on into the prose after it.
+    const row = chunk.split("\n|}")[0];
+    const lines = row.split("\n");
+    const hi = lines.findIndex((l) => /^!/.test(l) && /scope="?row"?/.test(l));
+    let rest = row;
+    if (hi >= 0) {
+      const head = lines[hi].slice(lines[hi].indexOf("|") + 1);
+      const flag = /\{\{flag(?:country|icon|deco)?\|([^}|]+)/.exec(head);
+      // A rival government is listed under its state's flag with its own name after it; it is not a state.
+      const rival = /flagdeco|flagicon/.test(head);
+      cur = { name: flag ? flag[1].trim() : plainCell(head), rival, lines: [] };
+      states.push(cur);
+      spanLeft = [0, 0];
+      rest = lines.slice(hi + 1).join("\n");
+    }
+    if (!cur) continue;
+    const cells = ("\n" + rest).split(/\n\|(?!\}|-)/).slice(1).filter((c) => c.trim());
+    if (!cells.length) continue;
+    // Which column a cell is in: the first is the head of state's, the second the head of government's, unless a cell above still spans one.
+    const free = [0, 1].filter((k) => spanLeft[k] === 0);
+    spanLeft = spanLeft.map((n) => Math.max(0, n - 1));
+    cells.forEach((cell, i) => {
+      const attrs = /^((?:\s*(?:rowspan|colspan|align|style)="[^"]*")*)\s*\|?/.exec(cell);
+      const rowspan = +(/rowspan="(\d+)"/.exec(attrs[1]) || [0, 1])[1];
+      const both = /colspan="2"/.test(attrs[1]);
+      const col = both ? 0 : free[Math.min(i, free.length - 1)] ?? 0;
+      if (rowspan > 1) for (const k of both ? [0, 1] : [col]) spanLeft[k] = rowspan - 1;
+      const said = plainCell(cell.slice(attrs[0].length));
+      if (said) cur.lines.push([both ? "both" : col === 0 ? "state" : "government", said, /\{\{success\|/.test(cell) ? 1 : 0]);
+    });
+  }
+  const kept = states.filter((s) => !s.rival && !/^European Union$|Order of Malta/.test(s.name));
+  if (kept.length < 200 || kept.length > 212) throw new Error(`${kept.length} states were read from the list of heads of state and government`);
+  for (const s of kept) if (!s.lines.length || s.lines.some(([, said]) => /[{}[\]|<>]/.test(said))) throw new Error(`${s.name}: not read cleanly - ${JSON.stringify(s.lines).slice(0, 300)}`);
+
+  // Each state's ISO code and where it is: by its Wikidata label, or - for a state with no code - by its Wikipedia article.
+  const byLabel = new Map([...countries].map(([id, c]) => [c.name, { id, code: c.code }]));
+  const labelled = (s) => byLabel.get(s.name) ?? byLabel.get(LABELLED[s.name]);
+  const noCode = kept.filter((s) => !labelled(s));
+  const articles = noCode.length
+    ? await cached(`hosg-items-${hash(noCode.map((s) => s.name).join("|"))}.json`, async () => {
+        const res = await fetch("https://en.wikipedia.org/w/api.php?" + new URLSearchParams({ action: "query", prop: "pageprops", ppprop: "wikibase_item", redirects: "1", format: "json", formatversion: "2", titles: noCode.map((s) => s.name).join("|") }), { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(60000) });
+        const j = await res.json();
+        const to = new Map([...(j.query.normalized || []), ...(j.query.redirects || [])].map((n) => [n.from, n.to]));
+        const item = new Map(j.query.pages.map((p) => [p.title, p.pageprops?.wikibase_item ?? null]));
+        return noCode.map((s) => [s.name, item.get(to.get(s.name) ?? s.name) ?? null]);
+      })
+    : [];
+  const itemOf = new Map(articles);
+  for (const s of kept) {
+    const c = labelled(s);
+    s.code = c?.code ?? "";
+    s.id = c?.id ?? itemOf.get(s.name);
+    if (!s.id) throw new Error(`${s.name}: no Wikidata item was found for the state`);
+  }
+  const ids = kept.map((s) => s.id).sort();
+  const where = new Map((await cached(`hosg-where-${hash(ids.join(" "))}.json`, () => sparql(`SELECT ?item ?coord WHERE { VALUES ?item { ${wd(ids)} } ?item wdt:P625 ?coord }`))).map((r) => [qid(r.item), r.coord]));
+  for (const s of kept) {
+    const at = /^Point\((-?[\d.]+) (-?[\d.]+)\)$/.exec(where.get(s.id) || "");
+    if (!at) throw new Error(`${s.name}: no position in Wikidata`);
+    s.lon = +(+at[1]).toFixed(2);
+    s.lat = +(+at[2]).toFixed(2);
+    s.shown = SHOWN_AS[s.name] ?? s.name;
+  }
+  return { revid: page.revid, timestamp: page.timestamp, states: kept.sort((a, b) => a.shown.localeCompare(b.shown)) };
+}
 
 (async () => {
   // ── The countries: every one with an ISO code that still exists ──
@@ -288,6 +419,10 @@ const words = (s) =>
   console.log("  left out, by reason:", JSON.stringify(why));
   if (confirmed.length < 500) throw new Error(`only ${confirmed.length} places were confirmed`);
 
+  // ── Every country, by its head of state and of government ──
+  const national = await nationalHeads(countries);
+  console.log(`${national.states.length} states and their heads, from Wikipedia's list at revision ${national.revid} (${national.timestamp})`);
+
   // ── The file ──
   confirmed.sort((a, b) => a.country.localeCompare(b.country) || Number(!!b.iso) - Number(!!a.iso) || b.pop - a.pop || a.name.localeCompare(b.name));
   const counts = {};
@@ -318,6 +453,8 @@ const words = (s) =>
 export const REPRESENTATIVES_SOURCES = {
   wikidata: { label: "Wikidata — each place's head of government and its office's holders", url: "https://www.wikidata.org/wiki/Property:P6" },
   wikipedia: { label: "Wikipedia — the infobox of each place's article", url: "https://en.wikipedia.org/" },
+  /** The list every country's own heads are read from, at the revision read. */
+  list: { label: "Wikipedia — List of current heads of state and government (revision ${national.revid}, ${national.timestamp.slice(0, 10)})", url: "https://en.wikipedia.org/w/index.php?title=${LIST.replace(/ /g, "_")}&oldid=${national.revid}" },
   retrieved: "${today}",
   /** Where the rule could be checked against the lists the site holds from Wikipedia: how many of the heads it confirmed were the same. A place the lists contradict is not shown. */
   check: ${q(check)},
@@ -328,6 +465,18 @@ export const REPRESENTATIVES_SOURCES = {
 
 /** [country's name, places Wikidata records an office and a head for, places confirmed], by ISO code. */
 export const REPRESENTATIVE_COUNTRIES: Record<string, [name: string, recorded: number, confirmed: number]> = ${q(counts)};
+
+/** A line of the list for a state: whose column it stands in, the line as the list writes it ("President – X"), and 1 where the list marks it as holding executive power. */
+export type NationalLine = [role: "state" | "government" | "both", said: string, executive: 0 | 1];
+/**
+ * Every state in Wikipedia's list of current heads of state and government - the UN's members and observers, the Cook
+ * Islands and Niue, and the states with limited recognition it lists - with its ISO code where it has one, where it is,
+ * and the list's lines for it. One curated list, read at the revision the sources name; not the three-record rule.
+ */
+export type NationalRow = [code: string, name: string, lat: number, lon: number, lines: NationalLine[]];
+export const NATIONAL_HEADS: NationalRow[] = [
+${national.states.map((s) => `  ${q([s.code, s.shown, s.lat, s.lon, s.lines])},`).join("\n")}
+];
 
 /**
  * A confirmed place: [ISO country code, the place, its ISO 3166-2 code where it has one (a state, province or
