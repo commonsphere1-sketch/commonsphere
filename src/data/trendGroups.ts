@@ -30,6 +30,25 @@ export const TREND_GROUPS: TrendGroup[] = [
   { id: "trend-people", nav: "People", title: "People", kicker: "How long people live, where, and on what", color: "#3b82f6", ids: ["lifeExpectancy", "extremePoverty", "urban", "aged65"] },
 ];
 
+/**
+ * The same kind of series set out by industry, for the Industries tab of the
+ * Dashboard's explorer: what each industry makes or earns, who works in it
+ * and what it trades. Each id is a world series in worldview.ts or
+ * trendDetails.ts, as above; an industry here is a heading over published
+ * series, not a figure of its own.
+ */
+export const INDUSTRY_GROUPS: TrendGroup[] = [
+  { id: "industry-manufacturing", nav: "Manufacturing", title: "Manufacturing", kicker: "What the world's factories add, who works in industry, and the robots beside them", color: "#06b6d4", ids: ["manufacturingUsd", "manufacturingVA", "industryEmployment", "robotInstalls", "robotStock"] },
+  { id: "industry-energy", nav: "Energy", title: "Energy", kicker: "What is pumped and generated, and what people use", color: "#10b981", ids: ["oilProduction", "renewableElectricity", "fossilShare", "evSalesShare", "energyPerPerson", "electricityPerPerson"] },
+  { id: "industry-technology", nav: "Technology", title: "Technology", kicker: "What is invested, patented and sold", color: "#8b5cf6", ids: ["aiInvestment", "genAiInvestment", "highTechExports", "ictGoodsExports", "secureServers", "patents"] },
+  { id: "industry-services", nav: "Services", title: "Services", kicker: "The larger half of the world's output and work", color: "#3b82f6", ids: ["servicesVA", "servicesEmployment", "ictServiceExports", "airPassengers"] },
+  { id: "industry-farming", nav: "Farming", title: "Farming", kicker: "Its share of output, and of work", color: "#84cc16", ids: ["agricultureVA", "agEmployment"] },
+  { id: "industry-defence", nav: "Defence", title: "Defence", kicker: "What is spent on armed forces, and the arms that cross borders", color: "#ef4444", ids: ["militaryUsd", "militaryGdp", "armsTransfers"] },
+  { id: "industry-finance", nav: "Finance and trade", title: "Finance and trade", kicker: "What is traded, invested, listed and sent home", color: "#f59e0b", ids: ["trade", "marketCap", "investment", "remittances"] },
+];
+/** Every figure the Industries tab lists. The Trends page checks this against what it builds. */
+export const INDUSTRY_FIGURES = INDUSTRY_GROUPS.reduce((n, g) => n + g.ids.length, 0);
+
 /** The headline projections the Trends page gives as cards, beside the trends. The page checks this against what it builds. */
 export const PROJECTION_FIGURES = 8;
 /** Every figure the Trends explorer lists: the projections and the trends. */

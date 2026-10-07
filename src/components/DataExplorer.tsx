@@ -1,9 +1,11 @@
 /**
  * The data explorer: countries, the world's economies, and policy news, each
- * as a list beside a detail pane. The Dashboard has all three as tabs, and
- * with them the explorers the Economies and Trends pages have - resources and
- * trends - each loaded when its tab is first opened; the Countries, Economies
- * and Policy pages each have their own alone (`only`), with no tabs.
+ * as a list beside a detail pane. The Dashboard has countries and economies
+ * as tabs, and with them the explorers the Economies and Trends pages have -
+ * industries, resources and trends - each loaded when its tab is first
+ * opened; the Countries, Economies and Policy pages each have their own alone
+ * (`only`), with no tabs. Policies was a tab of the Dashboard's too; Industries
+ * stands there now, as asked, and the Policy page keeps the policy explorer.
  *
  * Every figure is sourced. Countries come from the site's country data; the
  * world, its regions and the European Union from the World Bank's and the
@@ -31,7 +33,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowRight, ArrowSquareOut, ChartBar, ChartLine, Globe, Heart, MagnifyingGlass, MapPin, Scales, Tree, Users, X } from "@phosphor-icons/react";
+import { ArrowRight, ArrowSquareOut, ChartBar, ChartLine, Factory, Globe, Heart, MagnifyingGlass, MapPin, Scales, Tree, Users, X } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLiveCountries } from "../contexts/LiveDataContext";
 import type { Country, DataSource, ReferenceField } from "../data/countriesData";
@@ -43,7 +45,7 @@ import { hdiHex } from "../lib/hdiTier";
 import { ago, placeName, useHeadlines, type Headline } from "./HeadlinesBanner";
 import type { TopicHit } from "./PolicyContext";
 import { RESOURCES } from "../data/resourceList";
-import { TREND_FIGURES } from "../data/trendGroups";
+import { INDUSTRY_FIGURES, TREND_FIGURES } from "../data/trendGroups";
 
 /** A policy headline's fuller detail, with the data it draws on: loaded when one is first shown. */
 const PolicyContext = lazy(() => import("./PolicyContext"));
@@ -56,18 +58,23 @@ const RECORD_TOPICS = ["Trade", "Energy", "Climate", "Tech", "Jobs & pay", "Defe
 /** The explorers of the Economies page's resources and of the Trends page, each with its data: loaded when its tab is opened. */
 const ResourcesTab = lazy(() => import("./ResourceExplorerTab"));
 const TrendsTab = lazy(() => import("../pages/TrendsPage").then((m) => ({ default: m.TrendsExplorer })));
+/** The industries explorer: the same page's world series, set out by industry. */
+const IndustriesTab = lazy(() => import("../pages/TrendsPage").then((m) => ({ default: m.IndustriesExplorer })));
 
 export type ExplorerTab = "countries" | "economies" | "policies";
-/** The Dashboard's tabs: the three above, and the two explorers that come from other pages. */
-type Tab = ExplorerTab | "resources" | "trends";
+/** The Dashboard's tabs: countries and economies, and the three explorers that come from other pages. */
+type Tab = ExplorerTab | "industries" | "resources" | "trends";
+type TabDef = { id: Tab; label: string; color: string; path: string; Icon: typeof Globe };
 
-const TABS: { id: Tab; label: string; color: string; path: string; Icon: typeof Globe }[] = [
+const TABS: TabDef[] = [
   { id: "countries", label: "Countries", color: "#6366f1", path: "/dashboard/countries", Icon: Globe },
   { id: "economies", label: "Economies", color: "#f59e0b", path: "/dashboard/economies", Icon: ChartBar },
-  { id: "policies", label: "Policies", color: "#a855f7", path: "/dashboard/policy", Icon: Scales },
+  { id: "industries", label: "Industries", color: "#06b6d4", path: "/dashboard/trends", Icon: Factory },
   { id: "resources", label: "Resources", color: "#059669", path: "/dashboard/economies?view=resources", Icon: Tree },
   { id: "trends", label: "Trends", color: "#0ea5e9", path: "/dashboard/trends", Icon: ChartLine },
 ];
+/** The policy explorer: the Policy page's alone (`only`). It was the Dashboard's third tab, where Industries stands now. */
+const POLICY_TAB: TabDef = { id: "policies", label: "Policies", color: "#a855f7", path: "/dashboard/policy", Icon: Scales };
 
 /**
  * Policy topics, matched on a headline's own words. "Labour" is left out of
@@ -147,8 +154,8 @@ export function DataExplorer({
   const region = (regionId ? regions.find((r) => r.id === regionId) : null) ?? regionList[0] ?? null;
 
   // The last week's headlines from the policy desks, by topic: the newest POLICY_READ of them at most.
-  // Not read at all where the explorer shows another category alone.
-  const headlines = useHeadlines(["policy"], 7, POLICY_READ, false, undefined, !only || only === "policies");
+  // Read only where the explorer is the Policy page's: the Dashboard's has no policy tab.
+  const headlines = useHeadlines(["policy"], 7, POLICY_READ, false, undefined, only === "policies");
   const capped = headlines.length >= POLICY_READ;
   const [topic, setTopic] = useState<string | null>(null);
   const topicRe = POLICY_TOPICS.find((p) => p.label === topic)?.re;
@@ -171,11 +178,12 @@ export function DataExplorer({
     if (detailRef.current) detailRef.current.scrollTop = 0;
   }, [shownUrl]);
 
-  const cur = TABS.find((x) => x.id === tab)!;
+  const cur = tab === "policies" ? POLICY_TAB : TABS.find((x) => x.id === tab)!;
   const badge: Record<Tab, string> = {
     countries: `${byGdp.length}`,
     economies: `${regions.length}`,
     policies: `${headlines.length}${capped ? "+" : ""}`,
+    industries: `${INDUSTRY_FIGURES}`,
     resources: `${RESOURCES.length}`,
     trends: `${TREND_FIGURES}`,
   };
@@ -237,9 +245,11 @@ export function DataExplorer({
         </div>
       )}
 
-      {tab === "resources" || tab === "trends" ? (
+      {tab === "industries" || tab === "resources" || tab === "trends" ? (
         // Another page's explorer, in this card: it brings its own search, list, detail and footer.
-        <Suspense fallback={<Empty t={t}>Loading…</Empty>}>{tab === "resources" ? <ResourcesTab action={toPage} /> : <TrendsTab embedded action={toPage} />}</Suspense>
+        <Suspense fallback={<Empty t={t}>Loading…</Empty>}>
+          {tab === "resources" ? <ResourcesTab action={toPage} /> : tab === "industries" ? <IndustriesTab embedded action={toPage} /> : <TrendsTab embedded action={toPage} />}
+        </Suspense>
       ) : (
         <>
       {/* Search */}
@@ -289,7 +299,7 @@ export function DataExplorer({
               <PolicyDetail
                 t={t}
                 h={policy}
-                onHub={pathname === TABS[2].path ? null : () => navigate(TABS[2].path)}
+                onHub={pathname === POLICY_TAB.path ? null : () => navigate(POLICY_TAB.path)}
                 more={{
                   headlines,
                   onOpen: (h) => {

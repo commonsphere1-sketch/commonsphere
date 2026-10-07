@@ -19,7 +19,7 @@
  */
 import { useMemo, useState, type ReactNode } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ChartLineUp, Cpu, Globe, Leaf, Lightning, Target, TrendUp, Users } from "@phosphor-icons/react";
+import { ChartLineUp, Cpu, Factory, Globe, Leaf, Lightning, Target, TrendUp, Users } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
@@ -27,7 +27,7 @@ import { SectionNav, type NavSection } from "../components/SectionNav";
 import { StyledSelect } from "../components/StyledSelect";
 import { StatExplorer, type StatGroup } from "../components/StatExplorer";
 import { EnergyOutlook } from "../components/EnergyOutlook";
-import { PROJECTION_FIGURES, TREND_GROUPS } from "../data/trendGroups";
+import { INDUSTRY_FIGURES, INDUSTRY_GROUPS, PROJECTION_FIGURES, TREND_GROUPS } from "../data/trendGroups";
 import { CategoryCharts, TREND_CHARTS } from "../components/CategoryCharts";
 import { StatCard, splitChange, type StatCardData, type StatFact, type StatTable } from "../components/StatCard";
 import { usdFromBillions } from "../lib/money";
@@ -587,6 +587,9 @@ function trendCard(id: string, color: string, group: string, beside: string[]): 
 
 /** Every trend as its card's data, by group: what the cards and the explorer are both drawn from. Built once - nothing in it changes. */
 const TREND_CARDS: StatGroup[] = TREND_GROUPS.map((g) => ({ title: g.title, color: g.color, items: g.ids.flatMap((id) => trendCard(id, g.color, g.title, g.ids) ?? []) }));
+/** The same kind of card for each series an industry is followed by: what the Industries tab of the Dashboard's explorer lists. */
+const INDUSTRY_CARDS: StatGroup[] = INDUSTRY_GROUPS.map((g) => ({ title: g.title, color: g.color, items: g.ids.flatMap((id) => trendCard(id, g.color, g.title, g.ids) ?? []) }));
+if (import.meta.env.DEV && INDUSTRY_CARDS.reduce((n, g) => n + g.items.length, 0) !== INDUSTRY_FIGURES) console.warn(`trendGroups.ts says ${INDUSTRY_FIGURES} industry figures; the Trends page builds ${INDUSTRY_CARDS.reduce((n, g) => n + g.items.length, 0)}.`);
 
 /**
  * The world population chart, explained under it: the milestones on the
@@ -1968,6 +1971,17 @@ export function TrendsExplorer({ embedded = false, action }: { embedded?: boolea
       action={action}
     />
   );
+}
+
+/**
+ * The industries explorer: the world series the site holds for each industry
+ * - manufacturing, energy, technology, services, farming, defence, finance
+ * and trade - a list beside each one's detail, drawn from the same cards as
+ * the trends. It is the Industries tab of the Dashboard's explorer, where the
+ * Policies tab stood.
+ */
+export function IndustriesExplorer({ embedded = false, action }: { embedded?: boolean; action?: { label: string; onClick: () => void } }) {
+  return <StatExplorer title="Industries" icon={<Factory size={12} weight="fill" aria-hidden />} color="#06b6d4" noun="figures" groups={INDUSTRY_CARDS} embedded={embedded} action={action} />;
 }
 
 export function TrendsPage() {
