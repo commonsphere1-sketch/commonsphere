@@ -8,7 +8,10 @@
  * rest, each with its period), the nine planetary boundaries and their
  * control variables (planetaryBoundaries.ts - the Planetary Health Check
  * 2026), the tipping points, flashpoints and treaties (climateContext.ts),
- * and the page's figure cards (climateFigures.ts). The list is searched by
+ * the page's figure cards (climateFigures.ts) and its cards on species,
+ * ecosystems and ecological projects (lifeOnEarth.ts). A reading also says
+ * what causes it and what it does, in its agencies' words (climateCauses.ts),
+ * as a boundary says what drives it and what follows. The list is searched by
  * name and narrowed by kind; the detail gives the figure, what it is set
  * against, and its source. A change on ten years before is the only thing
  * worked out, from the two readings the source gives.
@@ -19,6 +22,8 @@ import { CLIMATE_INDICATORS, CLIMATE_RETRIEVED, type ClimateIndicator } from "..
 import { BOUNDARIES, PHC_2026, type PlanetaryBoundary, type Zone } from "../data/planetaryBoundaries";
 import { FLASHPOINTS, TIPPING_POINTS, TREATIES, TREATIES_CHECKED, type ContextItem } from "../data/climateContext";
 import { FIGURE_CARDS, type FigureCard } from "../data/climateFigures";
+import { CLIMATE_CAUSES } from "../data/climateCauses";
+import { LIFE_CARDS } from "../data/lifeOnEarth";
 import { Block, Empty, GoButton, Kpi, Label, Row, useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 
@@ -54,7 +59,7 @@ const ITEMS: Item[] = [
   ...TIPPING_POINTS.map((c): Item => ({ key: `t-${c.id}`, kind: "tipping", name: c.label, said: c.val, c })),
   ...FLASHPOINTS.map((c): Item => ({ key: `f-${c.id}`, kind: "flashpoint", name: c.label, said: c.val, c })),
   ...TREATIES.map((c): Item => ({ key: `y-${c.id}`, kind: "treaty", name: c.label, said: c.val, c })),
-  ...FIGURE_CARDS.map((f): Item => ({ key: `g-${f.id}`, kind: "figures", name: f.title, said: f.kicker, f })),
+  ...[...LIFE_CARDS, ...FIGURE_CARDS].map((f): Item => ({ key: `g-${f.id}`, kind: "figures", name: f.title, said: f.kicker, f })),
 ];
 
 export function ClimateExplorer({ onOpenBoundary }: { /** Shows a boundary in the page's own wheel and panel. */ onOpenBoundary?: (id: string) => void }) {
@@ -187,6 +192,19 @@ export function ClimateExplorer({ onOpenBoundary }: { /** Shows a boundary in th
                     </p>
                   )}
                   <SourceLink sources={[{ label: `${shown.m.source} · read on ${CLIMATE_RETRIEVED}`, url: shown.m.url }]} />
+                  {CLIMATE_CAUSES[shown.m.id] && (
+                    <>
+                      <Label t={t}>Cause</Label>
+                      <p className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                        {CLIMATE_CAUSES[shown.m.id].cause}
+                      </p>
+                      <Label t={t}>Effect</Label>
+                      <p className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                        {CLIMATE_CAUSES[shown.m.id].effect}
+                      </p>
+                      <SourceLink sources={CLIMATE_CAUSES[shown.m.id].sources} />
+                    </>
+                  )}
                 </Block>
               )}
 
@@ -219,20 +237,20 @@ export function ClimateExplorer({ onOpenBoundary }: { /** Shows a boundary in th
                     ))}
                   </div>
                   {shown.b.drivers.length > 0 && (
-                    <p className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
-                      <span className="font-semibold" style={{ color: t.headText }}>
-                        Driven by
-                      </span>{" "}
-                      {shown.b.drivers.join("; ")}.
-                    </p>
+                    <>
+                      <Label t={t}>Cause</Label>
+                      <p className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                        {shown.b.drivers.join("; ")}.
+                      </p>
+                    </>
                   )}
                   {shown.b.impacts.length > 0 && (
-                    <p className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
-                      <span className="font-semibold" style={{ color: t.headText }}>
-                        What follows
-                      </span>{" "}
-                      {shown.b.impacts.join("; ")}.
-                    </p>
+                    <>
+                      <Label t={t}>Effect</Label>
+                      <p className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                        {shown.b.impacts.join("; ")}.
+                      </p>
+                    </>
                   )}
                   <SourceLink sources={[{ label: `Planetary Health Check 2026, page ${shown.b.page}`, url: PHC_2026.summaryUrl }]} />
                   {onOpenBoundary && (

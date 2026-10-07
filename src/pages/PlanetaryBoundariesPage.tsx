@@ -17,6 +17,7 @@ import {
 } from "../data/planetaryBoundaries";
 import { FLASHPOINTS, TIPPING_POINTS, TREATIES, TREATIES_CHECKED, type ContextItem } from "../data/climateContext";
 import { FIGURE_CARDS, type FigureCard } from "../data/climateFigures";
+import { LIFE_CARDS, LIFE_CHECKED } from "../data/lifeOnEarth";
 import { ClimateExplorer } from "../components/ClimateExplorer";
 import {
   Leaf,
@@ -812,6 +813,24 @@ export function PlanetaryBoundariesPage() {
                 </p>
               )}
             </div>
+          ))}
+        </div>
+
+        {/* ── LIFE ON EARTH ────────────────────────────────────────────────
+            Species found and lost, ecosystems recovering and dying, and what
+            ecological projects have done; see data/lifeOnEarth.ts. */}
+        <div id="life" className="flex items-center gap-3 mb-2 scroll-mt-24">
+          <Leaf size={16} weight="fill" className="text-emerald-500" />
+          <span className="text-[11px] font-mono uppercase tracking-widest text-emerald-500">Life on Earth: species, ecosystems and ecological projects</span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+        <p className="text-[11px] font-sans mb-4 max-w-4xl" style={{ color: mutedText }}>
+          Species discovered and species lost, ecosystems that are recovering and ecosystems that are dying, and what the projects meant to protect them have done. Each
+          figure is from the source its card links to, read on {LIFE_CHECKED}; where a source gives no figure, the card says so.
+        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {LIFE_CARDS.map((card) => (
+            <FigureCardView key={card.id} card={card} isLight={isLight} headText={headText} mutedText={mutedText} gridLine={gridLine} />
           ))}
         </div>
 
