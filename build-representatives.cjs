@@ -28,6 +28,12 @@
  * the revision it was read at. That is one curated list, not three records,
  * and the file says so.
  *
+ * Each country's and territory's legislature is there too, by who presides
+ * over each chamber: Wikipedia's "List of current presidents of
+ * legislatures", read the same way. And a territory that is not a state of
+ * the first list - Hong Kong, Curacao, Greenland - has its head where the
+ * three records agree on one.
+ *
  * A place that fails any of the three is left out, and counted: the file
  * says, for each country, how many places Wikidata records a head for and
  * how many were confirmed, so what is missing is not hidden. Nothing is
@@ -89,6 +95,47 @@ const words = (s) =>
     .replace(/[^a-z0-9 ]+/g, " ")
     .split(/\s+/)
     .filter((w) => w.length >= 3 && !/^(jr|sr|iii|the|von|van|del|der|den|los|las|bin|ibn|dos|das)$/.test(w));
+
+/** The opening of each English Wikipedia article named, by title: where its infobox is. */
+async function articleLeads(titles) {
+  const out = new Map();
+  const want = [...new Set(titles.filter(Boolean))].sort();
+  for (let i = 0; i < want.length; i += 20) {
+    const batch = want.slice(i, i + 20);
+    const pages = await cached(`wp-${hash(batch.join("|"))}.json`, async () => {
+      for (let attempt = 0; ; attempt++) {
+        const url = "https://en.wikipedia.org/w/api.php?" + new URLSearchParams({ action: "query", prop: "revisions", rvprop: "content", rvslots: "main", rvsection: "0", redirects: "1", format: "json", formatversion: "2", titles: batch.join("|") });
+        const res = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(60000) }).catch((e) => ({ ok: false, status: String(e) }));
+        if (res.ok) {
+          const j = await res.json();
+          await sleep(120);
+          const to = new Map([...(j.query.normalized || []), ...(j.query.redirects || [])].map((n) => [n.from, n.to]));
+          const byTitle = new Map((j.query.pages || []).map((pg) => [pg.title, pg.revisions?.[0]?.slots?.main?.content ?? ""]));
+          return batch.map((t) => {
+            let at = t;
+            for (let hop = 0; hop < 3 && to.has(at); hop++) at = to.get(at);
+            return [t, byTitle.get(at) ?? ""];
+          });
+        }
+        if (attempt >= 3) throw new Error(`Wikipedia: ${res.status}`);
+        await sleep(5000 * (attempt + 1));
+      }
+    });
+    for (const [t, text] of pages) out.set(t, text);
+  }
+  return out;
+}
+/** The first infobox of an article's opening, braces balanced, without its references. */
+function firstInfobox(text) {
+  const start = text.search(/\{\{\s*Infobox/i);
+  if (start < 0) return "";
+  let depth = 0;
+  let end = text.length;
+  for (let i = start; i < text.length - 1; i++) {
+    if (text.startsWith("{{", i)) { depth++; i++; } else if (text.startsWith("}}", i)) { depth--; i++; if (depth === 0) { end = i + 1; break; } }
+  }
+  return text.slice(start, end).replace(/<ref[\s\S]*?(<\/ref>|\/>)/g, " ");
+}
 
 // ── The countries themselves: Wikipedia's list of current heads of state and government ──
 const LIST = "List of current heads of state and government";
@@ -213,6 +260,107 @@ async function nationalHeads(countries) {
     s.shown = SHOWN_AS[s.name] ?? s.name;
   }
   return { revid: page.revid, timestamp: page.timestamp, states: kept.sort((a, b) => a.shown.localeCompare(b.shown)) };
+}
+
+// ── Who presides over each legislature: Wikipedia's list of current presidents of legislatures ──
+const CHAMBERS = "List of current presidents of legislatures";
+/** A state or territory as that list names it, where the first list or Wikidata names it otherwise. */
+const CHAMBER_NAMES = { "The Bahamas": "Bahamas", "The Gambia": "Gambia", "Micronesia": "Federated States of Micronesia", "Netherlands": "Kingdom of the Netherlands", "East Timor": "Timor-Leste", "Georgia": "Georgia (country)", "Czechia": "Czech Republic", "Congo": "Republic of the Congo", "DR Congo": "Democratic Republic of the Congo", "Sahrawi Republic": "Sahrawi Arab Democratic Republic", "Western Sahara": "Sahrawi Arab Democratic Republic", "Congo-Brazzaville": "Republic of the Congo", "Congo-Kinshasa": "Democratic Republic of the Congo", "Republic of China": "Taiwan" };
+/** A territory the list names otherwise than Wikidata does, by its ISO code. */
+const CHAMBER_CODES = { "Saint Helena": "SH", "Saint Martin": "MF", "U.S. Virgin Islands": "VI", "Åland": "AX", "Curaçao": "CW", "Macau": "MO", "Réunion": "RE", "Saint Barthélemy": "BL", "Pitcairn Islands": "PN", "Falkland Islands": "FK", "Faroe Islands": "FO" };
+async function legislaturePresidents(countries, national) {
+  const page = await cached("legislatures.json", async () => {
+    const res = await fetch("https://en.wikipedia.org/w/api.php?" + new URLSearchParams({ action: "query", prop: "revisions", rvprop: "content|ids|timestamp", rvslots: "main", format: "json", formatversion: "2", titles: CHAMBERS }), { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(60000) });
+    if (!res.ok) throw new Error(`Wikipedia: ${res.status} for the list of presidents of legislatures`);
+    const rev = (await res.json()).query.pages[0].revisions[0];
+    return { revid: rev.revid, timestamp: rev.timestamp, text: rev.slots.main.content };
+  });
+  const text = page.text.replace(/<!--[\s\S]*?-->/g, "").replace(/<ref[^>]*\/>/gi, "").replace(/<ref[^>]*>[\s\S]*?<\/ref>/gi, "");
+  const from = text.indexOf("== States recognised by the United Nations");
+  const to = text.search(/==\s*\[\[Sui generis\]\] entities\s*==/);
+  if (from < 0 || to < from) throw new Error("the list of presidents of legislatures was not read: its sections were not found");
+  const said = (s) => {
+    let x = s;
+    for (let prev = null; x !== prev; ) {
+      prev = x;
+      x = x
+        .replace(/\{\{efn[^{}]*\}\}/gi, "")
+        .replace(/\{\{sortname\|([^|{}]*)\|([^|{}]*)(?:\|[^{}]*)?\}\}/gi, "$1 $2")
+        .replace(/\{\{dts\|(?:format=\w+\|)?(\d{4})\|(\d{1,2})\|(\d{1,2})[^{}]*\}\}/gi, (_, y, m, d) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`)
+        .replace(/\{\{dts\|(?:format=\w+\|)?(\d{4})[^{}]*\}\}/gi, "$1")
+        // A flag alone is followed by the name in a link of its own; a flag with a name is the name.
+        .replace(/\{\{flag(?:icon|deco)\|[^{}]*\}\}/gi, "")
+        .replace(/\{\{flag(?:country)?\|([^|{}]*)((?:\|[^{}]*)?)\}\}/gi, (_, first, rest) => /\|name=([^|]*)/.exec(rest)?.[1] ?? first)
+        .replace(/\{\{(?:nowrap|small|abbr)\|([^|{}]*)(?:\|[^{}]*)?\}\}/gi, "$1")
+        .replace(/\{\{[^{}]*\}\}/g, "");
+    }
+    return x.replace(/\[\[(?:File|Image):[^\]]*\]\]/gi, "").replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1").replace(/<br\s*\/?>/gi, " ").replace(/<[^>]+>/g, "").replace(/'''?/g, "").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
+  };
+  // Each row has six columns, less those a cell above still spans. A table of states has state, assembly, title, name,
+  // party, day; the table of regions and territories has the region, its country, assembly, title, name, day.
+  const rows = [];
+  let span = [0, 0, 0, 0, 0, 0];
+  let kept = ["", "", "", "", "", ""];
+  let keptRaw = ["", "", "", "", "", ""];
+  let regional = false;
+  for (const chunk of text.slice(from, to).split(/\n\|-[^\n]*/)) {
+    // A table's heading says which of the two it is.
+    if (/\n!\s*Region or territory/.test(chunk)) regional = true;
+    else if (/\n!\s*State\b/.test(chunk)) regional = false;
+    const row = chunk.split("\n|}")[0];
+    if (/\n!/.test("\n" + row) && !/\n\|[^}-]/.test("\n" + row)) { span = [0, 0, 0, 0, 0, 0]; continue; }
+    const cells = ("\n" + row).split(/\n\|(?!\}|-)/).slice(1).flatMap((c) => c.split(/\s\|\|\s/));
+    if (!cells.length) continue;
+    let next = 0;
+    const line = [];
+    const raw = [];
+    for (let col = 0; col < 6; col++) {
+      if (span[col] > 0) { span[col]--; line.push(kept[col]); raw.push(keptRaw[col]); continue; }
+      const cell = cells[next++] ?? "";
+      const attrs = /^\s*((?:(?:rowspan|colspan|style|align|class|data-sort-value|scope)="[^"]*"\s*)+)\|/.exec(cell);
+      const n = +(/rowspan="(\d+)"/.exec(attrs?.[1] ?? "") || [0, 1])[1];
+      kept[col] = said(cell.slice(attrs ? attrs[0].length : 0));
+      keptRaw[col] = cell;
+      if (n > 1) span[col] = n - 1;
+      line.push(kept[col]);
+      raw.push(cell);
+    }
+    kept = [...line];
+    keptRaw = [...raw];
+    const [state, second, third, fourth, fifth] = line;
+    const r = regional ? { state, parent: second, assembly: third, title: fourth, name: fifth, party: "" } : { state, parent: "", assembly: second, title: third, name: fourth, party: fifth };
+    if (!r.state || !r.name) continue;
+    // The assembly's own article: what the row's link to it names.
+    const article = /\[\[([^\]|#]+)/.exec(raw[regional ? 2 : 1])?.[1].trim() ?? "";
+    rows.push({ ...r, state: r.state.replace(/\s*\([^)]*\)\s*$/, "").trim(), article });
+  }
+  if (rows.length < 250) throw new Error(`only ${rows.length} presiding officers were read`);
+  for (const r of rows) if (Object.values(r).some((v) => /[{}[\]|<>]/.test(v))) throw new Error(`a row of the list of presidents of legislatures was not read cleanly: ${JSON.stringify(r)}`);
+
+  // The list is one record, and read on 7 October 2026 it still named a president of Puerto Rico's Senate who had left
+  // office. A row is kept only where the infobox of the assembly's own article names the same person.
+  const leads = await articleLeads(rows.map((r) => r.article));
+  const confirmed = rows.filter((r) => {
+    const box = new Set(words(firstInfobox(leads.get(r.article) ?? "")));
+    const name = words(r.name);
+    return name.length >= 2 && name.every((w) => box.has(w));
+  });
+
+  // By the state's key in the first list - its ISO code, or its name where it has none - or the territory's ISO code.
+  // A region with no code of its own - Scotland, Catalonia, Bavaria - is kept under the country the list files it with.
+  const stateKey = new Map(national.states.flatMap((s) => [[s.name, s.code || s.shown], [s.shown, s.code || s.shown]]));
+  const byLabel = new Map([...countries.values()].map((c) => [c.name, c.code]));
+  const keyOf = (name) => stateKey.get(CHAMBER_NAMES[name] ?? name) ?? stateKey.get(name) ?? byLabel.get(name) ?? byLabel.get(CHAMBER_NAMES[name] ?? name) ?? CHAMBER_CODES[name];
+  const by = {};
+  const regions = {};
+  const unplaced = new Set();
+  for (const r of confirmed) {
+    const key = keyOf(r.state);
+    if (key) (by[key] ??= []).push([r.assembly, r.title, r.name, r.party]);
+    else if (r.parent && keyOf(r.parent)) (regions[keyOf(r.parent)] ??= []).push([r.state, r.assembly, r.title, r.name]);
+    else unplaced.add(r.state);
+  }
+  return { revid: page.revid, timestamp: page.timestamp, by, regions, rows: rows.length, confirmed: confirmed.length, leftOut: rows.filter((r) => !confirmed.includes(r)).map((r) => `${r.state}: ${r.name}`), unplaced: [...unplaced] };
 }
 
 (async () => {
@@ -392,6 +540,8 @@ async function nationalHeads(countries) {
   }
   // --countries prints the countries' own heads the rule confirmed, to set beside the World Leaders page.
   if (process.argv.includes("--countries")) fs.writeFileSync(path.join(CACHE, "country-heads.json"), JSON.stringify(confirmed.filter((p) => p.isCountry).map((p) => [p.country, p.name, p.head, p.officeName])));
+  // A confirmed place that has an ISO country code of its own is a country or a territory: its head is kept for the territories.
+  const coded = confirmed.flatMap((p) => (countries.get(p.id)?.code ? [{ code: countries.get(p.id).code, office: p.officeName, head: p.head, since: p.since ?? "" }] : []));
   why.aCountry = 0;
   for (let i = confirmed.length - 1; i >= 0; i--) if (confirmed[i].isCountry) { confirmed.splice(i, 1); why.aCountry++; }
   // ── Each confirmed place's GeoNames id, where Wikidata gives one: the explorer sets the head beside GeoNames' own row by it ──
@@ -430,6 +580,13 @@ async function nationalHeads(countries) {
 
   // ── Every country, by its head of state and of government ──
   const national = await nationalHeads(countries);
+  const chambers = await legislaturePresidents(countries, national);
+  console.log(`${chambers.confirmed} of the ${chambers.rows} presiding officers in Wikipedia's list (revision ${chambers.revid}) are named by the assembly's own article: ${Object.keys(chambers.by).length} states and territories, ${Object.keys(chambers.regions).length} countries' regions${chambers.unplaced.length ? `; not placed: ${chambers.unplaced.join(", ")}` : ""}`);
+  console.log(`  left out (${chambers.leftOut.length}): ${chambers.leftOut.slice(0, 60).join("; ")}`);
+  // A territory is a place with a code of its own that is not a state of the list of heads.
+  const stateCodes = new Set(national.states.map((s) => s.code).filter(Boolean));
+  const territoryHeads = Object.fromEntries(coded.filter((x) => !stateCodes.has(x.code)).sort((a, b) => a.code.localeCompare(b.code)).map((x) => [x.code, [x.office, x.head, x.since]]));
+  console.log(`${Object.keys(territoryHeads).length} territories' heads that three records agree on: ${Object.entries(territoryHeads).map(([k, v]) => `${k} ${v[1]}`).join(", ")}`);
   console.log(`${national.states.length} states and their heads, from Wikipedia's list at revision ${national.revid} (${national.timestamp})`);
 
   // ── The file ──
@@ -464,6 +621,11 @@ export const REPRESENTATIVES_SOURCES = {
   wikipedia: { label: "Wikipedia — the infobox of each place's article", url: "https://en.wikipedia.org/" },
   /** The list every country's own heads are read from, at the revision read. */
   list: { label: "Wikipedia — List of current heads of state and government (revision ${national.revid}, ${national.timestamp.slice(0, 10)})", url: "https://en.wikipedia.org/w/index.php?title=${LIST.replace(/ /g, "_")}&oldid=${national.revid}" },
+  /** The list each legislature's presiding officers are read from, at the revision read. */
+  chambers: { label: "Wikipedia — List of current presidents of legislatures (revision ${chambers.revid}, ${chambers.timestamp.slice(0, 10)})", url: "https://en.wikipedia.org/w/index.php?title=${CHAMBERS.replace(/ /g, "_")}&oldid=${chambers.revid}" },
+  /** The presiding officers the list names, and those the assembly's own article names too: only these are kept. */
+  chambersRead: ${chambers.rows},
+  chambersConfirmed: ${chambers.confirmed},
   retrieved: "${today}",
   /** Where the rule could be checked against the lists the site holds from Wikipedia: how many of the heads it confirmed were the same. A place the lists contradict is not shown. */
   check: ${q(check)},
@@ -486,6 +648,26 @@ export type NationalRow = [code: string, name: string, lat: number, lon: number,
 export const NATIONAL_HEADS: NationalRow[] = [
 ${national.states.map((s) => `  ${q([s.code, s.shown, s.lat, s.lon, s.lines])},`).join("\n")}
 ];
+
+/** Who presides over a chamber: [the assembly, the title, the holder, the party as the list gives it or ""]. */
+export type ChamberRow = [assembly: string, title: string, name: string, party: string];
+/**
+ * Each state's and territory's legislature by its presiding officers, as Wikipedia's list of current presidents of
+ * legislatures gives them: by ISO code, or by name for a state with none. The list is read at the revision the sources
+ * name, and a row is kept only where the infobox of the assembly's own Wikipedia article names the same person: the
+ * rest are left out, and the sources say how many. The list's dates are not kept: some were found a holder behind.
+ */
+export const LEGISLATURE_PRESIDENTS: Record<string, ChamberRow[]> = {
+${Object.keys(chambers.by).sort().map((k) => `  ${q(k)}: ${q(chambers.by[k])},`).join("\n")}
+};
+
+/** The presiding officers of the assemblies of regions the same list files under a country - Scotland, Catalonia, Bavaria: [region, assembly, title, holder], by the country's key. Kept by the same check. */
+export const REGIONAL_ASSEMBLIES: Record<string, [region: string, assembly: string, title: string, name: string][]> = {
+${Object.keys(chambers.regions).sort().map((k) => `  ${q(k)}: ${q(chambers.regions[k])},`).join("\n")}
+};
+
+/** The head of a territory that is not a state of the list of heads, where the three records agree on one: [office, head, year or ""], by ISO code. */
+export const TERRITORY_HEADS: Record<string, [office: string, head: string, since: string]> = ${q(territoryHeads)};
 
 /**
  * A confirmed place: [ISO country code, the place, its ISO 3166-2 code where it has one (a state, province or

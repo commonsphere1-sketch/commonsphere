@@ -21,6 +21,15 @@
  *                   Wikipedia article (representatives.ts). Every other place
  *                   says that no head is verified; none is filled in.
  *
+ * Around those: the continents the countries are filed under, each country's
+ * states or provinces and counties or districts (GeoNames' first- and
+ * second-order divisions, which the towns are listed and narrowed by), the
+ * kind of place GeoNames says each is, who presides over each legislature
+ * (Wikipedia's list of them, a row kept only where the assembly's own article
+ * names the same person), and a territory's head where three records agree.
+ * "What this covers" in the panel says, level by level, what is here and what
+ * no source gives.
+ *
  * A verified head is set beside GeoNames' row for the place by GeoNames id,
  * or by the same name within a few kilometres. Nothing is typed in here, and
  * a count is the only thing worked out.
@@ -32,8 +41,8 @@ import { feature } from "topojson-client";
 import type { Topology } from "topojson-specification";
 import worldTopo from "world-atlas/countries-110m.json";
 import { ArrowSquareOut, MagnifyingGlass, MapPin, X } from "@phosphor-icons/react";
-import { NATIONAL_HEADS, REPRESENTATIVES, REPRESENTATIVE_COUNTRIES, REPRESENTATIVES_SOURCES as SRC } from "../data/representatives";
-import { PLACE_COUNTRIES, PLACE_KINDS, PLACES_SOURCE, PLACES_TOTAL, PLACES_WORLD, type PlacesFile } from "../data/placesIndex";
+import { LEGISLATURE_PRESIDENTS, NATIONAL_HEADS, REGIONAL_ASSEMBLIES, REPRESENTATIVES, REPRESENTATIVE_COUNTRIES, REPRESENTATIVES_SOURCES as SRC, TERRITORY_HEADS } from "../data/representatives";
+import { CONTINENTS, PLACE_COUNTRIES, PLACE_KINDS, PLACES_LEVELS, PLACES_SOURCE, PLACES_TOTAL, PLACES_WORLD, type PlacesFile, type PlaceRow } from "../data/placesIndex";
 import { Block, Empty, GoButton, Kpi, Label, Row, useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 
@@ -43,12 +52,13 @@ const HEADS: Head[] = REPRESENTATIVES.map(([country, place, region, head, office
 
 type Line = { role: "state" | "government" | "both"; said: string; executive: boolean };
 /** A country or territory: its lines in the list of heads of state and government, its places, and its verified heads. */
-type Nation = { key: string; code: string; name: string; at: [number, number] | null; lines: Line[]; places: number; recorded: number; confirmed: number };
+type Nation = { key: string; code: string; name: string; continent: string; at: [number, number] | null; lines: Line[]; places: number; recorded: number; confirmed: number };
 const STATES: Nation[] = NATIONAL_HEADS.map(([code, name, lat, lon, lines]) => ({
   // A state with no ISO code is known by its name.
   key: code || name,
   code,
   name,
+  continent: (code && PLACE_COUNTRIES[code]?.[2]) || "",
   at: [lon, lat],
   lines: lines.map(([role, said, executive]) => ({ role, said, executive: executive === 1 })),
   places: (code && PLACE_COUNTRIES[code]?.[1]) || 0,
@@ -58,7 +68,7 @@ const STATES: Nation[] = NATIONAL_HEADS.map(([code, name, lat, lon, lines]) => (
 /** The territories GeoNames gives places for that are not states of the list: Puerto Rico, Greenland, Hong Kong. */
 const TERRITORIES: Nation[] = Object.entries(PLACE_COUNTRIES)
   .filter(([code]) => !STATES.some((s) => s.code === code))
-  .map(([code, [name, places]]) => ({ key: code, code, name, at: null, lines: [], places, recorded: REPRESENTATIVE_COUNTRIES[code]?.[1] ?? 0, confirmed: REPRESENTATIVE_COUNTRIES[code]?.[2] ?? 0 }));
+  .map(([code, [name, places, continent]]) => ({ key: code, code, name, continent, at: null, lines: [], places, recorded: REPRESENTATIVE_COUNTRIES[code]?.[1] ?? 0, confirmed: REPRESENTATIVE_COUNTRIES[code]?.[2] ?? 0 }));
 const NATIONS = [...STATES, ...TERRITORIES].sort((a, b) => a.name.localeCompare(b.name));
 const NATION: Record<string, Nation> = Object.fromEntries(NATIONS.map((n) => [n.key, n]));
 /** The line the list marks as holding executive power, or its first. */
@@ -75,6 +85,17 @@ const LAND = feature(worldTopo as unknown as Topology, (worldTopo as unknown as 
 /** How many rows of a list are drawn until it is searched, and when it is. */
 const SHOWN = 60;
 const FOUND = 200;
+
+/** The kinds of place a country's towns are narrowed by: GeoNames' own, grouped by the order of the division a place is the seat of. */
+const KIND_FILTERS: { id: string; label: string; has: (p: PlaceRow, verified: boolean) => boolean }[] = [
+  { id: "all", label: "Every kind of place", has: () => true },
+  { id: "capital", label: "The capital and seat of government", has: (p) => p[5] <= 1 },
+  { id: "first", label: "Seats of states and provinces", has: (p) => p[5] === 2 },
+  { id: "second", label: "Seats of counties and districts", has: (p) => p[5] === 3 },
+  { id: "local", label: "Seats of municipalities and below", has: (p) => p[5] >= 4 && p[5] <= 6 },
+  { id: "other", label: "Other towns and villages", has: (p) => p[5] >= 7 },
+  { id: "verified", label: "Places with a verified head", has: (_, verified) => verified },
+];
 
 const whole = (n: number) => n.toLocaleString("en-US");
 const flag = (code: string) => `https://flagcdn.com/w40/${code.toLowerCase()}.png`;
@@ -120,6 +141,10 @@ export default function RepresentativesExplorer() {
   const [search, setSearch] = useState("");
   const [country, setCountry] = useState<string | null>(null);
   const [picked, setPicked] = useState<Pick>(null);
+  /** What the lists are narrowed by: a continent for the countries; a first-order division and a kind of place for a country's towns. */
+  const [continent, setContinent] = useState<string | null>(null);
+  const [region, setRegion] = useState("");
+  const [kind, setKind] = useState("all");
   const canvas = useRef<HTMLCanvasElement>(null);
   /** Where each drawn town is on the map, for a click to find the nearest: x, y, and its row. */
   const drawn = useRef<[number, number, number][]>([]);
@@ -157,10 +182,23 @@ export default function RepresentativesExplorer() {
   // The lists. With a country picked: its subdivisions with a head, its towns and villages, and its other verified places.
   const subdivisions = heads.filter((h) => h.region && (!q || [h.place, h.head, h.office].some((s) => s.toLowerCase().includes(q))));
   const towns = useMemo(() => {
-    const all = file.data?.places ?? [];
-    if (!q) return all;
-    return all.filter((p) => p[0].toLowerCase().includes(q) || file.data!.regions[p[4]]?.toLowerCase().includes(q) || headOf.get(p[6])?.head.toLowerCase().includes(q));
-  }, [file.data, q, headOf]);
+    const f = file.data;
+    if (!f) return [];
+    const has = KIND_FILTERS.find((k) => k.id === kind)?.has ?? (() => true);
+    return f.places.filter(
+      (p) =>
+        (!region || f.regions[p[4]] === region) &&
+        has(p, headOf.has(p[6])) &&
+        (!q || p[0].toLowerCase().includes(q) || f.regions[p[4]]?.toLowerCase().includes(q) || f.districts[p[7]]?.toLowerCase().includes(q) || !!headOf.get(p[6])?.head.toLowerCase().includes(q)),
+    );
+  }, [file.data, q, headOf, region, kind]);
+  /** The country's first-order divisions, each with how many of its places lie in it. */
+  const regionsOf = useMemo(() => {
+    const n = new Map<string, number>();
+    for (const p of file.data?.places ?? []) n.set(file.data!.regions[p[4]], (n.get(file.data!.regions[p[4]]) ?? 0) + 1);
+    return [...n].filter(([name]) => name).sort((a, b) => a[0].localeCompare(b[0]));
+  }, [file.data]);
+  const narrowed = !!q || !!region || kind !== "all";
   const others = heads.filter((h) => !h.region && !matched.has(h.id) && (!q || [h.place, h.head, h.office].some((s) => s.toLowerCase().includes(q))));
   // With none picked, a search reads every country and every verified head.
   const foundNations = useMemo(() => (q && !c ? NATIONS.filter((n) => n.name.toLowerCase().includes(q) || n.lines.some((l) => l.said.toLowerCase().includes(q))) : []), [q, c]);
@@ -225,6 +263,8 @@ export default function RepresentativesExplorer() {
     setCountry(n.key);
     setPicked(null);
     setSearch("");
+    setRegion("");
+    setKind("all");
   };
   const pickHead = (h: Head) => {
     if (h.country !== c?.code && NATION[h.country]) setCountry(h.country);
@@ -334,6 +374,8 @@ export default function RepresentativesExplorer() {
                 setCountry(null);
                 setPicked(null);
                 setSearch("");
+                setRegion("");
+                setKind("all");
               }}
               className="px-4 pt-3 text-left text-[10px] font-semibold font-sans cursor-pointer hover:opacity-70 transition-opacity"
               style={{ color: ACCENT }}
@@ -343,12 +385,31 @@ export default function RepresentativesExplorer() {
           )}
           {!c && !q && (
             <>
+              <div className="flex flex-wrap gap-1.5 px-4 pt-3" role="group" aria-label="Continent">
+                {Object.entries(CONTINENTS)
+                  .filter(([code]) => NATIONS.some((n) => n.continent === code))
+                  .map(([code, name]) => {
+                    const on = continent === code;
+                    return (
+                      <button
+                        key={code}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => setContinent(on ? null : code)}
+                        className="text-[10px] font-sans font-semibold px-2 py-1 rounded-full cursor-pointer transition-opacity hover:opacity-80"
+                        style={{ background: on ? ACCENT + "22" : t.tile, border: `1px solid ${on ? ACCENT + "88" : t.gridLine}`, color: t.headText }}
+                      >
+                        {name} · {NATIONS.filter((n) => n.continent === code).length}
+                      </button>
+                    );
+                  })}
+              </div>
               <div className="px-4 pt-3 pb-1">
                 <Label t={t}>
-                  Every country and territory · {NATIONS.length} · the number is its towns and villages
+                  {continent ? `${CONTINENTS[continent]} · ${NATIONS.filter((n) => n.continent === continent).length} countries and territories` : `Every country and territory · ${NATIONS.length}`} · the number is its towns and villages
                 </Label>
               </div>
-              {NATIONS.map(nationRow)}
+              {NATIONS.filter((n) => !continent || n.continent === continent).map(nationRow)}
             </>
           )}
           {!c && q && (
@@ -380,15 +441,34 @@ export default function RepresentativesExplorer() {
               )}
               {subdivisions.slice(0, q ? FOUND : SHOWN).map(headRow)}
 
+              {file.data && (
+                <div className="flex flex-wrap gap-2 px-4 pt-3">
+                  <select value={region} onChange={(e) => setRegion(e.target.value)} aria-label={`A state or province of ${c.name}`} className="flex-1 min-w-0 text-[11px] font-sans rounded-lg px-2 py-1.5 cursor-pointer" style={{ background: t.tile, border: `1px solid ${region ? ACCENT + "88" : t.gridLine}`, color: t.headText }}>
+                    <option value="">Every state and province · {regionsOf.length}</option>
+                    {regionsOf.map(([name, n]) => (
+                      <option key={name} value={name}>
+                        {name} · {whole(n)}
+                      </option>
+                    ))}
+                  </select>
+                  <select value={kind} onChange={(e) => setKind(e.target.value)} aria-label="A kind of place" className="flex-1 min-w-0 text-[11px] font-sans rounded-lg px-2 py-1.5 cursor-pointer" style={{ background: t.tile, border: `1px solid ${kind !== "all" ? ACCENT + "88" : t.gridLine}`, color: t.headText }}>
+                    {KIND_FILTERS.map((k) => (
+                      <option key={k.id} value={k.id}>
+                        {k.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="px-4 pt-3 pb-1">
                 <Label t={t}>
-                  Towns and villages · {file.data ? whole(towns.length) : "…"}
-                  {file.data && towns.length > (q ? FOUND : SHOWN) ? ` · the ${q ? FOUND : SHOWN} largest shown${q ? "" : "; search to find the rest"}` : ""}
+                  Towns and villages{region ? ` of ${region}` : ""} · {file.data ? whole(towns.length) : "…"}
+                  {file.data && towns.length > (narrowed ? FOUND : SHOWN) ? ` · the ${narrowed ? FOUND : SHOWN} largest shown${narrowed ? "" : "; narrow or search to find the rest"}` : ""}
                 </Label>
               </div>
               {!c.code && <Empty t={t}>GeoNames files {c.name}'s places under another country's code, so none are listed here.</Empty>}
               {c.code && !file.data && <Empty t={t}>{file.failed ? `${c.name}'s towns and villages could not be loaded. Try again in a moment.` : `Loading ${c.name}'s ${whole(c.places)} towns and villages…`}</Empty>}
-              {towns.slice(0, q ? FOUND : SHOWN).map((p) => {
+              {towns.slice(0, narrowed ? FOUND : SHOWN).map((p) => {
                 const h = headOf.get(p[6]);
                 const on = !!picked && "geo" in picked && picked.geo === p[6];
                 return (
@@ -399,7 +479,7 @@ export default function RepresentativesExplorer() {
                         {p[0]}
                       </span>
                       <span className="block text-[10px] font-mono truncate" style={{ color: t.mutedText }}>
-                        {[file.data!.regions[p[4]], p[5] <= 6 ? PLACE_KINDS[p[5]] : ""].filter(Boolean).join(" · ") || "Populated place"}
+                        {[file.data!.districts[p[7]], file.data!.regions[p[4]], p[5] <= 6 ? PLACE_KINDS[p[5]] : ""].filter(Boolean).join(" · ") || "Populated place"}
                       </span>
                     </span>
                     <span className="shrink-0 text-right max-w-[44%]">
@@ -413,7 +493,7 @@ export default function RepresentativesExplorer() {
                   </Row>
                 );
               })}
-              {file.data && towns.length === 0 && subdivisions.length + others.length === 0 && <Empty t={t}>{q ? `Nothing in ${c.name} matches the search.` : `GeoNames lists no place of more than 500 people in ${c.name}.`}</Empty>}
+              {file.data && towns.length === 0 && subdivisions.length + others.length === 0 && <Empty t={t}>{narrowed ? `Nothing in ${c.name} matches.` : `GeoNames lists no place of more than 500 people in ${c.name}.`}</Empty>}
 
               {others.length > 0 && (
                 <div className="px-4 pt-3 pb-1">
@@ -480,7 +560,7 @@ export default function RepresentativesExplorer() {
                   {pickedTown ? pickedTown[0] : pickedHead!.place}
                 </p>
                 <p className="text-[11px] font-sans" style={{ color: t.mutedText }}>
-                  {[pickedTown && file.data ? file.data.regions[pickedTown[4]] : "", NATION[pickedHead?.country ?? c?.key ?? ""]?.name ?? c?.name].filter(Boolean).join(", ")}
+                  {[pickedTown && file.data ? file.data.districts[pickedTown[7]] : "", pickedTown && file.data ? file.data.regions[pickedTown[4]] : "", NATION[pickedHead?.country ?? c?.key ?? ""]?.name ?? c?.name].filter(Boolean).join(", ")}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -537,13 +617,57 @@ export default function RepresentativesExplorer() {
                   </div>
                 </Block>
               )}
+              {TERRITORY_HEADS[c.code] && (
+                <Block>
+                  <Label t={t}>{c.name} · the territory's head</Label>
+                  <div className="flex items-baseline justify-between gap-3 py-1.5" style={{ borderBottom: `1px solid ${t.gridLine}` }}>
+                    <span className="text-[11px] font-sans font-semibold min-w-0" style={{ color: t.headText }}>
+                      {TERRITORY_HEADS[c.code][0]} – {TERRITORY_HEADS[c.code][1]}
+                    </span>
+                    <span className="text-[9px] font-mono shrink-0 text-right" style={{ color: ACCENT }}>
+                      three records agree{TERRITORY_HEADS[c.code][2] ? ` · since ${TERRITORY_HEADS[c.code][2]}` : ""}
+                    </span>
+                  </div>
+                </Block>
+              )}
+              {(LEGISLATURE_PRESIDENTS[c.key] || REGIONAL_ASSEMBLIES[c.key]) && (
+                <Block>
+                  <Label t={t}>{c.name} · who presides over the legislature</Label>
+                  <div className="flex flex-col">
+                    {(LEGISLATURE_PRESIDENTS[c.key] ?? []).map(([assembly, title, name, party], i) => (
+                      <div key={i} className="flex items-baseline justify-between gap-3 py-1.5" style={{ borderBottom: `1px solid ${t.gridLine}` }}>
+                        <span className="text-[11px] font-sans font-semibold min-w-0" style={{ color: t.headText }}>
+                          {title} of the {assembly} – {name}
+                        </span>
+                        <span className="text-[9px] font-mono shrink-0 text-right" style={{ color: t.mutedText }}>
+                          {party}
+                        </span>
+                      </div>
+                    ))}
+                    {(REGIONAL_ASSEMBLIES[c.key] ?? []).map(([place, assembly, title, name], i) => (
+                      <div key={`r${i}`} className="flex items-baseline justify-between gap-3 py-1.5" style={{ borderBottom: `1px solid ${t.gridLine}` }}>
+                        <span className="text-[11px] font-sans min-w-0" style={{ color: t.headText }}>
+                          {place}: {title} of the {assembly} – {name}
+                        </span>
+                        <span className="text-[9px] font-mono shrink-0 text-right" style={{ color: t.mutedText }}>
+                          regional assembly
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
+                    From Wikipedia's list of current presidents of legislatures, each kept only where the assembly's own article names the same person; a chamber not here did not
+                    pass that check.
+                  </p>
+                </Block>
+              )}
               <Block>
                 <Label t={t}>{c.name} · towns, villages and their heads</Label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <Kpi t={t} label="Towns and villages" value={whole(c.places)} color={t.headText} sub="in GeoNames" />
                   <Kpi t={t} label="Heads verified" value={whole(c.confirmed)} color={ACCENT} sub="three records agree" />
                   <Kpi t={t} label="Heads recorded" value={whole(c.recorded)} color={t.headText} sub="by Wikidata, unchecked" />
-                  <Kpi t={t} label="Subdivisions" value={whole(heads.filter((p) => p.region).length)} color={REGION} sub="with a verified head" />
+                  <Kpi t={t} label="States and provinces" value={file.data ? whole(regionsOf.length) : "…"} color={REGION} sub={`${whole(heads.filter((p) => p.region).length)} with a verified head`} />
                 </div>
               </Block>
             </>
@@ -556,6 +680,36 @@ export default function RepresentativesExplorer() {
                 <Kpi t={t} label="Heads verified" value={whole(HEADS.length)} color={ACCENT} sub={`of ${whole(SRC.recorded)} recorded`} />
                 <Kpi t={t} label="Drawn here" value={whole(PLACES_WORLD.count)} color={t.headText} sub={`places of ${whole(PLACES_WORLD.atLeast)}+ people`} />
               </div>
+              <Label t={t}>What this covers, level by level</Label>
+              <div className="flex flex-col">
+                {(
+                  [
+                    ["Continents", `${Object.keys(CONTINENTS).filter((k) => NATIONS.some((n) => n.continent === k)).length}, to narrow the countries by`, "all"],
+                    ["Countries", `${STATES.length} states, each with its head of state and of government`, "all"],
+                    ["Territories", `${TERRITORIES.length} listed with their towns; a head for ${Object.keys(TERRITORY_HEADS).length}, where three records agree`, "part"],
+                    ["Legislatures", `${whole(SRC.chambersConfirmed)} presiding officers of ${whole(SRC.chambersRead)} listed, in ${Object.keys(LEGISLATURE_PRESIDENTS).length} countries and territories`, "part"],
+                    ["States and provinces", `${whole(PLACES_LEVELS.regions)} named; a head verified for ${whole(HEADS.filter((h) => h.region).length)}`, "part"],
+                    ["Counties and districts", `${whole(PLACES_LEVELS.districts)} named, each town listed under its own; no heads`, "names"],
+                    ["Towns and villages", `${whole(PLACES_TOTAL)} of more than 500 people or the seat of a division; a head verified for ${whole(HEADS.filter((h) => !h.region).length)}`, "part"],
+                    ["Hamlets under 500 people", "not in GeoNames' cut unless the seat of a division", "none"],
+                    ["Members of parliaments and councils", "no open register of them for the world; none shown", "none"],
+                  ] as const
+                ).map(([level, said, how]) => (
+                  <div key={level} className="flex items-baseline justify-between gap-3 py-1.5" style={{ borderBottom: `1px solid ${t.gridLine}` }}>
+                    <span className="text-[11px] font-sans font-semibold shrink-0" style={{ color: t.headText }}>
+                      {level}
+                    </span>
+                    <span className="text-[10px] font-sans text-right min-w-0" style={{ color: how === "none" ? t.mutedText : t.bodyText }}>
+                      {said}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
+                Not listed at all: Antarctica, Bouvet Island, Heard Island and the US Minor Outlying Islands, where GeoNames records no settlement. Abkhazia, Northern Cyprus, the
+                Sahrawi Republic, Somaliland, South Ossetia and Transnistria have their heads here, and their towns under Georgia, Cyprus, Western Sahara, Somalia and Moldova, where
+                GeoNames files them.
+              </p>
             </Block>
           )}
 
@@ -569,7 +723,7 @@ export default function RepresentativesExplorer() {
               ` Where the site holds its own list to check against, the rule named the same person for ${SRC.check.governors.agree} of ${SRC.check.governors.checked} US governors and ${SRC.check.mayors.agree} of ${SRC.check.mayors.checked} mayors of the largest US cities.`}{" "}
             Records can still be out of date together after an election: open the place's article before relying on a name. Read on {SRC.retrieved}.
           </p>
-          <SourceLink sources={[PLACES_SOURCE.geonames, SRC.list, SRC.wikidata, SRC.wikipedia]} />
+          <SourceLink sources={[PLACES_SOURCE.geonames, SRC.list, SRC.chambers, SRC.wikidata, SRC.wikipedia]} />
           <GoButton color={ACCENT} onClick={() => navigate("/dashboard/world-leaders")}>
             Each national leader's profile is on the World Leaders page
           </GoButton>

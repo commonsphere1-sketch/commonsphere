@@ -1,1 +1,1 @@
-{"regions":["Jan Mayen","Svalbard"],"places":[["Longyearbyen",78.223,15.647,2368,1,0,2729907],["Olonkinbyen",70.922,-8.719,14,0,2,7535941]]}
+{"regions":["Jan Mayen","Svalbard"],"districts":["Jan Mayen","Spitsbergen"],"places":[["Longyearbyen",78.223,15.647,2368,1,0,2729907,1],["Olonkinbyen",70.922,-8.719,14,0,2,7535941,0]]}

@@ -10,7 +10,10 @@
  *                           to the fourth order, in every country and
  *                           territory: its name, where it is, its population,
  *                           what kind of place GeoNames says it is, and the
- *                           first-order division it lies in. CC BY 4.0.
+ *                           first- and second-order divisions it lies in
+ *                           (its state or province, and its county or
+ *                           district), named from GeoNames' admin1 and admin2
+ *                           tables. CC BY 4.0.
  *
  * That is GeoNames' own cut: a hamlet of fewer than 500 people that is no
  * seat of anything is not in it, and the page says so. Parts of a place
@@ -75,23 +78,28 @@ const rows = got.get("cities500.txt").toString("utf8").split("\n").filter(Boolea
 if (rows.length < 150000) throw new Error(`only ${rows.length} places were read from cities500`);
 // "US.CA <tab> California <tab> ..." - a first-order division's name, by country and code.
 const regionName = new Map(fs.readFileSync(fetched("admin1CodesASCII.txt"), "utf8").split("\n").filter(Boolean).map((l) => l.split("\t")).map((r) => [r[0], r[1]]));
-// "AD <tab> AND <tab> 020 <tab> AN <tab> Andorra <tab> ..." - a country's or territory's name, by code.
+// "US.CA.037 <tab> Los Angeles County <tab> ..." - a second-order division's name, by country and codes.
+const districtName = new Map(fs.readFileSync(fetched("admin2Codes.txt"), "utf8").split("\n").filter(Boolean).map((l) => l.split("\t")).map((r) => [r[0], r[1]]));
+const CONTINENTS = { AF: "Africa", AS: "Asia", EU: "Europe", NA: "North America", OC: "Oceania", SA: "South America", AN: "Antarctica" };
+// "AD <tab> AND <tab> 020 <tab> AN <tab> Andorra <tab> ..." - a country's or territory's name and continent, by code.
+const continentOf = new Map(fs.readFileSync(fetched("countryInfo.txt"), "utf8").split("\n").filter((l) => l && !l.startsWith("#")).map((l) => l.split("\t")).map((r) => [r[0], r[8]]));
 const countryName = new Map(fs.readFileSync(fetched("countryInfo.txt"), "utf8").split("\n").filter((l) => l && !l.startsWith("#")).map((l) => l.split("\t")).map((r) => [r[0], r[4]]));
 
 const byCountry = new Map();
 let left = 0;
 let newest = "";
 for (const r of rows) {
-  const [id, name, , , lat, lon, cls, code, cc, , admin1, , , , population, , , , modified] = r;
+  const [id, name, , , lat, lon, cls, code, cc, , admin1, admin2, , , population, , , , modified] = r;
   if (cls !== "P" || !CODES.includes(code) || !/^[A-Z]{2}$/.test(cc)) { left++; continue; }
   if (!Number.isFinite(+lat) || !Number.isFinite(+lon) || !/^\d+$/.test(id)) throw new Error(`cities500: a row was not read (${r.slice(0, 9).join(" | ")})`);
   if (modified > newest) newest = modified;
-  (byCountry.get(cc) ?? byCountry.set(cc, []).get(cc)).push({ id: +id, name, lat: +(+lat).toFixed(3), lon: +(+lon).toFixed(3), pop: +population || 0, kind: CODES.indexOf(code), region: regionName.get(`${cc}.${admin1}`) ?? "" });
+  (byCountry.get(cc) ?? byCountry.set(cc, []).get(cc)).push({ id: +id, name, lat: +(+lat).toFixed(3), lon: +(+lon).toFixed(3), pop: +population || 0, kind: CODES.indexOf(code), region: regionName.get(`${cc}.${admin1}`) ?? "", district: (admin2 && districtName.get(`${cc}.${admin1}.${admin2}`)) || "" });
 }
 
 fs.rmSync(DIR, { recursive: true, force: true });
 fs.mkdirSync(DIR, { recursive: true });
 const counts = {};
+const levels = { regions: 0, districts: 0 };
 const world = [];
 let total = 0;
 let bytes = 0;
@@ -100,7 +108,12 @@ for (const [cc, list] of [...byCountry].sort((a, b) => a[0].localeCompare(b[0]))
   // Largest first; the seats and capitals of no recorded population after those with one, by name.
   list.sort((a, b) => b.pop - a.pop || a.kind - b.kind || a.name.localeCompare(b.name));
   const regions = [...new Set(list.map((p) => p.region))].sort();
-  const body = JSON.stringify({ regions, places: list.map((p) => [p.name, p.lat, p.lon, p.pop, regions.indexOf(p.region), p.kind, p.id]) });
+  const districts = [...new Set(list.map((p) => p.district))].sort();
+  const districtAt = new Map(districts.map((d, i) => [d, i]));
+  const body = JSON.stringify({ regions, districts, places: list.map((p) => [p.name, p.lat, p.lon, p.pop, regions.indexOf(p.region), p.kind, p.id, districtAt.get(p.district)]) });
+  levels.regions += regions.filter(Boolean).length;
+  levels.districts += districts.filter(Boolean).length;
+  if (!CONTINENTS[continentOf.get(cc)]) throw new Error(`${cc}: GeoNames gives no continent`);
   fs.writeFileSync(path.join(DIR, `${cc}.json`), body);
   bytes += body.length;
   counts[cc] = list.length;
@@ -126,7 +139,8 @@ fs.writeFileSync(
  * the seat of nothing is not in it. Each country's places are in
  * /places/<code>.json - { regions, places: [name, latitude, longitude,
  * population or 0, index of its first-order division in regions, index of its
- * kind in PLACE_KINDS, GeoNames id] }, largest first - and /places/world.json
+ * kind in PLACE_KINDS, GeoNames id, index of its second-order division in
+ * districts] }, largest first - and /places/world.json
  * holds the positions (longitude and latitude, in hundredths of a degree) of
  * the ${whole(world.length / 2)} places of ${whole(WORLD_MIN)} people or more.
  *
@@ -143,16 +157,23 @@ export const PLACES_SOURCE = {
 /** What GeoNames says a place is, by the index its row carries. */
 export const PLACE_KINDS: string[] = ${q(CODES.map((c) => KINDS[c]))};
 
-/** A row of a country's file: [name, latitude, longitude, population or 0, index into the file's regions, index into PLACE_KINDS, GeoNames id]. */
-export type PlaceRow = [name: string, lat: number, lon: number, population: number, region: number, kind: number, id: number];
-export type PlacesFile = { regions: string[]; places: PlaceRow[] };
+/** A row of a country's file: [name, latitude, longitude, population or 0, index into the file's regions, index into PLACE_KINDS, GeoNames id, index into the file's districts]. */
+export type PlaceRow = [name: string, lat: number, lon: number, population: number, region: number, kind: number, id: number, district: number];
+/** A country's places, with the names of its first-order divisions (states, provinces) and second-order ones (counties, districts) the rows point into; "" is "none given". */
+export type PlacesFile = { regions: string[]; districts: string[]; places: PlaceRow[] };
+
+/** The first- and second-order divisions the places lie in, counted over every country. */
+export const PLACES_LEVELS = ${q(levels)};
+
+/** The continents GeoNames files the countries under, by its code. */
+export const CONTINENTS: Record<string, string> = ${q(CONTINENTS)};
 
 /** Every place there is a row for, and those of ${whole(WORLD_MIN)} people or more that world.json draws. */
 export const PLACES_TOTAL = ${total};
 export const PLACES_WORLD = { atLeast: ${WORLD_MIN}, count: ${world.length / 2} };
 
-/** [the country's or territory's name as GeoNames gives it, how many of its places there are], by ISO code. */
-export const PLACE_COUNTRIES: Record<string, [name: string, places: number]> = ${q(Object.fromEntries(Object.keys(counts).map((cc) => [cc, [countryName.get(cc), counts[cc]]])))};
+/** [the country's or territory's name as GeoNames gives it, how many of its places there are, its continent's code], by ISO code. */
+export const PLACE_COUNTRIES: Record<string, [name: string, places: number, continent: string]> = ${q(Object.fromEntries(Object.keys(counts).map((cc) => [cc, [countryName.get(cc), counts[cc], continentOf.get(cc)]])))};
 `,
 );
 function whole(n) {
