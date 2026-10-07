@@ -18,6 +18,8 @@
 import React, { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CITY_PLACES } from "../data/cityPlaces";
+import { ECONOMY_OF } from "../data/placeIndex";
+import { ECONOMY_INDICATORS, ECONOMY_INDICATORS_SOURCE } from "../data/economyIndicators";
 import {
   MapPin,
   ListBullets,
@@ -141,14 +143,16 @@ type Measure = {
   bar: boolean;
   /** The end of the bar's scale where it has a natural one: 100 for a share. Otherwise the largest city's figure. */
   max?: number;
+  /** The colour of its bar: one to a measure, so the tiles can be told apart at a glance. */
+  color: string;
 };
 /** The measures the cities are sorted, ranked and set side by side on. */
 const MEASURES: Measure[] = [
-  { key: "population", label: "Population", what: `people, ${BASE}`, value: (r) => r.now.population, fmt: fmtPeople, first: "largest", bar: true },
-  { key: "density", label: "Density", what: `people per km² of land, ${BASE}`, value: (r) => r.now.density, fmt: perKm2, first: "densest", bar: true },
-  { key: "builtPer", label: "Built-up area per person", what: `m², ${BASE}`, value: (r) => r.now.builtPer, fmt: m2, first: "most built-up area a person", bar: true },
-  { key: "share", label: "Share of its country's city population", what: `per cent, ${BASE}`, value: (r) => r.now.share, fmt: share, first: "largest share", bar: true, max: 100 },
-  { key: "growth", label: `Population change since ${SINCE}`, what: `per cent, ${SINCE} to ${BASE}`, value: (r) => r.since?.pct ?? null, fmt: signed, first: "fastest growing", bar: false },
+  { key: "population", label: "Population", what: `people, ${BASE}`, value: (r) => r.now.population, fmt: fmtPeople, first: "largest", bar: true, color: "#6366f1" },
+  { key: "density", label: "Density", what: `people per km² of land, ${BASE}`, value: (r) => r.now.density, fmt: perKm2, first: "densest", bar: true, color: "#f97316" },
+  { key: "builtPer", label: "Built-up area per person", what: `m², ${BASE}`, value: (r) => r.now.builtPer, fmt: m2, first: "most built-up area a person", bar: true, color: "#64748b" },
+  { key: "share", label: "Share of its country's city population", what: `per cent, ${BASE}`, value: (r) => r.now.share, fmt: share, first: "largest share", bar: true, max: 100, color: "#14b8a6" },
+  { key: "growth", label: `Population change since ${SINCE}`, what: `per cent, ${SINCE} to ${BASE}`, value: (r) => r.since?.pct ?? null, fmt: signed, first: "fastest growing", bar: false, color: "#22c55e" },
 ];
 const measureOf = (key: MeasureKey) => MEASURES.find((m) => m.key === key)!;
 
@@ -456,7 +460,7 @@ function CityStandings({ row }: { row: Row }) {
                   role="img"
                   aria-label={`${row.city.name}: ${m.fmt(s.v)}, ${nth(s.rank)} of ${s.of} cities for ${m.label.toLowerCase()}, on a scale from zero to ${m.fmt(top)}.`}
                 >
-                  <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: at(s.v), minWidth: 2, background: ACCENT }} />
+                  <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: at(s.v), minWidth: 2, background: m.color }} />
                   <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground" style={{ left: at(s.median) }} title={`The middle of the ${s.of}: ${m.fmt(s.median)}`} />
                 </div>
                 <div className="flex justify-between text-[10px] font-mono text-muted-foreground mt-1">
@@ -503,6 +507,8 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
 
   const first = cityFirstYear(city.id) ?? SRC.firstYear;
   const then = cityYear(city.id, first);
+  /** The economy of the country the city is in: what stands in for a city's own, which nobody publishes. */
+  const eco = ECONOMY_OF[city.countryCode] ? ECONOMY_INDICATORS[ECONOMY_OF[city.countryCode]] : undefined;
   const end = cityYear(city.id, LAST);
 
   return (
@@ -637,24 +643,43 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                   </div>
 
                   <WindowSection
-                    title="👥 People"
+                    title="👥 People & place"
                     note={`A city, to the UN, is contiguous 1 km² cells of at least 1,500 people each, holding 50,000 people or more - one rule for every city, whatever its boundary. That is why its figure and the city's own differ.`}
                   >
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       <CityTile label="Population" value={whole(row.now.population)} sub={`UN estimate, ${BASE}`} />
                       {row.f.admin && <CityTile label="Within its own boundary" value={whole(row.f.admin.population)} sub={`Wikidata, ${row.f.admin.year}`} />}
                       <CityTile label="Among the world's cities" value={nth(row.f.rank)} sub={`of ${SRC.cities.toLocaleString("en-US")} by population, ${BASE}`} />
                       <CityTile label="Share of the country's city population" value={share(row.now.share)} sub={`of the people in ${city.country}'s cities, ${BASE}`} />
-                    </div>
-                  </WindowSection>
-
-                  <WindowSection title="🌍 Identity">
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <CityTile label={`Projected for ${LAST}`} value={end ? fmtPeople(end.population) : "Not published"} sub={end ? `people, UN projection` : undefined} />
                       <CityTile label="Country" value={city.country} sub={city.region} />
                       <CityTile label="Capital" value={row.f.capital ? "Yes" : "No"} sub={row.f.capital ? `the capital of ${city.country}, as the UN marks it` : "not a national capital, as the UN marks it"} />
                       {city.languages?.length ? <CityTile label="Languages" value={city.languages.slice(0, 2).join(", ")} sub="the site's own note" /> : null}
-                      <CityTile label={`Projected for ${LAST}`} value={end ? fmtPeople(end.population) : "Not published"} sub={end ? `people, UN projection for ${LAST}` : undefined} />
+                      <CityTile label="Land area" value={km2(row.now.area)} sub={`as the UN draws the city, ${BASE}`} />
                     </div>
+                  </WindowSection>
+
+                  {/* Economy & institutions, as the window had it. The figures it showed for the city were typed in; no body
+                      publishes a city's economy on one footing, so these are its country's, and say so. */}
+                  {eco && (
+                    <WindowSection title="💰 Economy & institutions" note={`These are ${city.country}'s figures, not ${city.name}'s: no body publishes them city by city. The universities and colleges are below.`}>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {eco.gdpPerCapita && <CityTile label="GDP per person" value={`$${eco.gdpPerCapita.v.toLocaleString("en-US")}`} sub={`${city.country}, current US$, ${eco.gdpPerCapita.y}`} />}
+                        {eco.gdpGrowthRate && <CityTile label="Real GDP growth" value={`${eco.gdpGrowthRate.v > 0 ? "+" : ""}${eco.gdpGrowthRate.v}%`} sub={`${city.country}, ${eco.gdpGrowthRate.y}`} />}
+                        {eco.unemploymentRate && <CityTile label="Unemployment" value={`${eco.unemploymentRate.v}%`} sub={`${city.country}, of the labour force, ${eco.unemploymentRate.y}`} />}
+                        {eco.inflationRate && <CityTile label="Inflation" value={`${eco.inflationRate.v}%`} sub={`${city.country}, consumer prices, ${eco.inflationRate.y}`} />}
+                        {eco.debtToGDPRatio && <CityTile label="Government debt" value={`${eco.debtToGDPRatio.v}%`} sub={`${city.country}, of GDP, ${eco.debtToGDPRatio.y}`} />}
+                        {eco.gdpTrillions && <CityTile label="GDP" value={`$${eco.gdpTrillions.v >= 1 ? `${eco.gdpTrillions.v}T` : `${Math.round(eco.gdpTrillions.v * 1000)}B`}`} sub={`${city.country}, current US$, ${eco.gdpTrillions.y}`} />}
+                      </div>
+                      <SourceLink sources={[ECONOMY_INDICATORS_SOURCE.worldBank, ECONOMY_INDICATORS_SOURCE.imf]} className="mt-2" />
+                    </WindowSection>
+                  )}
+
+                  <WindowSection
+                    title="📊 Where it stands"
+                    note={`${city.name} among the ${ROWS.length} cities on this page. Each bar runs from zero to the largest city's figure, or to 100 for a share; the notch is the middle of them.`}
+                  >
+                    <CityStandings row={row} />
                   </WindowSection>
 
                   <WindowSection
@@ -803,13 +828,6 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                         label={`${city.name}'s share of the people living in ${city.country}'s cities, ${first} to ${LAST}.`}
                       />
                     </div>
-                  </WindowSection>
-
-                  <WindowSection
-                    title="📊 Where it stands"
-                    note={`${city.name} among the ${ROWS.length} cities on this page. Each bar runs from zero to the largest city's figure, or to 100 for a share; the notch is the middle of them.`}
-                  >
-                    <CityStandings row={row} />
                   </WindowSection>
 
                 <SourceLink sources={SRC_CITY} className="mb-1" />

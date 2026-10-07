@@ -33,7 +33,8 @@ import { COUNTRY_CRIME, CRIME_SOURCE } from "../data/countryCrime";
 import { PUBLIC_SECURITY, PUBLIC_SECURITY_SOURCES } from "../data/publicSecurity";
 import { ECONOMY_INDICATORS, ECONOMY_INDICATORS_SOURCE } from "../data/economyIndicators";
 import { AIR_QUALITY, AIR_QUALITY_SOURCE } from "../data/airQuality";
-import { ACCENT, ChartTitle, PartsDonut, worldFor } from "./ModalCharts";
+import { ChartTitle, PartsDonut, worldFor } from "./ModalCharts";
+import { semanticColor } from "../lib/semanticColors";
 import { SourceLink } from "./SourceLink";
 
 /** Where a bar ends and where the world's tick sits, each as a percentage of the measure's scale. */
@@ -68,7 +69,7 @@ function barOf(v: number, w: number | null, scale: Scale | undefined): Bar | und
 }
 
 /** A figure, what it is counted in and for when, the world's beside it, and its bar where it has a scale. The name may run to two lines; nothing shares a line with it but its figure. */
-function QualityRow({ r }: { r: Row }) {
+function QualityRow({ r, color }: { r: Row; /** The panel's colour: its bars are in it unless a row names a thing with a colour of its own. */ color: string }) {
   return (
     <div className="py-1.5 border-b border-border last:border-b-0">
       <div className="flex items-baseline justify-between gap-3">
@@ -82,7 +83,7 @@ function QualityRow({ r }: { r: Row }) {
           aria-label={`${r.label}: ${r.value}${r.world ? `, against ${r.world} for the world` : ""}, on a scale of ${r.bar.scale}.`}
           title={`On a scale of ${r.bar.scale}${r.world ? ` · the tick is the world, ${r.world}` : ""}`}
         >
-          <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${r.bar.at}%`, minWidth: r.bar.at > 0 ? 2 : 0, background: ACCENT }} />
+          <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${r.bar.at}%`, minWidth: r.bar.at > 0 ? 2 : 0, background: semanticColor(r.label) ?? color }} />
           {r.bar.world != null && <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground" style={{ left: `${r.bar.world}%` }} />}
         </span>
       )}
@@ -129,14 +130,17 @@ export default function CountryQuality({ code, country, place }: { /** The count
   const signedPct = (v: number) => `${v > 0 ? "+" : ""}${v}%`;
   const score = { from: 0, to: 100 };
 
-  const groups: { title: string; icon: ReactNode; rows: Row[]; extra?: ReactNode }[] = [
+  // Each panel has a colour that goes with its subject - water blue, energy yellow, safety red - for its mark and its bars.
+  const groups: { title: string; icon: ReactNode; color: string; rows: Row[]; extra?: ReactNode }[] = [
     {
       title: "Water",
+      color: "#0ea5e9",
       icon: <Drop size={13} weight="fill" />,
       rows: [...panel("Safely managed drinking water", p.safeWater, pct, "of people", "water", "share"), ...panel("Safely managed sanitation", p.safeSanitation, pct, "of people", "sanitation", "share")],
     },
     {
       title: "Energy",
+      color: "#eab308",
       icon: <Lightning size={13} weight="fill" />,
       rows: [
         ...panel("People with electricity", p.electricityAccess, pct, "of people", "electricity", "share"),
@@ -158,6 +162,7 @@ export default function CountryQuality({ code, country, place }: { /** The count
     },
     {
       title: "Transportation",
+      color: "#64748b",
       icon: <Train size={13} weight="fill" />,
       rows: [
         ...panel("Railway lines", p.railKm, (v) => `${n(v)} km`, "route length"),
@@ -167,6 +172,7 @@ export default function CountryQuality({ code, country, place }: { /** The count
     },
     {
       title: "Crime & safety",
+      color: "#dc2626",
       icon: <ShieldCheck size={13} weight="fill" />,
       rows: [
         ...(crime?.homicide ? [row("Intentional homicides", crime.homicide.v, crime.homicide.y, one, "per 100,000 people", "homicide", "world")] : []),
@@ -177,6 +183,7 @@ export default function CountryQuality({ code, country, place }: { /** The count
     },
     {
       title: "Health",
+      color: "#ec4899",
       icon: <FirstAid size={13} weight="fill" />,
       rows: [
         ...panel("Life expectancy", p.lifeExpectancy, (v) => `${one(v)} yrs`, "at birth", "lifeExpectancy", "world"),
@@ -187,6 +194,7 @@ export default function CountryQuality({ code, country, place }: { /** The count
     },
     {
       title: "Education",
+      color: "#8b5cf6",
       icon: <BookOpen size={13} weight="fill" />,
       rows: [
         ...panel("Adults who can read", p.literacy, pct, "of people 15 and over", "literacy", "share"),
@@ -197,11 +205,13 @@ export default function CountryQuality({ code, country, place }: { /** The count
     },
     {
       title: "Air",
+      color: "#14b8a6",
       icon: <Wind size={13} weight="fill" />,
       rows: air ? [row("Fine-particle pollution people breathe", air.pm25, air.year, (v) => `${one(v)} µg/m³`, "PM2.5, mean annual exposure", "pm25", "world")] : [],
     },
     {
       title: "Business",
+      color: "#f59e0b",
       icon: <Storefront size={13} weight="fill" />,
       rows: [
         ...panel("Corruption Perceptions Index", p.cpiScore, (v) => `${v}`, "0 to 100, higher is cleaner", undefined, score),
@@ -213,6 +223,7 @@ export default function CountryQuality({ code, country, place }: { /** The count
     },
     {
       title: "Economy",
+      color: "#10b981",
       icon: <CurrencyDollar size={13} weight="fill" />,
       rows: [
         ...(eco?.gdpPerCapita ? [{ label: "GDP per person", value: `$${n(eco.gdpPerCapita.v)}`, sub: `current US dollars · ${eco.gdpPerCapita.y}` }] : []),
@@ -241,14 +252,16 @@ export default function CountryQuality({ code, country, place }: { /** The count
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {groups.map((g) => (
-          <div key={g.title} className="modal-tile rounded-lg p-4 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0">{g.icon}</div>
-              <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">{g.title}</h3>
+          <div key={g.title} className="modal-tile rounded-xl p-4 min-w-0">
+            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/40">
+              <span className="shrink-0" style={{ color: g.color }}>
+                {g.icon}
+              </span>
+              <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-wide">{g.title}</h3>
             </div>
             <div className="flex flex-col">
               {g.rows.map((r) => (
-                <QualityRow key={r.label} r={r} />
+                <QualityRow key={r.label} r={r} color={g.color} />
               ))}
             </div>
             {g.extra}
