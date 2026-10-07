@@ -43,6 +43,7 @@ import { NEWS_SOURCES } from "../data/newsSources";
 import { has } from "../lib/na";
 import { usdFromBillions } from "../lib/money";
 import { SourceLink } from "./SourceLink";
+import { semanticColor } from "../lib/semanticColors";
 import { ago, outletList, placeName, type Headline } from "./HeadlinesBanner";
 import { Kpi, Label, type Tokens } from "./DataExplorer";
 
@@ -138,7 +139,7 @@ function Bars({ t, rows }: { t: Tokens; rows: Bar[] }) {
             {r.label}
           </span>
           <span className="w-20 h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }}>
-            <span className="block h-full rounded-full" style={{ width: `${top > 0 ? (100 * r.value) / top : 0}%`, background: accent, opacity: r.strong ? 1 : 0.55 }} />
+            <span className="block h-full rounded-full" style={{ width: `${top > 0 ? (100 * r.value) / top : 0}%`, background: semanticColor(r.label) ?? accent, opacity: r.strong || semanticColor(r.label) ? 1 : 0.55 }} />
           </span>
           <span className={`text-[10px] font-mono w-11 text-right shrink-0 ${r.strong ? "font-bold" : ""}`} style={{ color: r.strong ? t.headText : t.mutedText }}>
             {r.text}

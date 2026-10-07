@@ -25,9 +25,14 @@
  * The colours of parts are the fixed order the palette validator passed on
  * the light and the dark surface (the one the Worldview and Trends charts
  * use); ordered parts - ages - take one hue, light to dark.
+ *
+ * A row or a part that names a thing with a colour of its own - coal, the
+ * sun, a forest, a party - is drawn in that colour wherever it appears
+ * (lib/semanticColors); the chart's own colours are for what has none.
  */
 import { useState, type ReactNode } from "react";
 import { WORLD } from "../data/worldview";
+import { semanticColor } from "../lib/semanticColors";
 
 /** The colours of the parts of a whole, in the order they are assigned. */
 export const PART_COLORS = ["#d97706", "#2563eb", "#0d9488", "#c026d3", "#65a30d", "#7c3aed", "#b45309"];
@@ -109,7 +114,7 @@ export function MeasureBars({ rows, max, color = ACCENT, label }: { rows: Measur
           </span>
           {r.value != null && (
             <span className="relative block h-1.5 rounded-full bg-muted mt-1" aria-hidden>
-              <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: at(r.value), minWidth: r.value > 0 ? 2 : 0, background: color }} />
+              <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: at(r.value), minWidth: r.value > 0 ? 2 : 0, background: semanticColor(r.label) ?? color }} />
               {r.world && <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground" style={{ left: at(r.world.value) }} title={`World: ${r.world.text}`} />}
             </span>
           )}
@@ -138,7 +143,7 @@ export interface Part {
  */
 export function PartsBar({ parts, colors = PART_COLORS, label, columns = 2 }: { parts: Part[]; colors?: string[]; /** What the bar shows, for a screen reader. */ label: string; columns?: 1 | 2 | 3 }) {
   const shown = parts.filter((p) => p.value > 0);
-  const fill = (p: Part, i: number) => p.color ?? colors[i % colors.length];
+  const fill = (p: Part, i: number) => p.color ?? semanticColor(p.label) ?? colors[i % colors.length];
   return (
     <div>
       <div className="flex h-2.5 gap-0.5" role="img" aria-label={`${label}: ${shown.map((p) => `${p.label} ${p.text}`).join(", ")}.`}>
@@ -177,7 +182,7 @@ export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part
   const shown = parts.filter((p) => p.value > 0);
   const total = shown.reduce((a, p) => a + p.value, 0);
   if (!shown.length || total <= 0) return null;
-  const fill = (p: Part, i: number) => p.color ?? colors[i % colors.length];
+  const fill = (p: Part, i: number) => p.color ?? semanticColor(p.label) ?? colors[i % colors.length];
   const R = 40;
   const C = 2 * Math.PI * R;
   const gap = shown.length > 1 ? 2.5 : 0;
