@@ -26,6 +26,13 @@
  *
  * A growth rate, a share and a multiple are worked out here from two
  * published figures of one series; the cards say so.
+ *
+ * Under each figure are two lines, as asked: why it matters and what it is
+ * used for. They are the site's own explanation of what the series measures
+ * (MEANING), carry no figure of their own, and the cards say whose words
+ * they are. An alliance's two lines are its entry's own "what" and the first
+ * of its "impact", from alliances.ts. An industry's bar is in the colour of
+ * its category - the colours the Sector Outlook card beside it uses.
  */
 import { useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
@@ -119,7 +126,136 @@ const Track = ({ t, children }: { t: Tokens; children: ReactNode }) => (
   </div>
 );
 
+/** Why a figure matters and what it is used for: the two lines under it, their lead-ins in the row's colour. */
+const Meaning = ({ t, color, why, use }: { t: Tokens; color: string; why: string; use?: string }) => (
+  <p className="text-[10px] font-sans leading-snug mt-1" style={{ color: t.bodyText }}>
+    <span className="font-semibold" style={{ color }}>
+      Why it matters
+    </span>{" "}
+    {why}
+    {use && (
+      <>
+        {" "}
+        <span className="font-semibold" style={{ color }}>
+          In practice
+        </span>{" "}
+        {use}
+      </>
+    )}
+  </p>
+);
+
+/**
+ * The site's explanation of each figure in these cards, by the name it is listed under: why it matters, and what it is
+ * used for. Written to what each series measures; no figure is given here.
+ */
+const MEANING: Record<string, { why: string; use: string }> = {
+  // Up-and-coming industries
+  "Generative AI": {
+    why: "Private money going into firms whose systems write text, code, images and video: how much investors are staking on that one branch of AI.",
+    use: "A bet, not a result. It shows where products and hiring are likely to follow, and how exposed investors are if the returns do not come.",
+  },
+  "Artificial intelligence": {
+    why: "All private investment in AI companies, generative and otherwise: the capital behind the field as a whole.",
+    use: "Set it against the generative figure to see how much of AI's funding is that one branch, and against research output to see whether money and results move together.",
+  },
+  "Industrial robots": {
+    why: "The robots at work in the world's factories: how automated production already is, not only how fast it is changing.",
+    use: "A guide to which industries can raise output without more workers, and to where factory jobs are most likely to change.",
+  },
+  "AI research": {
+    why: "Scholarly papers on AI published in a year: the volume of research feeding the field.",
+    use: "A count of papers, not of their worth. It shows how much expertise is being trained and where the next techniques are likely to come from.",
+  },
+  "Large AI systems": {
+    why: "AI systems trained with very large amounts of computation: the frontier models, which need the most chips, power and money.",
+    use: "It tracks how many such systems exist: a guide to demand for advanced chips and electricity, and to how few organisations can build at that scale.",
+  },
+  "Driverless taxis": {
+    why: "The distance paying passengers rode in driverless taxis in California, where operators must report it: a measured figure for a service mostly known from announcements.",
+    use: "One state, not the world. It shows whether the service is growing beyond trials, which matters to city transport, insurers and people who drive for a living.",
+  },
+  "Data centres": {
+    why: "The share of the world's electricity that data centres use: the physical footprint of the internet and of AI.",
+    use: "Utilities and grid planners use it to plan new supply. Set it beside solar and wind to see whether clean power is keeping pace with the demand.",
+  },
+  "Solar power": {
+    why: "Electricity generated from sunlight worldwide. The fall in the price of panels, in the R&D card below, is what made building it at this scale possible.",
+    use: "It shows how quickly grids are adding daytime power, which sets the need for storage and for new transmission lines.",
+  },
+  "Wind power": {
+    why: "Electricity generated from wind worldwide, on land and at sea.",
+    use: "Planners read it with solar, since the two produce at different times, to judge how much of demand renewables can cover.",
+  },
+  // Funding raised
+  "Investment by place": {
+    why: "Where AI companies raise their money shows where they are being built, and which economies will own the technology.",
+    use: "Compare a place's share with its share of the world economy to see who is ahead of their weight. For a founder it shows where capital is deepest.",
+  },
+  "Private investment": { why: "Money put into privately held AI companies by venture funds and other investors.", use: "Shows how much new capital young companies can raise." },
+  "Mergers and acquisitions": { why: "AI companies bought outright or merged with another.", use: "Shows established firms buying capability instead of building it." },
+  "Public offerings": { why: "Shares in AI companies sold on a stock market.", use: "Shows whether early investors can sell, which is what keeps private funding flowing." },
+  "Minority stakes": { why: "Part of an AI company bought without taking control of it.", use: "A common way for a large firm to back a partner or a supplier." },
+  // Research and development: what it has delivered
+  "Sequencing a human genome": {
+    why: "What it costs to read one person's full genetic code.",
+    use: "As the price fell, sequencing went from a research project to a routine test: used to diagnose inherited disease, choose cancer treatment and trace outbreaks.",
+  },
+  "Transistors on a microchip": {
+    why: "How many switches fit on a single chip: the measure behind the growth in computing power known as Moore's law.",
+    use: "More transistors mean faster, cheaper computing in everything from phones to data centres.",
+  },
+  "The fastest supercomputer": {
+    why: "The speed of the most powerful computer in the world.",
+    use: "Machines at this scale run weather and climate forecasts, simulate drugs and materials, and train the largest AI systems.",
+  },
+  "Disk storage": {
+    why: "What it costs to keep a terabyte of data.",
+    use: "Cheap storage is why photographs, video, medical scans and sensor records can be kept instead of discarded, and why online services can hold them.",
+  },
+  "Solar modules": {
+    why: "The price of the panels that turn sunlight into electricity.",
+    use: "The fall in price is what lets solar compete with coal and gas on cost. It also tells a buyer roughly what the panels of an installation should cost.",
+  },
+  "Lithium-ion battery cells": {
+    why: "The price of the cells inside electric cars, phones and grid batteries.",
+    use: "The battery is a large part of what an electric car costs, so the price of cells sets how soon electric vehicles and grid storage become affordable.",
+  },
+  // Research and development: what the world puts in
+  "Research and development": {
+    why: "The share of the world's output spent on research and development.",
+    use: "The usual yardstick for how much an economy invests in new knowledge; governments set targets against it.",
+  },
+  Researchers: {
+    why: "The people who do the research: money buys little without them.",
+    use: "A guide to where skilled work is concentrated, and to whether a country is training enough scientists and engineers.",
+  },
+  "Scientific articles": {
+    why: "Papers published in scientific and technical journals in a year.",
+    use: "The most direct count of what research produces. Read it with spending, remembering that it counts papers, not their worth.",
+  },
+  "Patent applications": {
+    why: "Applications filed to protect inventions.",
+    use: "Shows where research is being turned into things to sell; companies read it to see where their competitors are heading.",
+  },
+};
+
 // ── Up-and-coming industries ────────────────────────────────────────────────
+
+/** The category each industry's bar is coloured by. The colours are the Sector Outlook card's for AI, robots, renewables and chips. */
+const CATEGORY_COLOR = { AI: "#a855f7", Robotics: "#f97316", Transport: "#0ea5e9", Computing: "#6366f1", Energy: "#10b981" } as const;
+type Category = keyof typeof CATEGORY_COLOR;
+const CATEGORY_OF: Record<string, Category> = {
+  "Generative AI": "AI",
+  "Artificial intelligence": "AI",
+  "AI research": "AI",
+  "Large AI systems": "AI",
+  "Industrial robots": "Robotics",
+  "Driverless taxis": "Transport",
+  "Data centres": "Computing",
+  "Solar power": "Energy",
+  "Wind power": "Energy",
+};
 
 type Candidate = { name: string; what: string; series: Point[]; print: (v: number) => string; source: Source };
 const world = (id: string, name: string, what: string, print: (v: number) => string): Candidate[] => {
@@ -155,33 +291,55 @@ function fastestGrowing() {
 function Industries({ t, accent }: { t: Tokens; accent: string }) {
   const rows = useMemo(fastestGrowing, []);
   const top = Math.max(...rows.map((r) => r.growth), 1);
+  // The categories of the rows shown, in the order they first appear: the key to the bars' colours.
+  const categories = [...new Set(rows.flatMap((r) => (CATEGORY_OF[r.name] ? [CATEGORY_OF[r.name]] : [])))];
   return (
     <>
-      <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-3">
-        {rows.map((r) => (
-          <li key={r.name}>
-            <div className="flex items-baseline justify-between gap-3">
-              <span className="text-[11px] font-sans font-semibold min-w-0" style={{ color: t.headText }}>
-                {r.name}
-              </span>
-              <span className="text-[11px] font-mono font-bold shrink-0" style={{ color: t.headText }}>
-                +{r.growth >= 100 ? whole(r.growth) : r.growth.toFixed(1)}%
-              </span>
-            </div>
-            {/* On the scale of the fastest shown: a bar's length is its growth against that one's. */}
-            <Track t={t}>
-              <div className="h-full rounded-full" style={{ width: `${Math.max(2, (100 * r.growth) / top)}%`, background: accent }} />
-            </Track>
-            <p className="text-[10px] font-mono leading-snug mt-1" style={{ color: t.mutedText }}>
-              {r.print(r.now)} in {r.year}, from {r.print(r.before)} in {r.year - 1} · {r.what} · <Credit source={r.source} />
-            </p>
-          </li>
+      <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-sans mb-3" style={{ color: t.mutedText }}>
+        A bar is in its category's colour:
+        {categories.map((c) => (
+          <span key={c} className="inline-flex items-center gap-1 font-semibold" style={{ color: t.headText }}>
+            <span className="w-2 h-2 rounded-full" style={{ background: CATEGORY_COLOR[c] }} aria-hidden />
+            {c}
+          </span>
         ))}
+      </p>
+      <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-4">
+        {rows.map((r) => {
+          const category = CATEGORY_OF[r.name];
+          const color = category ? CATEGORY_COLOR[category] : accent;
+          return (
+            <li key={r.name}>
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-[11px] font-sans font-semibold min-w-0" style={{ color: t.headText }}>
+                  {r.name}
+                  {category && (
+                    <span className="ml-1.5 text-[9px] font-mono font-semibold px-1.5 py-px rounded-full align-middle" style={{ background: color + "22", color }}>
+                      {category}
+                    </span>
+                  )}
+                </span>
+                <span className="text-[11px] font-mono font-bold shrink-0" style={{ color: t.headText }}>
+                  +{r.growth >= 100 ? whole(r.growth) : r.growth.toFixed(1)}%
+                </span>
+              </div>
+              {/* On the scale of the fastest shown: a bar's length is its growth against that one's. Its colour is its category's. */}
+              <Track t={t}>
+                <div className="h-full rounded-full" style={{ width: `${Math.max(2, (100 * r.growth) / top)}%`, background: color }} />
+              </Track>
+              <p className="text-[10px] font-mono leading-snug mt-1" style={{ color: t.mutedText }}>
+                {r.print(r.now)} in {r.year}, from {r.print(r.before)} in {r.year - 1} · {r.what} · <Credit source={r.source} />
+              </p>
+              {MEANING[r.name] && <Meaning t={t} color={color} {...MEANING[r.name]} />}
+            </li>
+          );
+        })}
       </ul>
       <Note t={t}>
         The growth of each from one year to the next, worked out from its publisher's two figures; the six growing fastest, of the {CANDIDATES.length} the site holds
         a yearly world series for. They are measured in different things, so the rates rank them and nothing more. Not a forecast, and not every industry. Each
-        publisher's name links to the page its figures were read from.
+        publisher's name links to the page its figures were read from. "Why it matters" and "In practice" are the site's own explanation of what each series
+        measures, not the publisher's words; the categories and their colours are the site's too.
       </Note>
     </>
   );
@@ -226,6 +384,7 @@ function Funding({ t, accent }: { t: Tokens; accent: string }) {
           </li>
         ))}
       </ul>
+      <Meaning t={t} color={accent} {...MEANING["Investment by place"]} />
 
       <p className="text-[9px] font-mono uppercase tracking-widest mt-4 mb-2" style={{ color: t.mutedText }}>
         Corporate deals involving AI companies, by kind · {d.year} · {bn(d.total)}
@@ -239,9 +398,19 @@ function Funding({ t, accent }: { t: Tokens; accent: string }) {
           { label: "Minority stakes", value: d.minority, text: bn(d.minority) },
         ]}
       />
+      <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-1.5 mt-3">
+        {["Private investment", "Mergers and acquisitions", "Public offerings", "Minority stakes"].map((kind) => (
+          <li key={kind} className="text-[10px] font-sans leading-snug" style={{ color: t.bodyText }}>
+            <span className="font-semibold" style={{ color: t.headText }}>
+              {kind}
+            </span>{" "}
+            {MEANING[kind].why} {MEANING[kind].use}
+          </li>
+        ))}
+      </ul>
       <Note t={t}>
         US dollars at 2021 prices. Private investment is money put into privately held AI companies raising more than $1.5 million; it is not what listed companies
-        spend on AI. "Everywhere else" is the world's total less the three named.
+        spend on AI. "Everywhere else" is the world's total less the three named. The lines explaining the figures are the site's own, not the publisher's.
       </Note>
       <SourceLink
         sources={[
@@ -280,6 +449,7 @@ function Alliances({ t, accent }: { t: Tokens; accent: string }) {
               {a.founded ? ` · founded ${a.founded}` : ""}
               {a.headquarters ? ` · ${a.headquarters}` : ""}
             </p>
+            {a.what && <Meaning t={t} color={accent} why={a.what} use={a.impact?.[0]} />}
           </li>
         ))}
       </ul>
@@ -295,7 +465,8 @@ function Alliances({ t, accent }: { t: Tokens; accent: string }) {
       </div>
       <Note t={t}>
         The {mine.length} of the {ALLIANCES.length} alliances, blocs and agencies the site lists that count the United States a member. Each membership was checked
-        against the body's own page on {ALLIANCES_CHECKED}; a name links to it.
+        against the body's own page on {ALLIANCES_CHECKED}; a name links to it. Under each, what the body is and does, and one consequence of it worth knowing, as
+        the site's entry for it has them.
       </Note>
     </>
   );
@@ -324,7 +495,7 @@ const PUT_IN: Then[] = [
 ];
 
 /** A series at its two ends: where it is, where it started, and the multiple between the two. */
-function ThenRow({ t, r }: { t: Tokens; r: Then }) {
+function ThenRow({ t, r, color }: { t: Tokens; r: Then; color: string }) {
   const [y0, v0] = r.series[0];
   const [y1, v1] = r.series[r.series.length - 1];
   const ratio = v0 > 0 && v1 > 0 ? (v1 >= v0 ? v1 / v0 : v0 / v1) : null;
@@ -348,11 +519,12 @@ function ThenRow({ t, r }: { t: Tokens; r: Then }) {
         {r.print(v0)} in {y0}
         {times ? ` · ${times}` : ""} · {r.unit} · <Credit source={r.source} />
       </p>
+      {MEANING[r.name] && <Meaning t={t} color={color} {...MEANING[r.name]} />}
     </li>
   );
 }
 
-function Research({ t }: { t: Tokens }) {
+function Research({ t, accent }: { t: Tokens; accent: string }) {
   return (
     <>
       <p className="text-[9px] font-mono uppercase tracking-widest mb-1" style={{ color: t.mutedText }}>
@@ -360,7 +532,7 @@ function Research({ t }: { t: Tokens }) {
       </p>
       <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
         {DELIVERED.map((r) => (
-          <ThenRow key={r.name} t={t} r={r} />
+          <ThenRow key={r.name} t={t} r={r} color={accent} />
         ))}
       </ul>
       <p className="text-[9px] font-mono uppercase tracking-widest mt-4 mb-1" style={{ color: t.mutedText }}>
@@ -368,13 +540,13 @@ function Research({ t }: { t: Tokens }) {
       </p>
       <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
         {PUT_IN.map((r) => (
-          <ThenRow key={r.name} t={t} r={r} />
+          <ThenRow key={r.name} t={t} r={r} color={accent} />
         ))}
       </ul>
       <Note t={t}>
         Each is a published series at its first year and its latest, with the multiple between the two worked out here. They are measurements, not announcements: the
         site keeps no list of breakthroughs, and the dated one that stood here included events that had not happened. Each publisher's name links to the page its
-        figures were read from.
+        figures were read from. "Why it matters" and "In practice" are the site's own explanation of what each series measures, not the publisher's words.
       </Note>
     </>
   );
@@ -426,7 +598,7 @@ export function DashboardDrops() {
         description="What research has delivered, measured: the cost of a genome, transistors on a chip, the fastest computer - and what the world puts into research."
         accent="#06b6d4"
       >
-        <Research t={t} />
+        <Research t={t} accent="#06b6d4" />
       </ExpandableCard>
     </>
   );
