@@ -425,10 +425,13 @@ function GrowthRows({ row }: { row: Row }) {
  * with a notch at the middle. A change that can be negative is given as a
  * figure with no bar.
  */
+/** The measures the window sets the city's standing on: its size and its density. The other three were removed from it as asked; the page still sorts by them. */
+const STANDING_KEYS: MeasureKey[] = ["population", "density"];
+
 function CityStandings({ row }: { row: Row }) {
   return (
     <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {MEASURES.map((m) => {
+      {MEASURES.filter((m) => STANDING_KEYS.includes(m.key)).map((m) => {
         const s = standingOf(row, m);
         if (!s) {
           return (
@@ -677,7 +680,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
 
                   <WindowSection
                     title="📊 Where it stands"
-                    note={`${city.name} among the ${ROWS.length} cities on this page. Each bar runs from zero to the largest city's figure, or to 100 for a share; the notch is the middle of them.`}
+                    note={`${city.name} among the ${ROWS.length} cities on this page. Each bar runs from zero to the largest city's figure; the notch is the middle of them.`}
                   >
                     <CityStandings row={row} />
                   </WindowSection>
