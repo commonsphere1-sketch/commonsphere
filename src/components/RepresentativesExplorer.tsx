@@ -193,7 +193,6 @@ export default function RepresentativesExplorer() {
   }, [c, heads, file.data]);
   const land = useMemo(() => geoPath(proj)(LAND) ?? "", [proj]);
   const dots = useMemo(() => (c ? heads : HEADS).flatMap((p) => ((at) => (at ? [{ p, x: at[0], y: at[1] }] : []))(proj([p.lon, p.lat]))), [c, heads, proj]);
-  const marks = useMemo(() => (c ? [c] : STATES).flatMap((n) => ((at) => (at ? [{ n, x: at[0], y: at[1] }] : []))(n.at ? proj(n.at) : null)), [c, proj]);
 
   // The towns and villages are too many for the page to hold each as an element: they are painted.
   useEffect(() => {
@@ -231,7 +230,7 @@ export default function RepresentativesExplorer() {
     if (h.country !== c?.code && NATION[h.country]) setCountry(h.country);
     setPicked({ head: h.id });
   };
-  /** A click on the map that is on no ring or dot: the nearest painted town, if one is within reach. */
+  /** A click on the map that is on no dot: the nearest painted town, if one is within reach. */
   const nearest = (e: MouseEvent<SVGSVGElement>) => {
     if (!c || !file.data || (e.target as Element).tagName === "circle") return;
     const box = e.currentTarget.getBoundingClientRect();
@@ -445,17 +444,12 @@ export default function RepresentativesExplorer() {
                 aria-label={
                   c
                     ? `${c.name}: its ${whole(c.places)} towns and villages, each a point where it is, and the ${c.confirmed} places with a verified head.`
-                    : `The world: the ${whole(PLACES_WORLD.count)} places of ${whole(PLACES_WORLD.atLeast)} people or more, each country a ring, and the ${whole(HEADS.length)} places with a verified head.`
+                    : `The world: the ${whole(PLACES_WORLD.count)} places of ${whole(PLACES_WORLD.atLeast)} people or more, and the ${whole(HEADS.length)} places with a verified head.`
                 }
               >
                 {dots.map(({ p, x, y }) => (
                   <circle key={p.id} cx={x} cy={y} r={p.region ? (c ? 3 : 1.6) : c ? 2 : 1} fill={p.region ? REGION : ACCENT} fillOpacity={0.9} onClick={() => pickHead(p)} className="cursor-pointer">
                     <title>{`${p.place}: ${p.head}, ${p.office}`}</title>
-                  </circle>
-                ))}
-                {marks.map(({ n, x, y }) => (
-                  <circle key={n.key} cx={x} cy={y} r={c ? 6 : 2.6} fill="none" stroke={COUNTRY} strokeWidth={c ? 2 : 1} onClick={() => open(n)} className="cursor-pointer" pointerEvents="all">
-                    <title>{`${n.name}: ${lead(n)}`}</title>
                   </circle>
                 ))}
                 {spot && <circle cx={spot[0]} cy={spot[1]} r={6} fill="none" stroke={t.headText} strokeWidth={2} pointerEvents="none" />}
@@ -471,9 +465,6 @@ export default function RepresentativesExplorer() {
               </span>
               <span className="inline-flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full" style={{ background: REGION }} aria-hidden />A state or province with one
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full" style={{ border: `1.5px solid ${COUNTRY}` }} aria-hidden />A country
               </span>
               <span>{c ? `${c.name}, drawn to its places · click a point for the place` : "Equal Earth projection · pick a country for all of its towns and villages"}</span>
             </p>
