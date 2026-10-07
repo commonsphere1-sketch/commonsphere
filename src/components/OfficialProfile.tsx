@@ -10,6 +10,13 @@
  * in here, and where a source has nothing the pane says so: a governor or a
  * mayor has no score and no FEC money, and none is made up.
  *
+ * An approval rating is asked for and not given: the one series that rates
+ * every senator and every governor, Morning Consult's, is sold to its
+ * subscribers and is not open to republish, and no body publishes one for
+ * every member of the House or every mayor. The pane says so and links to
+ * the tracker where there is one; it carries no figure from it and puts
+ * nothing in its place.
+ *
  * It is loaded when an official's detail is first shown, with its data, so
  * the States page does not carry either before then.
  */
@@ -23,6 +30,12 @@ import { MeasureBars } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
 
 type Kind = "senator" | "representative" | "governor" | "mayor";
+
+/** Where approval of every holder of an office is tracked. The figures are the publisher's, for its subscribers; the pane links and copies none. */
+const APPROVAL_TRACKER: Partial<Record<Kind, { label: string; url: string }>> = {
+  senator: { label: "Morning Consult's tracker of all 100 senators", url: "https://pro.morningconsult.com/trackers/senator-approval-ratings" },
+  governor: { label: "Morning Consult's tracker of all 50 governors", url: "https://pro.morningconsult.com/trackers/governor-approval-ratings" },
+};
 
 /** The committee the pane lists by name whenever it reports a gift: the one the request for this pane named. */
 const NAMED = "C00797670";
@@ -234,6 +247,20 @@ export default function OfficialProfile({ t, id, kind, name, color }: { t: Token
           </>
         ) : (
           <Said t={t}>{member ? `Voteview has no score yet for ${name} in the 119th Congress.` : `None is published: Voteview's scores are drawn from votes in Congress, and a ${kind} casts none.`}</Said>
+        )}
+      </Block>
+
+      <Block>
+        <Label t={t}>Approval rating</Label>
+        <Said t={t}>
+          {APPROVAL_TRACKER[kind]
+            ? `None is shown for ${name}. Approval of every ${kind} is polled by Morning Consult, state by state, but its figures are sold to its subscribers and are not open to republish, and no body publishes the same under terms that let this site carry it. No figure is put in its place.`
+            : `None is shown for ${name}. No body publishes an approval rating for every ${kind === "representative" ? "member of the House" : "mayor"} on one footing; a poll of one ${kind === "representative" ? "district" : "city"} here and there cannot be set beside another's, so none is carried and no figure is put in its place.`}
+        </Said>
+        {APPROVAL_TRACKER[kind] && (
+          <Out href={APPROVAL_TRACKER[kind]!.url} color={color}>
+            {APPROVAL_TRACKER[kind]!.label}
+          </Out>
         )}
       </Block>
 
