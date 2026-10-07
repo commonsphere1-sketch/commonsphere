@@ -46,6 +46,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "Which countries keep military bases abroad, and where",
+    "from": "Wikipedia (List of countries with overseas military bases)",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-10-07",
+    "files": 1
+  },
+  {
     "what": "Each city's population, land and built-up area, 1975 to 2050",
     "from": "United Nations (World Urbanization Prospects), Wikidata",
     "page": "/dashboard/cities",
@@ -232,4 +240,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 47;
+export const DATA_LOG_FILES = 48;

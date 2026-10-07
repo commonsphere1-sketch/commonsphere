@@ -8,6 +8,8 @@ import { LEADERS_BY_COUNTRY } from "../data/leaderIndex";
 import { SeeAlso } from "../components/SeeAlso";
 import { hdiTitle, hdiTone } from "../lib/hdiTier";
 import { flagColor } from "../lib/flagColor";
+import { BASES_ABROAD, BASES_HOSTED, MILITARY_BASES_SOURCE } from "../data/militaryBases";
+import { JUSTICE_OUTCOMES, JUSTICE_SOURCES, type OffenceKind } from "../data/justice";
 import { semanticColor } from "../lib/semanticColors";
 import { PlaceTopics } from "../components/PlaceTopics";
 
@@ -478,11 +480,20 @@ function milSub(f: MilitaryFigure, what: string): string {
 function MilitarySection({
   measured,
   branches,
+  code,
+  name,
 }: {
   measured: MilitaryMeasured | null;
   branches: string[] | null;
+  /** The country's ISO code and name, for its bases abroad and the foreign bases on its soil. */
+  code: string;
+  name: string;
 }) {
   const m = measured;
+  // The countries hosting its bases, and the countries with bases in it: Wikipedia's list (data/militaryBases).
+  const abroad = BASES_ABROAD[code];
+  const hosted = BASES_HOSTED[code] ?? [];
+  const countries = (k: number) => `${k} ${k === 1 ? "country" : "countries"}`;
   const figures = [
     m?.spendUSDm && { label: "Military spending", value: fmtMilUSD(m.spendUSDm.v), sub: milSub(m.spendUSDm, "current US$") },
     m?.shareOfGDP && { label: "As a share of GDP", value: `${m.shareOfGDP.v}%`, sub: milSub(m.shareOfGDP, "of GDP") },
@@ -493,6 +504,7 @@ function MilitarySection({
   const sources = [
     ...(m?.spendUSDm || m?.shareOfGDP || m?.shareOfGovt ? [MILITARY_SOURCES.sipri] : []),
     ...(m?.personnel ? [MILITARY_SOURCES.personnel] : []),
+    { label: MILITARY_BASES_SOURCE.label, url: MILITARY_BASES_SOURCE.url },
   ];
 
   return (
@@ -515,6 +527,26 @@ function MilitarySection({
           published.
         </ChartNote>
       )}
+
+      {/* Bases: abroad, on its soil, and at home - the last is not published, and says so. */}
+      <div className="mb-3">
+        <ChartTitle>Bases · at home and abroad</ChartTitle>
+        <div className="flex flex-col">
+          <FigureRow
+            label="Bases abroad"
+            value={abroad ? (abroad.length ? `in ${countries(abroad.length)}` : "Listed, hosts not read") : "None listed"}
+            sub="host countries, Wikipedia's list"
+          />
+          {abroad && abroad.length > 0 && <p className="text-[11px] font-sans text-muted-foreground leading-relaxed py-1.5 border-b border-border">{abroad.join(" · ")}</p>}
+          <FigureRow label="Foreign bases on its soil" value={hosted.length ? `from ${countries(hosted.length)}` : "None listed"} sub="Wikipedia's list" />
+          {hosted.length > 0 && <p className="text-[11px] font-sans text-muted-foreground leading-relaxed py-1.5 border-b border-border">{hosted.join(" · ")}</p>}
+          <FigureRow label="Bases at home" value="Not published" sub="no body counts them for every country" />
+        </div>
+        <ChartNote className="mt-2">
+          These are the countries Wikipedia's list of overseas military bases names as hosts, not a count of bases: a host may have one facility or dozens, and
+          the list is a compilation that may miss some. No body publishes the number of bases {name} keeps at home, so none is given.
+        </ChartNote>
+      </div>
 
       {branches && branches.length > 0 && (
         <div>
@@ -1105,6 +1137,8 @@ function CountryModal({
                   <MilitarySection
                     measured={MILITARY_MEASURED[country.id] ?? null}
                     branches={MILITARY_BRANCHES[country.id] ?? null}
+                    code={country.code}
+                    name={country.name}
                   />
                 )}
 
@@ -1318,6 +1352,7 @@ function EnergySection({
 // times apart, and the bars they had were each drawn against a ceiling picked
 // for the purpose.
 type CrimeField = keyof (typeof COUNTRY_CRIME)[string];
+const OFFENCE_PRISONS_SOURCE = { label: "UNODC — prisons and prisoners", url: "https://data.unodc.org/datareport/prison-held" };
 const CRIME_FIELDS: [CrimeField, string][] = [
   ["homicide", "Intentional homicide"],
   ["robbery", "Robbery"],
@@ -1335,6 +1370,14 @@ const CRIME_SPREAD = Object.fromEntries(
       .sort((a, b) => a - b),
   ]),
 ) as Record<CrimeField, number[]>;
+/** UNODC's kind of offence each of the panel's offences falls under, and how it reads in a sentence. */
+const CRIME_KIND: Record<CrimeField, [OffenceKind, string]> = {
+  homicide: ["homicide", "intentional homicide"],
+  robbery: ["violentProperty", "robbery and other violent offences against property"],
+  assault: ["harm", "assault and other acts of harm to the person"],
+  burglary: ["property", "burglary, theft and other offences against property alone"],
+  vehicleTheft: ["property", "burglary, theft and other offences against property alone"],
+};
 const medianOf = (sorted: number[]) => (sorted.length % 2 ? sorted[(sorted.length - 1) / 2] : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2);
 
 /**
@@ -1358,8 +1401,9 @@ function CountryCrimeStatsPanel({ country }: { country: Country }) {
     const lower = all.filter((v) => v < f.v).length;
     // The share of the other places with a lower rate: 0 at the lowest, 100 at the highest.
     const pct = all.length > 1 ? (100 * lower) / (all.length - 1) : 50;
-    return [{ field, label, f, places: all.length, pct: Math.min(100, pct), median: medianOf(all), rank: all.length - lower }];
+    return [{ field, label, f, places: all.length, pct: Math.min(100, pct), median: medianOf(all), rank: all.length - lower, outcome: JUSTICE_OUTCOMES[country.id]?.[CRIME_KIND[field][0]] }];
   });
+  const anyOutcome = rows.some((r) => r.outcome);
   if (!rows.length) return null;
   const anyDerived = rows.some((r) => r.f.derived);
   const above = rows.filter((r) => r.f.v > r.median).length;
@@ -1407,6 +1451,19 @@ function CountryCrimeStatsPanel({ country }: { country: Country }) {
               </span>
               <span className="text-[10px] font-mono text-muted-foreground leading-snug shrink-0">middle place {n(r.median)}</span>
             </span>
+            {/* What became of it: the people convicted of this kind of offence, and the people held in prison for it. */}
+            {r.outcome && (
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
+                <span className="font-mono uppercase tracking-widest text-[9px]">Sentencing · </span>
+                {[
+                  r.outcome.convicted ? `${n(r.outcome.convicted[0])} people convicted (${r.outcome.convicted[1]})` : "",
+                  r.outcome.held ? `${n(r.outcome.held[0])} held in prison (${r.outcome.held[1]})` : "",
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}{" "}
+                for {CRIME_KIND[r.field][1]}
+              </p>
+            )}
           </li>
         ))}
       </ul>
@@ -1417,7 +1474,13 @@ function CountryCrimeStatsPanel({ country }: { country: Country }) {
         report, so a high place can mean more crime or better recording: UNODC advises comparing a country with itself over time first.
         {anyDerived && " * UNODC publishes this offence as a count; the rate is that count over the World Bank's population for the same year."}
       </ChartNote>
-      <SourceLink sources={[CRIME_SOURCE]} className="mt-2" />
+      <ChartNote className="mt-2">
+        Sentencing: no body publishes the sentence each country's law sets for an offence, or the sentences its courts pass, so none is given.{" "}
+        {anyOutcome
+          ? "What UNODC publishes by kind of offence is under each: the people convicted of it in a year and the people held in prison for it. Its kinds are wider than the offences here - robbery is counted with other violent offences against property, burglary and vehicle theft with all offences against property alone."
+          : `${country.name} has reported neither convictions nor prisoners by kind of offence to UNODC in the last ten years.`}
+      </ChartNote>
+      <SourceLink sources={[CRIME_SOURCE, ...(anyOutcome ? [JUSTICE_SOURCES.unodc, OFFENCE_PRISONS_SOURCE] : [])]} className="mt-2" />
     </div>
   );
 }

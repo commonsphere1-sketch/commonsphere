@@ -53,6 +53,7 @@ const SETS = [
   { files: ["countryReports.ts"], what: "Each country's sovereignty, and its death rates, disaster displacements and natural hazards", from: "CIA World Factbook (final edition), World Bank (WHO, IDMC)", page: "/dashboard/countries", where: "Countries" },
   { files: ["universities.ts"], what: "The universities and colleges of each city and country", from: "Wikidata", page: "/dashboard/cities", where: "Cities" },
   { files: ["flagColors.ts"], what: "One colour for each country, read off its flag", from: "flagcdn.com flag images", page: "/dashboard/countries", where: "Countries" },
+  { files: ["militaryBases.ts"], what: "Which countries keep military bases abroad, and where", from: "Wikipedia (List of countries with overseas military bases)", page: "/dashboard/countries", where: "Countries" },
   { files: ["justice.ts"], what: "Legal systems, the stages of criminal justice and the people who staff it", from: "CIA World Factbook (final edition), UNODC, World Bank", page: "/dashboard/crime", where: "Crime statistics" },
   { files: ["stateOffices.ts"], what: "When each state's senators', representatives' and governor's terms end", from: "congress-legislators, Wikipedia (citing the National Governors Association)", page: "/dashboard/states", where: "US states" },
   { files: ["publicSecurity.ts"], what: "Public security: stability, conflict deaths, terrorism and displacement, by country", from: "World Bank (Worldwide Governance Indicators), UCDP, Global Terrorism Database, UNHCR, IDMC", page: "/dashboard/countries", where: "Countries" },

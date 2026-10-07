@@ -225,6 +225,49 @@ function loadCountries() {
     }
   }
 
+  // ── What becomes of each kind of offence: the people convicted of it, and the people held in prison for it ──
+  // UNODC publishes no sentence a court passed or a law sets. What it publishes by kind of offence is these two
+  // counts, under its own categories; the page's offences are matched to the category that holds them.
+  const KINDS = [
+    { id: "homicide", dim: "by selected crime", cat: /^intentional homicide$/i },
+    { id: "violentProperty", dim: "by type of criminal acts", cat: /^acts against property involving violence$/i },
+    { id: "harm", dim: "by type of criminal acts", cat: /^acts leading to harm or intending to cause harm to the person$/i },
+    { id: "property", dim: "by type of criminal acts", cat: /^acts against property only$/i },
+  ];
+  const outcomes = {};
+  const outcome = (iso, kind, what, y, v) => {
+    const id = siteOf[iso];
+    if (!id || y < OLDEST || !Number.isFinite(v) || v < 0) return;
+    const slot = ((outcomes[id] ||= {})[kind] ||= {});
+    if (!slot[what] || y > slot[what][1]) slot[what] = [Math.round(v), y];
+  };
+  const kindOf = (r, cols) => KINDS.find((k) => k.dim === r[cols.dim] && k.cat.test(String(r[cols.cat] ?? "").trim()));
+  for (const r of rows.slice(h + 1)) {
+    if (r[c.unit] !== "Counts" || r[c.age] !== "Total" || r[c.sex] !== "Total" || r[c.ind] !== "Persons convicted") continue;
+    const k = kindOf(r, c);
+    if (k) outcome(r[c.iso], k.id, "convicted", +r[c.year], num(r[c.v]));
+  }
+  {
+    const prisonPage = path.join(CRIME, "page-prison-held.html");
+    await fetchTo(PORTAL + "/datareport/prison-held", prisonPage);
+    const link = (fs.readFileSync(prisonPage, "utf8").match(/\/sites\/[^"']+\.xlsx/g) || []).find((x) => /data_cts_prisons_and_prisoners\.xlsx/.test(x));
+    if (!link) throw new Error("no download link on /datareport/prison-held");
+    const file = path.join(CRIME, path.basename(link));
+    await fetchTo(PORTAL + link, file, true);
+    const p = readXlsx(file).rows;
+    const ph = p.findIndex((r) => r.includes("Iso3_code"));
+    const pc = Object.fromEntries(["Iso3_code", "Indicator", "Dimension", "Category", "Sex", "Age", "Year", "Unit of measurement", "VALUE"].map((k) => [k, p[ph].indexOf(k)]));
+    if (Object.values(pc).some((i) => i < 0)) throw new Error("UNODC prisons file: a column is missing");
+    const cols = { dim: pc.Dimension, cat: pc.Category };
+    for (const r of p.slice(ph + 1)) {
+      if (r[pc["Unit of measurement"]] !== "Counts" || r[pc.Age] !== "Total" || r[pc.Sex] !== "Total" || r[pc.Indicator] !== "Persons held") continue;
+      const k = kindOf(r, cols);
+      if (k) outcome(r[pc.Iso3_code], k.id, "held", +r[pc.Year], num(r[pc.VALUE]));
+    }
+  }
+  const nOutcomes = Object.keys(outcomes).length;
+  if (nOutcomes < 60) throw new Error(`UNODC: only ${nOutcomes} countries with convictions or prisoners by offence`);
+
   // Population, for the staff per 100,000 people: the World Bank's, for the same year.
   const popRows = await readJson(`https://api.worldbank.org/v2/country/all/indicator/SP.POP.TOTL?format=json&per_page=20000&date=${OLDEST}:${THIS_YEAR}`, path.join(CACHE, `population-${OLDEST}-${THIS_YEAR}.json`));
   if (popRows[0].pages !== 1) throw new Error("population: more than one page");
@@ -315,6 +358,18 @@ export type Stage = ${STAGES.map((s) => q(s.id)).join(" | ")};
 /** People at each stage of the criminal justice system in one year, as the country reported them to UNODC: those of the four stages it reported. */
 export const JUSTICE_PROCESS: Record<string, { y: number } & Partial<Record<Stage, number>>> = {
 ${Object.entries(process).map(([id, p]) => `  ${q(id)}: ${obj(p)},`).join("\n")}
+};
+
+/** UNODC's kinds of offence the page's offences fall under: intentional homicide; robbery (acts against property involving violence); assault (acts leading to harm); burglary and theft (acts against property only). */
+export type OffenceKind = "homicide" | "violentProperty" | "harm" | "property";
+/** [people, year] */
+export type Counted = [people: number, year: number];
+/**
+ * What becomes of each kind of offence, as the country reported it: the people convicted of it in a year, and the
+ * people held in prison for it. UNODC publishes no sentence, so none is here.
+ */
+export const JUSTICE_OUTCOMES: Record<string, Partial<Record<OffenceKind, { convicted?: Counted; held?: Counted }>>> = {
+${Object.entries(outcomes).map(([id, o]) => `  ${q(id)}: ${q(o)},`).join("\n")}
 };
 
 export type StaffKind = ${STAFF.map((s) => q(s.id)).join(" | ")};
