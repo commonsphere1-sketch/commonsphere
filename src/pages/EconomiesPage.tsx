@@ -83,6 +83,7 @@ import { DataExplorer } from "@/components/DataExplorer";
 import { ResourceExplorer } from "@/components/ResourceExplorer";
 import { RESOURCES } from "@/data/resourceList";
 import { CommodityStanding } from "@/components/EconomyResources";
+import { EconomyHasNeeds, EconomyStanding, hasEconomyHasNeeds } from "@/components/EconomyStanding";
 import { HeadlinesBanner, SUBJECT } from "@/components/HeadlinesBanner";
 
 
@@ -1011,9 +1012,6 @@ function EconomyModal({
   /** World Bank resource rents for this economy, when the fetch succeeded. */
   rents?: EconomyRents;
 }) {
-  const [activeChart, setActiveChart] = useState<
-    "gdp" | "growth" | "inflation"
-  >("gdp");
   const [isExpanded, setIsExpanded] = React.useState(false);
   /** The window's tabs, as a country's and a state's have: the overview, and inflation, deficits and tariffs. */
   const [tab, setTab] = React.useState<"overview" | "resources" | "details">("overview");
@@ -1046,37 +1044,10 @@ function EconomyModal({
     return null;
   };
 
-  const chartDataKey =
-    activeChart === "gdp"
-      ? "gdp"
-      : activeChart === "growth"
-        ? "growth"
-        : "inflation";
-  // GDP in the unit it reads best in, so a small economy's chart is not 0.00s.
-  const trendScale = gdpScale(
-    Math.max(0, ...economy.trends.map((t) => t.gdp).filter(has)),
-  );
-  const trendData = economy.trends.map((t) => ({
-    ...t,
-    gdp: Number((t.gdp * trendScale.mul).toPrecision(4)),
-  }));
   const hasTrends = economy.trends.length >= 2;
   const hasGrowthOrInflation = economy.trends.some(
     (t) => has(t.growth) || has(t.inflation),
   );
-
-  const chartName =
-    activeChart === "gdp"
-      ? `GDP (${trendScale.unit})`
-      : activeChart === "growth"
-        ? "Growth (%)"
-        : "Inflation (%)";
-  const chartColor =
-    activeChart === "gdp"
-      ? "hsl(200,85%,50%)"
-      : activeChart === "growth"
-        ? "hsl(150,55%,45%)"
-        : "hsl(35,100%,50%)";
 
   // Prefer World Bank resource rents over the curated list: they are
   // sourced, dated and cover ~250 economies. Curated data is the fallback
@@ -1097,7 +1068,8 @@ function EconomyModal({
   const showResources =
     !economy.limitedData ||
     resources.length > 0 ||
-    (CRITICAL_MINERALS[economy.id]?.length ?? 0) > 0;
+    (CRITICAL_MINERALS[economy.id]?.length ?? 0) > 0 ||
+    hasEconomyHasNeeds(economy);
   // Likewise the markets tiles, which on a card with none of these published
   // were six dashes (Jersey, the French overseas departments).
   const showMarketTiles =
@@ -1296,95 +1268,9 @@ function EconomyModal({
                 />
               )}
 
-              {/* ── 5-YEAR TRENDS CHART ── */}
-              {hasTrends && (
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    5-Year Trends
-                  </span>
-                  <div className="flex-1 h-px bg-border/60" />
-                  <div className="flex gap-1">
-                    {(["gdp", "growth", "inflation"] as const).map((tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setActiveChart(tab)}
-                        className={`px-2 py-0.5 rounded text-xs font-sans transition-colors cursor-pointer ${activeChart === tab ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                      >
-                        {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="modal-tile rounded-xl p-4">
-                  <div className="h-40">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart
-                        data={trendData}
-                        margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
-                      >
-                        <defs>
-                          <linearGradient
-                            id={`ecoGrad-${economy.id}`}
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop
-                              offset="5%"
-                              stopColor={chartColor}
-                              stopOpacity={0.3}
-                            />
-                            <stop
-                              offset="95%"
-                              stopColor={chartColor}
-                              stopOpacity={0}
-                            />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                          stroke="hsl(222,30%,25%)"
-                          vertical={false}
-                        />
-                        <XAxis
-                          dataKey="year"
-                          tick={{
-                            fill: "hsl(0,0%,60%)",
-                            fontSize: 10,
-                            fontFamily: "Figures, IBM Plex Mono",
-                          }}
-                          axisLine={false}
-                          tickLine={false}
-                        />
-                        <YAxis
-                          tick={{
-                            fill: "hsl(0,0%,60%)",
-                            fontSize: 10,
-                            fontFamily: "Figures, IBM Plex Mono",
-                          }}
-                          axisLine={false}
-                          tickLine={false}
-                          width={40}
-                        />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Area
-                          type="monotone"
-                          dataKey={chartDataKey}
-                          name={chartName}
-                          stroke={chartColor}
-                          strokeWidth={2}
-                          fill={`url(#ecoGrad-${economy.id})`}
-                          dot={false}
-                          isAnimationActive={false}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-              )}
+              {/* ── WHERE THE ECONOMY STANDS: its size, pace, prices, jobs, debt and trade beside the world's, where a
+                  five-year chart of three of them stood. ── */}
+              <EconomyStanding economy={economy} />
 
               {/* ── GDP SECTOR COMPOSITION ── */}
               {(ECONOMY_SECTORS[economy.id] || !economy.limitedData) && (
@@ -1865,6 +1751,8 @@ function EconomyModal({
               among each commodity's producers. Its own tab: it was the longest section of the Overview. ── */}
           {tab === "resources" && showResources && (
           <div className="mt-4 space-y-4 animate-fade-in">
+            {/* What it has and what it needs: the largest companies based there, its trade, and its energy. */}
+            <EconomyHasNeeds economy={economy} />
             <div className="space-y-4">
               {(() => {
                 const pieData = resources.map((r) => ({

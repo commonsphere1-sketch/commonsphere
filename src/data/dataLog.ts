@@ -102,6 +102,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "The largest companies based in each country, as the world's and each region's rankings name them",
+    "from": "Wikipedia",
+    "page": "/dashboard/economies",
+    "where": "Economies",
+    "read": "2026-10-07",
+    "files": 1
+  },
+  {
     "what": "The towns and villages of every country: each place of more than 500 people and each seat of local government",
     "from": "GeoNames",
     "page": "/dashboard/maps",
@@ -312,4 +320,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 57;
+export const DATA_LOG_FILES = 58;
