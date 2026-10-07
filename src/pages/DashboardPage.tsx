@@ -29,8 +29,8 @@ import { CommodityMovers } from "../components/CommodityMovers";
 import { InternationalSection, NationalSection } from "../components/DashboardScopes";
 import { CitiesContainer, SectorOutlook } from "../components/DashboardCitiesSectors";
 
-/** The Trends & Projections desk, with the projections it draws on: loaded after the page. */
-const ProjectionsDesk = lazy(() => import("../components/ProjectionsDesk"));
+/** Energy to 2050, the panel kept of the Trends & Projections desk, with the projections it draws on: loaded after the page. */
+const EnergyOutlook = lazy(() => import("../components/EnergyOutlook"));
 import { WORLD } from "../data/worldview";
 import { Figures, COUNTER_FIGURES, COUNTER_UNIT } from "../components/Figures";
 import {
@@ -3129,18 +3129,8 @@ export function DashboardPage() {
         {/* ── INTERACTIVE DATA PANEL (standalone full-width) ─────────────── */}
         <DataExplorer />
 
-        {/* ── TRENDS & PROJECTIONS PANEL ────────────────────────────────── */}
-        {/* Every published projection the site holds - the IMF's, the UN's, the U.S. EIA's - in one panel.
-            What stood here was typed by hand: sector outlooks with a confidence, scenarios with a probability. */}
-        <Suspense
-          fallback={
-            <div className="rounded-2xl p-5 text-[11px] font-sans" style={{ background: cardBg, border: cardBorder, color: mutedText }}>
-              Loading the projections…
-            </div>
-          }
-        >
-          <ProjectionsDesk action={{ label: "Full analysis", onClick: () => navigate("/dashboard/trends") }} />
-        </Suspense>
+        {/* The Trends & Projections desk stood here and was removed as asked; its energy panel is kept, lower on the
+            page under the sectors and commodities. */}
 
         {/* ── MAIN GRID: the states, the world's conflicts, and the site's own data.
             Four cards stood in the first column that nothing published backs - "up-and-coming industries" with a
@@ -3289,6 +3279,18 @@ export function DashboardPage() {
             <CommodityMovers />
           </div>
         </div>
+
+        {/* ── ENERGY TO 2050: the panel kept of the Trends & Projections desk, under the sectors and the commodity
+            prices it belongs with. The U.S. EIA's projection of the world's electricity by type. ── */}
+        <Suspense
+          fallback={
+            <div className="rounded-2xl p-5 text-[11px] font-sans" style={{ background: cardBg, border: cardBorder, color: mutedText }}>
+              Loading the energy projections…
+            </div>
+          }
+        >
+          <EnergyOutlook action={{ label: "Full analysis", onClick: () => navigate("/dashboard/trends") }} />
+        </Suspense>
 
         {/* The four drop-down cards - industries, funding, alliances, research - each the full width of the page.
             They open on published series; what they held was typed in. */}

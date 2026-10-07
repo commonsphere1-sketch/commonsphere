@@ -26,7 +26,7 @@ import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "../components/SectionNav";
 import { StyledSelect } from "../components/StyledSelect";
 import { StatExplorer, type StatGroup } from "../components/StatExplorer";
-import { ProjectionsDesk } from "../components/ProjectionsDesk";
+import { EnergyOutlook } from "../components/EnergyOutlook";
 import { PROJECTION_FIGURES, TREND_GROUPS } from "../data/trendGroups";
 import { CategoryCharts, TREND_CHARTS } from "../components/CategoryCharts";
 import { StatCard, splitChange, type StatCardData, type StatFact, type StatTable } from "../components/StatCard";
@@ -1096,6 +1096,10 @@ function RenewablesSection() {
         </Card>
       </div>
 
+      {/* The energy panel of the Trends & Projections desk, kept when the desk was removed: the same projection to the
+          figure, for what is generated and for what is installed, with the lowest and highest of EIA's cases. */}
+      <EnergyOutlook id="energy-outlook" />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHead title="What was invested, by technology" kicker={`New investment in renewable power, US$ billions a year · ${inv[0].year}–${invLast.year}`} />
@@ -1734,7 +1738,6 @@ function TechnologySection() {
 // ── Page ───────────────────────────────────────────────────────────────────
 
 const SECTIONS: NavSection[] = [
-  { id: "desk", label: "Projections desk" },
   { id: "overview", label: "Overview" },
   { id: "economy", label: "World economy" },
   { id: "countries", label: "Countries" },
@@ -2046,10 +2049,8 @@ export function TrendsPage() {
 
         <SectionNav label="Trends and projections sections" sections={SECTIONS} />
 
-        {/* The desk: every projection the site holds, in one panel - the same one the Dashboard has. The sections
-            below take each subject at length. */}
-        <ProjectionsDesk id="desk" />
-
+        {/* The Trends & Projections desk stood here and was removed as asked. The sections below take each of its
+            subjects at length; its energy panel is kept, under Renewables. */}
         <HeadlinesBanner
           label="Economy headlines"
           topics={["economy"]}
