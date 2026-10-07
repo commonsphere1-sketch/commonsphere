@@ -66,7 +66,7 @@ const TIP = traffickingTotals();
 
 export function TraffickingAndSlavery({ isLight }: { isLight: boolean }) {
   const head = isLight ? "#0f172a" : "#f1f0ff";
-  const muted = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.5)";
+  const muted = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)";
   const card = {
     background: isLight ? "#ffffff" : "rgba(255,255,255,0.04)",
     border: isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)",

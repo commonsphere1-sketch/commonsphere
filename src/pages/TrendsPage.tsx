@@ -98,7 +98,7 @@ function useLook() {
   const { theme } = useTheme();
   const isLight = theme === "light";
   const head = isLight ? "#0f172a" : "#f1f0ff";
-  const muted = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.5)";
+  const muted = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)";
   return {
     isLight,
     head,

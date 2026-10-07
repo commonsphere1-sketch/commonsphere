@@ -26,7 +26,7 @@ export function useLook() {
   return {
     isLight,
     head: isLight ? "#0f172a" : "#f1f0ff",
-    muted: isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.5)",
+    muted: isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)",
     grid: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)",
     card: {
       background: isLight ? "#ffffff" : "rgba(255,255,255,0.04)",

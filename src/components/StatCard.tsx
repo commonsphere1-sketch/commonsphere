@@ -333,7 +333,7 @@ export function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => voi
     };
   }, [onClose]);
 
-  const muted = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.5)";
+  const muted = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)";
   const ink = isLight ? "#0f172a" : "#f1f0ff";
   const data = series.map(([y, v]) => ({ year: String(y), a: !split || y < split ? v : null, p: split && y >= split - 1 ? v : null }));
   const given = [...(s.facts ?? []), ...(s.moreFacts ?? [])];

@@ -35,7 +35,7 @@ function lookOf(isLight: boolean) {
       boxShadow: isLight ? "var(--card-glow), 0 1px 10px rgba(0,0,0,0.07)" : "var(--card-glow)",
     } as CSSProperties,
     head: isLight ? "#0f172a" : "#f1f0ff",
-    muted: isLight ? "rgba(30,41,59,0.7)" : "rgba(255,255,255,0.6)",
+    muted: isLight ? "rgba(30,41,59,0.7)" : "rgba(255,255,255,0.66)",
     accent: isLight ? "#dc2626" : "rgba(248,113,113,0.85)",
     track: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.07)",
     line: isLight ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)",

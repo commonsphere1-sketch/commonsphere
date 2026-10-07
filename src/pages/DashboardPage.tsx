@@ -1350,7 +1350,7 @@ function CompareCountriesTool({
                                   : isWorst
                                     ? isLight
                                       ? "rgba(30,41,59,0.45)"
-                                      : "rgba(255,255,255,0.35)"
+                                      : "rgba(255,255,255,0.66)"
                                     : headText,
                               }}
                             >
@@ -1721,7 +1721,7 @@ function CompareCountriesTool({
                                   : isWorst
                                     ? isLight
                                       ? "rgba(30,41,59,0.45)"
-                                      : "rgba(255,255,255,0.35)"
+                                      : "rgba(255,255,255,0.66)"
                                     : headText,
                               }}
                             >
@@ -2927,7 +2927,7 @@ export function DashboardPage() {
   const cardShadow = isLight
     ? "var(--card-glow), 0 1px 10px rgba(0,0,0,0.07)"
     : "var(--card-glow)";
-  const mutedText = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.38)";
+  const mutedText = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)";
   const bodyText = isLight ? "#1e293b" : "#e2e8f0";
   const headText = isLight ? "#0f172a" : "#f1f0ff";
   const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";

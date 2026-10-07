@@ -68,7 +68,7 @@ export function PinnedStrip() {
   const shadow = isLight
     ? "0 4px 24px rgba(0,0,0,0.10)"
     : "0 4px 24px rgba(0,0,0,0.45)";
-  const mutedText = isLight ? "rgba(30,41,59,0.45)" : "rgba(255,255,255,0.35)";
+  const mutedText = isLight ? "rgba(30,41,59,0.45)" : "rgba(255,255,255,0.66)";
   const headText = isLight ? "#0f172a" : "#f1f0ff";
   const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
   const itemBg = isLight ? "rgba(0,0,0,0.025)" : "rgba(255,255,255,0.04)";

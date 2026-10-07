@@ -333,7 +333,7 @@ function PriceHistory({ facts, color, unitNote }: { facts: PriceFacts; color: st
   const { theme } = useTheme();
   const isLight = theme === "light";
   const { price, month, value, onYear, high, low } = facts;
-  const muted = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.5)";
+  const muted = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)";
   const ink = isLight ? "#0f172a" : "#f1f0ff";
   const data = price.series.map(([m, v]) => ({ m, v }));
   const januaries = price.series.filter(([m]) => m.endsWith("-01")).map(([m]) => m);

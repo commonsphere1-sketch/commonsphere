@@ -177,7 +177,7 @@ function useChartInk() {
   const { theme } = useTheme();
   const isLight = theme === "light";
   return {
-    muted: isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.5)",
+    muted: isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)",
     grid: isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)",
     ahead: isLight ? "rgba(99,102,241,0.07)" : "rgba(129,140,248,0.10)",
   };
