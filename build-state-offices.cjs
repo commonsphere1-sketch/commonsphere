@@ -50,6 +50,16 @@ const sortname = (cell) => {
   const m = /\{\{sortname\|([^|}]+)\|([^|}]+)/.exec(cell || "");
   return m ? `${m[1].trim()} ${m[2].trim()}`.replace(/\s+/g, " ") : null;
 };
+/** The article a name cell links to: a sortname template's third parameter, or its name with the "dab" in brackets; else the cell's own link. */
+const sortlink = (cell) => {
+  const m = /\{\{sortname\|([^}]+)\}\}/.exec(cell || "");
+  if (!m) return /\[\[([^|\]]+)/.exec(cell || "")?.[1].trim() ?? null;
+  const parts = m[1].split("|").map((x) => x.trim());
+  const named = Object.fromEntries(parts.filter((x) => /^[a-z]+\s*=/.test(x)).map((x) => x.split(/\s*=\s*/)));
+  const pos = parts.filter((x) => !/^[a-z]+\s*=/.test(x));
+  if (named.nolink) return null;
+  return pos[2] || `${pos[0]} ${pos[1]}${named.dab ? ` (${named.dab})` : ""}`;
+};
 const unlink = (s) => s.replace(/<ref[\s\S]*?(<\/ref>|\/>)/g, "").replace(/\{\{efn[\s\S]*?\}\}/g, "").replace(/\[\[(?:[^|\]]*\|)?([^\]]+)\]\]/g, "$1").replace(/<br\s*\/?>/g, " ").trim();
 const wikitextOf = (page, name) =>
   JSON.parse(fetchText(["-G", "https://en.wikipedia.org/w/api.php", "--data-urlencode", "action=parse", "--data-urlencode", `page=${page}`, "--data-urlencode", "prop=wikitext", "--data-urlencode", "format=json", "--data-urlencode", "formatversion=2"], name)).parse.wikitext;
@@ -85,11 +95,14 @@ for (const p of people) {
   if (!s) continue; // DC and the territories: delegates, not in the fifty
   const name = p.name.official_full || `${p.name.first} ${p.name.last}`;
   if (!isDate(t.end)) throw new Error(`${name}: term end "${t.end}"`);
+  if (!/^[A-Z]\d{6}$/.test(p.id.bioguide || "")) throw new Error(`${name}: Biographical Directory id "${p.id.bioguide}"`);
+  // The party a member who belongs to neither sits with, where the data names one.
+  const who = { id: p.id.bioguide, name, party: t.party, caucus: t.caucus && t.caucus !== t.party ? partyName(t.caucus) : undefined };
   if (t.type === "sen") {
     if (![1, 2, 3].includes(t.class)) throw new Error(`${name}: Senate class "${t.class}"`);
-    out[s.id].senators.push({ name, party: t.party, termEnd: t.end, class: t.class, url: site(t.url) });
+    out[s.id].senators.push({ ...who, termEnd: t.end, class: t.class, url: site(t.url) });
   } else if (t.type === "rep") {
-    out[s.id].representatives.push({ name, party: t.party, district: t.district === 0 ? "At Large" : String(t.district), n: t.district, termEnd: t.end, url: site(t.url) });
+    out[s.id].representatives.push({ ...who, district: t.district === 0 ? "At Large" : String(t.district), n: t.district, termEnd: t.end, url: site(t.url) });
   }
 }
 for (const s of states) {
@@ -130,7 +143,7 @@ for (const row of table.split("\n|-")) {
   const party = row.match(/\{\{party color\|([^}]+)\}\}/);
   const began = row.match(/\{\{dts\|(\d{4})\|(\d{1,2})\|(\d{1,2})\}\}/);
   if (!name || !party || !began) throw new Error(`${s.name}: the governor's name, party or term start was not read`);
-  out[s.id].governor = { name, party: partyName(party[1]), since: `${began[1]}-${began[2].padStart(2, "0")}-${began[3].padStart(2, "0")}`, termEnds, year: +termEnds.slice(0, 4), nga: nga ? nga[0] : undefined };
+  out[s.id].governor = { name, party: partyName(party[1]), since: `${began[1]}-${began[2].padStart(2, "0")}-${began[3].padStart(2, "0")}`, termEnds, year: +termEnds.slice(0, 4), nga: nga ? nga[0] : undefined, wiki: sortlink(head) ?? undefined };
   governors++;
 }
 if (governors !== 50) throw new Error(`read ${governors} governors' terms, not 50`);
@@ -161,6 +174,7 @@ for (const row of mayorsTable.slice(0, mayorsTable.indexOf("\n|}")).split("\n|-"
     since: began.toISOString().slice(0, 10),
     nextElection: +(/\d{4}/.exec(next || "") || [0])[0] || null,
     form: form || null,
+    wiki: sortlink(row),
   });
 }
 if (mayors.length !== 50) throw new Error(`read ${mayors.length} mayors, not 50`);
@@ -168,13 +182,13 @@ mayors.sort((a, b) => a.rank - b.rank);
 
 const today = new Date().toISOString().slice(0, 10);
 const q = (v) => JSON.stringify(v);
-const person = (p, extra) => `{ name: ${q(p.name)}, party: ${q(p.party)}, ${extra}termEnd: ${q(p.termEnd)}${p.url ? `, url: ${q(p.url)}` : ""} }`;
+const person = (p, extra) => `{ id: ${q(p.id)}, name: ${q(p.name)}, party: ${q(p.party)}, ${p.caucus ? `caucus: ${q(p.caucus)}, ` : ""}${extra}termEnd: ${q(p.termEnd)}${p.url ? `, url: ${q(p.url)}` : ""} }`;
 const row = (s) => {
   const o = out[s.id];
   return `  ${s.id}: {
     senators: [${o.senators.map((p) => person(p, `class: ${p.class}, `)).join(", ")}],
     representatives: [${o.representatives.map((p) => person(p, `district: ${q(p.district)}, `)).join(", ")}],
-    governor: { name: ${q(o.governor.name)}, party: ${q(o.governor.party)}, since: ${q(o.governor.since)}, termEnds: ${q(o.governor.termEnds)}, year: ${o.governor.year}${o.governor.nga ? `, nga: ${q(o.governor.nga)}` : ""} },
+    governor: { name: ${q(o.governor.name)}, party: ${q(o.governor.party)}, since: ${q(o.governor.since)}, termEnds: ${q(o.governor.termEnds)}, year: ${o.governor.year}${o.governor.nga ? `, nga: ${q(o.governor.nga)}` : ""}${o.governor.wiki ? `, wiki: ${q(o.governor.wiki)}` : ""} },
   },`;
 };
 fs.writeFileSync(
@@ -204,8 +218,12 @@ export const STATE_OFFICES_SOURCES = {
 };
 
 export type OfficeHolder = {
+  /** The member's id in the Biographical Directory of the United States Congress: what officialProfiles.ts is keyed by. */
+  id: string;
   name: string;
   party: string;
+  /** The party a member of neither sits with, where the data names one. */
+  caucus?: string;
   /** The day the current term ends. */
   termEnd: string;
   /** The member's official site, where their events are announced. */
@@ -217,8 +235,8 @@ export type StateOffices = {
   senators: (OfficeHolder & { class: 1 | 2 | 3 })[];
   /** In district order. */
   representatives: (OfficeHolder & { district: string })[];
-  /** The governor, the day the term began, its end as the list gives it ("2027 (term limits)"), its year, and the NGA's page for the governor. */
-  governor: { name: string; party: string; since: string; termEnds: string; year: number; nga?: string };
+  /** The governor, the day the term began, its end as the list gives it ("2027 (term limits)"), its year, the NGA's page for the governor, and the Wikipedia article the list links the name to. */
+  governor: { name: string; party: string; since: string; termEnds: string; year: number; nga?: string; wiki?: string };
 };
 
 /** The mayor of one of the fifty largest cities. */
@@ -240,6 +258,8 @@ export type BigCityMayor = {
   nextElection: number | null;
   /** The city's form of government, as the list names it. */
   form: string | null;
+  /** The Wikipedia article the list links the mayor's name to. */
+  wiki: string | null;
 };
 
 /** State id → its offices. */

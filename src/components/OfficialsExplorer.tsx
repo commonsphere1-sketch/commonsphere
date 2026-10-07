@@ -17,13 +17,21 @@
  * city's size and form of government - with the member's own site, the rest
  * of the state's officials, and the state's window a click away. A count is
  * the only thing worked out, and the pane says what of.
+ *
+ * Under the office comes the person (OfficialProfile, loaded with its data
+ * when a detail is first shown): education and career, where a member's votes
+ * place them, the money the campaign has reported and the committees that
+ * gave it.
  */
-import { useMemo, useState, type ReactNode } from "react";
+import { lazy, Suspense, useMemo, useState, type ReactNode } from "react";
 import { ArrowSquareOut, MagnifyingGlass, UsersThree, X } from "@phosphor-icons/react";
 import { BIG_CITY_MAYORS, STATE_OFFICES, STATE_OFFICES_SOURCES } from "../data/stateOffices";
 import { usStatesData } from "../data/statesData";
 import { Block, Empty, GoButton, Kpi, Label, Row, useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
+
+/** The person behind the office - schooling, career, votes and money - with the data it reads: loaded when a detail is first shown. */
+const OfficialProfile = lazy(() => import("./OfficialProfile"));
 
 type Kind = "senator" | "representative" | "governor" | "mayor";
 interface Official {
@@ -31,6 +39,10 @@ interface Official {
   kind: Kind;
   name: string;
   party: string;
+  /** The party a member of neither sits with, where the data names one. */
+  caucus?: string;
+  /** The key of the person's profile in officialProfiles.ts. */
+  profile: string;
   /** The state's id, or null for a mayor of a city in none of the fifty. */
   state: string | null;
   stateName: string;
@@ -74,6 +86,8 @@ const OFFICIALS: Official[] = (() => {
         kind: "senator",
         name: p.name,
         party: p.party,
+        caucus: p.caucus,
+        profile: p.id,
         state: s.id,
         stateName: s.name,
         office: `Senator for ${s.name}`,
@@ -92,6 +106,8 @@ const OFFICIALS: Official[] = (() => {
         kind: "representative",
         name: p.name,
         party: p.party,
+        caucus: p.caucus,
+        profile: p.id,
         state: s.id,
         stateName: s.name,
         office: `Representative for ${s.name}${p.district === "At Large" ? ", at large" : `, district ${p.district}`}`,
@@ -109,6 +125,7 @@ const OFFICIALS: Official[] = (() => {
       kind: "governor",
       name: o.governor.name,
       party: o.governor.party,
+      profile: `gov-${s.id}`,
       state: s.id,
       stateName: s.name,
       office: `Governor of ${s.name}`,
@@ -127,6 +144,7 @@ const OFFICIALS: Official[] = (() => {
       kind: "mayor",
       name: m.name,
       party: m.party,
+      profile: `mayor-${m.rank}`,
       state: m.state,
       stateName: m.stateName,
       office: `Mayor of ${m.city}`,
@@ -318,6 +336,7 @@ export function OfficialsExplorer({ onOpenState }: { /** Opens a state's window.
                       <span className="inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-full mt-1.5" style={{ background: partyColor(shown.party) + "22", color: t.headText }}>
                         <span className="w-1.5 h-1.5 rounded-full" style={{ background: partyColor(shown.party) }} aria-hidden />
                         {shown.party}
+                        {shown.caucus ? ` · sits with the ${shown.caucus}s` : ""}
                       </span>
                     </div>
                     <div className="flex flex-col">
@@ -331,6 +350,10 @@ export function OfficialsExplorer({ onOpenState }: { /** Opens a state's window.
                       </a>
                     )}
                   </Block>
+
+                  <Suspense fallback={<Empty t={t}>Loading {shown.name}'s education, career, votes and money…</Empty>}>
+                    <OfficialProfile t={t} id={shown.profile} kind={shown.kind} name={shown.name} color={k.color} />
+                  </Suspense>
 
                   {shown.state && (
                     <Block>
