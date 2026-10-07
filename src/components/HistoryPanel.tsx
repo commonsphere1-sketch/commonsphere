@@ -318,3 +318,74 @@ export function ArticlePanel({ title, name, mode }: { title: string; name: strin
     />
   );
 }
+
+/** Parts of a place's article that are lists, not a description of the place. */
+const NOT_PLACE =
+  /^(notable (people|residents|natives|persons|inhabitants|individuals).*|notable.*|famous.*|people|personalities|gallery|images?|twin towns.*|sister cit.*|twinning.*|town twinning|international relations|partner (cities|towns).*|in popular culture|climate data|panorama.*)$/i;
+/** Parts below an article's main ones that say what the people of a place speak, believe and keep. */
+const PEOPLE_AND_CULTURE = /language|dialect|religio|ethnic|cultur|cuisine|tradition|festival|music|architecture|heritage|etymolog|toponym/i;
+
+/**
+ * The English Wikipedia article of the place a GeoNames record is for: the one Wikidata links to the item that carries
+ * that GeoNames id. Looked up by the id, so no article is guessed from a name - Springfield is not found by
+ * "Springfield". Null where no one item carries the id or it has no English article.
+ */
+async function articleOfPlace(geonames: number): Promise<string | null> {
+  if (!Number.isInteger(geonames) || geonames <= 0) return null;
+  const found = await fetch(`https://www.wikidata.org/w/api.php?action=query&list=search&srsearch=haswbstatement:P1566=${geonames}&srlimit=2&format=json&origin=*`);
+  if (!found.ok) throw new Error(`Wikidata ${found.status}`);
+  const hits = ((await found.json()) as { query?: { search?: { title: string }[] } }).query?.search ?? [];
+  // Two items with one GeoNames id: which is the place cannot be told from here, so neither is used.
+  if (hits.length !== 1 || !/^Q\d+$/.test(hits[0].title)) return null;
+  const item = await fetch(`https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${hits[0].title}&props=sitelinks&sitefilter=enwiki&format=json&origin=*`);
+  if (!item.ok) throw new Error(`Wikidata ${item.status}`);
+  const entity = ((await item.json()) as { entities?: Record<string, { sitelinks?: { enwiki?: { title?: string } } }> }).entities?.[hits[0].title];
+  return entity?.sitelinks?.enwiki?.title ?? null;
+}
+
+/** A place's article as its opening and its parts: history, geography, people, and what they speak, believe and keep. */
+async function loadPlace(geonames: number, title?: string): Promise<History | null> {
+  const article = title || (await articleOfPlace(geonames));
+  if (!article) return null;
+  const page = await extractOf(article);
+  if (!page) return null;
+  const { lead, sections } = split(page.extract);
+  const parts: Era[] = [];
+  let skipping = false;
+  sections.forEach((s, i) => {
+    if (s.level === 2) {
+      skipping = APPARATUS.test(s.title) || NOT_PLACE.test(s.title);
+      if (skipping) return;
+      let text = s.paras[0];
+      for (let j = i + 1; !text && j < sections.length && sections[j].level > 2; j++) text = sections[j].paras[0];
+      if (text) parts.push({ title: s.title, text: opening(text) });
+    } else if (!skipping && s.level === 3 && PEOPLE_AND_CULTURE.test(s.title) && s.paras[0]) {
+      // Not the paragraph its main part has already opened with.
+      const text = opening(s.paras[0]);
+      if (!parts.some((p) => p.text === text)) parts.push({ title: s.title, text });
+    }
+  });
+  const open = lead.slice(0, 2).map((p) => opening(p, 640));
+  return open.length || parts.length ? { article: page.title, fromSection: false, lead: open, eras: parts.slice(0, 14) } : null;
+}
+
+/**
+ * A place in Wikipedia's words: what it is, then each part of its article - its history, its geography, its people
+ * and what they speak, its culture. The article is the one named, or the one Wikidata links to the place's GeoNames
+ * record. Fetched when the panel is shown, and kept for the visit; where no article is linked, it says so.
+ */
+export function PlacePanel({ geonames, title, name }: { /** The place's GeoNames id, or 0. */ geonames: number; /** Its article, where that is already known. */ title?: string; name: string }) {
+  const state = useLoaded(`place:${title || geonames}`, () => loadPlace(geonames, title));
+  return (
+    <HistoryView
+      state={state}
+      what="the description"
+      none={`No English Wikipedia article is linked to ${name}'s record, so its history and culture are not shown; none is guessed from the name.`}
+      note={(h) => (
+        <>
+          From Wikipedia's article {articleLink(h)}, shortened to each part's opening; the full article has more.
+        </>
+      )}
+    />
+  );
+}

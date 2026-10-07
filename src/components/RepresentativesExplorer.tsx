@@ -36,6 +36,12 @@
  * other maps do - the same three buttons, the wheel, and a drag to move - by
  * re-drawing at the new scale, so points stay points.
  *
+ * A picked place says what it is (PlacePanel): the opening of its Wikipedia
+ * article and each of its parts - history, geography, people, languages,
+ * culture - from the article Wikidata links to the place's GeoNames record,
+ * so none is guessed from a name. Under it, the languages and religions of
+ * the country it is in, where the site holds them with their source.
+ *
  * A verified head is set beside GeoNames' row for the place by GeoNames id,
  * or by the same name within a few kilometres. Nothing is typed in here, and
  * a count is the only thing worked out.
@@ -49,7 +55,9 @@ import worldTopo from "world-atlas/countries-110m.json";
 import { ArrowSquareOut, MagnifyingGlass, MagnifyingGlassMinus, MagnifyingGlassPlus, MapPin, X } from "@phosphor-icons/react";
 import { LEGISLATURE_PRESIDENTS, NATIONAL_HEADS, REGIONAL_ASSEMBLIES, REPRESENTATIVES, REPRESENTATIVE_COUNTRIES, REPRESENTATIVES_SOURCES as SRC, TERRITORY_HEADS } from "../data/representatives";
 import { CONTINENTS, PLACE_COUNTRIES, PLACE_KINDS, PLACES_LEVELS, PLACES_SOURCE, PLACES_TOTAL, PLACES_WORLD, type PlacesFile, type PlaceRow } from "../data/placesIndex";
+import { countriesData } from "../data/countriesData";
 import { Block, Empty, GoButton, Kpi, Label, Row, useTokens } from "./DataExplorer";
+import { PlacePanel } from "./HistoryPanel";
 import { SourceLink } from "./SourceLink";
 
 /** A place whose head three records agree on. */
@@ -725,6 +733,41 @@ export default function RepresentativesExplorer() {
                   </>
                 )}
               </div>
+              {(() => {
+                const name = pickedTown ? pickedTown[0] : pickedHead!.place;
+                // The country the place is in, as the site's own country data has it: only what that data cites a source for.
+                const land = countriesData.find((x) => x.code === (pickedHead?.country ?? c?.code));
+                const said = land
+                  ? ([
+                      ["Languages spoken", land.sources?.spokenLanguages ? land.spokenLanguages : undefined],
+                      ["Religions", land.sources?.religions ? land.religions : undefined],
+                    ] as const).filter(([, v]) => v?.length)
+                  : [];
+                return (
+                  <>
+                    <Label t={t}>About {name} · its history, people and culture</Label>
+                    <PlacePanel key={pickedTown ? pickedTown[6] : pickedHead!.id} geonames={pickedTown ? pickedTown[6] : pickedHead!.geo} title={pickedHead?.article} name={name} />
+                    {land && said.length > 0 && (
+                      <>
+                        <Label t={t}>In {land.name}, the country it is in</Label>
+                        <div className="flex flex-col">
+                          {said.map(([label, values]) => (
+                            <div key={label} className="flex items-baseline justify-between gap-3 py-1.5" style={{ borderBottom: `1px solid ${t.gridLine}` }}>
+                              <span className="text-[10px] font-mono shrink-0" style={{ color: t.mutedText }}>
+                                {label}
+                              </span>
+                              <span className="text-[11px] font-sans font-semibold text-right min-w-0" style={{ color: t.headText }}>
+                                {values!.join(", ")}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        <SourceLink sources={[land.sources?.spokenLanguages, land.sources?.religions].filter((s): s is { label: string; url: string } => !!s)} />
+                      </>
+                    )}
+                  </>
+                );
+              })()}
             </Block>
           ) : c ? (
             <>
