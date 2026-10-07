@@ -4,6 +4,7 @@ import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
 import { RecordedCrime } from "../components/RecordedCrime";
 import { JusticeSection } from "../components/JusticeSection";
+import { TraffickingAndSlavery } from "../components/TraffickingAndSlavery";
 import { CrimeExplorer } from "../components/CrimeExplorer";
 import { useLook } from "../components/CrimeParts";
 import {
@@ -2925,6 +2926,11 @@ export function CrimeStatsPage() {
             />
           </div>
         </div>
+
+        {/* ── HUMAN TRAFFICKING AND MODERN SLAVERY, ON PUBLISHED FIGURES: put back as asked, under the modern slavery
+            sections above. UNODC's detected victims of trafficking; and the ILO, Walk Free and IOM estimates - the
+            forms modern slavery takes, forced labour, the regions and the countries. ── */}
+        <TraffickingAndSlavery isLight={isLight} />
 
         {/* ── JUSTICE: its kinds, the legal traditions, the steps of a case, and a justice system in figures ── */}
         <JusticeSection look={look} />

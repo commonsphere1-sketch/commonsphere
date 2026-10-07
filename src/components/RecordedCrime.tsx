@@ -12,7 +12,6 @@ import {
   TRAFFICKING,
   UNSENTENCED,
   WILDLIFE_SEIZED,
-  type ArmType,
   type OffenceGroup,
   type OffenceKey,
   type SmallCount,
@@ -487,53 +486,6 @@ export function TraffickingByPlace({ isLight }: { isLight: boolean }) {
   return <Trafficking look={lookOf(isLight)} />;
 }
 
-// ── Firearms seized ────────────────────────────────────────────────────────
-
-const ARMS: { key: ArmType; label: string; color: string }[] = [
-  { key: "pistol", label: "Pistols", color: PARTS[0] },
-  { key: "revolver", label: "Revolvers", color: PARTS[1] },
-  { key: "rifle", label: "Rifles", color: PARTS[2] },
-  { key: "shotgun", label: "Shotguns", color: PARTS[3] },
-];
-
-function Firearms({ look }: { look: Look }) {
-  const rows: StackRow[] = useMemo(
-    () =>
-      Object.entries(ARMS_SEIZED)
-        .sort((a, b) => b[1].total - a[1].total)
-        .slice(0, TOP)
-        .map(([id, a]) => {
-          const segs = ARMS.flatMap((t) => {
-            const v = a.types?.[t.key];
-            return v === undefined ? [] : [{ label: t.label, color: t.color, value: v }];
-          });
-          return {
-            id,
-            name: nameOf(id),
-            total: a.total,
-            year: a.y,
-            segs,
-            title: `${nameOf(id)}, ${a.y}: ${whole(a.total)} firearms seized${segs.length ? ` — ${segs.map((s) => `${s.label.toLowerCase()} ${whole(s.value)}`).join(", ")}` : " (types not given)"}`,
-          };
-        }),
-    [],
-  );
-  return (
-    <Card look={look}>
-      <Head look={look} sub="Arms seized in a year · latest year reported" title="Firearms Seized" />
-      <p className="text-[10px] font-sans leading-relaxed mb-3" style={{ color: look.muted }}>
-        The {rows.length} places that seized the most, of <strong style={{ color: look.head }}>{Object.keys(ARMS_SEIZED).length}</strong> reporting. Countries report in different years — the year is beside each figure.
-      </p>
-      <StackList look={look} rows={rows} restLabel="Other types, or not given" totalHead="Seized" />
-      <Legend look={look} items={[...ARMS.map((t) => ({ label: t.label, color: t.color })), { label: "Machine guns, other types, or type not given", color: look.rest }]} />
-      <Note look={look}>
-        These are firearms the authorities took in a year, not firearms used in crime, and they show how much is seized as well as how much there is to seize.
-      </Note>
-      <SourceLink sources={OFFENCE_SOURCES.firearms} className="mt-3" />
-    </Card>
-  );
-}
-
 // ── Held without a sentence ────────────────────────────────────────────────
 
 const HELD_COLOR = "#f97316";
@@ -725,12 +677,12 @@ export function RecordedCrime({ isLight }: { isLight: boolean }) {
         <OffenceExplorer look={look} />
         <CountryRecord look={look} />
       </div>
-      {/* Trafficking in persons has its own section on the page, under this one. */}
+      {/* Trafficking in persons has its own section lower on the page, with modern slavery. The Firearms Seized card
+          that stood here was removed as asked; a place's own count of firearms seized is still in its record above. */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Firearms look={look} />
         <Unsentenced look={look} />
+        <Wildlife look={look} />
       </div>
-      <Wildlife look={look} />
     </>
   );
 }
