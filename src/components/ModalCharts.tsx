@@ -82,6 +82,8 @@ export interface MeasureRow {
   value?: number;
   /** The figure as printed. */
   text: string;
+  /** The row's own colour, where the chart gives each row one - the steps of an age ramp. Otherwise the thing's own, or the chart's. */
+  color?: string;
   /** Its unit or year, after the figure. */
   sub?: string;
   /** The world's figure on the same scale: a tick on the bar, and said after the figure. */
@@ -114,7 +116,7 @@ export function MeasureBars({ rows, max, color = ACCENT, label }: { rows: Measur
           </span>
           {r.value != null && (
             <span className="relative block h-1.5 rounded-full bg-muted mt-1" aria-hidden>
-              <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: at(r.value), minWidth: r.value > 0 ? 2 : 0, background: semanticColor(r.label) ?? color }} />
+              <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: at(r.value), minWidth: r.value > 0 ? 2 : 0, background: r.color ?? semanticColor(r.label) ?? color }} />
               {r.world && <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground" style={{ left: at(r.world.value) }} title={`World: ${r.world.text}`} />}
             </span>
           )}

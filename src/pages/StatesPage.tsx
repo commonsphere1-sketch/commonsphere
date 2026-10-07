@@ -249,12 +249,19 @@ function DemographicsCharts({ state }: { state: USState }) {
         <ChartNote className="mt-2">Census Bureau estimates. White, Black and Asian are non-Hispanic and of one race; Hispanic is of any race.</ChartNote>
       </div>
 
+      {/* Age Structure, as the window had it: each age group a row with its own bar, youngest first, one hue light to dark. */}
       <div className={tile}>
-        <ChartTitle>Its people by age · % of residents · {y.ageGroups}</ChartTitle>
-        <PartsBar label={`The people of ${state.name} by age, ${y.ageGroups}`} columns={3} colors={rampOf(state.ageGroups.length)} parts={state.ageGroups.map((g) => ({ label: g.group, value: g.pct, text: pct(g.pct) }))} />
+        <ChartTitle>
+          Age Structure · % of residents · {y.ageGroups} · median {state.medianAge} yrs
+        </ChartTitle>
+        <MeasureBars
+          label={`The people of ${state.name} by age, ${y.ageGroups}`}
+          rows={state.ageGroups.map((g, i) => ({ label: g.group, value: g.pct, text: pct(g.pct), color: rampOf(state.ageGroups.length)[i] }))}
+        />
         <div className="mt-2">
           <FigureRow label="Median age" value={`${state.medianAge} years`} sub={`ACS ${y.medianAge}`} />
         </div>
+        <ChartNote className="mt-2">Each bar is on the scale of the largest age group.</ChartNote>
       </div>
 
       <div className={tile}>
@@ -262,12 +269,18 @@ function DemographicsCharts({ state }: { state: USState }) {
         <PartsBar label={`The vote for president in ${state.name}, ${y.voterShare}`} columns={3} parts={state.voterShare.map((v) => ({ label: v.party, value: v.pct, text: pct(v.pct), color: partyFill(v.party) }))} />
       </div>
 
+      {/* Wealth Distribution, as the window had it: the people below, near and above the poverty line, a row and a bar each. */}
       <div className={tile}>
-        <ChartTitle>Income against the poverty line · % of people · {y.wealthPoverty}</ChartTitle>
-        <PartsBar label={`The people of ${state.name} by household income against the federal poverty line, ${y.wealthPoverty}`} columns={1} colors={rampOf(state.wealthPoverty.length)} parts={state.wealthPoverty.map((w) => ({ label: w.label, value: w.pct, text: pct(w.pct) }))} />
+        <ChartTitle>Wealth Distribution · % of people · {y.wealthPoverty}</ChartTitle>
+        <MeasureBars
+          max={100}
+          label={`The people of ${state.name} by household income against the federal poverty line, ${y.wealthPoverty}`}
+          rows={state.wealthPoverty.map((w, i) => ({ label: w.label, value: w.pct, text: pct(w.pct), color: rampOf(state.wealthPoverty.length)[i] }))}
+        />
         <div className="mt-2">
           <FigureRow label="Median household income" value={`$${state.medianIncome.toLocaleString()}`} sub={`ACS ${y.medianIncome}`} />
         </div>
+        <ChartNote className="mt-2">Household income set against the federal poverty line; each bar is on a scale of 0 to 100 per cent of the state's people.</ChartNote>
       </div>
 
       <div className={`${tile} sm:col-span-2`}>
