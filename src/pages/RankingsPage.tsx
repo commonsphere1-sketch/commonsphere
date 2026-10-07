@@ -15,7 +15,7 @@ import {
   CaretUp,
   X,
   MagnifyingGlass,
-  ArrowsLeftRight,
+  ChartDonut,
 } from "@phosphor-icons/react";
 import { FilterBar } from "../components/FilterBar";
 import { STATE_ENERGY } from "../data/stateEnergy";
@@ -1499,8 +1499,9 @@ function ComparePicker({
 
   return (
     <div className="relative" ref={ref}>
-      <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-dashed border-border bg-transparent">
-        <MagnifyingGlass size={12} className="text-muted-foreground shrink-0" />
+      {/* The dashed "add" pill of the Dashboard's compare card, with the search in it. */}
+      <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl" style={{ background: COMPARE_ACCENT + "12", border: `1px dashed ${COMPARE_ACCENT}55`, color: COMPARE_ACCENT }}>
+        <MagnifyingGlass size={11} weight="bold" className="shrink-0" />
         <input
           value={q}
           onChange={(e) => {
@@ -1545,6 +1546,19 @@ function ComparePicker({
   );
 }
 
+/** The Dashboard compare card's accent, which this panel is drawn to resemble. */
+const COMPARE_ACCENT = "#6366f1";
+/** The dot beside each indicator, and the colour its best figure takes, in the order the rows run - as the Dashboard's card colours its metrics. */
+const COMPARE_COLORS = ["#6366f1", "#8b5cf6", "#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#06b6d4", "#a855f7", "#84cc16", "#ec4899", "#14b8a6", "#f97316"];
+
+/**
+ * The comparison, drawn as the Dashboard's Compare card is, as asked: the
+ * same head, the pinned places as tinted chips with the dashed "add" beside
+ * them, and the table with a dot and a small-capitals name to each metric and
+ * the best figure in the metric's colour with a mark. What it compares is
+ * unchanged - every indicator the page had, each figure with its rank among
+ * the entities that publish it and the bar of how many it is ahead of.
+ */
 function ComparisonPanel({
   selected,
   allRows,
@@ -1562,111 +1576,85 @@ function ComparisonPanel({
   onRemove: (id: string) => void;
   onClear: () => void;
 }) {
+  /* A measure nobody in the pool publishes — homelessness, since HUD's counts
+     could not be fetched and there is no comparable international series —
+     would only ever be a row of N/A, so it is not drawn. Nor is one that none
+     of the pinned entities publishes: pin only countries and the US-only
+     state rows would be N/A all the way across. The colour is the row's place
+     in the full list, so a metric keeps its colour whatever is pinned. */
+  const rows = COMPARE_ROWS.map((m, i) => ({ m, color: COMPARE_COLORS[i % COMPARE_COLORS.length] })).filter(
+    ({ m }) => (rankByMetric.get(m.id)?.size ?? 0) > 0 && selected.some((r) => hasMetric(r, m.id)),
+  );
+  const cols = `clamp(132px, 30%, 220px) repeat(${selected.length}, minmax(6.5rem, 1fr))`;
+
   return (
+    /* The card does not clip: the picker's list must spill out of it. */
     <div className="bg-card border border-border rounded-2xl">
-      {/* A tinted header, indigo into teal like the dashboard hero, with the
-          sidebar's Compare icon. The card itself no longer clips (the
-          picker list must spill out), so the header rounds its own top. */}
-      <div
-        className="px-4 py-3 border-b border-border flex items-center justify-between gap-3 flex-wrap rounded-t-2xl"
-        style={{
-          background:
-            "linear-gradient(120deg, color-mix(in srgb, #6366f1 14%, transparent) 0%, color-mix(in srgb, #14b8a6 10%, transparent) 100%)",
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <span
-            className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-            style={{ background: "color-mix(in srgb, #6366f1 20%, transparent)", color: "#6366f1" }}
-          >
-            <ArrowsLeftRight size={16} weight="bold" />
-          </span>
-          <div>
-          <p className="text-sm font-bold font-sans text-foreground">Compare</p>
-          <p className="text-[11px] text-muted-foreground font-sans">
-            Countries and US states together, each figure with its rank among
-            the {allRows.length} entities that the page ranks.
-          </p>
+      {/* Head: the icon, the name and what it holds, as on the Dashboard's card. */}
+      <div className="px-5 py-3.5 border-b border-border">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: COMPARE_ACCENT + "12", border: `1px solid ${COMPARE_ACCENT}22` }}>
+            <ChartDonut size={13} weight="fill" style={{ color: COMPARE_ACCENT }} />
           </div>
-        </div>
-        {selected.length > 0 && (
-          <button
-            type="button"
-            onClick={onClear}
-            className="text-[10px] font-sans text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-          >
-            Clear all
-          </button>
-        )}
-      </div>
-
-      {/* Pinned entities */}
-      <div className="px-4 py-3 flex flex-wrap items-center gap-2 border-b border-border">
-        {selected.map((r) => (
-          <span
-            key={r.id}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-border bg-muted/40 text-[11px] font-semibold font-sans text-foreground"
-          >
-            <EntityFlag
-              row={r}
-              imgClassName="w-4 h-3 rounded-[2px] object-cover border border-border shrink-0"
-              iconSize={8}
-            />
-            <span className="truncate max-w-[9rem]">{r.name}</span>
-            <button
-              type="button"
-              onClick={() => onRemove(r.id)}
-              aria-label={`Remove ${r.name}`}
-              className="ml-0.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-            >
-              <X size={10} weight="bold" />
-            </button>
+          <span className="text-sm font-bold font-sans text-foreground">Compare</span>
+          <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-lg" style={{ background: COMPARE_ACCENT + "18", color: COMPARE_ACCENT }}>
+            Countries &amp; US States
           </span>
-        ))}
-        <ComparePicker allRows={allRows} selectedIds={selectedIds} onAdd={onAdd} />
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full tabular-nums" style={{ background: COMPARE_ACCENT + "14", color: COMPARE_ACCENT }}>
+            up to {COMPARE_MAX}
+          </span>
+        </div>
+        <p className="text-[11px] text-muted-foreground font-sans mt-1.5">
+          Countries and US states together, each figure with its rank among the {allRows.length} entities that the page ranks.
+        </p>
       </div>
 
-      {selected.length === 0 ? (
-        <p className="px-4 py-6 text-[11px] font-sans text-muted-foreground">
-          Nothing pinned. Search above, or open any row in the table below and
-          add it from there.
-        </p>
-      ) : (
-        <div className="overflow-x-auto rounded-b-2xl">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="text-left text-[9px] font-sans uppercase tracking-widest text-muted-foreground font-medium px-4 py-2 sticky left-0 bg-card z-10">
-                  Indicator
-                </th>
+      <div className="p-5 flex flex-col gap-4">
+        {/* Pinned entities */}
+        <div className="flex flex-wrap items-center gap-2">
+          {selected.map((r) => (
+            <div
+              key={r.id}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold font-sans text-foreground"
+              style={{ background: COMPARE_ACCENT + "12", border: `1px solid ${COMPARE_ACCENT}30` }}
+            >
+              <EntityFlag row={r} imgClassName="w-4 h-3 rounded-[2px] object-cover border border-border shrink-0" iconSize={8} />
+              <span className="truncate max-w-[9rem]">{r.name}</span>
+              <button type="button" onClick={() => onRemove(r.id)} aria-label={`Remove ${r.name}`} className="ml-0.5 text-muted-foreground hover:opacity-60 transition-opacity cursor-pointer">
+                <X size={10} weight="bold" />
+              </button>
+            </div>
+          ))}
+          <ComparePicker allRows={allRows} selectedIds={selectedIds} onAdd={onAdd} />
+          {selected.length > 0 && (
+            <button type="button" onClick={onClear} className="text-[10px] font-mono text-muted-foreground hover:opacity-60 transition-opacity ml-auto cursor-pointer">
+              Clear all
+            </button>
+          )}
+        </div>
+
+        {selected.length === 0 ? (
+          <div className="rounded-xl px-4 py-6 text-center border border-dashed border-border bg-muted/20">
+            <p className="text-[12px] font-sans text-muted-foreground">Nothing pinned. Search above, or open any row in the table below and add it from there.</p>
+          </div>
+        ) : (
+          <div className="rounded-xl overflow-x-auto border border-border">
+            <div style={{ minWidth: `${132 + selected.length * 104}px` }}>
+              <div className="grid bg-muted/40 border-b border-border" style={{ gridTemplateColumns: cols }}>
+                <div className="px-3 py-2.5 flex items-center">
+                  <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">Metric</span>
+                </div>
                 {selected.map((r) => (
-                  <th key={r.id} className="px-3 py-2 min-w-[8.5rem]">
-                    <span className="flex items-center gap-1.5">
-                      <EntityFlag
-                        row={r}
-                        imgClassName="w-4 h-3 rounded-[2px] object-cover border border-border shrink-0"
-                        iconSize={8}
-                      />
-                      <span className="text-[11px] font-semibold font-sans text-foreground truncate">
-                        {r.name}
-                      </span>
-                    </span>
-                  </th>
+                  <div key={r.id} className="px-2 py-2.5 text-center flex flex-col items-center gap-1 min-w-0">
+                    <EntityFlag row={r} imgClassName="w-7 h-5 rounded-[3px] object-cover border border-border shrink-0" iconSize={14} />
+                    <p className="text-[10px] font-bold font-sans truncate w-full text-center text-foreground" title={r.name}>
+                      {r.name}
+                    </p>
+                    <span className="text-[9px] font-mono text-muted-foreground">{r.type === "state" ? "US state" : "Country"}</span>
+                  </div>
                 ))}
-              </tr>
-            </thead>
-            <tbody>
-              {/* A measure nobody in the pool publishes — homelessness, since
-                  HUD's counts could not be fetched and there is no
-                  comparable international series — would only ever be a
-                  row of N/A, so it is not drawn. Nor is one that none of the
-                  pinned entities publishes: pin only countries and the
-                  US-only state rows would be N/A all the way across. */}
-              {COMPARE_ROWS.filter(
-                (m) =>
-                  (rankByMetric.get(m.id)?.size ?? 0) > 0 &&
-                  selected.some((r) => hasMetric(r, m.id)),
-              ).map((m) => {
+              </div>
+              {rows.map(({ m, color }, ri) => {
                 // Best of the pinned set, among those that publish it. Size,
                 // tax and total output have no better direction, so nothing is
                 // marked on those — a bigger country is not a better one.
@@ -1676,9 +1664,7 @@ function ComparisonPanel({
                   for (const r of withData) {
                     if (!best) best = r;
                     else {
-                      const better = m.higherIsBetter
-                        ? (r[m.id] as number) > (best[m.id] as number)
-                        : (r[m.id] as number) < (best[m.id] as number);
+                      const better = m.higherIsBetter ? (r[m.id] as number) > (best[m.id] as number) : (r[m.id] as number) < (best[m.id] as number);
                       if (better) best = r;
                     }
                   }
@@ -1687,32 +1673,24 @@ function ComparisonPanel({
                   // pinned first as "best" claims a difference that is not
                   // there.
                   const bv = best![m.id] as number;
-                  if (withData.filter((r) => (r[m.id] as number) === bv).length > 1) {
-                    best = undefined;
-                  }
+                  if (withData.filter((r) => (r[m.id] as number) === bv).length > 1) best = undefined;
                 }
                 const ranks = rankByMetric.get(m.id);
                 // The rank map holds exactly the entities that publish the
-                // measure, so its size is the pool. allValuesMap only covers
-                // the ranked METRICS, so the compare-only rows read "of 0"
-                // from it.
+                // measure, so its size is the pool.
                 const poolSize = ranks?.size ?? 0;
-
                 return (
-                  <tr key={m.id} className="border-b border-border/40 last:border-0">
-                    <td className="px-4 py-2 sticky left-0 bg-card z-10">
-                      <p className="text-[11px] font-sans text-foreground leading-snug">
-                        {m.label}
-                      </p>
-                      <p className="text-[9px] font-sans text-muted-foreground leading-snug">
-                        {m.neutral
-                          ? "no better direction"
-                          : m.higherIsBetter
-                            ? "higher is better"
-                            : "lower is better"}
-                        {poolSize > 0 && ` · ${poolSize} with data`}
-                      </p>
-                    </td>
+                  <div key={m.id} className={`grid ${ri % 2 === 1 ? "bg-muted/20" : ""} ${ri < rows.length - 1 ? "border-b border-border" : ""}`} style={{ gridTemplateColumns: cols }}>
+                    <div className="px-3 py-2.5 flex items-start gap-2 border-r border-border min-w-0">
+                      <div className="w-1.5 h-1.5 rounded-full shrink-0 mt-1" style={{ background: color }} />
+                      <div className="min-w-0">
+                        <span className="block text-[10px] font-mono font-semibold uppercase tracking-wide text-muted-foreground leading-snug">{m.label}</span>
+                        <span className="block text-[9px] font-sans text-muted-foreground/80 leading-snug mt-0.5">
+                          {m.neutral ? "no better direction" : m.higherIsBetter ? "higher is better" : "lower is better"}
+                          {poolSize > 0 && ` · ${poolSize} with data`}
+                        </span>
+                      </div>
+                    </div>
                     {selected.map((r) => {
                       const val = r[m.id] as number;
                       const present = hasMetric(r, m.id);
@@ -1723,48 +1701,42 @@ function ComparisonPanel({
                       // times the next entity — min-max squashes almost
                       // everyone into the same sliver, so the bar disagreed
                       // with the rank printed directly above it.
-                      const pct =
-                        rank && poolSize > 1
-                          ? ((poolSize - rank) / (poolSize - 1)) * 100
-                          : 0;
-                      const isBest = best && r.id === best.id && withData.length > 1;
+                      const pct = rank && poolSize > 1 ? ((poolSize - rank) / (poolSize - 1)) * 100 : 0;
+                      const isBest = !!best && r.id === best.id && withData.length > 1;
                       return (
-                        <td key={r.id} className="px-3 py-2 align-top">
-                          <p
-                            className={`text-xs font-mono ${
-                              present ? "text-foreground" : "text-muted-foreground"
-                            } ${isBest ? "font-bold" : ""}`}
+                        <div key={r.id} className="px-2 py-2 flex flex-col items-center justify-center gap-0.5 min-w-0">
+                          <span
+                            className={`text-[12px] font-mono font-bold leading-tight ${present ? "text-foreground" : "text-muted-foreground"}`}
+                            style={isBest ? { color } : undefined}
+                            title={isBest ? "The best of those pinned" : undefined}
                           >
                             {fmtMetric(m, val)}
                             {isBest && (
-                              <span className="ml-1 text-[9px] font-sans text-success">
-                                best
+                              <span className="ml-0.5 text-[8px]" aria-label="best of those pinned">
+                                ▲
                               </span>
                             )}
-                          </p>
+                          </span>
                           {present && rank && (
                             <>
-                              <p className="text-[9px] font-mono text-muted-foreground">
+                              <span className="text-[9px] font-mono text-muted-foreground">
                                 #{rank} of {poolSize}
-                              </p>
-                              <div className="h-1 rounded-full bg-muted mt-1 overflow-hidden">
-                                <div
-                                  className="h-full rounded-full bg-secondary"
-                                  style={{ width: `${Math.max(2, pct)}%` }}
-                                />
+                              </span>
+                              <div className="h-1 w-full max-w-[5rem] rounded-full bg-muted overflow-hidden">
+                                <div className="h-full rounded-full" style={{ width: `${Math.max(2, pct)}%`, background: color }} />
                               </div>
                             </>
                           )}
-                        </td>
+                        </div>
                       );
                     })}
-                  </tr>
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
-      )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
