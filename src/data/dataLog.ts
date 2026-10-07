@@ -62,6 +62,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "Political theories and forms of governance, each described and with works to read",
+    "from": "Wikidata, Wikipedia; links to Britannica, the Stanford and Internet encyclopedias of philosophy",
+    "page": "/dashboard/worldview",
+    "where": "Worldview",
+    "read": "2026-10-07",
+    "files": 1
+  },
+  {
     "what": "Revolutions, protests, boycotts and internal conflicts, each with its cause, what it cost and how it ended",
     "from": "Wikipedia",
     "page": "/dashboard/crime",
@@ -320,4 +328,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 58;
+export const DATA_LOG_FILES = 59;

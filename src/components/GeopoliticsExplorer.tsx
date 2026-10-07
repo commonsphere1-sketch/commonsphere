@@ -18,11 +18,23 @@
  *                          their members, each checked against the body's
  *                          own page (alliances.ts).
  *
- * The list is searched by name, member or place, and narrowed by kind.
+ *   Political theories     the ideologies and philosophies, and the forms of
+ *   and forms of           government and political systems, that more than
+ *   governance             one work of reference has an entry for
+ *                          (politicalTheories.ts): each described by the
+ *                          opening of its Wikipedia article, with the
+ *                          Stanford and Internet encyclopedias of philosophy
+ *                          and the Britannica listed first, to read and cite.
+ *
+ * A measure also says what it counts and why it matters, in its source's
+ * terms (worldviewExplain.ts). The list is searched by name, member or place,
+ * and narrowed by kind.
  */
 import { useMemo, useState } from "react";
 import { Globe, MagnifyingGlass, X } from "@phosphor-icons/react";
 import { WORLD, type WorldIndicator } from "../data/worldview";
+import { EXPLAIN } from "../data/worldviewExplain";
+import { POLITICAL_IDEAS, POLITICAL_THEORIES_RETRIEVED, type PoliticalIdea } from "../data/politicalTheories";
 import { ALLIANCES, ALLIANCES_CHECKED, ALLIANCE_KIND_PLURAL, HUMAN_RIGHTS_CHECKED, type Alliance, type AllianceKind } from "../data/alliances";
 import { Block, Empty, Kpi, Label, Row, useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
@@ -42,7 +54,9 @@ const KIND_COLOR: Record<AllianceKind, string> = {
   "Human rights body": "#ec4899",
 };
 
-type Item = { key: string; group: string; color: string; name: string; said: string; find: string } & ({ m: WorldIndicator } | { a: Alliance });
+type Item = { key: string; group: string; color: string; name: string; said: string; find: string } & ({ m: WorldIndicator } | { a: Alliance } | { p: PoliticalIdea });
+/** The two kinds of political idea, each under its own heading and colour. */
+const IDEA_GROUP = { theory: { group: "Political theories", color: "#d946ef" }, governance: { group: "Forms of governance", color: "#14b8a6" } } as const;
 
 const places = new Intl.DisplayNames(["en"], { type: "region" });
 const placeName = (code: string) => {
@@ -79,6 +93,15 @@ const ITEMS: Item[] = [
     said: `${a.memberCount} members${a.founded ? ` · founded ${a.founded}` : ""}`,
     find: `${a.name} ${a.short} ${(a.members ?? []).map(placeName).join(" ")}`,
     a,
+  })),
+  ...POLITICAL_IDEAS.map((p): Item => ({
+    key: `p-${p.kind}-${p.name}`,
+    group: IDEA_GROUP[p.kind].group,
+    color: IDEA_GROUP[p.kind].color,
+    name: p.name,
+    said: `${p.classed} · ${p.sources.length} works to read`,
+    find: `${p.name} ${p.said}`,
+    p,
   })),
 ];
 const GROUPS = [...new Set(ITEMS.map((x) => x.group))];
@@ -170,7 +193,7 @@ export function GeopoliticsExplorer() {
               </div>
             );
           })}
-          {list.length === 0 && <Empty t={t}>No measure or alliance matches the search.</Empty>}
+          {list.length === 0 && <Empty t={t}>No measure, alliance or political idea matches the search.</Empty>}
         </div>
 
         <div className="explorer-detail flex-1 overflow-y-auto p-4 flex flex-col gap-3 md:h-full">
@@ -210,6 +233,22 @@ export function GeopoliticsExplorer() {
                       {m.note}
                     </p>
                   )}
+                  {EXPLAIN[m.id]?.what && (
+                    <>
+                      <Label t={t}>What it measures</Label>
+                      <p className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                        {EXPLAIN[m.id].what}
+                      </p>
+                    </>
+                  )}
+                  {EXPLAIN[m.id]?.why && (
+                    <>
+                      <Label t={t}>Why it matters</Label>
+                      <p className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                        {EXPLAIN[m.id].why}
+                      </p>
+                    </>
+                  )}
                   <p className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
                     The series runs from {m.series[0][0]} to {year}; the change is worked out from its own two readings.
                   </p>
@@ -217,6 +256,26 @@ export function GeopoliticsExplorer() {
                 </Block>
               );
             })()
+          ) : "p" in shown ? (
+            <Block>
+              <div className="min-w-0">
+                <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: shown.color }}>
+                  {shown.group} · classed as a {shown.p.classed}
+                </p>
+                <p className="text-sm font-bold font-sans leading-tight mt-0.5" style={{ color: t.headText }}>
+                  {shown.p.name}
+                </p>
+              </div>
+              <p className="text-[12px] font-sans leading-relaxed" style={{ color: t.bodyText }}>
+                {shown.p.said}
+              </p>
+              <Label t={t}>Works to read · {shown.p.sources.length}</Label>
+              <SourceLink sources={shown.p.sources} />
+              <p className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
+                The description is the opening of its Wikipedia article, the one of these works whose words are open to reuse. The others are linked to be read and cited; none of
+                their text is taken. It is here because more than one work of reference has an entry for it. Read on {POLITICAL_THEORIES_RETRIEVED}.
+              </p>
+            </Block>
           ) : (
             (() => {
               const a = shown.a;
@@ -294,7 +353,7 @@ export function GeopoliticsExplorer() {
 
       <div className="px-4 py-2.5 border-t" style={{ borderColor: t.gridLine }}>
         <span className="text-[10px] font-mono" style={{ color: t.mutedText }}>
-          {list.length} of {ITEMS.length} · alliances checked {ALLIANCES_CHECKED}
+          {list.length} of {ITEMS.length} · alliances checked {ALLIANCES_CHECKED} · political ideas read {POLITICAL_THEORIES_RETRIEVED}
         </span>
       </div>
     </div>
