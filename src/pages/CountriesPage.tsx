@@ -13,7 +13,7 @@ import { JUSTICE_OUTCOMES, JUSTICE_SOURCES, type OffenceKind } from "../data/jus
 import { semanticColor } from "../lib/semanticColors";
 import { PlaceTopics } from "../components/PlaceTopics";
 
-/* Every country's parties and chambers: loaded when a Governance tab opens, not with the page. */
+/* Every country's parties and chambers: loaded when a Politics tab opens, not with the page. */
 const PoliticalParties = lazy(() => import("../components/PoliticalParties"));
 const Universities = lazy(() => import("../components/Universities"));
 /** The Sovereignty report: a panel with its own data, loaded when the Politics tab opens. */
@@ -746,24 +746,24 @@ function CountryModal({
                   icon: <ListBullets size={13} weight="fill" />,
                 },
                 {
-                  id: "map" as const,
-                  label: "Map",
-                  icon: <MapTrifold size={13} weight="fill" />,
-                },
-                {
-                  id: "constitution" as const,
-                  label: "Governance",
-                  icon: <Scales size={13} weight="fill" />,
-                },
-                {
                   id: "politics" as const,
                   label: "Politics",
                   icon: <Flag size={13} weight="fill" />,
                 },
                 {
+                  id: "constitution" as const,
+                  label: "Law",
+                  icon: <Scales size={13} weight="fill" />,
+                },
+                {
                   id: "history" as const,
                   label: "History",
                   icon: <Scroll size={13} weight="fill" />,
+                },
+                {
+                  id: "map" as const,
+                  label: "Map",
+                  icon: <MapTrifold size={13} weight="fill" />,
                 },
               ] as const
             ).map((tab) => (
@@ -883,13 +883,13 @@ function CountryModal({
             </div>
           )}
 
-          {/* ── CONSTITUTION TAB ── */}
+          {/* ── LAW TAB (it was labelled Governance) ── */}
           {activeTab === "constitution" && (
             <ConstitutionTab country={country} />
           )}
 
           {/* ── POLITICS TAB: the parties and the seats they hold, the place's sovereignty, and what is being
-              reported about it now. They stood in the overview and under Governance; they are one category here. ── */}
+              reported about it now. They stood in the overview and under Governance, the tab now labelled Law; they are one category here. ── */}
           {activeTab === "politics" && (
             <Suspense fallback={null}>
               <PoliticalParties code={country.code} name={country.name} className="" />

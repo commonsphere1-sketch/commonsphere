@@ -533,8 +533,8 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
             {(
               [
                 { key: "overview", label: "Overview", icon: <ListBullets size={14} /> },
-                { key: "map", label: "Map", icon: <MapTrifold size={14} /> },
                 { key: "history", label: "History", icon: <ClockCounterClockwise size={14} /> },
+                { key: "map", label: "Map", icon: <MapTrifold size={14} /> },
               ] as const
             ).map((tab) => (
               <button

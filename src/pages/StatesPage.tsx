@@ -6026,10 +6026,10 @@ function StateModal({
       label: "Overview",
       icon: <ListBullets size={13} weight="bold" />,
     },
-    { id: "map", label: "Map", icon: <MapTrifold size={13} weight="fill" /> },
-    { id: "laws", label: "Laws", icon: <Scales size={13} weight="fill" /> },
     { id: "politics", label: "Politics", icon: <Flag size={13} weight="fill" /> },
+    { id: "laws", label: "Laws", icon: <Scales size={13} weight="fill" /> },
     { id: "history", label: "History", icon: <Scroll size={13} weight="fill" /> },
+    { id: "map", label: "Map", icon: <MapTrifold size={13} weight="fill" /> },
   ];
 
   return (

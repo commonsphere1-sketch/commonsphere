@@ -8,7 +8,7 @@
  * Where an election renewed only part of a chamber - a third of a senate -
  * the seats shown are the ones contested, and the panel says that too.
  *
- * Loaded when a window's Governance tab opens: the data is every country's.
+ * Loaded when a window's Politics tab opens: the data is every country's.
  */
 import { UsersThree } from "@phosphor-icons/react";
 import { COUNTRY_POLITICS, COUNTRY_POLITICS_SOURCE, type Chamber } from "../data/countryPolitics";
