@@ -21,7 +21,6 @@ import { has } from "../lib/na";
 import { SourceLink } from "../components/SourceLink";
 import { FilterBar } from "../components/FilterBar";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
-import { DataExplorer } from "../components/DataExplorer";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -10889,8 +10888,7 @@ export function PolicyPage() {
         )}
       />
 
-      {/* Data explorer: the Dashboard's policies panel, on its own */}
-      <DataExplorer only="policies" />
+      {/* The policies explorer stood here and was taken off the page, as asked. DataExplorer keeps its policies panel (only="policies"), unmounted. */}
 
       {/* Entity rows */}
       {paginatedGroups.length === 0 ? (
