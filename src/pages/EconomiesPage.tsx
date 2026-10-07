@@ -2738,11 +2738,12 @@ export function EconomiesPage() {
                 ? "No economies match."
                 : `Showing ${currentPage * ECONOMIES_PER_PAGE + 1}–${Math.min((currentPage + 1) * ECONOMIES_PER_PAGE, filtered.length)} of ${filtered.length} economies`}
             </p>
-            {/* What a card's hue says, before any is read: the degree of inflation the economy is at. */}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mb-3" aria-label="What each card's colour means">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Card colour</span>
+            {/* What the tab down a card's side says, before any is read: the degree of inflation the economy is at. */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mb-3" aria-label="What the coloured tab on each card means">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Side tab</span>
               {ECONOMY_STATUS_KEY.map((k) => (
                 <span key={k.key} className="inline-flex items-center gap-1.5" title={`${k.label}: ${k.means}`}>
+                  <span aria-hidden className="w-[3px] h-4 rounded-full" style={{ background: k.edge }} />
                   <span className={`text-[10px] font-semibold font-sans px-2 py-0.5 rounded-full ${k.chip}`}>{k.label}</span>
                 </span>
               ))}
@@ -2760,11 +2761,12 @@ export function EconomiesPage() {
                   {/* ── Main card ── */}
                   <article
                     onClick={() => setModalEconomy(economy)}
-                    className="cs-on-hue modal-tile relative overflow-hidden rounded-xl p-2 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40 flex-1 min-w-0"
+                    className="modal-tile relative overflow-hidden rounded-xl p-2 pl-3.5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40 flex-1 min-w-0"
                     title={statusOf(economy).detail}
                   >
-                    {/* The hue of the degree of inflation the economy is at: the headline banners' wash, in the degree's colour. */}
-                    <div aria-hidden className={`absolute inset-0 ${statusOf(economy).hue} pointer-events-none`} />
+                    {/* The degree of inflation the economy is at, as a coloured tab down the card's left side - the edge the
+                        Worldview's pillars have. A strip, not a shadow: the card's own shadow is set !important and would win. */}
+                    <div aria-hidden className="absolute inset-y-0 left-0 w-[3px] pointer-events-none" style={{ background: statusOf(economy).edge }} />
                     <div className="relative">
                     <div className="flex items-start justify-between mb-1">
                       <div>

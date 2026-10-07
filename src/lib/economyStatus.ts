@@ -17,9 +17,10 @@
  * from above, said in the key so it is not mistaken for anybody's standard.
  * It reads prices alone: growth, jobs and debt are the figures on each card.
  *
- * Each degree carries the hue its card is washed in - the same wash as the
- * headline banners' blue, in the degree's colour - and the tone of the chip
- * that names it, so no card says its degree by colour alone.
+ * Each degree carries the colour of the tab down its card's left side - the
+ * edge the Worldview's pillars have - and the tone of the chip that names it,
+ * so no card says its degree by colour alone. The colour washed the whole
+ * card at first; it was moved to the tab as asked.
  */
 import { WORLD } from "../data/worldview";
 import { TONE } from "./chipTone";
@@ -32,31 +33,23 @@ export type EconomyStatus = {
   label: string;
   /** The two figures behind it, in a sentence. */
   detail: string;
-  /** The wash across the card: a background image, written out in full so Tailwind generates it. */
-  hue: string;
+  /** The colour of the tab down the card's left side. */
+  edge: string;
   /** The chip's colours, light and dark. */
   chip: string;
 };
 
-/* Written out in full, not built from parts, because Tailwind only generates
-   classes it can find as whole strings in the source. Each is the headline
-   banners' wash (lib/blueHue.ts) in another colour. */
-const HUE: Record<EconomyStatusKey, string> = {
-  falling: "bg-gradient-to-r from-sky-600/20 via-cyan-500/10 to-sky-700/20 dark:from-sky-900/70 dark:via-cyan-800/45 dark:to-sky-900/70",
-  below: "bg-gradient-to-r from-emerald-600/20 via-teal-500/10 to-emerald-700/20 dark:from-emerald-900/70 dark:via-teal-800/45 dark:to-emerald-900/70",
-  above: "bg-gradient-to-r from-amber-500/25 via-yellow-400/10 to-amber-600/25 dark:from-amber-900/60 dark:via-yellow-800/35 dark:to-amber-900/60",
-  high: "bg-gradient-to-r from-rose-600/20 via-red-500/10 to-rose-700/20 dark:from-rose-900/70 dark:via-red-800/45 dark:to-rose-900/70",
-  unknown: "bg-gradient-to-r from-slate-500/15 via-slate-400/5 to-slate-600/15 dark:from-slate-800/60 dark:via-slate-700/35 dark:to-slate-800/60",
-};
+/* The chip's own family of colour, at the strength a 3px edge needs to be seen on a dark card and a light one. */
+const EDGE: Record<EconomyStatusKey, string> = { falling: "#0ea5e9", below: "#10b981", above: "#f59e0b", high: "#f43f5e", unknown: "#94a3b8" };
 const CHIP: Record<EconomyStatusKey, string> = { falling: TONE.sky, below: TONE.emerald, above: TONE.amber, high: TONE.rose, unknown: TONE.slate };
 
 /** What each degree means, for the key above the cards, lowest first. */
-export const ECONOMY_STATUS_KEY: { key: EconomyStatusKey; label: string; means: string; hue: string; chip: string }[] = [
-  { key: "falling", label: "Prices falling", means: "consumer prices fell over the year", hue: HUE.falling, chip: CHIP.falling },
-  { key: "below", label: "Inflation below the world's", means: "prices rose by less than the world's rate", hue: HUE.below, chip: CHIP.below },
-  { key: "above", label: "Inflation above the world's", means: "prices rose by the world's rate or more, up to twice it", hue: HUE.above, chip: CHIP.above },
-  { key: "high", label: "Inflation over twice the world's", means: "prices rose by more than twice the world's rate", hue: HUE.high, chip: CHIP.high },
-  { key: "unknown", label: "No inflation figure", means: "none is published for it", hue: HUE.unknown, chip: CHIP.unknown },
+export const ECONOMY_STATUS_KEY: { key: EconomyStatusKey; label: string; means: string; edge: string; chip: string }[] = [
+  { key: "falling", label: "Prices falling", means: "consumer prices fell over the year", edge: EDGE.falling, chip: CHIP.falling },
+  { key: "below", label: "Inflation below the world's", means: "prices rose by less than the world's rate", edge: EDGE.below, chip: CHIP.below },
+  { key: "above", label: "Inflation above the world's", means: "prices rose by the world's rate or more, up to twice it", edge: EDGE.above, chip: CHIP.above },
+  { key: "high", label: "Inflation over twice the world's", means: "prices rose by more than twice the world's rate", edge: EDGE.high, chip: CHIP.high },
+  { key: "unknown", label: "No inflation figure", means: "none is published for it", edge: EDGE.unknown, chip: CHIP.unknown },
 ];
 
 const rate = (v: number) => `${Math.abs(v).toFixed(1)}%`;
@@ -67,7 +60,7 @@ export const worldInflation = (year: string | number | undefined): number | null
 
 /** An economy's degree of inflation, from its inflation rate and the year that figure is for. */
 export function economyStatus(inflation: number | undefined, year: string | undefined): EconomyStatus {
-  const of = (key: EconomyStatusKey, label: string, detail: string): EconomyStatus => ({ key, label, detail, hue: HUE[key], chip: CHIP[key] });
+  const of = (key: EconomyStatusKey, label: string, detail: string): EconomyStatus => ({ key, label, detail, edge: EDGE[key], chip: CHIP[key] });
   if (inflation == null || !Number.isFinite(inflation)) return of("unknown", "No inflation figure", "No consumer-price inflation figure is published for this economy.");
   const when = year ? ` in ${year}` : "";
   if (inflation < 0) return of("falling", "Prices falling", `Its consumer prices fell ${rate(inflation)}${when}.`);
