@@ -6,10 +6,17 @@
  *   unitedstates/              each senator's and representative's current
  *     congress-legislators     term: the day it ends, a senator's class, and
  *                              the member's official website
- *   Wikipedia, "List of        each governor's term end as that list gives
- *     current United States    it, which it cites to the National Governors
- *     governors"               Association's roster, with the NGA's page for
- *                              the governor
+ *   Wikipedia, "List of        each governor - name, party, the day the term
+ *     current United States    began and its end as that list gives them,
+ *     governors"               which it cites to the National Governors
+ *                              Association's roster - with the NGA's page
+ *                              for the governor
+ *   Wikipedia, "List of        the mayor of each of the fifty largest
+ *     mayors of the 50         cities: name, party as the list gives it (most
+ *     largest cities in the    of these offices are nonpartisan in law, and
+ *     United States"           the list says which), the day the term began
+ *                              and the year of the next election. They are
+ *                              the officials explorer's mayors
  *
  * The election days themselves are not stored: they follow from federal law
  * and are worked out in lib/usCivicDates.ts.
@@ -32,6 +39,20 @@ fs.mkdirSync(CACHE, { recursive: true });
 
 const CONGRESS = "https://unitedstates.github.io/congress-legislators/legislators-current.json";
 const GOVERNORS_PAGE = "List of current United States governors";
+const MAYORS_PAGE = "List of mayors of the 50 largest cities in the United States";
+/**
+ * A party as the site names it: the congress-legislators data says "Democrat", the Wikipedia lists "Democratic" - and
+ * "DFL" for Minnesota's Democratic-Farmer-Labor Party, which is the Democratic Party's affiliate in that state.
+ */
+const partyName = (p) => (/Democrat|^DFL$|Farmer.Labor/i.test(p) ? "Democrat" : /Republican/i.test(p) ? "Republican" : /Independent|Nonpartisan/i.test(p) ? "Independent" : p.trim());
+/** "{{sortname|Mike|Dunleavy|dab=politician}}" → "Mike Dunleavy". */
+const sortname = (cell) => {
+  const m = /\{\{sortname\|([^|}]+)\|([^|}]+)/.exec(cell || "");
+  return m ? `${m[1].trim()} ${m[2].trim()}`.replace(/\s+/g, " ") : null;
+};
+const unlink = (s) => s.replace(/<ref[\s\S]*?(<\/ref>|\/>)/g, "").replace(/\{\{efn[\s\S]*?\}\}/g, "").replace(/\[\[(?:[^|\]]*\|)?([^\]]+)\]\]/g, "$1").replace(/<br\s*\/?>/g, " ").trim();
+const wikitextOf = (page, name) =>
+  JSON.parse(fetchText(["-G", "https://en.wikipedia.org/w/api.php", "--data-urlencode", "action=parse", "--data-urlencode", `page=${page}`, "--data-urlencode", "prop=wikitext", "--data-urlencode", "format=json", "--data-urlencode", "formatversion=2"], name)).parse.wikitext;
 
 function fetchText(args, name) {
   const at = path.join(CACHE, name);
@@ -102,10 +123,48 @@ for (const row of table.split("\n|-")) {
   if (!/^\d{4}/.test(termEnds) || termEnds.length > 60) throw new Error(`${s.name}: term end "${termEnds}"`);
   const nga = row.match(/https:\/\/www\.nga\.org\/governors\/[a-z-]+\//);
   if (out[s.id].governor) throw new Error(`${s.name}: two rows in the governors list`);
-  out[s.id].governor = { termEnds, year: +termEnds.slice(0, 4), nga: nga ? nga[0] : undefined };
+  // The governor's name, party and the day the term began, from the same row.
+  // The name is the row's header cell: a sortname template, or - for one row - a plain link.
+  const head = /\n! scope="row" \|([^\n]+)/.exec(row)?.[1] ?? "";
+  const name = sortname(head) ?? (unlink(head) || null);
+  const party = row.match(/\{\{party color\|([^}]+)\}\}/);
+  const began = row.match(/\{\{dts\|(\d{4})\|(\d{1,2})\|(\d{1,2})\}\}/);
+  if (!name || !party || !began) throw new Error(`${s.name}: the governor's name, party or term start was not read`);
+  out[s.id].governor = { name, party: partyName(party[1]), since: `${began[1]}-${began[2].padStart(2, "0")}-${began[3].padStart(2, "0")}`, termEnds, year: +termEnds.slice(0, 4), nga: nga ? nga[0] : undefined };
   governors++;
 }
 if (governors !== 50) throw new Error(`read ${governors} governors' terms, not 50`);
+
+// ── Mayors: the fifty largest cities ──
+const mayorsText = wikitextOf(MAYORS_PAGE, "mayors.json");
+const mayorsTable = mayorsText.slice(mayorsText.indexOf('{|class="wikitable plainrowheaders sortable'));
+const mayors = [];
+for (const row of mayorsTable.slice(0, mayorsTable.indexOf("\n|}")).split("\n|-")) {
+  const name = sortname(row);
+  if (!name) continue;
+  // The cells after the name: photo, party, city, state, population, rank, start, elections, next election, form, list.
+  const cells = row.slice(row.indexOf("}}", row.indexOf("{{sortname")) + 2).split(/\n\|\|?/).slice(1);
+  const party = /\{\{party shading\/([^}|]+)/.exec(cells[1] || "");
+  const [city, state, population, rank, start, , next, form] = cells.slice(2).map(unlink);
+  const began = new Date(`${start} UTC`);
+  if (!party || !city || !state || !/^[\d,]+$/.test(population) || !/^\d+$/.test(rank) || Number.isNaN(began.getTime())) throw new Error(`${name}: a mayor's row was not read (${[city, state, population, rank, start].join(" | ")})`);
+  mayors.push({
+    name,
+    party: partyName(party[1]),
+    // Most big-city mayors are elected on a nonpartisan ballot; the list marks them, and gives the party they are known by.
+    nonpartisan: /efn\s*\|\s*name=NP/.test(cells[1]),
+    city,
+    state: byName.get(state)?.id ?? null,
+    stateName: state,
+    population: +population.replace(/,/g, ""),
+    rank: +rank,
+    since: began.toISOString().slice(0, 10),
+    nextElection: +(/\d{4}/.exec(next || "") || [0])[0] || null,
+    form: form || null,
+  });
+}
+if (mayors.length !== 50) throw new Error(`read ${mayors.length} mayors, not 50`);
+mayors.sort((a, b) => a.rank - b.rank);
 
 const today = new Date().toISOString().slice(0, 10);
 const q = (v) => JSON.stringify(v);
@@ -115,7 +174,7 @@ const row = (s) => {
   return `  ${s.id}: {
     senators: [${o.senators.map((p) => person(p, `class: ${p.class}, `)).join(", ")}],
     representatives: [${o.representatives.map((p) => person(p, `district: ${q(p.district)}, `)).join(", ")}],
-    governor: { termEnds: ${q(o.governor.termEnds)}, year: ${o.governor.year}${o.governor.nga ? `, nga: ${q(o.governor.nga)}` : ""} },
+    governor: { name: ${q(o.governor.name)}, party: ${q(o.governor.party)}, since: ${q(o.governor.since)}, termEnds: ${q(o.governor.termEnds)}, year: ${o.governor.year}${o.governor.nga ? `, nga: ${q(o.governor.nga)}` : ""} },
   },`;
 };
 fs.writeFileSync(
@@ -128,9 +187,11 @@ fs.writeFileSync(
  * change the script and re-run it.
  *
  * A senator's and a representative's term end is the day their current term
- * ends in the congress-legislators data; a governor's is the year Wikipedia's
- * list of current governors gives, which it cites to the National Governors
- * Association. Election days are not stored: they follow from federal law
+ * ends in the congress-legislators data; a governor's name, party, the day the
+ * term began and the year it ends are as Wikipedia's list of current governors
+ * gives them, which it cites to the National Governors Association. The mayors
+ * are those of the fifty largest cities, as Wikipedia's list of them gives
+ * each. Election days are not stored: they follow from federal law
  * (lib/usCivicDates.ts). There is no published calendar of town halls or of
  * officials' public events, and none is made up: the window links to each
  * office's own site.
@@ -138,6 +199,7 @@ fs.writeFileSync(
 export const STATE_OFFICES_SOURCES = {
   congress: { label: "congress-legislators (current members' terms and sites)", url: "https://github.com/unitedstates/congress-legislators" },
   governors: { label: "Wikipedia — List of current United States governors (term ends, citing the National Governors Association)", url: "https://en.wikipedia.org/wiki/${GOVERNORS_PAGE.replace(/ /g, "_")}" },
+  mayors: { label: "Wikipedia — List of mayors of the 50 largest cities in the United States", url: "https://en.wikipedia.org/wiki/${MAYORS_PAGE.replace(/ /g, "_")}" },
   retrieved: "${today}",
 };
 
@@ -155,17 +217,53 @@ export type StateOffices = {
   senators: (OfficeHolder & { class: 1 | 2 | 3 })[];
   /** In district order. */
   representatives: (OfficeHolder & { district: string })[];
-  /** The end of the governor's term as the list gives it ("2027 (term limits)"), its year, and the NGA's page for the governor. */
-  governor: { termEnds: string; year: number; nga?: string };
+  /** The governor, the day the term began, its end as the list gives it ("2027 (term limits)"), its year, and the NGA's page for the governor. */
+  governor: { name: string; party: string; since: string; termEnds: string; year: number; nga?: string };
+};
+
+/** The mayor of one of the fifty largest cities. */
+export type BigCityMayor = {
+  name: string;
+  /** The party the list gives. Where the office is nonpartisan in law (the flag below), this is the party the mayor is known by. */
+  party: string;
+  nonpartisan: boolean;
+  city: string;
+  /** The state's id, or null for a city in none of the fifty (Washington, D.C.). */
+  state: string | null;
+  stateName: string;
+  /** The Census Bureau's estimate the list ranks the cities by. */
+  population: number;
+  rank: number;
+  /** The day the mayor took office. */
+  since: string;
+  /** The year of the next election for the office, where the list gives one. */
+  nextElection: number | null;
+  /** The city's form of government, as the list names it. */
+  form: string | null;
 };
 
 /** State id → its offices. */
 export const STATE_OFFICES: Record<string, StateOffices> = {
 ${states.map(row).join("\n")}
 };
+
+/** The mayors of the fifty largest cities, largest city first. */
+export const BIG_CITY_MAYORS: BigCityMayor[] = [
+${mayors.map((m) => `  ${q(m)},`).join("\n")}
+];
 `,
 );
-console.log(`wrote ${path.relative(__dirname, OUT)}: ${senators} senators, ${reps} representatives, ${governors} governors`);
+console.log(`wrote ${path.relative(__dirname, OUT)}: ${senators} senators, ${reps} representatives, ${governors} governors, ${mayors.length} mayors`);
+console.log("  mayors:", mayors.slice(0, 4).map((m) => `${m.name} (${m.city}, ${m.party}${m.nonpartisan ? ", nonpartisan office" : ""}, since ${m.since})`).join("; "));
+// The state cards name each governor from stateIndicators.ts (Wikidata, build-states.cjs). A governor this list names
+// differently is said here, so that the two sources falling out of step is not missed.
+const indicators = fs.readFileSync(path.join(__dirname, "src/data/stateIndicators.ts"), "utf8");
+const differ = states.flatMap((s) => {
+  const at = indicators.indexOf(`\n  ${s.id}: {`);
+  const other = at < 0 ? null : /governor:\{name:"([^"]+)"/.exec(indicators.slice(at, at + 40000))?.[1];
+  return other && other !== out[s.id].governor.name ? [`${s.name}: stateIndicators.ts has ${other}, the list ${out[s.id].governor.name}`] : [];
+});
+if (differ.length) console.log("  governors named differently in stateIndicators.ts:\n    " + differ.join("\n    "));
 const oh = out.oh;
 console.log("  OH:", JSON.stringify({ senators: oh.senators, governor: oh.governor, reps: oh.representatives.length, first: oh.representatives[0] }));
 const ends = {};

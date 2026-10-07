@@ -62,6 +62,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "When each state's senators', representatives' and governor's terms end",
+    "from": "congress-legislators, Wikipedia (citing the National Governors Association)",
+    "page": "/dashboard/states",
+    "where": "US states",
+    "read": "2026-10-07",
+    "files": 1
+  },
+  {
     "what": "Which countries keep military bases abroad, and where",
     "from": "Wikipedia (List of countries with overseas military bases)",
     "page": "/dashboard/countries",
@@ -122,14 +130,6 @@ export const DATA_LOG: DataLogEntry[] = [
     "from": "World Bank (Worldwide Governance Indicators), UCDP, Global Terrorism Database, UNHCR, IDMC",
     "page": "/dashboard/countries",
     "where": "Countries",
-    "read": "2026-10-06",
-    "files": 1
-  },
-  {
-    "what": "When each state's senators', representatives' and governor's terms end",
-    "from": "congress-legislators, Wikipedia (citing the National Governors Association)",
-    "page": "/dashboard/states",
-    "where": "US states",
     "read": "2026-10-06",
     "files": 1
   },

@@ -23,6 +23,7 @@ import { usStatesData, type USState } from "../data/statesData";
 import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
 import { STATE_UNIVERSITIES, STATE_UNIVERSITIES_SOURCE } from "../data/stateUniversities";
 import { UniversityList } from "../components/UniversityList";
+import { OfficialsExplorer } from "../components/OfficialsExplorer";
 import { UpcomingStates } from "@/components/UpcomingStates";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
@@ -7092,6 +7093,14 @@ export function StatesPage() {
           onOpen={(_, id) => {
             const st = liveStates.find((x) => x.id === id);
             if (st) setModalState(st);
+          }}
+        />
+
+        {/* The page's own explorer: the senators, representatives, governors and big-city mayors, a list beside a detail pane. */}
+        <OfficialsExplorer
+          onOpenState={(id) => {
+            const found = liveStates.find((s) => s.id === id);
+            if (found) setModalState(found);
           }}
         />
 
