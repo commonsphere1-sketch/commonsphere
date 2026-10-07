@@ -16,8 +16,8 @@
  * The figures are gathered by category - aid, rights, conflict and disaster,
  * displacement, food, health - a card each in place of rows of figure cards:
  * the card lists its figures, and a window behind it describes and draws each
- * one, as a state's or a country's window does for a place. The overview has
- * all six; each section opens with its own.
+ * one, as a state's or a country's window does for a place. Each section
+ * opens with its own; the six together were taken off the overview as asked.
  *
  * Peace is drawn as a wheel (StatWheel), in the manner of the Worldview
  * page's: armed conflict, arms and armies, safety, displacement, rights, the
@@ -1089,7 +1089,6 @@ export function HumanitarianPage() {
     food: category("food", "Food & hunger", "Who does not get enough to eat", <ForkKnife size={18} weight="fill" />, [...pick("undernourished"), ...food]),
     health: category("health", "Health & water", "Children's survival, mothers', disease, and the water people drink", <Drop size={18} weight="fill" />, [...pick("childMortality", "water", "health"), ...more]),
   };
-  const categories = [CATEGORY.aid, CATEGORY.rights, CATEGORY.conflict, CATEGORY.displacement, CATEGORY.food, CATEGORY.health];
   // Peace, measure by measure: a figure the page already has is taken as it is; any other is built from its world series, judged the way the series itself says is better.
   const held = [...stats, ...rights, ...drivers];
   const peaceStat = (id: string): Stat | null => {
@@ -1187,15 +1186,10 @@ export function HumanitarianPage() {
 
         {/* ══ Overview ══ */}
         <section id="overview" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="overview-title">
-          <SectionHead icon={<HandHeart size={18} weight="fill" />} color="#10b981" title="At a glance" kicker="The page's figures by category - open one for each figure described and drawn, with its change on about ten years before" />
+          <SectionHead icon={<HandHeart size={18} weight="fill" />} color="#10b981" title="At a glance" kicker="Peace, measure by measure, and the crises under way; each section below opens with its own figures" />
           <h2 id="overview-title" className="sr-only">
             Overview
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-            {categories.map((c) => (
-              <StatCategoryCard key={c.key} c={c} lead={5} />
-            ))}
-          </div>
 
           <StatWheel
             title="Peace at a glance"
