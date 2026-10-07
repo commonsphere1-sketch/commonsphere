@@ -27,6 +27,7 @@ import {
   Money,
   ArrowsIn,
   ArrowsOut,
+  MagnifyingGlass,
   X,
 } from "@phosphor-icons/react";
 import {
@@ -45,6 +46,7 @@ import { ArticlePanel } from "../components/HistoryPanel";
 import { WIKI_ARTICLES } from "../data/wikiArticles";
 import { LEADERS_BY_COUNTRY } from "../data/leaderIndex";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
+import { Block, Empty, GoButton, Kpi, Label, Row, useTokens, type Tokens } from "../components/DataExplorer";
 // Globe is used in LeaderDetail tabs — do not remove
 
 // ── Types ──────────────────────────────────────────────────────────────────── v3
@@ -13872,6 +13874,281 @@ function LeaderDetail({
   );
 }
 
+// ── The page's own explorer: every politician profiled, a list beside a detail pane ──────────────
+
+/** Each status's colour in the explorer: its dot in the list and its count over it. */
+const STATUS_COLOR: Record<Status, string> = { "In Office": "#10b981", "Incumbent (Disputed)": "#f59e0b", Transitional: "#8b5cf6", Former: "#94a3b8" };
+const STATUSES: Status[] = ["In Office", "Incumbent (Disputed)", "Transitional", "Former"];
+const EXPLORER_COLOR = "#6366f1";
+/** A term as a card writes it: "2019–Now". */
+const termText = (t: Leader["termsInOffice"][number]) => `${t.from}–${t.to === "present" ? "Now" : t.to}`;
+/** The years a leader's terms come to, the present one counted to this year. */
+const yearsInOffice = (l: Leader) => l.termsInOffice.reduce((a, t) => a + ((t.to === "present" ? new Date().getFullYear() : t.to) - t.from), 0);
+
+/** A row of the detail pane's short table. */
+function ExplorerFact({ t, label, value }: { t: Tokens; label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 py-1.5" style={{ borderBottom: `1px solid ${t.gridLine}` }}>
+      <span className="text-[10px] font-mono shrink-0" style={{ color: t.mutedText }}>
+        {label}
+      </span>
+      <span className="text-[11px] font-sans font-semibold text-right min-w-0" style={{ color: t.headText }}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The data explorer for the page's politicians, as the Countries, Economies,
+ * Crime and Trends pages have their own: the same card, a list beside a
+ * detail pane, in the same pieces (DataExplorer).
+ *
+ * The list is every leader profiled, by region, each with the office and the
+ * years of the latest term; it is searched by name, country, office, party or
+ * ideology, and narrowed by status from the counts over it. The detail is
+ * the profile at a glance - the office and the years in it, age, party,
+ * where and when born, education, the terms, the background and the first
+ * achievements - with the others profiled for the same country and the full
+ * profile a click away. It is drawn from the same list the cards are
+ * (LEADERS) and works out nothing but the sums of years the cards also show.
+ */
+function LeadersExplorer({ onOpen }: { onOpen: (l: Leader) => void }) {
+  const t = useTokens();
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<Status | null>(null);
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  const q = search.trim().toLowerCase();
+  const list = useMemo(
+    () => LEADERS.filter((l) => (!status || l.status === status) && (!q || [l.name, l.country, l.title, l.party, l.ideology, l.region].some((x) => x.toLowerCase().includes(q)))),
+    [q, status],
+  );
+  const shown = (pickedId ? LEADERS.find((l) => l.id === pickedId) : null) ?? list[0] ?? null;
+  const groups = REGIONS.slice(1)
+    .map((region) => ({ region, rows: list.filter((l) => l.region === region) }))
+    .filter((g) => g.rows.length > 0);
+  const flag = (code: string, size: 40 | 80) => `https://flagcdn.com/w${size}/${code.toLowerCase()}.png`;
+  const hideBroken = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    e.currentTarget.style.visibility = "hidden";
+  };
+
+  return (
+    <div className="explorer flex flex-col rounded-2xl overflow-hidden w-full max-w-6xl mx-auto mb-6" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
+      <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: EXPLORER_COLOR }}>
+        <Users size={12} weight="fill" aria-hidden />
+        <h2 className="text-[11px] font-bold font-sans">Politicians</h2>
+        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: EXPLORER_COLOR + "15" }}>
+          {LEADERS.length}
+        </span>
+      </div>
+
+      {/* Search */}
+      <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: t.gridLine }}>
+        <MagnifyingGlass size={13} style={{ color: t.mutedText }} aria-hidden />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          aria-label="Search politicians"
+          placeholder="Search names, countries, offices, parties, ideologies…"
+          className="flex-1 bg-transparent text-[11px] font-sans outline-none border-none"
+          style={{ color: t.bodyText }}
+        />
+        {search && (
+          <button type="button" onClick={() => setSearch("")} aria-label="Clear the search" className="cursor-pointer" style={{ color: t.mutedText }}>
+            <X size={11} weight="bold" />
+          </button>
+        )}
+      </div>
+
+      {/* List beside detail; stacked on a phone */}
+      <div className="explorer-panes flex flex-col md:flex-row md:h-[520px]">
+        <div className="explorer-list flex flex-col overflow-y-auto max-h-[320px] md:max-h-none md:h-full md:w-[44%] border-b md:border-b-0 md:border-r" style={{ borderColor: t.gridLine }}>
+          {/* How many of the profiles are of each status: pick one to see only those. */}
+          <div className="grid grid-cols-2 gap-2 px-4 pt-3">
+            {STATUSES.map((s) => {
+              const on = status === s;
+              const n = LEADERS.filter((l) => l.status === s).length;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => {
+                    setStatus(on ? null : s);
+                    setPickedId(null);
+                  }}
+                  className="rounded-lg px-2.5 py-1.5 text-left cursor-pointer transition-opacity hover:opacity-80"
+                  style={{ background: on ? STATUS_COLOR[s] + "22" : t.tile, border: `1px solid ${on ? STATUS_COLOR[s] + "88" : t.gridLine}` }}
+                >
+                  <span className="block text-sm font-bold font-mono" style={{ color: STATUS_COLOR[s] }}>
+                    {n}
+                  </span>
+                  <span className="block text-[9px] font-mono" style={{ color: t.mutedText }}>
+                    {s}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="px-4 pt-2 text-[9px] font-sans leading-snug" style={{ color: t.mutedText }}>
+            The {LEADERS.length} profiles by status, as each profile gives it; pick one to see only those.
+          </p>
+          {groups.map((g) => (
+            <div key={g.region} className="flex flex-col">
+              <div className="px-4 pt-3 pb-1">
+                <Label t={t}>
+                  {g.region} · {g.rows.length}
+                </Label>
+              </div>
+              {g.rows.map((l) => {
+                const term = l.termsInOffice[l.termsInOffice.length - 1];
+                return (
+                  <Row key={l.id} t={t} selected={shown?.id === l.id} color={EXPLORER_COLOR} onClick={() => setPickedId(l.id)}>
+                    <img src={flag(l.countryCode, 40)} alt="" className="w-6 h-4 rounded-sm object-cover shrink-0" loading="lazy" onError={hideBroken} />
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-xs font-semibold font-sans truncate" style={{ color: t.headText }}>
+                        {l.name}
+                      </span>
+                      <span className="block text-[10px] font-mono truncate" style={{ color: t.mutedText }}>
+                        {l.title} · {l.country}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-right">
+                      <span className="block text-[11px] font-mono font-bold" style={{ color: t.headText }}>
+                        {termText(term)}
+                      </span>
+                      <span className="flex items-center justify-end gap-1 text-[9px] font-mono" style={{ color: t.mutedText }}>
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: STATUS_COLOR[l.status] }} aria-hidden />
+                        {l.status}
+                      </span>
+                    </span>
+                  </Row>
+                );
+              })}
+            </div>
+          ))}
+          {list.length === 0 && <Empty t={t}>No politicians match the search.</Empty>}
+        </div>
+
+        <div className="explorer-detail flex-1 overflow-y-auto p-4 flex flex-col gap-3 md:h-full">
+          {shown ? (
+            (() => {
+              const born = ageOf(shown.id, shown.birthYear);
+              const first = Math.min(...shown.termsInOffice.map((x) => x.from));
+              const beside = LEADERS.filter((l) => l.countryCode === shown.countryCode && l.id !== shown.id);
+              return (
+                <>
+                  <Block>
+                    <div className="flex items-start gap-3">
+                      <img src={flag(shown.countryCode, 80)} alt={`${shown.country} flag`} className="w-12 h-8 rounded-md object-cover shrink-0 border" style={{ borderColor: t.gridLine }} onError={hideBroken} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold font-sans leading-tight" style={{ color: t.headText }}>
+                          {shown.name}
+                        </p>
+                        <p className="text-[11px] font-sans" style={{ color: t.mutedText }}>
+                          {shown.title} · {shown.country}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                          <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${IDEOLOGY_COLORS[shown.ideology]}`}>{shown.ideology}</span>
+                          <span className="flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: STATUS_COLOR[shown.status] + "22", color: t.headText }}>
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: STATUS_COLOR[shown.status] }} aria-hidden />
+                            {shown.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <Kpi t={t} label="Age" value={born.age} color={t.headText} sub={born.born} />
+                      <Kpi t={t} label="First took office" value={String(first)} color={t.headText} />
+                      <Kpi t={t} label="Years in office" value={`${yearsInOffice(shown)}y`} color={t.headText} sub={`${shown.termsInOffice.length} term${shown.termsInOffice.length > 1 ? "s" : ""}`} />
+                      <Kpi t={t} label="Latest term" value={termText(shown.termsInOffice[shown.termsInOffice.length - 1])} color={t.headText} />
+                    </div>
+                  </Block>
+
+                  <Block>
+                    <div className="flex flex-col">
+                      <ExplorerFact t={t} label="Party" value={shown.party} />
+                      <ExplorerFact t={t} label="Born" value={`${shown.birthYear} · ${shown.birthPlace}`} />
+                      <ExplorerFact t={t} label="Region" value={shown.region} />
+                      <ExplorerFact t={t} label="Terms" value={shown.termsInOffice.map(termText).join(" · ")} />
+                      {shown.education.slice(0, 2).map((e) => (
+                        <ExplorerFact key={e.institution + e.degree} t={t} label="Education" value={`${e.degree} · ${e.institution}${e.year ? ` · ${e.year}` : ""}`} />
+                      ))}
+                    </div>
+                  </Block>
+
+                  <Block>
+                    <Label t={t}>Background</Label>
+                    <p className="text-[11px] font-sans leading-relaxed" style={{ color: t.bodyText }}>
+                      {shown.background}
+                    </p>
+                  </Block>
+
+                  {shown.achievements.length > 0 && (
+                    <Block>
+                      <Label t={t}>Key achievements</Label>
+                      <ul className="flex flex-col gap-1">
+                        {shown.achievements.slice(0, 3).map((a) => (
+                          <li key={a} className="flex items-start gap-2 text-[11px] font-sans" style={{ color: t.bodyText }}>
+                            <span className="w-1 h-1 rounded-full mt-1.5 shrink-0" style={{ background: EXPLORER_COLOR }} aria-hidden />
+                            {a}
+                          </li>
+                        ))}
+                      </ul>
+                    </Block>
+                  )}
+
+                  {beside.length > 0 && (
+                    <Block>
+                      <Label t={t}>Also profiled for {shown.country}</Label>
+                      <div className="flex flex-col">
+                        {beside.map((l) => (
+                          <button
+                            key={l.id}
+                            type="button"
+                            onClick={() => setPickedId(l.id)}
+                            className="flex items-baseline justify-between gap-3 py-1.5 text-left cursor-pointer hover:opacity-80 transition-opacity"
+                            style={{ borderBottom: `1px solid ${t.gridLine}` }}
+                          >
+                            <span className="text-[11px] font-sans font-semibold min-w-0" style={{ color: t.headText }}>
+                              {l.name}
+                              <span className="font-normal" style={{ color: t.mutedText }}>
+                                {" "}
+                                · {l.title}
+                              </span>
+                            </span>
+                            <span className="text-[10px] font-mono shrink-0" style={{ color: t.mutedText }}>
+                              {termText(l.termsInOffice[l.termsInOffice.length - 1])}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </Block>
+                  )}
+
+                  <GoButton color={EXPLORER_COLOR} onClick={() => onOpen(shown)}>
+                    Open {shown.name}'s full profile
+                  </GoButton>
+                </>
+              );
+            })()
+          ) : (
+            <Empty t={t}>No politician to show.</Empty>
+          )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="px-4 py-2.5 border-t" style={{ borderColor: t.gridLine }}>
+        <span className="text-[10px] font-mono" style={{ color: t.mutedText }}>
+          {list.length} of {LEADERS.length} politicians{status ? ` · ${status.toLowerCase()}` : ""} · an age is counted from Wikidata's date of birth where it gives one
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // ── MonarchCard ───────────────────────────────────────────────────────────────
 const SYSTEM_COLORS: Record<string, string> = {
   Absolute: TONE.red,
@@ -15799,6 +16076,9 @@ export function WorldLeadersPage() {
             </>
           )}
         />
+
+        {/* The page's own explorer: every politician profiled, a list beside a detail pane. */}
+        <LeadersExplorer onOpen={setSelected} />
 
         {/* View Mode Toggle */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
