@@ -30,17 +30,23 @@
  * "What this covers" in the panel says, level by level, what is here and what
  * no source gives.
  *
+ * The map draws the borders between countries (world-atlas, the page's own
+ * source for them) and, once a country is picked, between its states and
+ * provinces (the page's /geo/admin1-borders.json). It zooms as the page's
+ * other maps do - the same three buttons, the wheel, and a drag to move - by
+ * re-drawing at the new scale, so points stay points.
+ *
  * A verified head is set beside GeoNames' row for the place by GeoNames id,
  * or by the same name within a few kilometres. Nothing is typed in here, and
  * a count is the only thing worked out.
  */
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { geoEqualEarth, geoPath } from "d3-geo";
-import { feature } from "topojson-client";
+import { geoEqualEarth, geoPath, type GeoPermissibleObjects } from "d3-geo";
+import { feature, mesh } from "topojson-client";
 import type { Topology } from "topojson-specification";
 import worldTopo from "world-atlas/countries-110m.json";
-import { ArrowSquareOut, MagnifyingGlass, MapPin, X } from "@phosphor-icons/react";
+import { ArrowSquareOut, MagnifyingGlass, MagnifyingGlassMinus, MagnifyingGlassPlus, MapPin, X } from "@phosphor-icons/react";
 import { LEGISLATURE_PRESIDENTS, NATIONAL_HEADS, REGIONAL_ASSEMBLIES, REPRESENTATIVES, REPRESENTATIVE_COUNTRIES, REPRESENTATIVES_SOURCES as SRC, TERRITORY_HEADS } from "../data/representatives";
 import { CONTINENTS, PLACE_COUNTRIES, PLACE_KINDS, PLACES_LEVELS, PLACES_SOURCE, PLACES_TOTAL, PLACES_WORLD, type PlacesFile, type PlaceRow } from "../data/placesIndex";
 import { Block, Empty, GoButton, Kpi, Label, Row, useTokens } from "./DataExplorer";
@@ -82,6 +88,25 @@ const TOWN = "#64748b";
 const W = 720;
 const H = 360;
 const LAND = feature(worldTopo as unknown as Topology, (worldTopo as unknown as Topology).objects.land);
+/** The borders between countries: every line two of them share. */
+const BORDERS = mesh(worldTopo as unknown as Topology, (worldTopo as unknown as Topology).objects.countries as Parameters<typeof mesh>[1], (a, b) => a !== b);
+/** The borders inside each country - its states and provinces - as the page's other maps draw them: fetched when a country is first picked. */
+type Inner = { features: { properties: { c: string } }[] };
+let INNER: Promise<Inner> | null = null;
+const innerBorders = () =>
+  (INNER ??= fetch("/geo/admin1-borders.json")
+    .then((r) => (r.ok ? (r.json() as Promise<Topology>) : Promise.reject(new Error(String(r.status)))))
+    .then((topo) => feature(topo, topo.objects.b) as unknown as Inner));
+
+/** How far the map zooms, and by how much a step: the page's other maps' step. */
+const ZOOM_MIN = 1;
+const ZOOM_MAX = 32;
+const ZOOM_STEP = 1.6;
+/** The zoom, and the point of the unzoomed map that sits at the middle. */
+type View = { k: number; x: number; y: number };
+const WHOLE: View = { k: 1, x: W / 2, y: H / 2 };
+/** Kept inside the unzoomed map: zooming never shows what lies beyond its frame. */
+const inFrame = (v: View): View => ({ k: v.k, x: Math.min(W - W / (2 * v.k), Math.max(W / (2 * v.k), v.x)), y: Math.min(H - H / (2 * v.k), Math.max(H / (2 * v.k), v.y)) });
 /** How many rows of a list are drawn until it is searched, and when it is. */
 const SHOWN = 60;
 const FOUND = 200;
@@ -148,6 +173,10 @@ export default function RepresentativesExplorer() {
   const canvas = useRef<HTMLCanvasElement>(null);
   /** Where each drawn town is on the map, for a click to find the nearest: x, y, and its row. */
   const drawn = useRef<[number, number, number][]>([]);
+  const [view, setView] = useState<View>(WHOLE);
+  const overlay = useRef<SVGSVGElement>(null);
+  /** A press on the map, and whether it has become a drag: a drag moves the map, and is not a click on what it ends over. */
+  const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   const q = search.trim().toLowerCase();
 
   const c = country ? (NATION[country] ?? null) : null;
@@ -207,8 +236,8 @@ export default function RepresentativesExplorer() {
   const pickedHead = picked && "head" in picked ? (HEADS.find((h) => h.id === picked.head) ?? null) : picked && "geo" in picked ? (headOf.get(picked.geo) ?? null) : null;
   const pickedTown = picked && "geo" in picked ? (file.data?.places.find((p) => p[6] === picked.geo) ?? null) : null;
 
-  // The map's projection: the whole world, or the picked country with its places and room around them.
-  const proj = useMemo(() => {
+  // The map's projection before any zoom: the whole world, or the picked country with its places and room around them.
+  const base = useMemo(() => {
     const p = geoEqualEarth();
     const lon = [...(c?.at ? [c.at[0]] : []), ...heads.map((h) => h.lon), ...(file.data?.places ?? []).map((x) => x[2])];
     const lat = [...(c?.at ? [c.at[1]] : []), ...heads.map((h) => h.lat), ...(file.data?.places ?? []).map((x) => x[1])];
@@ -229,8 +258,32 @@ export default function RepresentativesExplorer() {
       { type: "MultiPoint", coordinates: [[w, s], [w, n], [e, s], [e, n]] },
     );
   }, [c, heads, file.data]);
+  // A new map starts unzoomed.
+  useEffect(() => setView(WHOLE), [base]);
+  // Zoomed: the same projection at a larger scale, moved so that the view's point is at the middle.
+  const proj = useMemo(() => {
+    const [tx, ty] = base.translate();
+    return geoEqualEarth()
+      .rotate(base.rotate())
+      .scale(base.scale() * view.k)
+      .translate([(tx - view.x) * view.k + W / 2, (ty - view.y) * view.k + H / 2]);
+  }, [base, view]);
   const land = useMemo(() => geoPath(proj)(LAND) ?? "", [proj]);
-  const dots = useMemo(() => (c ? heads : HEADS).flatMap((p) => ((at) => (at ? [{ p, x: at[0], y: at[1] }] : []))(proj([p.lon, p.lat]))), [c, heads, proj]);
+  const borders = useMemo(() => geoPath(proj)(BORDERS) ?? "", [proj]);
+  const inner = useLoaded(c?.code ? "inner" : null, innerBorders);
+  const innerPath = useMemo(() => {
+    const mine = c?.code ? (inner.data?.features.filter((f) => f.properties.c === c.code) ?? []) : [];
+    return mine.length ? (geoPath(proj)({ type: "FeatureCollection", features: mine } as unknown as GeoPermissibleObjects) ?? "") : "";
+  }, [inner.data, c, proj]);
+  const dots = useMemo(
+    () =>
+      (c ? heads : HEADS).flatMap((p) => {
+        const at = proj([p.lon, p.lat]);
+        // Only what is in the frame is drawn: zoomed in, that is a few of them.
+        return at && at[0] > -8 && at[0] < W + 8 && at[1] > -8 && at[1] < H + 8 ? [{ p, x: at[0], y: at[1] }] : [];
+      }),
+    [c, heads, proj],
+  );
 
   // The towns and villages are too many for the page to hold each as an element: they are painted.
   useEffect(() => {
@@ -243,7 +296,8 @@ export default function RepresentativesExplorer() {
     ctx.globalAlpha = t.isLight ? 0.75 : 0.9;
     const seen: [number, number, number][] = [];
     if (c) {
-      const size = (file.data?.places.length ?? 0) > 4000 ? 1.1 : 1.8;
+      // A little larger as the map is zoomed, so that a town can be told from its neighbour and clicked.
+      const size = ((file.data?.places.length ?? 0) > 4000 ? 1.1 : 1.8) * Math.min(3, Math.sqrt(view.k));
       (file.data?.places ?? []).forEach((p, i) => {
         const at = proj([p[2], p[1]]);
         if (!at) return;
@@ -251,13 +305,14 @@ export default function RepresentativesExplorer() {
         seen.push([at[0], at[1], i]);
       });
     } else if (world.data) {
+      const grow = 0.8 * Math.min(3, Math.sqrt(view.k));
       for (let i = 0; i < world.data.length; i += 2) {
         const at = proj([world.data[i] / 100, world.data[i + 1] / 100]);
-        if (at) ctx.fillRect(at[0] - 0.4, at[1] - 0.4, 0.8, 0.8);
+        if (at) ctx.fillRect(at[0] - grow / 2, at[1] - grow / 2, grow, grow);
       }
     }
     drawn.current = seen;
-  }, [c, file.data, world.data, proj, t.isLight]);
+  }, [c, file.data, world.data, proj, view.k, t.isLight]);
 
   const open = (n: Nation) => {
     setCountry(n.key);
@@ -269,6 +324,40 @@ export default function RepresentativesExplorer() {
   const pickHead = (h: Head) => {
     if (h.country !== c?.code && NATION[h.country]) setCountry(h.country);
     setPicked({ head: h.id });
+  };
+  /** Multiplies the zoom, holding still the point of the map at (sx, sy) - where the wheel is, or the middle for a button. */
+  const zoomBy = useCallback((factor: number, sx = W / 2, sy = H / 2) => {
+    setView((v) => {
+      const k = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, v.k * factor));
+      if (k === v.k) return v;
+      const bx = (sx - W / 2) / v.k + v.x;
+      const by = (sy - H / 2) / v.k + v.y;
+      return inFrame({ k, x: bx - (sx - W / 2) / k, y: by - (sy - H / 2) / k });
+    });
+  }, []);
+  // The wheel zooms the map instead of scrolling the page, as on the page's other maps: React's own wheel listener
+  // cannot stop the scroll, so this one is attached by hand. A trackpad's small steps are scaled down to a wheel's.
+  useEffect(() => {
+    const el = overlay.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const box = el.getBoundingClientRect();
+      const perNotch = e.deltaMode === 1 ? 1 / 3 : e.deltaMode === 2 ? 1 : 1 / 100;
+      zoomBy(Math.pow(ZOOM_STEP, -e.deltaY * perNotch), ((e.clientX - box.left) / box.width) * W, ((e.clientY - box.top) / box.height) * H);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [zoomBy]);
+  /** A drag moves a zoomed map. */
+  const onMove = (e: PointerEvent<SVGSVGElement>) => {
+    const d = drag.current;
+    if (!d || view.k === 1 || (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 4)) return;
+    const box = e.currentTarget.getBoundingClientRect();
+    const dx = ((e.clientX - d.x) / box.width) * W;
+    const dy = ((e.clientY - d.y) / box.height) * H;
+    drag.current = { x: e.clientX, y: e.clientY, moved: true };
+    setView((v) => inFrame({ k: v.k, x: v.x - dx / v.k, y: v.y - dy / v.k }));
   };
   /** A click on the map that is on no dot: the nearest painted town, if one is within reach. */
   const nearest = (e: MouseEvent<SVGSVGElement>) => {
@@ -511,15 +600,46 @@ export default function RepresentativesExplorer() {
         {/* The map and what is picked */}
         <div className="explorer-detail flex-1 overflow-y-auto p-4 flex flex-col gap-3 md:h-full">
           <Block>
+            {/* The page's own zoom buttons, outside the drawing so that they never cover it. */}
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={() => zoomBy(1 / ZOOM_STEP)} disabled={view.k <= ZOOM_MIN} aria-label="Zoom out of the map of places" className="w-7 h-7 rounded-lg border border-border text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                <MagnifyingGlassMinus size={14} className="mx-auto" />
+              </button>
+              <button type="button" onClick={() => zoomBy(ZOOM_STEP)} disabled={view.k >= ZOOM_MAX} aria-label="Zoom in on the map of places" className="w-7 h-7 rounded-lg border border-border text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                <MagnifyingGlassPlus size={14} className="mx-auto" />
+              </button>
+              <button type="button" onClick={() => setView(WHOLE)} disabled={view.k === 1} aria-label="Reset the zoom of the map of places" className="h-7 px-2 text-[10px] font-mono uppercase tracking-widest rounded-lg border border-border text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                Reset
+              </button>
+              <span className="text-[10px] font-mono text-muted-foreground" aria-live="polite">
+                {view.k.toFixed(1)}× · the wheel zooms, a drag moves
+              </span>
+            </div>
             <div className="relative rounded-xl overflow-hidden" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
               <svg viewBox={`0 0 ${W} ${H}`} className="block w-full h-auto" aria-hidden>
-                <path d={land} fill={t.isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.07)"} stroke={t.gridLine} strokeWidth={0.5} />
+                <path d={land} fill={t.isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.07)"} stroke={t.isLight ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.32)"} strokeWidth={0.5} />
+                {innerPath && <path d={innerPath} fill="none" stroke={t.isLight ? "rgba(0,0,0,0.28)" : "rgba(255,255,255,0.28)"} strokeWidth={0.4} strokeDasharray="2 2" />}
+                <path d={borders} fill="none" stroke={t.isLight ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.5)"} strokeWidth={0.6} strokeLinejoin="round" />
               </svg>
               <canvas ref={canvas} width={W * 2} height={H * 2} className="absolute inset-0 w-full h-full" aria-hidden />
               <svg
                 viewBox={`0 0 ${W} ${H}`}
+                ref={overlay}
                 className="absolute inset-0 w-full h-full"
+                style={{ cursor: view.k > 1 ? "grab" : "default", touchAction: view.k > 1 ? "none" : "pan-y" }}
                 role="img"
+                onPointerDown={(e) => {
+                  drag.current = { x: e.clientX, y: e.clientY, moved: false };
+                }}
+                onPointerMove={onMove}
+                onPointerLeave={() => {
+                  drag.current = null;
+                }}
+                onClickCapture={(e) => {
+                  // The click a drag ends with is not a click on the place it ends over.
+                  if (drag.current?.moved) e.stopPropagation();
+                  drag.current = null;
+                }}
                 onClick={nearest}
                 aria-label={
                   c
@@ -546,6 +666,15 @@ export default function RepresentativesExplorer() {
               <span className="inline-flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full" style={{ background: REGION }} aria-hidden />A state or province with one
               </span>
+              <span className="inline-flex items-center gap-1">
+                <span className="w-3" style={{ borderTop: `1.5px solid ${t.isLight ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.5)"}` }} aria-hidden />A border between countries
+              </span>
+              {innerPath && (
+                <span className="inline-flex items-center gap-1">
+                  <span className="w-3" style={{ borderTop: `1.5px dashed ${t.isLight ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.35)"}` }} aria-hidden />
+                  Between its states and provinces
+                </span>
+              )}
               <span>{c ? `${c.name}, drawn to its places · click a point for the place` : "Equal Earth projection · pick a country for all of its towns and villages"}</span>
             </p>
           </Block>
