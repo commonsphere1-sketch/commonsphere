@@ -18,7 +18,7 @@ export type { ResourceSummary };
  * cubic metres as published; nothing is converted into a unit its source did
  * not use.
  */
-function fmtAmount(a: Amount, unit: ProducerUnit): string {
+export function fmtAmount(a: Amount, unit: ProducerUnit): string {
   const v = a.value;
   const pre = a.lowerBound ? ">" : "";
   switch (unit) {
@@ -50,7 +50,7 @@ function fmtShare(s: Share | null): string | null {
 }
 
 /** Every commodity with a country table: USGS minerals, then energy. */
-const PRODUCERS: Record<string, ResourceProducers> = {
+export const PRODUCERS: Record<string, ResourceProducers> = {
   ...RESOURCE_PRODUCERS,
   ...ENERGY_PRODUCERS,
   ...OTHER_PRODUCERS,

@@ -11,6 +11,7 @@ import {
   ArrowsIn,
   ArrowsOut,
   ListBullets,
+  Mountains,
   Percent,
   X,
 } from "@phosphor-icons/react";
@@ -81,6 +82,7 @@ import { economyStatus, ECONOMY_STATUS_KEY } from "@/lib/economyStatus";
 import { DataExplorer } from "@/components/DataExplorer";
 import { ResourceExplorer } from "@/components/ResourceExplorer";
 import { RESOURCES } from "@/data/resourceList";
+import { CommodityStanding } from "@/components/EconomyResources";
 import { HeadlinesBanner, SUBJECT } from "@/components/HeadlinesBanner";
 
 
@@ -1014,7 +1016,7 @@ function EconomyModal({
   >("gdp");
   const [isExpanded, setIsExpanded] = React.useState(false);
   /** The window's tabs, as a country's and a state's have: the overview, and inflation, deficits and tariffs. */
-  const [tab, setTab] = React.useState<"overview" | "details">("overview");
+  const [tab, setTab] = React.useState<"overview" | "resources" | "details">("overview");
 
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -1196,6 +1198,8 @@ function EconomyModal({
             {(
               [
                 { id: "overview", label: "Overview", icon: <ListBullets size={13} weight="bold" /> },
+                // A card with neither rents nor minerals published has no Resources tab to open.
+                ...(showResources ? [{ id: "resources", label: "Resources", icon: <Mountains size={13} weight="bold" /> } as const] : []),
                 { id: "details", label: "Inflation, Deficits & Tariffs", icon: <Percent size={13} weight="bold" /> },
               ] as const
             ).map((x) => (
@@ -1756,19 +1760,111 @@ function EconomyModal({
             </div>
             </>)}
 
-            {showResources && (<>
+            {economy.maritime && (<>
             {/* ════════════════════════════════════════
-                SECTION DIVIDER: RESOURCES
+                SECTION DIVIDER: MARITIME
             ════════════════════════════════════════ */}
             <div className="flex items-center gap-2 pt-2">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30">
-                <span className="text-[10px] font-bold font-sans text-amber-400 uppercase tracking-widest">
-                  Resources
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/30">
+                <span className="text-[10px] font-bold font-sans text-blue-400 uppercase tracking-widest">
+                  Maritime
                 </span>
               </div>
               <div className="flex-1 h-px bg-border/60" />
             </div>
 
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                    Maritime Trade
+                  </span>
+                  <div className="flex-1 h-px bg-border/60" />
+                </div>
+                <div className="modal-tile rounded-xl p-4">
+                  <p className="text-xs text-muted-foreground font-sans leading-relaxed mb-4">
+                    {economy.maritime.maritimeTrade}
+                  </p>
+
+                  {/* KPI tiles */}
+                  <div className="grid grid-cols-3 gap-2 mb-4">
+                    <div className="rounded-xl border border-border bg-background/40 p-3 text-center">
+                      <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
+                        Annual Cargo
+                      </p>
+                      <p className="text-base font-bold font-mono text-secondary">
+                        {economy.maritime.annualCargoMT.toLocaleString()}
+                      </p>
+                      <p className="text-[9px] text-muted-foreground font-sans">
+                        metric tonnes
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-border bg-background/40 p-3 text-center">
+                      <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
+                        TEU
+                      </p>
+                      <p className="text-base font-bold font-mono text-foreground">
+                        {(economy.maritime.containersTEU / 1000000).toFixed(1)}M
+                      </p>
+                      <p className="text-[9px] text-muted-foreground font-sans">
+                        containers
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-border bg-background/40 p-3 text-center">
+                      <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
+                        Navy
+                      </p>
+                      <p className="text-xs font-mono text-foreground leading-tight mt-0.5">
+                        {economy.maritime.navyStrength.split("—")[0].trim()}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Ports */}
+                  <div className="mb-3">
+                    <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">
+                      Major Ports
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {economy.maritime.majorPorts.map((port) => (
+                        <span
+                          key={port}
+                          className="text-xs bg-secondary/10 text-secondary border border-secondary/20 px-2 py-0.5 rounded-full font-sans"
+                        >
+                          {port}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Shipping lanes */}
+                  <div>
+                    <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">
+                      Shipping Lanes
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {economy.maritime.shippingLanes.map((lane) => (
+                        <span
+                          key={lane}
+                          className="text-xs bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-full font-sans"
+                        >
+                          {lane}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <SourceLink sources={SRC_MARITIME} showIcon={false} />
+            </div>
+            </>)}
+          </div>
+          )}
+
+          {/* ── RESOURCES: what the land yields - resource rents, the critical minerals it mines and holds, and its place
+              among each commodity's producers. Its own tab: it was the longest section of the Overview. ── */}
+          {tab === "resources" && showResources && (
+          <div className="mt-4 space-y-4 animate-fade-in">
             <div className="space-y-4">
               {(() => {
                 const pieData = resources.map((r) => ({
@@ -2097,106 +2193,7 @@ function EconomyModal({
                 );
               })()}
             </div>
-            </>)}
-
-            {economy.maritime && (<>
-            {/* ════════════════════════════════════════
-                SECTION DIVIDER: MARITIME
-            ════════════════════════════════════════ */}
-            <div className="flex items-center gap-2 pt-2">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/30">
-                <span className="text-[10px] font-bold font-sans text-blue-400 uppercase tracking-widest">
-                  Maritime
-                </span>
-              </div>
-              <div className="flex-1 h-px bg-border/60" />
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    Maritime Trade
-                  </span>
-                  <div className="flex-1 h-px bg-border/60" />
-                </div>
-                <div className="modal-tile rounded-xl p-4">
-                  <p className="text-xs text-muted-foreground font-sans leading-relaxed mb-4">
-                    {economy.maritime.maritimeTrade}
-                  </p>
-
-                  {/* KPI tiles */}
-                  <div className="grid grid-cols-3 gap-2 mb-4">
-                    <div className="rounded-xl border border-border bg-background/40 p-3 text-center">
-                      <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-                        Annual Cargo
-                      </p>
-                      <p className="text-base font-bold font-mono text-secondary">
-                        {economy.maritime.annualCargoMT.toLocaleString()}
-                      </p>
-                      <p className="text-[9px] text-muted-foreground font-sans">
-                        metric tonnes
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-border bg-background/40 p-3 text-center">
-                      <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-                        TEU
-                      </p>
-                      <p className="text-base font-bold font-mono text-foreground">
-                        {(economy.maritime.containersTEU / 1000000).toFixed(1)}M
-                      </p>
-                      <p className="text-[9px] text-muted-foreground font-sans">
-                        containers
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-border bg-background/40 p-3 text-center">
-                      <p className="text-[10px] text-muted-foreground font-sans mb-0.5">
-                        Navy
-                      </p>
-                      <p className="text-xs font-mono text-foreground leading-tight mt-0.5">
-                        {economy.maritime.navyStrength.split("—")[0].trim()}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Ports */}
-                  <div className="mb-3">
-                    <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">
-                      Major Ports
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {economy.maritime.majorPorts.map((port) => (
-                        <span
-                          key={port}
-                          className="text-xs bg-secondary/10 text-secondary border border-secondary/20 px-2 py-0.5 rounded-full font-sans"
-                        >
-                          {port}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Shipping lanes */}
-                  <div>
-                    <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">
-                      Shipping Lanes
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {economy.maritime.shippingLanes.map((lane) => (
-                        <span
-                          key={lane}
-                          className="text-xs bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-full font-sans"
-                        >
-                          {lane}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <SourceLink sources={SRC_MARITIME} showIcon={false} />
-            </div>
-            </>)}
+            <CommodityStanding economyId={economy.id} name={economy.name} />
           </div>
           )}
         </div>
