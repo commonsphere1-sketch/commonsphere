@@ -4,6 +4,7 @@ import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
 import { RecordedCrime } from "../components/RecordedCrime";
 import { JusticeSection } from "../components/JusticeSection";
+import { CrimeExplorer } from "../components/CrimeExplorer";
 import { useLook } from "../components/CrimeParts";
 import {
   ShieldCheck,
@@ -777,6 +778,9 @@ export function CrimeStatsPage() {
             </>
           )}
         />
+
+        {/* ── THE PAGE'S OWN EXPLORER: every published crime and justice figure, a list beside its detail ── */}
+        <CrimeExplorer />
 
         {/* ── KPI PILLS ──────────────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
