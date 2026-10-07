@@ -62,6 +62,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "The towns and villages of every country: each place of more than 500 people and each seat of local government",
+    "from": "GeoNames",
+    "page": "/dashboard/maps",
+    "where": "World maps",
+    "read": "2026-10-07",
+    "files": 1
+  },
+  {
     "what": "The universities and colleges of each city and country",
     "from": "Wikidata",
     "page": "/dashboard/cities",
@@ -264,4 +272,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 51;
+export const DATA_LOG_FILES = 52;

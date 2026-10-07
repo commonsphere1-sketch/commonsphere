@@ -394,6 +394,15 @@ async function nationalHeads(countries) {
   if (process.argv.includes("--countries")) fs.writeFileSync(path.join(CACHE, "country-heads.json"), JSON.stringify(confirmed.filter((p) => p.isCountry).map((p) => [p.country, p.name, p.head, p.officeName])));
   why.aCountry = 0;
   for (let i = confirmed.length - 1; i >= 0; i--) if (confirmed[i].isCountry) { confirmed.splice(i, 1); why.aCountry++; }
+  // ── Each confirmed place's GeoNames id, where Wikidata gives one: the explorer sets the head beside GeoNames' own row by it ──
+  for (let i = 0; i < confirmed.length; i += 200) {
+    const batch = confirmed.slice(i, i + 200);
+    const got = await cached(`geonames-${hash(batch.map((p) => p.id).join(" "))}.json`, () => sparql(`SELECT ?item ?gn WHERE { VALUES ?item { ${wd(batch.map((p) => p.id))} } ?item wdt:P1566 ?gn }`));
+    const by = new Map();
+    for (const r of got) if (!by.has(qid(r.item)) && /^\d+$/.test(r.gn)) by.set(qid(r.item), +r.gn);
+    for (const p of batch) p.geo = by.get(p.id) ?? 0;
+  }
+  console.log(`${confirmed.filter((p) => p.geo).length} of them have a GeoNames id`);
   console.log(`${confirmed.length} of them are regions or municipalities, not the country itself; ${confirmed.filter((p) => p.since).length} have a start year both records give`);
 
   // ── How often the rule is right where the site can check it ──
@@ -482,13 +491,13 @@ ${national.states.map((s) => `  ${q([s.code, s.shown, s.lat, s.lon, s.lines])},`
  * A confirmed place: [ISO country code, the place, its ISO 3166-2 code where it has one (a state, province or
  * other subdivision) or "", the head, the office, the year the head took office where the place's record and the
  * holder's give the same one or "", latitude, longitude, population or 0,
- * the place's Wikidata id, its English Wikipedia article].
+ * the place's Wikidata id, its English Wikipedia article, its GeoNames id or 0].
  */
-export type RepresentativeRow = [country: string, place: string, region: string, head: string, office: string, since: string, lat: number, lon: number, population: number, id: string, article: string];
+export type RepresentativeRow = [country: string, place: string, region: string, head: string, office: string, since: string, lat: number, lon: number, population: number, id: string, article: string, geonames: number];
 
 /** By country, then the subdivisions with an ISO 3166-2 code first, then by population. */
 export const REPRESENTATIVES: RepresentativeRow[] = [
-${confirmed.map((p) => `  ${q([p.country, p.name, p.iso ?? "", p.head, p.officeName, p.since ?? "", p.lat, p.lon, p.pop, p.id, p.title])},`).join("\n")}
+${confirmed.map((p) => `  ${q([p.country, p.name, p.iso ?? "", p.head, p.officeName, p.since ?? "", p.lat, p.lon, p.pop, p.id, p.title, p.geo])},`).join("\n")}
 ];
 `,
   );
