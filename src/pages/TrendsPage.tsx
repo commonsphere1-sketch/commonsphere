@@ -39,7 +39,7 @@ import {
   BATTERY_CELL_PRICE,
   CLEAN_ENERGY_FINANCE,
   RENEWABLES_RETRIEVED,
-  RENEWABLE_CAPACITY_TOTAL,
+  
   RENEWABLE_COSTS,
   RENEWABLE_COSTS_SOURCE,
   RENEWABLE_GENERATION,
@@ -47,7 +47,7 @@ import {
   RENEWABLE_GENERATORS,
   RENEWABLE_INVESTMENT,
   RENEWABLE_INVESTMENT_SOURCE,
-  RENEWABLE_KINDS,
+  
   RENEWABLE_OUTLOOK,
   SOLAR_MODULE_PRICE,
   WORLD_GENERATION,
@@ -61,12 +61,12 @@ import {
   AI_INVESTMENT_PLACES_SOURCE,
   AI_MODELS,
   AI_MODELS_SOURCE,
-  COMPANIES_USING_AI,
-  DATA_CENTRES,
-  DISK_PRICE,
-  DRIVERLESS_TAXIS,
-  GENERATIVE_AI_USERS,
-  GENOME_COST,
+  
+  
+  
+  
+  
+  
   LARGE_AI_SYSTEMS,
   MOBILE_COVERAGE,
   NVIDIA_REVENUE,
@@ -75,11 +75,11 @@ import {
   ROBOT_INSTALLS,
   ROBOT_INSTALLS_SOURCE,
   SERVICE_ROBOTS,
-  SUPERCOMPUTER,
+  
   TECHNOLOGY_RETRIEVED,
   TECH_TAKE_UP,
   TECH_TAKE_UP_SOURCE,
-  TRANSISTORS,
+  
   TSMC_REVENUE,
 } from "../data/technology";
 import {
@@ -588,6 +588,8 @@ function trendCard(id: string, color: string, group: string, beside: string[]): 
 
 /** Every trend as its card's data, by group: what the cards and the explorer are both drawn from. Built once - nothing in it changes. */
 const TREND_CARDS: StatGroup[] = TREND_GROUPS.map((g) => ({ title: g.title, color: g.color, items: g.ids.flatMap((id) => trendCard(id, g.color, g.title, g.ids) ?? []) }));
+/** The groups whose row of cards was taken off the page, as asked: their figures are in the wheel's windows and the explorer, and their charts stay. */
+const NO_CARDS = new Set(["trend-technology", "trend-research", "trend-industry"]);
 /** The groups of trends as the wedges of the page's wheel: each with the figures its cards are drawn from. */
 const ADVANCEMENT = TREND_GROUPS.map((g) => ({ key: g.id, title: g.nav, kicker: g.kicker, color: g.color, stats: TREND_CARDS.find((c) => c.title === g.title)?.items ?? [] }));
 /** The same kind of card for each series an industry is followed by: what the Industries tab of the Dashboard's explorer lists. */
@@ -608,11 +610,6 @@ function PopulationExplained() {
   const [peakYear, peak] = POP_PEAK;
   /** The first year from now in which the projection is at or past a number. */
   const passes = (n: number) => pop.find(([y, v]) => y >= THIS_YEAR && v >= n)?.[0];
-  const fert = (y: number) => at(WORLD_POP.fertility, y);
-  const age = (y: number) => at(WORLD_POP.medianAge, y);
-  const lex = (y: number) => at(WORLD_POP.lifeExpectancy, y);
-  const low = POPULATION_VARIANTS.low;
-  const lowPeak = low.reduce((a, b) => (b[1] > a[1] ? b : a));
   const marks = [
     { label: `Now · ${THIS_YEAR}`, value: people(now), sub: "on the UN's medium variant" },
     ...[9e9, 10e9].flatMap((n) => {
@@ -621,50 +618,6 @@ function PopulationExplained() {
     }),
     { label: "Peaks", value: String(peakYear), sub: `at ${people(peak)}` },
     { label: "By 2100", value: people(end), sub: `${people(peak - end)} below the peak` },
-  ];
-  const points: { title: string; text: ReactNode }[] = [
-    {
-      title: "What the line is",
-      text: (
-        <>
-          The solid line is the UN's estimate of everyone alive on 1 July of each year since 1950, built from censuses, registers of births and deaths, and surveys.
-          From {WPP.firstProjected} the dashed line is a projection: the medium variant of World Population Prospects {WPP.revision}, which the UN revises every few
-          years as new counts come in.
-        </>
-      ),
-    },
-    {
-      title: "How the projection is made",
-      text: (
-        <>
-          Country by country, the UN carries the population forward a year at a time, by age and sex: everyone grows a year older, some die, babies are born, and
-          migrants come and go. What it has to assume is how many children women will have, how long people will live, and how many will move. The medium variant is
-          the middle path of the range its models give for births and deaths.
-        </>
-      ),
-    },
-    {
-      title: "What it shows",
-      text: (
-        <>
-          From {people(now)} now the world adds {people(peak - now)} by {peakYear} - {((100 * (peak - now)) / now).toFixed(0)}% more - then slowly shrinks. Growth is
-          already slowing: women have {fert(THIS_YEAR)?.toFixed(2)} children on average, against {fert(1950)?.toFixed(2)} in 1950, and the projection has{" "}
-          {fert(2050)?.toFixed(2)} in 2050 and {fert(2100)?.toFixed(2)} in 2100; about 2.1 keeps a population level. People also live longer - {lex(THIS_YEAR)?.toFixed(1)}{" "}
-          years at birth now, {lex(2100)?.toFixed(1)} projected for 2100 - so the world grows older: half are older than {age(THIS_YEAR)?.toFixed(1)} today, and half older than{" "}
-          {age(2100)?.toFixed(1)} by 2100.
-        </>
-      ),
-    },
-    {
-      title: "What it rests on",
-      text: (
-        <>
-          Births are the least certain part. With half a child fewer per woman than the medium, the UN's low variant peaks at {people(lowPeak[1])} in {lowPeak[0]} and
-          falls to {people(at(low, 2100) ?? 0)} by 2100; with half a child more, its high variant is still growing at {people(at(POPULATION_VARIANTS.high, 2100) ?? 0)}.
-          The UN puts no probability on either, and nor does this page; the Scenarios section sets them side by side.
-        </>
-      ),
-    },
   ];
   return (
     <div className="mt-5 pt-4 border-t border-border/40">
@@ -678,14 +631,6 @@ function PopulationExplained() {
           </div>
         ))}
       </dl>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-        {points.map((p) => (
-          <div key={p.title} className="modal-tile rounded-xl p-3">
-            <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1.5">{p.title}</p>
-            <p className="text-[12px] font-sans leading-relaxed text-foreground/90">{p.text}</p>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
@@ -787,61 +732,10 @@ function LeaderList({ label, rows, color }: { label: string; rows: { name: strin
  */
 function GenerationExplained({ lines }: { lines: readonly { key: "solar" | "hydro" | "wind" | "other" | "bioenergy"; label: string; color: string }[] }) {
   const gen = RENEWABLE_GENERATION;
-  const first = gen[0];
   const now = gen[gen.length - 1];
   const then = gen.find((r) => r.year === now.year - 10);
-  const sum = (r: (typeof gen)[number]) => lines.reduce((t, l) => t + r[l.key], 0);
   /** "×12.3" where it has more than doubled, a percentage otherwise. */
   const moved = (a: number, b: number) => (a > 0 && b / a >= 2 ? `×${(b / a).toFixed(b / a >= 10 ? 0 : 1)}` : `${signed((100 * (b - a)) / (a || 1), 0)}%`);
-  // The first year the sun made more than the wind, and the two together more than hydropower.
-  const sunPastWind = gen.find((r) => r.solar > r.wind)?.year;
-  const bothPastHydro = gen.find((r) => r.solar + r.wind > r.hydro)?.year;
-  const cost = (key: string) => RENEWABLE_COSTS.find((c) => c.key === key)?.series;
-  const pv = cost("solarPv");
-  const onshore = cost("onshoreWind");
-  const points: { title: string; text: ReactNode }[] = [
-    {
-      title: "What the lines are",
-      text: (
-        <>
-          Each line is the electricity the world generated from one renewable source in a year, in terawatt-hours, as Ember adds it up from countries' own statistics. Hydropower is dams and
-          run-of-river plants; bioenergy is power from burning plant matter, biogas and waste; "geothermal and other" is geothermal, tidal and wave power together.
-        </>
-      ),
-    },
-    {
-      title: "What it shows",
-      text: (
-        <>
-          Hydropower is still the largest single source, at {twh(now.hydro)}, but it has grown slowly{then ? `: ${moved(then.hydro, now.hydro)} in ten years` : ""}. Solar and wind are what has changed
-          {then ? `: solar ${moved(then.solar, now.solar)} and wind ${moved(then.wind, now.wind)} since ${then.year}` : ""}.
-          {bothPastHydro ? ` From ${bothPastHydro} the two together made more than hydropower` : ""}
-          {sunPastWind ? `${bothPastHydro ? ", and" : " "} in ${sunPastWind} solar made more than wind for the first time.` : bothPastHydro ? "." : ""}
-        </>
-      ),
-    },
-    {
-      title: "Behind the rise of sun and wind",
-      text: (
-        <>
-          Their cost fell.
-          {pv && onshore
-            ? ` A kilowatt-hour from a new solar farm cost ${cents(pv[0][1])} in ${pv[0][0]} and ${cents(lastPoint(pv)[1])} in ${lastPoint(pv)[0]}; from a new onshore wind farm, ${cents(onshore[0][1])} and ${cents(lastPoint(onshore)[1])} (IRENA, at 2025 prices).`
-            : ""}{" "}
-          The cards beside this chart give the price of solar modules and of battery cells, and the chart of costs below has every kind.
-        </>
-      ),
-    },
-    {
-      title: "Against all electricity",
-      text: (
-        <>
-          The five together made {twh(sum(now))} in {now.year} - {shareText(sum(now), WORLD_GENERATION.twh)} of the {twh(WORLD_GENERATION.twh)} the world generated - against {twh(sum(first))} in{" "}
-          {first.year}. The rest came from coal, gas, oil and nuclear power. The share beside each name above is of all electricity, not of the renewables alone.
-        </>
-      ),
-    },
-  ];
   return (
     <div className="mt-5 pt-4 border-t border-border/40">
       <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-2">The chart, explained</p>
@@ -860,14 +754,6 @@ function GenerationExplained({ lines }: { lines: readonly { key: "solar" | "hydr
           </div>
         ))}
       </dl>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-        {points.map((p) => (
-          <div key={p.title} className="modal-tile rounded-xl p-3">
-            <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1.5">{p.title}</p>
-            <p className="text-[12px] font-sans leading-relaxed text-foreground/90">{p.text}</p>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
@@ -958,23 +844,6 @@ function RenewablesSection() {
     },
   ];
 
-  const kinds: StatCardData[] = RENEWABLE_KINDS.map((k) => {
-    const [year, v] = lastPoint(k.series);
-    const c = k.countries;
-    return {
-      label: k.name,
-      value: gw(v),
-      sub: `installed in the world · IRENA · ${year}`,
-      change: decadeChange(k.series),
-      about: k.about,
-      series: k.series,
-      color: KIND_COLOR[k.key],
-      fmt: gw,
-      tables: c ? [leadersTable("countries", c.title, c, (x) => (c.unit === "MW" ? `${Math.round(x).toLocaleString("en-US")} MW` : gw(x)))] : undefined,
-      moreFacts: [{ label: "Of all renewable capacity", value: shareText(v, lastPoint(RENEWABLE_CAPACITY_TOTAL)[1]), sub: `of ${gw(lastPoint(RENEWABLE_CAPACITY_TOTAL)[1])} · ${year}` }],
-      source: k.source,
-    };
-  });
 
   const out = RENEWABLE_OUTLOOK;
   const OUTLOOK_NAME: Record<string, [string, string]> = {
@@ -1020,25 +889,6 @@ function RenewablesSection() {
             <StatCard key={b.label} s={b} />
           ))}
         </div>
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full" style={{ background: "#10b981" }} aria-hidden />
-          <span className="text-[10px] font-bold font-sans uppercase tracking-widest" style={{ color: head }}>
-            The kinds, by what is installed
-          </span>
-          <span className="text-[10px] font-sans hidden sm:inline" style={{ color: muted }}>
-            Generating capacity in the world, and its change on ten years before
-          </span>
-          <div className="flex-1 h-px" style={{ background: look.grid }} />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {kinds.map((k) => (
-            <StatCard key={k.label} s={k} more="Its growth, year by year, and who has most" />
-          ))}
-        </div>
-        <SourceLink sources={RENEWABLE_KINDS.map((k) => k.source)} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -1189,11 +1039,6 @@ const TECH_COLOR = "#8b5cf6";
 
 /** A large count in words a card can hold: 58.2bn, 6.05bn, 77.6M. */
 const big = (v: number) => (v >= 1e12 ? `${(v / 1e12).toFixed(2)}tn` : v >= 1e9 ? `${(v / 1e9).toFixed(v >= 1e10 ? 1 : 2)}bn` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : Math.round(v).toLocaleString("en-US"));
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-/** "2026-06" or "2026-06-30" as "Jun 2026". */
-const monthOf = (d: string) => `${MONTHS[Number(d.slice(5, 7)) - 1]} ${d.slice(0, 4)}`;
-/** "×25" where a figure has more than doubled between two readings, a percentage otherwise. */
-const multiple = (a: number, b: number) => (a > 0 && b / a >= 2 ? `×${b / a >= 100 ? Math.round(b / a).toLocaleString("en-US") : (b / a).toFixed(b / a >= 10 ? 0 : 1)}` : `${signed((100 * (b - a)) / (a || 1), 0)}%`);
 
 /**
  * The take-up chart, explained under it: each line's latest reading and its
@@ -1297,7 +1142,7 @@ function TakeUpExplained({ lines }: { lines: readonly { key: "mobile" | "interne
  */
 function TechnologySection() {
   const look = useLook();
-  const { head, muted } = look;
+  const { muted } = look;
 
   const takeUpLines = [
     { key: "mobile", label: "Mobile subscriptions", color: ORDERED[0] },
@@ -1307,57 +1152,7 @@ function TechnologySection() {
   ] as const;
   const takeUpNow = TECH_TAKE_UP[TECH_TAKE_UP.length - 1];
 
-  /** A series' first reading and its latest, as two facts and the move between them. */
-  const span = (p: YearValue[], fmt: (v: number) => string): StatFact[] => [
-    { label: `In ${p[0][0]}`, value: fmt(p[0][1]) },
-    { label: `Change since ${p[0][0]}`, value: multiple(p[0][1], lastPoint(p)[1]), sub: "worked out here" },
-  ];
-  const usd = (v: number) => (v >= 1e6 ? `$${big(v)}` : `$${v >= 100 ? Math.round(v).toLocaleString("en-US") : v.toFixed(2)}`);
-  const flops = (v: number) => (v >= 1e9 ? `${(v / 1e9).toFixed(2)} exaflops` : v >= 1e6 ? `${(v / 1e6).toFixed(1)} petaflops` : v >= 1e3 ? `${(v / 1e3).toFixed(1)} teraflops` : `${Math.round(v)} gigaflops`);
-  const computing: StatCardData[] = [
-    {
-      label: "Transistors on a chip",
-      value: big(lastPoint(TRANSISTORS.series)[1]),
-      sub: `on a microprocessor · ${lastPoint(TRANSISTORS.series)[0]}`,
-      change: decadeChange(TRANSISTORS.series),
-      about: "The most transistors on one microprocessor - the count behind Moore's law, the observation that it doubles about every two years.",
-      series: TRANSISTORS.series,
-      color: ORDERED[1],
-      fmt: big,
-      facts: span(TRANSISTORS.series, big),
-      source: TRANSISTORS.source,
-    },
-    {
-      label: "The fastest supercomputer",
-      value: flops(lastPoint(SUPERCOMPUTER.series)[1]),
-      sub: `operations a second · ${lastPoint(SUPERCOMPUTER.series)[0]}`,
-      change: decadeChange(SUPERCOMPUTER.series),
-      about: "The speed of the fastest machine on the TOP500 list. An exaflop is a billion billion calculations a second.",
-      series: SUPERCOMPUTER.series,
-      color: ORDERED[2],
-      fmt: flops,
-      facts: span(SUPERCOMPUTER.series, flops),
-      source: SUPERCOMPUTER.source,
-    },
-    {
-      label: "Price of disk storage",
-      value: `${usd(lastPoint(DISK_PRICE.series)[1])} a terabyte`,
-      sub: `constant 2020 US$ · ${lastPoint(DISK_PRICE.series)[0]}`,
-      change: decadeChange(DISK_PRICE.series, true),
-      about: "The cheapest price recorded for a terabyte of magnetic disk storage up to each year.",
-      series: DISK_PRICE.series,
-      color: ORDERED[0],
-      fmt: usd,
-      facts: span(DISK_PRICE.series, usd),
-      source: DISK_PRICE.source,
-    },
-  ];
 
-  const g5 = MOBILE_COVERAGE.generations.find((x) => x.name === "5G")?.series ?? [];
-  const gen = GENERATIVE_AI_USERS;
-  const genFirst = gen.readings[0];
-  const genLast = gen.readings[gen.readings.length - 1];
-  const firms = COMPANIES_USING_AI;
   const modelsNow = AI_MODELS[AI_MODELS.length - 1];
   const modelKinds = [
     { key: "industry", label: "Industry", color: ORDERED[0] },
@@ -1366,138 +1161,7 @@ function TechnologySection() {
     { key: "other", label: "Other and not specified", color: ORDERED[3] },
   ] as const;
   const modelTotal = (r: (typeof AI_MODELS)[number]) => modelKinds.reduce((t, k) => t + r[k.key], 0);
-  const modelSeries: YearValue[] = AI_MODELS.map((r) => [r.year, modelTotal(r)]);
   const large = LARGE_AI_SYSTEMS;
-  const dc = DATA_CENTRES;
-  const taxis = DRIVERLESS_TAXIS;
-  const pctOf = (v: number, dp = 1) => `${v.toFixed(dp)}%`;
-  const km = (v: number) => `${big(v)} km`;
-  const kinds: StatCardData[] = [
-    {
-      label: "Within range of 5G",
-      value: pctOf(lastPoint(g5)[1], 0),
-      sub: `of the world's people · ITU · ${lastPoint(g5)[0]}`,
-      change: { chip: `${signed(lastPoint(g5)[1] - g5[0][1], 0)} pts`, caption: `since ${g5[0][0]}`, dir: "up", verdict: "better" },
-      about: "People living where a 5G signal reaches, whether or not they have a phone that uses it.",
-      series: g5,
-      color: ORDERED[1],
-      fmt: (v) => pctOf(v, 1),
-      tables: [
-        {
-          key: "generations",
-          title: "By generation of network",
-          kicker: `Share of the world's people within range · ${lastPoint(g5)[0]}`,
-          rows: MOBILE_COVERAGE.generations.map((x) => ({ name: x.name, value: lastPoint(x.series)[1], text: pctOf(lastPoint(x.series)[1]), note: `${pctOf(x.series[0][1])} in ${x.series[0][0]}` })),
-          note: "Coverage is cumulative: anyone within range of a newer generation is also counted in the older ones.",
-          source: MOBILE_COVERAGE.source,
-        },
-      ],
-      source: MOBILE_COVERAGE.source,
-    },
-    {
-      label: "Using generative AI",
-      value: pctOf(genLast[1]),
-      sub: `of working-age adults · Microsoft's estimate · ${monthOf(gen.day)}`,
-      change: { chip: `${signed(genLast[1] - genFirst[1])} pts`, caption: `since ${monthOf(genFirst[0])}`, dir: genLast[1] >= genFirst[1] ? "up" : "down", verdict: null },
-      about: "People aged 15 to 64 who used a generative AI site or app at all in the period, estimated from use of Microsoft's own platforms. One visit counts.",
-      color: ORDERED[3],
-      facts: gen.readings.map(([d, v]) => ({ label: monthOf(d), value: pctOf(v) })),
-      tables: [
-        {
-          key: "countries",
-          title: "Where most people use it",
-          kicker: `Share of working-age adults · of ${gen.countries} countries · ${monthOf(gen.day)}`,
-          rows: gen.rows.map((r) => ({ name: r.n, code: r.c, value: r.v, text: pctOf(r.v) })),
-          source: gen.source,
-        },
-      ],
-      source: gen.source,
-    },
-    {
-      label: "Companies using AI",
-      value: pctOf(lastPoint(firms.series)[1], 0),
-      sub: `of companies surveyed · McKinsey · ${firms.year}`,
-      change: { chip: `${signed(lastPoint(firms.series)[1] - firms.series[0][1], 0)} pts`, caption: `since ${firms.series[0][0]}`, dir: "up", verdict: null },
-      about: "The share of companies answering McKinsey's yearly survey that say they use AI.",
-      series: firms.series,
-      color: ORDERED[2],
-      fmt: (v) => pctOf(v, 0),
-      tables: [{ key: "regions", title: "By region", kicker: `Share of companies surveyed, as McKinsey groups them · ${firms.year}`, rows: firms.regions.map((r) => ({ name: r.n, value: r.v, text: pctOf(r.v, 0) })), source: firms.source }],
-      source: firms.source,
-    },
-    {
-      label: "Notable AI systems a year",
-      value: String(modelTotal(modelsNow)),
-      sub: `published in the year · Epoch AI · ${modelsNow.year}`,
-      change: decadeChange(modelSeries),
-      about: "AI systems Epoch AI lists as notable - for advancing the state of the art, being highly cited, widely used or historically significant - by the year they were published.",
-      series: modelSeries,
-      color: ORDERED[0],
-      fmt: (v) => String(Math.round(v)),
-      tables: [
-        {
-          key: "builders",
-          title: "Who built them",
-          kicker: `Notable systems by the team's affiliation · ${modelsNow.year}`,
-          rows: modelKinds.map((k) => ({ name: k.label, value: modelsNow[k.key], text: String(modelsNow[k.key]), note: `${shareText(modelsNow[k.key], modelTotal(modelsNow))} of the year's` })),
-          source: AI_MODELS_SOURCE,
-        },
-      ],
-      source: AI_MODELS_SOURCE,
-    },
-    {
-      label: "Large-scale AI systems",
-      value: String(lastPoint(large.series)[1]),
-      sub: `since 2019 · Epoch AI · to ${large.year}`,
-      change: { chip: multiple(large.series[Math.max(0, large.series.length - 3)][1], lastPoint(large.series)[1]), caption: `on ${large.series[Math.max(0, large.series.length - 3)][0]}`, dir: "up", verdict: null },
-      about: "A running count of AI systems whose training took more than 10²³ operations - the largest there are - by where the organisation that built each is based.",
-      series: large.series,
-      color: ORDERED[4],
-      fmt: (v) => String(Math.round(v)),
-      tables: [leadersTable("countries", "Where they were built", large, (x) => String(x))],
-      source: large.source,
-    },
-    {
-      label: "Data centres' electricity",
-      value: pctOf(lastPoint(dc.series)[1], 2),
-      sub: `of the world's electricity demand · IEA · ${dc.year}`,
-      change: { chip: `${signed(lastPoint(dc.series)[1] - dc.series[0][1], 2)} pts`, caption: `since ${dc.series[0][0]}`, dir: "up", verdict: null },
-      about: "Electricity used by data centres - which run streaming, messaging and cloud storage as well as AI - as a share of all the electricity used. The source cannot separate AI's part.",
-      series: dc.series,
-      color: ORDERED[1],
-      fmt: (v) => pctOf(v, 2),
-      tables: [{ key: "places", title: "By place", kicker: `Share of each place's electricity demand, as the IEA groups them · ${dc.year}`, rows: dc.places.map((r) => ({ name: r.n, code: r.c, value: r.v, text: pctOf(r.v, 2) })), source: dc.source }],
-      source: dc.source,
-    },
-    {
-      label: "Driverless taxi travel",
-      value: km(lastPoint(taxis.series)[1]),
-      sub: `passenger-km in California · ${lastPoint(taxis.series)[0]}`,
-      change: { chip: multiple(taxis.series[taxis.series.length - 2][1], lastPoint(taxis.series)[1]), caption: `on ${taxis.series[taxis.series.length - 2][0]}`, dir: "up", verdict: null },
-      about: "The distance passengers travelled in California's paid driverless taxis - the one place with a public monthly count. A year is the sum of its twelve months.",
-      series: taxis.series,
-      color: ORDERED[2],
-      fmt: km,
-      facts: [
-        { label: `In ${monthOf(taxis.first[0])}`, value: km(taxis.first[1]), sub: "the first month counted" },
-        { label: `In ${monthOf(taxis.latest[0])}`, value: km(taxis.latest[1]), sub: "the latest month" },
-        { label: `In ${taxis.series[0][0]}`, value: km(taxis.series[0][1]), sub: "the first full year" },
-      ],
-      source: taxis.source,
-    },
-    {
-      label: "Cost of a human genome",
-      value: usd(lastPoint(GENOME_COST.series)[1]),
-      sub: `to sequence one · current US$ · ${lastPoint(GENOME_COST.series)[0]}`,
-      change: decadeChange(GENOME_COST.series, true),
-      about: "What it costs to read the whole of one person's DNA, as the U.S. National Human Genome Research Institute tracks it.",
-      series: GENOME_COST.series,
-      color: ORDERED[3],
-      fmt: usd,
-      facts: span(GENOME_COST.series, usd),
-      source: GENOME_COST.source,
-    },
-  ];
 
   const places = [
     { key: "china", label: "China", color: ORDERED[0] },
@@ -1534,8 +1198,8 @@ function TechnologySection() {
         Technology in charts
       </h2>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2">
+      <div className="grid grid-cols-1 gap-4">
+        <Card>
           <CardHead title="The spread of communication technology" kicker={`For every 100 people in the world · ITU · ${TECH_TAKE_UP[0].year}–${takeUpNow.year}`} />
           <MultiLine
             data={TECH_TAKE_UP.map((r) => ({ ...r, year: String(r.year) }))}
@@ -1549,30 +1213,6 @@ function TechnologySection() {
           <TakeUpExplained lines={takeUpLines} />
           <SourceLink sources={[TECH_TAKE_UP_SOURCE, PEOPLE_ONLINE.source, MOBILE_COVERAGE.source]} className="mt-3" />
         </Card>
-        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
-          {computing.map((c) => (
-            <StatCard key={c.label} s={c} />
-          ))}
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full" style={{ background: TECH_COLOR }} aria-hidden />
-          <span className="text-[10px] font-bold font-sans uppercase tracking-widest" style={{ color: head }}>
-            The emerging kinds
-          </span>
-          <span className="text-[10px] font-sans hidden sm:inline" style={{ color: muted }}>
-            What is newly taken up, each with where it stands and who is ahead
-          </span>
-          <div className="flex-1 h-px" style={{ background: look.grid }} />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {kinds.map((k) => (
-            <StatCard key={k.label} s={k} more="Its figures in full, and who is ahead" />
-          ))}
-        </div>
-        <SourceLink sources={kinds.flatMap((k) => (k.source ? (Array.isArray(k.source) ? k.source : [k.source]) : []))} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -1744,7 +1384,6 @@ function TechnologySection() {
 // ── Page ───────────────────────────────────────────────────────────────────
 
 const SECTIONS: NavSection[] = [
-  { id: "overview", label: "Overview" },
   { id: "economy", label: "World economy" },
   { id: "countries", label: "Countries" },
   { id: "population", label: "Population" },
@@ -1997,7 +1636,6 @@ export function TrendsPage() {
   const gdpBase = at(gdp, first - 1) ?? 0;
   const gdpEnd = at(gdp, end) ?? 0;
 
-  const stats = PROJECTION_CARDS;
 
   /* The largest economies in the last projected year, with where each stands now. */
   const largest = useMemo(
@@ -2101,23 +1739,6 @@ export function TrendsPage() {
             </>
           }
         />
-
-        <section id="overview" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="overview-title">
-          <SectionHead icon={<ChartLineUp size={18} weight="fill" />} color="#6366f1" title="At a glance" kicker="The headline projections: the economy from the IMF, people from the UN" />
-          <h2 id="overview-title" className="sr-only">
-            Overview
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {stats.map((s) => (
-              <StatCard key={s.label} s={s} />
-            ))}
-          </div>
-          <Note>
-            In each card's line the solid part is what the publisher estimates has happened and the dashed part is what it projects. The IMF's estimates run to{" "}
-            {first - 1} and its projections from {first}; the UN's projections begin in {WPP.firstProjected}. A card opens to its full series; a chip is green or red only
-            where one direction is plainly the better.
-          </Note>
-        </section>
 
         {/* ══ World economy ══ */}
         <section id="economy" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="economy-title">
@@ -2367,11 +1988,13 @@ export function TrendsPage() {
                 </span>
                 <div className="flex-1 h-px" style={{ background: look.grid }} />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {(TREND_CARDS.find((c) => c.title === g.title)?.items ?? []).map((s) => (
-                  <StatCard key={`${s.label}·${s.sub}`} s={s} more="Regions, types, names and the full series" />
-                ))}
-              </div>
+              {!NO_CARDS.has(g.id) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {(TREND_CARDS.find((c) => c.title === g.title)?.items ?? []).map((s) => (
+                    <StatCard key={`${s.label}·${s.sub}`} s={s} more="Regions, types, names and the full series" />
+                  ))}
+                </div>
+              )}
               <SourceLink sources={g.ids.flatMap((id) => figureOf(id)?.source ?? [])} />
               {/* The group in charts: its lead figures by region, year by year. */}
               {TREND_CHARTS[g.id] && <CategoryCharts charts={TREND_CHARTS[g.id]} frame="card" />}
