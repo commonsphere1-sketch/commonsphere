@@ -11,13 +11,11 @@ import { PlaceTopics } from "../components/PlaceTopics";
 
 /* Every country's parties and chambers: loaded when a Governance tab opens, not with the page. */
 const PoliticalParties = lazy(() => import("../components/PoliticalParties"));
-/** The Sovereignty and Safety reports: two panels with their own data, loaded when a window opens. */
+/** The Sovereignty report: a panel with its own data, loaded when the Politics tab opens. */
 const SovereigntyReport = lazy(() => import("../components/CountryReports").then((m) => ({ default: m.SovereigntyReport })));
-const SafetyReport = lazy(() => import("../components/CountryReports").then((m) => ({ default: m.SafetyReport })));
 import {
   MapPin,
   Shield,
-  ShieldCheck,
   Users,
   Airplane,
   Buildings,
@@ -47,7 +45,7 @@ import type { Geography } from "../data/countryGeography";
 import { CARD_COVERS, DEPENDENCIES_SOURCE, FACTBOOK_STATUS, UNCARDED_DEPENDENCIES } from "../data/dependencies";
 import { PRISON_RATES, PRISON_RATES_SOURCE } from "../data/prisonRates";
 import { COUNTRY_CRIME, CRIME_SOURCE, type CrimeFigure } from "../data/countryCrime";
-import { PUBLIC_SECURITY, PUBLIC_SECURITY_SOURCES, type GovernanceScore } from "../data/publicSecurity";
+import { PUBLIC_SECURITY } from "../data/publicSecurity";
 import { COUNTRY_PANELS, panelSource, type PanelField, type PanelFigure } from "../data/countryPanels";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
@@ -1213,13 +1211,7 @@ function CountryModal({
                   </div>
                 )}
 
-                {/* ── SAFETY: a report of its own, ahead of the panels that go into one part of it. Sovereignty is in the Politics tab. ── */}
-                <Suspense fallback={null}>
-                  <SafetyReport country={country} />
-                </Suspense>
-
-                {/* ── CRIME STATISTICS ── */}
-                <PublicSecurityPanel country={country} />
+                {/* ── CRIME STATISTICS ── (the Safety report and the Public Security panel that stood above were removed as asked) */}
                 <CountryCrimeStatsPanel country={country} />
 
                 {/* ── INCARCERATION (below crime stats) ── */}
@@ -1322,135 +1314,6 @@ function EnergySection({
 // The offences are given as figures, not bars: they are on scales a hundred
 // times apart, and the bars they had were each drawn against a ceiling picked
 // for the purpose.
-/** 1st, 2nd, 3rd, 4th … */
-const placeOf = (n: number) => {
-  const t = n % 100;
-  return `${n}${t >= 11 && t <= 13 ? "th" : (["th", "st", "nd", "rd"][n % 10] ?? "th")}`;
-};
-
-/**
- * How secure the public is, as the bodies that measure it publish it.
- *
- * No body gives one "security status" for every country, so the panel does
- * not show one. It says what was recorded - the deaths in armed conflict, the
- * homicide rate against the world's - then sets out the World Bank's two
- * governance scores that bear on it, each on its own 0 to 100 scale with the
- * bounds the Bank gives, and the counts of terrorism and displacement. Every
- * figure has its year; one a body does not publish for the country is absent.
- */
-function PublicSecurityPanel({ country }: { country: Country }) {
-  const sec = PUBLIC_SECURITY[country.code];
-  const homicide = COUNTRY_CRIME[country.id]?.homicide;
-  if (!sec && !homicide) return null;
-  const SRC = PUBLIC_SECURITY_SOURCES;
-  const n = (v: number) => v.toLocaleString("en-US");
-  const conflict = sec?.conflict;
-  const conflictTotal = conflict ? conflict.stateBased + conflict.nonState + conflict.oneSided : null;
-  const worldHomicide = homicide ? worldFor("homicide", homicide.y) : null;
-  const scores = (
-    [
-      ["Political stability and absence of violence", sec?.stability],
-      ["Rule of law", sec?.ruleOfLaw],
-    ] as [string, GovernanceScore | undefined][]
-  ).filter((r): r is [string, GovernanceScore] => !!r[1]);
-  const conflictParts = conflict
-    ? [
-        conflict.stateBased > 0 ? `${n(conflict.stateBased)} in state-based conflict` : "",
-        conflict.nonState > 0 ? `${n(conflict.nonState)} between non-state groups` : "",
-        conflict.oneSided > 0 ? `${n(conflict.oneSided)} civilians in one-sided violence` : "",
-      ].filter(Boolean)
-    : [];
-
-  return (
-    <div className="modal-tile rounded-lg p-4 mt-4">
-      <PanelHead
-        icon={<ShieldCheck size={13} weight="fill" />}
-        title="Public Security"
-        sub="How safe people are from conflict, violence and disorder, as each body that measures it publishes it"
-      />
-
-      {/* What was recorded, in a sentence each. */}
-      <p className="text-[12px] font-sans text-foreground/90 leading-relaxed mb-3">
-        {conflict &&
-          (conflictTotal === 0
-            ? `The Uppsala Conflict Data Program recorded no deaths in armed conflict in ${country.name} in ${conflict.y}. `
-            : `The Uppsala Conflict Data Program recorded ${n(conflictTotal!)} deaths in armed conflict in ${country.name} in ${conflict.y}: ${conflictParts.join(", ")}. `)}
-        {sec?.stability &&
-          `The World Bank scores its political stability and absence of violence ${sec.stability.v} out of 100 for ${sec.stability.y}, ${placeOf(sec.stability.rank)} of the ${SRC.wgi.economies} economies it scores. `}
-        {homicide &&
-          `${homicide.v.toLocaleString("en-US")} people in every 100,000 were victims of homicide in ${homicide.y}${worldHomicide != null ? `, against ${worldHomicide.toLocaleString("en-US", { maximumFractionDigits: 1 })} worldwide` : ""}.`}
-      </p>
-
-      {scores.length > 0 && (
-        <>
-          <ChartTitle>World Bank governance scores · 0 to 100, higher is better governed · {scores[0][1].y}</ChartTitle>
-          <ul className="flex flex-col gap-2.5 mb-3" aria-label={`World Bank governance scores for ${country.name}`}>
-            {scores.map(([label, g]) => (
-              <li key={label}>
-                <span className="flex items-baseline justify-between gap-3">
-                  <span className="text-[11px] font-sans text-foreground min-w-0">{label}</span>
-                  <span className="text-[11px] font-mono font-semibold text-foreground text-right shrink-0">
-                    {g.v}
-                    <span className="font-normal text-muted-foreground">
-                      {" "}
-                      · {g.lo} to {g.hi} · {placeOf(g.rank)} of {SRC.wgi.economies}
-                    </span>
-                  </span>
-                </span>
-                {/* On 0 to 100: the bar ends at the score, and the bracket spans the bounds the Bank gives for it. */}
-                <span className="relative block h-1.5 rounded-full bg-muted mt-1" aria-hidden>
-                  <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${g.v}%`, background: ACCENT }} />
-                  <span className="absolute -top-1 -bottom-1 border-x-2 border-foreground opacity-70" style={{ left: `${g.lo}%`, width: `${Math.max(0, g.hi - g.lo)}%` }} title={`The Bank's range: ${g.lo} to ${g.hi}`} />
-                </span>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-
-      <div className="flex flex-col">
-        {homicide && (
-          <FigureRow
-            label="Intentional homicides"
-            value={homicide.v.toLocaleString("en-US")}
-            sub={`per 100,000 · ${homicide.y}${worldHomicide != null ? ` · world ${worldHomicide.toLocaleString("en-US", { maximumFractionDigits: 1 })}` : ""}`}
-          />
-        )}
-        {conflict && <FigureRow label="Deaths in armed conflict in the country" value={conflictTotal === 0 ? "None recorded" : n(conflictTotal!)} sub={`${conflict.y}`} />}
-        {sec?.terror && (
-          <FigureRow
-            label="Terrorist attacks"
-            value={sec.terror.attacks === 0 ? "None recorded" : n(sec.terror.attacks)}
-            sub={`${sec.terror.attacks > 0 ? `${n(sec.terror.deaths)} deaths · ` : ""}${sec.terror.y}, the database's last year`}
-          />
-        )}
-        {sec?.refugeesFrom && <FigureRow label="Refugees who have left the country" value={n(sec.refugeesFrom.v)} sub={`under UNHCR's mandate · ${sec.refugeesFrom.y}`} />}
-        {sec?.refugeesHosted && <FigureRow label="Refugees it hosts" value={n(sec.refugeesHosted.v)} sub={`under UNHCR's mandate · ${sec.refugeesHosted.y}`} />}
-        {sec?.newDisplacements && (
-          <FigureRow label="Displaced within the country by conflict and violence" value={n(sec.newDisplacements.v)} sub={`new displacements · ${sec.newDisplacements.y}`} />
-        )}
-      </div>
-
-      <ChartNote className="mt-3">
-        No body publishes a single security status for every country, and none is given here. The governance scores are the World Bank's reading of
-        surveys and expert assessments, not counts of events; the bracket on each bar is the range the Bank gives for the score. Conflict deaths are
-        UCDP's best estimate, placed in the country where each event happened.
-      </ChartNote>
-      <SourceLink
-        sources={[
-          ...(scores.length ? [{ label: SRC.wgi.label, url: SRC.wgi.url }] : []),
-          ...(conflict ? [{ label: SRC.ucdp.label, url: SRC.ucdp.url }] : []),
-          ...(homicide ? [CRIME_SOURCE] : []),
-          ...(sec?.terror ? [{ label: SRC.gtd.label, url: SRC.gtd.url }] : []),
-          ...(sec?.refugeesFrom || sec?.refugeesHosted ? [{ label: SRC.unhcr.label, url: SRC.unhcr.url }] : []),
-          ...(sec?.newDisplacements ? [{ label: SRC.idmc.label, url: SRC.idmc.url }] : []),
-        ]}
-        className="mt-2"
-      />
-    </div>
-  );
-}
-
 function CountryCrimeStatsPanel({ country }: { country: Country }) {
   const cs = COUNTRY_CRIME[country.id];
   if (!cs) return null;
