@@ -78,7 +78,8 @@ interface Leader {
   birthPlace: string;
   education: { institution: string; degree: string; year?: number }[];
   party: string;
-  ideology: Ideology;
+  /** Null where the person's article names none: the chip is then not drawn. */
+  ideology: Ideology | null;
   termsInOffice: { from: number; to: number | "present" }[];
   background: string;
   significantEvents: {
@@ -101,7 +102,7 @@ const LEADERS: Leader[] = [
     country: "United States",
     countryCode: "US",
     flag: "🇺🇸",
-    title: "President-elect / 45th & 47th President",
+    title: "President (45th and 47th)",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Donald_Trump_official_portrait.jpg/440px-Donald_Trump_official_portrait.jpg",
     age: 78,
@@ -598,7 +599,7 @@ const LEADERS: Leader[] = [
     country: "United Kingdom",
     countryCode: "GB",
     flag: "🇬🇧",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Keir_Starmer_2020.jpg/440px-Keir_Starmer_2020.jpg",
     age: 61,
@@ -614,7 +615,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Labour Party",
     ideology: "Social Democrat",
-    termsInOffice: [{ from: 2024, to: "present" }],
+    termsInOffice: [{ from: 2024, to: 2026 }],
     background:
       "Former Director of Public Prosecutions (2008–2013) and human rights lawyer who led Labour back to power in a historic 2024 landslide after 14 years in opposition.",
     significantEvents: [
@@ -639,6 +640,11 @@ const LEADERS: Leader[] = [
         event: "UK–EU reset negotiations; defence pact discussions",
         impact: "positive",
       },
+      {
+        year: 2026,
+        event: "Left office on 20 July 2026; succeeded by Andy Burnham",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Historic 2024 election win — 400+ seats for Labour",
@@ -648,9 +654,59 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-left pragmatist. Pro-European cooperation without re-joining EU. Climate mission, NHS investment, workers' rights, national wealth fund. Hawkish on crime; international rules-based order.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Early approval rating declines despite large majority. Ambitious domestic agenda faces headwinds from inherited fiscal constraints and public discontent with pace of change.",
+    region: "Europe",
+  },
+  {
+    id: "burnham",
+    name: "Andy Burnham",
+    country: "United Kingdom",
+    countryCode: "GB",
+    flag: "🇬🇧",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Prime_Minister_Andy_Burnham_portrait_%28cropped%29.jpg/500px-Prime_Minister_Andy_Burnham_portrait_%28cropped%29.jpg",
+    age: 56,
+    birthYear: 1970,
+    birthPlace: "Aintree, Lancashire, England",
+    education: [
+      { institution: "Fitzwilliam College, Cambridge", degree: "MA" },
+    ],
+    party: "Labour Party",
+    ideology: "Social Democrat",
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Mayor of Greater Manchester from 2017 to 2026 and MP for Leigh from 2001 to 2017, he held Cabinet posts under Tony Blair and Gordon Brown, including Chief Secretary to the Treasury, Culture Secretary and Health Secretary. He returned to Parliament by winning the Makerfield by-election in June 2026 and became Prime Minister on 20 July 2026 after winning the Labour leadership unopposed.",
+    significantEvents: [
+      {
+        year: 2001,
+        event: "Elected MP for Leigh",
+        impact: "neutral",
+      },
+      {
+        year: 2009,
+        event: "As Health Secretary, responded to the swine flu pandemic and launched an independent inquiry into the Stafford Hospital scandal",
+        impact: "neutral",
+      },
+      {
+        year: 2017,
+        event: "Elected Mayor of Greater Manchester; re-elected in 2021 and 2024",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Won the Makerfield by-election in June and the Labour leadership unopposed in July; became Prime Minister on 20 July",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "Launched the Hillsborough Independent Panel as Culture Secretary",
+      "Reorganised Greater Manchester's trams and buses as the Bee Network",
+    ],
+    politicalViews: "Identifies as a socialist and is associated with Labour's soft left; his approach has been called \"Manchesterism\". As Prime Minister he has announced moving some government administration out of London, lower bus fares in England, lower business rates for pubs, more support for apprenticeships and continued support for Ukraine.",
+    status: "In Office",
+    impact: "",
     region: "Europe",
   },
   {
@@ -1518,7 +1574,7 @@ const LEADERS: Leader[] = [
     country: "Japan",
     countryCode: "JP",
     flag: "🇯🇵",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Shigeru_Ishiba_20241001.jpg/440px-Shigeru_Ishiba_20241001.jpg",
     age: 67,
@@ -1529,7 +1585,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Liberal Democratic Party (LDP)",
     ideology: "Conservative",
-    termsInOffice: [{ from: 2024, to: "present" }],
+    termsInOffice: [{ from: 2024, to: 2025 }],
     background:
       "Former banker at Mitsui Bank who entered politics in 1986. Veteran defence policy expert known as a plain-spoken maverick within the LDP. Ran for LDP leadership five times before finally winning in September 2024, succeeding Fumio Kishida.",
     significantEvents: [
@@ -1553,6 +1609,11 @@ const LEADERS: Leader[] = [
         event: "US–Japan tariff negotiations under Trump's 24% tariff threat",
         impact: "negative",
       },
+      {
+        year: 2025,
+        event: "Left office on 21 October 2025; succeeded by Sanae Takaichi",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Pushed Japan's defence budget to NATO-level 2% of GDP",
@@ -1562,9 +1623,54 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative nationalist, strong US alliance advocate but also interested in an Asian NATO concept. Pro-defence spending increase. Willing to break from LDP taboos — has discussed nuclear sharing debate openly.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Leads Japan through its most significant military expansion since WWII while navigating coalition politics after losing the LDP's lower house majority.",
+    region: "Asia-Pacific",
+  },
+  {
+    id: "takaichi",
+    name: "Sanae Takaichi",
+    country: "Japan",
+    countryCode: "JP",
+    flag: "🇯🇵",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Official_portrait_of_Sanae_Takaichi%2C_Prime_Minister_of_Japan_%28HD%29.jpg/500px-Official_portrait_of_Sanae_Takaichi%2C_Prime_Minister_of_Japan_%28HD%29.jpg",
+    age: 65,
+    birthYear: 1961,
+    birthPlace: "Tenri, Nara, Japan",
+    education: [
+      { institution: "Kobe University", degree: "BBA" },
+    ],
+    party: "Liberal Democratic Party (LDP)",
+    ideology: "Conservative",
+    termsInOffice: [{ from: 2025, to: "present" }],
+    background:
+      "Member of the House of Representatives from 1993 to 2003 and since 2005, and a minister under Shinzo Abe and Fumio Kishida, including Minister for Internal Affairs and Communications and Minister of State for Economic Security. Elected president of the LDP on 4 October 2025 and Prime Minister by the National Diet on 21 October 2025, she is the first woman to hold either post.",
+    significantEvents: [
+      {
+        year: 1993,
+        event: "First elected to the House of Representatives, as an independent; joined the LDP in 1996",
+        impact: "neutral",
+      },
+      {
+        year: 2025,
+        event: "Won the LDP leadership at her third attempt, agreed a coalition with the Japan Innovation Party and became Prime Minister on 21 October",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Called a snap general election, in which the LDP won a two-thirds supermajority",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "First woman to be Prime Minister of Japan and president of the LDP",
+      "Led the LDP to a two-thirds supermajority in the 2026 general election",
+    ],
+    politicalViews: "Described as conservative or ultraconservative. Supports proactive government spending and the continuation of Abenomics, revising Article 9 of the constitution and a stronger US–Japan alliance; opposes same-sex marriage, separate surnames for spouses and female succession to the throne.",
+    status: "In Office",
+    impact: "",
     region: "Asia-Pacific",
   },
   {
@@ -1854,7 +1960,7 @@ const LEADERS: Leader[] = [
     country: "South Korea",
     countryCode: "KR",
     flag: "🇰🇷",
-    title: "Prime Minister (Acting President)",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Han_Duck-soo_official_portrait_%282022%29.jpg/440px-Han_Duck-soo_official_portrait_%282022%29.jpg",
     age: 75,
@@ -1874,7 +1980,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Independent (technocratic)",
     ideology: "Conservative",
-    termsInOffice: [{ from: 2022, to: "present" }],
+    termsInOffice: [{ from: 2022, to: 2025 }],
     background:
       "Career technocrat and trade economist who served as Minister of Trade and Prime Minister under Roh Moo-hyun before returning to government under Yoon Suk-yeol. Became acting president twice in 2024–25 following the extraordinary political crisis triggered by Yoon's short-lived martial law declaration.",
     significantEvents: [
@@ -1906,6 +2012,11 @@ const LEADERS: Leader[] = [
           "Constitutional Court upheld Yoon impeachment; early election called",
         impact: "neutral",
       },
+      {
+        year: 2025,
+        event: "Left office as Prime Minister on 1 May 2025",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Maintained governmental continuity during South Korea's worst constitutional crisis in decades",
@@ -1915,7 +2026,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Technocratic centrist conservative. Prioritises trade liberalisation, US alliance, and South Korea's export-driven economic model. Non-partisan in style; pragmatic in governance. Cautious on North Korea engagement.",
-    status: "In Office",
+    status: "Former",
     impact:
       "An accidental president thrust into power by constitutional crisis. His steady-hand caretaker governance prevented South Korea's political meltdown from becoming an economic one.",
     region: "Asia-Pacific",
@@ -1993,7 +2104,7 @@ const LEADERS: Leader[] = [
     country: "Venezuela",
     countryCode: "VE",
     flag: "🇻🇪",
-    title: "President",
+    title: "Former President (captured January 2026; still claims the office)",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Nicol%C3%A1s_Maduro_%28cropped%29.jpg/440px-Nicol%C3%A1s_Maduro_%28cropped%29.jpg",
     age: 62,
@@ -2008,7 +2119,7 @@ const LEADERS: Leader[] = [
     ],
     party: "United Socialist Party of Venezuela (PSUV)",
     ideology: "Authoritarian",
-    termsInOffice: [{ from: 2013, to: "present" }],
+    termsInOffice: [{ from: 2013, to: 2026 }],
     background:
       "Former bus driver and trade union activist who rose through Hugo Chávez's Bolivarian movement. Handpicked by Chávez as successor before his death in 2013. Has clung to power through hyperinflation, economic collapse, mass exodus of 7.7M Venezuelans, and disputed elections, surviving with military and Cuban backing.",
     significantEvents: [
@@ -2040,6 +2151,11 @@ const LEADERS: Leader[] = [
           "Declared winner of disputed election; massive fraud allegations; protests suppressed",
         impact: "negative",
       },
+      {
+        year: 2026,
+        event: "Captured by United States forces on 3 January 2026; Vice President Delcy Rodríguez was sworn in as acting president on 5 January",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Survived the most comprehensive US sanctions programme outside North Korea",
@@ -2049,9 +2165,53 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Bolivarian socialist. Anti-US imperialism, pro-ALBA regional bloc, state control of economy and PDVSA oil. Maintains Chávez's cult of personality as legitimising device. Deep ties to Cuba's security establishment.",
-    status: "Incumbent (Disputed)",
+    status: "Former",
     impact:
       "Presided over the largest economic collapse in Latin American history outside wartime — GDP fell 80%, 7.7M fled the country. Survival through repression despite international isolation is his most remarkable 'achievement'.",
+    region: "Americas",
+  },
+  {
+    id: "delcyrodriguez",
+    name: "Delcy Rodríguez",
+    country: "Venezuela",
+    countryCode: "VE",
+    flag: "🇻🇪",
+    title: "Acting President",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Delcy_Rodr%C3%ADguez_-_02_%2819-01-2026%29_%28cropped_2%29_%28b%29.jpg/500px-Delcy_Rodr%C3%ADguez_-_02_%2819-01-2026%29_%28cropped_2%29_%28b%29.jpg",
+    age: 57,
+    birthYear: 1969,
+    birthPlace: "Caracas, Venezuela",
+    education: [
+      { institution: "Central University of Venezuela", degree: "Bachelor of Laws", year: 1993 },
+    ],
+    party: "United Socialist Party of Venezuela (PSUV)",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Lawyer and diplomat, Vice President of Venezuela from 2018. Under Nicolás Maduro she was minister of communication, foreign minister from 2014 to 2017 and president of the Constituent National Assembly, and later minister of economy and finance and of petroleum. After United States forces captured Maduro on 3 January 2026, the Supreme Tribunal of Justice designated her to act as president, and she was sworn in on 5 January 2026. Both she and Maduro maintain that he remains the legal holder of the office.",
+    significantEvents: [
+      {
+        year: 2014,
+        event: "Appointed Minister of Foreign Affairs",
+        impact: "neutral",
+      },
+      {
+        year: 2018,
+        event: "Appointed Vice President",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Sworn in as acting president on 5 January, two days after Nicolás Maduro's capture",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "First woman to exercise the powers of the presidency of Venezuela",
+    ],
+    politicalViews: "",
+    status: "Transitional",
+    impact: "",
     region: "Americas",
   },
   {
@@ -2470,7 +2630,7 @@ const LEADERS: Leader[] = [
     country: "Bangladesh",
     countryCode: "BD",
     flag: "🇧🇩",
-    title: "Chief Adviser (Interim Government)",
+    title: "Former Chief Adviser (Interim Government)",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Muhammad_Yunus_in_2017_%28cropped%29.jpg/440px-Muhammad_Yunus_in_2017_%28cropped%29.jpg",
     age: 84,
@@ -2490,7 +2650,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Non-partisan (National Consensus Party associated)",
     ideology: "Social Democrat",
-    termsInOffice: [{ from: 2024, to: "present" }],
+    termsInOffice: [{ from: 2024, to: 2026 }],
     background:
       "Nobel Peace Prize-winning economist and founder of the Grameen Bank microfinance model. Was called out of retirement to lead Bangladesh's interim government after student-led protests deposed Sheikh Hasina who fled to India in August 2024.",
     significantEvents: [
@@ -2514,6 +2674,11 @@ const LEADERS: Leader[] = [
         event: "Heads interim government; major reform agenda launched",
         impact: "neutral",
       },
+      {
+        year: 2026,
+        event: "The interim government ended on 17 February 2026, when Tarique Rahman took office as Prime Minister",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Nobel Peace Prize 2006 — Grameen Bank served 9M+ borrowers",
@@ -2523,9 +2688,55 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Social entrepreneur, poverty reduction through market mechanisms. Pro-democratic governance reform, anti-corruption. Non-partisan reformist. Advocates 'social business' model globally. Internationally respected.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Global icon of poverty alleviation who became an accidental head of state. His leadership of Bangladesh's fragile transition is defining the country's post-authoritarian political future.",
+    region: "Asia-Pacific",
+  },
+  {
+    id: "tariquerahman",
+    name: "Tarique Rahman",
+    country: "Bangladesh",
+    countryCode: "BD",
+    flag: "🇧🇩",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Tarique_Rahman_presiding_over_National_Economic_Council_%28NEC%29_meeting%2C_Ministry_of_Planning%2C_Agargaon%2C_Dhaka%2C_2026-05-18_%28cropped%29.jpg/500px-Tarique_Rahman_presiding_over_National_Economic_Council_%28NEC%29_meeting%2C_Ministry_of_Planning%2C_Agargaon%2C_Dhaka%2C_2026-05-18_%28cropped%29.jpg",
+    age: 57,
+    birthYear: 1968,
+    birthPlace: "Dhaka, then East Pakistan",
+    education: [
+      { institution: "Dhaka Residential Model College", degree: "SSC" },
+      { institution: "Adamjee Cantonment College", degree: "HSC" },
+    ],
+    party: "Bangladesh Nationalist Party (BNP)",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Chairman of the Bangladesh Nationalist Party and the eldest son of former President Ziaur Rahman and former Prime Minister Khaleda Zia. Detained in 2007 under the military-backed caretaker government, he lived in self-imposed exile in London from 2008. After the July Uprising of 2024 the courts acquitted him of all charges; he returned to Bangladesh in late 2025, won the 2026 general election and became Prime Minister on 17 February 2026.",
+    significantEvents: [
+      {
+        year: 2007,
+        event: "Detained under the military-backed caretaker government; left for London on parole in 2008",
+        impact: "neutral",
+      },
+      {
+        year: 2024,
+        event: "Acquitted of all charges, and his sentences quashed, after the July Uprising",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Became chairman of the BNP in January, won the general election and took office as Prime Minister on 17 February",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "Led the BNP to victory in the 2026 general election",
+      "Named among Time's 100 Most Influential People of 2026",
+    ],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Asia-Pacific",
   },
   {
@@ -2655,7 +2866,7 @@ const LEADERS: Leader[] = [
     country: "Thailand",
     countryCode: "TH",
     flag: "🇹🇭",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Paetongtarn_Shinawatra_2024_official_portrait.jpg/440px-Paetongtarn_Shinawatra_2024_official_portrait.jpg",
     age: 38,
@@ -2671,7 +2882,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Pheu Thai Party",
     ideology: "Populist",
-    termsInOffice: [{ from: 2024, to: "present" }],
+    termsInOffice: [{ from: 2024, to: 2025 }],
     background:
       "Youngest Thai PM and daughter of exiled former PM Thaksin Shinawatra and niece of PM Yingluck Shinawatra. Both were ousted in military coups. Became PM after the Constitutional Court dissolved her predecessor's party over election ethics violations.",
     significantEvents: [
@@ -2696,6 +2907,11 @@ const LEADERS: Leader[] = [
         event: "Navigating Myanmar border crisis as civil war intensifies",
         impact: "negative",
       },
+      {
+        year: 2025,
+        event: "Removed from office by the Constitutional Court on 29 August 2025; Anutin Charnvirakul became Prime Minister on 7 September",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Youngest prime minister in Thai history",
@@ -2705,9 +2921,59 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Populist centre — flagship free money stimulus, rural welfare. Continuity of Thaksin's pro-rural, pro-poor policy line. Needs to maintain balance with military establishment that ousted her family twice.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Represents the resilience of the Shinawatra political brand in Thailand. Faces the same structural tension between elected populist governments and the Thai military-judicial establishment that toppled her predecessors.",
+    region: "Asia-Pacific",
+  },
+  {
+    id: "anutin",
+    name: "Anutin Charnvirakul",
+    country: "Thailand",
+    countryCode: "TH",
+    flag: "🇹🇭",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Anutin_Charnvirakul_September_2026_%28cropped%29.jpg/500px-Anutin_Charnvirakul_September_2026_%28cropped%29.jpg",
+    age: 60,
+    birthYear: 1966,
+    birthPlace: "Bangkok, Thailand",
+    education: [
+      { institution: "Hofstra University", degree: "BEng", year: 1989 },
+      { institution: "Thammasat University", degree: "MBA" },
+    ],
+    party: "Bhumjaithai Party",
+    ideology: null,
+    termsInOffice: [{ from: 2025, to: "present" }],
+    background:
+      "Leader of the Bhumjaithai Party since 2012 and a former president of his family's construction firm, Sino-Thai Engineering and Construction. He was deputy prime minister and public health minister under Prayut Chan-o-cha, overseeing Thailand's COVID-19 response and the 2022 decriminalisation of cannabis, and interior minister from 2023 to 2025. The National Assembly elected him Prime Minister on 5 September 2025, after the Constitutional Court removed Paetongtarn Shinawatra, and the King endorsed the appointment on 7 September.",
+    significantEvents: [
+      {
+        year: 2012,
+        event: "Became leader of the Bhumjaithai Party",
+        impact: "neutral",
+      },
+      {
+        year: 2022,
+        event: "As public health minister, oversaw the decriminalisation of cannabis",
+        impact: "neutral",
+      },
+      {
+        year: 2025,
+        event: "Elected Prime Minister on 5 September with the People's Party's support; dissolved the House on 12 December and called a snap election",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Bhumjaithai placed first in the general election, winning nearly 200 seats",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "Led Bhumjaithai to first place in the 2026 general election",
+    ],
+    politicalViews: "Took office on the condition of drafting a new constitution.",
+    status: "In Office",
+    impact: "",
     region: "Asia-Pacific",
   },
   {
@@ -2962,7 +3228,7 @@ const LEADERS: Leader[] = [
     country: "Iran",
     countryCode: "IR",
     flag: "🇮🇷",
-    title: "Supreme Leader",
+    title: "Former Supreme Leader (died February 2026)",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Ali_Khamenei_%282021%29.jpg/440px-Ali_Khamenei_%282021%29.jpg",
     age: 85,
@@ -2977,7 +3243,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Islamic Revolutionary System",
     ideology: "Theocrat",
-    termsInOffice: [{ from: 1989, to: "present" }],
+    termsInOffice: [{ from: 1989, to: 2026 }],
     background:
       "Iran's second and longest-serving Supreme Leader, holding power since Ayatollah Khomeini's death in 1989. Former president (1981–89) who controls the armed forces, judiciary, state media, and nuclear programme. His fatwa on nuclear weapons — that they are forbidden in Islam — is frequently cited in diplomacy despite evidence of weapons-relevant progress.",
     significantEvents: [
@@ -3009,6 +3275,11 @@ const LEADERS: Leader[] = [
           "Hamas Oct 7 attack and Gaza war reshapes Iran's regional position",
         impact: "neutral",
       },
+      {
+        year: 2026,
+        event: "Killed on 28 February 2026 in an airstrike during the 2026 Iran war; his son Mojtaba Khamenei was elected Supreme Leader on 8 March",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Maintained Islamic Republic through 35+ years of US sanctions",
@@ -3018,9 +3289,46 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Velayat-e Faqih (Guardianship of the Islamic Jurist) — theocratic supreme authority. Anti-US imperialism, anti-Zionism, pan-Islamic revolutionary ideology. Domestically suppresses all opposition. Strategically patient adversary to Western pressure.",
-    status: "In Office",
+    status: "Former",
     impact:
       "The most consequential figure in Middle Eastern geopolitics after MBS. His direction of the Axis of Resistance has defined regional conflict for a generation. Iran's nuclear programme under his watch has reached threshold status.",
+    region: "Middle East",
+  },
+  {
+    id: "mojtabakhamenei",
+    name: "Mojtaba Khamenei",
+    country: "Iran",
+    countryCode: "IR",
+    flag: "🇮🇷",
+    title: "Supreme Leader",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/%D8%B1%D9%87%D8%A8%D8%B1_%D8%A7%D9%86%D9%82%D9%84%D8%A7%D8%A8.jpg/500px-%D8%B1%D9%87%D8%A8%D8%B1_%D8%A7%D9%86%D9%82%D9%84%D8%A7%D8%A8.jpg",
+    age: 57,
+    birthYear: 1969,
+    birthPlace: "Mashhad, Iran",
+    education: [
+      { institution: "Qom Seminary", degree: "Clerical studies" },
+    ],
+    party: "Independent",
+    ideology: "Theocrat",
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Shia cleric and second son of Ali Khamenei. He joined the Islamic Revolutionary Guard Corps in 1987 and served in the Iran–Iraq War, studied and later taught theology in Qom, and served in his father's office from 2008 to 2026. After his father was killed during the 2026 Iran war, the Assembly of Experts elected him Iran's third supreme leader on 8 March 2026. He was injured in the airstrike that killed his father and has not been seen in public since his appointment.",
+    significantEvents: [
+      {
+        year: 1987,
+        event: "Joined the Islamic Revolutionary Guard Corps",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Elected Supreme Leader by the Assembly of Experts on 8 March, after his father's death on 28 February",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "Considered more hardline than his father, with close ties to hardline clerics, according to an Atlantic Council report his Wikipedia article cites.",
+    status: "In Office",
+    impact: "",
     region: "Middle East",
   },
   {
@@ -3220,7 +3528,7 @@ const LEADERS: Leader[] = [
     country: "Colombia",
     countryCode: "CO",
     flag: "🇨🇴",
-    title: "President",
+    title: "Former President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Gustavo_Petro_2022_official.jpg/440px-Gustavo_Petro_2022_official.jpg",
     age: 64,
@@ -3235,7 +3543,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Pacto Histórico / Colombia Humana",
     ideology: "Social Democrat",
-    termsInOffice: [{ from: 2022, to: "present" }],
+    termsInOffice: [{ from: 2022, to: 2026 }],
     background:
       "Former M-19 guerrilla turned politician who became Colombia's first left-wing president in 2022. Was Bogotá mayor 2012–2015. His election ended the traditional Conservative-Liberal duopoly that has governed Colombia since independence.",
     significantEvents: [
@@ -3260,6 +3568,11 @@ const LEADERS: Leader[] = [
         event: "Total Peace negotiations stalled; ELN broke ceasefire",
         impact: "negative",
       },
+      {
+        year: 2026,
+        event: "Left office on 7 August 2026; succeeded by Abelardo de la Espriella",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Historic first left-wing president in Colombia",
@@ -3269,9 +3582,49 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Democratic socialist, anti-extractivism (no new oil licences), peace process advocate. Environmental justice, land reform, universal healthcare. Foreign policy — non-aligned, Latin American integration, pro-Global South voice.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Historic figure whose peace agenda has struggled against armed groups' continued violence. His anti-oil position threatens Colombia's fiscal base; progressive agenda faces implementation barriers in a conservative congress.",
+    region: "Americas",
+  },
+  {
+    id: "espriella",
+    name: "Abelardo de la Espriella",
+    country: "Colombia",
+    countryCode: "CO",
+    flag: "🇨🇴",
+    title: "President",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Colombian_Presidential_Candidate_Abelardo_de_la_Espriella_%28cropped%29.jpg/500px-Colombian_Presidential_Candidate_Abelardo_de_la_Espriella_%28cropped%29.jpg",
+    age: 48,
+    birthYear: 1978,
+    birthPlace: "Bogotá, Colombia",
+    education: [
+      { institution: "Universidad Sergio Arboleda", degree: "Law (licentiate)" },
+      { institution: "Nebrija University", degree: "Master's in law", year: 2012 },
+    ],
+    party: "Defenders of the Homeland",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Lawyer and businessman who became a public figure defending high-profile clients, and founder in 2024 of the Defenders of the Homeland party, which his Wikipedia article describes as far-right. He won the 2026 presidential runoff on 21 June with 49.66% to Iván Cepeda's 48.70%, the narrowest margin recorded in a Colombian presidential election, and took office on 7 August 2026.",
+    significantEvents: [
+      {
+        year: 2024,
+        event: "Founded Defenders of the Homeland",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Won the first round on 31 May with 43.74% and the runoff on 21 June with 49.66%; took office on 7 August",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "Received 12.9 million votes, the most for a presidential candidate in Colombia's history",
+    ],
+    politicalViews: "Supports the right to bear arms, laissez-faire economic policies, withdrawal from bodies such as the United Nations and the Inter-American Court of Human Rights, and an end to peace processes with armed groups. Has aligned Colombia more closely with the United States and restored diplomatic ties with Israel.",
+    status: "In Office",
+    impact: "",
     region: "Americas",
   },
   {
@@ -3280,7 +3633,7 @@ const LEADERS: Leader[] = [
     country: "Peru",
     countryCode: "PE",
     flag: "🇵🇪",
-    title: "President",
+    title: "Former President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Dina_Boluarte_2022_%28cropped%29.jpg/440px-Dina_Boluarte_2022_%28cropped%29.jpg",
     age: 62,
@@ -3295,7 +3648,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Free Peru (Perú Libre) — later distanced",
     ideology: "Centrist",
-    termsInOffice: [{ from: 2022, to: "present" }],
+    termsInOffice: [{ from: 2022, to: 2025 }],
     background:
       "Peru's first female president who assumed office after President Pedro Castillo's failed self-coup in December 2022. Peru has had 6 presidents in 7 years. Boluarte's government used deadly force against protesters in early 2023, killing 49 people.",
     significantEvents: [
@@ -3322,6 +3675,11 @@ const LEADERS: Leader[] = [
         event: "Peru joins Cobre Panama copper debate as mining focus",
         impact: "neutral",
       },
+      {
+        year: 2025,
+        event: "Left office on 10 October 2025; José Jerí and then José María Balcázar held the presidency before Keiko Fujimori took office on 28 July 2026",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "First female president in Peruvian history",
@@ -3331,9 +3689,54 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pragmatic centrist — moved from left (Free Peru) to business-friendly governance. Pro-foreign investment, anti-Castillo, pro-stability. Faces criminal investigation for protest deaths. Maintains relations with neighbours.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Symbol of Peru's chronic political dysfunction — the country's 6th president in 7 years. Governs with rock-bottom approval amid congressional blockage and ongoing criminal investigations.",
+    region: "Americas",
+  },
+  {
+    id: "keikofujimori",
+    name: "Keiko Fujimori",
+    country: "Peru",
+    countryCode: "PE",
+    flag: "🇵🇪",
+    title: "President",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Pdta._Keiko_Fujimori_%283x4_cropped%29.jpg/500px-Pdta._Keiko_Fujimori_%283x4_cropped%29.jpg",
+    age: 51,
+    birthYear: 1975,
+    birthPlace: "Jesús María, Lima, Peru",
+    education: [
+      { institution: "Boston University", degree: "BBA", year: 1997 },
+      { institution: "Columbia University", degree: "MBA", year: 2008 },
+    ],
+    party: "Popular Force (Fuerza Popular)",
+    ideology: "Conservative",
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Eldest daughter of former president Alberto Fujimori and leader of Popular Force since 2009. She was First Lady from 1994 to 2000 and a member of Congress for Lima from 2006 to 2011, and lost presidential runoffs in 2011, 2016 and 2021. Prosecuted from 2018 in connection with the Odebrecht scandal, she spent more than a year in pretrial detention and was not convicted. She won the 2026 runoff against Roberto Sánchez and took office on 28 July 2026.",
+    significantEvents: [
+      {
+        year: 2006,
+        event: "Elected to Congress for Lima",
+        impact: "neutral",
+      },
+      {
+        year: 2021,
+        event: "Narrowly lost a third presidential runoff and made claims of fraud that international observers rejected",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Won the presidency at her fourth attempt; took office on 28 July",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "Second woman to be President of Peru, and the first directly elected to the office",
+    ],
+    politicalViews: "The leading figure of Fujimorism, the conservative movement associated with her father.",
+    status: "In Office",
+    impact: "",
     region: "Americas",
   },
   {
@@ -3473,7 +3876,7 @@ const LEADERS: Leader[] = [
     country: "Mali",
     countryCode: "ML",
     flag: "🇲🇱",
-    title: "President (Transitional)",
+    title: "President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Assimi_Go%C3%AFta_2021_%28cropped%29.jpg/440px-Assimi_Go%C3%AFta_2021_%28cropped%29.jpg",
     age: 41,
@@ -3520,6 +3923,11 @@ const LEADERS: Leader[] = [
           "Alliance of Sahel States (Mali, Burkina, Niger) formed — leaves ECOWAS",
         impact: "negative",
       },
+      {
+        year: 2025,
+        event: "Became President, no longer interim, on 8 July 2025",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Expelled French military — delivered on domestic anti-France sentiment",
@@ -3528,7 +3936,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Anti-French, anti-ECOWAS, pro-Russia military partnership. Pan-Africanism as cover for authoritarian consolidation. No democratic transition timeline despite promises.",
-    status: "Transitional",
+    status: "In Office",
     impact:
       "Epitomises the Sahel's anti-French coup wave. Mali's security situation has worsened under Wagner support, with jihadist control expanding. His Russia pivot is part of a geopolitical realignment of West Africa away from the West.",
     region: "Africa",
@@ -3598,7 +4006,7 @@ const LEADERS: Leader[] = [
     country: "Vietnam",
     countryCode: "VN",
     flag: "🇻🇳",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Ph%E1%BA%A1m_Minh_Ch%C3%ADnh_2021_official_portrait.jpg/440px-Ph%E1%BA%A1m_Minh_Ch%C3%ADnh_2021_official_portrait.jpg",
     age: 65,
@@ -3618,7 +4026,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Communist Party of Vietnam (CPV)",
     ideology: "Communist",
-    termsInOffice: [{ from: 2021, to: "present" }],
+    termsInOffice: [{ from: 2021, to: 2026 }],
     background:
       "Former security and intelligence official who became PM in 2021. Vietnam has pursued a multi-directional foreign policy (doi ngoai da phuong) balancing US, China, Russia, and India ties — the 'bamboo diplomacy' strategy. Vietnam's economy is one of Asia's fastest-growing.",
     significantEvents: [
@@ -3644,6 +4052,11 @@ const LEADERS: Leader[] = [
           "Vietnam's Dot Dieu anti-corruption campaign — top leaders jailed",
         impact: "positive",
       },
+      {
+        year: 2026,
+        event: "Left office on 7 April 2026; succeeded by Lê Minh Hưng",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Vietnam's GDP growth of 7%+ — among Asia's fastest",
@@ -3653,9 +4066,52 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Communist developmentalism, pragmatic economic engagement. Bamboo diplomacy — bends but doesn't break, tilts with all partners. South China Sea disputes managed through ASEAN and bilateral channels without direct confrontation.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Oversees Vietnam's emergence as a key manufacturing alternative to China and one of SE Asia's most important growth stories — while maintaining one-party communist governance.",
+    region: "Asia-Pacific",
+  },
+  {
+    id: "leminhhung",
+    name: "Lê Minh Hưng",
+    country: "Vietnam",
+    countryCode: "VN",
+    flag: "🇻🇳",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/L%C3%AA_Minh_H%C6%B0ng_20260912.jpg/500px-L%C3%AA_Minh_H%C6%B0ng_20260912.jpg",
+    age: 55,
+    birthYear: 1970,
+    birthPlace: "Hương Sơn, Hà Tĩnh, Vietnam",
+    education: [
+      { institution: "VNU University of Languages and International Studies", degree: "BA" },
+      { institution: "Saitama University", degree: "MPP, MEcon" },
+    ],
+    party: "Communist Party of Vietnam (CPV)",
+    ideology: "Communist",
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Economist and member of the Politburo. He was Governor of the State Bank of Vietnam from 2016 to 2020 - the second-youngest in its history - then Chief of the Party Central Committee Office and Head of the Central Organization Commission. He became Prime Minister on 7 April 2026.",
+    significantEvents: [
+      {
+        year: 2016,
+        event: "Appointed Governor of the State Bank of Vietnam",
+        impact: "neutral",
+      },
+      {
+        year: 2024,
+        event: "Became Head of the Central Organization Commission",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Elevated to the Politburo at the 14th Party Congress; became Prime Minister on 7 April",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Asia-Pacific",
   },
   {
@@ -3933,7 +4389,7 @@ const LEADERS: Leader[] = [
     country: "Hungary",
     countryCode: "HU",
     flag: "🇭🇺",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Orb%C3%A1n_Viktor_2019_cropped.jpg/440px-Orb%C3%A1n_Viktor_2019_cropped.jpg",
     age: 62,
@@ -3955,7 +4411,7 @@ const LEADERS: Leader[] = [
     ideology: "Nationalist",
     termsInOffice: [
       { from: 1998, to: 2002 },
-      { from: 2010, to: "present" },
+      { from: 2010, to: 2026 },
     ],
     background:
       "Former anti-communist liberal activist who sharply pivoted to illiberal nationalism. Has systematically reshaped Hungary's judicial, media, and electoral systems in Fidesz's favour. Often described as the EU's only illiberal democracy and Putin's closest European ally.",
@@ -3989,6 +4445,11 @@ const LEADERS: Leader[] = [
           "Hungary holds EU Council presidency; used to push Putin peace plan",
         impact: "negative",
       },
+      {
+        year: 2026,
+        event: "Left office on 9 May 2026 after Tisza won the general election; succeeded by Péter Magyar",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Longest-serving current EU leader",
@@ -3998,9 +4459,48 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Illiberal national conservatism, Christian democracy, anti-immigration, anti-LGBTQ legislation, pro-Russia energy dependency. Defines himself against 'Brussels' and Western liberal values. Trumpist before Trump.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Proven template for a new breed of European nationalism. His media control and constitutional engineering have become a playbook for populists globally. Most disruptive EU member on Ukraine policy.",
+    region: "Europe",
+  },
+  {
+    id: "magyar",
+    name: "Péter Magyar",
+    country: "Hungary",
+    countryCode: "HU",
+    flag: "🇭🇺",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/P%C3%A9ter_Magyar_at_EC%2C_May_2026.jpg/500px-P%C3%A9ter_Magyar_at_EC%2C_May_2026.jpg",
+    age: 45,
+    birthYear: 1981,
+    birthPlace: "Budapest, Hungary",
+    education: [
+      { institution: "Pázmány Péter Catholic University", degree: "JD", year: 2004 },
+    ],
+    party: "Tisza (Respect and Freedom Party)",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Lawyer, former diplomat and former member of Fidesz who rose to prominence in 2024 after the Katalin Novák pardon scandal. He took over the Tisza Party that year and was a member of the European Parliament from 2024 to 2026. Tisza came second in the 2024 European election and won a supermajority in the 2026 general election, ending the Fidesz government of 2010 to 2026. Prime Minister since 9 May 2026.",
+    significantEvents: [
+      {
+        year: 2024,
+        event: "Became president of the Tisza Party and was elected to the European Parliament",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Tisza won a supermajority in the general election; took office on 9 May",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "Led Tisza to a supermajority in the 2026 general election",
+    ],
+    politicalViews: "Identifies as a \"critical pro-European\" and a \"conservative liberal\". His government has focused on dismantling the Orbán-era \"System of National Cooperation\", imposed term limits on prime ministers and members of the National Assembly, and pursued rapprochement with the European Union and Ukraine.",
+    status: "In Office",
+    impact: "",
     region: "Europe",
   },
   // ── BATCH 12: Missing Major Leaders ────────────────────────────────────────
@@ -4142,7 +4642,7 @@ const LEADERS: Leader[] = [
     country: "Chile",
     countryCode: "CL",
     flag: "🇨🇱",
-    title: "President",
+    title: "Former President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Gabriel_Boric_2022_official_portrait.jpg/440px-Gabriel_Boric_2022_official_portrait.jpg",
     age: 39,
@@ -4157,7 +4657,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Convergencia Social / Frente Amplio",
     ideology: "Progressive",
-    termsInOffice: [{ from: 2022, to: "present" }],
+    termsInOffice: [{ from: 2022, to: 2026 }],
     background:
       "Former student movement leader and congressman who became Chile's youngest-ever president at 35 in March 2022. Emerged from the 2019 social uprising that demanded constitutional reform. Governing Chile through a turbulent period of rejected constitutional referendums and rising crime.",
     significantEvents: [
@@ -4190,6 +4690,11 @@ const LEADERS: Leader[] = [
         event: "Rising crime and immigration become dominant political issues",
         impact: "negative",
       },
+      {
+        year: 2026,
+        event: "Left office on 11 March 2026; succeeded by José Antonio Kast",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Youngest Chilean president and youngest head of government in South America",
@@ -4199,9 +4704,58 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Democratic socialist, feminist, environmentalist. Anti-authoritarianism — has criticised Cuba, Venezuela, and Nicaragua despite left roots. Supports free healthcare and education, lithium state ownership. Pragmatically shifted centre from radical student days.",
-    status: "In Office",
+    status: "Former",
     impact:
       "His presidency exemplifies the limits of progressive governance in Latin America — failed constitutional referendums, rising crime, and coalition fragility. Yet his democratic principles and self-correction mark him as a serious statesman.",
+    region: "Americas",
+  },
+  {
+    id: "kast",
+    name: "José Antonio Kast",
+    country: "Chile",
+    countryCode: "CL",
+    flag: "🇨🇱",
+    title: "President",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Retrato_Presidente_Jos%C3%A9_Antonio_Kast.png/500px-Retrato_Presidente_Jos%C3%A9_Antonio_Kast.png",
+    age: 60,
+    birthYear: 1966,
+    birthPlace: "Santiago, Chile",
+    education: [
+      { institution: "Pontifical Catholic University of Chile", degree: "Law (licentiate)", year: 1990 },
+    ],
+    party: "Independent (founder of the Republican Party)",
+    ideology: "Conservative",
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Lawyer and member of the Chamber of Deputies from 2002 to 2018. He left the Independent Democratic Union in 2016, founded the Republican Party in 2019, and ran for president in 2017 and in 2021, when he lost the runoff to Gabriel Boric. He won the 2025 runoff against Jeannette Jara, resigned from the Republican Party shortly before taking office, and became President on 11 March 2026.",
+    significantEvents: [
+      {
+        year: 2019,
+        event: "Founded the Republican Party",
+        impact: "neutral",
+      },
+      {
+        year: 2021,
+        event: "Won the first round of the presidential election and lost the runoff to Gabriel Boric",
+        impact: "neutral",
+      },
+      {
+        year: 2025,
+        event: "Won the presidential runoff against Jeannette Jara, carrying every region",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Took office on 11 March",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "Won the 2025 runoff with the highest vote share since Chile's return to democracy",
+    ],
+    politicalViews: "Part of the radical, populist right. His government, a self-described \"emergency government\", has focused on deregulation, tax cuts and a hard line against illegal immigration, and has been described as the most conservative since the Pinochet dictatorship.",
+    status: "In Office",
+    impact: "",
     region: "Americas",
   },
   {
@@ -4548,7 +5102,7 @@ const LEADERS: Leader[] = [
     country: "Myanmar",
     countryCode: "MM",
     flag: "🇲🇲",
-    title: "Senior General / Prime Minister (SAC)",
+    title: "President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Min_Aung_Hlaing_%282019%29.jpg/440px-Min_Aung_Hlaing_%282019%29.jpg",
     age: 67,
@@ -4602,6 +5156,11 @@ const LEADERS: Leader[] = [
           "Military losing control of major cities; three-way resistance war continues",
         impact: "negative",
       },
+      {
+        year: 2026,
+        event: "Became President on 10 April 2026",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Maintained junta control despite nationwide civil war",
@@ -4610,7 +5169,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Military nationalist, Buddhist nationalist, absolute military rule. Anti-democratic. Patron-client economic model favouring military conglomerates. Deeply opposed to federalism for ethnic minorities.",
-    status: "Transitional",
+    status: "In Office",
     impact:
       "Triggered one of Asia's worst humanitarian crises since the Vietnam War. His coup destroyed Myanmar's democratic transition and unleashed a resistance movement he cannot defeat but refuses to negotiate with.",
     region: "Asia-Pacific",
@@ -4694,7 +5253,7 @@ const LEADERS: Leader[] = [
     country: "France",
     countryCode: "FR",
     flag: "🇫🇷",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Fran%C3%A7ois_Bayrou_2022_%28cropped%29.jpg/440px-Fran%C3%A7ois_Bayrou_2022_%28cropped%29.jpg",
     age: 73,
@@ -4709,7 +5268,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Democratic Movement (MoDem)",
     ideology: "Centrist",
-    termsInOffice: [{ from: 2024, to: "present" }],
+    termsInOffice: [{ from: 2024, to: 2025 }],
     background:
       "Veteran centrist politician who ran for president three times (2002, 2007, 2012) before becoming Macron's closest political ally. Appointed Prime Minister in December 2024 after Michel Barnier's government fell on a no-confidence vote — the third PM Macron has gone through. Mayor of Pau since 1993.",
     significantEvents: [
@@ -4740,6 +5299,11 @@ const LEADERS: Leader[] = [
         event: "Survived multiple no-confidence attempts; budget passed",
         impact: "positive",
       },
+      {
+        year: 2025,
+        event: "Left office on 9 September 2025 after losing a confidence vote; succeeded by Sébastien Lecornu",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Longest political career of any French serving centrist",
@@ -4749,9 +5313,51 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Christian democratic centrist. Pro-European integration, proportional representation advocate, institutional reform. Catholic social teaching influences. Supports Macron's agenda while pushing for broader coalition.",
-    status: "In Office",
+    status: "Former",
     impact:
       "France's parliamentary crisis has made the PM role nearly impossible. Bayrou's political longevity and centrism make him better positioned than predecessors — but France's fragmented National Assembly fundamentally limits any PM's power.",
+    region: "Europe",
+  },
+  {
+    id: "lecornu",
+    name: "Sébastien Lecornu",
+    country: "France",
+    countryCode: "FR",
+    flag: "🇫🇷",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Portrait_officiel_de_S%C3%A9bastien_Lecornu_-_Ministre_des_Arm%C3%A9es_%28cropped%29.jpg/500px-Portrait_officiel_de_S%C3%A9bastien_Lecornu_-_Ministre_des_Arm%C3%A9es_%28cropped%29.jpg",
+    age: 40,
+    birthYear: 1986,
+    birthPlace: "Eaubonne, France",
+    education: [
+      { institution: "Panthéon-Assas University", degree: "Studied" },
+    ],
+    party: "Renaissance",
+    ideology: "Conservative",
+    termsInOffice: [{ from: 2025, to: "present" }],
+    background:
+      "President of the Departmental Council of Eure from 2015 to 2017, then a member of the government from 2017: secretary of state for the ecological transition, minister for local authorities, minister of the overseas and, from 2022 to 2025, minister of the armed forces. Appointed Prime Minister on 9 September 2025 after the Bayrou government lost a confidence vote, he resigned on 6 October, hours after naming his cabinet, and was reappointed on 10 October 2025.",
+    significantEvents: [
+      {
+        year: 2017,
+        event: "Left The Republicans, joined Renaissance and entered the government",
+        impact: "neutral",
+      },
+      {
+        year: 2022,
+        event: "Became minister of the armed forces",
+        impact: "neutral",
+      },
+      {
+        year: 2025,
+        event: "Appointed Prime Minister on 9 September; resigned on 6 October and was reappointed on 10 October",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "Positioned on the right, he has promoted Gaullist, Séguinist and socially conservative positions.",
+    status: "In Office",
+    impact: "",
     region: "Europe",
   },
   {
@@ -4954,7 +5560,7 @@ const LEADERS: Leader[] = [
     country: "Austria",
     countryCode: "AT",
     flag: "🇦🇹",
-    title: "Chancellor",
+    title: "Leader of the Freedom Party (FPÖ); former Interior Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Herbert_Kickl_2019_%28cropped%29.jpg/440px-Herbert_Kickl_2019_%28cropped%29.jpg",
     age: 56,
@@ -4969,9 +5575,9 @@ const LEADERS: Leader[] = [
     ],
     party: "Freedom Party of Austria (FPÖ)",
     ideology: "Nationalist",
-    termsInOffice: [{ from: 2025, to: "present" }],
+    termsInOffice: [{ from: 2017, to: 2019 }],
     background:
-      "FPÖ leader who led his party to first place in the September 2024 Austrian election — the far-right's first election win in Austrian history. After months of failed coalition talks by ÖVP, was asked by the President to form government in January 2025. Became Chancellor in March 2025 — the first far-right chancellor in Austria in the post-WWII era.",
+      "Leader of the FPÖ since June 2021, who led his party to first place in the September 2024 Austrian election - the far right's first national election win in Austria. Asked by the President to form a government in January 2025, he did not form one: Christian Stocker of the ÖVP became Chancellor on 3 March 2025 at the head of a coalition without the FPÖ. Kickl was Interior Minister from December 2017 to May 2019.",
     significantEvents: [
       {
         year: 2017,
@@ -4993,21 +5599,61 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2025,
-        event: "Became Chancellor after forming ÖVP coalition",
+        event: "Did not form a government; Christian Stocker (ÖVP) became Chancellor on 3 March",
         impact: "positive",
       },
     ],
     achievements: [
       "FPÖ's historic first-place election victory in 2024",
-      "Became Austria's first far-right post-WWII chancellor",
       "Built FPÖ from party in scandal to election winners in 5 years",
-      "Implemented strict anti-migration agenda as key campaign promise",
     ],
     politicalViews:
       "Far-right nationalist, anti-immigration absolutist, Eurosceptic, pro-Russia (opposes Ukraine sanctions), anti-COVID mandate legacy. Frames politics as 'Fortress Austria'. Opposed to EU federalism and climate regulation mandates.",
-    status: "In Office",
+    status: "Former",
     impact:
-      "Represents the mainstreaming of the European far right into actual governance. Austria becomes the first EU founding-orbit country to have an explicitly far-right leader since WWII — a significant marker for European politics.",
+      "Led the FPÖ to its first national election win in 2024, a marker of the European far right's strength, but did not enter government: the other parties formed a coalition without it.",
+    region: "Europe",
+  },
+  {
+    id: "stocker",
+    name: "Christian Stocker",
+    country: "Austria",
+    countryCode: "AT",
+    flag: "🇦🇹",
+    title: "Chancellor",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Christian_Stocker.jpg/500px-Christian_Stocker.jpg",
+    age: 66,
+    birthYear: 1960,
+    birthPlace: "Wiener Neustadt, Austria",
+    education: [
+      { institution: "University of Vienna", degree: "Law", year: 1988 },
+    ],
+    party: "Austrian People's Party (ÖVP)",
+    ideology: null,
+    termsInOffice: [{ from: 2025, to: "present" }],
+    background:
+      "Lawyer from Wiener Neustadt and member of the National Council from 2019. Secretary-general of the Austrian People's Party from 2022, he became its acting leader on 5 January 2025 when Chancellor Karl Nehammer resigned, and opened coalition talks with Herbert Kickl's FPÖ. On 27 February 2025 the ÖVP, SPÖ and NEOS agreed to govern together, and he became Chancellor on 3 March 2025.",
+    significantEvents: [
+      {
+        year: 2019,
+        event: "Elected to the National Council",
+        impact: "neutral",
+      },
+      {
+        year: 2022,
+        event: "Became secretary-general of the ÖVP",
+        impact: "neutral",
+      },
+      {
+        year: 2025,
+        event: "Became acting leader of the ÖVP on 5 January and Chancellor on 3 March, at the head of a coalition of the ÖVP, SPÖ and NEOS",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Europe",
   },
   {
@@ -5016,7 +5662,7 @@ const LEADERS: Leader[] = [
     country: "Czech Republic",
     countryCode: "CZ",
     flag: "🇨🇿",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Petr_Fiala_2021_%28cropped%29.jpg/440px-Petr_Fiala_2021_%28cropped%29.jpg",
     age: 60,
@@ -5036,7 +5682,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Civic Democratic Party (ODS)",
     ideology: "Conservative",
-    termsInOffice: [{ from: 2021, to: "present" }],
+    termsInOffice: [{ from: 2021, to: 2025 }],
     background:
       "Political science professor who led the SPOLU coalition to defeat Babiš in the 2021 elections, ending the era of Czech oligarch politics. Pro-NATO hawk and one of Eastern Europe's most committed Ukraine supporters. Re-elected in 2025 elections.",
     significantEvents: [
@@ -5061,6 +5707,11 @@ const LEADERS: Leader[] = [
           "Won re-election; Czech Republic deepens NATO eastern flank role",
         impact: "positive",
       },
+      {
+        year: 2025,
+        event: "Left office in December 2025 after the general election; succeeded by Andrej Babiš",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Organised Europe's largest non-US artillery package for Ukraine (800K shells)",
@@ -5070,9 +5721,63 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative, strong NATO commitment, hawkish Russia policy, pro-EU member state rights (Czech sovereignty). Economic liberalism, anti-corruption, rule of law. Among Eastern Europe's most pro-Ukraine voices.",
-    status: "In Office",
+    status: "Former",
     impact:
       "One of Europe's most consequential small-state leaders on Ukraine — the Czech ammunition initiative filled a critical gap in EU military support. Czech Republic punches above its weight under Fiala's government.",
+    region: "Europe",
+  },
+  {
+    id: "babis",
+    name: "Andrej Babiš",
+    country: "Czech Republic",
+    countryCode: "CZ",
+    flag: "🇨🇿",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Cumbre_de_Madrid_8_de_Febrero_-_Andrej_Babi%C5%A1_%283x4_cropped%29.jpg/500px-Cumbre_de_Madrid_8_de_Febrero_-_Andrej_Babi%C5%A1_%283x4_cropped%29.jpg",
+    age: 72,
+    birthYear: 1954,
+    birthPlace: "Bratislava, then Czechoslovakia",
+    education: [
+      { institution: "University of Economics in Bratislava", degree: "Studied" },
+    ],
+    party: "ANO 2011",
+    ideology: "Populist",
+    termsInOffice: [{ from: 2017, to: 2021 }, { from: 2025, to: "present" }],
+    background:
+      "Businessman who founded Agrofert, one of the Czech Republic's largest holding companies, and the ANO movement, which he has led since 2012. Finance minister and deputy prime minister from 2014 to 2017 and Prime Minister from 2017 to 2021, he lost the 2023 presidential election to Petr Pavel. ANO placed first in the 2025 election with 34.5% of the vote; he formed a coalition with the SPD and Motorists for Themselves and was appointed Prime Minister on 9 December 2025.",
+    significantEvents: [
+      {
+        year: 2012,
+        event: "Founded ANO 2011",
+        impact: "neutral",
+      },
+      {
+        year: 2017,
+        event: "Appointed Prime Minister on 6 December after ANO won the election",
+        impact: "neutral",
+      },
+      {
+        year: 2021,
+        event: "Left office after the 2021 election; succeeded by Petr Fiala",
+        impact: "neutral",
+      },
+      {
+        year: 2023,
+        event: "Lost the presidential runoff to Petr Pavel",
+        impact: "neutral",
+      },
+      {
+        year: 2025,
+        event: "ANO placed first in the election with 34.5%; appointed Prime Minister on 9 December",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "First Czech prime minister from a party other than the Civic Democrats or the Social Democrats",
+    ],
+    politicalViews: "Described as a right-wing populist. His first government raised the retirement age and increased child tax credits; his time in office was marked by disputes with the European Commission over alleged conflicts of interest.",
+    status: "In Office",
+    impact: "",
     region: "Europe",
   },
   {
@@ -5153,7 +5858,7 @@ const LEADERS: Leader[] = [
     country: "Netherlands",
     countryCode: "NL",
     flag: "🇳🇱",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Dick_Schoof_2024_official_portrait.jpg/440px-Dick_Schoof_2024_official_portrait.jpg",
     age: 67,
@@ -5164,7 +5869,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Independent (non-partisan technocrat)",
     ideology: "Conservative",
-    termsInOffice: [{ from: 2024, to: "present" }],
+    termsInOffice: [{ from: 2024, to: 2026 }],
     background:
       "Former Director-General of the Dutch Intelligence Service (AIVD) and National Coordinator for Security and Counterterrorism, appointed as PM by Geert Wilders' coalition in July 2024. Not a politician himself — a civil servant and intelligence chief tapped to lead the most right-wing Dutch government in modern history after Wilders' historic election victory.",
     significantEvents: [
@@ -5191,6 +5896,11 @@ const LEADERS: Leader[] = [
           "Netherlands navigates Trump tariffs as EU's most trade-exposed economy",
         impact: "negative",
       },
+      {
+        year: 2026,
+        event: "Left office on 23 February 2026; succeeded by Rob Jetten",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Led AIVD (Dutch intelligence) during Russia's most aggressive espionage era",
@@ -5200,9 +5910,59 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Career civil servant — non-partisan. Governs with PVV (Wilders), VVD, NSC and BBB coalition. Policies: strict immigration, farmers' rights, EU scepticism on regulation but pro-NATO. Personally moderate conservative.",
-    status: "In Office",
+    status: "Former",
     impact:
       "A technocratic fig-leaf for Europe's most prominent far-right governing coalition. His intelligence background makes him a credible NATO partner, but Wilders' influence shapes his political constraints fundamentally.",
+    region: "Europe",
+  },
+  {
+    id: "jetten",
+    name: "Rob Jetten",
+    country: "Netherlands",
+    countryCode: "NL",
+    flag: "🇳🇱",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Rob_Jetten%2C_March_2026_-_02.jpg/500px-Rob_Jetten%2C_March_2026_-_02.jpg",
+    age: 39,
+    birthYear: 1987,
+    birthPlace: "Veghel, Netherlands",
+    education: [
+      { institution: "Radboud University", degree: "BA, MA" },
+    ],
+    party: "Democrats 66 (D66)",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Leader of Democrats 66 since August 2023. A Nijmegen municipal councillor from 2010 to 2017 and a member of the House of Representatives from 2017, he was Minister for Climate and Energy Policy from 2022 to 2024 and First Deputy Prime Minister in 2024. In the 2025 general election he led D66 to its best result, as joint-largest party; after a four-month formation the minority Jetten cabinet took office on 23 February 2026.",
+    significantEvents: [
+      {
+        year: 2018,
+        event: "Chosen as D66's youngest-ever parliamentary leader",
+        impact: "neutral",
+      },
+      {
+        year: 2022,
+        event: "Became Minister for Climate and Energy Policy",
+        impact: "neutral",
+      },
+      {
+        year: 2025,
+        event: "Led D66 to its best general election result",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Became Prime Minister on 23 February, at the head of a minority cabinet",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "Youngest person to be Prime Minister of the Netherlands",
+      "First Prime Minister from D66",
+    ],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Europe",
   },
   // ── BATCH 15: SE Europe, Baltics, Alpine, Micro-states ────────────────────
@@ -5212,7 +5972,7 @@ const LEADERS: Leader[] = [
     country: "Bulgaria",
     countryCode: "BG",
     flag: "🇧🇬",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Rosen_Zhelyazkov_2024_official_portrait.jpg/440px-Rosen_Zhelyazkov_2024_official_portrait.jpg",
     age: 50,
@@ -5232,7 +5992,7 @@ const LEADERS: Leader[] = [
     ],
     party: "GERB (Citizens for European Development of Bulgaria)",
     ideology: "Conservative",
-    termsInOffice: [{ from: 2024, to: "present" }],
+    termsInOffice: [{ from: 2025, to: 2026 }],
     background:
       "Speaker of Bulgaria's National Assembly who became Prime Minister in January 2024 after yet another round of protracted coalition negotiations — Bulgaria held 6 elections in 3 years. Led by Boyko Borisov's GERB party, Zhelyazkov heads a coalition that ended the political paralysis.",
     significantEvents: [
@@ -5259,6 +6019,11 @@ const LEADERS: Leader[] = [
           "Bulgaria on track for Eurozone accession — schengen land borders opened",
         impact: "positive",
       },
+      {
+        year: 2026,
+        event: "Left office on 19 February 2026; a caretaker government followed, and Rumen Radev became Prime Minister on 8 May",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Ended Bulgaria's three-year political deadlock",
@@ -5268,7 +6033,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-right, pro-EU, pro-NATO. GERB's pragmatic conservatism — business-friendly, tough on corruption. Supports Bulgaria's full EU integration including Schengen and Eurozone. Atlanticist security posture.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Brings much-needed stability to one of the EU's most politically fractured member states. Bulgaria's Eurozone and full Schengen integration under his watch would complete the country's post-communist European transformation.",
     region: "Europe",
@@ -5279,7 +6044,7 @@ const LEADERS: Leader[] = [
     country: "Serbia",
     countryCode: "RS",
     flag: "🇷🇸",
-    title: "President",
+    title: "Former President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Aleksandar_Vu%C4%8Di%C4%87_2019.jpg/440px-Aleksandar_Vu%C4%8Di%C4%87_2019.jpg",
     age: 55,
@@ -5290,7 +6055,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Serbian Progressive Party (SNS)",
     ideology: "Nationalist",
-    termsInOffice: [{ from: 2017, to: "present" }],
+    termsInOffice: [{ from: 2017, to: 2026 }],
     background:
       "Former information minister under Milošević who reinvented himself as a pro-EU conservative. Dominates Serbian politics — previously as PM, now as President. Plays the delicate game of pursuing EU membership while refusing to sanction Russia and maintaining Serbia's refusal to recognise Kosovo's independence.",
     significantEvents: [
@@ -5323,6 +6088,11 @@ const LEADERS: Leader[] = [
           "Mass anti-government protests after Novi Sad station collapse killed 16",
         impact: "negative",
       },
+      {
+        year: 2026,
+        event: "Left office on 28 September 2026; Ana Brnabić, President of the National Assembly, became acting president",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Serbia's GDP grew to highest level in modern history",
@@ -5332,9 +6102,54 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Serbian nationalist, officially pro-EU but refuses anti-Russia consensus. 'Four pillars' foreign policy — EU, Russia, China, US simultaneously. Kosovo non-recognition is red line. Controls vast media ownership domestically.",
-    status: "In Office",
+    status: "Former",
     impact:
       "The Balkans' most consequential leader — Serbia's EU path, Kosovo's status, and Russian influence in SE Europe all run through him. His lithium deal with the EU marks a strategic pivot that Beijing and Moscow have noted with concern.",
+    region: "Europe",
+  },
+  {
+    id: "brnabic",
+    name: "Ana Brnabić",
+    country: "Serbia",
+    countryCode: "RS",
+    flag: "🇷🇸",
+    title: "Acting President",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Ana_Brnabi%C4%87_in_2026_3x4_%28cropped%29.jpg/500px-Ana_Brnabi%C4%87_in_2026_3x4_%28cropped%29.jpg",
+    age: 51,
+    birthYear: 1975,
+    birthPlace: "Belgrade, Serbia",
+    education: [
+      { institution: "Northwood University", degree: "Business administration", year: 1998 },
+      { institution: "University of Hull", degree: "MBA" },
+    ],
+    party: "Serbian Progressive Party (SNS)",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Prime Minister of Serbia from 2017 to 2024 - the first woman, the first openly lesbian person and the longest-serving holder of that office - and President of the National Assembly since 2024. Elected as a non-partisan, she joined the Serbian Progressive Party in 2019. She has been acting President since 28 September 2026.",
+    significantEvents: [
+      {
+        year: 2017,
+        event: "Became Prime Minister on 29 June",
+        impact: "neutral",
+      },
+      {
+        year: 2024,
+        event: "Elected President of the National Assembly",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Became acting President on 28 September",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "First woman to be Prime Minister of Serbia, and the longest-serving",
+    ],
+    politicalViews: "",
+    status: "Transitional",
+    impact: "",
     region: "Europe",
   },
   {
@@ -5673,7 +6488,7 @@ const LEADERS: Leader[] = [
     country: "Latvia",
     countryCode: "LV",
     flag: "🇱🇻",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Evika_Sili%C5%86a_2023_official_portrait.jpg/440px-Evika_Sili%C5%86a_2023_official_portrait.jpg",
     age: 47,
@@ -5693,7 +6508,7 @@ const LEADERS: Leader[] = [
     ],
     party: "New Unity (Jaunā Vienotība)",
     ideology: "Conservative",
-    termsInOffice: [{ from: 2023, to: "present" }],
+    termsInOffice: [{ from: 2023, to: 2026 }],
     background:
       "Latvia's first female Prime Minister, appointed in September 2023 after Krišjānis Kariņš resigned. Former State Chancellery official and MP for New Unity. Latvia shares a long border with Russia and Belarus, making it one of NATO's most security-conscious members on the eastern flank.",
     significantEvents: [
@@ -5720,6 +6535,11 @@ const LEADERS: Leader[] = [
           "Baltic Defence Line — joint fortification project with Estonia and Lithuania",
         impact: "positive",
       },
+      {
+        year: 2026,
+        event: "Resigned on 14 May 2026 and left office on 28 May; succeeded by Andris Kulbergs",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Led Latvia's desynchronisation from Russian BRELL power grid",
@@ -5729,9 +6549,47 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative Atlanticist, hawkish Russia security stance, pro-EU. Defence investment and NATO eastern flank reinforcement as absolute priorities. Strong Ukraine support. Pro-Baltic solidarity with Estonia and Lithuania.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Leads Latvia through the most consequential security transition since independence — cutting electricity dependency on Russia while building NATO's eastern fortifications. Latvia's 27% Russian-speaking minority adds domestic security complexity.",
+    region: "Europe",
+  },
+  {
+    id: "kulbergs",
+    name: "Andris Kulbergs",
+    country: "Latvia",
+    countryCode: "LV",
+    flag: "🇱🇻",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Andris_Kulbergs_2026.jpg/500px-Andris_Kulbergs_2026.jpg",
+    age: 47,
+    birthYear: 1979,
+    birthPlace: "Riga, Latvia",
+    education: [
+      { institution: "Tallinn University of Technology", degree: "BA" },
+      { institution: "Riga Technical University", degree: "MBA" },
+    ],
+    party: "Independent (elected on the United List ticket)",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Businessman and president of the Latvian Authorised Automobile Dealers Association, elected to the Saeima in 2022 as a non-party member of the United List ticket. After Evika Siliņa resigned on 14 May 2026, President Edgars Rinkēvičs tasked him with forming a government for the five months before the 2026 parliamentary election. The Saeima confirmed him on 28 May 2026 with 66 votes, at the head of a coalition of the United List, New Unity, the National Alliance and the Union of Greens and Farmers.",
+    significantEvents: [
+      {
+        year: 2022,
+        event: "Elected to the Saeima",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Confirmed as Prime Minister on 28 May with 66 votes",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "Has called for budgetary reform and stricter oversight of airBaltic and the Rail Baltica project, while continuing his predecessors' pro-Ukraine foreign policy.",
+    status: "In Office",
+    impact: "",
     region: "Europe",
   },
   {
@@ -5806,7 +6664,7 @@ const LEADERS: Leader[] = [
     country: "Slovenia",
     countryCode: "SI",
     flag: "🇸🇮",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Robert_Golob_2022_official_portrait.jpg/440px-Robert_Golob_2022_official_portrait.jpg",
     age: 58,
@@ -5831,7 +6689,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Freedom Movement (Gibanje Svoboda)",
     ideology: "Liberal",
-    termsInOffice: [{ from: 2022, to: "present" }],
+    termsInOffice: [{ from: 2022, to: 2026 }],
     background:
       "Former CEO of renewable energy company GEN-I who entered politics in 2022, founding the Freedom Movement six weeks before the election and winning a landslide victory against incumbent PM Janez Janša — the Slovenian ally of Orbán. Ended Slovenia's drift toward illiberal Eurosceptic governance.",
     significantEvents: [
@@ -5858,6 +6716,11 @@ const LEADERS: Leader[] = [
           "Slovenia recognised Palestinian state — one of first EU members",
         impact: "neutral",
       },
+      {
+        year: 2026,
+        event: "Left office on 4 June 2026; succeeded by Janez Janša",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Ended Janša's Orbán-aligned governance — restored EU institutional norms",
@@ -5867,9 +6730,61 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Liberal progressive, pro-EU, pro-rule of law, renewable energy champion. Supports Palestinian statehood. Opposes Orbán-style illiberalism. Climate policy, digital economy, EU integration as core agenda.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Pulled Slovenia back from the brink of Orbán-style institutional erosion. His energy expertise gives him credibility in EU climate debates. Governing an increasingly difficult economic environment with declining support.",
+    region: "Europe",
+  },
+  {
+    id: "jansa",
+    name: "Janez Janša",
+    country: "Slovenia",
+    countryCode: "SI",
+    flag: "🇸🇮",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Janez_Jan%C5%A1a_official_portrait_2026_%28cropped_2%29.jpg/500px-Janez_Jan%C5%A1a_official_portrait_2026_%28cropped_2%29.jpg",
+    age: 68,
+    birthYear: 1958,
+    birthPlace: "Grosuplje, Slovenia",
+    education: [
+      { institution: "University of Ljubljana", degree: "Studied" },
+    ],
+    party: "Slovenian Democratic Party (SDS)",
+    ideology: "Conservative",
+    termsInOffice: [{ from: 2004, to: 2008 }, { from: 2012, to: 2013 }, { from: 2020, to: 2022 }, { from: 2026, to: "present" }],
+    background:
+      "Leader of the Slovenian Democratic Party since 1993 and defence minister from 1990 to 1994, including during the Slovenian War of Independence. Prime Minister from 2004 to 2008, 2012 to 2013 and 2020 to 2022, he returned to the office on 4 June 2026. Sentenced in 2013 to two years in prison on corruption charges, he saw the case expire after the Constitutional Court ordered a retrial.",
+    significantEvents: [
+      {
+        year: 1993,
+        event: "Became leader of the Slovenian Democratic Party",
+        impact: "neutral",
+      },
+      {
+        year: 2004,
+        event: "Became Prime Minister for the first time",
+        impact: "neutral",
+      },
+      {
+        year: 2013,
+        event: "His second government fell in a no-confidence vote; sentenced on corruption charges in a case that later expired",
+        impact: "neutral",
+      },
+      {
+        year: 2020,
+        event: "Became Prime Minister for the third time",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Became Prime Minister for the fourth time on 4 June",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "Described as a right-wing national conservative whose positions moved rightward over his career. A close ally of Viktor Orbán who has nonetheless backed Ukraine, sanctions on Russia and military aid; critical of European integration, but as Prime Minister supported the enlargement of the European Union.",
+    status: "In Office",
+    impact: "",
     region: "Europe",
   },
   {
@@ -6354,7 +7269,7 @@ const LEADERS: Leader[] = [
     country: "Georgia",
     countryCode: "GE",
     flag: "🇬🇪",
-    title: "President",
+    title: "Former President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Salome_Zourabichvili_2018_official_portrait.jpg/440px-Salome_Zourabichvili_2018_official_portrait.jpg",
     age: 72,
@@ -6374,7 +7289,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Independent (former Georgian Dream, now opposition)",
     ideology: "Liberal",
-    termsInOffice: [{ from: 2018, to: "present" }],
+    termsInOffice: [{ from: 2018, to: 2024 }],
     background:
       "French-born Georgian diplomat who served as France's ambassador to Tbilisi before becoming Georgia's Foreign Minister and subsequently President. Elected with Georgian Dream backing in 2018 but broke with the ruling party. Fought a dramatic constitutional battle to stay in office after disputed 2024 parliamentary elections spawned massive pro-EU protests.",
     significantEvents: [
@@ -6405,6 +7320,11 @@ const LEADERS: Leader[] = [
           "Pro-EU protest movement — largest in Georgian history continues",
         impact: "neutral",
       },
+      {
+        year: 2024,
+        event: "Her term ended on 29 December 2024, when Mikheil Kavelashvili was sworn in; she and the opposition dispute his election",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Georgia's EU membership application — first step toward candidacy",
@@ -6414,9 +7334,44 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pro-European liberal, Atlantic-oriented foreign policy. Georgian sovereignty — against Russian influence and Georgian Dream's drift toward Moscow. Democratic institution defender. Advocates EU and NATO membership as Georgia's only security guarantee.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Became the symbol of Georgia's democratic choice at a critical crossroads — EU integration versus Russian orbit. Her resistance to Georgian Dream's contested elections has given the pro-EU protest movement a constitutional anchor figure.",
+    region: "Europe",
+  },
+  {
+    id: "kavelashvili",
+    name: "Mikheil Kavelashvili",
+    country: "Georgia",
+    countryCode: "GE",
+    flag: "🇬🇪",
+    title: "President",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Mikheil_Kavelashvili_-_President_of_Georgia.jpg/500px-Mikheil_Kavelashvili_-_President_of_Georgia.jpg",
+    age: 55,
+    birthYear: 1971,
+    birthPlace: "Bolnisi, Georgia",
+    education: [],
+    party: "People's Power",
+    ideology: null,
+    termsInOffice: [{ from: 2024, to: "present" }],
+    background:
+      "Former professional footballer - a striker for Dinamo Tbilisi, Manchester City and several Swiss clubs, capped 46 times by Georgia - and a member of parliament from 2016 to 2024. He was sworn in as Georgia's sixth president on 29 December 2024, the first chosen by an electoral college and the only candidate after an opposition boycott. The Georgian opposition and significant parts of the Western community dispute his election.",
+    significantEvents: [
+      {
+        year: 2016,
+        event: "Elected to the Parliament of Georgia",
+        impact: "neutral",
+      },
+      {
+        year: 2024,
+        event: "Sworn in as President on 29 December; the opposition and the outgoing president, Salome Zourabichvili, dispute the election",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "",
+    status: "Incumbent (Disputed)",
+    impact: "",
     region: "Europe",
   },
   {
@@ -6494,7 +7449,7 @@ const LEADERS: Leader[] = [
     country: "Malawi",
     countryCode: "MW",
     flag: "🇲🇼",
-    title: "President (placeholder — see Lazarus Chakwera)",
+    title: "Former President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Lazarus_Chakwera_2021_%28cropped%29.jpg/440px-Lazarus_Chakwera_2021_%28cropped%29.jpg",
     age: 68,
@@ -6519,7 +7474,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Malawi Congress Party (MCP)",
     ideology: "Centrist",
-    termsInOffice: [{ from: 2020, to: "present" }],
+    termsInOffice: [{ from: 2020, to: 2025 }],
     background:
       "Former pastor and Assemblies of God church president who became Malawi's President in June 2020 after the Constitutional Court annulled the 2019 election results — in what became Africa's most celebrated democratic court ruling. Leads one of Africa's poorest nations but the verdict that brought him to power is celebrated globally as a democratic milestone.",
     significantEvents: [
@@ -6551,6 +7506,11 @@ const LEADERS: Leader[] = [
           "Presidential election — faces strong opposition from Chilima's successor",
         impact: "neutral",
       },
+      {
+        year: 2025,
+        event: "Lost the September 2025 election and left office on 4 October 2025; succeeded by Peter Mutharika",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Beneficiary of Africa's most celebrated democratic court ruling",
@@ -6560,9 +7520,55 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Christian democratic centrist. Anti-corruption, good governance, rule of law. Pro-Western development partnerships. Climate vulnerable — advocates Loss and Damage compensation for devastating climate events.",
-    status: "In Office",
+    status: "Former",
     impact:
       "The democratic court ruling that brought him to power is Malawi's most significant contribution to African democratic jurisprudence. Governing one of the world's most climate-vulnerable nations during increasingly catastrophic weather events.",
+    region: "Africa",
+  },
+  {
+    id: "mutharika",
+    name: "Peter Mutharika",
+    country: "Malawi",
+    countryCode: "MW",
+    flag: "🇲🇼",
+    title: "President",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Malawian_President_Peter_Mutharika_in_2020.jpg/500px-Malawian_President_Peter_Mutharika_in_2020.jpg",
+    age: 86,
+    birthYear: 1940,
+    birthPlace: "Thyolo District, Malawi",
+    education: [
+      { institution: "University of London", degree: "LLB", year: 1965 },
+      { institution: "Yale University", degree: "LLM", year: 1966 },
+      { institution: "Yale University", degree: "JSD", year: 1968 },
+    ],
+    party: "Democratic Progressive Party (DPP)",
+    ideology: null,
+    termsInOffice: [{ from: 2014, to: 2020 }, { from: 2025, to: "present" }],
+    background:
+      "Lawyer and law professor who taught in the United States, the United Kingdom, Tanzania, Ethiopia and Uganda before entering politics in 2009 under his elder brother, President Bingu wa Mutharika. He served as minister of justice, of education and of foreign affairs, and was President from 2014 to 2020. The 2019 election he won was annulled and he lost the rerun to Lazarus Chakwera; he defeated Chakwera in the September 2025 election and returned to office on 4 October 2025.",
+    significantEvents: [
+      {
+        year: 2014,
+        event: "Elected President, defeating Joyce Banda and Lazarus Chakwera",
+        impact: "neutral",
+      },
+      {
+        year: 2020,
+        event: "Lost the court-ordered rerun to Lazarus Chakwera after the 2019 election was annulled",
+        impact: "neutral",
+      },
+      {
+        year: 2025,
+        event: "Defeated Chakwera in the September election; sworn in on 4 October at the age of 85",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "Oldest person to take office as President of Malawi",
+    ],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Africa",
   },
   {
@@ -7168,7 +8174,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Open VLD (Flemish Liberals and Democrats)",
     ideology: "Liberal",
-    termsInOffice: [{ from: 2020, to: 2024 }],
+    termsInOffice: [{ from: 2020, to: 2025 }],
     background:
       "Belgian tech entrepreneur turned politician who led the Vivaldi coalition — one of the largest coalitions in Belgian history spanning left to right across the linguistic divide. Resigned after his party's crushing defeat in the June 2024 elections.",
     significantEvents: [
@@ -7195,6 +8201,11 @@ const LEADERS: Leader[] = [
           "Open VLD collapses in June elections — De Croo resigns same night",
         impact: "negative",
       },
+      {
+        year: 2025,
+        event: "Left office on 3 February 2025; succeeded by Bart De Wever",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Led Belgium through COVID-19 and energy crisis simultaneously",
@@ -7204,9 +8215,53 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Liberal internationalist, pro-EU, pro-NATO, tech entrepreneur mindset applied to governance. Climate action but with nuclear pragmatism. Centrist on social issues with economic liberalism.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Led Belgium through one of its most difficult governing periods but paid the electoral price. Belgium's linguistic and political complexity makes coalition governance an art form, which De Croo practiced with rare success.",
+    region: "Europe",
+  },
+  {
+    id: "dewever",
+    name: "Bart De Wever",
+    country: "Belgium",
+    countryCode: "BE",
+    flag: "🇧🇪",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Bart_De_Wever%2C_2025.06.26_%2802%29.jpg/500px-Bart_De_Wever%2C_2025.06.26_%2802%29.jpg",
+    age: 55,
+    birthYear: 1970,
+    birthPlace: "Mortsel, Belgium",
+    education: [
+      { institution: "KU Leuven", degree: "Studied" },
+    ],
+    party: "New Flemish Alliance (N-VA)",
+    ideology: "Nationalist",
+    termsInOffice: [{ from: 2025, to: "present" }],
+    background:
+      "Leader of the New Flemish Alliance from 2004 to 2025 and Mayor of Antwerp from 2013 to 2025. Under him the N-VA became the largest party in Flanders and in Belgium in 2010 and in the three elections that followed. After the 2024 election and more than eight months of negotiations with Vooruit, CD&V, MR and Les Engagés, he took the oath as Prime Minister on 3 February 2025.",
+    significantEvents: [
+      {
+        year: 2004,
+        event: "Became leader of the New Flemish Alliance",
+        impact: "neutral",
+      },
+      {
+        year: 2013,
+        event: "Became Mayor of Antwerp",
+        impact: "neutral",
+      },
+      {
+        year: 2025,
+        event: "Sworn in as Prime Minister on 3 February",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "First Flemish nationalist to be Prime Minister of Belgium",
+    ],
+    politicalViews: "Led for two decades a party that advocates Flemish independence.",
+    status: "In Office",
+    impact: "",
     region: "Europe",
   },
   {
@@ -7492,7 +8547,7 @@ const LEADERS: Leader[] = [
     country: "Romania",
     countryCode: "RO",
     flag: "🇷🇴",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Marcel_Ciolacu_2023_%28cropped%29.jpg/440px-Marcel_Ciolacu_2023_%28cropped%29.jpg",
     age: 56,
@@ -7507,7 +8562,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Social Democratic Party (PSD)",
     ideology: "Social Democrat",
-    termsInOffice: [{ from: 2023, to: "present" }],
+    termsInOffice: [{ from: 2023, to: 2025 }],
     background:
       "President of the PSD and Speaker of the Romanian Parliament who became Prime Minister in June 2023. Romania is a NATO and EU member on the Black Sea — one of NATO's most strategically important eastern flank countries since the Ukraine war. Navigated Romania's dramatic 2024 constitutional crisis when a presidential election result was annulled.",
     significantEvents: [
@@ -7534,6 +8589,11 @@ const LEADERS: Leader[] = [
           "New presidential election held; Romania stabilised after crisis",
         impact: "positive",
       },
+      {
+        year: 2025,
+        event: "Left office on 6 May 2025; Ilie Bolojan became Prime Minister on 23 June",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Romania joined Schengen Area — historic achievement after years of delays",
@@ -7543,9 +8603,52 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centre-left social democratic, pro-EU, strong NATO advocate given proximity to Ukraine war. Romanian sovereignty, Black Sea energy development, EU structural funds maximisation. Pro-US security guarantees.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Romania's democratic crisis — when TikTok-amplified populist candidate Călin Georgescu won, then was annulled — became the EU's most alarming case of social media manipulation of elections. Ciolacu navigated the crisis but Romania's democratic stability remains under watch.",
+    region: "Europe",
+  },
+  {
+    id: "bolojan",
+    name: "Ilie Bolojan",
+    country: "Romania",
+    countryCode: "RO",
+    flag: "🇷🇴",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Ilie_Bolojan_%2816_April_2026%29_%28cropped%29.jpg/500px-Ilie_Bolojan_%2816_April_2026%29_%28cropped%29.jpg",
+    age: 57,
+    birthYear: 1969,
+    birthPlace: "Vadu Crișului, Bihor County, Romania",
+    education: [
+      { institution: "West University of Timișoara", degree: "Mathematics", year: 1993 },
+      { institution: "Politehnica University of Timișoara", degree: "Bachelor's in mechanics", year: 1993 },
+    ],
+    party: "National Liberal Party (PNL)",
+    ideology: null,
+    termsInOffice: [{ from: 2025, to: "present" }],
+    background:
+      "Mayor of Oradea from 2008 to 2020 and president of Bihor County Council from 2020 to 2024. He became acting leader of the National Liberal Party and President of the Senate in late 2024, and was acting President of Romania from 12 February to 26 May 2025 after Klaus Iohannis resigned. Appointed Prime Minister by President Nicușor Dan, he was sworn in on 23 June 2025. His government lost a no-confidence vote on 5 May 2026 and he remains in office as caretaker.",
+    significantEvents: [
+      {
+        year: 2008,
+        event: "Elected Mayor of Oradea",
+        impact: "neutral",
+      },
+      {
+        year: 2025,
+        event: "Acting President from 12 February to 26 May; sworn in as Prime Minister on 23 June",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "His government fell in a no-confidence vote on 5 May; he continues as caretaker",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Europe",
   },
   {
@@ -8114,7 +9217,7 @@ const LEADERS: Leader[] = [
   // ── BATCH 20: Georgia PM, S.Korea, Costa Rica, CAR, Eritrea, Comoros, Chad ──
   {
     id: "kobakhidze",
-    name: "Giorgi Kobakhidze",
+    name: "Irakli Kobakhidze",
     country: "Georgia",
     countryCode: "GE",
     flag: "🇬🇪",
@@ -8261,7 +9364,7 @@ const LEADERS: Leader[] = [
     country: "Costa Rica",
     countryCode: "CR",
     flag: "🇨🇷",
-    title: "President",
+    title: "Former President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Rodrigo_Chaves_Robles_2022_official_portrait.jpg/440px-Rodrigo_Chaves_Robles_2022_official_portrait.jpg",
     age: 64,
@@ -8286,7 +9389,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Social Democratic Progress Party (PPSD)",
     ideology: "Populist",
-    termsInOffice: [{ from: 2022, to: "present" }],
+    termsInOffice: [{ from: 2022, to: 2026 }],
     background:
       "Former World Bank senior economist who spent 26 years at the institution before returning to Costa Rica and winning the 2022 presidential election as a populist outsider — despite being investigated for sexual harassment at the World Bank. Founded his own party and won with 53% in the runoff, upending Costa Rica's traditional two-party system.",
     significantEvents: [
@@ -8318,6 +9421,11 @@ const LEADERS: Leader[] = [
           "Re-election campaign announced amid polarised political landscape",
         impact: "neutral",
       },
+      {
+        year: 2026,
+        event: "Left office on 8 May 2026; succeeded by Laura Fernández",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Disrupted Costa Rica's two-party duopoly",
@@ -8327,9 +9435,46 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Populist technocrat — combines World Bank economist credentials with anti-establishment rhetoric. Pro-business, pro-FDI especially in tech sector. Critical of traditional political parties and institutions. Uses social media to bypass mainstream press.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Broke Costa Rica's traditional centrist political model — his populist governing style is eroding the institutional norms that have made Costa Rica Central America's most stable democracy for 75 years.",
+    region: "Americas",
+  },
+  {
+    id: "laurafernandez",
+    name: "Laura Fernández",
+    country: "Costa Rica",
+    countryCode: "CR",
+    flag: "🇨🇷",
+    title: "President",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Laura_Fernandez_Delgado_presidential_inauguration_20260508_0515_%28cropped%29.jpg/500px-Laura_Fernandez_Delgado_presidential_inauguration_20260508_0515_%28cropped%29.jpg",
+    age: 40,
+    birthYear: 1986,
+    birthPlace: "Puntarenas, Costa Rica",
+    education: [
+      { institution: "University of Costa Rica", degree: "Licentiate" },
+    ],
+    party: "Sovereign People's Party (PPSO)",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Political scientist who served under President Rodrigo Chaves as minister of national planning and economic policy from 2022 to 2025 and as minister of the presidency. She won the 2026 presidential election as the candidate of the Sovereign People's Party and took office on 8 May 2026.",
+    significantEvents: [
+      {
+        year: 2022,
+        event: "Became minister of national planning and economic policy",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Won the presidential election; took office on 8 May",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Americas",
   },
   {
@@ -8628,7 +9773,7 @@ const LEADERS: Leader[] = [
     country: "Morocco",
     countryCode: "MA",
     flag: "🇲🇦",
-    title: "Prime Minister (Head of Government)",
+    title: "Former Prime Minister (Head of Government)",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Aziz_Akhannouch_2021_%28cropped%29.jpg/440px-Aziz_Akhannouch_2021_%28cropped%29.jpg",
     age: 62,
@@ -8648,7 +9793,7 @@ const LEADERS: Leader[] = [
     ],
     party: "National Rally of Independents (RNI)",
     ideology: "Liberal",
-    termsInOffice: [{ from: 2021, to: "present" }],
+    termsInOffice: [{ from: 2021, to: 2026 }],
     background:
       "Billionaire agribusiness magnate who inherited and expanded Akwa Group — Morocco's largest private company covering petroleum distribution, real estate, and agriculture. Entered politics from business, long served as Agriculture Minister. Won the 2021 elections decisively, ending the Islamist PJD's decade in government. Known as one of Africa's wealthiest heads of government.",
     significantEvents: [
@@ -8681,6 +9826,11 @@ const LEADERS: Leader[] = [
           "Morocco-EU migration deal deepened; EU paid Morocco €500M+ for border control",
         impact: "positive",
       },
+      {
+        year: 2026,
+        event: "Left office on 29 September 2026; succeeded by Fatima Ezzahra El Mansouri",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Morocco reached FIFA World Cup semifinals — first African and Arab nation",
@@ -8690,9 +9840,53 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pro-business liberal, Western-aligned, modernising within Moroccan monarchy constraints. Atlantic relationship — Morocco normalised with Israel in 2020 Abraham Accords. EU Partnership deepened. Pragmatic on migration as leverage over Europe. Sahara sovereignty absolutist.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Governs Morocco at its most geopolitically consequential moment — a key EU migration partner, African gateway economy, and increasingly significant player in Middle East diplomacy after Abraham Accords normalisation with Israel.",
+    region: "Africa",
+  },
+  {
+    id: "elmansouri",
+    name: "Fatima Ezzahra El Mansouri",
+    country: "Morocco",
+    countryCode: "MA",
+    flag: "🇲🇦",
+    title: "Prime Minister (Head of Government)",
+    photo: "",
+    age: 50,
+    birthYear: 1976,
+    birthPlace: "Marrakesh, Morocco",
+    education: [
+      { institution: "University of Montpellier", degree: "Law" },
+    ],
+    party: "Authenticity and Modernity Party (PAM)",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Lawyer who joined the Authenticity and Modernity Party in 2008 and was Mayor of Marrakesh from 2009 to 2015 and again from 2021. She served as Minister of National Planning, Urban Planning, Housing and Urban Policy under Aziz Akhannouch. King Mohammed VI appointed her on 29 September 2026 after her party won a plurality of seats in the 2026 general election.",
+    significantEvents: [
+      {
+        year: 2009,
+        event: "Became Mayor of Marrakesh",
+        impact: "neutral",
+      },
+      {
+        year: 2021,
+        event: "Returned as Mayor of Marrakesh and joined the government as minister of planning and housing",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Appointed Prime Minister on 29 September",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "First woman to be Prime Minister of Morocco",
+    ],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Africa",
   },
   {
@@ -8844,7 +10038,7 @@ const LEADERS: Leader[] = [
     country: "Togo",
     countryCode: "TG",
     flag: "🇹🇬",
-    title: "President",
+    title: "President of the Council of Ministers (President 2005–2025)",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Faure_Gnassingb%C3%A9_2019_%28cropped%29.jpg/440px-Faure_Gnassingb%C3%A9_2019_%28cropped%29.jpg",
     age: 57,
@@ -8864,7 +10058,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Rally of the Togolese People (RPT) / UNIR",
     ideology: "Authoritarian",
-    termsInOffice: [{ from: 2005, to: "present" }],
+    termsInOffice: [{ from: 2005, to: 2025 }, { from: 2025, to: "present" }],
     background:
       "Son of Gnassingbé Eyadéma — who ruled Togo for 38 years until his death in 2005. The military installed Faure in his father's place within hours of the elder Gnassingbé's death, in clear violation of the constitution. Won subsequent elections in votes widely criticised as fraudulent. Has ruled for 20 years, continuing the Gnassingbé family's total grip on Togo.",
     significantEvents: [
@@ -8896,6 +10090,11 @@ const LEADERS: Leader[] = [
         event:
           "Appointed President of Council of Ministers under new system — continued rule",
         impact: "negative",
+      },
+      {
+        year: 2025,
+        event: "Left the presidency on 3 May 2025 and became President of the Council of Ministers, the head of government",
+        impact: "neutral",
       },
     ],
     achievements: [
@@ -9542,7 +10741,7 @@ const LEADERS: Leader[] = [
     country: "Samoa",
     countryCode: "WS",
     flag: "🇼🇸",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Fiame_Naomi_Mata%27afa_2021_%28cropped%29.jpg/440px-Fiame_Naomi_Mata%27afa_2021_%28cropped%29.jpg",
     age: 65,
@@ -9557,7 +10756,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Fa'atuatua i le Atua Samoa ua Tasi (FAST)",
     ideology: "Social Democrat",
-    termsInOffice: [{ from: 2021, to: "present" }],
+    termsInOffice: [{ from: 2021, to: 2025 }],
     background:
       "Samoa's first female Prime Minister and daughter of independence leader Fiamē Faumuinā Mulinu'u II. Resigned as deputy PM in 2020 to lead the opposition FAST party, then won the April 2021 election by a single seat in one of the Pacific's most dramatic constitutional crises — the Supreme Court had to intervene to allow her swearing-in after outgoing PM Tuilagi Sailele Malielegaoi refused to concede for months. A historic Pacific democratic milestone.",
     significantEvents: [
@@ -9579,10 +10778,9 @@ const LEADERS: Leader[] = [
         impact: "positive",
       },
       {
-        year: 2024,
-        event:
-          "Lost re-election — HRPP returned to power under outgoing PM's party",
-        impact: "negative",
+        year: 2025,
+        event: "Left office on 16 September 2025",
+        impact: "neutral",
       },
     ],
     achievements: [
@@ -9595,7 +10793,7 @@ const LEADERS: Leader[] = [
       "Social democratic, climate-focused, good governance. Sceptical of opaque Chinese debt. Pro-Pacific regional identity and FOSS. Less socially conservative than her predecessor on cultural and gender issues.",
     status: "Former",
     impact:
-      "Her election and the constitutional crisis it triggered are the most significant democratic test in Pacific island politics in a generation. Lost her re-election bid in 2024.",
+      "Her election and the constitutional crisis it triggered are the most significant democratic test in Pacific island politics in a generation. She left office in September 2025.",
     region: "Asia-Pacific",
   },
   {
@@ -9739,7 +10937,7 @@ const LEADERS: Leader[] = [
     country: "Trinidad and Tobago",
     countryCode: "TT",
     flag: "🇹🇹",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Keith_Rowley_2022_%28cropped%29.jpg/440px-Keith_Rowley_2022_%28cropped%29.jpg",
     age: 74,
@@ -9759,7 +10957,7 @@ const LEADERS: Leader[] = [
     ],
     party: "People's National Movement (PNM)",
     ideology: "Conservative",
-    termsInOffice: [{ from: 2015, to: "present" }],
+    termsInOffice: [{ from: 2015, to: 2025 }],
     background:
       "Geologist and longtime PNM politician who has led Trinidad and Tobago since 2015. T&T is the Caribbean's largest energy producer — its LNG exports make it one of the Western Hemisphere's most important gas suppliers. Rowley navigated a controversial waiver from US sanctions to develop the Venezuela-Trinidad Dragon Gas Field — a deal that highlighted the complex energy geopolitics of the Caribbean basin.",
     significantEvents: [
@@ -9793,6 +10991,11 @@ const LEADERS: Leader[] = [
           "Crime crisis — T&T has one of world's highest murder rates per capita",
         impact: "negative",
       },
+      {
+        year: 2025,
+        event: "Left office on 17 March 2025; succeeded by Stuart Young and, after the general election, by Kamla Persad-Bissessar on 1 May",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Dragon Gas Field US sanctions waiver — diplomatic achievement",
@@ -9802,9 +11005,55 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative, pro-energy sovereignty, CARICOM regionalist. Pragmatic on Venezuela — energy realism over ideological anti-Maduro position. Pro-US security but demands Caribbean policy respect. Crime reduction through community policing advocate.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Leads the Caribbean's most energy-significant nation at a pivotal moment — the Dragon Gas Field deal with Venezuelan gas through a US sanctions waiver is one of the most complex energy diplomacy achievements of any Caribbean leader.",
+    region: "Americas",
+  },
+  {
+    id: "persadbissessar",
+    name: "Kamla Persad-Bissessar",
+    country: "Trinidad and Tobago",
+    countryCode: "TT",
+    flag: "🇹🇹",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Kamla_Persad-Bissessar%2C_2025.jpg/500px-Kamla_Persad-Bissessar%2C_2025.jpg",
+    age: 74,
+    birthYear: 1952,
+    birthPlace: "Siparia, Trinidad and Tobago",
+    education: [
+      { institution: "University of the West Indies", degree: "BA, DipEd, LLB, EMBA" },
+      { institution: "Hugh Wooding Law School", degree: "Legal Education Certificate" },
+    ],
+    party: "United National Congress (UNC)",
+    ideology: null,
+    termsInOffice: [{ from: 2010, to: 2015 }, { from: 2025, to: "present" }],
+    background:
+      "Lawyer and educator, Political Leader of the United National Congress since 2010. She was Prime Minister from 2010 to 2015 and Leader of the Opposition from 2015 to 2025, and earlier served as attorney general. After leading the UNC and its Coalition of Interests to victory in the 2025 general election, she was sworn in again on 1 May 2025.",
+    significantEvents: [
+      {
+        year: 2010,
+        event: "Became Political Leader of the UNC and Prime Minister",
+        impact: "neutral",
+      },
+      {
+        year: 2015,
+        event: "Lost the general election and became Leader of the Opposition",
+        impact: "neutral",
+      },
+      {
+        year: 2025,
+        event: "Won the general election; sworn in as Prime Minister on 1 May",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "Trinidad and Tobago's first female prime minister, attorney general and opposition leader",
+      "First woman to chair the Commonwealth of Nations",
+    ],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Americas",
   },
   {
@@ -9813,7 +11062,7 @@ const LEADERS: Leader[] = [
     country: "Rwanda",
     countryCode: "RW",
     flag: "🇷🇼",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Edouard_Ngirente_2018_%28cropped%29.jpg/440px-Edouard_Ngirente_2018_%28cropped%29.jpg",
     age: 54,
@@ -9833,7 +11082,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Rwandan Patriotic Front (RPF)",
     ideology: "Authoritarian",
-    termsInOffice: [{ from: 2017, to: "present" }],
+    termsInOffice: [{ from: 2017, to: 2025 }],
     background:
       "Technocrat and economist who has served as Rwanda's Prime Minister since 2017 under President Kagame. The PM role in Rwanda is largely administrative — Kagame holds absolute executive authority — but Ngirente manages day-to-day government operations, IMF programme compliance, and coordinates Rwanda's remarkable economic development ministries. Rwanda's GDP per capita has grown from $285 in 2000 to over $1,000 in 2024 under RPF governance.",
     significantEvents: [
@@ -9864,6 +11113,11 @@ const LEADERS: Leader[] = [
         event: "IMF programme compliance maintained; Vision 2035 advanced",
         impact: "positive",
       },
+      {
+        year: 2025,
+        event: "Left office on 25 July 2025; succeeded by Justin Nsengiyumva",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Rwanda's Vision 2050 implementation — economic development roadmap management",
@@ -9873,9 +11127,43 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "RPF technocrat — development economics focus within Kagame's Rwanda Inc framework. Pro-foreign investment, anti-corruption (within RPF system), digital transformation advocate. Represents economic competence layer of Rwanda's authoritarian-developmental model.",
-    status: "In Office",
+    status: "Former",
     impact:
       "As the operational manager of Africa's most cited development success story, Ngirente's technocratic governance has translated Kagame's vision into documented economic results — while the DRC conflict casts a long shadow over Rwanda's international reputation.",
+    region: "Africa",
+  },
+  {
+    id: "nsengiyumva",
+    name: "Justin Nsengiyumva",
+    country: "Rwanda",
+    countryCode: "RW",
+    flag: "🇷🇼",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Justin_Nsengiyumva_in_June_2026_%28cropped%29.jpg/500px-Justin_Nsengiyumva_in_June_2026_%28cropped%29.jpg",
+    age: 54,
+    birthYear: 1971,
+    birthPlace: "",
+    education: [
+      { institution: "Catholic University of Eastern Africa", degree: "Studied" },
+      { institution: "University of Nairobi", degree: "Studied" },
+      { institution: "University of Leicester", degree: "Studied" },
+    ],
+    party: "",
+    ideology: null,
+    termsInOffice: [{ from: 2025, to: "present" }],
+    background:
+      "Banker who became Prime Minister of Rwanda on 25 July 2025.",
+    significantEvents: [
+      {
+        year: 2025,
+        event: "Became Prime Minister on 25 July",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Africa",
   },
   {
@@ -9952,7 +11240,7 @@ const LEADERS: Leader[] = [
     country: "Honduras",
     countryCode: "HN",
     flag: "🇭🇳",
-    title: "President",
+    title: "Former President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Xiomara_Castro_official_portrait_2022.jpg/440px-Xiomara_Castro_official_portrait_2022.jpg",
     age: 65,
@@ -9967,7 +11255,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Libre (Liberty and Refoundation)",
     ideology: "Social Democrat",
-    termsInOffice: [{ from: 2022, to: "present" }],
+    termsInOffice: [{ from: 2022, to: 2026 }],
     background:
       "Wife of former President Manuel Zelaya who was himself ousted in a 2009 military coup. Won the November 2021 election with 51.1% — the largest margin in Honduran history — becoming the country's first female president. Her election ended 12 years of the conservative National Party's rule. Honduras is one of Central America's most violent and impoverished nations, with one of the world's highest homicide rates and millions of citizens who have emigrated to the US.",
     significantEvents: [
@@ -9998,6 +11286,11 @@ const LEADERS: Leader[] = [
           "State of exception anti-gang crackdown — modelled on El Salvador's Bukele approach",
         impact: "neutral",
       },
+      {
+        year: 2026,
+        event: "Left office on 27 January 2026; succeeded by Nasry Asfura",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "First female president in Honduran history",
@@ -10007,9 +11300,56 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Left-wing social democratic, feminist, anti-corruption. Switched to China from Taiwan for investment. Critical of US immigration policy on Honduran migrants. Pro-Cuba and Venezuela relations. State of exception anti-gang measures despite civil liberties concerns.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Historic as Central America's first left-wing female president, but governing one of the hemisphere's hardest-to-govern states — where gang violence, corruption networks, and emigration pressure define every policy choice.",
+    region: "Americas",
+  },
+  {
+    id: "asfura",
+    name: "Nasry Asfura",
+    country: "Honduras",
+    countryCode: "HN",
+    flag: "🇭🇳",
+    title: "President",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Honduras_President_Nasry_Asfura.jpg/500px-Honduras_President_Nasry_Asfura.jpg",
+    age: 68,
+    birthYear: 1958,
+    birthPlace: "Tegucigalpa, Honduras",
+    education: [
+      { institution: "National Autonomous University of Honduras", degree: "Studied; did not complete" },
+    ],
+    party: "National Party of Honduras",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Construction businessman, deputy for Francisco Morazán in the National Congress from 2010 to 2014 and Mayor of Tegucigalpa from 2014 to 2022. He lost the 2021 presidential election to Xiomara Castro, became president of the National Party in 2025 and narrowly won that year's election against Salvador Nasralla. He was sworn in on 27 January 2026.",
+    significantEvents: [
+      {
+        year: 2014,
+        event: "Became Mayor of Tegucigalpa",
+        impact: "neutral",
+      },
+      {
+        year: 2021,
+        event: "Lost the presidential election to Xiomara Castro",
+        impact: "neutral",
+      },
+      {
+        year: 2025,
+        event: "Narrowly won the presidential election against Salvador Nasralla",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Sworn in on 27 January",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Americas",
   },
   // ── BATCH 24: Libya, South Sudan, Namibia, Eswatini, W.Sahara, Kyrgyzstan, Solomons ──
@@ -10354,7 +11694,7 @@ const LEADERS: Leader[] = [
     country: "Solomon Islands",
     countryCode: "SB",
     flag: "🇸🇧",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Jeremiah_Manele_2024_%28cropped%29.jpg/440px-Jeremiah_Manele_2024_%28cropped%29.jpg",
     age: 58,
@@ -10369,7 +11709,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Our Party",
     ideology: "Centrist",
-    termsInOffice: [{ from: 2024, to: "present" }],
+    termsInOffice: [{ from: 2024, to: 2026 }],
     background:
       "Former Foreign Minister who replaced Manasseh Sogavare as Prime Minister after the April 2024 elections — though his government represents continuity with Sogavare's controversial China alignment. Solomon Islands became the center of Pacific geopolitics in 2022 when Sogavare signed a security agreement with China — triggering alarm in Australia, the US, and New Zealand. Manele's task is to manage those relationships while leveraging Solomon Islands' strategic geography for maximum development return.",
     significantEvents: [
@@ -10403,6 +11743,11 @@ const LEADERS: Leader[] = [
           "Pacific security dialogue — Solomon Islands between Australian and Chinese pressure",
         impact: "neutral",
       },
+      {
+        year: 2026,
+        event: "Left office on 15 May 2026; succeeded by Matthew Wale",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Diplomatic transition to China achieved national sovereignty framing",
@@ -10412,9 +11757,49 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centrist sovereignty pragmatist — uses China-Australia competition for maximum aid leverage. Non-aligned rhetoric while deeply China-aligned in practice. Resource nationalism — fishing rights and seabed mining potential. Climate vulnerability diplomacy.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Leads one of the Pacific's most geopolitically significant micro-states — Solomon Islands' China security deal triggered the most serious Pacific security alarm in Washington since the Cold War, directly causing the US to reopen its Honiara embassy and accelerate Pacific engagement.",
+    region: "Asia-Pacific",
+  },
+  {
+    id: "wale",
+    name: "Matthew Wale",
+    country: "Solomon Islands",
+    countryCode: "SB",
+    flag: "🇸🇧",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Matthew_Wale_in_2026_%28cropped%29.jpg/500px-Matthew_Wale_in_2026_%28cropped%29.jpg",
+    age: 58,
+    birthYear: 1968,
+    birthPlace: "Ambu Village, Malaita Province, Solomon Islands",
+    education: [],
+    party: "Solomon Islands Democratic Party",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Member of the National Parliament for Aoke/Langalanga since 2008 and Leader of the Opposition from 2019 to 2026. He became Prime Minister on 15 May 2026.",
+    significantEvents: [
+      {
+        year: 2008,
+        event: "Elected to Parliament for Aoke/Langalanga",
+        impact: "neutral",
+      },
+      {
+        year: 2019,
+        event: "Became Leader of the Opposition",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Became Prime Minister on 15 May",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Asia-Pacific",
   },
   // ── BATCH 25: Iraq, Balkans Presidents, West/Central Africa gaps ──────────
@@ -10424,7 +11809,7 @@ const LEADERS: Leader[] = [
     country: "Iraq",
     countryCode: "IQ",
     flag: "🇮🇶",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Mohammed_Shia%27_Al-Sudani_2022_%28cropped%29.jpg/440px-Mohammed_Shia%27_Al-Sudani_2022_%28cropped%29.jpg",
     age: 53,
@@ -10439,7 +11824,7 @@ const LEADERS: Leader[] = [
     ],
     party: "State of Law Coalition / Coordination Framework",
     ideology: "Nationalist",
-    termsInOffice: [{ from: 2022, to: "present" }],
+    termsInOffice: [{ from: 2022, to: 2026 }],
     background:
       "Technocrat and former governor of Maysān Province who became PM in October 2022 after a year-long political deadlock following Iraq's 2021 elections. His government represents the Iran-aligned Coordination Framework bloc. Navigates the impossible triangle of maintaining cordial US security ties (4,000+ US troops remain in Iraq), satisfying Iran-aligned Popular Mobilisation Units (PMF), and managing Iraq's enormous oil wealth reconstruction agenda.",
     significantEvents: [
@@ -10473,6 +11858,11 @@ const LEADERS: Leader[] = [
           "Iraq Development Road — $17B infrastructure corridor from Basra to Turkey",
         impact: "positive",
       },
+      {
+        year: 2026,
+        event: "Left office on 14 May 2026; succeeded by Ali al-Zaidi",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Iraq-Saudi normalisation — 30-year diplomatic estrangement partially healed",
@@ -10482,9 +11872,41 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pragmatic Iraqi nationalist — neither fully pro-Iran nor pro-US. Seeks Iraq's strategic autonomy as mediator between Arab states and Iran. Development economics first. Committed to a sovereign Iraqi state that isn't a battlefield for proxy conflicts.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Governs the Middle East's most geopolitically complex major state — an OPEC member with 145Bbl in reserves whose territory hosts simultaneously US forces and Iran-backed militias. His Development Road vision could make Iraq a regional logistics hub if political stability holds.",
+    region: "Middle East",
+  },
+  {
+    id: "alzaidi",
+    name: "Ali al-Zaidi",
+    country: "Iraq",
+    countryCode: "IQ",
+    flag: "🇮🇶",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/President_Donald_J._Trump_and_Iraqi_Prime_Minister_Ali_al-Zaidi_%28cropped%29.jpg/500px-President_Donald_J._Trump_and_Iraqi_Prime_Minister_Ali_al-Zaidi_%28cropped%29.jpg",
+    age: 41,
+    birthYear: 1985,
+    birthPlace: "",
+    education: [],
+    party: "Independent",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Banker and businessman who became Prime Minister of Iraq on 14 May 2026. Taking office at 41, he is the youngest prime minister in the country's history.",
+    significantEvents: [
+      {
+        year: 2026,
+        event: "Became Prime Minister on 14 May",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "Youngest prime minister in the history of Iraq",
+    ],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Middle East",
   },
   {
@@ -10493,7 +11915,7 @@ const LEADERS: Leader[] = [
     country: "Bulgaria",
     countryCode: "BG",
     flag: "🇧🇬",
-    title: "President",
+    title: "Prime Minister (President 2017–2026)",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Rumen_Radev_official_portrait_%282022%29.jpg/440px-Rumen_Radev_official_portrait_%282022%29.jpg",
     age: 62,
@@ -10513,7 +11935,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Independent (BSP-backed)",
     ideology: "Nationalist",
-    termsInOffice: [{ from: 2017, to: "present" }],
+    termsInOffice: [{ from: 2017, to: 2026 }, { from: 2026, to: "present" }],
     background:
       "Former Commander of the Bulgarian Air Force who won the 2016 presidential election as an independent backed by the Bulgarian Socialist Party — a party with roots in the former communist regime. Bulgaria's president has limited executive powers but significant veto ability and moral authority. Radev has been a persistent critic of Bulgaria's GERB-led governments and draws controversy for his sceptical positions on Ukraine sanctions and his relatively Russia-friendly stance — unusual for a NATO member on Russia's flank.",
     significantEvents: [
@@ -10546,6 +11968,11 @@ const LEADERS: Leader[] = [
           "Bulgaria Eurozone entry discussions — Radev relatively cautious",
         impact: "neutral",
       },
+      {
+        year: 2026,
+        event: "Resigned the presidency on 23 January 2026, succeeded by Vice President Iliana Iotova; became Prime Minister on 8 May 2026",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Longest-serving Bulgarian president since post-communist democracy",
@@ -10558,6 +11985,47 @@ const LEADERS: Leader[] = [
     status: "In Office",
     impact:
       "Bulgaria's most visible political figure in a period of extraordinary governmental instability. His Russia-scepticism on Ukraine policy makes him an outlier within NATO's eastern flank presidents — creating tension with PM Zhelyazkov's more Western-aligned government.",
+    region: "Europe",
+  },
+  {
+    id: "iotova",
+    name: "Iliana Iotova",
+    country: "Bulgaria",
+    countryCode: "BG",
+    flag: "🇧🇬",
+    title: "President",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/President_Iliyana_Yotova_%283x4_cropped%29.jpg/500px-President_Iliyana_Yotova_%283x4_cropped%29.jpg",
+    age: 61,
+    birthYear: 1964,
+    birthPlace: "Sofia, Bulgaria",
+    education: [
+      { institution: "Sofia University", degree: "Studied" },
+      { institution: "École nationale d'administration", degree: "Studied" },
+      { institution: "University of Strasbourg", degree: "Studied" },
+    ],
+    party: "Bulgarian Socialist Party (BSP)",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Journalist and politician, a member of the National Assembly from 2005 to 2007. Vice President under Rumen Radev from 2017, she became President on 23 January 2026 when he resigned - the first Bulgarian vice president to assume the presidency in the middle of a term.",
+    significantEvents: [
+      {
+        year: 2017,
+        event: "Became Vice President",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Became President on 23 January after Rumen Radev resigned",
+        impact: "neutral",
+      },
+    ],
+    achievements: [
+      "First woman to be President of Bulgaria",
+    ],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Europe",
   },
   {
@@ -10633,7 +12101,7 @@ const LEADERS: Leader[] = [
     country: "Benin",
     countryCode: "BJ",
     flag: "🇧🇯",
-    title: "President",
+    title: "Former President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Patrice_Talon_2017_%28cropped%29.jpg/440px-Patrice_Talon_2017_%28cropped%29.jpg",
     age: 66,
@@ -10648,7 +12116,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Progressive Union for Renewal (UPR) — backed",
     ideology: "Liberal",
-    termsInOffice: [{ from: 2016, to: "present" }],
+    termsInOffice: [{ from: 2016, to: 2026 }],
     background:
       "Cotton magnate who became Africa's most successful private cotton trader before entering politics and winning the 2016 presidential election promising to limit himself to two terms. Governed Benin through a controversial political trajectory — restricting opposition parties through a new electoral code, then winning the 2021 election after key opponents were barred — while achieving genuine economic modernisation and infrastructure development. Benin borders Nigeria and sits at the edge of the Sahel coup wave that has swept its northwestern neighbours.",
     significantEvents: [
@@ -10681,6 +12149,11 @@ const LEADERS: Leader[] = [
           "Cotonou Port expansion completed — West Africa's most modern container terminal",
         impact: "positive",
       },
+      {
+        year: 2026,
+        event: "Left office on 24 May 2026; succeeded by Romuald Wadagni",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Cotonou Port became West Africa's leading logistics hub",
@@ -10690,9 +12163,47 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Liberal pro-business, technocratic governance. Foreign investment attraction, port logistics as economic engine. Anti-corruption rhetoric with selective application. France-aligned, ECOWAS committed. Counter-jihadist security investment in north.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Governs West Africa's most interesting economic success story — Benin's logistics and digital economy growth while most neighbours face coups or stagnation. But democratic backsliding has made him a cautionary tale about modernising autocrats.",
+    region: "Africa",
+  },
+  {
+    id: "wadagni",
+    name: "Romuald Wadagni",
+    country: "Benin",
+    countryCode: "BJ",
+    flag: "🇧🇯",
+    title: "President",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Romuald_Wadagni_in_June_2026.jpg/500px-Romuald_Wadagni_in_June_2026.jpg",
+    age: 50,
+    birthYear: 1976,
+    birthPlace: "Lokossa, Benin",
+    education: [
+      { institution: "Grenoble École de Management", degree: "Studied" },
+      { institution: "Harvard Business School", degree: "Studied" },
+    ],
+    party: "Independent",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Worked for the consulting firm Deloitte before entering politics, then served as Minister of Economy and Finance under President Patrice Talon from 2016 to 2026. He became Benin's ninth president on 24 May 2026.",
+    significantEvents: [
+      {
+        year: 2016,
+        event: "Appointed Minister of Economy and Finance",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Became President on 24 May",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Africa",
   },
   {
@@ -10701,7 +12212,7 @@ const LEADERS: Leader[] = [
     country: "Gabon",
     countryCode: "GA",
     flag: "🇬🇦",
-    title: "President (Transitional)",
+    title: "President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Brice_Oligui_Nguema_2023_%28cropped%29.jpg/440px-Brice_Oligui_Nguema_2023_%28cropped%29.jpg",
     age: 50,
@@ -10750,6 +12261,11 @@ const LEADERS: Leader[] = [
           "Won transitional presidential election with 91% — opposition limited",
         impact: "neutral",
       },
+      {
+        year: 2025,
+        event: "Sworn in as President on 3 May 2025, ending the transition",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Ended 56-year Bongo family dynastic rule non-violently",
@@ -10759,7 +12275,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Military reformist — positions junta as democratic restoration rather than Russia-aligned takeover. Pro-France, pro-Western investment. Gabon oil and manganese resource sovereignty. Institutional reform — reducing presidential excess and family enrichment model.",
-    status: "Transitional",
+    status: "In Office",
     impact:
       "Gabon's coup represents a different model from the Sahel wave — a correction of a specific dynastic corruption rather than an anti-Western realignment. His maintenance of French ties and Western investment distinguishes Gabon from Mali, Burkina, and Niger's trajectory.",
     region: "Africa",
@@ -10770,7 +12286,7 @@ const LEADERS: Leader[] = [
     country: "Guinea",
     countryCode: "GN",
     flag: "🇬🇳",
-    title: "President (Transitional)",
+    title: "President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Mamadi_Doumbouya_2021_%28cropped%29.jpg/440px-Mamadi_Doumbouya_2021_%28cropped%29.jpg",
     age: 40,
@@ -10822,6 +12338,11 @@ const LEADERS: Leader[] = [
           "Simandou iron ore mine — first production from world's largest iron ore deposit",
         impact: "positive",
       },
+      {
+        year: 2026,
+        event: "Sworn in as President on 17 January 2026, no longer interim",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "First production from Simandou — world's largest undeveloped iron ore deposit",
@@ -10831,7 +12352,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Military nationalist, resource sovereigntist. Balances Chinese investment in minerals with Western diplomatic pressure for democratic transition. Anti-corruption framing. Transition timeline deliberately vague — no rush to elections.",
-    status: "Transitional",
+    status: "In Office",
     impact:
       "Controls the raw material for global aluminium production — 65% of world bauxite. The Simandou iron ore mine beginning production under his watch is potentially the most significant African mining development of the decade. Whether resource wealth translates to governance or perpetuates extraction depends on his transition.",
     region: "Africa",
@@ -10842,7 +12363,7 @@ const LEADERS: Leader[] = [
     country: "Greece",
     countryCode: "GR",
     flag: "🇬🇷",
-    title: "President",
+    title: "Former President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Katerina_Sakellaropoulou_2020_official_portrait.jpg/440px-Katerina_Sakellaropoulou_2020_official_portrait.jpg",
     age: 69,
@@ -10867,7 +12388,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Independent (non-partisan)",
     ideology: "Liberal",
-    termsInOffice: [{ from: 2020, to: "present" }],
+    termsInOffice: [{ from: 2020, to: 2025 }],
     background:
       "Distinguished jurist who served as President of the Greek Council of State — the supreme administrative court — for seven years before being elected President of Greece in January 2020 by a cross-party parliamentary majority including PM Mitsotakis's New Democracy. Greece's first female president — elected unanimously in a country still emerging from a decade of austerity. The presidential role is largely ceremonial but carries significant institutional authority.",
     significantEvents: [
@@ -10893,6 +12414,11 @@ const LEADERS: Leader[] = [
         event: "Re-elected for second term — continued cross-party support",
         impact: "positive",
       },
+      {
+        year: 2025,
+        event: "Her term ended on 13 March 2025; succeeded by Konstantinos Tasoulas",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Greece's first female president — historic constitutional milestone",
@@ -10902,9 +12428,51 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Non-partisan jurist. Rule of law absolutist, EU institutional defender, human rights champion. Greece's constitutional guardian — her legal expertise defining the presidential role. Pro-EU, pro-democratic norms, climate-conscious. Avoids partisan politics by design.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Greece's highest-approval political figure— a non-partisan jurist whose legal gravitas provides institutional ballast during Greece's continued post-crisis political turbulence. Her historic first presidency represents a genuine social milestone for a country where political life has been male-dominated.",
+    region: "Europe",
+  },
+  {
+    id: "tasoulas",
+    name: "Konstantinos Tasoulas",
+    country: "Greece",
+    countryCode: "GR",
+    flag: "🇬🇷",
+    title: "President",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Konstantinos_Tasoulas_in_2025.jpg/500px-Konstantinos_Tasoulas_in_2025.jpg",
+    age: 67,
+    birthYear: 1959,
+    birthPlace: "Ioannina, Greece",
+    education: [
+      { institution: "National and Kapodistrian University of Athens", degree: "Studied" },
+    ],
+    party: "New Democracy",
+    ideology: null,
+    termsInOffice: [{ from: 2025, to: "present" }],
+    background:
+      "Lawyer and New Democracy MP for Ioannina from 2000 to 2025. He was Minister of Culture and Sports from 2014 to 2015 and President of the Hellenic Parliament from 2019 to 2025, and became President of Greece on 13 March 2025.",
+    significantEvents: [
+      {
+        year: 2000,
+        event: "Elected MP for Ioannina",
+        impact: "neutral",
+      },
+      {
+        year: 2019,
+        event: "Became President of the Hellenic Parliament",
+        impact: "neutral",
+      },
+      {
+        year: 2025,
+        event: "Became President of Greece on 13 March",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Europe",
   },
   // ── BATCH 26: Palestine, Vatican, Brunei, Imprisoned/Former Leaders ───────
@@ -11007,7 +12575,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Holy See (non-political)",
     ideology: "Theocrat",
-    termsInOffice: [{ from: 2013, to: "present" }],
+    termsInOffice: [{ from: 2013, to: 2025 }],
     background:
       "Born Jorge Mario Bergoglio in Buenos Aires to Italian immigrant parents. Former Archbishop of Buenos Aires and first Latin American — and first Jesuit — to become Pope. Elected in March 2013 after Benedict XVI's historic resignation. Known for humility (chose the name Francis after St. Francis of Assisi), reform advocacy within the Church, and a highly political papacy on climate, migration, inequality, and peace.",
     significantEvents: [
@@ -11189,7 +12757,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Islamic democratic populism, anti-corruption, anti-IMF austerity, independent foreign policy (neither pro-US nor pro-China). Populist welfare state. Opposes Pakistan's military interference in civilian government. Blames Biden administration and military for his removal.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Jailed but arguably more politically powerful than his successor — PTI won the 2024 election in popular votes if not in allocated seats. His imprisonment has made him a global symbol of civilian vs military political conflict in nuclear-armed Pakistan.",
     region: "Asia-Pacific",
@@ -11259,7 +12827,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Liberal democratic, Buddhism-influenced. Non-violent resistance as political philosophy. Federal democratic union for Myanmar's ethnic minorities. Pro-Western partnerships. Her legacy is haunted by Rohingya genocide defence — stripping her of many human rights credentials.",
-    status: "In Office",
+    status: "Former",
     impact:
       "One of the 20th century's greatest symbols of peaceful resistance to military tyranny — whose legacy was permanently complicated by the Rohingya genocide and whose imprisonment by the same military she had once worked with shows the tragic limits of democratic-military coexistence.",
     region: "Asia-Pacific",
@@ -11330,7 +12898,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Afghan nationalist, Pashtun tribal conservative. Now advocates pragmatic engagement with Taliban for stability. Blames US withdrawal strategy rather than Taliban for collapse. Believes international isolation of Taliban worsens Afghans' suffering. Seeks neutral status between Taliban and exiled republic.",
-    status: "In Office",
+    status: "Former",
     impact:
       "The human embodiment of NATO's $2 trillion, 20-year Afghanistan investment — which collapsed in 11 days in August 2021. His decision to stay in Kabul gives him unique if constrained moral standing in a country now running the world's most severe anti-female governance experiment.",
     region: "Asia-Pacific",
@@ -11596,7 +13164,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Social democratic, feminist, environmental. Nordic welfare state defender. The Ukraine invasion converted her to a security hawk — she became one of Europe's most consistent advocates for maximum Ukraine support. Post-PM she has become a global voice for democracy and social democratic values.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Her decision to apply for NATO will be Finland's most consequential foreign policy act in living memory — permanently transforming the Nordic security architecture. At 38, she remains one of the most globally recognised progressive political figures and a likely future European leader.",
     region: "Europe",
@@ -11607,7 +13175,7 @@ const LEADERS: Leader[] = [
     country: "Vietnam",
     countryCode: "VN",
     flag: "🇻🇳",
-    title: "General Secretary, Communist Party of Vietnam",
+    title: "General Secretary of the Communist Party of Vietnam and President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/T%C3%B4_L%C3%A2m_2024_%28cropped%29.jpg/440px-T%C3%B4_L%C3%A2m_2024_%28cropped%29.jpg",
     age: 67,
@@ -11658,6 +13226,11 @@ const LEADERS: Leader[] = [
         year: 2025,
         event: "Vietnam's semiconductor and AI investment attraction continues",
         impact: "positive",
+      },
+      {
+        year: 2026,
+        event: "Became President on 7 April 2026, while remaining General Secretary",
+        impact: "neutral",
       },
     ],
     achievements: [
@@ -11747,7 +13320,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Progressive democratic, pro-Taiwan identity, opposed to 'one country two systems'. Security hawk who dramatically raised defence capabilities. Pro-US alliance, pro-Japan partnership. Semiconductor sovereignty — positioned TSMC as Taiwan's 'silicon shield'. Pragmatic on cross-strait trade while hardening military deterrence.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Led Taiwan through its most dangerous eight years since 1996 while building the democratic identity and defence posture that has made Taiwan a credible self-defending democracy. Her semiconductor strategy transformed Taiwan's geopolitical leverage from vulnerability to indispensability.",
     region: "Asia-Pacific",
@@ -11814,7 +13387,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Zulu ethnic populism, ANC liberation movement traditionalism. Used state resources for personal and factional enrichment. Anti-establishment rhetoric despite being establishment. MK party frames ANC leadership as 'betrayers' of liberation legacy. Populist redistribution rhetoric with kleptocratic practice.",
-    status: "In Office",
+    status: "Former",
     impact:
       "State capture under Zuma represents the largest self-inflicted economic damage by any African democracy — $34B stolen or wasted, Eskom collapsed, and institutions gutted. His MK party's 2024 resurgence shows the durability of ethnic-populist politics even after comprehensive governance failure.",
     region: "Africa",
@@ -11882,7 +13455,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Mexican nationalist populism, anti-neoliberalism, fourth transformation ideology. Energy sovereigntist — state oil and electricity companies non-negotiable. Non-interventionist foreign policy ('best foreign policy is good domestic policy'). Deep distrust of US supervision of Mexico's internal affairs. Evangelical Christian values despite leftist economics.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Reshaped Mexican politics permanently — MORENA now dominates all three branches of government under Sheinbaum. His judicial reform may prove his most consequential and most contested legacy, potentially undermining independent courts for decades. The progressive versus authoritarian debate about his six years remains Mexico's defining political argument.",
     region: "Americas",
@@ -12025,7 +13598,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Progressive social democrat, feminist, compassionate governance advocate. Climate action, child poverty reduction, mental health investment. Internationally championed a new model of empathetic political leadership. Post-PM: Harvard Kennedy School fellowship and global democracy advocacy.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Redefined what political leadership could look like — proving empathy, directness, and humanity are political assets rather than weaknesses. Her resignation was as consequential as her tenure — modelling that acknowledging human limits is not weakness. One of the most globally recognised political figures of the 2020s.",
     region: "Asia-Pacific",
@@ -12099,7 +13672,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "One-nation Conservative, Eurosceptic, pro-free trade globally. Socially liberal by Conservative standards. Big state spender despite fiscal rhetoric. Popularist — pivoted Conservatives toward working-class northern England seats. Pro-Ukraine: one of Zelensky's earliest and most vocal Western supporters.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Delivered the most consequential policy change in British post-war history (Brexit) while proving the sustainability of populist politics within a Conservative framework. Partygate confirmed that even landslide mandates can't survive systematic hypocrisy on the rules leaders themselves set.",
     region: "Europe",
@@ -12168,7 +13741,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pragmatic nationalist, development economics first. Infrastructure over bureaucracy. Non-aligned between US and China — both get investment. Anti-corruption rhetoric with selective enforcement. Nickel sovereigntism — banned raw ore exports to force downstream industrialisation.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Transformed Indonesian governance from a revolving door of Jakarta elites to a genuine outsider presidency focused on infrastructure and development. His nickel export ban triggered the world's most consequential commodity sovereignty move by any developing country — forcing EV supply chain investment into Indonesia.",
     region: "Asia-Pacific",
@@ -12314,7 +13887,7 @@ const LEADERS: Leader[] = [
     country: "Poland",
     countryCode: "PL",
     flag: "🇵🇱",
-    title: "President",
+    title: "Former President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Andrzej_Duda_official_portrait_%282022%29.jpg/440px-Andrzej_Duda_official_portrait_%282022%29.jpg",
     age: 52,
@@ -12334,7 +13907,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Law and Justice (PiS) — backed",
     ideology: "Conservative",
-    termsInOffice: [{ from: 2015, to: "present" }],
+    termsInOffice: [{ from: 2015, to: 2025 }],
     background:
       "Law professor and former MEP who won the 2015 presidential election for PiS and was re-elected in 2020. His presidency has been defined by a constitutional cohabitation clash with PM Donald Tusk since 2023 — Duda repeatedly uses his presidential veto to block Tusk's coalition reforms of PiS-era judicial appointments and laws, creating Poland's most acute separation-of-powers crisis since communism.",
     significantEvents: [
@@ -12367,6 +13940,11 @@ const LEADERS: Leader[] = [
           "Presidential election — Duda constitutionally barred from third term; PiS candidate faces Tusk-aligned challenger",
         impact: "neutral",
       },
+      {
+        year: 2025,
+        event: "His second term ended on 6 August 2025; succeeded by Karol Nawrocki",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Poland's NATO defence spending raised to 4% of GDP during his presidency",
@@ -12376,9 +13954,52 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "National conservative, Catholic social values, sovereign democracy (PiS model). Hawkish Russia security stance — Polish-American alliance as existential. Has blocked Tusk's judicial reforms as presidential check. Strongly pro-Ukraine.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Poland's constitutional drama — a PiS-aligned President vetoing a pro-EU PM's reforms — is Europe's most complex cohabitation battle. His term ends in 2025; Poland's presidential election will resolve whether the PiS-era judicial appointments can be unwound.",
+    region: "Europe",
+  },
+  {
+    id: "nawrocki",
+    name: "Karol Nawrocki",
+    country: "Poland",
+    countryCode: "PL",
+    flag: "🇵🇱",
+    title: "President",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Karol_Nawrocki_%282025%29_%28cropped%29.jpg/500px-Karol_Nawrocki_%282025%29_%28cropped%29.jpg",
+    age: 43,
+    birthYear: 1983,
+    birthPlace: "Gdańsk, Poland",
+    education: [
+      { institution: "University of Gdańsk", degree: "PhD", year: 2013 },
+      { institution: "Gdańsk University of Technology", degree: "MBA", year: 2023 },
+    ],
+    party: "Independent (backed by Law and Justice)",
+    ideology: null,
+    termsInOffice: [{ from: 2025, to: "present" }],
+    background:
+      "Historian who directed the Museum of the Second World War in Gdańsk from 2017 to 2021 and the Institute of National Remembrance from 2021 to 2025. Chosen as the presidential candidate of Law and Justice, he ran as a nonpartisan \"citizens' candidate\" in 2025, defeated Rafał Trzaskowski and was inaugurated on 6 August 2025.",
+    significantEvents: [
+      {
+        year: 2017,
+        event: "Became director of the Museum of the Second World War",
+        impact: "neutral",
+      },
+      {
+        year: 2021,
+        event: "Became president of the Institute of National Remembrance",
+        impact: "neutral",
+      },
+      {
+        year: 2025,
+        event: "Won the presidential election against Rafał Trzaskowski; inaugurated on 6 August",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "Holds a pro-welfare and protectionist economic stance alongside right-wing cultural positions. In office he has followed a confrontational course with Donald Tusk's governing coalition and supports constitutional reform towards a semi-presidential system.",
+    status: "In Office",
+    impact: "",
     region: "Europe",
   },
   {
@@ -12806,6 +14427,11 @@ const LEADERS: Leader[] = [
           "Somalia applies for EAC membership; UAE Berbera base diplomacy ongoing",
         impact: "neutral",
       },
+      {
+        year: 2026,
+        event: "His mandate has been disputed since 15 May 2026",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Led Somalia's largest military offensive against al-Shabaab in a decade",
@@ -12815,7 +14441,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Centrist, moderate Islamist roots but governing as pragmatic nationalist. Pro-Arab League, pro-Turkey and UAE investment, suspicious of Ethiopian regional ambitions. Clan-balancing governance model. Seeks US counter-terrorism partnership while maintaining Islamic identity.",
-    status: "In Office",
+    status: "Incumbent (Disputed)",
     impact:
       "Leads one of the world's most complex governance challenges — a fractious clan state rebuilding from complete collapse against an active jihadist insurgency, with regional powers (Ethiopia, UAE, Turkey) all competing for influence over its territory.",
     region: "Africa",
@@ -12899,7 +14525,7 @@ const LEADERS: Leader[] = [
     country: "Seychelles",
     countryCode: "SC",
     flag: "🇸🇨",
-    title: "President",
+    title: "Former President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Wavel_Ramkalawan_2020_official_portrait.jpg/440px-Wavel_Ramkalawan_2020_official_portrait.jpg",
     age: 64,
@@ -12919,7 +14545,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Linyon Demokratik Seselwa (LDS)",
     ideology: "Social Democrat",
-    termsInOffice: [{ from: 2020, to: "present" }],
+    termsInOffice: [{ from: 2020, to: 2025 }],
     background:
       "Anglican priest turned politician who fought in opposition for 25 years — losing four consecutive presidential elections to the ruling SPPF/PL party — before finally winning the 2020 election with 54.9%, ending 43 years of one-party dominance. One of Africa's most significant democratic transitions. Governs the Indian Ocean's wealthiest nation per capita — with the world's highest tourism-to-population ratio and significant Chinese and UAE investment.",
     significantEvents: [
@@ -12952,6 +14578,11 @@ const LEADERS: Leader[] = [
           "Indian Ocean geopolitics — Seychelles navigates US, China, France naval presence",
         impact: "neutral",
       },
+      {
+        year: 2025,
+        event: "Left office on 26 October 2025; succeeded by Patrick Herminie",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Ended 43-year one-party rule through democratic election after 5 attempts",
@@ -12961,9 +14592,52 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Social democratic, pro-good governance, anti-corruption. Blue Economy — ocean conservation and sustainable fishing as economic model. Non-aligned between competing great powers in Indian Ocean. Commonwealth and African Union multilateralism.",
-    status: "In Office",
+    status: "Former",
     impact:
       "His 2020 victory is one of Africa's most celebrated democratic moments — a priest who never stopped running eventually broke a 43-year political monopoly. Seychelles under Ramkalawan is the Indian Ocean's leading example of small-state democratic governance.",
+    region: "Africa",
+  },
+  {
+    id: "herminie",
+    name: "Patrick Herminie",
+    country: "Seychelles",
+    countryCode: "SC",
+    flag: "🇸🇨",
+    title: "President",
+    photo: "",
+    age: 63,
+    birthYear: 1963,
+    birthPlace: "Baie Sainte Anne, Praslin, Seychelles",
+    education: [
+      { institution: "University of Leeds", degree: "Studied" },
+      { institution: "Charles University", degree: "Studied" },
+    ],
+    party: "United Seychelles",
+    ideology: null,
+    termsInOffice: [{ from: 2025, to: "present" }],
+    background:
+      "First elected to the National Assembly in 1993, he was Leader of Government Business from 1998 to 2003 and Speaker from 2007 to 2016. He won the 2025 presidential election as the candidate of United Seychelles and took office on 26 October 2025.",
+    significantEvents: [
+      {
+        year: 1993,
+        event: "First elected to the National Assembly",
+        impact: "neutral",
+      },
+      {
+        year: 2007,
+        event: "Became Speaker of the National Assembly",
+        impact: "neutral",
+      },
+      {
+        year: 2025,
+        event: "Became President on 26 October",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Africa",
   },
   {
@@ -13044,7 +14718,7 @@ const LEADERS: Leader[] = [
     country: "Guinea-Bissau",
     countryCode: "GW",
     flag: "🇬🇼",
-    title: "President",
+    title: "Former President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Umaro_Sissoco_Embal%C3%B3_2020_%28cropped%29.jpg/440px-Umaro_Sissoco_Embal%C3%B3_2020_%28cropped%29.jpg",
     age: 52,
@@ -13064,7 +14738,7 @@ const LEADERS: Leader[] = [
     ],
     party: "MADEM G-15",
     ideology: "Centrist",
-    termsInOffice: [{ from: 2020, to: "present" }],
+    termsInOffice: [{ from: 2020, to: 2025 }],
     background:
       "Former military general and Prime Minister who won a disputed 2019 presidential election that was resolved in his favour by the Supreme Court in 2020 after a protracted standoff. Guinea-Bissau has experienced more coups than almost any African state — 9 successful or attempted coups since independence in 1974. Embaló has asserted strong presidential authority, dissolved parliaments multiple times, and steered the country toward ECOWAS and international stability while navigating its historic status as a major cocaine transshipment point from Latin America.",
     significantEvents: [
@@ -13098,6 +14772,11 @@ const LEADERS: Leader[] = [
           "Guinea-Bissau economic growth from cashew exports and diversification",
         impact: "positive",
       },
+      {
+        year: 2025,
+        event: "Deposed in a coup on 26 November 2025; General Horta Inta-A Na Man became transitional president the next day",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Survived coup attempt in 2022 — maintained civilian government",
@@ -13107,7 +14786,7 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Pragmatic centrist, ECOWAS institutionalist, strong presidential authority. Anti-drug trafficking rhetoric despite structural state-trafficking nexus. Pro-Portugal relations, pro-EU cooperation. Non-ideological governing style.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Provides the closest thing to political stability Guinea-Bissau has seen in decades — though his repeated parliament dissolutions show the limits of that stability. His ECOWAS chairmanship during the Sahel coup wave made him one of West Africa's most prominent faces in 2023.",
     region: "Africa",
@@ -13190,7 +14869,7 @@ const LEADERS: Leader[] = [
     country: "Bosnia & Herzegovina (Republika Srpska)",
     countryCode: "BA",
     flag: "🇧🇦",
-    title: "President, Republika Srpska",
+    title: "Former President, Republika Srpska",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Milorad_Dodik_2019_%28cropped%29.jpg/440px-Milorad_Dodik_2019_%28cropped%29.jpg",
     age: 65,
@@ -13210,7 +14889,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Alliance of Independent Social Democrats (SNSD)",
     ideology: "Nationalist",
-    termsInOffice: [{ from: 2022, to: "present" }],
+    termsInOffice: [{ from: 2022, to: 2025 }],
     background:
       "The most provocative Bosnian Serb politician since Radovan Karadžić — Dodik has spent 15 years threatening Bosnian Serb secession, denying the Srebrenica genocide, blocking Bosnian state institutions, and aligning with Serbia's Vučić, Hungary's Orbán, and Russia's Putin. In 2023 he was sanctioned by the US and UK. In 2025 he was convicted and sentenced to a prison term that he refuses to recognise, triggering Bosnia's worst constitutional crisis since the war.",
     significantEvents: [
@@ -13243,6 +14922,11 @@ const LEADERS: Leader[] = [
           "Convicted by Bosnian court; sentenced to prison; refuses to comply — constitutional crisis",
         impact: "negative",
       },
+      {
+        year: 2025,
+        event: "Removed from office on 12 June 2025; Siniša Karan became president on 17 February 2026",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Republika Srpska maintained within Bosnia's federal structure",
@@ -13252,9 +14936,47 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Greater Serbia nationalism, Republika Srpska independence goal. Genocide denial on Srebrenica. Pro-Russia, anti-NATO expansion, anti-EU integration path. Aligns with Vučić, Orbán, and Putin. Views Bosnia's state institutions as illegitimate impositions.",
-    status: "Incumbent (Disputed)",
+    status: "Former",
     impact:
       "Europe's most dangerous destabiliser east of the Kremlin. His 2025 conviction and refusal to comply triggered Bosnia's worst post-war crisis — testing whether the EU and NATO have the will to enforce Dayton when its most provocative violator simply ignores court orders.",
+    region: "Europe",
+  },
+  {
+    id: "karan",
+    name: "Siniša Karan",
+    country: "Bosnia & Herzegovina (Republika Srpska)",
+    countryCode: "BA",
+    flag: "🇧🇦",
+    title: "President, Republika Srpska",
+    photo: "",
+    age: 64,
+    birthYear: 1962,
+    birthPlace: "Grabovac, Croatia",
+    education: [
+      { institution: "University of Sarajevo", degree: "BA" },
+      { institution: "University of Banja Luka", degree: "LLM, PhD" },
+    ],
+    party: "Alliance of Independent Social Democrats (SNSD)",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Minister of Interior of Republika Srpska from 2022 to 2025 and its Minister of Scientific-Technological Development and Higher Education from 2025 to 2026. He became President of Republika Srpska on 17 February 2026.",
+    significantEvents: [
+      {
+        year: 2022,
+        event: "Became Minister of Interior of Republika Srpska",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Became President of Republika Srpska on 17 February",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Europe",
   },
 ];
@@ -13334,11 +15056,7 @@ function LeaderCard({
             <p className="font-semibold text-sm text-foreground leading-tight truncate">
               {leader.name}
             </p>
-            <span
-              className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded border ${IDEOLOGY_COLORS[leader.ideology]}`}
-            >
-              {leader.ideology}
-            </span>
+            {leader.ideology && <span className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded border ${IDEOLOGY_COLORS[leader.ideology]}`}>{leader.ideology}</span>}
           </div>
           <p className="text-xs text-muted-foreground mb-1 truncate">
             {leader.title} · {leader.country}
@@ -13472,11 +15190,7 @@ function LeaderDetail({
                   ) : (
                     <span className={CHIP_TEXT}>{leader.country}</span>
                   )}
-                  <span
-                    className={`text-xs border px-2 py-0.5 rounded-full font-sans ${IDEOLOGY_COLORS[leader.ideology]}`}
-                  >
-                    {leader.ideology}
-                  </span>
+                  {leader.ideology && <span className={`text-xs border px-2 py-0.5 rounded-full font-sans ${IDEOLOGY_COLORS[leader.ideology]}`}>{leader.ideology}</span>}
                 </div>
               </div>
             </div>
@@ -13577,7 +15291,7 @@ function LeaderDetail({
                     {leader.background}
                   </p>
                 </div>
-                <div className="modal-tile rounded-lg p-4">
+                <div className={`modal-tile rounded-lg p-4${leader.achievements.length ? "" : " hidden"}`}>
                   <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
                     <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Trophy size={13} weight="fill" /></span> Key Achievements
                   </h4>
@@ -13597,7 +15311,7 @@ function LeaderDetail({
                     ))}
                   </ul>
                 </div>
-                <div className="modal-tile rounded-lg p-4">
+                <div className={`modal-tile rounded-lg p-4${leader.impact ? "" : " hidden"}`}>
                   <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
                     <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><ChartLineUp size={13} weight="fill" /></span> Impact Assessment
                   </h4>
@@ -13606,7 +15320,7 @@ function LeaderDetail({
                   </p>
                 </div>
                 {(() => {
-                  const info = getElectionInfo(leader.id);
+                  const info = leader.status === "Former" ? null : getElectionInfo(leader.id);
                   if (!info) return null;
                   const days = getCountdownDays(info.nextElection);
                   const color = info.isScheduled && days !== 0 ? "text-foreground" : "text-muted-foreground";
@@ -13699,6 +15413,7 @@ function LeaderDetail({
                     <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><GraduationCap size={13} weight="fill" /></span> Education
                   </h4>
                   <div className="space-y-3">
+                    {leader.education.length === 0 && <p className="text-xs text-muted-foreground">Not published.</p>}
                     {leader.education.map((e, i) => (
                       <div key={i} className="flex items-start gap-3">
                         <div className="w-8 h-8 rounded-md border border-border bg-muted text-muted-foreground flex items-center justify-center shrink-0">
@@ -13749,11 +15464,7 @@ function LeaderDetail({
                     <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Handshake size={13} weight="fill" /></span> Party & Affiliation
                   </h4>
                   <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${IDEOLOGY_COLORS[leader.ideology]}`}
-                    >
-                      {leader.ideology}
-                    </span>
+                    {leader.ideology && <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${IDEOLOGY_COLORS[leader.ideology]}`}>{leader.ideology}</span>}
                     <span className="text-sm text-foreground">
                       {leader.party}
                     </span>
@@ -13777,7 +15488,7 @@ function LeaderDetail({
                         Birthplace
                       </p>
                       <p className="text-xs text-foreground leading-snug">
-                        {leader.birthPlace}
+                        {leader.birthPlace || "Not published"}
                       </p>
                     </div>
                   </div>
@@ -13824,11 +15535,7 @@ function LeaderDetail({
                     <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Strategy size={13} weight="fill" /></span> Political Ideology
                   </h4>
                   <div className="flex items-center gap-2 mb-3">
-                    <span
-                      className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${IDEOLOGY_COLORS[leader.ideology]}`}
-                    >
-                      {leader.ideology}
-                    </span>
+                    {leader.ideology && <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${IDEOLOGY_COLORS[leader.ideology]}`}>{leader.ideology}</span>}
                     <span className="text-sm text-muted-foreground">
                       {leader.party}
                     </span>
@@ -13837,7 +15544,7 @@ function LeaderDetail({
                     {leader.politicalViews}
                   </p>
                 </div>
-                <div className="modal-tile rounded-lg p-4">
+                <div className={`modal-tile rounded-lg p-4${leader.impact ? "" : " hidden"}`}>
                   <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
                     <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><ChartLineUp size={13} weight="fill" /></span> Overall Impact
                   </h4>
@@ -13845,7 +15552,7 @@ function LeaderDetail({
                     {leader.impact}
                   </p>
                 </div>
-                <div className="modal-tile rounded-lg p-4">
+                <div className={`modal-tile rounded-lg p-4${leader.achievements.length ? "" : " hidden"}`}>
                   <h4 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
                     <span className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0 inline-flex"><Star size={13} weight="fill" /></span> Achievements
                   </h4>
@@ -13920,7 +15627,7 @@ function LeadersExplorer({ onOpen }: { onOpen: (l: Leader) => void }) {
   const [pickedId, setPickedId] = useState<string | null>(null);
   const q = search.trim().toLowerCase();
   const list = useMemo(
-    () => LEADERS.filter((l) => (!status || l.status === status) && (!q || [l.name, l.country, l.title, l.party, l.ideology, l.region].some((x) => x.toLowerCase().includes(q)))),
+    () => LEADERS.filter((l) => (!status || l.status === status) && (!q || [l.name, l.country, l.title, l.party, l.ideology ?? "", l.region].some((x) => x.toLowerCase().includes(q)))),
     [q, status],
   );
   const shown = (pickedId ? LEADERS.find((l) => l.id === pickedId) : null) ?? list[0] ?? null;
@@ -14050,7 +15757,7 @@ function LeadersExplorer({ onOpen }: { onOpen: (l: Leader) => void }) {
                           {shown.title} · {shown.country}
                         </p>
                         <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                          <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${IDEOLOGY_COLORS[shown.ideology]}`}>{shown.ideology}</span>
+                          {shown.ideology && <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${IDEOLOGY_COLORS[shown.ideology]}`}>{shown.ideology}</span>}
                           <span className="flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: STATUS_COLOR[shown.status] + "22", color: t.headText }}>
                             <span className="w-1.5 h-1.5 rounded-full" style={{ background: STATUS_COLOR[shown.status] }} aria-hidden />
                             {shown.status}
@@ -14069,7 +15776,7 @@ function LeadersExplorer({ onOpen }: { onOpen: (l: Leader) => void }) {
                   <Block>
                     <div className="flex flex-col">
                       <ExplorerFact t={t} label="Party" value={shown.party} />
-                      <ExplorerFact t={t} label="Born" value={`${shown.birthYear} · ${shown.birthPlace}`} />
+                      <ExplorerFact t={t} label="Born" value={shown.birthPlace ? `${shown.birthYear} · ${shown.birthPlace}` : String(shown.birthYear)} />
                       <ExplorerFact t={t} label="Region" value={shown.region} />
                       <ExplorerFact t={t} label="Terms" value={shown.termsInOffice.map(termText).join(" · ")} />
                       {shown.education.slice(0, 2).map((e) => (
@@ -15841,13 +17548,38 @@ const HEADLINE_NAMES: Record<string, string[]> = {
   leo14: ["Pope Leo"],
   mohamud: ["Hassan Sheikh Mohamud", "Hassan Sheikh"],
   burhan: ["al-Burhan", "Burhan"],
+  // Added with the successors of October 2026: a surname that others share is matched by the full name.
+  leminhhung: ["Lê Minh Hưng"],
+  tariquerahman: ["Tarique Rahman", "Tarique Zia"],
+  delcyrodriguez: ["Delcy Rodríguez"],
+  laurafernandez: ["Laura Fernández"],
+  wale: ["Matthew Wale"],
+  karan: ["Siniša Karan"],
+  stocker: ["Christian Stocker"],
+  anutin: ["Anutin Charnvirakul", "Anutin"],
+  elmansouri: ["Fatima Ezzahra El Mansouri", "Fatima-Zahra Mansouri"],
+  khamenei: ["Ali Khamenei"],
+  mojtabakhamenei: ["Mojtaba Khamenei"],
+  magyar: ["Péter Magyar", "Magyar"],
+  keikofujimori: ["Keiko Fujimori", "Fujimori"],
+  mutharika: ["Peter Mutharika", "Mutharika"],
+  dewever: ["Bart De Wever", "De Wever"],
+  iotova: ["Iliana Iotova", "Iliyana Yotova", "Iotova", "Yotova"],
+  alzaidi: ["Ali al-Zaidi", "al-Zaidi"],
+  persadbissessar: ["Kamla Persad-Bissessar", "Persad-Bissessar"],
+  espriella: ["Abelardo de la Espriella", "de la Espriella", "De la Espriella"],
+  kobakhidze: ["Irakli Kobakhidze", "Kobakhidze"],
 };
 
 /** People a headline may mean by a leader's surname: read first and set aside. */
 const NOT_LEADERS = [
   "Melania Trump", "Ivanka Trump", "Eric Trump", "Lara Trump", "Barron Trump", "Donald Trump Jr", "Trump Jr",
   "Brigitte Macron", "Sara Netanyahu", "Yair Netanyahu", "Francesca Albanese", "John Carney", "Jay Carney",
-  "Imee Marcos", "Marcos Sr", "Michel Aoun", "Petro Poroshenko", "Abbas Araghchi", "Mojtaba Khamenei",
+  "Imee Marcos", "Marcos Sr", "Michel Aoun", "Petro Poroshenko", "Abbas Araghchi",
+  // Mojtaba Khamenei is a leader on the page now. With the successors of October 2026: Magyar is also "Hungarian" in names, and these share a surname.
+  "Magyar Nemzet", "Magyar Telekom", "Magyar Hírlap", "Magyar Hang", "Magyar Posta", "Magyar Közlöny",
+  "Bo Burnham", "Burnham-on-Sea", "Burnham-on-Crouch", "Burnham Market",
+  "Alberto Fujimori", "Kenji Fujimori", "Bingu wa Mutharika", "Muntadhar al-Zaidi",
 ];
 
 /** Without accents, and with one kind of apostrophe. */
@@ -15939,7 +17671,7 @@ export function WorldLeadersPage() {
 
   const ideologies = [
     "All",
-    ...Array.from(new Set(LEADERS.map((l) => l.ideology))).sort(),
+    ...Array.from(new Set(LEADERS.flatMap((l) => (l.ideology ? [l.ideology] : [])))).sort(),
   ];
 
   const filtered = useMemo(() => {
