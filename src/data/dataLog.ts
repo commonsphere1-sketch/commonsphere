@@ -54,6 +54,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "The deadliest natural disaster of each year by name, and where most died in armed conflict",
+    "from": "Wikipedia, NOAA, UCDP",
+    "page": "/dashboard/humanitarian",
+    "where": "Humanitarian",
+    "read": "2026-10-07",
+    "files": 1
+  },
+  {
     "what": "The heads of regions and municipalities that three records agree on, with where each place is",
     "from": "Wikidata, Wikipedia",
     "page": "/dashboard/maps",
@@ -280,4 +288,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 53;
+export const DATA_LOG_FILES = 54;

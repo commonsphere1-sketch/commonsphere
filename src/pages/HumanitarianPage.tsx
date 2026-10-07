@@ -13,7 +13,13 @@
  * five in alliances.ts, each with the count and the account it gives of
  * itself and the day it was checked.
  *
- * Two kinds of figure are on the page, and it says which is which.
+ * A yearly chart also names what its years hold (namedEvents.ts): under the
+ * disaster deaths, the deadliest disaster of each year by name, with its
+ * kind, place, date and death toll from Wikipedia's list, and an earthquake's
+ * magnitude and damage from NOAA; under the conflict deaths, the countries
+ * where most died each year, from the Uppsala data. Hovering a year on either
+ * chart names it too. The event is a year's deadliest, not its whole toll.
+ * * Two kinds of figure are on the page, and it says which is which.
  *
  * Built from source (worldview.ts, countryPanels.ts, donorAid.ts - each by
  * its own build script, with its year): the displaced and their make-up
@@ -49,6 +55,7 @@ import { ALLIANCES, HUMAN_RIGHTS_CHECKED } from "../data/alliances";
 import { DONOR_AID, DONOR_AID_SOURCE, DAC_TOTAL } from "../data/donorAid";
 import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES, DISPLACED_BY_KIND, WORLD, WORLDVIEW_RETRIEVED, type WorldPoint } from "../data/worldview";
 import { COUNTRY_PANELS, PANEL_SOURCES } from "../data/countryPanels";
+import { CONFLICT_DEATHS_BY_PLACE, DEADLIEST_DISASTERS, NAMED_EVENTS_SOURCES } from "../data/namedEvents";
 import { countriesData } from "../data/countriesData";
 
 // ── Recorded from the agencies' reports ────────────────────────────────────
@@ -561,7 +568,24 @@ function HungerChart() {
 }
 
 /** One world series as a line, with its latest reading in the legend. */
-function TrendChart({ id, name, unit, color, height = 190, tick }: { id: string; name: string; unit: (v: number) => string; color: string; height?: number; tick?: (v: number) => string }) {
+function TrendChart({
+  id,
+  name,
+  unit,
+  color,
+  height = 190,
+  tick,
+  named,
+}: {
+  id: string;
+  name: string;
+  unit: (v: number) => string;
+  color: string;
+  height?: number;
+  tick?: (v: number) => string;
+  /** What a year is known for, said when it is hovered. */
+  named?: (year: number) => string | undefined;
+}) {
   const look = useLook();
   const s = WORLD[id].series;
   const data = s.map(([y, v]) => ({ year: String(y), v }));
@@ -574,7 +598,14 @@ function TrendChart({ id, name, unit, color, height = 190, tick }: { id: string;
             <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="year" {...axis(look)} minTickGap={18} />
             <YAxis {...axis(look)} domain={[0, "auto"]} tickFormatter={tick} />
-            <Tooltip {...look.tooltip} formatter={(v: number) => [unit(v), name]} />
+            <Tooltip
+              {...look.tooltip}
+              formatter={(v: number) => [unit(v), name]}
+              labelFormatter={(year: string) => {
+                const what = named?.(Number(year));
+                return what ? `${year} · ${what}` : year;
+              }}
+            />
             <Line type="monotone" dataKey="v" stroke={color} strokeWidth={2} dot={false} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
@@ -624,6 +655,189 @@ function IndexChart({ lines, label, height = 230 }: { lines: [id: string, name: 
   );
 }
 
+/** A list that runs down one column inside its card, with its own scroll once it is long. */
+function Scroller({ label, children }: { label: string; children: ReactNode }) {
+  const { track } = useLook();
+  return (
+    <ul className="flex flex-col max-h-[26rem] overflow-y-auto pr-2 rounded-lg" style={{ borderTop: `1px solid ${track}`, borderBottom: `1px solid ${track}` }} aria-label={label} tabIndex={0}>
+      {children}
+    </ul>
+  );
+}
+
+/** A two-way choice of order, as plain buttons. */
+function OrderToggle<T extends string>({ value, options, onChange }: { value: T; options: [T, string][]; onChange: (v: T) => void }) {
+  const { head, muted, track } = useLook();
+  return (
+    <span className="inline-flex rounded-full p-0.5" style={{ background: track }}>
+      {options.map(([v, text]) => (
+        <button
+          key={v}
+          type="button"
+          aria-pressed={value === v}
+          onClick={() => onChange(v)}
+          className="text-[10px] font-sans font-semibold px-2.5 py-1 rounded-full cursor-pointer transition-colors"
+          style={{ color: value === v ? head : muted, background: value === v ? "var(--color-background)" : "transparent" }}
+        >
+          {text}
+        </button>
+      ))}
+    </span>
+  );
+}
+
+const usdShort = (v: number) => (v >= 1e9 ? `$${(v / 1e9).toFixed(v >= 1e10 ? 0 : 1)}bn` : `$${Math.round(v / 1e6)}m`);
+/** The colour of a disaster's kind, by the first kind the list gives it. */
+const KIND_COLOR: [RegExp, string][] = [
+  [/earthquake|tsunami/i, "#f59e0b"],
+  [/cyclone|hurricane|typhoon|storm/i, "#3b82f6"],
+  [/heat/i, "#ef4444"],
+  [/flood/i, "#06b6d4"],
+  [/landslide|mudslide/i, "#84cc16"],
+];
+const kindColor = (kind: string) => KIND_COLOR.find(([re]) => re.test(kind))?.[1] ?? "#8b5cf6";
+
+/**
+ * The deadliest natural disaster of each year, by name: its kind, where and
+ * when, the death toll as the list gives it (a range where the counts
+ * differ), and how hard it struck - an earthquake's magnitude, and the damage
+ * where a figure is published. The bar is the toll's lower figure against the
+ * largest in the list; the year's whole toll, EM-DAT's, is beside it and is a
+ * different count.
+ */
+function NamedDisasters() {
+  const { head, muted, track } = useLook();
+  const [order, setOrder] = useState<"year" | "toll">("year");
+  const rows = [...DEADLIEST_DISASTERS].sort((a, b) => (order === "year" ? b.year - a.year : b.low - a.low));
+  const top = Math.max(...DEADLIEST_DISASTERS.map((e) => e.low));
+  const yearTotal = new Map(WORLD.disasterDeaths.series);
+  return (
+    <>
+      <div className="flex flex-wrap items-center justify-between gap-2 mt-4 mb-2.5">
+        <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: muted }}>
+          The deadliest disaster of each year, by name
+        </p>
+        <OrderToggle
+          value={order}
+          onChange={setOrder}
+          options={[
+            ["year", "Newest first"],
+            ["toll", "Deadliest first"],
+          ]}
+        />
+      </div>
+      <Scroller label="The deadliest natural disaster of each year">
+        {rows.map((e) => {
+          const color = kindColor(e.kind);
+          const all = yearTotal.get(e.year);
+          const impact = [
+            e.magnitude != null ? `magnitude ${e.magnitude}` : null,
+            e.damageUsd != null ? `damage ${usdShort(e.damageUsd)}, in the year's dollars (${e.damageFrom})` : null,
+            e.noaaDeaths != null ? `NOAA counts ${e.noaaDeaths.toLocaleString("en-US")} dead` : null,
+          ].filter(Boolean);
+          return (
+            <li key={e.year} className="py-2.5" style={{ borderBottom: `1px solid ${track}` }}>
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="text-[10px] font-mono uppercase tracking-widest min-w-0" style={{ color: muted }}>
+                  <span className="font-bold" style={{ color: head }}>
+                    {e.year}
+                  </span>{" "}
+                  · <span style={{ color }}>{e.kind}</span>
+                </p>
+                <p className="text-[12px] font-mono font-bold tabular-nums shrink-0" style={{ color: head }}>
+                  {e.deaths} <span className="font-normal font-sans text-[10px]" style={{ color: muted }}>dead</span>
+                </p>
+              </div>
+              <a
+                href={`https://en.wikipedia.org/wiki/${encodeURIComponent(e.article.replace(/ /g, "_"))}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-[13px] font-sans font-bold leading-snug mt-0.5 hover:underline"
+                style={{ color: head }}
+              >
+                {e.name}
+              </a>
+              <span className="block h-1.5 rounded-full overflow-hidden mt-1.5" style={{ background: track }} aria-hidden>
+                <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, (100 * e.low) / top)}%`, background: color }} />
+              </span>
+              <p className="text-[10px] font-sans leading-relaxed mt-1.5" style={{ color: muted }}>
+                {e.where} · {e.when}
+                {impact.length > 0 && ` · ${impact.join(" · ")}`}
+                {all != null && ` · all disasters that year, by EM-DAT's count: ${all.toLocaleString("en-US")}`}
+              </p>
+            </li>
+          );
+        })}
+      </Scroller>
+      <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
+        Each is the single deadliest disaster of its year, epidemics and famines apart, as Wikipedia's list of natural disasters by death toll names it; the toll is the
+        list's, a range where the counts differ, and the bar is its lower figure. An earthquake's magnitude and damage are NOAA's, and NOAA's own count of the dead is given
+        beside the list's. EM-DAT's yearly total covers every disaster of the year under its own rules, so it can be smaller than one event's highest estimate.
+      </p>
+    </>
+  );
+}
+
+/** Where most died in armed conflict in each year: the three countries with the most, each as a share of the world's deaths that year. */
+function ConflictPlaces() {
+  const { head, muted, track } = useLook();
+  const [order, setOrder] = useState<"year" | "toll">("year");
+  const rows = [...CONFLICT_DEATHS_BY_PLACE].filter((y) => y.top.length > 0).sort((a, b) => (order === "year" ? b.year - a.year : b.top[0][1] - a.top[0][1]));
+  const top = Math.max(...CONFLICT_DEATHS_BY_PLACE.map((y) => y.top[0]?.[1] ?? 0));
+  const share = (n: number, of: number) => `${Math.round((100 * n) / of)}%`;
+  return (
+    <>
+      <div className="flex flex-wrap items-center justify-between gap-2 mt-4 mb-2.5">
+        <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: muted }}>
+          Where most died, year by year
+        </p>
+        <OrderToggle
+          value={order}
+          onChange={setOrder}
+          options={[
+            ["year", "Newest first"],
+            ["toll", "Deadliest first"],
+          ]}
+        />
+      </div>
+      <Scroller label="The countries where most died in armed conflict, year by year">
+        {rows.map((y) => {
+          const [[place, deaths], ...next] = y.top;
+          return (
+            <li key={y.year} className="py-2.5" style={{ borderBottom: `1px solid ${track}` }}>
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: muted }}>
+                  <span className="font-bold" style={{ color: head }}>
+                    {y.year}
+                  </span>{" "}
+                  · {share(deaths, y.world)} of the world's {y.world.toLocaleString("en-US")}
+                </p>
+                <p className="text-[12px] font-mono font-bold tabular-nums shrink-0" style={{ color: head }}>
+                  {deaths.toLocaleString("en-US")} <span className="font-normal font-sans text-[10px]" style={{ color: muted }}>deaths</span>
+                </p>
+              </div>
+              <p className="text-[13px] font-sans font-bold leading-snug mt-0.5" style={{ color: head }}>
+                {place}
+              </p>
+              <span className="block h-1.5 rounded-full overflow-hidden mt-1.5" style={{ background: track }} aria-hidden>
+                <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, (100 * deaths) / top)}%`, background: "#ef4444" }} />
+              </span>
+              {next.length > 0 && (
+                <p className="text-[10px] font-sans leading-relaxed mt-1.5" style={{ color: muted }}>
+                  Then {next.map(([p, d]) => `${p}, ${d.toLocaleString("en-US")} (${share(d, y.world)})`).join(" · ")}
+                </p>
+              )}
+            </li>
+          );
+        })}
+      </Scroller>
+      <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
+        The Uppsala programme's best estimate of deaths in fighting involving a state, fighting between non-state groups and violence against civilians together, counted in the
+        country where they took place. The programme records deaths by country and by conflict; this list names the country, not the war.
+      </p>
+    </>
+  );
+}
 /** Appeals year by year: what was funded, and on top of it what was asked for and not met. */
 function AidChart() {
   const look = useLook();
@@ -982,42 +1196,70 @@ export function HumanitarianPage() {
           </div>
           <Card>
             <CardHead title="The bodies that watch over human rights" kicker={`States, as each body counts its own · checked ${HUMAN_RIGHTS_CHECKED}`} />
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-6">
-              {RIGHTS_BODIES.map((b) => (
-                <div key={b.id} className="flex flex-col gap-1.5 min-w-0">
-                  <p className="text-[13px] font-sans font-bold leading-snug" style={{ color: head }}>
-                    {b.name}
-                  </p>
-                  <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: muted }}>
-                    {[b.founded ? `Since ${b.founded}` : null, b.headquarters].filter(Boolean).join(" · ")}
-                  </p>
-                  <p className="text-2xl font-bold font-mono leading-none mt-1" style={{ color: head }}>
-                    {b.memberCount}
-                    <span className="text-[11px] font-sans font-normal ml-2" style={{ color: muted }}>
-                      states
-                    </span>
-                  </p>
-                  {b.what && (
-                    <p className="text-[11px] font-sans leading-relaxed mt-1" style={{ color: head }}>
-                      {b.what}
+            <div className="flex flex-col">
+              {RIGHTS_BODIES.map((b, i) => (
+                <article key={b.id} className={`flex flex-col gap-3 min-w-0 ${i > 0 ? "pt-5 mt-5" : ""}`} style={i > 0 ? { borderTop: `1px solid ${look.track}` } : undefined}>
+                  <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
+                    <div className="min-w-0">
+                      <h4 className="text-[15px] font-sans font-bold leading-snug" style={{ color: head }}>
+                        {b.name}
+                      </h4>
+                      <p className="text-[10px] font-mono uppercase tracking-widest mt-1" style={{ color: muted }}>
+                        {[b.founded ? `Since ${b.founded}` : null, b.headquarters].filter(Boolean).join(" · ")}
+                      </p>
+                    </div>
+                    <p className="text-2xl font-bold font-mono leading-none" style={{ color: head }}>
+                      {b.memberCount}
+                      <span className="text-[11px] font-sans font-normal ml-2" style={{ color: muted }}>
+                        states
+                      </span>
                     </p>
+                  </div>
+                  {b.what && (
+                    <div>
+                      <p className="text-[10px] font-mono uppercase tracking-widest mb-1" style={{ color: TONE.rights }}>
+                        Mission
+                      </p>
+                      <p className="text-[12px] font-sans leading-relaxed max-w-4xl" style={{ color: head }}>
+                        {b.what}
+                      </p>
+                    </div>
+                  )}
+                  {b.agenda && b.agenda.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-mono uppercase tracking-widest mb-1" style={{ color: TONE.rights }}>
+                        How it works
+                      </p>
+                      <ul className="flex flex-col gap-1 list-disc pl-4 max-w-4xl">
+                        {b.agenda.map((line) => (
+                          <li key={line} className="text-[11px] font-sans leading-relaxed" style={{ color: head }}>
+                            {line}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                   {b.impact && b.impact.length > 0 && (
-                    <ul className="flex flex-col gap-1 list-disc pl-4">
-                      {b.impact.map((line) => (
-                        <li key={line} className="text-[10px] font-sans leading-relaxed" style={{ color: muted }}>
-                          {line}
-                        </li>
-                      ))}
-                    </ul>
+                    <div>
+                      <p className="text-[10px] font-mono uppercase tracking-widest mb-1" style={{ color: TONE.rights }}>
+                        Impact
+                      </p>
+                      <ul className="flex flex-col gap-1 list-disc pl-4 max-w-4xl">
+                        {b.impact.map((line) => (
+                          <li key={line} className="text-[11px] font-sans leading-relaxed" style={{ color: head }}>
+                            {line}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                   {b.note && (
-                    <p className="text-[10px] font-sans leading-relaxed" style={{ color: muted }}>
+                    <p className="text-[10px] font-sans leading-relaxed max-w-4xl" style={{ color: muted }}>
                       {b.note}
                     </p>
                   )}
-                  <SourceLink sources={[b.source]} className="mt-1" />
-                </div>
+                  <SourceLink sources={[b.source]} />
+                </article>
               ))}
             </div>
           </Card>
@@ -1049,7 +1291,19 @@ export function HumanitarianPage() {
             </Card>
             <Card>
               <CardHead title="Deaths in armed conflicts" kicker={`Deaths a year · Uppsala Conflict Data Program · ${span("conflictDeaths")}`} />
-              <TrendChart id="conflictDeaths" name="Deaths in armed conflicts" unit={(v) => `${whole(v)} deaths`} color="#ef4444" height={210} tick={thousands} />
+              <TrendChart
+                id="conflictDeaths"
+                name="Deaths in armed conflicts"
+                unit={(v) => `${whole(v)} deaths`}
+                color="#ef4444"
+                height={210}
+                tick={thousands}
+                named={(year) => {
+                  const y = CONFLICT_DEATHS_BY_PLACE.find((p) => p.year === year);
+                  return y?.top[0] ? `most in ${y.top[0][0]}, ${whole(y.top[0][1])}` : undefined;
+                }}
+              />
+              <ConflictPlaces />
               <p className="text-[10px] font-mono uppercase tracking-widest mt-4 mb-2.5" style={{ color: muted }}>
                 By kind of violence · {WORLD.conflictDeaths.breakdownYear}
               </p>
@@ -1057,13 +1311,25 @@ export function HumanitarianPage() {
               <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
                 {WORLD.conflictDeaths.note}
               </p>
-              <SourceLink sources={[WORLD.conflictDeaths.source]} className="mt-3" />
+              <SourceLink sources={[WORLD.conflictDeaths.source, NAMED_EVENTS_SOURCES.ucdp]} className="mt-3" />
             </Card>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHead title="Deaths in natural disasters" kicker={`Dead and missing a year · EM-DAT · ${span("disasterDeaths")}`} />
-              <TrendChart id="disasterDeaths" name="Dead and missing in natural disasters" unit={(v) => whole(v)} color="#f59e0b" height={210} tick={thousands} />
+              <TrendChart
+                id="disasterDeaths"
+                name="Dead and missing in natural disasters"
+                unit={(v) => whole(v)}
+                color="#f59e0b"
+                height={210}
+                tick={thousands}
+                named={(year) => {
+                  const e = DEADLIEST_DISASTERS.find((d) => d.year === year);
+                  return e ? `deadliest: ${e.name}, ${e.deaths}` : undefined;
+                }}
+              />
+              <NamedDisasters />
               <p className="text-[10px] font-mono uppercase tracking-widest mt-4 mb-2.5" style={{ color: muted }}>
                 By kind of disaster · {WORLD.disasterDeaths.breakdownYear}
               </p>
@@ -1072,7 +1338,7 @@ export function HumanitarianPage() {
                 EM-DAT counts confirmed deaths and missing people in disasters that overwhelm local capacity. The toll swings from year to year with single great events.
                 {noDisasterDeaths.length > 0 && ` For ${WORLD.disasterDeaths.breakdownYear} it records no deaths from ${noDisasterDeaths.join(" or ")}.`}
               </p>
-              <SourceLink sources={[WORLD.disasterDeaths.source]} className="mt-3" />
+              <SourceLink sources={[WORLD.disasterDeaths.source, NAMED_EVENTS_SOURCES.list, NAMED_EVENTS_SOURCES.noaa]} className="mt-3" />
             </Card>
             <Card>
               <CardHead title="Displaced by disasters" kicker={`New displacements a year · IDMC, via the World Bank · ${span("disasterDisplacement")}`} />
