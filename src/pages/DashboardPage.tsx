@@ -27,6 +27,7 @@ import { DashboardDrops } from "../components/DashboardDrops";
 import { hdiHex } from "../lib/hdiTier";
 import { CommodityMovers } from "../components/CommodityMovers";
 import { InternationalSection, NationalSection } from "../components/DashboardScopes";
+import { CitiesContainer, SectorOutlook } from "../components/DashboardCitiesSectors";
 
 /** The Trends & Projections desk, with the projections it draws on: loaded after the page. */
 const ProjectionsDesk = lazy(() => import("../components/ProjectionsDesk"));
@@ -3275,11 +3276,16 @@ export function DashboardPage() {
               </div>
             </div>
 
+            {/* The Cities container, back under the states: the ten largest the site profiles, on the UN's figures. */}
+            <CitiesContainer />
           </div>
 
           <div className="flex flex-col gap-4">
-            {/* Published commodity prices, each with its change on the year.
-                A "Sector Outlook" of typed-in outlooks and confidences stood here. */}
+            {/* Sector Outlook, back where it stood: each sector's published series, latest year on the year before.
+                Its outlooks and confidences were typed in. */}
+            <SectorOutlook />
+
+            {/* Published commodity prices, each with its change on the year. */}
             <CommodityMovers />
           </div>
         </div>
