@@ -9,6 +9,7 @@ import {
   Scroll,
   ListBullets,
   Scales,
+  Flag,
   Star,
   ArrowsIn,
   ArrowsOut,
@@ -122,59 +123,6 @@ function TransportationPanel({ state }: { state: USState }) {
     </div>
   );
 }
-
-const STATE_ELEVATION_FT: Record<string, number> = {
-  al: 500,
-  ak: 1900,
-  az: 4100,
-  ar: 650,
-  ca: 2900,
-  co: 6800,
-  ct: 500,
-  de: 60,
-  fl: 100,
-  ga: 600,
-  hi: 3030,
-  id: 5000,
-  il: 600,
-  in: 700,
-  ia: 1100,
-  ks: 2000,
-  ky: 750,
-  la: 100,
-  me: 600,
-  md: 350,
-  ma: 500,
-  mi: 900,
-  mn: 1200,
-  ms: 300,
-  mo: 800,
-  mt: 3400,
-  ne: 2600,
-  nv: 5500,
-  nh: 1000,
-  nj: 250,
-  nm: 5700,
-  ny: 1000,
-  nc: 700,
-  nd: 1900,
-  oh: 850,
-  ok: 1300,
-  or: 3300,
-  pa: 1100,
-  ri: 200,
-  sc: 350,
-  sd: 2200,
-  tn: 900,
-  tx: 1700,
-  ut: 6100,
-  vt: 1000,
-  va: 950,
-  wa: 1700,
-  wv: 1500,
-  wi: 1050,
-  wy: 6700,
-};
 
 // ── Source citation constants ────────────────────────────────────────────
 const SRC_BLS = [STATE_SOURCES.bls, STATE_SOURCES.population];
@@ -6029,7 +5977,7 @@ function StateMapTab({ state }: { state: USState }) {
 }
 
 // ─── Modal ───────────────────────────────────────────────────────────────────
-type ModalTab = "overview" | "map" | "laws" | "history";
+type ModalTab = "overview" | "map" | "laws" | "politics" | "history";
 
 function StateModal({
   state,
@@ -6067,6 +6015,7 @@ function StateModal({
     },
     { id: "map", label: "Map", icon: <MapTrifold size={13} weight="fill" /> },
     { id: "laws", label: "Laws", icon: <Scales size={13} weight="fill" /> },
+    { id: "politics", label: "Politics", icon: <Flag size={13} weight="fill" /> },
     { id: "history", label: "History", icon: <Scroll size={13} weight="fill" /> },
   ];
 
@@ -6168,12 +6117,12 @@ function StateModal({
           <SeeAlso code="US" name="United States" omit={["cities", "states"]} mapTo={`/dashboard/maps?state=${state.abbreviation}`} />
 
           {/* Tab bar */}
-          <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60">
+          <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium font-sans transition-all duration-150 cursor-pointer ${
+                className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium font-sans whitespace-nowrap transition-all duration-150 cursor-pointer ${
                   activeTab === tab.id
                     ? "bg-card text-foreground shadow-sm border border-border/60"
                     : "text-muted-foreground hover:text-foreground"
@@ -6190,6 +6139,16 @@ function StateModal({
 
           {/* Tab: Laws */}
           {activeTab === "laws" && <StateLawsTab state={state} />}
+
+          {/* Tab: Politics - the parties holding the state's offices, when each office is next filled and where it
+              announces its events, and what is being reported about the state now. They stood at the foot of the overview. */}
+          {activeTab === "politics" && (
+            <>
+              <StateParties state={state} />
+              <StateDates state={state} />
+              <PlaceTopics tag={`s:${state.id}`} name={state.name} className="mt-4" />
+            </>
+          )}
 
           {/* Tab: News */}
           {activeTab === "history" && <HistoryPanel code={`US-${state.id.toUpperCase()}`} name={state.name} />}
@@ -6235,42 +6194,6 @@ function StateModal({
                       }
                       sub="per hour"
                     />
-                    <StatCard
-                      label="Unemployment"
-                      value={`${state.unemploymentRate}%`}
-                      sub="current rate"
-                    />
-                    <StatCard
-                      label="Income Tax"
-                      value={
-                        state.stateTaxRate != null
-                          ? state.stateTaxRate === 0
-                            ? "None"
-                            : `${state.stateTaxRate}%`
-                          : "—"
-                      }
-                      sub="top marginal rate"
-                    />
-                    <StatCard
-                      label="Sales Tax"
-                      value={
-                        state.salesTaxRate != null
-                          ? state.salesTaxRate === 0
-                            ? "None"
-                            : `${state.salesTaxRate}%`
-                          : "—"
-                      }
-                      sub="state + local avg"
-                    />
-                    <StatCard
-                      label="Avg. Income"
-                      value={
-                        state.averageIncome != null
-                          ? `$${(state.averageIncome / 1000).toFixed(1)}K`
-                          : "—"
-                      }
-                      sub="per capita"
-                    />
                   </div>
                 </div>
 
@@ -6284,38 +6207,14 @@ function StateModal({
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <StatCard
-                      label="Population"
-                      value={`${(state.population / 1e6).toFixed(1)}M`}
-                      sub={`Census estimate, ${state.figureYears?.population ?? ""}`}
-                    />
-                    <StatCard
-                      label="Mean Elevation"
-                      value={`${(STATE_ELEVATION_FT[state.id] ?? 0).toLocaleString()} ft`}
-                      sub={`~${Math.round((STATE_ELEVATION_FT[state.id] ?? 0) * 0.3048)} m`}
-                    />
-                    <StatCard
-                      label="Governor"
-                      value={state.governor}
-                      sub={`${state.party}, since ${STATE_INDICATORS[state.id]?.governor.since.slice(0, 4) ?? ""}`}
-                    />
-                    <StatCard
-                      label="2024 President"
-                      value={(() => {
-                        const d = state.voterShare.find((v) => v.party === "Democrat")?.pct ?? 0;
-                        const r = state.voterShare.find((v) => v.party === "Republican")?.pct ?? 0;
-                        return r >= d ? `R +${(r - d).toFixed(1)}` : `D +${(d - r).toFixed(1)}`;
-                      })()}
-                      sub="margin, official FEC results"
-                    />
-                    <StatCard
                       label="Statehood"
                       value={`${state.statehood}`}
                       sub={`${new Date().getFullYear() - state.statehood} yrs ago`}
                     />
                     <StatCard
-                      label="Area"
-                      value={`${(state.areaKm2 / 1000).toFixed(0)}K km²`}
-                      sub="total area, incl. water"
+                      label="Governor"
+                      value={state.governor}
+                      sub={`${state.party}, since ${STATE_INDICATORS[state.id]?.governor.since.slice(0, 4) ?? ""}`}
                     />
                     <StatCard
                       label="House Seats"
@@ -6486,13 +6385,6 @@ function StateModal({
                   </div>
                 )}
                 <SourceLink sources={SRC_CONGRESS} className="mt-3" />
-
-                {/* The parties holding the state's offices, and what is being reported about the state now. */}
-                <StateParties state={state} />
-                <PlaceTopics tag={`s:${state.id}`} name={state.name} className="mt-3" />
-
-                {/* When the state's offices are next filled, the national dates ahead, and where each office announces its events. */}
-                <StateDates state={state} />
               </>
             ) /* end overview tab */
           }

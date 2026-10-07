@@ -548,7 +548,7 @@ function CountryModal({
     scrollRef.current?.scrollTo({ top: 0 });
   }, [country.id]);
   const [activeTab, setActiveTab] = React.useState<
-    "overview" | "map" | "constitution" | "history"
+    "overview" | "map" | "constitution" | "politics" | "history"
   >("overview");
   const [isExpanded, setIsExpanded] = React.useState(false);
   const navigate = useNavigate();
@@ -704,7 +704,7 @@ function CountryModal({
           <SeeAlso code={country.code} name={country.name} omit={["country", "leaders"]} />
 
           {/* Tab bar */}
-          <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60">
+          <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto">
             {(
               [
                 {
@@ -723,6 +723,11 @@ function CountryModal({
                   icon: <Scales size={13} weight="fill" />,
                 },
                 {
+                  id: "politics" as const,
+                  label: "Politics",
+                  icon: <Flag size={13} weight="fill" />,
+                },
+                {
                   id: "history" as const,
                   label: "History",
                   icon: <Scroll size={13} weight="fill" />,
@@ -732,7 +737,7 @@ function CountryModal({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium font-sans transition-all duration-150 cursor-pointer ${
+                className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium font-sans whitespace-nowrap transition-all duration-150 cursor-pointer ${
                   activeTab === tab.id
                     ? "bg-card text-foreground shadow-sm border border-border/60"
                     : "text-muted-foreground hover:text-foreground"
@@ -848,6 +853,16 @@ function CountryModal({
           {/* ── CONSTITUTION TAB ── */}
           {activeTab === "constitution" && (
             <ConstitutionTab country={country} />
+          )}
+
+          {/* ── POLITICS TAB: the parties and the seats they hold, the place's sovereignty, and what is being
+              reported about it now. They stood in the overview and under Governance; they are one category here. ── */}
+          {activeTab === "politics" && (
+            <Suspense fallback={null}>
+              <PoliticalParties code={country.code} name={country.name} className="" />
+              <SovereigntyReport country={country} />
+              <PlaceTopics tag={`c:${country.code}`} name={country.name} className="mt-4" />
+            </Suspense>
           )}
 
           {/* ── HISTORY TAB: Wikipedia's history of the place, found through Wikidata ── */}
@@ -1216,9 +1231,8 @@ function CountryModal({
                   </div>
                 )}
 
-                {/* ── SOVEREIGNTY, then SAFETY: each a report of its own, ahead of the panels that go into one part of it ── */}
+                {/* ── SAFETY: a report of its own, ahead of the panels that go into one part of it. Sovereignty is in the Politics tab. ── */}
                 <Suspense fallback={null}>
-                  <SovereigntyReport country={country} />
                   <SafetyReport country={country} />
                 </Suspense>
 
@@ -12632,14 +12646,6 @@ function ConstitutionTab({ country }: { country: Country }) {
           )}
         </div>
       </div>
-
-      {/* ── The parties, and the seats each holds: the Factbook's record ── */}
-      <Suspense fallback={null}>
-        <PoliticalParties code={country.code} name={country.name} className="" />
-      </Suspense>
-
-      {/* ── What is being reported about the country now: where its debates surface ── */}
-      <PlaceTopics tag={`c:${country.code}`} name={country.name} className="" />
 
       {/* ── 2. CODIFIED LAW / LEGAL SYSTEM ── */}
       {(legal || constitution) && (

@@ -128,7 +128,15 @@ async function loadHistory(code: string): Promise<History | null> {
   if (!page) return null;
   const { lead, sections } = split(page.extract);
 
-  if (history) return { article: page.title, fromSection: false, lead: lead.slice(0, 2).map((p) => opening(p, 640)), eras: eras(sections, 2) };
+  if (history) {
+    const whole: History = { article: page.title, fromSection: false, lead: lead.slice(0, 2).map((p) => opening(p, 640)), eras: eras(sections, 2) };
+    // A history article with no parts of its own is an index of others: "History of California" names its two halves
+    // and stops. The place's own article has a History section, and that is read instead where it has more to tell.
+    if (whole.eras.length >= 2 || !main || main === article) return whole;
+    const own = await extractOf(main);
+    const section = own ? historySection(own.title, split(own.extract).sections) : null;
+    return section && section.eras.length > whole.eras.length ? section : whole;
+  }
 
   // No history article: the History section of the place's own article, its subsections as eras.
   return historySection(page.title, sections);
