@@ -981,32 +981,20 @@ function CountryModal({
                   </div>
                 </div>
 
-                {/* ── GEOGRAPHY & IDENTITY CATEGORY ── */}
+                {/* ── IDENTITY: its capital, its government and its languages. The geography tiles - area, currency, ISO code - were removed as asked. ── */}
                 <div className="mb-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                      🌍 Geography &amp; Identity
+                      🌍 Identity
                     </span>
                     <div className="flex-1 h-px bg-border/60" />
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {[
                       {
-                        label: "Total Area",
-                        value: `${fmtArea(country.areaKm2)}`,
-                        sub: "land + water",
-                        color: "text-foreground",
-                      },
-                      {
                         label: "Capital City",
                         value: country.capital,
                         sub: "administrative capital",
-                        color: "text-foreground",
-                      },
-                      {
-                        label: "Currency",
-                        value: country.currency,
-                        sub: "official currency",
                         color: "text-foreground",
                       },
                       {
@@ -1020,12 +1008,6 @@ function CountryModal({
                         value: country.officialLanguages.slice(0, 2).join(", "),
                         sub: "official language(s)",
                         color: "text-foreground",
-                      },
-                      {
-                        label: "ISO Code",
-                        value: country.code,
-                        sub: "country code",
-                        color: "text-muted-foreground",
                       },
                     ]
                       .filter((s) => s.value && s.value !== "—")
