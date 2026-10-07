@@ -1,6 +1,6 @@
 import { na, has, orZero, sortKey } from "../lib/na";
 import { PublicServicesSection, ServiceBadges } from "../components/PublicServices";
-import { ACCENT, ChartNote, ChartTitle, FigureRow, FigureTile, HdiScale, MeasureBars, PartsBar, PartsDonut, rampOf, worldFor, type MeasureRow } from "../components/ModalCharts";
+import { ACCENT, ChartNote, ChartTitle, FigureRow, FigureTile, HdiScale, MeasureBars, PartsBar, PartsDonut, worldFor, type MeasureRow } from "../components/ModalCharts";
 import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES } from "../data/worldview";
 import React, { lazy, Suspense, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -23,7 +23,6 @@ import {
   Shield,
   Users,
   Airplane,
-  Buildings,
   Flag,
   Lightning,
   MapTrifold,
@@ -1277,9 +1276,6 @@ function CountryModal({
                 {/* ── TRANSPORT ── */}
                 <CountryTransportPanel country={country} />
 
-                {/* ── INFRASTRUCTURE STATISTICS ── */}
-                <CountryInfraPanel country={country} />
-
                 {/* ── EDUCATION RANKING & UNIVERSITIES ── */}
                 <CountryEducationPanel country={country} />
 
@@ -1537,7 +1533,8 @@ function CountryDemographicsChart({ country }: { country: Country }) {
       {age && (
         <div className="mb-4">
           <ChartTitle>Its people by age · % of the population · {age.year}</ChartTitle>
-          <PartsBar label={`The people of ${country.name} by age, ${age.year}`} colors={rampOf(age.groups.length)} columns={3} parts={age.groups.map((a) => ({ label: a.group, value: a.pct, text: pct(a.pct) }))} />
+          {/* Each age group in its own colour, as asked - the colour it has wherever it is drawn (lib/semanticColors). */}
+          <PartsBar label={`The people of ${country.name} by age, ${age.year}`} columns={3} parts={age.groups.map((a) => ({ label: a.group, value: a.pct, text: pct(a.pct) }))} />
           {worldYoung != null && worldOld != null && (
             <ChartNote className="mt-2">
               Of the world's people in {age.year}, {pct(worldYoung)} were under 15 and {pct(worldOld)} were 65 or over.
@@ -12560,6 +12557,11 @@ function CountryLegalStatusSection({ country }: { country: Country }) {
 /** Freedom House's three statuses, as it names them. */
 const FREEDOM_STATUS = { F: "Free", PF: "Partly Free", NF: "Not Free" } as const;
 
+/** The colour of the freedom score's bar. */
+const FREEDOM_GREEN = "#22c55e";
+/** Where Freedom House sets out what political rights and civil liberties are scored on. */
+const FREEDOM_METHOD = { label: "Freedom House — Freedom in the World research methodology", url: "https://freedomhouse.org/reports/freedom-world/freedom-world-research-methodology" };
+
 function ConstitutionTab({ country }: { country: Country }) {
   // Only what was written for this country. A default once stood in for the rest - a constitution "adopted 1900",
   // a freedom score of 50, "regular elections", a "mixed legal system" - and read as each one's own.
@@ -12614,13 +12616,40 @@ function ConstitutionTab({ country }: { country: Country }) {
           <ChartTitle>Freedom in the World · Freedom House{fh ? ` · ${fh[0]}` : ""}</ChartTitle>
           {fh ? (
             <>
-              <MeasureBars max={100} label={`Freedom House's score for ${country.name}`} rows={[{ label: "Freedom score", value: fh[1], text: `${fh[1]} of 100`, sub: FREEDOM_STATUS[fh[4]] }]} />
+              {/* The freedom score's bar is green, as asked: the colour says which measure it is, the figure how much. */}
+              <MeasureBars max={100} label={`Freedom House's score for ${country.name}`} rows={[{ label: "Freedom score", value: fh[1], text: `${fh[1]} of 100`, sub: FREEDOM_STATUS[fh[4]], color: FREEDOM_GREEN }]} />
+              {/* What the two parts of the score measure, in Freedom House's own headings. */}
               <div className="flex flex-col mt-2">
-                <FigureRow label="Political rights" value={`${fh[2]} of 40`} />
-                <FigureRow label="Civil liberties" value={`${fh[3]} of 60`} />
+                <FigureRow
+                  label={
+                    <>
+                      Political rights
+                      <span className="block text-[10px] text-muted-foreground leading-snug mt-0.5">
+                        Whether people can choose who governs them: the electoral process, political pluralism and participation, and the functioning
+                        of government. Ten questions, 0 to 4 points each.
+                      </span>
+                    </>
+                  }
+                  value={`${fh[2]} of 40`}
+                />
+                <FigureRow
+                  label={
+                    <>
+                      Civil liberties
+                      <span className="block text-[10px] text-muted-foreground leading-snug mt-0.5">
+                        The freedoms people have day to day: freedom of expression and belief, associational and organizational rights, the rule of
+                        law, and personal autonomy and individual rights. Fifteen questions, 0 to 4 points each.
+                      </span>
+                    </>
+                  }
+                  value={`${fh[3]} of 60`}
+                />
               </div>
-              <ChartNote className="mt-2">The score is the two added together; "{FREEDOM_STATUS[fh[4]]}" is Freedom House's own status for the country.</ChartNote>
-              <SourceLink sources={COUNTRY_FIGURE_SOURCES.freedom} className="mt-2" />
+              <ChartNote className="mt-2">
+                The score is the two added together; "{FREEDOM_STATUS[fh[4]]}" is Freedom House's own status for the country. The headings under each
+                part are the ones Freedom House scores it by.
+              </ChartNote>
+              <SourceLink sources={[COUNTRY_FIGURE_SOURCES.freedom, FREEDOM_METHOD]} className="mt-2" />
             </>
           ) : (
             <ChartNote>Freedom House publishes no score for {country.name}.</ChartNote>
@@ -15351,90 +15380,6 @@ function CountryGenderStatsPanel({ country }: { country: Country }) {
         })()}
         className="mt-2"
       />
-    </div>
-  );
-}
-
-// ── Infrastructure ───────────────────────────────────────────────────────────
-const SRC_INFRA = [
-  {
-    label: "World Bank WDI (IEA/IRENA, WHO/UNICEF JMP, ITU, WHO, LPI series)",
-    url: "https://data.worldbank.org/topic/infrastructure",
-  },
-];
-
-/**
- * Infrastructure figures from the World Bank's development indicators, each
- * with its year. This replaced COUNTRY_INFRA_STATS, a hand-written table
- * whose "overall infrastructure score" was a composite nobody publishes, and
- * whose installed capacity, outage counts, data speeds, paved-road shares and
- * investment shares had no stated source. Water and sanitation are the JMP's
- * "safely managed" measures, which are stricter than the "basic access"
- * figures often quoted, so they read lower.
- */
-function CountryInfraPanel({ country }: { country: Country }) {
-  const p = COUNTRY_PANELS[country.id];
-  if (!p) return null;
-
-  // A share of people is drawn on 0 to 100. A count per 100 or per 1,000 people has no ceiling to be drawn
-  // against - the bars these had were each measured from one chosen to suit - so it is given as a figure.
-  type Item = { label: string; f: PanelFigure | undefined; unit: string; print?: (v: number) => string; share?: boolean; world?: string };
-  const all: { label: string; items: Item[] }[] = [
-    { label: "Power", items: [{ label: "People with electricity", f: p.electricityAccess, unit: "of people", share: true, world: "electricity" }] },
-    {
-      label: "Water and sanitation",
-      items: [
-        { label: "Safely managed drinking water", f: p.safeWater, unit: "of people", share: true, world: "water" },
-        { label: "Safely managed sanitation", f: p.safeSanitation, unit: "of people", share: true, world: "sanitation" },
-      ],
-    },
-    {
-      label: "Digital and telecoms",
-      items: [
-        { label: "Mobile subscriptions", f: p.mobilePer100, unit: "per 100 people", world: "mobile" },
-        { label: "Fixed broadband subscriptions", f: p.broadbandPer100, unit: "per 100 people", world: "broadband" },
-      ],
-    },
-    { label: "Logistics", items: [{ label: "Logistics Performance Index", f: p.logisticsIndex, unit: "World Bank index, 1 to 5", print: (v) => `${v}` }] },
-    {
-      label: "Health",
-      items: [
-        { label: "Hospital beds", f: p.hospitalBeds, unit: "per 1,000 people" },
-        { label: "Physicians", f: p.physicians, unit: "per 1,000 people" },
-      ],
-    },
-  ];
-  const categories = all
-    .map((c) => ({ ...c, items: c.items.filter((i) => i.f) }))
-    .filter((c) => c.items.length > 0);
-
-  if (categories.length === 0) return null;
-
-  const rowOf = (item: Item): MeasureRow => {
-    const fig = item.f!;
-    const print = item.print ?? ((v: number) => (item.share ? `${v}%` : `${v}`));
-    return { label: item.label, value: item.share ? fig.v : undefined, text: print(fig.v), sub: `${item.unit} · ${fig.y}`, world: withWorld(fig, item.world, print) };
-  };
-  const anyWorld = categories.some((c) => c.items.some((i) => rowOf(i).world));
-
-  return (
-    <div className="modal-tile rounded-lg p-4 mt-4">
-      <PanelHead icon={<Buildings size={13} weight="fill" />} title="Infrastructure Statistics" sub="Latest year published for each measure" />
-
-      <div className="flex flex-col gap-4">
-        {categories.map((cat) => (
-          <div key={cat.label}>
-            <ChartTitle>{cat.label}</ChartTitle>
-            <MeasureBars max={100} label={cat.label} rows={cat.items.map(rowOf)} />
-          </div>
-        ))}
-      </div>
-
-      <ChartNote className="mt-3">
-        A share of people is drawn on a scale of 0 to 100, with a tick where the world stands. Counts per 100 or per 1,000 people are given as figures:
-        they have no ceiling to be drawn against. {anyWorld && WORLD_NOTE}
-      </ChartNote>
-      <SourceLink sources={SRC_INFRA} className="mt-2" />
     </div>
   );
 }

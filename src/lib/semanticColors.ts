@@ -53,6 +53,12 @@ const RULES: [RegExp, string][] = [
   [/^(sexual violence|rape)$/, "#9333ea"],
   [/^(fraud)$/, "#ca8a04"],
   [/^(corruption|bribery)$/, "#65a30d"],
+  // ── People by age: each stage of life its own colour, youngest first, as each window names its groups ──
+  [/^(under 15|under 18)$/, "#38bdf8"],
+  [/^(15 to 24|18[–-]34)$/, "#22c55e"],
+  [/^(25 to 54|35[–-]54|15 to 64)$/, "#f59e0b"],
+  [/^(55 to 64|55[–-]64)$/, "#f97316"],
+  [/^(65 and over|65+)$/, "#a855f7"],
   // ── People ──
   [/^(men|male|males|boys)$/, "#3b82f6"],
   [/^(women|female|females|girls)$/, "#ec4899"],

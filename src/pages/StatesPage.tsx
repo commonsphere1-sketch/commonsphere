@@ -251,14 +251,15 @@ function DemographicsCharts({ state }: { state: USState }) {
         <ChartNote className="mt-2">Census Bureau estimates. White, Black and Asian are non-Hispanic and of one race; Hispanic is of any race.</ChartNote>
       </div>
 
-      {/* Age Structure, as the window had it: each age group a row with its own bar, youngest first, one hue light to dark. */}
+      {/* Age Structure, as the window had it: each age group a row with its own bar, youngest first - each in the colour
+          the age group has wherever it is drawn (lib/semanticColors), as asked of the country window's. */}
       <div className={tile}>
         <ChartTitle>
           Age Structure · % of residents · {y.ageGroups} · median {state.medianAge} yrs
         </ChartTitle>
         <MeasureBars
           label={`The people of ${state.name} by age, ${y.ageGroups}`}
-          rows={state.ageGroups.map((g, i) => ({ label: g.group, value: g.pct, text: pct(g.pct), color: rampOf(state.ageGroups.length)[i] }))}
+          rows={state.ageGroups.map((g) => ({ label: g.group, value: g.pct, text: pct(g.pct) }))}
         />
         <div className="mt-2">
           <FigureRow label="Median age" value={`${state.medianAge} years`} sub={`ACS ${y.medianAge}`} />
