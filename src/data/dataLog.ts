@@ -38,6 +38,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "Endangered and critically endangered mammals and birds, with about how many of each are left",
+    "from": "Wikipedia, Wikidata",
+    "page": "/dashboard/planetary-boundaries",
+    "where": "Climate",
+    "read": "2026-10-07",
+    "files": 1
+  },
+  {
     "what": "Legal systems, the stages of criminal justice and the people who staff it",
     "from": "CIA World Factbook (final edition), UNODC, World Bank",
     "page": "/dashboard/crime",
@@ -50,6 +58,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "from": "flagcdn.com flag images",
     "page": "/dashboard/countries",
     "where": "Countries",
+    "read": "2026-10-07",
+    "files": 1
+  },
+  {
+    "what": "Species described in the last three years, with what is known of each and where it was found",
+    "from": "Wikipedia, Wikidata",
+    "page": "/dashboard/planetary-boundaries",
+    "where": "Climate",
     "read": "2026-10-07",
     "files": 1
   },
@@ -288,4 +304,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 54;
+export const DATA_LOG_FILES = 56;

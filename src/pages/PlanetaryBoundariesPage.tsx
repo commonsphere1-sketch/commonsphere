@@ -18,6 +18,7 @@ import {
 import { FLASHPOINTS, TIPPING_POINTS, TREATIES, TREATIES_CHECKED, type ContextItem } from "../data/climateContext";
 import { FIGURE_CARDS, type FigureCard } from "../data/climateFigures";
 import { LIFE_CARDS, LIFE_CHECKED } from "../data/lifeOnEarth";
+import { EndangeredSpeciesList, NewSpeciesList } from "../components/SpeciesLists";
 import { ClimateExplorer } from "../components/ClimateExplorer";
 import {
   Leaf,
@@ -832,6 +833,9 @@ export function PlanetaryBoundariesPage() {
           {LIFE_CARDS.map((card) => (
             <FigureCardView key={card.id} card={card} isLight={isLight} headText={headText} mutedText={mutedText} gridLine={gridLine} />
           ))}
+          {/* The species themselves: those newly named, and those endangered with about how many are left. */}
+          <NewSpeciesList />
+          <EndangeredSpeciesList />
         </div>
 
         {/* ── PUBLIC ENVIRONMENTAL DATA ────────────────────────────────────
