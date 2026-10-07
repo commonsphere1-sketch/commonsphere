@@ -684,18 +684,24 @@ const ORDERS: [Order, string][] = [
  * card stays short and the list is one press away.
  */
 function YearFold({ title, latest, order, onOrder, children, note }: { title: string; latest: string; order: Order; onOrder: (o: Order) => void; children: ReactNode; note: ReactNode }) {
-  const { head, muted } = useLook();
+  const { head, muted, isLight } = useLook();
   const [open, setOpen] = useState(false);
   const id = useId();
   return (
     <div className="mt-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <button type="button" aria-expanded={open} aria-controls={id} onClick={() => setOpen((o) => !o)} className="flex items-center gap-1.5 text-left cursor-pointer min-w-0 py-1" style={{ color: muted }}>
+        {/* A button that reads as one on the light page and the dark: its own ground and edge, and a filled word saying what a press does. */}
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={id}
+          onClick={() => setOpen((o) => !o)}
+          className="flex items-center gap-2 text-left cursor-pointer min-w-0 rounded-full pl-3 pr-1.5 py-1 transition-opacity hover:opacity-80"
+          style={{ color: head, background: isLight ? "rgba(15,23,42,0.06)" : "rgba(255,255,255,0.09)", border: isLight ? "1px solid rgba(15,23,42,0.28)" : "1px solid rgba(255,255,255,0.32)" }}
+        >
           <CaretDown size={11} weight="bold" className={`shrink-0 transition-transform ${open ? "" : "-rotate-90"}`} aria-hidden />
-          <span className="text-[10px] font-mono uppercase tracking-widest">{title}</span>
-          <span className="text-[10px] font-sans normal-case" style={{ color: head }}>
-            · {open ? "hide" : "show"}
-          </span>
+          <span className="text-[10px] font-mono uppercase tracking-widest min-w-0">{title}</span>
+          <span className="text-[10px] font-sans font-bold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground shrink-0">{open ? "Hide" : "Show"}</span>
         </button>
         {open && <OrderToggle value={order} onChange={onOrder} options={ORDERS} />}
       </div>
@@ -707,7 +713,7 @@ function YearFold({ title, latest, order, onOrder, children, note }: { title: st
           </p>
         </div>
       ) : (
-        <p id={id} className="text-[11px] font-sans leading-snug mt-0.5 pl-[17px]" style={{ color: head }}>
+        <p id={id} className="text-[11px] font-sans leading-snug mt-1.5 pl-3" style={{ color: head }}>
           {latest}
         </p>
       )}
