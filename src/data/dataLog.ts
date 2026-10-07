@@ -22,6 +22,22 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "Each economy's inflation, deficits and tariffs, with the IMF's projections",
+    "from": "IMF (World Economic Outlook, Fiscal Monitor), World Bank",
+    "page": "/dashboard/economies",
+    "where": "Economies",
+    "read": "2026-10-07",
+    "files": 1
+  },
+  {
+    "what": "One colour for each country, read off its flag",
+    "from": "flagcdn.com flag images",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-10-07",
+    "files": 1
+  },
+  {
     "what": "The universities and colleges of each city and country",
     "from": "Wikidata",
     "page": "/dashboard/cities",
@@ -50,14 +66,6 @@ export const DATA_LOG: DataLogEntry[] = [
     "from": "CIA World Factbook (final edition), World Bank (WHO, IDMC)",
     "page": "/dashboard/countries",
     "where": "Countries",
-    "read": "2026-10-06",
-    "files": 1
-  },
-  {
-    "what": "Each economy's inflation, deficits and tariffs, with the IMF's projections",
-    "from": "IMF (World Economic Outlook, Fiscal Monitor), World Bank",
-    "page": "/dashboard/economies",
-    "where": "Economies",
     "read": "2026-10-06",
     "files": 1
   },
@@ -224,4 +232,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 46;
+export const DATA_LOG_FILES = 47;

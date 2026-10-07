@@ -42,6 +42,17 @@ const RULES: [RegExp, string][] = [
   [/^(services)$/, "#3b82f6"],
   [/^(construction)$/, "#a16207"],
   [/^(mining|mining and quarrying|mining, construction & utilities)$/, "#78716c"],
+  // ── Offences: each its own, wherever it is drawn ──
+  [/^(intentional homicides?|homicides?|murder)$/, "#dc2626"],
+  [/^(robbery)$/, "#f97316"],
+  [/^(serious assault|assault)$/, "#a855f7"],
+  [/^(burglary)$/, "#b45309"],
+  [/^(vehicle theft|theft of a motorized vehicle|car theft)$/, "#3b82f6"],
+  [/^(theft)$/, "#0d9488"],
+  [/^(kidnapping)$/, "#be185d"],
+  [/^(sexual violence|rape)$/, "#9333ea"],
+  [/^(fraud)$/, "#ca8a04"],
+  [/^(corruption|bribery)$/, "#65a30d"],
   // ── People ──
   [/^(men|male|males|boys)$/, "#3b82f6"],
   [/^(women|female|females|girls)$/, "#ec4899"],

@@ -79,7 +79,8 @@ export function PublicServicesSection({ code, name }: { code: string; name: stri
   const had = (UNIVERSAL_BASIC_INCOME.had as readonly string[]).includes(code.toUpperCase());
   const sources = [...(school ? [PUBLIC_SERVICE_SOURCES.school] : []), ...(health ? [PUBLIC_SERVICE_SOURCES.health] : []), ...(pocket ? [PUBLIC_SERVICE_SOURCES.pocket] : []), PUBLIC_SERVICE_SOURCES.ubi];
   return (
-    <div className="modal-tile rounded-lg p-4 mb-4">
+    // A gap above as well as below: the panels before it end with no margin of their own, and it sat against the last of them.
+    <div className="modal-tile rounded-lg p-4 mt-4 mb-4">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">Public services</h4>

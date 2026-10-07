@@ -7,6 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { LEADERS_BY_COUNTRY } from "../data/leaderIndex";
 import { SeeAlso } from "../components/SeeAlso";
 import { hdiTitle, hdiTone } from "../lib/hdiTier";
+import { flagColor } from "../lib/flagColor";
+import { semanticColor } from "../lib/semanticColors";
 import { PlaceTopics } from "../components/PlaceTopics";
 
 /* Every country's parties and chambers: loaded when a Governance tab opens, not with the page. */
@@ -1396,7 +1398,7 @@ function CountryCrimeStatsPanel({ country }: { country: Country }) {
               role="img"
               aria-label={`${r.label}: higher than ${Math.round(r.pct)}% of the ${r.places} places reporting; their median is ${n(r.median)}.`}
             >
-              <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${r.pct}%`, minWidth: 2, background: ACCENT }} />
+              <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${r.pct}%`, minWidth: 2, background: semanticColor(r.label) ?? ACCENT }} />
               <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground" style={{ left: "50%" }} title={`The middle place: ${n(r.median)}`} />
             </span>
             <span className="flex items-baseline justify-between gap-3 mt-1">
@@ -16031,9 +16033,10 @@ export function CountriesPage() {
                       {na(country.humanDevelopmentIndex, (v) => String(v))}
                     </span>
                   </div>
-                  {/* On its own scale, 0 to 1. Not coloured by tier: the cut-offs it had were not UNDP's. */}
+                  {/* On its own scale, 0 to 1, in the country's own colour - its flag's (lib/flagColor) - as asked. The colour
+                      says whose bar it is, not how good the figure is: the UNDP's tier is the chip below. */}
                   <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${orZero(country.humanDevelopmentIndex) * 100}%`, background: ACCENT }} />
+                    <div className="h-full rounded-full" style={{ width: `${orZero(country.humanDevelopmentIndex) * 100}%`, background: flagColor(country.code) ?? ACCENT }} />
                   </div>
                 </div>
                 )}
