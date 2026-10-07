@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "The universities and colleges of each city and country",
+    "from": "Wikidata",
+    "page": "/dashboard/cities",
+    "where": "Cities",
+    "read": "2026-10-07",
+    "files": 1
+  },
+  {
     "what": "Each city's population, land and built-up area, 1975 to 2050",
     "from": "United Nations (World Urbanization Prospects), Wikidata",
     "page": "/dashboard/cities",
@@ -216,4 +224,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 45;
+export const DATA_LOG_FILES = 46;

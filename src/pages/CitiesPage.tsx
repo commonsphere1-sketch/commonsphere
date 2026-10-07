@@ -26,6 +26,7 @@ import {
   ArrowsIn,
   ArrowsOut,
   ClockCounterClockwise,
+  Ruler,
   Star,
   X,
 } from "@phosphor-icons/react";
@@ -57,6 +58,7 @@ import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 /* Water, energy, transport, safety, business and the economy for the city's country. Loaded when a window opens:
    the figures it reads are the Countries page's, and large. */
 const CountryQuality = lazy(() => import("../components/CountryQuality"));
+const Universities = lazy(() => import("../components/Universities"));
 
 const SRC = CITY_FIGURES_SOURCE;
 /** The last year of the UN's estimates; the years after are its projections. */
@@ -474,7 +476,7 @@ function CityStandings({ row }: { row: Row }) {
 }
 
 function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
-  const [activeTab, setActiveTab] = useState<"overview" | "map" | "history">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "map" | "land" | "history">("overview");
   /* The city's article and where it is. */
   const place = CITY_PLACES[city.id];
   const row = rowOf(city.id);
@@ -586,6 +588,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
               [
                 { key: "overview", label: "Overview", icon: <ListBullets size={14} /> },
                 { key: "map", label: "Map", icon: <MapTrifold size={14} /> },
+                { key: "land", label: "Land & growth", icon: <Ruler size={14} /> },
                 { key: "history", label: "History", icon: <ClockCounterClockwise size={14} /> },
               ] as const
             ).map((tab) => (
@@ -634,21 +637,23 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                   </div>
 
                   <WindowSection
-                    title="👥 People & land"
+                    title="👥 People"
                     note={`A city, to the UN, is contiguous 1 km² cells of at least 1,500 people each, holding 50,000 people or more - one rule for every city, whatever its boundary. That is why its figure and the city's own differ.`}
                   >
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       <CityTile label="Population" value={whole(row.now.population)} sub={`UN estimate, ${BASE}`} />
-                      {row.f.admin && (
-                        <CityTile label="Within its own boundary" value={whole(row.f.admin.population)} sub={`Wikidata, ${row.f.admin.year}`} />
-                      )}
-                      <CityTile label="Land area" value={km2(row.now.area)} sub={`as the UN draws the city, ${BASE}`} />
-                      <CityTile label="Density" value={perKm2(row.now.density)} sub={`people per km² of land, ${BASE}`} />
-                      <CityTile label="Built-up area" value={km2(row.now.built)} sub={`ground under buildings, ${BASE}`} />
-                      <CityTile label="Built-up area per person" value={m2(row.now.builtPer)} sub={`${BASE}`} />
-                      <CityTile label="Share of the country's city population" value={share(row.now.share)} sub={`of the people in ${city.country}'s cities, ${BASE}`} />
+                      {row.f.admin && <CityTile label="Within its own boundary" value={whole(row.f.admin.population)} sub={`Wikidata, ${row.f.admin.year}`} />}
                       <CityTile label="Among the world's cities" value={nth(row.f.rank)} sub={`of ${SRC.cities.toLocaleString("en-US")} by population, ${BASE}`} />
-                      <CityTile label="How sure the UN is" value={row.f.plausibility} sub={`its rating of the population figure: ${PLAUSIBILITY[row.f.plausibility]}`} />
+                      <CityTile label="Share of the country's city population" value={share(row.now.share)} sub={`of the people in ${city.country}'s cities, ${BASE}`} />
+                    </div>
+                  </WindowSection>
+
+                  <WindowSection title="🌍 Identity">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <CityTile label="Country" value={city.country} sub={city.region} />
+                      <CityTile label="Capital" value={row.f.capital ? "Yes" : "No"} sub={row.f.capital ? `the capital of ${city.country}, as the UN marks it` : "not a national capital, as the UN marks it"} />
+                      {city.languages?.length ? <CityTile label="Languages" value={city.languages.slice(0, 2).join(", ")} sub="the site's own note" /> : null}
+                      <CityTile label={`Projected for ${LAST}`} value={end ? fmtPeople(end.population) : "Not published"} sub={end ? `people, UN projection for ${LAST}` : undefined} />
                     </div>
                   </WindowSection>
 
@@ -674,6 +679,82 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                     </div>
                   </WindowSection>
 
+                  <SourceLink sources={SRC_CITY} className="mb-1" />
+                </>
+              )}
+
+              {/* The headings the windows once had - water, energy, transport, safety, business, the economy - with the
+                  country's published figures under them, and said to be the country's. */}
+              <Suspense fallback={null}>
+                <CountryQuality code={city.countryCode} country={city.country} place={city.name} />
+                {/* The city's universities and colleges, each opening to what it is about and known for. */}
+                <Universities city={city.id} place={city.name} />
+              </Suspense>
+
+              {/* Languages, Landmarks, Religions */}
+              {(city.languages?.length || city.landmarks?.length || city.religions?.length) && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {city.languages?.length ? (
+                    <div className="modal-tile rounded-lg p-4">
+                      <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">Languages Spoken</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {city.languages.map((l) => (
+                          <span key={l} className="text-xs bg-secondary/15 text-secondary border border-secondary/30 px-2 py-0.5 rounded-full font-sans">
+                            {l}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                  {city.landmarks?.length ? (
+                    <div className="modal-tile rounded-lg p-4">
+                      <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">Top Landmarks</p>
+                      <ul className="space-y-1">
+                        {city.landmarks.map((lm) => (
+                          <li key={lm} className="text-xs text-foreground font-sans flex items-start gap-1.5">
+                            <span className="text-secondary mt-0.5">•</span>
+                            {lm}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                  {city.religions?.length ? (
+                    <div className="modal-tile rounded-lg p-4">
+                      <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">Religions</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {city.religions.map((r) => (
+                          <span key={r} className="text-xs bg-warning/15 text-warning border border-warning/30 px-2 py-0.5 rounded-full font-sans">
+                            {r}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug pt-1">
+                Every figure in this window is the United Nations' (World Urbanization Prospects: The 2025 Revision, read {SRC.retrieved}), except the
+                population within the city's own boundary, which is Wikidata's. The lists of languages, landmarks and religions are the site's own notes,
+                not a published count. The description and history are Wikipedia's, fetched as the window opens.
+              </p>
+            </div>
+          )}
+
+          {/* Land & growth Tab: the land the city covers and builds on, and how it has grown. It filled the overview; it has a tab of its own. */}
+          {activeTab === "land" &&
+            (row ? (
+              <div className="space-y-4">
+                <WindowSection title="📐 Land" note="The land the city covers as the UN draws it, and the ground under buildings within it.">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <CityTile label="Land area" value={km2(row.now.area)} sub={`as the UN draws the city, ${BASE}`} />
+                    <CityTile label="Density" value={perKm2(row.now.density)} sub={`people per km² of land, ${BASE}`} />
+                    <CityTile label="Built-up area" value={km2(row.now.built)} sub={`ground under buildings, ${BASE}`} />
+                    <CityTile label="Built-up area per person" value={m2(row.now.builtPer)} sub={`${BASE}`} />
+                    <CityTile label="How sure the UN is" value={row.f.plausibility} sub={`its rating of the population figure: ${PLAUSIBILITY[row.f.plausibility]}`} />
+                  </div>
+                </WindowSection>
                   <WindowSection
                     title="🏙️ Land and built-up area"
                     note="The land the city covers as the UN draws it each year, and the ground under buildings within it, in square kilometres on one axis."
@@ -731,66 +812,11 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                     <CityStandings row={row} />
                   </WindowSection>
 
-                  <SourceLink sources={SRC_CITY} className="mb-1" />
-                </>
-              )}
-
-              {/* The headings the windows once had - water, energy, transport, safety, business, the economy - with the
-                  country's published figures under them, and said to be the country's. */}
-              <Suspense fallback={null}>
-                <CountryQuality code={city.countryCode} country={city.country} place={city.name} />
-              </Suspense>
-
-              {/* Languages, Landmarks, Religions */}
-              {(city.languages?.length || city.landmarks?.length || city.religions?.length) && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {city.languages?.length ? (
-                    <div className="modal-tile rounded-lg p-4">
-                      <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">Languages Spoken</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {city.languages.map((l) => (
-                          <span key={l} className="text-xs bg-secondary/15 text-secondary border border-secondary/30 px-2 py-0.5 rounded-full font-sans">
-                            {l}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-                  {city.landmarks?.length ? (
-                    <div className="modal-tile rounded-lg p-4">
-                      <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">Top Landmarks</p>
-                      <ul className="space-y-1">
-                        {city.landmarks.map((lm) => (
-                          <li key={lm} className="text-xs text-foreground font-sans flex items-start gap-1.5">
-                            <span className="text-secondary mt-0.5">•</span>
-                            {lm}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                  {city.religions?.length ? (
-                    <div className="modal-tile rounded-lg p-4">
-                      <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">Religions</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {city.religions.map((r) => (
-                          <span key={r} className="text-xs bg-warning/15 text-warning border border-warning/30 px-2 py-0.5 rounded-full font-sans">
-                            {r}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-              )}
-
-              <p className="text-[10px] font-sans text-muted-foreground leading-snug pt-1">
-                Every figure in this window is the United Nations' (World Urbanization Prospects: The 2025 Revision, read {SRC.retrieved}), except the
-                population within the city's own boundary, which is Wikidata's. The lists of languages, landmarks and religions are the site's own notes,
-                not a published count. The description and history are Wikipedia's, fetched as the window opens.
-              </p>
-            </div>
-          )}
+                <SourceLink sources={SRC_CITY} className="mb-1" />
+              </div>
+            ) : (
+              <p className="text-xs font-sans text-muted-foreground py-6 text-center">The United Nations publishes no land figures for {city.name}.</p>
+            ))}
 
           {/* Map Tab */}
           {activeTab === "map" && (

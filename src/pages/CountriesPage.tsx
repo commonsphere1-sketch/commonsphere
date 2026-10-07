@@ -11,6 +11,7 @@ import { PlaceTopics } from "../components/PlaceTopics";
 
 /* Every country's parties and chambers: loaded when a Governance tab opens, not with the page. */
 const PoliticalParties = lazy(() => import("../components/PoliticalParties"));
+const Universities = lazy(() => import("../components/Universities"));
 /** The Sovereignty report: a panel with its own data, loaded when the Politics tab opens. */
 const SovereigntyReport = lazy(() => import("../components/CountryReports").then((m) => ({ default: m.SovereigntyReport })));
 import {
@@ -15062,17 +15063,11 @@ function CountryEducationPanel({ country }: { country: Country }) {
         </ChartNote>
       )}
 
-      {/* A list, in no order of merit: the numbers these carried read as a ranking nobody published. */}
-      {edu.topUniversities.length > 0 && (
-        <div className="mb-3">
-          <ChartTitle>Major universities</ChartTitle>
-          <div className="flex flex-col">
-            {edu.topUniversities.map((u) => (
-              <FigureRow key={u.name} label={u.name} value={<span className="font-sans font-normal text-muted-foreground">{u.type}</span>} />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* The country's universities and colleges: Wikidata's list, each opening to what it is about and known for.
+          A list typed by hand stood here, for some countries only. */}
+      <Suspense fallback={null}>
+        <Universities country={country.code} place={country.name} className="mb-3" />
+      </Suspense>
 
       {(literacyWorld || schoolingWorld) && <ChartNote>{WORLD_NOTE}</ChartNote>}
       <SourceLink
