@@ -8,7 +8,6 @@ const UnrestExplorer = lazy(() => import("../components/UnrestExplorer"));
 import { RecordedCrime } from "../components/RecordedCrime";
 import { JusticeSection } from "../components/JusticeSection";
 import { SlaveryForms, TraffickingAndSlavery } from "../components/TraffickingAndSlavery";
-import { CrimeExplorer } from "../components/CrimeExplorer";
 import { useLook } from "../components/CrimeParts";
 import {
   ShieldCheck,
@@ -784,7 +783,11 @@ export function CrimeStatsPage() {
         />
 
         {/* ── THE PAGE'S OWN EXPLORER: every published crime and justice figure, a list beside its detail ── */}
-        <CrimeExplorer />
+        {/* The Crime & justice explorer stood here; it was taken off as asked (its component stays in the repo) and the explorer of
+            revolutions, protests, boycotts and internal conflicts shown in its place. */}
+        <Suspense fallback={null}>
+          <UnrestExplorer />
+        </Suspense>
 
         {/* ── KPI PILLS ──────────────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -2192,12 +2195,6 @@ export function CrimeStatsPage() {
             />
           </div>
         </div>
-
-        {/* ── REVOLUTIONS, PROTESTS, BOYCOTTS AND INTERNAL CONFLICTS: old and recent, each with its cause, what it
-            cost and how it ended, in the words of its own Wikipedia article; see data/unrest.ts. ── */}
-        <Suspense fallback={null}>
-          <UnrestExplorer />
-        </Suspense>
 
         {/* ── MODERN SLAVERY SECTION HEADER ─────────────────────── */}
         <div

@@ -26,6 +26,13 @@
  *                  dead, injured and arrested, and the result. From the
  *                  article: its opening sentences.
  *
+ * Sources. Each event also carries what a reader can go to beyond the
+ * article: the works its opening and summary box cite in their footnotes
+ * (news agencies, governments, the UN, books - up to five, by the publisher
+ * and title each footnote gives), a boycott's own footnote in the list, and
+ * the Encyclopaedia Britannica article and Library of Congress heading that
+ * Wikidata records for the event. They are links to read, not text taken.
+ *
  * A box's field is taken as its words, with links, notes and flags removed
  * and a list's items set one after another; a long field is cut at the end of
  * an item. Nothing is ranked by size - the boxes give no figure that could be
@@ -133,6 +140,40 @@ function plain(value) {
     .map((l) => l.replace(/^[*#:;]+\s*/, "").replace(/\s+/g, " ").replace(/\s+([,.;])/g, "$1").trim())
     .filter((l) => l && !/^[\s|{}]*$/.test(l))
     .join("\n");
+}
+
+/**
+ * The works a passage cites, from its footnotes: each with the publisher or
+ * site it names and the title it gives. These are what the article rests an
+ * event's facts on - news agencies, governments, the UN, books - and are
+ * given so a reader can go to them and not only to the article.
+ */
+function citesOf(wikitext) {
+  const out = [];
+  const seen = new Set();
+  for (const m of wikitext.matchAll(/<ref[^>/]*>([\s\S]*?)<\/ref>/g)) {
+    const body = m[1];
+    if (!/\{\{\s*cite/i.test(body)) continue;
+    const pick = (keys) => (body.match(new RegExp(`\\|\\s*(?:${keys})\\s*=\\s*([^|{}]+?)\\s*(?=\\||\\}\\})`, "i")) || [])[1];
+    // The page as it was first published, not an archive's copy of it.
+    const url = (pick("url") ?? "").trim();
+    const title = plain(pick("title|chapter") ?? "").replace(/\s+/g, " ").trim();
+    if (!/^https?:\/\/[^\s]+$/.test(url) || title.length < 6 || title.length > 180) continue;
+    let host = "";
+    try {
+      host = new URL(url).hostname.replace(/^www\./, "");
+    } catch {
+      continue;
+    }
+    if (/archive\.(org|today|is|ph)|webcitation|wikipedia\.org|wikimedia\.org/.test(host)) continue;
+    const by = plain(pick("publisher|work|website|newspaper|agency|journal|magazine") ?? "").replace(/\s+/g, " ").trim();
+    const key = `${host}|${title.toLowerCase()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ label: `${by && by.length <= 60 ? by : host} — ${title}`, url });
+    if (out.length >= 5) break;
+  }
+  return out;
 }
 
 /** A field for the page: its items joined, cut at the end of an item where it runs long. */
@@ -254,12 +295,14 @@ function openingOf(extract) {
   {
     const j = await get({ action: "parse", page: "List of boycotts", prop: "wikitext|revid", redirects: "1" });
     if (!j.parse) throw new Error("Wikipedia: no list of boycotts");
-    const text = j.parse.wikitext.replace(/<ref[^>]*\/>/g, "").replace(/<ref[^>]*>[\s\S]*?<\/ref>/g, "");
+    const text = j.parse.wikitext;
+    const noRefs = (x) => x.replace(/<ref[^>]*\/>/g, "").replace(/<ref[^>]*>[\s\S]*?<\/ref>/g, "");
     const ongoingFrom = text.indexOf("==Ongoing==");
     let at = 0;
     for (const raw of text.split(/\n\|-[^\n]*\n/)) {
       at = text.indexOf(raw, at);
-      const row = raw.split(/\n\|\}/)[0];
+      const cited = citesOf(raw);
+      const row = noRefs(raw).split(/\n\|\}/)[0];
       if (/^\s*!/.test(row) || !row.trim().startsWith("|")) continue;
       const cells = row.replace(/^\s*\|/, "").split(/\|\||\n\|/);
       if (cells.length < 4) continue;
@@ -269,7 +312,7 @@ function openingOf(extract) {
       const cause = field(cells[3]);
       if (!when || year === null || !target || !cause) continue;
       const article = ((cells[4] ?? "").match(/\[\[([^\]|#]+)/) || [])[1]?.trim();
-      boycotts.push({ kind: "Boycott", title: article ?? `Boycott of ${target}`, article, when, year, participants: field(cells[1]), target, cause, ongoing: ongoingFrom >= 0 && at > ongoingFrom, length: 0 });
+      boycotts.push({ kind: "Boycott", title: article ?? `Boycott of ${target}`, article, when, year, participants: field(cells[1]), target, cause, ongoing: ongoingFrom >= 0 && at > ongoingFrom, sources: cited, length: 0 });
     }
     lists.push({ title: j.parse.title, kind: "Boycott", revision: j.parse.revid, links: boycotts.length });
     if (boycotts.length < 40) throw new Error(`only ${boycotts.length} boycotts read from the list's table`);
@@ -280,7 +323,7 @@ function openingOf(extract) {
   const counted = { looked: titles.length, noBox: 0, noDate: 0, noEnd: 0 };
   for (let i = 0; i < titles.length; i += 40) {
     const batch = titles.slice(i, i + 40);
-    const j = await get({ action: "query", prop: "revisions|info", rvprop: "content", rvslots: "main", rvsection: "0", redirects: "1", titles: batch.join("|") });
+    const j = await get({ action: "query", prop: "revisions|info|pageprops", ppprop: "wikibase_item", rvprop: "content", rvslots: "main", rvsection: "0", redirects: "1", titles: batch.join("|") });
     const back = new Map([...(j.query?.normalized ?? []), ...(j.query?.redirects ?? [])].map((r) => [r.to, r.from]));
     for (const p of j.query?.pages ?? []) {
       const kind = kindOf.get(p.title) ?? kindOf.get(back.get(p.title)) ?? kindOf.get(back.get(back.get(p.title)));
@@ -293,6 +336,8 @@ function openingOf(extract) {
         row.title = p.title;
         row.article = p.title;
         row.length = p.length ?? 0;
+        row.item = p.pageprops?.wikibase_item;
+        row.sources = [...(row.sources ?? []), ...citesOf(text).filter((c) => !(row.sources ?? []).some((x) => x.url === c.url))].slice(0, 5);
         if (box) Object.assign(row, { where: field(box.fields.place ?? box.fields.location), outcome: field(box.fields.result ?? box.fields.outcome ?? box.fields.status), methods: field(box.fields.methods) });
         continue;
       }
@@ -325,6 +370,8 @@ function openingOf(extract) {
         kind,
         title: p.title,
         article: p.title,
+        item: p.pageprops?.wikibase_item,
+        sources: citesOf(text),
         length: p.length ?? 0,
         when,
         year,
@@ -362,6 +409,26 @@ function openingOf(extract) {
     const j = await get({ action: "query", prop: "extracts", exintro: "1", explaintext: "1", exlimit: "20", titles: batch.map((e) => e.title).join("|") });
     const by = new Map((j.query?.pages ?? []).map((p) => [p.title, p.extract]));
     for (const e of batch) e.said = openingOf(by.get(e.title));
+  }
+  // Other works of reference on each event kept, by the identifiers Wikidata holds for it: Britannica's article and the Library of Congress's heading.
+  {
+    const withItem = kept.filter((e) => e.item);
+    for (let i = 0; i < withItem.length; i += 50) {
+      const batch = withItem.slice(i, i + 50);
+      const res = await fetch(`https://www.wikidata.org/w/api.php?format=json&action=wbgetentities&props=claims&ids=${batch.map((e) => e.item).join("|")}`, { headers: { "User-Agent": UA } });
+      if (!res.ok) throw new Error(`Wikidata: HTTP ${res.status}`);
+      const j = await res.json();
+      for (const e of batch) {
+        const claims = j.entities?.[e.item]?.claims ?? {};
+        const id = (p) => claims[p]?.[0]?.mainsnak?.datavalue?.value;
+        const brit = id("P1417");
+        const loc = id("P244");
+        const more = [];
+        if (typeof brit === "string" && /^[\w\-/]+$/.test(brit)) more.push({ label: "Encyclopaedia Britannica", url: `https://www.britannica.com/${brit}` });
+        if (typeof loc === "string" && /^[a-z]+\d+$/.test(loc)) more.push({ label: "Library of Congress — its heading for the event", url: `https://id.loc.gov/authorities/${loc}` });
+        e.sources = [...(e.sources ?? []), ...more];
+      }
+    }
   }
   if (kept.length < 100) throw new Error(`only ${kept.length} events: the lists or the boxes have changed`);
   kept.sort((a, b) => b.year - a.year || a.title.localeCompare(b.title));
@@ -421,6 +488,8 @@ export type UnrestEvent = {
   where?: string;
   /** What the article's opening says of it. */
   said?: string;
+  /** Works to read beyond the article: those its account cites, then Britannica's and the Library of Congress's where Wikidata records them. */
+  sources?: { label: string; url: string }[];
   cause?: string;
   goals?: string;
   methods?: string;
@@ -431,14 +500,14 @@ export type UnrestEvent = {
 };
 
 export const UNREST_EVENTS: UnrestEvent[] = [
-${kept.map((e) => `  { kind: ${JSON.stringify(e.kind)}, title: ${JSON.stringify(e.title)}${opt(e, "article")}, when: ${JSON.stringify(e.when.replace(/\n/g, "; "))}, year: ${e.year}${e.ongoing ? ", ongoing: true" : ""}${opt(e, "where")}${opt(e, "participants")}${opt(e, "target")}${opt(e, "said")}${opt(e, "cause")}${opt(e, "goals")}${opt(e, "methods")}${opt(e, "effect")}${opt(e, "outcome")} },`).join("\n")}
+${kept.map((e) => `  { kind: ${JSON.stringify(e.kind)}, title: ${JSON.stringify(e.title)}${opt(e, "article")}, when: ${JSON.stringify(e.when.replace(/\n/g, "; "))}, year: ${e.year}${e.ongoing ? ", ongoing: true" : ""}${opt(e, "where")}${opt(e, "participants")}${opt(e, "target")}${opt(e, "said")}${opt(e, "cause")}${opt(e, "goals")}${opt(e, "methods")}${opt(e, "effect")}${opt(e, "outcome")}${e.sources?.length ? `, sources: ${JSON.stringify(e.sources)}` : ""} },`).join("\n")}
 ];
 `,
   );
 
   console.log(`wrote ${path.relative(__dirname, OUT)} (${Math.round(fs.statSync(OUT).size / 1024)} KB)`);
   console.log(`  lists: ${lists.map((l) => `${l.title} ${l.revision ? l.links : "MISSING"}`).join("; ")}`);
-  console.log(`  ${JSON.stringify(counted)} · with an account ${events.length} · kept ${kept.length} · with a cause ${kept.filter((e) => e.cause).length} · with a cost ${kept.filter((e) => e.effect).length}`);
+  console.log(`  ${JSON.stringify(counted)} · with an account ${events.length} · kept ${kept.length} · with a cause ${kept.filter((e) => e.cause).length} · with a cost ${kept.filter((e) => e.effect).length} · with sources beyond the article ${kept.filter((e) => e.sources?.length).length} (Britannica ${kept.filter((e) => e.sources?.some((x) => x.label === "Encyclopaedia Britannica")).length})`);
   for (const kind of Object.keys(KINDS)) console.log(`  ${kind}: ${ERAS.map(([label, from, to]) => `${label} ${kept.filter((e) => e.kind === kind && e.year >= from && e.year <= to).length}`).join(", ")}`);
   for (const t of ["Montgomery bus boycott", "French Revolution", "George Floyd protests", "Spanish Civil War", "Arab Spring", "Salt March"]) {
     const e = kept.find((x) => x.title === t);

@@ -11,17 +11,26 @@
  * cost or outcome the pane says that it gives none, and puts nothing in its
  * place.
  *
+ * Each kind has a colour of its own - amber for a boycott, blue for a
+ * protest, red for a revolution, violet for an internal conflict - on its
+ * count, on the bar of every row and in the kind's name beside it, so no kind
+ * is told by colour alone. Under each account are the works to read on it:
+ * those the account itself cites, the Encyclopaedia Britannica article and
+ * Library of Congress heading where Wikidata records them, and the Wikipedia
+ * article last.
+ *
  * It is made of the pieces the site's other explorers are made of
  * (DataExplorer), and is loaded when the page reaches it.
  */
 import { useMemo, useState } from "react";
-import { ArrowSquareOut, Megaphone, MagnifyingGlass, X } from "@phosphor-icons/react";
+import { Megaphone, MagnifyingGlass, X } from "@phosphor-icons/react";
 import { UNREST_ERAS, UNREST_EVENTS, UNREST_KINDS, UNREST_SOURCES, type UnrestEvent, type UnrestKind } from "../data/unrest";
 import { Block, Empty, Label, Row, useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 
 const ACCENT = "#f97316";
-const KIND_COLOR: Record<UnrestKind, string> = { Boycott: "#eab308", Protest: "#3b82f6", Revolution: "#ef4444", "Internal conflict": "#8b5cf6" };
+/** A colour to each kind of event, far apart in hue: amber, blue, red, violet. */
+const KIND_COLOR: Record<UnrestKind, string> = { Boycott: "#f59e0b", Protest: "#0ea5e9", Revolution: "#ef4444", "Internal conflict": "#a855f7" };
 const KIND_PLURAL: Record<UnrestKind, string> = { Boycott: "Boycotts", Protest: "Protests, strikes and riots", Revolution: "Revolutions and rebellions", "Internal conflict": "Internal conflicts" };
 const wiki = (title: string) => `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}`;
 const eraOf = (year: number) => UNREST_ERAS.find(([, from, to]) => year >= from && year <= to)?.[0] ?? "";
@@ -146,13 +155,16 @@ export function UnrestExplorer() {
           </div>
           {list.map((e) => (
             <Row key={key(e)} t={t} selected={shown ? key(shown) === key(e) : false} color={KIND_COLOR[e.kind]} onClick={() => setPickedKey(key(e))}>
-              <span className="w-1.5 h-6 rounded-full shrink-0" style={{ background: KIND_COLOR[e.kind] }} aria-hidden />
+              <span className="w-2 h-8 rounded-full shrink-0" style={{ background: KIND_COLOR[e.kind] }} aria-hidden />
               <span className="flex-1 min-w-0">
                 <span className="block text-xs font-semibold font-sans truncate" style={{ color: t.headText }}>
                   {e.title}
                 </span>
                 <span className="block text-[10px] font-mono truncate" style={{ color: t.mutedText }}>
-                  {e.when}
+                  <span className="font-bold" style={{ color: KIND_COLOR[e.kind] }}>
+                    {e.kind}
+                  </span>{" "}
+                  · {e.when}
                   {e.where ? ` · ${e.where}` : ""}
                 </span>
               </span>
@@ -194,11 +206,14 @@ export function UnrestExplorer() {
                 {said("Outcome", shown.outcome, NONE.outcome(shown))}
               </Block>
               <Block>
-                {shown.article && (
-                  <a href={wiki(shown.article)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] font-sans font-semibold hover:underline self-start" style={{ color: ACCENT }}>
-                    Read the whole account, at Wikipedia
-                    <ArrowSquareOut size={11} weight="bold" aria-hidden />
-                  </a>
+                <Label t={t}>Sources to read · {(shown.sources?.length ?? 0) + (shown.article ? 1 : 0)}</Label>
+                <SourceLink
+                  sources={[...(shown.sources ?? []), ...(shown.article ? [{ label: `Wikipedia — ${shown.article}`, url: wiki(shown.article) }] : [])]}
+                />
+                {!shown.sources?.length && (
+                  <p className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
+                    {shown.article ? "The opening of its article cites no work that could be read from it, and Wikidata records no other reference work for it; the article's own footnotes are the place to look." : "The list cites no work for this row."}
+                  </p>
                 )}
                 <p className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
                   {shown.kind === "Boycott"
@@ -216,7 +231,8 @@ export function UnrestExplorer() {
       <div className="px-4 py-2.5 border-t flex flex-col gap-1.5" style={{ borderColor: t.gridLine }}>
         <span className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
           Accounts, not statistics: {UNREST_SOURCES.withAccount.toLocaleString("en-US")} events in Wikipedia's lists had a dated account that could be read, and {UNREST_EVENTS.length} are kept - from each kind in each era, half
-          those with the longest articles and half taken evenly from the rest, so the well known and the little known stand alike. Nothing is ranked by size; no source counts these on one footing. Read on{" "}
+          those with the longest articles and half taken evenly from the rest, so the well known and the little known stand alike. Nothing is ranked by size; no source counts these on one footing. The wording of each account is Wikipedia's, which is open to reuse; the works it cites, and
+          Britannica's and the Library of Congress's where there is one, are linked under it to read and to cite. Read on{" "}
           {UNREST_SOURCES.retrieved}.
         </span>
         <SourceLink sources={UNREST_SOURCES.lists} />
