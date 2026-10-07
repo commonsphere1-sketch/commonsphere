@@ -21,6 +21,8 @@ import { STATE_OFFICES, STATE_OFFICES_SOURCES } from "../data/stateOffices";
 import { civicDay, daysUntil, electionDay, upcomingCivicDates } from "../lib/usCivicDates";
 import { usStatesData, type USState } from "../data/statesData";
 import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
+import { STATE_UNIVERSITIES, STATE_UNIVERSITIES_SOURCE } from "../data/stateUniversities";
+import { UniversityList } from "../components/UniversityList";
 import { UpcomingStates } from "@/components/UpcomingStates";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
@@ -1614,7 +1616,11 @@ const STATE_EDUCATION: Record<string, StateEducationData> = {
 
 /**
  * Education attainment from the Census Bureau's ACS, with the major
- * universities kept from the written table by name only.
+ * universities kept from the written table by name and kind. Each is drawn
+ * as the country window draws a university (UniversityList): Wikidata's
+ * one-line description under its name and the year it was founded, and it
+ * opens to the opening of its Wikipedia article (stateUniversities.ts,
+ * build-state-universities.cjs).
  *
  * Replaced: a literacy rate and "average schooling" per state with no source
  * or year, an education rank credited to US News that could not be checked,
@@ -1662,15 +1668,15 @@ function StateEducationPanel({ state }: { state: USState }) {
 
       {schools.length > 0 && (
         <div className="mb-3">
-          <ChartTitle>Major universities</ChartTitle>
-          <div className="flex flex-col">
-            {schools.map((u) => (
-              <FigureRow key={u.name} label={u.name} value={<span className="font-sans font-normal text-muted-foreground">{u.type}</span>} />
-            ))}
-          </div>
+          <ChartTitle>Major universities · open one for what it is about and known for</ChartTitle>
+          <UniversityList list={schools.map((u) => ({ name: u.name, tag: u.type, ...STATE_UNIVERSITIES[state.id]?.[u.name] }))} />
+          <ChartNote className="mt-3">
+            The schools listed, and the word beside each, are the site's own notes. What each is and the year it was founded are Wikidata's - the year
+            only where the school's Wikipedia article gives the same one - and what it is known for is the opening of that article.
+          </ChartNote>
         </div>
       )}
-      {e && <SourceLink sources={[STATE_SOURCES.acs]} className="mt-2" />}
+      <SourceLink sources={[...(e ? [STATE_SOURCES.acs] : []), ...(schools.length > 0 ? [STATE_UNIVERSITIES_SOURCE] : [])]} className="mt-2" />
     </div>
   );
 }

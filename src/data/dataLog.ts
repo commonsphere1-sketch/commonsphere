@@ -30,6 +30,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "Legal systems, the stages of criminal justice and the people who staff it",
+    "from": "CIA World Factbook (final edition), UNODC, World Bank",
+    "page": "/dashboard/crime",
+    "where": "Crime statistics",
+    "read": "2026-10-07",
+    "files": 1
+  },
+  {
     "what": "One colour for each country, read off its flag",
     "from": "flagcdn.com flag images",
     "page": "/dashboard/countries",
@@ -42,6 +50,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "from": "Wikidata",
     "page": "/dashboard/cities",
     "where": "Cities",
+    "read": "2026-10-07",
+    "files": 1
+  },
+  {
+    "what": "What each university named in a state's window is, and the year it was founded",
+    "from": "Wikidata, Wikipedia",
+    "page": "/dashboard/states",
+    "where": "US states",
     "read": "2026-10-07",
     "files": 1
   },
@@ -92,14 +108,6 @@ export const DATA_LOG: DataLogEntry[] = [
     "where": "Countries",
     "read": "2026-10-06",
     "files": 3
-  },
-  {
-    "what": "Legal systems, the stages of criminal justice and the people who staff it",
-    "from": "CIA World Factbook (final edition), UNODC, World Bank",
-    "page": "/dashboard/crime",
-    "where": "Crime statistics",
-    "read": "2026-10-06",
-    "files": 1
   },
   {
     "what": "Modern slavery: the world's and the regions' estimates, and the forms it takes",
@@ -240,4 +248,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 48;
+export const DATA_LOG_FILES = 49;
