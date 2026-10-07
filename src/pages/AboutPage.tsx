@@ -418,7 +418,7 @@ export function AboutPage() {
                 {
                   icon: <Users size={18} weight="fill" />,
                   label: "Humanitarian",
-                  desc: "Displacement, food & health",
+                  desc: "Aid, human rights, displacement, food & health",
                   color: "text-orange-400",
                   bg: "bg-orange-500/10",
                 },

@@ -44,7 +44,7 @@ export type Headline = { url: string; title: string; outlet: string; published_a
  */
 export const SUBJECT = {
   humanitarian:
-    /\b(humanitarian|refugees?|asylum|displaced|displacement|famine|starvation|hunger|malnutrition|aid (workers?|convoys?|agencies)|food aid|evacuat(e|ed|ion|ions)|cholera|UNHCR|UNICEF|WFP|OCHA|Red Cross|Red Crescent|MSF|civilians?)\b/i,
+    /\b(humanitarian|refugees?|asylum|displaced|displacement|famine|starvation|hunger|malnutrition|aid (workers?|convoys?|agencies)|food aid|evacuat(e|ed|ion|ions)|cholera|UNHCR|UNICEF|WFP|OCHA|Red Cross|Red Crescent|MSF|civilians?|human rights|rights (groups?|abuses?|violations?|defenders?)|war crimes?|crimes against humanity|genocide|torture|political prisoners?|death penalty)\b/i,
   economy:
     /\b(econom(y|ic|ies|ists?)|inflation|recession|GDP|tariffs?|trade (war|deal|talks|deficit|surplus)|stock markets?|stocks|central bank|interest rates?|Federal Reserve|ECB|budget|debt|unemployment|jobs report|wages?|oil prices?|currency|exports?|imports?|investment|bonds?|markets)\b/i,
   climate:

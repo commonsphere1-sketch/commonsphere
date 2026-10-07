@@ -1,7 +1,17 @@
 /**
- * Humanitarian: displacement, hunger, health and water, and the aid that
- * answers them - as a hero, a row of headline tiles, and a section each,
- * in the same card, tile and chart language as the Worldview page.
+ * Humanitarian aid and human rights: the aid that is asked for and given,
+ * how far people's rights are kept, and the need behind both - conflict and
+ * disaster, displacement, hunger, health and water - as a hero, a row of
+ * headline tiles, and a section each, in the same card, tile and chart
+ * language as the Worldview page. Aid and rights lead; the need follows.
+ *
+ * The rights figures are V-Dem's indices in worldview.ts (civil liberties and
+ * their parts, expression, association, women's liberties, equality before
+ * the law, the rule of law, academic freedom, and who lives under which kind
+ * of government): expert ratings from 0 to 1 averaged across the world's
+ * people, drawn on the whole of their scale. The human rights bodies are the
+ * five in alliances.ts, each with the count and the account it gives of
+ * itself and the day it was checked.
  *
  * Two kinds of figure are on the page, and it says which is which.
  *
@@ -28,13 +38,14 @@
  */
 import { useMemo, useState, type ReactNode } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowDownRight, ArrowUpRight, Drop, ForkKnife, HandHeart, Users, Warning } from "@phosphor-icons/react";
+import { ArrowDownRight, ArrowUpRight, Drop, ForkKnife, HandHeart, Scales, Users, Warning } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "../components/SectionNav";
 import { StatCard, splitChange, type StatFact } from "../components/StatCard";
 import { EXPLAIN } from "../data/worldviewExplain";
+import { ALLIANCES, HUMAN_RIGHTS_CHECKED } from "../data/alliances";
 import { DONOR_AID, DONOR_AID_SOURCE, DAC_TOTAL } from "../data/donorAid";
 import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES, DISPLACED_BY_KIND, WORLD, WORLDVIEW_RETRIEVED, type WorldPoint } from "../data/worldview";
 import { COUNTRY_PANELS, PANEL_SOURCES } from "../data/countryPanels";
@@ -397,7 +408,7 @@ function StatTile({ s, color }: { s: Stat; color: string }) {
 }
 
 /** The sections' colours, which their cards take. */
-const TONE = { overview: "#10b981", conflict: "#ef4444", displacement: "#f97316", food: "#eab308", health: "#06b6d4" };
+const TONE = { overview: "#10b981", aid: "#8b5cf6", rights: "#3b82f6", conflict: "#ef4444", displacement: "#f97316", food: "#eab308", health: "#06b6d4" };
 /** The headline cards take the colour of the section each belongs to. */
 const HEADLINE_TONE: Record<string, string> = {
   displaced: TONE.displacement,
@@ -407,7 +418,11 @@ const HEADLINE_TONE: Record<string, string> = {
   childMortality: TONE.health,
   water: TONE.health,
   health: TONE.health,
-  aid: TONE.overview,
+  aid: TONE.aid,
+  oda: TONE.aid,
+  civilLiberties: TONE.rights,
+  physicalIntegrity: TONE.rights,
+  freeExpression: TONE.rights,
 };
 
 type BarRow = { key: string; name: string; code?: string; value: number | null; text: string; note?: string };
@@ -569,6 +584,46 @@ function TrendChart({ id, name, unit, color, height = 190, tick }: { id: string;
   );
 }
 
+/**
+ * Several of V-Dem's indices as lines, on the whole of their scale of 0 to 1
+ * so a small move is not drawn as a large one; each is named in the legend
+ * with its latest reading.
+ */
+function IndexChart({ lines, label, height = 230 }: { lines: [id: string, name: string, color: string][]; label: string; height?: number }) {
+  const look = useLook();
+  const years = WORLD[lines[0][0]].series.map(([y]) => y);
+  const data = years.map((y) => {
+    const row: Record<string, number | string> = { year: String(y) };
+    for (const [id] of lines) {
+      const p = WORLD[id].series.find(([py]) => py === y);
+      if (p) row[id] = p[1];
+    }
+    return row;
+  });
+  const latest = (id: string) => lastOf(WORLD[id].series);
+  return (
+    <>
+      <div
+        role="img"
+        aria-label={`${label}, ${years[0]} to ${years[years.length - 1]}, each from 0 to 1: ${lines.map(([id, name]) => `${name} ${latest(id)[1].toFixed(2)} in ${latest(id)[0]}`).join("; ")}.`}
+      >
+        <ResponsiveContainer width="100%" height={height}>
+          <LineChart data={data} margin={{ top: 4, right: 4, left: -14, bottom: 0 }}>
+            <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="year" {...axis(look)} minTickGap={18} />
+            <YAxis {...axis(look)} domain={[0, 1]} ticks={[0, 0.25, 0.5, 0.75, 1]} />
+            <Tooltip {...look.tooltip} formatter={(v: number, n: string) => [v.toFixed(2), lines.find(([id]) => id === n)?.[1] ?? n]} />
+            {lines.map(([id, , color]) => (
+              <Line key={id} type="monotone" dataKey={id} stroke={color} strokeWidth={2} dot={false} isAnimationActive={false} />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <Legend items={lines.map(([id, name, color]) => ({ color, label: `${name}, ${latest(id)[0]}`, value: latest(id)[1].toFixed(2) }))} />
+    </>
+  );
+}
+
 /** Appeals year by year: what was funded, and on top of it what was asked for and not met. */
 function AidChart() {
   const look = useLook();
@@ -611,12 +666,16 @@ function AidChart() {
 
 const SECTIONS: NavSection[] = [
   { id: "overview", label: "Overview" },
+  { id: "aid", label: "Aid & donors" },
+  { id: "rights", label: "Human rights" },
   { id: "conflict", label: "Conflict & disaster" },
   { id: "displacement", label: "Displacement" },
   { id: "food", label: "Food & hunger" },
   { id: "health", label: "Health & water" },
-  { id: "aid", label: "Aid & donors" },
 ];
+
+/** The human rights bodies the site holds, each with its own count and its own account of itself. */
+const RIGHTS_BODIES = ALLIANCES.filter((a) => a.kind === "Human rights body");
 
 export function HumanitarianPage() {
   const look = useLook();
@@ -631,12 +690,7 @@ export function HumanitarianPage() {
     };
     const lastAid = AID_FUNDING[AID_FUNDING.length - 1];
     return [
-      worldStat("displaced", "Forcibly displaced", "UNHCR", "People forced from their homes by persecution, conflict or violence, inside their country or across a border.", false),
-      fromKind("idps", "idps", "Internally displaced", "People who have fled within their own country and are protected or assisted by UNHCR."),
-      fromKind("refugees", "refugees", "Refugees", "Refugees under UNHCR's mandate, Palestine refugees under UNRWA's, and others in need of international protection."),
-      worldStat("undernourished", "Undernourished", "FAO", "People whose usual food intake is too little for a normal, active and healthy life.", false),
-      worldStat("childMortality", "Deaths before age five", "UN estimates", "Children who die before their fifth birthday, for every 1,000 born.", false),
-      worldStat("water", "Without safely managed water", "WHO/UNICEF", "People whose drinking water is not at home, available when needed and free from contamination.", false, { complement: true }),
+      // Aid and rights lead; the need behind them follows.
       {
         key: "aid",
         label: "Aid appealed for",
@@ -654,6 +708,30 @@ export function HumanitarianPage() {
         ],
         source: SRC.fts,
       },
+      {
+        key: "oda",
+        label: "Official aid given",
+        value: `$${(DAC_TOTAL.usd / 1e9).toFixed(1)}bn`,
+        unit: "from DAC members",
+        sub: `OECD · ${DAC_TOTAL.year}, preliminary`,
+        about: "Official development assistance from the members of the OECD's Development Assistance Committee, in current US dollars on the grant-equivalent basis. Providers that do not report to the OECD are not in it.",
+        change: null,
+        facts: [
+          { label: "Of donors' income", value: `${DAC_TOTAL.pctGni}%`, sub: "the UN's target is 0.7%" },
+          { label: `On ${Number(DAC_TOTAL.year) - 1}`, value: `${DAC_TOTAL.realChangePct > 0 ? "+" : ""}${DAC_TOTAL.realChangePct.toFixed(1)}%`, sub: "in real terms" },
+          { label: "Largest donor", value: DONOR_AID[0].name, sub: `$${(DONOR_AID[0].usd / 1e9).toFixed(1)}bn · ${DONOR_AID[0].year}` },
+        ],
+        source: DONOR_AID_SOURCE,
+      },
+      worldStat("civilLiberties", "Civil liberties", "V-Dem", "How far people are free from the government's violence and free in their private and political lives, from 0 to 1, averaged across the world's people.", true),
+      worldStat("physicalIntegrity", "Freedom from torture and political killing", "V-Dem", "How far people are free from torture and political killings by the government and its agents, from 0 to 1.", true),
+      worldStat("freeExpression", "Freedom of expression", "V-Dem", "Freedom to discuss politics, a press free from censorship and harassment, and media that give a range of views, from 0 to 1.", true),
+      worldStat("displaced", "Forcibly displaced", "UNHCR", "People forced from their homes by persecution, conflict or violence, inside their country or across a border.", false),
+      fromKind("idps", "idps", "Internally displaced", "People who have fled within their own country and are protected or assisted by UNHCR."),
+      fromKind("refugees", "refugees", "Refugees", "Refugees under UNHCR's mandate, Palestine refugees under UNRWA's, and others in need of international protection."),
+      worldStat("undernourished", "Undernourished", "FAO", "People whose usual food intake is too little for a normal, active and healthy life.", false),
+      worldStat("childMortality", "Deaths before age five", "UN estimates", "Children who die before their fifth birthday, for every 1,000 born.", false),
+      worldStat("water", "Without safely managed water", "WHO/UNICEF", "People whose drinking water is not at home, available when needed and free from contamination.", false, { complement: true }),
       {
         key: "health",
         label: "Without essential health care",
@@ -705,6 +783,20 @@ export function HumanitarianPage() {
     }),
     worldStat("disasterDisplacement", "Displaced by disasters", "IDMC", "People forced from home by a disaster within their own country, counted each time they are displaced.", false, { unit: "displacements", neutral: true }),
   ];
+  const rights = [
+    worldStat("privateLiberties", "Private liberties", "V-Dem", "Freedom from forced labour, the right to own property, freedom to move at home and abroad, and freedom of religion.", true),
+    worldStat("politicalLiberties", "Political liberties", "V-Dem", "Freedom of expression and freedom of association together: the liberties people need to take part in politics.", true),
+    worldStat("freeAssociation", "Freedom of association", "V-Dem", "Whether parties, the opposition among them, and civil society organisations can form and work freely.", true),
+    worldStat("womenCivilLiberties", "Women's civil liberties", "V-Dem", "How far women are free from forced labour, can own property and reach the courts, and can move freely.", true),
+    worldStat("equalityBeforeLaw", "Equality before the law", "V-Dem", "Whether laws are clear and enforced alike for all, administration is impartial and people can reach justice.", true),
+    worldStat("ruleOfLaw", "Rule of law", "V-Dem", "How far government keeps to the law, the courts are independent and officials are impartial and not corrupt.", true),
+    worldStat("academicFreedom", "Academic freedom", "V-Dem", "Freedom to research, teach and exchange ideas, and the independence of universities.", true),
+    worldStat("closedAutocracyShare", "Living in a closed autocracy", "V-Dem", "People in countries with no multiparty elections for the chief executive or the legislature.", false),
+  ];
+  // The world's people by the kind of government they live under, as V-Dem classes it; each share is of those it classifies.
+  const regimeParts = WORLD.democracyShare.breakdown ?? [];
+  const classified = regimeParts.reduce((t, [, v]) => t + v, 0);
+  const regimeRows: BarRow[] = regimeParts.map(([label, v]) => ({ key: label, name: label, value: v, text: millions(v), note: `${((100 * v) / classified).toFixed(1)}% of the people classified` }));
   const span = (id: string) => `${WORLD[id].series[0][0]}–${lastOf(WORLD[id].series)[0]}`;
   const whole = (v: number) => v.toLocaleString("en-US");
   const thousands = (v: number) => (v === 0 ? "0" : v >= 1e6 ? `${v / 1e6}M` : `${Math.round(v / 1000)}k`);
@@ -725,17 +817,18 @@ export function HumanitarianPage() {
           <div className="relative px-5 py-6 flex flex-col lg:flex-row lg:items-center gap-6 justify-between">
             <div className="max-w-xl">
               <p className="text-[10px] font-mono uppercase tracking-widest mb-1" style={{ color: muted }}>
-                CommonSphere · Humanitarian
+                CommonSphere · Humanitarian aid & human rights
               </p>
               <h1 className="text-2xl sm:text-3xl font-bold font-sans" style={{ color: head }}>
-                Global Humanitarian Statistics
+                Humanitarian Aid & Human Rights
               </h1>
               <p className="text-sm font-sans mt-1.5" style={{ color: muted }}>
-                Who has been forced from home, who goes hungry, how many children do not reach five, who lacks safe water and care - and
-                the aid that is asked for and given. Each figure with its source and its year.
+                The aid that is asked for and given, and by whom. How far people are free from torture and political killing, and free to
+                speak, to organise and to live as they choose. And the need behind both: who has been forced from home, who goes hungry,
+                how many children do not reach five, who lacks safe water and care. Each figure with its source and its year.
               </p>
               <p className="text-[11px] font-sans mt-2" style={{ color: muted }}>
-                UNHCR · FAO · UNICEF · WHO · UN OCHA · OECD · World Bank · UCDP · EM-DAT · IDMC · figures retrieved {WORLDVIEW_RETRIEVED}
+                UN OCHA · OECD · V-Dem · UNHCR · FAO · UNICEF · WHO · World Bank · UCDP · EM-DAT · IDMC · figures retrieved {WORLDVIEW_RETRIEVED}
               </p>
             </div>
             <div className="lg:text-right">
@@ -757,15 +850,15 @@ export function HumanitarianPage() {
 
         {/* ── Humanitarian headlines: the agencies' newsrooms and crisis desks ── */}
         <HeadlinesBanner
-          label="Humanitarian headlines"
+          label="Humanitarian and human rights headlines"
           topics={["humanitarian"]}
           subject={SUBJECT.humanitarian}
           days={7}
           note={(outlets) => (
             <>
-              The last week's humanitarian news from aid agencies' own newsrooms and the outlets that cover crises - {outlets}, five at
-              most from each - refreshed every half hour. The tag is the place a story is about, violet for more than one. Each links to
-              its source.
+              The last week's humanitarian and human rights news from aid agencies' own newsrooms and the outlets that cover crises -{" "}
+              {outlets}, five at most from each - refreshed every half hour. The tag is the place a story is about, violet for more than
+              one. Each links to its source.
             </>
           )}
         />
@@ -796,6 +889,137 @@ export function HumanitarianPage() {
               they count {ACTIVE_CRISES.reduce((t, c) => t + c.inNeed, 0).toFixed(1)} million people in need.
             </p>
             <SourceLink sources={[SRC.ocha]} className="mt-3" />
+          </Card>
+        </section>
+
+        {/* ══ Aid & donors ══ */}
+        <section id="aid" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="aid-title">
+          <SectionHead icon={<HandHeart size={18} weight="fill" />} color={TONE.aid} title="Aid & donors" kicker="What is asked for, what is given, and by whom" />
+          <h2 id="aid-title" className="sr-only">
+            Aid and donors
+          </h2>
+          <Card>
+            <CardHead title="Humanitarian appeals: asked for and funded" kicker={`US$ billions · UN OCHA Financial Tracking Service · ${AID_FUNDING[0].year}–${AID_FUNDING[AID_FUNDING.length - 1].year}`} />
+            <AidChart />
+            <SourceLink sources={[SRC.fts]} className="mt-3" />
+          </Card>
+          <DonorAidCard />
+        </section>
+
+        {/* ══ Human rights ══ */}
+        <section id="rights" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="rights-title">
+          <SectionHead
+            icon={<Scales size={18} weight="fill" />}
+            color={TONE.rights}
+            title="Human rights"
+            kicker="How far people are free from the state's violence, and free to speak, to organise and to live as they choose"
+          />
+          <h2 id="rights-title" className="sr-only">
+            Human rights
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {rights.map((s) => (
+              <StatTile key={s.key} s={s} color={TONE.rights} />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHead title="Civil liberties and their three parts" kicker={`Index, 0 to 1 · V-Dem · ${span("civilLiberties")}`} />
+              <IndexChart
+                label="Civil liberties and their three parts"
+                lines={[
+                  ["civilLiberties", "Civil liberties", "#3b82f6"],
+                  ["physicalIntegrity", "Freedom from torture and political killing", "#ef4444"],
+                  ["privateLiberties", "Private liberties", "#10b981"],
+                  ["politicalLiberties", "Political liberties", "#f59e0b"],
+                ]}
+              />
+              <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
+                {WORLD.civilLiberties.note} The indices are V-Dem's expert ratings, not counts of violations.
+              </p>
+              <SourceLink sources={[WORLD.civilLiberties.source, WORLD.physicalIntegrity.source, WORLD.privateLiberties.source, WORLD.politicalLiberties.source]} className="mt-3" />
+            </Card>
+            <Card>
+              <CardHead title="Free to speak, to organise and to study" kicker={`Index, 0 to 1 · V-Dem · ${span("freeExpression")}`} />
+              <IndexChart
+                label="Freedom of expression, of association and academic freedom"
+                lines={[
+                  ["freeExpression", "Freedom of expression", "#8b5cf6"],
+                  ["freeAssociation", "Freedom of association", "#06b6d4"],
+                  ["academicFreedom", "Academic freedom", "#ec4899"],
+                ]}
+              />
+              <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
+                {WORLD.freeExpression.note}
+              </p>
+              <SourceLink sources={[WORLD.freeExpression.source, WORLD.freeAssociation.source, WORLD.academicFreedom.source]} className="mt-3" />
+            </Card>
+            <Card>
+              <CardHead title="Women's liberties and the law" kicker={`Index, 0 to 1 · V-Dem · ${span("womenCivilLiberties")}`} />
+              <IndexChart
+                label="Women's civil liberties, equality before the law and the rule of law"
+                lines={[
+                  ["womenCivilLiberties", "Women's civil liberties", "#d946ef"],
+                  ["equalityBeforeLaw", "Equality before the law", "#14b8a6"],
+                  ["ruleOfLaw", "Rule of law", "#6366f1"],
+                ]}
+              />
+              <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
+                {WORLD.womenCivilLiberties.note}
+              </p>
+              <SourceLink sources={[WORLD.womenCivilLiberties.source, WORLD.equalityBeforeLaw.source, WORLD.ruleOfLaw.source]} className="mt-3" />
+            </Card>
+            {regimeRows.length > 0 && (
+              <Card>
+                <CardHead title="Who lives under what kind of government" kicker={`People · V-Dem Regimes of the World · ${WORLD.democracyShare.breakdownYear}`} />
+                <BarList wide label="The world's people by the kind of government they live under" rows={regimeRows} />
+                <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
+                  {WORLD.democracyShare.note}
+                </p>
+                <SourceLink sources={[WORLD.democracyShare.source]} className="mt-3" />
+              </Card>
+            )}
+          </div>
+          <Card>
+            <CardHead title="The bodies that watch over human rights" kicker={`States, as each body counts its own · checked ${HUMAN_RIGHTS_CHECKED}`} />
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-6">
+              {RIGHTS_BODIES.map((b) => (
+                <div key={b.id} className="flex flex-col gap-1.5 min-w-0">
+                  <p className="text-[13px] font-sans font-bold leading-snug" style={{ color: head }}>
+                    {b.name}
+                  </p>
+                  <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: muted }}>
+                    {[b.founded ? `Since ${b.founded}` : null, b.headquarters].filter(Boolean).join(" · ")}
+                  </p>
+                  <p className="text-2xl font-bold font-mono leading-none mt-1" style={{ color: head }}>
+                    {b.memberCount}
+                    <span className="text-[11px] font-sans font-normal ml-2" style={{ color: muted }}>
+                      states
+                    </span>
+                  </p>
+                  {b.what && (
+                    <p className="text-[11px] font-sans leading-relaxed mt-1" style={{ color: head }}>
+                      {b.what}
+                    </p>
+                  )}
+                  {b.impact && b.impact.length > 0 && (
+                    <ul className="flex flex-col gap-1 list-disc pl-4">
+                      {b.impact.map((line) => (
+                        <li key={line} className="text-[10px] font-sans leading-relaxed" style={{ color: muted }}>
+                          {line}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {b.note && (
+                    <p className="text-[10px] font-sans leading-relaxed" style={{ color: muted }}>
+                      {b.note}
+                    </p>
+                  )}
+                  <SourceLink sources={[b.source]} className="mt-1" />
+                </div>
+              ))}
+            </div>
           </Card>
         </section>
 
@@ -965,26 +1189,15 @@ export function HumanitarianPage() {
           </Card>
         </section>
 
-        {/* ══ Aid & donors ══ */}
-        <section id="aid" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="aid-title">
-          <SectionHead icon={<HandHeart size={18} weight="fill" />} color="#8b5cf6" title="Aid & donors" kicker="What is asked for, what is given, and by whom" />
-          <h2 id="aid-title" className="sr-only">
-            Aid and donors
-          </h2>
-          <Card>
-            <CardHead title="Humanitarian appeals: asked for and funded" kicker={`US$ billions · UN OCHA Financial Tracking Service · ${AID_FUNDING[0].year}–${AID_FUNDING[AID_FUNDING.length - 1].year}`} />
-            <AidChart />
-            <SourceLink sources={[SRC.fts]} className="mt-3" />
-          </Card>
-          <DonorAidCard />
-        </section>
-
         <p className="text-[10px] font-sans leading-relaxed max-w-4xl px-1" style={{ color: muted }}>
-          Two kinds of figure are on this page. Built from source and refreshed with it ({WORLDVIEW_RETRIEVED}): the displaced and their
-          make-up year by year (UNHCR), undernourishment, food insecurity and stunting (FAO, UNICEF and the WHO), child and maternal
-          mortality (the UN's estimates), water and sanitation (WHO/UNICEF), each country's child mortality and water access (World Bank),
-          aid by donor (OECD), armed conflicts and the deaths in them (Uppsala Conflict Data Program), deaths in natural disasters
-          (EM-DAT), displacement by disasters (IDMC), and extreme poverty, HIV, hand washing and life expectancy (World Bank). Recorded from the agencies' reports, for the year shown on each: people in need by crisis and appeals
+          Two kinds of figure are on this page. Built from source and refreshed with it ({WORLDVIEW_RETRIEVED}): aid by donor (OECD),
+          the rights indices and who lives under which kind of government (V-Dem, expert ratings from 0 to 1 averaged across the world's
+          people), the displaced and their make-up year by year (UNHCR), undernourishment, food insecurity and stunting (FAO, UNICEF and
+          the WHO), child and maternal mortality (the UN's estimates), water and sanitation (WHO/UNICEF), each country's child mortality
+          and water access (World Bank), armed conflicts and the deaths in them (Uppsala Conflict Data Program), deaths in natural
+          disasters (EM-DAT), displacement by disasters (IDMC), and extreme poverty, HIV, hand washing and life expectancy (World Bank).
+          Recorded from the bodies' own pages and reports, for the year or day shown on each: the human rights bodies and their members
+          (checked {HUMAN_RIGHTS_CHECKED}), people in need by crisis and appeals
           against funding (UN OCHA), the countries hosting and producing the most refugees (UNHCR, 2023), hunger by region (FAO, 2023),
           deaths from six diseases and people without essential health care (WHO). Arrows compare with about ten years earlier; "better"
           and "worse" are given where one way plainly is.

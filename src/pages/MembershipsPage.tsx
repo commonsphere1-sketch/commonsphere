@@ -271,7 +271,7 @@ const FEATURE_GRID = [
     label: "Sourced Figures",
     desc: "Each panel names where it comes from",
   },
-  { icon: Heartbeat, label: "Humanitarian", desc: "Crisis & aid data" },
+  { icon: Heartbeat, label: "Humanitarian", desc: "Aid, human rights & crisis data" },
   {
     icon: Fingerprint,
     label: "Crime Statistics",
