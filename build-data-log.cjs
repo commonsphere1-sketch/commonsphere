@@ -63,6 +63,7 @@ const SETS = [
   { files: ["publicSecurity.ts"], what: "Public security: stability, conflict deaths, terrorism and displacement, by country", from: "World Bank (Worldwide Governance Indicators), UCDP, Global Terrorism Database, UNHCR, IDMC", page: "/dashboard/countries", where: "Countries" },
   { files: ["cityFigures.ts"], what: "Each city's population, land and built-up area, 1975 to 2050", from: "United Nations (World Urbanization Prospects), Wikidata", page: "/dashboard/cities", where: "Cities" },
   { files: ["airQuality.ts"], what: "The air people breathe: PM2.5 exposure by country", from: "World Bank", page: "/dashboard/maps", where: "World maps" },
+  { files: ["commute.ts"], what: "The journey to work: how long it takes, and how people make it", from: "Eurostat, US Census Bureau", page: "/dashboard/cities", where: "Cities" },
   { files: ["climateIndicators.ts"], what: "The measured state of the climate", from: "NOAA, NASA GISS, NSIDC", page: "/dashboard/planetary-boundaries", where: "Climate" },
 ];
 /** Generated files that are indexes of the site's own content - names, places, feeds - not readings of figures. */

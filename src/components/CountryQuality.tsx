@@ -21,6 +21,13 @@
  * as a figure and not drawn against a ceiling made up for it. What a country
  * produces its energy from is a whole, so it is a ring.
  *
+ * Transportation also gives the journey to work where an official series
+ * has it (commute.ts): Eurostat's mean one-way minutes for a European
+ * country and for the people living in its cities, or the Census Bureau's
+ * for the United States - and, for a city there, for the city itself, named
+ * as the city's. How people get to work is a whole, so it is a ring. A
+ * country neither series covers says so and is given no figure.
+ *
  * It is loaded when a window opens, not with the page: the figures it reads
  * are the Countries page's, and large.
  */
@@ -33,6 +40,7 @@ import { COUNTRY_CRIME, CRIME_SOURCE } from "../data/countryCrime";
 import { PUBLIC_SECURITY, PUBLIC_SECURITY_SOURCES } from "../data/publicSecurity";
 import { ECONOMY_INDICATORS, ECONOMY_INDICATORS_SOURCE } from "../data/economyIndicators";
 import { AIR_QUALITY, AIR_QUALITY_SOURCE } from "../data/airQuality";
+import { COMMUTE_EU, COMMUTE_EUROPE, COMMUTE_SOURCES, COMMUTE_US, COMMUTE_US_CITIES, type UsCommute } from "../data/commute";
 import { ChartTitle, PartsDonut, worldFor } from "./ModalCharts";
 import { semanticColor } from "../lib/semanticColors";
 import { SourceLink } from "./SourceLink";
@@ -95,7 +103,20 @@ function QualityRow({ r, color }: { r: Row; /** The panel's colour: its bars are
   );
 }
 
-export default function CountryQuality({ code, country, place }: { /** The country's ISO code. */ code: string; country: string; /** The city whose window this is. */ place: string }) {
+export default function CountryQuality({
+  code,
+  country,
+  place,
+  city,
+}: {
+  /** The country's ISO code. */
+  code: string;
+  country: string;
+  /** The city whose window this is. */
+  place: string;
+  /** The city's id on the Cities page, for the figures held for the city itself. */
+  city?: string;
+}) {
   const id = COUNTRY_OF[code];
   const p = (id && COUNTRY_PANELS[id]) || {};
   const energy = id ? COUNTRY_ENERGY[id] : undefined;
@@ -129,6 +150,45 @@ export default function CountryQuality({ code, country, place }: { /** The count
   const one = (v: number) => n(v, 1);
   const signedPct = (v: number) => `${v > 0 ? "+" : ""}${v}%`;
   const score = { from: 0, to: 100 };
+
+  // The journey to work, from whichever official series covers the country; the two are different measures and each is named.
+  const min = (v: number) => `${v} min`;
+  const eur = COMMUTE_EUROPE[code];
+  const usa = code === "US" ? COMMUTE_US : undefined;
+  const ownCity = city ? COMMUTE_US_CITIES[city] : undefined;
+  if (eur) cite({ label: COMMUTE_SOURCES.eurostat.label, url: COMMUTE_SOURCES.eurostat.url });
+  if (usa || ownCity) cite({ label: COMMUTE_SOURCES.acs.label, url: COMMUTE_SOURCES.acs.url });
+  const eurRow = (label: string, v: number | undefined, eu: number | undefined, who: string): Row[] =>
+    v == null ? [] : [{ label, value: min(v), sub: `${who} · ${COMMUTE_SOURCES.eurostat.year}${eu != null ? ` · European Union ${min(eu)}` : ""}` }];
+  const usRows = (c: UsCommute, own: boolean): Row[] => {
+    const of = own ? `${c.place}: ` : "";
+    const who = `${own ? "the city itself, not the country · " : ""}workers who travel to work · ${COMMUTE_SOURCES.acs.year}`;
+    return [
+      { label: `${of}${own ? "average" : "Average"} journey to work, one way`, value: min(c.minutes), sub: who },
+      { label: `${of}${own ? "journeys" : "Journeys"} to work of an hour or more`, value: pct(c.hourPlusPct), sub: who, bar: barOf(c.hourPlusPct, null, "share") },
+    ];
+  };
+  const commuteRows: Row[] = [
+    ...(eur
+      ? [
+          ...eurRow("Average journey to work, one way", eur.all, COMMUTE_EU.all, "employed people who travel to work"),
+          ...eurRow("Average journey to work, people living in cities", eur.cities, COMMUTE_EU.cities, "one way, cities as Eurostat classes them"),
+          ...eurRow("Average journey to work, people living in towns and suburbs", eur.towns, COMMUTE_EU.towns, "one way"),
+          ...eurRow("Average journey to work, people living in rural areas", eur.rural, COMMUTE_EU.rural, "one way"),
+        ]
+      : []),
+    ...(usa ? usRows(usa, false) : []),
+    ...(ownCity ? usRows(ownCity, true) : []),
+  ];
+  /** How people get to work is a whole: a ring, each way named with its share. */
+  const ways = (c: UsCommute, own: boolean) => (
+    <div className="mt-3" key={c.place}>
+      <ChartTitle>
+        How people {own ? `in ${c.place} ` : ""}get to work · % of workers · {COMMUTE_SOURCES.acs.year}
+      </ChartTitle>
+      <PartsDonut label={`How workers in ${own ? c.place : inSentence(country)} get to work, ${COMMUTE_SOURCES.acs.year}`} parts={c.modes.map(([way, share]) => ({ label: way, value: share, text: `${share}%` }))} />
+    </div>
+  );
 
   // Each panel has a colour that goes with its subject - water blue, energy yellow, safety red - for its mark and its bars.
   const groups: { title: string; icon: ReactNode; color: string; rows: Row[]; extra?: ReactNode }[] = [
@@ -168,7 +228,21 @@ export default function CountryQuality({ code, country, place }: { /** The count
         ...panel("Railway lines", p.railKm, (v) => `${n(v)} km`, "route length"),
         ...panel("Logistics Performance Index", p.logisticsIndex, (v) => `${v}`, "World Bank index, 1 to 5", undefined, { from: 1, to: 5 }),
         ...panel("Electric cars' share of new car sales", p.evSalesShare, pct, "of new cars sold", "evSalesShare", "share"),
+        ...commuteRows,
       ],
+      extra:
+        usa || ownCity ? (
+          <>
+            {usa && ways(usa, false)}
+            {ownCity && ways(ownCity, true)}
+          </>
+        ) : commuteRows.length === 0 ? (
+          // No figure is better than one from a ranking that cannot be reused or checked.
+          <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">
+            The journey to work: no figure is held for {inSentence(country)}. No body publishes it for every country on one footing; the site has Eurostat's for {Object.keys(COMMUTE_EUROPE).length}{" "}
+            European countries and the Census Bureau's for the United States.
+          </p>
+        ) : undefined,
     },
     {
       title: "Crime & safety",

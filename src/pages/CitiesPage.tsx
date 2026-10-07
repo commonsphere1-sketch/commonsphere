@@ -618,7 +618,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
               {/* The headings the windows once had - water, energy, transport, safety, business, the economy - with the
                   country's published figures under them, and said to be the country's. */}
               <Suspense fallback={null}>
-                <CountryQuality code={city.countryCode} country={city.country} place={city.name} />
+                <CountryQuality code={city.countryCode} country={city.country} place={city.name} city={city.id} />
                 {/* The city's universities and colleges, each opening to what it is about and known for. */}
                 <Universities city={city.id} place={city.name} />
               </Suspense>
