@@ -250,11 +250,10 @@ export default function CountryQuality({ code, country, place }: { /** The count
         city by city on one footing, so they are given for the country {place} is in, each from the body that measures it and for its latest year. A bar is on the
         measure's own scale - 0 to 100 for a share or a score - or, where the world's figure is the only yardstick, on the larger of the two; the tick is the world.
       </p>
-      {/* Columns, not a grid: in a grid each panel was stretched to the height of the one beside it, so a panel of one
-          row stood as tall as the energy panel and its ring. Here each is as tall as what is in it. */}
-      <div className="sm:columns-2 gap-3">
+      {/* One column, as asked: each panel the width of the window and as tall as what is in it. */}
+      <div>
         {groups.map((g) => (
-          <div key={g.title} className="modal-tile rounded-xl p-4 min-w-0 mb-3 break-inside-avoid">
+          <div key={g.title} className="modal-tile rounded-xl p-4 min-w-0 mb-3">
             <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/40">
               <span className="shrink-0" style={{ color: g.color }}>
                 {g.icon}

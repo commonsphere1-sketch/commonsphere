@@ -28,7 +28,6 @@ import {
   ArrowsIn,
   ArrowsOut,
   ClockCounterClockwise,
-  Ruler,
   Star,
   X,
 } from "@phosphor-icons/react";
@@ -44,10 +43,10 @@ import {
   ReferenceLine,
 } from "recharts";
 import { citiesData, type City } from "../data/citiesData";
-import { CITY_FIGURES, CITY_FIGURES_SOURCE, CITY_ADMIN_SOURCE, type CityFigures } from "../data/cityFigures";
+import { CITY_FIGURES, CITY_FIGURES_SOURCE, type CityFigures } from "../data/cityFigures";
 import { CITY_YEARS, cityYear, cityFirstYear, cityGrowth, type CityYear } from "../lib/cityFigures";
-import { ArticleLead, ArticlePanel } from "../components/HistoryPanel";
-import { ACCENT, PART_COLORS, ChartNote } from "../components/ModalCharts";
+import { ArticlePanel } from "../components/HistoryPanel";
+import { ACCENT, ChartNote } from "../components/ModalCharts";
 import { useTheme } from "../contexts/ThemeContext";
 import { HeadlinesBanner, namesTag, type Headline, type Shown } from "../components/HeadlinesBanner";
 import { nameMatcher } from "../lib/namesInText";
@@ -70,7 +69,6 @@ const LAST = SRC.lastYear;
 const SINCE = 2000;
 
 const SRC_UN = [{ label: "United Nations, World Urbanization Prospects: The 2025 Revision", url: SRC.url }];
-const SRC_CITY = [...SRC_UN, { label: "Wikidata (population within the city's own boundary)", url: CITY_ADMIN_SOURCE.url }];
 
 const regionColors: Record<string, string> = {
   "North America": TONE.blue,
@@ -332,67 +330,6 @@ function CityTile({ label, value, sub }: { label: string; value: string; sub?: s
   );
 }
 
-/** What the UN's rating of a population figure rests on, in its words' sense: the age and the resolution of the census grid under it. */
-const PLAUSIBILITY: Record<CityFigures["plausibility"], string> = {
-  High: "recent, fine-grained census data under it",
-  Moderate: "older or coarser census data under it",
-  Low: "old or coarse census data under it",
-};
-
-/**
- * The figures the UN gives for the city at four points - where its series
- * starts, 2000, its last estimate and its last projection - a column a year,
- * the projected one washed. The same numbers as the charts, to the figure.
- */
-function ThenAndNow({ row }: { row: Row }) {
-  const first = cityFirstYear(row.city.id) ?? SRC.firstYear;
-  const years = [...new Set([first, SINCE, BASE, LAST])].filter((y) => y >= first).sort((a, b) => a - b);
-  const cols = years.map((y) => cityYear(row.city.id, y));
-  const lines: [string, (c: CityYear) => string][] = [
-    ["Population", (c) => whole(c.population)],
-    ["Land area, km²", (c) => c.area.toLocaleString("en-US", { maximumFractionDigits: 1 })],
-    ["Built-up area, km²", (c) => c.built.toLocaleString("en-US", { maximumFractionDigits: 1 })],
-    ["People per km² of land", (c) => whole(c.density)],
-    ["Built-up area per person, m²", (c) => c.builtPer.toFixed(1)],
-    [`Share of ${row.city.country}'s city population`, (c) => share(c.share)],
-  ];
-  const cell = "px-2 py-1.5 text-[11px] font-mono tabular-nums whitespace-nowrap text-right";
-  return (
-    <div className="modal-tile rounded-lg p-3 overflow-x-auto">
-      <table className="w-full border-collapse">
-        <caption className="sr-only">
-          {row.city.name}: the United Nations' figures for {years.join(", ")}.
-        </caption>
-        <thead>
-          <tr>
-            <td />
-            {years.map((y) => (
-              <th key={y} scope="col" className={`${cell} font-bold text-foreground ${y > BASE ? "bg-secondary/10 rounded-t-md" : ""}`}>
-                {y}
-                {y > BASE && <span className="block text-[8px] font-normal uppercase tracking-widest text-muted-foreground">projected</span>}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {lines.map(([label, fmt]) => (
-            <tr key={label} className="border-t border-border">
-              <th scope="row" className="py-1.5 pr-2 text-left text-[11px] font-sans font-normal text-muted-foreground">
-                {label}
-              </th>
-              {cols.map((c, i) => (
-                <td key={years[i]} className={`${cell} text-foreground ${years[i] > BASE ? "bg-secondary/10" : ""}`}>
-                  {c ? fmt(c) : "—"}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 /** How the city's population moved over each stretch of the series: the change, and the average rate a year it comes to. */
 function GrowthRows({ row }: { row: Row }) {
   const first = cityFirstYear(row.city.id) ?? SRC.firstYear;
@@ -483,7 +420,7 @@ function CityStandings({ row }: { row: Row }) {
 }
 
 function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
-  const [activeTab, setActiveTab] = useState<"overview" | "map" | "land" | "history">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "map" | "history">("overview");
   /* The city's article and where it is. */
   const place = CITY_PLACES[city.id];
   const row = rowOf(city.id);
@@ -597,7 +534,6 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
               [
                 { key: "overview", label: "Overview", icon: <ListBullets size={14} /> },
                 { key: "map", label: "Map", icon: <MapTrifold size={14} /> },
-                { key: "land", label: "Land & growth", icon: <Ruler size={14} /> },
                 { key: "history", label: "History", icon: <ClockCounterClockwise size={14} /> },
               ] as const
             ).map((tab) => (
@@ -617,48 +553,16 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
           {/* Overview Tab */}
           {activeTab === "overview" && (
             <div className="space-y-4">
-              {/* What the city is, in Wikipedia's words. */}
-              {place && (
-                <WindowSection title="📖 About">
-                  <ArticleLead title={place.wiki} name={city.name} />
-                </WindowSection>
-              )}
-
               {row && (
                 <>
-                  {/* The UN's figures, in a sentence. */}
-                  <div className="modal-tile rounded-lg p-4">
-                    <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">In figures</p>
-                    <p className="text-[13px] font-sans text-foreground/90 leading-relaxed">
-                      By the United Nations' count, {city.name} had {whole(row.now.population)} people in {BASE} on {km2(row.now.area)} of land,{" "}
-                      {whole(row.now.density)} to the square kilometre: the {nth(row.f.rank)} largest of the {SRC.cities.toLocaleString("en-US")} cities it
-                      counts, and home to {share(row.now.share)} of the people who live in {city.country}'s cities.
-                      {row.since && ` Its population is ${signed(row.since.pct)} on ${SINCE}.`}
-                      {row.ahead && end && ` The UN projects ${whole(end.population)} people in ${LAST}, ${signed(row.ahead.pct)} on ${BASE}.`}
-                      {row.f.admin &&
-                        ` Inside the boundary its own article describes, ${city.name} had ${whole(row.f.admin.population)} people in ${row.f.admin.year}, as Wikidata records it.`}
-                    </p>
-                    {row.f.un !== city.name && (
-                      <p className="text-[11px] font-sans text-muted-foreground leading-snug mt-2">
-                        The UN's name for the city it draws here is “{row.f.un}”.
-                      </p>
-                    )}
-                  </div>
-
                   <WindowSection
                     title="👥 People & place"
                     note={`A city, to the UN, is contiguous 1 km² cells of at least 1,500 people each, holding 50,000 people or more - one rule for every city, whatever its boundary. That is why its figure and the city's own differ.`}
                   >
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       <CityTile label="Population" value={whole(row.now.population)} sub={`UN estimate, ${BASE}`} />
-                      {row.f.admin && <CityTile label="Within its own boundary" value={whole(row.f.admin.population)} sub={`Wikidata, ${row.f.admin.year}`} />}
-                      <CityTile label="Among the world's cities" value={nth(row.f.rank)} sub={`of ${SRC.cities.toLocaleString("en-US")} by population, ${BASE}`} />
-                      <CityTile label="Share of the country's city population" value={share(row.now.share)} sub={`of the people in ${city.country}'s cities, ${BASE}`} />
-                      <CityTile label={`Projected for ${LAST}`} value={end ? fmtPeople(end.population) : "Not published"} sub={end ? `people, UN projection` : undefined} />
                       <CityTile label="Country" value={city.country} sub={city.region} />
-                      <CityTile label="Capital" value={row.f.capital ? "Yes" : "No"} sub={row.f.capital ? `the capital of ${city.country}, as the UN marks it` : "not a national capital, as the UN marks it"} />
                       {city.languages?.length ? <CityTile label="Languages" value={city.languages.slice(0, 2).join(", ")} sub="the site's own note" /> : null}
-                      <CityTile label="Land area" value={km2(row.now.area)} sub={`as the UN draws the city, ${BASE}`} />
                     </div>
                   </WindowSection>
 
@@ -707,7 +611,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                     </div>
                   </WindowSection>
 
-                  <SourceLink sources={SRC_CITY} className="mb-1" />
+                  <SourceLink sources={SRC_UN} className="mb-1" />
                 </>
               )}
 
@@ -763,81 +667,12 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
               )}
 
               <p className="text-[10px] font-sans text-muted-foreground leading-snug pt-1">
-                Every figure in this window is the United Nations' (World Urbanization Prospects: The 2025 Revision, read {SRC.retrieved}), except the
-                population within the city's own boundary, which is Wikidata's. The lists of languages, landmarks and religions are the site's own notes,
-                not a published count. The description and history are Wikipedia's, fetched as the window opens.
+                Every figure in this window is the United Nations' (World Urbanization Prospects: The 2025 Revision, read {SRC.retrieved}). The lists of
+                languages, landmarks and religions are the site's own notes, not a published count. The history is Wikipedia's, fetched as the window
+                opens.
               </p>
             </div>
           )}
-
-          {/* Land & growth Tab: the land the city covers and builds on, and how it has grown. It filled the overview; it has a tab of its own. */}
-          {activeTab === "land" &&
-            (row ? (
-              <div className="space-y-4">
-                <WindowSection title="📐 Land" note="The land the city covers as the UN draws it, and the ground under buildings within it.">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <CityTile label="Land area" value={km2(row.now.area)} sub={`as the UN draws the city, ${BASE}`} />
-                    <CityTile label="Density" value={perKm2(row.now.density)} sub={`people per km² of land, ${BASE}`} />
-                    <CityTile label="Built-up area" value={km2(row.now.built)} sub={`ground under buildings, ${BASE}`} />
-                    <CityTile label="Built-up area per person" value={m2(row.now.builtPer)} sub={`${BASE}`} />
-                    <CityTile label="How sure the UN is" value={row.f.plausibility} sub={`its rating of the population figure: ${PLAUSIBILITY[row.f.plausibility]}`} />
-                  </div>
-                </WindowSection>
-                  <WindowSection
-                    title="🏙️ Land and built-up area"
-                    note="The land the city covers as the UN draws it each year, and the ground under buildings within it, in square kilometres on one axis."
-                  >
-                    <div className="modal-tile rounded-lg p-4">
-                      <Legend
-                        items={[
-                          { color: PART_COLORS[1], label: `Land area, ${BASE}`, value: km2(row.now.area) },
-                          { color: PART_COLORS[0], label: `Built-up area, ${BASE}`, value: km2(row.now.built) },
-                        ]}
-                      />
-                      <SeriesChart
-                        lines={[
-                          { key: "area", label: "Land area", color: PART_COLORS[1], values: row.f.area },
-                          { key: "built", label: "Built-up area", color: PART_COLORS[0], values: row.f.built },
-                        ]}
-                        fmt={km2}
-                        tick={(v) => whole(v)}
-                        height={180}
-                        label={`Land area and built-up area of ${city.name}, ${first} to ${LAST}, in square kilometres.`}
-                      />
-                    </div>
-                  </WindowSection>
-
-                  <WindowSection title="🗓️ Then and now" note="The same series at four points, to the figure.">
-                    <ThenAndNow row={row} />
-                  </WindowSection>
-
-                  <WindowSection
-                    title={`🌐 ${city.name} in ${city.country}`}
-                    note={`Of the people the UN counts in ${city.country}'s cities, the share who live in this one.`}
-                  >
-                    <div className="modal-tile rounded-lg p-4">
-                      <Legend
-                        items={[
-                          ...(then ? [{ color: ACCENT, label: String(first), value: share(then.share) }] : []),
-                          { color: ACCENT, label: String(BASE), value: share(row.now.share) },
-                          ...(end ? [{ color: ACCENT, label: `${LAST}, projected`, value: share(end.share) }] : []),
-                        ]}
-                      />
-                      <SeriesChart
-                        lines={[{ key: "share", label: `Share of ${city.country}'s city population`, color: ACCENT, values: row.f.share }]}
-                        fmt={share}
-                        tick={(v) => `${v}%`}
-                        height={160}
-                        label={`${city.name}'s share of the people living in ${city.country}'s cities, ${first} to ${LAST}.`}
-                      />
-                    </div>
-                  </WindowSection>
-
-                <SourceLink sources={SRC_CITY} className="mb-1" />
-              </div>
-            ) : (
-              <p className="text-xs font-sans text-muted-foreground py-6 text-center">The United Nations publishes no land figures for {city.name}.</p>
-            ))}
 
           {/* Map Tab */}
           {activeTab === "map" && (
