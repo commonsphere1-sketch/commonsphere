@@ -214,6 +214,45 @@ const SECTORS: Sector[] = [
   ...world("oilProduction", "Oil", "world oil production", "#64748b", twh),
 ];
 
+/**
+ * Why each sector's figure matters and what it is used for: the site's own two lines under the row, written to what the
+ * series measures. They explain; they carry no figure of their own.
+ */
+const SECTOR_MEANING: Record<string, { why: string; use: string }> = {
+  Defence: {
+    why: "What governments commit to their armed forces: money every other public service competes with, and a sign of how states read their own security.",
+    use: "Set a country's spending against its GDP on its page to see who is behind a rise. Budget offices, arms makers and diplomats all read it.",
+  },
+  Renewables: {
+    why: "The electricity the world gets from water, wind, sun and biomass: how far power has moved off coal and gas.",
+    use: "Against total generation it gives the renewable share. It sizes the market for panels, turbines, grids and storage, and for the minerals they need.",
+  },
+  Semiconductors: {
+    why: "Chips run phones, cars, data centres and weapons. The largest contract chipmaker's sales show how many of them the world is ordering.",
+    use: "One company, not the whole industry: an early signal of demand for computing, and a reminder of how much production sits with a single firm.",
+  },
+  AI: {
+    why: "Money that funds and companies put into privately held AI firms: where investors expect the next products and profits to come from.",
+    use: "Investment is a bet, not output. It shows where skills and computing will be in demand; set it beside research and adoption before reading it as growth.",
+  },
+  Manufacturing: {
+    why: "The value factories add to the materials they buy: the size of the world's industrial base, and of the trade in goods that rests on it.",
+    use: "It is in current dollars, so prices and exchange rates move it as well as output. Use it to weigh one country's share of world industry.",
+  },
+  "Industrial robots": {
+    why: "How many new robots factories put to work in a year: the pace at which production is being automated.",
+    use: "A count of machines, not of jobs. Read it with manufacturing output and employment to see whether factories are making more with fewer people.",
+  },
+  "Developing-country debt": {
+    why: "What low- and middle-income countries owe to lenders abroad. Repaying it takes foreign currency that could otherwise pay for imports, schools and health.",
+    use: "Compare a country's debt with its income, exports and reserves on its page to judge whether it can carry it, as lenders and aid donors do.",
+  },
+  Oil: {
+    why: "Oil fuels road, air and sea transport and is the feedstock of plastics and chemicals. How much is produced bears on fuel prices and on exporters' income.",
+    use: "Read it beside renewables to see whether new energy is replacing oil or adding to it. Changes in output feed through to prices at the pump.",
+  },
+};
+
 /** Each sector's latest year against the year before, and against ten years before where its series reaches that far. */
 const SECTOR_ROWS = SECTORS.flatMap((s) => {
   const [year, now] = s.series[s.series.length - 1] ?? [];
@@ -232,7 +271,7 @@ export function SectorOutlook() {
       <Head t={t} icon={<ChartLineUp size={14} weight="fill" />} label="Sector Outlook" badge="latest year" color={color} cta="Full Trends" to="/dashboard/trends" />
       <p className="text-[10px] font-sans leading-snug -mt-2 mb-2" style={{ color: t.mutedText }}>
         What each sector's published series did: its latest year's figure, the year before's, the change between them and on ten years before, and the series itself - what
-        happened, not a forecast.
+        happened, not a forecast. Under each, why the figure matters and what it is used for.
       </p>
 
       {/* Sector rows: the figure and its change above, the series and the years it is set against below. */}
@@ -296,6 +335,18 @@ export function SectorOutlook() {
                   </span>
                 </span>
               </div>
+              {SECTOR_MEANING[s.sector] && (
+                <p className="text-[10px] font-sans leading-snug mt-1.5 pl-3.5" style={{ color: t.bodyText }}>
+                  <span className="font-semibold" style={{ color: s.color }}>
+                    Why it matters
+                  </span>{" "}
+                  {SECTOR_MEANING[s.sector].why}{" "}
+                  <span className="font-semibold" style={{ color: s.color }}>
+                    In practice
+                  </span>{" "}
+                  {SECTOR_MEANING[s.sector].use}
+                </p>
+              )}
             </div>
           );
         })}
@@ -305,7 +356,7 @@ export function SectorOutlook() {
         A change is worked out from the publisher's two figures: beside a sector, its latest year on the year before; under it, the year before's figure and the figure
         ten years before with the change since. The line is the series from its first year. The sectors are measured in different things - dollars, terawatt-hours,
         robots - so the rates set them in order and nothing more. No body publishes a twelve-month outlook by sector; the projections that are published are on the
-        Trends page.
+        Trends page. "Why it matters" and "In practice" are the site's own explanation of what each series measures, not the publisher's words, and add no figure.
       </p>
       <SourceLink sources={sources} className="mt-1" />
     </Card>
