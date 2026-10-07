@@ -54,6 +54,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "The heads of regions and municipalities that three records agree on, with where each place is",
+    "from": "Wikidata, Wikipedia",
+    "page": "/dashboard/maps",
+    "where": "World maps",
+    "read": "2026-10-07",
+    "files": 1
+  },
+  {
     "what": "The universities and colleges of each city and country",
     "from": "Wikidata",
     "page": "/dashboard/cities",
@@ -256,4 +264,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 50;
+export const DATA_LOG_FILES = 51;

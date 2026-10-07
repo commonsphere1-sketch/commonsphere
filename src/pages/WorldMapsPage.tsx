@@ -1,7 +1,7 @@
 import { na, has, orZero } from "../lib/na";
 import { LAND_USE, LAND_USE_SOURCE } from "@/data/landUse";
 import { usdFromBillions } from "../lib/money";
-import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import React, { lazy, Suspense, useMemo, useState, useEffect, useCallback, useRef } from "react";
 import {
   geoEqualEarth,
   geoAlbersUsa,
@@ -58,6 +58,8 @@ import {
   pm25Band,
 } from "../data/airQuality";
 import { StyledSelect } from "../components/StyledSelect";
+/** Who leads the world's regions and municipalities, with the places it maps: loaded after the page, which does not wait for it. */
+const RepresentativesExplorer = lazy(() => import("../components/RepresentativesExplorer"));
 import { citiesData } from "../data/citiesData";
 import { CITY_PLACES } from "../data/cityPlaces";
 import { CITY_FIGURES, CITY_FIGURES_SOURCE } from "../data/cityFigures";
@@ -3354,6 +3356,11 @@ export function WorldMapsPage() {
             </p>
           </div>
         </div>
+
+        {/* ── Who leads the regions and municipalities: an explorer, with its own map ── */}
+        <Suspense fallback={<p className="text-xs font-sans text-muted-foreground mb-6">Loading the regions and municipalities…</p>}>
+          <RepresentativesExplorer />
+        </Suspense>
 
         {/* ── World map ── */}
         <div
