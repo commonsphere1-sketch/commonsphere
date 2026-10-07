@@ -26,7 +26,7 @@ import { DataExplorer } from "../components/DataExplorer";
 import { DashboardDrops } from "../components/DashboardDrops";
 import { hdiHex } from "../lib/hdiTier";
 import { CommodityMovers } from "../components/CommodityMovers";
-import { ConflictFigures } from "../components/ConflictFigures";
+import { InternationalSection, NationalSection } from "../components/DashboardScopes";
 
 /** The Trends & Projections desk, with the projections it draws on: loaded after the page. */
 const ProjectionsDesk = lazy(() => import("../components/ProjectionsDesk"));
@@ -3275,19 +3275,19 @@ export function DashboardPage() {
               </div>
             </div>
 
-            {/* The four drop-down cards, back under the states: industries, funding, alliances, research.
-                They open on published series now; what they held was typed in. */}
-            <DashboardDrops />
           </div>
 
           <div className="flex flex-col gap-4">
-            {/* The world's published counts of conflict and displacement. A box of "intensity" scores stood here. */}
-            <ConflictFigures />
-
             {/* Published commodity prices, each with its change on the year.
                 A "Sector Outlook" of typed-in outlooks and confidences stood here. */}
             <CommodityMovers />
           </div>
+        </div>
+
+        {/* The four drop-down cards - industries, funding, alliances, research - each the full width of the page.
+            They open on published series; what they held was typed in. */}
+        <div className="flex flex-col gap-4">
+          <DashboardDrops />
         </div>
 
         {/* ── US STATES CAROUSEL ────────────────────────────────────────── */}
@@ -3300,6 +3300,10 @@ export function DashboardPage() {
           gridLine={gridLine}
           onNav={navigate}
         />
+
+        {/* ── NATIONAL, then INTERNATIONAL: back where they stood, on live headlines and published figures ── */}
+        <NationalSection />
+        <InternationalSection />
 
         {/* ── FOOTER ────────────────────────────────────────────────────── */}
         <div className="text-center py-3 flex flex-col items-center gap-1">

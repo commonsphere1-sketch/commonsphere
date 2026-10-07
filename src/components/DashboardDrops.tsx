@@ -157,7 +157,7 @@ function Industries({ t, accent }: { t: Tokens; accent: string }) {
   const top = Math.max(...rows.map((r) => r.growth), 1);
   return (
     <>
-      <ul className="flex flex-col gap-3">
+      <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-3">
         {rows.map((r) => (
           <li key={r.name}>
             <div className="flex items-baseline justify-between gap-3">
@@ -204,7 +204,7 @@ function Funding({ t, accent }: { t: Tokens; accent: string }) {
       <p className="text-[9px] font-mono uppercase tracking-widest mb-2" style={{ color: t.mutedText }}>
         Private investment in AI · {p.year} · {bn(p.world)} in the world{before ? `, from ${bn(before.world)} in ${before.year}` : ""}
       </p>
-      <ul className="flex flex-col gap-2.5">
+      <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-2.5">
         {places.map((r) => (
           <li key={r.name}>
             <div className="flex items-baseline justify-between gap-3">
@@ -263,7 +263,7 @@ function Alliances({ t, accent }: { t: Tokens; accent: string }) {
   const shown = all ? mine : mine.slice(0, 6);
   return (
     <>
-      <ul className="flex flex-col">
+      <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
         {shown.map((a) => (
           <li key={a.id} className="py-2" style={{ borderBottom: `1px solid ${t.gridLine}` }}>
             <div className="flex items-baseline justify-between gap-3">
@@ -358,7 +358,7 @@ function Research({ t }: { t: Tokens }) {
       <p className="text-[9px] font-mono uppercase tracking-widest mb-1" style={{ color: t.mutedText }}>
         What research has delivered · then and now
       </p>
-      <ul className="flex flex-col">
+      <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
         {DELIVERED.map((r) => (
           <ThenRow key={r.name} t={t} r={r} />
         ))}
@@ -366,7 +366,7 @@ function Research({ t }: { t: Tokens }) {
       <p className="text-[9px] font-mono uppercase tracking-widest mt-4 mb-1" style={{ color: t.mutedText }}>
         What the world puts into it
       </p>
-      <ul className="flex flex-col">
+      <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
         {PUT_IN.map((r) => (
           <ThenRow key={r.name} t={t} r={r} />
         ))}
