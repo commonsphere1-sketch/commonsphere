@@ -17,8 +17,8 @@
  *                     NOAA, NASA, NSIDC), and where each of the nine
  *                     planetary boundaries stands (planetaryBoundaries.ts:
  *                     the Planetary Health Check).
- *   Aid & human       world series from worldview.ts: the people displaced,
- *     rights          hungry and poor, and V-Dem's measures of liberty.
+ *   Human rights      world series from worldview.ts: V-Dem's measures of
+ *     & aid           liberty first, then the people displaced, hungry and poor.
  *   How the world     world series from worldview.ts: life, schooling and
  *     lives           the services people have.
  *
@@ -154,26 +154,26 @@ function SignalsCard({ icon, label, badge, color, cta, to, intro, signals, note 
 const CHANGE_NOTE =
   "The figure is the world's for its latest year; the change is on the year before - a rate in points, anything else as a percentage - and is green where the series moved the way that is better, red where it moved the other. The line is the whole series between its own lowest and highest: its shape, not its size.";
 
-/** The world's people in need, and the liberties they have: the Aid & Human Rights page's subjects. */
+/** The liberties the world's people have, and the people in need: the Human Rights page's subjects, in its order. */
 export function AidAndRights() {
   return (
     <SignalsCard
       icon={<HandHeart size={16} weight="fill" />}
-      label="Aid & human rights"
+      label="Human rights & aid"
       badge="world figures"
       color="#f43f5e"
-      cta="Aid & Human Rights"
+      cta="Human Rights"
       to="/dashboard/humanitarian"
-      intro="The people displaced, hungry and poor, and how free the world's people are - each as its publisher counts it."
+      intro="How free the world's people are, and the people displaced, hungry and poor - each as its publisher counts it."
       signals={[
+        { id: "civilLiberties", color: "#14b8a6" },
+        { id: "freeExpression", color: "#6366f1" },
+        { id: "womenParliament", color: "#ec4899" },
         { id: "displaced", color: "#7c3aed" },
         { id: "disasterDisplacement", color: "#0ea5e9" },
         { id: "undernourished", color: "#f59e0b" },
         { id: "foodInsecure", color: "#f97316" },
         { id: "extremePoverty", color: "#ef4444" },
-        { id: "civilLiberties", color: "#14b8a6" },
-        { id: "freeExpression", color: "#6366f1" },
-        { id: "womenParliament", color: "#ec4899" },
       ]}
       note={`${CHANGE_NOTE} The two liberty measures are V-Dem's indices, from 0 to 1, weighted by where people live.`}
     />

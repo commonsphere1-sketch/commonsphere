@@ -1,9 +1,15 @@
 /**
- * Humanitarian aid and human rights: the aid that is asked for and given,
- * how far people's rights are kept, and the need behind both - conflict and
- * disaster, displacement, hunger, health and water - as a hero, a row of
- * headline tiles, and a section each, in the same card, tile and chart
- * language as the Worldview page. Aid and rights lead; the need follows.
+ * Human rights, with a short humanitarian section, in the same card, tile
+ * and chart language as the Worldview page.
+ *
+ * It was a humanitarian page with a rights section, and was turned round as
+ * asked. It opens on how far people are free - their liberties, the checks
+ * on those who govern them, the kind of government they live under, and the
+ * bodies that watch over their rights - and closes on the need and the aid:
+ * the crises under way and a card for each kind of figure. The long
+ * humanitarian sections - aid and donors, conflict and disaster,
+ * displacement, food, health - are folded away under that short one and
+ * open with a press, so nothing the page held was lost.
  *
  * The rights figures are V-Dem's indices in worldview.ts (civil liberties and
  * their parts, expression, association, women's liberties, equality before
@@ -721,6 +727,37 @@ function YearFold({ title, latest, order, onOrder, children, note }: { title: st
   );
 }
 
+/**
+ * The long humanitarian sections, folded away under the short one. Closed, the page stays a page about rights;
+ * a press opens every chart and list the humanitarian page held.
+ */
+function FullFold({ title, children }: { title: string; children: ReactNode }) {
+  const { head, isLight } = useLook();
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  return (
+    <div>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={open ? id : undefined}
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 text-left cursor-pointer max-w-full rounded-full pl-3 pr-1.5 py-1 transition-opacity hover:opacity-80"
+        style={{ color: head, background: isLight ? "rgba(15,23,42,0.06)" : "rgba(255,255,255,0.09)", border: isLight ? "1px solid rgba(15,23,42,0.28)" : "1px solid rgba(255,255,255,0.32)" }}
+      >
+        <CaretDown size={11} weight="bold" className={`shrink-0 transition-transform ${open ? "" : "-rotate-90"}`} aria-hidden />
+        <span className="text-[10px] font-mono uppercase tracking-widest min-w-0">{title}</span>
+        <span className="text-[10px] font-sans font-bold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground shrink-0">{open ? "Hide" : "Show"}</span>
+      </button>
+      {open && (
+        <div id={id} className="flex flex-col gap-6 mt-6">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const usdShort = (v: number) => (v >= 1e9 ? `$${(v / 1e9).toFixed(v >= 1e10 ? 0 : 1)}bn` : `$${Math.round(v / 1e6)}m`);
 /** The colour of a disaster's kind, by the first kind the list gives it. */
 const KIND_COLOR: [RegExp, string][] = [
@@ -932,13 +969,11 @@ function AidChart() {
 // ── Page ───────────────────────────────────────────────────────────────────
 
 const SECTIONS: NavSection[] = [
-  { id: "overview", label: "Overview" },
-  { id: "aid", label: "Aid & donors" },
   { id: "rights", label: "Human rights" },
-  { id: "conflict", label: "Conflict & disaster" },
-  { id: "displacement", label: "Displacement" },
-  { id: "food", label: "Food & hunger" },
-  { id: "health", label: "Health & water" },
+  { id: "liberties", label: "Liberties" },
+  { id: "government", label: "Government" },
+  { id: "bodies", label: "Rights bodies" },
+  { id: "humanitarian", label: "Humanitarian" },
 ];
 
 /** The human rights bodies the site holds, each with its own count and its own account of itself. */
@@ -1012,8 +1047,6 @@ export function HumanitarianPage() {
     ];
   }, []);
 
-  const [dy, dv] = lastOf(WORLD.displaced.series);
-  const peak = WORLD.displaced.series.reduce((a, b) => (b[1] > a[1] ? b : a));
 
   const childRows: BarRow[] = CHILD_MORTALITY_COUNTRIES.map(([name, code]) => {
     const f = COUNTRY_FIGURES.childMortality[code];
@@ -1058,12 +1091,17 @@ export function HumanitarianPage() {
     worldStat("equalityBeforeLaw", "Equality before the law", "V-Dem", "Whether laws are clear and enforced alike for all, administration is impartial and people can reach justice.", true),
     worldStat("ruleOfLaw", "Rule of law", "V-Dem", "How far government keeps to the law, the courts are independent and officials are impartial and not corrupt.", true),
     worldStat("academicFreedom", "Academic freedom", "V-Dem", "Freedom to research, teach and exchange ideas, and the independence of universities.", true),
+    worldStat("judicialConstraints", "Courts' check on the executive", "V-Dem", "How far the executive respects the constitution and obeys the courts, and the courts are independent.", true),
+    worldStat("legislativeConstraints", "Legislature's check on the executive", "V-Dem", "How far the legislature, the opposition included, questions, oversees and investigates the executive.", true),
     worldStat("closedAutocracyShare", "Living in a closed autocracy", "V-Dem", "People in countries with no multiparty elections for the chief executive or the legislature.", false),
   ];
   // The world's people by the kind of government they live under, as V-Dem classes it; each share is of those it classifies.
   const regimeParts = WORLD.democracyShare.breakdown ?? [];
   const classified = regimeParts.reduce((t, [, v]) => t + v, 0);
   const regimeRows: BarRow[] = regimeParts.map(([label, v]) => ({ key: label, name: label, value: v, text: millions(v), note: `${((100 * v) / classified).toFixed(1)}% of the people classified` }));
+  // The people V-Dem classes as living under an autocracy, electoral or closed: its two counts, added together here for the page's opening figure.
+  const autocratic = regimeParts.filter(([label]) => /autocracy/i.test(label)).reduce((t, [, v]) => t + v, 0);
+  const closed = regimeParts.find(([label]) => /closed/i.test(label))?.[1];
   // The figures by category: a card each in place of the rows of figure cards, with a window behind it.
   const pick = (...keys: string[]) => keys.map((k) => stats.find((x) => x.key === k)).filter((x): x is Stat => !!x);
   const category = (key: keyof typeof TONE, title: string, kicker: string, icon: ReactNode, list: Stat[]): StatCategoryData => ({
@@ -1110,90 +1148,54 @@ export function HumanitarianPage() {
           <div className="relative px-5 py-6 flex flex-col lg:flex-row lg:items-center gap-6 justify-between">
             <div className="max-w-xl">
               <p className="text-[10px] font-mono uppercase tracking-widest mb-1" style={{ color: muted }}>
-                CommonSphere · Humanitarian aid & human rights
+                CommonSphere · Human rights
               </p>
               <h1 className="text-2xl sm:text-3xl font-bold font-sans" style={{ color: head }}>
-                Humanitarian Aid & Human Rights
+                Human Rights
               </h1>
               <p className="text-sm font-sans mt-1.5" style={{ color: muted }}>
-                The aid that is asked for and given, and by whom. How far people are free from torture and political killing, and free to
-                speak, to organise and to live as they choose. And the need behind both: who has been forced from home, who goes hungry,
-                how many children do not reach five, who lacks safe water and care. Each figure with its source and its year.
+                How far people are free from torture and political killing, and free to speak, to organise and to live as they choose.
+                The courts and parliaments that can check those who govern them, the kind of government they live under, and the bodies
+                that watch over their rights. Then, in short, the need and the aid: the crises under way, who has been forced from home
+                and who goes hungry. Each figure with its source and its year.
               </p>
               <p className="text-[11px] font-sans mt-2" style={{ color: muted }}>
-                UN OCHA · OECD · V-Dem · UNHCR · FAO · UNICEF · WHO · World Bank · UCDP · EM-DAT · IDMC · figures retrieved {WORLDVIEW_RETRIEVED}
+                V-Dem · the UN's and the regions' human rights bodies · UN OCHA · OECD · UNHCR · FAO · WHO · figures retrieved {WORLDVIEW_RETRIEVED}
               </p>
             </div>
-            <div className="lg:text-right">
-              <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: muted }}>
-                People forcibly displaced · UNHCR · {dy}
-              </p>
-              <p className="text-4xl sm:text-5xl font-bold font-mono leading-none mt-1" style={{ color: head }}>
-                {Math.round(dv).toLocaleString("en-US")}
-              </p>
-              <p className="mt-2 text-[11px] font-sans max-w-sm lg:ml-auto" style={{ color: muted }}>
-                {peak[0] === dy ? `The most of any year since ${WORLD.displaced.series[0][0]}.` : `Down from ${millions(peak[1])} in ${peak[0]}, the most on record here.`}{" "}
-                About one in every {Math.round(lastOf(WORLD.population.series)[1] / dv)} people alive.
-              </p>
-            </div>
+            {autocratic > 0 && (
+              <div className="lg:text-right">
+                <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: muted }}>
+                  People living under an autocracy · V-Dem · {WORLD.democracyShare.breakdownYear}
+                </p>
+                <p className="text-4xl sm:text-5xl font-bold font-mono leading-none mt-1" style={{ color: head }}>
+                  {millions(autocratic)}
+                </p>
+                <p className="mt-2 text-[11px] font-sans max-w-sm lg:ml-auto" style={{ color: muted }}>
+                  {((100 * autocratic) / classified).toFixed(1)}% of the people V-Dem classifies: its counts for electoral and closed autocracies, added together here
+                  {closed ? `. ${millions(closed)} of them live in a closed autocracy, with no multiparty elections` : ""}.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
-        <SectionNav label="Humanitarian sections" sections={SECTIONS} />
+        <SectionNav label="Human rights sections" sections={SECTIONS} />
 
         {/* ── Humanitarian headlines: the agencies' newsrooms and crisis desks ── */}
         <HeadlinesBanner
-          label="Humanitarian and human rights headlines"
+          label="Human rights and humanitarian headlines"
           topics={["humanitarian"]}
           subject={SUBJECT.humanitarian}
           days={7}
           note={(outlets) => (
             <>
-              The last week's humanitarian and human rights news from aid agencies' own newsrooms and the outlets that cover crises -{" "}
+              The last week's human rights and humanitarian news from aid agencies' own newsrooms and the outlets that cover crises -{" "}
               {outlets}, five at most from each - refreshed every half hour. The tag is the place a story is about, violet for more than
               one. Each links to its source.
             </>
           )}
         />
-
-        {/* ══ Overview ══ */}
-        <section id="overview" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="overview-title">
-          <SectionHead icon={<HandHeart size={18} weight="fill" />} color="#10b981" title="At a glance" kicker="The crises under way; each section below opens with its own figures" />
-          <h2 id="overview-title" className="sr-only">
-            Overview
-          </h2>
-
-          <Card>
-            <CardHead title="Active humanitarian crises" kicker="People in need, millions · UN OCHA, Global Humanitarian Overview 2024" />
-            <BarList
-              label="People in need by crisis"
-              rows={[...ACTIVE_CRISES]
-                .sort((a, b) => b.inNeed - a.inNeed)
-                .map((c) => ({ key: c.name, name: c.name, code: c.code, value: c.inNeed, text: `${c.inNeed.toFixed(1)}M`, note: `${c.severity} · ${c.kind}` }))}
-            />
-            <p className="flex items-center gap-1.5 text-[10px] font-sans mt-3" style={{ color: muted }}>
-              <Warning size={11} weight="fill" aria-hidden />
-              OCHA rates {ACTIVE_CRISES.filter((c) => c.severity === "Critical").length} of these critical and the rest serious; together
-              they count {ACTIVE_CRISES.reduce((t, c) => t + c.inNeed, 0).toFixed(1)} million people in need.
-            </p>
-            <SourceLink sources={[SRC.ocha]} className="mt-3" />
-          </Card>
-        </section>
-
-        {/* ══ Aid & donors ══ */}
-        <section id="aid" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="aid-title">
-          <SectionHead icon={<HandHeart size={18} weight="fill" />} color={TONE.aid} title="Aid & donors" kicker="What is asked for, what is given, and by whom" />
-          <h2 id="aid-title" className="sr-only">
-            Aid and donors
-          </h2>
-          <StatCategoryCard wide c={CATEGORY.aid} />
-          <Card>
-            <CardHead title="Humanitarian appeals: asked for and funded" kicker={`US$ billions · UN OCHA Financial Tracking Service · ${AID_FUNDING[0].year}–${AID_FUNDING[AID_FUNDING.length - 1].year}`} />
-            <AidChart />
-            <SourceLink sources={[SRC.fts]} className="mt-3" />
-          </Card>
-          <DonorAidCard />
-        </section>
 
         {/* ══ Human rights ══ */}
         <section id="rights" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="rights-title">
@@ -1207,7 +1209,7 @@ export function HumanitarianPage() {
             Human rights
           </h2>
           <StatCategoryCard wide c={CATEGORY.rights} />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div id="liberties" className="scroll-mt-36 grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHead title="Civil liberties and their three parts" kicker={`Index, 0 to 1 · V-Dem · ${span("civilLiberties")}`} />
               <IndexChart
@@ -1254,6 +1256,22 @@ export function HumanitarianPage() {
               </p>
               <SourceLink sources={[WORLD.womenCivilLiberties.source, WORLD.equalityBeforeLaw.source, WORLD.ruleOfLaw.source]} className="mt-3" />
             </Card>
+            <Card>
+              <CardHead title="The checks on those who govern" kicker={`Index, 0 to 1 · V-Dem · ${span("judicialConstraints")}`} />
+              <IndexChart
+                label="How far the courts and the legislature check the executive"
+                lines={[
+                  ["judicialConstraints", "Courts' check on the executive", "#f97316"],
+                  ["legislativeConstraints", "Legislature's check on the executive", "#0ea5e9"],
+                ]}
+              />
+              <p className="text-[10px] font-sans leading-relaxed mt-3" style={{ color: muted }}>
+                {WORLD.judicialConstraints.note}
+              </p>
+              <SourceLink sources={[WORLD.judicialConstraints.source, WORLD.legislativeConstraints.source]} className="mt-3" />
+            </Card>
+          </div>
+          <div id="government" className="scroll-mt-36">
             {regimeRows.length > 0 && (
               <Card>
                 <CardHead title="Who lives under what kind of government" kicker={`People · V-Dem Regimes of the World · ${WORLD.democracyShare.breakdownYear}`} />
@@ -1265,6 +1283,7 @@ export function HumanitarianPage() {
               </Card>
             )}
           </div>
+          <div id="bodies" className="scroll-mt-36">
           <Card>
             <CardHead title="The bodies that watch over human rights" kicker={`States, as each body counts its own · checked ${HUMAN_RIGHTS_CHECKED}`} />
             <div className="flex flex-col">
@@ -1334,15 +1353,64 @@ export function HumanitarianPage() {
               ))}
             </div>
           </Card>
+          </div>
+        </section>
+
+        {/* ══ Humanitarian: the short section. The crises under way and a card for each kind of figure; the long
+            sections the page was made of are folded away under it. ══ */}
+        <section id="humanitarian" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="humanitarian-title">
+          <SectionHead icon={<HandHeart size={18} weight="fill" />} color={TONE.overview} title="Humanitarian need and aid" kicker="In short: the crises under way, and a card for each kind of figure" />
+          <h2 id="humanitarian-title" className="sr-only">
+            Humanitarian need and aid
+          </h2>
+
+          <Card>
+            <CardHead title="Active humanitarian crises" kicker="People in need, millions · UN OCHA, Global Humanitarian Overview 2024" />
+            <BarList
+              label="People in need by crisis"
+              rows={[...ACTIVE_CRISES]
+                .sort((a, b) => b.inNeed - a.inNeed)
+                .map((c) => ({ key: c.name, name: c.name, code: c.code, value: c.inNeed, text: `${c.inNeed.toFixed(1)}M`, note: `${c.severity} · ${c.kind}` }))}
+            />
+            <p className="flex items-center gap-1.5 text-[10px] font-sans mt-3" style={{ color: muted }}>
+              <Warning size={11} weight="fill" aria-hidden />
+              OCHA rates {ACTIVE_CRISES.filter((c) => c.severity === "Critical").length} of these critical and the rest serious; together
+              they count {ACTIVE_CRISES.reduce((t, c) => t + c.inNeed, 0).toFixed(1)} million people in need.
+            </p>
+            <SourceLink sources={[SRC.ocha]} className="mt-3" />
+          </Card>
+
+          {/* As many to a row as there is room for, each growing to fill it, so five cards leave no gap in the last row. */}
+          <div className="flex flex-wrap gap-4">
+            {[CATEGORY.aid, CATEGORY.conflict, CATEGORY.displacement, CATEGORY.food, CATEGORY.health].map((c) => (
+              <div key={c.key} className="flex-[1_1_17rem] min-w-0">
+                <StatCategoryCard c={c} lead={4} />
+              </div>
+            ))}
+          </div>
+
+          <FullFold title="The humanitarian figures in full · aid, conflict and disaster, displacement, food, health">
+        {/* ══ Aid & donors ══ */}
+        <section id="aid" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="aid-title">
+          <SectionHead icon={<HandHeart size={18} weight="fill" />} color={TONE.aid} title="Aid & donors" kicker="What is asked for, what is given, and by whom" />
+          <h2 id="aid-title" className="sr-only">
+            Aid and donors
+          </h2>
+          <Card>
+            <CardHead title="Humanitarian appeals: asked for and funded" kicker={`US$ billions · UN OCHA Financial Tracking Service · ${AID_FUNDING[0].year}–${AID_FUNDING[AID_FUNDING.length - 1].year}`} />
+            <AidChart />
+            <SourceLink sources={[SRC.fts]} className="mt-3" />
+          </Card>
+          <DonorAidCard />
         </section>
 
         {/* ══ Conflict & disaster ══ */}
+
         <section id="conflict" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="conflict-title">
           <SectionHead icon={<Warning size={18} weight="fill" />} color="#ef4444" title="Conflict & disaster" kicker="What drives people from home and into need: wars, and floods, storms and earthquakes" />
           <h2 id="conflict-title" className="sr-only">
             Conflict and disaster
           </h2>
-          <StatCategoryCard wide c={CATEGORY.conflict} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHead title="Armed conflicts, year by year" kicker={`Conflicts involving a state · Uppsala Conflict Data Program · ${span("conflicts")}`} />
@@ -1474,7 +1542,6 @@ export function HumanitarianPage() {
           <h2 id="displacement-title" className="sr-only">
             Displacement
           </h2>
-          <StatCategoryCard wide c={CATEGORY.displacement} />
           <Card>
             <CardHead
               title="The forcibly displaced, year by year"
@@ -1518,7 +1585,6 @@ export function HumanitarianPage() {
               </p>
               <SourceLink sources={[WORLD.undernourished.source, WORLD.foodInsecure.source]} className="mt-3" />
           </Card>
-          <StatCategoryCard wide c={CATEGORY.food} />
           <Card>
             <CardHead title="Hunger by region" kicker="Share of each region's people undernourished · FAO, 2023" />
             <BarList label="Undernourishment by region" rows={HUNGER_REGIONS.map(([region, pct]) => ({ key: region, name: region, value: pct, text: `${pct.toFixed(1)}%` }))} />
@@ -1544,7 +1610,6 @@ export function HumanitarianPage() {
               <SourceLink sources={[COUNTRY_FIGURE_SOURCES.childMortality]} className="mt-4" />
             </Card>
           </div>
-          <StatCategoryCard wide c={CATEGORY.health} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHead title="Safely managed drinking water, worldwide" kicker={`Share of people · WHO/UNICEF · ${WORLD.water.series[0][0]}–${lastOf(WORLD.water.series)[0]}`} />
@@ -1563,6 +1628,9 @@ export function HumanitarianPage() {
             <SourceLink sources={[SRC.gho]} className="mt-4" />
           </Card>
         </section>
+          </FullFold>
+        </section>
+
 
         <p className="text-[10px] font-sans leading-relaxed max-w-4xl px-1" style={{ color: muted }}>
           Two kinds of figure are on this page. Built from source and refreshed with it ({WORLDVIEW_RETRIEVED}): aid by donor (OECD),

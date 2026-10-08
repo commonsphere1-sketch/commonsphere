@@ -78,7 +78,7 @@ const analysisNav = [
   },
   {
     to: "/dashboard/humanitarian",
-    label: "Aid & Human Rights",
+    label: "Human Rights",
     icon: HandHeart,
     end: false,
   },
