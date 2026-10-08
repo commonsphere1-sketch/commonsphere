@@ -68,6 +68,9 @@ const usd = (v: number) => `$${whole(v)}`;
 const billions = (bn: number) => (bn >= 1000 ? `$${(bn / 1000).toFixed(2)}T` : bn >= 1 ? `$${bn.toFixed(1)}bn` : `$${Math.round(bn * 1000)}M`);
 const coords = (lat: number, lon: number) => `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"}, ${Math.abs(lon).toFixed(2)}°${lon >= 0 ? "E" : "W"}`;
 const flag = (cc: string, w = 40) => `https://flagcdn.com/w${w}/${cc.toLowerCase()}.png`;
+/** A division's own flag, from Wikimedia Commons at a width: the file its Wikidata record names, kept only under a licence the site can use. */
+const commonsFile = (file: string) => encodeURIComponent(file.replace(/ /g, "_"));
+const ownFlag = (s: Subnation, w: number) => (s.flag ? `https://commons.wikimedia.org/wiki/Special:FilePath/${commonsFile(s.flag)}?width=${w}` : null);
 
 const COUNTRY = new Map(countriesData.map((c) => [c.code, c]));
 /** The countries that have divisions, by name. */
@@ -168,7 +171,7 @@ function SeriesChart({ points, label }: { points: [number, number][]; label: str
  * The shell of a window, as a city's and a country's is drawn. A division's window opens over its country's, so only
  * the one on top answers Escape, and each puts the page's scrolling back as it found it.
  */
-function Window({ title, kicker, flagCode, chips, onClose, children, wide = false, top = true }: { title: string; kicker: string; flagCode: string; chips: string[]; onClose: () => void; children: ReactNode; wide?: boolean; top?: boolean }) {
+function Window({ title, kicker, flagSrc, chips, onClose, children, wide = false, top = true }: { title: string; kicker: string; /** The flag at its head: the place's own. */ flagSrc: string; chips: string[]; onClose: () => void; children: ReactNode; wide?: boolean; top?: boolean }) {
   useEffect(() => {
     if (!top) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -189,7 +192,7 @@ function Window({ title, kicker, flagCode, chips, onClose, children, wide = fals
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-4 min-w-0">
               <div className="w-16 h-11 rounded-xl overflow-hidden shrink-0 border border-border shadow-md bg-muted">
-                <img src={flag(flagCode, 160)} alt="" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
+                <img src={flagSrc} alt="" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
               </div>
               <div className="min-w-0">
                 <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{kicker}</p>
@@ -250,6 +253,9 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
   if (m) [STATE_SOURCES.population, STATE_SOURCES.acs, STATE_SOURCES.bea, STATE_SOURCES.bls, STATE_SOURCES.fec, STATE_SOURCES.congress].forEach(cite);
   else if (ci) cite({ label: COUNTRY_INDICATORS_SOURCE.label, url: COUNTRY_INDICATORS_SOURCE.url });
   if (head) cite(REPRESENTATIVES_SOURCES.wikidata), cite(REPRESENTATIVES_SOURCES.wikipedia);
+  if (s.flag) cite(SUBNATIONS_SOURCES.commons);
+  if (s.capitalBy) cite(SUBNATIONS_SOURCES.geonames);
+  if (s.popBy) cite(SUBNATIONS_SOURCES.wikipedia);
   const poor = m?.poverty.groups.find((g) => g.label === "Below poverty line")?.pct;
   // The list names a region in English; Natural Earth may name it in its own language, so its article's title is tried too.
   const chair = (REGIONAL_ASSEMBLIES[s.cc] ?? []).find((a) => a[0] === s.name || a[0] === s.article);
@@ -264,6 +270,7 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
         { label: "Name in its own language", value: s.native, sub: wd },
         { label: "ISO 3166-2 code", value: s.code },
         { label: "Country", value: country, sub: `ISO 3166-1: ${s.cc}` },
+        { label: "Flag", value: s.flag ? "Shown above" : null, sub: s.flag ? `Wikimedia Commons · ${s.flagLicence}` : undefined },
         { label: "Political status", value: s.kind ? `${s.kind} of ${country}` : null, sub: "as Natural Earth names it" },
         { label: "Founded", value: s.founded ? (s.founded < 0 ? `${-s.founded} BC` : String(s.founded)) : null, sub: wd },
       ],
@@ -273,7 +280,7 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
       fields: [
         { label: "Continent", value: c?.continent },
         { label: `Region of ${country}`, value: s.region },
-        { label: "Capital", value: s.capital, sub: wd },
+        { label: "Capital", value: s.capital, sub: s.capitalBy ? "the seat GeoNames marks for it" : wd },
         { label: "Area", value: s.areaKm2 ? `${whole(s.areaKm2)} km²` : null, sub: wd },
         { label: "Borders", value: s.borders?.join(", "), sub: undefined },
         { label: "Coordinates", value: coords(s.lat, s.lon), sub: "its label point" },
@@ -298,7 +305,11 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
       fields: [
         m
           ? { label: "Population", value: people(m.population.v), sub: `Census Bureau · ${m.population.y}` }
-          : { label: "Population", value: s.pop ? people(s.pop[1]) : null, sub: s.pop ? `${s.pop[0]} · a dated, referenced figure in ${wd}` : undefined },
+          : {
+              label: "Population",
+              value: s.pop ? people(s.pop[1]) : null,
+              sub: s.pop ? (s.popBy ? `${s.pop[0]} · dated in ${wd}, which cites no source for it; the infobox of its Wikipedia article gives the same figure` : `${s.pop[0]} · a dated, referenced figure in ${wd}`) : undefined,
+            },
         {
           label: "Population growth",
           value: growth ? signed(growth.pct) : null,
@@ -388,11 +399,12 @@ function SubnationWindow({ s, onClose, onCounties }: { s: Subnation; onClose: ()
     ...(s.site ? [{ label: `${s.name} — official website`, url: s.site }] : []),
     ...(s.qid ? [{ label: "Wikidata record", url: `https://www.wikidata.org/wiki/${s.qid}` }] : []),
     ...(s.gn ? [{ label: "GeoNames", url: `https://www.geonames.org/${s.gn}` }] : []),
+    ...(s.flag ? [{ label: `Its flag on Wikimedia Commons (${s.flagLicence}), with its author`, url: `https://commons.wikimedia.org/wiki/File:${commonsFile(s.flag)}` }] : []),
     { label: `ISO 3166 — ${c?.name ?? s.cc} and its subdivisions`, url: `https://www.iso.org/obp/ui/#iso:code:3166:${s.cc}` },
     ...(s.article ? [{ label: `Wikipedia — ${s.article}`, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(s.article.replace(/ /g, "_"))}` }] : []),
   ];
   return (
-    <Window title={s.name} kicker={`${s.kind || "Division"} · ${c?.name ?? s.cc}`} flagCode={s.cc} chips={[...(s.code ? [s.code] : []), ...(s.capital ? [`Capital: ${s.capital}`] : []), ...(s.region ? [s.region] : [])]} onClose={onClose}>
+    <Window title={s.name} kicker={`${s.kind || "Division"} · ${c?.name ?? s.cc}`} flagSrc={ownFlag(s, 160) ?? flag(s.cc, 160)} chips={[...(s.code ? [s.code] : []), ...(s.capital ? [`Capital: ${s.capital}`] : []), ...(s.region ? [s.region] : [])]} onClose={onClose}>
       <div className="flex flex-wrap gap-2">
         {c && <LinkButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Open {c.name}</LinkButton>}
         {state && <LinkButton onClick={() => navigate(`/dashboard/states?open=${state.id}`)}>Open {state.name} on the US States page</LinkButton>}
@@ -471,7 +483,7 @@ function CountyWindow({ county, data, onClose }: { county: UsCounty; data: Count
     },
   ];
   return (
-    <Window title={name} kicker={`County · ${state?.name ?? abbr}`} flagCode="US" chips={[`FIPS ${fips}`, state?.name ?? abbr]} onClose={onClose}>
+    <Window title={name} kicker={`County · ${state?.name ?? abbr}`} flagSrc={flag("US", 160)} chips={[`FIPS ${fips}`, state?.name ?? abbr]} onClose={onClose}>
       <div className="flex flex-wrap gap-2">
         {state && <LinkButton onClick={() => navigate(`/dashboard/subnations?open=US-${state.abbreviation}`)}>{state.name}'s record</LinkButton>}
         {state && <LinkButton onClick={() => navigate(`/dashboard/states?open=${state.id}`)}>Open {state.name} on the US States page</LinkButton>}
@@ -505,6 +517,10 @@ function DivisionCard({ s, onOpen }: { s: Subnation; onOpen: () => void }) {
   return (
     <button type="button" onClick={onOpen} className="modal-tile rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
       <span className="flex items-center gap-2.5 min-w-0">
+        {/* The division's own flag, where one is held under a licence the site can use; an empty frame where none is, not its country's. */}
+        <span className="w-9 h-6 rounded-[3px] overflow-hidden shrink-0 border border-border/60 bg-muted/40" title={s.flag ? `${s.name}'s flag · Wikimedia Commons, ${s.flagLicence}` : "Its flag is not held"}>
+          {s.flag && <img src={ownFlag(s, 72)!} alt="" loading="lazy" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />}
+        </span>
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-bold font-sans text-foreground truncate">{s.name}</span>
           <span className="block text-[10px] font-mono text-muted-foreground truncate">{s.kind || "Division"}</span>
@@ -644,7 +660,7 @@ function CountryWindow({
   const counties = useMemo(() => (countyData && countyState ? countyData.US_COUNTIES.filter((x) => x[2] === countyState) : []), [countyData, countyState]);
   const stateName = usStatesData.find((s) => s.abbreviation === countyState)?.name ?? countyState;
   return (
-    <Window wide top={top} title={row.name} kicker="Country · its divisions" flagCode={row.cc} chips={[`${row.divisions.length} divisions`, ...row.kinds.slice(0, 3), ...(row.continent ? [row.continent] : [])]} onClose={onClose}>
+    <Window wide top={top} title={row.name} kicker="Country · its divisions" flagSrc={flag(row.cc, 160)} chips={[`${row.divisions.length} divisions`, ...row.kinds.slice(0, 3), ...(row.continent ? [row.continent] : [])]} onClose={onClose}>
       <div className="flex flex-wrap items-center gap-2">
         {c && <LinkButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Open {c.name} on the Countries page</LinkButton>}
         <LinkButton onClick={() => navigate(`/dashboard/maps?country=${row.cc}`)}>
@@ -722,7 +738,7 @@ function CountryWindow({
           {shown.length === 0 && <p className="text-[12px] font-sans text-muted-foreground">Nothing matches.</p>}
         </section>
       )}
-      <SourceLink sources={[SUBNATIONS_SOURCES.naturalEarth, SUBNATIONS_SOURCES.wikidata, REPRESENTATIVES_SOURCES.wikidata]} />
+      <SourceLink sources={[SUBNATIONS_SOURCES.naturalEarth, SUBNATIONS_SOURCES.wikidata, SUBNATIONS_SOURCES.commons, SUBNATIONS_SOURCES.geonames, REPRESENTATIVES_SOURCES.wikidata]} />
     </Window>
   );
 }
@@ -885,10 +901,13 @@ export function SubnationsPage() {
         <p className="text-[10px] font-sans leading-relaxed text-muted-foreground">
           Which divisions a country has, and their names, kinds, codes and label points, are Natural Earth's: the ones the site's maps draw, which for some countries are a second
           order (France's departments, not its regions). Everything else about a division is its own Wikidata record's, read by the id Natural Earth gives it. A population is kept
-          only where its statement is dated and cites a reference of its own. A head is named only where three records agree, or, for a US state, as the US States page names its
-          governor. A field the site holds nothing for says so.
+          only where its statement is dated and cites a reference of its own - or, where it cites none, where the infobox of the division's Wikipedia article gives the same figure. A
+          capital its record does not name is the one place GeoNames marks as its seat. A flag is the one its record names on Wikimedia Commons, shown only under a licence the site
+          can use, which its window names with a link to the file and its author. A head is named only where three records agree, or, for a US state, as the US States page names
+          its governor. A field the site holds nothing for says so.
         </p>
-        <SourceLink sources={[SUBNATIONS_SOURCES.naturalEarth, SUBNATIONS_SOURCES.wikidata, SUBNATIONS_SOURCES.iso, REPRESENTATIVES_SOURCES.wikidata]} />
+        <SourceLink sources={[SUBNATIONS_SOURCES.naturalEarth, SUBNATIONS_SOURCES.wikidata, SUBNATIONS_SOURCES.commons, SUBNATIONS_SOURCES.geonames, SUBNATIONS_SOURCES.wikipedia, SUBNATIONS_SOURCES.iso, REPRESENTATIVES_SOURCES.wikidata]} />
+
       </div>
 
       {openRow && (
