@@ -10,6 +10,10 @@
  * a change is worked out from two of its averages, and a month the series
  * does not have is left out.
  *
+ * And what the commodity is used for and who has it - the countries that
+ * produce the most and hold the most - from the Resources window's own
+ * tables (CommodityBackground, loaded with them when the card is shown).
+ *
  * It stands where a "Sector Outlook" stood: eight sectors with a twelve-month
  * "outlook" and a "confidence" beside each, and three "top movers" drawn from
  * numbers typed in to make a line. Nobody publishes those. These prices are
@@ -17,13 +21,20 @@
  * (commodityPrices.ts) - and the one thing worked out is the change, from two
  * of those averages, with both months named in its title.
  */
+import { lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ChartLineUp } from "@phosphor-icons/react";
 import { COMMODITY_PRICES, COMMODITY_PRICE_SOURCES } from "../data/commodityPrices";
 import { SourceLink } from "./SourceLink";
 import { useTokens } from "./DataExplorer";
 
+/** What a commodity is used for and who has it, with the country tables it reads: loaded when the card is shown. */
+const CommodityBackground = lazy(() => import("./CommodityBackground"));
+import { RESOURCES } from "../data/resourceList";
+
 const COLOR = "#059669";
+/** Each commodity's own colour, as the Resources page gives it. */
+const RESOURCE_COLOR = new Map(RESOURCES.map((r) => [r.name, r.color]));
 const UP = "#10b981";
 const DOWN = "#ef4444";
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -166,12 +177,16 @@ export function CommodityMovers() {
                 Also published: {m.also.map((a) => `${a.label} ${price(a.price)} ${a.unit} (${monthName(a.month)})`).join(" · ")}
               </p>
             )}
+            <Suspense fallback={null}>
+              <CommodityBackground name={m.name} t={t} color={RESOURCE_COLOR.get(m.name) ?? COLOR} />
+            </Suspense>
           </li>
         ))}
       </ul>
       <p className="text-[9px] font-sans leading-snug mt-2" style={{ color: t.mutedText }}>
         The line is the thirteen months to the latest, drawn between its own lowest and highest, so it shows the shape of the year and not its size. Prices are nominal US dollars, in each
-        publisher's own unit, so a ten-year change includes ten years of inflation. Every figure under a row is a monthly average of its series; a change is one average on another.
+        publisher's own unit, so a ten-year change includes ten years of inflation. Every figure under a row is a monthly average of its series; a change is one average on another. Who produces and holds each is from the agencies named under it, on the scale
+        of the largest country shown; what it is used for is the site's own background, kept to what is settled.
       </p>
       <SourceLink sources={sources} className="mt-1" />
     </div>
