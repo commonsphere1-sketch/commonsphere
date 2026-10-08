@@ -14,6 +14,13 @@
  * so. What the UN does not publish for every city is not shown, and the
  * window says which parts those are.
  *
+ * A city's window is laid out as a profiled city's is: its country, continent
+ * and rank at the head, the "see also" row, and three tabs - Overview,
+ * History, Map. The Overview opens on its people and place, then its
+ * country's economy and quality of life, named as the country's; the plain
+ * record the window first held - identity, geography, demographics - is one
+ * of the Overview's sections.
+ *
  * A city is what the UN's method draws - built-up land of at least 1,500
  * people to a km² holding 50,000 or more - not the administrative city, so
  * its figure can differ from the one its own council gives.
@@ -22,15 +29,21 @@
  * `openId` ("un-<country>-<code>") opens one city's window - the Dashboard's
  * map sends its presses here that way.
  */
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowRight, MagnifyingGlass, MapPin, X } from "@phosphor-icons/react";
+import { ArrowRight, ArrowsIn, ArrowsOut, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, X } from "@phosphor-icons/react";
+import { ECONOMY_INDICATORS, ECONOMY_INDICATORS_SOURCE } from "../data/economyIndicators";
+import { ECONOMY_OF } from "../data/placeIndex";
 import { countriesData } from "../data/countriesData";
 import { UN_CITIES, UN_CITIES_SOURCE, UN_CITY_YEARS, type UnCity } from "../data/unCities";
-import { TONE } from "@/lib/chipTone";
+import { CHIP_TEXT, TONE } from "@/lib/chipTone";
 import { flagColor } from "../lib/flagColor";
-import { FigureRow } from "./ModalCharts";
+import { ChartNote, FigureRow } from "./ModalCharts";
+import { SeeAlso } from "./SeeAlso";
+
+/** The city's country's quality of life, as a profiled city's window gives it: loaded when a window opens. */
+const CountryQuality = lazy(() => import("./CountryQuality"));
 import { SourceLink } from "./SourceLink";
 
 const COLOR = "#10b981";
@@ -62,14 +75,31 @@ const Section = ({ title, note, children }: { title: string; note?: string; chil
 );
 const none = <span className="font-normal text-muted-foreground">Not held</span>;
 
+const nth = (n: number) => `${n.toLocaleString("en-US")}${n % 100 >= 11 && n % 100 <= 13 ? "th" : (["th", "st", "nd", "rd"][n % 10] ?? "th")}`;
+/** A figure in a tile, with a line under it saying whose it is and for when: as a profiled city's window draws them. */
+const Tile = ({ label, value, sub }: { label: string; value: string; sub?: string }) => (
+  <div className="modal-tile rounded-lg p-3 min-w-0">
+    <p className="text-xs text-muted-foreground font-sans">{label}</p>
+    <p className="text-base font-bold font-mono text-foreground">{value}</p>
+    {sub && <p className="text-[10px] text-muted-foreground font-sans mt-0.5 leading-snug">{sub}</p>}
+  </div>
+);
+type Tab = "overview" | "history" | "map";
+
 function CityWindow({ c, onClose }: { c: UnCity; onClose: () => void }) {
   const navigate = useNavigate();
   const [cc, code, name, lat, lon, capital, p0, p1, p2, p3, area, density] = c;
   const country = COUNTRY.get(cc);
+  const land = country?.name ?? cc;
   const rank = RANK.get(unCityId(c))!;
   const since = change(p1, p2);
   const ahead = change(p2, p3);
   const points = ([[Y0, p0], [Y1, p1], [Y2, p2], [Y3, p3]] as [number, number | null][]).filter((x): x is [number, number] => x[1] !== null);
+  /** The economy of the country the city is in: what stands in for a city's own, which nobody publishes. */
+  const eco = ECONOMY_OF[cc] ? ECONOMY_INDICATORS[ECONOMY_OF[cc]] : undefined;
+  const tone = CONTINENT_TONE[country?.continent ?? ""] ?? "text-muted-foreground border-border bg-muted";
+  const [tab, setTab] = useState<Tab>("overview");
+  const [wide, setWide] = useState(false);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     const before = document.body.style.overflow;
@@ -80,86 +110,204 @@ function CityWindow({ c, onClose }: { c: UnCity; onClose: () => void }) {
       document.body.style.overflow = before;
     };
   }, [onClose]);
+  const chart = (
+    <div className="modal-tile rounded-lg p-4" role="img" aria-label={`${name}'s population: ${points.map(([y, v]) => `${y} ${people(v)}`).join(", ")}.`}>
+      <ResponsiveContainer width="100%" height={180}>
+        <AreaChart data={points.map(([year, v]) => ({ year, v }))} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
+          <CartesianGrid stroke="currentColor" strokeOpacity={0.08} vertical={false} />
+          <XAxis dataKey="year" type="number" domain={[Y0, Y3]} ticks={[...UN_CITY_YEARS]} tick={{ fontSize: 9, fontFamily: "monospace", fill: "currentColor" }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fontSize: 9, fontFamily: "monospace", fill: "currentColor" }} axisLine={false} tickLine={false} width={48} tickFormatter={(v: number) => people(v)} domain={[0, "auto"]} />
+          <Tooltip formatter={(v: number) => [whole(v), "People"]} labelFormatter={(y) => (y === Y3 ? `${y} (projected)` : String(y))} contentStyle={{ background: "var(--color-background)", border: "1px solid var(--color-border)", borderRadius: 10, fontSize: 11 }} />
+          <Area type="linear" dataKey="v" stroke={flagColor(cc) ?? COLOR} strokeWidth={1.75} fill={flagColor(cc) ?? COLOR} fillOpacity={0.12} dot={{ r: 2.5 }} isAnimationActive={false} />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div role="dialog" aria-modal="true" aria-label={name} className="relative z-10 rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-2xl modal-glass border overflow-y-auto">
-        <div className="p-6 flex flex-col gap-5">
-          <div className="flex items-start justify-between gap-3">
+      <div role="dialog" aria-modal="true" aria-label={name} className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${wide ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}>
+        <div className="p-6">
+          {/* Header: as a profiled city's */}
+          <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-4 min-w-0">
               <div className="w-16 h-11 rounded-xl overflow-hidden shrink-0 border border-border shadow-md bg-muted">
-                <img src={flag(cc, 160)} alt={`${country?.name ?? cc} flag`} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
+                <img src={flag(cc, 160)} alt={`${land} flag`} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">City · {country?.name ?? cc}</p>
-                <h2 className="text-2xl font-bold font-sans text-foreground leading-tight">{name}</h2>
-                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                  {[...(capital ? ["Capital"] : []), `#${rank.toLocaleString("en-US")} of ${UN_CITIES.length.toLocaleString("en-US")} by population`].map((x) => (
-                    <span key={x} className="text-[11px] font-sans border border-border px-2 py-0.5 rounded-full text-muted-foreground">
-                      {x}
-                    </span>
-                  ))}
+                <h2 className="text-2xl font-bold font-sans text-foreground">{name}</h2>
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                  <span className={`flex items-center gap-1 ${CHIP_TEXT}`}>
+                    <MapPin size={12} weight="fill" /> {land}
+                  </span>
+                  {country?.continent && <span className={`text-xs border px-2 py-0.5 rounded-full font-sans ${tone}`}>{country.continent}</span>}
+                  {capital ? <span className={CHIP_TEXT}>Capital</span> : null}
+                  <span className={CHIP_TEXT} title={`By population in ${Y2}, among the ${UN_CITIES.length.toLocaleString("en-US")} cities the United Nations counts`}>
+                    {nth(rank)} largest city in the world
+                  </span>
                 </div>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0" aria-label="Close">
-              <X size={18} />
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {country && (
-              <button type="button" onClick={() => navigate(`/dashboard/countries?open=${country.id}`)} className="inline-flex items-center gap-1 text-[11px] font-semibold font-sans px-3 py-1.5 rounded-full border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer">
-                Open {country.name} <ArrowRight size={11} weight="bold" aria-hidden />
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button onClick={() => setWide((v) => !v)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={wide ? "Collapse the window" : "Expand the window to full screen"} title={wide ? "Collapse" : "Expand to full screen"}>
+                {wide ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
               </button>
-            )}
-            <button type="button" onClick={() => navigate(`/dashboard/subnations?country=${cc}`)} className="inline-flex items-center gap-1 text-[11px] font-semibold font-sans px-3 py-1.5 rounded-full border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer">
-              Its country's divisions <ArrowRight size={11} weight="bold" aria-hidden />
+              <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Close">
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Through to the same place on the other pages, as every window offers; and to its country's divisions. */}
+          <SeeAlso code={cc} name={land} className="mb-2" />
+          <div className="flex flex-wrap gap-2 mb-4">
+            <button type="button" onClick={() => navigate(`/dashboard/subnations?country=${cc}`)} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer">
+              {land} · its divisions <ArrowRight size={11} weight="bold" aria-hidden />
             </button>
           </div>
 
-          <Section title="Identity">
-            <div className="modal-tile rounded-xl px-4 py-1.5">
-              <FigureRow label="Name" value={name} sub="as the United Nations writes it" />
-              <FigureRow label="Country" value={country?.name ?? cc} sub={`ISO 3166-1: ${cc}`} />
-              <FigureRow label="Its country's capital" value={capital ? "Yes" : "No"} />
-              <FigureRow label="The UN's code for it" value={String(code)} />
+          {/* Tab bar */}
+          <div className="flex gap-1 p-1 bg-muted/40 rounded-xl border border-border/50 mb-5">
+            {(
+              [
+                { key: "overview", label: "Overview", icon: <ListBullets size={14} /> },
+                { key: "history", label: "History", icon: <ClockCounterClockwise size={14} /> },
+                { key: "map", label: "Map", icon: <MapTrifold size={14} /> },
+              ] as const
+            ).map((x) => (
+              <button
+                key={x.key}
+                onClick={() => setTab(x.key)}
+                aria-pressed={tab === x.key}
+                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium font-sans transition-all duration-200 ${tab === x.key ? "bg-card text-foreground shadow-sm border border-border/60" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {x.icon}
+                {x.label}
+              </button>
+            ))}
+          </div>
+
+          {tab === "overview" && (
+            <div className="space-y-4">
+              <Section title="👥 People & place" note="A city, to the UN, is contiguous 1 km² cells of at least 1,500 people each, holding 50,000 people or more - one rule for every city, whatever its boundary. That is why its figure and the city's own differ.">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <Tile label="Population" value={whole(p2)} sub={`UN estimate, ${Y2}`} />
+                  <Tile label="Country" value={land} sub={country?.continent} />
+                  <Tile label="Among the UN's cities" value={`#${rank.toLocaleString("en-US")}`} sub={`of ${UN_CITIES.length.toLocaleString("en-US")}, by ${Y2} population`} />
+                </div>
+              </Section>
+
+              {eco && (
+                <Section title="💰 Economy & institutions" note={`These are ${land}'s figures, not ${name}'s: no body publishes them city by city.`}>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {eco.gdpPerCapita && <Tile label="GDP per person" value={`$${eco.gdpPerCapita.v.toLocaleString("en-US")}`} sub={`${land}, current US$, ${eco.gdpPerCapita.y}`} />}
+                    {eco.gdpGrowthRate && <Tile label="Real GDP growth" value={`${eco.gdpGrowthRate.v > 0 ? "+" : ""}${eco.gdpGrowthRate.v}%`} sub={`${land}, ${eco.gdpGrowthRate.y}`} />}
+                    {eco.unemploymentRate && <Tile label="Unemployment" value={`${eco.unemploymentRate.v}%`} sub={`${land}, of the labour force, ${eco.unemploymentRate.y}`} />}
+                    {eco.inflationRate && <Tile label="Inflation" value={`${eco.inflationRate.v}%`} sub={`${land}, consumer prices, ${eco.inflationRate.y}`} />}
+                  </div>
+                  <SourceLink sources={[ECONOMY_INDICATORS_SOURCE.worldBank, ECONOMY_INDICATORS_SOURCE.imf]} className="mt-2" />
+                </Section>
+              )}
+
+              {/* The plain record the window first held: one of the Overview's sections. */}
+              <Section title="📋 Its record" note="What the United Nations publishes for every city alike. A change is worked out here from two of its figures.">
+                <div className="flex flex-col gap-3">
+                  <div className="modal-tile rounded-xl px-4 py-1.5">
+                    <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground pt-1.5">Identity</p>
+                    <FigureRow label="Name" value={name} sub="as the United Nations writes it" />
+                    <FigureRow label="Country" value={land} sub={`ISO 3166-1: ${cc}`} />
+                    <FigureRow label="Its country's capital" value={capital ? "Yes" : "No"} />
+                    <FigureRow label="The UN's code for it" value={String(code)} />
+                  </div>
+                  <div className="modal-tile rounded-xl px-4 py-1.5">
+                    <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground pt-1.5">Geography</p>
+                    <FigureRow label="Coordinates" value={lat !== null && lon !== null ? coords(lat, lon) : none} sub={lat !== null ? "where its people are centred" : undefined} />
+                    <FigureRow label="Land area" value={area !== null ? `${whole(area)} km²` : none} sub={area !== null ? String(Y2) : undefined} />
+                    <FigureRow label="People to a km²" value={density !== null ? whole(density) : none} sub={density !== null ? String(Y2) : undefined} />
+                  </div>
+                  <div className="modal-tile rounded-xl px-4 py-1.5">
+                    <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground pt-1.5">Demographics</p>
+                    <FigureRow label={`Population, ${Y2}`} value={whole(p2)} sub="the UN's last estimate" />
+                    <FigureRow label={`Population, ${Y1}`} value={p1 !== null ? whole(p1) : none} />
+                    <FigureRow label={`Population, ${Y0}`} value={p0 !== null ? whole(p0) : none} />
+                    <FigureRow label={`Change, ${Y1} to ${Y2}`} value={since !== null ? signed(since) : none} sub={since !== null ? "worked out here from the two figures" : undefined} />
+                    <FigureRow label={`Projected for ${Y3}`} value={p3 !== null ? whole(p3) : none} sub={ahead !== null ? `the UN's projection · ${signed(ahead)} on ${Y2}, worked out here` : undefined} />
+                  </div>
+                </div>
+                <SourceLink sources={[UN_CITIES_SOURCE]} className="mt-2" />
+              </Section>
+
+              <Section title={`📈 Population, ${Y0} to ${Y3}`} note={`The UN's figures for ${Y0}, ${Y1} and ${Y2}, and its projection for ${Y3}, on an axis from zero.`}>
+                {chart}
+              </Section>
+
+              {/* Quality of life: its country's, said to be so - as a profiled city's window gives it. */}
+              <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading {land}'s figures…</p>}>
+                <CountryQuality code={cc} country={land} place={name} />
+              </Suspense>
             </div>
-          </Section>
-          <Section title="Geography">
-            <div className="modal-tile rounded-xl px-4 py-1.5">
-              <FigureRow label="Coordinates" value={lat !== null && lon !== null ? coords(lat, lon) : none} sub={lat !== null ? "where its people are centred" : undefined} />
-              <FigureRow label="Land area" value={area !== null ? `${whole(area)} km²` : none} sub={area !== null ? String(Y2) : undefined} />
-              <FigureRow label="People to a km²" value={density !== null ? whole(density) : none} sub={density !== null ? String(Y2) : undefined} />
+          )}
+
+          {tab === "history" && (
+            <div className="space-y-4">
+              <Section title={`📈 Its population, ${Y0} to ${Y3}`} note={`What is held of ${name}'s past is its population as the United Nations counts it: three estimates and a projection. No account of its history is recorded here.`}>
+                {chart}
+              </Section>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <Tile label={String(Y0)} value={p0 !== null ? people(p0) : "Not held"} />
+                <Tile label={String(Y1)} value={p1 !== null ? people(p1) : "Not held"} />
+                <Tile label={String(Y2)} value={people(p2)} sub="the UN's last estimate" />
+                <Tile label={String(Y3)} value={p3 !== null ? people(p3) : "Not held"} sub="the UN's projection" />
+              </div>
+              <SourceLink sources={[UN_CITIES_SOURCE]} />
             </div>
-          </Section>
-          <Section title="Demographics">
-            <div className="modal-tile rounded-xl px-4 py-1.5">
-              <FigureRow label={`Population, ${Y2}`} value={whole(p2)} sub="the UN's last estimate" />
-              <FigureRow label={`Population, ${Y1}`} value={p1 !== null ? whole(p1) : none} />
-              <FigureRow label={`Population, ${Y0}`} value={p0 !== null ? whole(p0) : none} />
-              <FigureRow label={`Change, ${Y1} to ${Y2}`} value={since !== null ? signed(since) : none} sub={since !== null ? "worked out here from the two figures" : undefined} />
-              <FigureRow label={`Projected for ${Y3}`} value={p3 !== null ? whole(p3) : none} sub={ahead !== null ? `the UN's projection · ${signed(ahead)} on ${Y2}, worked out here` : undefined} />
+          )}
+
+          {tab === "map" && (
+            <div className="space-y-4">
+              <div className={`rounded-xl p-4 flex items-center gap-4 border ${tone}`}>
+                <div>
+                  <p className="text-xs font-semibold font-sans uppercase tracking-wide opacity-80">{country?.continent}</p>
+                  <p className="font-bold font-sans text-lg leading-tight">{name}</p>
+                  <p className="text-xs font-sans opacity-80">{land}</p>
+                </div>
+                <div className="ml-auto text-right">
+                  <p className="text-xs font-sans opacity-80">Population</p>
+                  <p className="font-mono font-bold text-sm">{people(p2)}</p>
+                  <p className="font-mono text-xs opacity-80">UN estimate, {Y2}</p>
+                </div>
+              </div>
+              {lat !== null && lon !== null ? (
+                <div className="rounded-xl overflow-hidden border border-border" style={{ height: 320 }}>
+                  <iframe title={`Map of ${name}`} width="100%" height="100%" style={{ border: 0 }} loading="lazy" referrerPolicy="no-referrer-when-downgrade" src={`https://maps.google.com/maps?q=${lat},${lon}&z=11&output=embed`} />
+                </div>
+              ) : (
+                <p className="text-xs font-sans text-muted-foreground py-6 text-center">No position is held for {name}.</p>
+              )}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { label: "Land area", value: area !== null ? `${whole(area)} km²` : "Not held" },
+                  { label: "Density", value: density !== null ? `${whole(density)}/km²` : "Not held" },
+                  { label: "A capital", value: capital ? "Yes" : "No" },
+                  { label: "Coordinates", value: lat !== null && lon !== null ? coords(lat, lon) : "Not held" },
+                ].map((f) => (
+                  <div key={f.label} className="modal-tile rounded-lg p-3 text-center min-w-0">
+                    <p className="text-xs text-muted-foreground font-sans">{f.label}</p>
+                    <p className="text-sm font-bold font-mono text-foreground mt-0.5 break-words">{f.value}</p>
+                  </div>
+                ))}
+              </div>
+              <ChartNote>
+                The city as the United Nations draws it, {Y2}. The map is Google's and is opened on the point where the UN centres the city's people, not on the UN's outline.
+              </ChartNote>
+              <SourceLink sources={[UN_CITIES_SOURCE]} />
             </div>
-          </Section>
-          <Section title="Historical trends" note={`Its population in ${Y0}, ${Y1} and ${Y2}, and the UN's projection for ${Y3}.`}>
-            <div className="modal-tile rounded-xl p-3" role="img" aria-label={`${name}'s population: ${points.map(([y, v]) => `${y} ${people(v)}`).join(", ")}.`}>
-              <ResponsiveContainer width="100%" height={160}>
-                <AreaChart data={points.map(([year, v]) => ({ year, v }))} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
-                  <CartesianGrid stroke="currentColor" strokeOpacity={0.08} vertical={false} />
-                  <XAxis dataKey="year" type="number" domain={[Y0, Y3]} ticks={[...UN_CITY_YEARS]} tick={{ fontSize: 9, fontFamily: "monospace", fill: "currentColor" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 9, fontFamily: "monospace", fill: "currentColor" }} axisLine={false} tickLine={false} width={48} tickFormatter={(v: number) => people(v)} domain={[0, "auto"]} />
-                  <Tooltip formatter={(v: number) => [whole(v), "People"]} labelFormatter={(y) => (y === Y3 ? `${y} (projected)` : String(y))} contentStyle={{ background: "var(--color-background)", border: "1px solid var(--color-border)", borderRadius: 10, fontSize: 11 }} />
-                  <Area type="linear" dataKey="v" stroke={flagColor(cc) ?? COLOR} strokeWidth={1.75} fill={flagColor(cc) ?? COLOR} fillOpacity={0.12} dot={{ r: 2.5 }} isAnimationActive={false} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </Section>
-          <Section title="Government · Economy · Society · Political data" note={`No body publishes these for every city on one footing, so none is given here. ${country ? `${country.name}'s` : "Its country's"} are in the country's own window.`} />
-          <SourceLink sources={[UN_CITIES_SOURCE]} />
+          )}
         </div>
       </div>
     </div>
   );
 }
+
 
 /** A continent's chip, in the tones the Countries page gives them. */
 const CONTINENT_TONE: Record<string, string> = { "North America": TONE.blue, Asia: TONE.amber, Europe: TONE.violet, "South America": TONE.emerald, Africa: TONE.orange, Oceania: TONE.teal, Antarctica: TONE.sky };
