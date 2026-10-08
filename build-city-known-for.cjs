@@ -1,0 +1,122 @@
+/**
+ * Builds src/data/cityKnownFor.ts — what each city the site profiles is, and
+ * is known for, with places to read more.
+ *
+ * For each city (by the Wikipedia article cityPlaces.ts already ties it to):
+ *
+ *   Wikipedia (CC BY-SA)   The opening of its article: what the city is and
+ *                          what it is known for, in the article's words, cut
+ *                          at the end of a sentence. It is the one source
+ *                          here whose words are open to reuse.
+ *   Wikidata (CC0)         For the article's item: the city's own official
+ *                          website (P856), its entry in the Encyclopaedia
+ *                          Britannica (P1417), and the nicknames recorded for
+ *                          it in English (P1449).
+ *
+ * The official website and the Britannica are listed before Wikipedia, to be
+ * read and cited; none of their text is taken. Nothing is written here by
+ * hand: a city whose article has no usable opening is left without one, and
+ * a city with no nickname on record has none.
+ *
+ *   node build-city-known-for.cjs
+ */
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+
+const OUT = path.join(__dirname, "src/data/cityKnownFor.ts");
+const UA = "commonsphere-data-build/1.0 (+https://github.com/commonsphere1-sketch/commonsphere)";
+const MAX = 520;
+
+const get = async (url) => {
+  const res = await fetch(url, { headers: { "User-Agent": UA } });
+  if (!res.ok) throw new Error(`${url.slice(0, 80)}: HTTP ${res.status}`);
+  return res.json();
+};
+
+/** The opening of an article, cut at the end of a sentence. */
+function opening(extract) {
+  const text = (extract ?? "").replace(/\s+/g, " ").replace(/\s+([,.;])/g, "$1").trim();
+  if (text.length < 80) return null;
+  if (text.length <= MAX) return text;
+  const cut = text.slice(0, MAX);
+  const end = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf(".) "));
+  return end > 120 ? cut.slice(0, end + 1) : null;
+}
+
+(async () => {
+  const places = fs.readFileSync(path.join(__dirname, "src/data/cityPlaces.ts"), "utf8");
+  const cities = [...places.matchAll(/^\s*"([a-z0-9]+)":\s*\{\s*wiki:\s*"([^"]+)"/gm)].map((m) => ({ id: m[1], wiki: m[2] }));
+  if (cities.length < 20) throw new Error(`only ${cities.length} cities read from cityPlaces.ts`);
+
+  const page = new Map();
+  for (let i = 0; i < cities.length; i += 20) {
+    const batch = cities.slice(i, i + 20);
+    const j = await get(`https://en.wikipedia.org/w/api.php?format=json&formatversion=2&action=query&prop=extracts|pageprops&exintro=1&explaintext=1&exlimit=20&ppprop=wikibase_item&redirects=1&titles=${encodeURIComponent(batch.map((c) => c.wiki).join("|"))}`);
+    const back = new Map([...(j.query?.normalized ?? []), ...(j.query?.redirects ?? [])].map((r) => [r.to, r.from]));
+    for (const p of j.query?.pages ?? []) {
+      const v = { title: p.title, said: opening(p.extract), item: p.pageprops?.wikibase_item };
+      page.set(p.title, v);
+      if (back.has(p.title)) page.set(back.get(p.title), v);
+    }
+  }
+  const items = [...new Set(cities.map((c) => page.get(c.wiki)?.item).filter(Boolean))];
+  const claims = new Map();
+  for (let i = 0; i < items.length; i += 50) {
+    const j = await get(`https://www.wikidata.org/w/api.php?format=json&action=wbgetentities&props=claims&ids=${items.slice(i, i + 50).join("|")}`);
+    for (const [id, e] of Object.entries(j.entities ?? {})) claims.set(id, e.claims ?? {});
+  }
+
+  const out = [];
+  for (const c of cities) {
+    const p = page.get(c.wiki);
+    if (!p) continue;
+    const cl = (p.item && claims.get(p.item)) || {};
+    // The statement Wikidata ranks first, or else the first it has.
+    const best = (prop) => (cl[prop] ?? []).filter((s) => s.rank !== "deprecated").sort((a, b) => (a.rank === "preferred" ? -1 : 0) - (b.rank === "preferred" ? -1 : 0))[0]?.mainsnak?.datavalue?.value;
+    const site = best("P856");
+    const brit = best("P1417");
+    const nicknames = [...new Set((cl.P1449 ?? []).filter((s) => s.rank !== "deprecated").map((s) => s.mainsnak?.datavalue?.value).filter((v) => v && v.language === "en" && v.text.length <= 40).map((v) => v.text))].slice(0, 4);
+    const sources = [];
+    if (typeof site === "string" && /^https?:\/\/[^\s]+$/.test(site)) sources.push({ label: `${c.wiki} — the city's official website`, url: site });
+    if (typeof brit === "string" && /^[\w\-/]+$/.test(brit)) sources.push({ label: "Encyclopaedia Britannica", url: `https://www.britannica.com/${brit}` });
+    sources.push({ label: `Wikipedia — ${p.title}`, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(p.title.replace(/ /g, "_"))}` });
+    out.push({ id: c.id, ...(p.said ? { said: p.said } : {}), ...(nicknames.length ? { nicknames } : {}), sources });
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  fs.writeFileSync(
+    OUT,
+    `/**
+ * What each city the site profiles is, and is known for, with places to read
+ * more.
+ *
+ * GENERATED by build-city-known-for.cjs on ${today} — do not edit by hand; change
+ * the script and re-run it.
+ *
+ * \`said\` is the opening of the city's Wikipedia article, cut at the end of a
+ * sentence: the one source here whose words are open to reuse. \`nicknames\`
+ * are those Wikidata records for it in English. \`sources\` lists the city's
+ * own official website and the Encyclopaedia Britannica first, where Wikidata
+ * records them, to be read and cited; none of their text is taken.
+ * ${out.length} cities: ${out.filter((c) => c.said).length} with an opening, ${out.filter((c) => c.nicknames).length} with a nickname, ${out.filter((c) => c.sources.some((s) => /official/.test(s.label))).length} with an official
+ * website, ${out.filter((c) => c.sources.some((s) => /Britannica/.test(s.label))).length} with a Britannica entry.
+ */
+export const CITY_KNOWN_FOR_RETRIEVED = "${today}";
+
+export type CityKnownFor = { said?: string; nicknames?: string[]; sources: { label: string; url: string }[] };
+
+/** City id → what its article says of it, and where to read more. */
+export const CITY_KNOWN_FOR: Record<string, CityKnownFor> = {
+${out.map(({ id, ...rest }) => `  ${JSON.stringify(id)}: ${JSON.stringify(rest)},`).join("\n")}
+};
+`,
+  );
+  console.log(`wrote ${path.relative(__dirname, OUT)} · ${out.length} cities · opening ${out.filter((c) => c.said).length} · nicknames ${out.filter((c) => c.nicknames).length} · official site ${out.filter((c) => c.sources.some((s) => /official/.test(s.label))).length} · Britannica ${out.filter((c) => c.sources.some((s) => /Britannica/.test(s.label))).length}`);
+  for (const id of ["tky26", "seo26", "nyc26"]) {
+    const c = out.find((x) => x.id === id);
+    console.log(`  ${id}: ${(c?.nicknames ?? []).join(", ") || "-"} | ${c?.sources.map((s) => s.label).join(" · ")}\n     ${(c?.said ?? "").slice(0, 260)}`);
+  }
+})().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

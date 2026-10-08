@@ -30,6 +30,7 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContaine
 import { ArrowRight, Buildings, ChartLineUp, TrendDown, TrendUp } from "@phosphor-icons/react";
 import { citiesData } from "../data/citiesData";
 import { CITY_ADMIN_SOURCE, CITY_FIGURES, CITY_FIGURES_SOURCE } from "../data/cityFigures";
+import { CITY_KNOWN_FOR } from "../data/cityKnownFor";
 import { RENEWABLE_GENERATION, RENEWABLE_GENERATION_SOURCE } from "../data/renewables";
 import { TSMC_REVENUE } from "../data/technology";
 import { WORLD } from "../data/worldview";
@@ -138,7 +139,13 @@ export function CitiesContainer() {
       {/* City list */}
       <div className="flex flex-col mt-3 pt-3" style={{ borderTop: `1px solid ${t.gridLine}` }}>
         {top.map(({ c, pop, growth, now, f, ahead, toCome }, i) => {
+          // Its population at the start of the UN's series and at the turn of the century, beside today's above.
+          const first = cityYear(c.id, CITY_FIGURES_SOURCE.firstYear);
+          const at2000 = cityYear(c.id, SINCE);
+          const known = CITY_KNOWN_FOR[c.id];
           const facts: [label: string, value: string][] = [
+            ...(first ? ([[`Population in ${first.year}`, millions(first.population)]] as [string, string][]) : []),
+            ...(at2000 ? ([[`Population in ${SINCE}`, millions(at2000.population)]] as [string, string][]) : []),
             ["Among the UN's cities", `${ordinal(f.rank)} of ${CITY_FIGURES_SOURCE.cities.toLocaleString("en-US")}`],
             ["People to a km² of land", whole(now.density)],
             ["Land it covers", `${whole(now.area)} km²`],
@@ -148,13 +155,8 @@ export function CitiesContainer() {
             ["The UN's rating of its figure", f.plausibility],
           ];
           return (
-          <button
-            key={c.id}
-            type="button"
-            onClick={() => navigate(`/dashboard/cities?open=${c.id}`)}
-            className="flex flex-col py-2.5 text-left hover:opacity-80 transition-opacity cursor-pointer"
-            style={{ borderBottom: i < top.length - 1 ? `1px solid ${t.gridLine}` : "none" }}
-          >
+          <div key={c.id} className="py-2.5" style={{ borderBottom: i < top.length - 1 ? `1px solid ${t.gridLine}` : "none" }}>
+          <button type="button" onClick={() => navigate(`/dashboard/cities?open=${c.id}`)} className="flex flex-col w-full text-left hover:opacity-80 transition-opacity cursor-pointer">
             <span className="flex items-center gap-2 w-full">
             <img src={`https://flagcdn.com/w40/${c.countryCode.toLowerCase()}.png`} alt="" width={20} height={15} loading="lazy" className="rounded-sm shrink-0" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
             <span className="flex-1 min-w-0">
@@ -195,6 +197,28 @@ export function CitiesContainer() {
               ))}
             </span>
           </button>
+          {/* What the city is and is known for, in its article's words, and where to read more: outside the button, since it holds links. */}
+          {known && (
+            <div className="pl-7 mt-2">
+              {known.nicknames && (
+                <p className="text-[10px] font-sans leading-snug mb-1" style={{ color: t.mutedText }}>
+                  Also called <span style={{ color: t.headText }}>{known.nicknames.join(" · ")}</span>
+                </p>
+              )}
+              {known.said && (
+                <>
+                  <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
+                    What it is, and is known for
+                  </p>
+                  <p className="text-[11px] font-sans leading-snug mt-0.5" style={{ color: t.bodyText }}>
+                    {known.said}
+                  </p>
+                </>
+              )}
+              <SourceLink sources={known.sources} className="mt-1" />
+            </div>
+          )}
+          </div>
           );
         })}
       </div>
@@ -221,7 +245,9 @@ export function CitiesContainer() {
       <p className="text-[9px] font-sans leading-snug mt-2" style={{ color: t.mutedText }}>
         Each city as the UN draws it, for {BASE}: built-up land of at least 1,500 people to a km² holding 50,000 or more, which is not the city's own boundary. The change under a
         figure is its population on {SINCE}; the projection is the UN's for {LAST}, with its change on {BASE}; the rating is the UN's own, from how old and how fine the census under the
-        figure is. The population within the city's own boundary is Wikidata's, given only where its statement cites a reference. The ten largest of the {CITY_ROWS.length} the site
+        figure is. The population within the city's own boundary is Wikidata's, given only where its statement cites a reference. What a city is known for is the opening of its
+        Wikipedia article, the one of its sources whose words are open to reuse; its official website and the Encyclopaedia Britannica are linked before it. A population the
+        opening gives is the article's own, for its own boundary and year, and can differ from the UN's. The ten largest of the {CITY_ROWS.length} the site
         profiles, not of the world's.
       </p>
       <SourceLink sources={[{ label: CITY_ADMIN_SOURCE.label, url: CITY_ADMIN_SOURCE.url }]} className="mt-1" />

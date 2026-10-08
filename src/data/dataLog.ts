@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "What each profiled city is and is known for, with its official website and Britannica entry",
+    "from": "Wikipedia, Wikidata",
+    "page": "/dashboard",
+    "where": "Dashboard",
+    "read": "2026-10-08",
+    "files": 1
+  },
+  {
     "what": "Each economy's inflation, deficits and tariffs, with the IMF's projections",
     "from": "IMF (World Economic Outlook, Fiscal Monitor), World Bank",
     "page": "/dashboard/economies",
@@ -336,4 +344,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 60;
+export const DATA_LOG_FILES = 61;
