@@ -42,6 +42,7 @@ import { ArrowRight, MagnifyingGlass, MapPin, MapTrifold, TreeStructure, X } fro
 import { TONE } from "@/lib/chipTone";
 import { flagColor } from "../lib/flagColor";
 import { inSentence, qualityOf } from "../components/CountryQuality";
+import { FilterBar } from "../components/FilterBar";
 import { FigureRow } from "../components/ModalCharts";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
@@ -836,33 +837,32 @@ export function SubnationsPage() {
           </div>
         </div>
 
-        {/* ── Which countries are listed ── */}
-        <div className="flex flex-wrap items-center gap-2">
-          <label className={`flex items-center gap-1.5 ${field} focus-within:border-foreground/40`}>
-            <MagnifyingGlass size={13} className="text-muted-foreground shrink-0" aria-hidden />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search a country, a division or a capital"
-              aria-label="Search the countries by name, or by a division's name, ISO code or capital"
-              className="bg-transparent w-56 sm:w-72 focus:outline-none placeholder:text-muted-foreground"
-            />
-          </label>
-          <select value={continent} onChange={(e) => setContinent(e.target.value)} aria-label="The continent whose countries are listed" className={field}>
-            <option value="">Every continent</option>
-            {continents.map((x) => (
-              <option key={x} value={x}>
-                {x}
-              </option>
-            ))}
+        {/* ── Which countries are listed: the sticky bar every other page has, continents as its chips ── */}
+        <FilterBar label="Subnation filters" search={{ value: query, onChange: setQuery, placeholder: "Search a country, a division or a capital…" }} status={`${rows.length} countries`}>
+          {["", ...continents].map((x) => (
+            <button
+              key={x || "all"}
+              onClick={() => setContinent(x)}
+              aria-pressed={continent === x}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
+                continent === x ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
+            >
+              {x || "All"}
+            </button>
+          ))}
+          <div className="w-px h-4 bg-border shrink-0" />
+          <select
+            aria-label="The order of the countries"
+            value={order}
+            onChange={(e) => setOrder(e.target.value as Order)}
+            className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
+          >
+            <option value="name">Sort: Name</option>
+            <option value="divisions">Sort: Number of divisions</option>
           </select>
-          <select value={order} onChange={(e) => setOrder(e.target.value as Order)} aria-label="The order of the countries" className={field}>
-            <option value="name">By name</option>
-            <option value="divisions">By number of divisions</option>
-          </select>
-          <span className="text-[11px] font-mono text-muted-foreground">{rows.length} countries</span>
-        </div>
+        </FilterBar>
+
         {notice && <p className="text-[12px] font-sans text-foreground rounded-xl border border-border px-4 py-2.5">{notice}</p>}
 
         {/* ── COUNTRY CARDS GRID: as the Countries page lays its own out ── */}
