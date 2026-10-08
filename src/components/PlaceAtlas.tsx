@@ -33,6 +33,11 @@
  * of its own in a shade of the colour of the place it belongs to, so that
  * neighbours can still be told apart.
  *
+ * The land is drawn raised off the card: a darker slab under it, set a little
+ * down, and a shadow under that - a look, and no more; it says nothing about
+ * height. On the map of the United States the county lines are drawn too,
+ * fine, under the states' own, whatever a press selects.
+ *
  * The map can be drawn closer: with the + and - keys (the number pad's too),
  * the buttons above it, or a pinch; closer in, it is moved by dragging or
  * with the arrow keys, and 0 puts it back. A turn of the wheel alone still
@@ -43,7 +48,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { geoAlbersUsa, geoArea, geoAzimuthalEqualArea, geoCentroid, geoDistance, geoEqualEarth, geoPath, type GeoProjection } from "d3-geo";
-import { feature } from "topojson-client";
+import { feature, mesh } from "topojson-client";
 import type { Topology } from "topojson-specification";
 import worldTopo from "world-atlas/countries-110m.json";
 import statesTopo from "us-atlas/states-10m.json";
@@ -69,11 +74,11 @@ type Geo = { type: string; id?: string | number; properties: Record<string, stri
 type Level = { kind: "world" } | { kind: "country"; code: string } | { kind: "state"; abbr: string; fips: string };
 /** What a press selects. */
 type Pick = "country" | "state" | "county" | "city";
-const PICKS: [Pick, string][] = [
-  ["country", "The country"],
-  ["state", "A state or division"],
-  ["county", "A county"],
-  ["city", "A city"],
+const PICKS: [Pick, string, string][] = [
+  ["country", "Country", "A press opens the whole country"],
+  ["state", "State", "A press goes to a state, province or other division"],
+  ["county", "County", "A press goes to a county - held for the United States"],
+  ["city", "City", "A press goes to a city"],
 ];
 type CityModule = typeof import("../data/unCities");
 /** A city on the map: a dot where its people are centred, sized by how many they are. */
@@ -138,6 +143,8 @@ export default function PlaceAtlas() {
   const [manifest, setManifest] = useState<Record<string, number> | null>(null);
   const [divisions, setDivisions] = useState<{ code: string; features: Geo[] } | "failed" | null>(null);
   const [counties, setCounties] = useState<Geo[] | null>(null);
+  /** The counties' file whole, for the lines between them on the map of the United States. */
+  const [countyTopo, setCountyTopo] = useState<Topology | null>(null);
   /* How close the map is drawn, and where its middle is, in the map's own units: 1 is the whole of it. */
   const [view, setView] = useState({ k: 1, x: W / 2, y: H / 2 });
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -224,21 +231,27 @@ export default function PlaceAtlas() {
     };
   }, [code]);
 
-  const inState = level.kind === "state";
+  /* The counties are fetched when the map is first on the United States or one of its states: their lines are drawn on the one, their shapes on the other. */
+  const wantCounties = level.kind === "state" || (level.kind === "country" && level.code === "US");
   useEffect(() => {
-    if (!inState || counties) return;
+    if (!wantCounties || counties) return;
     let off = false;
-    import("us-atlas/counties-10m.json").then((m) => !off && setCounties(featuresOf((m.default ?? m) as unknown as Topology, "counties")));
+    import("us-atlas/counties-10m.json").then((m) => {
+      if (off) return;
+      const topo = (m.default ?? m) as unknown as Topology;
+      setCountyTopo(topo);
+      setCounties(featuresOf(topo, "counties"));
+    });
     return () => {
       off = true;
     };
-  }, [inState, counties]);
+  }, [wantCounties, counties]);
 
   const country = code ? (countriesData.find((c) => c.code === code) ?? null) : null;
   const state = level.kind === "state" ? (usStatesData.find((s) => s.abbreviation === level.abbr) ?? null) : null;
 
   /** The shapes of the level the map is on, each with what a press does. */
-  const { shapes, project } = useMemo<{ shapes: Shape[]; /** Where a longitude and latitude fall on the map it is on. */ project: ((lon: number, lat: number) => [number, number] | null) | null }>(() => {
+  const { shapes, project, lines } = useMemo<{ shapes: Shape[]; /** Where a longitude and latitude fall on the map it is on. */ project: ((lon: number, lat: number) => [number, number] | null) | null; /** The county lines, on the map of the United States. */ lines: string }>(() => {
     const draw = (features: Geo[], projection: GeoProjection, name: (f: Geo) => string, go: (f: Geo) => () => void, hot: (f: Geo, i: number) => string) => {
       const path = geoPath(projection);
       return {
@@ -247,6 +260,7 @@ export default function PlaceAtlas() {
           return d ? [{ key: `${f.id ?? ""}-${i}`, name: name(f), d, go: go(f), hot: hot(f, i) }] : [];
         }),
         project: (lon: number, lat: number) => projection([lon, lat]),
+        lines: "",
       };
     };
     if (level.kind === "world")
@@ -265,9 +279,10 @@ export default function PlaceAtlas() {
       );
     if (level.kind === "country" && level.code === "US") {
       const base = flagColor("US") ?? COLOR;
-      return draw(
+      const projection = geoAlbersUsa().fitExtent(BOX, collection(STATES.map((s) => s.f)) as never);
+      const drawn = draw(
         STATES.map((s) => s.f),
-        geoAlbersUsa().fitExtent(BOX, collection(STATES.map((s) => s.f)) as never),
+        projection,
         (f) => f.properties.name,
         (f) => () => {
           const s = stateForFeature(f.properties.name);
@@ -278,9 +293,12 @@ export default function PlaceAtlas() {
         },
         (f, i) => ownColor("US", f.properties.name) ?? tint(base, i),
       );
+      // The lines between counties, once their file is in: one path, under the states' own borders.
+      const between = countyTopo ? mesh(countyTopo, countyTopo.objects.counties as never, (a, b) => a !== b) : null;
+      return { ...drawn, lines: between ? (geoPath(projection)(between as never) ?? "") : "" };
     }
     if (level.kind === "country") {
-      if (!divisions || divisions === "failed" || divisions.code !== level.code) return { shapes: [], project: null };
+      if (!divisions || divisions === "failed" || divisions.code !== level.code) return { shapes: [], project: null, lines: "" };
       const base = flagColor(level.code) ?? COLOR;
       return draw(
         divisions.features,
@@ -290,7 +308,7 @@ export default function PlaceAtlas() {
         (f, i) => ownColor(level.code, f.properties.n) ?? tint(base, i),
       );
     }
-    if (!counties) return { shapes: [], project: null };
+    if (!counties) return { shapes: [], project: null, lines: "" };
     const own = counties.filter((f) => String(f.id).startsWith(level.fips));
     // A county has no flag the site holds: shades of its state's flag's colour, or of the country's.
     const base = ownColor("US", usStatesData.find((s) => s.abbreviation === level.abbr)?.name ?? "") ?? flagColor("US") ?? COLOR;
@@ -301,7 +319,9 @@ export default function PlaceAtlas() {
       (f) => () => navigate(`/dashboard/subnations?open=county:${f.id}`),
       (_, i) => tint(base, i),
     );
-  }, [level, divisions, counties, navigate, pick]);
+  }, [level, divisions, counties, countyTopo, navigate, pick]);
+  /** Every shape as one outline: the slab the land stands on. */
+  const slab = useMemo(() => shapes.map((s) => s.d).join(""), [shapes]);
 
   /** The cities, where a city is what a press selects: those of a million or more on the world, and every one of the country the map is on. */
   const dots = useMemo<Dot[]>(() => {
@@ -419,8 +439,8 @@ export default function PlaceAtlas() {
       {/* Drawn as the bar at the head of the other pages is - its chips and its ground - but it does not stick: it belongs to this card. */}
       <div className="search-sticky border border-border/60 rounded-2xl px-3 py-2 mb-3 flex flex-wrap items-center gap-2" role="group" aria-label="What a press on the map selects">
         <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mr-1">A press selects</span>
-        {PICKS.map(([id, label]) => (
-          <button key={id} type="button" aria-pressed={pick === id} onClick={() => setPick(id)} className={chip(pick === id)}>
+        {PICKS.map(([id, label, says]) => (
+          <button key={id} type="button" aria-pressed={pick === id} onClick={() => setPick(id)} className={chip(pick === id)} title={says} aria-label={`${label}: ${says}`}>
             {label}
           </button>
         ))}
@@ -484,6 +504,18 @@ export default function PlaceAtlas() {
               drag.current = null;
             }}
           >
+            {/* The land raised off the card: a shadow, then a darker slab set a little down, and the land itself on top. It is a look, and measures nothing. */}
+            <defs>
+              <filter id="atlas-lift" x="-10%" y="-10%" width="120%" height="130%">
+                <feDropShadow dx="0" dy={3 / view.k} stdDeviation={2.2 / view.k} floodColor="#000000" floodOpacity={t.isLight ? 0.28 : 0.75} />
+              </filter>
+              <linearGradient id="atlas-sea" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={t.isLight ? "#f4f6fa" : "#1b1c22"} />
+                <stop offset="100%" stopColor={t.isLight ? "#dfe4ec" : "#0a0a0d"} />
+              </linearGradient>
+            </defs>
+            <rect x={0} y={0} width={W} height={H} fill="url(#atlas-sea)" pointerEvents="none" />
+            {slab && <path d={slab} transform={`translate(0 ${2.6 / view.k})`} fill={t.isLight ? "#9aa4b5" : "#1f2128"} filter="url(#atlas-lift)" pointerEvents="none" />}
             {shapes.map((s) => (
               <path
                 key={s.key}
@@ -502,7 +534,10 @@ export default function PlaceAtlas() {
                 <title>{s.name}</title>
               </path>
             ))}
+            {/* The county lines, on the map of the United States: fine, and under nothing that is pressed. */}
+            {lines && <path d={lines} fill="none" stroke={edge} strokeOpacity={0.7} strokeWidth={0.35} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
             {dots.map((d) => (
+
               <circle
                 key={d.key}
                 cx={d.x}
