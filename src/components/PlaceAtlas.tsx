@@ -33,16 +33,21 @@
  * of its own in a shade of the colour of the place it belongs to, so that
  * neighbours can still be told apart.
  *
+ * The map can be drawn closer: with the + and - keys (the number pad's too),
+ * the buttons above it, or a pinch; closer in, it is moved by dragging or
+ * with the arrow keys, and 0 puts it back. A turn of the wheel alone still
+ * scrolls the page, so the map does not trap a reader passing over it.
+ *
  * Loaded when the Dashboard reaches it: the boundary files are large.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { geoAlbersUsa, geoArea, geoAzimuthalEqualArea, geoCentroid, geoDistance, geoEqualEarth, geoPath, type GeoProjection } from "d3-geo";
 import { feature } from "topojson-client";
 import type { Topology } from "topojson-specification";
 import worldTopo from "world-atlas/countries-110m.json";
 import statesTopo from "us-atlas/states-10m.json";
-import { CaretRight, MapTrifold } from "@phosphor-icons/react";
+import { CaretRight, MagnifyingGlass, MagnifyingGlassMinus, MagnifyingGlassPlus, MapTrifold } from "@phosphor-icons/react";
 import { countriesData } from "../data/countriesData";
 import { countryForFeature, stateForFeature } from "../data/mapJoin";
 import { SUBNATION_FLAG_COLOR } from "../data/subnationFlagColors";
@@ -133,6 +138,49 @@ export default function PlaceAtlas() {
   const [manifest, setManifest] = useState<Record<string, number> | null>(null);
   const [divisions, setDivisions] = useState<{ code: string; features: Geo[] } | "failed" | null>(null);
   const [counties, setCounties] = useState<Geo[] | null>(null);
+  /* How close the map is drawn, and where its middle is, in the map's own units: 1 is the whole of it. */
+  const [view, setView] = useState({ k: 1, x: W / 2, y: H / 2 });
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  /** Kept on the map: no closer than twelve times, no further out than the whole, and never past an edge. */
+  const held = (k: number, x: number, y: number) => {
+    const z = Math.max(1, Math.min(12, k));
+    const hw = W / (2 * z);
+    const hh = H / (2 * z);
+    return { k: z, x: Math.max(hw, Math.min(W - hw, x)), y: Math.max(hh, Math.min(H - hh, y)) };
+  };
+  /** Closer or further by a factor, about a point of the map - its middle unless one is given - which stays where it is. */
+  const zoomBy = useCallback((factor: number, at?: { x: number; y: number }) => {
+    setView((v) => {
+      const k = Math.max(1, Math.min(12, v.k * factor));
+      const p = at ?? { x: v.x, y: v.y };
+      return held(k, p.x - (p.x - v.x) * (v.k / k), p.y - (p.y - v.y) * (v.k / k));
+    });
+  }, []);
+  const panBy = useCallback((dx: number, dy: number) => setView((v) => held(v.k, v.x + dx, v.y + dy)), []);
+  const resetView = useCallback(() => setView({ k: 1, x: W / 2, y: H / 2 }), []);
+  /* A new map starts whole. */
+  useEffect(() => resetView(), [level, resetView]);
+  /* A pinch arrives as a wheel with Ctrl held: it draws the map closer about the pointer. A plain wheel is left to scroll the page. */
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      const r = svg.getBoundingClientRect();
+      setView((v) => {
+        const k = Math.max(1, Math.min(12, v.k * (e.deltaY < 0 ? 1.2 : 1 / 1.2)));
+        const px = v.x - W / (2 * v.k) + ((e.clientX - r.left) / r.width) * (W / v.k);
+        const py = v.y - H / (2 * v.k) + ((e.clientY - r.top) / r.height) * (H / v.k);
+        return held(k, px - (px - v.x) * (v.k / k), py - (py - v.y) * (v.k / k));
+      });
+    };
+    svg.addEventListener("wheel", onWheel, { passive: false });
+    return () => svg.removeEventListener("wheel", onWheel);
+  }, []);
+  /* Dragging moves a map that is drawn closer. A drag is not a press: the press that ends one is dropped. */
+  const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  const [find, setFind] = useState("");
   const [pick, setPickOnly] = useState<Pick>("state");
   const [cityData, setCityData] = useState<CityModule | null>(null);
   const setPick = (p: Pick) => {
@@ -302,8 +350,13 @@ export default function PlaceAtlas() {
             ? "Press a state to open the map on its counties."
             : "Press a state to go to its record."
           : `${pick === "county" ? "Counties are held for the United States only. " : ""}Press a division of ${named} to go to its record.`;
-  const land = t.isLight ? "#dfe3ea" : "#2b2b36";
-  const edge = t.isLight ? "#ffffff" : "#0b0b0d";
+  // In the dark theme the land is a light grey, as asked, so that it stands clear of the card; its borders are the card's dark.
+  const land = t.isLight ? "#dfe3ea" : "#a3a8b3";
+  const edge = t.isLight ? "#ffffff" : "#15151a";
+  const chip = (on: boolean) =>
+    `px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${on ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`;
+  const shownList = find.trim() ? listed.filter((x) => x.name.toLowerCase().includes(find.trim().toLowerCase())) : listed;
+  const tool = "w-7 h-7 rounded-full inline-flex items-center justify-center border border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-default";
   const crumb = "text-[11px] font-semibold font-sans px-2.5 py-1 rounded-full transition-opacity hover:opacity-80 cursor-pointer";
 
   return (
@@ -363,20 +416,74 @@ export default function PlaceAtlas() {
       </div>
 
       {/* What a press selects: the whole country, a state or division of it, a county, or a city. */}
-      <div className="flex flex-wrap items-center gap-1.5 mb-3" role="group" aria-label="What a press on the map selects">
-        <span className="text-[10px] font-mono uppercase tracking-widest mr-1" style={{ color: t.mutedText }}>
-          A press selects
-        </span>
+      {/* Drawn as the bar at the head of the other pages is - its chips and its ground - but it does not stick: it belongs to this card. */}
+      <div className="search-sticky border border-border/60 rounded-2xl px-3 py-2 mb-3 flex flex-wrap items-center gap-2" role="group" aria-label="What a press on the map selects">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mr-1">A press selects</span>
         {PICKS.map(([id, label]) => (
-          <button key={id} type="button" aria-pressed={pick === id} onClick={() => setPick(id)} className={crumb} style={{ background: pick === id ? COLOR : t.tile, color: pick === id ? "#ffffff" : t.bodyText, border: `1px solid ${pick === id ? COLOR : t.gridLine}` }}>
+          <button key={id} type="button" aria-pressed={pick === id} onClick={() => setPick(id)} className={chip(pick === id)}>
             {label}
           </button>
         ))}
+        {/* Closer and further, beside the choice: the same as the + and - keys. */}
+        <div className="flex items-center gap-1.5 ml-auto">
+          <button type="button" onClick={() => zoomBy(1 / 1.5)} disabled={view.k <= 1} aria-label="Draw the map further out" title="Further out ( - )" className={tool}>
+            <MagnifyingGlassMinus size={13} aria-hidden />
+          </button>
+          <button type="button" onClick={() => zoomBy(1.5)} disabled={view.k >= 12} aria-label="Draw the map closer" title="Closer ( + )" className={tool}>
+            <MagnifyingGlassPlus size={13} aria-hidden />
+          </button>
+          <button type="button" onClick={resetView} disabled={view.k === 1} className="px-2.5 h-7 rounded-full text-[10px] font-mono uppercase tracking-wider border border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-default" title="The whole map ( 0 )">
+            Reset
+          </button>
+          <span className="text-[10px] font-mono text-muted-foreground w-9 text-right" aria-live="polite">
+            {view.k.toFixed(1)}×
+          </span>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_15rem] gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_14rem] gap-4">
         <div className="min-w-0">
-          <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto rounded-xl" style={{ background: t.tile, border: `1px solid ${t.gridLine}`, ["--atlas-land" as string]: land, ["--atlas-hot" as string]: COLOR }} role="group" aria-label={`A map to press. ${what}`}>
+          <svg
+            ref={svgRef}
+            viewBox={`${view.x - W / (2 * view.k)} ${view.y - H / (2 * view.k)} ${W / view.k} ${H / view.k}`}
+            className="w-full h-auto rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-secondary/60"
+            style={{ background: t.tile, border: `1px solid ${t.gridLine}`, ["--atlas-land" as string]: land, ["--atlas-hot" as string]: COLOR, cursor: view.k > 1 ? "grab" : undefined, touchAction: view.k > 1 ? "none" : undefined }}
+            role="group"
+            tabIndex={0}
+            aria-label={`A map to press. ${what} With the map in focus, plus and minus draw it closer and further, the arrow keys move it and 0 puts it back.`}
+            onKeyDown={(e) => {
+              // The number pad's keys carry the same characters, so they are answered too.
+              const step = 60 / view.k;
+              if (e.key === "+" || e.key === "=") zoomBy(1.5);
+              else if (e.key === "-" || e.key === "_") zoomBy(1 / 1.5);
+              else if (e.key === "0") resetView();
+              else if (e.key === "ArrowLeft") panBy(-step, 0);
+              else if (e.key === "ArrowRight") panBy(step, 0);
+              else if (e.key === "ArrowUp") panBy(0, -step);
+              else if (e.key === "ArrowDown") panBy(0, step);
+              else return;
+              e.preventDefault();
+            }}
+            onPointerDown={(e) => {
+              e.currentTarget.focus({ preventScroll: true });
+              drag.current = { x: e.clientX, y: e.clientY, moved: false };
+            }}
+            onPointerMove={(e) => {
+              const d = drag.current;
+              if (!d || view.k <= 1 || e.buttons === 0) return;
+              const dx = e.clientX - d.x;
+              const dy = e.clientY - d.y;
+              if (!d.moved && Math.hypot(dx, dy) < 4) return;
+              const r = e.currentTarget.getBoundingClientRect();
+              panBy((-dx * (W / view.k)) / r.width, (-dy * (H / view.k)) / r.height);
+              drag.current = { x: e.clientX, y: e.clientY, moved: true };
+            }}
+            onPointerLeave={() => (drag.current = null)}
+            onClickCapture={(e) => {
+              if (drag.current?.moved) e.stopPropagation();
+              drag.current = null;
+            }}
+          >
             {shapes.map((s) => (
               <path
                 key={s.key}
@@ -386,6 +493,7 @@ export default function PlaceAtlas() {
                 style={{ ["--atlas-hot" as string]: s.hot, pointerEvents: onCities && level.kind !== "world" ? "none" : undefined }}
                 stroke={edge}
                 strokeWidth={0.6}
+                vectorEffect="non-scaling-stroke"
                 strokeLinejoin="round"
                 onClick={s.go}
                 onMouseEnter={() => setHover(s.name)}
@@ -399,11 +507,13 @@ export default function PlaceAtlas() {
                 key={d.key}
                 cx={d.x}
                 cy={d.y}
-                r={d.r}
+                // The same size on the screen however close the map is drawn, so that cities part as it closes in.
+                r={d.r / view.k}
                 className="cursor-pointer fill-[var(--atlas-dot)] hover:fill-[var(--atlas-hot)] transition-colors"
-                style={{ ["--atlas-hot" as string]: d.hot, ["--atlas-dot" as string]: t.isLight ? "rgba(15,23,42,0.62)" : "rgba(241,240,255,0.7)" }}
-                stroke={edge}
-                strokeWidth={0.5}
+                style={{ ["--atlas-hot" as string]: d.hot, ["--atlas-dot" as string]: "rgba(15,23,42,0.72)" }}
+                stroke="#ffffff"
+                strokeWidth={0.6}
+                vectorEffect="non-scaling-stroke"
                 onClick={d.go}
                 onMouseEnter={() => setHover(d.name)}
                 onMouseLeave={() => setHover(null)}
@@ -430,29 +540,38 @@ export default function PlaceAtlas() {
         </div>
 
         {/* The same places by name: for one too small to press, and for a keyboard. */}
-        <div className="min-w-0 flex flex-col">
+        {/* Beside the map from a middling width up, the height of the map; under it on a phone. */}
+        <div className="min-w-0 relative md:min-h-[12rem]">
+         <div className="flex flex-col md:absolute md:inset-0">
           <p className="text-[10px] font-mono uppercase tracking-widest mb-1.5" style={{ color: t.mutedText }}>
             {listLabel}
           </p>
-          <ul className="flex flex-col overflow-y-auto rounded-xl h-40 lg:h-auto lg:flex-1 lg:max-h-[22rem]" style={{ border: `1px solid ${t.gridLine}` }}>
-            {listed.map((x) => (
+          <label className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 mb-1.5 transition-colors focus-within:border-foreground/40">
+            <MagnifyingGlass size={12} className="text-muted-foreground shrink-0" aria-hidden />
+            <input type="search" value={find} onChange={(e) => setFind(e.target.value)} placeholder="Find one by name" aria-label="Find a place in the list by name" className="flex-1 min-w-0 bg-transparent text-[11px] font-medium font-sans text-foreground placeholder:text-muted-foreground focus:outline-none" />
+          </label>
+          <ul className="flex flex-col overflow-y-auto rounded-xl h-40 md:h-auto md:flex-1 md:min-h-0" style={{ border: `1px solid ${t.gridLine}` }}>
+            {shownList.map((x) => (
               <li key={x.key} style={{ borderBottom: `1px solid ${t.gridLine}` }}>
                 <button type="button" onClick={x.go} onFocus={() => setHover(x.name)} onBlur={() => setHover(null)} className="w-full text-left text-[11px] font-sans px-3 py-1.5 truncate hover:opacity-70 cursor-pointer" style={{ color: t.bodyText }}>
                   {x.name}
                 </button>
               </li>
             ))}
-            {listed.length === 0 && (
+            {shownList.length === 0 && (
               <li className="text-[11px] font-sans px-3 py-2" style={{ color: t.mutedText }}>
-                {loading ? "Loading…" : "None drawn."}
+                {loading ? "Loading…" : listed.length ? "None by that name." : "None drawn."}
               </li>
             )}
           </ul>
+         </div>
         </div>
       </div>
 
       <p className="text-[9px] font-sans leading-snug mt-3" style={{ color: t.mutedText }}>
-        What a press selects is chosen above the map: the whole country, a state or division, a county (held for the United States), or a city - the cities the United Nations
+        The map is drawn closer with the + and - keys, the buttons above it or a pinch, moved by dragging or the arrow keys once it is closer, and put back with 0. What a press
+        selects is chosen above the map:
+ the whole country, a state or division, a county (held for the United States), or a city - the cities the United Nations
         counts, drawn as dots sized by their people, those of a million or more on the world and every one of a country's once the map is on it. The map is a way in and
         shades nothing by any figure.
  A place lights in its flag's colour when it is pointed at: a country in its own flag's, a division in its own
