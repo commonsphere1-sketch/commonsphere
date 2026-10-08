@@ -1,7 +1,11 @@
 /**
  * Subnations: the first-order divisions of every country - states, provinces,
- * regions, departments - and the counties of the United States, each with a
- * card and a window.
+ * regions, departments - and the counties of the United States.
+ *
+ * The page is a card for each country, drawn as the Countries page draws its
+ * own. A country's card opens a window holding every one of its divisions, a
+ * card each; a division's card opens the division's own window over it. The
+ * United States' window also lists a state's counties, each with a window.
  *
  * A window is laid out as asked, in eight parts: Identity, Geography,
  * Government, Demographics, Economy, Society, Political data, Historical
@@ -34,8 +38,10 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowRight, MagnifyingGlass, MapTrifold, TreeStructure, X } from "@phosphor-icons/react";
-import { qualityOf } from "../components/CountryQuality";
+import { ArrowRight, MagnifyingGlass, MapPin, MapTrifold, TreeStructure, X } from "@phosphor-icons/react";
+import { TONE } from "@/lib/chipTone";
+import { flagColor } from "../lib/flagColor";
+import { inSentence, qualityOf } from "../components/CountryQuality";
 import { FigureRow } from "../components/ModalCharts";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
@@ -72,8 +78,45 @@ const BY_ID = new Map(SUBNATIONS.map((s) => [s.id, s]));
 const HEAD_BY_QID = new Map(REPRESENTATIVES.map((r) => [r[9], r]));
 const HEAD_BY_CODE = new Map(REPRESENTATIVES.filter((r) => r[2]).map((r) => [r[2], r]));
 const STATE_BY_CODE = new Map(usStatesData.map((s) => [`US-${s.abbreviation}`, s]));
-/** The most populous divisions that have a dated, referenced population: what the page opens on. */
-const LARGEST = [...SUBNATIONS].filter((s) => s.pop).sort((a, b) => b.pop![1] - a.pop![1]).slice(0, 24);
+const headOf = (s: Subnation) => (s.qid && HEAD_BY_QID.get(s.qid)) || (s.code && HEAD_BY_CODE.get(s.code)) || undefined;
+/** A continent's chip, in the tones the Countries page gives them. */
+const CONTINENT_TONE: Record<string, string> = { "North America": TONE.blue, Asia: TONE.amber, Europe: TONE.violet, "South America": TONE.emerald, Africa: TONE.orange, Oceania: TONE.teal, Antarctica: TONE.sky };
+
+/** A country as the page lists it: its divisions, and what can be said of them together. */
+type CountryRow = {
+  cc: string;
+  name: string;
+  continent: string;
+  capital: string;
+  divisions: Subnation[];
+  /** The kinds of division it has, the commonest first. */
+  kinds: string[];
+  /** How many have a dated, referenced population, and how many a head who is named. */
+  counted: number;
+  headed: number;
+  populous?: Subnation;
+  widest?: Subnation;
+};
+const ROWS: CountryRow[] = COUNTRIES.map(({ cc, name }) => {
+  const c = COUNTRY.get(cc);
+  const divisions = SUBNATIONS.filter((s) => s.cc === cc).sort((a, b) => a.name.localeCompare(b.name));
+  const tally = new Map<string, number>();
+  for (const d of divisions) if (d.kind) tally.set(d.kind, (tally.get(d.kind) ?? 0) + 1);
+  const most = (get: (s: Subnation) => number | undefined) => divisions.reduce<Subnation | undefined>((best, s) => (get(s) !== undefined && (best === undefined || get(s)! > get(best)!) ? s : best), undefined);
+  return {
+    cc,
+    name,
+    continent: c?.continent ?? "",
+    capital: c?.capital && c.capital !== "None" ? c.capital : "",
+    divisions,
+    kinds: [...tally].sort((a, b) => b[1] - a[1]).map(([k]) => k),
+    counted: divisions.filter((s) => s.pop).length,
+    headed: divisions.filter((s) => headOf(s) || STATE_BY_CODE.has(s.code ?? "")).length,
+    populous: most((s) => s.pop?.[1]),
+    widest: most((s) => s.areaKm2),
+  };
+});
+const ROW_OF = new Map(ROWS.map((r) => [r.cc, r]));
 
 // ── A window's pieces ───────────────────────────────────────────────────────
 
@@ -120,20 +163,27 @@ function SeriesChart({ points, label }: { points: [number, number][]; label: str
   );
 }
 
-/** The shell of a window, as a city's and a country's is drawn. */
-function Window({ title, kicker, flagCode, chips, onClose, children }: { title: string; kicker: string; flagCode: string; chips: string[]; onClose: () => void; children: ReactNode }) {
+/**
+ * The shell of a window, as a city's and a country's is drawn. A division's window opens over its country's, so only
+ * the one on top answers Escape, and each puts the page's scrolling back as it found it.
+ */
+function Window({ title, kicker, flagCode, chips, onClose, children, wide = false, top = true }: { title: string; kicker: string; flagCode: string; chips: string[]; onClose: () => void; children: ReactNode; wide?: boolean; top?: boolean }) {
   useEffect(() => {
+    if (!top) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose, top]);
+  useEffect(() => {
+    const before = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
+      document.body.style.overflow = before;
     };
-  }, [onClose]);
+  }, []);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div role="dialog" aria-modal="true" aria-label={title} className="relative z-10 rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-2xl modal-glass border overflow-y-auto">
+      <div role="dialog" aria-modal="true" aria-label={title} className={`relative z-10 rounded-2xl w-full max-h-[90vh] shadow-2xl modal-glass border overflow-y-auto ${wide ? "max-w-5xl" : "max-w-2xl"}`}>
         <div className="p-6 flex flex-col gap-5">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-4 min-w-0">
@@ -176,7 +226,7 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
   const country = c?.name ?? s.cc;
   const state = STATE_BY_CODE.get(s.code ?? "");
   const m = state ? STATE_INDICATORS[state.id] : undefined;
-  const head = (s.qid && HEAD_BY_QID.get(s.qid)) || (s.code && HEAD_BY_CODE.get(s.code)) || undefined;
+  const head = headOf(s);
   const sources = new Map<string, Source>();
   const cite = (x: Source) => sources.set(x.label, { label: x.label, url: x.url });
   cite(SUBNATIONS_SOURCES.naturalEarth);
@@ -436,21 +486,264 @@ function CountyWindow({ county, data, onClose }: { county: UsCounty; data: Count
 // ── The page ────────────────────────────────────────────────────────────────
 
 type Sort = "name" | "population" | "area";
-const PAGE = 60;
+const field = "bg-transparent border border-border rounded-full px-3 py-1.5 text-[12px] font-sans text-foreground focus:outline-none focus:border-foreground/40";
+/** Whether a division answers a search: by its name, its code or its capital. */
+const answers = (s: Subnation, q: string) => s.name.toLowerCase().includes(q) || (s.code ?? "").toLowerCase() === q || (s.capital ?? "").toLowerCase().includes(q);
+
+/** A division's card, inside its country's window. */
+function DivisionCard({ s, onOpen }: { s: Subnation; onOpen: () => void }) {
+  // A US state's population and head are the ones its window gives: the Census Bureau's, and its governor.
+  const state = STATE_BY_CODE.get(s.code ?? "");
+  const m = state ? STATE_INDICATORS[state.id] : undefined;
+  const facts: [string, string | undefined][] = [
+    ["Population", m ? `${people(m.population.v)} · ${m.population.y}` : s.pop ? `${people(s.pop[1])} · ${s.pop[0]}` : undefined],
+    ["Area", s.areaKm2 ? `${whole(s.areaKm2)} km²` : undefined],
+    ["Capital", s.capital],
+    ["Head", m ? m.governor.name : headOf(s)?.[3]],
+  ];
+  return (
+    <button type="button" onClick={onOpen} className="modal-tile rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
+      <span className="flex items-center gap-2.5 min-w-0">
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-bold font-sans text-foreground truncate">{s.name}</span>
+          <span className="block text-[10px] font-mono text-muted-foreground truncate">{s.kind || "Division"}</span>
+        </span>
+        {s.code && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full border border-border text-muted-foreground shrink-0">{s.code}</span>}
+      </span>
+      <span className="flex flex-col border-t border-border/40 pt-1.5">
+        {facts.map(([k, v]) => (
+          <span key={k} className="flex items-baseline justify-between gap-2 py-0.5 min-w-0">
+            <span className="text-[11px] font-sans text-muted-foreground shrink-0">{k}</span>
+            <span className={`text-[11px] font-mono truncate ${v ? "font-bold text-foreground" : "text-muted-foreground"}`}>{v ?? "Not held"}</span>
+          </span>
+        ))}
+      </span>
+    </button>
+  );
+}
+
+/** A country's card, drawn as the Countries page draws a country: its flag behind its name, four facts, a bar and its chips. */
+function CountryCard({ row, matching, onOpen }: { row: CountryRow; /** How many of its divisions answer the search, where it is they and not its name that do. */ matching: number; onOpen: () => void }) {
+  const slots: { label: string; value: string; text?: boolean }[] = [
+    { label: "Divisions", value: String(row.divisions.length) },
+    { label: "Kind", value: row.kinds.length ? `${row.kinds[0]}${row.kinds.length > 1 ? ` +${row.kinds.length - 1}` : ""}` : "Not held", text: true },
+    { label: "Most populous", value: row.populous?.name ?? "Not held", text: true },
+    { label: "Largest", value: row.widest?.name ?? "Not held", text: true },
+  ];
+  return (
+    <article
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+      aria-label={`${row.name}: its ${row.divisions.length} divisions`}
+      className="modal-tile rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40"
+    >
+      {/* Card header with flag background */}
+      <div className="relative flex items-start justify-between gap-2 mb-3 -mx-5 -mt-5 px-5 pt-5 pb-4 rounded-t-xl overflow-hidden">
+        <img src={flag(row.cc, 320)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover opacity-20 scale-105 select-none pointer-events-none" onError={(e) => (e.currentTarget.style.display = "none")} />
+        <div className="relative flex items-center gap-3 min-w-0">
+          <div className="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 shadow-md bg-muted">
+            <img src={flag(row.cc, 80)} alt={`${row.name} flag`} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
+          </div>
+          <div className="min-w-0">
+            <h3 className="font-semibold font-sans text-foreground text-sm">{row.name}</h3>
+            <p className="text-xs text-muted-foreground font-sans flex items-center gap-1">
+              <MapPin size={10} />
+              {[row.capital, row.continent].filter(Boolean).join(" · ")}
+            </p>
+            {matching > 0 && (
+              <span className="inline-block mt-1 text-[10px] font-sans px-2 py-0.5 rounded-full border border-amber-600/40 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300">
+                {matching} of its divisions {matching === 1 ? "matches" : "match"}
+              </span>
+            )}
+          </div>
+        </div>
+        <span className="relative shrink-0 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-background/60 text-foreground">{row.cc}</span>
+      </div>
+
+      {/* Key facts: the same four slots for every country. */}
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        {slots.map(({ label, value, text }) => (
+          <div key={label} className="min-w-0">
+            <p className="text-xs text-muted-foreground font-sans">{label}</p>
+            <p className={`text-sm font-bold text-foreground truncate ${text ? "font-sans leading-snug" : "font-mono"}`} title={value}>
+              {value}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* How many of its divisions have a dated, referenced population: out of all of them, in the country's own colour. */}
+      <div className="mb-2">
+        <div className="flex justify-between text-[10px] mb-1">
+          <span className="text-muted-foreground font-sans">With a dated population</span>
+          <span className="font-mono font-semibold text-foreground">
+            {row.counted} of {row.divisions.length}
+          </span>
+        </div>
+        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+          <div className="h-full rounded-full" style={{ width: `${(100 * row.counted) / row.divisions.length}%`, background: flagColor(row.cc) ?? COLOR }} />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        {row.continent && <span className={`text-[10px] border px-2 py-0.5 rounded-full font-sans ${CONTINENT_TONE[row.continent] ?? "text-muted-foreground border-border bg-muted"}`}>{row.continent}</span>}
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-foreground" title="Divisions whose head is named: where three records agree, or, for a US state, its governor">
+          {row.headed} heads named
+        </span>
+      </div>
+    </article>
+  );
+}
+
+/** A country's window: every one of its divisions, a card each - and, for the United States, a state's counties. */
+function CountryWindow({
+  row,
+  top,
+  asked,
+  notice,
+  countyState,
+  onCountyState,
+  countyData,
+  onOpen,
+  onOpenCounty,
+  onClose,
+}: {
+  row: CountryRow;
+  top: boolean;
+  /** The search the page was on when the window was opened. */
+  asked: string;
+  notice: string | null;
+  countyState: string;
+  onCountyState: (abbr: string) => void;
+  countyData: CountyData | null;
+  onOpen: (s: Subnation) => void;
+  onOpenCounty: (fips: string) => void;
+  onClose: () => void;
+}) {
+  const navigate = useNavigate();
+  const c = COUNTRY.get(row.cc);
+  const [query, setQuery] = useState(asked);
+  const [sort, setSort] = useState<Sort>("name");
+  const shown = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const by: Record<Sort, (a: Subnation, b: Subnation) => number> = {
+      name: (a, b) => a.name.localeCompare(b.name),
+      population: (a, b) => (b.pop?.[1] ?? -1) - (a.pop?.[1] ?? -1),
+      area: (a, b) => (b.areaKm2 ?? -1) - (a.areaKm2 ?? -1),
+    };
+    return (q ? row.divisions.filter((s) => answers(s, q)) : [...row.divisions]).sort(by[sort]);
+  }, [row, query, sort]);
+  const counties = useMemo(() => (countyData && countyState ? countyData.US_COUNTIES.filter((x) => x[2] === countyState) : []), [countyData, countyState]);
+  const stateName = usStatesData.find((s) => s.abbreviation === countyState)?.name ?? countyState;
+  return (
+    <Window wide top={top} title={row.name} kicker="Country · its divisions" flagCode={row.cc} chips={[`${row.divisions.length} divisions`, ...row.kinds.slice(0, 3), ...(row.continent ? [row.continent] : [])]} onClose={onClose}>
+      <div className="flex flex-wrap items-center gap-2">
+        {c && <LinkButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Open {c.name} on the Countries page</LinkButton>}
+        <LinkButton onClick={() => navigate(`/dashboard/maps?country=${row.cc}`)}>
+          <MapTrifold size={12} aria-hidden /> On the map
+        </LinkButton>
+      </div>
+      {notice && <p className="text-[12px] font-sans text-foreground rounded-xl border border-border px-4 py-2.5">{notice}</p>}
+
+      <div className="flex flex-wrap items-center gap-2">
+        {!countyState && (
+          <>
+            <label className={`flex items-center gap-1.5 ${field} focus-within:border-foreground/40`}>
+              <MagnifyingGlass size={13} className="text-muted-foreground shrink-0" aria-hidden />
+              <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search its divisions" aria-label={`Search the divisions of ${row.name} by name, code or capital`} className="bg-transparent w-44 sm:w-56 focus:outline-none placeholder:text-muted-foreground" />
+            </label>
+            <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} aria-label="The order of the divisions" className={field}>
+              <option value="name">By name</option>
+              <option value="population">By population</option>
+              <option value="area">By area</option>
+            </select>
+          </>
+        )}
+        {row.cc === "US" && (
+          <select value={countyState} onChange={(e) => onCountyState(e.target.value)} aria-label="The state whose counties are listed" className={field}>
+            <option value="">Counties of…</option>
+            {[...usStatesData]
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((s) => (
+                <option key={s.abbreviation} value={s.abbreviation}>
+                  {s.name}
+                </option>
+              ))}
+          </select>
+        )}
+        {countyState && (
+          <button type="button" onClick={() => onCountyState("")} className="text-[11px] font-sans font-semibold text-muted-foreground hover:text-foreground cursor-pointer">
+            Back to the states
+          </button>
+        )}
+      </div>
+
+      {countyState ? (
+        <section aria-label="Counties">
+          <h3 className="text-sm font-bold font-sans text-foreground mb-3">{countyData ? `The ${counties.length} counties of ${stateName}` : "Loading the counties…"}</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {counties.map((x) => (
+              <button key={x[0]} type="button" onClick={() => onOpenCounty(x[0])} className="modal-tile rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2">
+                <span className="flex items-baseline justify-between gap-2">
+                  <span className="text-sm font-bold font-sans text-foreground truncate">{x[1]}</span>
+                  <span className="text-[9px] font-mono text-muted-foreground shrink-0">FIPS {x[0]}</span>
+                </span>
+                <span className="flex items-baseline justify-between gap-2 text-[11px] font-sans text-muted-foreground">
+                  Population · {countyData?.US_COUNTY_YEARS[countyData.US_COUNTY_YEARS.length - 1]}
+                  <span className="text-[12px] font-mono font-bold text-foreground">{whole(x[7][x[7].length - 1])}</span>
+                </span>
+                <span className="flex items-baseline justify-between gap-2 text-[11px] font-sans text-muted-foreground">
+                  Land area
+                  <span className="text-[12px] font-mono font-bold text-foreground">{x[5] != null ? `${whole(x[5])} km²` : "Not held"}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+          {countyData && <SourceLink sources={[countyData.US_COUNTY_SOURCES.estimates, countyData.US_COUNTY_SOURCES.gazetteer]} className="mt-3" />}
+        </section>
+      ) : (
+        <section aria-label="Divisions">
+          <h3 className="text-sm font-bold font-sans text-foreground mb-3">
+            {query.trim() ? `${shown.length} of its ${row.divisions.length} divisions ${shown.length === 1 ? "matches" : "match"} "${query.trim()}"` : `The ${row.divisions.length} divisions of ${inSentence(row.name)}`}
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {shown.map((s) => (
+              <DivisionCard key={s.id} s={s} onOpen={() => onOpen(s)} />
+            ))}
+          </div>
+          {shown.length === 0 && <p className="text-[12px] font-sans text-muted-foreground">Nothing matches.</p>}
+        </section>
+      )}
+      <SourceLink sources={[SUBNATIONS_SOURCES.naturalEarth, SUBNATIONS_SOURCES.wikidata, REPRESENTATIVES_SOURCES.wikidata]} />
+    </Window>
+  );
+}
+
+type Order = "name" | "divisions";
 
 export function SubnationsPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const [cc, setCc] = useState("");
-  const [sort, setSort] = useState<Sort>("name");
-  const [all, setAll] = useState(false);
+  const [continent, setContinent] = useState("");
+  const [order, setOrder] = useState<Order>("name");
+  /** The country whose window is open, and the division whose window is open over it. */
+  const [country, setCountry] = useState<string | null>(null);
   const [open, setOpen] = useState<Subnation | null>(null);
   /** The US state whose counties are listed, and the county whose window is open. */
   const [countyState, setCountyState] = useState("");
   const [openCounty, setOpenCounty] = useState<string | null>(null);
   const [countyData, setCountyData] = useState<CountyData | null>(null);
+  /** Said on the page, and said in a country's window. */
   const [notice, setNotice] = useState<string | null>(null);
+  const [inside, setInside] = useState<string | null>(null);
 
   /* The counties are loaded when first asked for: the list of them is large. */
   const wantCounties = countyState !== "" || openCounty !== null;
@@ -463,60 +756,59 @@ export function SubnationsPage() {
     };
   }, [wantCounties, countyData]);
 
-  /* A link to a division, a county, or the division a map names. Read from the router, and the address tidied
-     through it, so the same link works a second time. A value is only ever matched against the lists. */
+  /* A link to a division, a county, a country, or the division a map names. Read from the router, and the address
+     tidied through it, so the same link works a second time. A value is only ever matched against the lists. */
   useEffect(() => {
     const q = new URLSearchParams(location.search);
     const id = q.get("open");
-    const country = q.get("country");
+    const cc = q.get("country");
     const name = q.get("name");
-    if (!id && !country) return;
+    if (!id && !cc) return;
     setNotice(null);
+    setInside(null);
     if (id?.startsWith("county:")) {
+      setCountry("US");
       setOpen(null);
       setOpenCounty(id.slice(7));
     } else if (id) {
       const found = BY_ID.get(id) ?? SUBNATIONS.find((s) => s.code === id);
       setOpenCounty(null);
-      if (found) setOpen(found), setCc(found.cc);
-    } else if (country && COUNTRIES.some((c) => c.cc === country)) {
-      setCc(country);
       setCountyState("");
-      setQuery("");
-      if (name) {
-        const found = SUBNATIONS.find((s) => s.cc === country && s.name === name);
-        if (found) setOpen(found);
-        else setNotice(`No record is held under the name "${name}". These are the divisions of ${COUNTRY.get(country)?.name ?? country} that are.`);
-      }
-    } else if (country) setNotice(`No divisions are held for ${COUNTRY.get(country)?.name ?? country}.`);
+      if (found) setCountry(found.cc), setOpen(found);
+      else setNotice(`No division is held under "${id}".`);
+    } else if (cc && ROW_OF.has(cc)) {
+      setCountry(cc);
+      setCountyState("");
+      setOpenCounty(null);
+      const found = name ? SUBNATIONS.find((s) => s.cc === cc && s.name === name) : undefined;
+      setOpen(found ?? null);
+      if (name && !found) setInside(`No record is held under the name "${name}". These are the divisions of ${inSentence(ROW_OF.get(cc)!.name)} that are.`);
+
+    } else if (cc) setNotice(`No divisions are held for ${COUNTRY.get(cc)?.name ?? cc}.`);
     navigate(location.pathname, { replace: true });
   }, [location.search, location.pathname, navigate]);
 
-  const counties = useMemo(() => (countyData && countyState ? countyData.US_COUNTIES.filter((c) => c[2] === countyState) : []), [countyData, countyState]);
-  const county = countyData && openCounty ? (countyData.US_COUNTIES.find((c) => c[0] === openCounty) ?? null) : null;
+  const county = countyData && openCounty ? (countyData.US_COUNTIES.find((x) => x[0] === openCounty) ?? null) : null;
+  /* A county reached by a link: its state's counties are the ones listed behind its window. */
+  useEffect(() => {
+    if (county && !countyState) setCountyState(county[2]);
+  }, [county, countyState]);
 
+  /* The countries that answer: by their own name, or by a division's name, code or capital. */
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = q
-      ? SUBNATIONS.filter((s) => (!cc || s.cc === cc) && (s.name.toLowerCase().includes(q) || (s.code ?? "").toLowerCase() === q || (s.capital ?? "").toLowerCase().includes(q)))
-      : cc
-        ? SUBNATIONS.filter((s) => s.cc === cc)
-        : LARGEST;
-    if (!q && !cc) return list;
-    const by: Record<Sort, (a: Subnation, b: Subnation) => number> = {
-      name: (a, b) => a.name.localeCompare(b.name),
-      population: (a, b) => (b.pop?.[1] ?? -1) - (a.pop?.[1] ?? -1),
-      area: (a, b) => (b.areaKm2 ?? -1) - (a.areaKm2 ?? -1),
-    };
-    return [...list].sort(by[sort]);
-  }, [query, cc, sort]);
-  const shown = all ? rows : rows.slice(0, PAGE);
-  const heading = query.trim()
-    ? `${rows.length.toLocaleString("en-US")} matching "${query.trim()}"${cc ? ` in ${COUNTRY.get(cc)?.name ?? cc}` : ""}`
-    : cc
-      ? `The ${rows.length} divisions of ${COUNTRY.get(cc)?.name ?? cc}`
-      : "The most populous divisions with a dated, referenced population";
-  const field = "bg-transparent border border-border rounded-full px-3 py-1.5 text-[12px] font-sans text-foreground focus:outline-none focus:border-foreground/40";
+    const list = ROWS.filter((r) => !continent || r.continent === continent).flatMap((r) => {
+      if (!q) return [{ row: r, matching: 0 }];
+      if (r.name.toLowerCase().includes(q)) return [{ row: r, matching: 0 }];
+      const matching = r.divisions.filter((s) => answers(s, q)).length;
+      return matching ? [{ row: r, matching }] : [];
+    });
+    return order === "divisions" ? [...list].sort((a, b) => b.row.divisions.length - a.row.divisions.length || a.row.name.localeCompare(b.row.name)) : list;
+  }, [query, continent, order]);
+  const continents = useMemo(() => [...new Set(ROWS.map((r) => r.continent).filter(Boolean))].sort(), []);
+  const openRow = country ? (ROW_OF.get(country) ?? null) : null;
+  /** A division's search carried into its country's window, where it was the divisions and not the country's name that answered. */
+  const carried = openRow && rows.find((r) => r.row.cc === openRow.cc)?.matching ? query.trim() : "";
 
   return (
     <div className="min-h-screen w-full animate-fade-in" style={{ background: "var(--color-background)" }}>
@@ -529,8 +821,9 @@ export function SubnationsPage() {
               <TreeStructure size={24} weight="fill" style={{ color: COLOR }} aria-hidden /> Subnations
             </h1>
             <p className="text-sm font-sans text-muted-foreground mt-1.5">
-              The states, provinces, regions and departments countries are divided into, and the counties of the United States. Each has a window in eight parts - identity,
-              geography, government, demographics, economy, society, political data and historical trends - and each part says what is held for it and what is not.
+              Every country, and inside each the states, provinces, regions or departments it is divided into - with the counties of the United States under its states. Open a
+              country for its divisions; open a division for its own window, in eight parts: identity, geography, government, demographics, economy, society, political data and
+              historical trends. Each part says what is held for it and what is not.
             </p>
             <p className="text-[11px] font-sans text-muted-foreground mt-2">Natural Earth · Wikidata · US Census Bureau · figures read {SUBNATIONS_RETRIEVED}</p>
           </div>
@@ -538,159 +831,92 @@ export function SubnationsPage() {
             <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Divisions held</p>
             <p className="text-4xl sm:text-5xl font-bold font-mono leading-none mt-1 text-foreground">{SUBNATIONS.length.toLocaleString("en-US")}</p>
             <p className="text-[11px] font-sans text-muted-foreground mt-2">
-              in {COUNTRIES.length} countries and territories, {SUBNATIONS.filter((s) => s.pop).length.toLocaleString("en-US")} of them with a dated, referenced population
+              in {ROWS.length} countries and territories, {SUBNATIONS.filter((s) => s.pop).length.toLocaleString("en-US")} of them with a dated, referenced population
             </p>
           </div>
         </div>
 
-        {/* ── What to list ── */}
+        {/* ── Which countries are listed ── */}
         <div className="flex flex-wrap items-center gap-2">
           <label className={`flex items-center gap-1.5 ${field} focus-within:border-foreground/40`}>
             <MagnifyingGlass size={13} className="text-muted-foreground shrink-0" aria-hidden />
             <input
               type="search"
               value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setAll(false);
-                setCountyState("");
-              }}
-              placeholder="Search a division, its code or its capital"
-              aria-label="Search the divisions by name, ISO code or capital"
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search a country, a division or a capital"
+              aria-label="Search the countries by name, or by a division's name, ISO code or capital"
               className="bg-transparent w-56 sm:w-72 focus:outline-none placeholder:text-muted-foreground"
             />
           </label>
-          <select
-            value={cc}
-            onChange={(e) => {
-              setCc(e.target.value);
-              setAll(false);
-              setCountyState("");
-              setNotice(null);
-            }}
-            aria-label="The country whose divisions are listed"
-            className={field}
-          >
-            <option value="">Every country</option>
-            {COUNTRIES.map((c) => (
-              <option key={c.cc} value={c.cc}>
-                {c.name} ({c.count})
+          <select value={continent} onChange={(e) => setContinent(e.target.value)} aria-label="The continent whose countries are listed" className={field}>
+            <option value="">Every continent</option>
+            {continents.map((x) => (
+              <option key={x} value={x}>
+                {x}
               </option>
             ))}
           </select>
-          <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} aria-label="The order of the list" className={field} disabled={!cc && !query.trim()}>
+          <select value={order} onChange={(e) => setOrder(e.target.value as Order)} aria-label="The order of the countries" className={field}>
             <option value="name">By name</option>
-            <option value="population">By population</option>
-            <option value="area">By area</option>
+            <option value="divisions">By number of divisions</option>
           </select>
-          {cc === "US" && (
-            <select value={countyState} onChange={(e) => setCountyState(e.target.value)} aria-label="The state whose counties are listed" className={field}>
-              <option value="">Counties of…</option>
-              {[...usStatesData]
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((s) => (
-                  <option key={s.abbreviation} value={s.abbreviation}>
-                    {s.name}
-                  </option>
-                ))}
-            </select>
-          )}
+          <span className="text-[11px] font-mono text-muted-foreground">{rows.length} countries</span>
         </div>
         {notice && <p className="text-[12px] font-sans text-foreground rounded-xl border border-border px-4 py-2.5">{notice}</p>}
 
-        {/* ── A state's counties ── */}
-        {countyState && (
-          <section aria-label="Counties">
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <h2 className="text-sm font-bold font-sans text-foreground">{countyData ? `The ${counties.length} counties of ${usStatesData.find((s) => s.abbreviation === countyState)?.name ?? countyState}` : "Loading the counties…"}</h2>
-              <button type="button" onClick={() => setCountyState("")} className="text-[11px] font-sans font-semibold text-muted-foreground hover:text-foreground cursor-pointer">
-                Back to the states
-              </button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {counties.map((c) => (
-                <button key={c[0]} type="button" onClick={() => setOpenCounty(c[0])} className="modal-tile rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2">
-                  <span className="flex items-baseline justify-between gap-2">
-                    <span className="text-sm font-bold font-sans text-foreground truncate">{c[1]}</span>
-                    <span className="text-[9px] font-mono text-muted-foreground shrink-0">FIPS {c[0]}</span>
-                  </span>
-                  <span className="flex items-baseline justify-between gap-2 text-[11px] font-sans text-muted-foreground">
-                    Population · {countyData?.US_COUNTY_YEARS[countyData.US_COUNTY_YEARS.length - 1]}
-                    <span className="text-[12px] font-mono font-bold text-foreground">{whole(c[7][c[7].length - 1])}</span>
-                  </span>
-                  <span className="flex items-baseline justify-between gap-2 text-[11px] font-sans text-muted-foreground">
-                    Land area
-                    <span className="text-[12px] font-mono font-bold text-foreground">{c[5] != null ? `${whole(c[5])} km²` : "Not held"}</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-            {countyData && <SourceLink sources={[countyData.US_COUNTY_SOURCES.estimates, countyData.US_COUNTY_SOURCES.gazetteer]} className="mt-3" />}
-          </section>
-        )}
-
-        {/* ── The divisions ── */}
-        {!countyState && (
-          <section aria-label="Divisions">
-            <h2 className="text-sm font-bold font-sans text-foreground mb-3">{heading}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {shown.map((s) => {
-                const head = (s.qid && HEAD_BY_QID.get(s.qid)) || (s.code && HEAD_BY_CODE.get(s.code)) || undefined;
-                const facts: [string, string | undefined][] = [
-                  ["Population", s.pop ? `${people(s.pop[1])} · ${s.pop[0]}` : undefined],
-                  ["Area", s.areaKm2 ? `${whole(s.areaKm2)} km²` : undefined],
-                  ["Capital", s.capital],
-                  ["Head", head?.[3]],
-                ];
-                return (
-                  <button key={s.id} type="button" onClick={() => setOpen(s)} className="modal-tile rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
-                    <span className="flex items-center gap-2.5 min-w-0">
-                      <img src={flag(s.cc)} alt="" width={22} height={16} loading="lazy" className="rounded-sm shrink-0" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-bold font-sans text-foreground truncate">{s.name}</span>
-                        <span className="block text-[10px] font-mono text-muted-foreground truncate">
-                          {s.kind || "Division"} · {COUNTRY.get(s.cc)?.name ?? s.cc}
-                        </span>
-                      </span>
-                      {s.code && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full border border-border text-muted-foreground shrink-0">{s.code}</span>}
-                    </span>
-                    <span className="flex flex-col border-t border-border/40 pt-1.5">
-                      {facts.map(([k, v]) => (
-                        <span key={k} className="flex items-baseline justify-between gap-2 py-0.5 min-w-0">
-                          <span className="text-[11px] font-sans text-muted-foreground shrink-0">{k}</span>
-                          <span className={`text-[11px] font-mono truncate ${v ? "font-bold text-foreground" : "text-muted-foreground"}`}>{v ?? "Not held"}</span>
-                        </span>
-                      ))}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            {rows.length === 0 && <p className="text-[12px] font-sans text-muted-foreground">Nothing matches.</p>}
-            {rows.length > shown.length && (
-              <button type="button" onClick={() => setAll(true)} className="mt-4 text-[11px] font-semibold font-sans px-4 py-1.5 rounded-full border border-border text-foreground hover:bg-muted/60 cursor-pointer">
-                Show all {rows.length.toLocaleString("en-US")}
-              </button>
-            )}
-          </section>
-        )}
+        {/* ── COUNTRY CARDS GRID: as the Countries page lays its own out ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {rows.map(({ row, matching }) => (
+            <CountryCard
+              key={row.cc}
+              row={row}
+              matching={matching}
+              onOpen={() => {
+                setInside(null);
+                setCountyState("");
+                setCountry(row.cc);
+              }}
+            />
+          ))}
+        </div>
+        {rows.length === 0 && <p className="text-[12px] font-sans text-muted-foreground">Nothing matches.</p>}
 
         <p className="text-[10px] font-sans leading-relaxed text-muted-foreground">
-          Which divisions there are, and their names, kinds, codes and label points, are Natural Earth's: the ones the site's maps draw, which for some countries are a second order
-          (France's departments, not its regions). Everything else about a division is its own Wikidata record's, read by the id Natural Earth gives it. A population is kept only
-          where its statement is dated and cites a reference of its own. A head is given only where three records agree. A field the site holds nothing for says so.
+          Which divisions a country has, and their names, kinds, codes and label points, are Natural Earth's: the ones the site's maps draw, which for some countries are a second
+          order (France's departments, not its regions). Everything else about a division is its own Wikidata record's, read by the id Natural Earth gives it. A population is kept
+          only where its statement is dated and cites a reference of its own. A head is named only where three records agree, or, for a US state, as the US States page names its
+          governor. A field the site holds nothing for says so.
         </p>
         <SourceLink sources={[SUBNATIONS_SOURCES.naturalEarth, SUBNATIONS_SOURCES.wikidata, SUBNATIONS_SOURCES.iso, REPRESENTATIVES_SOURCES.wikidata]} />
       </div>
 
+      {openRow && (
+        <CountryWindow
+          key={openRow.cc}
+          row={openRow}
+          top={!open && !county}
+          asked={carried}
+          notice={inside}
+          countyState={countyState}
+          onCountyState={setCountyState}
+          countyData={countyData}
+          onOpen={setOpen}
+          onOpenCounty={setOpenCounty}
+          onClose={() => {
+            setCountry(null);
+            setCountyState("");
+            setInside(null);
+          }}
+        />
+      )}
       {open && (
         <SubnationWindow
           s={open}
           onClose={() => setOpen(null)}
           onCounties={(abbr) => {
             setOpen(null);
-            setCc("US");
-            setQuery("");
+            setCountry("US");
             setCountyState(abbr);
           }}
         />
@@ -699,3 +925,4 @@ export function SubnationsPage() {
     </div>
   );
 }
+
