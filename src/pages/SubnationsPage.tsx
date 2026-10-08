@@ -43,9 +43,10 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowRight, MagnifyingGlass, MapPin, MapTrifold, TreeStructure, X } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, MagnifyingGlass, MapPin, MapTrifold, TreeStructure, X } from "@phosphor-icons/react";
 import { TONE } from "@/lib/chipTone";
 import { flagColor } from "../lib/flagColor";
+import { lockScroll } from "../lib/scrollLock";
 import { inSentence, qualityOf } from "../components/CountryQuality";
 import { DivisionPlaces, insideOf, usePlaces, type Inside } from "../components/DivisionPlaces";
 import { FilterBar } from "../components/FilterBar";
@@ -177,22 +178,43 @@ function SeriesChart({ points, label }: { points: [number, number][]; label: str
  * The shell of a window, as a city's and a country's is drawn. A division's window opens over its country's, so only
  * the one on top answers Escape, and each puts the page's scrolling back as it found it.
  */
-function Window({ title, kicker, flagSrc, chips, onClose, children, wide = false, top = true }: { title: string; kicker: string; /** The flag at its head: the place's own. */ flagSrc: string; chips: string[]; onClose: () => void; children: ReactNode; wide?: boolean; top?: boolean }) {
+function Window({
+  title,
+  kicker,
+  flagSrc,
+  chips,
+  onClose,
+  onBack,
+  children,
+  wide = false,
+  top = true,
+  hidden = false,
+}: {
+  title: string;
+  kicker: string;
+  /** The flag at its head: the place's own. */
+  flagSrc: string;
+  chips: string[];
+  /** Out of every window, back to the page. */
+  onClose: () => void;
+  /** Back to the window this one was opened from, where there is one. */
+  onBack?: () => void;
+  children: ReactNode;
+  wide?: boolean;
+  top?: boolean;
+  /** Out of sight while a window opened from it is the one being read: one window at a time, as asked. It keeps its place for the way back. */
+  hidden?: boolean;
+}) {
   useEffect(() => {
     if (!top) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    // Escape goes back one window, as the back button does.
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && (onBack ?? onClose)();
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onClose, top]);
-  useEffect(() => {
-    const before = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = before;
-    };
-  }, []);
+  }, [onClose, onBack, top]);
+  useEffect(() => lockScroll(), []);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className={`fixed inset-0 z-50 items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in ${hidden ? "hidden" : "flex"}`} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-label={title} className={`relative z-10 rounded-2xl w-full max-h-[90vh] shadow-2xl modal-glass border overflow-y-auto ${wide ? "max-w-5xl" : "max-w-2xl"}`}>
         <div className="p-6 flex flex-col gap-5">
           <div className="flex items-start justify-between gap-3">
@@ -212,9 +234,16 @@ function Window({ title, kicker, flagSrc, chips, onClose, children, wide = false
                 </div>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0" aria-label="Close">
-              <X size={18} />
-            </button>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {onBack && (
+                <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Back to the window before" title="Back">
+                  <ArrowLeft size={18} />
+                </button>
+              )}
+              <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Close" title="Close">
+                <X size={18} />
+              </button>
+            </div>
           </div>
           {children}
         </div>
@@ -403,7 +432,9 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
   return { parts, sources: [...sources.values()] };
 }
 
-function SubnationWindow({ s, onClose, onCounties }: { s: Subnation; onClose: () => void; onCounties: (abbr: string) => void }) {
+function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /** Back to its country's window. */ onBack: () => void; onClose: () => void; onCounties: (abbr: string) => void }) {
+  /** Whether one of its places has its window open: this one is then out of sight, until the reader comes back. */
+  const [placeOpen, setPlaceOpen] = useState(false);
   const navigate = useNavigate();
   const c = COUNTRY.get(s.cc);
   const state = STATE_BY_CODE.get(s.code ?? "");
@@ -418,7 +449,7 @@ function SubnationWindow({ s, onClose, onCounties }: { s: Subnation; onClose: ()
     ...(s.article ? [{ label: `Wikipedia — ${s.article}`, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(s.article.replace(/ /g, "_"))}` }] : []),
   ];
   return (
-    <Window wide title={s.name} kicker={`${s.kind || "Division"} · ${c?.name ?? s.cc}`} flagSrc=
+    <Window wide top={!placeOpen} hidden={placeOpen} onBack={onBack} title={s.name} kicker={`${s.kind || "Division"} · ${c?.name ?? s.cc}`} flagSrc=
 {ownFlag(s, 250) ?? flag(s.cc, 160)} chips={[...(s.code ? [s.code] : []), ...(s.capital ? [`Capital: ${s.capital}`] : []), ...(s.region ? [s.region] : [])]} onClose={onClose}>
       <div className="flex flex-wrap gap-2">
         {c && <LinkButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Open {c.name}</LinkButton>}
@@ -429,7 +460,7 @@ function SubnationWindow({ s, onClose, onCounties }: { s: Subnation; onClose: ()
         </LinkButton>
       </div>
       {/* What lies inside it comes first, as asked - its counties or districts, and its towns, cities and villages, a card each with a window of its own - and the division's own record after. */}
-      <DivisionPlaces s={s} country={c?.name ?? s.cc} />
+      <DivisionPlaces s={s} country={c?.name ?? s.cc} onPlace={setPlaceOpen} onCloseAll={onClose} />
       <div className="flex items-center gap-2 mt-2">
         <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-wide">{s.name} itself</h3>
         <div className="flex-1 h-px bg-border" />
@@ -448,7 +479,7 @@ function SubnationWindow({ s, onClose, onCounties }: { s: Subnation; onClose: ()
 
 // ── A county's window ───────────────────────────────────────────────────────
 
-function CountyWindow({ county, data, onClose }: { county: UsCounty; data: CountyData; onClose: () => void }) {
+function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; data: CountyData; /** Back to the list of its state's counties. */ onBack: () => void; onClose: () => void }) {
   const navigate = useNavigate();
   const [fips, name, abbr, lat, lon, land, water, pops, births, deaths, international, domestic] = county;
   const years = data.US_COUNTY_YEARS;
@@ -504,7 +535,7 @@ function CountyWindow({ county, data, onClose }: { county: UsCounty; data: Count
     },
   ];
   return (
-    <Window title={name} kicker={`County · ${state?.name ?? abbr}`} flagSrc={flag("US", 160)} chips={[`FIPS ${fips}`, state?.name ?? abbr]} onClose={onClose}>
+    <Window onBack={onBack} title={name} kicker={`County · ${state?.name ?? abbr}`} flagSrc={flag("US", 160)} chips={[`FIPS ${fips}`, state?.name ?? abbr]} onClose={onClose}>
       <div className="flex flex-wrap gap-2">
         {state && <LinkButton onClick={() => navigate(`/dashboard/subnations?open=US-${state.abbreviation}`)}>{state.name}'s record</LinkButton>}
         {state && <LinkButton onClick={() => navigate(`/dashboard/states?open=${state.id}`)}>Open {state.name} on the US States page</LinkButton>}
@@ -687,7 +718,7 @@ function CountryWindow({
   const counties = useMemo(() => (countyData && countyState ? countyData.US_COUNTIES.filter((x) => x[2] === countyState) : []), [countyData, countyState]);
   const stateName = usStatesData.find((s) => s.abbreviation === countyState)?.name ?? countyState;
   return (
-    <Window wide top={top} title={row.name} kicker="Country · its divisions" flagSrc={flag(row.cc, 160)} chips={[`${row.divisions.length} divisions`, ...row.kinds.slice(0, 3), ...(row.continent ? [row.continent] : [])]} onClose={onClose}>
+    <Window wide top={top} hidden={!top} title={row.name} kicker="Country · its divisions" flagSrc={flag(row.cc, 160)} chips={[`${row.divisions.length} divisions`, ...row.kinds.slice(0, 3), ...(row.continent ? [row.continent] : [])]} onClose={onClose}>
       <div className="flex flex-wrap items-center gap-2">
         {c && <LinkButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Open {c.name} on the Countries page</LinkButton>}
         <LinkButton onClick={() => navigate(`/dashboard/maps?country=${row.cc}`)}>
@@ -852,6 +883,15 @@ export function SubnationsPage() {
   }, [query, continent, order]);
   const continents = useMemo(() => [...new Set(ROWS.map((r) => r.continent).filter(Boolean))].sort(), []);
   const openRow = country ? (ROW_OF.get(country) ?? null) : null;
+  /** Out of every window, back to the page: what a window's X does, where its back arrow goes back one. */
+  const closeAll = () => {
+    setOpen(null);
+    setOpenCounty(null);
+    setCountry(null);
+    setCountyState("");
+    setInside(null);
+  };
+
   /** A division's search carried into its country's window, where it was the divisions and not the country's name that answered. */
   const carried = openRow && rows.find((r) => r.row.cc === openRow.cc)?.matching ? query.trim() : "";
 
@@ -961,7 +1001,8 @@ export function SubnationsPage() {
       {open && (
         <SubnationWindow
           s={open}
-          onClose={() => setOpen(null)}
+          onBack={() => setOpen(null)}
+          onClose={closeAll}
           onCounties={(abbr) => {
             setOpen(null);
             setCountry("US");
@@ -969,7 +1010,7 @@ export function SubnationsPage() {
           }}
         />
       )}
-      {county && countyData && <CountyWindow county={county} data={countyData} onClose={() => setOpenCounty(null)} />}
+      {county && countyData && <CountyWindow county={county} data={countyData} onBack={() => setOpenCounty(null)} onClose={closeAll} />}
     </div>
   );
 }

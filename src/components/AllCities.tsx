@@ -49,7 +49,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowRight, ArrowsIn, ArrowsOut, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, X } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, ArrowsIn, ArrowsOut, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, X } from "@phosphor-icons/react";
 import { ECONOMY_INDICATORS, ECONOMY_INDICATORS_SOURCE } from "../data/economyIndicators";
 import { ECONOMY_OF } from "../data/placeIndex";
 import { citiesData } from "../data/citiesData";
@@ -59,6 +59,7 @@ import { COUNTRY_INDICATORS } from "../data/countryIndicators";
 import { UN_CITIES, UN_CITIES_SOURCE, UN_CITY_YEARS, type UnCity } from "../data/unCities";
 import { CHIP_TEXT, TONE } from "@/lib/chipTone";
 import { flagColor } from "../lib/flagColor";
+import { lockScroll } from "../lib/scrollLock";
 import { ArticlePanel } from "./HistoryPanel";
 import { ChartNote, FigureRow } from "./ModalCharts";
 import { SeeAlso } from "./SeeAlso";
@@ -161,7 +162,7 @@ const Tile = ({ label, value, sub }: { label: string; value: string; sub?: strin
 );
 type Tab = "overview" | "history" | "map";
 
-function CityWindow({ c, onClose }: { c: UnCity; onClose: () => void }) {
+function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country's window. */ onBack: () => void; /** Out of every window. */ onClose: () => void }) {
   const navigate = useNavigate();
   const [cc, code, name, lat, lon, capital, p0, p1, p2, p3, area, density] = c;
   const country = COUNTRY.get(cc);
@@ -178,15 +179,12 @@ function CityWindow({ c, onClose }: { c: UnCity; onClose: () => void }) {
   const profile = PROFILED.get(unCityId(c));
   const article = useArticle(c, tab === "history");
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    const before = document.body.style.overflow;
+    // Escape goes back one window, as the back arrow does.
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onBack();
     document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = before;
-    };
-  }, [onClose]);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onBack]);
+  useEffect(() => lockScroll(), []);
   const chart = (
     <div className="modal-tile rounded-lg p-4" role="img" aria-label={`${name}'s population: ${points.map(([y, v]) => `${y} ${people(v)}`).join(", ")}.`}>
       <ResponsiveContainer width="100%" height={180}>
@@ -225,6 +223,9 @@ function CityWindow({ c, onClose }: { c: UnCity; onClose: () => void }) {
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
+              <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Back to the cities of ${land}`} title="Back">
+                <ArrowLeft size={18} />
+              </button>
               <button onClick={() => setWide((v) => !v)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={wide ? "Collapse the window" : "Expand the window to full screen"} title={wide ? "Collapse" : "Expand to full screen"}>
                 {wide ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
               </button>
@@ -524,13 +525,7 @@ function CountryWindow({ row, top, asked, onOpen, onClose }: { row: Row; /** Whe
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose, top]);
-  useEffect(() => {
-    const before = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = before;
-    };
-  }, []);
+  useEffect(() => lockScroll(), []);
   const cities = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = q ? row.cities.filter((c) => c[2].toLowerCase().includes(q)) : [...row.cities];
@@ -539,7 +534,8 @@ function CountryWindow({ row, top, asked, onOpen, onClose }: { row: Row; /** Whe
     return list;
   }, [row, query, sort]);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    // Out of sight while one of its cities has its window open: one window at a time. It keeps its place for the way back.
+    <div className={`fixed inset-0 z-50 items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in ${top ? "flex" : "hidden"}`} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-label={`${row.name}: its cities`} className="relative z-10 rounded-2xl w-full max-w-5xl max-h-[90vh] shadow-2xl modal-glass border overflow-y-auto">
         <div className="p-6 flex flex-col gap-5">
           <div className="flex items-start justify-between gap-3">
@@ -695,7 +691,17 @@ export default function AllCities({
       </p>
       <SourceLink sources={[UN_CITIES_SOURCE]} className="mt-1" />
       {openRow && <CountryWindow key={openRow.cc} row={openRow} top={!open} asked={carried} onOpen={setOpen} onClose={() => setCountry(null)} />}
-      {open && <CityWindow c={open} onClose={() => setOpen(null)} />}
+      {open && (
+        <CityWindow
+          c={open}
+          onBack={() => setOpen(null)}
+          onClose={() => {
+            setOpen(null);
+            setCountry(null);
+          }}
+        />
+      )}
+
     </section>
   );
 }

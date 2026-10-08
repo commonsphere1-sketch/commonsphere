@@ -31,8 +31,9 @@
  * ten kilometres of it. A part with nothing behind it is left out.
  */
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, X } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, X } from "@phosphor-icons/react";
 import { CHIP_TEXT } from "@/lib/chipTone";
 import { REPRESENTATIVES, REPRESENTATIVES_SOURCES } from "../data/representatives";
 import { usStatesData } from "../data/statesData";
@@ -113,7 +114,19 @@ const whole = (v: number) => Math.round(v).toLocaleString("en-US");
 const PAGE = 40;
 
 /** The section of a division's window that lists what is inside it. */
-export function DivisionPlaces({ s, country }: { s: Subnation; country: string }) {
+export function DivisionPlaces({
+  s,
+  country,
+  onPlace,
+  onCloseAll,
+}: {
+  s: Subnation;
+  country: string;
+  /** Told when a place's window opens and when it closes: the division's window steps out of sight while it is open. */
+  onPlace?: (open: boolean) => void;
+  /** Out of every window: what the X of a place's window does. */
+  onCloseAll?: () => void;
+}) {
   const file = usePlaces(s.cc);
   const inside = useMemo(() => (file ? insideOf(file, s) : null), [file, s]);
   const [query, setQuery] = useState("");
@@ -121,6 +134,7 @@ export function DivisionPlaces({ s, country }: { s: Subnation; country: string }
   const [allDistricts, setAllDistricts] = useState(false);
   /** The place whose window is open, over the division's. */
   const [open, setOpen] = useState<PlaceRow | null>(null);
+  useEffect(() => onPlace?.(open !== null), [open, onPlace]);
   const heading = (
     <div className="flex items-center gap-2 mb-1.5">
       <h3 className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">Counties, towns and villages</h3>
@@ -258,7 +272,22 @@ export function DivisionPlaces({ s, country }: { s: Subnation; country: string }
         A population is GeoNames' own for the place, undated; the largest first. What kind of place each is - a seat of a county, a populated place - is as GeoNames classes it.
       </p>
       <SourceLink sources={[{ label: PLACES_SOURCE.geonames.label, url: PLACES_SOURCE.geonames.url }]} className="mt-1" />
-      {open && <PlaceWindow p={open} file={file!} s={s} country={country} onClose={() => setOpen(null)} />}
+      {/* On the page itself, not inside the division's window: that window is out of sight while this one is open. */}
+      {open &&
+        createPortal(
+          <PlaceWindow
+            p={open}
+            file={file!}
+            s={s}
+            country={country}
+            onBack={() => setOpen(null)}
+            onClose={() => {
+              setOpen(null);
+              onCloseAll?.();
+            }}
+          />,
+          document.body,
+        )}
     </section>
   );
 }
@@ -305,7 +334,7 @@ const Tile = ({ label, value, sub }: { label: string; value: string; sub?: strin
 );
 type Tab = "overview" | "history" | "map";
 
-function PlaceWindow({ p, file, s, country, onClose }: { p: PlaceRow; file: PlacesFile; s: Subnation; country: string; onClose: () => void }) {
+function PlaceWindow({ p, file, s, country, onBack, onClose }: { p: PlaceRow; file: PlacesFile; s: Subnation; country: string; /** Back to the division's window. */ onBack: () => void; /** Out of every window. */ onClose: () => void }) {
   const navigate = useNavigate();
   const [name, lat, lon, pop, , kind, id, di] = p;
   const district = file.districts[di] || "";
@@ -317,11 +346,11 @@ function PlaceWindow({ p, file, s, country, onClose }: { p: PlaceRow; file: Plac
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       e.stopImmediatePropagation();
-      onClose();
+      onBack();
     };
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
-  }, [onClose]);
+  }, [onBack]);
 
   /* The United Nations' city, where this place is one: the same name, in the same country, within 25 km - and only one such. */
   const [un, setUn] = useState<{ city: UnCity; years: number[]; rank: number; of: number } | null>(null);
@@ -392,9 +421,15 @@ function PlaceWindow({ p, file, s, country, onClose }: { p: PlaceRow; file: Plac
                 </div>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0" aria-label="Close">
-              <X size={18} />
-            </button>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Back to ${s.name}`} title={`Back to ${s.name}`}>
+                <ArrowLeft size={18} />
+              </button>
+              <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Close" title="Close">
+                <X size={18} />
+              </button>
+            </div>
+
           </div>
 
           <SeeAlso code={s.cc} name={country} className="mb-4" />
