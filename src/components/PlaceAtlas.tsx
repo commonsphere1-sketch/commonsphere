@@ -578,7 +578,7 @@ export default function PlaceAtlas() {
  A place lights in its flag's colour when it is pointed at: a country in its own flag's, a division in its own
         flag's where it has one, and a division or a county with no flag of its own in a shade of the colour of the country or state it belongs to. A country opens on
  the divisions Natural Earth draws for it - states, provinces, regions or departments, whichever its
-        first order is there; the United States opens on its states, and a state on its counties. A division or a county goes to its record on the Subnations page; the
+        first order is there; the United States opens on its states, and a state on its counties. A division or a county goes to its record on the Municipalities page; the
         country or the state the map is on can be opened from above it. The world here is drawn at 1:110 million and has no shape for some small countries: they are in the
         list, as are a country's far-off divisions - France's overseas departments, Spain's Canaries - which the map leaves out of its frame so that the rest can be seen.
       </p>

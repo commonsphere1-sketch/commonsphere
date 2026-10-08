@@ -29,18 +29,33 @@
  * States; its country's quality of life, named as the country's; and its
  * history from its Wikipedia article, found by the place's own name within
  * ten kilometres of it. A part with nothing behind it is left out.
+ *
+ * A place's window also gives: the age and the sex of the people around it -
+ * its state's age groups and origins in the United States (the Census
+ * Bureau's), its country's elsewhere and for women and men (the World
+ * Bank's) - each named as the state's or the country's, since no body
+ * publishes them for every town on one footing; the airports within 150 km
+ * that Natural Earth maps, with the straight-line distance worked out here;
+ * the colleges and universities whose Wikidata description names the place;
+ * and the nearest other places in GeoNames' list, each a way to its window.
  */
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, X } from "@phosphor-icons/react";
 import { CHIP_TEXT } from "@/lib/chipTone";
+import { COUNTRY_PANELS, PANEL_SOURCES } from "../data/countryPanels";
+import { COUNTRY_OF } from "../data/placeIndex";
 import { REPRESENTATIVES, REPRESENTATIVES_SOURCES } from "../data/representatives";
+import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
+import { STATE_UNIVERSITIES, STATE_UNIVERSITIES_SOURCE } from "../data/stateUniversities";
+import { COUNTRY_UNIVERSITIES, UNIVERSITIES_SOURCE } from "../data/universities";
 import { usStatesData } from "../data/statesData";
 import type { UnCity } from "../data/unCities";
 import type { UsCounty } from "../data/usCounties";
+import { inSentence } from "./CountryQuality";
 import { ArticlePanel } from "./HistoryPanel";
-import { ChartNote, FigureRow } from "./ModalCharts";
+import { ChartNote, ChartTitle, FigureRow, PartsBar, PartsDonut } from "./ModalCharts";
 import { SeeAlso } from "./SeeAlso";
 
 /** The place's country's quality of life, as a city's window gives it: loaded when a window opens. */
@@ -281,6 +296,7 @@ export function DivisionPlaces({
             s={s}
             country={country}
             onBack={() => setOpen(null)}
+            onOpen={setOpen}
             onClose={() => {
               setOpen(null);
               onCloseAll?.();
@@ -333,8 +349,37 @@ const Tile = ({ label, value, sub }: { label: string; value: string; sub?: strin
   </div>
 );
 type Tab = "overview" | "history" | "map";
+/** The airports Natural Earth maps: [name, longitude, latitude, 1 where it classes the airport as major]. Fetched once, with the layer the maps draw them from. */
+type Airport = [name: string, lon: number, lat: number, major: number];
+let AIRPORTS: Promise<Airport[]> | null = null;
+const airports = () =>
+  (AIRPORTS ??= fetch("/geo/infrastructure.json")
+    .then((r) => (r.ok ? r.json() : { airports: [] }))
+    .then((j: { airports?: Airport[] }) => j.airports ?? [])
+    .catch(() => []));
+/** As far as an airport is looked for, in a straight line. */
+const AIRPORT_KM = 150;
 
-function PlaceWindow({ p, file, s, country, onBack, onClose }: { p: PlaceRow; file: PlacesFile; s: Subnation; country: string; /** Back to the division's window. */ onBack: () => void; /** Out of every window. */ onClose: () => void }) {
+function PlaceWindow({
+  p,
+  file,
+  s,
+  country,
+  onBack,
+  onOpen,
+  onClose,
+}: {
+  p: PlaceRow;
+  file: PlacesFile;
+  s: Subnation;
+  country: string;
+  /** Back to the division's window. */
+  onBack: () => void;
+  /** To another place's window, from the list of those nearby. */
+  onOpen: (p: PlaceRow) => void;
+  /** Out of every window. */
+  onClose: () => void;
+}) {
   const navigate = useNavigate();
   const [name, lat, lon, pop, , kind, id, di] = p;
   const district = file.districts[di] || "";
@@ -399,6 +444,65 @@ function PlaceWindow({ p, file, s, country, onBack, onClose }: { p: PlaceRow; fi
       off = true;
     };
   }, [tab, article, id, lat, lon, name]);
+
+  /* The people around it: its state's in the United States, its country's elsewhere - said to be so. */
+  const stateRow = s.cc === "US" ? usStatesData.find((x) => `US-${x.abbreviation}` === s.code) : undefined;
+  const m = stateRow ? STATE_INDICATORS[stateRow.id] : undefined;
+  const panel = (COUNTRY_OF[s.cc] && COUNTRY_PANELS[COUNTRY_OF[s.cc]]) || {};
+  const ages = m
+    ? { whose: s.name, year: m.ageGroups.y, parts: m.ageGroups.groups.map((g) => ({ label: g.group, value: g.pct, text: `${g.pct}%` })) }
+    : panel.age0to14 && panel.age15to64 && panel.age65up
+      ? {
+          whose: country,
+          year: panel.age15to64.y,
+          parts: [
+            { label: "Under 15", value: panel.age0to14.v, text: `${panel.age0to14.v}%` },
+            { label: "15 to 64", value: panel.age15to64.v, text: `${panel.age15to64.v}%` },
+            { label: "65 and over", value: panel.age65up.v, text: `${panel.age65up.v}%` },
+          ],
+        }
+      : null;
+  const women = panel.femalePct;
+  const men = women ? Number((100 - women.v).toFixed(1)) : null;
+
+  /* The airports near it, nearest first: Natural Earth maps the larger ones only. */
+  const [near, setNear] = useState<{ name: string; major: boolean; km: number }[] | null>(null);
+  useEffect(() => {
+    let off = false;
+    airports().then((list) => {
+      if (off) return;
+      setNear(
+        list
+          .map((a) => ({ name: a[0], major: a[3] === 1, km: km([a[2], a[1]], [lat, lon]) }))
+          .filter((a) => a.name && a.km <= AIRPORT_KM)
+          .sort((a, b) => a.km - b.km)
+          .slice(0, 5),
+      );
+    });
+    return () => {
+      off = true;
+    };
+  }, [lat, lon]);
+
+  /* The colleges and universities whose description names the place: its state's list in the United States, its country's elsewhere. */
+  const schools = useMemo(() => {
+    const named = (about?: string) => Boolean(about && new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(about));
+    const list: { name: string; wiki: string; about?: string; founded?: number }[] = stateRow
+      ? Object.entries(STATE_UNIVERSITIES[stateRow.id] ?? {}).map(([n, a]) => ({ name: n, ...a }))
+      : (COUNTRY_UNIVERSITIES[s.cc] ?? []);
+    return { held: list.length, here: list.filter((u) => named(u.about) || named(u.name)) };
+  }, [name, stateRow, s.cc]);
+
+  /* The nearest other places in the same list, each a way to its own window. */
+  const neighbours = useMemo(
+    () =>
+      file.places
+        .filter((x) => x[6] !== id)
+        .map((x) => ({ row: x, km: km([x[1], x[2]], [lat, lon]) }))
+        .sort((a, b) => a.km - b.km)
+        .slice(0, 8),
+    [file, id, lat, lon],
+  );
 
   const cPop = county?.row[7];
   const cChange = cPop && cPop[0] > 0 ? (100 * (cPop[cPop.length - 1] - cPop[0])) / cPop[0] : null;
@@ -475,8 +579,103 @@ function PlaceWindow({ p, file, s, country, onBack, onClose }: { p: PlaceRow; fi
                 />
               </Part>
 
+              {(ages || women) && (
+                <Part
+                  title="👪 Demographics"
+                  note={`No body publishes these for every town on one footing. ${[ages ? `The ages are those of ${inSentence(ages.whose)}` : "", women ? `${ages ? "the" : "The"} women and men those of ${inSentence(country)}` : ""].filter(Boolean).join("; ")} - not ${name}'s own.`}
+
+                >
+                  <div className="modal-tile rounded-lg p-4 flex flex-col gap-4">
+                    {ages && (
+                      <div>
+                        <ChartTitle>
+                          Age · % of people · {ages.whose}, {ages.year}
+                        </ChartTitle>
+                        <PartsBar label={`The people of ${ages.whose} by age, ${ages.year}`} parts={ages.parts} columns={3} />
+                      </div>
+                    )}
+                    {women && men !== null && (
+                      <div>
+                        <ChartTitle>
+                          Women and men · % of people · {country}, {women.y}
+                        </ChartTitle>
+                        <PartsBar
+                          label={`The people of ${country} by sex, ${women.y}`}
+                          parts={[
+                            { label: "Women", value: women.v, text: `${women.v}%`, color: "#ec4899" },
+                            { label: "Men", value: men, text: `${men}%`, color: "#3b82f6" },
+                          ]}
+                        />
+                      </div>
+                    )}
+                    {m && (
+                      <div>
+                        <ChartTitle>
+                          Origins · % of people · {s.name}, {m.ethnicity.y}
+                        </ChartTitle>
+                        <PartsDonut label={`The people of ${s.name} by origin, ${m.ethnicity.y}`} parts={m.ethnicity.groups.map((g) => ({ label: g.group, value: g.pct, text: `${g.pct}%` }))} />
+                      </div>
+                    )}
+                    {m && (
+                      <FigureRow label={`Median age · ${s.name}`} value={`${m.medianAge.v} years`} sub={m.medianAge.y} />
+                    )}
+                  </div>
+                  <ChartNote>The share of men is 100 less the World Bank's share of women, worked out here.</ChartNote>
+                  <SourceLink
+                    sources={[...(m ? [{ label: STATE_SOURCES.population.label, url: STATE_SOURCES.population.url }, { label: STATE_SOURCES.acs.label, url: STATE_SOURCES.acs.url }] : []), { label: PANEL_SOURCES.wb.label, url: PANEL_SOURCES.wb.url }]}
+                    className="mt-1"
+                  />
+                </Part>
+              )}
+
+              <Part title="✈ Airports nearby" note={`The airports Natural Earth maps within ${AIRPORT_KM} km, nearest first. It maps the larger ones, not every airfield; the distance is a straight line, worked out here.`}>
+                {near === null ? (
+                  <p className="text-[11px] font-sans text-muted-foreground">Looking for airports…</p>
+                ) : near.length ? (
+                  <div className="modal-tile rounded-xl px-4 py-1.5">
+                    {near.map((a) => (
+                      <FigureRow key={a.name} label={a.name} value={`${whole(a.km)} km`} sub={a.major ? "a major airport" : "an airport"} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] font-sans text-muted-foreground">None of the airports it maps lies within {AIRPORT_KM} km.</p>
+                )}
+                <SourceLink sources={[{ label: "Natural Earth — 1:10m airports (public domain)", url: "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/" }]} className="mt-2" />
+              </Part>
+
+              <Part title="🎓 Colleges and universities" note={`Those among the ${schools.held} the site holds for ${stateRow ? s.name : country} whose description names ${name}. One that the description places elsewhere, or does not place, is not listed.`}>
+                {schools.here.length ? (
+                  <div className="modal-tile rounded-xl px-4 py-1.5">
+                    {schools.here.map((u) => (
+                      <div key={u.name} className="py-1.5 border-b border-border last:border-b-0">
+                        <a href={`https://en.wikipedia.org/wiki/${encodeURIComponent(u.wiki.replace(/ /g, "_"))}`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-sans font-semibold text-foreground hover:underline">
+                          {u.name}
+                        </a>
+                        <p className="text-[10px] font-mono text-muted-foreground leading-snug">{[u.about, u.founded ? `founded ${u.founded}` : null].filter(Boolean).join(" · ")}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] font-sans text-muted-foreground">None of them is described as being in {name}.</p>
+                )}
+                <SourceLink sources={[stateRow ? { label: STATE_UNIVERSITIES_SOURCE.label, url: STATE_UNIVERSITIES_SOURCE.url } : { label: UNIVERSITIES_SOURCE.label, url: UNIVERSITIES_SOURCE.url }]} className="mt-2" />
+              </Part>
+
+              {neighbours.length > 0 && (
+                <Part title="🏘 Places nearby" note="The nearest other places in GeoNames' list, with the straight-line distance worked out here. Each opens its own window.">
+                  <div className="flex flex-wrap gap-1.5">
+                    {neighbours.map(({ row, km: far }) => (
+                      <button key={row[6]} type="button" onClick={() => onOpen(row)} className="text-[11px] font-sans px-2.5 py-1 rounded-full border border-border text-foreground hover:bg-muted/60 cursor-pointer">
+                        {row[0]} <span className="font-mono text-muted-foreground">{far < 10 ? far.toFixed(1) : whole(far)} km</span>
+                      </button>
+                    ))}
+                  </div>
+                </Part>
+              )}
+
               {un && (
-                <Part title="🏙 As a city the United Nations counts" note="The UN draws a city by where people live close together, not by its boundary, so its figure differs from the place's own.">
+                <Part title="🏙 As a city the United Nations counts"
+ note="The UN draws a city by where people live close together, not by its boundary, so its figure differs from the place's own.">
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     <Tile label={`Population, ${un.years[2]}`} value={whole(un.city[8])} sub="the UN's last estimate" />
                     {un.city[9] !== null && <Tile label={`Projected, ${un.years[3]}`} value={whole(un.city[9])} sub="the UN's projection" />}

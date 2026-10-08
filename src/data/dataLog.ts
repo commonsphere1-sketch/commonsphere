@@ -41,7 +41,7 @@ export const DATA_LOG: DataLogEntry[] = [
     "what": "The counties of the United States: population by year, births, deaths and migration, land and water area",
     "from": "US Census Bureau",
     "page": "/dashboard/subnations",
-    "where": "Subnations",
+    "where": "Municipalities",
     "read": "2026-10-08",
     "files": 1
   },
@@ -49,7 +49,7 @@ export const DATA_LOG: DataLogEntry[] = [
     "what": "The first-order divisions of every country - states, provinces, regions, departments - with each one's names, code, capital, area, borders and dated population",
     "from": "Natural Earth, Wikidata",
     "page": "/dashboard/subnations",
-    "where": "Subnations",
+    "where": "Municipalities",
     "read": "2026-10-08",
     "files": 1
   },

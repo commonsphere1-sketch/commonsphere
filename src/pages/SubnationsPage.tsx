@@ -901,9 +901,9 @@ export function SubnationsPage() {
         {/* ── Hero ── */}
         <div className="rounded-2xl border border-border bg-card px-5 py-6 flex flex-col lg:flex-row lg:items-center gap-5 justify-between">
           <div className="max-w-2xl">
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">CommonSphere · Subnations</p>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">CommonSphere · Municipalities</p>
             <h1 className="text-2xl sm:text-3xl font-bold font-sans text-foreground flex items-center gap-2.5">
-              <TreeStructure size={24} weight="fill" style={{ color: COLOR }} aria-hidden /> Subnations
+              <TreeStructure size={24} weight="fill" style={{ color: COLOR }} aria-hidden /> Municipalities
             </h1>
             <p className="text-sm font-sans text-muted-foreground mt-1.5">
               Every country, and inside each the states, provinces, regions or departments it is divided into - with the counties of the United States under its states. Open a
