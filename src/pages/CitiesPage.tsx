@@ -60,6 +60,8 @@ import { TONE, CHIP_TEXT } from "@/lib/chipTone";
    the figures it reads are the Countries page's, and large. */
 const CountryQuality = lazy(() => import("../components/CountryQuality"));
 const Universities = lazy(() => import("../components/Universities"));
+/** Every city the United Nations counts, under the profiled ones: loaded when the page reaches it, with its list of some twelve thousand. */
+const AllCities = lazy(() => import("../components/AllCities"));
 
 const SRC = CITY_FIGURES_SOURCE;
 /** The last year of the UN's estimates; the years after are its projections. */
@@ -857,6 +859,9 @@ export function CitiesPage() {
   const [regionFilter, setRegionFilter] = useState("All");
   const [sortBy, setSortBy] = useState<MeasureKey>("population");
   const [modalCity, setModalCity] = useState<City | null>(null);
+  /** One of the cities in the full list below, where a link names it ("un-<country>-<code>"). */
+  const [unOpen, setUnOpen] = useState<string | null>(null);
+  const clearUn = React.useCallback(() => setUnOpen(null), []);
 
   /* Deep link: ?open=<city id> opens that city's window - from the search bar, another page's window, or one city's
      window to another's. It is read from the router so a link made while the page is open works too, and the address
@@ -866,6 +871,8 @@ export function CitiesPage() {
   React.useEffect(() => {
     const openId = new URLSearchParams(location.search).get("open");
     if (!openId) return;
+    // "un-…" is one of the cities the UN counts, in the full list below: its window opens there.
+    if (openId.startsWith("un-")) setUnOpen(openId);
     const found = citiesData.find((c) => c.id === openId);
     if (found) setModalCity(found);
     navigate(location.pathname, { replace: true });
@@ -1103,6 +1110,12 @@ export function CitiesPage() {
             </div>
           )}
         </div>
+
+        {/* ── Every city the United Nations counts: the full list under the profiled few, each with a window ── */}
+        <Suspense fallback={<p className="text-xs font-sans text-muted-foreground mt-10">Loading every city the United Nations counts…</p>}>
+          <AllCities openId={unOpen} onOpened={clearUn} />
+        </Suspense>
+
       </div>
     </div>
   );
