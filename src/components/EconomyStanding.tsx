@@ -7,9 +7,15 @@
  * each person's share comes to, and how much of it is trade. It stands where
  * a five-year chart of three of these did.
  *
- * EconomyHasNeeds, under Resources: the largest companies based there, by
- * name; what it sells and what it buys; and the energy it produces beside
- * the energy it uses, with what that energy is made from.
+ * EconomyCompanies, at the foot of the Overview: the largest companies based
+ * there, by name.
+ *
+ * EconomyTrade, on the Overview: what it has to sell, what it needs to buy and
+ * whom it trades with, as three tiles. It stands where EconomyStanding's list
+ * did; that list is kept here, unmounted, since it was taken off as asked.
+ *
+ * EconomyHasNeeds, under Resources: the energy it produces beside the energy
+ * it uses, with what that energy is made from.
  *
  * Every figure is one the site already holds with its source and year: the
  * economy's own record, the world series of worldview.ts, the energy balance
@@ -150,6 +156,99 @@ export function EconomyStanding({ economy }: { economy: Economy }) {
   );
 }
 
+/** What it has to sell, what it needs to buy and whom it trades with, as three tiles: on the window's Overview. */
+export function EconomyTrade({ economy }: { economy: Economy }) {
+  const trade: [string, string, string[]][] = [
+    ["What it has to sell", "Its main exports", economy.topExports ?? []],
+    ["What it needs to buy", "Its main imports", economy.topImports ?? []],
+    ["Whom it trades with", "Its main trading partners", economy.tradingPartners ?? []],
+  ];
+  if (!trade.some(([, , items]) => items.length > 0)) return null;
+  return (
+    <div>
+      <Heading>What it has and what it needs · trade</Heading>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        {trade
+          .filter(([, , items]) => items.length > 0)
+          .map(([title, sub, items]) => (
+            <div key={title} className="modal-tile rounded-xl p-3 min-w-0">
+              <p className="text-[11px] font-sans font-bold text-foreground">{title}</p>
+              <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground mb-1.5">{sub}</p>
+              <ul className="flex flex-col gap-1">
+                {items.map((x) => (
+                  <li key={x} className="text-[11px] font-sans text-foreground/90 leading-snug">
+                    {x}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+      </div>
+      <p className="text-[10px] font-sans leading-snug text-muted-foreground mt-2">As the economy's own record on this page lists them; they are names, in the record's order, with no amounts.</p>
+    </div>
+  );
+}
+
+/** The largest companies based in the country, by name: at the foot of the window's Overview. A bloc or a region is no one country's, and has none. */
+export function EconomyCompanies({ economy }: { economy: Economy }) {
+  const [all, setAll] = useState(false);
+  const companies = TOP_COMPANIES[economy.name] ?? [];
+  const shown = all ? companies : companies.slice(0, 10);
+  const lists = [...new Set(companies.map((c) => c.list))].map((i) => TOP_COMPANY_LISTS[i]);
+  if (economy.entityType !== "Country" && economy.entityType !== "Territory") return null;
+  return (
+    <div>
+      <Heading aside={companies.length > 0 ? <span className="text-[10px] font-mono text-muted-foreground">{companies.length} named</span> : undefined}>Largest companies based here</Heading>
+      {companies.length > 0 ? (
+        <>
+          <div className="modal-tile rounded-xl px-4 py-1">
+            {shown.map((c) => {
+              const unit = c.unit ? (/^Revenue\s*\((.*)\)$/.exec(c.unit)?.[1] ?? c.unit) : "";
+              return (
+                <div key={c.name} className="flex items-baseline justify-between gap-3 py-2 border-b border-border/40 last:border-b-0">
+                  <span className="min-w-0">
+                    {c.article ? (
+                      <a href={wiki(c.article)} target="_blank" rel="noopener noreferrer" className="text-[12px] font-sans font-semibold text-foreground hover:underline">
+                        {c.name}
+                      </a>
+                    ) : (
+                      <span className="text-[12px] font-sans font-semibold text-foreground">{c.name}</span>
+                    )}
+                    <span className="block text-[10px] font-sans text-muted-foreground">
+                      {[c.industry, c.rank ? `${ordinal(c.rank)} in ${TOP_COMPANY_LISTS[c.list].title.replace(/^List of /, "the list of ")}` : null].filter(Boolean).join(" · ")}
+                    </span>
+                  </span>
+                  {c.revenue && (
+                    <span className="text-right shrink-0">
+                      <span className="block text-[12px] font-mono font-bold text-foreground">{c.revenue}</span>
+                      <span className="block text-[9px] font-mono text-muted-foreground">revenue · {unit}</span>
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {companies.length > 10 && (
+            <button type="button" onClick={() => setAll((v) => !v)} className="text-[10px] font-sans text-secondary mt-1.5 cursor-pointer hover:underline">
+              {all ? "Show the first ten" : `Show all ${companies.length}`}
+            </button>
+          )}
+          <p className="text-[10px] font-sans leading-snug text-muted-foreground mt-2">
+            The companies based in {economy.name} that Wikipedia's lists of the world's and its region's largest companies name, in the order and with the revenue each list
+            gives. They are those large enough for such a ranking - not a ranking made for {economy.name}, and not every large company it has.
+          </p>
+          <SourceLink sources={lists.map((l) => ({ label: `Wikipedia — ${l.title} (revision ${l.revision})`, url: l.url }))} className="mt-1" />
+        </>
+      ) : (
+        <p className="modal-tile rounded-xl px-4 py-3 text-[11px] font-sans leading-snug text-muted-foreground">
+          None is named. No company based in {economy.name} is in the lists of the world's and its region's largest companies that the site reads ({TOP_COMPANY_LISTS.length} of
+          Wikipedia's lists), and no other open source ranks its companies - so none is put here.
+        </p>
+      )}
+    </div>
+  );
+}
+
 /** The energy balance of the country the economy is, where the site holds one. */
 function energyOf(economy: Economy) {
   const code = CODE_OF_ECONOMY[economy.id];
@@ -159,101 +258,15 @@ function energyOf(economy: Economy) {
 
 /** Whether there is anything to say of the economy under this heading: for the window to know its Resources tab has something in it. */
 export function hasEconomyHasNeeds(economy: Economy): boolean {
-  return Boolean(TOP_COMPANIES[economy.name]?.length || energyOf(economy) || economy.topExports?.length || economy.topImports?.length);
+  return Boolean(energyOf(economy));
 }
 
-/** The largest companies based there, what it sells and buys, and the energy it makes and uses. */
+/** The energy it makes beside the energy it uses, and what that energy is made from. */
 export function EconomyHasNeeds({ economy }: { economy: Economy }) {
-  const [all, setAll] = useState(false);
-  const companies = TOP_COMPANIES[economy.name] ?? [];
-  const shown = all ? companies : companies.slice(0, 10);
-  const lists = [...new Set(companies.map((c) => c.list))].map((i) => TOP_COMPANY_LISTS[i]);
   const energy = energyOf(economy);
-  const isPlace = economy.entityType === "Country" || economy.entityType === "Territory";
-  const trade: [string, string, string[]][] = [
-    ["What it has to sell", "Its main exports", economy.topExports ?? []],
-    ["What it needs to buy", "Its main imports", economy.topImports ?? []],
-    ["Whom it trades with", "Its main trading partners", economy.tradingPartners ?? []],
-  ];
 
   return (
     <div className="space-y-4">
-      {isPlace && (
-        <div>
-          <Heading aside={companies.length > 0 ? <span className="text-[10px] font-mono text-muted-foreground">{companies.length} named</span> : undefined}>Largest companies based here</Heading>
-          {companies.length > 0 ? (
-            <>
-              <div className="modal-tile rounded-xl px-4 py-1">
-                {shown.map((c) => {
-                  const unit = c.unit ? (/^Revenue\s*\((.*)\)$/.exec(c.unit)?.[1] ?? c.unit) : "";
-                  return (
-                    <div key={c.name} className="flex items-baseline justify-between gap-3 py-2 border-b border-border/40 last:border-b-0">
-                      <span className="min-w-0">
-                        {c.article ? (
-                          <a href={wiki(c.article)} target="_blank" rel="noopener noreferrer" className="text-[12px] font-sans font-semibold text-foreground hover:underline">
-                            {c.name}
-                          </a>
-                        ) : (
-                          <span className="text-[12px] font-sans font-semibold text-foreground">{c.name}</span>
-                        )}
-                        <span className="block text-[10px] font-sans text-muted-foreground">
-                          {[c.industry, c.rank ? `${ordinal(c.rank)} in ${TOP_COMPANY_LISTS[c.list].title.replace(/^List of /, "the list of ")}` : null].filter(Boolean).join(" · ")}
-                        </span>
-                      </span>
-                      {c.revenue && (
-                        <span className="text-right shrink-0">
-                          <span className="block text-[12px] font-mono font-bold text-foreground">{c.revenue}</span>
-                          <span className="block text-[9px] font-mono text-muted-foreground">revenue · {unit}</span>
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              {companies.length > 10 && (
-                <button type="button" onClick={() => setAll((v) => !v)} className="text-[10px] font-sans text-secondary mt-1.5 cursor-pointer hover:underline">
-                  {all ? "Show the first ten" : `Show all ${companies.length}`}
-                </button>
-              )}
-              <p className="text-[10px] font-sans leading-snug text-muted-foreground mt-2">
-                The companies based in {economy.name} that Wikipedia's lists of the world's and its region's largest companies name, in the order and with the revenue each list
-                gives. They are those large enough for such a ranking - not a ranking made for {economy.name}, and not every large company it has.
-              </p>
-              <SourceLink sources={lists.map((l) => ({ label: `Wikipedia — ${l.title} (revision ${l.revision})`, url: l.url }))} className="mt-1" />
-            </>
-          ) : (
-            <p className="modal-tile rounded-xl px-4 py-3 text-[11px] font-sans leading-snug text-muted-foreground">
-              None is named. No company based in {economy.name} is in the lists of the world's and its region's largest companies that the site reads ({TOP_COMPANY_LISTS.length} of
-              Wikipedia's lists), and no other open source ranks its companies - so none is put here.
-            </p>
-          )}
-        </div>
-      )}
-
-      {trade.some(([, , items]) => items.length > 0) && (
-        <div>
-          <Heading>What it has and what it needs · trade</Heading>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {trade
-              .filter(([, , items]) => items.length > 0)
-              .map(([title, sub, items]) => (
-                <div key={title} className="modal-tile rounded-xl p-3 min-w-0">
-                  <p className="text-[11px] font-sans font-bold text-foreground">{title}</p>
-                  <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground mb-1.5">{sub}</p>
-                  <ul className="flex flex-col gap-1">
-                    {items.map((x) => (
-                      <li key={x} className="text-[11px] font-sans text-foreground/90 leading-snug">
-                        {x}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-          </div>
-          <p className="text-[10px] font-sans leading-snug text-muted-foreground mt-2">As the economy's own record on this page lists them; they are names, in the record's order, with no amounts.</p>
-        </div>
-      )}
-
       {energy && (
         <div>
           <Heading>What it has and what it needs · energy</Heading>

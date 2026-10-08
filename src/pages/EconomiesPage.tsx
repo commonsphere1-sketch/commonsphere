@@ -83,7 +83,7 @@ import { DataExplorer } from "@/components/DataExplorer";
 import { ResourceExplorer } from "@/components/ResourceExplorer";
 import { RESOURCES } from "@/data/resourceList";
 import { CommodityStanding } from "@/components/EconomyResources";
-import { EconomyHasNeeds, EconomyStanding, hasEconomyHasNeeds } from "@/components/EconomyStanding";
+import { EconomyCompanies, EconomyHasNeeds, EconomyTrade, hasEconomyHasNeeds } from "@/components/EconomyStanding";
 import { HeadlinesBanner, SUBJECT } from "@/components/HeadlinesBanner";
 
 
@@ -1001,6 +1001,8 @@ function BudgetPie({ budget }: { budget: CountryBudget }) {
 
 /** Inflation, deficits and tariffs: three sections with their own series, loaded when a window opens. */
 const EconomyDetails = React.lazy(() => import("../components/EconomyDetails"));
+// The charts of markets, prices and stability, with their series: loaded when a window opens.
+const EconomyMarkets = React.lazy(() => import("../components/EconomyMarkets"));
 
 function EconomyModal({
   economy,
@@ -1268,9 +1270,14 @@ function EconomyModal({
                 />
               )}
 
-              {/* ── WHERE THE ECONOMY STANDS: its size, pace, prices, jobs, debt and trade beside the world's, where a
-                  five-year chart of three of them stood. ── */}
-              <EconomyStanding economy={economy} />
+              {/* ── WHAT IT HAS AND WHAT IT NEEDS: its exports, its imports and its trading partners as three tiles. They
+                  stand where the list of where the economy stands did, as asked; the figures of that list are in the tiles above. ── */}
+              <EconomyTrade economy={economy} />
+
+              {/* What the standing does not say, in charts: growth, prices and jobs together, steadiness, the stock market, borrowing. */}
+              <React.Suspense fallback={null}>
+                <EconomyMarkets economy={economy} />
+              </React.Suspense>
 
               {/* ── GDP SECTOR COMPOSITION ── */}
               {(ECONOMY_SECTORS[economy.id] || !economy.limitedData) && (
@@ -1744,6 +1751,9 @@ function EconomyModal({
               <SourceLink sources={SRC_MARITIME} showIcon={false} />
             </div>
             </>)}
+
+            {/* The largest companies based there, by name: the last thing on the Overview, as asked. */}
+            <EconomyCompanies economy={economy} />
           </div>
           )}
 
@@ -1751,7 +1761,7 @@ function EconomyModal({
               among each commodity's producers. Its own tab: it was the longest section of the Overview. ── */}
           {tab === "resources" && showResources && (
           <div className="mt-4 space-y-4 animate-fade-in">
-            {/* What it has and what it needs: the largest companies based there, its trade, and its energy. */}
+            {/* What it has and what it needs: its energy. Its trade is on the Overview. */}
             <EconomyHasNeeds economy={economy} />
             <div className="space-y-4">
               {(() => {

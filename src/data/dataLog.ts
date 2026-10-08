@@ -46,6 +46,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "Growth, prices and jobs, the stock market and the cost of borrowing, year by year, by country",
+    "from": "World Bank",
+    "page": "/dashboard/economies",
+    "where": "Economies",
+    "read": "2026-10-07",
+    "files": 1
+  },
+  {
     "what": "Legal systems, the stages of criminal justice and the people who staff it",
     "from": "CIA World Factbook (final edition), UNODC, World Bank",
     "page": "/dashboard/crime",
@@ -328,4 +336,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 59;
+export const DATA_LOG_FILES = 60;
