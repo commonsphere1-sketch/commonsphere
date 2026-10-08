@@ -33,6 +33,8 @@ import { AidAndRights, CountryLeaders, PlanetNow, WorldLiving } from "../compone
 
 /** Energy to 2050, the panel kept of the Trends & Projections desk, with the projections it draws on: loaded after the page. */
 const EnergyOutlook = lazy(() => import("../components/EnergyOutlook"));
+/** The map to any place - a country, its divisions, a US state's counties - with the boundary files it draws: loaded after the page. */
+const PlaceAtlas = lazy(() => import("../components/PlaceAtlas"));
 import { WORLD } from "../data/worldview";
 import { Figures, COUNTER_FIGURES, COUNTER_UNIT } from "../components/Figures";
 import {
@@ -3060,6 +3062,18 @@ export function DashboardPage() {
 
         {/* ── INTERACTIVE DATA PANEL (standalone full-width) ─────────────── */}
         <DataExplorer />
+
+        {/* ── FIND A PLACE: a map to press. A country opens on its divisions, the United States on its states and a
+            state on its counties; a division or a county goes to its record on the Subnations page. ── */}
+        <Suspense
+          fallback={
+            <div className="rounded-2xl p-5 text-[11px] font-sans" style={{ background: cardBg, border: cardBorder, color: mutedText }}>
+              Loading the map…
+            </div>
+          }
+        >
+          <PlaceAtlas />
+        </Suspense>
 
         {/* The Trends & Projections desk stood here and was removed as asked; its energy panel is kept, lower on the
             page under the sectors and commodities. */}

@@ -33,6 +33,7 @@ import {
   ArrowsIn,
   ArrowsOut,
   X,
+  TreeStructure,
 } from "@phosphor-icons/react";
 
 interface SidebarNavProps {
@@ -45,6 +46,8 @@ const mainNav = [
   { to: "/dashboard", label: "Dashboard", icon: SquaresFour, end: true },
   { to: "/dashboard/states", label: "US States", icon: Buildings, end: false },
   { to: "/dashboard/countries", label: "Countries", icon: Globe, end: false },
+  // What countries are divided into - states, provinces, regions - and the counties of the United States: between the countries and their cities.
+  { to: "/dashboard/subnations", label: "Subnations", icon: TreeStructure, end: false },
   { to: "/dashboard/cities", label: "Global Cities", icon: City, end: false },
   {
     to: "/dashboard/economies",

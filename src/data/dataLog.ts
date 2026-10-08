@@ -22,6 +22,22 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "The counties of the United States: population by year, births, deaths and migration, land and water area",
+    "from": "US Census Bureau",
+    "page": "/dashboard/subnations",
+    "where": "Subnations",
+    "read": "2026-10-08",
+    "files": 1
+  },
+  {
+    "what": "The first-order divisions of every country - states, provinces, regions, departments - with each one's names, code, capital, area, borders and dated population",
+    "from": "Natural Earth, Wikidata",
+    "page": "/dashboard/subnations",
+    "where": "Subnations",
+    "read": "2026-10-08",
+    "files": 1
+  },
+  {
     "what": "What each profiled city is and is known for, with its official website and Britannica entry",
     "from": "Wikipedia, Wikidata",
     "page": "/dashboard",
@@ -344,4 +360,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 61;
+export const DATA_LOG_FILES = 63;

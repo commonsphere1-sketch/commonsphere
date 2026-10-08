@@ -61,6 +61,9 @@ const PlanetaryBoundariesPage = lazy(() =>
     default: m.PlanetaryBoundariesPage,
   })),
 );
+const SubnationsPage = lazy(() =>
+  import("./pages/SubnationsPage").then((m) => ({ default: m.SubnationsPage })),
+);
 const WorldviewPage = lazy(() =>
   import("./pages/WorldviewPage").then((m) => ({ default: m.WorldviewPage })),
 );
@@ -118,6 +121,7 @@ export default function App() {
               <Route path="settings" element={<SettingsPage />} />
               <Route path="states" element={<StatesPage />} />
               <Route path="countries" element={<CountriesPage />} />
+              <Route path="subnations" element={<SubnationsPage />} />
               <Route path="cities" element={<CitiesPage />} />
               <Route path="economies" element={<EconomiesPage />} />
               <Route path="policy" element={<PolicyPage />} />
