@@ -44,6 +44,24 @@
  *   states a licence the site can use - public domain, CC0, CC BY or CC
  *   BY-SA - which is kept with it, for the page to name.
  *
+ *   What is still missing after that is looked for in the infobox of the
+ *   division's English Wikipedia article, and kept only where the infobox
+ *   states it plainly: a flag (a file on Commons, under a usable licence,
+ *   not its country's, and named for the division itself - a city's flag does
+ *   not stand in for its region's); a population given as a bare number with
+ *   the year it is for; an area given as a bare number of km²; a capital
+ *   given as one linked place. Each is marked as the infobox's, and the page
+ *   says so. A flag whose file is named as hypothetical, proposed or
+ *   unofficial is not kept, whichever record names it. A seat or capital is
+ *   not read from an infobox: it is as often a town hall as a town.
+ *
+ * A RECORD THAT IS NOT THE DIVISION'S. Natural Earth's id is wrong for a few
+ * divisions - it gives Saint John in the US Virgin Islands the record of
+ * Saint John in Antigua. So a record is dropped where its own ISO 3166-2
+ * code is another country's, and where two divisions are given one record
+ * it is kept only by the division whose code the record carries. A division
+ * left without a record has only what Natural Earth says of it.
+ *
  * Nothing is estimated or filled in: a field no record holds is left out,
  * and the page says it is not held.
  *
@@ -225,6 +243,60 @@ function infoboxPeople(text) {
   }
   return out;
 }
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+/**
+ * What an article's infobox states plainly, of the things a record can lack. A value that is not plain - a template,
+ * a range, prose, more than one link - is passed over: better not held than misread.
+ */
+function infobox(text, country) {
+  const field = (names) => {
+    for (const n of names) {
+      const m = text.match(new RegExp("\\|\\s*" + n + "\\s*=([^\\n]*)", "i"));
+      if (m && m[1].trim()) return m[1].trim();
+    }
+    return null;
+  };
+  const bare = (v) =>
+    v
+      .replace(/<ref[^>]*\/>|<ref[^>]*>[\s\S]*?<\/ref>/gi, "")
+      .replace(/<!--[\s\S]*?-->/g, "")
+      .replace(/\{\{(?:formatnum|nts|val)\s*[:|]\s*([\d,.]+)\s*\}\}/gi, "$1")
+      .replace(/&nbsp;/g, " ")
+      .trim();
+  const out = {};
+  const flag = field(["image_flag", "flag_image"]);
+  if (flag) {
+    const m = bare(flag).match(/^(?:\[\[)?(?:(?:File|Image):)?\s*([^|\]{}\n]+?\.(?:svg|png|gif))/i);
+    const file = m ? m[1].replace(/_/g, " ").trim() : "";
+    // Not its country's flag, standing in for one of its own; and not a placeholder.
+    if (file && !new RegExp("^Flag of (the )?" + escapeRe(country) + "(\\.| \\()", "i").test(file) && !/placeholder|no[ _]flag|blank|missing/i.test(file)) out.flag = file;
+  }
+  const people = field(["population_total"]);
+  const when = field(["population_as_of"]);
+  if (people && when) {
+    const n = bare(people);
+    const year = bare(when).match(/\b(19\d\d|20[0-2]\d)\b/);
+    // A bare whole number: digits with separators, and not a decimal.
+    if (/^\d[\d,. ]*$/.test(n) && !/[.,]\d{1,2}$/.test(n) && year) {
+      const v = Number(n.replace(/\D/g, ""));
+      if (v >= 100 && v < 5e8) out.pop = [Number(year[1]), v];
+    }
+  }
+  const area = field(["area_total_km2"]);
+  if (area) {
+    const n = bare(area);
+    if (/^\d[\d,]*(\.\d+)?$/.test(n) && Number(n.replace(/,/g, "")) > 0) out.area = Number(Number(n.replace(/,/g, "")).toPrecision(6));
+  }
+  const seat = field(["capital"]);
+  if (seat) {
+    const m = bare(seat).match(/^\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]$/);
+    const place = m ? (m[2] ?? m[1]).trim() : "";
+    // A place, not the building its council sits in.
+    if (place && !/\b(hall|house|building|centre|center|office|palace|chamber)s?\b/i.test(place)) out.seat = place;
+  }
+  return out;
+}
+
 /** A licence the site can use, as Commons names it. */
 const usable = (licence) => /^(public domain|pd\b|cc0|cc[ -]by(-sa)?[ -]\d)/i.test(licence || "");
 
@@ -261,6 +333,7 @@ const tidy = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !==
       region: (p.region || "").trim(),
       lat: Number(Number(p.latitude).toFixed(3)),
       lon: Number(Number(p.longitude).toFixed(3)),
+      country: (p.admin || p.geonunit || "").trim(),
       gnNe: Number(p.gn_id) > 0 ? Number(p.gn_id) : undefined,
       qid: /^Q\d+$/.test(p.wikidataid || "") ? p.wikidataid : "",
       local: (p.name_local || "").trim(),
@@ -294,6 +367,19 @@ const tidy = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !==
     if (done % 400 < 40) console.log(`  Wikidata records: ${done} of ${qids.length}`);
   }
 
+  // A record that is another place's is not used: one whose own code is another country's, or one two divisions share that does not carry this division's code.
+  const sharers = new Map();
+  for (const b of base) if (b.qid) sharers.set(b.qid, (sharers.get(b.qid) ?? 0) + 1);
+  const mistaken = [];
+  for (const b of base) {
+    const r = b.qid && records[b.qid];
+    if (!r) continue;
+    const foreign = r.iso && !r.iso.startsWith(b.cc + "-");
+    const shared = sharers.get(b.qid) > 1 && !(r.iso && r.iso === b.code);
+    if (foreign || shared) mistaken.push(`${b.cc} ${b.name} (${b.qid})`), (b.qid = "");
+  }
+  console.log(`records dropped as another place's: ${mistaken.length}${mistaken.length ? " - " + mistaken.slice(0, 12).join(", ") : ""}`);
+
   // ── 3. The names of what they point at: capitals, legislatures, the places they sit in and border ──
   const own = new Map(base.filter((b) => b.qid).map((b) => [b.qid, b.name]));
   const wanted = new Set();
@@ -314,8 +400,28 @@ const tidy = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !==
   }
   const named = (q) => (q ? names.get(q) : undefined);
 
+  // ── 3.0 The articles of the divisions whose record lacks something: their leads, and what the infobox states ──
+  const lacking = base.filter((b) => {
+    const r = b.qid && records[b.qid];
+    return r && r.article && (!r.flag || !r.series || !r.areaKm2 || !r.capital);
+  });
+  const leadOf = new Map();
+  done = 0;
+  for (const batch of batches(lacking, 40)) {
+    const pages = await cached(`lead2-${hash(batch.map((b) => b.qid).join(" "))}.json`, async () => {
+      const res = await api("https://en.wikipedia.org/w/api.php", { action: "query", prop: "revisions", rvprop: "content", rvslots: "main", rvsection: "0", redirects: "1", titles: batch.map((b) => records[b.qid].article).join("|") });
+      const from = new Map([...(res.query.normalized ?? []), ...(res.query.redirects ?? [])].map((n) => [n.to, n.from]));
+      return Object.values(res.query.pages ?? {}).map((p) => [from.get(p.title) ?? p.title, p.revisions?.[0]?.slots?.main?.["*"] ?? ""]);
+    });
+    const text = new Map(pages);
+    for (const b of batch) leadOf.set(b.qid, text.get(records[b.qid].article) ?? text.get(records[b.qid].article.replace(/_/g, " ")) ?? "");
+    done += batch.length;
+    if (done % 800 < 40) console.log(`  articles: ${done} of ${lacking.length}`);
+  }
+  const boxOf = new Map(lacking.map((b) => [b.qid, infobox(leadOf.get(b.qid) ?? "", b.country)]));
+
   // ── 3a. Flags: each file's licence, as Commons states it ──────────────────
-  const files = [...new Set(Object.values(records).map((r) => r?.flag).filter(Boolean))];
+  const files = [...new Set([...Object.values(records).map((r) => r?.flag), ...[...boxOf.values()].map((x) => x.flag)].filter(Boolean))];
   const licences = new Map();
   done = 0;
   for (const batch of batches(files, 40)) {
@@ -332,20 +438,9 @@ const tidy = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !==
   // ── 3b. Populations with no reference: kept where the article's infobox gives the same figure ──
   const unsure = base.filter((b) => b.qid && records[b.qid] && !records[b.qid].series && records[b.qid].loose && records[b.qid].article);
   const agreed = new Set();
-  done = 0;
-  for (const batch of batches(unsure, 40)) {
-    const pages = await cached(`leads-${hash(batch.map((b) => b.qid).join(" "))}.json`, async () => {
-      const res = await api("https://en.wikipedia.org/w/api.php", { action: "query", prop: "revisions", rvprop: "content", rvslots: "main", rvsection: "0", redirects: "1", titles: batch.map((b) => records[b.qid].article).join("|") });
-      const from = new Map([...(res.query.normalized ?? []), ...(res.query.redirects ?? [])].map((n) => [n.to, n.from]));
-      return Object.values(res.query.pages ?? {}).map((p) => [from.get(p.title) ?? p.title, p.revisions?.[0]?.slots?.main?.["*"] ?? ""]);
-    });
-    const text = new Map(pages);
-    for (const b of batch) {
-      const r = records[b.qid];
-      const said = infoboxPeople(text.get(r.article) ?? text.get(r.article.replace(/_/g, " ")) ?? "");
-      if (said.some((n) => Math.abs(n - r.loose[1]) <= r.loose[1] / 100)) agreed.add(b.qid);
-    }
-    done += batch.length;
+  for (const b of unsure) {
+    const r = records[b.qid];
+    if (infoboxPeople(leadOf.get(b.qid) ?? "").some((n) => Math.abs(n - r.loose[1]) <= r.loose[1] / 100)) agreed.add(b.qid);
   }
   console.log(`populations without a reference: ${unsure.length}, of which the article's infobox gives the same figure: ${agreed.size}`);
 
@@ -377,6 +472,21 @@ const tidy = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !==
     const gn = r.gn ? Number(r.gn) : b.gnNe;
     const seat = named(r.capital) ? undefined : seatOf(gn);
     const second = !latest && r.loose && agreed.has(b.qid) ? r.loose : undefined;
+    // What the article's infobox states plainly, used only for what is still missing.
+    const box = (b.qid && boxOf.get(b.qid)) || {};
+    const third = !latest && !second ? box.pop : undefined;
+    const plain = (s) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+    /** Not a flag the place flies: one drawn as a suggestion, or as what one might be. */
+    const doubtful = (file) => /hypothetical|propos|unofficial|fictional|fictitious|concept|imaginary|fan[ _-]?made|alleged|variant|redesign/i.test(file);
+    /** Named for the division itself, by any of the names the site holds for it. */
+    const namesIt = (file) => [b.name, r.label, r.article].filter(Boolean).some((n) => plain(file).includes(plain(n).replace(/ \(.*\)$/, "").replace(/,.*$/, "")));
+    const ownFlag = r.flag && licences.has(r.flag) && !doubtful(r.flag) ? r.flag : undefined;
+    const boxFlag = !ownFlag && box.flag && licences.has(box.flag) && !doubtful(box.flag) && namesIt(box.flag) ? box.flag : undefined;
+
+    // A capital is not taken from an infobox: the few it gave included one that was another country's.
+    const boxSeat = undefined;
+
+    const boxArea = !r.areaKm2 ? box.area : undefined;
     return tidy({
       id: b.id,
       cc: b.cc,
@@ -390,18 +500,20 @@ const tidy = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !==
       article: r.article,
       site: r.site,
       gn,
-      flag: r.flag && licences.has(r.flag) ? r.flag : undefined,
-      flagLicence: r.flag ? licences.get(r.flag) : undefined,
+      flag: ownFlag ?? boxFlag,
+      flagLicence: licences.get(ownFlag ?? boxFlag),
+      flagBy: boxFlag ? "wp" : undefined,
       official: r.official && r.official !== b.name ? r.official : undefined,
       native: (r.native || b.local) && (r.native || b.local) !== b.name ? r.native || b.local : undefined,
-      capital: named(r.capital) ?? seat,
-      capitalBy: seat ? "gn" : undefined,
+      capital: named(r.capital) ?? seat ?? boxSeat,
+      capitalBy: seat ? "gn" : boxSeat ? "wp" : undefined,
       legislature: named(r.legislature),
       within: named(r.within),
       founded: r.founded ?? undefined,
-      areaKm2: r.areaKm2,
-      pop: latest ?? second,
-      popBy: second ? "wp" : undefined,
+      areaKm2: r.areaKm2 ?? boxArea,
+      areaBy: boxArea ? "wp" : undefined,
+      pop: latest ?? second ?? third,
+      popBy: second ? "wp" : third ? "wpOnly" : undefined,
       // A series is worth drawing from three years on.
       series: r.series && r.series.length >= 3 ? r.series : undefined,
       // The other divisions it borders: a record also lists every town and country along its edge, which is not what is asked.
@@ -425,7 +537,8 @@ const tidy = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !==
   const count = (k) => rows.filter((r) => r[k] !== undefined).length;
   console.log(`divisions ${rows.length} in ${new Set(rows.map((r) => r.cc)).size} countries · code ${count("code")} · capital ${count("capital")} · area ${count("areaKm2")} · population ${count("pop")} · series ${count("series")} · legislature ${count("legislature")} · site ${count("site")} · borders ${count("borders")}`);
   console.log(`map shapes ${shapes}, with a record of the same name ${matched}`);
-  console.log(`flags ${count("flag")} · capitals from GeoNames ${rows.filter((r) => r.capitalBy).length} · populations a second record confirms ${rows.filter((r) => r.popBy).length} · with a record ${count("qid")}`);
+  const by = (k, v) => rows.filter((r) => r[k] === v).length;
+  console.log(`flags ${count("flag")} (the infobox's ${by("flagBy", "wp")}) · capitals: GeoNames ${by("capitalBy", "gn")}, the infobox's ${by("capitalBy", "wp")} · populations: a second record confirms ${by("popBy", "wp")}, the infobox's alone ${by("popBy", "wpOnly")} · areas the infobox's ${by("areaBy", "wp")} · with a record ${count("qid")}`);
 
   fs.writeFileSync(
     path.join(__dirname, "src/data/subnations.ts"),
@@ -447,7 +560,7 @@ export const SUBNATIONS_RETRIEVED = "${TODAY}";
 export const SUBNATIONS_SOURCES = {
   commons: { label: "Wikimedia Commons — each division's flag, under the licence named with it", url: "https://commons.wikimedia.org/" },
   geonames: { label: "GeoNames (CC BY 4.0) — the seat of a division", url: "https://www.geonames.org/" },
-  wikipedia: { label: "Wikipedia — the infobox of a division's article, as a second record of its population", url: "https://en.wikipedia.org/" },
+  wikipedia: { label: "Wikipedia — the infobox of a division's article: a second record of its population, and what its own record lacks", url: "https://en.wikipedia.org/" },
   naturalEarth: { label: "Natural Earth — 1:10m admin-1 states and provinces (public domain)", url: "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/" },
   wikidata: { label: "Wikidata (CC0) — each division's own record", url: "https://www.wikidata.org/" },
   iso: { label: "ISO 3166-2 — codes for the names of countries' subdivisions", url: "https://www.iso.org/obp/ui/#search/code/" },
@@ -478,11 +591,15 @@ export interface Subnation {
   /** Its flag: the file's name on Wikimedia Commons, and the licence Commons states for it. */
   flag?: string;
   flagLicence?: string;
+  /** "wp" where the flag is not its record's but the one the infobox of its Wikipedia article shows. */
+  flagBy?: "wp";
   official?: string;
   native?: string;
   capital?: string;
-  /** "gn" where the capital is not its record's but the seat GeoNames marks for it. */
-  capitalBy?: "gn";
+  /** Where the capital is not its record's: "gn" the seat GeoNames marks for it, "wp" the seat the infobox of its Wikipedia article names. */
+  capitalBy?: "gn" | "wp";
+  /** "wp" where the area is not its record's but the infobox's. */
+  areaBy?: "wp";
   legislature?: string;
   /** The administrative unit it lies in. */
   within?: string;
@@ -490,8 +607,9 @@ export interface Subnation {
   areaKm2?: number;
   /** Its latest dated, referenced population. */
   pop?: [year: number, people: number];
-  /** "wp" where the figure's statement cites no reference and the article's infobox gives the same figure. */
-  popBy?: "wp";
+  /** "wp" where the figure's statement cites no reference and the article's infobox gives the same figure; "wpOnly" where its record gives no dated figure and this is the infobox's, with the infobox's year. */
+  popBy?: "wp" | "wpOnly";
+
 
   /** Every dated, referenced population, a year each, where there are three or more. */
   series?: [year: number, people: number][];

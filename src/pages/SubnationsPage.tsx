@@ -254,8 +254,10 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
   else if (ci) cite({ label: COUNTRY_INDICATORS_SOURCE.label, url: COUNTRY_INDICATORS_SOURCE.url });
   if (head) cite(REPRESENTATIVES_SOURCES.wikidata), cite(REPRESENTATIVES_SOURCES.wikipedia);
   if (s.flag) cite(SUBNATIONS_SOURCES.commons);
-  if (s.capitalBy) cite(SUBNATIONS_SOURCES.geonames);
-  if (s.popBy) cite(SUBNATIONS_SOURCES.wikipedia);
+  if (s.capitalBy === "gn") cite(SUBNATIONS_SOURCES.geonames);
+  if (s.popBy || s.areaBy || s.flagBy || s.capitalBy === "wp") cite(SUBNATIONS_SOURCES.wikipedia);
+  /** Said beside a value that is the infobox's and not the record's. */
+  const box = "the infobox of its Wikipedia article";
   const poor = m?.poverty.groups.find((g) => g.label === "Below poverty line")?.pct;
   // The list names a region in English; Natural Earth may name it in its own language, so its article's title is tried too.
   const chair = (REGIONAL_ASSEMBLIES[s.cc] ?? []).find((a) => a[0] === s.name || a[0] === s.article);
@@ -270,7 +272,7 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
         { label: "Name in its own language", value: s.native, sub: wd },
         { label: "ISO 3166-2 code", value: s.code },
         { label: "Country", value: country, sub: `ISO 3166-1: ${s.cc}` },
-        { label: "Flag", value: s.flag ? "Shown above" : null, sub: s.flag ? `Wikimedia Commons · ${s.flagLicence}` : undefined },
+        { label: "Flag", value: s.flag ? "Shown above" : null, sub: s.flag ? `Wikimedia Commons · ${s.flagLicence}${s.flagBy ? ` · the one ${box} shows` : ""}` : undefined },
         { label: "Political status", value: s.kind ? `${s.kind} of ${country}` : null, sub: "as Natural Earth names it" },
         { label: "Founded", value: s.founded ? (s.founded < 0 ? `${-s.founded} BC` : String(s.founded)) : null, sub: wd },
       ],
@@ -280,8 +282,8 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
       fields: [
         { label: "Continent", value: c?.continent },
         { label: `Region of ${country}`, value: s.region },
-        { label: "Capital", value: s.capital, sub: s.capitalBy ? "the seat GeoNames marks for it" : wd },
-        { label: "Area", value: s.areaKm2 ? `${whole(s.areaKm2)} km²` : null, sub: wd },
+        { label: "Capital", value: s.capital, sub: s.capitalBy === "gn" ? "the seat GeoNames marks for it" : s.capitalBy === "wp" ? `its seat, as ${box} names it` : wd },
+        { label: "Area", value: s.areaKm2 ? `${whole(s.areaKm2)} km²` : null, sub: s.areaBy ? `as ${box} gives it` : wd },
         { label: "Borders", value: s.borders?.join(", "), sub: undefined },
         { label: "Coordinates", value: coords(s.lat, s.lon), sub: "its label point" },
       ],
@@ -308,7 +310,13 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
           : {
               label: "Population",
               value: s.pop ? people(s.pop[1]) : null,
-              sub: s.pop ? (s.popBy ? `${s.pop[0]} · dated in ${wd}, which cites no source for it; the infobox of its Wikipedia article gives the same figure` : `${s.pop[0]} · a dated, referenced figure in ${wd}`) : undefined,
+              sub: s.pop
+                ? s.popBy === "wp"
+                  ? `${s.pop[0]} · dated in ${wd}, which cites no source for it; ${box} gives the same figure`
+                  : s.popBy === "wpOnly"
+                    ? `${s.pop[0]} · as ${box} gives it, with that year; ${wd} holds no dated figure`
+                    : `${s.pop[0]} · a dated, referenced figure in ${wd}`
+                : undefined,
             },
         {
           label: "Population growth",
@@ -902,7 +910,8 @@ export function SubnationsPage() {
           Which divisions a country has, and their names, kinds, codes and label points, are Natural Earth's: the ones the site's maps draw, which for some countries are a second
           order (France's departments, not its regions). Everything else about a division is its own Wikidata record's, read by the id Natural Earth gives it. A population is kept
           only where its statement is dated and cites a reference of its own - or, where it cites none, where the infobox of the division's Wikipedia article gives the same figure. A
-          capital its record does not name is the one place GeoNames marks as its seat. A flag is the one its record names on Wikimedia Commons, shown only under a licence the site
+          capital its record does not name is the one place GeoNames marks as its seat. What is still missing is then read from the infobox of the division's Wikipedia article, where the infobox states it plainly - a population with its year, an area, a flag named for the division - and is marked as the infobox's. A flag is the one its record or its article names on Wikimedia Commons,
+ shown only under a licence the site
           can use, which its window names with a link to the file and its author. A head is named only where three records agree, or, for a US state, as the US States page names
           its governor. A field the site holds nothing for says so.
         </p>
