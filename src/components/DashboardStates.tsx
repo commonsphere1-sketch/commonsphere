@@ -128,7 +128,8 @@ export function StatesContainer() {
                   </p>
                   <div className="grid grid-cols-[repeat(auto-fit,minmax(min(15rem,100%),1fr))] gap-x-6 gap-y-2">
                     {factsOf(s.id).map((f) => (
-                      <div key={f.label} className="min-w-0" title={`${f.label}: ${f.value} · ${f.sub}`}>
+                      // A line under each figure, in a tone that shows on the light card and on the dark one.
+                      <div key={f.label} className="min-w-0 pb-2" style={{ borderBottom: `1px solid ${t.isLight ? "rgba(0,0,0,0.16)" : "rgba(255,255,255,0.18)"}` }} title={`${f.label}: ${f.value} · ${f.sub}`}>
                         <div className="flex items-center gap-2 min-w-0">
                           <span className="text-[10px] font-sans flex-1 min-w-0 truncate" style={{ color: t.bodyText }}>
                             {f.label}

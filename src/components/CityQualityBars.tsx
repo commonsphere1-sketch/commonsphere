@@ -42,7 +42,8 @@ export default function CityQualityBars({ t, code, country, city, name }: Qualit
         {rows.map((r) => {
           const sub = `${r.sub}${r.world ? ` · world ${r.world}` : ""}`;
           return (
-            <div key={r.label} className="min-w-0" title={`${r.label}: ${r.value} · ${sub}${r.bar ? ` · bar on a scale of ${r.bar.scale}` : ""}`}>
+            // A line under each figure, in a tone that shows on the light card and on the dark one.
+            <div key={r.label} className="min-w-0 pb-2" style={{ borderBottom: `1px solid ${t.isLight ? "rgba(0,0,0,0.16)" : "rgba(255,255,255,0.18)"}` }} title={`${r.label}: ${r.value} · ${sub}${r.bar ? ` · bar on a scale of ${r.bar.scale}` : ""}`}>
               <div className="flex items-center gap-2 min-w-0">
                 <span className={`text-[10px] font-sans flex-1 min-w-0 truncate ${r.own ? "font-bold" : ""}`} style={{ color: r.own ? t.headText : t.bodyText }}>
                   {r.label}
