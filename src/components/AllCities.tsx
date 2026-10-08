@@ -21,6 +21,23 @@
  * record the window first held - identity, geography, demographics - is one
  * of the Overview's sections.
  *
+ * The History tab is the city's history as its Wikipedia article tells it,
+ * as a profiled city's is. The site holds no article for these cities, so
+ * the article is looked for when the tab is opened: among the articles
+ * Wikipedia places within ten kilometres of the city, the nearest whose
+ * title is the city's own name. Where none is, the tab says so and shows
+ * nothing. A city the page profiles by hand uses the article that profile
+ * names, and links to the profile.
+ *
+ * What is listed, and in what order, is the page's to say (its sticky bar):
+ * the search, the continent and the order are passed in. The countries open
+ * in the order of their largest city, so that the countries of the world's
+ * great cities come first: no body measures how well a city is known, and
+ * its size is what the UN publishes for every one. They can also be put in
+ * order of the people in all their cities, of the country's income a person
+ * (the World Bank's, the country's and not its cities'), of how many cities
+ * they have, or of name.
+ *
  * A city is what the UN's method draws - built-up land of at least 1,500
  * people to a km² holding 50,000 or more - not the administrative city, so
  * its figure can differ from the one its own council gives.
@@ -35,10 +52,14 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { ArrowRight, ArrowsIn, ArrowsOut, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, X } from "@phosphor-icons/react";
 import { ECONOMY_INDICATORS, ECONOMY_INDICATORS_SOURCE } from "../data/economyIndicators";
 import { ECONOMY_OF } from "../data/placeIndex";
+import { citiesData } from "../data/citiesData";
+import { CITY_PLACES } from "../data/cityPlaces";
 import { countriesData } from "../data/countriesData";
+import { COUNTRY_INDICATORS } from "../data/countryIndicators";
 import { UN_CITIES, UN_CITIES_SOURCE, UN_CITY_YEARS, type UnCity } from "../data/unCities";
 import { CHIP_TEXT, TONE } from "@/lib/chipTone";
 import { flagColor } from "../lib/flagColor";
+import { ArticlePanel } from "./HistoryPanel";
 import { ChartNote, FigureRow } from "./ModalCharts";
 import { SeeAlso } from "./SeeAlso";
 
@@ -75,6 +96,60 @@ const Section = ({ title, note, children }: { title: string; note?: string; chil
 );
 const none = <span className="font-normal text-muted-foreground">Not held</span>;
 
+/** A name as compared: without accents, case or punctuation. */
+const plain = (s: string) =>
+  s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+/** The names a city goes by in the UN's list: "Tōkyō (Tokyo)" is Tōkyō and Tokyo, "Takasaki [Maebashi]" Takasaki and Maebashi. */
+const namesOf = (name: string) => name.split(/[()[\]/]/).map(plain).filter(Boolean);
+const km = (a: [number, number], b: [number, number]) => {
+  const rad = Math.PI / 180;
+  const h = Math.sin(((b[0] - a[0]) * rad) / 2) ** 2 + Math.cos(a[0] * rad) * Math.cos(b[0] * rad) * Math.sin(((b[1] - a[1]) * rad) / 2) ** 2;
+  return 12742 * Math.asin(Math.sqrt(h));
+};
+/** The cities the page profiles by hand, by the UN city each one is: the same name, in the same country, within 80 km of the profile's article. */
+const PROFILED = new Map<string, { id: string; wiki: string }>();
+for (const p of citiesData) {
+  const at = CITY_PLACES[p.id];
+  if (!at) continue;
+  const near = UN_CITIES.filter((c) => c[0] === p.countryCode && c[3] !== null && c[4] !== null && namesOf(c[2]).includes(plain(p.name)) && km([c[3]!, c[4]!], [at.lat, at.lon]) <= 80);
+  if (near.length === 1) PROFILED.set(unCityId(near[0]), { id: p.id, wiki: at.wiki });
+}
+/** The article found for a city, once looked for: its title, or null where none answers. */
+const ARTICLES = new Map<string, string | null>();
+/**
+ * The city's Wikipedia article: the profile's where the page profiles it, and otherwise the nearest article within ten
+ * kilometres whose title is the city's own name. Looked for only when asked; undefined while it is.
+ */
+function useArticle(c: UnCity, wanted: boolean): string | null | undefined {
+  const id = unCityId(c);
+  const [title, setTitle] = useState<string | null | undefined>(() => PROFILED.get(id)?.wiki ?? ARTICLES.get(id));
+  useEffect(() => {
+    if (!wanted || title !== undefined) return;
+    if (c[3] === null || c[4] === null) return setTitle(null);
+    let off = false;
+    fetch(`https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${c[3]}%7C${c[4]}&gsradius=10000&gslimit=50&format=json&origin=*`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((j: { query?: { geosearch?: { title: string }[] } }) => {
+        const names = namesOf(c[2]);
+        // The title before any comma or bracket is the place's name: "Sidon", "Springfield, Illinois", "Córdoba (Argentina)".
+        const hit = (j.query?.geosearch ?? []).find((p) => names.includes(plain(p.title.replace(/[,(].*$/, ""))));
+        ARTICLES.set(id, hit ? hit.title : null);
+        if (!off) setTitle(hit ? hit.title : null);
+      })
+      .catch(() => !off && setTitle(null));
+    return () => {
+      off = true;
+    };
+  }, [wanted, title, id, c]);
+  return title;
+}
+
 const nth = (n: number) => `${n.toLocaleString("en-US")}${n % 100 >= 11 && n % 100 <= 13 ? "th" : (["th", "st", "nd", "rd"][n % 10] ?? "th")}`;
 /** A figure in a tile, with a line under it saying whose it is and for when: as a profiled city's window draws them. */
 const Tile = ({ label, value, sub }: { label: string; value: string; sub?: string }) => (
@@ -100,6 +175,8 @@ function CityWindow({ c, onClose }: { c: UnCity; onClose: () => void }) {
   const tone = CONTINENT_TONE[country?.continent ?? ""] ?? "text-muted-foreground border-border bg-muted";
   const [tab, setTab] = useState<Tab>("overview");
   const [wide, setWide] = useState(false);
+  const profile = PROFILED.get(unCityId(c));
+  const article = useArticle(c, tab === "history");
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     const before = document.body.style.overflow;
@@ -163,6 +240,12 @@ function CityWindow({ c, onClose }: { c: UnCity; onClose: () => void }) {
             <button type="button" onClick={() => navigate(`/dashboard/subnations?country=${cc}`)} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer">
               {land} · its divisions <ArrowRight size={11} weight="bold" aria-hidden />
             </button>
+            {/* A city the page profiles by hand has more said of it there. */}
+            {profile && (
+              <button type="button" onClick={() => navigate(`/dashboard/cities?open=${profile.id}`)} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer">
+                Its full profile <ArrowRight size={11} weight="bold" aria-hidden />
+              </button>
+            )}
           </div>
 
           {/* Tab bar */}
@@ -247,20 +330,17 @@ function CityWindow({ c, onClose }: { c: UnCity; onClose: () => void }) {
             </div>
           )}
 
-          {tab === "history" && (
-            <div className="space-y-4">
-              <Section title={`📈 Its population, ${Y0} to ${Y3}`} note={`What is held of ${name}'s past is its population as the United Nations counts it: three estimates and a projection. No account of its history is recorded here.`}>
-                {chart}
-              </Section>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <Tile label={String(Y0)} value={p0 !== null ? people(p0) : "Not held"} />
-                <Tile label={String(Y1)} value={p1 !== null ? people(p1) : "Not held"} />
-                <Tile label={String(Y2)} value={people(p2)} sub="the UN's last estimate" />
-                <Tile label={String(Y3)} value={p3 !== null ? people(p3) : "Not held"} sub="the UN's projection" />
-              </div>
-              <SourceLink sources={[UN_CITIES_SOURCE]} />
-            </div>
-          )}
+          {/* History: the city's story from its Wikipedia article, as a profiled city's window tells it. */}
+          {tab === "history" &&
+            (article === undefined ? (
+              <p className="text-xs font-sans text-muted-foreground py-6 text-center">Looking for the article on {name}…</p>
+            ) : article ? (
+              <ArticlePanel title={article} name={name} mode="history" />
+            ) : (
+              <p className="text-xs font-sans text-muted-foreground py-6 text-center">
+                No Wikipedia article by the name of {name} was found where the United Nations places the city, so no history is shown. Its population over the years is in the Overview.
+              </p>
+            ))}
 
           {tab === "map" && (
             <div className="space-y-4">
@@ -537,11 +617,23 @@ function CountryWindow({ row, top, asked, onOpen, onClose }: { row: Row; /** Whe
   );
 }
 
-type Order = "name" | "cities" | "people";
+export type CityOrder = "largest" | "people" | "rich" | "cities" | "name";
 
-export default function AllCities({ openId, onOpened }: { /** A city to open, as a link names it. */ openId: string | null; onOpened: () => void }) {
-  const [query, setQuery] = useState("");
-  const [order, setOrder] = useState<Order>("name");
+export default function AllCities({
+  openId,
+  onOpened,
+  query,
+  continent,
+  order,
+}: {
+  /** A city to open, as a link names it. */
+  openId: string | null;
+  onOpened: () => void;
+  /** What the page's bar asks for: a country's or a city's name, a continent ("" for every one), and the order of the countries. */
+  query: string;
+  continent: string;
+  order: CityOrder;
+}) {
   /** The country whose window is open, and the city whose window is open over it. */
   const [country, setCountry] = useState<string | null>(null);
   const [open, setOpen] = useState<UnCity | null>(null);
@@ -555,15 +647,23 @@ export default function AllCities({ openId, onOpened }: { /** A city to open, as
   /* The countries that answer: by their own name, or by a city's. */
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = ROWS.flatMap((r) => {
+    const list = ROWS.filter((r) => !continent || r.continent === continent).flatMap((r) => {
       if (!q || r.name.toLowerCase().includes(q)) return [{ row: r, matching: 0 }];
       const matching = r.cities.filter((c) => c[2].toLowerCase().includes(q)).length;
       return matching ? [{ row: r, matching }] : [];
     });
-    if (order === "cities") return [...list].sort((a, b) => b.row.cities.length - a.row.cities.length);
-    if (order === "people") return [...list].sort((a, b) => b.row.people - a.row.people);
-    return list;
-  }, [query, order]);
+    /** The country's GDP per person, as the World Bank has it: the country's, standing in for a wealth no body publishes city by city. One with no figure goes last. */
+    const income = (cc: string) => COUNTRY_INDICATORS[cc]?.gdpPerCapita?.v ?? -1;
+    const by: Record<CityOrder, ((a: Row, b: Row) => number) | null> = {
+      largest: (a, b) => b.cities[0][8] - a.cities[0][8],
+      people: (a, b) => b.people - a.people,
+      rich: (a, b) => income(b.cc) - income(a.cc),
+      cities: (a, b) => b.cities.length - a.cities.length,
+      name: null,
+    };
+    const sorter = by[order];
+    return sorter ? [...list].sort((a, b) => sorter(a.row, b.row) || a.row.name.localeCompare(b.row.name)) : list;
+  }, [query, continent, order]);
   const openRow = country ? (ROW_OF.get(country) ?? null) : null;
   /** A city's search carried into its country's window, where it was the cities and not the country's name that answered. */
   const carried = openRow && rows.find((r) => r.row.cc === openRow.cc)?.matching ? query.trim() : "";
@@ -574,18 +674,14 @@ export default function AllCities({ openId, onOpened }: { /** A city to open, as
         {UN_CITIES.length.toLocaleString("en-US")} cities in {ROWS.length} countries. Open a country for its cities, and a city for its own window. A city here is what the UN's method draws
         - built-up land of at least 1,500 people to a km² holding 50,000 or more - not the administrative city, so its figure can differ from the one its own council gives.
       </p>
-      <div className="flex flex-wrap items-center gap-2 mt-3 mb-4">
-        <label className={`flex items-center gap-1.5 ${field} focus-within:border-foreground/40`}>
-          <MagnifyingGlass size={13} className="text-muted-foreground shrink-0" aria-hidden />
-          <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search a country, or any city" aria-label="Search the countries by name, or by the name of a city" className="bg-transparent w-52 sm:w-64 focus:outline-none placeholder:text-muted-foreground" />
-        </label>
-        <select value={order} onChange={(e) => setOrder(e.target.value as Order)} aria-label="The order of the countries" className={field}>
-          <option value="name">By name</option>
-          <option value="cities">By number of cities</option>
-          <option value="people">By people in their cities</option>
-        </select>
-        <span className="text-[11px] font-mono text-muted-foreground">{rows.length} countries</span>
-      </div>
+      <p className="text-[11px] font-mono text-muted-foreground mt-2 mb-4">
+        {rows.length} countries{query.trim() ? ` answer "${query.trim()}"` : ""}
+        {continent ? ` in ${continent}` : ""} ·{" "}
+        {{ largest: "the countries of the largest cities first", people: "those with the most people in their cities first", rich: "the richest countries first, by GDP per person - the country's, not its cities'", cities: "those with the most cities first", name: "by name" }[order]} ·
+        searched, filtered and ordered from the bar above
+
+      </p>
+
       {/* COUNTRY CARDS GRID: as the Countries page and the Subnations page lay theirs out */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {rows.map(({ row, matching }) => (

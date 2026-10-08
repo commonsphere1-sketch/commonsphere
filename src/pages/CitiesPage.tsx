@@ -62,6 +62,8 @@ const CountryQuality = lazy(() => import("../components/CountryQuality"));
 const Universities = lazy(() => import("../components/Universities"));
 /** Every city the United Nations counts, under the profiled ones: loaded when the page reaches it, with its list of some twelve thousand. */
 const AllCities = lazy(() => import("../components/AllCities"));
+type CityOrder = import("../components/AllCities").CityOrder;
+
 
 const SRC = CITY_FIGURES_SOURCE;
 /** The last year of the UN's estimates; the years after are its projections. */
@@ -283,27 +285,6 @@ function Legend({ items }: { items: { color: string; label: string; value: strin
   );
 }
 
-/** A city's population from 1975 to 2050 as a line the width of its card: solid to the last estimate, dashed after, from zero. */
-function PopSpark({ f, name }: { f: CityFigures; name: string }) {
-  const W = 120;
-  const H = 30;
-  const top = Math.max(...f.pop.map((v) => v ?? 0));
-  const pts = f.pop.map((v, i) => (v == null || top <= 0 ? null : ([(i / (f.pop.length - 1)) * W, H - 1 - (v / top) * (H - 2)] as const)));
-  const path = (from: number, to: number) =>
-    pts
-      .slice(from, to + 1)
-      .filter((p): p is readonly [number, number] => p != null)
-      .map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`)
-      .join("");
-  const b = BASE - SRC.firstYear;
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="block w-full h-8" role="img" aria-label={`Population of ${name}, ${SRC.firstYear} to ${LAST}; projected from ${BASE + 1}.`}>
-      <line x1={0} y1={H - 0.5} x2={W} y2={H - 0.5} stroke="currentColor" strokeWidth={1} opacity={0.15} vectorEffect="non-scaling-stroke" />
-      <path d={path(0, b)} fill="none" stroke={ACCENT} strokeWidth={1.75} vectorEffect="non-scaling-stroke" />
-      <path d={path(b, pts.length - 1)} fill="none" stroke={ACCENT} strokeWidth={1.75} strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
-    </svg>
-  );
-}
 
 // ── The city window's pieces ───────────────────────────────────────────────
 
@@ -856,8 +837,9 @@ const topOf = (key: MeasureKey) => {
 
 export function CitiesPage() {
   const [search, setSearch] = useState("");
-  const [regionFilter, setRegionFilter] = useState("All");
-  const [sortBy, setSortBy] = useState<MeasureKey>("population");
+  /** The continent whose countries are listed below ("" for every one), and the order they are in: the bar's, for the full list. */
+  const [continent, setContinent] = useState("");
+  const [order, setOrder] = useState<CityOrder>("largest");
   const [modalCity, setModalCity] = useState<City | null>(null);
   /** One of the cities in the full list below, where a link names it ("un-<country>-<code>"). */
   const [unOpen, setUnOpen] = useState<string | null>(null);
@@ -878,21 +860,7 @@ export function CitiesPage() {
     navigate(location.pathname, { replace: true });
   }, [location.search, location.pathname, navigate]);
 
-  const allRegions = ["All", ...Array.from(new Set(citiesData.map((c) => c.region))).sort()];
-  const measure = measureOf(sortBy);
-
-  /* The cities that match, highest on the chosen measure first; one the UN has no figure for on it goes last. */
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return ROWS.filter(({ city }) => (city.name.toLowerCase().includes(q) || city.country.toLowerCase().includes(q)) && (regionFilter === "All" || city.region === regionFilter)).sort(
-      (a, b) => (measure.value(b) ?? -Infinity) - (measure.value(a) ?? -Infinity),
-    );
-  }, [search, regionFilter, measure]);
-
-  /* The cards: the cities the reader follows first, each group in the order of the chosen measure. */
-  const follow = useFollowedCities();
-  const cards = useMemo(() => [...filtered.filter((r) => follow.ids.includes(r.city.id)), ...filtered.filter((r) => !follow.ids.includes(r.city.id))], [filtered, follow.ids]);
-  const followedShown = cards.filter((r) => follow.ids.includes(r.city.id)).length;
+  /* The profiled cities' cards, and the list that matched and ordered them, stood here and were taken off as asked. */
 
   /* The headline figures, read off the cities: they were typed in - "Tokyo 37M", "Safest City: Dubai (83)". */
   const summary = useMemo(() => {
@@ -915,13 +883,14 @@ export function CitiesPage() {
           <div>
             <h1 className="text-2xl font-bold font-sans text-foreground">Cities</h1>
             <p className="text-muted-foreground text-sm font-sans">
-              {ROWS.length} world cities — people, land and built-up area, {SRC.firstYear} to {LAST}, as the United Nations measures them
+              Every city the United Nations counts, country by country — people, land and built-up area, {SRC.firstYear} to {LAST}, as it measures them;{" "}
+              {ROWS.length} of them profiled in full
             </p>
           </div>
           <button
-            onClick={() => exportCitiesToCSV(filtered)}
+            onClick={() => exportCitiesToCSV(ROWS)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-[11px] font-medium font-sans cursor-pointer"
-            title="Export the cities shown, with every figure, to CSV"
+            title="Export the profiled cities, with every figure, to CSV"
           >
             <DownloadSimple size={13} weight="bold" />
             Export CSV
@@ -957,32 +926,35 @@ export function CitiesPage() {
           search={{
             value: search,
             onChange: setSearch,
-            placeholder: "Search cities or countries…",
+            placeholder: "Search a country, or any city…",
           }}
         >
-          {allRegions.map((r) => (
+          {/* The bar is the full list's: the cards of the profiled cities stood under it and were taken off as asked. */}
+          {["", "Africa", "Asia", "Europe", "North America", "Oceania", "South America"].map((x) => (
             <button
-              key={r}
-              onClick={() => setRegionFilter(r)}
+              key={x || "all"}
+              onClick={() => setContinent(x)}
+              aria-pressed={continent === x}
               className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
-                regionFilter === r ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                continent === x ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
             >
-              {r}
+              {x || "All"}
             </button>
           ))}
           <div className="w-px h-4 bg-border shrink-0" />
           <select
-            aria-label="Sort and rank cities by"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as MeasureKey)}
+            aria-label="The order of the countries"
+            value={order}
+            onChange={(e) => setOrder(e.target.value as CityOrder)}
             className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
           >
-            {MEASURES.map((m) => (
-              <option key={m.key} value={m.key}>
-                Sort: {m.label}
-              </option>
-            ))}
+            <option value="largest">Sort: Largest city</option>
+            <option value="people">Sort: People in their cities</option>
+            <option value="rich">Sort: Richest countries</option>
+            <option value="cities">Sort: Number of cities</option>
+            <option value="name">Sort: Name</option>
+
           </select>
         </FilterBar>
 
@@ -1007,113 +979,12 @@ export function CitiesPage() {
         {modalCity && <CityModal city={modalCity} onClose={() => setModalCity(null)} />}
 
 
-        {followedShown > 0 && (
-          <p className="flex items-center gap-1.5 text-[11px] font-sans text-muted-foreground mb-2">
-            <Star size={12} weight="fill" className="text-amber-500" aria-hidden />
-            The {followedShown === 1 ? "city" : `${followedShown} cities`} you follow {followedShown === 1 ? "is" : "are"} first. Followed cities are saved in this browser.
-          </p>
-        )}
+        {/* The cards of the profiled cities stood here and were taken off as asked. Their windows are kept: a link to one
+            still opens it, and the same city's window in the list below links to it as "its full profile". */}
 
-        {/* City Cards — 3 per row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 auto-rows-fr">
-          {cards.map(({ city, f, now, since }) => {
-            const first = cityFirstYear(city.id) ?? SRC.firstYear;
-            const end = cityYear(city.id, LAST);
-            return (
-              <article
-                key={city.id}
-                onClick={() => setModalCity(city)}
-                className="modal-tile rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40 flex flex-col h-full"
-              >
-                {/* Card header with country flag background */}
-                <div className="relative flex items-start justify-between mb-3 -mx-5 -mt-5 px-5 pt-5 pb-4 rounded-t-xl overflow-hidden">
-                  <img
-                    src={`https://flagcdn.com/w320/${city.countryCode?.toLowerCase() ?? "un"}.png`}
-                    alt=""
-                    aria-hidden="true"
-                    className="absolute inset-0 w-full h-full object-cover opacity-20 scale-105 select-none pointer-events-none"
-                  />
-                  <div className="relative flex items-center gap-3">
-                    <div className="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 shadow-md">
-                      <img
-                        src={`https://flagcdn.com/w80/${city.countryCode?.toLowerCase() ?? "un"}.png`}
-                        alt={`${city.country} flag`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const t = e.currentTarget;
-                          t.onerror = null;
-                          t.style.display = "none";
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold font-sans text-foreground text-sm">{city.name}</h3>
-                      <p className="text-xs text-muted-foreground font-sans flex items-center gap-1 mt-0.5">
-                        <MapPin size={11} /> {city.country}
-                        {f.capital ? " · capital" : ""}
-                      </p>
-                    </div>
-                  </div>
-                  {/* Follow: kept to its own click, so it does not open the card. */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      follow.toggle(city.id);
-                    }}
-                    aria-pressed={follow.isFollowed(city.id)}
-                    aria-label={follow.isFollowed(city.id) ? `Unfollow ${city.name}` : `Follow ${city.name}`}
-                    title={follow.isFollowed(city.id) ? "Following" : "Follow"}
-                    className="relative shrink-0 p-1.5 rounded-full bg-background/60 hover:bg-background/90 transition-colors cursor-pointer"
-                  >
-                    <Star size={16} weight={follow.isFollowed(city.id) ? "fill" : "regular"} className={follow.isFollowed(city.id) ? "text-amber-500" : "text-foreground/70"} />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 mb-3 flex-1">
-                  <div>
-                    <p className="text-xs text-muted-foreground font-sans">Population, {BASE}</p>
-                    <p className="text-sm font-bold font-mono text-foreground">{fmtPeople(now.population)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground font-sans">Land area</p>
-                    <p className="text-sm font-bold font-mono text-foreground">{km2(now.area)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground font-sans">Density</p>
-                    <p className="text-sm font-bold font-mono text-foreground">{perKm2(now.density)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground font-sans">Since {SINCE}</p>
-                    <p className="text-sm font-bold font-mono text-foreground" title={since ? undefined : `The UN's series for ${city.name} starts in ${first}`}>
-                      {since ? signed(since.pct) : "—"}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-[10px] mb-1">
-                    <span className="text-muted-foreground font-sans">
-                      Population, {first}–{LAST}
-                    </span>
-                    {end && <span className="font-mono text-muted-foreground">{fmtPeople(end.population)} projected</span>}
-                  </div>
-                  <PopSpark f={f} name={city.name} />
-                </div>
-              </article>
-            );
-          })}
-
-          {filtered.length === 0 && (
-            <div className="col-span-3 bg-card border border-border rounded-xl p-12 text-center">
-              <p className="text-muted-foreground font-sans text-sm">No cities match your filters.</p>
-            </div>
-          )}
-        </div>
-
-        {/* ── Every city the United Nations counts: the full list under the profiled few, each with a window ── */}
+        {/* ── Every city the United Nations counts: a card for each country, opening on its cities ── */}
         <Suspense fallback={<p className="text-xs font-sans text-muted-foreground mt-10">Loading every city the United Nations counts…</p>}>
-          <AllCities openId={unOpen} onOpened={clearUn} />
+          <AllCities openId={unOpen} onOpened={clearUn} query={search} continent={continent} order={order} />
         </Suspense>
 
       </div>
