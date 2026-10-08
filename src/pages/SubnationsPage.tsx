@@ -418,7 +418,8 @@ function SubnationWindow({ s, onClose, onCounties }: { s: Subnation; onClose: ()
     ...(s.article ? [{ label: `Wikipedia — ${s.article}`, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(s.article.replace(/ /g, "_"))}` }] : []),
   ];
   return (
-    <Window title={s.name} kicker={`${s.kind || "Division"} · ${c?.name ?? s.cc}`} flagSrc={ownFlag(s, 250) ?? flag(s.cc, 160)} chips={[...(s.code ? [s.code] : []), ...(s.capital ? [`Capital: ${s.capital}`] : []), ...(s.region ? [s.region] : [])]} onClose={onClose}>
+    <Window wide title={s.name} kicker={`${s.kind || "Division"} · ${c?.name ?? s.cc}`} flagSrc=
+{ownFlag(s, 250) ?? flag(s.cc, 160)} chips={[...(s.code ? [s.code] : []), ...(s.capital ? [`Capital: ${s.capital}`] : []), ...(s.region ? [s.region] : [])]} onClose={onClose}>
       <div className="flex flex-wrap gap-2">
         {c && <LinkButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Open {c.name}</LinkButton>}
         {state && <LinkButton onClick={() => navigate(`/dashboard/states?open=${state.id}`)}>Open {state.name} on the US States page</LinkButton>}
@@ -427,11 +428,15 @@ function SubnationWindow({ s, onClose, onCounties }: { s: Subnation; onClose: ()
           <MapTrifold size={12} aria-hidden /> On the map
         </LinkButton>
       </div>
+      {/* What lies inside it comes first, as asked - its counties or districts, and its towns, cities and villages, a card each with a window of its own - and the division's own record after. */}
+      <DivisionPlaces s={s} country={c?.name ?? s.cc} />
+      <div className="flex items-center gap-2 mt-2">
+        <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-wide">{s.name} itself</h3>
+        <div className="flex-1 h-px bg-border" />
+      </div>
       {parts.map((p) => (
         <Section key={p.title} part={p} />
       ))}
-      {/* What lies inside it: its counties or districts, and its towns, cities and villages. */}
-      <DivisionPlaces s={s} country={c?.name ?? s.cc} />
       <div>
         <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1">Where to read more</p>
         <SourceLink sources={read} />
