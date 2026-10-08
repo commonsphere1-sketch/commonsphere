@@ -54,11 +54,15 @@ const mainNav = [
   },
 ];
 
+// World Leaders and Worldview changed places, and Policy and Trends, as asked: the leaders and policy now open the list.
 const analysisNav = [
-  // The world as a whole: peace, debt, climate, development, food, technology.
-  { to: "/dashboard/worldview", label: "Worldview", icon: GlobeStand, end: false },
-  // Where it is heading: the IMF's and the UN's projections, and the trends behind them.
-  { to: "/dashboard/trends", label: "Trends", icon: ChartLine, end: false },
+  {
+    to: "/dashboard/world-leaders",
+    label: "World Leaders",
+    icon: Lectern,
+    end: false,
+  },
+  { to: "/dashboard/policy", label: "Policy", icon: Scales, end: false },
   // The route keeps its /rankings path so existing links still resolve; the
   // page itself is the comparison now, with the ranked list as its picker.
   {
@@ -69,13 +73,10 @@ const analysisNav = [
     icon: ArrowsLeftRight,
     end: false,
   },
-  { to: "/dashboard/policy", label: "Policy", icon: Scales, end: false },
-  {
-    to: "/dashboard/world-leaders",
-    label: "World Leaders",
-    icon: Lectern,
-    end: false,
-  },
+  // Where it is heading: the IMF's and the UN's projections, and the trends behind them.
+  { to: "/dashboard/trends", label: "Trends", icon: ChartLine, end: false },
+  // The world as a whole: peace, debt, climate, development, food, technology.
+  { to: "/dashboard/worldview", label: "Worldview", icon: GlobeStand, end: false },
   {
     to: "/dashboard/humanitarian",
     label: "Human Rights",
