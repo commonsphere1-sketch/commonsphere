@@ -3,6 +3,13 @@
  * monthly average, the year behind it as a line, and its change on the same
  * month a year before - the largest rise first.
  *
+ * Under each: which benchmark it is and whose, the publisher's own account of
+ * the series, the price a month, a year and ten years before, the highest
+ * and lowest of the last thirteen months and of the ten years, and the other
+ * benchmarks published for the same commodity. All are read off the series;
+ * a change is worked out from two of its averages, and a month the series
+ * does not have is left out.
+ *
  * It stands where a "Sector Outlook" stood: eight sectors with a twelve-month
  * "outlook" and a "confidence" beside each, and three "top movers" drawn from
  * numbers typed in to make a line. Nobody publishes those. These prices are
@@ -22,6 +29,7 @@ const DOWN = "#ef4444";
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const monthName = (m: string) => `${MONTHS[Number(m.slice(5)) - 1]} ${m.slice(0, 4)}`;
 const price = (v: number) => v.toLocaleString("en-US", { maximumFractionDigits: 2 });
+const signed = (v: number, dp = 1) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(dp)}%`;
 
 /** Each commodity at its latest month, with the thirteen months to it and its change on the same month a year before, where that month is published. */
 const MOVERS = Object.entries(COMMODITY_PRICES)
@@ -29,8 +37,36 @@ const MOVERS = Object.entries(COMMODITY_PRICES)
     const s = p.series;
     if (s.length < 2) return [];
     const [month, value] = s[s.length - 1];
-    const before = s.find(([m]) => m === `${Number(month.slice(0, 4)) - 1}${month.slice(4)}`);
-    return [{ name, unit: p.unit, source: p.source, month, value, year: s.slice(-13), before: before && before[1] > 0 ? { month: before[0], value: before[1], pct: (100 * (value - before[1])) / before[1] } : null }];
+    /** The average of the same month some years back, with the change since, where the series has that month. */
+    const back = (years: number) => {
+      const b = s.find(([m]) => m === `${Number(month.slice(0, 4)) - years}${month.slice(4)}`);
+      return b && b[1] > 0 ? { month: b[0], value: b[1], pct: (100 * (value - b[1])) / b[1] } : null;
+    };
+    const prior = s[s.length - 2];
+    const year = s.slice(-13);
+    const top = (pts: [string, number][]) => pts.reduce((a, b) => (b[1] > a[1] ? b : a));
+    const bottom = (pts: [string, number][]) => pts.reduce((a, b) => (b[1] < a[1] ? b : a));
+    return [
+      {
+        name,
+        unit: p.unit,
+        source: p.source,
+        benchmark: p.benchmark,
+        about: p.about,
+        also: p.also,
+        month,
+        value,
+        year,
+        before: back(1),
+        decade: back(10),
+        prior: prior[1] > 0 ? { month: prior[0], value: prior[1], pct: (100 * (value - prior[1])) / prior[1] } : null,
+        yearHigh: top(year),
+        yearLow: bottom(year),
+        allHigh: top(s),
+        allLow: bottom(s),
+        since: s[0][0],
+      },
+    ];
   })
   .sort((a, b) => (b.before?.pct ?? -Infinity) - (a.before?.pct ?? -Infinity));
 const LATEST = MOVERS.map((m) => m.month).sort().pop() ?? "";
@@ -75,10 +111,11 @@ export function CommodityMovers() {
         {MOVERS.map((m, i) => (
           <li
             key={m.name}
-            className="flex items-center gap-2 py-1.5"
+            className="py-2"
             style={{ borderBottom: i < MOVERS.length - 1 ? `1px solid ${t.gridLine}` : "none" }}
             title={m.before ? `${m.name}: ${price(m.before.value)} ${m.unit} in ${monthName(m.before.month)}, ${price(m.value)} in ${monthName(m.month)}` : `${m.name}: ${price(m.value)} ${m.unit} in ${monthName(m.month)}`}
           >
+            <div className="flex items-center gap-2">
             <span className="flex-1 min-w-0">
               <span className="block text-[11px] font-semibold font-sans truncate" style={{ color: t.headText }}>
                 {m.name}
@@ -92,12 +129,49 @@ export function CommodityMovers() {
             <span className="text-[11px] font-mono font-bold tabular-nums w-14 text-right shrink-0" style={{ color: m.before ? (m.before.pct >= 0 ? UP : DOWN) : t.mutedText }}>
               {m.before ? `${m.before.pct > 0 ? "+" : ""}${m.before.pct.toFixed(1)}%` : "—"}
             </span>
+            </div>
+            {/* What is priced and whose price it is, and where it has been: each read off the series. */}
+            <p className="text-[9px] font-mono mt-1" style={{ color: t.mutedText }}>
+              {m.benchmark} · {COMMODITY_PRICE_SOURCES[m.source].label}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-0.5 mt-1">
+              {(
+                [
+                  m.prior ? ["A month before", `${price(m.prior.value)} · ${signed(m.prior.pct)}`] : null,
+                  m.before ? [`A year before · ${monthName(m.before.month)}`, price(m.before.value)] : null,
+                  m.decade ? [`Ten years before · ${monthName(m.decade.month)}`, `${price(m.decade.value)} · ${signed(m.decade.pct, 0)}`] : null,
+                  ["Highest of the thirteen months", `${price(m.yearHigh[1])} · ${monthName(m.yearHigh[0])}`],
+                  ["Lowest of the thirteen months", `${price(m.yearLow[1])} · ${monthName(m.yearLow[0])}`],
+                  [`Highest since ${monthName(m.since)}`, `${price(m.allHigh[1])} · ${monthName(m.allHigh[0])}`],
+                  [`Lowest since ${monthName(m.since)}`, `${price(m.allLow[1])} · ${monthName(m.allLow[0])}`],
+                ] as ([string, string] | null)[]
+              )
+                .filter((f): f is [string, string] => f !== null)
+                .map(([label, value]) => (
+                  <span key={label} className="flex items-baseline justify-between gap-2 min-w-0">
+                    <span className="text-[9px] font-sans truncate" style={{ color: t.mutedText }} title={label}>
+                      {label}
+                    </span>
+                    <span className="text-[10px] font-mono font-semibold shrink-0" style={{ color: t.headText }}>
+                      {value}
+                    </span>
+                  </span>
+                ))}
+            </div>
+            <p className="text-[10px] font-sans leading-snug mt-1" style={{ color: t.bodyText }}>
+              {m.about}
+            </p>
+            {m.also.length > 0 && (
+              <p className="text-[9px] font-sans leading-snug mt-0.5" style={{ color: t.mutedText }}>
+                Also published: {m.also.map((a) => `${a.label} ${price(a.price)} ${a.unit} (${monthName(a.month)})`).join(" · ")}
+              </p>
+            )}
           </li>
         ))}
       </ul>
       <p className="text-[9px] font-sans leading-snug mt-2" style={{ color: t.mutedText }}>
         The line is the thirteen months to the latest, drawn between its own lowest and highest, so it shows the shape of the year and not its size. Prices are nominal US dollars, in each
-        publisher's own unit.
+        publisher's own unit, so a ten-year change includes ten years of inflation. Every figure under a row is a monthly average of its series; a change is one average on another.
       </p>
       <SourceLink sources={sources} className="mt-1" />
     </div>
