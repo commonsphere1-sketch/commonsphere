@@ -1,6 +1,6 @@
 /**
  * Under a commodity's price on the Dashboard: what it is used for, and who
- * has it - the countries that produce the most, and those that hold the most
+ * has it - where it is found, the countries that produce the most, and those that hold the most
  * in the ground.
  *
  * Who has it is read from the same country tables the Resources window lists
@@ -76,8 +76,23 @@ export default function CommodityBackground({ name, t, color }: { name: string; 
           </ul>
         </div>
       )}
+      {detail && detail.deposits.length > 0 && (
+        <div>
+          <Kicker t={t}>Where it is found</Kicker>
+          <ul className="flex flex-col gap-0.5">
+            {detail.deposits.slice(0, 3).map((d) => (
+              <li key={d.place} className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
+                <span className="font-semibold" style={{ color: t.headText }}>
+                  {d.place}
+                </span>{" "}
+                · {d.detail}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {facts && producers.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))] gap-x-6 gap-y-2">
           <div className="min-w-0">
             <Kicker t={t}>{`Who produces it · ${facts.outputYear} · world ${facts.output}`}</Kicker>
             <Bars t={t} rows={producers} color={color} label={`The countries that produce the most ${name.toLowerCase()}`} />

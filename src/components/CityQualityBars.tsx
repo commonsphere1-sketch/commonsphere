@@ -38,7 +38,7 @@ export default function CityQualityBars({ t, code, country, city, name }: Qualit
       <p className="text-[9px] font-mono uppercase tracking-widest mb-1.5" style={{ color: t.mutedText }}>
         Quality of living · figures for {inSentence(country)}, not for {name} alone
       </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(15rem,100%),1fr))] gap-x-6 gap-y-2">
         {rows.map((r) => {
           const sub = `${r.sub}${r.world ? ` · world ${r.world}` : ""}`;
           return (

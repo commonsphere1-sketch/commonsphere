@@ -15,7 +15,9 @@
  *                   its country's, said to be so, since none is published
  *                   city by city. The city's other facts and what it is
  *                   known for stood here and were taken off; their data
- *                   (cityFigures.ts, cityKnownFor.ts) is kept.
+ *                   (cityFigures.ts, cityKnownFor.ts) is kept. One city is
+ *                   open at a time, so the card keeps to the height of the
+ *                   card beside it.
  *   Sector Outlook  eight sectors with an "outlook" and a "confidence", and
  *                   "7-week" sparklines; nobody publishes such figures. It
  *                   now gives, for the sectors the site holds a published
@@ -29,10 +31,10 @@
  * happened, not a forecast: the published projections are on the Trends
  * page.
  */
-import { lazy, Suspense, useMemo, type ReactNode } from "react";
+import { lazy, Suspense, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowRight, Buildings, ChartLineUp, TrendDown, TrendUp } from "@phosphor-icons/react";
+import { ArrowRight, Buildings, CaretDown, ChartLineUp, TrendDown, TrendUp } from "@phosphor-icons/react";
 import { citiesData } from "../data/citiesData";
 import { CITY_FIGURES, CITY_FIGURES_SOURCE } from "../data/cityFigures";
 import { RENEWABLE_GENERATION, RENEWABLE_GENERATION_SOURCE } from "../data/renewables";
@@ -54,7 +56,8 @@ const RED = "#ef4444";
 const signed = (v: number, dp = 1) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(dp)}%`;
 const publisher = (label: string) => label.replace(/ \(via [^)]*\)$/, "").split(" — ")[0];
 
-function Card({ t, children, className = "" }: { t: Tokens; children: ReactNode; className?: string }) {
+/** A Dashboard card. In the page's grid it is as tall as the card beside it. */
+export function Card({ t, children, className = "" }: { t: Tokens; children: ReactNode; className?: string }) {
   return (
     <div className={`rounded-2xl p-5 flex flex-col ${className}`} style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
       {children}
@@ -62,7 +65,7 @@ function Card({ t, children, className = "" }: { t: Tokens; children: ReactNode;
   );
 }
 
-function Head({ t, icon, label, badge, color, cta, to }: { t: Tokens; icon: ReactNode; label: string; badge: string; color: string; cta: string; to: string }) {
+export function Head({ t, icon, label, badge, color, cta, to }: { t: Tokens; icon: ReactNode; label: string; badge: string; color: string; cta: string; to: string }) {
   const navigate = useNavigate();
   return (
     <div className="flex items-center justify-between mb-4">
@@ -82,11 +85,25 @@ function Head({ t, icon, label, badge, color, cta, to }: { t: Tokens; icon: Reac
   );
 }
 
-const Kicker = ({ t, children }: { t: Tokens; children: ReactNode }) => (
+export const Kicker = ({ t, children }: { t: Tokens; children: ReactNode }) => (
   <p className="text-[10px] font-mono uppercase tracking-widest mb-2" style={{ color: t.mutedText }}>
     {children}
   </p>
 );
+
+/** The mark at the end of a row that opens: it turns up when its row is open. */
+export const Caret = ({ open, color }: { open: boolean; color: string }) => (
+  <CaretDown size={10} weight="bold" aria-hidden className="shrink-0 transition-transform" style={{ color, transform: open ? "rotate(180deg)" : "none" }} />
+);
+
+/** The way from an open row to the page that holds the rest. */
+export function Go({ color, onClick, children }: { color: string; onClick: () => void; children: ReactNode }) {
+  return (
+    <button type="button" onClick={onClick} className="inline-flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70 cursor-pointer" style={{ color }}>
+      {children} <ArrowRight size={10} weight="bold" aria-hidden />
+    </button>
+  );
+}
 
 // ── Cities ──────────────────────────────────────────────────────────────────
 
@@ -110,6 +127,8 @@ export function CitiesContainer() {
   const color = "#10b981";
   const top = CITY_ROWS.slice(0, 10);
   const largest = top[0];
+  // One city is open at a time: the first, until another is chosen.
+  const [open, setOpen] = useState(top[0]?.c.id);
   const fastest = useMemo(() => [...CITY_ROWS].filter((r) => r.growth).sort((a, b) => b.growth!.pct - a.growth!.pct)[0], []);
   const chart = top.map((r, i) => ({ name: r.c.name.length > 9 ? `${r.c.name.slice(0, 8)}…` : r.c.name, full: r.c.name, pop: Number((r.pop / 1e6).toFixed(1)), color: CITY_COLORS[i % CITY_COLORS.length] }));
   const axis = { tick: { fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false };
@@ -136,10 +155,11 @@ export function CitiesContainer() {
       <SourceLink sources={[{ label: "United Nations, World Urbanization Prospects: The 2025 Revision", url: CITY_FIGURES_SOURCE.url }]} className="mt-1 mb-1" />
 
       {/* City list */}
-      <div className="flex flex-col mt-3 pt-3" style={{ borderTop: `1px solid ${t.gridLine}` }}>
+      <div className="flex flex-col flex-1 mt-3 pt-3" style={{ borderTop: `1px solid ${t.gridLine}` }}>
+        <Kicker t={t}>The ten largest · choose one for its quality of living</Kicker>
         {top.map(({ c, pop, growth, capital }, i) => (
-          <div key={c.id} className="py-2.5" style={{ borderBottom: i < top.length - 1 ? `1px solid ${t.gridLine}` : "none" }}>
-            <button type="button" onClick={() => navigate(`/dashboard/cities?open=${c.id}`)} className="flex items-center gap-2 w-full text-left hover:opacity-80 transition-opacity cursor-pointer">
+          <div key={c.id} className="py-2" style={{ borderBottom: i < top.length - 1 ? `1px solid ${t.gridLine}` : "none" }}>
+            <button type="button" aria-expanded={open === c.id} onClick={() => setOpen(c.id)} className="flex items-center gap-2 w-full text-left hover:opacity-80 transition-opacity cursor-pointer">
               <img src={`https://flagcdn.com/w40/${c.countryCode.toLowerCase()}.png`} alt="" width={20} height={15} loading="lazy" className="rounded-sm shrink-0" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
               <span className="flex-1 min-w-0">
                 <span className="block text-xs font-semibold font-sans truncate" style={{ color: t.headText }}>
@@ -164,12 +184,21 @@ export function CitiesContainer() {
                   </span>
                 )}
               </span>
+              <Caret open={open === c.id} color={t.mutedText} />
             </button>
             {/* Quality of living: the rows of the city's own window, which are its country's and say so. */}
-            <Suspense fallback={null}>
-              <CityQualityBars t={t} code={c.countryCode} country={c.country} city={c.id} name={c.name} />
-            </Suspense>
+            {open === c.id && (
+              <Suspense fallback={null}>
+                <CityQualityBars t={t} code={c.countryCode} country={c.country} city={c.id} name={c.name} />
+                <div className="pl-7 mt-2">
+                  <Go color={color} onClick={() => navigate(`/dashboard/cities?open=${c.id}`)}>
+                    Open {c.name}
+                  </Go>
+                </div>
+              </Suspense>
+            )}
           </div>
+
         ))}
       </div>
 

@@ -11,6 +11,8 @@
  * And what the commodity is used for and who has it - the countries that
  * produce the most and hold the most - from the Resources window's own
  * tables (CommodityBackground, loaded with them when the card is shown).
+ * One commodity is open at a time, so the card keeps to the height of the
+ * card beside it.
  *
  * It stands where a "Sector Outlook" stood: eight sectors with a twelve-month
  * "outlook" and a "confidence" beside each, and three "top movers" drawn from
@@ -19,12 +21,13 @@
  * (commodityPrices.ts) - and the one thing worked out is the change, from two
  * of those averages, with both months named in its title.
  */
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ChartLineUp } from "@phosphor-icons/react";
+import { ChartLineUp } from "@phosphor-icons/react";
 import { COMMODITY_PRICES, COMMODITY_PRICE_SOURCES } from "../data/commodityPrices";
 import { SourceLink } from "./SourceLink";
 import { RESOURCES } from "../data/resourceList";
+import { Card, Caret, Go, Head, Kicker } from "./DashboardCitiesSectors";
 import { useTokens } from "./DataExplorer";
 
 /** What a commodity is used for and who has it, with the country tables it reads: loaded when the card is shown. */
@@ -73,23 +76,16 @@ export function CommodityMovers() {
   const t = useTokens();
   const navigate = useNavigate();
   const sources = [...new Set(MOVERS.map((m) => m.source))].map((s) => COMMODITY_PRICE_SOURCES[s]);
+  // One commodity is open at a time: the first, until another is chosen.
+  const [open, setOpen] = useState(MOVERS[0]?.name);
   return (
-    <div className="rounded-2xl p-4 flex flex-col flex-1" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
-      <div className="flex items-center justify-between gap-2 mb-1">
-        <div className="flex items-center gap-2 min-w-0">
-          <ChartLineUp size={14} weight="fill" style={{ color: COLOR }} aria-hidden />
-          <h2 className="text-sm font-bold font-sans" style={{ color: t.headText }}>
-            Commodity prices
-          </h2>
-        </div>
-        <button type="button" onClick={() => navigate("/dashboard/economies?view=resources")} className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70 cursor-pointer shrink-0" style={{ color: COLOR }}>
-          Resources <ArrowRight size={10} weight="bold" aria-hidden />
-        </button>
-      </div>
-      <p className="text-[10px] font-sans leading-snug mb-2" style={{ color: t.mutedText }}>
+    <Card t={t}>
+      <Head t={t} icon={<ChartLineUp size={16} weight="fill" />} label="Commodity prices" badge={`${MOVERS.length} priced`} color={COLOR} cta="Resources" to="/dashboard/economies?view=resources" />
+      <p className="text-[10px] font-sans leading-snug -mt-2 mb-2" style={{ color: t.mutedText }}>
         Monthly averages to {monthName(LATEST)}, and each one's change on the same month a year before - the largest rise first.
       </p>
-      <ul className="flex flex-col">
+      <Kicker t={t}>Choose one for what it is used for and who has it</Kicker>
+      <ul className="flex flex-col flex-1">
         {MOVERS.map((m, i) => (
           <li
             key={m.name}
@@ -97,9 +93,10 @@ export function CommodityMovers() {
             style={{ borderBottom: i < MOVERS.length - 1 ? `1px solid ${t.gridLine}` : "none" }}
             title={m.before ? `${m.name}: ${price(m.before.value)} ${m.unit} in ${monthName(m.before.month)}, ${price(m.value)} in ${monthName(m.month)}` : `${m.name}: ${price(m.value)} ${m.unit} in ${monthName(m.month)}`}
           >
-            <div className="flex items-center gap-2">
+            <button type="button" aria-expanded={open === m.name} onClick={() => setOpen(m.name)} className="flex items-center gap-2 w-full text-left hover:opacity-80 transition-opacity cursor-pointer">
+            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: RESOURCE_COLOR.get(m.name) ?? COLOR }} aria-hidden />
             <span className="flex-1 min-w-0">
-              <span className="block text-[11px] font-semibold font-sans truncate" style={{ color: t.headText }}>
+              <span className="block text-xs font-semibold font-sans truncate" style={{ color: t.headText }}>
                 {m.name}
               </span>
               <span className="block text-[9px] font-mono truncate" style={{ color: t.mutedText }}>
@@ -111,22 +108,32 @@ export function CommodityMovers() {
             <span className="text-[11px] font-mono font-bold tabular-nums w-14 text-right shrink-0" style={{ color: m.before ? (m.before.pct >= 0 ? UP : DOWN) : t.mutedText }}>
               {m.before ? `${m.before.pct > 0 ? "+" : ""}${m.before.pct.toFixed(1)}%` : "—"}
             </span>
-            </div>
-            {/* What is priced and whose price it is, in the publisher's words. */}
-            <p className="text-[9px] font-mono mt-1" style={{ color: t.mutedText }}>
-              {m.benchmark} · {COMMODITY_PRICE_SOURCES[m.source].label}
-            </p>
-            <p className="text-[10px] font-sans leading-snug mt-1" style={{ color: t.bodyText }}>
-              {m.about}
-            </p>
-            {m.also.length > 0 && (
-              <p className="text-[9px] font-sans leading-snug mt-0.5" style={{ color: t.mutedText }}>
-                Also published: {m.also.map((a) => `${a.label} ${price(a.price)} ${a.unit} (${monthName(a.month)})`).join(" · ")}
-              </p>
+            <Caret open={open === m.name} color={t.mutedText} />
+            </button>
+            {open === m.name && (
+              <div className="pl-3.5">
+                {/* What is priced and whose price it is, in the publisher's words. */}
+                <p className="text-[9px] font-mono mt-1.5" style={{ color: t.mutedText }}>
+                  {m.benchmark} · {COMMODITY_PRICE_SOURCES[m.source].label}
+                </p>
+                <p className="text-[10px] font-sans leading-snug mt-1" style={{ color: t.bodyText }}>
+                  {m.about}
+                </p>
+                {m.also.length > 0 && (
+                  <p className="text-[9px] font-sans leading-snug mt-0.5" style={{ color: t.mutedText }}>
+                    Also published: {m.also.map((a) => `${a.label} ${price(a.price)} ${a.unit} (${monthName(a.month)})`).join(" · ")}
+                  </p>
+                )}
+                <Suspense fallback={null}>
+                  <CommodityBackground name={m.name} t={t} color={RESOURCE_COLOR.get(m.name) ?? COLOR} />
+                </Suspense>
+                <div className="mt-2">
+                  <Go color={COLOR} onClick={() => navigate("/dashboard/economies?view=resources")}>
+                    Open Resources
+                  </Go>
+                </div>
+              </div>
             )}
-            <Suspense fallback={null}>
-              <CommodityBackground name={m.name} t={t} color={RESOURCE_COLOR.get(m.name) ?? COLOR} />
-            </Suspense>
           </li>
         ))}
       </ul>
@@ -137,6 +144,7 @@ export function CommodityMovers() {
         of the largest country shown; what it is used for is the site's own background, kept to what is settled.
       </p>
       <SourceLink sources={sources} className="mt-1" />
-    </div>
+    </Card>
   );
+
 }

@@ -28,6 +28,8 @@ import { hdiHex } from "../lib/hdiTier";
 import { CommodityMovers } from "../components/CommodityMovers";
 import { GlobalAnalytics } from "../components/DashboardGlobal";
 import { CitiesContainer, SectorOutlook } from "../components/DashboardCitiesSectors";
+import { StatesContainer } from "../components/DashboardStates";
+import { AidAndRights, CountryLeaders, PlanetNow, WorldLiving } from "../components/DashboardSignals";
 
 /** Energy to 2050, the panel kept of the Trends & Projections desk, with the projections it draws on: loaded after the page. */
 const EnergyOutlook = lazy(() => import("../components/EnergyOutlook"));
@@ -41,13 +43,6 @@ import {
   type CalendarEvent,
 } from "../data/calendar2026";
 
-const SRC_DASH_STATES = [
-  {
-    label: "Bureau of Economic Analysis",
-    url: "https://www.bea.gov/data/gdp/gdp-state",
-  },
-  { label: "Bureau of Labor Statistics", url: "https://www.bls.gov/data/" },
-];
 /**
  * Slides a doubled track leftwards for ever, wrapping at its halfway point.
  *
@@ -656,9 +651,6 @@ function StatesCarousel({
   );
 }
 
-/* ─── Helpers ──────────────────────────────────────────────────────────── */
-const fmtB = (n: number) =>
-  n >= 1000 ? `${(n / 1000).toFixed(1)}T` : n >= 1 ? `${n.toFixed(0)}B` : `${Math.round(n * 1000)}M`;
 
 /* ─── Pinned Dashboard logic ────────────────────────────────────────────── */
 
@@ -1856,57 +1848,6 @@ function PinnedSection({
 
 
 
-function SectionHeader({
-  icon,
-  label,
-  badge,
-  badgeColor,
-  cta,
-  isLight,
-  onNav,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  badge?: string;
-  badgeColor?: string;
-  cta?: string;
-  ctaTo?: string;
-  isLight: boolean;
-  onNav?: () => void;
-}) {
-  const headText = isLight ? "#0f172a" : "#f1f0ff";
-  const accentColor = badgeColor ?? "#6366f1";
-  return (
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2">
-        <span style={{ color: accentColor }}>{icon}</span>
-        <h2
-          className="text-base font-bold font-sans"
-          style={{ color: headText }}
-        >
-          {label}
-        </h2>
-        {badge && (
-          <span
-            className="text-[10px] font-mono px-2 py-0.5 rounded-full"
-            style={{ background: accentColor + "15", color: accentColor }}
-          >
-            {badge}
-          </span>
-        )}
-      </div>
-      {cta && onNav && (
-        <button
-          onClick={onNav}
-          className="flex items-center gap-1 text-[11px] font-semibold transition-opacity hover:opacity-70"
-          style={{ color: accentColor }}
-        >
-          {cta} <ArrowRight size={11} weight="bold" />
-        </button>
-      )}
-    </div>
-  );
-}
 
 /* ═══════════════════════════════════════════════════════════════════════ */
 // ─── Quarter tracker ─────────────────────────────────────────────────────────
@@ -2932,15 +2873,6 @@ export function DashboardPage() {
   const headText = isLight ? "#0f172a" : "#f1f0ff";
   const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
 
-  const topStates = useMemo(
-    () => [...usStatesData].sort((a, b) => b.gdp - a.gdp).slice(0, 8),
-    [],
-  );
-  /* The states with the lowest and the highest unemployment rate, as the BLS has them. */
-  const stateJobs = useMemo(() => {
-    const byRate = [...usStatesData].sort((a, b) => a.unemploymentRate - b.unemploymentRate);
-    return { low: byRate[0], high: byRate[byRate.length - 1] };
-  }, []);
   /* UCDP's count of state-based armed conflicts for its latest year. */
   const [conflictYear, conflictCount] = WORLD.conflicts.series[WORLD.conflicts.series.length - 1];
 
@@ -3135,150 +3067,27 @@ export function DashboardPage() {
         {/* ── MAIN GRID: the states, the world's conflicts, and the site's own data.
             Four cards stood in the first column that nothing published backs - "up-and-coming industries" with a
             growth rate each, "funding raised", alliances and "R&D breakthroughs" - and a Cities chart of GDP per
-            head credited to a source that publishes no such figure. They are gone. ── */}
+            head credited to a source that publishes no such figure. They are gone.
+
+            The cards stand two to a row, each as tall as the one beside it. A card with a long list opens one of
+            its rows at a time, so no card runs pages past its neighbour as the Cities and Commodity cards did. ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-4">
-            {/* US STATES: the largest economies, with each one's unemployment rate */}
-            <div
-              className="rounded-2xl p-5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <SectionHeader
-                icon={<MapTrifold size={16} weight="fill" />}
-                label="US States"
-                badge="50 states"
-                badgeColor="#3b82f6"
-                cta="All States"
-                ctaTo="/dashboard/states"
-                isLight={isLight}
-                onNav={() => navigate("/dashboard/states")}
-              />
-              <p className="text-[9px] font-mono uppercase tracking-widest mb-2" style={{ color: mutedText }}>
-                The {topStates.length} largest economies · GDP, {topStates[0].figureYears?.gdp} · unemployment, {topStates[0].figureYears?.unemploymentRate}
-              </p>
-              <div className="flex flex-col gap-0">
-                {topStates.map((s, i) => (
-                  <button
-                    key={s.id}
-                    onClick={() => navigate(`/dashboard/states?open=${s.id}`)}
-                    className="flex items-center gap-3 py-2.5 text-left hover:opacity-80 transition-opacity cursor-pointer"
-                    style={{
-                      borderBottom:
-                        i < topStates.length - 1
-                          ? `1px solid ${gridLine}`
-                          : "none",
-                    }}
-                  >
-                    <span
-                      className="text-[10px] font-mono font-bold w-7 shrink-0 text-center rounded-md py-0.5"
-                      style={{
-                        background: isLight
-                          ? "rgba(59,130,246,0.1)"
-                          : "rgba(147,197,253,0.1)",
-                        color: isLight ? "#3b82f6" : "#93c5fd",
-                      }}
-                    >
-                      {s.abbreviation}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="text-xs font-semibold font-sans truncate"
-                        style={{ color: headText }}
-                      >
-                        {s.name}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {/* On the scale of the largest state: a bar's length is its GDP. */}
-                      <div
-                        className="w-14 h-1.5 rounded-full overflow-hidden"
-                        style={{
-                          background: isLight
-                            ? "rgba(0,0,0,0.07)"
-                            : "rgba(255,255,255,0.08)",
-                        }}
-                      >
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${Math.min(100, (s.gdp / topStates[0].gdp) * 100)}%`,
-                            background: "#3b82f6",
-                          }}
-                        />
-                      </div>
-                      <span
-                        className="text-[11px] font-mono font-bold w-14 text-right"
-                        style={{ color: headText }}
-                      >
-                        {fmtB(s.gdp)}
-                      </span>
-                      <span
-                        className="text-[10px] font-mono w-10 text-right"
-                        style={{ color: mutedText }}
-                        title={`Unemployment rate, ${s.figureYears?.unemploymentRate ?? ""}`}
-                      >
-                        {s.unemploymentRate}%
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-              <SourceLink sources={SRC_DASH_STATES} className="mt-2 mb-1" />
+          {/* Places: the largest state economies and the largest cities, laid out alike. */}
+          <StatesContainer />
+          <CitiesContainer />
 
-              {/* Three figures read off the fifty states. They were typed in - "top GDP $3.9T" against the $4.3T in the data. */}
-              <div
-                className="grid grid-cols-3 gap-2 mt-3 pt-3"
-                style={{ borderTop: `1px solid ${gridLine}` }}
-              >
-                {[
-                  { label: "Largest economy", value: fmtB(topStates[0].gdp), note: topStates[0].name },
-                  { label: "Lowest unemployment", value: `${stateJobs.low.unemploymentRate}%`, note: stateJobs.low.name },
-                  { label: "Highest unemployment", value: `${stateJobs.high.unemploymentRate}%`, note: stateJobs.high.name },
-                ].map((m) => (
-                  <div
-                    key={m.label}
-                    className="rounded-xl px-2 py-2 text-center"
-                    style={{
-                      background: isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.04)",
-                      border: `1px solid ${gridLine}`,
-                    }}
-                  >
-                    <p
-                      className="text-sm font-bold font-mono"
-                      style={{ color: headText }}
-                    >
-                      {m.value}
-                    </p>
-                    <p
-                      className="text-[9px] font-sans leading-snug"
-                      style={{ color: mutedText }}
-                    >
-                      {m.label}
-                      <br />
-                      {m.note}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
+          {/* Markets: each sector's published series, back where it stood, and the published commodity prices. */}
+          <SectorOutlook />
+          <CommodityMovers />
 
-            {/* The Cities container, back under the states: the ten largest the site profiles, on the UN's figures. */}
-            <CitiesContainer />
-          </div>
-
-          <div className="flex flex-col gap-4">
-            {/* Sector Outlook, back where it stood: each sector's published series, latest year on the year before.
-                Its outlooks and confidences were typed in. */}
-            <SectorOutlook />
-
-            {/* Published commodity prices, each with its change on the year. */}
-            <CommodityMovers />
-          </div>
+          {/* The parts of the site the Dashboard did not show: the countries set against each other and the climate;
+              aid and human rights, and how the world lives. */}
+          <CountryLeaders />
+          <PlanetNow />
+          <AidAndRights />
+          <WorldLiving />
         </div>
+
 
         {/* ── ENERGY TO 2050: the panel kept of the Trends & Projections desk, under the sectors and the commodity
             prices it belongs with. The U.S. EIA's projection of the world's electricity by type. ── */}
