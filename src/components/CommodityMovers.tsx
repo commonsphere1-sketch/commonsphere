@@ -4,11 +4,9 @@
  * month a year before - the largest rise first.
  *
  * Under each: which benchmark it is and whose, the publisher's own account of
- * the series, the price a month, a year and ten years before, the highest
- * and lowest of the last thirteen months and of the ten years, and the other
- * benchmarks published for the same commodity. All are read off the series;
- * a change is worked out from two of its averages, and a month the series
- * does not have is left out.
+ * the series, and the other benchmarks published for the same commodity. A
+ * grid of where the price had been - a month, a year and ten years before,
+ * and its highs and lows - stood under them and was taken off.
  *
  * And what the commodity is used for and who has it - the countries that
  * produce the most and hold the most - from the Resources window's own
@@ -26,11 +24,11 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, ChartLineUp } from "@phosphor-icons/react";
 import { COMMODITY_PRICES, COMMODITY_PRICE_SOURCES } from "../data/commodityPrices";
 import { SourceLink } from "./SourceLink";
+import { RESOURCES } from "../data/resourceList";
 import { useTokens } from "./DataExplorer";
 
 /** What a commodity is used for and who has it, with the country tables it reads: loaded when the card is shown. */
 const CommodityBackground = lazy(() => import("./CommodityBackground"));
-import { RESOURCES } from "../data/resourceList";
 
 const COLOR = "#059669";
 /** Each commodity's own colour, as the Resources page gives it. */
@@ -40,7 +38,6 @@ const DOWN = "#ef4444";
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const monthName = (m: string) => `${MONTHS[Number(m.slice(5)) - 1]} ${m.slice(0, 4)}`;
 const price = (v: number) => v.toLocaleString("en-US", { maximumFractionDigits: 2 });
-const signed = (v: number, dp = 1) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(dp)}%`;
 
 /** Each commodity at its latest month, with the thirteen months to it and its change on the same month a year before, where that month is published. */
 const MOVERS = Object.entries(COMMODITY_PRICES)
@@ -48,36 +45,10 @@ const MOVERS = Object.entries(COMMODITY_PRICES)
     const s = p.series;
     if (s.length < 2) return [];
     const [month, value] = s[s.length - 1];
-    /** The average of the same month some years back, with the change since, where the series has that month. */
-    const back = (years: number) => {
-      const b = s.find(([m]) => m === `${Number(month.slice(0, 4)) - years}${month.slice(4)}`);
-      return b && b[1] > 0 ? { month: b[0], value: b[1], pct: (100 * (value - b[1])) / b[1] } : null;
-    };
-    const prior = s[s.length - 2];
-    const year = s.slice(-13);
-    const top = (pts: [string, number][]) => pts.reduce((a, b) => (b[1] > a[1] ? b : a));
-    const bottom = (pts: [string, number][]) => pts.reduce((a, b) => (b[1] < a[1] ? b : a));
-    return [
-      {
-        name,
-        unit: p.unit,
-        source: p.source,
-        benchmark: p.benchmark,
-        about: p.about,
-        also: p.also,
-        month,
-        value,
-        year,
-        before: back(1),
-        decade: back(10),
-        prior: prior[1] > 0 ? { month: prior[0], value: prior[1], pct: (100 * (value - prior[1])) / prior[1] } : null,
-        yearHigh: top(year),
-        yearLow: bottom(year),
-        allHigh: top(s),
-        allLow: bottom(s),
-        since: s[0][0],
-      },
-    ];
+    // The average of the same month a year back, with the change since, where the series has that month.
+    const b = s.find(([m]) => m === `${Number(month.slice(0, 4)) - 1}${month.slice(4)}`);
+    const before = b && b[1] > 0 ? { month: b[0], value: b[1], pct: (100 * (value - b[1])) / b[1] } : null;
+    return [{ name, unit: p.unit, source: p.source, benchmark: p.benchmark, about: p.about, also: p.also, month, value, year: s.slice(-13), before }];
   })
   .sort((a, b) => (b.before?.pct ?? -Infinity) - (a.before?.pct ?? -Infinity));
 const LATEST = MOVERS.map((m) => m.month).sort().pop() ?? "";
@@ -141,34 +112,10 @@ export function CommodityMovers() {
               {m.before ? `${m.before.pct > 0 ? "+" : ""}${m.before.pct.toFixed(1)}%` : "—"}
             </span>
             </div>
-            {/* What is priced and whose price it is, and where it has been: each read off the series. */}
+            {/* What is priced and whose price it is, in the publisher's words. */}
             <p className="text-[9px] font-mono mt-1" style={{ color: t.mutedText }}>
               {m.benchmark} · {COMMODITY_PRICE_SOURCES[m.source].label}
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-0.5 mt-1">
-              {(
-                [
-                  m.prior ? ["A month before", `${price(m.prior.value)} · ${signed(m.prior.pct)}`] : null,
-                  m.before ? [`A year before · ${monthName(m.before.month)}`, price(m.before.value)] : null,
-                  m.decade ? [`Ten years before · ${monthName(m.decade.month)}`, `${price(m.decade.value)} · ${signed(m.decade.pct, 0)}`] : null,
-                  ["Highest of the thirteen months", `${price(m.yearHigh[1])} · ${monthName(m.yearHigh[0])}`],
-                  ["Lowest of the thirteen months", `${price(m.yearLow[1])} · ${monthName(m.yearLow[0])}`],
-                  [`Highest since ${monthName(m.since)}`, `${price(m.allHigh[1])} · ${monthName(m.allHigh[0])}`],
-                  [`Lowest since ${monthName(m.since)}`, `${price(m.allLow[1])} · ${monthName(m.allLow[0])}`],
-                ] as ([string, string] | null)[]
-              )
-                .filter((f): f is [string, string] => f !== null)
-                .map(([label, value]) => (
-                  <span key={label} className="flex items-baseline justify-between gap-2 min-w-0">
-                    <span className="text-[9px] font-sans truncate" style={{ color: t.mutedText }} title={label}>
-                      {label}
-                    </span>
-                    <span className="text-[10px] font-mono font-semibold shrink-0" style={{ color: t.headText }}>
-                      {value}
-                    </span>
-                  </span>
-                ))}
-            </div>
             <p className="text-[10px] font-sans leading-snug mt-1" style={{ color: t.bodyText }}>
               {m.about}
             </p>
@@ -185,7 +132,8 @@ export function CommodityMovers() {
       </ul>
       <p className="text-[9px] font-sans leading-snug mt-2" style={{ color: t.mutedText }}>
         The line is the thirteen months to the latest, drawn between its own lowest and highest, so it shows the shape of the year and not its size. Prices are nominal US dollars, in each
-        publisher's own unit, so a ten-year change includes ten years of inflation. Every figure under a row is a monthly average of its series; a change is one average on another. Who produces and holds each is from the agencies named under it, on the scale
+        publisher's own unit; each is a monthly average of its series, and the change is one average on another. Who
+ produces and holds each is from the agencies named under it, on the scale
         of the largest country shown; what it is used for is the site's own background, kept to what is settled.
       </p>
       <SourceLink sources={sources} className="mt-1" />
