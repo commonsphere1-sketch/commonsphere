@@ -25,7 +25,9 @@ import {
   MagnifyingGlassPlus,
   MagnifyingGlassMinus,
   MagnifyingGlass,
+  X,
 } from "@phosphor-icons/react";
+import { Link } from "react-router-dom";
 import { countriesData, type Country } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
 import {
@@ -663,13 +665,24 @@ const OVERLAYS: { id: OverlayId; label: string; about: string }[] = [
  * Type-to-jump for the country map: filters as you type, Enter or a click
  * picks. Matches names that start with the query first, then any that
  * contain it, so "ger" reaches Germany before Algeria and Niger.
+ *
+ * It is also the picker for the place picked out on the maps (`chip`): drawn
+ * the size of the layer chips it sits among, and saying what kind of place
+ * each match is, since a country and a US state can share a name.
  */
 function CountrySearch({
   options,
   onPick,
+  placeholder = "Search countries",
+  label = "Search for a country to map",
+  chip = false,
 }: {
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; /** What kind of place it is, said beside its name. */ kind?: string }[];
   onPick: (code: string) => void;
+  placeholder?: string;
+  label?: string;
+  /** Drawn as a chip in a row of chips, its list opening from its left edge. */
+  chip?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -693,8 +706,8 @@ function CountrySearch({
 
   return (
     <div className="relative">
-      <div className="flex items-center gap-1.5 px-3 py-2 rounded-full border border-border bg-transparent focus-within:border-foreground/40 transition-colors">
-        <MagnifyingGlass size={13} className="text-muted-foreground shrink-0" aria-hidden />
+      <div className={`flex items-center gap-1.5 rounded-full border border-border bg-transparent focus-within:border-foreground/40 transition-colors ${chip ? "px-2.5 py-1" : "px-3 py-2"}`}>
+        <MagnifyingGlass size={chip ? 11 : 13} className="text-muted-foreground shrink-0" aria-hidden />
         <input
           type="text"
           value={query}
@@ -719,15 +732,15 @@ function CountrySearch({
               setOpen(false);
             }
           }}
-          placeholder="Search countries"
-          aria-label="Search for a country to map"
-          className="w-28 sm:w-36 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none"
+          placeholder={placeholder}
+          aria-label={label}
+          className={`bg-transparent font-sans text-foreground placeholder:text-muted-foreground focus:outline-none ${chip ? "w-44 text-[11px]" : "w-28 sm:w-36 text-sm"}`}
         />
       </div>
       {open && matches.length > 0 && (
         <ul
           role="listbox"
-          className="dropdown-glass absolute right-0 top-full mt-1.5 z-50 min-w-full w-48 rounded-xl border overflow-hidden py-1"
+          className={`dropdown-glass absolute top-full mt-1.5 z-50 min-w-full rounded-xl border overflow-hidden py-1 ${chip ? "left-0 w-64" : "right-0 w-48"}`}
         >
           {matches.map((m, i) => (
             <li
@@ -739,11 +752,12 @@ function CountrySearch({
                 pick(m.value);
               }}
               onMouseEnter={() => setActive(i)}
-              className={`px-3 py-1.5 text-sm font-sans cursor-pointer ${
+              className={`px-3 py-1.5 text-sm font-sans cursor-pointer flex items-baseline justify-between gap-3 ${
                 i === active ? "bg-muted/70 text-foreground" : "text-muted-foreground"
               }`}
             >
-              {m.label}
+              <span className="min-w-0 truncate">{m.label}</span>
+              {m.kind && <span className="text-[9px] font-mono uppercase tracking-wider shrink-0 opacity-70">{m.kind}</span>}
             </li>
           ))}
         </ul>
@@ -1530,7 +1544,12 @@ export function WorldMapsPage() {
      place the country map is on - or the one state or city a link named,
      until another country is picked. A country is filled on the world map
      only: the country map is already all of it. A state and a city are marked
-     on both. */
+     on both.
+
+     The reader chooses it: from the picker beside its chip - any country, or
+     a US state - or by pressing a country on the world map or a state on the
+     map of the United States. Choosing one switches the mark on and opens its
+     card over the world map, where it stays until closed. */
   const [markOn, setMarkOn] = useState(linked !== null);
   const [markState, setMarkState] = useState<string | null>(linked?.state ?? null);
   const [markCity, setMarkCity] = useState<string | null>(linked?.city ?? null);
@@ -1547,6 +1566,39 @@ export function WorldMapsPage() {
     setMarkTip({ x: r.left, y: r.bottom });
   }, []);
   const tipOff = useCallback(() => setMarkTip(null), []);
+  /* The picked-out place's card, pinned over the world map: open when a place is chosen or its chip is switched on, until it is closed. */
+  const [markCard, setMarkCard] = useState(linked !== null);
+  /* Choose the place picked out: "country:FR" or "state:CA". A country also becomes the one the country map is on, as the mark has always followed it. */
+  const pickMark = useCallback(
+    (value: string) => {
+      const [kind, code] = value.split(":");
+      if (kind === "state") {
+        setFocusCodeOnly("US");
+        setMarkState(code);
+        setMarkCity(null);
+      } else setFocusCode(code);
+      setMarkOn(true);
+      setMarkCard(true);
+    },
+    [setFocusCode],
+  );
+  /* A press on a map that was not a drag chooses the place under it. Read from the point pressed and not from the
+     event's target: while a zoomed map is being dragged the svg holds the pointer, and the press arrives on the svg. */
+  const downAt = useRef<{ x: number; y: number } | null>(null);
+  const pickProps = {
+    onPointerDownCapture: (e: React.PointerEvent<SVGSVGElement>) => {
+      downAt.current = { x: e.clientX, y: e.clientY };
+    },
+    onClick: (e: React.MouseEvent<SVGSVGElement>) => {
+      const d = downAt.current;
+      if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 5) return;
+      const value = document.elementFromPoint(e.clientX, e.clientY)?.closest("[data-pick]")?.getAttribute("data-pick");
+      if (!value) return;
+      // The place already picked out: its card comes back.
+      if (value === "mark") setMarkCard(true);
+      else pickMark(value);
+    },
+  };
   /* The country card sits well down the page, under the world map and the
      scope/indicator chips. Arriving from a country's own "Nav" button and
      landing at the top of an unrelated page - not on the country it asked
@@ -2200,6 +2252,15 @@ export function WorldMapsPage() {
         .map((c) => ({ value: c.code, label: c.name }))
         .sort((a, b) => a.label.localeCompare(b.label)),
     [featureByCode, hasAdmin1],
+  );
+  /* The places that can be picked out: the countries the maps can draw, and the US states. */
+  const markOptions = useMemo(
+    () =>
+      [
+        ...focusOptions.map((o) => ({ value: `country:${o.value}`, label: o.label, kind: countriesData.find((c) => c.code === o.value)?.territory ? "Territory" : "Country" })),
+        ...usStatesData.map((s) => ({ value: `state:${s.abbreviation}`, label: s.name, kind: "US state" })),
+      ].sort((a, b) => a.label.localeCompare(b.label)),
+    [focusOptions],
   );
 
   /* ── Viewports ──
@@ -3078,6 +3139,7 @@ export function WorldMapsPage() {
           ["Among the world's cities", un && `#${un.rank.toLocaleString("en-US")} of ${CITY_FIGURES_SOURCE.cities.toLocaleString("en-US")}`],
         ]),
         more: "Open the city on the Cities page for the rest.",
+        to: `/dashboard/cities?open=${c.id}`,
       };
     }
     if (markedState) {
@@ -3096,6 +3158,7 @@ export function WorldMapsPage() {
           ["House seats", String(s.houseSeats)],
         ]),
         more: "Open the state on the US States page for the rest.",
+        to: `/dashboard/states?open=${s.id}`,
       };
     }
     const c = countriesData.find((x) => x.code === focusCode);
@@ -3120,6 +3183,7 @@ export function WorldMapsPage() {
         [activeCountry.label, ["hdi", "life", "gdppc", "population"].includes(activeCountry.id) || shown === null ? null : activeCountry.format(shown)],
       ]),
       more: "Open the country on the Countries page for the rest.",
+      to: `/dashboard/countries?open=${c.id}`,
     };
   }, [markOn, markedCity, markedState, focusCode, activeCountry]);
   /* On the world map: the state itself where a link named one - the state
@@ -3153,7 +3217,10 @@ export function WorldMapsPage() {
   const markChip = (
     <button
       key="mark"
-      onClick={() => setMarkOn((v) => !v)}
+      onClick={() => {
+        setMarkOn((v) => !v);
+        setMarkCard(true);
+      }}
       aria-pressed={markOn}
       className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
         markOn ? "border-transparent" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
@@ -3253,6 +3320,8 @@ export function WorldMapsPage() {
             More
           </button>
           {markChip}
+          {/* Which place that is: any country, or a US state. Pressing one on a map chooses it too. */}
+          <CountrySearch chip options={markOptions} onPick={pickMark} placeholder="Highlight a country or state" label="Choose the country or US state to pick out on the maps" />
         </div>
         {showAdditionalLayers && (
           <div className="flex flex-wrap items-center gap-2 mb-3 pl-6">
@@ -3278,7 +3347,7 @@ export function WorldMapsPage() {
           figures, opened where the pointer came onto it (or under its chip).
           It takes no pointer events, so it cannot get between the pointer and
           the map. */}
-      {markTip && markInfo && (
+      {markTip && markInfo && !markCard && (
         <div
           role="tooltip"
           className="fixed z-50 w-72 max-w-[calc(100vw-1.5rem)] rounded-xl border modal-glass shadow-2xl p-3 pointer-events-none"
@@ -3434,11 +3503,53 @@ export function WorldMapsPage() {
           >
             {" "}· scroll or +/- to zoom, drag or arrows to pan
           </ZoomControls>
+          <div className="relative">
+          {/* The picked-out place's card, pinned: it opens when a place is chosen and stays until closed. On a very
+              wide screen it lies over the map's south-eastern Pacific, where there is least under it; on any other it
+              stands above the map, where it cannot cover the place it is about. */}
+          {markCard && markInfo && (
+            <div role="status" aria-live="polite" className="relative 2xl:absolute 2xl:bottom-2 2xl:left-2 z-10 w-full 2xl:w-72 rounded-xl border modal-glass 2xl:shadow-2xl p-3 mb-3 2xl:mb-0">
+              <button
+                type="button"
+                onClick={() => setMarkCard(false)}
+                aria-label={`Close the card for ${markInfo.name}`}
+                className="absolute top-2 right-2 w-6 h-6 rounded-full inline-flex items-center justify-center border border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
+              >
+                <X size={11} weight="bold" aria-hidden />
+              </button>
+              {/* Side by side above the map, one under the other over it. */}
+              <div className="sm:grid sm:grid-cols-2 sm:gap-x-6 2xl:block">
+                <div className="min-w-0">
+                  <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: markInk }}>
+                    {markInfo.kind} · picked out
+                  </p>
+                  <p className="flex items-center gap-2 mt-0.5 pr-7">
+                    <img src={`https://flagcdn.com/w40/${markInfo.flag.toLowerCase()}.png`} alt="" width={20} height={14} className="rounded-[2px] shrink-0" />
+                    <span className="text-sm font-bold font-sans text-foreground leading-tight">{markInfo.name}</span>
+                  </p>
+                  <p className="text-[11px] font-sans text-muted-foreground leading-snug mt-1.5">{markInfo.about}</p>
+                  <Link to={markInfo.to} className="inline-block text-[11px] font-sans font-semibold mt-2 hover:underline" style={{ color: markInk }}>
+                    Open {markInfo.name} →
+                  </Link>
+                </div>
+                <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-2.5 pt-2.5 border-t border-border/50 sm:mt-0 sm:pt-0 sm:border-t-0 sm:pr-7 2xl:mt-2.5 2xl:pt-2.5 2xl:border-t 2xl:pr-0 content-start">
+                  {markInfo.stats.map(([k, v]) => (
+                    <div key={k} className="min-w-0">
+                      <dt className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground truncate">{k}</dt>
+                      <dd className="text-[12px] font-mono font-bold text-foreground">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            </div>
+          )}
+
           <svg
             viewBox={worldZoom.viewBox}
             className="w-full h-auto mx-auto"
             style={worldZoom.style}
             {...worldZoom.panProps}
+            {...pickProps}
             {...worldZoom.a11yProps}
             role="img"
             aria-label={`World map shaded by ${activeCountry.label}. Scroll to zoom; once focused, plus and minus zoom, the arrow keys pan and 0 resets.`}
@@ -3470,6 +3581,9 @@ export function WorldMapsPage() {
                   }
                   stroke={stroke}
                   strokeWidth={0.3 / worldZoom.zoom}
+                  // A press chooses the country as the place picked out.
+                  data-pick={country ? `country:${country.code}` : undefined}
+                  style={country && worldZoom.zoom === 1 ? { cursor: "pointer" } : undefined}
                   onMouseEnter={() =>
                     setHovered({
                       name: country?.name ?? name,
@@ -3509,7 +3623,7 @@ export function WorldMapsPage() {
                 ring round it, and a city its own mark. Pointing at it opens
                 its card. */}
             {worldMark.map((m, i) => (
-              <g key={`mark-${i}`} onMouseEnter={tipAt} onMouseLeave={tipOff} style={{ cursor: "help" }}>
+              <g key={`mark-${i}`} data-pick="mark" onMouseEnter={tipAt} onMouseLeave={tipOff} style={{ cursor: "pointer" }}>
                 <path d={m.d} fill={markInk} fillOpacity={0.62} stroke={labelHalo} strokeOpacity={0.55} strokeWidth={2.6 / worldZoom.zoom} strokeLinejoin="round" />
                 <path d={m.d} fill="none" stroke={markInk} strokeWidth={1.3 / worldZoom.zoom} strokeLinejoin="round" />
                 {m.size * worldZoom.zoom < 18 && Number.isFinite(m.cx) && Number.isFinite(m.cy) && (
@@ -3692,6 +3806,7 @@ export function WorldMapsPage() {
                 </text>
               )}
           </svg>
+          </div>
 
           <Legend
             ramp={worldRamp}
@@ -3959,6 +4074,7 @@ export function WorldMapsPage() {
             style={focusZoom.style}
             {...focusZoom.panProps}
             {...focusZoom.a11yProps}
+            {...pickProps}
             role="img"
             aria-label="Map of the United States by state"
           >
@@ -3967,7 +4083,7 @@ export function WorldMapsPage() {
                 shaded by a statistic picked from a row of buttons, which no
                 other country's map had. */}
             {stateShapes.map(({ name, state, d }, i) => (
-              <path key={i} d={d} fill={ramp[3]} stroke={stroke} strokeWidth={0.5 / zoom}>
+              <path key={i} d={d} fill={ramp[3]} stroke={stroke} strokeWidth={0.5 / zoom} data-pick={state ? `state:${state.abbreviation}` : undefined} style={state && zoom === 1 ? { cursor: "pointer" } : undefined}>
                 <title>{state?.name ?? name}</title>
               </path>
             ))}
@@ -3980,7 +4096,8 @@ export function WorldMapsPage() {
               stateShapes
                 .filter((s) => s.state?.abbreviation === markState)
                 .map((s, i) => (
-                  <g key={`mark-${i}`} onMouseEnter={tipAt} onMouseLeave={tipOff} style={{ cursor: "help" }}>
+                  <g key={`mark-${i}`} data-pick="mark" onMouseEnter={tipAt} onMouseLeave={tipOff} style={{ cursor: "pointer" }}>
+
                     <path d={s.d} fill={markInk} fillOpacity={0.62} stroke={labelHalo} strokeOpacity={0.55} strokeWidth={3 / zoom} strokeLinejoin="round" />
                     <path d={s.d} fill="none" stroke={markInk} strokeWidth={1.5 / zoom} strokeLinejoin="round" />
                   </g>
