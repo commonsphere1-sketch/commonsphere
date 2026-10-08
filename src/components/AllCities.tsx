@@ -56,6 +56,7 @@ import { citiesData } from "../data/citiesData";
 import { CITY_PLACES } from "../data/cityPlaces";
 import { countriesData } from "../data/countriesData";
 import { COUNTRY_INDICATORS } from "../data/countryIndicators";
+import { byPeople, countryPeople, peopleSource, peopleSources } from "../lib/countryPeople";
 import { UN_CITIES, UN_CITIES_SOURCE, UN_CITY_YEARS, type UnCity } from "../data/unCities";
 import { CHIP_TEXT, TONE } from "@/lib/chipTone";
 import { flagColor } from "../lib/flagColor";
@@ -72,7 +73,7 @@ const COLOR = "#10b981";
 const PAGE = 48;
 const COUNTRY = new Map(countriesData.map((c) => [c.code, c]));
 const whole = (v: number) => Math.round(v).toLocaleString("en-US");
-const people = (v: number) => (v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : whole(v));
+const people = (v: number) => (v >= 1e9 ? `${(v / 1e9).toFixed(2)}bn` : v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : whole(v));
 const signed = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(0)}%`;
 const flag = (cc: string, w = 40) => `https://flagcdn.com/w${w}/${cc.toLowerCase()}.png`;
 const coords = (lat: number, lon: number) => `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"}, ${Math.abs(lon).toFixed(2)}°${lon >= 0 ? "E" : "W"}`;
@@ -401,6 +402,8 @@ const ROWS: Row[] = COUNTRIES.map(({ cc, name }) => {
   return { cc, name, continent: COUNTRY.get(cc)?.continent ?? "", cities, people: cities.reduce((t, c) => t + c[8], 0), capital: cities.find((c) => c[5] === 1), big: cities.filter((c) => c[8] >= 1e6).length };
 });
 const ROW_OF = new Map(ROWS.map((r) => [r.cc, r]));
+/** Whose figures the countries' own populations are: what the list's first order goes by. */
+const POP_SOURCES = peopleSources(ROWS.map((r) => r.cc));
 
 /** A city's card, inside its country's window. */
 function CityCard({ c, onOpen }: { c: UnCity; onOpen: () => void }) {
@@ -447,6 +450,7 @@ function CountryCard({ row, matching, onOpen }: { row: Row; /** How many of its 
     { label: "Capital", value: row.capital?.[2] ?? "Not among them", text: true },
   ];
   const share = (100 * largest[8]) / row.people;
+  const pop = countryPeople(row.cc);
   return (
     <article
       role="button"
@@ -504,6 +508,10 @@ function CountryCard({ row, matching, onOpen }: { row: Row; /** How many of its 
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         {row.continent && <span className={`text-[10px] border px-2 py-0.5 rounded-full font-sans ${CONTINENT_TONE[row.continent] ?? "text-muted-foreground border-border bg-muted"}`}>{row.continent}</span>}
+        {/* The country's own population, which the list's first order goes by. */}
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-foreground" title={pop ? `${row.name}'s population, ${pop.y} · ${peopleSource(pop).label}` : `No population is held for ${row.name}`}>
+          {pop ? `${people(pop.v)} people · ${pop.y}` : "Population not held"}
+        </span>
         <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-foreground">{row.big} of a million or more</span>
       </div>
     </article>
@@ -613,7 +621,7 @@ function CountryWindow({ row, top, asked, onOpen, onClose }: { row: Row; /** Whe
   );
 }
 
-export type CityOrder = "largest" | "people" | "rich" | "cities" | "name";
+export type CityOrder = "populous" | "largest" | "people" | "rich" | "cities" | "name";
 
 export default function AllCities({
   openId,
@@ -651,6 +659,8 @@ export default function AllCities({
     /** The country's GDP per person, as the World Bank has it: the country's, standing in for a wealth no body publishes city by city. One with no figure goes last. */
     const income = (cc: string) => COUNTRY_INDICATORS[cc]?.gdpPerCapita?.v ?? -1;
     const by: Record<CityOrder, ((a: Row, b: Row) => number) | null> = {
+      // The most populated country first, down to the least; one with no population held comes after them.
+      populous: (a, b) => byPeople(a.cc, b.cc),
       largest: (a, b) => b.cities[0][8] - a.cities[0][8],
       people: (a, b) => b.people - a.people,
       rich: (a, b) => income(b.cc) - income(a.cc),
@@ -673,7 +683,7 @@ export default function AllCities({
       <p className="text-[11px] font-mono text-muted-foreground mt-2 mb-4">
         {rows.length} countries{query.trim() ? ` answer "${query.trim()}"` : ""}
         {continent ? ` in ${continent}` : ""} ·{" "}
-        {{ largest: "the countries of the largest cities first", people: "those with the most people in their cities first", rich: "the richest countries first, by GDP per person - the country's, not its cities'", cities: "those with the most cities first", name: "by name" }[order]} ·
+        {{ populous: "the most populated countries first, down to the least", largest: "the countries of the largest cities first", people: "those with the most people in their cities first", rich: "the richest countries first, by GDP per person - the country's, not its cities'", cities: "those with the most cities first", name: "by name" }[order]} ·
         searched, filtered and ordered from the bar above
 
       </p>
@@ -687,9 +697,11 @@ export default function AllCities({
       {rows.length === 0 && <p className="text-[12px] font-sans text-muted-foreground">Nothing matches.</p>}
       <p className="text-[10px] font-sans leading-relaxed text-muted-foreground mt-4">
         The people in a country's cities, and its largest city's share of them, are added up and worked out here from the UN's figure for each city. A capital is "not among them"
-        where the UN counts no city of 50,000 or more as the country's capital.
+        where the UN counts no city of 50,000 or more as the country's capital. A country's own population, on its card and in the order the list opens in, is the World Bank's
+        latest figure with its year, or, where the World Bank reports none, the figure of the source the card names; a country with none held comes after the rest, by name.
       </p>
-      <SourceLink sources={[UN_CITIES_SOURCE]} className="mt-1" />
+      <SourceLink sources={[UN_CITIES_SOURCE, ...POP_SOURCES]} className="mt-1" />
+
       {openRow && <CountryWindow key={openRow.cc} row={openRow} top={!open} asked={carried} onOpen={setOpen} onClose={() => setCountry(null)} />}
       {open && (
         <CityWindow

@@ -46,6 +46,7 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { ArrowLeft, ArrowRight, MagnifyingGlass, MapPin, MapTrifold, TreeStructure, X } from "@phosphor-icons/react";
 import { TONE } from "@/lib/chipTone";
 import { flagColor } from "../lib/flagColor";
+import { byPeople, countryPeople, peopleSource, peopleSources } from "../lib/countryPeople";
 import { lockScroll } from "../lib/scrollLock";
 import { inSentence, qualityOf } from "../components/CountryQuality";
 import { DivisionPlaces, insideOf, usePlaces, type Inside } from "../components/DivisionPlaces";
@@ -85,6 +86,9 @@ const COUNTRIES = [...new Set(SUBNATIONS.map((s) => s.cc))]
   .map((cc) => ({ cc, name: COUNTRY.get(cc)?.name ?? cc, count: SUBNATIONS.filter((s) => s.cc === cc).length }))
   .sort((a, b) => a.name.localeCompare(b.name));
 const BY_ID = new Map(SUBNATIONS.map((s) => [s.id, s]));
+/** Whose figures the countries' own populations are: what the page's first order goes by. */
+const POP_SOURCES = peopleSources(COUNTRIES.map((c) => c.cc));
+
 /** The heads three records agree on, by the place's Wikidata record and by its ISO 3166-2 code. */
 const HEAD_BY_QID = new Map(REPRESENTATIVES.map((r) => [r[9], r]));
 const HEAD_BY_CODE = new Map(REPRESENTATIVES.filter((r) => r[2]).map((r) => [r[2], r]));
@@ -602,6 +606,7 @@ function CountryCard({ row, matching, onOpen }: { row: CountryRow; /** How many 
     { label: "Most populous", value: row.populous?.name ?? "Not held", text: true },
     { label: "Largest", value: row.widest?.name ?? "Not held", text: true },
   ];
+  const pop = countryPeople(row.cc);
   return (
     <article
       role="button"
@@ -666,6 +671,10 @@ function CountryCard({ row, matching, onOpen }: { row: CountryRow; /** How many 
 
       <div className="flex items-center gap-2 flex-wrap">
         {row.continent && <span className={`text-[10px] border px-2 py-0.5 rounded-full font-sans ${CONTINENT_TONE[row.continent] ?? "text-muted-foreground border-border bg-muted"}`}>{row.continent}</span>}
+        {/* The country's own population, which the page's first order goes by. */}
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-foreground" title={pop ? `${row.name}'s population, ${pop.y} · ${peopleSource(pop).label}` : `No population is held for ${row.name}`}>
+          {pop ? `${people(pop.v)} people · ${pop.y}` : "Population not held"}
+        </span>
         <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-foreground" title="Divisions whose head is named: where three records agree, or, for a US state, its governor">
           {row.headed} heads named
         </span>
@@ -802,14 +811,14 @@ function CountryWindow({
   );
 }
 
-type Order = "name" | "divisions";
+type Order = "people" | "name" | "divisions";
 
 export function SubnationsPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [continent, setContinent] = useState("");
-  const [order, setOrder] = useState<Order>("name");
+  const [order, setOrder] = useState<Order>("people");
   /** The country whose window is open, and the division whose window is open over it. */
   const [country, setCountry] = useState<string | null>(null);
   const [open, setOpen] = useState<Subnation | null>(null);
@@ -879,6 +888,8 @@ export function SubnationsPage() {
       const matching = r.divisions.filter((s) => answers(s, q)).length;
       return matching ? [{ row: r, matching }] : [];
     });
+    // The most populated country first, down to the least; one with no population held comes after them, by name.
+    if (order === "people") return [...list].sort((a, b) => byPeople(a.row.cc, b.row.cc) || a.row.name.localeCompare(b.row.name));
     return order === "divisions" ? [...list].sort((a, b) => b.row.divisions.length - a.row.divisions.length || a.row.name.localeCompare(b.row.name)) : list;
   }, [query, continent, order]);
   const continents = useMemo(() => [...new Set(ROWS.map((r) => r.continent).filter(Boolean))].sort(), []);
@@ -942,6 +953,7 @@ export function SubnationsPage() {
             onChange={(e) => setOrder(e.target.value as Order)}
             className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
           >
+            <option value="people">Sort: Most populated</option>
             <option value="name">Sort: Name</option>
             <option value="divisions">Sort: Number of divisions</option>
           </select>
@@ -976,6 +988,11 @@ export function SubnationsPage() {
           its governor. A field the site holds nothing for says so.
         </p>
         <SourceLink sources={[SUBNATIONS_SOURCES.naturalEarth, SUBNATIONS_SOURCES.wikidata, SUBNATIONS_SOURCES.commons, SUBNATIONS_SOURCES.geonames, SUBNATIONS_SOURCES.wikipedia, SUBNATIONS_SOURCES.iso, REPRESENTATIVES_SOURCES.wikidata]} />
+        <p className="text-[10px] font-sans leading-relaxed text-muted-foreground">
+          The countries are in order of their own population, the most populated first: the World Bank's latest figure for each, with its year on the card, or, where the World Bank
+          reports none, the figure of the source the card names. A country or territory with no population held comes after the rest, by name.
+        </p>
+        <SourceLink sources={POP_SOURCES} />
 
       </div>
 

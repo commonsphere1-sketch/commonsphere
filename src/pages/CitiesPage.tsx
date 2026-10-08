@@ -839,7 +839,7 @@ export function CitiesPage() {
   const [search, setSearch] = useState("");
   /** The continent whose countries are listed below ("" for every one), and the order they are in: the bar's, for the full list. */
   const [continent, setContinent] = useState("");
-  const [order, setOrder] = useState<CityOrder>("largest");
+  const [order, setOrder] = useState<CityOrder>("populous");
   const [modalCity, setModalCity] = useState<City | null>(null);
   /** One of the cities in the full list below, where a link names it ("un-<country>-<code>"). */
   const [unOpen, setUnOpen] = useState<string | null>(null);
@@ -949,7 +949,9 @@ export function CitiesPage() {
             onChange={(e) => setOrder(e.target.value as CityOrder)}
             className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
           >
+            <option value="populous">Sort: Most populated countries</option>
             <option value="largest">Sort: Largest city</option>
+
             <option value="people">Sort: People in their cities</option>
             <option value="rich">Sort: Richest countries</option>
             <option value="cities">Sort: Number of cities</option>
