@@ -53,7 +53,7 @@ const GISTEMP: [string, number][] = [
   ["2025", 1.19],
 ];
 
-export const FIGURE_CARDS: FigureCard[] = [
+const ALL_FIGURE_CARDS: FigureCard[] = [
   {
     id: "air",
     kicker: "Air Quality",
@@ -346,3 +346,7 @@ export const FIGURE_CARDS: FigureCard[] = [
     ],
   },
 ];
+
+/** Taken off the Climate page, and so off the Climate explorer, as asked: Freshwater security. It is kept above, with its sources, and not shown. */
+const OFF_THE_PAGE = new Set(["water"]);
+export const FIGURE_CARDS: FigureCard[] = ALL_FIGURE_CARDS.filter((c) => !OFF_THE_PAGE.has(c.id));

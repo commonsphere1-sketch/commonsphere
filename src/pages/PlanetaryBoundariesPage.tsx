@@ -848,9 +848,12 @@ export function PlanetaryBoundariesPage() {
           </span>
           <div className="flex-1 h-px bg-border" />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* As many to a row as there is room for, each growing to fill it: a card taken off leaves no gap in the last row. */}
+        <div className="flex flex-wrap gap-6 mb-6">
           {FIGURE_CARDS.map((card) => (
-            <FigureCardView key={card.id} card={card} isLight={isLight} headText={headText} mutedText={mutedText} gridLine={gridLine} />
+            <div key={card.id} className="flex-[1_1_20rem] min-w-0 grid">
+              <FigureCardView card={card} isLight={isLight} headText={headText} mutedText={mutedText} gridLine={gridLine} />
+            </div>
           ))}
         </div>
 
