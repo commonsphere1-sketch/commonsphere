@@ -10,7 +10,12 @@
  *                   and "500+ cities tracked". They now show the ten largest
  *                   of the cities the site profiles by the United Nations'
  *                   population for its base year, with each one's growth
- *                   since 2000 from the same series.
+ *                   since 2000 from the same series. Under each city,
+ *                   quality-of-living figures as bars (CityQualityBars):
+ *                   its country's, said to be so, since none is published
+ *                   city by city. The city's other facts and what it is
+ *                   known for stood here and were taken off; their data
+ *                   (cityFigures.ts, cityKnownFor.ts) is kept.
  *   Sector Outlook  eight sectors with an "outlook" and a "confidence", and
  *                   "7-week" sparklines; nobody publishes such figures. It
  *                   now gives, for the sectors the site holds a published
@@ -24,13 +29,12 @@
  * happened, not a forecast: the published projections are on the Trends
  * page.
  */
-import { useMemo, type ReactNode } from "react";
+import { lazy, Suspense, useMemo, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowRight, Buildings, ChartLineUp, TrendDown, TrendUp } from "@phosphor-icons/react";
 import { citiesData } from "../data/citiesData";
-import { CITY_ADMIN_SOURCE, CITY_FIGURES, CITY_FIGURES_SOURCE } from "../data/cityFigures";
-import { CITY_KNOWN_FOR } from "../data/cityKnownFor";
+import { CITY_FIGURES, CITY_FIGURES_SOURCE } from "../data/cityFigures";
 import { RENEWABLE_GENERATION, RENEWABLE_GENERATION_SOURCE } from "../data/renewables";
 import { TSMC_REVENUE } from "../data/technology";
 import { WORLD } from "../data/worldview";
@@ -40,6 +44,10 @@ import { SourceLink } from "./SourceLink";
 
 type Source = { label: string; url: string };
 type Point = [year: number, value: number];
+
+/** A city's quality-of-living bars, and where they are from: loaded with the country panels they read when the card is shown. */
+const CityQualityBars = lazy(() => import("./CityQualityBars"));
+const CityQualitySources = lazy(() => import("./CityQualityBars").then((m) => ({ default: m.CityQualitySources })));
 
 const GREEN = "#10b981";
 const RED = "#ef4444";
@@ -87,21 +95,12 @@ const SINCE = 2000;
 const CITY_COLORS = ["#6366f1", "#8b5cf6", "#3b82f6", "#06b6d4", "#10b981", "#f59e0b", "#f97316", "#ef4444", "#a855f7", "#ec4899"];
 const millions = (n: number) => `${(n / 1e6).toFixed(1)}M`;
 
-const LAST = CITY_FIGURES_SOURCE.lastYear;
-const whole = (n: number) => Math.round(n).toLocaleString("en-US");
-const ordinal = (n: number) => `${n.toLocaleString("en-US")}${n % 100 >= 11 && n % 100 <= 13 ? "th" : (["th", "st", "nd", "rd"][n % 10] ?? "th")}`;
-
-/**
- * The cities the site profiles, with the UN's population for its base year and their growth since 2000: the largest first.
- * With each, what else the UN gives for it - its land, its density, its share of the country's city dwellers, where it
- * ranks among the UN's cities, the UN's projection, its own rating of the figure - and the population within the city's
- * own boundary, where Wikidata's statement cites a reference.
- */
+/** The cities the site profiles, with the UN's population for its base year and their growth since 2000: the largest first. */
 const CITY_ROWS = citiesData
   .flatMap((c) => {
     const now = cityYear(c.id);
     const f = CITY_FIGURES[c.id];
-    return now && f ? [{ c, pop: now.population, growth: cityGrowth(c.id, SINCE, BASE), now, f, ahead: cityYear(c.id, LAST), toCome: cityGrowth(c.id, BASE, LAST) }] : [];
+    return now && f ? [{ c, pop: now.population, growth: cityGrowth(c.id, SINCE, BASE), capital: f.capital }] : [];
   })
   .sort((a, b) => b.pop - a.pop);
 
@@ -111,9 +110,6 @@ export function CitiesContainer() {
   const color = "#10b981";
   const top = CITY_ROWS.slice(0, 10);
   const largest = top[0];
-  // What the bars of density and of land are drawn against: the densest and the widest of the ten shown.
-  const densest = Math.max(...top.map((r) => r.now.density));
-  const widest = Math.max(...top.map((r) => r.now.area));
   const fastest = useMemo(() => [...CITY_ROWS].filter((r) => r.growth).sort((a, b) => b.growth!.pct - a.growth!.pct)[0], []);
   const chart = top.map((r, i) => ({ name: r.c.name.length > 9 ? `${r.c.name.slice(0, 8)}…` : r.c.name, full: r.c.name, pop: Number((r.pop / 1e6).toFixed(1)), color: CITY_COLORS[i % CITY_COLORS.length] }));
   const axis = { tick: { fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false };
@@ -141,100 +137,40 @@ export function CitiesContainer() {
 
       {/* City list */}
       <div className="flex flex-col mt-3 pt-3" style={{ borderTop: `1px solid ${t.gridLine}` }}>
-        {top.map(({ c, pop, growth, now, f, ahead, toCome }, i) => {
-          // Its population at the start of the UN's series and at the turn of the century, beside today's above.
-          const first = cityYear(c.id, CITY_FIGURES_SOURCE.firstYear);
-          const at2000 = cityYear(c.id, SINCE);
-          const known = CITY_KNOWN_FOR[c.id];
-          // Each fact as a bar on a scale that is said: a city's populations on its own largest; density and land on the largest of the ten shown; a share out of 100.
-          const people = [first?.population, at2000?.population, pop, ahead?.population, f.admin?.population].filter((v): v is number => v != null);
-          const most = Math.max(...people);
-          const of = (v: number, scale: number) => (scale > 0 ? Math.min(100, (100 * v) / scale) : 0);
-          const facts: { label: string; value: string; bar?: number; strong?: boolean }[] = [
-            ...(first ? [{ label: `Population in ${first.year}`, value: millions(first.population), bar: of(first.population, most) }] : []),
-            ...(at2000 ? [{ label: `Population in ${SINCE}`, value: millions(at2000.population), bar: of(at2000.population, most) }] : []),
-            { label: `Population in ${BASE}`, value: millions(pop), bar: of(pop, most), strong: true },
-            ...(ahead && toCome ? [{ label: `Projected for ${LAST}`, value: `${millions(ahead.population)} · ${signed(toCome.pct, 0)}`, bar: of(ahead.population, most) }] : []),
-            ...(f.admin ? [{ label: `Within the city's own boundary · ${f.admin.year}`, value: millions(f.admin.population), bar: of(f.admin.population, most) }] : []),
-            { label: "People to a km² of land", value: whole(now.density), bar: of(now.density, densest) },
-            { label: "Land it covers", value: `${whole(now.area)} km²`, bar: of(now.area, widest) },
-            { label: `Of ${c.country}'s city dwellers`, value: `${now.share.toFixed(1)}%`, bar: of(now.share, 100) },
-            // A place in a ranking and a rating are not lengths: they are given as they are.
-            { label: "Among the UN's cities", value: `${ordinal(f.rank)} of ${CITY_FIGURES_SOURCE.cities.toLocaleString("en-US")}` },
-            { label: "The UN's rating of its figure", value: f.plausibility },
-          ];
-          return (
+        {top.map(({ c, pop, growth, capital }, i) => (
           <div key={c.id} className="py-2.5" style={{ borderBottom: i < top.length - 1 ? `1px solid ${t.gridLine}` : "none" }}>
-          <button type="button" onClick={() => navigate(`/dashboard/cities?open=${c.id}`)} className="flex flex-col w-full text-left hover:opacity-80 transition-opacity cursor-pointer">
-            <span className="flex items-center gap-2 w-full">
-            <img src={`https://flagcdn.com/w40/${c.countryCode.toLowerCase()}.png`} alt="" width={20} height={15} loading="lazy" className="rounded-sm shrink-0" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
-            <span className="flex-1 min-w-0">
-              <span className="block text-xs font-semibold font-sans truncate" style={{ color: t.headText }}>
-                {c.name}
-              </span>
-              <span className="block text-[10px] font-mono truncate" style={{ color: t.mutedText }}>
-                {c.country}
-                {f.capital ? " · its capital" : ""}
-              </span>
-            </span>
-            {/* On the scale of the largest city shown. */}
-            <span className="w-12 h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }} aria-hidden>
-              <span className="block h-full rounded-full" style={{ width: `${Math.round((100 * pop) / largest.pop)}%`, background: CITY_COLORS[i % CITY_COLORS.length] }} />
-            </span>
-            <span className="text-right shrink-0 w-16">
-              <span className="block text-[11px] font-mono font-semibold" style={{ color: t.headText }}>
-                {millions(pop)}
-              </span>
-              {growth && (
-                <span className="block text-[10px] font-mono" style={{ color: growth.pct >= 0 ? GREEN : RED }}>
-                  {signed(growth.pct, 0)}
+            <button type="button" onClick={() => navigate(`/dashboard/cities?open=${c.id}`)} className="flex items-center gap-2 w-full text-left hover:opacity-80 transition-opacity cursor-pointer">
+              <img src={`https://flagcdn.com/w40/${c.countryCode.toLowerCase()}.png`} alt="" width={20} height={15} loading="lazy" className="rounded-sm shrink-0" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
+              <span className="flex-1 min-w-0">
+                <span className="block text-xs font-semibold font-sans truncate" style={{ color: t.headText }}>
+                  {c.name}
                 </span>
-              )}
-            </span>
-            </span>
-            {/* The rest of what is held for the city: a name and its figure to a line, two or three to a row. */}
-            <span className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 mt-2 pl-7 w-full">
-              {facts.map((x) => (
-                <span key={x.label} className="flex items-center gap-2 min-w-0" title={`${x.label}: ${x.value}`}>
-                  <span className={`text-[10px] font-sans flex-1 min-w-0 truncate ${x.strong ? "font-bold" : ""}`} style={{ color: x.strong ? t.headText : t.mutedText }}>
-                    {x.label}
-                  </span>
-                  {x.bar != null && (
-                    <span className="w-20 h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }} aria-hidden>
-                      <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, x.bar)}%`, background: CITY_COLORS[i % CITY_COLORS.length], opacity: x.strong ? 1 : 0.6 }} />
-                    </span>
-                  )}
-                  <span className={`text-[10px] font-mono text-right shrink-0 min-w-[4.5rem] ${x.strong ? "font-bold" : "font-semibold"}`} style={{ color: t.headText }}>
-                    {x.value}
-                  </span>
+                <span className="block text-[10px] font-mono truncate" style={{ color: t.mutedText }}>
+                  {c.country}
+                  {capital ? " · its capital" : ""}
                 </span>
-              ))}
-            </span>
-          </button>
-          {/* What the city is and is known for, in its article's words, and where to read more: outside the button, since it holds links. */}
-          {known && (
-            <div className="pl-7 mt-2">
-              {known.nicknames && (
-                <p className="text-[10px] font-sans leading-snug mb-1" style={{ color: t.mutedText }}>
-                  Also called <span style={{ color: t.headText }}>{known.nicknames.join(" · ")}</span>
-                </p>
-              )}
-              {known.said && (
-                <>
-                  <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
-                    What it is, and is known for
-                  </p>
-                  <p className="text-[11px] font-sans leading-snug mt-0.5" style={{ color: t.bodyText }}>
-                    {known.said}
-                  </p>
-                </>
-              )}
-              <SourceLink sources={known.sources} className="mt-1" />
-            </div>
-          )}
+              </span>
+              {/* On the scale of the largest city shown. */}
+              <span className="w-12 h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }} aria-hidden>
+                <span className="block h-full rounded-full" style={{ width: `${Math.round((100 * pop) / largest.pop)}%`, background: CITY_COLORS[i % CITY_COLORS.length] }} />
+              </span>
+              <span className="text-right shrink-0 w-16">
+                <span className="block text-[11px] font-mono font-semibold" style={{ color: t.headText }}>
+                  {millions(pop)}
+                </span>
+                {growth && (
+                  <span className="block text-[10px] font-mono" style={{ color: growth.pct >= 0 ? GREEN : RED }}>
+                    {signed(growth.pct, 0)}
+                  </span>
+                )}
+              </span>
+            </button>
+            {/* Quality of living: the rows of the city's own window, which are its country's and say so. */}
+            <Suspense fallback={null}>
+              <CityQualityBars t={t} code={c.countryCode} country={c.country} city={c.id} name={c.name} />
+            </Suspense>
           </div>
-          );
-        })}
+        ))}
       </div>
 
       {/* Summary */}
@@ -258,14 +194,15 @@ export function CitiesContainer() {
       </div>
       <p className="text-[9px] font-sans leading-snug mt-2" style={{ color: t.mutedText }}>
         Each city as the UN draws it, for {BASE}: built-up land of at least 1,500 people to a km² holding 50,000 or more, which is not the city's own boundary. The change under a
-        figure is its population on {SINCE}; the projection is the UN's for {LAST}, with its change on {BASE}; the rating is the UN's own, from how old and how fine the census under the
-        figure is. The population within the city's own boundary is Wikidata's, given only where its statement cites a reference. What a city is known for is the opening of its
-        Wikipedia article, the one of its sources whose words are open to reuse; its official website and the Encyclopaedia Britannica are linked before it. A population the
-        opening gives is the article's own, for its own boundary and year, and can differ from the UN's. A bar is on a scale that is the same wherever it appears: a city's populations on its own largest, its density and its land on the densest and the widest of these ten, and a
-        share out of 100. The ten largest of the {CITY_ROWS.length} the site
-        profiles, not of the world's.
+        figure is its population on {SINCE}. The quality-of-living figures under a city are its country's, each from the body that measures it and for its latest year: no body
+        publishes health, water, air, safety, schooling and income city by city on one footing. A figure that is the city's own comes first and says so. A bar is on the measure's
+        own scale - 0 to 100 for a share - or, where the world's figure is the only yardstick, on the larger of the two; the tick is the world. A figure with neither is given
+        without a bar. Every panel is in the city's window. The ten largest of the {CITY_ROWS.length} the site profiles, not of the world's.
       </p>
-      <SourceLink sources={[{ label: CITY_ADMIN_SOURCE.label, url: CITY_ADMIN_SOURCE.url }]} className="mt-1" />
+      <Suspense fallback={null}>
+        <CityQualitySources places={top.map(({ c }) => ({ code: c.countryCode, country: c.country, city: c.id, name: c.name }))} className="mt-1" />
+      </Suspense>
+
     </Card>
   );
 }

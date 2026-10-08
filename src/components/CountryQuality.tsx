@@ -28,6 +28,9 @@
  * as the city's. How people get to work is a whole, so it is a ring. A
  * country neither series covers says so and is given no figure.
  *
+ * The Dashboard gives a few of the same rows under each of its cities
+ * (qualityHeadlines, drawn by CityQualityBars), so the two cannot disagree.
+ *
  * It is loaded when a window opens, not with the page: the figures it reads
  * are the Countries page's, and large.
  */
@@ -35,6 +38,7 @@ import { BookOpen, CurrencyDollar, Drop, FirstAid, Lightning, ShieldCheck, Store
 import type { ReactNode } from "react";
 import { COUNTRY_OF, ECONOMY_OF } from "../data/placeIndex";
 import { COUNTRY_PANELS, panelSource, type PanelFigure } from "../data/countryPanels";
+import { COUNTRY_INDICATOR_FALLBACKS, COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE } from "../data/countryIndicators";
 import { COUNTRY_ENERGY, ENERGY_SOURCE } from "../data/countryEnergy";
 import { COUNTRY_CRIME, CRIME_SOURCE } from "../data/countryCrime";
 import { PUBLIC_SECURITY, PUBLIC_SECURITY_SOURCES } from "../data/publicSecurity";
@@ -47,8 +51,9 @@ import { SourceLink } from "./SourceLink";
 
 /** Where a bar ends and where the world's tick sits, each as a percentage of the measure's scale. */
 type Bar = { at: number; world?: number; scale: string };
-type Row = { label: string; value: string; sub: string; world?: string | null; bar?: Bar };
 type Source = { label: string; url: string };
+/** A figure as a row, with where it is from, and whether it is the city's own and not its country's. */
+export type Row = { label: string; value: string; sub: string; world?: string | null; bar?: Bar; from?: Source; own?: boolean };
 /**
  * How a figure is drawn: "share" on 0 to 100; "world" on the larger of it and
  * the world's figure for the same year (and not at all without one); a pair
@@ -61,7 +66,7 @@ const twh = (v: number) => `${v >= 100 ? n(v) : n(v, 1)} TWh`;
 const pct = (v: number) => `${v}%`;
 const clamp = (v: number) => Math.min(100, Math.max(0, v));
 /** A country's name as it reads in a sentence: "the United States", "the Netherlands", "France". */
-const inSentence = (name: string) => (/^(United |Netherlands$|Philippines$|Bahamas$|Maldives$|Czech Republic$|Dominican Republic$|Central African Republic$)/.test(name) ? `the ${name}` : name);
+export const inSentence = (name: string) => (/^(United |Netherlands$|Philippines$|Bahamas$|Maldives$|Czech Republic$|Dominican Republic$|Central African Republic$)/.test(name) ? `the ${name}` : name);
 
 /** The bar for a figure on its scale, with the world's tick where there is one; none where the scale has nothing to say. */
 function barOf(v: number, w: number | null, scale: Scale | undefined): Bar | undefined {
@@ -103,20 +108,11 @@ function QualityRow({ r, color }: { r: Row; /** The panel's colour: its bars are
   );
 }
 
-export default function CountryQuality({
-  code,
-  country,
-  place,
-  city,
-}: {
-  /** The country's ISO code. */
-  code: string;
-  country: string;
-  /** The city whose window this is. */
-  place: string;
-  /** The city's id on the Cities page, for the figures held for the city itself. */
-  city?: string;
-}) {
+/**
+ * The panels for a country - and, where a figure is held for the city itself, for the city - with where each is from.
+ * The city's window lays all of them out; the Dashboard gives a few under each of its cities (qualityHeadlines).
+ */
+export function qualityOf(code: string, country: string, city?: string) {
   const id = COUNTRY_OF[code];
   const p = (id && COUNTRY_PANELS[id]) || {};
   const energy = id ? COUNTRY_ENERGY[id] : undefined;
@@ -136,8 +132,9 @@ export default function CountryQuality({
   const panel = (label: string, f: PanelFigure | undefined, print: (v: number) => string, unit: string, worldId?: string, scale?: Scale): Row[] => {
     if (!f) return [];
     const s = panelSource(f);
-    cite({ label: s.label.replace(/, \d{4}.*$/, ""), url: s.url });
-    return [row(label, f.v, f.y, print, unit, worldId, scale)];
+    const from = { label: s.label.replace(/, \d{4}.*$/, ""), url: s.url };
+    cite(from);
+    return [{ ...row(label, f.v, f.y, print, unit, worldId, scale), from }];
   };
 
   if (energy) cite({ label: ENERGY_SOURCE.label, url: ENERGY_SOURCE.url });
@@ -146,6 +143,14 @@ export default function CountryQuality({
   if (sec?.conflict) cite({ label: PUBLIC_SECURITY_SOURCES.ucdp.label, url: PUBLIC_SECURITY_SOURCES.ucdp.url });
   if (eco) cite({ label: ECONOMY_INDICATORS_SOURCE.worldBank.label, url: ECONOMY_INDICATORS_SOURCE.worldBank.url });
   if (air) cite({ label: AIR_QUALITY_SOURCE.label, url: AIR_QUALITY_SOURCE.url });
+  // Life expectancy is not among the country panels' figures: it is held with the country's headline indicators, the World Bank's unless the figure names another.
+  const life = COUNTRY_INDICATORS[code]?.lifeExpectancy;
+  const lifeFrom = life ? (life.s ? COUNTRY_INDICATOR_FALLBACKS[life.s] : { label: COUNTRY_INDICATORS_SOURCE.label, url: COUNTRY_INDICATORS_SOURCE.url }) : undefined;
+  if (lifeFrom && !p.lifeExpectancy) cite(lifeFrom);
+  // Where the rows that do not come from the country panels are from, for a row to carry.
+  const worldBank = { label: ECONOMY_INDICATORS_SOURCE.worldBank.label, url: ECONOMY_INDICATORS_SOURCE.worldBank.url };
+  const eurostat = { label: COMMUTE_SOURCES.eurostat.label, url: COMMUTE_SOURCES.eurostat.url };
+  const acs = { label: COMMUTE_SOURCES.acs.label, url: COMMUTE_SOURCES.acs.url };
   const conflictDeaths = sec?.conflict ? sec.conflict.stateBased + sec.conflict.nonState + sec.conflict.oneSided : null;
   const one = (v: number) => n(v, 1);
   const signedPct = (v: number) => `${v > 0 ? "+" : ""}${v}%`;
@@ -159,13 +164,13 @@ export default function CountryQuality({
   if (eur) cite({ label: COMMUTE_SOURCES.eurostat.label, url: COMMUTE_SOURCES.eurostat.url });
   if (usa || ownCity) cite({ label: COMMUTE_SOURCES.acs.label, url: COMMUTE_SOURCES.acs.url });
   const eurRow = (label: string, v: number | undefined, eu: number | undefined, who: string): Row[] =>
-    v == null ? [] : [{ label, value: min(v), sub: `${who} · ${COMMUTE_SOURCES.eurostat.year}${eu != null ? ` · European Union ${min(eu)}` : ""}` }];
+    v == null ? [] : [{ label, value: min(v), sub: `${who} · ${COMMUTE_SOURCES.eurostat.year}${eu != null ? ` · European Union ${min(eu)}` : ""}`, from: eurostat }];
   const usRows = (c: UsCommute, own: boolean): Row[] => {
     const of = own ? `${c.place}: ` : "";
     const who = `${own ? "the city itself, not the country · " : ""}workers who travel to work · ${COMMUTE_SOURCES.acs.year}`;
     return [
-      { label: `${of}${own ? "average" : "Average"} journey to work, one way`, value: min(c.minutes), sub: who },
-      { label: `${of}${own ? "journeys" : "Journeys"} to work of an hour or more`, value: pct(c.hourPlusPct), sub: who, bar: barOf(c.hourPlusPct, null, "share") },
+      { label: `${of}${own ? "average" : "Average"} journey to work, one way`, value: min(c.minutes), sub: who, from: acs, own },
+      { label: `${of}${own ? "journeys" : "Journeys"} to work of an hour or more`, value: pct(c.hourPlusPct), sub: who, bar: barOf(c.hourPlusPct, null, "share"), from: acs, own },
     ];
   };
   const commuteRows: Row[] = [
@@ -249,7 +254,7 @@ export default function CountryQuality({
       color: "#dc2626",
       icon: <ShieldCheck size={13} weight="fill" />,
       rows: [
-        ...(crime?.homicide ? [row("Intentional homicides", crime.homicide.v, crime.homicide.y, one, "per 100,000 people", "homicide", "world")] : []),
+        ...(crime?.homicide ? [{ ...row("Intentional homicides", crime.homicide.v, crime.homicide.y, one, "per 100,000 people", "homicide", "world"), from: CRIME_SOURCE }] : []),
         ...(sec?.stability ? [row("Political stability and absence of violence", sec.stability.v, sec.stability.y, (v) => `${v}`, "World Bank score, 0 to 100", undefined, score)] : []),
         ...(sec?.ruleOfLaw ? [row("Rule of law", sec.ruleOfLaw.v, sec.ruleOfLaw.y, (v) => `${v}`, "World Bank score, 0 to 100", undefined, score)] : []),
         ...(sec?.conflict ? [{ label: "Deaths in armed conflict in the country", value: conflictDeaths === 0 ? "None recorded" : n(conflictDeaths!), sub: `Uppsala Conflict Data Program · ${sec.conflict.y}` }] : []),
@@ -260,7 +265,12 @@ export default function CountryQuality({
       color: "#ec4899",
       icon: <FirstAid size={13} weight="fill" />,
       rows: [
-        ...panel("Life expectancy", p.lifeExpectancy, (v) => `${one(v)} yrs`, "at birth", "lifeExpectancy", "world"),
+        ...(p.lifeExpectancy
+          ? panel("Life expectancy", p.lifeExpectancy, (v) => `${one(v)} yrs`, "at birth", "lifeExpectancy", "world")
+          : life
+            ? [{ ...row("Life expectancy", life.v, life.y, (v) => `${one(v)} yrs`, "at birth", "lifeExpectancy", "world"), from: lifeFrom }]
+            : []),
+
         ...panel("Physicians", p.physicians, (v) => `${v}`, "per 1,000 people"),
         ...panel("Hospital beds", p.hospitalBeds, (v) => `${v}`, "per 1,000 people"),
         ...panel("Maternal deaths", p.maternalMortality, (v) => n(v), "per 100,000 live births", "maternalMortality", "world"),
@@ -281,7 +291,9 @@ export default function CountryQuality({
       title: "Air",
       color: "#14b8a6",
       icon: <Wind size={13} weight="fill" />,
-      rows: air ? [row("Fine-particle pollution people breathe", air.pm25, air.year, (v) => `${one(v)} µg/m³`, "PM2.5, mean annual exposure", "pm25", "world")] : [],
+      rows: air
+        ? [{ ...row("Fine-particle pollution people breathe", air.pm25, air.year, (v) => `${one(v)} µg/m³`, "PM2.5, mean annual exposure", "pm25", "world"), from: { label: AIR_QUALITY_SOURCE.label, url: AIR_QUALITY_SOURCE.url } }]
+        : [],
     },
     {
       title: "Business",
@@ -300,10 +312,10 @@ export default function CountryQuality({
       color: "#10b981",
       icon: <CurrencyDollar size={13} weight="fill" />,
       rows: [
-        ...(eco?.gdpPerCapita ? [{ label: "GDP per person", value: `$${n(eco.gdpPerCapita.v)}`, sub: `current US dollars · ${eco.gdpPerCapita.y}` }] : []),
+        ...(eco?.gdpPerCapita ? [{ label: "GDP per person", value: `$${n(eco.gdpPerCapita.v)}`, sub: `current US dollars · ${eco.gdpPerCapita.y}`, from: worldBank }] : []),
         // Growth can be negative, so it is a figure and not a length.
         ...(eco?.gdpGrowthRate ? [row("Real GDP growth", eco.gdpGrowthRate.v, eco.gdpGrowthRate.y, signedPct, "a year", "gdpGrowth")] : []),
-        ...(eco?.unemploymentRate ? [row("Unemployment", eco.unemploymentRate.v, eco.unemploymentRate.y, pct, "of the labour force", "unemployment", "world")] : []),
+        ...(eco?.unemploymentRate ? [{ ...row("Unemployment", eco.unemploymentRate.v, eco.unemploymentRate.y, pct, "of the labour force", "unemployment", "world"), from: worldBank }] : []),
         ...(eco?.inflationRate ? [row("Inflation", eco.inflationRate.v, eco.inflationRate.y, pct, "consumer prices, a year", "inflation", "world")] : []),
         ...panel("Median income or spending a person", p.medianDailyIncome, (v) => `$${n(v, 2)}`, "a day, 2021 PPP dollars"),
         ...panel("Below the national poverty line", p.povertyNationalPct, pct, "of people", undefined, "share"),
@@ -311,6 +323,46 @@ export default function CountryQuality({
       ],
     },
   ].filter((g) => g.rows.length > 0 || g.extra);
+  return { groups, sources: [...sources.values()] };
+}
+
+/** The rows the Dashboard gives under a city: one or two from each panel, in this order. The rest are in the city's window. */
+const HEADLINES = [
+  "Life expectancy",
+  "Safely managed drinking water",
+  "Safely managed sanitation",
+  "People with electricity",
+  "Fine-particle pollution people breathe",
+  "Intentional homicides",
+  "Years of schooling",
+  "People using the internet",
+  "GDP per person",
+  "Unemployment",
+  "Average journey to work, one way",
+  "Average journey to work, people living in cities",
+];
+
+/** A city's headline rows, each with its panel's colour: the city's own figures first, where any is held, then its country's. */
+export function qualityHeadlines(code: string, country: string, city?: string): (Row & { color: string })[] {
+  const rows = qualityOf(code, country, city).groups.flatMap((g) => g.rows.map((r) => ({ ...r, color: g.color })));
+  return [...rows.filter((r) => r.own && / journey to work, one way$/.test(r.label)), ...HEADLINES.flatMap((label) => rows.filter((r) => r.label === label))];
+}
+
+export default function CountryQuality({
+  code,
+  country,
+  place,
+  city,
+}: {
+  /** The country's ISO code. */
+  code: string;
+  country: string;
+  /** The city whose window this is. */
+  place: string;
+  /** The city's id on the Cities page, for the figures held for the city itself. */
+  city?: string;
+}) {
+  const { groups, sources } = qualityOf(code, country, city);
   if (!groups.length) return null;
 
   return (
@@ -343,7 +395,8 @@ export default function CountryQuality({
           </div>
         ))}
       </div>
-      <SourceLink sources={[...sources.values()]} className="mt-2" />
+      <SourceLink sources={sources} className="mt-2" />
+
     </div>
   );
 }
