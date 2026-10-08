@@ -29,6 +29,8 @@ import {
 } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 import { countriesData, type Country } from "../data/countriesData";
+import { SUBNATION_FLAG_COLOR } from "../data/subnationFlagColors";
+import { flagColor, seen } from "../lib/flagColor";
 import { usStatesData } from "../data/statesData";
 import {
   countryForFeature,
@@ -4083,7 +4085,21 @@ export function WorldMapsPage() {
                 shaded by a statistic picked from a row of buttons, which no
                 other country's map had. */}
             {stateShapes.map(({ name, state, d }, i) => (
-              <path key={i} d={d} fill={ramp[3]} stroke={stroke} strokeWidth={0.5 / zoom} data-pick={state ? `state:${state.abbreviation}` : undefined} style={state && zoom === 1 ? { cursor: "pointer" } : undefined}>
+              // A state lights in its own flag's colour when it is pointed at, as on the Dashboard's map: the fill is the map's one tone until then.
+              <path
+                key={i}
+                d={d}
+                className="fill-[var(--us-land)] hover:fill-[var(--us-hot)] transition-colors"
+                stroke={stroke}
+                strokeWidth={0.5 / zoom}
+                data-pick={state ? `state:${state.abbreviation}` : undefined}
+                style={{
+                  ["--us-land" as string]: ramp[3],
+                  ["--us-hot" as string]: SUBNATION_FLAG_COLOR.US?.[state?.name ?? name] ? seen(SUBNATION_FLAG_COLOR.US[state?.name ?? name]) : (flagColor("US") ?? markInk),
+                  cursor: state && zoom === 1 ? "pointer" : undefined,
+                }}
+              >
+
                 <title>{state?.name ?? name}</title>
               </path>
             ))}

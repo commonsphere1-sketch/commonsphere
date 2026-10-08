@@ -28,6 +28,11 @@
  *                        on one footing, so the country's stand in, named
  *                        as the country's - as a city's window does.
  *
+ * A division's card also counts what lies inside it, and its window lists
+ * it: its counties or districts, and its towns, cities and villages, as
+ * GeoNames files them (DivisionPlaces - the places the World Maps page's
+ * explorer lists).
+ *
  * A change over time is worked out here from two published figures, and says
  * so. Nothing is estimated.
  *
@@ -42,6 +47,7 @@ import { ArrowRight, MagnifyingGlass, MapPin, MapTrifold, TreeStructure, X } fro
 import { TONE } from "@/lib/chipTone";
 import { flagColor } from "../lib/flagColor";
 import { inSentence, qualityOf } from "../components/CountryQuality";
+import { DivisionPlaces, insideOf, usePlaces, type Inside } from "../components/DivisionPlaces";
 import { FilterBar } from "../components/FilterBar";
 import { FigureRow } from "../components/ModalCharts";
 import { SourceLink } from "../components/SourceLink";
@@ -424,6 +430,8 @@ function SubnationWindow({ s, onClose, onCounties }: { s: Subnation; onClose: ()
       {parts.map((p) => (
         <Section key={p.title} part={p} />
       ))}
+      {/* What lies inside it: its counties or districts, and its towns, cities and villages. */}
+      <DivisionPlaces s={s} country={c?.name ?? s.cc} />
       <div>
         <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1">Where to read more</p>
         <SourceLink sources={read} />
@@ -512,7 +520,7 @@ const field = "bg-transparent border border-border rounded-full px-3 py-1.5 text
 const answers = (s: Subnation, q: string) => s.name.toLowerCase().includes(q) || (s.code ?? "").toLowerCase() === q || (s.capital ?? "").toLowerCase().includes(q);
 
 /** A division's card, inside its country's window. */
-function DivisionCard({ s, onOpen }: { s: Subnation; onOpen: () => void }) {
+function DivisionCard({ s, inside, onOpen }: { s: Subnation; /** What GeoNames lists inside it: undefined while its country's places are fetched, null where it has none by the division's name. */ inside: Inside | null | undefined; onOpen: () => void }) {
   // A US state's population and head are the ones its window gives: the Census Bureau's, and its governor.
   const state = STATE_BY_CODE.get(s.code ?? "");
   const m = state ? STATE_INDICATORS[state.id] : undefined;
@@ -521,6 +529,9 @@ function DivisionCard({ s, onOpen }: { s: Subnation; onOpen: () => void }) {
     ["Area", s.areaKm2 ? `${whole(s.areaKm2)} km²` : undefined],
     ["Capital", s.capital],
     ["Head", m ? m.governor.name : headOf(s)?.[3]],
+    // What lies inside it, as GeoNames lists it: the counties or districts with a listed place, and the towns, cities and villages of more than 500 people.
+    ["Counties or districts", inside === undefined ? "…" : inside && inside.order === 1 && inside.districts.length ? whole(inside.districts.length) : undefined],
+    ["Towns and villages", inside === undefined ? "…" : inside ? whole(inside.rows.length) : undefined],
   ];
   return (
     <button type="button" onClick={onOpen} className="modal-tile rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
@@ -665,6 +676,9 @@ function CountryWindow({
     };
     return (q ? row.divisions.filter((s) => answers(s, q)) : [...row.divisions]).sort(by[sort]);
   }, [row, query, sort]);
+  /* What lies inside each division, counted from the country's places once they are fetched. */
+  const places = usePlaces(row.cc);
+  const insides = useMemo(() => (places ? new Map(row.divisions.map((d) => [d.id, insideOf(places, d)])) : null), [places, row]);
   const counties = useMemo(() => (countyData && countyState ? countyData.US_COUNTIES.filter((x) => x[2] === countyState) : []), [countyData, countyState]);
   const stateName = usStatesData.find((s) => s.abbreviation === countyState)?.name ?? countyState;
   return (
@@ -740,7 +754,8 @@ function CountryWindow({
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {shown.map((s) => (
-              <DivisionCard key={s.id} s={s} onOpen={() => onOpen(s)} />
+              <DivisionCard key={s.id} s={s} inside={places === undefined ? undefined : (insides?.get(s.id) ?? null)} onOpen={() => onOpen(s)} />
+
             ))}
           </div>
           {shown.length === 0 && <p className="text-[12px] font-sans text-muted-foreground">Nothing matches.</p>}
