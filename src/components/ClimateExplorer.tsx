@@ -62,7 +62,15 @@ const ITEMS: Item[] = [
   ...[...LIFE_CARDS, ...FIGURE_CARDS].map((f): Item => ({ key: `g-${f.id}`, kind: "figures", name: f.title, said: f.kicker, f })),
 ];
 
-export function ClimateExplorer({ onOpenBoundary }: { /** Shows a boundary in the page's own wheel and panel. */ onOpenBoundary?: (id: string) => void }) {
+export function ClimateExplorer({
+  onOpenBoundary,
+  embedded = false,
+}: {
+  /** Shows a boundary in the page's own wheel and panel. */
+  onOpenBoundary?: (id: string) => void;
+  /** Shown inside another explorer's card, under its tab: no card or heading of its own. */
+  embedded?: boolean;
+} = {}) {
   const t = useTokens();
   const [search, setSearch] = useState("");
   const [kind, setKind] = useState<Kind | null>(null);
@@ -73,14 +81,16 @@ export function ClimateExplorer({ onOpenBoundary }: { /** Shows a boundary in th
   const groups = KINDS.map((k) => ({ k, rows: list.filter((x) => x.kind === k.id) })).filter((g) => g.rows.length > 0);
 
   return (
-    <div className="explorer flex flex-col rounded-2xl overflow-hidden w-full mb-6" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
-      <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: ACCENT }}>
-        <Leaf size={12} weight="fill" aria-hidden />
-        <h2 className="text-[11px] font-bold font-sans">Climate and planetary boundaries</h2>
-        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: ACCENT + "15" }}>
-          {ITEMS.length}
-        </span>
-      </div>
+    <div className={embedded ? "flex flex-col w-full" : "explorer flex flex-col rounded-2xl overflow-hidden w-full mb-6"} style={embedded ? undefined : { background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
+      {!embedded && (
+        <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: ACCENT }}>
+          <Leaf size={12} weight="fill" aria-hidden />
+          <h2 className="text-[11px] font-bold font-sans">Climate and planetary boundaries</h2>
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: ACCENT + "15" }}>
+            {ITEMS.length}
+          </span>
+        </div>
+      )}
 
       {/* Search */}
       <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: t.gridLine }}>

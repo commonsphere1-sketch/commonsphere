@@ -42,7 +42,7 @@ const NONE: Record<"cause" | "effect" | "outcome", (e: UnrestEvent) => string> =
   outcome: (e) => (e.ongoing ? "The list gives it as still going on." : e.kind === "Boycott" ? "The list gives no outcome, and no article that says how it ended." : "No outcome is given."),
 };
 
-export function UnrestExplorer() {
+export function UnrestExplorer({ embedded = false }: { /** Shown inside another explorer's card, under its tab: no card or heading of its own. */ embedded?: boolean } = {}) {
   const t = useTokens();
   const [search, setSearch] = useState("");
   const [kind, setKind] = useState<UnrestKind | null>(null);
@@ -69,14 +69,16 @@ export function UnrestExplorer() {
     ) : null;
 
   return (
-    <div className="explorer flex flex-col rounded-2xl overflow-hidden w-full" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
-      <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: ACCENT }}>
-        <Megaphone size={12} weight="fill" aria-hidden />
-        <h2 className="text-[11px] font-bold font-sans">Revolutions, protests, boycotts and internal conflicts</h2>
-        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: ACCENT + "15" }}>
-          {UNREST_EVENTS.length}
-        </span>
-      </div>
+    <div className={embedded ? "flex flex-col w-full" : "explorer flex flex-col rounded-2xl overflow-hidden w-full"} style={embedded ? undefined : { background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
+      {!embedded && (
+        <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: ACCENT }}>
+          <Megaphone size={12} weight="fill" aria-hidden />
+          <h2 className="text-[11px] font-bold font-sans">Revolutions, protests, boycotts and internal conflicts</h2>
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: ACCENT + "15" }}>
+            {UNREST_EVENTS.length}
+          </span>
+        </div>
+      )}
 
       <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: t.gridLine }}>
         <MagnifyingGlass size={13} style={{ color: t.mutedText }} aria-hidden />

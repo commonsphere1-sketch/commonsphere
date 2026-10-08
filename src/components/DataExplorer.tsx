@@ -33,7 +33,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowRight, ArrowSquareOut, ChartBar, ChartLine, Factory, Globe, Heart, MagnifyingGlass, MapPin, Scales, Tree, Users, X } from "@phosphor-icons/react";
+import { ArrowRight, ArrowSquareOut, ChartBar, ChartLine, Globe, GlobeHemisphereWest, Heart, Leaf, MagnifyingGlass, MapPin, Megaphone, Scales, Tree, Users, X } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLiveCountries } from "../contexts/LiveDataContext";
 import type { Country, DataSource, ReferenceField } from "../data/countriesData";
@@ -45,7 +45,7 @@ import { hdiHex } from "../lib/hdiTier";
 import { ago, placeName, useHeadlines, type Headline } from "./HeadlinesBanner";
 import type { TopicHit } from "./PolicyContext";
 import { RESOURCES } from "../data/resourceList";
-import { INDUSTRY_FIGURES, TREND_FIGURES } from "../data/trendGroups";
+import { TREND_FIGURES } from "../data/trendGroups";
 
 /** A policy headline's fuller detail, with the data it draws on: loaded when one is first shown. */
 const PolicyContext = lazy(() => import("./PolicyContext"));
@@ -58,20 +58,25 @@ const RECORD_TOPICS = ["Trade", "Energy", "Climate", "Tech", "Jobs & pay", "Defe
 /** The explorers of the Economies page's resources and of the Trends page, each with its data: loaded when its tab is opened. */
 const ResourcesTab = lazy(() => import("./ResourceExplorerTab"));
 const TrendsTab = lazy(() => import("../pages/TrendsPage").then((m) => ({ default: m.TrendsExplorer })));
-/** The industries explorer: the same page's world series, set out by industry. */
-const IndustriesTab = lazy(() => import("../pages/TrendsPage").then((m) => ({ default: m.IndustriesExplorer })));
+/** The explorers of the Worldview, Crime and Climate pages, each with its data: loaded when its tab is opened. The Industries tab stood here and was taken off as asked. */
+const GeopoliticsTab = lazy(() => import("./GeopoliticsExplorer"));
+const UnrestTab = lazy(() => import("./UnrestExplorer"));
+const ClimateTab = lazy(() => import("./ClimateExplorer"));
 
 export type ExplorerTab = "countries" | "economies" | "policies";
-/** The Dashboard's tabs: countries and economies, and the three explorers that come from other pages. */
-type Tab = ExplorerTab | "industries" | "resources" | "trends";
+/** The Dashboard's tabs: countries and economies, and the explorers that come from other pages. */
+type Tab = ExplorerTab | "resources" | "trends" | "geopolitics" | "unrest" | "climate";
 type TabDef = { id: Tab; label: string; color: string; path: string; Icon: typeof Globe };
 
 const TABS: TabDef[] = [
   { id: "countries", label: "Countries", color: "#6366f1", path: "/dashboard/countries", Icon: Globe },
   { id: "economies", label: "Economies", color: "#f59e0b", path: "/dashboard/economies", Icon: ChartBar },
-  { id: "industries", label: "Industries", color: "#06b6d4", path: "/dashboard/trends", Icon: Factory },
   { id: "resources", label: "Resources", color: "#059669", path: "/dashboard/economies?view=resources", Icon: Tree },
   { id: "trends", label: "Trends", color: "#0ea5e9", path: "/dashboard/trends", Icon: ChartLine },
+  // The explorers added since: power, political theories and forms of governance; revolutions, protests and boycotts; the climate.
+  { id: "geopolitics", label: "Geopolitics & ideas", color: "#6366f1", path: "/dashboard/worldview", Icon: GlobeHemisphereWest },
+  { id: "unrest", label: "Revolutions & protests", color: "#f97316", path: "/dashboard/crime", Icon: Megaphone },
+  { id: "climate", label: "Climate", color: "#10b981", path: "/dashboard/planetary-boundaries", Icon: Leaf },
 ];
 /** The policy explorer: the Policy page's alone (`only`). It was the Dashboard's third tab, where Industries stands now. */
 const POLICY_TAB: TabDef = { id: "policies", label: "Policies", color: "#a855f7", path: "/dashboard/policy", Icon: Scales };
@@ -183,9 +188,12 @@ export function DataExplorer({
     countries: `${byGdp.length}`,
     economies: `${regions.length}`,
     policies: `${headlines.length}${capped ? "+" : ""}`,
-    industries: `${INDUSTRY_FIGURES}`,
     resources: `${RESOURCES.length}`,
     trends: `${TREND_FIGURES}`,
+    // Their counts are in their data, which is loaded only when the tab is opened: no number is shown on the tab.
+    geopolitics: "",
+    unrest: "",
+    climate: "",
   };
   /* The link at the foot of a tab that is another page's explorer: to that page. */
   const toPage = { label: "View all", onClick: () => navigate(cur.path) };
@@ -236,19 +244,31 @@ export function DataExplorer({
               >
                 <x.Icon size={12} weight="fill" style={{ color: x.color }} aria-hidden />
                 {x.label}
-                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: x.color + "15", color: x.color }}>
-                  {badge[x.id]}
-                </span>
+                {badge[x.id] && (
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: x.color + "15", color: x.color }}>
+                    {badge[x.id]}
+                  </span>
+                )}
               </button>
             );
           })}
         </div>
       )}
 
-      {tab === "industries" || tab === "resources" || tab === "trends" ? (
+      {tab !== "countries" && tab !== "economies" && tab !== "policies" ? (
         // Another page's explorer, in this card: it brings its own search, list, detail and footer.
         <Suspense fallback={<Empty t={t}>Loading…</Empty>}>
-          {tab === "resources" ? <ResourcesTab action={toPage} /> : tab === "industries" ? <IndustriesTab embedded action={toPage} /> : <TrendsTab embedded action={toPage} />}
+          {tab === "resources" ? (
+            <ResourcesTab action={toPage} />
+          ) : tab === "trends" ? (
+            <TrendsTab embedded action={toPage} />
+          ) : tab === "geopolitics" ? (
+            <GeopoliticsTab embedded />
+          ) : tab === "unrest" ? (
+            <UnrestTab embedded />
+          ) : (
+            <ClimateTab embedded />
+          )}
         </Suspense>
       ) : (
         <>

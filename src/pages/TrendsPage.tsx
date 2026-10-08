@@ -29,7 +29,6 @@ import { StatExplorer, type StatGroup } from "../components/StatExplorer";
 import { EnergyOutlook } from "../components/EnergyOutlook";
 import { INDUSTRY_FIGURES, INDUSTRY_GROUPS, PROJECTION_FIGURES, TREND_GROUPS } from "../data/trendGroups";
 import { CategoryCharts, TREND_CHARTS } from "../components/CategoryCharts";
-import { StatWheel } from "../components/StatWheel";
 import { StatCard, splitChange, type StatCardData, type StatFact, type StatTable } from "../components/StatCard";
 import { usdFromBillions } from "../lib/money";
 import { WORLD, WORLDVIEW_RETRIEVED, type WorldIndicator } from "../data/worldview";
@@ -588,10 +587,8 @@ function trendCard(id: string, color: string, group: string, beside: string[]): 
 
 /** Every trend as its card's data, by group: what the cards and the explorer are both drawn from. Built once - nothing in it changes. */
 const TREND_CARDS: StatGroup[] = TREND_GROUPS.map((g) => ({ title: g.title, color: g.color, items: g.ids.flatMap((id) => trendCard(id, g.color, g.title, g.ids) ?? []) }));
-/** The groups whose row of cards was taken off the page, as asked: their figures are in the wheel's windows and the explorer, and their charts stay. */
+/** The groups whose row of cards was taken off the page, as asked: their figures are in the page's explorer, and their charts stay. */
 const NO_CARDS = new Set(["trend-technology", "trend-research", "trend-industry"]);
-/** The groups of trends as the wedges of the page's wheel: each with the figures its cards are drawn from. */
-const ADVANCEMENT = TREND_GROUPS.map((g) => ({ key: g.id, title: g.nav, kicker: g.kicker, color: g.color, stats: TREND_CARDS.find((c) => c.title === g.title)?.items ?? [] }));
 /** The same kind of card for each series an industry is followed by: what the Industries tab of the Dashboard's explorer lists. */
 const INDUSTRY_CARDS: StatGroup[] = INDUSTRY_GROUPS.map((g) => ({ title: g.title, color: g.color, items: g.ids.flatMap((id) => trendCard(id, g.color, g.title, g.ids) ?? []) }));
 if (import.meta.env.DEV && INDUSTRY_CARDS.reduce((n, g) => n + g.items.length, 0) !== INDUSTRY_FIGURES) console.warn(`trendGroups.ts says ${INDUSTRY_FIGURES} industry figures; the Trends page builds ${INDUSTRY_CARDS.reduce((n, g) => n + g.items.length, 0)}.`);
@@ -1724,22 +1721,6 @@ export function TrendsPage() {
         <TrendsExplorer />
 
         {/* ══ Overview ══ */}
-        {/* ── Advancement, as a wheel: the page's measured trends by group, each wedge its measures that moved for the
-            better, for the worse, and with no verdict. It counts the verdicts the cards already carry. ── */}
-        <StatWheel
-          title="Advancement at a glance"
-          kicker="How the world's measured trends have moved over about ten years, group by group. Pick a wedge for its figures, each described and drawn."
-          centre="Advancement"
-          categories={ADVANCEMENT}
-          note={
-            <>
-              Each measure is a published world series to its latest year, and its change is on about ten years before. It counts as better or worse only where one way
-              plainly is - more people online, more research, less extreme poverty - and has no verdict where neither is, or where the series is too short. The wheel counts
-              those verdicts. It is not an index: it adds no scores, weighs nothing, and forecasts nothing.
-            </>
-          }
-        />
-
         {/* ══ World economy ══ */}
         <section id="economy" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="economy-title">
           <SectionHead icon={<TrendUp size={18} weight="fill" />} color="#6366f1" title="World economy" kicker={`The IMF's outlook to ${end}: output, growth, prices and debt`} />

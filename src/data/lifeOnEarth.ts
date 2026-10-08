@@ -76,7 +76,7 @@ const OZONE_HOLE: [string, number][] = [
   ["2025", 18.7],
 ];
 
-export const LIFE_CARDS: FigureCard[] = [
+const ALL_LIFE_CARDS: FigureCard[] = [
   {
     id: "species-found",
     kicker: "Species Discovered",
@@ -185,3 +185,7 @@ export const LIFE_CARDS: FigureCard[] = [
     sources: [SRC.unep, SRC.fwsExtinct, SRC.fwsEagle, SRC.target3, ...(land && WORLD.protectedLand ? [WORLD.protectedLand.source] : []), SRC.fra, SRC.ggw],
   },
 ];
+
+/** Taken off the page as asked: Species named by science, and Species lost. They are kept above, with their sources, and not shown. */
+const OFF_THE_PAGE = new Set(["species-found", "species-lost"]);
+export const LIFE_CARDS: FigureCard[] = ALL_LIFE_CARDS.filter((c) => !OFF_THE_PAGE.has(c.id));

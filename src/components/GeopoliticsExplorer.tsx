@@ -106,7 +106,7 @@ const ITEMS: Item[] = [
 ];
 const GROUPS = [...new Set(ITEMS.map((x) => x.group))];
 
-export function GeopoliticsExplorer() {
+export function GeopoliticsExplorer({ embedded = false }: { /** Shown inside another explorer's card, under its tab: no card or heading of its own. */ embedded?: boolean } = {}) {
   const t = useTokens();
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState<string | null>(null);
@@ -116,14 +116,16 @@ export function GeopoliticsExplorer() {
   const shown = (pickedKey ? ITEMS.find((x) => x.key === pickedKey) : null) ?? list[0] ?? null;
 
   return (
-    <div className="explorer flex flex-col rounded-2xl overflow-hidden w-full" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
-      <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: ACCENT }}>
-        <Globe size={12} weight="fill" aria-hidden />
-        <h2 className="text-[11px] font-bold font-sans">Geopolitics</h2>
-        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: ACCENT + "15" }}>
-          {ITEMS.length}
-        </span>
-      </div>
+    <div className={embedded ? "flex flex-col w-full" : "explorer flex flex-col rounded-2xl overflow-hidden w-full"} style={embedded ? undefined : { background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
+      {!embedded && (
+        <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: ACCENT }}>
+          <Globe size={12} weight="fill" aria-hidden />
+          <h2 className="text-[11px] font-bold font-sans">Geopolitics</h2>
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: ACCENT + "15" }}>
+            {ITEMS.length}
+          </span>
+        </div>
+      )}
 
       <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: t.gridLine }}>
         <MagnifyingGlass size={13} style={{ color: t.mutedText }} aria-hidden />
