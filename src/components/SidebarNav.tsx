@@ -48,7 +48,7 @@ const mainNav = [
   { to: "/dashboard/countries", label: "Countries", icon: Globe, end: false },
   // What countries are divided into - states, provinces, regions - and the counties of the United States: between the countries and their cities.
   { to: "/dashboard/subnations", label: "Subnations", icon: TreeStructure, end: false },
-  { to: "/dashboard/cities", label: "Global Cities", icon: City, end: false },
+  { to: "/dashboard/cities", label: "Cities", icon: City, end: false },
   {
     to: "/dashboard/economies",
     label: "Economies",
@@ -270,7 +270,7 @@ const FEATURES = [
   },
   {
     icon: City,
-    label: "Global Cities",
+    label: "Cities",
     desc: "Major city profiles with regional economic and social indicators",
   },
   {

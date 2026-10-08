@@ -913,7 +913,7 @@ export function CitiesPage() {
         {/* Header */}
         <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
           <div>
-            <h1 className="text-2xl font-bold font-sans text-foreground">Global Cities</h1>
+            <h1 className="text-2xl font-bold font-sans text-foreground">Cities</h1>
             <p className="text-muted-foreground text-sm font-sans">
               {ROWS.length} world cities — people, land and built-up area, {SRC.firstYear} to {LAST}, as the United Nations measures them
             </p>

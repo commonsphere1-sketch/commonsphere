@@ -350,9 +350,9 @@ export default function PlaceAtlas() {
             ? "Press a state to open the map on its counties."
             : "Press a state to go to its record."
           : `${pick === "county" ? "Counties are held for the United States only. " : ""}Press a division of ${named} to go to its record.`;
-  // In the dark theme the land is a light grey, as asked, so that it stands clear of the card; its borders are the card's dark.
-  const land = t.isLight ? "#dfe3ea" : "#a3a8b3";
-  const edge = t.isLight ? "#ffffff" : "#15151a";
+  // In the dark theme the land is a dark grey again, as asked - but a step lighter than it first was, so that it stands clear of the card behind it.
+  const land = t.isLight ? "#dfe3ea" : "#4e5262";
+  const edge = t.isLight ? "#ffffff" : "#0b0b0d";
   const chip = (on: boolean) =>
     `px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${on ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`;
   const shownList = find.trim() ? listed.filter((x) => x.name.toLowerCase().includes(find.trim().toLowerCase())) : listed;
@@ -510,8 +510,9 @@ export default function PlaceAtlas() {
                 // The same size on the screen however close the map is drawn, so that cities part as it closes in.
                 r={d.r / view.k}
                 className="cursor-pointer fill-[var(--atlas-dot)] hover:fill-[var(--atlas-hot)] transition-colors"
-                style={{ ["--atlas-hot" as string]: d.hot, ["--atlas-dot" as string]: "rgba(15,23,42,0.72)" }}
-                stroke="#ffffff"
+                // A dot is dark on the light theme's land and pale on the dark theme's, with an edge of the other tone, so that it shows on both.
+                style={{ ["--atlas-hot" as string]: d.hot, ["--atlas-dot" as string]: t.isLight ? "rgba(15,23,42,0.72)" : "rgba(241,240,255,0.9)" }}
+                stroke={edge}
                 strokeWidth={0.6}
                 vectorEffect="non-scaling-stroke"
                 onClick={d.go}
