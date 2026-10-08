@@ -17,8 +17,12 @@
  * keyboard: the 1:110m world has no shape at all for some thirty small
  * countries, and they are in the list.
  *
- * The map is a way in and shades nothing: every place is one tone, and the
- * one under the pointer another.
+ * The map is a way in and shades nothing by any figure: every place is one
+ * tone until it is pointed at, and then it lights in its flag's colour - a
+ * country in its own (flagColors.ts), a division in its own flag's where it
+ * has one (subnationFlagColors.ts), and a division or a county with no flag
+ * of its own in a shade of the colour of the place it belongs to, so that
+ * neighbours can still be told apart.
  *
  * Loaded when the Dashboard reaches it: the boundary files are large.
  */
@@ -32,6 +36,8 @@ import statesTopo from "us-atlas/states-10m.json";
 import { CaretRight, MapTrifold } from "@phosphor-icons/react";
 import { countriesData } from "../data/countriesData";
 import { countryForFeature, stateForFeature } from "../data/mapJoin";
+import { SUBNATION_FLAG_COLOR } from "../data/subnationFlagColors";
+import { flagColor, seen, shade } from "../lib/flagColor";
 import { usStatesData } from "../data/statesData";
 import { Card, Go, Head } from "./DashboardCitiesSectors";
 import { useTokens } from "./DataExplorer";
@@ -48,7 +54,15 @@ const COLOR = "#3b82f6";
 type Geo = { type: string; id?: string | number; properties: Record<string, string>; geometry: { type: string; coordinates: unknown[] } };
 type Level = { kind: "world" } | { kind: "country"; code: string } | { kind: "state"; abbr: string; fips: string };
 /** A shape on the map: its name, its outline, and what a press on it does. */
-type Shape = { key: string; name: string; d: string; go: () => void };
+type Shape = { key: string; name: string; d: string; go: () => void; /** The colour it lights in when pointed at. */ hot: string };
+/** The shades the places that share one flag are told apart by, in turn: the colour itself, lighter, darker, lighter still, darker still. */
+const STEPS = [0, 0.22, -0.18, 0.38, -0.32];
+const tint = (base: string, i: number) => shade(base, STEPS[i % STEPS.length]);
+/** A division's own flag's colour, where it has a flag. */
+const ownColor = (cc: string, name: string) => {
+  const raw = SUBNATION_FLAG_COLOR[cc]?.[name];
+  return raw ? seen(raw) : null;
+};
 
 /* As the World Maps page does it: a ring wound backwards is "everything but this island" to d3, so anything over a hemisphere is reversed. */
 function rewind(f: Geo): Geo {
@@ -140,11 +154,11 @@ export default function PlaceAtlas() {
 
   /** The shapes of the level the map is on, each with what a press does. */
   const shapes = useMemo<Shape[]>(() => {
-    const draw = (features: Geo[], projection: GeoProjection, name: (f: Geo) => string, go: (f: Geo) => () => void): Shape[] => {
+    const draw = (features: Geo[], projection: GeoProjection, name: (f: Geo) => string, go: (f: Geo) => () => void, hot: (f: Geo, i: number) => string): Shape[] => {
       const path = geoPath(projection);
       return features.flatMap((f, i) => {
         const d = path(f as never);
-        return d ? [{ key: `${f.id ?? ""}-${i}`, name: name(f), d, go: go(f) }] : [];
+        return d ? [{ key: `${f.id ?? ""}-${i}`, name: name(f), d, go: go(f), hot: hot(f, i) }] : [];
       });
     };
     if (level.kind === "world")
@@ -156,8 +170,10 @@ export default function PlaceAtlas() {
           const c = countryForFeature(f.properties.name);
           if (c) setLevel({ kind: "country", code: c.code });
         },
+        (f) => flagColor(countryForFeature(f.properties.name)?.code ?? "") ?? COLOR,
       );
-    if (level.kind === "country" && level.code === "US")
+    if (level.kind === "country" && level.code === "US") {
+      const base = flagColor("US") ?? COLOR;
       return draw(
         STATES.map((s) => s.f),
         geoAlbersUsa().fitExtent(BOX, collection(STATES.map((s) => s.f)) as never),
@@ -166,23 +182,30 @@ export default function PlaceAtlas() {
           const s = stateForFeature(f.properties.name);
           if (s) setLevel({ kind: "state", abbr: s.abbreviation, fips: String(f.id) });
         },
+        (f, i) => ownColor("US", f.properties.name) ?? tint(base, i),
       );
+    }
     if (level.kind === "country") {
       if (!divisions || divisions === "failed" || divisions.code !== level.code) return [];
+      const base = flagColor(level.code) ?? COLOR;
       return draw(
         divisions.features,
         fitTo(collection(framed(divisions.features))),
         (f) => f.properties.n,
         (f) => () => navigate(`/dashboard/subnations?country=${level.code}&name=${encodeURIComponent(f.properties.n)}`),
+        (f, i) => ownColor(level.code, f.properties.n) ?? tint(base, i),
       );
     }
     if (!counties) return [];
     const own = counties.filter((f) => String(f.id).startsWith(level.fips));
+    // A county has no flag the site holds: shades of its state's flag's colour, or of the country's.
+    const base = ownColor("US", usStatesData.find((s) => s.abbreviation === level.abbr)?.name ?? "") ?? flagColor("US") ?? COLOR;
     return draw(
       own,
       geoAlbersUsa().fitExtent(BOX, collection(own) as never),
       (f) => f.properties.name,
       (f) => () => navigate(`/dashboard/subnations?open=county:${f.id}`),
+      (_, i) => tint(base, i),
     );
   }, [level, divisions, counties, navigate]);
 
@@ -270,6 +293,7 @@ export default function PlaceAtlas() {
                 key={s.key}
                 d={s.d}
                 className="cursor-pointer fill-[var(--atlas-land)] hover:fill-[var(--atlas-hot)] focus:fill-[var(--atlas-hot)] outline-none transition-colors"
+                style={{ ["--atlas-hot" as string]: s.hot }}
                 stroke={edge}
                 strokeWidth={0.6}
                 strokeLinejoin="round"
@@ -287,7 +311,14 @@ export default function PlaceAtlas() {
             )}
           </svg>
           <p className="text-[11px] font-sans mt-2 min-h-[1.25rem]" style={{ color: hover ? t.headText : t.mutedText }} aria-live="polite">
-            {hover ? <span className="font-semibold">{hover}</span> : what}
+            {hover ? (
+              <span className="inline-flex items-center gap-1.5 font-semibold">
+                <span className="w-2.5 h-2.5 rounded-[3px] shrink-0" style={{ background: shapes.find((s) => s.name === hover)?.hot ?? "transparent" }} aria-hidden />
+                {hover}
+              </span>
+            ) : (
+              what
+            )}
           </p>
         </div>
 
@@ -314,7 +345,9 @@ export default function PlaceAtlas() {
       </div>
 
       <p className="text-[9px] font-sans leading-snug mt-3" style={{ color: t.mutedText }}>
-        The map is a way in and shades nothing. A country opens on the divisions Natural Earth draws for it - states, provinces, regions or departments, whichever its
+        The map is a way in and shades nothing by any figure. A place lights in its flag's colour when it is pointed at: a country in its own flag's, a division in its own
+        flag's where it has one, and a division or a county with no flag of its own in a shade of the colour of the country or state it belongs to. A country opens on
+ the divisions Natural Earth draws for it - states, provinces, regions or departments, whichever its
         first order is there; the United States opens on its states, and a state on its counties. A division or a county goes to its record on the Subnations page; the
         country or the state the map is on can be opened from above it. The world here is drawn at 1:110 million and has no shape for some small countries: they are in the
         list, as are a country's far-off divisions - France's overseas departments, Spain's Canaries - which the map leaves out of its frame so that the rest can be seen.

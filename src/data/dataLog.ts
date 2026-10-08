@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "One colour for each division that has a flag, read off the flag",
+    "from": "Wikimedia Commons",
+    "page": "/dashboard",
+    "where": "Dashboard",
+    "read": "2026-10-08",
+    "files": 1
+  },
+  {
     "what": "The counties of the United States: population by year, births, deaths and migration, land and water area",
     "from": "US Census Bureau",
     "page": "/dashboard/subnations",
@@ -360,4 +368,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 63;
+export const DATA_LOG_FILES = 64;

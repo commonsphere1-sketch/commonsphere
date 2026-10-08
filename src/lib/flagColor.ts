@@ -25,6 +25,20 @@ const towardsWhite = (hex: string, share: number) =>
     .map((v) => Math.round(v + (255 - v) * share).toString(16).padStart(2, "0"))
     .join("");
 
+/** A flag's colour as it can be seen on both themes: lifted towards white where it is too dark to show, and otherwise as it is. */
+export const seen = (raw: string) => (luminance(raw) < 0.07 ? towardsWhite(raw, 0.38) : raw);
+/**
+ * A shade of a colour, for telling apart the places that share one flag - the divisions of a country that have no
+ * flag of their own: a step above zero lifts it towards white, one below darkens it. It is the same hue throughout.
+ */
+export const shade = (hex: string, step: number) =>
+  step >= 0
+    ? towardsWhite(hex, step)
+    : "#" +
+      channels(hex)
+        .map((v) => Math.round(v * (1 + step)).toString(16).padStart(2, "0"))
+        .join("");
+
 const memo = new Map<string, string | null>();
 
 /** The colour of a country's bar, by ISO code: its flag's, lifted where it would not show; null where its flag has none. */

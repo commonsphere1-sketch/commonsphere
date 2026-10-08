@@ -404,7 +404,7 @@ function SubnationWindow({ s, onClose, onCounties }: { s: Subnation; onClose: ()
     ...(s.article ? [{ label: `Wikipedia — ${s.article}`, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(s.article.replace(/ /g, "_"))}` }] : []),
   ];
   return (
-    <Window title={s.name} kicker={`${s.kind || "Division"} · ${c?.name ?? s.cc}`} flagSrc={ownFlag(s, 160) ?? flag(s.cc, 160)} chips={[...(s.code ? [s.code] : []), ...(s.capital ? [`Capital: ${s.capital}`] : []), ...(s.region ? [s.region] : [])]} onClose={onClose}>
+    <Window title={s.name} kicker={`${s.kind || "Division"} · ${c?.name ?? s.cc}`} flagSrc={ownFlag(s, 250) ?? flag(s.cc, 160)} chips={[...(s.code ? [s.code] : []), ...(s.capital ? [`Capital: ${s.capital}`] : []), ...(s.region ? [s.region] : [])]} onClose={onClose}>
       <div className="flex flex-wrap gap-2">
         {c && <LinkButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Open {c.name}</LinkButton>}
         {state && <LinkButton onClick={() => navigate(`/dashboard/states?open=${state.id}`)}>Open {state.name} on the US States page</LinkButton>}
@@ -519,7 +519,7 @@ function DivisionCard({ s, onOpen }: { s: Subnation; onOpen: () => void }) {
       <span className="flex items-center gap-2.5 min-w-0">
         {/* The division's own flag, where one is held under a licence the site can use; an empty frame where none is, not its country's. */}
         <span className="w-9 h-6 rounded-[3px] overflow-hidden shrink-0 border border-border/60 bg-muted/40" title={s.flag ? `${s.name}'s flag · Wikimedia Commons, ${s.flagLicence}` : "Its flag is not held"}>
-          {s.flag && <img src={ownFlag(s, 72)!} alt="" loading="lazy" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />}
+          {s.flag && <img src={ownFlag(s, 120)!} alt="" loading="lazy" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />}
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-bold font-sans text-foreground truncate">{s.name}</span>

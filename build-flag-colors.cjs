@@ -18,6 +18,9 @@
  * needs nothing installed.
  *
  *   node build-flag-colors.cjs
+ *
+ * The decoder and the rule are also used, unchanged, by
+ * build-subnation-flag-colors.cjs for the flags of countries' divisions.
  */
 const fs = require("fs");
 const os = require("os");
@@ -136,7 +139,7 @@ function loadCountries() {
   return require(bundle).countriesData;
 }
 
-(async () => {
+const main = async () => {
   const countries = loadCountries();
   const out = {};
   const none = [];
@@ -192,7 +195,12 @@ ${Object.entries(out).map(([code, c]) => `  ${code}: "${c}",`).join("\n")}
   console.log(`  none for: ${none.join(", ") || "-"}`);
   for (const code of ["US", "GB", "FR", "DE", "JP", "CN", "IN", "BR", "ZA", "CA", "AU", "NG", "SA", "IT"]) process.stdout.write(`${code} ${out[code]}  `);
   console.log();
-})().catch((e) => {
-  console.error(e.message);
-  process.exit(1);
-});
+};
+
+module.exports = { decodePng, flagColor };
+if (require.main === module)
+  main().catch((e) => {
+    console.error(e.message);
+    process.exit(1);
+  });
+

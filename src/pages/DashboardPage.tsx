@@ -2995,6 +2995,19 @@ export function DashboardPage() {
           onNav={navigate}
         />
 
+        {/* ── FIND A PLACE: a map to press. A country opens on its divisions, the United States on its states and a
+            state on its counties; a division or a county goes to its record on the Subnations page. Above the comparison
+            card, as asked. ── */}
+        <Suspense
+          fallback={
+            <div className="rounded-2xl p-5 text-[11px] font-sans" style={{ background: cardBg, border: cardBorder, color: mutedText }}>
+              Loading the map…
+            </div>
+          }
+        >
+          <PlaceAtlas />
+        </Suspense>
+
         {/* ── PINNED / MY DASHBOARD ─────────────────────────────────────── */}
         <PinnedSection
           isLight={isLight}
@@ -3062,18 +3075,6 @@ export function DashboardPage() {
 
         {/* ── INTERACTIVE DATA PANEL (standalone full-width) ─────────────── */}
         <DataExplorer />
-
-        {/* ── FIND A PLACE: a map to press. A country opens on its divisions, the United States on its states and a
-            state on its counties; a division or a county goes to its record on the Subnations page. ── */}
-        <Suspense
-          fallback={
-            <div className="rounded-2xl p-5 text-[11px] font-sans" style={{ background: cardBg, border: cardBorder, color: mutedText }}>
-              Loading the map…
-            </div>
-          }
-        >
-          <PlaceAtlas />
-        </Suspense>
 
         {/* The Trends & Projections desk stood here and was removed as asked; its energy panel is kept, lower on the
             page under the sectors and commodities. */}
