@@ -23,8 +23,8 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
+  
+  
   PieChart,
   Pie,
   Cell,
@@ -1030,26 +1030,7 @@ function EconomyModal({
     };
   }, [onClose]);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload?.length) {
-      return (
-        <div className="cs-chart-tip rounded-md p-3 text-xs font-mono font-bold">
-          <p className="font-semibold mb-1">{label}</p>
-          {payload.map((e: any) => (
-            <p key={e.name} style={{ color: e.color }}>
-              {e.name}: {e.value}
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
 
-  const hasTrends = economy.trends.length >= 2;
-  const hasGrowthOrInflation = economy.trends.some(
-    (t) => has(t.growth) || has(t.inflation),
-  );
 
   // Prefer World Bank resource rents over the curated list: they are
   // sourced, dated and cover ~250 economies. Curated data is the fallback
@@ -1466,7 +1447,7 @@ function EconomyModal({
               )}
             </div>
 
-            {(showMarketTiles || (hasTrends && hasGrowthOrInflation)) && (<>
+            {showMarketTiles && (<>
             {/* ════════════════════════════════════════
                 SECTION DIVIDER: MARKETS
             ════════════════════════════════════════ */}
@@ -1554,87 +1535,6 @@ function EconomyModal({
                       </div>
                     </div>
                   ))}
-                </div>
-              </div>
-              )}
-
-              {/* Inflation vs Growth trend */}
-              {hasTrends && hasGrowthOrInflation && (
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    Growth vs Inflation Trend
-                  </span>
-                  <div className="flex-1 h-px bg-border/60" />
-                </div>
-                <div className="modal-tile rounded-xl p-4">
-                  <div className="h-44">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={economy.trends}
-                        margin={{ top: 4, right: 8, left: -16, bottom: 0 }}
-                      >
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                          stroke="rgba(255,255,255,0.06)"
-                          vertical={false}
-                        />
-                        <XAxis
-                          dataKey="year"
-                          tick={{
-                            fill: "hsl(0,0%,55%)",
-                            fontSize: 9,
-                            fontFamily: "Figures, IBM Plex Mono",
-                          }}
-                          axisLine={false}
-                          tickLine={false}
-                        />
-                        <YAxis
-                          tick={{
-                            fill: "hsl(0,0%,55%)",
-                            fontSize: 9,
-                            fontFamily: "Figures, IBM Plex Mono",
-                          }}
-                          axisLine={false}
-                          tickLine={false}
-                          tickFormatter={(v) => `${v}%`}
-                        />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Bar
-                          dataKey="growth"
-                          name="GDP Growth %"
-                          fill="hsl(142,60%,45%)"
-                          radius={[2, 2, 0, 0]}
-                          maxBarSize={18}
-                          isAnimationActive={false}
-                        />
-                        <Bar
-                          dataKey="inflation"
-                          name="Inflation %"
-                          fill="hsl(35,100%,50%)"
-                          radius={[2, 2, 0, 0]}
-                          maxBarSize={18}
-                          isAnimationActive={false}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="flex justify-center gap-4 mt-2">
-                    {[
-                      { label: "GDP Growth", color: "hsl(142,60%,45%)" },
-                      { label: "Inflation", color: "hsl(35,100%,50%)" },
-                    ].map((l) => (
-                      <div key={l.label} className="flex items-center gap-1.5">
-                        <div
-                          className="w-3 h-3 rounded-sm"
-                          style={{ background: l.color }}
-                        />
-                        <span className="text-[10px] font-mono text-muted-foreground">
-                          {l.label}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
               )}
