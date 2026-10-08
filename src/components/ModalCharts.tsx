@@ -249,12 +249,18 @@ export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part
   );
 }
 
-/** A figure in a short table of them: what it is, the figure in ink, and its unit or year. */
+/**
+ * A figure in a short table of them: what it is, the figure in ink, and its unit or year.
+ *
+ * The name keeps at least two fifths of the row and the figure wraps within the rest. The figure once could not
+ * shrink, so a long note beside it took the whole row: the name was squeezed to a word a line and the figure was
+ * drawn over it and off the card's edge.
+ */
 export function FigureRow({ label, value, sub }: { label: ReactNode; value: ReactNode; sub?: ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-1.5 border-b border-border last:border-b-0">
-      <span className="text-[11px] font-sans text-foreground min-w-0">{label}</span>
-      <span className="text-[11px] font-mono font-semibold text-foreground text-right shrink-0">
+      <span className="text-[11px] font-sans text-foreground flex-1 min-w-[40%]">{label}</span>
+      <span className="text-[11px] font-mono font-semibold text-foreground text-right min-w-0 leading-snug">
         {value}
         {sub && <span className="font-normal text-muted-foreground"> · {sub}</span>}
       </span>
