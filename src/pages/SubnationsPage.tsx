@@ -36,6 +36,15 @@
  * A change over time is worked out here from two published figures, and says
  * so. Nothing is estimated.
  *
+ * Every window opens on a small map (components/OutlineMap): the place's
+ * outline as the site's maps draw it, with the places listed inside it as
+ * dots - a country's divisions, a division, a county, a district - and what
+ * can be said of those places together (their largest as bars, their kinds).
+ * A county adds what follows from its own Census figures: its density, its
+ * share of its state and its rank. A district adds its own record where one
+ * can be told to be its own (lib/liveRecord), and the figures of the
+ * division and the country it lies in, named as theirs.
+ *
  * A second-order division outside the United States - a county, district or
  * municipality - has a window too, reached from the Dashboard's map
  * (?open=district:<country>:<its place in the country's file>). The site
@@ -50,18 +59,22 @@
  */
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { geoBounds, geoCentroid, geoContains, geoMercator, geoPath } from "d3-geo";
+
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowLeft, ArrowRight, MagnifyingGlass, MapPin, MapTrifold, TreeStructure, X } from "@phosphor-icons/react";
 import { TONE } from "@/lib/chipTone";
-import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest, type Admin2Shape } from "../lib/admin2";
+import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest } from "../lib/admin2";
+import { liveRecord, type LiveRecord } from "../lib/liveRecord";
+import { framed, placesWithin, useAdmin1, useCountyOutline } from "../lib/outlines";
 import { flagColor } from "../lib/flagColor";
 import { byPeople, countryPeople, peopleSource, peopleSources } from "../lib/countryPeople";
 import { lockScroll } from "../lib/scrollLock";
-import { inSentence, qualityOf } from "../components/CountryQuality";
-import { DivisionPlaces, PlacesInside, insideOf, usePlaces, type Inside } from "../components/DivisionPlaces";
+import CountryQuality, { inSentence, qualityOf } from "../components/CountryQuality";
+import { DivisionPlaces, PlacesAnalysis, PlacesInside, insideOf, usePlaces, type Inside } from "../components/DivisionPlaces";
 import { FilterBar } from "../components/FilterBar";
-import { FigureRow } from "../components/ModalCharts";
+import { ArticlePanel } from "../components/HistoryPanel";
+import { ChartTitle, FigureRow, MeasureBars } from "../components/ModalCharts";
+import { OutlineMap, placeDots } from "../components/OutlineMap";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
 import { COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE } from "../data/countryIndicators";
@@ -454,6 +467,12 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
   const c = COUNTRY.get(s.cc);
   const state = STATE_BY_CODE.get(s.code ?? "");
   const { parts, sources } = useMemo(() => partsOf(s), [s]);
+  /* Its outline, among the ones the site's maps draw for its country, and the places GeoNames lists in it: the map at the head of its window. */
+  const drawn = useAdmin1(s.cc);
+  const outline = useMemo(() => (drawn ? drawn.filter((f) => f.properties.n === s.name) : []), [drawn, s.name]);
+  const listed = usePlaces(s.cc);
+  const within = useMemo(() => (listed ? insideOf(listed, s) : null), [listed, s]);
+  const dots = useMemo(() => placeDots(within?.rows ?? []), [within]);
   /* Where a reader can check it: its own site first, then the reference records, Wikipedia last. */
   const read: Source[] = [
     ...(s.site ? [{ label: `${s.name} — official website`, url: s.site }] : []),
@@ -474,8 +493,17 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
           <MapTrifold size={12} aria-hidden /> On the map
         </LinkButton>
       </div>
+      {outline.length > 0 && (
+        <div>
+          <OutlineMap shapes={outline} dots={dots} color={flagColor(s.cc) ?? COLOR} label={`The outline of ${s.name}, with ${dots.length} of the places listed in it`} />
+          <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
+            {s.name} as the site's maps draw it{dots.length ? `, with ${within!.rows.length > dots.length ? `the ${dots.length} largest of the ${whole(within!.rows.length)}` : `the ${dots.length}`} places GeoNames lists in it as dots` : ""}.
+          </p>
+        </div>
+      )}
       {/* What lies inside it comes first, as asked - its counties or districts, and its towns, cities and villages, a card each with a window of its own - and the division's own record after. */}
       <DivisionPlaces s={s} country={c?.name ?? s.cc} onPlace={setPlaceOpen} onCloseAll={onClose} />
+      {within && <PlacesAnalysis rows={within.rows} name={s.name} />}
       <div className="flex items-center gap-2 mt-2">
         <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-wide">{s.name} itself</h3>
         <div className="flex-1 h-px bg-border" />
@@ -503,6 +531,47 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
   const now = pops[pops.length - 1];
   const change = pops[0] > 0 ? (100 * (now - pops[0])) / pops[0] : null;
   const year = `the year to 1 July ${last}`;
+  /** Whether one of its places has its window open: this one is then out of sight, until the reader comes back. */
+  const [placeOpen, setPlaceOpen] = useState(false);
+  /* Its outline, and the places of GeoNames' list whose point lies inside it. */
+  const outline = useCountyOutline(fips);
+  const shapes = useMemo(() => (outline ? [outline] : []), [outline]);
+  const listed = usePlaces("US");
+  const rows = useMemo(() => (outline && listed ? placesWithin(outline, listed.places) : null), [outline, listed]);
+  const dots = useMemo(() => placeDots(rows ?? []), [rows]);
+  const stateRecord = useMemo(() => SUBNATIONS.find((s) => s.code === `US-${abbr}`), [abbr]);
+  /* Where it stands among its state's counties and the country's, by the same year's population: counted here from the Census Bureau's figures. */
+  const end = (x: UsCounty) => x[7][x[7].length - 1];
+  const peers = useMemo(() => data.US_COUNTIES.filter((x) => x[2] === abbr).sort((a, b) => b[7][b[7].length - 1] - a[7][a[7].length - 1]), [data, abbr]);
+  const statePeople = peers.reduce((t, x) => t + end(x), 0);
+  const inState = peers.findIndex((x) => x[0] === fips) + 1;
+  const inCountry = useMemo(() => data.US_COUNTIES.filter((x) => x[7][x[7].length - 1] > now).length + 1, [data, now]);
+  const plusMinus = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${whole(Math.abs(v))}`;
+  /* Its state's five largest counties, and this one after them where it is not among them. */
+  const beside = [...peers.slice(0, 5), ...(inState > 5 ? [county] : [])];
+  const analysed: Part = {
+    title: "Analysed",
+    note: `Worked out here from the Census Bureau's figures above: its people on 1 July ${last}, and its births, deaths and moves in the year to that day.`,
+    fields: [
+      { label: "Density", value: land ? `${(now / land).toFixed(now / land < 10 ? 2 : 1)} people per km² of land` : null, sub: "its people over its land area" },
+      { label: "Natural change", value: plusMinus(births - deaths), sub: `births less deaths, ${year}` },
+      { label: "Net migration", value: plusMinus(international + domestic), sub: `from abroad and from other counties, ${year}` },
+      { label: `Share of ${state?.name ?? abbr}'s people`, value: statePeople > 0 ? `${((100 * now) / statePeople).toFixed(now / statePeople < 0.01 ? 2 : 1)}%` : null, sub: `of the ${whole(statePeople)} in its ${peers.length} counties` },
+      { label: `Rank in ${state?.name ?? abbr}`, value: inState ? `${inState} of ${peers.length}` : null, sub: "by population, the largest first" },
+      { label: "Rank in the United States", value: `${whole(inCountry)} of ${whole(data.US_COUNTIES.length)}`, sub: "among counties and their equivalents" },
+    ],
+    extra: (
+      <div className="modal-tile rounded-xl p-4 mt-2">
+        <ChartTitle>
+          Beside {state?.name ?? abbr}'s largest counties · people, 1 July {last}
+        </ChartTitle>
+        <MeasureBars
+          label={`${name} beside the largest counties of ${state?.name ?? abbr} by population`}
+          rows={beside.map((x) => ({ key: x[0], label: x[0] === fips ? `${x[1]} · this county` : x[1], value: end(x), text: whole(end(x)), color: x[0] === fips ? COLOR : undefined }))}
+        />
+      </div>
+    ),
+  };
   const parts: Part[] = [
     {
       title: "Identity",
@@ -537,6 +606,7 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
         { label: "Urbanization", value: null },
       ],
     },
+    analysed,
     {
       title: "Government · Economy · Society · Political data",
       note: `The site holds none of these for a county. ${state?.name ?? "The state"}'s are in its own window.`,
@@ -550,58 +620,58 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
     },
   ];
   return (
-    <Window onBack={onBack} title={name} kicker={`County · ${state?.name ?? abbr}`} flagSrc={flag("US", 160)} chips={[`FIPS ${fips}`, state?.name ?? abbr]} onClose={onClose}>
+    <Window wide top={!placeOpen} hidden={placeOpen} onBack={onBack} title={name} kicker={`County · ${state?.name ?? abbr}`} flagSrc={flag("US", 160)} chips={[`FIPS ${fips}`, state?.name ?? abbr, ...(rows ? [`${whole(rows.length)} places listed`] : [])]} onClose={onClose}>
       <div className="flex flex-wrap gap-2">
         {state && <LinkButton onClick={() => navigate(`/dashboard/subnations?open=US-${state.abbreviation}`)}>{state.name}'s record</LinkButton>}
         {state && <LinkButton onClick={() => navigate(`/dashboard/states?open=${state.id}`)}>Open {state.name} on the US States page</LinkButton>}
       </div>
+      {shapes.length > 0 && (
+        <div>
+          <OutlineMap shapes={shapes} dots={dots} color={(stateRecord && flagColor("US")) ?? COLOR} label={`The outline of ${name}, with the ${dots.length} places listed inside it`} />
+          <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
+            {name} as the Census Bureau's boundary files draw it{rows ? `, with the ${rows.length > dots.length ? `${dots.length} largest of the ${whole(rows.length)}` : whole(rows.length)} places GeoNames lists inside it as dots` : ""}.
+          </p>
+        </div>
+      )}
       {parts.map((p) => (
         <Section key={p.title} part={p} />
       ))}
-      <SourceLink sources={[data.US_COUNTY_SOURCES.estimates, data.US_COUNTY_SOURCES.gazetteer]} />
+      <section>
+        <div className="flex items-center gap-2 mb-1.5">
+          <h3 className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">Towns, cities and villages</h3>
+          <div className="flex-1 h-px bg-border/60" />
+        </div>
+        {outline === undefined || listed === undefined ? (
+          <p className="text-[11px] font-sans text-muted-foreground">Loading its places…</p>
+        ) : !rows || !listed ? (
+          <p className="text-[11px] font-sans text-muted-foreground leading-snug">Not held: the boundary files the site draws from have no outline under this county's code, so its places are not picked out rather than guessed at.</p>
+        ) : rows.length === 0 ? (
+          <p className="text-[11px] font-sans text-muted-foreground">GeoNames lists no place of more than 500 people inside its outline.</p>
+        ) : (
+          <>
+            <p className="text-[11px] font-sans text-muted-foreground leading-snug mb-2">
+              The places of GeoNames' list - every town, city and village of more than 500 people, and every seat of a county - whose point lies inside the outline of {name}. That
+              is worked out here, from the outline as it is drawn, so a place at its very edge can fall on the other side.
+            </p>
+            <PlacesAnalysis rows={rows} name={name} />
+            <PlacesInside
+              rows={rows}
+              file={listed}
+              division={(p) => stateRecord ?? { id: "", cc: "US", name: state?.name ?? abbr, lat: p[1], lon: p[2] }}
+              country="United States"
+              outline={outline ? { shape: outline, name } : undefined}
+              onPlace={setPlaceOpen}
+              onCloseAll={onClose}
+            />
+          </>
+        )}
+      </section>
+      <SourceLink sources={[data.US_COUNTY_SOURCES.estimates, data.US_COUNTY_SOURCES.gazetteer, { label: "US Census Bureau — cartographic boundary files, via us-atlas", url: "https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html" }, { label: PLACES_SOURCE.geonames.label, url: PLACES_SOURCE.geonames.url }]} />
     </Window>
   );
 }
 
 // ── A district's window: a second-order division outside the United States ──
-
-const MAP_W = 640;
-const MAP_H = 260;
-
-/** A district's outline, with the places inside it as dots: where it is, not how big anything is. */
-function OutlineMap({ shape, rows, color, label }: { shape: Admin2Shape; rows: PlaceRow[]; color: string; label: string }) {
-  const { d, dots } = useMemo(() => {
-    const lon = geoCentroid(shape as never)[0];
-    // Turned to its own middle, so that one across 180° is not split to both edges.
-    const projection = geoMercator()
-      .rotate([Number.isFinite(lon) ? -lon : 0, 0])
-      .fitExtent(
-        [
-          [10, 10],
-          [MAP_W - 10, MAP_H - 10],
-        ],
-        shape as never,
-      );
-    return {
-      d: geoPath(projection)(shape as never) ?? "",
-      dots: rows.slice(0, 300).flatMap((p) => {
-        const xy = projection([p[2], p[1]]);
-        return xy ? [{ id: p[6], name: p[0], x: xy[0], y: xy[1] }] : [];
-      }),
-    };
-  }, [shape, rows]);
-  if (!d) return null;
-  return (
-    <svg viewBox={`0 0 ${MAP_W} ${MAP_H}`} className="w-full h-auto modal-tile rounded-xl" role="img" aria-label={label}>
-      <path d={d} fill={color} fillOpacity={0.28} stroke={color} strokeWidth={1.4} strokeLinejoin="round" />
-      {dots.map((p) => (
-        <circle key={p.id} cx={p.x} cy={p.y} r={2.4} className="fill-foreground" fillOpacity={0.85}>
-          <title>{p.name}</title>
-        </circle>
-      ))}
-    </svg>
-  );
-}
 
 function DistrictWindow({
   cc,
@@ -633,14 +703,25 @@ function DistrictWindow({
   const parent = useMemo(() => (parentName ? SUBNATIONS.find((s) => s.cc === cc && s.name === parentName) : undefined), [cc, parentName]);
   /* The places of GeoNames' list whose point lies inside its outline, in the list's order: largest first. */
   const rows = useMemo(() => {
-    if (!shape || !file) return null;
-    const [[w, s], [e, n]] = geoBounds(shape as never);
-    const near = (lon: number, lat: number) => lat >= s && lat <= n && (w <= e ? lon >= w && lon <= e : lon >= w || lon <= e);
-    return file.places.filter((p) => near(p[2], p[1]) && geoContains(shape as never, [p[2], p[1]]));
+    return shape && file ? placesWithin(shape, file.places) : null;
   }, [shape, file]);
+  const shapes = useMemo(() => (shape ? [shape] : []), [shape]);
+  const dots = useMemo(() => placeDots(rows ?? []), [rows]);
   /* The division a place's window names for it: the one the district lies in, or, where none was found, the one GeoNames files the place under. */
   const division = (p: PlaceRow): Subnation => parent ?? { id: "", cc, name: file?.regions[p[4]] || name, lat: p[1], lon: p[2] };
   const color = flagColor(cc) ?? COLOR;
+  /* Its own record, looked for live and taken only where its name, its place and its size all agree (lib/liveRecord): undefined while it is looked for, null where none passes. */
+  const [live, setLive] = useState<LiveRecord | null | undefined>(undefined);
+  const [history, setHistory] = useState(false);
+  useEffect(() => {
+    if (!shape) return;
+    let off = false;
+    setLive(undefined);
+    liveRecord(`${cc}:${index}`, [name, ...(parentName ? [`${name}, ${parentName}`] : []), `${name}, ${country}`], shape).then((r) => !off && setLive(r));
+    return () => {
+      off = true;
+    };
+  }, [shape, cc, index, name, parentName, country]);
 
   if (second === undefined)
     return (
@@ -656,6 +737,51 @@ function DistrictWindow({
     );
 
   const peopled = rows?.filter((p) => p[3] > 0) ?? [];
+  const earliest = live?.pop[0];
+  const latest = live?.pop[live.pop.length - 1];
+  const density = live && latest ? latest[1] / live.areaKm2 : null;
+  const ci = COUNTRY_INDICATORS[cc];
+  /* Its own record: what Wikidata gives for it, where a record can be told to be its own. */
+  const record: Part =
+    live === undefined
+      ? { title: "Its own record", note: "Looking for its record…", fields: [] }
+      : live === null
+        ? {
+            title: "Its own record",
+            note: `Not held. The site keeps no figures for a second-order division outside the United States, so its record is looked for on Wikidata when its window opens, and taken only where an article of its name gives a point inside this outline and the record's area agrees with the outline's to within a fifth. None passed for ${name}, so nothing is shown - rather than a town's figures under a district's name.`,
+            fields: [
+              { label: "Population", value: null },
+              { label: "Area", value: null },
+            ],
+          }
+        : {
+            title: "Its own record",
+            note: "Read from its Wikidata record as the window opened. The record was taken as this district's because an article of its name gives a point inside this outline, and the area the record gives agrees with the outline's to within a fifth.",
+            fields: [
+              { label: "Population", value: latest ? whole(latest[1]) : null, sub: latest ? `${latest[0]} · the latest dated figure its record cites a source for` : undefined },
+              { label: "Area", value: `${live.areaKm2 < 100 ? live.areaKm2.toFixed(1) : whole(live.areaKm2)} km²`, sub: "as its record gives it" },
+              { label: "Density", value: density ? `${density < 10 ? density.toFixed(1) : whole(density)} people per km²` : null, sub: "worked out here from the two figures" },
+              {
+                label: "Population change",
+                value: earliest && latest && earliest[0] !== latest[0] ? signed((100 * (latest[1] - earliest[1])) / earliest[1]) : null,
+                sub: earliest ? `on ${whole(earliest[1])} in ${earliest[0]} · worked out here from the two figures` : undefined,
+              },
+              { label: "Founded", value: live.founded ? String(live.founded) : null },
+            ],
+            extra: (
+              <>
+                {live.pop.length > 1 && <SeriesChart points={live.pop} label={`${name}'s population`} />}
+                <SourceLink
+                  sources={[
+                    ...(live.site ? [{ label: `${name} — official website`, url: live.site }] : []),
+                    { label: "Its Wikidata record (CC0)", url: `https://www.wikidata.org/wiki/${live.qid}` },
+                    { label: `Wikipedia — ${live.title}`, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(live.title.replace(/ /g, "_"))}` },
+                  ]}
+                  className="mt-2"
+                />
+              </>
+            ),
+          };
   const parts: Part[] = [
     {
       title: "Identity",
@@ -678,10 +804,28 @@ function DistrictWindow({
         { label: "Gathered by", value: "geoBoundaries", sub: "its gbOpen release, second order" },
       ],
     },
+    ...(parent
+      ? [
+          {
+            title: `The division it lies in · ${parent.name}`,
+            note: `${parent.name}'s own figures, not ${name}'s.`,
+            fields: [
+              { label: "Kind", value: parent.kind ?? null },
+              { label: "Population", value: parent.pop ? people(parent.pop[1]) : null, sub: parent.pop ? String(parent.pop[0]) : undefined },
+              { label: "Area", value: parent.areaKm2 ? `${whole(parent.areaKm2)} km²` : null },
+              { label: "Capital", value: parent.capital ?? null },
+            ],
+          },
+        ]
+      : []),
     {
-      title: "Population · Area · Government · Economy · Society",
-      note: `The site holds none of these for a second-order division outside the United States, and works none out from an outline. ${parent ? `${parent.name}'s` : `${country}'s`} are in its own window.`,
-      fields: [],
+      title: `The country it lies in · ${country}`,
+      note: `${country}'s own figures, each with its year - not ${name}'s.`,
+      fields: [
+        { label: "Population", value: ci?.population ? people(ci.population.v) : null, sub: ci?.population?.y },
+        { label: "GDP per person", value: ci?.gdpPerCapita ? usd(ci.gdpPerCapita.v) : null, sub: ci?.gdpPerCapita?.y },
+        { label: "Life expectancy", value: ci?.lifeExpectancy ? `${ci.lifeExpectancy.v} years` : null, sub: ci?.lifeExpectancy?.y },
+      ],
     },
   ];
   return (
@@ -693,7 +837,7 @@ function DistrictWindow({
       title={name}
       kicker={`${info?.kind ?? "Second-order division"} · ${[parentName, country].filter(Boolean).join(" · ")}`}
       flagSrc={(parent && ownFlag(parent, 250)) ?? flag(cc, 160)}
-      chips={[...(parentName ? [parentName] : []), country, ...(rows ? [`${whole(rows.length)} places listed`] : [])]}
+      chips={[...(parentName ? [parentName] : []), country, ...(rows ? [`${whole(rows.length)} ${rows.length === 1 ? "place" : "places"} listed`] : [])]}
       onClose={onClose}
     >
       <div className="flex flex-wrap gap-2">
@@ -703,6 +847,27 @@ function DistrictWindow({
           <MapTrifold size={12} aria-hidden /> On the map
         </LinkButton>
       </div>
+
+      <div>
+        <OutlineMap shapes={shapes} dots={dots} color={color} label={`The outline of ${name}, with the ${dots.length} places listed inside it`} />
+        <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
+          {name} as the map draws it{rows ? `, with the ${rows.length > dots.length ? `${dots.length} largest of the ${whole(rows.length)}` : whole(rows.length)} ${rows.length === 1 ? "place" : "places"} GeoNames lists inside it as ${rows.length === 1 ? "a dot" : "dots"}` : ""}.
+        </p>
+      </div>
+
+      <Section part={record} />
+      {live && (
+        <div>
+          <button type="button" onClick={() => setHistory((x) => !x)} aria-expanded={history} className="text-[11px] font-semibold font-sans px-3 py-1.5 rounded-full border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer">
+            {history ? "Hide its history" : "Its history, from Wikipedia"}
+          </button>
+          {history && (
+            <div className="mt-3">
+              <ArticlePanel title={live.title} name={name} mode="history" />
+            </div>
+          )}
+        </div>
+      )}
 
       <section>
         <div className="flex items-center gap-2 mb-1.5">
@@ -719,8 +884,7 @@ function DistrictWindow({
               The places of GeoNames' list - every town, city and village of more than 500 people, and every seat of a county or district - whose point lies inside the outline
               of {name}. That is worked out here, from the outline as the map draws it, so a place at its very edge can fall on the other side.
             </p>
-            <OutlineMap shape={shape} rows={rows} color={color} label={`The outline of ${name}, with the ${rows.length} places listed inside it`} />
-            <div className="grid grid-cols-2 gap-3 my-3">
+            <div className="grid grid-cols-2 gap-3 mb-3">
               <div className="modal-tile rounded-lg p-3 min-w-0">
                 <p className="text-xs text-muted-foreground font-sans">Towns, cities and villages</p>
                 <p className="text-base font-bold font-mono text-foreground">{whole(rows.length)}</p>
@@ -734,8 +898,9 @@ function DistrictWindow({
                 {peopled[0] && <p className="text-[10px] text-muted-foreground font-sans mt-0.5 leading-snug">{whole(peopled[0][3])} people, as GeoNames has it</p>}
               </div>
             </div>
+            <PlacesAnalysis rows={rows} name={name} />
             {rows.length > 0 ? (
-              <PlacesInside rows={rows} file={file} division={division} country={country} onPlace={setPlaceOpen} onCloseAll={onClose} />
+              <PlacesInside rows={rows} file={file} division={division} country={country} outline={{ shape, name }} onPlace={setPlaceOpen} onCloseAll={onClose} />
             ) : (
               <p className="text-[11px] font-sans text-muted-foreground">GeoNames lists no place of more than 500 people inside its outline.</p>
             )}
@@ -747,7 +912,17 @@ function DistrictWindow({
       {parts.map((p) => (
         <Section key={p.title} part={p} />
       ))}
-      <SourceLink sources={[ADMIN2_SOURCE, { label: PLACES_SOURCE.geonames.label, url: PLACES_SOURCE.geonames.url }, SUBNATIONS_SOURCES.naturalEarth]} />
+      {/* The indexes the site holds are the country's: shown as the country's, as a town's window shows them. */}
+      <CountryQuality code={cc} country={country} place={name} />
+      <SourceLink
+        sources={[
+          ADMIN2_SOURCE,
+          { label: PLACES_SOURCE.geonames.label, url: PLACES_SOURCE.geonames.url },
+          SUBNATIONS_SOURCES.naturalEarth,
+          SUBNATIONS_SOURCES.wikidata,
+          { label: COUNTRY_INDICATORS_SOURCE.label, url: COUNTRY_INDICATORS_SOURCE.url },
+        ]}
+      />
     </Window>
   );
 }
@@ -924,6 +1099,10 @@ function CountryWindow({
   /* What lies inside each division, counted from the country's places once they are fetched. */
   const places = usePlaces(row.cc);
   const insides = useMemo(() => (places ? new Map(row.divisions.map((d) => [d.id, insideOf(places, d)])) : null), [places, row]);
+  /* The map at the head of its window: its divisions as the site's maps draw them, framed without its far-off parts, with its largest listed places as dots. */
+  const drawn = useAdmin1(row.cc);
+  const frame = useMemo(() => (drawn ? framed(drawn) : undefined), [drawn]);
+  const dots = useMemo(() => placeDots(places?.places ?? [], 150), [places]);
   const counties = useMemo(() => (countyData && countyState ? countyData.US_COUNTIES.filter((x) => x[2] === countyState) : []), [countyData, countyState]);
   const stateName = usStatesData.find((s) => s.abbreviation === countyState)?.name ?? countyState;
   return (
@@ -936,8 +1115,19 @@ function CountryWindow({
       </div>
       {notice && <p className="text-[12px] font-sans text-foreground rounded-xl border border-border px-4 py-2.5">{notice}</p>}
 
+      {drawn && drawn.length > 0 && (
+        <div>
+          <OutlineMap shapes={drawn} frame={frame} dots={dots} color={flagColor(row.cc) ?? COLOR} label={`${row.name} and its ${drawn.length} divisions, with its ${dots.length} largest listed places`} />
+          <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
+            {row.name}'s divisions as the site's maps draw them{dots.length ? `, with the ${dots.length} largest places GeoNames lists for it as dots` : ""}
+            {frame && frame.length < drawn.length ? " - framed without its far-off parts, which are in the list below" : ""}.
+          </p>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
         {!countyState && (
+
           <>
             <label className={`flex items-center gap-1.5 ${field} focus-within:border-foreground/40`}>
               <MagnifyingGlass size={13} className="text-muted-foreground shrink-0" aria-hidden />

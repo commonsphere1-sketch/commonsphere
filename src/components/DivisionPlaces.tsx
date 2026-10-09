@@ -55,13 +55,16 @@ import type { UnCity } from "../data/unCities";
 import type { UsCounty } from "../data/usCounties";
 import { inSentence } from "./CountryQuality";
 import { ArticlePanel } from "./HistoryPanel";
-import { ChartNote, ChartTitle, FigureRow, PartsBar, PartsDonut } from "./ModalCharts";
+import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, PartsDonut } from "./ModalCharts";
+import { OutlineMap } from "./OutlineMap";
 import { SeeAlso } from "./SeeAlso";
 
 /** The place's country's quality of life, as a city's window gives it: loaded when a window opens. */
 const CountryQuality = lazy(() => import("./CountryQuality"));
 import { PLACE_KINDS, PLACES_SOURCE, type PlaceRow, type PlacesFile } from "../data/placesIndex";
 import type { Subnation } from "../data/subnations";
+import { flagColor } from "../lib/flagColor";
+import { useAdmin1, type Outline } from "../lib/outlines";
 import { SourceLink } from "./SourceLink";
 
 const FILES = new Map<string, Promise<PlacesFile | null>>();
@@ -314,6 +317,47 @@ function PlaceCard({ p, district, onOpen }: { p: PlaceRow; /** The county or dis
 }
 
 /**
+ * What can be said of a list of places together: the largest of them as bars, what kinds of place they are, and how many
+ * carry a population. Every figure is GeoNames' own for a place, or a count or a sum of those, worked out here and said to be.
+ */
+export function PlacesAnalysis({ rows, name }: { rows: PlaceRow[]; /** The place they lie in. */ name: string }) {
+  const peopled = rows.filter((p) => p[3] > 0);
+  const sum = peopled.reduce((t, p) => t + p[3], 0);
+  const kinds = useMemo(() => {
+    const tally = new Map<string, number>();
+    for (const p of rows) tally.set(PLACE_KINDS[p[5]] ?? "Place", (tally.get(PLACE_KINDS[p[5]] ?? "Place") ?? 0) + 1);
+    const sorted = [...tally].sort((a, b) => b[1] - a[1]);
+    // Past the five commonest, the rest are one part: the bar has room for no more.
+    const rest = sorted.slice(5).reduce((t, [, n]) => t + n, 0);
+    return [...sorted.slice(0, 5), ...(rest ? [["Other kinds", rest] as [string, number]] : [])];
+  }, [rows]);
+  if (rows.length < 2) return null;
+  return (
+    <div className="modal-tile rounded-xl p-4 flex flex-col gap-4 my-3">
+      {peopled.length > 1 && (
+        <div>
+          <ChartTitle>Its largest places · people, as GeoNames has them</ChartTitle>
+          <MeasureBars label={`The largest places of ${name} by their people`} rows={peopled.slice(0, 8).map((p) => ({ key: String(p[6]), label: p[0], value: p[3], text: whole(p[3]) }))} />
+        </div>
+      )}
+      <div>
+        <ChartTitle>What kind of place each is · {whole(rows.length)} places</ChartTitle>
+        <PartsBar label={`The places of ${name} by the kind GeoNames classes them as`} parts={kinds.map(([label, n]) => ({ label, value: n, text: whole(n) }))} />
+      </div>
+      <div>
+        <FigureRow label="Places with a population figure" value={`${whole(peopled.length)} of ${whole(rows.length)}`} />
+        {peopled.length > 0 && <FigureRow label="People in the listed places" value={whole(sum)} sub="added up here" />}
+        {peopled.length > 1 && <FigureRow label={`In the largest, ${peopled[0][0]}`} value={`${((100 * peopled[0][3]) / sum).toFixed(0)}%`} sub="of the people in the listed places" />}
+      </div>
+      <ChartNote>
+        The sum is of the places listed and is not the population of {name}: a place of 500 people or fewer is not in GeoNames' list, and its figures are undated. The share is
+        worked out here from the same figures.
+      </ChartNote>
+    </div>
+  );
+}
+
+/**
  * The places inside an outline - a district's - as cards, each with a window of its own: the ones a district's window
  * lists. Which places they are is the caller's to say; this lays them out as a division's are, and opens them the same way.
  */
@@ -322,6 +366,7 @@ export function PlacesInside({
   file,
   division,
   country,
+  outline,
   onPlace,
   onCloseAll,
 }: {
@@ -330,6 +375,8 @@ export function PlacesInside({
   /** The division a place's window names for it. */
   division: (p: PlaceRow) => Subnation;
   country: string;
+  /** The outline the places lie in, and whose it is: a place's window marks the place on it. */
+  outline?: { shape: Outline; name: string };
   /** Told when a place's window opens and when it closes. */
   onPlace?: (open: boolean) => void;
   /** Out of every window: what the X of a place's window does. */
@@ -377,6 +424,7 @@ export function PlacesInside({
             file={file}
             s={division(open)}
             country={country}
+            outline={outline}
             onBack={() => setOpen(null)}
             onOpen={setOpen}
             onClose={() => {
@@ -448,6 +496,7 @@ function PlaceWindow({
   file,
   s,
   country,
+  outline,
   onBack,
   onOpen,
   onClose,
@@ -456,6 +505,8 @@ function PlaceWindow({
   file: PlacesFile;
   s: Subnation;
   country: string;
+  /** The outline its window was opened from - a district's, a county's - where it was not its division's. */
+  outline?: { shape: Outline; name: string };
   /** Back to the division's window. */
   onBack: () => void;
   /** To another place's window, from the list of those nearby. */
@@ -587,6 +638,10 @@ function PlaceWindow({
     [file, id, lat, lon],
   );
 
+  /* The outline it is marked on: the one its window was opened from, or its division's among the ones the site's maps draw. */
+  const divisions = useAdmin1(outline ? null : s.cc);
+  const around = outline ?? (divisions?.find((f) => f.properties.n === s.name) ? { shape: divisions.find((f) => f.properties.n === s.name)!, name: s.name } : null);
+
   const cPop = county?.row[7];
   const cChange = cPop && cPop[0] > 0 ? (100 * (cPop[cPop.length - 1] - cPop[0])) / cPop[0] : null;
   return (
@@ -662,7 +717,20 @@ function PlaceWindow({
                 />
               </Part>
 
+              {around && (
+                <Part title="📍 Where it is" note={`${name}, marked on the outline of ${around.name} as the site's maps draw it, with the places nearest it as the smaller dots.`}>
+                  <OutlineMap
+                    shapes={[around.shape]}
+                    mark={{ id, name, lon, lat }}
+                    dots={neighbours.map(({ row }) => ({ id: row[6], name: row[0], lon: row[2], lat: row[1] }))}
+                    color={flagColor(s.cc) ?? "#0ea5e9"}
+                    label={`${name}, marked on the outline of ${around.name}`}
+                  />
+                </Part>
+              )}
+
               {(ages || women) && (
+
                 <Part
                   title="👪 Demographics"
                   note={`No body publishes these for every town on one footing. ${[ages ? `The ages are those of ${inSentence(ages.whose)}` : "", women ? `${ages ? "the" : "The"} women and men those of ${inSentence(country)}` : ""].filter(Boolean).join("; ")} - not ${name}'s own.`}
