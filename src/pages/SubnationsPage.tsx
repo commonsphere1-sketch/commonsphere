@@ -1318,7 +1318,17 @@ function DivisionCard({ s, inside, onOpen }: { s: Subnation; /** What GeoNames l
     ["Towns and villages", inside === undefined ? "…" : inside ? whole(inside.rows.length) : undefined],
   ];
   return (
-    <button type="button" onClick={onOpen} className="modal-tile rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
+    <button type="button" onClick={onOpen} className="modal-tile relative isolate overflow-hidden rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
+      {/* Its flag behind the whole card, dimmed, as a country's card has its own: the division's own where one is held, and its country's where none is. */}
+      <img
+        src={ownFlag(s, 120) ?? flag(s.cc, 320)}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        className="absolute inset-0 -z-10 w-full h-full object-cover opacity-[0.16] scale-105 select-none pointer-events-none"
+        onError={(e) => (e.currentTarget.style.display = "none")}
+      />
+
       <span className="flex items-center gap-2.5 min-w-0">
         {/* The division's own flag, where one is held under a licence the site can use: the copy saved with the site, and Commons' own if that does not come. Where none is held - many divisions have no flag - its country's stands in, paler, and is said to be the country's. */}
         <span
