@@ -3279,13 +3279,15 @@ export function WorldMapsPage() {
     );
   };
 
+  /* The chip rows of a map's card are bars that stay at the head of the card while the card is on the screen, as asked - drawn as the pages' own sticky bars are, and gone with the card once it has scrolled past. */
+  const mapBar = "search-sticky sticky z-20 border border-border/60 rounded-2xl px-3 py-2 mb-3 flex flex-col gap-2";
   const layerToggles = (layers: Record<OverlayId, boolean>, set: LayerSetter, showMore = true) => {
     if (!showMore) {
       const mainLayers = OVERLAYS.filter(o => !["capitals", "cities", "climate"].includes(o.id));
       const additionalLayers = OVERLAYS.filter(o => ["capitals", "cities", "climate"].includes(o.id));
       return (
-        <>
-          <ChipRow className="mb-3">
+        <div className={`${mapBar} top-16`}>
+          <ChipRow>
             <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
               Layers
             </span>
@@ -3295,18 +3297,19 @@ export function WorldMapsPage() {
               layerButton(o, layers, set)
             ))}
           </ChipRow>
-          <ChipRow className="mb-3">
+          <ChipRow>
             {additionalLayers.map((o) => (
               layerButton(o, layers, set)
             ))}
           </ChipRow>
-        </>
+        </div>
       );
     }
 
     return (
-      <>
-        <ChipRow className="mb-3">
+      // Under the bar of scopes and measures, which sticks first: this one stops just below it.
+      <div className={`${mapBar} top-[7.25rem]`}>
+        <ChipRow>
           <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
             Layers
           </span>
@@ -3327,13 +3330,13 @@ export function WorldMapsPage() {
           <CountrySearch chip options={markOptions} onPick={pickMark} placeholder="Highlight a country or state" label="Choose the country or US state to pick out on the maps" />
         </ChipRow>
         {showAdditionalLayers && (
-          <div className="flex flex-wrap items-center gap-2 mb-3 pl-6">
+          <div className="flex flex-wrap items-center gap-2 pl-6">
             {OVERLAYS.map((o) => (
               layerButton(o, layers, set)
             ))}
           </div>
         )}
-      </>
+      </div>
     );
   };
 
@@ -3457,7 +3460,8 @@ export function WorldMapsPage() {
             </span>
           </div>
 
-          <ChipRow className="mb-3">
+          <div className={`${mapBar} top-16`}>
+          <ChipRow>
             {SCOPES.map((sc) => (
               <button
                 key={sc.id}
@@ -3480,8 +3484,10 @@ export function WorldMapsPage() {
               </button>
             ))}
           </ChipRow>
+          </div>
 
           {activeCountry.source && (
+
             <p className="text-[10px] font-sans text-muted-foreground mb-3 leading-snug">
               {activeCountry.source.note} Source:{" "}
               <a
