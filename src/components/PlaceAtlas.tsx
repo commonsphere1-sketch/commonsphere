@@ -1,21 +1,25 @@
 /**
  * The Dashboard's map to any place: press a country and the map opens on its
- * divisions; press a division and the site goes to its record. In the United
- * States a state opens on its counties, and a county goes to its record.
+ * divisions; press a division and the site goes to its record. Where a county
+ * is what a press selects, a country opens on its second order instead - its
+ * counties, districts or municipalities - and each is pressed for itself.
  *
  *   World            every country (Natural Earth 1:110m, by world-atlas)
  *   A country        its first-order divisions - states, provinces, regions,
  *                    departments - from the files the World Maps page draws
  *                    (static/geo/admin1, one fetched when its country is
  *                    pressed)
- *   The United       its states, and under a state its counties (the US
- *     States         Census Bureau's boundaries, by us-atlas)
+ *   The United       its states, and its counties (the US Census Bureau's
+ *     States         boundaries, by us-atlas)
+ *   A country's      its second-order divisions, where their boundaries are
+ *     second order   published openly (static/geo/admin2, from geoBoundaries,
+ *                    one fetched when its country is pressed; lib/admin2)
  *
  * What a press selects is the reader's to choose: the whole country, a state
  * or division of it, a county, or a city. On "the country" a press opens the
  * country itself; on "a state or division" it opens the map on a country and
- * then goes to the division pressed; on "a county" a US state opens on its
- * counties; on "a city" the cities the United Nations counts are drawn as
+ * then goes to the division pressed; on "a county" the country's counties or
+ * districts are the shapes; on "a city" the cities the United Nations counts are drawn as
  * dots - those of a million people or more on the world, every one of a
  * country's once the map is on it - and a dot goes to the city's window on
  * the Cities page (unCities.ts, loaded when that choice is first made).
@@ -36,7 +40,8 @@
  * The land is drawn raised off the card: a darker slab under it, set a little
  * down, and a shadow under that - a look, and no more; it says nothing about
  * height. On the map of the United States the county lines are drawn too,
- * fine, under the states' own, whatever a press selects.
+ * fine, under the states' own. Where the counties or districts are the
+ * shapes, the heavier lines over them are the first-order divisions' borders.
  *
  * The map can be drawn closer: with the + and - keys (the number pad's too),
  * the buttons above it, or a pinch; closer in, it is moved by dragging or
@@ -56,8 +61,8 @@ import { CaretRight, MagnifyingGlass, MagnifyingGlassMinus, MagnifyingGlassPlus,
 import { countriesData } from "../data/countriesData";
 import { countryForFeature, stateForFeature } from "../data/mapJoin";
 import { SUBNATION_FLAG_COLOR } from "../data/subnationFlagColors";
+import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { flagColor, seen, shade } from "../lib/flagColor";
-import { usStatesData } from "../data/statesData";
 import { Card, Go, Head } from "./DashboardCitiesSectors";
 import { useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
@@ -71,13 +76,13 @@ const BOX: [[number, number], [number, number]] = [
 const COLOR = "#3b82f6";
 
 type Geo = { type: string; id?: string | number; properties: Record<string, string>; geometry: { type: string; coordinates: unknown[] } };
-type Level = { kind: "world" } | { kind: "country"; code: string } | { kind: "state"; abbr: string; fips: string };
+type Level = { kind: "world" } | { kind: "country"; code: string };
 /** What a press selects. */
 type Pick = "country" | "state" | "county" | "city";
 const PICKS: [Pick, string, string][] = [
   ["country", "Country", "A press opens the whole country"],
   ["state", "State", "A press goes to a state, province or other division"],
-  ["county", "County", "A press goes to a county - held for the United States"],
+  ["county", "County", "A press goes to a county, district or municipality"],
   ["city", "City", "A press goes to a city"],
 ];
 type CityModule = typeof import("../data/unCities");
@@ -131,6 +136,10 @@ const STATES = featuresOf(statesTopo as unknown as Topology, "states").flatMap((
   const state = stateForFeature(f.properties.name);
   return state ? [{ f, state }] : [];
 });
+/** A US state by the two digits its counties' codes begin with. */
+const STATE_OF_FIPS = new Map(STATES.map((s) => [String(s.f.id), s.state]));
+/** The lines between the states, for the map whose shapes are the counties. */
+const STATE_LINES = mesh(statesTopo as unknown as Topology, (statesTopo as unknown as Topology).objects.states as never, (a, b) => a !== b);
 /** The countries, by name: every one the site holds, drawn at 1:110m or not. */
 const COUNTRIES = countriesData.filter((c) => !c.uninhabited).sort((a, b) => a.name.localeCompare(b.name));
 
@@ -192,9 +201,8 @@ export default function PlaceAtlas() {
   const [cityData, setCityData] = useState<CityModule | null>(null);
   const setPick = (p: Pick) => {
     setPickOnly(p);
-    // The whole country is chosen from the world, and a state's counties are on the map for no other choice.
+    // The whole country is chosen from the world.
     if (p === "country") setLevel({ kind: "world" });
-    else if (p !== "county" && level.kind === "state") setLevel({ kind: "country", code: "US" });
   };
   /* The cities are loaded when a city is first what a press selects: there are some twelve thousand. */
   useEffect(() => {
@@ -231,8 +239,8 @@ export default function PlaceAtlas() {
     };
   }, [code]);
 
-  /* The counties are fetched when the map is first on the United States or one of its states: their lines are drawn on the one, their shapes on the other. */
-  const wantCounties = level.kind === "state" || (level.kind === "country" && level.code === "US");
+  /* The counties are fetched when the map is first on the United States: their lines are drawn there, and they are its shapes where a county is what a press selects. */
+  const wantCounties = level.kind === "country" && level.code === "US";
   useEffect(() => {
     if (!wantCounties || counties) return;
     let off = false;
@@ -248,19 +256,34 @@ export default function PlaceAtlas() {
   }, [wantCounties, counties]);
 
   const country = code ? (countriesData.find((c) => c.code === code) ?? null) : null;
-  const state = level.kind === "state" ? (usStatesData.find((s) => s.abbreviation === level.abbr) ?? null) : null;
+  /* A country's second order, fetched where a county is what a press selects: undefined while it is, null where none is held. The United States' own are the Census Bureau's, above. */
+  const manifest2 = useAdmin2Manifest();
+  const second = useAdmin2(pick === "county" && code && code !== "US" ? code : null);
+  const secondInfo = code && manifest2 ? manifest2[code] : undefined;
+  /** Whether the shapes on the map are a country's second order. */
+  const onSecond = pick === "county" && level.kind === "country" && (level.code === "US" || Boolean(second));
 
   /** The shapes of the level the map is on, each with what a press does. */
-  const { shapes, project, lines } = useMemo<{ shapes: Shape[]; /** Where a longitude and latitude fall on the map it is on. */ project: ((lon: number, lat: number) => [number, number] | null) | null; /** The county lines, on the map of the United States. */ lines: string }>(() => {
-    const draw = (features: Geo[], projection: GeoProjection, name: (f: Geo) => string, go: (f: Geo) => () => void, hot: (f: Geo, i: number) => string) => {
+  const { shapes, project, lines, bold } = useMemo<{
+    shapes: Shape[];
+    /** Where a longitude and latitude fall on the map it is on. */
+    project: ((lon: number, lat: number) => [number, number] | null) | null;
+    /** The lines drawn over the shapes: the counties' on the map of the states, the first-order divisions' on a map of counties or districts. */
+    lines: string;
+    /** Whether those lines are the heavier ones, of the order above the shapes. */
+    bold: boolean;
+  }>(() => {
+    const empty = { shapes: [], project: null, lines: "", bold: false };
+    const draw = (features: Geo[], projection: GeoProjection, name: (f: Geo) => string, go: (f: Geo, i: number) => () => void, hot: (f: Geo, i: number) => string) => {
       const path = geoPath(projection);
       return {
         shapes: features.flatMap((f, i): Shape[] => {
           const d = path(f as never);
-          return d ? [{ key: `${f.id ?? ""}-${i}`, name: name(f), d, go: go(f), hot: hot(f, i) }] : [];
+          return d ? [{ key: `${f.id ?? ""}-${i}`, name: name(f), d, go: go(f, i), hot: hot(f, i) }] : [];
         }),
         project: (lon: number, lat: number) => projection([lon, lat]),
         lines: "",
+        bold: false,
       };
     };
     if (level.kind === "world")
@@ -277,55 +300,72 @@ export default function PlaceAtlas() {
         },
         (f) => flagColor(countryForFeature(f.properties.name)?.code ?? "") ?? COLOR,
       );
-    if (level.kind === "country" && level.code === "US") {
+    if (level.code === "US") {
       const base = flagColor("US") ?? COLOR;
       const projection = geoAlbersUsa().fitExtent(BOX, collection(STATES.map((s) => s.f)) as never);
+      // Where a county is what a press selects, the counties are the shapes, each pressed for itself, and the states' borders are the lines over them.
+      if (pick === "county") {
+        if (!counties) return empty;
+        const stateOf = (f: Geo) => STATE_OF_FIPS.get(String(f.id).slice(0, 2));
+        const drawn = draw(
+          counties,
+          projection,
+          // A county's name is not its own alone - there are thirty Washingtons - so its state goes with it.
+          (f) => (stateOf(f) ? `${f.properties.name}, ${stateOf(f)!.abbreviation}` : f.properties.name),
+          (f) => () => navigate(`/dashboard/subnations?open=county:${f.id}`),
+          // A county has no flag the site holds: shades of its state's flag's colour, or of the country's.
+          (f, i) => tint(ownColor("US", stateOf(f)?.name ?? "") ?? base, i),
+        );
+        return { ...drawn, lines: geoPath(projection)(STATE_LINES as never) ?? "", bold: true };
+      }
       const drawn = draw(
         STATES.map((s) => s.f),
         projection,
         (f) => f.properties.name,
         (f) => () => {
           const s = stateForFeature(f.properties.name);
-          if (!s) return;
-          // A county is chosen inside its state; a state is gone to.
-          if (pick === "county") setLevel({ kind: "state", abbr: s.abbreviation, fips: String(f.id) });
-          else navigate(`/dashboard/subnations?open=US-${s.abbreviation}`);
+          if (s) navigate(`/dashboard/subnations?open=US-${s.abbreviation}`);
         },
         (f, i) => ownColor("US", f.properties.name) ?? tint(base, i),
       );
       // The lines between counties, once their file is in: one path, under the states' own borders.
       const between = countyTopo ? mesh(countyTopo, countyTopo.objects.counties as never, (a, b) => a !== b) : null;
-      return { ...drawn, lines: between ? (geoPath(projection)(between as never) ?? "") : "" };
+      return { ...drawn, lines: between ? (geoPath(projection)(between as never) ?? "") : "", bold: false };
     }
-    if (level.kind === "country") {
-      if (!divisions || divisions === "failed" || divisions.code !== level.code) return { shapes: [], project: null, lines: "" };
-      const base = flagColor(level.code) ?? COLOR;
-      return draw(
-        divisions.features,
-        fitTo(collection(framed(divisions.features))),
-        (f) => f.properties.n,
-        (f) => () => navigate(`/dashboard/subnations?country=${level.code}&name=${encodeURIComponent(f.properties.n)}`),
-        (f, i) => ownColor(level.code, f.properties.n) ?? tint(base, i),
+    const base = flagColor(level.code) ?? COLOR;
+    // Its second order, where a county is what a press selects and its boundaries are held: each shape goes to a window of its own, by its place in the file.
+    if (pick === "county" && second === undefined) return empty;
+    if (pick === "county" && second) {
+      const own = second.shapes as unknown as Geo[];
+      const projection = fitTo(collection(framed(own)));
+      const drawn = draw(
+        own,
+        projection,
+        // A district's name is not always its own alone, so the division it lies in goes with it.
+        (f) => (f.properties.p ? `${f.properties.n}, ${f.properties.p}` : f.properties.n),
+        (_, i) => () => navigate(`/dashboard/subnations?open=district:${level.code}:${i}`),
+        // Shades of the flag's colour of the division it lies in, or of the country's.
+        (f, i) => tint(ownColor(level.code, f.properties.p ?? "") ?? base, i),
       );
+      type Placed = { properties?: { p?: string } };
+      const between = mesh(second.topo, second.topo.objects.a as never, (a, b) => (a as Placed).properties?.p !== (b as Placed).properties?.p);
+      return { ...drawn, lines: geoPath(projection)(between as never) ?? "", bold: true };
     }
-    if (!counties) return { shapes: [], project: null, lines: "" };
-    const own = counties.filter((f) => String(f.id).startsWith(level.fips));
-    // A county has no flag the site holds: shades of its state's flag's colour, or of the country's.
-    const base = ownColor("US", usStatesData.find((s) => s.abbreviation === level.abbr)?.name ?? "") ?? flagColor("US") ?? COLOR;
+    if (!divisions || divisions === "failed" || divisions.code !== level.code) return empty;
     return draw(
-      own,
-      geoAlbersUsa().fitExtent(BOX, collection(own) as never),
-      (f) => f.properties.name,
-      (f) => () => navigate(`/dashboard/subnations?open=county:${f.id}`),
-      (_, i) => tint(base, i),
+      divisions.features,
+      fitTo(collection(framed(divisions.features))),
+      (f) => f.properties.n,
+      (f) => () => navigate(`/dashboard/subnations?country=${level.code}&name=${encodeURIComponent(f.properties.n)}`),
+      (f, i) => ownColor(level.code, f.properties.n) ?? tint(base, i),
     );
-  }, [level, divisions, counties, countyTopo, navigate, pick]);
+  }, [level, divisions, counties, countyTopo, second, navigate, pick]);
   /** Every shape as one outline: the slab the land stands on. */
   const slab = useMemo(() => shapes.map((s) => s.d).join(""), [shapes]);
 
   /** The cities, where a city is what a press selects: those of a million or more on the world, and every one of the country the map is on. */
   const dots = useMemo<Dot[]>(() => {
-    if (pick !== "city" || !cityData || !project || level.kind === "state") return [];
+    if (pick !== "city" || !cityData || !project) return [];
     const world = level.kind === "world";
     const list = world ? cityData.UN_CITIES.filter((c) => c[8] >= 1e6) : cityData.UN_CITIES.filter((c) => c[0] === level.code);
     return list.flatMap((c): Dot[] => {
@@ -336,7 +376,7 @@ export default function PlaceAtlas() {
       return [{ key: `${c[0]}-${c[1]}`, name: c[2], x: xy[0], y: xy[1], r, hot: flagColor(c[0]) ?? COLOR, go: () => navigate(`/dashboard/cities?open=un-${c[0]}-${c[1]}`) }];
     });
   }, [pick, cityData, project, level, navigate]);
-  const onCities = pick === "city" && level.kind !== "state";
+  const onCities = pick === "city";
 
   /** The same places by name, for the list: at the world, every country the site holds. */
   const listed: { key: string; name: string; go: () => void }[] = onCities
@@ -346,10 +386,11 @@ export default function PlaceAtlas() {
       : [...new Map(shapes.map((s) => [s.name, s])).values()].sort((a, b) => a.name.localeCompare(b.name));
   const listLabel = onCities
     ? `${listed.length.toLocaleString("en-US")} cities · largest first`
-    : `${level.kind === "world" ? `${listed.length} countries` : level.kind === "state" ? `${listed.length} counties` : level.code === "US" ? `${listed.length} states` : `${listed.length} divisions`} · by name`;
+    : `${level.kind === "world" ? `${listed.length} countries` : onSecond ? `${listed.length.toLocaleString("en-US")} ${level.code === "US" ? "counties" : "counties or districts"}` : level.code === "US" ? `${listed.length} states` : `${listed.length} divisions`} · by name`;
 
-  const loading = (level.kind === "country" && level.code !== "US" && divisions === null) || (level.kind === "state" && !counties);
-  const none = level.kind === "country" && level.code !== "US" && (divisions === "failed" || (manifest !== null && !manifest[level.code] && shapes.length === 0 && !loading));
+  const abroad = level.kind === "country" && level.code !== "US";
+  const loading = abroad ? (pick === "county" && second === undefined) || (!second && divisions === null) : level.kind === "country" && pick === "county" && !counties;
+  const none = abroad && !second && (divisions === "failed" || (manifest !== null && !manifest[level.code] && shapes.length === 0 && !loading));
   const named = country?.name ?? "the country";
   const what = onCities
     ? !cityData
@@ -361,15 +402,15 @@ export default function PlaceAtlas() {
       ? pick === "country"
         ? "Press a country to open it."
         : pick === "county"
-          ? "Press the United States, and then a state, for its counties. Counties are held for the United States only."
+          ? "Press a country to open the map on its counties, districts or municipalities."
           : "Press a country to open the map on its states, provinces or regions."
-      : level.kind === "state"
-        ? `Press a county of ${state?.name ?? "the state"} to go to its record.`
-        : level.code === "US"
-          ? pick === "county"
-            ? "Press a state to open the map on its counties."
-            : "Press a state to go to its record."
-          : `${pick === "county" ? "Counties are held for the United States only. " : ""}Press a division of ${named} to go to its record.`;
+      : level.code === "US"
+        ? pick === "county"
+          ? "Press a county to go to its record. The heavier lines are the states'."
+          : "Press a state to go to its record."
+        : pick === "county" && second
+          ? `Press one of the ${second.shapes.length.toLocaleString("en-US")} second-order divisions of ${named}${secondInfo?.kind ? ` - "${secondInfo.kind}", as their publisher has it -` : ""} to go to its window. The heavier lines are its first-order divisions'.`
+          : `${pick === "county" && second === null ? `No second-order boundaries are held for ${named}, so its first-order divisions are shown. ` : ""}Press a division of ${named} to go to its record.`;
   // In the dark theme the land is a dark grey again, as asked - but a step lighter than it first was, so that it stands clear of the card behind it.
   const land = t.isLight ? "#dfe3ea" : "#4e5262";
   const edge = t.isLight ? "#ffffff" : "#0b0b0d";
@@ -394,20 +435,12 @@ export default function PlaceAtlas() {
               <CaretRight size={10} weight="bold" style={{ color: t.mutedText }} aria-hidden />
               <button
                 type="button"
-                onClick={() => setLevel({ kind: "country", code: level.kind === "state" ? "US" : level.code })}
+                onClick={() => setLevel({ kind: "country", code: level.code })}
                 className={crumb}
                 style={{ background: level.kind === "country" ? COLOR : t.tile, color: level.kind === "country" ? "#ffffff" : t.bodyText, border: `1px solid ${level.kind === "country" ? COLOR : t.gridLine}` }}
               >
-                {level.kind === "state" ? "United States" : (country?.name ?? level.code)}
+                {country?.name ?? level.code}
               </button>
-            </>
-          )}
-          {level.kind === "state" && (
-            <>
-              <CaretRight size={10} weight="bold" style={{ color: t.mutedText }} aria-hidden />
-              <span className={crumb.replace(" cursor-pointer", "")} style={{ background: COLOR, color: "#ffffff", border: `1px solid ${COLOR}` }}>
-                {state?.name ?? level.abbr}
-              </span>
             </>
           )}
         </nav>
@@ -421,16 +454,6 @@ export default function PlaceAtlas() {
             <Go color={COLOR} onClick={() => navigate(`/dashboard/subnations?country=${level.code}`)}>
               All its divisions
             </Go>
-          )}
-          {level.kind === "state" && state && (
-            <>
-              <Go color={COLOR} onClick={() => navigate(`/dashboard/states?open=${state.id}`)}>
-                Open {state.name}
-              </Go>
-              <Go color={COLOR} onClick={() => navigate(`/dashboard/subnations?open=US-${state.abbreviation}`)}>
-                Its record and counties
-              </Go>
-            </>
           )}
         </div>
       </div>
@@ -524,7 +547,8 @@ export default function PlaceAtlas() {
                 // Where the cities are what is pressed, a country still opens the map on itself; a division under the dots does nothing.
                 style={{ ["--atlas-hot" as string]: s.hot, pointerEvents: onCities && level.kind !== "world" ? "none" : undefined }}
                 stroke={edge}
-                strokeWidth={0.6}
+                // Finer where the shapes are counties or districts: there are thousands of them.
+                strokeWidth={onSecond ? 0.3 : 0.6}
                 vectorEffect="non-scaling-stroke"
                 strokeLinejoin="round"
                 onClick={s.go}
@@ -534,8 +558,8 @@ export default function PlaceAtlas() {
                 <title>{s.name}</title>
               </path>
             ))}
-            {/* The county lines, on the map of the United States: fine, and under nothing that is pressed. */}
-            {lines && <path d={lines} fill="none" stroke={edge} strokeOpacity={0.7} strokeWidth={0.35} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
+            {/* The lines over the shapes, never pressed: the counties', fine, on the map of the states; the first-order divisions', heavier, on a map of counties or districts. */}
+            {lines && <path d={lines} fill="none" stroke={edge} strokeOpacity={bold ? 1 : 0.7} strokeWidth={bold ? 1.2 : 0.35} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
             {dots.map((d) => (
 
               <circle
@@ -573,6 +597,12 @@ export default function PlaceAtlas() {
               what
             )}
           </p>
+          {/* Whose the boundaries on the map are, where they are a country's second order: each country's are its own publisher's, under its own licence. */}
+          {abroad && pick === "county" && second && secondInfo && (
+            <p className="text-[10px] font-mono leading-snug mt-0.5" style={{ color: t.mutedText }}>
+              Boundaries: {secondInfo.by} · {secondInfo.year} · {secondInfo.licence} · gathered by geoBoundaries
+            </p>
+          )}
         </div>
 
         {/* The same places by name: for one too small to press, and for a keyboard. */}
@@ -606,22 +636,24 @@ export default function PlaceAtlas() {
 
       <p className="text-[9px] font-sans leading-snug mt-3" style={{ color: t.mutedText }}>
         The map is drawn closer with the + and - keys, the buttons above it or a pinch, moved by dragging or the arrow keys once it is closer, and put back with 0. What a press
-        selects is chosen above the map:
- the whole country, a state or division, a county (held for the United States), or a city - the cities the United Nations
-        counts, drawn as dots sized by their people, those of a million or more on the world and every one of a country's once the map is on it. The map is a way in and
-        shades nothing by any figure.
- A place lights in its flag's colour when it is pointed at: a country in its own flag's, a division in its own
-        flag's where it has one, and a division or a county with no flag of its own in a shade of the colour of the country or state it belongs to. A country opens on
- the divisions Natural Earth draws for it - states, provinces, regions or departments, whichever its
-        first order is there; the United States opens on its states, and a state on its counties. A division or a county goes to its record on the Municipalities page; the
-        country or the state the map is on can be opened from above it. The world here is drawn at 1:110 million and has no shape for some small countries: they are in the
-        list, as are a country's far-off divisions - France's overseas departments, Spain's Canaries - which the map leaves out of its frame so that the rest can be seen.
+        selects is chosen above the map: the whole country, a state or division, a county, or a city - the cities the United Nations counts, drawn as dots sized by their people,
+        those of a million or more on the world and every one of a country's once the map is on it. The map is a way in and shades nothing by any figure. A place lights in its
+        flag's colour when it is pointed at: a country in its own flag's, a division in its own flag's where it has one, and a division, county or district with no flag of its own
+        in a shade of the colour of the country or division it belongs to. On "State" a country opens on the divisions Natural Earth draws for it - states, provinces, regions or
+        departments, whichever its first order is there. On "County" it opens on its second order - counties, districts, municipalities, whatever its publisher calls them: the
+        Census Bureau's counties for the United States, and for other countries the boundaries geoBoundaries gathers from each country's own publisher, kept only under a licence
+        the site can use and named under the map. Which first-order division a district lies in is worked out here, from where most of its outline falls. A country with no
+        second-order boundaries held shows its first order instead, and says so. A division, a county or a district goes to its record on the Municipalities page; the country
+        the map is on can be opened from above it. The world here is drawn at 1:110 million and has no shape for some small countries: they are in the list, as are a country's
+        far-off divisions - France's overseas departments, Spain's Canaries - which the map leaves out of its frame so that the rest can be seen.
       </p>
 
       <SourceLink
         sources={[
           { label: "Natural Earth — countries and admin-1 divisions (public domain)", url: "https://www.naturalearthdata.com/" },
           { label: "US Census Bureau — cartographic boundary files, via us-atlas", url: "https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html" },
+          ADMIN2_SOURCE,
+
           { label: "United Nations — World Urbanization Prospects: The 2025 Revision (the cities)", url: "https://population.un.org/wup/" },
         ]}
         className="mt-1"

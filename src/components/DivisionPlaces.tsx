@@ -250,32 +250,9 @@ export function DivisionPlaces({
       </label>
       {/* A card for each place: its name and what it is, its county, its people, and its head where one is confirmed. Each opens a window of its own. */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {rows.slice(0, shown).map((p) => {
-          const head = HEAD_BY_GEONAMES.get(p[6]);
-          const facts: [string, string | undefined][] = [
-            ["People", p[3] > 0 ? whole(p[3]) : undefined],
-            ["County or district", file!.districts[p[7]] || undefined],
-            ["Head", head?.[3]],
-          ];
-          return (
-            <button key={p[6]} type="button" onClick={() => setOpen(p)} className="modal-tile rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
-              <span className="min-w-0">
-                <span className="block text-sm font-bold font-sans text-foreground truncate">{p[0]}</span>
-                <span className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground truncate">
-                  <MapPin size={9} aria-hidden /> {PLACE_KINDS[p[5]]}
-                </span>
-              </span>
-              <span className="flex flex-col border-t border-border/40 pt-1.5">
-                {facts.map(([k, v]) => (
-                  <span key={k} className="flex items-baseline justify-between gap-2 py-0.5 min-w-0">
-                    <span className="text-[11px] font-sans text-muted-foreground shrink-0">{k}</span>
-                    <span className={`text-[11px] font-mono truncate ${v ? "font-bold text-foreground" : "text-muted-foreground"}`}>{v ?? "Not held"}</span>
-                  </span>
-                ))}
-              </span>
-            </button>
-          );
-        })}
+        {rows.slice(0, shown).map((p) => (
+          <PlaceCard key={p[6]} p={p} district={file!.districts[p[7]]} onOpen={() => setOpen(p)} />
+        ))}
       </div>
       {rows.length === 0 && <p className="text-[11px] font-sans text-muted-foreground py-2">None by that name.</p>}
       {rows.length > shown && (
@@ -308,7 +285,113 @@ export function DivisionPlaces({
   );
 }
 
+/** A card for a place: its name and what it is, its county, its people, and its head where one is confirmed. It opens the place's own window. */
+function PlaceCard({ p, district, onOpen }: { p: PlaceRow; /** The county or district GeoNames files it under. */ district?: string; onOpen: () => void }) {
+  const head = HEAD_BY_GEONAMES.get(p[6]);
+  const facts: [string, string | undefined][] = [
+    ["People", p[3] > 0 ? whole(p[3]) : undefined],
+    ["County or district", district || undefined],
+    ["Head", head?.[3]],
+  ];
+  return (
+    <button type="button" onClick={onOpen} className="modal-tile rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
+      <span className="min-w-0">
+        <span className="block text-sm font-bold font-sans text-foreground truncate">{p[0]}</span>
+        <span className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground truncate">
+          <MapPin size={9} aria-hidden /> {PLACE_KINDS[p[5]]}
+        </span>
+      </span>
+      <span className="flex flex-col border-t border-border/40 pt-1.5">
+        {facts.map(([k, v]) => (
+          <span key={k} className="flex items-baseline justify-between gap-2 py-0.5 min-w-0">
+            <span className="text-[11px] font-sans text-muted-foreground shrink-0">{k}</span>
+            <span className={`text-[11px] font-mono truncate ${v ? "font-bold text-foreground" : "text-muted-foreground"}`}>{v ?? "Not held"}</span>
+          </span>
+        ))}
+      </span>
+    </button>
+  );
+}
+
+/**
+ * The places inside an outline - a district's - as cards, each with a window of its own: the ones a district's window
+ * lists. Which places they are is the caller's to say; this lays them out as a division's are, and opens them the same way.
+ */
+export function PlacesInside({
+  rows,
+  file,
+  division,
+  country,
+  onPlace,
+  onCloseAll,
+}: {
+  rows: PlaceRow[];
+  file: PlacesFile;
+  /** The division a place's window names for it. */
+  division: (p: PlaceRow) => Subnation;
+  country: string;
+  /** Told when a place's window opens and when it closes. */
+  onPlace?: (open: boolean) => void;
+  /** Out of every window: what the X of a place's window does. */
+  onCloseAll?: () => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [shown, setShown] = useState(PAGE);
+  const [open, setOpen] = useState<PlaceRow | null>(null);
+  useEffect(() => onPlace?.(open !== null), [open, onPlace]);
+  const q = query.trim().toLowerCase();
+  const found = q ? rows.filter((p) => p[0].toLowerCase().includes(q)) : rows;
+  return (
+    <div>
+      {rows.length > 6 && (
+        <label className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 mb-2 transition-colors focus-within:border-foreground/40 max-w-sm">
+          <MagnifyingGlass size={12} className="text-muted-foreground shrink-0" aria-hidden />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setShown(PAGE);
+            }}
+            placeholder="Find a town by name"
+            aria-label="Find a place in the list by its name"
+            className="flex-1 min-w-0 bg-transparent text-[11px] font-medium font-sans text-foreground placeholder:text-muted-foreground focus:outline-none"
+          />
+        </label>
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {found.slice(0, shown).map((p) => (
+          <PlaceCard key={p[6]} p={p} district={file.districts[p[7]]} onOpen={() => setOpen(p)} />
+        ))}
+      </div>
+      {found.length === 0 && rows.length > 0 && <p className="text-[11px] font-sans text-muted-foreground py-2">None by that name.</p>}
+      {found.length > shown && (
+        <button type="button" onClick={() => setShown((n) => n + PAGE * 5)} className="mt-2 text-[11px] font-semibold font-sans px-3 py-1 rounded-full border border-border text-foreground hover:bg-muted/60 cursor-pointer">
+          Show more · {Math.min(shown, found.length).toLocaleString("en-US")} of {found.length.toLocaleString("en-US")} shown
+        </button>
+      )}
+      {open &&
+        createPortal(
+          <PlaceWindow
+            p={open}
+            file={file}
+            s={division(open)}
+            country={country}
+            onBack={() => setOpen(null)}
+            onOpen={setOpen}
+            onClose={() => {
+              setOpen(null);
+              onCloseAll?.();
+            }}
+          />,
+          document.body,
+        )}
+    </div>
+  );
+}
+
 // ── A place's own window ────────────────────────────────────────────────────
+
 
 /** The heads three records agree on, by the place's GeoNames id. */
 const HEAD_BY_GEONAMES = new Map(REPRESENTATIVES.filter((r) => r[11]).map((r) => [r[11], r]));

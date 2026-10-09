@@ -36,25 +36,36 @@
  * A change over time is worked out here from two published figures, and says
  * so. Nothing is estimated.
  *
+ * A second-order division outside the United States - a county, district or
+ * municipality - has a window too, reached from the Dashboard's map
+ * (?open=district:<country>:<its place in the country's file>). The site
+ * holds no figures for one: its window gives its name, the word its
+ * publisher has for it, the first-order division it lies in, whose its
+ * boundary is, and the places of GeoNames' list whose point lies inside its
+ * outline - worked out here - each with a window of its own.
+ *
  * ?open=<id> opens a division's window, ?open=county:<fips> a county's, and
  * ?country=<code>&name=<name> the division a map names - the Dashboard's map
  * sends its presses here that way.
  */
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { geoBounds, geoCentroid, geoContains, geoMercator, geoPath } from "d3-geo";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowLeft, ArrowRight, MagnifyingGlass, MapPin, MapTrifold, TreeStructure, X } from "@phosphor-icons/react";
 import { TONE } from "@/lib/chipTone";
+import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest, type Admin2Shape } from "../lib/admin2";
 import { flagColor } from "../lib/flagColor";
 import { byPeople, countryPeople, peopleSource, peopleSources } from "../lib/countryPeople";
 import { lockScroll } from "../lib/scrollLock";
 import { inSentence, qualityOf } from "../components/CountryQuality";
-import { DivisionPlaces, insideOf, usePlaces, type Inside } from "../components/DivisionPlaces";
+import { DivisionPlaces, PlacesInside, insideOf, usePlaces, type Inside } from "../components/DivisionPlaces";
 import { FilterBar } from "../components/FilterBar";
 import { FigureRow } from "../components/ModalCharts";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
 import { COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE } from "../data/countryIndicators";
+import { PLACES_SOURCE, type PlaceRow } from "../data/placesIndex";
 import { REGIONAL_ASSEMBLIES, REPRESENTATIVES, REPRESENTATIVES_SOURCES } from "../data/representatives";
 import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
 import { usStatesData } from "../data/statesData";
@@ -552,6 +563,195 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
   );
 }
 
+// ── A district's window: a second-order division outside the United States ──
+
+const MAP_W = 640;
+const MAP_H = 260;
+
+/** A district's outline, with the places inside it as dots: where it is, not how big anything is. */
+function OutlineMap({ shape, rows, color, label }: { shape: Admin2Shape; rows: PlaceRow[]; color: string; label: string }) {
+  const { d, dots } = useMemo(() => {
+    const lon = geoCentroid(shape as never)[0];
+    // Turned to its own middle, so that one across 180° is not split to both edges.
+    const projection = geoMercator()
+      .rotate([Number.isFinite(lon) ? -lon : 0, 0])
+      .fitExtent(
+        [
+          [10, 10],
+          [MAP_W - 10, MAP_H - 10],
+        ],
+        shape as never,
+      );
+    return {
+      d: geoPath(projection)(shape as never) ?? "",
+      dots: rows.slice(0, 300).flatMap((p) => {
+        const xy = projection([p[2], p[1]]);
+        return xy ? [{ id: p[6], name: p[0], x: xy[0], y: xy[1] }] : [];
+      }),
+    };
+  }, [shape, rows]);
+  if (!d) return null;
+  return (
+    <svg viewBox={`0 0 ${MAP_W} ${MAP_H}`} className="w-full h-auto modal-tile rounded-xl" role="img" aria-label={label}>
+      <path d={d} fill={color} fillOpacity={0.28} stroke={color} strokeWidth={1.4} strokeLinejoin="round" />
+      {dots.map((p) => (
+        <circle key={p.id} cx={p.x} cy={p.y} r={2.4} className="fill-foreground" fillOpacity={0.85}>
+          <title>{p.name}</title>
+        </circle>
+      ))}
+    </svg>
+  );
+}
+
+function DistrictWindow({
+  cc,
+  index,
+  onBack,
+  onClose,
+  onDivision,
+}: {
+  cc: string;
+  /** Its place in the country's file of boundaries. */
+  index: number;
+  /** Back to its country's window, where that is open behind it. */
+  onBack?: () => void;
+  onClose: () => void;
+  /** To the window of the first-order division it lies in. */
+  onDivision: (s: Subnation) => void;
+}) {
+  const navigate = useNavigate();
+  /** Whether one of its places has its window open: this one is then out of sight, until the reader comes back. */
+  const [placeOpen, setPlaceOpen] = useState(false);
+  const c = COUNTRY.get(cc);
+  const country = c?.name ?? cc;
+  const info = useAdmin2Manifest()?.[cc];
+  const second = useAdmin2(cc);
+  const file = usePlaces(cc);
+  const shape = second ? second.shapes[index] : undefined;
+  const name = shape?.properties.n ?? "";
+  const parentName = shape?.properties.p;
+  const parent = useMemo(() => (parentName ? SUBNATIONS.find((s) => s.cc === cc && s.name === parentName) : undefined), [cc, parentName]);
+  /* The places of GeoNames' list whose point lies inside its outline, in the list's order: largest first. */
+  const rows = useMemo(() => {
+    if (!shape || !file) return null;
+    const [[w, s], [e, n]] = geoBounds(shape as never);
+    const near = (lon: number, lat: number) => lat >= s && lat <= n && (w <= e ? lon >= w && lon <= e : lon >= w || lon <= e);
+    return file.places.filter((p) => near(p[2], p[1]) && geoContains(shape as never, [p[2], p[1]]));
+  }, [shape, file]);
+  /* The division a place's window names for it: the one the district lies in, or, where none was found, the one GeoNames files the place under. */
+  const division = (p: PlaceRow): Subnation => parent ?? { id: "", cc, name: file?.regions[p[4]] || name, lat: p[1], lon: p[2] };
+  const color = flagColor(cc) ?? COLOR;
+
+  if (second === undefined)
+    return (
+      <Window onBack={onBack} title="Loading…" kicker={`Second-order division · ${country}`} flagSrc={flag(cc, 160)} chips={[]} onClose={onClose}>
+        <p className="text-[12px] font-sans text-muted-foreground">Loading the boundaries of {inSentence(country)}…</p>
+      </Window>
+    );
+  if (!shape)
+    return (
+      <Window onBack={onBack} title={country} kicker="Second-order division" flagSrc={flag(cc, 160)} chips={[]} onClose={onClose}>
+        <p className="text-[12px] font-sans text-foreground">No second-order division is held under that link for {inSentence(country)}.</p>
+      </Window>
+    );
+
+  const peopled = rows?.filter((p) => p[3] > 0) ?? [];
+  const parts: Part[] = [
+    {
+      title: "Identity",
+      fields: [
+        { label: "Common name", value: name },
+        { label: "Kind", value: info?.kind ?? null, sub: "the word the publisher of its boundary has for the country's second order" },
+        { label: "Political status", value: "Second-order division", sub: "as geoBoundaries orders the country's divisions" },
+        { label: "Division", value: parentName ?? null, sub: "the first-order division most of its outline lies in · worked out here" },
+        { label: "Country", value: country, sub: `ISO 3166-1: ${cc}` },
+        { label: "Continent", value: c?.continent || null },
+      ],
+    },
+    {
+      title: "Its boundary",
+      note: "The outline drawn for it, and the one its places are found by. It has been simplified for the map.",
+      fields: [
+        { label: "Publisher", value: info?.by ?? null },
+        { label: "The year it shows", value: info?.year ?? null },
+        { label: "Licence", value: info?.licence ?? null },
+        { label: "Gathered by", value: "geoBoundaries", sub: "its gbOpen release, second order" },
+      ],
+    },
+    {
+      title: "Population · Area · Government · Economy · Society",
+      note: `The site holds none of these for a second-order division outside the United States, and works none out from an outline. ${parent ? `${parent.name}'s` : `${country}'s`} are in its own window.`,
+      fields: [],
+    },
+  ];
+  return (
+    <Window
+      wide
+      top={!placeOpen}
+      hidden={placeOpen}
+      onBack={onBack}
+      title={name}
+      kicker={`${info?.kind ?? "Second-order division"} · ${[parentName, country].filter(Boolean).join(" · ")}`}
+      flagSrc={(parent && ownFlag(parent, 250)) ?? flag(cc, 160)}
+      chips={[...(parentName ? [parentName] : []), country, ...(rows ? [`${whole(rows.length)} places listed`] : [])]}
+      onClose={onClose}
+    >
+      <div className="flex flex-wrap gap-2">
+        {parent && <LinkButton onClick={() => onDivision(parent)}>{parent.name}'s record</LinkButton>}
+        {c && <LinkButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Open {c.name}</LinkButton>}
+        <LinkButton onClick={() => navigate(`/dashboard/maps?country=${cc}`)}>
+          <MapTrifold size={12} aria-hidden /> On the map
+        </LinkButton>
+      </div>
+
+      <section>
+        <div className="flex items-center gap-2 mb-1.5">
+          <h3 className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">Towns, cities and villages</h3>
+          <div className="flex-1 h-px bg-border/60" />
+        </div>
+        {file === undefined ? (
+          <p className="text-[11px] font-sans text-muted-foreground">Loading the places of {inSentence(country)}…</p>
+        ) : !file || !rows ? (
+          <p className="text-[11px] font-sans text-muted-foreground">Not held: the site has no list of places for {inSentence(country)}.</p>
+        ) : (
+          <>
+            <p className="text-[11px] font-sans text-muted-foreground leading-snug mb-2">
+              The places of GeoNames' list - every town, city and village of more than 500 people, and every seat of a county or district - whose point lies inside the outline
+              of {name}. That is worked out here, from the outline as the map draws it, so a place at its very edge can fall on the other side.
+            </p>
+            <OutlineMap shape={shape} rows={rows} color={color} label={`The outline of ${name}, with the ${rows.length} places listed inside it`} />
+            <div className="grid grid-cols-2 gap-3 my-3">
+              <div className="modal-tile rounded-lg p-3 min-w-0">
+                <p className="text-xs text-muted-foreground font-sans">Towns, cities and villages</p>
+                <p className="text-base font-bold font-mono text-foreground">{whole(rows.length)}</p>
+                <p className="text-[10px] text-muted-foreground font-sans mt-0.5 leading-snug">listed by GeoNames inside its outline</p>
+              </div>
+              <div className="modal-tile rounded-lg p-3 min-w-0">
+                <p className="text-xs text-muted-foreground font-sans">Largest</p>
+                <p className={`text-base font-bold font-sans truncate ${peopled[0] ? "text-foreground" : "text-muted-foreground font-normal"}`} title={peopled[0]?.[0]}>
+                  {peopled[0]?.[0] ?? "Not held"}
+                </p>
+                {peopled[0] && <p className="text-[10px] text-muted-foreground font-sans mt-0.5 leading-snug">{whole(peopled[0][3])} people, as GeoNames has it</p>}
+              </div>
+            </div>
+            {rows.length > 0 ? (
+              <PlacesInside rows={rows} file={file} division={division} country={country} onPlace={setPlaceOpen} onCloseAll={onClose} />
+            ) : (
+              <p className="text-[11px] font-sans text-muted-foreground">GeoNames lists no place of more than 500 people inside its outline.</p>
+            )}
+            <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">A population is GeoNames' own for the place, undated; the largest first.</p>
+          </>
+        )}
+      </section>
+
+      {parts.map((p) => (
+        <Section key={p.title} part={p} />
+      ))}
+      <SourceLink sources={[ADMIN2_SOURCE, { label: PLACES_SOURCE.geonames.label, url: PLACES_SOURCE.geonames.url }, SUBNATIONS_SOURCES.naturalEarth]} />
+    </Window>
+  );
+}
+
 // ── The page ────────────────────────────────────────────────────────────────
 
 type Sort = "name" | "population" | "area";
@@ -825,6 +1025,8 @@ export function SubnationsPage() {
   /** The US state whose counties are listed, and the county whose window is open. */
   const [countyState, setCountyState] = useState("");
   const [openCounty, setOpenCounty] = useState<string | null>(null);
+  /** The second-order division, outside the United States, whose window is open: its country, and its place in the country's file. */
+  const [district, setDistrict] = useState<{ cc: string; index: number } | null>(null);
   const [countyData, setCountyData] = useState<CountyData | null>(null);
   /** Said on the page, and said in a country's window. */
   const [notice, setNotice] = useState<string | null>(null);
@@ -851,7 +1053,17 @@ export function SubnationsPage() {
     if (!id && !cc) return;
     setNotice(null);
     setInside(null);
-    if (id?.startsWith("county:")) {
+    setDistrict(null);
+    if (id?.startsWith("district:")) {
+      // A district the Dashboard's map names: its country's two letters and a whole number, looked up in the country's file and nowhere else.
+      const [, dcc = "", at = ""] = id.split(":");
+      setOpen(null);
+      setOpenCounty(null);
+      setCountyState("");
+      setCountry(ROW_OF.has(dcc) ? dcc : null);
+      if (/^[A-Z]{2}$/.test(dcc) && /^\d{1,5}$/.test(at)) setDistrict({ cc: dcc, index: Number(at) });
+      else setNotice("No second-order division is held under that link.");
+    } else if (id?.startsWith("county:")) {
       setCountry("US");
       setOpen(null);
       setOpenCounty(id.slice(7));
@@ -898,6 +1110,7 @@ export function SubnationsPage() {
   const closeAll = () => {
     setOpen(null);
     setOpenCounty(null);
+    setDistrict(null);
     setCountry(null);
     setCountyState("");
     setInside(null);
@@ -1000,7 +1213,7 @@ export function SubnationsPage() {
         <CountryWindow
           key={openRow.cc}
           row={openRow}
-          top={!open && !county}
+          top={!open && !county && !district}
           asked={carried}
           notice={inside}
           countyState={countyState}
@@ -1028,6 +1241,21 @@ export function SubnationsPage() {
         />
       )}
       {county && countyData && <CountyWindow county={county} data={countyData} onBack={() => setOpenCounty(null)} onClose={closeAll} />}
+      {district && (
+        <DistrictWindow
+          key={`${district.cc}-${district.index}`}
+          cc={district.cc}
+          index={district.index}
+          onBack={openRow ? () => setDistrict(null) : undefined}
+          onClose={closeAll}
+          onDivision={(s) => {
+            setDistrict(null);
+            setCountry(s.cc);
+            setOpen(s);
+          }}
+        />
+      )}
+
     </div>
   );
 }
