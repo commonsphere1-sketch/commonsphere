@@ -303,7 +303,9 @@ function PlaceCard({ p, district, onOpen }: { p: PlaceRow; /** The county or dis
         </span>
       </span>
       <span className="flex flex-col border-t border-border/40 pt-1.5">
-        {facts.map(([k, v]) => (
+        {facts
+          .filter(([, v]) => v)
+          .map(([k, v]) => (
           <span key={k} className="flex items-baseline justify-between gap-2 py-0.5 min-w-0">
             <span className="text-[11px] font-sans text-muted-foreground shrink-0">{k}</span>
             <span className={`text-[11px] font-mono truncate ${v ? "font-bold text-foreground" : "text-muted-foreground"}`}>{v ?? "Not held"}</span>
@@ -769,8 +771,8 @@ function PlaceWindow({
             <div className="space-y-4">
               <Part title="👥 People & place" note="What GeoNames records of the place. Its population is GeoNames' own figure and carries no date.">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  <Tile label="People" value={pop > 0 ? whole(pop) : "Not held"} sub={pop > 0 ? "GeoNames, undated" : undefined} />
-                  <Tile label="County or district" value={district || "Not held"} sub={s.name} />
+                  {pop > 0 && <Tile label="People" value={whole(pop)} sub="GeoNames, undated" />}
+                  {district && <Tile label="County or district" value={district} sub={s.name} />}
                   <Tile label="What it is" value={PLACE_KINDS[kind]} sub="as GeoNames classes it" />
                 </div>
               </Part>
@@ -782,7 +784,7 @@ function PlaceWindow({
                   {head && <FigureRow label="Head" value={head[3]} sub={`${head[4]}${head[5] ? ` · since ${head[5]}` : ""} · three records agree`} />}
 
                   <FigureRow label="Division" value={s.name} sub={s.kind} />
-                  <FigureRow label="County or district" value={district || <span className="font-normal text-muted-foreground">Not held</span>} />
+                  {district && <FigureRow label="County or district" value={district} />}
                   <FigureRow label="Country" value={country} sub={`ISO 3166-1: ${s.cc}`} />
                   <FigureRow label="Coordinates" value={coords(lat, lon)} />
                   <FigureRow label="GeoNames id" value={String(id)} />
@@ -974,10 +976,10 @@ function PlaceWindow({
                 <div className="modal-tile rounded-xl px-4 py-1.5">
                   <FigureRow label="Name" value={name} />
                   <FigureRow label="What it is" value={PLACE_KINDS[kind]} sub="as GeoNames classes it" />
-                  <FigureRow label="County or district" value={district || <span className="font-normal text-muted-foreground">Not held</span>} />
+                  {district && <FigureRow label="County or district" value={district} />}
                   <FigureRow label="Division" value={s.name} sub={s.kind} />
                   <FigureRow label="Country" value={country} sub={`ISO 3166-1: ${s.cc}`} />
-                  <FigureRow label="People" value={pop > 0 ? whole(pop) : <span className="font-normal text-muted-foreground">Not held</span>} sub={pop > 0 ? "GeoNames, undated" : undefined} />
+                  {pop > 0 && <FigureRow label="People" value={whole(pop)} sub="GeoNames, undated" />}
                   <FigureRow label="Coordinates" value={coords(lat, lon)} sub="where GeoNames places it" />
                 </div>
               </Part>
@@ -1011,7 +1013,7 @@ function PlaceWindow({
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <Tile label="Coordinates" value={coords(lat, lon)} />
-                <Tile label="County or district" value={district || "Not held"} />
+                {district && <Tile label="County or district" value={district} />}
                 <Tile label="Division" value={s.name} />
               </div>
               <ChartNote>The map is Google's and is opened on the point where GeoNames places {name}.</ChartNote>

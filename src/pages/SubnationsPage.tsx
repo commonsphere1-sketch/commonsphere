@@ -10,7 +10,8 @@
  * A window is laid out as asked, in eight parts: Identity, Geography,
  * Government, Demographics, Economy, Society, Political data, Historical
  * trends. Each part lists the same fields for every division, and a field
- * the site holds nothing for says "Not held" rather than being filled in or
+ * the site holds nothing for is left out - it once said "Not held", and the
+ * blank lines were taken off as asked - rather than being filled in or
  * left out, so a reader can see what is missing.
  *
  * Whose figure each one is, is said beside it:
@@ -76,6 +77,7 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { ArrowLeft, ArrowRight, Buildings, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, TreeStructure, X } from "@phosphor-icons/react";
 import { TONE } from "@/lib/chipTone";
 import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest } from "../lib/admin2";
+import { DIVISION_DETAILS_SOURCES, useDivisionDetails, type DivisionDetails, type Money } from "../lib/divisionDetails";
 import { liveRecord, type LiveRecord } from "../lib/liveRecord";
 import { framed, placesWithin, useAdmin1, useCountyOutline } from "../lib/outlines";
 import { flagColor } from "../lib/flagColor";
@@ -174,19 +176,56 @@ const ROW_OF = new Map(ROWS.map((r) => [r.cc, r]));
 
 // ── A window's pieces ───────────────────────────────────────────────────────
 
+/** The mark a category carries at its head, as the categories of the US States window's overview carry theirs. */
+const PART_MARKS: [RegExp, string][] = [
+  [/^Identity/, "🪪"],
+  [/^Codes/, "🔢"],
+  [/^Geography/, "🗺️"],
+  [/^Government/, "🏛️"],
+  [/^Demographics/, "👥"],
+  [/^Economy/, "📊"],
+  [/^Society/, "🎓"],
+  [/^Political/, "🗳️"],
+  [/^Historical/, "📈"],
+  [/^Analysed/, "🧮"],
+  [/^Its own record/, "📋"],
+  [/^Its boundary/, "🧭"],
+  [/^The division/, "🏷️"],
+  [/^The country/, "🌍"],
+];
+
+/**
+ * A category of a window's overview, laid out as the US States window lays its own out: its name with its mark, and its
+ * figures as tiles, four across. Only what is held is set out, as asked: a field with nothing behind it is left out, and
+ * a category with nothing in it is not shown at all. A short figure is a tile of its own; a longer one - a name, a list -
+ * takes two tiles' width, and a long one the whole row, so that nothing is cut off.
+ */
 function Section({ part }: { part: Part }) {
+  const fields = part.fields.filter((f) => f.value);
+  if (!fields.length && !part.extra) return null;
+  const mark = PART_MARKS.find(([re]) => re.test(part.title))?.[1];
   return (
     <section>
-      <div className="flex items-center gap-2 mb-1.5">
-        <h3 className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">{part.title}</h3>
+      <div className="flex items-center gap-2 mb-2">
+        <h3 className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+          {mark ? `${mark} ` : ""}
+          {part.title}
+        </h3>
         <div className="flex-1 h-px bg-border/60" />
       </div>
-      {part.note && <p className="text-[11px] font-sans text-muted-foreground leading-snug mb-1.5">{part.note}</p>}
-      {part.fields.length > 0 && (
-        <div className="modal-tile rounded-xl px-4 py-1.5">
-          {part.fields.map((f) => (
-            <FigureRow key={f.label} label={f.label} value={f.value ? f.value : <span className="font-normal text-muted-foreground">Not held</span>} sub={f.value ? f.sub : undefined} />
-          ))}
+      {part.note && <p className="text-[11px] font-sans text-muted-foreground leading-snug mb-2">{part.note}</p>}
+      {fields.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {fields.map((f) => {
+            const long = f.value!.length;
+            return (
+              <div key={f.label} className={`modal-tile rounded-lg p-4 flex flex-col gap-1 min-w-0 ${long > 80 ? "col-span-2 sm:col-span-4" : long > 8 ? "col-span-2" : ""}`}>
+                <p className="text-xs text-muted-foreground font-sans">{f.label}</p>
+                <p className={`font-bold text-foreground break-words ${long > 34 ? "text-sm font-sans leading-snug" : long > 8 ? "text-base font-sans leading-snug" : "text-xl font-mono"}`}>{f.value}</p>
+                {f.sub && <p className="text-xs text-muted-foreground font-sans leading-snug">{f.sub}</p>}
+              </div>
+            );
+          })}
         </div>
       )}
       {part.extra}
@@ -331,7 +370,12 @@ const noHistory = (name: string) => <p className="text-xs font-sans text-muted-f
 
 // ── A division's window ─────────────────────────────────────────────────────
 
-function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
+/** An amount of money as it is printed: the amount, in words where it is large, and its currency. */
+const money = (m: Money) => `${m[1] >= 1e12 ? `${(m[1] / 1e12).toFixed(2)} trillion` : m[1] >= 1e9 ? `${(m[1] / 1e9).toFixed(2)} billion` : m[1] >= 1e6 ? `${(m[1] / 1e6).toFixed(2)} million` : whole(m[1])} ${m[2]}`;
+/** A field that is there only where something is held for it: what more a division's record gives is not the same from one division to the next. */
+const held = (label: string, value: string | undefined | null | false, sub?: string): Field[] => (value ? [{ label, value, sub }] : []);
+
+function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: Source[] } {
   const c = COUNTRY.get(s.cc);
   const country = c?.name ?? s.cc;
   const state = STATE_BY_CODE.get(s.code ?? "");
@@ -360,6 +404,10 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
   else if (ci) cite({ label: COUNTRY_INDICATORS_SOURCE.label, url: COUNTRY_INDICATORS_SOURCE.url });
   if (head) cite(REPRESENTATIVES_SOURCES.wikidata), cite(REPRESENTATIVES_SOURCES.wikipedia);
   if (s.flag) cite(SUBNATIONS_SOURCES.commons);
+  if (d?.postal) cite(DIVISION_DETAILS_SOURCES.postal);
+  /** Said beside a figure that is the division's own, from its record: its year, and that the record cites a source for it. */
+  const own = (year: number) => `${year} · its own · a dated, sourced figure in ${wd}`;
+  const ownMoney = Boolean(d?.gdp || d?.gdpPc || d?.income || d?.unemployment);
   if (s.capitalBy === "gn") cite(SUBNATIONS_SOURCES.geonames);
   if (s.popBy || s.areaBy || s.flagBy || s.capitalBy === "wp") cite(SUBNATIONS_SOURCES.wikipedia);
   /** Said beside a value that is the infobox's and not the record's. */
@@ -381,6 +429,31 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
         { label: "Flag", value: s.flag ? "Shown above" : null, sub: s.flag ? `Wikimedia Commons · ${s.flagLicence}${s.flagBy ? ` · the one ${box} shows` : ""}` : undefined },
         { label: "Political status", value: s.kind ? `${s.kind} of ${country}` : null, sub: "as Natural Earth names it" },
         { label: "Founded", value: s.founded ? (s.founded < 0 ? `${-s.founded} BC` : String(s.founded)) : null, sub: wd },
+        ...held("Named after", d?.namedAfter?.join(", "), wd),
+        ...held("Demonym", d?.demonym?.join(", "), wd),
+        ...held("Nickname", d?.nickname?.join(", "), wd),
+        ...held("Motto", d?.motto, wd),
+        ...held("Twinned with", d?.twins?.join(", "), wd),
+      ],
+    },
+    {
+      title: "Codes",
+      note: "Its postal codes are the ones GeoNames lists at a point inside its outline, counted here and put in order - GeoNames' list is not whole in every country, and says so. Its other codes are as its Wikidata record states them.",
+      fields: [
+        {
+          label: "Postal codes",
+          value: d?.postal ? (d.postal.n > 1 ? `${d.postal.from} to ${d.postal.to}` : d.postal.from) : null,
+          sub: d?.postal ? `${whole(d.postal.n)} ${d.postal.n === 1 ? "code" : "codes"} in ${whole(d.postal.places)} ${d.postal.places === 1 ? "place" : "places"}, as GeoNames lists them · the first and the last in order` : undefined,
+        },
+        ...held("Postal codes, as its record states them", d?.postalOwn?.join(", "), wd),
+        { label: "ISO 3166-2 code", value: s.code },
+        ...held("Dialling code", d?.dial?.join(", "), wd),
+        ...held("Vehicle registration code", d?.plate?.join(", "), wd),
+        ...held("Time zone", d?.tz?.join(", "), wd),
+        ...held("FIPS 10-4 code", d?.fips, wd),
+        ...held("NUTS code", d?.nuts, wd),
+        ...held("HASC code", d?.hasc, wd),
+        ...held("OpenStreetMap relation", d?.osm, wd),
       ],
     },
     {
@@ -392,6 +465,9 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
         { label: "Area", value: s.areaKm2 ? `${whole(s.areaKm2)} km²` : null, sub: s.areaBy ? `as ${box} gives it` : wd },
         { label: "Borders", value: s.borders?.join(", "), sub: undefined },
         { label: "Coordinates", value: coords(s.lat, s.lon), sub: "its label point" },
+        ...held("Elevation", d?.elevation != null && `${whole(d.elevation)} m`, wd),
+        ...held("Highest point", d?.highest, wd),
+        ...held("Water", d?.water != null && `${d.water}% of its area`, wd),
       ],
     },
     {
@@ -410,6 +486,9 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
         { label: "Judiciary", value: null },
         { label: "Administrative structure", value: s.kind ? `${s.kind}${s.within ? `, within ${s.within}` : ""}` : null },
         { label: "Electoral system", value: null },
+        ...held("The office of its head", d?.headOffice, wd),
+        ...held("Official language", d?.langs?.join(", "), wd),
+        ...held("Divisions inside it", d?.parts != null && whole(d.parts), `as ${wd} lists them`),
       ],
     },
     {
@@ -436,11 +515,21 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
         { label: "Age", value: m ? `${m.medianAge.v} years` : null, sub: m ? `median age · ${m.medianAge.y}` : undefined },
         { label: "Urbanization", value: null },
         { label: "Migration", value: null },
+        ...held("Women", d?.women && whole(d.women[1]), d?.women && own(d.women[0])),
+        ...held("Men", d?.men && whole(d.men[1]), d?.men && own(d.men[0])),
+        ...held("Households", d?.households && whole(d.households[1]), d?.households && own(d.households[0])),
+        ...held("Urban population", d?.urban && whole(d.urban[1]), d?.urban && own(d.urban[0])),
+        ...held("Rural population", d?.rural && whole(d.rural[1]), d?.rural && own(d.rural[0])),
+        ...held("Fertility", d?.fertility && `${d.fertility[1]} children a woman`, d?.fertility && own(d.fertility[0])),
       ],
     },
     {
       title: "Economy",
-      note: m ? undefined : `No body publishes these for every division on one footing. The figures are ${country}'s.`,
+      note: m
+        ? undefined
+        : ownMoney
+          ? `No body publishes these for every division on one footing. The ones marked its own are from ${wd}, each dated and sourced there; the rest are ${country}'s.`
+          : `No body publishes these for every division on one footing. The figures are ${country}'s.`,
       fields: m
         ? [
             { label: "GDP", value: billions(m.gdp.v), sub: `Bureau of Economic Analysis · ${m.gdp.y}` },
@@ -451,6 +540,10 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
             { label: "Trade", value: null },
           ]
         : [
+            ...held("GDP · its own", d?.gdp && money(d.gdp), d?.gdp && own(d.gdp[0])),
+            ...held("GDP per person · its own", d?.gdpPc && money(d.gdpPc), d?.gdpPc && own(d.gdpPc[0])),
+            ...held("Median income · its own", d?.income && money(d.income), d?.income && own(d.income[0])),
+            ...held("Unemployment · its own", d?.unemployment && `${d.unemployment[1]}%`, d?.unemployment && own(d.unemployment[0])),
             { label: "GDP", value: ci?.gdp ? billions(ci.gdp.v) : null, sub: ci?.gdp ? `${theirs} · ${ci.gdp.y}` : undefined },
             { label: "GDP per person", value: ci?.gdpPerCapita ? usd(ci.gdpPerCapita.v) : null, sub: ci?.gdpPerCapita ? `${theirs} · ${ci.gdpPerCapita.y}` : undefined },
             { label: "Inflation", value: ci?.inflationRate ? `${ci.inflationRate.v}%` : null, sub: ci?.inflationRate ? `${theirs} · ${ci.inflationRate.y}` : undefined },
@@ -471,6 +564,8 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
             { label: "Development: homes lived in by their owner", value: `${m.housing.homeOwnershipPct}%`, sub: `of occupied homes · ${m.housing.y}` },
           ]
         : [
+            ...held("Education: adults who can read · its own", d?.literacy && `${d.literacy[1]}%`, d?.literacy && own(d.literacy[0])),
+            ...held("Health: life expectancy · its own", d?.lifeExp && `${d.lifeExp[1]} years`, d?.lifeExp && own(d.lifeExp[0])),
             { ...row("Education", "Adults who can read"), label: "Education: adults who can read" },
             { ...row("Education", "Years of schooling"), label: "Education: years of schooling" },
             { ...row("Health", "Life expectancy"), label: "Health: life expectancy" },
@@ -513,7 +608,10 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
   const navigate = useNavigate();
   const c = COUNTRY.get(s.cc);
   const state = STATE_BY_CODE.get(s.code ?? "");
-  const { parts, sources } = useMemo(() => partsOf(s), [s]);
+  /* What more is held of it - its postal and other codes, its languages, its own economy and people - fetched with its country's file. */
+  const details = useDivisionDetails(s.cc)?.[s.id];
+  const { parts, sources } = useMemo(() => partsOf(s, details), [s, details]);
+
   /* Its outline, among the ones the site's maps draw for its country, and the places GeoNames lists in it: the map at the head of its window. */
   const drawn = useAdmin1(s.cc);
   const outline = useMemo(() => (drawn ? drawn.filter((f) => f.properties.n === s.name) : []), [drawn, s.name]);
@@ -575,8 +673,8 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
                 latest its record gives, so the years are not all one: each is beside its figure.
               </p>
               <div className="modal-tile rounded-xl px-4 py-1.5">
-                <FigureRow label="By population" value={peopleAt ? `${peopleAt} of ${byPeople.length}` : <span className="font-normal text-muted-foreground">Not held</span>} sub={peopleAt ? "among those with a population held, the largest first" : undefined} />
-                <FigureRow label="By area" value={areaAt ? `${areaAt} of ${byArea.length}` : <span className="font-normal text-muted-foreground">Not held</span>} sub={areaAt ? "among those with an area held, the widest first" : undefined} />
+                {peopleAt > 0 && <FigureRow label="By population" value={`${peopleAt} of ${byPeople.length}`} sub="among those with a population held, the largest first" />}
+                {areaAt > 0 && <FigureRow label="By area" value={`${areaAt} of ${byArea.length}`} sub="among those with an area held, the widest first" />}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                 {peopleAt > 0 && (
@@ -1019,13 +1117,15 @@ function DistrictWindow({
                 <p className="text-base font-bold font-mono text-foreground">{whole(rows.length)}</p>
                 <p className="text-[10px] text-muted-foreground font-sans mt-0.5 leading-snug">listed by GeoNames inside its outline</p>
               </div>
-              <div className="modal-tile rounded-lg p-3 min-w-0">
-                <p className="text-xs text-muted-foreground font-sans">Largest</p>
-                <p className={`text-base font-bold font-sans truncate ${peopled[0] ? "text-foreground" : "text-muted-foreground font-normal"}`} title={peopled[0]?.[0]}>
-                  {peopled[0]?.[0] ?? "Not held"}
-                </p>
-                {peopled[0] && <p className="text-[10px] text-muted-foreground font-sans mt-0.5 leading-snug">{whole(peopled[0][3])} people, as GeoNames has it</p>}
-              </div>
+              {peopled[0] && (
+                <div className="modal-tile rounded-lg p-3 min-w-0">
+                  <p className="text-xs text-muted-foreground font-sans">Largest</p>
+                  <p className="text-base font-bold font-sans truncate text-foreground" title={peopled[0][0]}>
+                    {peopled[0][0]}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground font-sans mt-0.5 leading-snug">{whole(peopled[0][3])} people, as GeoNames has it</p>
+                </div>
+              )}
             </div>
             <PlacesAnalysis rows={rows} name={name} />
             {rows.length > 0 ? (
@@ -1119,7 +1219,9 @@ function DivisionCard({ s, inside, onOpen }: { s: Subnation; /** What GeoNames l
         {s.code && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full border border-border text-muted-foreground shrink-0">{s.code}</span>}
       </span>
       <span className="flex flex-col border-t border-border/40 pt-1.5">
-        {facts.map(([k, v]) => (
+        {facts
+          .filter(([, v]) => v)
+          .map(([k, v]) => (
           <span key={k} className="flex items-baseline justify-between gap-2 py-0.5 min-w-0">
             <span className="text-[11px] font-sans text-muted-foreground shrink-0">{k}</span>
             <span className={`text-[11px] font-mono truncate ${v ? "font-bold text-foreground" : "text-muted-foreground"}`}>{v ?? "Not held"}</span>
