@@ -7172,16 +7172,16 @@ export function StatesPage() {
             <article
               key={state.id}
               onClick={() => setModalState(state)}
-              className="modal-tile rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40"
+              className="modal-tile relative isolate overflow-hidden rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40"
             >
-              {/* Card header with flag background */}
-              <div className="relative flex items-start justify-between mb-3 -mx-5 -mt-5 px-5 pt-5 pb-4 rounded-t-xl overflow-hidden">
+              {/* Card header. The flag behind it runs the whole height of the card, dimmed, under everything the card carries. */}
+              <div className="flex items-start justify-between mb-3 -mx-5 -mt-5 px-5 pt-5 pb-4">
                 {/* Flag background */}
                 <img
                   src={`https://flagcdn.com/w320/us-${state.id}.png`}
                   alt=""
                   aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover opacity-20 scale-105 select-none pointer-events-none"
+                  className="absolute inset-0 -z-10 w-full h-full object-cover opacity-[0.16] scale-105 select-none pointer-events-none"
                 />
                 {/* Gradient overlay so text stays readable */}
                 {/* Content */}
