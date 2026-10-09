@@ -64,6 +64,9 @@ export function CountryOutline({
     <div className={className}>
       <OutlineMap
         onDot={dots ? onDot : (d) => navigate(`/dashboard/subnations?open=place:${code}:${d.id}`)}
+        // A division pointed at is picked out and named; pressed, it opens on the Municipalities page.
+        onShape={(f) => f.properties.n && navigate(`/dashboard/subnations?country=${code}&name=${encodeURIComponent(f.properties.n)}`)}
+
         shapes={drawn}
         frame={frame}
         dots={shown}

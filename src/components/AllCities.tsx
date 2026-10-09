@@ -255,7 +255,7 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
           </div>
 
           {/* Tab bar */}
-          <div className="flex gap-1 p-1 bg-muted/40 rounded-xl border border-border/50 mb-5">
+          <div className="flex gap-1 p-1 bg-muted/40 rounded-xl border border-border/50 mb-5 modal-tabs">
             {(
               [
                 { key: "overview", label: "Overview", icon: <ListBullets size={14} /> },

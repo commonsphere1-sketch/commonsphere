@@ -290,11 +290,9 @@ export function DivisionPlaces({
 
 /** A card for a place: its name and what it is, its county, its people, and its head where one is confirmed. It opens the place's own window. */
 function PlaceCard({ p, district, onOpen }: { p: PlaceRow; /** The county or district GeoNames files it under. */ district?: string; onOpen: () => void }) {
-  const head = HEAD_BY_GEONAMES.get(p[6]);
   const facts: [string, string | undefined][] = [
     ["People", p[3] > 0 ? whole(p[3]) : undefined],
     ["County or district", district || undefined],
-    ["Head", head?.[3]],
   ];
   return (
     <button type="button" onClick={onOpen} className="modal-tile rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
@@ -751,7 +749,7 @@ function PlaceWindow({
 
           <SeeAlso code={s.cc} name={country} className="mb-4" />
 
-          <div className="flex gap-1 p-1 bg-muted/40 rounded-xl border border-border/50 mb-5">
+          <div className="flex gap-1 p-1 bg-muted/40 rounded-xl border border-border/50 mb-5 modal-tabs">
             {(
               [
                 { key: "overview", label: "Overview", icon: <ListBullets size={14} /> },
@@ -780,7 +778,9 @@ function PlaceWindow({
               <Part title="📋 Its record">
                 <div className="modal-tile rounded-xl px-4 py-1.5">
                   <FigureRow label="Name" value={name} />
-                  <FigureRow label="Head" value={head ? head[3] : <span className="font-normal text-muted-foreground">Not held</span>} sub={head ? `${head[4]}${head[5] ? ` · since ${head[5]}` : ""} · three records agree` : undefined} />
+                  {/* Its head is named only where three records agree on one; the line is left out otherwise, as asked, and not shown as "Not held". */}
+                  {head && <FigureRow label="Head" value={head[3]} sub={`${head[4]}${head[5] ? ` · since ${head[5]}` : ""} · three records agree`} />}
+
                   <FigureRow label="Division" value={s.name} sub={s.kind} />
                   <FigureRow label="County or district" value={district || <span className="font-normal text-muted-foreground">Not held</span>} />
                   <FigureRow label="Country" value={country} sub={`ISO 3166-1: ${s.cc}`} />

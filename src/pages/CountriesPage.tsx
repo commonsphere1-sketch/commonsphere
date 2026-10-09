@@ -737,7 +737,7 @@ function CountryModal({
           <SeeAlso code={country.code} name={country.name} omit={["country", "leaders"]} />
 
           {/* Tab bar */}
-          <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto">
+          <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto modal-tabs">
             {(
               [
                 {

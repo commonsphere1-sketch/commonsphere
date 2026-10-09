@@ -6140,7 +6140,7 @@ function StateModal({
           <SeeAlso code="US" name="United States" omit={["cities", "states"]} mapTo={`/dashboard/maps?state=${state.abbreviation}`} />
 
           {/* Tab bar */}
-          <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto">
+          <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto modal-tabs">
             {tabs.map((tab) => (
               <button
                 key={tab.id}

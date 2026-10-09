@@ -251,7 +251,7 @@ function ConflictModal({
           </div>
 
           {/* Scrollable tab bar */}
-          <div className="flex overflow-x-auto border-b border-border/40 -mx-5 px-5 gap-0 no-scrollbar">
+          <div className="flex overflow-x-auto border-b border-border/40 -mx-5 px-5 gap-0 no-scrollbar modal-tabs">
             {tabs.map((t) => (
               <button
                 key={t.id}

@@ -15262,7 +15262,7 @@ function LeaderDetail({
 
           {/* Tab bar — the pill row the country and state modals use, rather
               than the underline row this modal had. */}
-          <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto">
+          <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto modal-tabs">
             {tabs.map((t) => (
               <button
                 key={t.id}

@@ -8,7 +8,10 @@
  * the place's people, and the outline is the one the site's maps draw,
  * simplified for them. A dot pointed at says what it is: its name, and under
  * it what it belongs to - the district and division GeoNames files it under,
- * and its people where GeoNames gives them. Pressed, it goes straight to the
+ * and its people where GeoNames gives them. Where several outlines are drawn
+ * side by side - a country's divisions - the one pointed at is picked out and
+ * named, and a press on it opens it where the map's owner says how. A dot
+ * pressed goes straight to the
  * place's own window, where the map's owner says how.
  */
 import { useMemo, useState } from "react";
@@ -42,6 +45,7 @@ export function OutlineMap({
   color,
   label,
   onDot,
+  onShape,
 }: {
   /** What is drawn: one outline, or several side by side - a country's divisions. */
   shapes: Outline[];
@@ -55,7 +59,11 @@ export function OutlineMap({
   label: string;
   /** What a press on a dot does: it opens the place's own window. Left out, a dot only says what it is. */
   onDot?: (d: MapDot) => void;
+  /** What a press on one of several outlines does: it opens that division. Left out, an outline pointed at is only picked out and named. */
+  onShape?: (shape: Outline) => void;
 }) {
+  /** Which of several outlines is pointed at. */
+  const [lit, setLit] = useState<number | null>(null);
   const [over, setOver] = useState<string | number | null>(null);
   const drawn = useMemo(() => {
     const on = { type: "FeatureCollection", features: frame?.length ? frame : shapes };
@@ -74,16 +82,45 @@ export function OutlineMap({
       const xy = projection([d.lon, d.lat]);
       return xy && xy[0] >= 0 && xy[0] <= W && xy[1] >= 0 && xy[1] <= H ? [{ ...d, x: xy[0], y: xy[1] }] : [];
     };
-    return { paths: shapes.flatMap((s, i) => (path(s as never) ? [{ key: i, d: path(s as never)! }] : [])), dots: dots.flatMap(at), mark: mark ? at(mark)[0] : undefined };
+    return {
+      // Each outline with its name and its middle, where its name is said when it is pointed at.
+      paths: shapes.flatMap((s, i) => {
+        const d = path(s as never);
+        if (!d) return [];
+        const [cx, cy] = path.centroid(s as never);
+        return [{ key: i, d, cx, cy, name: s.properties.n ?? s.properties.name ?? "", shape: s }];
+      }),
+      dots: dots.flatMap(at),
+      mark: mark ? at(mark)[0] : undefined,
+    };
   }, [shapes, frame, dots, mark]);
   if (!drawn || !drawn.paths.length) return null;
   const said = over === null ? undefined : drawn.mark && drawn.mark.id === over ? drawn.mark : drawn.dots.find((d) => d.id === over);
+  /* Several outlines side by side can each be pointed at; one alone is the whole map, and has nothing to be told from. */
+  const many = drawn.paths.length > 1;
+  const litPath = many && lit !== null ? drawn.paths.find((p) => p.key === lit) : undefined;
+  /** What is said in the pop-up: the dot pointed at, or, where none is, the outline. */
+  const tip = said ?? (litPath && litPath.name && Number.isFinite(litPath.cx) ? { x: litPath.cx, y: litPath.cy, name: litPath.name, sub: onShape ? "Press it to open its window" : undefined } : undefined);
   return (
     <div className="relative">
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto modal-tile rounded-xl" role="img" aria-label={label}>
         {drawn.paths.map((p) => (
-          <path key={p.key} d={p.d} fill={color} fillOpacity={0.28} stroke={color} strokeWidth={drawn.paths.length > 1 ? 0.8 : 1.4} strokeLinejoin="round" />
+          <path
+            key={p.key}
+            d={p.d}
+            fill={color}
+            fillOpacity={litPath?.key === p.key ? 0.62 : 0.28}
+            stroke={color}
+            strokeWidth={many ? 0.8 : 1.4}
+            strokeLinejoin="round"
+            className={many && onShape ? "cursor-pointer" : undefined}
+            onMouseEnter={many ? () => setLit(p.key) : undefined}
+            onMouseLeave={many ? () => setLit((x) => (x === p.key ? null : x)) : undefined}
+            onClick={many && onShape ? () => onShape(p.shape) : undefined}
+          />
         ))}
+        {/* The outline pointed at, edged over its neighbours so that the whole of its border shows. */}
+        {litPath && <path d={litPath.d} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" pointerEvents="none" />}
         {drawn.dots.map((p) => (
           // A clear edge round each dot, so that one so small can still be pointed at.
           <circle
@@ -117,18 +154,19 @@ export function OutlineMap({
         {said && <circle cx={said.x} cy={said.y} r={7.5} fill="none" stroke={color} strokeWidth={1.8} pointerEvents="none" />}
       </svg>
       {/* Its name, and what it belongs to: above the dot, turned to the side that keeps it on the map. */}
-      {said && (
+      {tip && (
         <div
           role="status"
           className="absolute z-10 pointer-events-none modal-glass border rounded-lg px-2.5 py-1.5 shadow-lg max-w-[16rem]"
           style={{
-            left: `${(100 * said.x) / W}%`,
-            top: `${(100 * said.y) / H}%`,
-            transform: `translate(${said.x < W * 0.25 ? "0%" : said.x > W * 0.75 ? "-100%" : "-50%"}, ${said.y < H * 0.3 ? "14px" : "calc(-100% - 12px)"})`,
+            left: `${(100 * tip.x) / W}%`,
+            top: `${(100 * tip.y) / H}%`,
+            transform: `translate(${tip.x < W * 0.25 ? "0%" : tip.x > W * 0.75 ? "-100%" : "-50%"}, ${tip.y < H * 0.3 ? "14px" : "calc(-100% - 12px)"})`,
           }}
         >
-          <p className="text-[12px] font-bold font-sans text-foreground leading-tight">{said.name}</p>
-          {said.sub && <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">{said.sub}</p>}
+          <p className="text-[12px] font-bold font-sans text-foreground leading-tight">{tip.name}</p>
+          {tip.sub && <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">{tip.sub}</p>}
+
         </div>
       )}
     </div>

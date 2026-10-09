@@ -147,7 +147,7 @@ type CountryRow = {
   kinds: string[];
   /** How many have a dated, referenced population, and how many a head who is named. */
   counted: number;
-  headed: number;
+
   populous?: Subnation;
   widest?: Subnation;
 };
@@ -165,7 +165,7 @@ const ROWS: CountryRow[] = COUNTRIES.map(({ cc, name }) => {
     divisions,
     kinds: [...tally].sort((a, b) => b[1] - a[1]).map(([k]) => k),
     counted: divisions.filter((s) => s.pop).length,
-    headed: divisions.filter((s) => headOf(s) || STATE_BY_CODE.has(s.code ?? "")).length,
+
     populous: most((s) => s.pop?.[1]),
     widest: most((s) => s.areaKm2),
   };
@@ -311,7 +311,7 @@ function TabBar({ tab, onTab, count }: { tab: WinTab; onTab: (t: WinTab) => void
     { key: "municipalities", label: count != null ? `Municipalities · ${whole(count)}` : "Municipalities", icon: <Buildings size={14} /> },
   ] as const;
   return (
-    <div className="flex gap-1 p-1 bg-muted/40 rounded-xl border border-border/50" role="group" aria-label="The parts of this window">
+    <div className="flex gap-1 p-1 bg-muted/40 rounded-xl border border-border/50 modal-tabs" role="group" aria-label="The parts of this window">
       {tabs.map((x) => (
         <button
           key={x.key}
@@ -396,12 +396,16 @@ function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
     },
     {
       title: "Government",
-      note: head || m ? undefined : "A head is given only where the division's own record, the records of the office's holders and its Wikipedia article all name the same living person. None is confirmed for this one.",
+
       fields: [
         { label: "System", value: c?.governmentType, sub: theirs },
-        m
-          ? { label: "Head of government", value: m.governor.name, sub: `Governor · ${m.governor.party} · since ${m.governor.since.slice(0, 4)}` }
-          : { label: "Head of government", value: head?.[3], sub: head ? `${head[4]}${head[5] ? ` · since ${head[5]}` : ""} · three records agree` : undefined },
+        // Its head is named only where one is confirmed - a US state's governor, or a person three records agree on. The line is left out otherwise, as asked, and not shown as "Not held".
+        ...(m
+          ? [{ label: "Head of government", value: m.governor.name, sub: `Governor · ${m.governor.party} · since ${m.governor.since.slice(0, 4)}` }]
+          : head
+            ? [{ label: "Head of government", value: head[3], sub: `${head[4]}${head[5] ? ` · since ${head[5]}` : ""} · three records agree` }]
+            : []),
+
         { label: "Legislature", value: s.legislature, sub: wd },
         { label: "Judiciary", value: null },
         { label: "Administrative structure", value: s.kind ? `${s.kind}${s.within ? `, within ${s.within}` : ""}` : null },
@@ -1067,14 +1071,14 @@ const answers = (s: Subnation, q: string) => s.name.toLowerCase().includes(q) ||
 
 /** A division's card, inside its country's window. */
 function DivisionCard({ s, inside, onOpen }: { s: Subnation; /** What GeoNames lists inside it: undefined while its country's places are fetched, null where it has none by the division's name. */ inside: Inside | null | undefined; onOpen: () => void }) {
-  // A US state's population and head are the ones its window gives: the Census Bureau's, and its governor.
+  // A US state's population is the one its window gives: the Census Bureau's. The "Head" line the card had was taken off as asked: it said "Not held" for nearly every division.
   const state = STATE_BY_CODE.get(s.code ?? "");
   const m = state ? STATE_INDICATORS[state.id] : undefined;
   const facts: [string, string | undefined][] = [
     ["Population", m ? `${people(m.population.v)} · ${m.population.y}` : s.pop ? `${people(s.pop[1])} · ${s.pop[0]}` : undefined],
     ["Area", s.areaKm2 ? `${whole(s.areaKm2)} km²` : undefined],
     ["Capital", s.capital],
-    ["Head", m ? m.governor.name : headOf(s)?.[3]],
+
     // What lies inside it, as GeoNames lists it: the counties or districts with a listed place, and the towns, cities and villages of more than 500 people.
     ["Counties or districts", inside === undefined ? "…" : inside && inside.order === 1 && inside.districts.length ? whole(inside.districts.length) : undefined],
     ["Towns and villages", inside === undefined ? "…" : inside ? whole(inside.rows.length) : undefined],
@@ -1203,9 +1207,7 @@ function CountryCard({ row, matching, onOpen }: { row: CountryRow; /** How many 
         <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-foreground" title={pop ? `${row.name}'s population, ${pop.y} · ${peopleSource(pop).label}` : `No population is held for ${row.name}`}>
           {pop ? `${people(pop.v)} people · ${pop.y}` : "Population not held"}
         </span>
-        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-foreground" title="Divisions whose head is named: where three records agree, or, for a US state, its governor">
-          {row.headed} heads named
-        </span>
+
       </div>
     </article>
   );
@@ -1287,7 +1289,8 @@ function CountryWindow({
 
       {drawn && drawn.length > 0 && (
         <div>
-          <OutlineMap shapes={drawn} frame={frame} dots={dots} color={flagColor(row.cc) ?? COLOR} label={`${row.name} and its ${drawn.length} divisions, with its ${dots.length} largest listed places`} onDot={(d) => setPicked(places?.places.find((p) => p[6] === d.id) ?? null)} />
+          <OutlineMap shapes={drawn} frame={frame} dots={dots} color={flagColor(row.cc) ?? COLOR} label={`${row.name} and its ${drawn.length} divisions, with its ${dots.length} largest listed places`} onDot={(d) => setPicked(places?.places.find((p) => p[6] === d.id) ?? null)} onShape={(f) => { const hit = row.divisions.find((x) => x.name === f.properties.n); if (hit) onOpen(hit); }} />
+
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
             {row.name}'s divisions as the site's maps draw them{dots.length ? `, with the ${dots.length} largest places GeoNames lists for it as dots` : ""}
             {frame && frame.length < drawn.length ? " - framed without its far-off parts, which are in the list below" : ""}.

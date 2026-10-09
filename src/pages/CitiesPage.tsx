@@ -512,7 +512,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
           <SeeAlso code={city.countryCode} name={city.country} cityId={city.id} mapTo={place ? `/dashboard/maps?city=${city.id}` : undefined} />
 
           {/* Tab Bar */}
-          <div className="flex gap-1 p-1 bg-muted/40 rounded-xl border border-border/50 mb-5">
+          <div className="flex gap-1 p-1 bg-muted/40 rounded-xl border border-border/50 mb-5 modal-tabs">
             {(
               [
                 { key: "overview", label: "Overview", icon: <ListBullets size={14} /> },

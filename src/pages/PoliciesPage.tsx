@@ -3352,7 +3352,7 @@ export function PoliciesPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mt-3 bg-secondary/50 rounded-xl p-1 w-fit">
+        <div className="flex gap-1 mt-3 bg-secondary/50 rounded-xl p-1 w-fit modal-tabs">
           {TABS.map((tab) => (
             <button
               key={tab.id}

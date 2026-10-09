@@ -1149,7 +1149,7 @@ function EconomyModal({
           {CODE_OF_ECONOMY[economy.id] && <SeeAlso code={CODE_OF_ECONOMY[economy.id]} name={economy.name} omit={["economy"]} className="mt-4" />}
 
           {/* Tab bar */}
-          <div className="flex items-center gap-1 mt-4 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto">
+          <div className="flex items-center gap-1 mt-4 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto modal-tabs">
             {(
               [
                 { id: "overview", label: "Overview", icon: <ListBullets size={13} weight="bold" /> },
