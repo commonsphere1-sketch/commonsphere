@@ -36,6 +36,12 @@
  * A change over time is worked out here from two published figures, and says
  * so. Nothing is estimated.
  *
+ * A division's, a county's and a district's window is read in three parts,
+ * chosen from a bar at its head: Overview, which is all about the place
+ * itself; History, its article's; and Municipalities, the towns, cities and
+ * villages inside it, a card each. The last stays in place behind the others,
+ * so a search made in it is still there on the way back.
+ *
  * Every window opens on a small map (components/OutlineMap): the place's
  * outline as the site's maps draw it, with the places listed inside it as
  * dots - a country's divisions, a division, a county, a district - and what
@@ -61,7 +67,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowLeft, ArrowRight, MagnifyingGlass, MapPin, MapTrifold, TreeStructure, X } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, Buildings, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, TreeStructure, X } from "@phosphor-icons/react";
 import { TONE } from "@/lib/chipTone";
 import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { liveRecord, type LiveRecord } from "../lib/liveRecord";
@@ -286,6 +292,34 @@ const LinkButton = ({ onClick, children }: { onClick: () => void; children: Reac
   </button>
 );
 
+/** The parts a place's window is read in: the place itself, its history, and the towns inside it. */
+type WinTab = "overview" | "history" | "municipalities";
+/** The bar at the head of a place's window, drawn as a town's and a city's windows draw theirs. */
+function TabBar({ tab, onTab, count }: { tab: WinTab; onTab: (t: WinTab) => void; /** How many places the Municipalities part lists, where that is known. */ count?: number }) {
+  const tabs = [
+    { key: "overview", label: "Overview", icon: <ListBullets size={14} /> },
+    { key: "history", label: "History", icon: <ClockCounterClockwise size={14} /> },
+    { key: "municipalities", label: count != null ? `Municipalities · ${whole(count)}` : "Municipalities", icon: <Buildings size={14} /> },
+  ] as const;
+  return (
+    <div className="flex gap-1 p-1 bg-muted/40 rounded-xl border border-border/50" role="group" aria-label="The parts of this window">
+      {tabs.map((x) => (
+        <button
+          key={x.key}
+          type="button"
+          onClick={() => onTab(x.key)}
+          aria-pressed={tab === x.key}
+          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium font-sans transition-all duration-200 cursor-pointer ${tab === x.key ? "bg-card text-foreground shadow-sm border border-border/60" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          {x.icon}
+          {x.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+const noHistory = (name: string) => <p className="text-xs font-sans text-muted-foreground py-6 text-center">Not held: no article is recorded for {name}, so no history is shown rather than another place's.</p>;
+
 // ── A division's window ─────────────────────────────────────────────────────
 
 function partsOf(s: Subnation): { parts: Part[]; sources: Source[] } {
@@ -473,6 +507,15 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
   const listed = usePlaces(s.cc);
   const within = useMemo(() => (listed ? insideOf(listed, s) : null), [listed, s]);
   const dots = useMemo(() => placeDots(within?.rows ?? [], 300, listed), [within, listed]);
+  const [tab, setTab] = useState<WinTab>("overview");
+  /* Where it stands among its country's divisions, by the latest population and the area each one's record holds: counted here. */
+  const peers = useMemo(() => SUBNATIONS.filter((x) => x.cc === s.cc), [s.cc]);
+  const byPeople = useMemo(() => peers.filter((x) => x.pop).sort((a, b) => b.pop![1] - a.pop![1]), [peers]);
+  const byArea = useMemo(() => peers.filter((x) => x.areaKm2).sort((a, b) => b.areaKm2! - a.areaKm2!), [peers]);
+  const peopleAt = byPeople.findIndex((x) => x.id === s.id) + 1;
+  const areaAt = byArea.findIndex((x) => x.id === s.id) + 1;
+  /** The five at the head of a list, and this one after them where it is not among them. */
+  const beside = (list: Subnation[], at: number) => [...list.slice(0, 5), ...(at > 5 ? [s] : [])];
   /* Where a reader can check it: its own site first, then the reference records, Wikipedia last. */
   const read: Source[] = [
     ...(s.site ? [{ label: `${s.name} — official website`, url: s.site }] : []),
@@ -493,7 +536,8 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
           <MapTrifold size={12} aria-hidden /> On the map
         </LinkButton>
       </div>
-      {outline.length > 0 && (
+      <TabBar tab={tab} onTab={setTab} count={within?.rows.length} />
+      {tab === "overview" && outline.length > 0 && (
         <div>
           <OutlineMap shapes={outline} dots={dots} color={flagColor(s.cc) ?? COLOR} label={`The outline of ${s.name}, with ${dots.length} of the places listed in it`} />
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
@@ -501,19 +545,69 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
           </p>
         </div>
       )}
-      {/* What lies inside it comes first, as asked - its counties or districts, and its towns, cities and villages, a card each with a window of its own - and the division's own record after. */}
-      <DivisionPlaces s={s} country={c?.name ?? s.cc} onPlace={setPlaceOpen} onCloseAll={onClose} />
-      {within && <PlacesAnalysis rows={within.rows} name={s.name} />}
-      <div className="flex items-center gap-2 mt-2">
-        <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-wide">{s.name} itself</h3>
-        <div className="flex-1 h-px bg-border" />
-      </div>
-      {parts.map((p) => (
-        <Section key={p.title} part={p} />
-      ))}
-      <div>
-        <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1">Where to read more</p>
-        <SourceLink sources={read} />
+      {/* Overview: all about the division itself - where it stands among its country's, and its own record in its eight parts. */}
+      {tab === "overview" && (
+        <>
+          {!state && peers.length > 1 && (peopleAt > 0 || areaAt > 0) && (
+            <section>
+              <div className="flex items-center gap-2 mb-1.5">
+                <h3 className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">Among {inSentence(c?.name ?? s.cc)}'s divisions</h3>
+                <div className="flex-1 h-px bg-border/60" />
+              </div>
+              <p className="text-[11px] font-sans text-muted-foreground leading-snug mb-1.5">
+                Its place among the {peers.length} divisions held for {inSentence(c?.name ?? s.cc)}, counted here from the population and the area each one's record holds. Each population is the
+                latest its record gives, so the years are not all one: each is beside its figure.
+              </p>
+              <div className="modal-tile rounded-xl px-4 py-1.5">
+                <FigureRow label="By population" value={peopleAt ? `${peopleAt} of ${byPeople.length}` : <span className="font-normal text-muted-foreground">Not held</span>} sub={peopleAt ? "among those with a population held, the largest first" : undefined} />
+                <FigureRow label="By area" value={areaAt ? `${areaAt} of ${byArea.length}` : <span className="font-normal text-muted-foreground">Not held</span>} sub={areaAt ? "among those with an area held, the widest first" : undefined} />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                {peopleAt > 0 && (
+                  <div className="modal-tile rounded-xl p-4">
+                    <ChartTitle>Beside the most populous · people</ChartTitle>
+                    <MeasureBars
+                      label={`${s.name} beside the most populous divisions of ${c?.name ?? s.cc}`}
+                      rows={beside(byPeople, peopleAt).map((x) => ({ key: x.id, label: x.id === s.id ? `${x.name} · this one` : x.name, value: x.pop![1], text: people(x.pop![1]), sub: String(x.pop![0]), color: x.id === s.id ? (flagColor(s.cc) ?? COLOR) : undefined }))}
+                    />
+                  </div>
+                )}
+                {areaAt > 0 && (
+                  <div className="modal-tile rounded-xl p-4">
+                    <ChartTitle>Beside the widest · km²</ChartTitle>
+                    <MeasureBars
+                      label={`${s.name} beside the widest divisions of ${c?.name ?? s.cc}`}
+                      rows={beside(byArea, areaAt).map((x) => ({ key: x.id, label: x.id === s.id ? `${x.name} · this one` : x.name, value: x.areaKm2!, text: whole(x.areaKm2!), color: x.id === s.id ? (flagColor(s.cc) ?? COLOR) : undefined }))}
+                    />
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+          {parts.map((p) => (
+            <Section key={p.title} part={p} />
+          ))}
+          <div>
+            <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1">Where to read more</p>
+            <SourceLink sources={read} />
+          </div>
+        </>
+      )}
+      {/* History: its article's, as the other pages' windows tell a place's. */}
+      {tab === "history" && (
+        <>
+          {s.founded && (
+            <div className="modal-tile rounded-xl px-4 py-1.5">
+              <FigureRow label="Founded" value={String(s.founded)} sub="as its Wikidata record gives it" />
+            </div>
+          )}
+          {s.article ? <ArticlePanel title={s.article} name={s.name} mode="history" /> : noHistory(s.name)}
+        </>
+      )}
+      {/* Municipalities: what lies inside it - its counties or districts, and its towns, cities and villages, a card each with a window of its own. Kept in place behind the other parts. */}
+      <div className={tab === "municipalities" ? "flex flex-col gap-5" : "hidden"}>
+        <DivisionPlaces s={s} country={c?.name ?? s.cc} onPlace={setPlaceOpen} onCloseAll={onClose} />
+        {within && <PlacesAnalysis rows={within.rows} name={s.name} />}
       </div>
       <SourceLink sources={sources} />
     </Window>
@@ -533,6 +627,7 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
   const year = `the year to 1 July ${last}`;
   /** Whether one of its places has its window open: this one is then out of sight, until the reader comes back. */
   const [placeOpen, setPlaceOpen] = useState(false);
+  const [tab, setTab] = useState<WinTab>("overview");
   /* Its outline, and the places of GeoNames' list whose point lies inside it. */
   const outline = useCountyOutline(fips);
   const shapes = useMemo(() => (outline ? [outline] : []), [outline]);
@@ -625,7 +720,8 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
         {state && <LinkButton onClick={() => navigate(`/dashboard/subnations?open=US-${state.abbreviation}`)}>{state.name}'s record</LinkButton>}
         {state && <LinkButton onClick={() => navigate(`/dashboard/states?open=${state.id}`)}>Open {state.name} on the US States page</LinkButton>}
       </div>
-      {shapes.length > 0 && (
+      <TabBar tab={tab} onTab={setTab} count={rows?.length} />
+      {tab === "overview" && shapes.length > 0 && (
         <div>
           <OutlineMap shapes={shapes} dots={dots} color={(stateRecord && flagColor("US")) ?? COLOR} label={`The outline of ${name}, with the ${dots.length} places listed inside it`} />
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
@@ -633,10 +729,10 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
           </p>
         </div>
       )}
-      {parts.map((p) => (
-        <Section key={p.title} part={p} />
-      ))}
-      <section>
+      {tab === "overview" && parts.map((p) => <Section key={p.title} part={p} />)}
+      {/* History: the article of its name and its state's - "Pulaski County, Arkansas" - as Wikipedia titles a county's. */}
+      {tab === "history" && (state ? <ArticlePanel title={`${name}, ${state.name}`} name={name} mode="history" /> : noHistory(name))}
+      <section className={tab === "municipalities" ? "" : "hidden"}>
         <div className="flex items-center gap-2 mb-1.5">
           <h3 className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">Towns, cities and villages</h3>
           <div className="flex-1 h-px bg-border/60" />
@@ -712,7 +808,7 @@ function DistrictWindow({
   const color = flagColor(cc) ?? COLOR;
   /* Its own record, looked for live and taken only where its name, its place and its size all agree (lib/liveRecord): undefined while it is looked for, null where none passes. */
   const [live, setLive] = useState<LiveRecord | null | undefined>(undefined);
-  const [history, setHistory] = useState(false);
+  const [tab, setTab] = useState<WinTab>("overview");
   useEffect(() => {
     if (!shape) return;
     let off = false;
@@ -848,28 +944,28 @@ function DistrictWindow({
         </LinkButton>
       </div>
 
-      <div>
+      <TabBar tab={tab} onTab={setTab} count={rows?.length} />
+      <div className={tab === "overview" ? "" : "hidden"}>
         <OutlineMap shapes={shapes} dots={dots} color={color} label={`The outline of ${name}, with the ${dots.length} places listed inside it`} />
         <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
           {name} as the map draws it{rows ? `, with the ${rows.length > dots.length ? `${dots.length} largest of the ${whole(rows.length)}` : whole(rows.length)} ${rows.length === 1 ? "place" : "places"} GeoNames lists inside it as ${rows.length === 1 ? "a dot" : "dots"}` : ""}.
         </p>
       </div>
 
-      <Section part={record} />
-      {live && (
-        <div>
-          <button type="button" onClick={() => setHistory((x) => !x)} aria-expanded={history} className="text-[11px] font-semibold font-sans px-3 py-1.5 rounded-full border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer">
-            {history ? "Hide its history" : "Its history, from Wikipedia"}
-          </button>
-          {history && (
-            <div className="mt-3">
-              <ArticlePanel title={live.title} name={name} mode="history" />
-            </div>
-          )}
-        </div>
-      )}
+      {tab === "overview" && <Section part={record} />}
+      {/* History: the article its record was found by - the one of its name whose point lies inside its outline and whose area agrees with it. */}
+      {tab === "history" &&
+        (live === undefined ? (
+          <p className="text-xs font-sans text-muted-foreground py-6 text-center">Looking for the article on {name}…</p>
+        ) : live ? (
+          <ArticlePanel title={live.title} name={name} mode="history" />
+        ) : (
+          <p className="text-xs font-sans text-muted-foreground py-6 text-center">
+            Not held: no article of the name of {name} was found that lies inside this outline and agrees with it in area, so no history is shown rather than another place's.
+          </p>
+        ))}
 
-      <section>
+      <section className={tab === "municipalities" ? "" : "hidden"}>
         <div className="flex items-center gap-2 mb-1.5">
           <h3 className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">Towns, cities and villages</h3>
           <div className="flex-1 h-px bg-border/60" />
@@ -909,11 +1005,16 @@ function DistrictWindow({
         )}
       </section>
 
-      {parts.map((p) => (
-        <Section key={p.title} part={p} />
-      ))}
-      {/* The indexes the site holds are the country's: shown as the country's, as a town's window shows them. */}
-      <CountryQuality code={cc} country={country} place={name} />
+      {tab === "overview" && (
+        <>
+          {parts.map((p) => (
+            <Section key={p.title} part={p} />
+          ))}
+          {/* The indexes the site holds are the country's: shown as the country's, as a town's window shows them. */}
+          <CountryQuality code={cc} country={country} place={name} />
+        </>
+      )}
+
       <SourceLink
         sources={[
           ADMIN2_SOURCE,
