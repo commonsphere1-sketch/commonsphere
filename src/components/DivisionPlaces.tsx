@@ -438,6 +438,57 @@ export function PlacesInside({
   );
 }
 
+/**
+ * A place's window, opened from somewhere other than a list of cards - a dot pressed on a map: on the page itself, over
+ * whatever opened it, which is told so that it can step out of sight. From it a reader can go on to the places nearby.
+ */
+export function PlaceHost({
+  place,
+  file,
+  division,
+  country,
+  outline,
+  onPlace,
+  onDone,
+  onCloseAll,
+}: {
+  place: PlaceRow;
+  file: PlacesFile;
+  /** The division a place's window names for it. */
+  division: (p: PlaceRow) => Subnation;
+  country: string;
+  outline?: { shape: Outline; name: string };
+  /** Told when the window opens and when it closes. */
+  onPlace?: (open: boolean) => void;
+  /** Back to what opened it. */
+  onDone: () => void;
+  /** Out of every window. */
+  onCloseAll?: () => void;
+}) {
+  const [open, setOpen] = useState(place);
+  useEffect(() => setOpen(place), [place]);
+  useEffect(() => {
+    onPlace?.(true);
+    return () => onPlace?.(false);
+  }, [onPlace]);
+  return createPortal(
+    <PlaceWindow
+      p={open}
+      file={file}
+      s={division(open)}
+      country={country}
+      outline={outline}
+      onBack={onDone}
+      onOpen={setOpen}
+      onClose={() => {
+        onDone();
+        onCloseAll?.();
+      }}
+    />,
+    document.body,
+  );
+}
+
 // ── A place's own window ────────────────────────────────────────────────────
 
 
@@ -743,13 +794,19 @@ function PlaceWindow({
               </Part>
 
               {around && (
-                <Part title="📍 Where it is" note={`${name}, marked on the outline of ${around.name} as the site's maps draw it, with the places nearest it as the smaller dots.`}>
+                <Part title="📍 Where it is" note={`${name}, marked on the outline of ${around.name} as the site's maps draw it, with the places nearest it as the smaller dots: press one to go to it.`}>
+
                   <OutlineMap
                     shapes={[around.shape]}
                     mark={{ id, name, lon, lat, sub: [...new Set([district, s.name, country].filter(Boolean))].join(" · ") }}
                     dots={neighbours.map(({ row, km: far }) => ({ id: row[6], name: row[0], lon: row[2], lat: row[1], sub: `${far < 10 ? far.toFixed(1) : whole(far)} km from ${name}, in a straight line` }))}
                     color={flagColor(s.cc) ?? "#0ea5e9"}
                     label={`${name}, marked on the outline of ${around.name}`}
+                    // A place nearby, pressed, takes this window to it.
+                    onDot={(d) => {
+                      const hit = neighbours.find((n) => n.row[6] === d.id);
+                      if (hit) onOpen(hit.row);
+                    }}
                   />
                 </Part>
               )}

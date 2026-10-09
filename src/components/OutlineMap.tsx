@@ -8,7 +8,8 @@
  * the place's people, and the outline is the one the site's maps draw,
  * simplified for them. A dot pointed at says what it is: its name, and under
  * it what it belongs to - the district and division GeoNames files it under,
- * and its people where GeoNames gives them.
+ * and its people where GeoNames gives them. Pressed, it goes straight to the
+ * place's own window, where the map's owner says how.
  */
 import { useMemo, useState } from "react";
 import { geoAzimuthalEqualArea, geoCentroid, geoMercator, geoPath } from "d3-geo";
@@ -40,6 +41,7 @@ export function OutlineMap({
   mark,
   color,
   label,
+  onDot,
 }: {
   /** What is drawn: one outline, or several side by side - a country's divisions. */
   shapes: Outline[];
@@ -51,6 +53,8 @@ export function OutlineMap({
   color: string;
   /** What the map shows, for a screen reader. */
   label: string;
+  /** What a press on a dot does: it opens the place's own window. Left out, a dot only says what it is. */
+  onDot?: (d: MapDot) => void;
 }) {
   const [over, setOver] = useState<string | number | null>(null);
   const drawn = useMemo(() => {
@@ -87,10 +91,12 @@ export function OutlineMap({
             cx={p.x}
             cy={p.y}
             r={drawn.mark ? 1.8 : 2.4}
-            className="fill-foreground cursor-pointer"
+            className={`fill-foreground ${onDot ? "cursor-pointer" : ""}`}
             fillOpacity={drawn.mark ? 0.45 : 0.85}
             stroke="transparent"
             strokeWidth={7}
+            onClick={onDot ? () => onDot(p) : undefined}
+
             onMouseEnter={() => setOver(p.id)}
             onMouseLeave={() => setOver((x) => (x === p.id ? null : x))}
           />

@@ -612,6 +612,12 @@ function CountryWindow({ row, top, asked, onOpen, onClose }: { row: Row; /** Whe
             dotsAre={`${cityDots.length < row.cities.length ? `the ${cityDots.length} largest of the ${row.cities.length.toLocaleString("en-US")}` : `the ${cityDots.length}`} cities the United Nations counts there`}
             dotsSource={UN_CITIES_SOURCE}
             className=""
+            // A city's dot, pressed, opens the city's own window.
+            onDot={(d) => {
+              const hit = BY_ID.get(String(d.id));
+              if (hit) onOpen(hit);
+            }}
+
           />
           <div className="flex flex-wrap items-center gap-2">
             <label className={`flex items-center gap-1.5 ${field} focus-within:border-foreground/40`}>

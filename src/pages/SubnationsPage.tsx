@@ -59,11 +59,17 @@
  * boundary is, and the places of GeoNames' list whose point lies inside its
  * outline - worked out here - each with a window of its own.
  *
+ * A dot on any of these maps, pressed, goes straight to the place's own
+ * window; from another page's map it comes here by a link
+ * (?open=place:<country>:<its GeoNames id>), which opens the country's window
+ * and the place's over it.
+ *
  * ?open=<id> opens a division's window, ?open=county:<fips> a county's, and
  * ?country=<code>&name=<name> the division a map names - the Dashboard's map
  * sends its presses here that way.
  */
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -76,11 +82,11 @@ import { flagColor } from "../lib/flagColor";
 import { byPeople, countryPeople, peopleSource, peopleSources } from "../lib/countryPeople";
 import { lockScroll } from "../lib/scrollLock";
 import CountryQuality, { inSentence, qualityOf } from "../components/CountryQuality";
-import { DivisionPlaces, PlacesAnalysis, PlacesInside, insideOf, usePlaces, type Inside } from "../components/DivisionPlaces";
+import { DivisionPlaces, PlaceHost, PlacesAnalysis, PlacesInside, insideOf, usePlaces, type Inside } from "../components/DivisionPlaces";
 import { FilterBar } from "../components/FilterBar";
 import { ArticlePanel } from "../components/HistoryPanel";
 import { ChartTitle, FigureRow, MeasureBars } from "../components/ModalCharts";
-import { OutlineMap, placeDots } from "../components/OutlineMap";
+import { OutlineMap, placeDots, type MapDot } from "../components/OutlineMap";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
 import { COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE } from "../data/countryIndicators";
@@ -508,6 +514,9 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
   const within = useMemo(() => (listed ? insideOf(listed, s) : null), [listed, s]);
   const dots = useMemo(() => placeDots(within?.rows ?? [], 300, listed), [within, listed]);
   const [tab, setTab] = useState<WinTab>("overview");
+  /** The place whose dot on the map was pressed: its window opens over this one. */
+  const [picked, setPicked] = useState<PlaceRow | null>(null);
+  const pick = (d: MapDot) => setPicked(listed?.places.find((p) => p[6] === d.id) ?? null);
   /* Where it stands among its country's divisions, by the latest population and the area each one's record holds: counted here. */
   const peers = useMemo(() => SUBNATIONS.filter((x) => x.cc === s.cc), [s.cc]);
   const byPeople = useMemo(() => peers.filter((x) => x.pop).sort((a, b) => b.pop![1] - a.pop![1]), [peers]);
@@ -539,7 +548,7 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
       <TabBar tab={tab} onTab={setTab} count={within?.rows.length} />
       {tab === "overview" && outline.length > 0 && (
         <div>
-          <OutlineMap shapes={outline} dots={dots} color={flagColor(s.cc) ?? COLOR} label={`The outline of ${s.name}, with ${dots.length} of the places listed in it`} />
+          <OutlineMap shapes={outline} dots={dots} color={flagColor(s.cc) ?? COLOR} label={`The outline of ${s.name}, with ${dots.length} of the places listed in it`} onDot={pick} />
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
             {s.name} as the site's maps draw it{dots.length ? `, with ${within!.rows.length > dots.length ? `the ${dots.length} largest of the ${whole(within!.rows.length)}` : `the ${dots.length}`} places GeoNames lists in it as dots` : ""}.
           </p>
@@ -610,6 +619,7 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
         {within && <PlacesAnalysis rows={within.rows} name={s.name} />}
       </div>
       <SourceLink sources={sources} />
+      {picked && listed && <PlaceHost place={picked} file={listed} division={() => s} country={c?.name ?? s.cc} onPlace={setPlaceOpen} onDone={() => setPicked(null)} onCloseAll={onClose} />}
     </Window>
   );
 }
@@ -628,6 +638,8 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
   /** Whether one of its places has its window open: this one is then out of sight, until the reader comes back. */
   const [placeOpen, setPlaceOpen] = useState(false);
   const [tab, setTab] = useState<WinTab>("overview");
+  /** The place whose dot on the map was pressed: its window opens over this one. */
+  const [picked, setPicked] = useState<PlaceRow | null>(null);
   /* Its outline, and the places of GeoNames' list whose point lies inside it. */
   const outline = useCountyOutline(fips);
   const shapes = useMemo(() => (outline ? [outline] : []), [outline]);
@@ -723,7 +735,7 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
       <TabBar tab={tab} onTab={setTab} count={rows?.length} />
       {tab === "overview" && shapes.length > 0 && (
         <div>
-          <OutlineMap shapes={shapes} dots={dots} color={(stateRecord && flagColor("US")) ?? COLOR} label={`The outline of ${name}, with the ${dots.length} places listed inside it`} />
+          <OutlineMap shapes={shapes} dots={dots} color={(stateRecord && flagColor("US")) ?? COLOR} label={`The outline of ${name}, with the ${dots.length} places listed inside it`} onDot={(d) => setPicked(rows?.find((p) => p[6] === d.id) ?? null)} />
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
             {name} as the Census Bureau's boundary files draw it{rows ? `, with the ${rows.length > dots.length ? `${dots.length} largest of the ${whole(rows.length)}` : whole(rows.length)} places GeoNames lists inside it as dots` : ""}.
           </p>
@@ -762,6 +774,18 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
           </>
         )}
       </section>
+      {picked && listed && (
+        <PlaceHost
+          place={picked}
+          file={listed}
+          division={(p) => stateRecord ?? { id: "", cc: "US", name: state?.name ?? abbr, lat: p[1], lon: p[2] }}
+          country="United States"
+          outline={outline ? { shape: outline, name } : undefined}
+          onPlace={setPlaceOpen}
+          onDone={() => setPicked(null)}
+          onCloseAll={onClose}
+        />
+      )}
       <SourceLink sources={[data.US_COUNTY_SOURCES.estimates, data.US_COUNTY_SOURCES.gazetteer, { label: "US Census Bureau — cartographic boundary files, via us-atlas", url: "https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html" }, { label: PLACES_SOURCE.geonames.label, url: PLACES_SOURCE.geonames.url }]} />
     </Window>
   );
@@ -809,6 +833,8 @@ function DistrictWindow({
   /* Its own record, looked for live and taken only where its name, its place and its size all agree (lib/liveRecord): undefined while it is looked for, null where none passes. */
   const [live, setLive] = useState<LiveRecord | null | undefined>(undefined);
   const [tab, setTab] = useState<WinTab>("overview");
+  /** The place whose dot on the map was pressed: its window opens over this one. */
+  const [picked, setPicked] = useState<PlaceRow | null>(null);
   useEffect(() => {
     if (!shape) return;
     let off = false;
@@ -946,7 +972,7 @@ function DistrictWindow({
 
       <TabBar tab={tab} onTab={setTab} count={rows?.length} />
       <div className={tab === "overview" ? "" : "hidden"}>
-        <OutlineMap shapes={shapes} dots={dots} color={color} label={`The outline of ${name}, with the ${dots.length} places listed inside it`} />
+        <OutlineMap shapes={shapes} dots={dots} color={color} label={`The outline of ${name}, with the ${dots.length} places listed inside it`} onDot={(d) => setPicked(rows?.find((p) => p[6] === d.id) ?? null)} />
         <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
           {name} as the map draws it{rows ? `, with the ${rows.length > dots.length ? `${dots.length} largest of the ${whole(rows.length)}` : whole(rows.length)} ${rows.length === 1 ? "place" : "places"} GeoNames lists inside it as ${rows.length === 1 ? "a dot" : "dots"}` : ""}.
         </p>
@@ -1015,6 +1041,7 @@ function DistrictWindow({
         </>
       )}
 
+      {picked && file && <PlaceHost place={picked} file={file} division={division} country={country} outline={{ shape, name }} onPlace={setPlaceOpen} onDone={() => setPicked(null)} onCloseAll={onClose} />}
       <SourceLink
         sources={[
           ADMIN2_SOURCE,
@@ -1171,6 +1198,8 @@ function CountryWindow({
   onOpen,
   onOpenCounty,
   onClose,
+  openPlace,
+  onPlaceOpened,
 }: {
   row: CountryRow;
   top: boolean;
@@ -1183,6 +1212,9 @@ function CountryWindow({
   onOpen: (s: Subnation) => void;
   onOpenCounty: (fips: string) => void;
   onClose: () => void;
+  /** A place another page's map named, by its GeoNames id: its window opens over this one once the country's places are in. */
+  openPlace: number | null;
+  onPlaceOpened: () => void;
 }) {
   const navigate = useNavigate();
   const c = COUNTRY.get(row.cc);
@@ -1204,11 +1236,22 @@ function CountryWindow({
   const drawn = useAdmin1(row.cc);
   const frame = useMemo(() => (drawn ? framed(drawn) : undefined), [drawn]);
   const dots = useMemo(() => placeDots(places?.places ?? [], 150, places), [places]);
+  /** The place whose dot on the map was pressed, or that a link named: its window opens over this one, which steps out of sight. */
+  const [picked, setPicked] = useState<PlaceRow | null>(null);
+  const [placeOpen, setPlaceOpen] = useState(false);
+  useEffect(() => {
+    if (openPlace === null || places === undefined) return;
+    const hit = places?.places.find((p) => p[6] === openPlace);
+    if (hit) setPicked(hit);
+    onPlaceOpened();
+  }, [openPlace, places, onPlaceOpened]);
+  /* The division a place's window names for it: the one of the country's whose places GeoNames lists it among, or, where none is, the one GeoNames files it under. */
+  const divisionOf = (p: PlaceRow): Subnation => row.divisions.find((d) => insides?.get(d.id)?.rows.includes(p)) ?? { id: "", cc: row.cc, name: places?.regions[p[4]] || row.name, lat: p[1], lon: p[2] };
 
   const counties = useMemo(() => (countyData && countyState ? countyData.US_COUNTIES.filter((x) => x[2] === countyState) : []), [countyData, countyState]);
   const stateName = usStatesData.find((s) => s.abbreviation === countyState)?.name ?? countyState;
   return (
-    <Window wide top={top} hidden={!top} title={row.name} kicker="Country · its divisions" flagSrc={flag(row.cc, 160)} chips={[`${row.divisions.length} divisions`, ...row.kinds.slice(0, 3), ...(row.continent ? [row.continent] : [])]} onClose={onClose}>
+    <Window wide top={top && !placeOpen} hidden={!top || placeOpen} title={row.name} kicker="Country · its divisions" flagSrc={flag(row.cc, 160)} chips={[`${row.divisions.length} divisions`, ...row.kinds.slice(0, 3), ...(row.continent ? [row.continent] : [])]} onClose={onClose}>
       <div className="flex flex-wrap items-center gap-2">
         {c && <LinkButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Open {c.name} on the Countries page</LinkButton>}
         <LinkButton onClick={() => navigate(`/dashboard/maps?country=${row.cc}`)}>
@@ -1219,7 +1262,7 @@ function CountryWindow({
 
       {drawn && drawn.length > 0 && (
         <div>
-          <OutlineMap shapes={drawn} frame={frame} dots={dots} color={flagColor(row.cc) ?? COLOR} label={`${row.name} and its ${drawn.length} divisions, with its ${dots.length} largest listed places`} />
+          <OutlineMap shapes={drawn} frame={frame} dots={dots} color={flagColor(row.cc) ?? COLOR} label={`${row.name} and its ${drawn.length} divisions, with its ${dots.length} largest listed places`} onDot={(d) => setPicked(places?.places.find((p) => p[6] === d.id) ?? null)} />
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
             {row.name}'s divisions as the site's maps draw them{dots.length ? `, with the ${dots.length} largest places GeoNames lists for it as dots` : ""}
             {frame && frame.length < drawn.length ? " - framed without its far-off parts, which are in the list below" : ""}.
@@ -1299,6 +1342,7 @@ function CountryWindow({
         </section>
       )}
       <SourceLink sources={[SUBNATIONS_SOURCES.naturalEarth, SUBNATIONS_SOURCES.wikidata, SUBNATIONS_SOURCES.commons, SUBNATIONS_SOURCES.geonames, REPRESENTATIVES_SOURCES.wikidata]} />
+      {picked && places && <PlaceHost place={picked} file={places} division={divisionOf} country={row.name} onPlace={setPlaceOpen} onDone={() => setPicked(null)} onCloseAll={onClose} />}
     </Window>
   );
 }
@@ -1319,6 +1363,9 @@ export function SubnationsPage() {
   const [openCounty, setOpenCounty] = useState<string | null>(null);
   /** The second-order division, outside the United States, whose window is open: its country, and its place in the country's file. */
   const [district, setDistrict] = useState<{ cc: string; index: number } | null>(null);
+  /** A place another page's map named: its country, and its GeoNames id. Its country's window opens it. */
+  const [placeLink, setPlaceLink] = useState<{ cc: string; id: number } | null>(null);
+  const clearPlaceLink = useCallback(() => setPlaceLink(null), []);
   const [countyData, setCountyData] = useState<CountyData | null>(null);
   /** Said on the page, and said in a country's window. */
   const [notice, setNotice] = useState<string | null>(null);
@@ -1355,6 +1402,16 @@ export function SubnationsPage() {
       setCountry(ROW_OF.has(dcc) ? dcc : null);
       if (/^[A-Z]{2}$/.test(dcc) && /^\d{1,5}$/.test(at)) setDistrict({ cc: dcc, index: Number(at) });
       else setNotice("No second-order division is held under that link.");
+    } else if (id?.startsWith("place:")) {
+      // A place a map on another page names: its country's two letters and its GeoNames id, looked up in the country's list of places and nowhere else.
+      const [, pcc = "", pid = ""] = id.split(":");
+      setOpen(null);
+      setOpenCounty(null);
+      setCountyState("");
+      if (ROW_OF.has(pcc) && /^\d{1,10}$/.test(pid)) {
+        setCountry(pcc);
+        setPlaceLink({ cc: pcc, id: Number(pid) });
+      } else setNotice("No place is held under that link.");
     } else if (id?.startsWith("county:")) {
       setCountry("US");
       setOpen(null);
@@ -1513,6 +1570,8 @@ export function SubnationsPage() {
           countyData={countyData}
           onOpen={setOpen}
           onOpenCounty={setOpenCounty}
+          openPlace={placeLink && placeLink.cc === openRow.cc ? placeLink.id : null}
+          onPlaceOpened={clearPlaceLink}
           onClose={() => {
             setCountry(null);
             setCountyState("");
