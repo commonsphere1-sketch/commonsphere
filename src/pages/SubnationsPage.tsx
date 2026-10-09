@@ -1387,11 +1387,12 @@ function CountryCard({ row, matching, onOpen }: { row: CountryRow; /** How many 
         }
       }}
       aria-label={`${row.name}: its ${row.divisions.length} divisions`}
-      className="modal-tile rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40"
+      className="modal-tile relative isolate overflow-hidden rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40"
     >
+      {/* The country's flag behind the whole card, top to bottom, dimmed as it was behind the head alone: under the writing, which stays as it was, and over the card's own ground. */}
+      <img src={flag(row.cc, 320)} alt="" aria-hidden="true" className="absolute inset-0 -z-10 w-full h-full object-cover opacity-[0.16] scale-105 select-none pointer-events-none" onError={(e) => (e.currentTarget.style.display = "none")} />
       {/* Card header with flag background */}
-      <div className="relative flex items-start justify-between gap-2 mb-3 -mx-5 -mt-5 px-5 pt-5 pb-4 rounded-t-xl overflow-hidden">
-        <img src={flag(row.cc, 320)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover opacity-20 scale-105 select-none pointer-events-none" onError={(e) => (e.currentTarget.style.display = "none")} />
+      <div className="relative flex items-start justify-between gap-2 mb-3 -mx-5 -mt-5 px-5 pt-5 pb-4">
         <div className="relative flex items-center gap-3 min-w-0">
           <div className="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 shadow-md bg-muted">
             <img src={flag(row.cc, 80)} alt={`${row.name} flag`} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
