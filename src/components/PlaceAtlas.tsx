@@ -492,7 +492,24 @@ export default function PlaceAtlas() {
             {label}
           </button>
         ))}
+        {/* What a press does now, and the name of the place pointed at: on the bar, as asked, a little larger than it was under the map. One line, so that the bar - and the map under it - keeps its place as the words change; the whole of it is in its title. A row of its own on a narrow screen. */}
+        <p
+          className="order-last basis-full lg:order-none lg:basis-0 lg:flex-1 min-w-0 truncate text-[13px] font-sans h-5 leading-5 px-1"
+          style={{ color: hover ? t.headText : t.bodyText }}
+          title={hover ?? what}
+          aria-live="polite"
+        >
+          {hover ? (
+            <span className="flex items-center gap-1.5 font-semibold h-5 min-w-0">
+              <span className="w-2.5 h-2.5 rounded-[3px] shrink-0" style={{ background: (litDot ?? litShape)?.hot ?? "transparent" }} aria-hidden />
+              <span className="truncate">{hover}</span>
+            </span>
+          ) : (
+            what
+          )}
+        </p>
         {/* Closer and further, beside the choice: the same as the + and - keys. */}
+
         <div className="flex items-center gap-1.5 ml-auto">
           <button type="button" onClick={() => zoomBy(1 / 1.5)} disabled={view.k <= 1} aria-label="Draw the map further out" title="Further out ( - )" className={tool}>
             <MagnifyingGlassMinus size={13} aria-hidden />
@@ -626,19 +643,10 @@ export default function PlaceAtlas() {
               </text>
             )}
           </svg>
-          <p className="text-[11px] font-sans mt-2 min-h-[1.25rem]" style={{ color: hover ? t.headText : t.mutedText }} aria-live="polite">
-            {hover ? (
-              <span className="inline-flex items-center gap-1.5 font-semibold">
-                <span className="w-2.5 h-2.5 rounded-[3px] shrink-0" style={{ background: (dots.find((d) => d.name === hover) ?? shapes.find((s) => s.name === hover))?.hot ?? "transparent" }} aria-hidden />
-                {hover}
-              </span>
-            ) : (
-              what
-            )}
-          </p>
+
           {/* Whose the boundaries on the map are, where they are a country's second order: each country's are its own publisher's, under its own licence. */}
           {abroad && fine && second && secondInfo && (
-            <p className="text-[10px] font-mono leading-snug mt-0.5" style={{ color: t.mutedText }}>
+            <p className="text-[10px] font-mono leading-snug mt-2" style={{ color: t.mutedText }}>
               Boundaries: {secondInfo.by} · {secondInfo.year} · {secondInfo.licence} · gathered by geoBoundaries
             </p>
           )}
