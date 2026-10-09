@@ -42,6 +42,12 @@
  * height. On the map of the United States the county lines are drawn too,
  * fine, under the states' own. Where the counties or districts are the
  * shapes, the heavier lines over them are the first-order divisions' borders.
+ * Where a city is what a press selects, the same counties or districts lie
+ * under the dots, so that a city can be told from the ground around it.
+ *
+ * A place pointed at is picked out as the World Maps page picks one out:
+ * filled in its colour over the land, with a casing so that its edge reads
+ * on any ground, and an outline in the colour itself; a city, with a ring.
  *
  * The map can be drawn closer: with the + and - keys (the number pad's too),
  * the buttons above it, or a pinch; closer in, it is moved by dragging or
@@ -258,10 +264,12 @@ export default function PlaceAtlas() {
   const country = code ? (countriesData.find((c) => c.code === code) ?? null) : null;
   /* A country's second order, fetched where a county is what a press selects: undefined while it is, null where none is held. The United States' own are the Census Bureau's, above. */
   const manifest2 = useAdmin2Manifest();
-  const second = useAdmin2(pick === "county" && code && code !== "US" ? code : null);
+  /** Whether the map is drawn at a country's second order: where a county is what a press selects, and under the dots where a city is. */
+  const fine = pick === "county" || pick === "city";
+  const second = useAdmin2(fine && code && code !== "US" ? code : null);
   const secondInfo = code && manifest2 ? manifest2[code] : undefined;
   /** Whether the shapes on the map are a country's second order. */
-  const onSecond = pick === "county" && level.kind === "country" && (level.code === "US" || Boolean(second));
+  const onSecond = fine && level.kind === "country" && (level.code === "US" || Boolean(second));
 
   /** The shapes of the level the map is on, each with what a press does. */
   const { shapes, project, lines, bold } = useMemo<{
@@ -304,7 +312,7 @@ export default function PlaceAtlas() {
       const base = flagColor("US") ?? COLOR;
       const projection = geoAlbersUsa().fitExtent(BOX, collection(STATES.map((s) => s.f)) as never);
       // Where a county is what a press selects, the counties are the shapes, each pressed for itself, and the states' borders are the lines over them.
-      if (pick === "county") {
+      if (fine) {
         if (!counties) return empty;
         const stateOf = (f: Geo) => STATE_OF_FIPS.get(String(f.id).slice(0, 2));
         const drawn = draw(
@@ -334,8 +342,8 @@ export default function PlaceAtlas() {
     }
     const base = flagColor(level.code) ?? COLOR;
     // Its second order, where a county is what a press selects and its boundaries are held: each shape goes to a window of its own, by its place in the file.
-    if (pick === "county" && second === undefined) return empty;
-    if (pick === "county" && second) {
+    if (fine && second === undefined) return empty;
+    if (fine && second) {
       const own = second.shapes as unknown as Geo[];
       const projection = fitTo(collection(framed(own)));
       const drawn = draw(
@@ -359,7 +367,7 @@ export default function PlaceAtlas() {
       (f) => () => navigate(`/dashboard/subnations?country=${level.code}&name=${encodeURIComponent(f.properties.n)}`),
       (f, i) => ownColor(level.code, f.properties.n) ?? tint(base, i),
     );
-  }, [level, divisions, counties, countyTopo, second, navigate, pick]);
+  }, [level, divisions, counties, countyTopo, second, navigate, pick, fine]);
   /** Every shape as one outline: the slab the land stands on. */
   const slab = useMemo(() => shapes.map((s) => s.d).join(""), [shapes]);
 
@@ -389,7 +397,10 @@ export default function PlaceAtlas() {
     : `${level.kind === "world" ? `${listed.length} countries` : onSecond ? `${listed.length.toLocaleString("en-US")} ${level.code === "US" ? "counties" : "counties or districts"}` : level.code === "US" ? `${listed.length} states` : `${listed.length} divisions`} · by name`;
 
   const abroad = level.kind === "country" && level.code !== "US";
-  const loading = abroad ? (pick === "county" && second === undefined) || (!second && divisions === null) : level.kind === "country" && pick === "county" && !counties;
+  const loading = abroad ? (fine && second === undefined) || (!second && divisions === null) : level.kind === "country" && fine && !counties;
+  /* The place pointed at, on the map or in the list: a city before the ground it stands on. */
+  const litDot = hover ? dots.find((d) => d.name === hover) : undefined;
+  const litShape = hover && !litDot ? shapes.find((s) => s.name === hover) : undefined;
   const none = abroad && !second && (divisions === "failed" || (manifest !== null && !manifest[level.code] && shapes.length === 0 && !loading));
   const named = country?.name ?? "the country";
   const what = onCities
@@ -414,6 +425,8 @@ export default function PlaceAtlas() {
   // In the dark theme the land is a dark grey again, as asked - but a step lighter than it first was, so that it stands clear of the card behind it.
   const land = t.isLight ? "#dfe3ea" : "#4e5262";
   const edge = t.isLight ? "#ffffff" : "#0b0b0d";
+  /** The casing round a place that is picked out, so that its edge reads on any ground. */
+  const halo = t.isLight ? "#ffffff" : "#000000";
   const chip = (on: boolean) =>
     `px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${on ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`;
   const shownList = find.trim() ? listed.filter((x) => x.name.toLowerCase().includes(find.trim().toLowerCase())) : listed;
@@ -543,7 +556,7 @@ export default function PlaceAtlas() {
               <path
                 key={s.key}
                 d={s.d}
-                className="cursor-pointer fill-[var(--atlas-land)] hover:fill-[var(--atlas-hot)] focus:fill-[var(--atlas-hot)] outline-none transition-colors"
+                className="cursor-pointer fill-[var(--atlas-land)] outline-none"
                 // Where the cities are what is pressed, a country still opens the map on itself; a division under the dots does nothing.
                 style={{ ["--atlas-hot" as string]: s.hot, pointerEvents: onCities && level.kind !== "world" ? "none" : undefined }}
                 stroke={edge}
@@ -560,6 +573,13 @@ export default function PlaceAtlas() {
             ))}
             {/* The lines over the shapes, never pressed: the counties', fine, on the map of the states; the first-order divisions', heavier, on a map of counties or districts. */}
             {lines && <path d={lines} fill="none" stroke={edge} strokeOpacity={bold ? 1 : 0.7} strokeWidth={bold ? 1.2 : 0.35} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
+            {/* The place pointed at, picked out as the World Maps page picks one out: filled in its colour over the land, a casing so that its edge reads on any ground, and an outline in the colour itself. */}
+            {litShape && (
+              <g pointerEvents="none">
+                <path d={litShape.d} fill={litShape.hot} fillOpacity={0.62} stroke={halo} strokeOpacity={0.55} strokeWidth={2.6} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+                <path d={litShape.d} fill="none" stroke={litShape.hot} strokeWidth={1.3} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+              </g>
+            )}
             {dots.map((d) => (
 
               <circle
@@ -581,6 +601,13 @@ export default function PlaceAtlas() {
                 <title>{d.name}</title>
               </circle>
             ))}
+            {/* A city pointed at: a ring round it, cased the same way. */}
+            {litDot && (
+              <g pointerEvents="none">
+                <circle cx={litDot.x} cy={litDot.y} r={(litDot.r + 5) / view.k} fill="none" stroke={halo} strokeOpacity={0.55} strokeWidth={3.4} vectorEffect="non-scaling-stroke" />
+                <circle cx={litDot.x} cy={litDot.y} r={(litDot.r + 5) / view.k} fill="none" stroke={litDot.hot} strokeWidth={1.8} vectorEffect="non-scaling-stroke" />
+              </g>
+            )}
             {(loading || none) && (
               <text x={W / 2} y={H / 2} textAnchor="middle" fontSize={15} fill={t.mutedText} fontFamily="sans-serif">
                 {loading ? "Loading the boundaries…" : `No divisions are drawn for ${country?.name ?? "this country"}.`}
@@ -598,7 +625,7 @@ export default function PlaceAtlas() {
             )}
           </p>
           {/* Whose the boundaries on the map are, where they are a country's second order: each country's are its own publisher's, under its own licence. */}
-          {abroad && pick === "county" && second && secondInfo && (
+          {abroad && fine && second && secondInfo && (
             <p className="text-[10px] font-mono leading-snug mt-0.5" style={{ color: t.mutedText }}>
               Boundaries: {secondInfo.by} · {secondInfo.year} · {secondInfo.licence} · gathered by geoBoundaries
             </p>
@@ -637,7 +664,8 @@ export default function PlaceAtlas() {
       <p className="text-[9px] font-sans leading-snug mt-3" style={{ color: t.mutedText }}>
         The map is drawn closer with the + and - keys, the buttons above it or a pinch, moved by dragging or the arrow keys once it is closer, and put back with 0. What a press
         selects is chosen above the map: the whole country, a state or division, a county, or a city - the cities the United Nations counts, drawn as dots sized by their people,
-        those of a million or more on the world and every one of a country's once the map is on it. The map is a way in and shades nothing by any figure. A place lights in its
+        those of a million or more on the world and every one of a country's once the map is on it. The map is a way in and shades nothing by any figure. On "City" a country's counties or districts are drawn under the dots as well, so that a city can be told from the ground around it. A place pointed at is picked out as the World Maps page picks one out - filled in its colour, with a casing and an outline, and a city with a ring - in its
+
         flag's colour when it is pointed at: a country in its own flag's, a division in its own flag's where it has one, and a division, county or district with no flag of its own
         in a shade of the colour of the country or division it belongs to. On "State" a country opens on the divisions Natural Earth draws for it - states, provinces, regions or
         departments, whichever its first order is there. On "County" it opens on its second order - counties, districts, municipalities, whatever its publisher calls them: the
