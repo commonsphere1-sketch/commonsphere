@@ -11,6 +11,9 @@ import {
   Buildings,
   ChartLine,
   Bell,
+  TreeStructure,
+  MapTrifold,
+  SquaresFour,
 } from "@phosphor-icons/react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Input } from "@/components/ui/input";
@@ -41,74 +44,124 @@ interface HeaderNavProps {
   mobileSidebarOpen: boolean;
 }
 
+type SearchType = "Page" | "Country" | "State" | "City" | "Division" | "Economy" | "County";
+
 interface SearchResult {
   id: string;
   label: string;
   sublabel: string;
-  type: "State" | "Country" | "City" | "Economy";
-  route: string;
+  type: SearchType;
+  /** Where choosing it goes: the page, with the thing itself opened on it. */
+  to: string;
+  /** The label and the line under it as they are compared: without accents or case. */
+  key: string;
+  subkey: string;
 }
 
-const ROUTE_MAP: Record<string, string> = {
-  State: "/dashboard/states",
-  Country: "/dashboard/countries",
-  City: "/dashboard/cities",
-  Economy: "/dashboard/economies",
-};
+/** A name as it is compared: "Tōkyō" answers "tokyo". */
+const fold = (s: string) =>
+  s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
+const entry = (r: Omit<SearchResult, "key" | "subkey">): SearchResult => ({ ...r, key: fold(r.label), subkey: fold(r.sublabel) });
 
-const TYPE_ICON: Record<string, React.ReactNode> = {
+/** Which kind comes first where two answer equally well. */
+const TYPE_ORDER: Record<SearchType, number> = { Page: 0, Country: 1, State: 2, City: 3, Division: 4, Economy: 5, County: 6 };
+
+const TYPE_ICON: Record<SearchType, React.ReactNode> = {
+  Page: <SquaresFour size={14} weight="fill" className="text-secondary shrink-0" />,
   State: <MapPin size={14} weight="fill" className="text-secondary shrink-0" />,
   Country: <Flag size={14} weight="fill" className="text-secondary shrink-0" />,
-  City: (
-    <Buildings size={14} weight="fill" className="text-secondary shrink-0" />
-  ),
-  Economy: (
-    <ChartLine size={14} weight="fill" className="text-secondary shrink-0" />
-  ),
+  City: <Buildings size={14} weight="fill" className="text-secondary shrink-0" />,
+  Division: <TreeStructure size={14} weight="fill" className="text-secondary shrink-0" />,
+  Economy: <ChartLine size={14} weight="fill" className="text-secondary shrink-0" />,
+  County: <MapTrifold size={14} weight="fill" className="text-secondary shrink-0" />,
 };
 
+/** The site's pages, by the names the side menu gives them. */
+const PAGES: [label: string, to: string, about: string][] = [
+  ["Dashboard", "/dashboard", "The site at a glance, and the map to any place"],
+  ["US States", "/dashboard/states", "The fifty states"],
+  ["Countries", "/dashboard/countries", "Every country and territory"],
+  ["Municipalities", "/dashboard/subnations", "States, provinces, counties, districts and towns"],
+  ["Cities", "/dashboard/cities", "Every city the United Nations counts"],
+  ["Economies", "/dashboard/economies", "Economies, markets and sectors"],
+  ["World Leaders", "/dashboard/world-leaders", "Heads of state and government"],
+  ["Policy", "/dashboard/policy", "Policies, country by country"],
+  ["Compare", "/dashboard/rankings", "Places side by side"],
+  ["Trends", "/dashboard/trends", "Figures over time"],
+  ["Worldview", "/dashboard/worldview", "The world's news and views"],
+  ["Human Rights", "/dashboard/humanitarian", "Rights, liberties and humanitarian need"],
+  ["Climate", "/dashboard/planetary-boundaries", "The measured state of the climate"],
+  ["Crime Statistics", "/dashboard/crime", "Crime and justice figures"],
+  ["World Maps", "/dashboard/maps", "The world, mapped by measure"],
+];
+
+/** What can be searched as soon as the page is up: the pages, the countries, the US states, the profiled cities and the economies. */
 function buildSearchIndex(): SearchResult[] {
-  const results: SearchResult[] = [];
-  usStatesData.forEach((s) =>
-    results.push({
-      id: `state-${s.id}`,
-      label: s.name,
-      sublabel: `${s.region} · ${s.capital}`,
-      type: "State",
-      route: ROUTE_MAP.State,
-    }),
-  );
+  const results: SearchResult[] = PAGES.map(([label, to, about]) => entry({ id: `page-${to}`, label, sublabel: about, type: "Page", to }));
   countriesData.forEach((c) =>
-    results.push({
-      id: `country-${c.id}`,
-      label: c.name,
-      sublabel: `${c.continent} · ${c.capital}`,
-      type: "Country",
-      route: ROUTE_MAP.Country,
-    }),
+    results.push(entry({ id: `country-${c.id}`, label: c.name, sublabel: `${c.continent} · ${c.capital}`, type: "Country", to: `/dashboard/countries?open=${encodeURIComponent(c.id)}` })),
+  );
+  usStatesData.forEach((s) =>
+    results.push(entry({ id: `state-${s.id}`, label: s.name, sublabel: `${s.region} · ${s.capital}`, type: "State", to: `/dashboard/states?open=${encodeURIComponent(s.id)}` })),
   );
   citiesData.forEach((c) =>
-    results.push({
-      id: `city-${c.id}`,
-      label: c.name,
-      sublabel: `${c.country} · ${c.region}`,
-      type: "City",
-      route: ROUTE_MAP.City,
-    }),
+    results.push(entry({ id: `city-${c.id}`, label: c.name, sublabel: `${c.country} · ${c.region}`, type: "City", to: `/dashboard/cities?open=${encodeURIComponent(c.id)}` })),
   );
   economiesData.forEach((e) =>
-    results.push({
-      id: `economy-${e.id}`,
-      label: e.name,
-      sublabel: `${e.entityType} · ${e.currencyCode}`,
-      type: "Economy",
-      route: ROUTE_MAP.Economy,
-    }),
+    results.push(entry({ id: `economy-${e.id}`, label: e.name, sublabel: `${e.entityType} · ${e.currencyCode}`, type: "Economy", to: `/dashboard/economies?open=${encodeURIComponent(e.id)}` })),
   );
   return results;
 }
 
 const SEARCH_INDEX = buildSearchIndex();
+
+/**
+ * The rest of what the site holds, fetched when the search is first used: every division of every country, every city
+ * the United Nations counts and every US county - some twenty thousand names, too many to carry on every page. Once
+ * they are in, the UN's cities stand for the few profiled ones, which they include. A town is found inside its
+ * country's or its division's window on the Municipalities page, where its country's list is fetched.
+ */
+let MORE: Promise<SearchResult[]> | null = null;
+const more = () =>
+  (MORE ??= Promise.all([import("@/data/subnations"), import("@/data/unCities"), import("@/data/usCounties")])
+    .then(([sub, un, us]) => {
+      const country = new Map(countriesData.map((c) => [c.code, c.name]));
+      const stateOf = new Map(usStatesData.map((s) => [s.abbreviation, s.name]));
+      const people = (v: number) => (v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : Math.round(v).toLocaleString("en-US"));
+      return [
+        ...un.UN_CITIES.map((c) =>
+          entry({ id: `un-${c[0]}-${c[1]}`, label: c[2], sublabel: `${country.get(c[0]) ?? c[0]} · ${people(c[8])} people, 2025 (UN)${c[5] ? " · capital" : ""}`, type: "City", to: `/dashboard/cities?open=un-${c[0]}-${c[1]}` }),
+        ),
+        // A US state is found as a state: its division's record is left out of the list, so that it is not there twice.
+        ...sub.SUBNATIONS.filter((s) => !(s.cc === "US" && s.code && stateOf.has(s.code.slice(3)))).map((s) =>
+          entry({
+            id: `division-${s.id}`,
+            label: s.name,
+            sublabel: [s.kind || "Division", country.get(s.cc) ?? s.cc, s.capital ? `capital ${s.capital}` : ""].filter(Boolean).join(" · "),
+            type: "Division",
+            to: `/dashboard/subnations?open=${encodeURIComponent(s.id)}`,
+          }),
+        ),
+        ...us.US_COUNTIES.map((x) => entry({ id: `county-${x[0]}`, label: x[1], sublabel: `County · ${stateOf.get(x[2]) ?? x[2]}`, type: "County", to: `/dashboard/subnations?open=county:${x[0]}` })),
+      ];
+    })
+    .catch(() => {
+      // Asked for again the next time, should it not have come.
+      MORE = null;
+      return [] as SearchResult[];
+    }));
+
+/** How well an entry answers: its name itself, its name's beginning, a word of its name, somewhere in its name, or only the line under it. */
+function answers(r: SearchResult, q: string): number {
+  if (r.key === q) return 0;
+  if (r.key.startsWith(q)) return 1;
+  const at = r.key.indexOf(q);
+  if (at > 0) return /[\s(\-/]/.test(r.key[at - 1]) ? 2 : 3;
+  return r.subkey.includes(q) ? 4 : -1;
+}
 
 export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
   const { theme, toggleTheme } = useTheme();
@@ -119,6 +172,11 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
   const [searchValue, setSearchValue] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
+  /** The larger list, once it has been fetched. */
+  const [extra, setExtra] = useState<SearchResult[] | null>(null);
+  const wantMore = () => {
+    if (!extra) more().then((list) => list.length && setExtra(list));
+  };
   const wrapperRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -131,14 +189,21 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
       setOpen(false);
       return;
     }
-    const matches = SEARCH_INDEX.filter(
-      (r) =>
-        r.label.toLowerCase().includes(q) ||
-        r.sublabel.toLowerCase().includes(q),
-    ).slice(0, 8);
+    if (!extra) more().then((list) => list.length && setExtra(list));
+    const key = fold(q);
+    // With the larger list in, the UN's cities stand for the profiled few.
+    const list = extra ? [...SEARCH_INDEX.filter((r) => r.type !== "City"), ...extra] : SEARCH_INDEX;
+    const found: { r: SearchResult; score: number; at: number }[] = [];
+    list.forEach((r, at) => {
+      const score = answers(r, key);
+      if (score >= 0) found.push({ r, score, at });
+    });
+    // The best answer first; among equals, the kind of thing, and then the list's own order - the cities are in it largest first.
+    found.sort((a, b) => a.score - b.score || TYPE_ORDER[a.r.type] - TYPE_ORDER[b.r.type] || a.at - b.at);
+    const matches = found.slice(0, 10).map((x) => x.r);
     setResults(matches);
     setOpen(matches.length > 0);
-  }, [searchValue]);
+  }, [searchValue, extra]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -154,9 +219,7 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
   }, []);
 
   const handleSelect = (result: SearchResult) => {
-    // Strip the leading "state-", "country-", "city-", "economy-" prefix to get the raw entity id
-    const rawId = result.id.replace(/^(state|country|city|economy)-/, "");
-    navigate(`${result.route}?open=${encodeURIComponent(rawId)}`);
+    navigate(result.to);
     setSearchValue("");
     setOpen(false);
   };
@@ -240,12 +303,17 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
           />
           <Input
             type="search"
-            placeholder="Search states, countries, cities, economies…"
+            placeholder="Search countries, states, cities, counties, pages…"
             value={searchValue}
             onChange={(e) =>
               setSearchValue(e.target.value.slice(0, LIMITS.SEARCH_QUERY))
             }
-            onFocus={() => results.length > 0 && setOpen(true)}
+            onFocus={() => {
+              // The larger list is asked for as the search is first reached, so that it is in by the time something is typed.
+              wantMore();
+              if (results.length > 0) setOpen(true);
+            }}
+
             className="header-search-input pl-10 border text-foreground focus:ring-ring h-9 text-sm rounded-full transition-colors duration-150"
             role="combobox"
             aria-label="Global search"
