@@ -3312,7 +3312,8 @@ export function WorldMapsPage() {
 
     return (
       <div className={`${mapBar} top-16`}>
-        <ChipRow>
+        <div className="flex items-center gap-2 min-w-0">
+        <ChipRow className="flex-1">
           <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
             Layers
           </span>
@@ -3331,11 +3332,13 @@ export function WorldMapsPage() {
           {/* The layers themselves, on the same line as asked: they follow "More" when it is open, and the row moves along to reach the rest. */}
           {showAdditionalLayers && OVERLAYS.map((o) => layerButton(o, layers, set))}
           {markChip}
-          {/* Which place that is: any country, or a US state. Pressing one on a map chooses it too. */}
-          <CountrySearch chip options={markOptions} onPick={pickMark} placeholder="Highlight a country or state" label="Choose the country or US state to pick out on the maps" />
         </ChipRow>
+        {/* Which place that is: any country, or a US state. Pressing one on a map chooses it too. It stands beside the row of chips and not in it: a row that scrolls sideways cuts off whatever drops below it, and its list of answers was cut off. */}
+        <CountrySearch chip options={markOptions} onPick={pickMark} placeholder="Highlight a country or state" label="Choose the country or US state to pick out on the maps" />
+        </div>
       </div>
     );
+
 
   };
 
