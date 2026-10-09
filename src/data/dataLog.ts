@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "Which divisions' flags are saved with the site, and under what file name",
+    "from": "Wikimedia Commons",
+    "page": "/dashboard/subnations",
+    "where": "Municipalities",
+    "read": "2026-10-09",
+    "files": 1
+  },
+  {
     "what": "Every city the United Nations counts: where it is, its population in 1975, 2000 and 2025 and projected for 2050, its area and density",
     "from": "United Nations",
     "page": "/dashboard/cities",
@@ -376,4 +384,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 65;
+export const DATA_LOG_FILES = 66;

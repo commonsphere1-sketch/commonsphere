@@ -94,6 +94,7 @@ import { PLACES_SOURCE, type PlaceRow } from "../data/placesIndex";
 import { REGIONAL_ASSEMBLIES, REPRESENTATIVES, REPRESENTATIVES_SOURCES } from "../data/representatives";
 import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
 import { usStatesData } from "../data/statesData";
+import { SUBNATION_FLAG_FILE } from "../data/subnationFlagFiles";
 import { SUBNATIONS, SUBNATIONS_RETRIEVED, SUBNATIONS_SOURCES, type Subnation } from "../data/subnations";
 import type { UsCounty } from "../data/usCounties";
 
@@ -114,7 +115,9 @@ const coords = (lat: number, lon: number) => `${Math.abs(lat).toFixed(2)}°${lat
 const flag = (cc: string, w = 40) => `https://flagcdn.com/w${w}/${cc.toLowerCase()}.png`;
 /** A division's own flag, from Wikimedia Commons at a width: the file its Wikidata record names, kept only under a licence the site can use. */
 const commonsFile = (file: string) => encodeURIComponent(file.replace(/ /g, "_"));
-const ownFlag = (s: Subnation, w: number) => (s.flag ? `https://commons.wikimedia.org/wiki/Special:FilePath/${commonsFile(s.flag)}?width=${w}` : null);
+const commonsFlag = (s: Subnation, w: number) => (s.flag ? `https://commons.wikimedia.org/wiki/Special:FilePath/${commonsFile(s.flag)}?width=${w}` : null);
+/** The flag as it is drawn: the copy saved with the site where there is one (static/flags/divisions, by build-subnation-flag-files.cjs), so that it comes with the page, and otherwise Commons' own. */
+const ownFlag = (s: Subnation, w: number) => (s.flag ? (SUBNATION_FLAG_FILE[s.id] ? `/flags/divisions/${SUBNATION_FLAG_FILE[s.id]}` : commonsFlag(s, w)) : null);
 
 const COUNTRY = new Map(countriesData.map((c) => [c.code, c]));
 /** The countries that have divisions, by name. */
@@ -1079,10 +1082,32 @@ function DivisionCard({ s, inside, onOpen }: { s: Subnation; /** What GeoNames l
   return (
     <button type="button" onClick={onOpen} className="modal-tile rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
       <span className="flex items-center gap-2.5 min-w-0">
-        {/* The division's own flag, where one is held under a licence the site can use; an empty frame where none is, not its country's. */}
-        <span className="w-9 h-6 rounded-[3px] overflow-hidden shrink-0 border border-border/60 bg-muted/40" title={s.flag ? `${s.name}'s flag · Wikimedia Commons, ${s.flagLicence}` : "Its flag is not held"}>
-          {s.flag && <img src={ownFlag(s, 120)!} alt="" loading="lazy" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />}
+        {/* The division's own flag, where one is held under a licence the site can use: the copy saved with the site, and Commons' own if that does not come. Where none is held - many divisions have no flag - its country's stands in, paler, and is said to be the country's. */}
+        <span
+          className="w-9 h-6 rounded-[3px] overflow-hidden shrink-0 border border-border/60 bg-muted/40"
+          title={s.flag ? `${s.name}'s flag · Wikimedia Commons, ${s.flagLicence}` : `No flag of its own is held for ${s.name}: ${COUNTRY.get(s.cc)?.name ?? s.cc}'s is shown, paler`}
+        >
+          {s.flag ? (
+            <img
+              src={ownFlag(s, 120)!}
+              alt=""
+              loading="lazy"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // The saved copy did not come: Commons is asked once, and the frame is left empty only if that fails too.
+                const el = e.currentTarget;
+                const again = commonsFlag(s, 120);
+                if (again && el.dataset.again !== "1") {
+                  el.dataset.again = "1";
+                  el.src = again;
+                } else el.style.visibility = "hidden";
+              }}
+            />
+          ) : (
+            <img src={flag(s.cc, 80)} alt="" loading="lazy" className="w-full h-full object-cover opacity-40" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
+          )}
         </span>
+
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-bold font-sans text-foreground truncate">{s.name}</span>
           <span className="block text-[10px] font-mono text-muted-foreground truncate">{s.kind || "Division"}</span>

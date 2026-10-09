@@ -63,6 +63,8 @@ const SETS = [
   { files: ["publicSecurity.ts"], what: "Public security: stability, conflict deaths, terrorism and displacement, by country", from: "World Bank (Worldwide Governance Indicators), UCDP, Global Terrorism Database, UNHCR, IDMC", page: "/dashboard/countries", where: "Countries" },
   { files: ["subnations.ts"], what: "The first-order divisions of every country - states, provinces, regions, departments - with each one's names, code, capital, area, borders and dated population", from: "Natural Earth, Wikidata", page: "/dashboard/subnations", where: "Municipalities" },
   { files: ["subnationFlagColors.ts"], what: "One colour for each division that has a flag, read off the flag", from: "Wikimedia Commons", page: "/dashboard", where: "Dashboard" },
+  { files: ["subnationFlagFiles.ts"], what: "Which divisions' flags are saved with the site, and under what file name", from: "Wikimedia Commons", page: "/dashboard/subnations", where: "Municipalities" },
+
   { files: ["unCities.ts"], what: "Every city the United Nations counts: where it is, its population in 1975, 2000 and 2025 and projected for 2050, its area and density", from: "United Nations", page: "/dashboard/cities", where: "Global cities" },
   { files: ["usCounties.ts"], what: "The counties of the United States: population by year, births, deaths and migration, land and water area", from: "US Census Bureau", page: "/dashboard/subnations", where: "Municipalities" },
   { files: ["cityKnownFor.ts"], what: "What each profiled city is and is known for, with its official website and Britannica entry", from: "Wikipedia, Wikidata", page: "/dashboard", where: "Dashboard" },
